@@ -407,7 +407,7 @@ jobs:
         timeout-minutes: 25
         shell: bash
         run: |
-          make all RELEASE=1
+          xvfb-run --auto-servernum make all RELEASE=1
 
       - name: Upload Test Status Report & Artifacts
         if: always()

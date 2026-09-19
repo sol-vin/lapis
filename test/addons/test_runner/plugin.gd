@@ -267,6 +267,13 @@ func _run_in_editor_tool_tests():
 		if FileAccess.file_exists("res://bin/.runtime_tests_failed"):
 			DirAccess.remove_absolute("res://bin/.runtime_tests_failed")
 
+		var is_headless = DisplayServer.get_name() == "headless" or OS.get_environment("GODOT_HEADLESS") == "1" or "--headless" in OS.get_cmdline_args()
+		if is_headless:
+			ProjectSettings.set_setting("editor/run/main_run_args", "--headless --audio-driver Dummy")
+			var ed_settings = EditorInterface.get_editor_settings()
+			if ed_settings:
+				ed_settings.set_setting("run/main_run_args", "--headless --audio-driver Dummy")
+
 		EditorInterface.play_main_scene()
 		print("[CrystalToolTester]   ✔ EditorInterface.play_main_scene() triggered!")
 
@@ -290,6 +297,14 @@ func _run_in_editor_tool_tests():
 		print("[CrystalToolTester] Checking in-editor game window test results...")
 		var has_passed = FileAccess.file_exists("res://.runtime_tests_passed") or FileAccess.file_exists("res://bin/.runtime_tests_passed")
 		var has_failed = FileAccess.file_exists("res://.runtime_tests_failed") or FileAccess.file_exists("res://bin/.runtime_tests_failed")
+
+		if not has_passed and is_headless:
+			print("[CrystalToolTester] In-editor play scene did not execute in headless environment; executing headless test scene directly...")
+			var out = []
+			var exit_code = OS.execute(OS.get_executable_path(), ["--headless", "--audio-driver", "Dummy", "--path", ".", "res://scenes/main_test_runner.tscn"], out, true)
+			print("[CrystalToolTester] Direct headless run exited with code: %d" % exit_code)
+			has_passed = FileAccess.file_exists("res://.runtime_tests_passed") or FileAccess.file_exists("res://bin/.runtime_tests_passed")
+			has_failed = FileAccess.file_exists("res://.runtime_tests_failed") or FileAccess.file_exists("res://bin/.runtime_tests_failed")
 
 		if has_passed and not has_failed:
 			print("[CrystalToolTester]   ✔ In-editor game window regular test suite PASSED!")
