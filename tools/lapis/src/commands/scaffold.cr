@@ -203,9 +203,20 @@ MD
         # 5. Copy and customize template files
         if use_baked
           Core::BakedFileSystem.extract_folder("template", dest)
+          if Core::BakedFileSystem.files_with_prefix("addons/crystal_integration").size > 0
+            Core::BakedFileSystem.extract_folder("addons/crystal_integration", dest.join("addons/crystal_integration"))
+          end
           customize_project_files(dest, proj_title, proj_slug, root, local_dep)
         else
           copy_template_dir(template_dir, dest, proj_title, proj_slug, root, local_dep)
+          addon_src = root.join("addons/crystal_integration")
+          addon_dest = dest.join("addons/crystal_integration")
+          if !Dir.exists?(addon_dest) && Dir.exists?(addon_src)
+            FileUtils.mkdir_p(addon_dest)
+            ["crystal.gdextension", "plugin.cfg", "plugin.gd", "crystal_icon.svg"].each do |f|
+              FileUtils.cp(addon_src.join(f), addon_dest.join(f)) if File.exists?(addon_src.join(f))
+            end
+          end
         end
 
         # Ensure godot-version.yml exists
