@@ -97,7 +97,11 @@ HELP
             "spec/libgodot_spec.cr",
             "spec/boot_spec.cr",
             "spec/api_coverage_spec.cr",
-            "spec/project_scaffolding_spec.cr"
+            "spec/project_scaffolding_spec.cr",
+            "spec/godot_version_verification_spec.cr",
+            "spec/lapis_install_spec.cr",
+            "spec/tool_verification_spec.cr",
+            "spec/baked_file_system_spec.cr",
           ]
           root_specs.each do |spec_file|
             full_path = root.join(spec_file)

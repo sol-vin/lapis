@@ -33,6 +33,7 @@
 #include "classdb_registry.hpp"
 #include "bridge_api.hpp"
 #include "module_loader.hpp"
+#include "godot_version.h"
 
 // ==============================================================================
 // GDExtension Module Lifecycle Callbacks
@@ -168,6 +169,49 @@ static void deinitialize_crystal_module(void *p_userdata, GDExtensionInitializat
     }
 }
 
+static inline bool bridge_version_matches(const char *expected, const char *actual) {
+    if (!expected || !actual) return false;
+    std::string exp_str(expected);
+    std::string act_str(actual);
+
+    auto tokenize = [](const std::string &s) {
+        std::vector<std::string> tokens;
+        std::string cur;
+        for (size_t i = 0; i < s.size(); ++i) {
+            char c = s[i];
+            if ((c == 'v' || c == 'V') && cur.empty() && i + 1 < s.size() && isdigit((unsigned char)s[i + 1])) {
+                continue;
+            }
+            if (isalnum((unsigned char)c)) {
+                cur += (char)tolower(c);
+            } else {
+                if (!cur.empty()) {
+                    tokens.push_back(cur);
+                    cur.clear();
+                }
+            }
+        }
+        if (!cur.empty()) tokens.push_back(cur);
+        return tokens;
+    };
+
+    std::vector<std::string> exp_tokens = tokenize(exp_str);
+    std::vector<std::string> act_tokens = tokenize(act_str);
+
+    if (exp_tokens.empty() || act_tokens.empty()) return false;
+    for (const auto &exp : exp_tokens) {
+        bool found = false;
+        for (const auto &act : act_tokens) {
+            if (exp == act) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) return false;
+    }
+    return true;
+}
+
 // ==============================================================================
 // GDExtension Library Master Entry Point
 // ==============================================================================
@@ -177,6 +221,29 @@ extern "C" GDE_EXPORT GDExtensionBool crystal_library_init(
     GDExtensionClassLibraryPtr p_library,
     GDExtensionInitialization *r_initialization
 ) {
+#ifdef LIBGODOT_TARGET_VERSION
+    const char *skip_ver_env = getenv("LAPIS_SKIP_VERSION_CHECK");
+    bool skip_ver = (skip_ver_env && (strcmp(skip_ver_env, "1") == 0 || strcmp(skip_ver_env, "true") == 0));
+    if (!skip_ver) {
+        GDExtensionInterfaceGetGodotVersion get_godot_version =
+            (GDExtensionInterfaceGetGodotVersion)p_get_proc_address("get_godot_version");
+        if (get_godot_version) {
+            GDExtensionGodotVersion gv;
+            memset(&gv, 0, sizeof(gv));
+            get_godot_version(&gv);
+            if (gv.string && !bridge_version_matches(LIBGODOT_TARGET_VERSION, gv.string)) {
+                fprintf(stderr, "\n==================================================================\n");
+                fprintf(stderr, "  [CrystalBridge] FATAL ERROR: Godot engine version mismatch!\n");
+                fprintf(stderr, "  Bridge compiled for : %s\n", LIBGODOT_TARGET_VERSION);
+                fprintf(stderr, "  Running Godot       : %s\n", gv.string);
+                fprintf(stderr, "  Please recompile with matching engine or run 'make setup-dev'.\n");
+                fprintf(stderr, "  (Set LAPIS_SKIP_VERSION_CHECK=1 to bypass)\n");
+                fprintf(stderr, "==================================================================\n\n");
+                return 0;
+            }
+        }
+    }
+#endif
 #ifdef _WIN32
     // Pin crystal_bridge in memory so Godot's FreeLibrary during GDExtension reload
     // does NOT unmap the bridge DLL. Godot's ClassDB retains function pointers

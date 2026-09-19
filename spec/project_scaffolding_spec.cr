@@ -103,4 +103,48 @@ if File.exists?(scaffold_tool_path)
   puts "  ✓ tools/lapis/src/commands/scaffold.cr verified"
 end
 
+# -------------------------------------------------------------
+# [Spec 4] godot-version.yml Presence Across All Consumers
+# -------------------------------------------------------------
+puts "[Spec 4] Verifying godot-version.yml presence in all consumer projects..."
+
+consumer_projects.each do |proj|
+  proj_dir = File.join(root_dir, proj)
+  next unless Dir.exists?(proj_dir)
+
+  version_file = File.join(proj_dir, "godot-version.yml")
+  if !File.exists?(version_file)
+    abort "ERROR: Project '#{proj}' is missing 'godot-version.yml'!"
+  end
+
+  content = File.read(version_file)
+  if !content.includes?("version:")
+    abort "ERROR: Project '#{proj}/godot-version.yml' does not specify 'version:'!"
+  end
+
+  puts "  ✓ #{proj}/godot-version.yml verified present"
+end
+
+# -------------------------------------------------------------
+# [Spec 5] Consumer godot-version.yml Ignored in Git
+# -------------------------------------------------------------
+puts "[Spec 5] Verifying consumer godot-version.yml files are excluded in .gitignore..."
+gitignore_path = File.join(root_dir, ".gitignore")
+if File.exists?(gitignore_path)
+  gi_content = File.read(gitignore_path)
+  [
+    "/test/godot-version.yml",
+    "/template/godot-version.yml",
+    "/template-addon/godot-version.yml",
+    "/performance/godot-version.yml",
+    "/examples/*/godot-version.yml",
+  ].each do |expected_rule|
+    unless gi_content.includes?(expected_rule)
+      abort "ERROR: .gitignore is missing rule: '#{expected_rule}'!"
+    end
+  end
+  puts "  ✓ .gitignore properly ignores consumer godot-version.yml files"
+end
+
 puts "=== All Project Scaffolding & Directory Integrity Specifications Passed! ==="
+

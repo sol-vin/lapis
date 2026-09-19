@@ -27,7 +27,7 @@ jobs:
         id: godot-version
         shell: pwsh
         run: |
-          $ver = "4.8-dev5"
+          $ver = "4.8-dev6"
           if (Test-Path "godot-version.yml") {
             $content = Get-Content "godot-version.yml" -Raw
             if ($content -match 'version:\s*[''"]?([^''"\r\n]+)[''"]?') {
@@ -188,7 +188,7 @@ jobs:
         shell: bash
         run: |
           GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml | tr -d '\r\n[:space:]')
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev5"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev6"; fi
           echo "Resolved Godot Version: $GODOT_VER"
           echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
@@ -319,7 +319,7 @@ jobs:
         shell: bash
         run: |
           GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml | tr -d '\r\n[:space:]')
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev5"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev6"; fi
           echo "Resolved Godot Version: $GODOT_VER"
           echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
@@ -451,7 +451,7 @@ jobs:
         shell: bash
         run: |
           GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml | tr -d '\r\n[:space:]')
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev5"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev6"; fi
           echo "Resolved Godot Version: $GODOT_VER"
           echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"

@@ -62,6 +62,36 @@ module Lapis
         end
       end
 
+      # Embeds a Godot PCK directly into an executable binary using Godot's GDPC footer format.
+      def self.embed_pck_in_executable(exe_path : Path, pck_path : Path, output_path : Path) : Bool
+        return false unless File.exists?(exe_path) && File.exists?(pck_path)
+        exe_size = File.size(exe_path)
+
+        File.open(output_path.to_s, "wb") do |out_f|
+          File.open(exe_path.to_s, "rb") do |in_exe|
+            IO.copy(in_exe, out_f)
+          end
+          File.open(pck_path.to_s, "rb") do |in_pck|
+            IO.copy(in_pck, out_f)
+          end
+
+          # Godot 4.x PCK footer:
+          # 8 bytes: pck_offset (UInt64 little-endian)
+          # 4 bytes: magic 'GDPC' (0x43504447 little-endian)
+          pck_offset = exe_size.to_u64
+          magic = 0x43504447_u32
+
+          io_bytes = Bytes.new(12)
+          IO::ByteFormat::LittleEndian.encode(pck_offset, io_bytes[0, 8])
+          IO::ByteFormat::LittleEndian.encode(magic, io_bytes[8, 4])
+          out_f.write(io_bytes)
+        end
+        true
+      rescue ex
+        Core::Logger.warn("Could not embed PCK into executable: #{ex.message}")
+        false
+      end
+
       def self.package_template(root : Path, out_path : Path?, bundle_binaries : Bool = false) : Int32
         template_dir = root.join("template")
         zip_file = out_path || root.join("bin/template-project.zip")
@@ -135,11 +165,11 @@ module Lapis
       def self.package_tests(root : Path, out_path : Path?, platform_name : String? = nil, release : Bool = false) : Int32
         test_dir = root.join("test")
         plat = platform_name || (Core::Env.windows? ? "windows" : (Core::Env.macos? ? "macos" : "linux"))
-        zip_file = out_path || root.join("bin/tests-#{plat}.zip")
+        zip_file = out_path || root.join("bin/test-suite-#{plat}.zip")
 
         Core::Logger.step("Package", "Packaging standalone test runner...")
         # First ensure standalone runner is built
-        package_game(test_dir, name: "tests", release: release, force_compile: false)
+        package_game(test_dir, name: "tests", release: release, force_compile: false, embed_pck: true)
 
         stage_dir = root.join("scratch/tests-#{plat}-stage")
         FileUtils.rm_rf(stage_dir) if Dir.exists?(stage_dir)
@@ -175,7 +205,7 @@ module Lapis
         zip_file = out_path || root.join("bin/perf-#{plat}.zip")
 
         Core::Logger.step("Package", "Packaging performance stress benchmark...")
-        package_game(perf_dir, name: "perf", release: release, force_compile: false)
+        package_game(perf_dir, name: "perf", release: release, force_compile: false, embed_pck: true)
 
         stage_dir = root.join("scratch/perf-#{plat}-stage")
         FileUtils.rm_rf(stage_dir) if Dir.exists?(stage_dir)
@@ -206,7 +236,9 @@ module Lapis
         name : String? = nil,
         release : Bool = false,
         target_dir : Path? = nil,
-        force_compile : Bool = false
+        force_compile : Bool = false,
+        embed_pck : Bool = false,
+        portable : Bool = false
       ) : Int32
         root = Core::Env::ROOT_DIR
         proj_dir = project_path.expand
@@ -333,9 +365,26 @@ module Lapis
               safe_copy(pck_file, bin_dir.join("#{game_name}.console.pck"))
             end
             Core::Logger.success("Standalone pack generated successfully!")
+
+            # Embed PCK directly into the binary if requested or portable
+            if embed_pck || portable
+              embedded_exe = bin_dir.join("#{game_name}_embedded#{Core::Env.exe_ext}")
+              if embed_pck_in_executable(named_exe, pck_file, embedded_exe)
+                safe_copy(embedded_exe, named_exe)
+                File.delete(embedded_exe) if File.exists?(embedded_exe)
+                Core::Logger.success("Embedded PCK data directly into #{named_exe.basename}!")
+              end
+            end
           else
             Core::Logger.warn("Failed to generate standalone pack via --export-pack, falling back.")
           end
+        end
+
+        if portable
+          portable_archive = (td = target_dir) ? td.join("#{game_name}-portable.zip") : bin_dir.join("#{game_name}-portable.zip")
+          Core::Logger.step("PackageGame", "Creating portable single-directory game distribution: #{portable_archive.basename}...")
+          zip_directory(bin_dir, portable_archive, strip_prefix: bin_dir, exclude_patterns: [".gdignore", ".log", "~", ".tmp"])
+          Core::Logger.success("Portable package created: #{portable_archive}!")
         end
 
         # 7. Copy to target_dir if requested
@@ -367,17 +416,18 @@ module Lapis
 
         Core::Logger.step("PackageRelease", "Packaging all release archives into #{out_dir}...")
 
+        plat = Core::Env.windows? ? "windows" : (Core::Env.macos? ? "macos" : "linux")
         package_template(root, out_dir.join("template-project.zip"))
         package_template_addon(root, out_dir.join("template-addon-project.zip"))
-        package_examples(root, out_dir.join("examples-#{Core::Env.windows? ? "windows" : (Core::Env.macos? ? "macos" : "linux")}.zip"))
+        package_examples(root, out_dir.join("examples-#{plat}.zip"))
         package_addon(root, out_dir.join("godot-crystal-addon.zip"))
 
         unless skip_tests
-          package_tests(root, out_dir.join("tests-#{Core::Env.windows? ? "windows" : (Core::Env.macos? ? "macos" : "linux")}.zip"), release: release)
+          package_tests(root, out_dir.join("test-suite-#{plat}.zip"), platform_name: plat, release: release)
         end
 
         unless skip_perf
-          package_perf(root, out_dir.join("perf-#{Core::Env.windows? ? "windows" : (Core::Env.macos? ? "macos" : "linux")}.zip"), release: release)
+          package_perf(root, out_dir.join("perf-#{plat}.zip"), platform_name: plat, release: release)
         end
 
         # Compute SHA256 sums
@@ -441,20 +491,26 @@ HELP
         target_dir : String? = nil
         project_path : String? = nil
         name : String? = nil
+        platform_arg : String? = nil
         release = false
         force = false
+        embed_pck = false
+        portable = false
         bundle_binaries = false
         skip_tests = false
         skip_perf = false
 
         parser = OptionParser.new do |opts|
           opts.banner = "Usage: lapis package #{target} [options]"
-          opts.on("-p PATH", "--project=PATH", "Project directory path") { |p| project_path = p }
+          opts.on("-p PATH", "--project=PATH", "Project directory path or platform") { |p| project_path = p }
+          opts.on("--platform=NAME", "Target platform name (windows, linux, macos, android)") { |pl| platform_arg = pl }
           opts.on("-n NAME", "--name=NAME", "Target name") { |n| name = n }
           opts.on("-t DIR", "--target-dir=DIR", "Target staging directory") { |t| target_dir = t }
           opts.on("-o PATH", "--output=PATH", "Explicit output .zip path") { |o| output_file = o }
           opts.on("-r", "--release", "Compile/package with optimizations") { release = true }
           opts.on("-f", "--force", "Force compilation") { force = true }
+          opts.on("--embed-pck", "Embed PCK data directly into the executable binary") { embed_pck = true }
+          opts.on("--portable", "Package portable distribution with embedded PCK") { portable = true; embed_pck = true }
           opts.on("--bundle-binaries", "Include compiled binaries in archive") { bundle_binaries = true }
           opts.on("--skip-tests", "Skip tests in release") { skip_tests = true }
           opts.on("--skip-perf", "Skip perf in release") { skip_perf = true }
@@ -467,24 +523,32 @@ HELP
         out_path = (of = output_file) ? Path.new(of).expand : nil
         td_path = (td = target_dir) ? Path.new(td).expand : nil
 
+        plat = platform_arg || (project_path && ["windows", "linux", "macos", "android"].includes?(project_path.to_s.downcase) ? project_path.to_s.downcase : nil) || (Core::Env.windows? ? "windows" : (Core::Env.macos? ? "macos" : "linux"))
+
         case target
         when "template"
-          package_template(root, out_path, bundle_binaries)
+          final_out = out_path || (td_path ? td_path.join("template-project.zip") : nil)
+          package_template(root, final_out, bundle_binaries)
         when "template-addon", "template_addon"
-          package_template_addon(root, out_path, bundle_binaries)
+          final_out = out_path || (td_path ? td_path.join("template-addon-project.zip") : nil)
+          package_template_addon(root, final_out, bundle_binaries)
         when "addon"
-          proj_p = (pp = project_path) ? Path.new(pp).expand : nil
-          package_addon(root, out_path, name: name, project_path: proj_p)
+          proj_p = (pp = project_path) && !["windows", "linux", "macos", "android"].includes?(pp.downcase) ? Path.new(pp).expand : nil
+          final_out = out_path || (td_path ? td_path.join("godot-crystal-addon.zip") : nil)
+          package_addon(root, final_out, name: name, project_path: proj_p)
         when "examples"
-          package_examples(root, out_path)
+          final_out = out_path || (td_path ? td_path.join("examples-#{plat}-x86_64.zip") : nil)
+          package_examples(root, final_out)
         when "tests", "test"
-          package_tests(root, out_path, release: release)
+          final_out = out_path || (td_path ? td_path.join("test-suite-#{plat}.zip") : nil)
+          package_tests(root, final_out, platform_name: plat, release: release)
         when "perf", "performance"
-          package_perf(root, out_path, release: release)
+          final_out = out_path || (td_path ? td_path.join("perf-#{plat}.zip") : nil)
+          package_perf(root, final_out, platform_name: plat, release: release)
         when "game"
-          proj_str = (pp = project_path) ? pp : "."
+          proj_str = (pp = project_path) && !["windows", "linux", "macos", "android"].includes?(pp.downcase) ? pp : "."
           proj = Path.new(proj_str).expand
-          package_game(proj, name: name, release: release, target_dir: td_path, force_compile: force)
+          package_game(proj, name: name, release: release, target_dir: td_path, force_compile: force, embed_pck: embed_pck, portable: portable)
         when "release", "all"
           out_dir = td_path || out_path || root.join("bin/release_dist")
           package_release(out_dir, release: release, skip_tests: skip_tests, skip_perf: skip_perf)

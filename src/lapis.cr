@@ -458,6 +458,50 @@ end
 # ```
 module Godot
   VERSION = "0.1.0"
+  TARGET_GODOT_VERSION = {{
+    read_file("#{__DIR__}/../godot-version.yml").split("\n").find(&.includes?("version:")).split(":")[1].gsub(/["'\r\n]/, "").strip
+  }}
+  {% begin %}
+    {%
+      shard_content = read_file("#{__DIR__}/../shard.yml")
+      crystal_line = ""
+      lines = shard_content.split("\n")
+    %}
+    {% for line in lines %}
+      {% if line.strip.starts_with?("crystal:") %}
+        {% crystal_line = line.strip %}
+      {% end %}
+    {% end %}
+    {%
+      min_ver = "1.20.0"
+      target_ver = "1.21.0"
+      if crystal_line.size > 0
+        val = crystal_line.split(":")[1].gsub(/["'\r\n]/, "").strip
+        if val.includes?(">=")
+          parts = val.split(",")
+        else
+          parts = [val]
+        end
+      else
+        parts = [] of String
+      end
+    %}
+    {% for p in parts %}
+      {%
+        trimmed = p.strip
+        if trimmed.starts_with?(">=")
+          min_ver = trimmed.gsub(/>=/, "").strip
+        elsif trimmed.starts_with?("<=")
+          target_ver = trimmed.gsub(/<=/, "").strip
+        elsif trimmed.size > 0 && !trimmed.includes?(">") && !trimmed.includes?("<")
+          min_ver = trimmed
+          target_ver = trimmed
+        end
+      %}
+    {% end %}
+    MIN_CRYSTAL_VERSION = {{ min_ver }}
+    TARGET_CRYSTAL_VERSION = {{ target_ver }}
+  {% end %}
 end
 
 # Core math and transform value-type aliases

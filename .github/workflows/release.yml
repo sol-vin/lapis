@@ -40,7 +40,7 @@ jobs:
         shell: bash
         run: |
           GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml | tr -d '\r\n[:space:]')
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev5"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev6"; fi
           echo "godot_version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "Resolved Godot Version: $GODOT_VER"
 
@@ -85,7 +85,7 @@ jobs:
               $ver = $matches[1].Trim()
             }
           }
-          if (-not $ver) { $ver = "4.8-dev5" }
+          if (-not $ver) { $ver = "4.8-dev6" }
           Write-Host "Resolved Godot Version: $ver"
           "version=$ver" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "GODOT_VERSION=$ver" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
@@ -295,7 +295,7 @@ jobs:
           if [ -z "$GODOT_VER" ] && [ -f "godot-version.yml" ]; then
             GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml | tr -d '\r\n[:space:]')
           fi
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev5"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev6"; fi
           echo "Resolved Godot Version: $GODOT_VER"
           echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
@@ -480,7 +480,7 @@ jobs:
           if [ -z "$GODOT_VER" ] && [ -f "godot-version.yml" ]; then
             GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml | tr -d '\r\n[:space:]')
           fi
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev5"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev6"; fi
           echo "Resolved Godot Version: $GODOT_VER"
           echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
@@ -619,7 +619,7 @@ jobs:
           if [ -z "$GODOT_VER" ] && [ -f "godot-version.yml" ]; then
             GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml | tr -d '\r\n[:space:]')
           fi
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev5"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev6"; fi
           echo "Resolved Godot Version: $GODOT_VER"
           echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
@@ -1072,7 +1072,7 @@ jobs:
           if [ -z "$GODOT_VER" ] && [ -f "godot-version.yml" ]; then
             GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml | tr -d '\r\n[:space:]')
           fi
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev5"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev6"; fi
           cat << 'EOF' > release_body.md
           ## LibGodot Crystal Release Notes
 

@@ -1,5 +1,6 @@
 require "file_utils"
 require "path"
+require "json"
 
 module Lapis
   module Core
@@ -32,6 +33,36 @@ module Lapis
 
         # Fallback to current working directory
         current
+      end
+
+      def self.global_libgodot_path : Path?
+        # 1. Check environment variables
+        if (env_p = ENV["LIBGODOT_PATH"]? || ENV["LAPIS_PATH"]?) && !env_p.empty?
+          p = Path.new(env_p).expand
+          return p if Dir.exists?(p)
+        end
+
+        # 2. Check global configuration file
+        cfg_path = if windows?
+          appdata = ENV["APPDATA"]? || ENV["LOCALAPPDATA"]? || (ENV["USERPROFILE"]? ? File.join(ENV["USERPROFILE"], "AppData", "Roaming") : nil)
+          appdata ? Path.new(appdata).join("lapis", "config.json") : Path.home.join(".config", "lapis", "config.json")
+        else
+          xdg = ENV["XDG_CONFIG_HOME"]?
+          (xdg && !xdg.empty?) ? Path.new(xdg).join("lapis", "config.json") : Path.home.join(".config", "lapis", "config.json")
+        end
+
+        if File.exists?(cfg_path)
+          begin
+            cfg = Hash(String, String).from_json(File.read(cfg_path))
+            if (lp = cfg["libgodot_path"]?) && !lp.empty?
+              p = Path.new(lp).expand
+              return p if Dir.exists?(p)
+            end
+          rescue
+          end
+        end
+
+        nil
       end
 
       ROOT_DIR = find_root

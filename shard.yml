@@ -1,5 +1,6 @@
 name: lapis
 version: 0.1.0
+crystal: ">= 1.20.0, <= 1.21.0"
 
 authors:
   - Ian

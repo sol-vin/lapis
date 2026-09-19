@@ -226,6 +226,26 @@ HELP
           end
         end
 
+        # 4. Sync godot-version.yml across all consumer projects
+        root_version_yml = root.join("godot-version.yml")
+        if File.exists?(root_version_yml)
+          consumer_projs = ["test", "template", "template-addon", "performance"]
+          examples_dir = root.join("examples")
+          if Dir.exists?(examples_dir)
+            Dir.each_child(examples_dir) do |child|
+              ex = examples_dir.join(child)
+              consumer_projs << "examples/#{child}" if Dir.exists?(ex)
+            end
+          end
+
+          consumer_projs.each do |proj|
+            proj_dir = root.join(proj)
+            next unless Dir.exists?(proj_dir)
+            dst_yml = proj_dir.join("godot-version.yml")
+            safe_copy(root_version_yml, dst_yml)
+          end
+        end
+
         0
       end
     end

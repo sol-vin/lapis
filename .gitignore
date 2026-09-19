@@ -89,3 +89,10 @@ shard.lock
 
 # graft's local graph cache — regenerable, not committed (run `graft build`).
 /graft/
+
+# Consumer godot-version.yml (synchronized from repository root or generated)
+/test/godot-version.yml
+/template/godot-version.yml
+/template-addon/godot-version.yml
+/performance/godot-version.yml
+/examples/*/godot-version.yml

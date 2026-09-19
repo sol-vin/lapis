@@ -1,5 +1,6 @@
 require "../core/env"
 require "../core/logger"
+require "../core/baked_file_system"
 require "./deps"
 require "file_utils"
 require "option_parser"
@@ -38,6 +39,67 @@ Examples:
 HELP
       end
 
+      private def self.customize_project_files(
+        dst_dir : Path,
+        proj_title : String,
+        proj_slug : String,
+        root : Path,
+        local_dep : Bool
+      ) : Void
+        godot_proj = dst_dir.join("project.godot")
+        if File.exists?(godot_proj)
+          content = File.read(godot_proj)
+          content = content.gsub(/config\/name="[^"]*"/, "config/name=\"#{proj_title}\"")
+          File.write(godot_proj, content)
+        end
+
+        shard_path = dst_dir.join("shard.yml")
+        dest_expanded = dst_dir.expand.to_s.gsub('\\', '/')
+        root_expanded = root.expand.to_s.gsub('\\', '/')
+
+        if local_dep || (dest_expanded.starts_with?(root_expanded) && !dest_expanded.includes?(".."))
+          rel_root = Path.new(root).relative_to(dst_dir).to_s.gsub('\\', '/')
+          rel_root = "./#{rel_root}" unless rel_root.starts_with?(".")
+          dep_str = "  lapis:\n    path: #{rel_root}"
+        else
+          dep_str = "  lapis:\n    github: sol-vin/lapis\n    branch: master"
+        end
+
+        shard_content = <<-YAML
+name: #{proj_slug}
+version: 0.1.0
+authors:
+  - Developer <developer@example.com>
+license: MIT
+
+dependencies:
+#{dep_str}
+
+targets:
+  game:
+    main: src/main.cr
+YAML
+        File.write(shard_path, shard_content)
+
+        readme_path = dst_dir.join("README.md")
+        readme_content = <<-MD
+# #{proj_title}
+
+A Godot 4.8 + Crystal game built with [Lapis](https://github.com/sol-vin/lapis).
+
+## Development
+
+```bash
+# Compile game library
+lapis build game
+
+# Open in Godot Editor
+lapis editor
+```
+MD
+        File.write(readme_path, readme_content)
+      end
+
       # Recursively copy template directory with exclusions and customizations
       private def self.copy_template_dir(
         src_dir : Path,
@@ -64,62 +126,11 @@ HELP
             FileUtils.mkdir_p(target_item)
           else
             FileUtils.mkdir_p(target_item.parent)
-
-            # Customizations for key files
-            case rel
-            when "project.godot"
-              content = File.read(item)
-              content = content.gsub(/config\/name="[^"]*"/, "config/name=\"#{proj_title}\"")
-              File.write(target_item, content)
-            when "shard.yml"
-              dest_expanded = dst_dir.expand.to_s.gsub('\\', '/')
-              root_expanded = root.expand.to_s.gsub('\\', '/')
-
-              if local_dep || (dest_expanded.starts_with?(root_expanded) && !dest_expanded.includes?(".."))
-                rel_root = Path.new(root).relative_to(dst_dir).to_s.gsub('\\', '/')
-                rel_root = "./#{rel_root}" unless rel_root.starts_with?(".")
-                dep_str = "  lapis:\n    path: #{rel_root}"
-              else
-                dep_str = "  lapis:\n    github: sol-vin/lapis\n    branch: master"
-              end
-
-              shard_content = <<-YAML
-name: #{proj_slug}
-version: 0.1.0
-authors:
-  - Developer <developer@example.com>
-license: MIT
-
-dependencies:
-#{dep_str}
-
-targets:
-  game:
-    main: src/main.cr
-YAML
-              File.write(target_item, shard_content)
-            when "README.md"
-              readme_content = <<-MD
-# #{proj_title}
-
-A Godot 4.8 + Crystal game built with [Lapis](https://github.com/sol-vin/lapis).
-
-## Development
-
-```bash
-# Compile game library
-lapis build game
-
-# Open in Godot Editor
-lapis editor
-```
-MD
-              File.write(target_item, readme_content)
-            else
-              FileUtils.cp(item, target_item.to_s)
-            end
+            FileUtils.cp(item, target_item.to_s)
           end
         end
+
+        customize_project_files(dst_dir, proj_title, proj_slug, root, local_dep)
       end
 
       def self.scaffold_game(
@@ -152,15 +163,23 @@ MD
 
         # 3. Locate template source
         template_dir = root.join("template")
-        unless Dir.exists?(template_dir)
+        use_baked = Core::BakedFileSystem.files_with_prefix("template").size > 0
+
+        unless use_baked || Dir.exists?(template_dir)
           if (exe = Process.executable_path)
             cand = Path.new(exe).parent.parent.join("template")
             template_dir = cand if Dir.exists?(cand)
           end
         end
+        unless use_baked || Dir.exists?(template_dir)
+          if (global_root = Core::Env.global_libgodot_path)
+            cand = global_root.join("template")
+            template_dir = cand if Dir.exists?(cand)
+          end
+        end
 
-        unless Dir.exists?(template_dir)
-          Core::Logger.error("Starter template directory not found: #{template_dir}")
+        unless use_baked || Dir.exists?(template_dir)
+          Core::Logger.error("Starter template assets not found in BakedFileSystem or on disk.")
           return 1
         end
 
@@ -178,7 +197,22 @@ MD
         Core::Logger.step("Scaffold", "Creating new Lapis game '#{proj_title}' at #{dest}...")
 
         # 5. Copy and customize template files
-        copy_template_dir(template_dir, dest, proj_title, proj_slug, root, local_dep)
+        if use_baked
+          Core::BakedFileSystem.extract_folder("template", dest)
+          customize_project_files(dest, proj_title, proj_slug, root, local_dep)
+        else
+          copy_template_dir(template_dir, dest, proj_title, proj_slug, root, local_dep)
+        end
+
+        # Ensure godot-version.yml exists
+        ver_dest = dest.join("godot-version.yml")
+        unless File.exists?(ver_dest)
+          if File.exists?(root.join("godot-version.yml"))
+            FileUtils.cp(root.join("godot-version.yml"), ver_dest)
+          elsif Core::BakedFileSystem.has_file?("godot-version.yml")
+            Core::BakedFileSystem.extract_file("godot-version.yml", ver_dest)
+          end
+        end
 
         # 6. Synchronize runtime dependencies into bin/
         game_bin = dest.join("bin")
@@ -242,6 +276,16 @@ dependencies:
     path: ../..
 YAML
         )
+
+        # godot-version.yml
+        version_file = root.join("godot-version.yml")
+        if File.exists?(version_file)
+          FileUtils.cp(version_file, ex_dir.join("godot-version.yml"))
+        elsif Core::BakedFileSystem.has_file?("godot-version.yml")
+          Core::BakedFileSystem.extract_file("godot-version.yml", ex_dir.join("godot-version.yml"))
+        else
+          File.write(ex_dir.join("godot-version.yml"), "version: \"4.8-dev6\"\n")
+        end
 
         # src/main.cr
         File.write(ex_dir.join("src/main.cr"), <<-CR
@@ -310,6 +354,16 @@ dependencies:
     path: ../..
 YAML
         )
+
+        # godot-version.yml
+        version_file = root.join("godot-version.yml")
+        if File.exists?(version_file)
+          FileUtils.cp(version_file, addon_dir.join("godot-version.yml"))
+        elsif Core::BakedFileSystem.has_file?("godot-version.yml")
+          Core::BakedFileSystem.extract_file("godot-version.yml", addon_dir.join("godot-version.yml"))
+        else
+          File.write(addon_dir.join("godot-version.yml"), "version: \"4.8-dev6\"\n")
+        end
 
         # src/main.cr
         File.write(addon_dir.join("src/main.cr"), <<-CR

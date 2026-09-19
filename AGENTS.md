@@ -129,6 +129,8 @@ LibGodot supports two distinct execution paradigms designed for both rapid in-ed
 - `make package-release`: Packages all release archives and checksums into `bin/release_dist/`.
 - `make setup-dev`: Downloads and sets up the targeted Godot engine binary.
 - `make clean`: Cleans build artifacts while safely preserving runtime DLLs (`libgodot.dll`, `gc.dll`).
+- `make install`: Installs `lapis` CLI toolchain globally to system/user PATH (`INSTALL_DIR=<path>`, `PREFIX=<path>`).
+- `make uninstall`: Uninstalls `lapis` CLI toolchain globally.
 
 ---
 

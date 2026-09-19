@@ -12,6 +12,7 @@ require "./commands/bind"
 require "./commands/clean"
 require "./commands/docs"
 require "./commands/setup"
+require "./commands/install"
 
 module Lapis
   VERSION = "0.1.0"
@@ -37,12 +38,17 @@ Usage:
 \e[36mTesting & Development Commands:\e[0m
   test                  Run unit specs, in-editor tool tests, and runtime test projects
   editor                Launch Godot Editor with log monitoring, auto-quit, and LLDB attachment
+  run                   Run Godot project standalone with log monitoring and LLDB attachment
   setup                 Download and configure targeted Godot engine binary
 
 \e[36mScaffolding & Distribution Commands:\e[0m
   scaffold, new         Scaffold a new game, addon, or example ('lapis new game [name]')
   package               Create native .zip distribution archives or playable standalone game
   docs                  Generate and patch HTML API documentation
+
+\e[36mInstallation & System Commands:\e[0m
+  install               Install Lapis CLI globally into system/user PATH
+  uninstall             Uninstall Lapis CLI globally from computer
 
 \e[36mGlobal Options:\e[0m
   -v, --version         Show Lapis toolchain version
@@ -85,7 +91,7 @@ HELP
       Commands::Clean.run(["--help"])
     when "test"
       Commands::Test.run(["--help"])
-    when "editor"
+    when "editor", "run"
       Commands::Editor.run(["--help"])
     when "setup"
       Commands::Setup.run(["--help"])
@@ -95,6 +101,8 @@ HELP
       Commands::Package.run(["--help"])
     when "docs"
       Commands::Docs.run(["--help"])
+    when "install", "uninstall"
+      Commands::Install.print_help
     else
       Core::Logger.error("Unknown command for help: '#{subcommand}'")
       puts
@@ -163,6 +171,8 @@ HELP
       Commands::Test.run(sub_args)
     when "editor"
       Commands::Editor.run(sub_args)
+    when "run"
+      Commands::Editor.run(["--run"] + sub_args)
     when "setup"
       Commands::Setup.run(sub_args)
     when "scaffold", "new"
@@ -171,6 +181,10 @@ HELP
       Commands::Package.run(sub_args)
     when "docs"
       Commands::Docs.run(sub_args)
+    when "install"
+      Commands::Install.run(sub_args)
+    when "uninstall"
+      Commands::Install.run(["--uninstall"] + sub_args)
     else
       Core::Logger.error("Unknown command: '#{subcommand}'")
       puts

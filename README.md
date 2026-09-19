@@ -356,6 +356,10 @@ Lapis includes a high-performance, cross-platform compiled CLI tool written in C
       <td><code>lapis dirs</code></td>
       <td>Verifies and creates all required build, output, and staging directories across the workspace.</td>
     </tr>
+    <tr>
+      <td><code>lapis install [options]</code><br><code>make install</code></td>
+      <td>Installs the Lapis CLI toolchain globally into system/user <code>PATH</code> (<code>%LOCALAPPDATA%\Microsoft\WindowsApps</code> on Windows, <code>/usr/local/bin</code> or <code>~/.local/bin</code> on Unix).</td>
+    </tr>
   </tbody>
 </table>
 

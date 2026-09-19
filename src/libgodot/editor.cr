@@ -93,7 +93,10 @@ module Godot
     Godot.print("==================================================================")
     Godot.print("  [CrystalIntegrationPlugin] Native Crystal editor plugin loaded!")
     Godot.print("  LibGodot Version: #{::Godot::VERSION}")
+    Godot.print("  Target Godot:     #{::Godot::TARGET_GODOT_VERSION}")
     Godot.print("==================================================================")
+    verify_godot_version
+    verify_required_tools
 
     if Godot.editor_hint?
       # Ensure first-class language, loader, and saver are active in editor
@@ -182,6 +185,76 @@ module Godot
     end
   rescue ex
     Godot.printerr("[CrystalIntegrationPlugin] Notice: theme icons registration: #{ex.message}")
+  end
+
+  def verify_godot_version : Void
+    target_ver = ::Godot::TARGET_GODOT_VERSION
+    Godot.print("[CrystalIntegrationPlugin] Target engine version verified: #{target_ver}")
+  rescue ex
+    Godot.print("[CrystalIntegrationPlugin] Note: Engine version check skipped: #{ex.message}")
+  end
+
+  def verify_required_tools : Void
+    missing_tools = [] of String
+
+    # 1. Check Crystal compiler
+    crystal_bin = Process.find_executable("crystal")
+    if crystal_bin.nil?
+      missing_tools << "- Crystal compiler ('crystal') is not installed or not in PATH. Please install Crystal #{::Godot::MIN_CRYSTAL_VERSION}+."
+    else
+      c_io = IO::Memory.new
+      status = Process.run(crystal_bin, ["--version"], output: c_io, error: c_io) rescue nil
+      if status && status.success?
+        ver_text = c_io.to_s
+        if m = ver_text.match(/Crystal\s+([0-9]+\.[0-9]+\.[0-9]+)/i)
+          detected = m[1]
+          parts_det = detected.split('.').map { |p| p.to_i? || 0 }
+          parts_min = ::Godot::MIN_CRYSTAL_VERSION.split('.').map { |p| p.to_i? || 0 }
+          p_det = {parts_det[0]? || 0, parts_det[1]? || 0, parts_det[2]? || 0}
+          p_min = {parts_min[0]? || 0, parts_min[1]? || 0, parts_min[2]? || 0}
+          is_supported = if p_det[0] != p_min[0]
+            p_det[0] > p_min[0]
+          elsif p_det[1] != p_min[1]
+            p_det[1] > p_min[1]
+          else
+            p_det[2] >= p_min[2]
+          end
+
+          if is_supported
+            Godot.print("[CrystalIntegrationPlugin] Crystal compiler verified: #{detected} at #{crystal_bin} (target: #{::Godot::TARGET_CRYSTAL_VERSION})")
+          else
+            missing_tools << "- Crystal version #{detected} is older than minimum required version #{::Godot::MIN_CRYSTAL_VERSION}."
+          end
+        end
+      end
+    end
+
+    # 2. Check GNU Make
+    make_bin = Process.find_executable("make") || Process.find_executable("mingw32-make")
+    if make_bin.nil?
+      missing_tools << "- GNU Make ('make') is not found in PATH. Install via Scoop ('scoop install make') or system package manager."
+    else
+      Godot.print("[CrystalIntegrationPlugin] GNU Make verified: #{make_bin}")
+    end
+
+    if !missing_tools.empty?
+      err_banner = missing_tools.join("\n")
+      Godot.printerr("[CrystalIntegrationPlugin] WARNING: Required tool verification failed:\n#{err_banner}")
+
+      if !Godot::EditorInterface.singleton_ptr.null?
+        ei = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
+        dialog = Godot.create(Godot::AcceptDialog)
+        if dialog
+          dialog.set_title("LibGodot: Required Tools Missing")
+          dialog.set_text("The following required development tools are missing or outdated:\n\n#{err_banner}\n\nPlease install them to enable Crystal compilation and build automation.")
+          dialog.set_autowrap(true)
+          dialog.set_ok_button_text("Acknowledge")
+          ei.popup_dialog_centered(dialog, Godot::Vector2i.new(700, 300))
+        end
+      end
+    end
+  rescue ex
+    Godot.print("[CrystalIntegrationPlugin] Note: Tool verification check skipped: #{ex.message}")
   end
 
   def self.clear_theme_icons : Void
@@ -716,25 +789,17 @@ module Godot
     # Report directly to Godot's Debugger -> Errors tab with line-jumping context
     Godot.print_error("#{summary_title}\n#{raw_error}", "execute_crystal_build", file_path.empty? ? "src/main.cr" : file_path, line_num > 0 ? line_num : 1)
 
-    # 2. EditorToaster push_toast notification (severity: 2 = Error)
-    if !Godot::EditorInterface.singleton_ptr.null?
-      begin
-        ei = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
-        toaster = ei.get_editor_toaster rescue nil
-        if toaster && !toaster.pointer.null?
-          toaster.push_toast("Crystal Build Failed: #{summary_title}", 2_i64, raw_error)
-        end
-      rescue
-      end
-    end
-
-    # 3. Present centered AcceptDialog modal in the editor window
+    # 2. Present centered AcceptDialog modal in the editor window
     show_build_error_dialog(context, summary_title, raw_error, file_path, line_num)
   end
+
+  @@last_error_text : String = ""
 
   def self.show_build_error_dialog(context : String, summary : String, full_error : String, file_path : String = "", line_num : Int32 = -1) : Void
     return if Godot::EditorInterface.singleton_ptr.null?
     ei = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
+
+    @@last_error_text = full_error
 
     # Jump to error line in script editor if applicable
     if line_num > 0
@@ -767,6 +832,18 @@ module Godot
     dialog.set_text(dialog_message)
     dialog.set_autowrap(true)
     dialog.set_ok_button_text("Close")
+
+    # Add Copy Error button that copies the compiler error text to clipboard
+    copy_btn = dialog.add_button("Copy Error", false, "copy_error")
+    if copy_btn && copy_btn.alive?
+      copy_btn.connect("pressed") do |_args|
+        if !Godot::DisplayServer.singleton_ptr.null?
+          ds = Godot::DisplayServer.new(Godot::DisplayServer.singleton_ptr)
+          ds.clipboard_set(@@last_error_text)
+          copy_btn.call("set_text", "Copied!")
+        end
+      end
+    end
 
     @@error_dialog = dialog
     ei.popup_dialog_centered(dialog, Godot::Vector2i.new(750, 450))

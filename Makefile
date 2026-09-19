@@ -40,7 +40,7 @@ ifeq ($(OS),Windows_NT)
 	SO_EXT          = dll
 	EXE_EXT         = .exe
 	GODOT           ?= ./godot.exe
-	CXXFLAGS        ?= -std=c++17 -O2 -g -I rsrc -static -static-libgcc -static-libstdc++
+	CXXFLAGS        ?= -std=c++17 -O2 -g -I rsrc -I src/bridge -static -static-libgcc -static-libstdc++
 	LINK_FLAGS      ?= /DLL /ENTRY:_DllMainCRTStartup /EXPORT:crystal_godot_init
 else
 	UNAME_S := $(shell uname -s 2>/dev/null)
@@ -50,7 +50,7 @@ else
 		EXE_EXT         =
 		GODOT           ?= ./godot
 		CXX             ?= clang++
-		CXXFLAGS        ?= -std=c++17 -O2 -fPIC -I rsrc
+		CXXFLAGS        ?= -std=c++17 -O2 -fPIC -I rsrc -I src/bridge
 		LINK_FLAGS      ?= -dynamiclib -Wl,-exported_symbol,_crystal_godot_init
 	else
 		PLATFORM        = linux
@@ -58,7 +58,7 @@ else
 		EXE_EXT         =
 		GODOT           ?= ./godot
 		CXX             ?= g++
-		CXXFLAGS        ?= -std=c++17 -O2 -fPIC -I rsrc
+		CXXFLAGS        ?= -std=c++17 -O2 -fPIC -I rsrc -I src/bridge
 		LINK_FLAGS      ?= -shared
 	endif
 endif
@@ -90,14 +90,22 @@ PLUGIN_DLL       = $(PLUGIN_LIB)
 GAME_DLL         = $(GAME_LIB)
 LIBGODOT_DLL     = $(LIBGODOT_LIB)
 
-.PHONY: all lapis bridge plugin test_project test_standalone package_tests package-tests package_template package-template package_template_addon package-template-addon package_examples package-examples package_addon package-addon package_all package-all package_release package-release package_perf package-perf package_game package-game new_addon new-addon new_example new-example setup_dev setup-dev run_editor run-editor run_test run-test run_ci_local run-ci-local ci-local ci export_templates export-templates recompile_addons recompile-addons verify_editor verify-editor test_wsl test-wsl report_android report-android examples examples_exe template template_addon perf perf_standalone perf_run perf_editor game_dll game_exe android package_android generate dump_api project_bindings deps addons sync engine spec test tests docs run editor clean help
+.PHONY: all lapis install uninstall bridge plugin test_project test_standalone package_tests package-tests package_template package-template package_template_addon package-template-addon package_examples package-examples package_addon package-addon package_all package-all package_release package-release package_perf package-perf package_game package-game new_addon new-addon new_example new-example setup_dev setup-dev run_editor run-editor run_test run-test run_ci_local run-ci-local ci-local ci export_templates export-templates recompile_addons recompile-addons verify_editor verify-editor test_wsl test-wsl report_android report-android examples examples_exe template template_addon perf perf_standalone perf_run perf_editor game_dll game_exe android package_android generate dump_api project_bindings deps addons sync engine spec test tests docs run editor clean help
 
 # Compile Lapis CLI toolchain if not present or source changed
 $(LAPIS): $(wildcard tools/lapis/src/**/*.cr) $(wildcard tools/lapis/src/*.cr)
 	@echo [Lapis] Compiling Lapis toolchain ($(LAPIS))...
-	@$(CRYSTAL) build tools/lapis/src/lapis.cr -o $(LAPIS)
+	@$(CRYSTAL) build $(CRYSTAL_FLAGS) tools/lapis/src/lapis.cr -o $(LAPIS)
 
 lapis: $(LAPIS)
+
+# Install Lapis CLI toolchain globally to system/user PATH
+install: $(LAPIS)
+	@$(LAPIS) install $(if $(INSTALL_DIR),--dir "$(INSTALL_DIR)",) $(if $(PREFIX),--prefix "$(PREFIX)",) $(if $(filter 1,$(FORCE)),--force,)
+
+# Uninstall Lapis CLI toolchain globally
+uninstall: $(LAPIS)
+	@$(LAPIS) install --uninstall $(if $(INSTALL_DIR),--dir "$(INSTALL_DIR)",) $(if $(PREFIX),--prefix "$(PREFIX)",)
 
 # Default target: compile bridge, plugin, test project, standalone runner, examples, template, template_addon, perf, sync DLLs, and run test suite
 all: dirs deps bridge plugin addons dummy_addons test_project test_standalone examples template template_addon perf perf_standalone sync test
@@ -299,7 +307,7 @@ test tests: test_standalone
 run_test run-test:
 ifeq ($(or $(filter 1,$(INTERACTIVE)),$(filter 1,$(UI))),1)
 	@echo Launching Crystal LibGodot Interactive Test Runner...
-	$(GODOT) --path test $(ARGS)
+	@$(LAPIS) run -p test
 else
 	@$(LAPIS) test $(if $(filter 1,$(SKIP_SPECS)),--skip-specs,) $(if $(filter 1,$(SKIP_TOOL_TESTS)),--skip-tool-tests,) $(if $(filter 1,$(SKIP_RUNTIME_TESTS)),--skip-runtime-tests,)
 endif
@@ -319,12 +327,12 @@ docs:
 # Launch test project using Godot
 run:
 	@echo Launching Crystal LibGodot Test Runner...
-	$(GODOT) --path test
+	@$(LAPIS) run -p test
 
 # Launch Godot editor for test project
 editor:
 	@echo Opening Godot Editor for Test Project...
-	$(GODOT) --editor --path test
+	@$(LAPIS) editor -p test
 
 # Unified Godot editor launcher with shadow logging, auto-quit, and LLDB flags
 run_editor run-editor:
@@ -356,6 +364,8 @@ help:
 	@echo     make deps                   Verify and copy runtime DLLs (gc, iconv, pcre2, libgodot)
 	@echo     make sync                   Synchronize binaries and addons across consumer projects
 	@echo     make clean                  Remove compiled game and bridge binaries
+	@echo     make install                Install Lapis CLI globally [INSTALL_DIR=...] [PREFIX=...] [FORCE=1]
+	@echo     make uninstall              Uninstall Lapis CLI globally [INSTALL_DIR=...] [PREFIX=...]
 	@echo.
 	@echo   SCAFFOLDING TARGETS:
 	@echo     make new-addon NAME=^<n^>      Scaffold new addon [DIR=...] [AUTHOR=...] [DESC=...]
