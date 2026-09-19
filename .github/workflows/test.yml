@@ -134,9 +134,11 @@ jobs:
         run: |
           bin/lapis setup templates
 
-      - name: Run Crystal Unit Specifications
+      - name: Run Crystal Unit Specifications (Engine & Lapis CLI)
         shell: pwsh
-        run: crystal spec test/spec
+        run: |
+          crystal spec test/spec
+          crystal spec tools/lapis/spec
 
       - name: Build and Run LibGodot Test Suite
         timeout-minutes: 25

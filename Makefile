@@ -90,7 +90,7 @@ PLUGIN_DLL       = $(PLUGIN_LIB)
 GAME_DLL         = $(GAME_LIB)
 LIBGODOT_DLL     = $(LIBGODOT_LIB)
 
-.PHONY: all lapis install uninstall bridge plugin test_project test_standalone package_tests package-tests package_lapis package-lapis package_deb package-deb package_template package-template package_template_addon package-template-addon package_examples package-examples package_addon package-addon package_all package-all package_release package-release package_perf package-perf package_game package-game new_addon new-addon new_example new-example setup_dev setup-dev run_editor run-editor run_test run-test run_ci_local run-ci-local ci-local ci export_templates export-templates recompile_addons recompile-addons verify_editor verify-editor test_wsl test-wsl report_android report-android examples examples_exe template template_addon perf perf_standalone perf_run perf_editor game_dll game_exe android package_android generate dump_api project_bindings deps addons sync engine spec test tests docs run editor clean help
+.PHONY: all lapis install uninstall bridge plugin test_project test_standalone package_tests package-tests package_lapis package-lapis package_deb package-deb package_template package-template package_template_addon package-template-addon package_examples package-examples package_addon package-addon package_all package-all package_release package-release package_perf package-perf package_game package-game new_addon new-addon new_example new-example setup_dev setup-dev run_editor run-editor run_test run-test run_ci_local run-ci-local ci-local ci export_templates export-templates recompile_addons recompile-addons verify_editor verify-editor test_wsl test-wsl report_android report-android examples examples_exe template template_addon perf perf_standalone perf_run perf_editor game_dll game_exe android package_android generate dump_api project_bindings deps addons sync engine spec spec_cli spec-cli test_cli test-cli test tests docs run editor clean help
 
 # Compile Lapis CLI toolchain if not present or source changed
 $(LAPIS): $(wildcard tools/lapis/src/**/*.cr) $(wildcard tools/lapis/src/*.cr)
@@ -319,10 +319,17 @@ engine:
 	@$(LAPIS) sync
 	@echo $(LIBGODOT_LIB) updated successfully!
 
-# Run Crystal unit specifications (test/spec)
+# Run Crystal unit specifications (test/spec and tools/lapis/spec)
 spec:
-	@echo [Spec] Running Crystal specifications in test/spec...
+	@echo [Spec] Running Phase 1a: Engine specifications (test/spec)...
 	$(CRYSTAL) spec test/spec
+	@echo [Spec] Running Phase 1b: Lapis CLI specifications (tools/lapis/spec)...
+	$(CRYSTAL) spec tools/lapis/spec
+
+# Run only Lapis CLI toolchain unit specifications
+spec_cli spec-cli test_cli test-cli:
+	@echo [Spec] Running Phase 1b: Lapis CLI specifications (tools/lapis/spec)...
+	$(CRYSTAL) spec tools/lapis/spec
 
 # Run complete test suites and verification (Crystal specs, in-editor @tool tests, standalone runner, runtime project tests, smoke tests)
 test tests: test_standalone

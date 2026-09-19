@@ -1,3 +1,4 @@
+require "./version"
 require "./core/env"
 require "./core/logger"
 require "./commands/dirs"
@@ -15,7 +16,6 @@ require "./commands/setup"
 require "./commands/install"
 
 module Lapis
-  VERSION = "0.1.0"
 
   def self.print_help
     puts <<-HELP

@@ -16,7 +16,9 @@ module Lapis
 Usage: lapis test [options]
 
 Options:
-  --skip-specs          Skip Crystal spec unit tests (test/spec, spec/*)
+  --skip-specs          Skip all Crystal spec unit tests (test/spec, tools/lapis/spec, spec/*)
+  --skip-engine-specs   Skip engine & bindings specifications (test/spec)
+  --skip-cli-specs      Skip Lapis toolchain & CLI specifications (tools/lapis/spec)
   --skip-tool-tests     Skip headless in-editor @tool tests
   --skip-runtime-tests  Skip Godot runtime test project
   --skip-standalone     Skip standalone compiled test executable
@@ -26,6 +28,7 @@ Options:
 Examples:
   lapis test
   lapis test --skip-specs
+  lapis test --skip-cli-specs
   lapis test --skip-runtime-tests
 HELP
       end
@@ -180,6 +183,8 @@ HELP
 
         start_time = Time.instant
         skip_specs = false
+        skip_engine_specs = false
+        skip_cli_specs = false
         skip_tool_tests = false
         skip_runtime_tests = false
         skip_standalone = false
@@ -187,7 +192,9 @@ HELP
 
         parser = OptionParser.new do |opts|
           opts.banner = "Usage: lapis test [options]"
-          opts.on("--skip-specs", "Skip Crystal spec unit tests") { skip_specs = true }
+          opts.on("--skip-specs", "Skip all Crystal spec unit tests") { skip_specs = true }
+          opts.on("--skip-engine-specs", "Skip engine & bindings specifications") { skip_engine_specs = true }
+          opts.on("--skip-cli-specs", "Skip Lapis toolchain & CLI specifications") { skip_cli_specs = true }
           opts.on("--skip-tool-tests", "Skip in-editor @tool tests") { skip_tool_tests = true }
           opts.on("--skip-runtime-tests", "Skip Godot runtime test project") { skip_runtime_tests = true }
           opts.on("--skip-standalone", "Skip standalone test executable") { skip_standalone = true }
@@ -211,20 +218,41 @@ HELP
           # Phase 1: Crystal Unit Specs
           # -----------------------------------------------------------------------
           unless skip_specs
-            spec_dir = test_dir.join("spec")
-            if Dir.exists?(spec_dir)
-              Core::Logger.step("Test:Specs", "Running Crystal specifications in test/spec...")
-              step_start = Time.instant
-              status = Core::ProcessRunner.run(
-                "crystal",
-                ["spec", "test/spec"],
-                chdir: root.to_s
-              )
-              step_dur = (Time.instant - step_start).total_seconds.round(2)
-              recorded_results << StepResult.new("Crystal Specifications (test/spec)", status.success?, step_dur, status.exit_code)
-              failed_steps << "Crystal Specifications (test/spec)" unless status.success?
+            # Phase 1a: Engine & Core Bindings Specifications
+            unless skip_engine_specs
+              spec_dir = test_dir.join("spec")
+              if Dir.exists?(spec_dir)
+                Core::Logger.step("Test:Specs:Engine", "Running Phase 1a: Engine specifications in test/spec...")
+                step_start = Time.instant
+                status = Core::ProcessRunner.run(
+                  "crystal",
+                  ["spec", "test/spec"],
+                  chdir: root.to_s
+                )
+                step_dur = (Time.instant - step_start).total_seconds.round(2)
+                recorded_results << StepResult.new("Phase 1a: Engine Specifications (test/spec)", status.success?, step_dur, status.exit_code)
+                failed_steps << "Phase 1a: Engine Specifications (test/spec)" unless status.success?
+              end
             end
 
+            # Phase 1b: Lapis Toolchain & CLI Specifications
+            unless skip_cli_specs
+              lapis_spec_dir = root.join("tools/lapis/spec")
+              if Dir.exists?(lapis_spec_dir)
+                Core::Logger.step("Test:Specs:CLI", "Running Phase 1b: Lapis toolchain specifications in tools/lapis/spec...")
+                step_start = Time.instant
+                status = Core::ProcessRunner.run(
+                  "crystal",
+                  ["spec", "tools/lapis/spec"],
+                  chdir: root.to_s
+                )
+                step_dur = (Time.instant - step_start).total_seconds.round(2)
+                recorded_results << StepResult.new("Phase 1b: Lapis CLI Specifications (tools/lapis/spec)", status.success?, step_dur, status.exit_code)
+                failed_steps << "Phase 1b: Lapis CLI Specifications (tools/lapis/spec)" unless status.success?
+              end
+            end
+
+            # Phase 1c: Headless Architectural & Integration Specs
             root_specs = [
               "spec/libgodot_spec.cr",
               "spec/boot_spec.cr",
@@ -239,7 +267,7 @@ HELP
             root_specs.each do |spec_file|
               full_path = root.join(spec_file)
               if File.exists?(full_path)
-                Core::Logger.step("Test:Specs", "Running #{spec_file}...")
+                Core::Logger.step("Test:Specs:Root", "Running #{spec_file}...")
                 step_start = Time.instant
                 status = Core::ProcessRunner.run(
                   "crystal",

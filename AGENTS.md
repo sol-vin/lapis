@@ -234,12 +234,14 @@ end
 ## 7. Testing Protocols & Quality Gates
 
 ### Multi-Tier Test Suite:
-1. **Automated Specifications (`spec/`)**:
-   - Headless unit tests covering GC object retention, dynamic scaling (200+ properties), Variant type round-trips, and Vector math.
+1. **Automated Specifications**:
+   - **Tier 1a: Engine & Core Bindings Specs (`test/spec/`)**: Headless unit specs covering GC object retention, dynamic scaling (200+ properties), Variant type round-trips, and Vector math.
+   - **Tier 1b: Lapis Toolchain & CLI Specs (`tools/lapis/spec/`)**: CLI argument parsing, 14 subcommand help dispatches, standalone execution from isolated directories using embedded `BakedFileSystem` assets, and per-platform tests (Windows installer staging & runtime DLLs, Linux Debian packaging, macOS dynamic libraries, and cross-platform foreign binary purges). Run via `make spec-cli` or `cd tools/lapis && crystal spec`.
+   - **Tier 1c: Headless Architectural & Integration Specs (`spec/`)**: Standalone verification scripts for LibGodot dynamic loading, API coverage, project scaffolding integrity, and tool environment discovery.
 2. **Headless In-Editor `@tool` Tests (`ToolTester2D`, `ToolTester3D`)**:
    - Run in Godot with `--headless` to verify editor plugins, tool button actions, and scene instantiation.
 3. **Standalone Runtime Test Project (`test/`)**:
-   - Tests 2D nodes, 3D nodes, UI controls, audio, animation, physics, and concurrency suites in `test/src/suites/`.
+   - Regular and portable standalone runners testing 2D nodes, 3D nodes, UI controls, audio, animation, physics, and concurrency suites in `test/src/suites/`.
 4. **Quantitative Zero Memory Leak Verification**:
    - Leverages Godot's `Performance` singleton monitors (`OBJECT_COUNT`, `OBJECT_NODE_COUNT`, `MEMORY_STATIC`) and Crystal's `GC.collect` to mathematically verify zero object or memory leaks.
 
