@@ -8,6 +8,12 @@ require "json"
 module Lapis
   module Commands
     module Install
+      {% unless flag?(:windows) %}
+        lib LibC
+          fun geteuid : UInt32
+        end
+      {% end %}
+
       def self.config_dir : Path
         if Core::Env.windows?
           appdata = ENV["APPDATA"]? || ENV["LOCALAPPDATA"]? || (ENV["USERPROFILE"]? ? File.join(ENV["USERPROFILE"], "AppData", "Roaming") : nil)
@@ -99,14 +105,18 @@ module Lapis
           end
         {% else %}
           # Unix / Linux / macOS
-          is_root = (Process.euid == 0 rescue false)
+          is_root = begin
+            LibC.geteuid == 0
+          rescue
+            false
+          end
           if is_root
             Path.new("/usr/local/bin")
           else
             user_local_bin = Path.home.join(".local", "bin")
             if in_path?(user_local_bin)
               user_local_bin
-            elsif (File.writable?("/usr/local/bin") rescue false)
+            elsif (File.info?("/usr/local/bin").try(&.permissions.other_write?) rescue false)
               Path.new("/usr/local/bin")
             else
               user_local_bin
