@@ -582,14 +582,22 @@ module Godot
       CrystalIntegrationPlugin.report_build_failure("Crystal build", "", "Error during build: #{ex.message}", 1)
     end
 
-    def on_package_game : Void
-      log_info("Packaging standalone game executable...")
+    def find_lapis_executable : String?
+      if sys_lapis = Process.find_executable("lapis")
+        return sys_lapis
+      end
       lapis_candidates = [
+        "addons/crystal_integration/bin/lapis.exe", "addons/crystal_integration/bin/lapis",
         "bin/lapis.exe", "bin/lapis",
         "../bin/lapis.exe", "../bin/lapis",
         "../../bin/lapis.exe", "../../bin/lapis"
       ]
-      lapis_bin = lapis_candidates.find { |p| File.exists?(p) } || Process.find_executable("lapis")
+      lapis_candidates.find { |p| File.exists?(p) }
+    end
+
+    def on_package_game : Void
+      log_info("Packaging standalone game executable...")
+      lapis_bin = find_lapis_executable
       if !lapis_bin
         log_error("lapis toolchain not found.")
         return
@@ -707,12 +715,7 @@ module Godot
 
     def on_recompile_all_addons : Void
       log_info("Recompiling all recompilable addons...")
-      lapis_candidates = [
-        "bin/lapis.exe", "bin/lapis",
-        "../bin/lapis.exe", "../bin/lapis",
-        "../../bin/lapis.exe", "../../bin/lapis"
-      ]
-      lapis_bin = lapis_candidates.find { |p| File.exists?(p) } || Process.find_executable("lapis")
+      lapis_bin = find_lapis_executable
       if !lapis_bin
         log_error("lapis toolchain not found.")
         return
@@ -734,12 +737,7 @@ module Godot
     end
 
     def recompile_modified_addons_silent : Void
-      lapis_candidates = [
-        "bin/lapis.exe", "bin/lapis",
-        "../bin/lapis.exe", "../bin/lapis",
-        "../../bin/lapis.exe", "../../bin/lapis"
-      ]
-      lapis_bin = lapis_candidates.find { |p| File.exists?(p) } || Process.find_executable("lapis")
+      lapis_bin = find_lapis_executable
       return unless lapis_bin
 
       output_io = IO::Memory.new

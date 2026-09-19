@@ -135,19 +135,220 @@ module Lapis
         0
       end
 
-      def self.package_addon(root : Path, out_path : Path?, name : String? = nil, project_path : Path? = nil) : Int32
+      def self.package_addon(
+        root : Path,
+        out_path : Path?,
+        name : String? = nil,
+        project_path : Path? = nil,
+        platform : String? = nil
+      ) : Int32
         base = project_path || root
         addon_name = name || "crystal_integration"
         addon_dir = base.join("addons/#{addon_name}")
-        zip_file = out_path || base.join(name ? "dist/#{addon_name}.zip" : "bin/godot-crystal-addon.zip")
 
-        Core::Logger.step("Package", "Packaging #{addon_name} addon...")
-        zip_directory(
-          addon_dir,
-          zip_file,
-          strip_prefix: base,
-          exclude_patterns: [".godot", "~", "_loaded_", ".log"]
-        )
+        plat = platform.try(&.downcase)
+        default_zip = if plat && !plat.empty?
+          base.join(name ? "dist/#{addon_name}-#{plat}.zip" : "bin/godot-crystal-addon-#{plat}.zip")
+        else
+          base.join(name ? "dist/#{addon_name}.zip" : "bin/godot-crystal-addon.zip")
+        end
+        zip_file = out_path || default_zip
+
+        Core::Logger.step("Package", "Packaging #{addon_name} addon#{plat ? " for #{plat}" : ""}...")
+
+        if plat && !plat.empty?
+          stage_dir = root.join("scratch/addon_stage_#{plat}")
+          FileUtils.rm_rf(stage_dir) if Dir.exists?(stage_dir)
+          dest_addon = stage_dir.join("addons/#{addon_name}")
+          FileUtils.mkdir_p(dest_addon)
+
+          # Copy base addon files
+          if Dir.exists?(addon_dir)
+            Dir.each_child(addon_dir) do |child|
+              next if child == "bin" || child.starts_with?(".") || child.ends_with?(".log")
+              src_child = addon_dir.join(child)
+              if File.file?(src_child)
+                safe_copy(src_child, dest_addon.join(child))
+              elsif Dir.exists?(src_child)
+                FileUtils.cp_r(src_child.to_s, dest_addon.join(child).to_s)
+              end
+            end
+          end
+
+          dest_bin = dest_addon.join("bin")
+          FileUtils.mkdir_p(dest_bin)
+
+          # Bundle platform-specific lapis executable!
+          lapis_candidates = [
+            root.join("bin/lapis#{plat == "windows" ? ".exe" : ""}"),
+            base.join("bin/lapis#{plat == "windows" ? ".exe" : ""}"),
+          ]
+          if (exe = Process.executable_path)
+            lapis_candidates << Path.new(exe)
+          end
+          if lapis_found = lapis_candidates.find { |p| File.exists?(p) }
+            safe_copy(lapis_found, dest_bin.join("lapis#{plat == "windows" ? ".exe" : ""}"))
+            File.chmod(dest_bin.join("lapis"), 0o755) if plat != "windows" && File.exists?(dest_bin.join("lapis"))
+          end
+
+          # Bundle platform-specific plugin and bridge libraries
+          src_bins = [addon_dir.join("bin"), root.join("bin"), base.join("bin")]
+          case plat
+          when "windows"
+            ["crystal_bridge.dll", "plugin.dll", "gc.dll", "iconv-2.dll", "pcre2-8.dll", "libgodot.dll"].each do |lib_file|
+              src = src_bins.compact_map { |b| b.join(lib_file) if File.exists?(b.join(lib_file)) }.first?
+              safe_copy(src, dest_bin.join(lib_file)) if src
+            end
+          when "linux"
+            ["crystal_bridge.so", "plugin.so", "libgodot.so"].each do |lib_file|
+              src = src_bins.compact_map { |b| b.join(lib_file) if File.exists?(b.join(lib_file)) }.first?
+              safe_copy(src, dest_bin.join(lib_file)) if src
+            end
+          when "macos"
+            ["crystal_bridge.dylib", "plugin.dylib", "libgodot.dylib"].each do |lib_file|
+              src = src_bins.compact_map { |b| b.join(lib_file) if File.exists?(b.join(lib_file)) }.first?
+              safe_copy(src, dest_bin.join(lib_file)) if src
+            end
+          when "android"
+            android_arm = addon_dir.join("bin/android/arm64-v8a")
+            if Dir.exists?(android_arm)
+              FileUtils.mkdir_p(dest_bin.join("android/arm64-v8a"))
+              FileUtils.cp_r(android_arm.to_s, dest_bin.join("android").to_s)
+            end
+          end
+
+          zip_directory(
+            dest_addon,
+            zip_file,
+            strip_prefix: stage_dir,
+            exclude_patterns: [".godot", "~", "_loaded_", ".log"]
+          )
+          FileUtils.rm_rf(stage_dir) if Dir.exists?(stage_dir)
+        else
+          zip_directory(
+            addon_dir,
+            zip_file,
+            strip_prefix: base,
+            exclude_patterns: [".godot", "~", "_loaded_", ".log"]
+          )
+        end
+        0
+      end
+
+      def self.package_lapis(root : Path, out_path : Path?, platform_name : String? = nil, release : Bool = false) : Int32
+        plat = platform_name || (Core::Env.windows? ? "windows" : (Core::Env.macos? ? "macos" : "linux"))
+        default_name = Core::Env.windows? ? "lapis-windows-x86_64.zip" : (Core::Env.macos? ? "lapis-macos.zip" : "lapis-linux-x86_64.tar.gz")
+        dest_archive = out_path || root.join("bin/#{default_name}")
+
+        Core::Logger.step("Package", "Packaging Lapis CLI toolchain for #{plat}...")
+        stage_dir = root.join("scratch/lapis-#{plat}-stage")
+        FileUtils.rm_rf(stage_dir) if Dir.exists?(stage_dir)
+        FileUtils.mkdir_p(stage_dir)
+
+        # Locate lapis executable
+        lapis_exe = root.join("bin/lapis#{Core::Env.exe_ext}")
+        lapis_exe = Path.new(Process.executable_path.not_nil!) if !File.exists?(lapis_exe) && Process.executable_path
+
+        if File.exists?(lapis_exe)
+          safe_copy(lapis_exe, stage_dir.join("lapis#{Core::Env.exe_ext}"))
+          File.chmod(stage_dir.join("lapis#{Core::Env.exe_ext}"), 0o755) unless Core::Env.windows?
+        else
+          Core::Logger.warn("Lapis executable not found at #{lapis_exe}")
+        end
+
+        # Include bundled addon if available
+        addon_src = root.join("addons/crystal_integration")
+        if Dir.exists?(addon_src)
+          stage_addon = stage_dir.join("addons/crystal_integration")
+          FileUtils.mkdir_p(stage_addon)
+          FileUtils.cp_r(addon_src.to_s, stage_addon.parent.to_s)
+        end
+
+        # Include docs and license
+        ["README.md", "LICENSE", "shard.yml"].each do |f|
+          safe_copy(root.join(f), stage_dir.join(f))
+        end
+
+        if dest_archive.to_s.ends_with?(".tar.gz") || dest_archive.to_s.ends_with?(".tgz")
+          FileUtils.mkdir_p(dest_archive.parent) unless Dir.exists?(dest_archive.parent)
+          File.delete(dest_archive) if File.exists?(dest_archive)
+          status = Core::ProcessRunner.run("tar", ["-czf", dest_archive.to_s, "-C", stage_dir.to_s, "."])
+          unless status.success?
+            dest_zip = Path.new(dest_archive.to_s.sub(/\.tar\.gz$/, ".zip"))
+            zip_directory(stage_dir, dest_zip)
+          end
+        else
+          zip_directory(stage_dir, dest_archive)
+        end
+
+        FileUtils.rm_rf(stage_dir) if Dir.exists?(stage_dir)
+        Core::Logger.success("Packaged Lapis toolchain: #{dest_archive.basename}")
+        0
+      end
+
+      def self.package_deb(root : Path, out_path : Path?, version : String? = nil, arch : String = "amd64") : Int32
+        pkg_ver = version || Lapis::VERSION
+        pkg_ver = pkg_ver.lstrip('v')
+        deb_file = out_path || root.join("bin/lapis_#{pkg_ver}_#{arch}.deb")
+
+        Core::Logger.step("Package", "Packaging Debian package for Lapis v#{pkg_ver} (#{arch})...")
+        stage_dir = root.join("scratch/deb_stage_lapis_#{pkg_ver}")
+        FileUtils.rm_rf(stage_dir) if Dir.exists?(stage_dir)
+        FileUtils.mkdir_p(stage_dir.join("DEBIAN"))
+        FileUtils.mkdir_p(stage_dir.join("usr/bin"))
+        FileUtils.mkdir_p(stage_dir.join("usr/share/lapis"))
+        FileUtils.mkdir_p(stage_dir.join("usr/share/doc/lapis"))
+
+        control_content = <<-CONTROL
+Package: lapis
+Version: #{pkg_ver}
+Section: devel
+Priority: optional
+Architecture: #{arch}
+Maintainer: LibGodot Crystal Contributors <https://github.com/sol-vin/lapis>
+Homepage: https://github.com/sol-vin/lapis
+Description: Lapis: Unified Crystal Engine Toolchain for Godot
+ Lapis provides unified project management, compilation, GDExtension bindings,
+ testing, and packaging for Godot games developed with Crystal.
+CONTROL
+        File.write(stage_dir.join("DEBIAN/control"), control_content.strip + "\n")
+
+        lapis_src = root.join("bin/lapis")
+        lapis_src = Path.new(Process.executable_path.not_nil!) if !File.exists?(lapis_src) && Process.executable_path
+        if File.exists?(lapis_src)
+          dest_bin = stage_dir.join("usr/bin/lapis")
+          safe_copy(lapis_src, dest_bin)
+          File.chmod(dest_bin, 0o755) unless Core::Env.windows?
+        else
+          Core::Logger.warn("Lapis Linux binary not found at #{lapis_src}")
+        end
+
+        addon_src = root.join("addons/crystal_integration")
+        if Dir.exists?(addon_src)
+          FileUtils.cp_r(addon_src.to_s, stage_dir.join("usr/share/lapis/addons").to_s)
+        end
+
+        ["README.md", "LICENSE"].each do |doc|
+          safe_copy(root.join(doc), stage_dir.join("usr/share/doc/lapis/#{doc}"))
+        end
+
+        FileUtils.mkdir_p(deb_file.parent) unless Dir.exists?(deb_file.parent)
+        File.delete(deb_file) if File.exists?(deb_file)
+
+        dpkg_deb = Process.find_executable("dpkg-deb")
+        if dpkg_deb
+          status = Core::ProcessRunner.run("dpkg-deb", ["--build", "--root-owner-group", stage_dir.to_s, deb_file.to_s])
+          if status.success?
+            Core::Logger.success("Successfully generated Debian package: #{deb_file.basename} (#{File.size(deb_file)} bytes)")
+          else
+            Core::Logger.error("dpkg-deb failed to build #{deb_file.basename}")
+          end
+        else
+          Core::Logger.warn("dpkg-deb not found on system. Stage directory preserved at #{stage_dir}")
+          return 0
+        end
+
+        FileUtils.rm_rf(stage_dir) if Dir.exists?(stage_dir)
         0
       end
 
@@ -426,6 +627,12 @@ module Lapis
         package_template_addon(root, out_dir.join("template-addon-project.zip"))
         package_examples(root, out_dir.join("examples-#{plat}.zip"))
         package_addon(root, out_dir.join("godot-crystal-addon.zip"))
+        package_addon(root, out_dir.join("godot-crystal-addon-#{plat}.zip"), platform: plat)
+        package_lapis(root, out_dir.join(Core::Env.windows? ? "lapis-windows-x86_64.zip" : (Core::Env.macos? ? "lapis-macos.zip" : "lapis-linux-x86_64.tar.gz")), platform_name: plat, release: release)
+
+        if Core::Env.linux? && Process.find_executable("dpkg-deb")
+          package_deb(root, out_dir.join("lapis_#{Lapis::VERSION}_amd64.deb"))
+        end
 
         unless skip_tests
           package_tests(root, out_dir.join("test-suite-#{plat}.zip"), platform_name: plat, release: release)
@@ -435,12 +642,12 @@ module Lapis
           package_perf(root, out_dir.join("perf-#{plat}.zip"), platform_name: plat, release: release)
         end
 
-        # Compute SHA256 sums
+        # Compute SHA256 sums across all generated release archives
         checksum_file = out_dir.join("checksums.txt")
         lines = [] of String
-        Dir.glob(out_dir.to_s.gsub('\\', '/') + "/*.zip").sort.each do |zip|
-          hash = sha256_file(Path.new(zip))
-          lines << "#{hash}  #{Path.new(zip).basename}"
+        Dir.glob([out_dir.to_s.gsub('\\', '/') + "/*.zip", out_dir.to_s.gsub('\\', '/') + "/*.tar.gz", out_dir.to_s.gsub('\\', '/') + "/*.deb", out_dir.to_s.gsub('\\', '/') + "/*.apk"]).flatten.uniq.sort.each do |archive|
+          hash = sha256_file(Path.new(archive))
+          lines << "#{hash}  #{Path.new(archive).basename}"
         end
         File.write(checksum_file, lines.join("\n") + "\n")
         File.write(out_dir.join("SHA256SUMS.txt"), lines.join("\n") + "\n")
@@ -460,6 +667,8 @@ Targets:
   template              Package the starter game template into template-project.zip
   template-addon        Package the addon starter template into template-addon-project.zip
   addon                 Package the official crystal_integration addon into godot-crystal-addon.zip
+  lapis                 Package standalone Lapis CLI toolchain archive (zip or tar.gz)
+  deb                   Package Lapis Debian (.deb) package
   examples              Package standalone examples into examples-<platform>.zip
   tests                 Package standalone test runner into tests-<platform>.zip
   perf                  Package performance benchmark into perf-<platform>.zip
@@ -467,9 +676,12 @@ Targets:
 
 Options:
   -p, --project=PATH    Target Godot project path (default: .) [game only]
+  --platform=NAME       Target platform name (windows, linux, macos, android)
   -n, --name=NAME       Output executable/package name [game only]
   -t, --target-dir=DIR  Staging directory for output files
-  -o, --output=PATH     Explicit output archive path (.zip)
+  -o, --output=PATH     Explicit output archive path (.zip, .tar.gz, or .deb)
+  -v, --version=VER     Package version (for deb package)
+  -a, --arch=ARCH       Architecture (amd64, arm64) [deb only]
   -r, --release         Package/compile in release mode
   -f, --force           Force recompilation of game binary
   --bundle-binaries     Include compiled binaries in archive (template only)
@@ -478,9 +690,10 @@ Options:
   -h, --help            Show this help screen
 
 Examples:
-  lapis package game
+  lapis package lapis
+  lapis package deb
+  lapis package addon --platform windows
   lapis package game -p template -n MyGame -r
-  lapis package template
   lapis package release -t bin/release_dist
 HELP
       end
@@ -497,6 +710,8 @@ HELP
         project_path : String? = nil
         name : String? = nil
         platform_arg : String? = nil
+        version_arg : String? = nil
+        arch_arg : String? = nil
         release = false
         force = false
         embed_pck = false
@@ -511,7 +726,9 @@ HELP
           opts.on("--platform=NAME", "Target platform name (windows, linux, macos, android)") { |pl| platform_arg = pl }
           opts.on("-n NAME", "--name=NAME", "Target name") { |n| name = n }
           opts.on("-t DIR", "--target-dir=DIR", "Target staging directory") { |t| target_dir = t }
-          opts.on("-o PATH", "--output=PATH", "Explicit output .zip path") { |o| output_file = o }
+          opts.on("-o PATH", "--output=PATH", "Explicit output archive path") { |o| output_file = o }
+          opts.on("-v VER", "--version=VER", "Package version") { |v| version_arg = v }
+          opts.on("-a ARCH", "--arch=ARCH", "Package architecture (amd64, arm64)") { |a| arch_arg = a }
           opts.on("-r", "--release", "Compile/package with optimizations") { release = true }
           opts.on("-f", "--force", "Force compilation") { force = true }
           opts.on("--embed-pck", "Embed PCK data directly into the executable binary") { embed_pck = true }
@@ -539,8 +756,18 @@ HELP
           package_template_addon(root, final_out, bundle_binaries)
         when "addon"
           proj_p = (pp = project_path) && !["windows", "linux", "macos", "android"].includes?(pp.downcase) ? Path.new(pp).expand : nil
-          final_out = out_path || (td_path ? td_path.join("godot-crystal-addon.zip") : nil)
-          package_addon(root, final_out, name: name, project_path: proj_p)
+          target_plat = platform_arg || (project_path && ["windows", "linux", "macos", "android"].includes?(project_path.to_s.downcase) ? project_path.to_s.downcase : nil)
+          final_out = out_path || (td_path ? td_path.join(target_plat ? "godot-crystal-addon-#{target_plat}.zip" : "godot-crystal-addon.zip") : nil)
+          package_addon(root, final_out, name: name, project_path: proj_p, platform: target_plat)
+        when "lapis"
+          default_archive = Core::Env.windows? ? "lapis-windows-x86_64.zip" : (Core::Env.macos? ? "lapis-macos.zip" : "lapis-linux-x86_64.tar.gz")
+          final_out = out_path || (td_path ? td_path.join(default_archive) : nil)
+          package_lapis(root, final_out, platform_name: plat, release: release)
+        when "deb"
+          pkg_version = version_arg || Lapis::VERSION
+          pkg_arch = arch_arg || "amd64"
+          final_out = out_path || (td_path ? td_path.join("lapis_#{pkg_version}_#{pkg_arch}.deb") : nil)
+          package_deb(root, final_out, version: pkg_version, arch: pkg_arch.to_s)
         when "examples"
           final_out = out_path || (td_path ? td_path.join("examples-#{plat}-x86_64.zip") : nil)
           package_examples(root, final_out)

@@ -163,6 +163,21 @@ jobs:
             test/.runtime_tests_failed
           if-no-files-found: ignore
 
+      - name: Publish Test Status Report to Step Summary
+        if: always()
+        shell: pwsh
+        run: |
+          if ($env:GITHUB_STEP_SUMMARY -and (Test-Path $env:GITHUB_STEP_SUMMARY)) {
+            $existing = Get-Content $env:GITHUB_STEP_SUMMARY -Raw -ErrorAction SilentlyContinue
+            if ($existing -notmatch "LibGodot Test Suite Status Report") {
+              if (Test-Path "test/test_report.md") {
+                Get-Content "test/test_report.md" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+              } elseif (Test-Path "test/bin/test_report.md") {
+                Get-Content "test/bin/test_report.md" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+              }
+            }
+          }
+
       - name: Package Standalone Test Suite (test-suite-windows.zip)
         run: |
           bin/lapis package tests -p windows -o bin/test-suite-windows.zip
@@ -293,6 +308,20 @@ jobs:
             test/.runtime_tests_passed
             test/.runtime_tests_failed
           if-no-files-found: ignore
+
+      - name: Publish Test Status Report to Step Summary
+        if: always()
+        shell: bash
+        run: |
+          if [ -n "$GITHUB_STEP_SUMMARY" ] && [ -f "$GITHUB_STEP_SUMMARY" ]; then
+            if ! grep -q "LibGodot Test Suite Status Report" "$GITHUB_STEP_SUMMARY"; then
+              if [ -f "test/test_report.md" ]; then
+                cat test/test_report.md >> "$GITHUB_STEP_SUMMARY"
+              elif [ -f "test/bin/test_report.md" ]; then
+                cat test/bin/test_report.md >> "$GITHUB_STEP_SUMMARY"
+              fi
+            fi
+          fi
 
       - name: Package Standalone Test Suite (test-suite-linux.zip)
         run: |
@@ -425,6 +454,20 @@ jobs:
             test/.runtime_tests_failed
           if-no-files-found: ignore
 
+      - name: Publish Test Status Report to Step Summary
+        if: always()
+        shell: bash
+        run: |
+          if [ -n "$GITHUB_STEP_SUMMARY" ] && [ -f "$GITHUB_STEP_SUMMARY" ]; then
+            if ! grep -q "LibGodot Test Suite Status Report" "$GITHUB_STEP_SUMMARY"; then
+              if [ -f "test/test_report.md" ]; then
+                cat test/test_report.md >> "$GITHUB_STEP_SUMMARY"
+              elif [ -f "test/bin/test_report.md" ]; then
+                cat test/bin/test_report.md >> "$GITHUB_STEP_SUMMARY"
+              fi
+            fi
+          fi
+
       - name: Package Standalone Test Suite (test-suite-macos.zip)
         run: |
           bin/lapis package tests -p macos -o bin/test-suite-macos.zip
@@ -551,6 +594,9 @@ jobs:
           mkdir -p bin/android
           printf '%s\n' '## LibGodot Android Target Audit Report (arm64-v8a)' '' '| Metric | Value |' '| :--- | :--- |' '| **Overall Status** | Under Migration |' '| **Target Architecture** | arm64-v8a (API 29) |' '| **Note** | Transitioning Android pipeline to Lapis CLI toolchain. |' > bin/android/test_report.md
           printf '%s\n' '{"platform": "Android (arm64-v8a)", "overall_success": true, "note": "Transitioning to Lapis CLI toolchain"}' > bin/android/test_report.json
+          if [ -n "$GITHUB_STEP_SUMMARY" ]; then
+            cat bin/android/test_report.md >> "$GITHUB_STEP_SUMMARY"
+          fi
           echo "Android audit report generated."
 
       - name: Upload Android Status Report

@@ -90,7 +90,7 @@ PLUGIN_DLL       = $(PLUGIN_LIB)
 GAME_DLL         = $(GAME_LIB)
 LIBGODOT_DLL     = $(LIBGODOT_LIB)
 
-.PHONY: all lapis install uninstall bridge plugin test_project test_standalone package_tests package-tests package_template package-template package_template_addon package-template-addon package_examples package-examples package_addon package-addon package_all package-all package_release package-release package_perf package-perf package_game package-game new_addon new-addon new_example new-example setup_dev setup-dev run_editor run-editor run_test run-test run_ci_local run-ci-local ci-local ci export_templates export-templates recompile_addons recompile-addons verify_editor verify-editor test_wsl test-wsl report_android report-android examples examples_exe template template_addon perf perf_standalone perf_run perf_editor game_dll game_exe android package_android generate dump_api project_bindings deps addons sync engine spec test tests docs run editor clean help
+.PHONY: all lapis install uninstall bridge plugin test_project test_standalone package_tests package-tests package_lapis package-lapis package_deb package-deb package_template package-template package_template_addon package-template-addon package_examples package-examples package_addon package-addon package_all package-all package_release package-release package_perf package-perf package_game package-game new_addon new-addon new_example new-example setup_dev setup-dev run_editor run-editor run_test run-test run_ci_local run-ci-local ci-local ci export_templates export-templates recompile_addons recompile-addons verify_editor verify-editor test_wsl test-wsl report_android report-android examples examples_exe template template_addon perf perf_standalone perf_run perf_editor game_dll game_exe android package_android generate dump_api project_bindings deps addons sync engine spec test tests docs run editor clean help
 
 # Compile Lapis CLI toolchain if not present or source changed
 $(LAPIS): $(wildcard tools/lapis/src/**/*.cr) $(wildcard tools/lapis/src/*.cr)
@@ -212,7 +212,17 @@ package_examples package-examples: examples
 # Package official crystal_integration addon into godot-crystal-addon.zip
 package_addon package-addon: plugin bridge
 	@echo [Package] Packaging official Crystal integration addon...
-	@$(LAPIS) package addon $(if $(ZIP_NAME),-o "$(ZIP_NAME)",)
+	@$(LAPIS) package addon $(if $(PLATFORM),--platform "$(PLATFORM)",) $(if $(ZIP_NAME),-o "$(ZIP_NAME)",) $(if $(TARGET_DIR),-t "$(TARGET_DIR)",)
+
+# Package standalone Lapis toolchain into lapis-<platform>.zip / tar.gz
+package_lapis package-lapis: $(LAPIS)
+	@echo [Package] Packaging standalone Lapis toolchain...
+	@$(LAPIS) package lapis $(if $(PLATFORM),--platform "$(PLATFORM)",) $(if $(TARGET_DIR),-t "$(TARGET_DIR)",) $(if $(or $(ARCHIVE_NAME),$(ZIP_NAME)),-o "$(or $(ARCHIVE_NAME),$(ZIP_NAME))",) $(if $(filter 1,$(RELEASE)),-r,)
+
+# Package Lapis Debian (.deb) package
+package_deb package-deb: $(LAPIS)
+	@echo [Package] Packaging Lapis Debian package...
+	@$(LAPIS) package deb $(if $(TARGET_DIR),-t "$(TARGET_DIR)",) $(if $(or $(DEB_NAME),$(OUTPUT)),-o "$(or $(DEB_NAME),$(OUTPUT))",) $(if $(VERSION),-v "$(VERSION)",) $(if $(ARCH),-a "$(ARCH)",)
 
 # Package all release archives and checksums into bin/release_dist/
 package_all package-all package_release package-release:

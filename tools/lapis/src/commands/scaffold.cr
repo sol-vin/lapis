@@ -2,6 +2,8 @@ require "../core/env"
 require "../core/logger"
 require "../core/baked_file_system"
 require "./deps"
+require "./setup"
+require "./install"
 require "file_utils"
 require "option_parser"
 
@@ -13,11 +15,11 @@ module Lapis
 \e[35m=== Lapis: Project Scaffolding Tool ===\e[0m
 
 Usage:
-  lapis scaffold <game|addon|example> [name] [options]
-  lapis new <game|addon|example> [name] [options]
+  lapis scaffold <game|project|addon|example> [name] [options]
+  lapis new <game|project|addon|example> [name] [options]
 
 Subcommands:
-  game [name]            Scaffold a complete new game from template in DIR or CWD
+  game, project [name]   Scaffold a complete new game from template in DIR or CWD
   example <name>         Scaffold a self-contained showcase example project in examples/<name>
   addon <name>           Scaffold a redistributable GDExtension addon in addons/<name>
 
@@ -26,13 +28,14 @@ Options:
   -n, --name=NAME        Explicit project name
   -f, --force            Overwrite existing files in non-empty target directory
   -l, --local            Use local relative path for lapis dependency in shard.yml
+  --skip-godot           Skip automatic Godot engine download
   -a, --author=NAME      Author name for shard.yml (addons only)
   -d, --desc=TEXT        Description for shard.yml (addons only)
   -h, --help             Show this help screen
 
 Examples:
   lapis new game                     # Scaffold in current working directory
-  lapis new game my_game             # Scaffold into ./my_game
+  lapis new project my_game          # Scaffold into ./my_game
   lapis new game --target path/game  # Scaffold into specified directory
   lapis scaffold addon my_inventory -a "Sol-Vin" -d "Inventory system for Godot"
   lapis new example 3d_fps
@@ -137,7 +140,8 @@ MD
         name : String?,
         target_dir : Path?,
         force : Bool = false,
-        local_dep : Bool = false
+        local_dep : Bool = false,
+        skip_godot : Bool = false
       ) : Int32
         root = Core::Env::ROOT_DIR
 
@@ -214,17 +218,68 @@ MD
           end
         end
 
-        # 6. Synchronize runtime dependencies into bin/
+        # 6. Bundle compiled Crystal plugin libraries into addons/crystal_integration/bin/ and dependencies into bin/
         game_bin = dest.join("bin")
         FileUtils.mkdir_p(game_bin)
         Commands::Deps.run(["-t", game_bin.to_s])
 
-        bridge_src = root.join("bin", Core::Env.bridge_file)
-        if File.exists?(bridge_src)
-          Commands::Deps.safe_copy(bridge_src, game_bin.join(Core::Env.bridge_file))
-          addon_bin = dest.join("addons/crystal_integration/bin")
-          if Dir.exists?(addon_bin)
-            Commands::Deps.safe_copy(bridge_src, addon_bin.join(Core::Env.bridge_file))
+        addon_bin = dest.join("addons/crystal_integration/bin")
+        FileUtils.mkdir_p(addon_bin)
+
+        candidate_bin_dirs = [
+          root.join("bin"),
+          root.join("addons/crystal_integration/bin"),
+        ]
+        if (exe = Process.executable_path)
+          exe_p = Path.new(exe)
+          candidate_bin_dirs << exe_p.parent.join("addons/crystal_integration/bin")
+          candidate_bin_dirs << exe_p.parent.parent.join("share/lapis/addons/crystal_integration/bin")
+          candidate_bin_dirs << exe_p.parent.parent.join("addons/crystal_integration/bin")
+        end
+        candidate_bin_dirs << Commands::Install.config_dir.join("addons/crystal_integration/bin")
+
+        needed_libs = if Core::Env.windows?
+          ["crystal_bridge.dll", "plugin.dll", "gc.dll", "iconv-2.dll", "pcre2-8.dll", "libgodot.dll"]
+        elsif Core::Env.macos?
+          ["crystal_bridge.dylib", "plugin.dylib", "libgodot.dylib"]
+        else
+          ["crystal_bridge.so", "plugin.so", "libgodot.so"]
+        end
+
+        needed_libs.each do |lib_name|
+          src = candidate_bin_dirs.compact_map { |d| d.join(lib_name) if File.exists?(d.join(lib_name)) }.first?
+          if src
+            Commands::Deps.safe_copy(src, addon_bin.join(lib_name))
+            Commands::Deps.safe_copy(src, game_bin.join(lib_name)) if ["crystal_bridge.dll", "crystal_bridge.so", "crystal_bridge.dylib"].includes?(lib_name)
+          end
+        end
+
+        # 7. Automatically download and install current Godot engine version into project root
+        unless skip_godot
+          godot_dest = dest.join("godot#{Core::Env.exe_ext}")
+          if File.exists?(godot_dest)
+            Core::Logger.info("Godot binary already exists at #{godot_dest}")
+          else
+            target_ver = Commands::Setup.resolve_version(dest, nil)
+            platform_suffix = if Core::Env.windows?
+              "win64.exe.zip"
+            elsif Core::Env.macos?
+              "macos.universal.zip"
+            else
+              "linux.x86_64.zip"
+            end
+            url = "https://github.com/godotengine/godot-builds/releases/download/#{target_ver}/Godot_v#{target_ver}_#{platform_suffix}"
+            begin
+              Core::Logger.step("Scaffold", "Downloading Godot engine (#{target_ver}) to #{godot_dest.basename}...")
+              success = Commands::Setup.download_and_extract(url, godot_dest)
+              if success && File.exists?(godot_dest)
+                Core::Logger.success("Installed Godot engine binary at #{godot_dest}!")
+              else
+                Core::Logger.warn("Notice: Could not download Godot engine automatically. Please place your Godot binary at #{godot_dest}")
+              end
+            rescue ex
+              Core::Logger.warn("Notice: Godot engine download skipped (offline or network error: #{ex.message}). Please place your Godot binary at #{godot_dest}")
+            end
           end
         end
 
@@ -393,6 +448,7 @@ CR
         explicit_name : String? = nil
         force : Bool = false
         local_dep : Bool = false
+        skip_godot : Bool = false
         author : String? = nil
         desc : String? = nil
 
@@ -402,6 +458,7 @@ CR
           opts.on("-n NAME", "--name=NAME", "Explicit project name") { |n| explicit_name = n }
           opts.on("-f", "--force", "Overwrite existing files in non-empty target directory") { force = true }
           opts.on("-l", "--local", "Use local relative path for lapis dependency in shard.yml") { local_dep = true }
+          opts.on("--skip-godot", "Skip automatic Godot engine download") { skip_godot = true }
           opts.on("-a NAME", "--author=NAME", "Addon author name") { |a| author = a }
           opts.on("-d TEXT", "--desc=TEXT", "Addon description") { |text| desc = text }
           opts.on("-h", "--help", "Show help") { print_help; exit 0 }
@@ -419,8 +476,8 @@ CR
         target_dir = (tp = target_path) ? Path.new(tp).expand : nil
 
         case kind
-        when "game"
-          scaffold_game(name, target_dir, force: force, local_dep: local_dep)
+        when "game", "project"
+          scaffold_game(name, target_dir, force: force, local_dep: local_dep, skip_godot: skip_godot)
         when "example"
           if name.nil?
             Core::Logger.error("Name is required: lapis scaffold example <name>")
@@ -438,7 +495,7 @@ CR
           end
           scaffold_addon(name, target_dir, author, desc)
         else
-          Core::Logger.error("Unknown scaffold type: '#{kind}'. Expected 'game', 'addon', or 'example'.")
+          Core::Logger.error("Unknown scaffold type: '#{kind}'. Expected 'game', 'project', 'addon', or 'example'.")
           puts
           print_help
           1

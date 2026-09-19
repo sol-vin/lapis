@@ -206,6 +206,31 @@ jobs:
             test/bin/.runtime_tests_failed
           if-no-files-found: ignore
 
+      - name: Publish Test Status Report to Step Summary
+        if: always()
+        shell: pwsh
+        run: |
+          if ($env:GITHUB_STEP_SUMMARY -and (Test-Path $env:GITHUB_STEP_SUMMARY)) {
+            $existing = Get-Content $env:GITHUB_STEP_SUMMARY -Raw -ErrorAction SilentlyContinue
+            if ($existing -notmatch "LibGodot Test Suite Status Report") {
+              if (Test-Path "test/test_report.md") {
+                Get-Content "test/test_report.md" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+              } elseif (Test-Path "test/bin/test_report.md") {
+                Get-Content "test/bin/test_report.md" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+              }
+            }
+          }
+
+      - name: Package Windows Lapis CLI Toolchain (lapis-windows-x86_64.zip)
+        shell: pwsh
+        run: |
+          bin/lapis package lapis -p windows -o bin/windows/lapis-windows-x86_64.zip -r
+
+      - name: Package Windows Addon with Bundled Lapis & Plugin (godot-crystal-addon-windows-x86_64.zip)
+        shell: pwsh
+        run: |
+          bin/lapis package addon --platform windows -o bin/windows/godot-crystal-addon-windows-x86_64.zip
+
       - name: Package Windows Examples (examples-windows-x86_64.zip)
         run: |
           bin/lapis package examples -o bin/windows/examples-windows-x86_64.zip -r
@@ -263,6 +288,8 @@ jobs:
           $winBin = "bin/windows"
           if (-not (Test-Path $winBin)) { New-Item -ItemType Directory -Force -Path $winBin | Out-Null }
           if (Test-Path "bin/crystal_bridge.dll") { Copy-Item "bin/crystal_bridge.dll" "$winBin/" -Force }
+          if (Test-Path "bin/plugin.dll") { Copy-Item "bin/plugin.dll" "$winBin/" -Force }
+          if (Test-Path "bin/lapis.exe") { Copy-Item "bin/lapis.exe" "$winBin/" -Force }
           if (Test-Path "template/bin/game.dll") { Copy-Item "template/bin/game.dll" "$winBin/" -Force }
           foreach ($dll in @('gc.dll', 'iconv-2.dll', 'pcre2-8.dll', 'libgodot.dll')) {
             if (Test-Path "bin/$dll") { Copy-Item "bin/$dll" "$winBin/" -Force }
@@ -404,6 +431,37 @@ jobs:
             test/bin/.runtime_tests_failed
           if-no-files-found: ignore
 
+      - name: Publish Test Status Report to Step Summary
+        if: always()
+        shell: bash
+        run: |
+          if [ -n "$GITHUB_STEP_SUMMARY" ] && [ -f "$GITHUB_STEP_SUMMARY" ]; then
+            if ! grep -q "LibGodot Test Suite Status Report" "$GITHUB_STEP_SUMMARY"; then
+              if [ -f "test/test_report.md" ]; then
+                cat test/test_report.md >> "$GITHUB_STEP_SUMMARY"
+              elif [ -f "test/bin/test_report.md" ]; then
+                cat test/bin/test_report.md >> "$GITHUB_STEP_SUMMARY"
+              fi
+            fi
+          fi
+
+      - name: Package Linux Lapis CLI Toolchain (lapis-linux-x86_64.tar.gz)
+        shell: bash
+        run: |
+          bin/lapis package lapis -p linux -o bin/linux/lapis-linux-x86_64.tar.gz -r
+
+      - name: Package Linux Addon with Bundled Lapis & Plugin (godot-crystal-addon-linux-x86_64.zip)
+        shell: bash
+        run: |
+          bin/lapis package addon --platform linux -o bin/linux/godot-crystal-addon-linux-x86_64.zip
+
+      - name: Package Debian Package (lapis_amd64.deb)
+        shell: bash
+        run: |
+          TAG="${{ needs.init-release.outputs.tag_name }}"
+          TAG_CLEAN=$(echo "$TAG" | sed 's/^v//')
+          bin/lapis package deb -v "$TAG_CLEAN" -o "bin/linux/lapis_${TAG_CLEAN}_amd64.deb"
+
       - name: Package Linux Examples (examples-linux-x86_64.zip)
         run: |
           bin/lapis package examples -o bin/linux/examples-linux-x86_64.zip -r
@@ -450,6 +508,8 @@ jobs:
           mkdir -p "$LINUX_BIN"
 
           if [ -f "bin/crystal_bridge.so" ]; then cp "bin/crystal_bridge.so" "$LINUX_BIN/"; fi
+          if [ -f "bin/plugin.so" ]; then cp "bin/plugin.so" "$LINUX_BIN/"; fi
+          if [ -f "bin/lapis" ]; then cp "bin/lapis" "$LINUX_BIN/"; fi
           if [ -f "template/bin/game.so" ]; then cp "template/bin/game.so" "$LINUX_BIN/"; fi
           if [ -f "bin/libgodot.so" ]; then cp "bin/libgodot.so" "$LINUX_BIN/"; fi
 
@@ -580,6 +640,9 @@ jobs:
           mkdir -p bin/android
           printf '%s\n' '## LibGodot Android Target Audit Report (arm64-v8a)' '' '| Metric | Value |' '| :--- | :--- |' '| **Overall Status** | Under Migration |' '| **Target Architecture** | arm64-v8a (API 29) |' '| **Note** | Transitioning Android pipeline to Lapis CLI toolchain. |' > bin/android/test_report.md
           printf '%s\n' '{"platform": "Android (arm64-v8a)", "overall_success": true, "note": "Transitioning to Lapis CLI toolchain"}' > bin/android/test_report.json
+          if [ -n "$GITHUB_STEP_SUMMARY" ]; then
+            cat bin/android/test_report.md >> "$GITHUB_STEP_SUMMARY"
+          fi
           echo "Android audit report generated."
 
       - name: Upload Android Status Report
@@ -731,6 +794,30 @@ jobs:
             test/bin/.runtime_tests_failed
           if-no-files-found: ignore
 
+      - name: Publish Test Status Report to Step Summary
+        if: always()
+        shell: bash
+        run: |
+          if [ -n "$GITHUB_STEP_SUMMARY" ] && [ -f "$GITHUB_STEP_SUMMARY" ]; then
+            if ! grep -q "LibGodot Test Suite Status Report" "$GITHUB_STEP_SUMMARY"; then
+              if [ -f "test/test_report.md" ]; then
+                cat test/test_report.md >> "$GITHUB_STEP_SUMMARY"
+              elif [ -f "test/bin/test_report.md" ]; then
+                cat test/bin/test_report.md >> "$GITHUB_STEP_SUMMARY"
+              fi
+            fi
+          fi
+
+      - name: Package macOS Lapis CLI Toolchain (lapis-macos.zip)
+        shell: bash
+        run: |
+          bin/lapis package lapis -p macos -o bin/macos/lapis-macos.zip -r
+
+      - name: Package macOS Addon with Bundled Lapis & Plugin (godot-crystal-addon-macos.zip)
+        shell: bash
+        run: |
+          bin/lapis package addon --platform macos -o bin/macos/godot-crystal-addon-macos.zip
+
       - name: Package macOS Examples (examples-macos.zip)
         run: |
           bin/lapis package examples -o bin/macos/examples-macos.zip -r
@@ -777,6 +864,8 @@ jobs:
           mkdir -p "$MAC_BIN"
 
           if [ -f "bin/crystal_bridge.dylib" ]; then cp "bin/crystal_bridge.dylib" "$MAC_BIN/"; fi
+          if [ -f "bin/plugin.dylib" ]; then cp "bin/plugin.dylib" "$MAC_BIN/"; fi
+          if [ -f "bin/lapis" ]; then cp "bin/lapis" "$MAC_BIN/"; fi
           if [ -f "template/bin/game.dylib" ]; then cp "template/bin/game.dylib" "$MAC_BIN/"; fi
           if [ -f "bin/libgodot.dylib" ]; then cp "bin/libgodot.dylib" "$MAC_BIN/"; fi
 
@@ -844,6 +933,8 @@ jobs:
           [ -d "staging/windows/bin" ] && WIN_DIR="staging/windows/bin"
           if [ -f "$WIN_DIR/crystal_bridge.dll" ]; then
             cp "$WIN_DIR/crystal_bridge.dll" "$ADDON_BIN/"
+            [ -f "$WIN_DIR/plugin.dll" ] && cp "$WIN_DIR/plugin.dll" "$ADDON_BIN/"
+            [ -f "$WIN_DIR/lapis.exe" ] && cp "$WIN_DIR/lapis.exe" "$ADDON_BIN/"
             for dll in gc.dll iconv-2.dll pcre2-8.dll libgodot.dll; do
               [ -f "$WIN_DIR/$dll" ] && cp "$WIN_DIR/$dll" "$ADDON_BIN/"
             done
@@ -854,6 +945,8 @@ jobs:
           [ -d "staging/linux/bin" ] && LINUX_DIR="staging/linux/bin"
           if [ -f "$LINUX_DIR/crystal_bridge.so" ]; then
             cp "$LINUX_DIR/crystal_bridge.so" "$ADDON_BIN/"
+            [ -f "$LINUX_DIR/plugin.so" ] && cp "$LINUX_DIR/plugin.so" "$ADDON_BIN/"
+            [ -f "$LINUX_DIR/lapis" ] && cp "$LINUX_DIR/lapis" "$ADDON_BIN/"
             [ -f "$LINUX_DIR/libgodot.so" ] && cp "$LINUX_DIR/libgodot.so" "$ADDON_BIN/"
           fi
 
@@ -862,6 +955,8 @@ jobs:
           [ -d "staging/macos/bin" ] && MAC_DIR="staging/macos/bin"
           if [ -f "$MAC_DIR/crystal_bridge.dylib" ]; then
             cp "$MAC_DIR/crystal_bridge.dylib" "$ADDON_BIN/"
+            [ -f "$MAC_DIR/plugin.dylib" ] && cp "$MAC_DIR/plugin.dylib" "$ADDON_BIN/"
+            [ -f "$MAC_DIR/lapis" ] && cp "$MAC_DIR/lapis" "$ADDON_BIN/"
             [ -f "$MAC_DIR/libgodot.dylib" ] && cp "$MAC_DIR/libgodot.dylib" "$ADDON_BIN/"
           fi
 
@@ -1024,9 +1119,9 @@ jobs:
             find staging/windows -maxdepth 1 -name "*.zip" -exec cp {} "$DIST_DIR/" \;
           fi
 
-          # 3. Linux artifacts (zip files only)
+          # 3. Linux artifacts (zip, tar.gz, and deb files)
           if [ -d "staging/linux" ]; then
-            find staging/linux -maxdepth 1 -name "*.zip" -exec cp {} "$DIST_DIR/" \;
+            find staging/linux -maxdepth 1 \( -name "*.zip" -o -name "*.tar.gz" -o -name "*.deb" \) -exec cp {} "$DIST_DIR/" \;
           fi
 
           # 4. macOS artifacts (zip files only)
@@ -1068,6 +1163,7 @@ jobs:
         shell: bash
         run: |
           TAG="${{ needs.init-release.outputs.tag_name }}"
+          TAG_CLEAN=$(echo "$TAG" | sed 's/^v//')
           GODOT_VER="${{ needs.init-release.outputs.godot_version }}"
           if [ -z "$GODOT_VER" ] && [ -f "godot-version.yml" ]; then
             GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml | tr -d '\r\n[:space:]')
@@ -1076,9 +1172,27 @@ jobs:
           cat << 'EOF' > release_body.md
           ## LibGodot Crystal Release Notes
 
-          ### 📦 Addon & Starter Templates
+          ### 🛠️ Lapis CLI Toolchain & Debian Packages
+          - **`lapis-windows-x86_64.zip`**:
+            Standalone Lapis CLI toolchain executable for **Windows (x86_64)**.
+          - **`lapis-linux-x86_64.tar.gz`**:
+            Standalone Lapis CLI toolchain binary for **Linux (x86_64)**.
+          - **`lapis-macos.zip`**:
+            Standalone Lapis CLI toolchain binary for **macOS**.
+          - **`lapis_${TAG_CLEAN}_amd64.deb`**:
+            Debian/Ubuntu `.deb` installer package for the Lapis CLI toolchain. Install via `sudo apt install ./lapis_${TAG_CLEAN}_amd64.deb` or `sudo dpkg -i`.
+
+          ### 🔌 Platform-Specific Godot Editor Plugins
+          - **`godot-crystal-addon-windows-x86_64.zip`**:
+            Official Godot editor integration plugin bundled specifically for **Windows**, containing `crystal_bridge.dll`, `plugin.dll`, and `lapis.exe`.
+          - **`godot-crystal-addon-linux-x86_64.zip`**:
+            Official Godot editor integration plugin bundled specifically for **Linux**, containing `crystal_bridge.so`, `plugin.so`, and `lapis`.
+          - **`godot-crystal-addon-macos.zip`**:
+            Official Godot editor integration plugin bundled specifically for **macOS**, containing `crystal_bridge.dylib`, `plugin.dylib`, and `lapis`.
           - **`godot-crystal-addon.zip`**:
-            The official Godot editor addon (`addons/crystal_integration`) with pre-compiled GDExtension loader bridge binaries for **Windows** (`crystal_bridge.dll`), **macOS** (`crystal_bridge.dylib`), **Linux** (`crystal_bridge.so`), and **Android** (`arm64-v8a/libcrystal_bridge.so`). Drop the `addons/` folder directly into your existing Godot 4.8+ project to enable Crystal node authoring, inspector properties, and hot-reload.
+            Universal Godot editor addon (`addons/crystal_integration`) containing pre-compiled GDExtension loader bridge binaries for Windows, macOS, Linux, and Android.
+
+          ### 📦 Starter Templates
           - **`template-project.zip`**:
             A clean, ready-to-use Godot project skeleton powered by Crystal. Contains pre-configured scenes, sample nodes (`src/main.cr`), automated specifications (`spec/main_spec.cr`), GDExtension configuration, multi-platform export presets (Windows, macOS, Linux, Android), and pre-wired **GitHub Actions CI/CD workflows** (`.github/workflows/`) for automated testing (`crystal spec`) and multi-platform release deployment.
           - **`template-addon-project.zip`**:
