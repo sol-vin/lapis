@@ -8,6 +8,7 @@ module Lapis
     module Sync
       def self.safe_copy(src : Path | String, dst : Path | String) : Bool
         return false unless File.exists?(src)
+        return false if Core::Env.is_foreign_binary?(src)
         return true if File.expand_path(src.to_s) == File.expand_path(dst.to_s)
 
         begin
@@ -155,9 +156,15 @@ HELP
         unless addons_only
           platform_files = Core::Env.platform_bin_files.dup
 
+          # Purge foreign binaries from root bin directory
+          Core::Env.purge_foreign_binaries(bin_dir)
+
           synced_count = 0
           target_dirs.each do |dir|
             FileUtils.mkdir_p(dir) unless Dir.exists?(dir)
+
+            # Purge foreign platform binaries (.so on Windows, .dll on Linux)
+            Core::Env.purge_foreign_binaries(dir)
 
             platform_files.each do |bin_name|
               src = bin_dir.join(bin_name)

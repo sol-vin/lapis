@@ -265,6 +265,10 @@ MD
           end
         end
 
+        # Safety: purge any foreign platform binaries in newly scaffolded project
+        Core::Env.purge_foreign_binaries(addon_bin)
+        Core::Env.purge_foreign_binaries(game_bin)
+
         # 7. Automatically download and install current Godot engine version into project root
         unless skip_godot
           godot_dest = dest.join("godot#{Core::Env.exe_ext}")

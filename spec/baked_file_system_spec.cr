@@ -120,4 +120,26 @@ ensure
   FileUtils.rm_rf(temp_extract_dir) if Dir.exists?(temp_extract_dir)
 end
 
+# -------------------------------------------------------------
+# [Spec 5] Platform-Specific Asset Isolation
+# -------------------------------------------------------------
+puts "[Spec 5] Verifying platform-specific asset isolation..."
+{% if flag?(:windows) %}
+  unless Lapis::Core::BakedFileSystem.has_file?("scripts/windows/install_deps.ps1")
+    abort "ERROR: Windows platform asset 'scripts/windows/install_deps.ps1' missing on Windows!"
+  end
+  unless Lapis::Core::BakedFileSystem.has_file?("packaging/windows/lapis_installer.iss")
+    abort "ERROR: Windows platform asset 'packaging/windows/lapis_installer.iss' missing on Windows!"
+  end
+  puts "  ✓ Windows-specific scripts verified present in Windows binary"
+{% else %}
+  if Lapis::Core::BakedFileSystem.has_file?("scripts/windows/install_deps.ps1")
+    abort "ERROR: Windows asset 'scripts/windows/install_deps.ps1' leaked into non-Windows binary!"
+  end
+  if Lapis::Core::BakedFileSystem.has_file?("packaging/windows/lapis_installer.iss")
+    abort "ERROR: Windows asset 'packaging/windows/lapis_installer.iss' leaked into non-Windows binary!"
+  end
+  puts "  ✓ Non-Windows binary verified clean of Windows scripts and installers"
+{% end %}
+
 puts "\n>>> All BakedFileSystem Specifications Passed! <<<"

@@ -6,10 +6,15 @@ require "option_parser"
 module Lapis
   module Commands
     module Clean
-      PRESERVED_FILES = Set{
-        "libgodot.dll", "libgodot.lib", "libgodot.so", "libgodot.dylib",
-        "gc.dll", "iconv-2.dll", "pcre2-8.dll"
-      }
+      def self.preserved_files : Set(String)
+        if Core::Env.windows?
+          Set{"libgodot.dll", "libgodot.lib", "gc.dll", "iconv-2.dll", "pcre2-8.dll"}
+        elsif Core::Env.macos?
+          Set{"libgodot.dylib"}
+        else
+          Set{"libgodot.so"}
+        end
+      end
 
       def self.print_help
         puts <<-HELP
@@ -30,7 +35,7 @@ HELP
       private def self.clean_bin_dir(dir : Path) : Void
         return unless Dir.exists?(dir)
         Dir.each_child(dir) do |child|
-          next if PRESERVED_FILES.includes?(child)
+          next if preserved_files.includes?(child)
           p = dir.join(child)
           begin
             if File.file?(p)
@@ -67,32 +72,10 @@ HELP
         Core::Logger.step("Clean", "Cleaning build artifacts across workspace...")
 
         # 1. Clean bin directories across root and consumers
-        target_dirs = [
-          root.join("bin"),
-          root.join("test/bin"),
-          root.join("template/bin"),
+        target_dirs = (Core::Env.collect_target_bin_dirs(root) + [
           root.join("template-addon/dist"),
-          root.join("performance/bin"),
           root.join("docs"),
-        ]
-
-        # Examples
-        ex_dir = root.join("examples")
-        if Dir.exists?(ex_dir)
-          Dir.each_child(ex_dir) do |child|
-            p = ex_dir.join(child)
-            target_dirs << p.join("bin") if Dir.exists?(p)
-          end
-        end
-
-        # Addon bins
-        addons_dir = root.join("test/addons")
-        if Dir.exists?(addons_dir)
-          Dir.each_child(addons_dir) do |child|
-            p = addons_dir.join(child)
-            target_dirs << p.join("bin") if Dir.exists?(p)
-          end
-        end
+        ]).uniq
 
         target_dirs.each do |d|
           clean_bin_dir(d)

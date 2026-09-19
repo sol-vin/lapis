@@ -221,8 +221,23 @@ package_lapis package-lapis: $(LAPIS)
 
 # Package Lapis Debian (.deb) package
 package_deb package-deb: $(LAPIS)
+ifneq ($(PLATFORM),linux)
+	@echo Error: Debian package (.deb) can only be built on Linux (current platform: $(PLATFORM)).
+	@exit 1
+else
 	@echo [Package] Packaging Lapis Debian package...
 	@$(LAPIS) package deb $(if $(TARGET_DIR),-t "$(TARGET_DIR)",) $(if $(or $(DEB_NAME),$(OUTPUT)),-o "$(or $(DEB_NAME),$(OUTPUT))",) $(if $(VERSION),-v "$(VERSION)",) $(if $(ARCH),-a "$(ARCH)",)
+endif
+
+# Package Windows Inno Setup installer executable (.exe)
+package_installer package-installer: $(LAPIS)
+ifneq ($(PLATFORM),windows)
+	@echo Error: Windows installer (.exe) can only be built on Windows (current platform: $(PLATFORM)).
+	@exit 1
+else
+	@echo [Package] Packaging Windows installer executable...
+	@$(LAPIS) package windows-installer $(if $(TARGET_DIR),-t "$(TARGET_DIR)",) $(if $(or $(INSTALLER_NAME),$(OUTPUT)),-o "$(or $(INSTALLER_NAME),$(OUTPUT))",) $(if $(VERSION),-v "$(VERSION)",) $(if $(filter 1,$(RELEASE)),-r,)
+endif
 
 # Package all release archives and checksums into bin/release_dist/
 package_all package-all package_release package-release:
@@ -384,6 +399,8 @@ help:
 	@echo   PACKAGING TARGETS:
 	@echo     make package-game           Package playable game [PROJECT=.] [RELEASE=1] [FORCE=1]
 	@echo     make package-release        Package all release archives into bin/release_dist/
+	@echo     make package-installer      Package Windows Inno Setup installer executable (.exe)
+	@echo     make package-deb            Package Lapis Debian package (.deb)
 	@echo     make package-tests          Package standalone test runner into tests-^<platform^>.zip
 	@echo     make package-template       Package starter template into template-project.zip
 	@echo     make package-template-addon Package addon template into template-addon-project.zip

@@ -226,6 +226,31 @@ jobs:
         run: |
           bin/lapis package lapis -p windows -o bin/windows/lapis-windows-x86_64.zip -r
 
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          choco install innosetup -y --no-progress
+          $isccDir = "C:\Program Files (x86)\Inno Setup 6"
+          if (-not (Test-Path "$isccDir\ISCC.exe")) {
+            $found = Get-ChildItem "C:\Program Files*" -Filter "ISCC.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($found) { $isccDir = $found.DirectoryName }
+          }
+          if (Test-Path $isccDir) {
+            "$isccDir" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+            $env:Path = "$isccDir;$env:Path"
+          }
+          if (Test-Path "C:\ProgramData\chocolatey\bin") {
+            "C:\ProgramData\chocolatey\bin" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+            $env:Path = "C:\ProgramData\chocolatey\bin;$env:Path"
+          }
+
+      - name: Package Windows Installer (lapis-setup-windows-x86_64.exe)
+        shell: pwsh
+        run: |
+          $tag = "${{ needs.init-release.outputs.tag_name }}"
+          $tagClean = $tag -replace '^v', ''
+          bin/lapis package windows-installer -o bin/windows/lapis-setup-windows-x86_64.exe -v "$tagClean" -r
+
       - name: Package Windows Addon with Bundled Lapis & Plugin (godot-crystal-addon-windows-x86_64.zip)
         shell: pwsh
         run: |
@@ -1114,9 +1139,9 @@ jobs:
           [ -f "$ROOT_DIR/bin/template-project.zip" ] && cp "$ROOT_DIR/bin/template-project.zip" "$DIST_DIR/"
           [ -f "$ROOT_DIR/bin/template-addon-project.zip" ] && cp "$ROOT_DIR/bin/template-addon-project.zip" "$DIST_DIR/"
 
-          # 2. Windows artifacts (zip files only)
+          # 2. Windows artifacts (zip and exe files)
           if [ -d "staging/windows" ]; then
-            find staging/windows -maxdepth 1 -name "*.zip" -exec cp {} "$DIST_DIR/" \;
+            find staging/windows -maxdepth 1 \( -name "*.zip" -o -name "*.exe" \) -exec cp {} "$DIST_DIR/" \;
           fi
 
           # 3. Linux artifacts (zip, tar.gz, and deb files)
@@ -1172,57 +1197,61 @@ jobs:
           cat << 'EOF' > release_body.md
           ## LibGodot Crystal Release Notes
 
-          ### 🛠️ Lapis CLI Toolchain & Debian Packages
+          ### 🪟 Windows (x86_64)
+          - **`lapis-setup-windows-x86_64.exe`**:
+            Standalone Windows GUI installer for the Lapis CLI toolchain. Automatically detects and installs Crystal, LLDB, GNU Make, and Git.
           - **`lapis-windows-x86_64.zip`**:
-            Standalone Lapis CLI toolchain executable for **Windows (x86_64)**.
-          - **`lapis-linux-x86_64.tar.gz`**:
-            Standalone Lapis CLI toolchain binary for **Linux (x86_64)**.
-          - **`lapis-macos.zip`**:
-            Standalone Lapis CLI toolchain binary for **macOS**.
-          - **`lapis_${TAG_CLEAN}_amd64.deb`**:
-            Debian/Ubuntu `.deb` installer package for the Lapis CLI toolchain. Install via `sudo apt install ./lapis_${TAG_CLEAN}_amd64.deb` or `sudo dpkg -i`.
-
-          ### 🔌 Platform-Specific Godot Editor Plugins
+            Standalone Lapis CLI toolchain portable executable for **Windows (x86_64)**.
           - **`godot-crystal-addon-windows-x86_64.zip`**:
             Official Godot editor integration plugin bundled specifically for **Windows**, containing `crystal_bridge.dll`, `plugin.dll`, and `lapis.exe`.
-          - **`godot-crystal-addon-linux-x86_64.zip`**:
-            Official Godot editor integration plugin bundled specifically for **Linux**, containing `crystal_bridge.so`, `plugin.so`, and `lapis`.
-          - **`godot-crystal-addon-macos.zip`**:
-            Official Godot editor integration plugin bundled specifically for **macOS**, containing `crystal_bridge.dylib`, `plugin.dylib`, and `lapis`.
-          - **`godot-crystal-addon.zip`**:
-            Universal Godot editor addon (`addons/crystal_integration`) containing pre-compiled GDExtension loader bridge binaries for Windows, macOS, Linux, and Android.
-
-          ### 📦 Starter Templates
-          - **`template-project.zip`**:
-            A clean, ready-to-use Godot project skeleton powered by Crystal. Contains pre-configured scenes, sample nodes (`src/main.cr`), automated specifications (`spec/main_spec.cr`), GDExtension configuration, multi-platform export presets (Windows, macOS, Linux, Android), and pre-wired **GitHub Actions CI/CD workflows** (`.github/workflows/`) for automated testing (`crystal spec`) and multi-platform release deployment.
-          - **`template-addon-project.zip`**:
-            A complete starter template for building and packaging redistributable GDExtension addons and editor plugins in Crystal (`template-addon`). Pre-configured with dual-plugin architecture (`crystal_addon` and embedded `crystal_integration`), pre-compiled bridge binaries, and packaging scripts to export distributable addon zips for vanilla Godot users.
-
-          ### 🛠️ Export Templates
-          - **`godot-crystal-export-templates-${GODOT_VER}.zip`**:
-            Official Godot ${GODOT_VER} export templates package ready for Crystal standalone game project distribution across Windows, macOS, and Linux.
-
-          ### 📦 Standalone Toolchain Distributions
           - **`libgodot-crystal-windows-x86_64-${TAG}.zip`**:
             Complete LibGodot Crystal package for **Windows (x86_64)**. Contains the full Crystal bindings library source (`src/`), GDExtension bridge DLL (`crystal_bridge.dll`), and Windows runtime dependencies (`libgodot.dll`, `gc.dll`, `iconv-2.dll`, `pcre2-8.dll`).
-          - **`libgodot-crystal-linux-x86_64-${TAG}.zip`**:
-            Complete LibGodot Crystal package for **Linux (x86_64)**. Contains the full Crystal bindings library source (`src/`), GDExtension bridge shared object (`crystal_bridge.so`), and Linux GDExtension configurations for native Linux exports and development.
-          - **`libgodot-crystal-macos-${TAG}.zip`**:
-            Complete LibGodot Crystal package for **macOS**. Contains the full Crystal bindings library source (`src/`), GDExtension bridge dylib (`crystal_bridge.dylib`), and macOS GDExtension configurations.
-
-          ### 🧪 Standalone Test Suites & Benchmarks
+          - **`examples-windows-x86_64.zip`**:
+            Standalone compiled game executables for all examples on **Windows (x86_64)**.
           - **`test-suite-windows.zip`**:
-            Standalone Godot test suite package for **Windows (x86_64)**. Bundles the complete verification test project with all runtime DLLs (`game.dll`, `crystal_bridge.dll`, `libgodot.dll`, `gc.dll`, `iconv-2.dll`, `pcre2-8.dll`).
-          - **`test-suite-linux.zip`**:
-            Standalone Godot test suite package for **Linux (x86_64)**. Bundles the complete verification test project, GDExtension bridge (`crystal_bridge.so`), compiled game logic (`game.so`), and runtime libraries (`libgodot.so`).
-          - **`test-suite-macos.zip`**:
-            Standalone Godot test suite package for **macOS**. Bundles the complete verification test project with all dylibs (`game.dylib`, `crystal_bridge.dylib`, `libgodot.dylib`).
+            Standalone Godot test suite package for **Windows (x86_64)** with all runtime DLLs (`game.dll`, `crystal_bridge.dll`, `libgodot.dll`, `gc.dll`, `iconv-2.dll`, `pcre2-8.dll`).
           - **`perf-windows.zip`**:
             Standalone performance stress benchmark for **Windows (x86_64)**.
+
+          ### 🐧 Linux (x86_64)
+          - **`lapis_${TAG_CLEAN}_amd64.deb`**:
+            Debian/Ubuntu `.deb` installer package for the Lapis CLI toolchain with dependency resolution. Install via `sudo apt install ./lapis_${TAG_CLEAN}_amd64.deb` or `sudo dpkg -i`.
+          - **`lapis-linux-x86_64.tar.gz`**:
+            Standalone Lapis CLI toolchain portable binary for **Linux (x86_64)**.
+          - **`godot-crystal-addon-linux-x86_64.zip`**:
+            Official Godot editor integration plugin bundled specifically for **Linux**, containing `crystal_bridge.so`, `plugin.so`, and `lapis`.
+          - **`libgodot-crystal-linux-x86_64-${TAG}.zip`**:
+            Complete LibGodot Crystal package for **Linux (x86_64)**. Contains the full Crystal bindings library source (`src/`), GDExtension bridge shared object (`crystal_bridge.so`), and Linux GDExtension configurations.
+          - **`examples-linux-x86_64.zip`**:
+            Standalone compiled game executables and shared libraries for all examples on **Linux (x86_64)**.
+          - **`test-suite-linux.zip`**:
+            Standalone Godot test suite package for **Linux (x86_64)** with GDExtension bridge (`crystal_bridge.so`), compiled game logic (`game.so`), and runtime libraries (`libgodot.so`).
           - **`perf-linux.zip`**:
             Standalone performance stress benchmark for **Linux (x86_64)**.
+
+          ### 🍏 macOS
+          - **`lapis-macos.zip`**:
+            Standalone Lapis CLI toolchain portable binary for **macOS**.
+          - **`godot-crystal-addon-macos.zip`**:
+            Official Godot editor integration plugin bundled specifically for **macOS**, containing `crystal_bridge.dylib`, `plugin.dylib`, and `lapis`.
+          - **`libgodot-crystal-macos-${TAG}.zip`**:
+            Complete LibGodot Crystal package for **macOS**. Contains the full Crystal bindings library source (`src/`), GDExtension bridge dylib (`crystal_bridge.dylib`), and macOS GDExtension configurations.
+          - **`examples-macos.zip`**:
+            Standalone compiled game packages and dynamic libraries for all examples on **macOS**.
+          - **`test-suite-macos.zip`**:
+            Standalone Godot test suite package for **macOS** with all dylibs (`game.dylib`, `crystal_bridge.dylib`, `libgodot.dylib`).
           - **`perf-macos.zip`**:
             Standalone performance stress benchmark for **macOS**.
+
+          ### 🌐 Universal & Starter Templates
+          - **`godot-crystal-addon.zip`**:
+            Universal Godot editor addon (`addons/crystal_integration`) containing pre-compiled GDExtension loader bridge binaries across Windows, macOS, Linux, and Android.
+          - **`template-project.zip`**:
+            A clean, ready-to-use Godot project skeleton powered by Crystal. Contains pre-configured scenes, sample nodes (`src/main.cr`), automated specifications (`spec/main_spec.cr`), GDExtension configuration, multi-platform export presets (Windows, macOS, Linux, Android), and pre-wired **GitHub Actions CI/CD workflows** (`.github/workflows/`) for automated testing and multi-platform release deployment.
+          - **`template-addon-project.zip`**:
+            A complete starter template for building and packaging redistributable GDExtension addons and editor plugins in Crystal (`template-addon`). Pre-configured with dual-plugin architecture (`crystal_addon` and embedded `crystal_integration`), pre-compiled bridge binaries, and packaging scripts.
+          - **`godot-crystal-export-templates-${GODOT_VER}.zip`**:
+            Official Godot ${GODOT_VER} export templates package ready for Crystal standalone game project distribution across Windows, macOS, and Linux.
 
           ### 📱 Android APKs (arm64-v8a)
           - **`template.apk`**:
@@ -1234,18 +1263,11 @@ jobs:
           - **`examples-android-arm64.zip`**:
             Archive of all pre-compiled example showcase game APKs packaged for Android (`arm64-v8a`), including `basic_demo.apk`.
 
-          ### 🎮 Pre-Compiled Desktop Examples
-          - **`examples-windows-x86_64.zip`**:
-            Standalone compiled game executables for all examples on **Windows (x86_64)**.
-          - **`examples-linux-x86_64.zip`**:
-            Standalone compiled game executables and shared libraries for all examples on **Linux (x86_64)**.
-          - **`examples-macos.zip`**:
-            Standalone compiled game packages and dynamic libraries for all examples on **macOS**.
-
           ### 🔒 Integrity
           - **`checksums.txt`**:
             SHA-256 cryptographic hashes for every release file to verify download integrity.
           EOF
+          sed -i "s/\${TAG_CLEAN}/$TAG_CLEAN/g" release_body.md
           sed -i "s/\${TAG}/$TAG/g" release_body.md
           sed -i "s/\${GODOT_VER}/$GODOT_VER/g" release_body.md
 

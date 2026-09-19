@@ -101,6 +101,7 @@ module Lapis
         zip_file = out_path || root.join("bin/template-project.zip")
 
         Core::Logger.step("Package", "Packaging starter template project...")
+        Core::Env.purge_foreign_binaries(template_dir)
         excludes = [".godot", ".git", ".uid", "~", "crash_dump", "test_ext.log", "template_ext.log"]
         unless bundle_binaries
           excludes << "bin/"
@@ -121,6 +122,7 @@ module Lapis
         zip_file = out_path || root.join("bin/template-addon-project.zip")
 
         Core::Logger.step("Package", "Packaging addon starter template...")
+        Core::Env.purge_foreign_binaries(addon_dir)
         excludes = [".godot", ".git", ".uid", "~", "crash_dump", ".log"]
         unless bundle_binaries
           excludes << "bin/"
@@ -147,7 +149,7 @@ module Lapis
         addon_name = name || "crystal_integration"
         addon_dir = base.join("addons/#{addon_name}")
 
-        plat = platform.try(&.downcase)
+        plat = platform.try(&.downcase) || Core::Env.current_platform
         default_zip = if plat && !plat.empty?
           base.join(name ? "dist/#{addon_name}-#{plat}.zip" : "bin/godot-crystal-addon-#{plat}.zip")
         else
@@ -155,7 +157,7 @@ module Lapis
         end
         zip_file = out_path || default_zip
 
-        Core::Logger.step("Package", "Packaging #{addon_name} addon#{plat ? " for #{plat}" : ""}...")
+        Core::Logger.step("Package", "Packaging #{addon_name} addon for #{plat}...")
 
         if plat && !plat.empty?
           stage_dir = root.join("scratch/addon_stage_#{plat}")
@@ -218,6 +220,7 @@ module Lapis
             end
           end
 
+          Core::Env.purge_foreign_binaries(dest_bin)
           zip_directory(
             dest_addon,
             zip_file,
@@ -263,6 +266,7 @@ module Lapis
           stage_addon = stage_dir.join("addons/crystal_integration")
           FileUtils.mkdir_p(stage_addon)
           FileUtils.cp_r(addon_src.to_s, stage_addon.parent.to_s)
+          Core::Env.purge_foreign_binaries(stage_addon)
         end
 
         # Include docs and license
@@ -288,6 +292,11 @@ module Lapis
       end
 
       def self.package_deb(root : Path, out_path : Path?, version : String? = nil, arch : String = "amd64") : Int32
+        unless Core::Env.linux?
+          Core::Logger.error("Target 'deb' is only available on Linux (Debian/Ubuntu). Cannot package Debian (.deb) on #{Core::Env.current_platform}.")
+          return 1
+        end
+
         pkg_ver = version || Lapis::VERSION
         pkg_ver = pkg_ver.lstrip('v')
         deb_control_ver = if pkg_ver.empty? || !pkg_ver[0].ascii_number?
@@ -311,6 +320,8 @@ Version: #{deb_control_ver}
 Section: devel
 Priority: optional
 Architecture: #{arch}
+Depends: crystal, lldb
+Recommends: make, git, g++ | clang
 Maintainer: LibGodot Crystal Contributors <https://github.com/sol-vin/lapis>
 Homepage: https://github.com/sol-vin/lapis
 Description: Lapis: Unified Crystal Engine Toolchain for Godot
@@ -332,6 +343,7 @@ CONTROL
         addon_src = root.join("addons/crystal_integration")
         if Dir.exists?(addon_src)
           FileUtils.cp_r(addon_src.to_s, stage_dir.join("usr/share/lapis/addons").to_s)
+          Core::Env.purge_foreign_binaries(stage_dir)
         end
 
         ["README.md", "LICENSE"].each do |doc|
@@ -359,6 +371,122 @@ CONTROL
 
         FileUtils.rm_rf(stage_dir) if Dir.exists?(stage_dir)
         0
+      end
+
+      def self.find_iscc : String?
+        if path = Process.find_executable("iscc") || Process.find_executable("iscc.exe")
+          return path
+        end
+
+        {% if flag?(:windows) %}
+          user_profile = ENV["USERPROFILE"]? || ""
+          local_app_data = ENV["LOCALAPPDATA"]? || ""
+          candidates = [
+            "C:\\Program Files (x86)\\Inno Setup 6\\ISCC.exe",
+            "C:\\Program Files\\Inno Setup 6\\ISCC.exe",
+            "C:\\Program Files (x86)\\Inno Setup 7\\ISCC.exe",
+            "C:\\Program Files\\Inno Setup 7\\ISCC.exe",
+            "C:\\ProgramData\\chocolatey\\bin\\iscc.exe",
+            File.join(local_app_data, "Programs", "Inno Setup 6", "ISCC.exe"),
+            File.join(user_profile, "scoop", "apps", "innosetup", "current", "ISCC.exe"),
+          ]
+          candidates.each do |cand|
+            return cand if File.exists?(cand)
+          end
+        {% end %}
+        nil
+      end
+
+      def self.package_windows_installer(
+        root : Path,
+        out_path : Path?,
+        version : String? = nil,
+        release : Bool = false
+      ) : Int32
+        unless Core::Env.windows?
+          Core::Logger.error("Target 'windows-installer' is only available on Windows. Current platform: #{Core::Env.current_platform}.")
+          return 1
+        end
+
+        pkg_ver = version || Lapis::VERSION
+        pkg_ver = pkg_ver.lstrip('v')
+        dest_exe = out_path || root.join("bin/windows/lapis-setup-windows-x86_64.exe")
+
+        Core::Logger.step("Package", "Packaging Windows Installer for Lapis v#{pkg_ver}...")
+        stage_dir = root.join("scratch/installer_stage")
+        FileUtils.rm_rf(stage_dir) if Dir.exists?(stage_dir)
+        FileUtils.mkdir_p(stage_dir)
+
+        # 1. Stage lapis.exe
+        lapis_exe = root.join("bin/lapis#{Core::Env.exe_ext}")
+        lapis_exe = Path.new(Process.executable_path.not_nil!) if !File.exists?(lapis_exe) && Process.executable_path
+        if File.exists?(lapis_exe)
+          safe_copy(lapis_exe, stage_dir.join("lapis.exe"))
+        else
+          Core::Logger.warn("Lapis executable not found at #{lapis_exe}")
+        end
+
+        # 2. Stage scripts/windows
+        scripts_src = root.join("scripts/windows")
+        if Dir.exists?(scripts_src)
+          stage_scripts = stage_dir.join("scripts")
+          FileUtils.mkdir_p(stage_scripts)
+          FileUtils.cp_r(scripts_src.to_s, stage_scripts.to_s)
+          safe_copy(scripts_src.join("install_deps.ps1"), stage_dir.join("install_deps.ps1"))
+        end
+
+        # 3. Stage addons
+        addon_src = root.join("addons/crystal_integration")
+        if Dir.exists?(addon_src)
+          stage_addon = stage_dir.join("addons/crystal_integration")
+          FileUtils.mkdir_p(stage_addon)
+          FileUtils.cp_r(addon_src.to_s, stage_addon.parent.to_s)
+          Core::Env.purge_foreign_binaries(stage_addon)
+        end
+
+        # 4. Docs & License
+        ["README.md", "LICENSE"].each do |f|
+          safe_copy(root.join(f), stage_dir.join(f))
+        end
+
+        # 5. Compile with Inno Setup Compiler (ISCC)
+        iss_path = root.join("packaging/windows/lapis_installer.iss")
+        unless File.exists?(iss_path)
+          Core::Logger.error("Inno Setup script not found at #{iss_path}")
+          return 1
+        end
+
+        FileUtils.mkdir_p(dest_exe.parent) unless Dir.exists?(dest_exe.parent)
+        File.delete(dest_exe) if File.exists?(dest_exe)
+
+        iscc = find_iscc
+        if iscc
+          Core::Logger.step("Package", "Compiling Inno Setup installer via #{iscc}...")
+          out_dir = dest_exe.parent.to_s.gsub('/', '\\')
+          base_name = dest_exe.basename(".exe")
+          args = [
+            "/DAppVersion=#{pkg_ver}",
+            "/DSourceDir=#{stage_dir.to_s.gsub('/', '\\')}",
+            "/DOutputDir=#{out_dir}",
+            "/DOutputBaseFilename=#{base_name}",
+            "/Q",
+            iss_path.to_s.gsub('/', '\\'),
+          ]
+          status = Core::ProcessRunner.run(iscc, args)
+          if status.success? && File.exists?(dest_exe)
+            Core::Logger.success("Successfully generated Windows installer: #{dest_exe.basename} (#{File.size(dest_exe)} bytes)")
+            FileUtils.rm_rf(stage_dir) if Dir.exists?(stage_dir)
+            return 0
+          else
+            Core::Logger.error("Inno Setup compiler failed to build #{dest_exe.basename}")
+            return 1
+          end
+        else
+          Core::Logger.warn("Inno Setup compiler ('iscc') was not found in PATH or standard directories.")
+          Core::Logger.info("Tip: Install Inno Setup via 'choco install innosetup -y' or 'winget install JRSoftware.InnoSetup' to compile.")
+          Core::Logger.info("Staged installer files preserved at #{stage_dir}")
+          return 0
+        end
       end
 
       def self.package_examples(root : Path, out_path : Path?, platform_name : String? = nil) : Int32
@@ -401,6 +529,7 @@ CONTROL
           end
         end
 
+        Core::Env.purge_foreign_binaries(stage_dir)
         zip_directory(
           stage_dir,
           zip_file,
@@ -435,6 +564,7 @@ CONTROL
           end
         end
 
+        Core::Env.purge_foreign_binaries(stage_dir)
         zip_directory(
           stage_dir,
           zip_file,
@@ -643,6 +773,10 @@ CONTROL
           package_deb(root, out_dir.join("lapis_#{Lapis::VERSION}_amd64.deb"))
         end
 
+        if Core::Env.windows? && File.exists?(root.join("packaging/windows/lapis_installer.iss"))
+          package_windows_installer(root, out_dir.join("lapis-setup-windows-x86_64.exe"), version: Lapis::VERSION, release: release)
+        end
+
         unless skip_tests
           package_tests(root, out_dir.join("test-suite-#{plat}.zip"), platform_name: plat, release: release)
         end
@@ -654,7 +788,7 @@ CONTROL
         # Compute SHA256 sums across all generated release archives
         checksum_file = out_dir.join("checksums.txt")
         lines = [] of String
-        Dir.glob([out_dir.to_s.gsub('\\', '/') + "/*.zip", out_dir.to_s.gsub('\\', '/') + "/*.tar.gz", out_dir.to_s.gsub('\\', '/') + "/*.deb", out_dir.to_s.gsub('\\', '/') + "/*.apk"]).flatten.uniq.sort.each do |archive|
+        Dir.glob([out_dir.to_s.gsub('\\', '/') + "/*.zip", out_dir.to_s.gsub('\\', '/') + "/*.tar.gz", out_dir.to_s.gsub('\\', '/') + "/*.deb", out_dir.to_s.gsub('\\', '/') + "/*.exe", out_dir.to_s.gsub('\\', '/') + "/*.apk"]).flatten.uniq.sort.each do |archive|
           hash = sha256_file(Path.new(archive))
           lines << "#{hash}  #{Path.new(archive).basename}"
         end
@@ -677,7 +811,8 @@ Targets:
   template-addon        Package the addon starter template into template-addon-project.zip
   addon                 Package the official crystal_integration addon into godot-crystal-addon.zip
   lapis                 Package standalone Lapis CLI toolchain archive (zip or tar.gz)
-  deb                   Package Lapis Debian (.deb) package
+  deb                   Package Lapis Debian (.deb) package [Linux only]
+  windows-installer     Package Windows Inno Setup installer executable (.exe) [Windows only]
   examples              Package standalone examples into examples-<platform>.zip
   tests                 Package standalone test runner into tests-<platform>.zip
   perf                  Package performance benchmark into perf-<platform>.zip
@@ -688,9 +823,9 @@ Options:
   --platform=NAME       Target platform name (windows, linux, macos, android)
   -n, --name=NAME       Output executable/package name [game only]
   -t, --target-dir=DIR  Staging directory for output files
-  -o, --output=PATH     Explicit output archive path (.zip, .tar.gz, or .deb)
-  -v, --version=VER     Package version (for deb package)
-  -a, --arch=ARCH       Architecture (amd64, arm64) [deb only]
+  -o, --output=PATH     Explicit output archive path (.zip, .tar.gz, .deb, or .exe)
+  -v, --version=VER     Package version (for deb/installer package)
+  -a, --arch=ARCH       Architecture (amd64, arm64) [deb on Linux only]
   -r, --release         Package/compile in release mode
   -f, --force           Force recompilation of game binary
   --bundle-binaries     Include compiled binaries in archive (template only)
@@ -701,6 +836,7 @@ Options:
 Examples:
   lapis package lapis
   lapis package deb
+  lapis package windows-installer
   lapis package addon --platform windows
   lapis package game -p template -n MyGame -r
   lapis package release -t bin/release_dist
@@ -773,10 +909,22 @@ HELP
           final_out = out_path || (td_path ? td_path.join(default_archive) : nil)
           package_lapis(root, final_out, platform_name: plat, release: release)
         when "deb"
+          unless Core::Env.linux?
+            Core::Logger.error("Target 'deb' is only available on Linux (Debian/Ubuntu). Current platform: #{Core::Env.current_platform}.")
+            return 1
+          end
           pkg_version = version_arg || Lapis::VERSION
           pkg_arch = arch_arg || "amd64"
           final_out = out_path || (td_path ? td_path.join("lapis_#{pkg_version}_#{pkg_arch}.deb") : nil)
           package_deb(root, final_out, version: pkg_version, arch: pkg_arch.to_s)
+        when "windows-installer", "windows_installer", "installer"
+          unless Core::Env.windows?
+            Core::Logger.error("Target 'windows-installer' is only available on Windows. Current platform: #{Core::Env.current_platform}.")
+            return 1
+          end
+          pkg_version = version_arg || Lapis::VERSION
+          final_out = out_path || (td_path ? td_path.join("lapis-setup-windows-x86_64.exe") : nil)
+          package_windows_installer(root, final_out, version: pkg_version, release: release)
         when "examples"
           final_out = out_path || (td_path ? td_path.join("examples-#{plat}-x86_64.zip") : nil)
           package_examples(root, final_out)

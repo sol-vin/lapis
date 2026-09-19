@@ -196,8 +196,106 @@ module Lapis
         )
       end
 
+      def self.find_lldb : String?
+        if path = ProcessRunner.find_executable("lldb")
+          return path
+        end
+
+        {% if flag?(:windows) %}
+          user_profile = ENV["USERPROFILE"]? || ""
+          candidates = [
+            "C:\\Program Files\\LLVM\\bin\\lldb.exe",
+            "C:\\Program Files (x86)\\LLVM\\bin\\lldb.exe",
+            "C:\\ProgramData\\llvm\\bin\\lldb.exe",
+            File.join(user_profile, "scoop", "apps", "llvm", "current", "bin", "lldb.exe"),
+            "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\Llvm\\bin\\lldb.exe",
+            "C:\\Program Files\\Microsoft Visual Studio\\2022\\Professional\\VC\\Tools\\Llvm\\bin\\lldb.exe",
+            "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\Llvm\\bin\\lldb.exe",
+            "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\Llvm\\bin\\lldb.exe",
+          ]
+          candidates.each do |cand|
+            return cand if File.exists?(cand)
+          end
+        {% end %}
+        nil
+      end
+
+      def self.get_lldb_version(lldb_bin : String) : String?
+        res = ProcessRunner.capture(lldb_bin, ["--version"])
+        if res[:status].success?
+          res[:output].lines.first?.try(&.strip)
+        else
+          nil
+        end
+      rescue
+        nil
+      end
+
+      def self.check_lldb : ToolStatus
+        lldb_path = find_lldb
+        unless lldb_path
+          return ToolStatus.new(
+            name: "lldb",
+            installed: false,
+            version: nil,
+            supported: false,
+            path: nil,
+            message: "LLDB debugger ('lldb') was not found. Install LLVM (e.g. 'winget install LLVM.LLVM' or 'scoop install llvm' on Windows, 'apt install lldb' on Linux) for native Crystal debugging."
+          )
+        end
+
+        ver = get_lldb_version(lldb_path) || "present"
+        ToolStatus.new(
+          name: "lldb",
+          installed: true,
+          version: ver,
+          supported: true,
+          path: lldb_path,
+          message: "LLDB debugger verified at #{lldb_path} (#{ver})."
+        )
+      end
+
+      def self.find_git : String?
+        ProcessRunner.find_executable("git")
+      end
+
+      def self.get_git_version(git_bin : String) : String?
+        res = ProcessRunner.capture(git_bin, ["--version"])
+        if res[:status].success?
+          res[:output].lines.first?.try(&.strip)
+        else
+          nil
+        end
+      rescue
+        nil
+      end
+
+      def self.check_git : ToolStatus
+        git_path = find_git
+        unless git_path
+          return ToolStatus.new(
+            name: "git",
+            installed: false,
+            version: nil,
+            supported: false,
+            path: nil,
+            message: "Git ('git') was not found in PATH. Please install Git (e.g. 'winget install Git.Git' on Windows, or your system package manager) for dependency management."
+          )
+        end
+
+        ver = get_git_version(git_path) || "present"
+        ToolStatus.new(
+          name: "git",
+          installed: true,
+          version: ver,
+          supported: true,
+          path: git_path,
+          message: "Git verified at #{git_path} (#{ver})."
+        )
+      end
+
       def self.check_all : Array(ToolStatus)
-        [check_crystal, check_make]
+        [check_crystal, check_lldb, check_make, check_git]
       end
 
       # Validates tools and logs any errors or warnings. Returns true if all required tools pass.

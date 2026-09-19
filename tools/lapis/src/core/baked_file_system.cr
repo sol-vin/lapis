@@ -34,8 +34,14 @@ module Lapis
         {% end %}
       end
 
-      # Bake the authoritative files manifest at compile time
-      bake_manifest("#{__DIR__}/../../baked.yml", "#{__DIR__}/../../../../")
+      # Bake the platform-specific files manifest at compile time
+      {% if flag?(:windows) %}
+        bake_manifest("#{__DIR__}/../../baked_windows.yml", "#{__DIR__}/../../../../")
+      {% elsif flag?(:darwin) %}
+        bake_manifest("#{__DIR__}/../../baked_macos.yml", "#{__DIR__}/../../../../")
+      {% else %}
+        bake_manifest("#{__DIR__}/../../baked_linux.yml", "#{__DIR__}/../../../../")
+      {% end %}
 
       # Retrieves a baked file by its virtual relative path. Raises KeyError if not found.
       def self.get(path : String) : BakedFile

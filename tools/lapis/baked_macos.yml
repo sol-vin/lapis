@@ -1,0 +1,34 @@
+# Lapis Baked Files Manifest for macOS
+# Strictly lists all static assets embedded into the macOS lapis CLI binary at compile time.
+
+files:
+  # 1. Authoritative Engine Configuration
+  - godot-version.yml
+  - shard.yml
+
+  # 2. Starter Game Template (template/)
+  - template/project.godot
+  - template/shard.yml
+  - template/Makefile
+  - template/export_presets.cfg
+  - template/README.md
+  - template/icon.svg
+  - template/.gitignore
+  - template/src/main.cr
+  - template/scenes/main.tscn
+
+  # 3. Addon Files (addons/crystal_integration/)
+  - addons/crystal_integration/crystal.gdextension
+  - addons/crystal_integration/plugin.cfg
+  - addons/crystal_integration/plugin.gd
+  - addons/crystal_integration/crystal_icon.svg
+
+  # 4. Starter Addon Template (template-addon/)
+  - template-addon/project.godot
+  - template-addon/shard.yml
+  - template-addon/Makefile
+  - template-addon/README.md
+  - template-addon/src/main.cr
+  - template-addon/addons/crystal_addon/crystal_addon.gdextension
+  - template-addon/addons/crystal_addon/plugin.cfg
+  - template-addon/addons/crystal_addon/plugin.gd

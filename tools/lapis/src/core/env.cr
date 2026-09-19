@@ -142,6 +142,74 @@ module Lapis
         "game.#{dll_ext}"
       end
 
+      def self.current_platform : String
+        if windows?
+          "windows"
+        elsif macos?
+          "macos"
+        else
+          "linux"
+        end
+      end
+
+      # Returns true if the file is a compiled binary/library belonging natively to the current platform.
+      def self.is_native_binary?(filename : Path | String) : Bool
+        fn = filename.is_a?(Path) ? filename.basename : Path.new(filename).basename
+        ext = Path.new(fn).extension.downcase
+
+        if windows?
+          [".dll", ".exe", ".lib", ".pdb"].includes?(ext)
+        elsif macos?
+          [".dylib", ".dmg", ".pkg"].includes?(ext) || (ext.empty? && !fn.starts_with?(".") && !fn.includes?("."))
+        else
+          # Linux
+          ext == ".so" || fn.includes?(".so.") || [".deb", ".tar.gz", ".tgz"].any? { |s| fn.ends_with?(s) } || (ext.empty? && !fn.starts_with?(".") && !fn.includes?("."))
+        end
+      end
+
+      # Returns true if the file is a compiled binary/library belonging to a different (foreign) platform.
+      def self.is_foreign_binary?(filename : Path | String) : Bool
+        fn = filename.is_a?(Path) ? filename.basename : Path.new(filename).basename
+        ext = Path.new(fn).extension.downcase
+
+        if windows?
+          ext == ".so" || fn.includes?(".so.") || ext == ".dylib" || ext == ".deb" || fn.ends_with?(".tar.gz") ||
+            (ext.empty? && ["game", "tests", "perf", "lapis"].includes?(fn))
+        elsif linux?
+          [".dll", ".exe", ".dylib", ".lib", ".pdb", ".iss"].includes?(ext)
+        else
+          # macOS
+          [".dll", ".exe", ".so", ".lib", ".pdb", ".deb", ".iss"].includes?(ext) || fn.includes?(".so.")
+        end
+      end
+
+      # Scans a directory and deletes any files belonging to a foreign platform.
+      # Returns the number of purged foreign files.
+      def self.purge_foreign_binaries(dir : Path | String) : Int32
+        target = Path.new(dir)
+        return 0 unless Dir.exists?(target)
+
+        purged_count = 0
+        Dir.each_child(target) do |child|
+          full_path = target.join(child)
+          if File.file?(full_path)
+            if is_foreign_binary?(full_path)
+              begin
+                File.delete(full_path)
+                purged_count += 1
+                Logger.debug("Purged foreign platform file: #{full_path}")
+              rescue ex
+                Logger.debug("Failed to purge #{full_path}: #{ex.message}")
+              end
+            end
+          elsif Dir.exists?(full_path) && (child == "bin" || child == "addons" || child == "android")
+            purged_count += purge_foreign_binaries(full_path)
+          end
+        end
+
+        purged_count
+      end
+
       # Collect all destination bin directories across the repository
       def self.collect_target_bin_dirs(root : Path = ROOT_DIR, target_bin : String? = nil) : Array(Path)
         dirs = [
