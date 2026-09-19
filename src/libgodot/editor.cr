@@ -1113,6 +1113,10 @@ module Godot
       Godot.print("[CrystalIntegrationPlugin] Build or reload already in progress, skipping F5 build.")
       return true
     end
+    if self.class.headless?
+      Godot.print("[CrystalIntegrationPlugin] Headless mode detected, skipping editor F5 build.")
+      return true
+    end
     @@building = true
     begin
       self.class.save_open_editor_files
@@ -1131,7 +1135,7 @@ module Godot
     sep = {% if flag?(:windows) %} ";" {% else %} ":" {% end %}
 
     # 1. If shard.yml exists but lib/ directory does not, automatically run shards install
-    if File.exists?("shard.yml") && !File.directory?("lib")
+    if !headless? && File.exists?("shard.yml") && !File.directory?("lib")
       begin
         Godot.print("[CrystalIntegrationPlugin] Dependencies in 'lib/' missing. Running 'shards install'...")
         sh_out = IO::Memory.new
