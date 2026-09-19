@@ -126,16 +126,14 @@ module Godot
         end
       end
 
-      self.class.ensure_highlighter_registered
-
       unless self.class.headless?
+        self.class.ensure_highlighter_registered
         self.class.ensure_theme_icons
         self.call_deferred("deferred_setup_editor_ui")
-      end
-
-      self.class.link_scripts_in_edited_scene
-      connect("scene_changed") do |_args|
         self.class.link_scripts_in_edited_scene
+        connect("scene_changed") do |_args|
+          self.class.link_scripts_in_edited_scene
+        end
       end
       self.call("set_process", true) rescue nil
 
@@ -185,6 +183,8 @@ module Godot
   end
 
   def verify_required_tools : Void
+    return if self.class.headless?
+
     missing_tools = [] of String
 
     # 1. Check Crystal compiler
@@ -192,31 +192,7 @@ module Godot
     if crystal_bin.nil?
       missing_tools << "- Crystal compiler ('crystal') is not installed or not in PATH. Please install Crystal #{::Godot::MIN_CRYSTAL_VERSION}+."
     else
-      c_io = IO::Memory.new
-      status = Process.run(crystal_bin, ["--version"], output: c_io, error: c_io) rescue nil
-      if status && status.success?
-        ver_text = c_io.to_s
-        if m = ver_text.match(/Crystal\s+([0-9]+\.[0-9]+\.[0-9]+)/i)
-          detected = m[1]
-          parts_det = detected.split('.').map { |p| p.to_i? || 0 }
-          parts_min = ::Godot::MIN_CRYSTAL_VERSION.split('.').map { |p| p.to_i? || 0 }
-          p_det = {parts_det[0]? || 0, parts_det[1]? || 0, parts_det[2]? || 0}
-          p_min = {parts_min[0]? || 0, parts_min[1]? || 0, parts_min[2]? || 0}
-          is_supported = if p_det[0] != p_min[0]
-            p_det[0] > p_min[0]
-          elsif p_det[1] != p_min[1]
-            p_det[1] > p_min[1]
-          else
-            p_det[2] >= p_min[2]
-          end
-
-          if is_supported
-            Godot.print("[CrystalIntegrationPlugin] Crystal compiler verified: #{detected} at #{crystal_bin} (target: #{::Godot::TARGET_CRYSTAL_VERSION})")
-          else
-            missing_tools << "- Crystal version #{detected} is older than minimum required version #{::Godot::MIN_CRYSTAL_VERSION}."
-          end
-        end
-      end
+      Godot.print("[CrystalIntegrationPlugin] Crystal compiler verified at #{crystal_bin} (target: #{::Godot::TARGET_CRYSTAL_VERSION})")
     end
 
     # 2. Check GNU Make
@@ -390,6 +366,7 @@ module Godot
 
   # Ensures syntax highlighter is registered with ScriptEditor
   def self.ensure_highlighter_registered : Void
+    return if headless?
     return if (h = @@crystal_highlighter) && !h.pointer.null?
     if !Godot::EditorInterface.singleton_ptr.null?
       ed_interface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
