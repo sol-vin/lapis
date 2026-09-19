@@ -526,7 +526,11 @@ module Godot
       link_flags = library_link_flags
 
       args = ["build", "--link-flags", link_flags]
-      args << "--release" if is_release
+      if is_release
+        args << "--release"
+      else
+        args << "--single-module"
+      end
       args << entry
       args << "-o"
       args << out_lib

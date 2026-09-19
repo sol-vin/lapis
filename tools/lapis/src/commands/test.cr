@@ -4,6 +4,7 @@ require "../core/process_runner"
 require "../core/godot_finder"
 require "file_utils"
 require "option_parser"
+require "./package"
 
 module Lapis
   module Commands
@@ -33,11 +34,15 @@ HELP
         [
           test_dir.join(".tool_tests_passed"),
           test_dir.join(".tool_tests_failed"),
+          test_dir.join(".editor_game_passed"),
+          test_dir.join(".editor_game_failed"),
           test_dir.join(".runtime_tests_passed"),
           test_dir.join(".runtime_tests_failed"),
           test_dir.join(".runtime_test_results.txt"),
           test_bin_dir.join(".tool_tests_passed"),
           test_bin_dir.join(".tool_tests_failed"),
+          test_bin_dir.join(".editor_game_passed"),
+          test_bin_dir.join(".editor_game_failed"),
           test_bin_dir.join(".runtime_tests_passed"),
           test_bin_dir.join(".runtime_tests_failed"),
           test_bin_dir.join(".runtime_test_results.txt"),
@@ -102,6 +107,7 @@ HELP
             "spec/lapis_install_spec.cr",
             "spec/tool_verification_spec.cr",
             "spec/baked_file_system_spec.cr",
+            "spec/standalone_portable_spec.cr",
           ]
           root_specs.each do |spec_file|
             full_path = root.join(spec_file)
@@ -118,48 +124,54 @@ HELP
         end
 
         # -----------------------------------------------------------------------
-        # Phase 2: In-Editor Tool Script Tests
+        # Phase 2: In-Editor Tests (Phase 2a: Tool Scripts & Phase 2b: Game Runner in Play Mode)
         # -----------------------------------------------------------------------
         unless skip_tool_tests
           if godot_exe
-            Core::Logger.step("Test:ToolTests", "Running In-Editor Tool Script Tests (ToolTester2D & ToolTester3D)...")
+            Core::Logger.step("Test:EditorTests", "Running In-Editor Tests (Phase 2a: @tool scripts & Phase 2b: 'Press Play' editor game runner)...")
             tool_env = {
-              "GODOT_RUN_TOOL_TESTS" => "1",
-              "LIBGL_ALWAYS_SOFTWARE" => "1"
+              "GODOT_RUN_TOOL_TESTS"   => "1",
+              "GODOT_RUN_EDITOR_TESTS" => "1",
+              "GODOT_TEST_AUTORUN"     => "1",
+              "LIBGL_ALWAYS_SOFTWARE"  => "1"
             }
+            clear_markers(test_dir, test_bin_dir)
             status = Core::ProcessRunner.run(
               godot_exe,
-              ["--headless", "--rendering-driver", "opengl3", "--audio-driver", "Dummy", "--editor", "--path", "test", "--quit-after", "300"],
+              ["--headless", "--rendering-driver", "opengl3", "--audio-driver", "Dummy", "--editor", "--path", "test", "--quit-after", "600"],
               env: tool_env,
               chdir: root.to_s
             )
 
-            failed_marker = [test_dir.join(".tool_tests_failed"), test_bin_dir.join(".tool_tests_failed")].find { |f| File.exists?(f) }
-            passed_marker = [test_dir.join(".tool_tests_passed"), test_bin_dir.join(".tool_tests_passed")].find { |f| File.exists?(f) }
+            failed_tool_marker = [test_dir.join(".tool_tests_failed"), test_bin_dir.join(".tool_tests_failed")].find { |f| File.exists?(f) }
+            passed_tool_marker = [test_dir.join(".tool_tests_passed"), test_bin_dir.join(".tool_tests_passed")].find { |f| File.exists?(f) }
+            failed_editor_marker = [test_dir.join(".editor_game_failed"), test_bin_dir.join(".editor_game_failed")].find { |f| File.exists?(f) }
+            passed_editor_marker = [test_dir.join(".editor_game_passed"), test_bin_dir.join(".editor_game_passed")].find { |f| File.exists?(f) }
 
-            if failed_marker
-              fail_msg = File.read(failed_marker).strip
-              Core::Logger.error("Tool tests failed: #{fail_msg}")
-              failed_steps << "In-Editor Tool Tests"
-            elsif !passed_marker && !status.success?
-              failed_steps << "In-Editor Tool Tests"
+            if failed_tool_marker || failed_editor_marker
+              fail_msg = [(failed_tool_marker ? File.read(failed_tool_marker).strip : nil), (failed_editor_marker ? File.read(failed_editor_marker).strip : nil)].compact.join(" | ")
+              Core::Logger.error("In-editor tests failed: #{fail_msg}")
+              failed_steps << "In-Editor Tests (Phase 2a/2b)"
+            elsif (!passed_tool_marker || !passed_editor_marker) && !status.success?
+              failed_steps << "In-Editor Tests (Phase 2a/2b)"
             else
-              Core::Logger.success("In-Editor Tool Script Tests verified successfully!")
+              Core::Logger.success("In-Editor Tests: Phase 2a (@tool scripts) & Phase 2b ('Press Play' editor game runner) verified successfully!")
             end
           else
-            Core::Logger.warn("Godot engine not found, skipping tool tests.")
+            Core::Logger.warn("Godot engine not found, skipping in-editor tests.")
           end
         end
 
         # -----------------------------------------------------------------------
-        # Phase 3: Standalone Compiled Test Runner
+        # Phase 3a: Standalone Test Runner (Regular with separate .pck & DLL/SO)
         # -----------------------------------------------------------------------
         unless skip_standalone
           standalone_exe = test_bin_dir.join("tests#{Core::Env.exe_ext}")
           standalone_exe = test_bin_dir.join("game#{Core::Env.exe_ext}") unless File.exists?(standalone_exe)
 
           if File.exists?(standalone_exe)
-            Core::Logger.step("Test:Standalone", "Running Standalone Test Runner (#{standalone_exe.basename} --autorun)...")
+            Core::Logger.step("Test:Standalone", "Running Standalone Test Runner (Regular with separate .pck & DLL/SO: #{standalone_exe.basename})...")
+            clear_markers(test_dir, test_bin_dir)
             status = Core::ProcessRunner.run(
               standalone_exe.to_s,
               ["--headless", "--rendering-driver", "opengl3", "--audio-driver", "Dummy", "--quit-after", "600", "--", "--autorun"],
@@ -170,13 +182,66 @@ HELP
             passed_marker = [test_dir.join(".runtime_tests_passed"), test_bin_dir.join(".runtime_tests_passed")].find { |f| File.exists?(f) }
 
             if failed_marker
-              Core::Logger.error("Standalone test runner reported failures.")
-              failed_steps << "Standalone Test Runner"
+              Core::Logger.error("Regular standalone test runner reported failures.")
+              failed_steps << "Regular Standalone Test Runner"
             elsif !passed_marker && !status.success?
-              failed_steps << "Standalone Test Runner"
+              failed_steps << "Regular Standalone Test Runner"
             else
-              Core::Logger.success("Standalone test runner verified successfully!")
+              Core::Logger.success("Regular standalone test runner verified successfully!")
             end
+          end
+
+          # -----------------------------------------------------------------------
+          # Phase 3b: Standalone Portable Test Runner (Embedded PCK in isolated sandbox)
+          # -----------------------------------------------------------------------
+          portable_exe = test_bin_dir.join("tests_portable#{Core::Env.exe_ext}")
+          pck_file = test_bin_dir.join("tests.pck")
+          if !File.exists?(portable_exe) && File.exists?(standalone_exe) && File.exists?(pck_file)
+            Package.embed_pck_in_executable(standalone_exe, pck_file, portable_exe)
+          end
+
+          if File.exists?(portable_exe)
+            Core::Logger.step("Test:Portable", "Running Standalone Portable Test Runner (Isolated Embedded PCK without external .pck: #{portable_exe.basename})...")
+
+            # Setup isolated sandbox containing ONLY portable binary and dynamic libraries (NO .pck files!)
+            sandbox_dir = root.join("scratch/test_portable_sandbox")
+            FileUtils.rm_rf(sandbox_dir) if Dir.exists?(sandbox_dir)
+            FileUtils.mkdir_p(sandbox_dir)
+
+            sandbox_exe = sandbox_dir.join("tests_portable#{Core::Env.exe_ext}")
+            FileUtils.cp(portable_exe.to_s, sandbox_exe.to_s)
+
+            # Copy required dynamic libraries, addons, and manifests (exclude any .pck or .zip)
+            Dir.each_child(test_bin_dir) do |item|
+              next if item.ends_with?(".pck") || item.ends_with?(".zip")
+              next if item.starts_with?(".") && item != ".godot"
+              src_item = test_bin_dir.join(item)
+              if File.file?(src_item) && [".dll", ".so", ".dylib"].includes?(src_item.extension)
+                FileUtils.cp(src_item.to_s, sandbox_dir.join(item).to_s)
+              elsif Dir.exists?(src_item) && (item == "addons" || item == ".godot")
+                FileUtils.cp_r(src_item.to_s, sandbox_dir.join(item).to_s)
+              end
+            end
+
+            clear_markers(test_dir, sandbox_dir)
+
+            status = Core::ProcessRunner.run(
+              sandbox_exe.to_s,
+              ["--headless", "--rendering-driver", "opengl3", "--audio-driver", "Dummy", "--quit-after", "600", "--", "--autorun"],
+              chdir: sandbox_dir.to_s
+            )
+
+            failed_marker = [test_dir.join(".runtime_tests_failed"), sandbox_dir.join(".runtime_tests_failed")].find { |f| File.exists?(f) }
+            passed_marker = [test_dir.join(".runtime_tests_passed"), sandbox_dir.join(".runtime_tests_passed")].find { |f| File.exists?(f) }
+
+            if failed_marker || !passed_marker || !status.success?
+              Core::Logger.error("Standalone portable test runner reported failures in isolated sandbox.")
+              failed_steps << "Standalone Portable Test Runner"
+            else
+              Core::Logger.success("Standalone portable test runner verified successfully in isolated sandbox!")
+            end
+
+            FileUtils.rm_rf(sandbox_dir) if Dir.exists?(sandbox_dir)
           end
         end
 

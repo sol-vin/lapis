@@ -35,7 +35,8 @@ module Lapis
         link_flags : String? = nil,
         flags : String? = nil,
         release : Bool = false,
-        source_path : String? = nil
+        source_path : String? = nil,
+        single_module : Bool? = nil
       ) : Int32
         root = Core::Env::ROOT_DIR
         FileUtils.mkdir_p(output_path.parent) unless Dir.exists?(output_path.parent)
@@ -53,6 +54,20 @@ module Lapis
         cmd_args = ["build", entry_path.to_s, "-o", output_path.to_s]
         cmd_args << "--release" if release
 
+        # Determine whether to use --single-module:
+        # 1. If explicitly specified, respect that choice.
+        # 2. Otherwise, auto-enable for shared libraries (.so, .dll, .dylib or -shared / /DLL / -dynamiclib).
+        # On Linux ELF targets, Crystal's symbol mangling generates characters like '@' (e.g. Type@Module#method)
+        # which modern linkers (lld, mold) interpret as ELF symbol versioning in multi-module builds, causing link failure.
+        # --single-module generates a single LLVM translation unit where non-exported methods receive internal linkage.
+        is_shared_lib = [".so", ".dll", ".dylib"].includes?(output_path.extension) ||
+                        (link_flags && (link_flags.includes?("-shared") || link_flags.includes?("/DLL") || link_flags.includes?("-dynamiclib")))
+        should_single_module = single_module.nil? ? is_shared_lib : single_module
+
+        if should_single_module && !release
+          cmd_args << "--single-module"
+        end
+
         if (lf = link_flags) && !lf.empty?
           cmd_args << "--link-flags"
           cmd_args << lf
@@ -60,7 +75,12 @@ module Lapis
 
         if (fl = flags) && !fl.empty?
           fl.split(' ').each do |f|
-            cmd_args << f unless f.empty?
+            next if f.empty?
+            if f == "--no-single-module"
+              cmd_args.delete("--single-module")
+            else
+              cmd_args << f
+            end
           end
         end
 
@@ -214,6 +234,8 @@ Options for single binary build:
   -e, --entry=PATH      Entry source file (.cr) [Required for direct build]
   -o, --output=PATH     Output binary path (.dll, .so, .dylib, or .exe) [Required for direct build]
   -r, --release         Compile in release mode with optimizations (-O3)
+  -m, --single-module   Generate a single LLVM module (auto-enabled for shared libraries)
+      --no-single-module Disable single LLVM module generation
   -l, --link-flags=FLAGS Linker flags passed to crystal build
   -f, --flags=FLAGS     Extra Crystal compiler flags (e.g. -Dlibgodot_addon)
   -s, --source-path=DIR Source path prepended to CRYSTAL_PATH
@@ -245,6 +267,7 @@ HELP
         link_flags : String? = nil
         flags : String? = nil
         release = false
+        single_module : Bool? = nil
         source_path : String? = nil
 
         parser = OptionParser.new do |opts|
@@ -254,6 +277,8 @@ HELP
           opts.on("-l FLAGS", "--link-flags=FLAGS", "Linker flags") { |v| link_flags = v }
           opts.on("-f FLAGS", "--flags=FLAGS", "Extra Crystal compiler flags") { |v| flags = v }
           opts.on("-r", "--release", "Compile in release mode with optimizations") { release = true }
+          opts.on("-m", "--single-module", "Generate a single LLVM module (auto-enabled for shared libraries)") { single_module = true }
+          opts.on("--no-single-module", "Disable single LLVM module generation") { single_module = false }
           opts.on("-s PATH", "--source-path=PATH", "Source path for CRYSTAL_PATH") { |v| source_path = v }
           opts.on("-h", "--help", "Show help") { print_help; exit 0 }
         end
@@ -273,7 +298,8 @@ HELP
           link_flags: link_flags,
           flags: flags,
           release: release,
-          source_path: source_path
+          source_path: source_path,
+          single_module: single_module
         )
       end
     end

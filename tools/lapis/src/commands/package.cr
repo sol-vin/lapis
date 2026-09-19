@@ -31,6 +31,10 @@ module Lapis
             Dir.glob(pattern).each do |item|
               next if Dir.exists?(item)
 
+              item_path = Path.new(item).expand
+              next if item_path == zip_path.expand
+              next if item_path.extension == ".zip"
+
               rel_path = Path.new(item).relative_to(prefix).to_s.gsub('\\', '/')
               if exclude_patterns.any? { |p| rel_path.includes?(p) || rel_path.starts_with?(p) }
                 next
@@ -65,7 +69,7 @@ module Lapis
       # Embeds a Godot PCK directly into an executable binary using Godot's GDPC footer format.
       def self.embed_pck_in_executable(exe_path : Path, pck_path : Path, output_path : Path) : Bool
         return false unless File.exists?(exe_path) && File.exists?(pck_path)
-        exe_size = File.size(exe_path)
+        pck_size = File.size(pck_path)
 
         File.open(output_path.to_s, "wb") do |out_f|
           File.open(exe_path.to_s, "rb") do |in_exe|
@@ -76,13 +80,12 @@ module Lapis
           end
 
           # Godot 4.x PCK footer:
-          # 8 bytes: pck_offset (UInt64 little-endian)
+          # 8 bytes: pck_size (UInt64 little-endian, size of PCK data excluding 12-byte footer)
           # 4 bytes: magic 'GDPC' (0x43504447 little-endian)
-          pck_offset = exe_size.to_u64
           magic = 0x43504447_u32
 
           io_bytes = Bytes.new(12)
-          IO::ByteFormat::LittleEndian.encode(pck_offset, io_bytes[0, 8])
+          IO::ByteFormat::LittleEndian.encode(pck_size.to_u64, io_bytes[0, 8])
           IO::ByteFormat::LittleEndian.encode(magic, io_bytes[8, 4])
           out_f.write(io_bytes)
         end
@@ -168,8 +171,8 @@ module Lapis
         zip_file = out_path || root.join("bin/test-suite-#{plat}.zip")
 
         Core::Logger.step("Package", "Packaging standalone test runner...")
-        # First ensure standalone runner is built
-        package_game(test_dir, name: "tests", release: release, force_compile: false, embed_pck: true)
+        # First ensure standalone runner is built (generates tests.exe, tests.pck, and tests_portable.exe)
+        package_game(test_dir, name: "tests", release: release, force_compile: false, portable: true)
 
         stage_dir = root.join("scratch/tests-#{plat}-stage")
         FileUtils.rm_rf(stage_dir) if Dir.exists?(stage_dir)
@@ -368,11 +371,13 @@ module Lapis
 
             # Embed PCK directly into the binary if requested or portable
             if embed_pck || portable
-              embedded_exe = bin_dir.join("#{game_name}_embedded#{Core::Env.exe_ext}")
-              if embed_pck_in_executable(named_exe, pck_file, embedded_exe)
-                safe_copy(embedded_exe, named_exe)
-                File.delete(embedded_exe) if File.exists?(embedded_exe)
-                Core::Logger.success("Embedded PCK data directly into #{named_exe.basename}!")
+              portable_exe = bin_dir.join("#{game_name}_portable#{Core::Env.exe_ext}")
+              if embed_pck_in_executable(named_exe, pck_file, portable_exe)
+                Core::Logger.success("Embedded PCK data into portable binary: #{portable_exe.basename}!")
+              end
+              if embed_pck && !portable
+                # If explicitly asked to embed PCK directly into main exe
+                safe_copy(portable_exe, named_exe)
               end
             end
           else
@@ -383,7 +388,7 @@ module Lapis
         if portable
           portable_archive = (td = target_dir) ? td.join("#{game_name}-portable.zip") : bin_dir.join("#{game_name}-portable.zip")
           Core::Logger.step("PackageGame", "Creating portable single-directory game distribution: #{portable_archive.basename}...")
-          zip_directory(bin_dir, portable_archive, strip_prefix: bin_dir, exclude_patterns: [".gdignore", ".log", "~", ".tmp"])
+          zip_directory(bin_dir, portable_archive, strip_prefix: bin_dir, exclude_patterns: [".gdignore", ".log", "~", ".tmp", ".zip"])
           Core::Logger.success("Portable package created: #{portable_archive}!")
         end
 

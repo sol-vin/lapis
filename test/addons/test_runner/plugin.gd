@@ -252,12 +252,59 @@ func _run_in_editor_tool_tests():
 		error_messages.append(msg)
 		errors += 1
 
+	# 6. Phase 2b: In-Editor Regular Test Suite Execution via 'Press Play' (EditorInterface.play_main_scene())
+	print("------------------------------------------------------------------")
+	print("[CrystalToolTester] Phase 2b: 'Pressing Play' on game in editor game window...")
+	print("------------------------------------------------------------------")
+	if EditorInterface.has_method("play_main_scene"):
+		# Ensure previous markers are cleared
+		if FileAccess.file_exists("res://.runtime_tests_passed"):
+			DirAccess.remove_absolute("res://.runtime_tests_passed")
+		if FileAccess.file_exists("res://.runtime_tests_failed"):
+			DirAccess.remove_absolute("res://.runtime_tests_failed")
+		if FileAccess.file_exists("res://bin/.runtime_tests_passed"):
+			DirAccess.remove_absolute("res://bin/.runtime_tests_passed")
+		if FileAccess.file_exists("res://bin/.runtime_tests_failed"):
+			DirAccess.remove_absolute("res://bin/.runtime_tests_failed")
+
+		EditorInterface.play_main_scene()
+		print("[CrystalToolTester]   ✔ EditorInterface.play_main_scene() triggered!")
+
+		# Wait for scene to start playing
+		var start_wait = 0
+		while not EditorInterface.is_playing_scene() and start_wait < 180:
+			await get_tree().process_frame
+			start_wait += 1
+
+		# Wait while playing until game finishes tests and exits
+		var elapsed_frames = 0
+		var max_frames = 2400
+		while EditorInterface.is_playing_scene() and elapsed_frames < max_frames:
+			await get_tree().process_frame
+			elapsed_frames += 1
+
+		if EditorInterface.is_playing_scene():
+			print("[CrystalToolTester] Notice: Game still running after timeout, stopping scene.")
+			EditorInterface.stop_playing_scene()
+
+		print("[CrystalToolTester] Checking in-editor game window test results...")
+		var has_passed = FileAccess.file_exists("res://.runtime_tests_passed") or FileAccess.file_exists("res://bin/.runtime_tests_passed")
+		var has_failed = FileAccess.file_exists("res://.runtime_tests_failed") or FileAccess.file_exists("res://bin/.runtime_tests_failed")
+
+		if has_passed and not has_failed:
+			print("[CrystalToolTester]   ✔ In-editor game window regular test suite PASSED!")
+		else:
+			var msg = "[CrystalToolTester] In-editor game window regular test suite did not report success (passed=%s, failed=%s)" % [str(has_passed), str(has_failed)]
+			printerr(msg)
+			error_messages.append(msg)
+			errors += 1
+
 	print("==================================================================")
 	if not DirAccess.dir_exists_absolute("res://bin"):
 		DirAccess.make_dir_absolute("res://bin")
 
 	if errors > 0:
-		printerr("[CrystalToolTester] IN-EDITOR TOOL TESTS FAILED (%d errors)!" % errors)
+		printerr("[CrystalToolTester] IN-EDITOR TESTS (TOOL & PLAY MODE) FAILED (%d errors)!" % errors)
 		var fail_msg = "FAILED: %d errors\n%s\n" % [errors, "\n".join(error_messages)]
 		var f_bin = FileAccess.open("res://bin/.tool_tests_failed", FileAccess.WRITE)
 		if f_bin:
@@ -267,12 +314,24 @@ func _run_in_editor_tool_tests():
 		if f_root:
 			f_root.store_string(fail_msg)
 			f_root.close()
+		var f_g_bin = FileAccess.open("res://bin/.editor_game_failed", FileAccess.WRITE)
+		if f_g_bin:
+			f_g_bin.store_string(fail_msg)
+			f_g_bin.close()
+		var f_g_root = FileAccess.open("res://.editor_game_failed", FileAccess.WRITE)
+		if f_g_root:
+			f_g_root.store_string(fail_msg)
+			f_g_root.close()
 		if FileAccess.file_exists("res://.tool_tests_passed"):
 			DirAccess.remove_absolute("res://.tool_tests_passed")
 		if FileAccess.file_exists("res://bin/.tool_tests_passed"):
 			DirAccess.remove_absolute("res://bin/.tool_tests_passed")
+		if FileAccess.file_exists("res://.editor_game_passed"):
+			DirAccess.remove_absolute("res://.editor_game_passed")
+		if FileAccess.file_exists("res://bin/.editor_game_passed"):
+			DirAccess.remove_absolute("res://bin/.editor_game_passed")
 	else:
-		print("[CrystalToolTester] ALL IN-EDITOR TOOL TESTS PASSED CLEANLY!")
+		print("[CrystalToolTester] ALL IN-EDITOR TESTS (TOOL & PLAY MODE) PASSED CLEANLY!")
 		var f_bin = FileAccess.open("res://bin/.tool_tests_passed", FileAccess.WRITE)
 		if f_bin:
 			f_bin.store_string("PASSED\n")
@@ -281,10 +340,22 @@ func _run_in_editor_tool_tests():
 		if f_root:
 			f_root.store_string("PASSED\n")
 			f_root.close()
+		var f_g_bin = FileAccess.open("res://bin/.editor_game_passed", FileAccess.WRITE)
+		if f_g_bin:
+			f_g_bin.store_string("PASSED\n")
+			f_g_bin.close()
+		var f_g_root = FileAccess.open("res://.editor_game_passed", FileAccess.WRITE)
+		if f_g_root:
+			f_g_root.store_string("PASSED\n")
+			f_g_root.close()
 		if FileAccess.file_exists("res://.tool_tests_failed"):
 			DirAccess.remove_absolute("res://.tool_tests_failed")
 		if FileAccess.file_exists("res://bin/.tool_tests_failed"):
 			DirAccess.remove_absolute("res://bin/.tool_tests_failed")
+		if FileAccess.file_exists("res://.editor_game_failed"):
+			DirAccess.remove_absolute("res://.editor_game_failed")
+		if FileAccess.file_exists("res://bin/.editor_game_failed"):
+			DirAccess.remove_absolute("res://bin/.editor_game_failed")
 
 	if errors > 0:
 		get_tree().quit(1)

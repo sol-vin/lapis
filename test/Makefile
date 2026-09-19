@@ -80,11 +80,11 @@ spec:
 
 standalone game_exe game-exe: dirs deps bridge extension_list addons game_dll
 	@echo [Test] Packaging standalone test runner executable...
-	@$(LAPIS) package game -p . -n tests $(if $(filter 1,$(RELEASE)),-r,) -f
+	@$(LAPIS) package game -p . -n tests $(if $(filter 1,$(RELEASE)),-r,) -f --portable
 
 package_game package-game: dirs deps bridge extension_list addons game_dll
 	@echo [Test] Packaging playable standalone test suite...
-	@$(LAPIS) package game -p . -n tests $(if $(filter 1,$(RELEASE)),-r,) $(if $(or $(TARGET_DIR),$(EXPORT_DIR)),-t "$(or $(TARGET_DIR),$(EXPORT_DIR))",) -f
+	@$(LAPIS) package game -p . -n tests $(if $(filter 1,$(RELEASE)),-r,) $(if $(or $(TARGET_DIR),$(EXPORT_DIR)),-t "$(or $(TARGET_DIR),$(EXPORT_DIR))",) -f $(if $(or $(filter 1,$(PORTABLE)),$(filter 1,$(EMBED))),--portable,)
 
 package_tests package-tests: standalone
 	@echo [Test] Packaging standalone test runner archive...

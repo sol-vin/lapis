@@ -1230,7 +1230,7 @@ module Godot
           Godot.print("[CrystalIntegrationPlugin] Running: #{lapis_bin} #{lapis_args.join(" ")}")
           Process.run(File.expand_path(lapis_bin), lapis_args, env: compiler_env, output: out_io, error: err_io)
         else
-          args = ["build", "--link-flags", link_flags]
+          args = ["build", "--single-module", "--link-flags", link_flags]
           {% unless flag?(:windows) %}
             args << "-Dwithout_mt"
           {% end %}
@@ -1428,7 +1428,11 @@ module Godot
       {% unless flag?(:windows) %}
         args << "-Dwithout_mt"
       {% end %}
-      args << "--release" if is_release
+      if is_release
+        args << "--release"
+      else
+        args << "--single-module"
+      end
       args << entry_file
       args << "-o"
       args << out_dll

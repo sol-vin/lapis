@@ -199,6 +199,7 @@ end
   {:test_thread_safety, "ThreadSafety"},
   {:test_polymorphism, "Polymorphism"},
   {:test_undo_redo, "UndoRedo"},
+  {:test_standalone_portable, "StandalonePortable"},
 ] %}
   macro {{pair[0].id}}(name, &block)
 	::TestFramework::Registry.register({{pair[1]}}, \{{name}}) do |node|
@@ -495,7 +496,10 @@ end
 # Runtime Test Runner UI Panel
 # =============================================================================
 
+@[Tool]
 node RunTesterPanel < Godot::Control do
+  @@is_running_tests : Bool = false
+
   def _ready
 	Godot.print("==================================================================")
 	Godot.print("    LibGodot Interactive Test Runner Loaded (Two-Click Testing)   ")
@@ -518,8 +522,8 @@ node RunTesterPanel < Godot::Control do
 	hook_button("MarginContainer/VBox/ButtonBox/BtnRunLifecycle") { run_and_display_category("Lifecycle") }
 	hook_button("MarginContainer/VBox/ButtonBox/BtnRunClassDB") { run_and_display_category("ClassDB") }
 
-	# Automatically execute all tests on startup
-	run_and_display_all
+	# Automatically execute all tests on startup only in game runtime (not editor workspace)
+	run_and_display_all unless Godot.editor_hint?
   end
 
   def hook_button(path : String, &callback)
@@ -554,20 +558,26 @@ node RunTesterPanel < Godot::Control do
 	display_results(results, category)
   end
 
-  def run_and_display_all
-	filter = cli_filter
-	category = cli_category
-	results = ::TestFramework::Registry.run_all(self, filter: filter, category_filter: category)
-	label = if category && filter
-	  "All [Category: #{category}, Filter: #{filter}]"
-	elsif category
-	  "All [Category: #{category}]"
-	elsif filter
-	  "All [Filter: #{filter}]"
-	else
-	  "All"
+  def run_and_display_all : Void
+	return if @@is_running_tests
+	@@is_running_tests = true
+	begin
+	  filter = cli_filter
+	  category = cli_category
+	  results = ::TestFramework::Registry.run_all(self, filter: filter, category_filter: category)
+	  label = if category && filter
+	    "All [Category: #{category}, Filter: #{filter}]"
+	  elsif category
+	    "All [Category: #{category}]"
+	  elsif filter
+	    "All [Filter: #{filter}]"
+	  else
+	    "All"
+	  end
+	  display_results(results, label)
+	ensure
+	  @@is_running_tests = false
 	end
-	display_results(results, label)
   end
 
   def display_results(results : Array(TestFramework::TestResult), suite_label : String)
@@ -627,7 +637,7 @@ node RunTesterPanel < Godot::Control do
 	  rescue
 	  end
 
-	  if should_autorun?
+	  if should_autorun? && !Godot.editor_hint?
 		GC.collect
 		tree = get_tree
 		tree.quit(passed == total ? 0_i64 : 1_i64) unless tree.pointer.null?
@@ -1638,3 +1648,4 @@ require "./suites/test_dynamic_properties_classdb"
 require "./suites/test_thread_safe_apis"
 require "./suites/test_gdscript_inheritance_polymorphism"
 require "./suites/test_undo_redo_history"
+require "./suites/test_toolchain_standalone"
