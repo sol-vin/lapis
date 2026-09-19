@@ -53,7 +53,8 @@ module Lapis
         version : String?,
         supported : Bool,
         path : String?,
-        message : String
+        message : String,
+        required : Bool = true
 
       # Parses semver into numeric components [major, minor, patch]
       def self.parse_semver(ver_str : String) : Tuple(Int32, Int32, Int32)
@@ -240,7 +241,8 @@ module Lapis
             version: nil,
             supported: false,
             path: nil,
-            message: "LLDB debugger ('lldb') was not found. Install LLVM (e.g. 'winget install LLVM.LLVM' or 'scoop install llvm' on Windows, 'apt install lldb' on Linux) for native Crystal debugging."
+            message: "LLDB debugger ('lldb') was not found. Install LLVM (e.g. 'winget install LLVM.LLVM' or 'scoop install llvm' on Windows, 'apt install lldb' on Linux) for native Crystal debugging.",
+            required: false
           )
         end
 
@@ -251,7 +253,8 @@ module Lapis
           version: ver,
           supported: true,
           path: lldb_path,
-          message: "LLDB debugger verified at #{lldb_path} (#{ver})."
+          message: "LLDB debugger verified at #{lldb_path} (#{ver}).",
+          required: false
         )
       end
 
@@ -298,17 +301,18 @@ module Lapis
         [check_crystal, check_lldb, check_make, check_git]
       end
 
-      # Validates tools and logs any errors or warnings. Returns true if all required tools pass.
+      # Validates tools and logs any errors or warnings. Returns true if all required tools pass (or all tools if strict: true).
       def self.verify_all(strict : Bool = false) : Bool
         statuses = check_all
         all_passed = true
 
         statuses.each do |status|
+          is_required = strict || status.required
           if status.installed && status.supported
             Logger.debug("Tool check passed: #{status.name} -> #{status.message}")
           else
-            all_passed = false
-            if strict
+            if is_required
+              all_passed = false
               Logger.error("Required tool check failed: #{status.message}")
             else
               Logger.warn("Tool check notice: #{status.message}")
