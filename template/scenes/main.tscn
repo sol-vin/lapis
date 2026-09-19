@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://d1p0h0jxsvcs8" path="res://src/main.cr" id="1_o5qli"]
 [ext_resource type="Script" uid="uid://d3b5urwsrwtl0" path="res://src/my_node.cr" id="2_0wfyh"]
-[ext_resource type="Script" uid="uid://ddji3au8vbspp" path="res://scripts/mygdnode.gd" id="3_sugp2"]
+[ext_resource type="Script" uid="uid://bxv8g0m11o275" path="res://scripts/mygdnode.gd" id="3_sugp2"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_1"]
 
@@ -26,4 +26,4 @@ metadata/_custom_type_script = "uid://d3b5urwsrwtl0"
 
 [node name="MyGDNode" type="Node" parent="." unique_id=1762949384]
 script = ExtResource("3_sugp2")
-metadata/_custom_type_script = "uid://ddji3au8vbspp"
+metadata/_custom_type_script = "uid://bxv8g0m11o275"

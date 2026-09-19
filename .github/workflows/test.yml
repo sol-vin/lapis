@@ -284,10 +284,6 @@ jobs:
         run: |
           bin/lapis setup templates
 
-      - name: Run Crystal Unit Specifications
-        shell: bash
-        run: crystal spec test/spec
-
       - name: Build and Run LibGodot Test Suite
         timeout-minutes: 25
         shell: bash

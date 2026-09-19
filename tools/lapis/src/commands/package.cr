@@ -290,9 +290,14 @@ module Lapis
       def self.package_deb(root : Path, out_path : Path?, version : String? = nil, arch : String = "amd64") : Int32
         pkg_ver = version || Lapis::VERSION
         pkg_ver = pkg_ver.lstrip('v')
+        deb_control_ver = if pkg_ver.empty? || !pkg_ver[0].ascii_number?
+          "#{Lapis::VERSION}+#{pkg_ver}"
+        else
+          pkg_ver
+        end
         deb_file = out_path || root.join("bin/lapis_#{pkg_ver}_#{arch}.deb")
 
-        Core::Logger.step("Package", "Packaging Debian package for Lapis v#{pkg_ver} (#{arch})...")
+        Core::Logger.step("Package", "Packaging Debian package for Lapis v#{deb_control_ver} (#{arch})...")
         stage_dir = root.join("scratch/deb_stage_lapis_#{pkg_ver}")
         FileUtils.rm_rf(stage_dir) if Dir.exists?(stage_dir)
         FileUtils.mkdir_p(stage_dir.join("DEBIAN"))
@@ -302,7 +307,7 @@ module Lapis
 
         control_content = <<-CONTROL
 Package: lapis
-Version: #{pkg_ver}
+Version: #{deb_control_ver}
 Section: devel
 Priority: optional
 Architecture: #{arch}
@@ -341,8 +346,11 @@ CONTROL
           status = Core::ProcessRunner.run("dpkg-deb", ["--build", "--root-owner-group", stage_dir.to_s, deb_file.to_s])
           if status.success?
             Core::Logger.success("Successfully generated Debian package: #{deb_file.basename} (#{File.size(deb_file)} bytes)")
+            FileUtils.rm_rf(stage_dir) if Dir.exists?(stage_dir)
+            return 0
           else
             Core::Logger.error("dpkg-deb failed to build #{deb_file.basename}")
+            return 1
           end
         else
           Core::Logger.warn("dpkg-deb not found on system. Stage directory preserved at #{stage_dir}")
