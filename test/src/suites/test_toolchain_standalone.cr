@@ -4,7 +4,7 @@
 
 test_standalone_portable "Toolchain automatically enforces --single-module for shared libraries" do
   root_dir = File.expand_path("../../..", __DIR__)
-  lapis_exe = File.join(root_dir, "bin", "lapis" + (Process.run("cmd", ["/c", "ver"], output: IO::Memory.new).success? ? ".exe" : ""))
+  lapis_exe = File.join(root_dir, "bin", "lapis" + ({% if flag?(:windows) %} ".exe" {% else %} "" {% end %}))
 
   if File.exists?(lapis_exe)
     out_io = IO::Memory.new
@@ -25,7 +25,7 @@ test_standalone_portable "Toolchain automatically enforces --single-module for s
   end
 
   # Executables should not be treated as shared libraries
-  exe_p = Path.new("bin/game" + (Process.run("cmd", ["/c", "ver"], output: IO::Memory.new).success? ? ".exe" : ""))
+  exe_p = Path.new("bin/game" + ({% if flag?(:windows) %} ".exe" {% else %} "" {% end %}))
   is_exe_shared = [".so", ".dll", ".dylib"].includes?(exe_p.extension)
   TestFramework.assert_false is_exe_shared, "Executable binary must not be identified as shared library"
 end
@@ -83,7 +83,7 @@ end
 
 test_standalone_portable "Active tests executable GDPC footer verification" do
   root_dir = File.expand_path("../../..", __DIR__)
-  exe_ext = (Process.run("cmd", ["/c", "ver"], output: IO::Memory.new).success? ? ".exe" : "")
+  exe_ext = ({% if flag?(:windows) %} ".exe" {% else %} "" {% end %})
   tests_exe = File.join(root_dir, "test", "bin", "tests_portable" + exe_ext)
   tests_exe = File.join(root_dir, "test", "bin", "tests" + exe_ext) unless File.exists?(tests_exe)
 

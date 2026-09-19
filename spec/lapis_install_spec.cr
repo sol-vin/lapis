@@ -8,7 +8,7 @@ require "json"
 puts "=== Running Lapis CLI Installation & Lifecycle Specifications ==="
 
 root_dir = File.expand_path("..", __DIR__)
-lapis_exe = File.join(root_dir, "bin", "lapis" + (Process.run("cmd", ["/c", "ver"], output: IO::Memory.new).success? ? ".exe" : ""))
+lapis_exe = File.join(root_dir, "bin", "lapis" + ({% if flag?(:windows) %} ".exe" {% else %} "" {% end %}))
 
 # Ensure lapis binary exists for spec
 unless File.exists?(lapis_exe)

@@ -89,6 +89,7 @@ module Lapis
           IO::ByteFormat::LittleEndian.encode(magic, io_bytes[8, 4])
           out_f.write(io_bytes)
         end
+        File.chmod(output_path, 0o755) unless Core::Env.windows?
         true
       rescue ex
         Core::Logger.warn("Could not embed PCK into executable: #{ex.message}")

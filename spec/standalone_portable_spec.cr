@@ -10,7 +10,7 @@ require "../tools/lapis/src/commands/build"
 puts "=== Running Standalone Portable & --single-module Specifications ==="
 
 root_dir = File.expand_path("..", __DIR__)
-lapis_exe = File.join(root_dir, "bin", "lapis" + (Process.run("cmd", ["/c", "ver"], output: IO::Memory.new).success? ? ".exe" : ""))
+lapis_exe = File.join(root_dir, "bin", "lapis" + ({% if flag?(:windows) %} ".exe" {% else %} "" {% end %}))
 
 # -------------------------------------------------------------
 # [Spec 1] Lapis build --help advertises --single-module flags
@@ -100,7 +100,7 @@ puts "  ✓ GDPC footer correctly encodes pck_size (512), computed pck_offset (1
 # [Spec 3] Verification of tests_portable.exe GDPC footer if present
 # -------------------------------------------------------------
 puts "[Spec 3] Verifying active tests executable GDPC footer if present..."
-exe_suffix = Process.run("cmd", ["/c", "ver"], output: IO::Memory.new).success? ? ".exe" : ""
+exe_suffix = ({% if flag?(:windows) %} ".exe" {% else %} "" {% end %})
 tests_exe = File.join(root_dir, "test", "bin", "tests_portable" + exe_suffix)
 tests_exe = File.join(root_dir, "test", "bin", "tests" + exe_suffix) unless File.exists?(tests_exe)
 
