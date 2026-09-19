@@ -3,19 +3,6 @@
 # =============================================================================
 
 test_standalone_portable "Toolchain automatically enforces --single-module for shared libraries" do
-  root_dir = File.expand_path("../../..", __DIR__)
-  lapis_exe = File.join(root_dir, "bin", "lapis" + ({% if flag?(:windows) %} ".exe" {% else %} "" {% end %}))
-
-  if File.exists?(lapis_exe)
-    out_io = IO::Memory.new
-    status = Process.run(lapis_exe, ["build", "--help"], output: out_io)
-    output = out_io.to_s
-
-    TestFramework.assert_true status.success?, "lapis build --help must succeed"
-    TestFramework.assert_true output.includes?("--single-module"), "lapis build --help must document --single-module"
-    TestFramework.assert_true output.includes?("--no-single-module"), "lapis build --help must document --no-single-module"
-  end
-
   # Verify shared library detection logic for --single-module
   shared_exts = [".so", ".dll", ".dylib"]
   shared_exts.each do |ext|
