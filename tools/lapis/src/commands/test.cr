@@ -261,6 +261,8 @@ HELP
               Core::Logger.step("Test:Editor", "Running In-Editor Tool Tests (Headless Phase 2a/2b)...")
               env = {
                 "CRYSTAL_TOOL_TEST"      => "1",
+                "GODOT_RUN_TOOL_TESTS"   => "1",
+                "GODOT_HEADLESS"         => "1",
                 "LIBGL_ALWAYS_SOFTWARE"  => "1"
               }
               clear_markers(test_dir, test_bin_dir)

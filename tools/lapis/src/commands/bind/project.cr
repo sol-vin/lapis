@@ -176,7 +176,8 @@ module Lapis
             res = Core::ProcessRunner.run(
               godot_exe,
               ["--headless", "--path", proj_dir.to_s, "-s", "res://scripts/dump_project_nodes.gd", "--", "--output", rel_json],
-              chdir: proj_dir.to_s
+              chdir: proj_dir.to_s,
+              env: {"GODOT_HEADLESS" => "1"}
             )
           ensure
             if dump_script_created && File.exists?(dump_script)

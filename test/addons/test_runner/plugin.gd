@@ -13,7 +13,7 @@ func _enter_tree():
 	if settings:
 		settings.set_setting("text_editor/appearance/gutters/highlight_type_safe_lines", false)
 		settings.set_setting("text_editor/appearance/guidelines/highlight_type_safe_lines", false)
-	if OS.get_environment("GODOT_RUN_TOOL_TESTS") == "1" or "--run-tool-tests" in OS.get_cmdline_args():
+	if OS.get_environment("GODOT_RUN_TOOL_TESTS") == "1" or OS.get_environment("CRYSTAL_TOOL_TEST") == "1" or "--run-tool-tests" in OS.get_cmdline_args():
 		call_deferred("_run_in_editor_tool_tests")
 
 func _run_in_editor_tool_tests():

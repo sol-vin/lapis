@@ -91,6 +91,7 @@ module Godot
 
     # Sets up all editor integration entry points: toolbar button, FileSystem dock menus, SceneTree menus, and ScriptCreateDialog interception
     def self.setup(ed_iface : EditorInterface, base_ctrl : Control) : Void
+      return if CrystalIntegrationPlugin.headless?
       if !Godot::DisplayServer.singleton_ptr.null?
         ds = Godot::DisplayServer.new(Godot::DisplayServer.singleton_ptr)
         return if ds.call_str("get_name") == "headless"
@@ -104,6 +105,7 @@ module Godot
 
     # 1. Top Toolbar "+ Script" Button
     def self.setup_toolbar_button(ed_iface : EditorInterface, base_ctrl : Control) : Void
+      return if CrystalIntegrationPlugin.headless?
       if btn = @@toolbar_button
         return if !btn.pointer.null?
       end
@@ -135,11 +137,11 @@ module Godot
       end
 
       if title_bar = base_ctrl.call_obj("find_child", "EditorTitleBar", true, false)
-        title_bar.call("add_child", btn) rescue nil
+        title_bar.call_deferred("add_child", btn) rescue nil
         if compile_btn = base_ctrl.call_obj("find_child", "BuildCrystalToolbarButton", true, false)
           c_idx = compile_btn.call_i64("get_index") rescue -1_i64
           if c_idx >= 0
-            title_bar.call("move_child", btn, c_idx + 1) rescue nil
+            title_bar.call_deferred("move_child", btn, c_idx + 1) rescue nil
           end
         end
       end

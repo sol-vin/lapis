@@ -69,6 +69,7 @@ module Godot
   # Ensures all editor integration components are active when running inside the Godot Editor.
   # Safe to call both on startup and after GDExtension reloads.
   def self.ensure_editor_setup : Void
+    return if headless?
     return unless has_editor_interface?
     return if Godot::EditorInterface.singleton_ptr.null?
     ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
@@ -127,21 +128,10 @@ module Godot
 
       self.class.ensure_highlighter_registered
 
-      # Safe filesystem scan only if Godot is not already performing its startup scan
-      if !Godot::EditorInterface.singleton_ptr.null?
-        ed_interface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
-        r_fs = ed_interface.get_resource_filesystem
-        if !r_fs.pointer.null? && !r_fs.is_scanning
-          r_fs.scan
-          Godot.print("[CrystalIntegrationPlugin] Triggered EditorFileSystem.scan() to index Crystal source files.")
-        end
+      unless self.class.headless?
+        self.class.ensure_theme_icons
+        self.call_deferred("deferred_setup_editor_ui")
       end
-
-      self.class.ensure_theme_icons
-      self.class.setup_toolbar_button
-      self.class.setup_new_script_button
-      self.class.setup_main_screen_panel
-      self.class.setup_debugger_plugin
 
       self.class.link_scripts_in_edited_scene
       connect("scene_changed") do |_args|
@@ -421,7 +411,10 @@ module Godot
 
   # Registers and configures the native LLDB debugger plugin
   def self.setup_debugger_plugin : Void
-    return if (dp = @@debugger_plugin) && !dp.pointer.null?
+    return if headless?
+    if @@debugger_plugin
+      return
+    end
 
     if Godot::EditorInterface.singleton_ptr.null?
       return
@@ -477,6 +470,7 @@ module Godot
 
   # Docks the CrystalPanel into Godot Editor's main screen
   def self.setup_main_screen_panel : Void
+    return if headless?
     if (p = @@crystal_panel) && !p.pointer.null?
       return
     end
@@ -505,7 +499,7 @@ module Godot
     if (panel = Godot.create("CrystalPanel")) && !panel.pointer.null?
       panel.call("set_name", "CrystalPanel")
       panel.call("set_visible", false)
-      main_screen.call("add_child", panel)
+      main_screen.call_deferred("add_child", panel)
       @@crystal_panel = panel
       Godot.print("[CrystalIntegrationPlugin] Native Crystal Main Screen Tab docked successfully.")
     end
@@ -515,6 +509,14 @@ module Godot
 
   def setup_main_screen_panel : Void
     self.class.setup_main_screen_panel
+  end
+
+  def deferred_setup_editor_ui : Void
+    return if self.class.headless?
+    self.class.setup_toolbar_button
+    self.class.setup_new_script_button
+    self.class.setup_main_screen_panel
+    self.class.setup_debugger_plugin
   end
 
   def make_crystal_panel_visible(visible : Bool) : Void
@@ -575,6 +577,13 @@ module Godot
 
   def self.headless? : Bool
     return true if ::ENV["GODOT_HEADLESS"]? == "1" || ::ENV["CI"]? || ::ENV["LIBGL_ALWAYS_SOFTWARE"]? == "1"
+    if !Godot::OS.singleton_ptr.null?
+      begin
+        os = Godot::OS.new(Godot::OS.singleton_ptr)
+        return true if os.call("get_cmdline_args").to_s.includes?("--headless")
+      rescue
+      end
+    end
     if !Godot::DisplayServer.singleton_ptr.null?
       begin
         ds = Godot::DisplayServer.new(Godot::DisplayServer.singleton_ptr)
@@ -615,6 +624,7 @@ module Godot
   end
 
   def self.setup_toolbar_button : Void
+    return if headless?
     return unless has_editor_interface?
     return if (btn_alive = @@compile_button) && !btn_alive.pointer.null?
     return if Godot::EditorInterface.singleton_ptr.null?
@@ -670,10 +680,10 @@ module Godot
     if inst = @@instance
       inst.add_control_to_container(Godot::EditorPlugin::CustomControlContainer::ContainerToolbar.value, btn) rescue nil
     elsif title_bar = base_ctrl.call_obj("find_child", "EditorTitleBar", true, false)
-      title_bar.call("add_child", btn) rescue nil
+      title_bar.call_deferred("add_child", btn) rescue nil
     elsif run_bar = base_ctrl.call_obj("find_child", "EditorRunBar", true, false)
       if run_bar_parent = run_bar.call_obj("get_parent")
-        run_bar_parent.call("add_child", btn) rescue nil
+        run_bar_parent.call_deferred("add_child", btn) rescue nil
       end
     end
 
@@ -712,6 +722,7 @@ module Godot
   end
 
   def self.setup_new_script_button : Void
+    return if headless?
     return unless has_editor_interface?
     return if Godot::EditorInterface.singleton_ptr.null?
     ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
