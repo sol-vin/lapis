@@ -48,8 +48,8 @@ Source: "{#SourceDir}\lapis.exe"; DestDir: "{app}\bin"; Flags: ignoreversion
 Source: "{#SourceDir}\install_deps.ps1"; DestDir: "{tmp}"; Flags: deleteafterinstall
 Source: "{#SourceDir}\scripts\*"; DestDir: "{app}\scripts"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: DirExists(ExpandConstant('{#SourceDir}\scripts'))
 Source: "{#SourceDir}\addons\*"; DestDir: "{app}\addons"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: DirExists(ExpandConstant('{#SourceDir}\addons'))
-Source: "{#SourceDir}\README.md"; DestDir: "{app}"; Flags: ignoreversion; Check: FileExists(ExpandConstant('{#SourceDir}\README.md'))
-Source: "{#SourceDir}\LICENSE"; DestDir: "{app}"; Flags: ignoreversion; Check: FileExists(ExpandConstant('{#SourceDir}\LICENSE'))
+Source: "{#SourceDir}\README.md"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "{#SourceDir}\LICENSE"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 
 [Icons]
 Name: "{group}\Lapis Command Prompt"; Filename: "{cmd}"; Parameters: "/k ""{app}\bin\lapis.exe --help"""

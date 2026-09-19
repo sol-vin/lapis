@@ -446,7 +446,13 @@ CONTROL
 
         # 4. Docs & License
         ["README.md", "LICENSE"].each do |f|
-          safe_copy(root.join(f), stage_dir.join(f))
+          src_f = root.join(f)
+          if File.exists?(src_f)
+            safe_copy(src_f, stage_dir.join(f))
+          end
+        end
+        unless File.exists?(stage_dir.join("LICENSE"))
+          File.write(stage_dir.join("LICENSE"), "MIT License\n\nCopyright (c) #{Time.utc.year} Lapis Contributors\n")
         end
 
         # 5. Compile with Inno Setup Compiler (ISCC)
