@@ -117,6 +117,49 @@ func _run_in_editor_tool_tests():
 		else:
 			print("[CrystalToolTester]   ✔ %s registered as EditorPlugin" % cls)
 
+	# 3b. Verify Crystal Main Screen Editor Tab and Panel
+	print("[CrystalToolTester] Verifying Crystal main screen editor panel and tab button...")
+	var base_control = EditorInterface.get_base_control()
+	var crystal_tab_btn: Button = null
+	if base_control:
+		var all_buttons = base_control.find_children("*", "Button", true, false)
+		for btn in all_buttons:
+			if btn.text == "Crystal" or btn.name == "Crystal" or (btn.tooltip_text and btn.tooltip_text.contains("Crystal")):
+				crystal_tab_btn = btn
+				break
+
+	if not crystal_tab_btn:
+		var msg = "[CrystalToolTester] FAILED: 'Crystal' main screen editor tab button not found in Editor interface!"
+		printerr(msg)
+		error_messages.append(msg)
+		errors += 1
+	else:
+		print("[CrystalToolTester]   ✔ Found 'Crystal' main screen tab button: %s" % str(crystal_tab_btn.get_path()))
+
+	var main_screen = EditorInterface.get_editor_main_screen()
+	var crystal_panel = null
+	if main_screen:
+		crystal_panel = main_screen.find_child("CrystalPanel", false, false)
+
+	if not crystal_panel:
+		var msg = "[CrystalToolTester] FAILED: 'CrystalPanel' Control node not docked in EditorInterface.get_editor_main_screen()!"
+		printerr(msg)
+		error_messages.append(msg)
+		errors += 1
+	else:
+		print("[CrystalToolTester]   ✔ Verified 'CrystalPanel' docked in editor main screen: %s" % str(crystal_panel.get_path()))
+
+		if crystal_tab_btn:
+			crystal_tab_btn.emit_signal("pressed")
+			await get_tree().process_frame
+			if not crystal_panel.visible:
+				var msg = "[CrystalToolTester] FAILED: Pressing 'Crystal' tab button did not make CrystalPanel visible!"
+				printerr(msg)
+				error_messages.append(msg)
+				errors += 1
+			else:
+				print("[CrystalToolTester]   ✔ Switching to 'Crystal' tab successfully displayed CrystalPanel (visible=true)!")
+
 	# 4. Open a .cr script in the editor to verify Script tab integration and saving
 	print("[CrystalToolTester] Testing Script Tab: Loading, editing, and saving res://src/main.cr...")
 	var cr_script = load("res://src/main.cr")
