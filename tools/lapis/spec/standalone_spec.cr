@@ -55,7 +55,21 @@ describe "Lapis Standalone Executable" do
       godot_proj = File.read(game_dir.join("project.godot"))
       godot_proj.should contain("config/name=\"My Standalone Game\"")
 
-      # 4. Scaffold a new addon using only embedded assets
+      # 4. Verify lapis editor in standalone game directory resolves current project (not .../test)
+      out_io.clear
+      err_io.clear
+      status = Process.run(
+        isolated_bin.to_s,
+        ["editor", "-g", "non_existent_godot_xyz"],
+        chdir: game_dir.to_s,
+        output: out_io,
+        error: err_io
+      )
+      status.success?.should be_false
+      err_io.to_s.should_not contain("Target project directory does not exist")
+      err_io.to_s.should contain("Godot executable not found")
+
+      # 5. Scaffold a new addon using only embedded assets
       out_io.clear
       err_io.clear
       target_addon = work_dir.join("my_standalone_addon")

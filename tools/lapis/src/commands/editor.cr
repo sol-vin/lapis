@@ -13,11 +13,11 @@ module Lapis
         puts <<-HELP
 \e[35m=== Lapis: Godot Editor & Runtime Launcher ===\e[0m
 
-Usage: lapis editor [options]
-       lapis run [options]
+Usage: lapis editor [options] [path]
+       lapis run [options] [path]
 
 Options:
-  -p, --path=PATH            Godot project path (default: test)
+  -p, --path=PATH            Godot project path (default: current project or test)
   -r, --run                  Run standalone project directly instead of opening editor
   -q, --quit-after=SEC       Auto-quit after N seconds
   -l, --log-file=FILE        Save editor log output to file
@@ -29,11 +29,60 @@ Options:
 
 Examples:
   lapis editor
+  lapis editor my_game
   lapis editor -p template
   lapis editor -p test --quit-after 10
   lapis editor -p test --lldb
+  lapis run
   lapis run -p test
 HELP
+      end
+
+      # Resolves the target Godot project directory:
+      # 1. Explicit path if provided (absolute, relative to CWD, or relative to root).
+      # 2. Current working directory if it contains project.godot.
+      # 3. Workspace root if it contains project.godot (standalone project).
+      # 4. Standard monorepo test project (test/) or template (template/).
+      # 5. Fallback to current working directory.
+      def self.resolve_target_dir(proj_path : String?, root : Path) : Path
+        curr = Path.new(Dir.current).expand
+
+        if proj_path && !proj_path.empty?
+          p = Path.new(proj_path)
+          if p.absolute? && Dir.exists?(p)
+            return p
+          end
+          if Dir.exists?(curr.join(p))
+            return curr.join(p).expand
+          end
+          if Dir.exists?(root.join(p))
+            return root.join(p).expand
+          end
+          return p.expand
+        end
+
+        # Auto-detect target project when no path is explicitly provided:
+        # 1. Current working directory if it contains project.godot
+        if File.exists?(curr.join("project.godot"))
+          return curr
+        end
+
+        # 2. Workspace root if it contains project.godot (standalone project)
+        if File.exists?(root.join("project.godot"))
+          return root
+        end
+
+        # 3. LibGodot monorepo: default to test project suite
+        if File.exists?(root.join("test/project.godot"))
+          return root.join("test")
+        end
+
+        # 4. LibGodot monorepo: fallback to template project
+        if File.exists?(root.join("template/project.godot"))
+          return root.join("template")
+        end
+
+        curr
       end
 
       def self.run(args : Array(String)) : Int32
@@ -42,7 +91,7 @@ HELP
           return 0
         end
 
-        proj_path = "test"
+        proj_path : String? = nil
         run_standalone = false
         quit_after : Int32? = nil
         log_file : String? = nil
@@ -52,8 +101,8 @@ HELP
         skip_version_check = false
 
         parser = OptionParser.new do |opts|
-          opts.banner = "Usage: lapis editor [options]"
-          opts.on("-p PATH", "--path=PATH", "Godot project path (default: test)") { |p| proj_path = p }
+          opts.banner = "Usage: lapis editor [options] [path]"
+          opts.on("-p PATH", "--path=PATH", "Godot project path (default: current project or test)") { |p| proj_path = p }
           opts.on("-r", "--run", "Run standalone project directly") { run_standalone = true }
           opts.on("-q SEC", "--quit-after=SEC", "Auto-quit after N seconds") { |s| quit_after = s.to_i? }
           opts.on("-l FILE", "--log-file=FILE", "Save editor log output to file") { |f| log_file = f }
@@ -62,15 +111,23 @@ HELP
           opts.on("-g PATH", "--godot=PATH", "Explicit Godot binary path") { |g| godot_path = g }
           opts.on("--skip-version-check", "Bypass Godot engine version check") { skip_version_check = true }
           opts.on("-h", "--help", "Show help") { print_help; exit 0 }
+          opts.unknown_args do |before, after|
+            remaining = before + after
+            proj_path ||= remaining.first if !remaining.empty?
+          end
         end
 
         parser.parse(args)
 
         root = Core::Env::ROOT_DIR
-        target_dir = root.join(proj_path)
+        target_dir = resolve_target_dir(proj_path, root)
         unless Dir.exists?(target_dir)
           Core::Logger.error("Target project directory does not exist: #{target_dir}")
           return 1
+        end
+
+        unless File.exists?(target_dir.join("project.godot"))
+          Core::Logger.warn("Notice: No project.godot found in #{target_dir}. Godot may open the Project Manager.")
         end
 
         expected_ver = Core::GodotFinder.expected_version(target_dir.to_s)
@@ -95,8 +152,14 @@ HELP
           godot_args << qa.to_s
         end
 
+        proj_display_name = if (pp = proj_path) && !pp.empty? && pp != "."
+          pp
+        else
+          target_dir.basename
+        end
+
         action_name = run_standalone ? "Running Godot standalone" : "Launching Godot Editor"
-        Core::Logger.step("Editor", "#{action_name} for #{proj_path} (#{File.basename(godot_exe)})...")
+        Core::Logger.step("Editor", "#{action_name} for #{proj_display_name} (#{File.basename(godot_exe)})...")
 
         status = if lldb
           lldb_cmd = Core::ProcessRunner.find_executable("lldb") || "lldb"

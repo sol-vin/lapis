@@ -106,31 +106,42 @@ module Lapis
       def self.resolve(custom_path : String? = nil, project_dir : String? = nil, filter_version : Bool = true) : String?
         target_version = expected_version(project_dir)
 
-        if custom_path && !custom_path.empty? && File.exists?(custom_path)
-          expanded = File.expand_path(custom_path)
-          return expanded
+        if custom_path && !custom_path.empty?
+          return File.expand_path(custom_path) if File.exists?(custom_path)
+          return nil
         end
 
         exe_ext = Env.exe_ext
 
-        raw_candidates = [
-          ENV["GODOT"]?,
-          ENV["GODOT4"]?,
-          ENV["GODOT_BIN"]?,
-          ENV["GODOT4_BIN"]?,
-          Env::ROOT_DIR.join("godot#{exe_ext}").to_s,
-          Env::ROOT_DIR.join("godot.exe").to_s,
-          Env::ROOT_DIR.join("godot").to_s,
-          Env::ROOT_DIR.join("..", "godot#{exe_ext}").to_s,
-          Env::ROOT_DIR.join("..", "godot.exe").to_s,
-          Env::ROOT_DIR.join("..", "godot").to_s,
-          ProcessRunner.find_executable("godot"),
-          ProcessRunner.find_executable("godot4"),
-          ProcessRunner.find_executable("godot.exe"),
-        ].compact
+        p_candidates = [] of String
+        if project_dir && !project_dir.empty?
+          p_path = Path.new(project_dir)
+          p_candidates << p_path.join("godot#{exe_ext}").to_s
+          p_candidates << p_path.join("godot.exe").to_s
+          p_candidates << p_path.join("godot").to_s
+          p_candidates << p_path.join("..", "godot#{exe_ext}").to_s
+          p_candidates << p_path.join("..", "godot.exe").to_s
+          p_candidates << p_path.join("..", "godot").to_s
+        end
+
+        candidates = [] of String?
+        candidates << ENV["GODOT"]?
+        candidates << ENV["GODOT4"]?
+        candidates << ENV["GODOT_BIN"]?
+        candidates << ENV["GODOT4_BIN"]?
+        p_candidates.each { |p| candidates << p }
+        candidates << Env::ROOT_DIR.join("godot#{exe_ext}").to_s
+        candidates << Env::ROOT_DIR.join("godot.exe").to_s
+        candidates << Env::ROOT_DIR.join("godot").to_s
+        candidates << Env::ROOT_DIR.join("..", "godot#{exe_ext}").to_s
+        candidates << Env::ROOT_DIR.join("..", "godot.exe").to_s
+        candidates << Env::ROOT_DIR.join("..", "godot").to_s
+        candidates << ProcessRunner.find_executable("godot")
+        candidates << ProcessRunner.find_executable("godot4")
+        candidates << ProcessRunner.find_executable("godot.exe")
 
         valid_candidates = [] of String
-        raw_candidates.each do |c|
+        candidates.compact.each do |c|
           next if c.empty?
           if File.exists?(c) && !Dir.exists?(c)
             exp = File.expand_path(c)

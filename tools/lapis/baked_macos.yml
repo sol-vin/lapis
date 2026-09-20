@@ -15,7 +15,9 @@ files:
   - template/icon.svg
   - template/.gitignore
   - template/src/main.cr
+  - template/src/my_node.cr
   - template/scenes/main.tscn
+  - template/scripts/mygdnode.gd
 
   # 3. Addon Files (addons/crystal_integration/)
   - addons/crystal_integration/crystal.gdextension
