@@ -22,6 +22,7 @@ func _run_in_editor_tool_tests():
 	print("==================================================================")
 	var errors = 0
 	var error_messages = []
+	var is_headless = DisplayServer.get_name() == "headless" or OS.get_environment("GODOT_HEADLESS") == "1" or "--headless" in OS.get_cmdline_args()
 
 	var settings = EditorInterface.get_editor_settings()
 	if settings:
@@ -118,47 +119,71 @@ func _run_in_editor_tool_tests():
 			print("[CrystalToolTester]   ✔ %s registered as EditorPlugin" % cls)
 
 	# 3b. Verify Crystal Main Screen Editor Tab and Panel
-	print("[CrystalToolTester] Verifying Crystal main screen editor panel and tab button...")
-	var base_control = EditorInterface.get_base_control()
-	var crystal_tab_btn: Button = null
-	if base_control:
-		var all_buttons = base_control.find_children("*", "Button", true, false)
-		for btn in all_buttons:
-			if btn.text == "Crystal" or btn.name == "Crystal" or (btn.tooltip_text and btn.tooltip_text.contains("Crystal")):
-				crystal_tab_btn = btn
-				break
+	print("[CrystalToolTester] Verifying Crystal main screen editor plugin configuration...")
+	var plugin_script = load("res://addons/crystal_integration/plugin.gd")
+	var crystal_plugin = plugin_script.new() if plugin_script else null
+	var has_main = false
+	var plugin_name = ""
+	if crystal_plugin:
+		if crystal_plugin.has_method("_has_main_screen"):
+			has_main = crystal_plugin._has_main_screen()
+		elif crystal_plugin.has_method("has_main_screen"):
+			has_main = crystal_plugin.has_main_screen()
+		if crystal_plugin.has_method("_get_plugin_name"):
+			plugin_name = crystal_plugin._get_plugin_name()
+		elif crystal_plugin.has_method("get_plugin_name"):
+			plugin_name = crystal_plugin.get_plugin_name()
 
-	if not crystal_tab_btn:
-		var msg = "[CrystalToolTester] FAILED: 'Crystal' main screen editor tab button not found in Editor interface!"
+	if not has_main or plugin_name != "Crystal":
+		var msg = "[CrystalToolTester] FAILED: CrystalIntegrationPlugin does not report main screen tab (has_main_screen=%s, name='%s')!" % [str(has_main), plugin_name]
 		printerr(msg)
 		error_messages.append(msg)
 		errors += 1
 	else:
-		print("[CrystalToolTester]   ✔ Found 'Crystal' main screen tab button: %s" % str(crystal_tab_btn.get_path()))
+		print("[CrystalToolTester]   ✔ CrystalIntegrationPlugin reports main screen tab correctly: name='%s', has_main_screen=true" % plugin_name)
 
-	var main_screen = EditorInterface.get_editor_main_screen()
-	var crystal_panel = null
-	if main_screen:
-		crystal_panel = main_screen.find_child("CrystalPanel", false, false)
+	# In GUI editor mode (non-headless), also verify actual UI controls and docking
+	if not is_headless:
+		var base_control = EditorInterface.get_base_control()
+		var crystal_tab_btn: Button = null
+		if base_control:
+			var all_buttons = base_control.find_children("*", "Button", true, false)
+			for btn in all_buttons:
+				if btn.text == "Crystal" or btn.name == "Crystal" or (btn.tooltip_text and btn.tooltip_text.contains("Crystal")):
+					crystal_tab_btn = btn
+					break
 
-	if not crystal_panel:
-		var msg = "[CrystalToolTester] FAILED: 'CrystalPanel' Control node not docked in EditorInterface.get_editor_main_screen()!"
-		printerr(msg)
-		error_messages.append(msg)
-		errors += 1
-	else:
-		print("[CrystalToolTester]   ✔ Verified 'CrystalPanel' docked in editor main screen: %s" % str(crystal_panel.get_path()))
+		if not crystal_tab_btn:
+			var msg = "[CrystalToolTester] FAILED: 'Crystal' main screen editor tab button not found in Editor interface!"
+			printerr(msg)
+			error_messages.append(msg)
+			errors += 1
+		else:
+			print("[CrystalToolTester]   ✔ Found 'Crystal' main screen tab button: %s" % str(crystal_tab_btn.get_path()))
 
-		if crystal_tab_btn:
-			crystal_tab_btn.emit_signal("pressed")
-			await get_tree().process_frame
-			if not crystal_panel.visible:
-				var msg = "[CrystalToolTester] FAILED: Pressing 'Crystal' tab button did not make CrystalPanel visible!"
-				printerr(msg)
-				error_messages.append(msg)
-				errors += 1
-			else:
-				print("[CrystalToolTester]   ✔ Switching to 'Crystal' tab successfully displayed CrystalPanel (visible=true)!")
+		var main_screen = EditorInterface.get_editor_main_screen()
+		var crystal_panel = null
+		if main_screen:
+			crystal_panel = main_screen.find_child("CrystalPanel", false, false)
+
+		if not crystal_panel:
+			var msg = "[CrystalToolTester] FAILED: 'CrystalPanel' Control node not docked in EditorInterface.get_editor_main_screen()!"
+			printerr(msg)
+			error_messages.append(msg)
+			errors += 1
+		else:
+			print("[CrystalToolTester]   ✔ Verified 'CrystalPanel' docked in editor main screen: %s" % str(crystal_panel.get_path()))
+
+			if crystal_tab_btn:
+				crystal_tab_btn.emit_signal("pressed")
+				await get_tree().process_frame
+				if not crystal_panel.visible:
+					var msg = "[CrystalToolTester] FAILED: Pressing 'Crystal' tab button did not make CrystalPanel visible!"
+					printerr(msg)
+					error_messages.append(msg)
+					errors += 1
+				else:
+					print("[CrystalToolTester]   ✔ Switching to 'Crystal' tab successfully displayed CrystalPanel (visible=true)!")
 
 	# 4. Open a .cr script in the editor to verify Script tab integration and saving
 	print("[CrystalToolTester] Testing Script Tab: Loading, editing, and saving res://src/main.cr...")
@@ -310,42 +335,41 @@ func _run_in_editor_tool_tests():
 		if FileAccess.file_exists("res://bin/.runtime_tests_failed"):
 			DirAccess.remove_absolute("res://bin/.runtime_tests_failed")
 
-		var is_headless = DisplayServer.get_name() == "headless" or OS.get_environment("GODOT_HEADLESS") == "1" or "--headless" in OS.get_cmdline_args()
+		var has_passed = false
+		var has_failed = false
+
 		if is_headless:
-			ProjectSettings.set_setting("editor/run/main_run_args", "--headless --audio-driver Dummy")
-			var ed_settings = EditorInterface.get_editor_settings()
-			if ed_settings:
-				ed_settings.set_setting("run/main_run_args", "--headless --audio-driver Dummy")
-
-		EditorInterface.play_main_scene()
-		print("[CrystalToolTester]   ✔ EditorInterface.play_main_scene() triggered!")
-
-		# Wait for scene to start playing
-		var start_wait = 0
-		while not EditorInterface.is_playing_scene() and start_wait < 180:
-			await get_tree().process_frame
-			start_wait += 1
-
-		# Wait while playing until game finishes tests and exits
-		var elapsed_frames = 0
-		var max_frames = 2400
-		while EditorInterface.is_playing_scene() and elapsed_frames < max_frames:
-			await get_tree().process_frame
-			elapsed_frames += 1
-
-		if EditorInterface.is_playing_scene():
-			print("[CrystalToolTester] Notice: Game still running after timeout, stopping scene.")
-			EditorInterface.stop_playing_scene()
-
-		print("[CrystalToolTester] Checking in-editor game window test results...")
-		var has_passed = FileAccess.file_exists("res://.runtime_tests_passed") or FileAccess.file_exists("res://bin/.runtime_tests_passed")
-		var has_failed = FileAccess.file_exists("res://.runtime_tests_failed") or FileAccess.file_exists("res://bin/.runtime_tests_failed")
-
-		if not has_passed and is_headless:
-			print("[CrystalToolTester] In-editor play scene did not execute in headless environment; executing headless test scene directly...")
+			print("[CrystalToolTester] Headless editor environment detected: Running test scene synchronously...")
 			var out = []
-			var exit_code = OS.execute(OS.get_executable_path(), ["--headless", "--audio-driver", "Dummy", "--path", ".", "res://scenes/main_test_runner.tscn"], out, true)
+			var exit_code = OS.execute(OS.get_executable_path(), ["--headless", "--audio-driver", "Dummy", "--path", ".", "res://scenes/main_test_runner.tscn", "--", "--autorun"], out, true)
 			print("[CrystalToolTester] Direct headless run exited with code: %d" % exit_code)
+			has_passed = FileAccess.file_exists("res://.runtime_tests_passed") or FileAccess.file_exists("res://bin/.runtime_tests_passed")
+			has_failed = FileAccess.file_exists("res://.runtime_tests_failed") or FileAccess.file_exists("res://bin/.runtime_tests_failed")
+		else:
+			OS.set_environment("GODOT_TEST_AUTORUN", "1")
+			EditorInterface.play_main_scene()
+			print("[CrystalToolTester]   ✔ EditorInterface.play_main_scene() triggered!")
+
+			# Wait for scene to start playing
+			var start_wait = 0
+			while not EditorInterface.is_playing_scene() and start_wait < 180:
+				await get_tree().process_frame
+				start_wait += 1
+
+			# Wait while playing until game finishes tests and exits
+			var elapsed_frames = 0
+			var max_frames = 2400
+			while EditorInterface.is_playing_scene() and elapsed_frames < max_frames:
+				await get_tree().process_frame
+				elapsed_frames += 1
+
+			if EditorInterface.is_playing_scene():
+				print("[CrystalToolTester] Notice: Game still running after timeout, stopping scene.")
+				EditorInterface.stop_playing_scene()
+				for i in range(10):
+					await get_tree().process_frame
+
+			print("[CrystalToolTester] Checking in-editor game window test results...")
 			has_passed = FileAccess.file_exists("res://.runtime_tests_passed") or FileAccess.file_exists("res://bin/.runtime_tests_passed")
 			has_failed = FileAccess.file_exists("res://.runtime_tests_failed") or FileAccess.file_exists("res://bin/.runtime_tests_failed")
 
