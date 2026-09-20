@@ -388,6 +388,7 @@ CONTROL
             "C:\\Program Files\\Inno Setup 7\\ISCC.exe",
             "C:\\ProgramData\\chocolatey\\bin\\iscc.exe",
             File.join(local_app_data, "Programs", "Inno Setup 6", "ISCC.exe"),
+            File.join(local_app_data, "Programs", "Inno Setup 7", "ISCC.exe"),
             File.join(user_profile, "scoop", "apps", "innosetup", "current", "ISCC.exe"),
           ]
           candidates.each do |cand|
@@ -417,13 +418,18 @@ CONTROL
         FileUtils.rm_rf(stage_dir) if Dir.exists?(stage_dir)
         FileUtils.mkdir_p(stage_dir)
 
-        # 1. Stage lapis.exe
+        # 1. Stage lapis.exe and runtime dependencies
         lapis_exe = root.join("bin/lapis#{Core::Env.exe_ext}")
         lapis_exe = Path.new(Process.executable_path.not_nil!) if !File.exists?(lapis_exe) && Process.executable_path
         if File.exists?(lapis_exe)
           safe_copy(lapis_exe, stage_dir.join("lapis.exe"))
         else
           Core::Logger.warn("Lapis executable not found at #{lapis_exe}")
+        end
+
+        ["gc.dll", "pcre2-8.dll", "iconv-2.dll", "libcrypto-3-x64.dll", "libssl-3-x64.dll", "yaml.dll", "zlib1.dll"].each do |dll|
+          dll_src = root.join("bin/#{dll}")
+          safe_copy(dll_src, stage_dir.join(dll)) if File.exists?(dll_src)
         end
 
         # 2. Stage scripts/windows

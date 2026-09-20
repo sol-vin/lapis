@@ -45,9 +45,14 @@ Name: "envPath"; Description: "Add Lapis to PATH environment variable"; GroupDes
 
 [Files]
 Source: "{#SourceDir}\lapis.exe"; DestDir: "{app}\bin"; Flags: ignoreversion
+Source: "{#SourceDir}\*.dll"; DestDir: "{app}\bin"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "{#SourceDir}\install_deps.ps1"; DestDir: "{tmp}"; Flags: deleteafterinstall
-Source: "{#SourceDir}\scripts\*"; DestDir: "{app}\scripts"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: DirExists(ExpandConstant('{#SourceDir}\scripts'))
-Source: "{#SourceDir}\addons\*"; DestDir: "{app}\addons"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: DirExists(ExpandConstant('{#SourceDir}\addons'))
+#if DirExists(SourceDir + "\scripts")
+Source: "{#SourceDir}\scripts\*"; DestDir: "{app}\scripts"; Flags: ignoreversion recursesubdirs createallsubdirs
+#endif
+#if DirExists(SourceDir + "\addons")
+Source: "{#SourceDir}\addons\*"; DestDir: "{app}\addons"; Flags: ignoreversion recursesubdirs createallsubdirs
+#endif
 Source: "{#SourceDir}\README.md"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "{#SourceDir}\LICENSE"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 
@@ -67,47 +72,55 @@ function IsCommandInPath(const Cmd: string): Boolean;
 var
   ResultCode: Integer;
 begin
-  Result := Exec('cmd.exe', '/c where ' + Cmd, '', SW_HIDE, ewWaitUntilTerminated, ResultCode) and (ResultCode = 0);
+  Result := Exec(ExpandConstant('{cmd}'), '/c where ' + Cmd, '', SW_HIDE, ewWaitUntilTerminated, ResultCode) and (ResultCode = 0);
 end;
 
 function CheckCrystalInstalled(): Boolean;
 var
   UserProf: string;
 begin
-  UserProf := ExpandConstant('{userprofile}');
+  UserProf := GetEnv('USERPROFILE');
   Result := IsCommandInPath('crystal.exe') or
             FileExists('C:\Program Files\Crystal\bin\crystal.exe') or
-            FileExists(UserProf + '\scoop\apps\crystal\current\bin\crystal.exe');
+            FileExists('C:\Crystal\bin\crystal.exe') or
+            ((UserProf <> '') and FileExists(UserProf + '\scoop\apps\crystal\current\bin\crystal.exe'));
 end;
 
 function CheckLldbInstalled(): Boolean;
 var
   UserProf: string;
 begin
-  UserProf := ExpandConstant('{userprofile}');
+  UserProf := GetEnv('USERPROFILE');
   Result := IsCommandInPath('lldb.exe') or
             FileExists('C:\Program Files\LLVM\bin\lldb.exe') or
             FileExists('C:\Program Files (x86)\LLVM\bin\lldb.exe') or
             FileExists('C:\ProgramData\llvm\bin\lldb.exe') or
-            FileExists(UserProf + '\scoop\apps\llvm\current\bin\lldb.exe') or
-            FileExists('C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\Llvm\bin\lldb.exe');
+            ((UserProf <> '') and FileExists(UserProf + '\scoop\apps\llvm\current\bin\lldb.exe')) or
+            FileExists('C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\Llvm\bin\lldb.exe') or
+            FileExists('C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\Llvm\bin\lldb.exe') or
+            FileExists('C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\Llvm\bin\lldb.exe') or
+            FileExists('C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\Llvm\bin\lldb.exe');
 end;
 
 function CheckMakeInstalled(): Boolean;
 var
   UserProf: string;
 begin
-  UserProf := ExpandConstant('{userprofile}');
+  UserProf := GetEnv('USERPROFILE');
   Result := IsCommandInPath('make.exe') or
             IsCommandInPath('mingw32-make.exe') or
             FileExists('C:\Program Files (x86)\GnuWin32\bin\make.exe') or
-            FileExists(UserProf + '\scoop\apps\make\current\make.exe');
+            FileExists('C:\Program Files\Git\usr\bin\make.exe') or
+            FileExists('C:\msys64\usr\bin\make.exe') or
+            FileExists('C:\msys64\mingw64\bin\mingw32-make.exe') or
+            ((UserProf <> '') and FileExists(UserProf + '\scoop\apps\make\current\make.exe'));
 end;
 
 function CheckGitInstalled(): Boolean;
 begin
   Result := IsCommandInPath('git.exe') or
             FileExists('C:\Program Files\Git\cmd\git.exe') or
+            FileExists('C:\Program Files\Git\bin\git.exe') or
             FileExists(ExpandConstant('{localappdata}\Programs\Git\cmd\git.exe'));
 end;
 
@@ -167,6 +180,7 @@ var
   DepsToInstall: string;
   ResultCode: Integer;
   ScriptPath: string;
+  PowerShellExe: string;
   AppBinDir: string;
   OrigPath: string;
   NewPath: string;
@@ -176,21 +190,37 @@ begin
     // 1. Dependency Auto-Installation
     DepsToInstall := '';
     if (not HasCrystal) and PrereqPage.Values[0] then
-      DepsToInstall := DepsToInstall + ' "crystal"';
+    begin
+      if Length(DepsToInstall) > 0 then DepsToInstall := DepsToInstall + ',';
+      DepsToInstall := DepsToInstall + 'crystal';
+    end;
     if (not HasLldb) and PrereqPage.Values[1] then
-      DepsToInstall := DepsToInstall + ' "lldb"';
+    begin
+      if Length(DepsToInstall) > 0 then DepsToInstall := DepsToInstall + ',';
+      DepsToInstall := DepsToInstall + 'lldb';
+    end;
     if (not HasMake) and PrereqPage.Values[2] then
-      DepsToInstall := DepsToInstall + ' "make"';
+    begin
+      if Length(DepsToInstall) > 0 then DepsToInstall := DepsToInstall + ',';
+      DepsToInstall := DepsToInstall + 'make';
+    end;
     if (not HasGit) and PrereqPage.Values[3] then
-      DepsToInstall := DepsToInstall + ' "git"';
+    begin
+      if Length(DepsToInstall) > 0 then DepsToInstall := DepsToInstall + ',';
+      DepsToInstall := DepsToInstall + 'git';
+    end;
 
     if Length(DepsToInstall) > 0 then
     begin
       ScriptPath := ExpandConstant('{tmp}\install_deps.ps1');
       if FileExists(ScriptPath) then
       begin
+        PowerShellExe := ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe');
+        if not FileExists(PowerShellExe) then
+          PowerShellExe := 'powershell.exe';
+
         WizardForm.StatusLabel.Caption := 'Installing prerequisite development tools...';
-        Exec('powershell.exe', '-NoProfile -ExecutionPolicy Bypass -File "' + ScriptPath + '" -Tools ' + DepsToInstall + ' -Silent', '', SW_SHOW, ewWaitUntilTerminated, ResultCode);
+        Exec(PowerShellExe, '-NoProfile -ExecutionPolicy Bypass -File "' + ScriptPath + '" -Tools ' + DepsToInstall + ' -Silent', '', SW_SHOW, ewWaitUntilTerminated, ResultCode);
       end;
     end;
 
@@ -198,14 +228,24 @@ begin
     if WizardIsTaskSelected('envPath') then
     begin
       AppBinDir := ExpandConstant('{app}\bin');
-      if IsAdminLoggedOn then
+      if IsAdminInstallMode then
       begin
         if RegQueryStringValue(HKLM, 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment', 'Path', OrigPath) then
         begin
           if Pos(Uppercase(AppBinDir), Uppercase(OrigPath)) = 0 then
           begin
             NewPath := OrigPath + ';' + AppBinDir;
-            RegWriteStringValue(HKLM, 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment', 'Path', NewPath);
+            if not RegWriteStringValue(HKLM, 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment', 'Path', NewPath) then
+            begin
+              // Fallback to HKCU if writing to HKLM was rejected
+              if RegQueryStringValue(HKCU, 'Environment', 'Path', OrigPath) then
+              begin
+                if Pos(Uppercase(AppBinDir), Uppercase(OrigPath)) = 0 then
+                  RegWriteStringValue(HKCU, 'Environment', 'Path', OrigPath + ';' + AppBinDir);
+              end
+              else
+                RegWriteStringValue(HKCU, 'Environment', 'Path', AppBinDir);
+            end;
           end;
         end;
       end
@@ -237,6 +277,7 @@ begin
   if CurUninstallStep = usPostUninstall then
   begin
     AppBinDir := ExpandConstant('{app}\bin');
+    // Remove from HKCU
     if RegQueryStringValue(HKCU, 'Environment', 'Path', OrigPath) then
     begin
       PosIdx := Pos(';' + AppBinDir, OrigPath);
@@ -252,8 +293,36 @@ begin
         begin
           Delete(OrigPath, PosIdx, Length(AppBinDir + ';'));
           RegWriteStringValue(HKCU, 'Environment', 'Path', OrigPath);
+        end
+        else if OrigPath = AppBinDir then
+        begin
+          RegWriteStringValue(HKCU, 'Environment', 'Path', '');
+        end;
+      end;
+    end;
+    // Remove from HKLM if installed in admin mode
+    if IsAdminInstallMode and RegQueryStringValue(HKLM, 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment', 'Path', OrigPath) then
+    begin
+      PosIdx := Pos(';' + AppBinDir, OrigPath);
+      if PosIdx > 0 then
+      begin
+        Delete(OrigPath, PosIdx, Length(';' + AppBinDir));
+        RegWriteStringValue(HKLM, 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment', 'Path', OrigPath);
+      end
+      else
+      begin
+        PosIdx := Pos(AppBinDir + ';', OrigPath);
+        if PosIdx > 0 then
+        begin
+          Delete(OrigPath, PosIdx, Length(AppBinDir + ';'));
+          RegWriteStringValue(HKLM, 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment', 'Path', OrigPath);
+        end
+        else if OrigPath = AppBinDir then
+        begin
+          RegWriteStringValue(HKLM, 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment', 'Path', '');
         end;
       end;
     end;
   end;
 end;
+

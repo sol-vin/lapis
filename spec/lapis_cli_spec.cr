@@ -4,7 +4,9 @@
 puts "=== Running Lapis Toolchain & CLI Specifications ==="
 
 root_dir = File.expand_path("..", __DIR__)
-status = Process.run("crystal", ["spec", "tools/lapis/spec"], chdir: root_dir, output: STDOUT, error: STDERR)
+cache_dir = File.join(root_dir, "scratch", "cache_cli_spec")
+Dir.mkdir_p(cache_dir)
+status = Process.run("crystal", ["spec", "tools/lapis/spec"], chdir: root_dir, output: STDOUT, error: STDERR, env: {"CRYSTAL_CACHE_DIR" => cache_dir})
 
 if status.success?
   puts "✓ All Lapis CLI & toolchain specifications passed successfully!"
