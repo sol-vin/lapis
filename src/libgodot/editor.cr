@@ -129,7 +129,10 @@ module Godot
       unless self.class.headless?
         self.class.ensure_highlighter_registered
         self.class.ensure_theme_icons
-        self.call_deferred("deferred_setup_editor_ui")
+        self.class.setup_toolbar_button
+        self.class.setup_new_script_button
+        self.class.setup_main_screen_panel
+        self.class.setup_debugger_plugin
         self.class.link_scripts_in_edited_scene
         connect("scene_changed") do |_args|
           self.class.link_scripts_in_edited_scene
@@ -508,7 +511,11 @@ module Godot
 
   def self._godot_has_virtual_method(method_name : String) : Bool
     case method_name
-    when "_has_main_screen", "_get_plugin_name", "_get_plugin_icon", "_make_visible"
+    when "_has_main_screen", "has_main_screen",
+         "_get_plugin_name", "get_plugin_name",
+         "_get_plugin_icon", "get_plugin_icon",
+         "_make_visible", "make_visible",
+         "_build", "build"
       true
     else
       false
@@ -517,20 +524,20 @@ module Godot
 
   def _godot_call_virtual_with_data(method_name : String, args : Void**, ret : Void*) : Void
     case method_name
-    when "_has_main_screen"
+    when "_has_main_screen", "has_main_screen"
       return if ret.null?
       ret.as(UInt8*).value = 1_u8
-    when "_get_plugin_name"
+    when "_get_plugin_name", "get_plugin_name"
       return if ret.null?
       Bridge.ret_string(ret, "Crystal")
-    when "_get_plugin_icon"
+    when "_get_plugin_icon", "get_plugin_icon"
       return if ret.null?
       if tex = self.class.get_crystal_icon_texture
         Bridge.ret_ref(ret, tex.pointer)
       else
         Bridge.ret_ref(ret, Pointer(Void).null)
       end
-    when "_make_visible"
+    when "_make_visible", "make_visible"
       visible = !args.null? && !args[0].null? && (args[0].as(UInt8*).value != 0_u8)
       make_crystal_panel_visible(visible)
     end
@@ -1497,6 +1504,12 @@ module Godot
         else
           @@reload_watchdog = 0.0_f64
         end
+      end
+
+      # Ensure main screen panel is active and restored after reload
+      panel_inst = @@crystal_panel
+      if panel_inst.nil? || panel_inst.pointer.null? || !panel_inst.alive?
+        self.class.setup_main_screen_panel
       end
 
       @@link_check_accum += delta

@@ -6,7 +6,7 @@
 
 [sub_resource type="BoxMesh" id="BoxMesh_1"]
 
-[node name="MainNode" type="MainNode" unique_id=1913652511]
+[node name="MainNode" type="Node3D" unique_id=1913652511]
 script = ExtResource("1_o5qli")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1664467660]
@@ -22,8 +22,6 @@ transform = Transform3D(0.866025, -0.25, 0.433013, 0, 0.866025, 0.5, -0.5, -0.43
 
 [node name="MyCrystalNode" type="Node" parent="." unique_id=769559760]
 script = ExtResource("2_0wfyh")
-metadata/_custom_type_script = "uid://d3b5urwsrwtl0"
 
 [node name="MyGDNode" type="Node" parent="." unique_id=1762949384]
 script = ExtResource("3_sugp2")
-metadata/_custom_type_script = "uid://bxv8g0m11o275"

@@ -419,8 +419,15 @@ module Godot
             cur_count = opt.call_i64("get_item_count") rescue 0_i64
           end
 
-          # If index 1 exists, ensure its label is "Crystal" and its icon is our Crystal logo
-          if cur_count >= 2_i64
+          # If index 1 exists in the underlying popup, ensure its label is "Crystal" and its icon is our Crystal logo
+          popup_obj = opt.call_obj("get_popup") rescue nil
+          pop_count = if popup_obj && !popup_obj.pointer.null?
+            popup_obj.call_i64("get_item_count") rescue 0_i64
+          else
+            cur_count
+          end
+
+          if cur_count >= 2_i64 && pop_count >= 2_i64
             opt.call("set_item_text", 1_i64, "Crystal") rescue nil
             if tex && !tex.pointer.null?
               opt.call("set_item_icon", 1_i64, tex) rescue nil
