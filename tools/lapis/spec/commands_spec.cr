@@ -28,6 +28,28 @@ describe "Lapis Subcommands" do
       end
     end
 
+    it "does not pollute parent directory when scaffolding from an isolated directory" do
+      LapisSpecHelper.with_temp_dir("scaffold_isolation_test") do |isolated_dir|
+        res = LapisSpecHelper.run_lapis(
+          ["new", "game", "this_is_my_game", "--skip-godot"],
+          chdir: isolated_dir
+        )
+        res.success?.should be_true
+
+        entries = Dir.children(isolated_dir).sort
+        entries.should eq(["this_is_my_game"])
+
+        game_dir = isolated_dir.join("this_is_my_game")
+        File.exists?(game_dir.join("project.godot")).should be_true
+        File.exists?(game_dir.join("shard.yml")).should be_true
+        File.exists?(game_dir.join("src/main.cr")).should be_true
+        File.exists?(game_dir.join("bin")).should be_true
+
+        shard_content = File.read(game_dir.join("shard.yml"))
+        shard_content.should contain("github: sol-vin/lapis")
+      end
+    end
+
     it "scaffolds a redistributable addon project with valid structure" do
       LapisSpecHelper.with_temp_dir("scaffold_addon_test") do |dir|
         target_addon = dir.join("custom_inventory")

@@ -12,7 +12,7 @@ module Lapis
         # 1. Search upwards for true repository / workspace root
         cursor = current
         loop do
-          if File.exists?(cursor.join("src/libgodot.cr")) || Dir.exists?(cursor.join("tools/lapis"))
+          if File.exists?(cursor.join("src/lapis.cr")) || File.exists?(cursor.join("src/libgodot.cr")) || Dir.exists?(cursor.join("tools/lapis"))
             return cursor
           end
           parent = cursor.parent
@@ -210,53 +210,97 @@ module Lapis
         purged_count
       end
 
-      # Collect all destination bin directories across the repository
-      def self.collect_target_bin_dirs(root : Path = ROOT_DIR, target_bin : String? = nil) : Array(Path)
-        dirs = [
-          root.join("bin"),
-          root.join("addons/crystal_integration/bin"),
-          root.join("test/bin"),
-          root.join("test/addons/crystal_integration/bin"),
-          root.join("template/bin"),
-          root.join("template/addons/crystal_integration/bin"),
-          root.join("template-addon/addons/crystal_addon/bin"),
-          root.join("template-addon/addons/crystal_integration/bin"),
-          root.join("performance/bin"),
-          root.join("performance/addons/crystal_integration/bin"),
-        ]
+      def self.is_libgodot_repo?(dir : Path = ROOT_DIR) : Bool
+        (File.exists?(dir.join("src/lapis.cr")) || File.exists?(dir.join("src/libgodot.cr"))) && (Dir.exists?(dir.join("tools/lapis")) || Dir.exists?(dir.join("src/libgodot")))
+      end
 
-        if target_bin && !target_bin.empty?
-          dirs << Path.new(target_bin).expand
+      def self.is_standalone_project?(dir : Path = ROOT_DIR) : Bool
+        File.exists?(dir.join("project.godot")) || (File.exists?(dir.join("shard.yml")) && File.exists?(dir.join("src/main.cr")))
+      end
+
+      # Candidate directories to discover source runtime libraries and bridge DLLs
+      def self.candidate_runtime_dirs(root : Path = ROOT_DIR) : Array(Path)
+        dirs = [] of Path
+        dirs << root.join("bin") if Dir.exists?(root.join("bin"))
+        dirs << root.join("addons/crystal_integration/bin") if Dir.exists?(root.join("addons/crystal_integration/bin"))
+
+        if (exe = Process.executable_path)
+          exe_p = Path.new(exe)
+          dirs << exe_p.parent if Dir.exists?(exe_p.parent)
+          dirs << exe_p.parent.join("addons/crystal_integration/bin") if Dir.exists?(exe_p.parent.join("addons/crystal_integration/bin"))
+          dirs << exe_p.parent.parent.join("share/lapis/addons/crystal_integration/bin") if Dir.exists?(exe_p.parent.parent.join("share/lapis/addons/crystal_integration/bin"))
+          dirs << exe_p.parent.parent.join("addons/crystal_integration/bin") if Dir.exists?(exe_p.parent.parent.join("addons/crystal_integration/bin"))
         end
 
-        # Discover all addons in test/addons
-        test_addons = root.join("test/addons")
-        if Dir.exists?(test_addons)
-          Dir.each_child(test_addons) do |child|
-            p = test_addons.join(child)
-            if Dir.exists?(p)
-              dirs << p.join("bin")
+        if crystal_exe = Process.find_executable("crystal")
+          c_bin = Path.new(crystal_exe).parent
+          dirs << c_bin if Dir.exists?(c_bin)
+        end
+
+        if (global_root = global_libgodot_path)
+          dirs << global_root.join("bin") if Dir.exists?(global_root.join("bin"))
+          dirs << global_root.join("addons/crystal_integration/bin") if Dir.exists?(global_root.join("addons/crystal_integration/bin"))
+        end
+
+        dirs.uniq
+      end
+
+      # Collect all destination bin directories across the repository or standalone project
+      def self.collect_target_bin_dirs(root : Path = ROOT_DIR, target_bin : String? = nil) : Array(Path)
+        if target_bin && !target_bin.empty?
+          return [Path.new(target_bin).expand]
+        end
+
+        dirs = [] of Path
+
+        if is_libgodot_repo?(root)
+          dirs << root.join("bin")
+          dirs << root.join("addons/crystal_integration/bin")
+          dirs << root.join("test/bin")
+          dirs << root.join("test/addons/crystal_integration/bin")
+          dirs << root.join("template/bin")
+          dirs << root.join("template/addons/crystal_integration/bin")
+          dirs << root.join("template-addon/addons/crystal_addon/bin")
+          dirs << root.join("template-addon/addons/crystal_integration/bin")
+          dirs << root.join("performance/bin")
+          dirs << root.join("performance/addons/crystal_integration/bin")
+
+          # Discover all addons in test/addons
+          test_addons = root.join("test/addons")
+          if Dir.exists?(test_addons)
+            Dir.each_child(test_addons) do |child|
+              p = test_addons.join(child)
+              dirs << p.join("bin") if Dir.exists?(p)
             end
           end
-        end
 
-        # Discover all examples/*/bin and examples/*/addons/*/bin
-        examples_dir = root.join("examples")
-        if Dir.exists?(examples_dir)
-          Dir.each_child(examples_dir) do |child|
-            ex = examples_dir.join(child)
-            if Dir.exists?(ex)
-              dirs << ex.join("bin")
-              dirs << ex.join("addons/crystal_integration/bin")
+          # Discover all examples/*/bin and examples/*/addons/*/bin
+          examples_dir = root.join("examples")
+          if Dir.exists?(examples_dir)
+            Dir.each_child(examples_dir) do |child|
+              ex = examples_dir.join(child)
+              if Dir.exists?(ex)
+                dirs << ex.join("bin")
+                dirs << ex.join("addons/crystal_integration/bin")
 
-              # Other nested addons in example
-              ex_addons = ex.join("addons")
-              if Dir.exists?(ex_addons)
-                Dir.each_child(ex_addons) do |addon_child|
-                  addon_p = ex_addons.join(addon_child)
-                  dirs << addon_p.join("bin") if Dir.exists?(addon_p)
+                # Other nested addons in example
+                ex_addons = ex.join("addons")
+                if Dir.exists?(ex_addons)
+                  Dir.each_child(ex_addons) do |addon_child|
+                    addon_p = ex_addons.join(addon_child)
+                    dirs << addon_p.join("bin") if Dir.exists?(addon_p)
+                  end
                 end
               end
+            end
+          end
+        elsif is_standalone_project?(root)
+          dirs << root.join("bin")
+          addons_dir = root.join("addons")
+          if Dir.exists?(addons_dir)
+            Dir.each_child(addons_dir) do |child|
+              addon_p = addons_dir.join(child)
+              dirs << addon_p.join("bin") if Dir.exists?(addon_p)
             end
           end
         end

@@ -9,14 +9,18 @@ module Lapis
         root = Core::Env::ROOT_DIR
         target_dirs = Core::Env.collect_target_bin_dirs(root)
 
-        # Standard root dirs
-        target_dirs << root.join("bin")
-        target_dirs << root.join("addons/crystal_integration/bin")
-        target_dirs << root.join("test/bin")
-        target_dirs << root.join("template/bin")
-        target_dirs << root.join("template-addon/addons/crystal_addon/bin")
-        target_dirs << root.join("performance/bin")
-        target_dirs << root.join("performance/addons/crystal_integration/bin")
+        if Core::Env.is_libgodot_repo?(root)
+          # Standard root dirs for monorepo
+          target_dirs << root.join("bin")
+          target_dirs << root.join("addons/crystal_integration/bin")
+          target_dirs << root.join("test/bin")
+          target_dirs << root.join("template/bin")
+          target_dirs << root.join("template-addon/addons/crystal_addon/bin")
+          target_dirs << root.join("performance/bin")
+          target_dirs << root.join("performance/addons/crystal_integration/bin")
+        elsif Core::Env.is_standalone_project?(root)
+          target_dirs << root.join("bin")
+        end
 
         created = 0
         target_dirs.uniq.each do |dir|

@@ -64,29 +64,25 @@ HELP
 
         root = Core::Env::ROOT_DIR
         bin_dirs = Core::Env.collect_target_bin_dirs(root, target_bin)
+        candidate_dirs = Core::Env.candidate_runtime_dirs(root)
+        is_repo = Core::Env.is_libgodot_repo?(root)
+
         root_bin = root.join("bin")
-        FileUtils.mkdir_p(root_bin) unless Dir.exists?(root_bin)
+        if target_bin.nil? && is_repo
+          FileUtils.mkdir_p(root_bin) unless Dir.exists?(root_bin)
+        end
 
         if Core::Env.windows?
           # 1. Locate Crystal runtime DLLs (gc.dll, iconv-2.dll, pcre2-8.dll)
-          crystal_exe = Core::ProcessRunner.find_executable("crystal")
-          crystal_bin = crystal_exe ? Path.new(crystal_exe).parent : nil
-
           runtime_dlls = ["gc.dll", "iconv-2.dll", "pcre2-8.dll"]
           runtime_dlls.each do |dll|
-            # Try to find DLL in crystal dir or in root bin
-            src = nil
-            if crystal_bin && File.exists?(crystal_bin.join(dll))
-              src = crystal_bin.join(dll)
-            elsif File.exists?(root_bin.join(dll))
-              src = root_bin.join(dll)
-            end
+            src = candidate_dirs.compact_map { |d| d.join(dll) if File.exists?(d.join(dll)) }.first?
 
             if src
-              # Ensure in root_bin
-              safe_copy(src, root_bin.join(dll))
+              if target_bin.nil? && is_repo
+                safe_copy(src, root_bin.join(dll))
+              end
 
-              # Sync to all other bin dirs
               bin_dirs.each do |d|
                 FileUtils.mkdir_p(d) unless Dir.exists?(d)
                 safe_copy(src, d.join(dll))
@@ -95,49 +91,73 @@ HELP
           end
 
           # 2. Locate libgodot.dll
-          bin_libgodot = root_bin.join("libgodot.dll")
-          godot_src_dll = root.join("godot-src/bin/godot.windows.template_debug.x86_64.dll")
-          if File.exists?(godot_src_dll) && !File.exists?(bin_libgodot)
-            safe_copy(godot_src_dll, bin_libgodot)
+          libgodot_src = candidate_dirs.compact_map { |d| d.join("libgodot.dll") if File.exists?(d.join("libgodot.dll")) }.first?
+          unless libgodot_src
+            godot_src_dll = root.join("godot-src/bin/godot.windows.template_debug.x86_64.dll")
+            libgodot_src = godot_src_dll if File.exists?(godot_src_dll)
           end
 
-          unless File.exists?(bin_libgodot)
-            candidates = [
-              root.join("addons/crystal_integration/bin/libgodot.dll"),
-              root.join("lib/libgodot/bin/libgodot.dll"),
-              root.join("../bin/libgodot.dll"),
-            ]
-            candidates.each do |cand|
-              if File.exists?(cand)
-                safe_copy(cand, bin_libgodot)
-                break
-              end
+          if libgodot_src
+            if target_bin.nil? && is_repo
+              safe_copy(libgodot_src, root_bin.join("libgodot.dll"))
+            end
+
+            bin_dirs.each do |d|
+              FileUtils.mkdir_p(d) unless Dir.exists?(d)
+              safe_copy(libgodot_src, d.join("libgodot.dll"))
             end
           end
 
-          if File.exists?(bin_libgodot)
+          # 3. Locate crystal_bridge.dll
+          bridge_src = candidate_dirs.compact_map { |d| d.join(Core::Env.bridge_file) if File.exists?(d.join(Core::Env.bridge_file)) }.first?
+          if bridge_src
+            if target_bin.nil? && is_repo
+              safe_copy(bridge_src, root_bin.join(Core::Env.bridge_file))
+            end
+
             bin_dirs.each do |d|
               FileUtils.mkdir_p(d) unless Dir.exists?(d)
-              safe_copy(bin_libgodot, d.join("libgodot.dll"))
+              safe_copy(bridge_src, d.join(Core::Env.bridge_file))
             end
           end
 
-          # Also libgodot.lib if present
-          bin_libgodot_lib = root_bin.join("libgodot.lib")
-          if File.exists?(bin_libgodot_lib)
+          # 4. Also libgodot.lib if present
+          libgodot_lib = candidate_dirs.compact_map { |d| d.join("libgodot.lib") if File.exists?(d.join("libgodot.lib")) }.first?
+          if libgodot_lib
+            if target_bin.nil? && is_repo
+              safe_copy(libgodot_lib, root_bin.join("libgodot.lib"))
+            end
+
             bin_dirs.each do |d|
               FileUtils.mkdir_p(d) unless Dir.exists?(d)
-              safe_copy(bin_libgodot_lib, d.join("libgodot.lib"))
+              safe_copy(libgodot_lib, d.join("libgodot.lib"))
             end
           end
         else
           # Linux / macOS
           lib_file = "libgodot.#{Core::Env.dll_ext}"
-          bin_libgodot = root_bin.join(lib_file)
-          if File.exists?(bin_libgodot)
+          libgodot_src = candidate_dirs.compact_map { |d| d.join(lib_file) if File.exists?(d.join(lib_file)) }.first?
+          if libgodot_src
+            if target_bin.nil? && is_repo
+              safe_copy(libgodot_src, root_bin.join(lib_file))
+            end
+
             bin_dirs.each do |d|
               FileUtils.mkdir_p(d) unless Dir.exists?(d)
-              safe_copy(bin_libgodot, d.join(lib_file))
+              safe_copy(libgodot_src, d.join(lib_file))
+            end
+          end
+
+          bridge_file = Core::Env.bridge_file
+          bridge_src = candidate_dirs.compact_map { |d| d.join(bridge_file) if File.exists?(d.join(bridge_file)) }.first?
+          if bridge_src
+            if target_bin.nil? && is_repo
+              safe_copy(bridge_src, root_bin.join(bridge_file))
+            end
+
+            bin_dirs.each do |d|
+              FileUtils.mkdir_p(d) unless Dir.exists?(d)
+              safe_copy(bridge_src, d.join(bridge_file))
             end
           end
         end
