@@ -1217,11 +1217,17 @@ inline void bridge_highlighter_add_span(void *r_color_map, int64_t col, float r,
     const char *color_str = "color";
     bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_STRING, var_color_str, &color_str);
 
+    alignas(void*) char var_color_sn[24] = {};
+    void *sn_color = make_string_name("color");
+    bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_STRING_NAME, var_color_sn, sn_color);
+    free_string_name(sn_color);
+
     struct { float r, g, b, a; } color_val = { r, g, b, a };
     alignas(void*) char var_color_val[24] = {};
     bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_COLOR, var_color_val, &color_val);
 
     gd_dict_keyed_setter(sub_dict, var_color_str, var_color_val);
+    gd_dict_keyed_setter(sub_dict, var_color_sn, var_color_val);
 
     alignas(void*) char var_col[24] = {};
     bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_INT, var_col, &col);
@@ -1233,6 +1239,7 @@ inline void bridge_highlighter_add_span(void *r_color_map, int64_t col, float r,
 
     if (gd_variant_destroy) {
         gd_variant_destroy(var_color_str);
+        gd_variant_destroy(var_color_sn);
         gd_variant_destroy(var_color_val);
         gd_variant_destroy(var_col);
         gd_variant_destroy(var_sub_dict);

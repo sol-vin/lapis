@@ -273,6 +273,19 @@ HELP
           end
           FileUtils.cp(src_bin.to_s, dest_bin.to_s)
           File.chmod(dest_bin.to_s, 0o755) unless Core::Env.windows?
+
+          {% if flag?(:windows) %}
+            if (local_app_data = ENV["LOCALAPPDATA"]?) && !local_app_data.empty?
+              [
+                Path.new(local_app_data).join("Microsoft", "WindowsApps", exe_name),
+                Path.new(local_app_data).join("Programs", "Lapis", "bin", exe_name)
+              ].each do |alt_bin|
+                if alt_bin != dest_bin && File.exists?(alt_bin)
+                  FileUtils.cp(src_bin.to_s, alt_bin.to_s) rescue nil
+                end
+              end
+            end
+          {% end %}
         rescue ex
           Core::Logger.error("Failed to copy #{src_bin} -> #{dest_bin}: #{ex.message}")
           if Core::Env.windows? && ex.message.to_s.includes?("Access is denied")

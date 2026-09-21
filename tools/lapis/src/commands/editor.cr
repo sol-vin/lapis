@@ -3,6 +3,8 @@ require "../core/logger"
 require "../core/process_runner"
 require "../core/godot_finder"
 require "../core/tool_checker"
+require "../core/baked_file_system"
+require "./build"
 require "option_parser"
 require "file_utils"
 
@@ -146,6 +148,40 @@ HELP
           end
         end
 
+        # Pre-flight check: ensure GDExtension bridge & runtime binaries are present in target project
+        addon_bin = target_dir.join("addons/crystal_integration/bin")
+        bridge_file = Core::Env.bridge_file
+        if !File.exists?(addon_bin.join(bridge_file))
+          FileUtils.mkdir_p(addon_bin)
+          if Core::BakedFileSystem.has_file?("addons/crystal_integration/bin/#{bridge_file}")
+            Core::Logger.step("Sync", "Restoring missing GDExtension bridge from BakedFileSystem...")
+            Core::BakedFileSystem.extract_folder("addons/crystal_integration/bin", addon_bin)
+          end
+        end
+
+        # Ensure dependencies are copied to target_dir/bin
+        proj_bin = target_dir.join("bin")
+        FileUtils.mkdir_p(proj_bin)
+        ["crystal_bridge.dll", "crystal_bridge.so", "crystal_bridge.dylib", "gc.dll", "iconv-2.dll", "pcre2-8.dll"].each do |lib_name|
+          src_in_addon = addon_bin.join(lib_name)
+          if File.exists?(src_in_addon) && !File.exists?(proj_bin.join(lib_name))
+            Commands::Deps.safe_copy(src_in_addon, proj_bin.join(lib_name))
+          end
+        end
+
+        # Ensure game.dll/so exists if project has src/main.cr
+        game_file = Core::Env.game_file
+        if File.exists?(target_dir.join("src/main.cr")) && !File.exists?(proj_bin.join(game_file))
+          if Core::BakedFileSystem.has_file?("template/bin/#{game_file}")
+            Core::Logger.step("Sync", "Restoring starter game library from BakedFileSystem...")
+            Core::BakedFileSystem.extract_file("template/bin/#{game_file}", proj_bin.join(game_file))
+            Commands::Deps.safe_copy(proj_bin.join(game_file), addon_bin.join(game_file))
+          else
+            Core::Logger.step("Build", "Building game library prior to launching editor...")
+            Commands::Build.run(["game", "-p", target_dir.to_s])
+          end
+        end
+
         godot_args = run_standalone ? ["--path", target_dir.to_s] : ["--editor", "--path", target_dir.to_s]
         if qa = quit_after
           godot_args << "--quit-after"
@@ -169,7 +205,7 @@ HELP
           Core::ProcessRunner.run(godot_exe, godot_args, chdir: target_dir.to_s)
         end
 
-        status.exit_code
+        status.normal_exit? ? status.exit_code : 0
       end
     end
   end

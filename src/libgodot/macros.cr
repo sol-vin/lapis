@@ -383,6 +383,22 @@ module Godot
       if script = @@script_cache[path]?
         return script
       end
+      # Prefer canonical cached script from Godot's ResourceLoader / ResourceCache
+      begin
+        res = Godot.load(path)
+        if res && !res.pointer.null?
+          cs = if alive = Bridge.find_alive_instance(res.pointer)
+            alive.as?(CrystalScript) || CrystalScript.new(res.pointer)
+          else
+            CrystalScript.new(res.pointer)
+          end
+          if cs && !cs.pointer.null?
+            @@script_cache[path] = cs
+            return cs
+          end
+        end
+      rescue
+      end
       source = ""
       fs_path = path.starts_with?("res://") ? path.sub("res://", "") : path
       if File.exists?(fs_path)
@@ -395,7 +411,7 @@ module Godot
       script.script_class_name = class_name
       script.script_base_type = base_type
       script.is_tool_script = is_tool
-      script.set_path_cache(path) rescue script.set_path(path) rescue script.call("set_path", path) rescue nil
+      script.take_over_path(path) rescue script.set_path_cache(path) rescue script.set_path(path) rescue script.call("take_over_path", path) rescue script.call("set_path", path) rescue nil
       @@script_cache[path] = script
       script
     end

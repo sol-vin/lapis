@@ -232,10 +232,17 @@ MD
         # 6. Bundle compiled Crystal plugin libraries into addons/crystal_integration/bin/ and dependencies into bin/
         game_bin = dest.join("bin")
         FileUtils.mkdir_p(game_bin)
-        Commands::Deps.run(["-t", game_bin.to_s])
 
         addon_bin = dest.join("addons/crystal_integration/bin")
         FileUtils.mkdir_p(addon_bin)
+
+        # First, ensure any libraries embedded in BakedFileSystem are copied to both addon_bin and game_bin
+        ["crystal_bridge.dll", "crystal_bridge.so", "crystal_bridge.dylib", "gc.dll", "iconv-2.dll", "pcre2-8.dll"].each do |lib_name|
+          src_in_addon = addon_bin.join(lib_name)
+          if File.exists?(src_in_addon)
+            Commands::Deps.safe_copy(src_in_addon, game_bin.join(lib_name))
+          end
+        end
 
         candidate_bin_dirs = Core::Env.candidate_runtime_dirs(root)
 
@@ -248,16 +255,26 @@ MD
         end
 
         needed_libs.each do |lib_name|
-          src = candidate_bin_dirs.compact_map { |d| d.join(lib_name) if File.exists?(d.join(lib_name)) }.first?
-          if src
-            Commands::Deps.safe_copy(src, addon_bin.join(lib_name))
-            Commands::Deps.safe_copy(src, game_bin.join(lib_name)) if ["crystal_bridge.dll", "crystal_bridge.so", "crystal_bridge.dylib"].includes?(lib_name)
+          target_addon_file = addon_bin.join(lib_name)
+          unless File.exists?(target_addon_file)
+            src = candidate_bin_dirs.compact_map { |d| d.join(lib_name) if File.exists?(d.join(lib_name)) }.first?
+            if src
+              Commands::Deps.safe_copy(src, target_addon_file)
+              Commands::Deps.safe_copy(src, game_bin.join(lib_name)) if ["crystal_bridge.dll", "crystal_bridge.so", "crystal_bridge.dylib", "gc.dll", "iconv-2.dll", "pcre2-8.dll"].includes?(lib_name)
+            end
           end
         end
 
         # Safety: purge any foreign platform binaries in newly scaffolded project
         Core::Env.purge_foreign_binaries(addon_bin)
         Core::Env.purge_foreign_binaries(game_bin)
+
+        # Verification: ensure GDExtension loader bridge exists
+        bridge_file = Core::Env.bridge_file
+        unless File.exists?(addon_bin.join(bridge_file))
+          Core::Logger.error("Failed to bundle required GDExtension bridge (#{bridge_file}) into #{addon_bin}.")
+          return 1
+        end
 
         # 7. Automatically download and install current Godot engine version into project root
         unless skip_godot

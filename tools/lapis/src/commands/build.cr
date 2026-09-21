@@ -316,6 +316,7 @@ module Lapis
         return code if code != 0
 
         # Ensure runtime dependencies & bridge are synced into bin
+        Deps.run(["-t", bin_dir.to_s])
         Sync.run(["-t", bin_dir.to_s, "--bins-only"])
 
         Core::Logger.success("Game library compiled and synced: #{output_lib.basename}")

@@ -93,9 +93,13 @@ LIBGODOT_DLL     = $(LIBGODOT_LIB)
 .PHONY: all lapis install uninstall bridge plugin test_project test_standalone package_tests package-tests package_lapis package-lapis package_deb package-deb package_template package-template package_template_addon package-template-addon package_examples package-examples package_addon package-addon package_all package-all package_release package-release package_perf package-perf package_game package-game new_addon new-addon new_example new-example setup_dev setup-dev run_editor run-editor run_test run-test run_ci_local run-ci-local ci-local ci export_templates export-templates recompile_addons recompile-addons verify_editor verify-editor test_wsl test-wsl report_android report-android examples examples_exe template template_addon perf perf_standalone perf_run perf_editor game_dll game_exe android package_android generate dump_api project_bindings deps addons sync engine spec spec_cli spec-cli test_cli test-cli test tests docs run editor clean help
 
 # Compile Lapis CLI toolchain if not present or source changed
-$(LAPIS): $(wildcard tools/lapis/src/**/*.cr) $(wildcard tools/lapis/src/*.cr) $(wildcard tools/lapis/*.yml) template/scenes/main.tscn
+$(LAPIS): $(wildcard tools/lapis/src/**/*.cr) $(wildcard tools/lapis/src/*.cr) $(wildcard tools/lapis/*.yml) $(wildcard template/**/*) $(wildcard template-addon/**/*) $(wildcard addons/crystal_integration/*) shard.yml godot-version.yml
 	@echo [Lapis] Compiling Lapis toolchain ($(LAPIS))...
+ifeq ($(PLATFORM),windows)
+	@$(CRYSTAL) build $(CRYSTAL_FLAGS) --static tools/lapis/src/lapis.cr -o $(LAPIS)
+else
 	@$(CRYSTAL) build $(CRYSTAL_FLAGS) tools/lapis/src/lapis.cr -o $(LAPIS)
+endif
 
 lapis: $(LAPIS)
 

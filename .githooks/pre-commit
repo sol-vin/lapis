@@ -1,0 +1,59 @@
+#!/bin/sh
+# =============================================================================
+# Lapis Toolchain - Git Pre-Commit Hook
+# Auto-increments patch version in shard.yml before each commit
+# =============================================================================
+
+# Skip if explicitly bypassed
+if [ "$SKIP_VERSION_BUMP" = "1" ] || [ "$NO_BUMP" = "1" ]; then
+  exit 0
+fi
+
+# Skip during active merges
+if [ -f .git/MERGE_HEAD ]; then
+  exit 0
+fi
+
+# Locate repository root
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+SHARD_FILE="${REPO_ROOT}/shard.yml"
+LAPIS_SHARD_FILE="${REPO_ROOT}/tools/lapis/shard.yml"
+
+if [ ! -f "$SHARD_FILE" ]; then
+  exit 0
+fi
+
+# Extract current version (e.g. 0.0.1)
+OLD_VER=$(grep -E '^[[:space:]]*version:' "$SHARD_FILE" | head -n 1 | sed -E 's/^[[:space:]]*version:[[:space:]]*["'"'"']?([0-9]+\.[0-9]+\.[0-9]+)["'"'"']?.*/\1/')
+
+if [ -z "$OLD_VER" ]; then
+  echo "[pre-commit] Warning: No semantic version found in shard.yml"
+  exit 0
+fi
+
+# Split version into components
+MAJOR=$(echo "$OLD_VER" | cut -d. -f1)
+MINOR=$(echo "$OLD_VER" | cut -d. -f2)
+PATCH=$(echo "$OLD_VER" | cut -d. -f3)
+
+# Increment patch version
+NEW_PATCH=$((PATCH + 1))
+NEW_VER="${MAJOR}.${MINOR}.${NEW_PATCH}"
+
+# Update root shard.yml
+sed -i.bak -E "s/^(version:[[:space:]]*[\"']?)${OLD_VER}([\"']?)/\1${NEW_VER}\2/" "$SHARD_FILE"
+rm -f "${SHARD_FILE}.bak"
+git add "$SHARD_FILE"
+
+# Synchronize tools/lapis/shard.yml if present
+if [ -f "$LAPIS_SHARD_FILE" ]; then
+  LAPIS_OLD_VER=$(grep -E '^[[:space:]]*version:' "$LAPIS_SHARD_FILE" | head -n 1 | sed -E 's/^[[:space:]]*version:[[:space:]]*["'"'"']?([0-9]+\.[0-9]+\.[0-9]+)["'"'"']?.*/\1/')
+  if [ -n "$LAPIS_OLD_VER" ]; then
+    sed -i.bak -E "s/^(version:[[:space:]]*[\"']?)${LAPIS_OLD_VER}([\"']?)/\1${NEW_VER}\2/" "$LAPIS_SHARD_FILE"
+    rm -f "${LAPIS_SHARD_FILE}.bak"
+    git add "$LAPIS_SHARD_FILE"
+  fi
+fi
+
+echo "[pre-commit] Auto-incremented version in shard.yml: ${OLD_VER} -> ${NEW_VER}"
+exit 0

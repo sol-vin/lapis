@@ -73,7 +73,7 @@ module Godot
       when "_clear_highlighting_cache", "_update_cache"
         return
       when "_get_line_syntax_highlighting"
-        line_num = args[0].as(Int64*).value
+        line_num = args[0].as(Int32*).value.to_i64
         Bridge.ret_dictionary_empty(ret)
 
         text_edit = get_text_edit

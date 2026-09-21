@@ -92,6 +92,10 @@ inline bool is_refcounted_desc(const CrystalClassDesc *desc) {
 static std::unordered_map<void*, GenericExtensionInstance*> s_object_to_extension_instance;
 static std::mutex s_object_to_ext_mutex;
 
+static std::unordered_map<void*, std::string> s_script_source_code;
+static std::unordered_map<void*, std::string> s_script_paths;
+static std::mutex s_script_source_mutex;
+
 inline void register_extension_instance(void *obj, GenericExtensionInstance *inst) {
     if (!obj || !inst) return;
     std::lock_guard<std::mutex> lock(s_object_to_ext_mutex);
@@ -100,8 +104,15 @@ inline void register_extension_instance(void *obj, GenericExtensionInstance *ins
 
 inline void unregister_extension_instance(void *obj) {
     if (!obj) return;
-    std::lock_guard<std::mutex> lock(s_object_to_ext_mutex);
-    s_object_to_extension_instance.erase(obj);
+    {
+        std::lock_guard<std::mutex> lock(s_object_to_ext_mutex);
+        s_object_to_extension_instance.erase(obj);
+    }
+    {
+        std::lock_guard<std::mutex> lock(s_script_source_mutex);
+        s_script_source_code.erase(obj);
+        s_script_paths.erase(obj);
+    }
 }
 
 inline GenericExtensionInstance* find_extension_instance(void *obj) {
@@ -475,7 +486,10 @@ inline void* generic_class_get_virtual_call_data(void *p_class_userdata, GDExten
                 return (void*)intern_virtual_method(norm_name);
             }
         } else if (strcmp(desc->name, "CrystalHighlighter") == 0) {
-            if (strcmp(norm_name, "_get_line_syntax_highlighting") == 0 ||
+            if (strcmp(norm_name, "_get_name") == 0 ||
+                strcmp(norm_name, "_get_supported_languages") == 0 ||
+                strcmp(norm_name, "_create") == 0 ||
+                strcmp(norm_name, "_get_line_syntax_highlighting") == 0 ||
                 strcmp(norm_name, "_clear_highlighting_cache") == 0 ||
                 strcmp(norm_name, "_update_cache") == 0) {
                 return (void*)intern_virtual_method(norm_name);
@@ -624,7 +638,11 @@ inline void generic_class_call_virtual_with_data(
     }
     if (strcmp(method_name, "_build") == 0 || strcmp(method_name, "build") == 0) {
         if (r_ret) *(uint8_t*)r_ret = 1;
-        if (inst->crystal_instance && inst->desc->call_virtual) inst->desc->call_virtual(inst->crystal_instance, "_build", 0.0);
+        if (inst->crystal_instance && inst->desc->call_virtual_with_data) {
+            inst->desc->call_virtual_with_data(inst->crystal_instance, "_build", nullptr, r_ret);
+        } else if (inst->crystal_instance && inst->desc->call_virtual) {
+            inst->desc->call_virtual(inst->crystal_instance, "_build", 0.0);
+        }
         return;
     }
     if (strcmp(method_name, "_lookup_code") == 0 || strcmp(method_name, "lookup_code") == 0) {
@@ -828,16 +846,32 @@ inline void generic_class_call_virtual_with_data(
                 free_string_name(cs_sn);
 
                 if (script_obj) {
-                    static GDExtensionMethodBindPtr mb_set_path = nullptr;
-                    if (!mb_set_path) {
-                        mb_set_path = bridge_get_method_bind("Resource", "set_path", 83702148ULL);
+                    {
+                        std::lock_guard<std::mutex> lock(s_script_source_mutex);
+                        s_script_source_code[script_obj] = code;
+                        s_script_paths[script_obj] = target_path;
                     }
-                    if (mb_set_path && target_path[0] != '\0') {
+
+                    static GDExtensionMethodBindPtr mb_take_over_path = nullptr;
+                    if (!mb_take_over_path) {
+                        mb_take_over_path = bridge_get_method_bind("Resource", "take_over_path", 83702148ULL);
+                    }
+                    if (mb_take_over_path && target_path[0] != '\0') {
                         alignas(void*) char p_str[8] = {0};
                         gd_string_new_with_utf8_chars(p_str, target_path);
                         const void *p_args_sp[1] = { p_str };
-                        gd_object_method_bind_ptrcall(mb_set_path, script_obj, p_args_sp, nullptr);
+                        gd_object_method_bind_ptrcall(mb_take_over_path, script_obj, p_args_sp, nullptr);
                         if (gd_string_destroy) gd_string_destroy(p_str);
+                    }
+
+                    // Populate the Crystal instance directly
+                    GenericExtensionInstance *ext = find_extension_instance(script_obj);
+                    if (ext && ext->crystal_instance && ext->desc && ext->desc->call_virtual_with_data) {
+                        alignas(void*) char src_str[8] = {0};
+                        gd_string_new_with_utf8_chars(src_str, code.c_str());
+                        const void *sc_args[1] = { src_str };
+                        ext->desc->call_virtual_with_data(ext->crystal_instance, "_set_source_code", sc_args, nullptr);
+                        if (gd_string_destroy) gd_string_destroy(src_str);
                     }
 
                     static GDExtensionMethodBindPtr mb_set_src = nullptr;
@@ -950,19 +984,28 @@ inline void generic_class_call_virtual_with_data(
                 // 3. Resolve source code
                 std::string code;
                 if (res_obj) {
-                    // Fast path: if res_obj is a CrystalScript, query the Crystal instance directly
-                    GenericExtensionInstance *ext = find_extension_instance(res_obj);
-                    if (ext && ext->crystal_instance && ext->desc && ext->desc->call_virtual_with_data) {
-                        alignas(void*) char ret_str[8] = {0};
-                        ext->desc->call_virtual_with_data(ext->crystal_instance, "_get_source_code", nullptr, ret_str);
-                        if (gd_string_to_utf8_chars) {
-                            int64_t len = gd_string_to_utf8_chars(ret_str, nullptr, 0);
-                            if (len > 0) {
-                                code.resize((size_t)len);
-                                gd_string_to_utf8_chars(ret_str, &code[0], len);
-                            }
+                    {
+                        std::lock_guard<std::mutex> lock(s_script_source_mutex);
+                        auto it = s_script_source_code.find(res_obj);
+                        if (it != s_script_source_code.end() && !it->second.empty()) {
+                            code = it->second;
                         }
-                        if (gd_string_destroy) gd_string_destroy(ret_str);
+                    }
+                    if (code.empty()) {
+                        // Fast path: if res_obj is a CrystalScript, query the Crystal instance directly
+                        GenericExtensionInstance *ext = find_extension_instance(res_obj);
+                        if (ext && ext->crystal_instance && ext->desc && ext->desc->call_virtual_with_data) {
+                            alignas(void*) char ret_str[8] = {0};
+                            ext->desc->call_virtual_with_data(ext->crystal_instance, "_get_source_code", nullptr, ret_str);
+                            if (gd_string_to_utf8_chars) {
+                                int64_t len = gd_string_to_utf8_chars(ret_str, nullptr, 0);
+                                if (len > 0) {
+                                    code.resize((size_t)len);
+                                    gd_string_to_utf8_chars(ret_str, &code[0], len);
+                                }
+                            }
+                            if (gd_string_destroy) gd_string_destroy(ret_str);
+                        }
                     }
                     if (code.empty()) {
                         const char *src = bridge_script_get_source_code(res_obj);
@@ -1020,6 +1063,146 @@ inline void generic_class_call_virtual_with_data(
                 if (r_ret) {
                     memset(r_ret, 0, 8);
                     *(int32_t*)r_ret = 0; // OK (0)
+                }
+                return;
+            }
+        } else if (strcmp(inst->desc->name, "CrystalIntegrationPlugin") == 0) {
+            if (strcmp(method_name, "_has_main_screen") == 0) {
+                if (r_ret) *(uint8_t*)r_ret = 1;
+                return;
+            }
+            if (strcmp(method_name, "_get_plugin_name") == 0) {
+                bridge_ret_string(r_ret, "Crystal");
+                return;
+            }
+            if (strcmp(method_name, "_get_plugin_icon") == 0) {
+                if (inst->crystal_instance && inst->desc->call_virtual_with_data) {
+                    inst->desc->call_virtual_with_data(inst->crystal_instance, "_get_plugin_icon", nullptr, r_ret);
+                } else {
+                    bridge_ret_ref(r_ret, nullptr);
+                }
+                return;
+            }
+            if (strcmp(method_name, "_make_visible") == 0) {
+                if (inst->crystal_instance && inst->desc->call_virtual_with_data) {
+                    inst->desc->call_virtual_with_data(inst->crystal_instance, "_make_visible", (const void**)p_args, r_ret);
+                }
+                return;
+            }
+        } else if (strcmp(inst->desc->name, "CrystalScript") == 0) {
+            if (strcmp(method_name, "_has_source_code") == 0 || strcmp(method_name, "has_source_code") == 0) {
+                if (r_ret) *(uint8_t*)r_ret = 1;
+                return;
+            }
+            if (strcmp(method_name, "_can_instantiate") == 0 || strcmp(method_name, "can_instantiate") == 0) {
+                if (r_ret) *(uint8_t*)r_ret = 1;
+                return;
+            }
+            if (strcmp(method_name, "_is_valid") == 0 || strcmp(method_name, "is_valid") == 0) {
+                if (r_ret) *(uint8_t*)r_ret = 1;
+                return;
+            }
+            if (strcmp(method_name, "_get_source_code") == 0 || strcmp(method_name, "get_source_code") == 0) {
+                std::string code;
+                {
+                    std::lock_guard<std::mutex> lock(s_script_source_mutex);
+                    auto it = s_script_source_code.find(inst->godot_object);
+                    if (it != s_script_source_code.end() && !it->second.empty()) {
+                        code = it->second;
+                    }
+                }
+                if (code.empty() && inst->crystal_instance && inst->desc->call_virtual_with_data) {
+                    alignas(void*) char ret_str[8] = {0};
+                    inst->desc->call_virtual_with_data(inst->crystal_instance, "_get_source_code", nullptr, ret_str);
+                    if (gd_string_to_utf8_chars) {
+                        int64_t len = gd_string_to_utf8_chars(ret_str, nullptr, 0);
+                        if (len > 0) {
+                            code.resize((size_t)len);
+                            gd_string_to_utf8_chars(ret_str, &code[0], len);
+                        }
+                    }
+                    if (gd_string_destroy) gd_string_destroy(ret_str);
+                }
+                if (code.empty()) {
+                    std::string path;
+                    {
+                        std::lock_guard<std::mutex> lock(s_script_source_mutex);
+                        auto it = s_script_paths.find(inst->godot_object);
+                        if (it != s_script_paths.end()) path = it->second;
+                    }
+                    if (path.empty() && inst->godot_object) {
+                        const char *rpath = bridge_resource_get_path(inst->godot_object);
+                        if (rpath && rpath[0] != '\0') path = rpath;
+                    }
+                    if (!path.empty()) {
+                        std::string fs_path = bridge_globalize_path(path.c_str());
+                        if (fs_path.empty()) fs_path = path;
+                        if (bridge_file_exists(fs_path.c_str())) {
+                            FILE *f = fopen(fs_path.c_str(), "rb");
+                            if (f) {
+                                fseek(f, 0, SEEK_END);
+                                long sz = ftell(f);
+                                fseek(f, 0, SEEK_SET);
+                                if (sz > 0) {
+                                    code.resize((size_t)sz);
+                                    fread(&code[0], 1, (size_t)sz, f);
+                                }
+                                fclose(f);
+                            }
+                        }
+                    }
+                }
+                if (!code.empty()) {
+                    std::lock_guard<std::mutex> lock(s_script_source_mutex);
+                    s_script_source_code[inst->godot_object] = code;
+                }
+                bridge_ret_string(r_ret, code.c_str());
+                return;
+            }
+            if (strcmp(method_name, "_set_source_code") == 0 || strcmp(method_name, "set_source_code") == 0) {
+                std::string new_code;
+                if (p_args && p_args[0] && gd_string_to_utf8_chars) {
+                    int64_t len = gd_string_to_utf8_chars((GDExtensionConstStringPtr)p_args[0], nullptr, 0);
+                    if (len > 0) {
+                        new_code.resize((size_t)len);
+                        gd_string_to_utf8_chars((GDExtensionConstStringPtr)p_args[0], &new_code[0], len);
+                    }
+                }
+                {
+                    std::lock_guard<std::mutex> lock(s_script_source_mutex);
+                    s_script_source_code[inst->godot_object] = new_code;
+                }
+                if (inst->crystal_instance && inst->desc->call_virtual_with_data) {
+                    inst->desc->call_virtual_with_data(inst->crystal_instance, method_name, (const void**)p_args, (void*)r_ret);
+                }
+                return;
+            }
+        } else if (strcmp(inst->desc->name, "CrystalHighlighter") == 0) {
+            if (strcmp(method_name, "_get_name") == 0 || strcmp(method_name, "get_name") == 0) {
+                bridge_ret_string(r_ret, "Crystal");
+                return;
+            }
+            if (strcmp(method_name, "_get_supported_languages") == 0 || strcmp(method_name, "get_supported_languages") == 0) {
+                const char *langs[] = { "Crystal", "cr", "CrystalScript" };
+                bridge_ret_packed_string_array(r_ret, langs, 3);
+                return;
+            }
+            if (strcmp(method_name, "_create") == 0 || strcmp(method_name, "create") == 0) {
+                void *hl_sn = make_string_name("CrystalHighlighter");
+                GDExtensionObjectPtr hl_obj = gd_classdb_construct_object(hl_sn);
+                free_string_name(hl_sn);
+                bridge_ret_ref(r_ret, hl_obj);
+                return;
+            }
+            if (strcmp(method_name, "_clear_highlighting_cache") == 0 || strcmp(method_name, "clear_highlighting_cache") == 0 ||
+                strcmp(method_name, "_update_cache") == 0 || strcmp(method_name, "update_cache") == 0) {
+                return;
+            }
+            if (strcmp(method_name, "_get_line_syntax_highlighting") == 0 || strcmp(method_name, "get_line_syntax_highlighting") == 0) {
+                if (inst->crystal_instance && inst->desc->call_virtual_with_data) {
+                    inst->desc->call_virtual_with_data(inst->crystal_instance, "_get_line_syntax_highlighting", (const void**)p_args, (void*)r_ret);
+                } else {
+                    bridge_ret_dictionary_empty(r_ret);
                 }
                 return;
             }

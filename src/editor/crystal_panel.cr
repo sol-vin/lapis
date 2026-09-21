@@ -33,9 +33,11 @@ module Godot
       call("set_anchors_preset", 15) # PRESET_FULL_RECT
       call("set_h_size_flags", 3)     # SIZE_EXPAND_FILL
       call("set_v_size_flags", 3)     # SIZE_EXPAND_FILL
+      call("set_custom_minimum_size", Vector2.new(0_f32, 240_f32))
 
       setup_ui
       log_info("LibGodot Crystal Hub initialized.")
+      CrystalIntegrationPlugin.ensure_editor_setup rescue nil
       refresh_addons_list
       refresh_spec_list
     end

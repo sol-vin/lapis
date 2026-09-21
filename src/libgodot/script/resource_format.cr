@@ -186,7 +186,6 @@ module Godot
         if script
           script.set_script_path(target_path)
           script.set_source_code(code)
-          script.call("set_path", target_path) rescue nil
           Bridge.ret_variant_object(ret, script.pointer)
         else
           Bridge.ret_variant_nil(ret)

@@ -1,13 +1,10 @@
 [gd_scene format=3 uid="uid://cofcndr2uxf3e"]
 
-[ext_resource type="Script" uid="uid://d1p0h0jxsvcs8" path="res://src/main.cr" id="1_o5qli"]
-[ext_resource type="Script" uid="uid://d3b5urwsrwtl0" path="res://src/my_node.cr" id="2_0wfyh"]
-[ext_resource type="Script" uid="uid://bxv8g0m11o275" path="res://scripts/mygdnode.gd" id="3_sugp2"]
+[ext_resource type="Script" path="res://scripts/mygdnode.gd" id="3_sugp2"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_1"]
 
-[node name="MainNode" type="Node3D" unique_id=1913652511]
-script = ExtResource("1_o5qli")
+[node name="MainNode" type="MainNode" unique_id=1913652511]
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1664467660]
 mesh = SubResource("BoxMesh_1")
@@ -20,8 +17,7 @@ transform = Transform3D(0.866025, -0.25, 0.433013, 0, 0.866025, 0.5, -0.5, -0.43
 
 [node name="Node3D" type="Node3D" parent="." unique_id=542132317]
 
-[node name="MyCrystalNode" type="Node" parent="." unique_id=769559760]
-script = ExtResource("2_0wfyh")
+[node name="MyCrystalNode" type="MyCrystalNode" parent="." unique_id=769559760]
 
 [node name="MyGDNode" type="Node" parent="." unique_id=1762949384]
 script = ExtResource("3_sugp2")

@@ -15,6 +15,19 @@ describe "Lapis CLI" do
       res.output.should contain("Lapis v#{Lapis::VERSION}")
     end
 
+    it "displays version with version subcommand" do
+      res = LapisSpecHelper.run_lapis(["version"])
+      res.success?.should be_true
+      res.output.should contain("Lapis v#{Lapis::VERSION}")
+    end
+
+    it "reads Lapis::VERSION directly from root shard.yml" do
+      shard_text = File.read(LapisSpecHelper.repo_root.join("shard.yml"))
+      version_line = shard_text.lines.find(&.strip.starts_with?("version:")).not_nil!
+      expected_ver = version_line.split(":")[1].gsub(/["'\r\n]/, "").strip
+      Lapis::VERSION.should eq(expected_ver)
+    end
+
     it "displays help banner with --help" do
       res = LapisSpecHelper.run_lapis(["--help"])
       res.success?.should be_true
@@ -192,6 +205,11 @@ describe "Lapis CLI" do
       res = LapisSpecHelper.run_lapis(["help", "foobar_invalid"])
       res.all_output.should contain("Unknown command for help: 'foobar_invalid'")
       res.output.should contain("Usage:")
+    end
+
+    it "accepts -t flag for sync command" do
+      res = LapisSpecHelper.run_lapis(["sync", "-t", "bin", "--bins-only"])
+      res.success?.should be_true
     end
   end
 end

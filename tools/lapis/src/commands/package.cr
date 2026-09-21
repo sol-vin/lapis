@@ -418,7 +418,7 @@ CONTROL
         FileUtils.rm_rf(stage_dir) if Dir.exists?(stage_dir)
         FileUtils.mkdir_p(stage_dir)
 
-        # 1. Stage lapis.exe and runtime dependencies
+        # 1. Stage standalone lapis.exe
         lapis_exe = root.join("bin/lapis#{Core::Env.exe_ext}")
         lapis_exe = Path.new(Process.executable_path.not_nil!) if !File.exists?(lapis_exe) && Process.executable_path
         if File.exists?(lapis_exe)
@@ -427,38 +427,10 @@ CONTROL
           Core::Logger.warn("Lapis executable not found at #{lapis_exe}")
         end
 
-        ["gc.dll", "pcre2-8.dll", "iconv-2.dll", "libcrypto-3-x64.dll", "libssl-3-x64.dll", "yaml.dll", "zlib1.dll"].each do |dll|
-          dll_src = root.join("bin/#{dll}")
-          safe_copy(dll_src, stage_dir.join(dll)) if File.exists?(dll_src)
-        end
-
-        # 2. Stage scripts/windows
-        scripts_src = root.join("scripts/windows")
-        if Dir.exists?(scripts_src)
-          stage_scripts = stage_dir.join("scripts")
-          FileUtils.mkdir_p(stage_scripts)
-          FileUtils.cp_r(scripts_src.to_s, stage_scripts.to_s)
-          safe_copy(scripts_src.join("install_deps.ps1"), stage_dir.join("install_deps.ps1"))
-        end
-
-        # 3. Stage addons
-        addon_src = root.join("addons/crystal_integration")
-        if Dir.exists?(addon_src)
-          stage_addon = stage_dir.join("addons/crystal_integration")
-          FileUtils.mkdir_p(stage_addon)
-          FileUtils.cp_r(addon_src.to_s, stage_addon.parent.to_s)
-          Core::Env.purge_foreign_binaries(stage_addon)
-        end
-
-        # 4. Docs & License
-        ["README.md", "LICENSE"].each do |f|
-          src_f = root.join(f)
-          if File.exists?(src_f)
-            safe_copy(src_f, stage_dir.join(f))
-          end
-        end
-        unless File.exists?(stage_dir.join("LICENSE"))
-          File.write(stage_dir.join("LICENSE"), "MIT License\n\nCopyright (c) #{Time.utc.year} Lapis Contributors\n")
+        # 2. Stage temporary install_deps.ps1 (used by installer in {tmp} then deleted)
+        deps_script = root.join("scripts/windows/install_deps.ps1")
+        if File.exists?(deps_script)
+          safe_copy(deps_script, stage_dir.join("install_deps.ps1"))
         end
 
         # 5. Compile with Inno Setup Compiler (ISCC)

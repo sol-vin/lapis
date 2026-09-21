@@ -142,39 +142,82 @@ func _run_in_editor_tool_tests():
 	else:
 		print("[CrystalToolTester]   ✔ CrystalIntegrationPlugin reports main screen tab correctly: name='%s', has_main_screen=true" % plugin_name)
 
+	var icon = crystal_plugin._get_plugin_icon() if crystal_plugin else null
+	if not icon or not (icon is Texture2D) or icon.get_size().x <= 0:
+		var msg = "[CrystalToolTester] FAILED: CrystalIntegrationPlugin does not return a valid icon Texture2D (got %s)!" % str(icon)
+		printerr(msg)
+		error_messages.append(msg)
+		errors += 1
+	else:
+		print("[CrystalToolTester]   ✔ CrystalIntegrationPlugin returns valid icon Texture2D: %s (size=%s)" % [icon.get_class(), str(icon.get_size())])
+
+
 	# In GUI editor mode (non-headless), also verify actual UI controls and docking
 	if not is_headless:
 		var base_control = EditorInterface.get_base_control()
 		var crystal_tab_btn: Button = null
+		var crystal_tab_idx: int = -1
+		var main_tab_bar: TabBar = null
 		if base_control:
+			# 1. Check for TabBar tabs (Godot 4.4+)
+			var all_tab_bars = base_control.find_children("*", "TabBar", true, false)
+			for tb in all_tab_bars:
+				for i in range(tb.get_tab_count()):
+					if tb.get_tab_title(i) == "Crystal":
+						main_tab_bar = tb
+						crystal_tab_idx = i
+						break
+				if main_tab_bar:
+					break
+
+			# 2. Check for legacy Button tabs (Godot 4.0-4.3)
 			var all_buttons = base_control.find_children("*", "Button", true, false)
 			for btn in all_buttons:
-				if btn.text == "Crystal" or btn.name == "Crystal" or (btn.tooltip_text and btn.tooltip_text.contains("Crystal")):
+				if btn.name != "BuildCrystalToolbarButton" and (btn.text == "Crystal" or btn.name == "Crystal"):
 					crystal_tab_btn = btn
 					break
 
-		if not crystal_tab_btn:
-			var msg = "[CrystalToolTester] FAILED: 'Crystal' main screen editor tab button not found in Editor interface!"
+		if not crystal_tab_btn and crystal_tab_idx == -1:
+			var msg = "[CrystalToolTester] FAILED: 'Crystal' main screen tab not found in Editor interface (checked TabBar and Button)!"
 			printerr(msg)
 			error_messages.append(msg)
 			errors += 1
-		else:
-			print("[CrystalToolTester]   ✔ Found 'Crystal' main screen tab button: %s" % str(crystal_tab_btn.get_path()))
+		elif main_tab_bar and crystal_tab_idx >= 0:
+			print("[CrystalToolTester]   ✔ Found 'Crystal' main screen tab in TabBar at index %d: %s" % [crystal_tab_idx, str(main_tab_bar.get_path())])
+		elif crystal_tab_btn:
+			print("[CrystalToolTester]   ✔ Found 'Crystal' editor tab button: %s" % str(crystal_tab_btn.get_path()))
 
-		var main_screen = EditorInterface.get_editor_main_screen()
 		var crystal_panel = null
-		if main_screen:
-			crystal_panel = main_screen.find_child("CrystalPanel", false, false)
+		if base_control:
+			crystal_panel = base_control.find_child("CrystalPanel", true, false)
+		if not crystal_panel:
+			var main_screen = EditorInterface.get_editor_main_screen()
+			if main_screen:
+				crystal_panel = main_screen.find_child("CrystalPanel", false, false)
 
 		if not crystal_panel:
-			var msg = "[CrystalToolTester] FAILED: 'CrystalPanel' Control node not docked in EditorInterface.get_editor_main_screen()!"
+			var msg = "[CrystalToolTester] FAILED: 'CrystalPanel' Control node not docked in Editor interface!"
 			printerr(msg)
 			error_messages.append(msg)
 			errors += 1
 		else:
-			print("[CrystalToolTester]   ✔ Verified 'CrystalPanel' docked in editor main screen: %s" % str(crystal_panel.get_path()))
+			print("[CrystalToolTester]   ✔ Verified 'CrystalPanel' docked in editor: %s" % str(crystal_panel.get_path()))
 
-			if crystal_tab_btn:
+			if main_tab_bar and crystal_tab_idx >= 0:
+				main_tab_bar.current_tab = crystal_tab_idx
+				main_tab_bar.emit_signal("tab_changed", crystal_tab_idx)
+				await get_tree().process_frame
+				if not crystal_panel.is_visible_in_tree():
+					EditorInterface.set_main_screen_editor("Crystal")
+					await get_tree().process_frame
+				if not crystal_panel.is_visible_in_tree():
+					var msg = "[CrystalToolTester] FAILED: Switching to 'Crystal' tab did not make CrystalPanel visible!"
+					printerr(msg)
+					error_messages.append(msg)
+					errors += 1
+				else:
+					print("[CrystalToolTester]   ✔ Switching to 'Crystal' tab successfully displayed CrystalPanel (visible=true)!")
+			elif crystal_tab_btn:
 				crystal_tab_btn.emit_signal("pressed")
 				await get_tree().process_frame
 				if not crystal_panel.visible:

@@ -47,6 +47,7 @@ Usage:
   docs                  Generate and patch HTML API documentation
 
 \e[36mInstallation & System Commands:\e[0m
+  version               Display Lapis toolchain version
   install               Install Lapis CLI globally into system/user PATH
   uninstall             Uninstall Lapis CLI globally from computer
 
@@ -101,6 +102,8 @@ HELP
       Commands::Package.run(["--help"])
     when "docs"
       Commands::Docs.run(["--help"])
+    when "version"
+      puts "Usage: lapis version\n\nShow Lapis toolchain version."
     when "install", "uninstall"
       Commands::Install.print_help
     else
@@ -121,7 +124,7 @@ HELP
       return 0
     end
 
-    if args.size == 1 && (args[0] == "-v" || args[0] == "--version")
+    if args.size == 1 && (args[0] == "-v" || args[0] == "--version" || args[0] == "version")
       puts "Lapis v#{VERSION}"
       return 0
     end
@@ -148,6 +151,9 @@ HELP
     sub_args = filtered_args[1..]
 
     case subcommand
+    when "version"
+      puts "Lapis v#{VERSION}"
+      0
     when "help"
       if sub_args.empty?
         print_help

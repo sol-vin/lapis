@@ -448,7 +448,7 @@ module Godot
     self.class.setup_debugger_plugin
   end
 
-  # Docks the CrystalPanel into Godot Editor's main screen
+  # Docks the CrystalPanel into Godot Editor's main screen and makes it available to the editor
   def self.setup_main_screen_panel : Void
     return if headless?
     if (p = @@crystal_panel) && !p.pointer.null?
@@ -458,8 +458,8 @@ module Godot
       return
     end
     ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
-    main_screen = ed_iface.get_editor_main_screen
-    if main_screen.pointer.null?
+    base_ctrl = ed_iface.get_base_control
+    if base_ctrl.pointer.null?
       return
     end
 
@@ -470,7 +470,7 @@ module Godot
       end
     end
 
-    existing = main_screen.call_obj("find_child", "CrystalPanel", false, false)
+    existing = base_ctrl.call_obj("find_child", "CrystalPanel", true, false)
     if existing && !existing.pointer.null?
       @@crystal_panel = existing
       return
@@ -478,10 +478,15 @@ module Godot
 
     if (panel = Godot.create("CrystalPanel")) && !panel.pointer.null?
       panel.call("set_name", "CrystalPanel")
-      panel.call("set_visible", false)
-      main_screen.call_deferred("add_child", panel)
+      main_screen = ed_iface.get_editor_main_screen
+      if !main_screen.pointer.null?
+        panel.call("set_v_size_flags", 3) # SIZE_EXPAND_FILL = 3
+        panel.call("set_h_size_flags", 3) # SIZE_EXPAND_FILL = 3
+        panel.call("set_visible", false)
+        main_screen.call("add_child", panel)
+      end
       @@crystal_panel = panel
-      Godot.print("[CrystalIntegrationPlugin] Native Crystal Main Screen Tab docked successfully.")
+      Godot.print("[CrystalIntegrationPlugin] Native Crystal Hub added to Editor Main Screen successfully.")
     end
   rescue ex
     Godot.printerr("[CrystalIntegrationPlugin] Notice: could not setup main screen panel: #{ex.message}")
@@ -540,6 +545,10 @@ module Godot
     when "_make_visible", "make_visible"
       visible = !args.null? && !args[0].null? && (args[0].as(UInt8*).value != 0_u8)
       make_crystal_panel_visible(visible)
+    when "_build", "build"
+      return if ret.null?
+      success = _build
+      ret.as(UInt8*).value = success ? 1_u8 : 0_u8
     end
   end
 
@@ -644,7 +653,6 @@ module Godot
     btn.call("set_theme_type_variation", "RunBarButton")
 
     icon_tex = get_crystal_icon_texture
-
     if icon_tex && !icon_tex.pointer.null?
       btn.set_button_icon(icon_tex)
       btn.call("set_text", "Build")
@@ -867,6 +875,15 @@ module Godot
     disk_text = File.read(fs_path)
     editor_text = base_ed.call_str("get_text")
 
+    # TRUNCATION GUARD: Never allow an empty in-editor buffer to wipe an existing non-empty file on disk
+    if editor_text.strip.empty? && !disk_text.strip.empty?
+      base_ed.call("set_text", disk_text)
+      base_ed.call("tag_saved_version") rescue nil
+      @@file_last_disk_mtime[fs_path] = disk_mtime
+      Godot.print("[CrystalIntegrationPlugin] Restored editor view from disk (prevented empty buffer wipe): #{fs_path} (#{disk_text.bytesize} bytes)")
+      return
+    end
+
     if last_mtime.nil?
       # Initial synchronization: disk is always authoritative
       if disk_text != editor_text
@@ -881,7 +898,7 @@ module Godot
       base_ed.call("tag_saved_version") rescue nil
       @@file_last_disk_mtime[fs_path] = disk_mtime
       Godot.print("[CrystalIntegrationPlugin] Loaded external disk modifications into editor: #{fs_path} (#{disk_text.bytesize} bytes)")
-    elsif version != saved_version
+    elsif version != saved_version && version > 0 && !editor_text.strip.empty?
       # In-editor changes typed directly inside Godot: flush live buffer to disk
       File.write(fs_path, editor_text)
       base_ed.call("tag_saved_version") rescue nil
@@ -1026,6 +1043,7 @@ module Godot
 
   # Automated verification workflow for the Build Crystal toolbar button and GDExtension reload
   def self.check_test_build_button_flow : Void
+    return unless ::ENV["LIBGODOT_TEST_BUILD_BUTTON"]? == "1" || !::ENV["LIBGODOT_TEST_RELOAD_CYCLES"]?.nil?
     target_cycles = ::ENV["LIBGODOT_TEST_RELOAD_CYCLES"]?.try(&.to_i?) || 2
 
     if !Godot::Engine.singleton_ptr.null?
@@ -1479,6 +1497,7 @@ module Godot
 
   @@link_check_accum : Float64 = 0.0_f64
   @@reload_watchdog : Float64 = 0.0_f64
+  @@hl_check_accum : Float64 = 0.0_f64
 
   def _process(delta : Float64) : Void
     if dbg = @@debugger_plugin
@@ -1517,6 +1536,12 @@ module Godot
         @@link_check_accum = 0.0_f64
         self.class.link_scripts_in_edited_scene
       end
+
+      @@hl_check_accum += delta
+      if @@hl_check_accum >= 0.5_f64
+        @@hl_check_accum = 0.0_f64
+        self.class.apply_highlighter_if_needed
+      end
     end
   end
 
@@ -1526,6 +1551,7 @@ module Godot
 
   def self.apply_highlighter_if_needed : Void
     return if Godot::EditorInterface.singleton_ptr.null?
+    ensure_highlighter_registered
     hl = @@crystal_highlighter
     return unless hl && !hl.pointer.null?
 
@@ -1536,14 +1562,22 @@ module Godot
     curr_script = se.get_current_script
     if curr_script && !curr_script.pointer.null?
       path = curr_script.call_str("get_path")
-      if path.ends_with?(".cr")
+      path = curr_script.call_str("get_resource_path") if path.empty?
+      cls = curr_script.call_str("get_class")
+      is_cr = path.ends_with?(".cr") || cls == "CrystalScript"
+      if is_cr
         curr_ed = se.call_obj("get_current_editor")
         if curr_ed && !curr_ed.pointer.null?
-          curr_ed.call("add_syntax_highlighter", hl)
+          curr_ed.call("add_syntax_highlighter", hl) rescue nil
           base_ed = curr_ed.call_obj("get_base_editor")
           if base_ed && !base_ed.pointer.null?
-            base_ed.call("set_syntax_highlighter", hl)
-            base_ed.call("queue_redraw")
+            existing_hl = base_ed.call_obj("get_syntax_highlighter") rescue nil
+            if existing_hl.nil? || existing_hl.pointer.null?
+              tab_hl = hl.call_obj("_create")
+              actual_hl = (tab_hl && !tab_hl.pointer.null?) ? tab_hl : hl
+              base_ed.call("set_syntax_highlighter", actual_hl) rescue nil
+              base_ed.call("queue_redraw") rescue nil
+            end
           end
         end
       end

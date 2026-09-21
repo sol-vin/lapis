@@ -89,6 +89,7 @@ module Lapis
 Usage: lapis sync [options]
 
 Options:
+  -t, --target-bin=DIR  Explicit target bin directory to synchronize to
   --addons-only         Sync only GDExtension addons and manifests
   --bins-only           Sync only compiled binaries and runtime libraries
   -h, --help            Show this help screen
@@ -97,6 +98,7 @@ Examples:
   lapis sync
   lapis sync --addons-only
   lapis sync --bins-only
+  lapis sync -t custom/game/bin
 HELP
       end
 
@@ -106,11 +108,14 @@ HELP
           return 0
         end
 
+        target_bin : String? = nil
         addons_only = false
         bins_only = false
 
         OptionParser.parse(args) do |parser|
           parser.banner = "Usage: lapis sync [options]"
+          parser.on("-t DIR", "--target-bin=DIR", "Explicit target bin directory") { |dir| target_bin = dir }
+          parser.on("--target=DIR", "Explicit target bin directory") { |dir| target_bin = dir }
           parser.on("--addons-only", "Sync only addons and manifests") { addons_only = true }
           parser.on("--bins-only", "Sync only compiled binaries and runtime DLLs") { bins_only = true }
           parser.on("-h", "--help", "Show help") { print_help; exit 0 }
@@ -118,7 +123,7 @@ HELP
 
         root = Core::Env::ROOT_DIR
         bin_dir = root.join("bin")
-        target_dirs = Core::Env.collect_target_bin_dirs(root)
+        target_dirs = Core::Env.collect_target_bin_dirs(root, target_bin)
 
         # 1. Sync addons
         unless bins_only
@@ -167,9 +172,17 @@ HELP
             Core::Env.purge_foreign_binaries(dir)
 
             platform_files.each do |bin_name|
-              src = bin_dir.join(bin_name)
-              dst = dir.join(bin_name)
-              if safe_copy(src, dst)
+              src = if File.exists?(bin_dir.join(bin_name)) && bin_dir != dir
+                bin_dir.join(bin_name)
+              elsif File.exists?(root.join("addons/crystal_integration/bin").join(bin_name)) && root.join("addons/crystal_integration/bin") != dir
+                root.join("addons/crystal_integration/bin").join(bin_name)
+              elsif File.exists?(bin_dir.join(bin_name))
+                bin_dir.join(bin_name)
+              else
+                nil
+              end
+
+              if src && safe_copy(src, dir.join(bin_name))
                 synced_count += 1
               end
             end

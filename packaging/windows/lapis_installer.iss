@@ -45,16 +45,7 @@ Name: "envPath"; Description: "Add Lapis to PATH environment variable"; GroupDes
 
 [Files]
 Source: "{#SourceDir}\lapis.exe"; DestDir: "{app}\bin"; Flags: ignoreversion
-Source: "{#SourceDir}\*.dll"; DestDir: "{app}\bin"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "{#SourceDir}\install_deps.ps1"; DestDir: "{tmp}"; Flags: deleteafterinstall
-#if DirExists(SourceDir + "\scripts")
-Source: "{#SourceDir}\scripts\*"; DestDir: "{app}\scripts"; Flags: ignoreversion recursesubdirs createallsubdirs
-#endif
-#if DirExists(SourceDir + "\addons")
-Source: "{#SourceDir}\addons\*"; DestDir: "{app}\addons"; Flags: ignoreversion recursesubdirs createallsubdirs
-#endif
-Source: "{#SourceDir}\README.md"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
-Source: "{#SourceDir}\LICENSE"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 
 [Icons]
 Name: "{group}\Lapis Command Prompt"; Filename: "{cmd}"; Parameters: "/k ""{app}\bin\lapis.exe --help"""

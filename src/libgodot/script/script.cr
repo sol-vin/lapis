@@ -43,7 +43,7 @@ module Godot
     def script_path=(v : String)
       @script_path = v
       if !@pointer.null? && !v.empty?
-        call("set_path", v) rescue nil
+        call("take_over_path", v) rescue (call("set_path", v) rescue nil)
       end
     end
 
@@ -97,7 +97,7 @@ module Godot
     def set_script_path(p : String) : Void
       @script_path = p
       if !@pointer.null? && !p.empty?
-        call("set_path", p) rescue nil
+        call("take_over_path", p) rescue (call("set_path", p) rescue nil)
       end
     end
 
@@ -135,6 +135,20 @@ module Godot
       when "_has_source_code"
         ret.as(UInt8*).value = 1_u8
       when "_get_source_code"
+        if @source_code.empty?
+          p = @script_path
+          if p.empty? && !@pointer.null?
+            p = call_str("get_path") rescue ""
+            @script_path = p unless p.empty?
+          end
+          if !p.empty?
+            resolved = ResourceFormatLoaderCrystal.resolve_file_path(p)
+            if !resolved.empty? && File.exists?(resolved)
+              @source_code = File.read(resolved)
+              parse_source_metadata
+            end
+          end
+        end
         Bridge.ret_string(ret, @source_code)
       when "_set_source_code"
         new_code = (!args.null? && !args[0].null?) ? Bridge.arg_to_string(args[0]) : ""
@@ -186,7 +200,23 @@ module Godot
           set_source_code(Godot::SystemIO.read_file(@script_path))
         end
         ret.as(Int32*).value = 0_i32 # OK
-      when "_instance_create", "_placeholder_instance_create"
+      when "_instance_create"
+        owner_ptr = args[0]
+        # If running in game and owner is already a native registered Crystal class instance,
+        # return null so Godot directly dispatches virtual methods on the native GDExtension object
+        if !Godot.editor_hint? && !owner_ptr.null? && Bridge.find_alive_instance(owner_ptr)
+          ret.as(Void**).value = Pointer(Void).null
+          return
+        end
+
+        lang = CrystalLanguage.singleton_instance
+        if !lang.pointer.null?
+          inst = Bridge.placeholder_script_instance_create(lang.pointer, @pointer, owner_ptr)
+          ret.as(Void**).value = inst
+        else
+          ret.as(Void**).value = Pointer(Void).null
+        end
+      when "_placeholder_instance_create"
         lang = CrystalLanguage.singleton_instance
         if !lang.pointer.null?
           inst = Bridge.placeholder_script_instance_create(lang.pointer, @pointer, args[0])
