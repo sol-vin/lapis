@@ -411,7 +411,7 @@ module Godot
       script.script_class_name = class_name
       script.script_base_type = base_type
       script.is_tool_script = is_tool
-      script.take_over_path(path) rescue script.set_path_cache(path) rescue script.set_path(path) rescue script.call("take_over_path", path) rescue script.call("set_path", path) rescue nil
+      script.take_over_path(path) rescue script.call("take_over_path", path) rescue script.set_path_cache(path) rescue nil
       @@script_cache[path] = script
       script
     end

@@ -43,7 +43,7 @@ module Godot
     def script_path=(v : String)
       @script_path = v
       if !@pointer.null? && !v.empty?
-        call("take_over_path", v) rescue (call("set_path", v) rescue nil)
+        take_over_path(v) rescue (call("take_over_path", v) rescue nil)
       end
     end
 
@@ -97,7 +97,7 @@ module Godot
     def set_script_path(p : String) : Void
       @script_path = p
       if !@pointer.null? && !p.empty?
-        call("take_over_path", p) rescue (call("set_path", p) rescue nil)
+        take_over_path(p) rescue (call("take_over_path", p) rescue nil)
       end
     end
 
