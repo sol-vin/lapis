@@ -313,12 +313,6 @@ inline int bridge_register_class(const CrystalClassDesc *p_desc) {
 
     // Defer editor-specific classes if Godot is still at SCENE initialization level
     if (g_current_init_level < GDEXTENSION_INITIALIZATION_EDITOR && is_editor_class(&pcd->desc)) {
-        if (!is_editor_active()) {
-            char log_buf[128];
-            snprintf(log_buf, sizeof(log_buf), "  [ClassDB] Suppressing editor class %s in non-editor host", pcd->desc.name);
-            godot_log_print(log_buf);
-            return 1;
-        }
         char log_buf[128];
         snprintf(log_buf, sizeof(log_buf), "  [ClassDB] Deferring editor class %s < %s to EDITOR level", pcd->desc.name, pcd->desc.parent_name);
         godot_log_print(log_buf);

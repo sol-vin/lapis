@@ -29,8 +29,14 @@ inline bool is_editor_active() {
     if (!mb) return false;
     uint8_t ret_bool = 0;
     gd_object_method_bind_ptrcall(mb, engine, nullptr, &ret_bool);
-    s_cached = (ret_bool != 0) ? 1 : 0;
-    return s_cached == 1;
+    if (ret_bool != 0) {
+        s_cached = 1;
+        return true;
+    }
+    if (g_current_init_level >= GDEXTENSION_INITIALIZATION_EDITOR) {
+        s_cached = 0;
+    }
+    return false;
 }
 
 inline bool is_headless_display() {
