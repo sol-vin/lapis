@@ -175,6 +175,10 @@ HELP
         Core::Logger.warn("Error generating test status report: #{ex.message}")
       end
 
+      private def self.safe_exit_code(status : Process::Status) : Int32
+        status.normal_exit? ? status.exit_code : -1
+      end
+
       def self.run(args : Array(String)) : Int32
         if args.includes?("-h") || args.includes?("--help")
           print_help
@@ -230,7 +234,7 @@ HELP
                   chdir: root.to_s
                 )
                 step_dur = (Time.instant - step_start).total_seconds.round(2)
-                recorded_results << StepResult.new("Phase 1a: Engine Specifications (test/spec)", status.success?, step_dur, status.exit_code)
+                recorded_results << StepResult.new("Phase 1a: Engine Specifications (test/spec)", status.success?, step_dur, safe_exit_code(status))
                 failed_steps << "Phase 1a: Engine Specifications (test/spec)" unless status.success?
               end
             end
@@ -247,7 +251,7 @@ HELP
                   chdir: root.to_s
                 )
                 step_dur = (Time.instant - step_start).total_seconds.round(2)
-                recorded_results << StepResult.new("Phase 1b: Lapis CLI Specifications (tools/lapis/spec)", status.success?, step_dur, status.exit_code)
+                recorded_results << StepResult.new("Phase 1b: Lapis CLI Specifications (tools/lapis/spec)", status.success?, step_dur, safe_exit_code(status))
                 failed_steps << "Phase 1b: Lapis CLI Specifications (tools/lapis/spec)" unless status.success?
               end
             end
@@ -286,7 +290,7 @@ HELP
                 end
                 {% end %}
                 step_dur = (Time.instant - step_start).total_seconds.round(2)
-                recorded_results << StepResult.new("Crystal Spec (#{spec_file})", status.success?, step_dur, status.exit_code)
+                recorded_results << StepResult.new("Crystal Spec (#{spec_file})", status.success?, step_dur, safe_exit_code(status))
                 failed_steps << "Crystal Spec (#{spec_file})" unless status.success?
               end
             end
@@ -328,7 +332,7 @@ HELP
               else
                 Core::Logger.success("In-editor @tool tests verified successfully!")
               end
-              recorded_results << StepResult.new("In-Editor Tests (Phase 2a/2b)", editor_success, step_dur, status.exit_code)
+              recorded_results << StepResult.new("In-Editor Tests (Phase 2a/2b)", editor_success, step_dur, safe_exit_code(status))
             else
               Core::Logger.warn("Godot executable not found, skipping in-editor tests.")
             end
@@ -372,7 +376,7 @@ HELP
               else
                 Core::Logger.success("Regular standalone test runner verified successfully!")
               end
-              recorded_results << StepResult.new("Regular Standalone Test Runner", standalone_success, step_dur, status.exit_code)
+              recorded_results << StepResult.new("Regular Standalone Test Runner", standalone_success, step_dur, safe_exit_code(status))
             end
 
             # -----------------------------------------------------------------------
@@ -434,7 +438,7 @@ HELP
               else
                 Core::Logger.success("Standalone portable test runner verified successfully in isolated sandbox!")
               end
-              recorded_results << StepResult.new("Standalone Portable Test Runner", portable_success, step_dur, status.exit_code)
+              recorded_results << StepResult.new("Standalone Portable Test Runner", portable_success, step_dur, safe_exit_code(status))
 
               FileUtils.rm_rf(sandbox_dir) if Dir.exists?(sandbox_dir)
             end
@@ -473,7 +477,7 @@ HELP
               else
                 Core::Logger.success("Runtime test suite verified successfully!")
               end
-              recorded_results << StepResult.new("Runtime Tests (main_test_runner.tscn)", runtime_success, step_dur, status.exit_code)
+              recorded_results << StepResult.new("Runtime Tests (main_test_runner.tscn)", runtime_success, step_dur, safe_exit_code(status))
             else
               Core::Logger.warn("Godot executable not found, skipping runtime tests.")
             end
