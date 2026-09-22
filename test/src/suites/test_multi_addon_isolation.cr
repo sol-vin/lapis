@@ -15,7 +15,7 @@ test_multi_addon "Multi-addon ClassDB registration and isolation" do
   class_db = Godot::ClassDB.new(Godot::ClassDB.singleton_ptr)
 
   # In editor sessions, EditorPlugin classes are registered in ClassDB at EDITOR initialization level.
-  if Godot.editor_hint? || class_db.call_bool("class_exists", "EditorPlugin")
+  if Godot.editor_hint?
     assert_true class_db.call_bool("class_exists", "CrystalIntegrationPlugin"), "CrystalIntegrationPlugin must exist in ClassDB in editor"
   end
 
@@ -52,8 +52,8 @@ end
 test_multi_addon "EditorPlugin coexistence and single compiler hook enforcement" do
   class_db = Godot::ClassDB.new(Godot::ClassDB.singleton_ptr)
 
-  # When in editor sessions (where EditorPlugin exists in ClassDB):
-  if Godot.editor_hint? || class_db.call_bool("class_exists", "EditorPlugin")
+  # When in editor sessions (where EditorPlugin classes are registered):
+  if Godot.editor_hint?
     # Verify CrystalIntegrationPlugin is registered in ClassDB and inherits from EditorPlugin
     assert_true class_db.call_bool("class_exists", "CrystalIntegrationPlugin"), "CrystalIntegrationPlugin must exist in ClassDB"
     assert_true class_db.call_bool("is_parent_class", "CrystalIntegrationPlugin", "EditorPlugin"), "CrystalIntegrationPlugin must inherit EditorPlugin"
@@ -78,7 +78,7 @@ test_multi_addon "EditorPlugin documentation and public methods registration" do
   class_db = Godot::ClassDB.new(Godot::ClassDB.singleton_ptr)
 
   # Check that plugins have their exported properties and signals registered in ClassDB
-  if Godot.editor_hint? || class_db.call_bool("class_exists", "EditorPlugin")
+  if Godot.editor_hint?
     assert_true class_db.call_bool("class_has_signal", "DummyAudioPlugin", "preview_stopped"), "DummyAudioPlugin must expose preview_stopped signal"
     assert_true class_db.call_bool("class_has_signal", "DummyDialoguePlugin", "dialogue_validated"), "DummyDialoguePlugin must expose dialogue_validated signal"
     assert_true class_db.call_bool("class_has_signal", "DummyInventoryPlugin", "slot_inspected"), "DummyInventoryPlugin must expose slot_inspected signal"

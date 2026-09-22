@@ -44,8 +44,25 @@ func _get_plugin_icon() -> Texture2D:
 	return null
 
 var _highlighter: EditorSyntaxHighlighter = null
+var _loader: RefCounted = null
+var _saver: RefCounted = null
+var _language: Object = null
 
 func _enter_tree() -> void:
+	# Ensure first-class Crystal language, resource loader, and saver are active
+	if ClassDB.can_instantiate("ResourceFormatLoaderCrystal") and not _loader:
+		_loader = ClassDB.instantiate("ResourceFormatLoaderCrystal")
+		if _loader and ResourceLoader.has_method("add_resource_format_loader"):
+			ResourceLoader.add_resource_format_loader(_loader, true)
+	if ClassDB.can_instantiate("ResourceFormatSaverCrystal") and not _saver:
+		_saver = ClassDB.instantiate("ResourceFormatSaverCrystal")
+		if _saver and ResourceSaver.has_method("add_resource_format_saver"):
+			ResourceSaver.add_resource_format_saver(_saver, true)
+	if ClassDB.can_instantiate("CrystalLanguage") and not _language:
+		_language = ClassDB.instantiate("CrystalLanguage")
+		if _language and Engine.has_method("register_script_language"):
+			Engine.register_script_language(_language)
+
 	# 1. Register Crystal syntax highlighter with ScriptEditor
 	if ClassDB.can_instantiate("CrystalHighlighter"):
 		_highlighter = ClassDB.instantiate("CrystalHighlighter")
@@ -82,6 +99,19 @@ func _enter_tree() -> void:
 		_make_visible(false)
 
 func _exit_tree() -> void:
+	if _loader and is_instance_valid(_loader):
+		if ResourceLoader.has_method("remove_resource_format_loader"):
+			ResourceLoader.remove_resource_format_loader(_loader)
+		_loader = null
+	if _saver and is_instance_valid(_saver):
+		if ResourceSaver.has_method("remove_resource_format_saver"):
+			ResourceSaver.remove_resource_format_saver(_saver)
+		_saver = null
+	if _language and is_instance_valid(_language):
+		if Engine.has_method("unregister_script_language"):
+			Engine.unregister_script_language(_language)
+		_language = null
+
 	if _highlighter and is_instance_valid(_highlighter):
 		var se = EditorInterface.get_script_editor()
 		if se:
