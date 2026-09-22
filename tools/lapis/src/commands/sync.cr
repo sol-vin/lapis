@@ -222,7 +222,11 @@ HELP
 
           # Sync game binary to corresponding addons/crystal_integration/bin for consumer projects
           game_file = Core::Env.game_file
-          ["test", "template", "performance"].each do |proj|
+          consumer_projs = ["test", "template", "performance"]
+          Dir.glob(root.join("examples/*").to_s).each do |ex_dir|
+            consumer_projs << "examples/#{File.basename(ex_dir)}" if File.directory?(ex_dir)
+          end
+          consumer_projs.each do |proj|
             proj_dir = root.join(proj)
             src_game = proj_dir.join("bin", game_file)
             if File.exists?(src_game)

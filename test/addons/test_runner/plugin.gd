@@ -230,18 +230,6 @@ func _run_in_editor_tool_tests():
 
 	# 4. Open a .cr script in the editor to verify Script tab integration and saving
 	print("[CrystalToolTester] Testing Script Tab: Loading, editing, and saving res://src/main.cr...")
-	if ClassDB.can_instantiate("ResourceFormatLoaderCrystal"):
-		var ldr = ClassDB.instantiate("ResourceFormatLoaderCrystal")
-		if ldr and ResourceLoader.has_method("add_resource_format_loader"):
-			ResourceLoader.add_resource_format_loader(ldr, true)
-	if ClassDB.can_instantiate("ResourceFormatSaverCrystal"):
-		var svr = ClassDB.instantiate("ResourceFormatSaverCrystal")
-		if svr and ResourceSaver.has_method("add_resource_format_saver"):
-			ResourceSaver.add_resource_format_saver(svr, true)
-	if ClassDB.can_instantiate("CrystalLanguage"):
-		var lng = ClassDB.instantiate("CrystalLanguage")
-		if lng and Engine.has_method("register_script_language"):
-			Engine.register_script_language(lng)
 	var cr_script = load("res://src/main.cr")
 	if cr_script:
 		print("[CrystalToolTester]   ✔ Loaded %s as %s" % [cr_script.resource_path, cr_script.get_class()])

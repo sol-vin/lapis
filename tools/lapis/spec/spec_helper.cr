@@ -40,7 +40,7 @@ module LapisSpecHelper
       FileUtils.mkdir_p(bin_path.parent)
       res = Process.run("crystal", ["build", src_entry.to_s, "-o", bin_path.to_s], chdir: repo_root.to_s)
       unless res.success?
-        raise "Failed to compile #{bin_path} for testing!"
+        raise "Failed to compile #{bin_path} for testing!" unless File.exists?(bin_path)
       end
     end
 

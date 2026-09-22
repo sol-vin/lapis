@@ -425,7 +425,7 @@ module Lapis
           pop_count = if popup_obj && !popup_obj.pointer.null?
             popup_obj.call_i64("get_item_count") rescue 0_i64
           else
-            cur_count
+            0_i64
           end
 
           if cur_count >= 2_i64 && pop_count >= 2_i64

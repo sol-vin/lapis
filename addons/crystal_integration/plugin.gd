@@ -43,90 +43,11 @@ func _get_plugin_icon() -> Texture2D:
 
 	return null
 
-var _highlighter: EditorSyntaxHighlighter = null
-var _loader: RefCounted = null
-var _saver: RefCounted = null
-var _language: Object = null
-
-func _enter_tree() -> void:
-	# Ensure first-class Crystal language, resource loader, and saver are active
-	if ClassDB.can_instantiate("ResourceFormatLoaderCrystal") and not _loader:
-		_loader = ClassDB.instantiate("ResourceFormatLoaderCrystal")
-		if _loader and ResourceLoader.has_method("add_resource_format_loader"):
-			ResourceLoader.add_resource_format_loader(_loader, true)
-	if ClassDB.can_instantiate("ResourceFormatSaverCrystal") and not _saver:
-		_saver = ClassDB.instantiate("ResourceFormatSaverCrystal")
-		if _saver and ResourceSaver.has_method("add_resource_format_saver"):
-			ResourceSaver.add_resource_format_saver(_saver, true)
-	if ClassDB.can_instantiate("CrystalLanguage") and not _language:
-		_language = ClassDB.instantiate("CrystalLanguage")
-		if _language and Engine.has_method("register_script_language"):
-			Engine.register_script_language(_language)
-
-	# 1. Register Crystal syntax highlighter with ScriptEditor
-	if ClassDB.can_instantiate("CrystalHighlighter"):
-		_highlighter = ClassDB.instantiate("CrystalHighlighter")
-		if _highlighter:
-			var se = EditorInterface.get_script_editor()
-			if se:
-				se.register_syntax_highlighter(_highlighter)
-				if not se.editor_script_changed.is_connected(_apply_highlighter_to_current_script):
-					se.editor_script_changed.connect(_apply_highlighter_to_current_script)
-				_apply_highlighter_to_all_scripts()
-				_apply_highlighter_to_all_scripts.call_deferred()
-
-	# 2. Main screen panel
-	var main_screen = EditorInterface.get_editor_main_screen()
-	if main_screen:
-		var base_ctrl = EditorInterface.get_base_control()
-		if not _main_panel or not is_instance_valid(_main_panel):
-			if base_ctrl:
-				_main_panel = base_ctrl.find_child("CrystalPanel", true, false)
-		if not _main_panel or not is_instance_valid(_main_panel):
-			if ClassDB.can_instantiate("CrystalPanel"):
-				_main_panel = ClassDB.instantiate("CrystalPanel")
-			else:
-				_main_panel = Control.new()
-			_main_panel.name = "CrystalPanel"
-
-		_main_panel.set_v_size_flags(Control.SIZE_EXPAND_FILL)
-		_main_panel.set_h_size_flags(Control.SIZE_EXPAND_FILL)
-
-		if _main_panel.get_parent() != null:
-			_main_panel.get_parent().remove_child(_main_panel)
-
-		main_screen.add_child(_main_panel)
-		_make_visible(false)
-
-func _exit_tree() -> void:
-	if _loader and is_instance_valid(_loader):
-		if ResourceLoader.has_method("remove_resource_format_loader"):
-			ResourceLoader.remove_resource_format_loader(_loader)
-		_loader = null
-	if _saver and is_instance_valid(_saver):
-		if ResourceSaver.has_method("remove_resource_format_saver"):
-			ResourceSaver.remove_resource_format_saver(_saver)
-		_saver = null
-	if _language and is_instance_valid(_language):
-		if Engine.has_method("unregister_script_language"):
-			Engine.unregister_script_language(_language)
-		_language = null
-
-	if _highlighter and is_instance_valid(_highlighter):
-		var se = EditorInterface.get_script_editor()
-		if se:
-			if se.editor_script_changed.is_connected(_apply_highlighter_to_current_script):
-				se.editor_script_changed.disconnect(_apply_highlighter_to_current_script)
-			se.unregister_syntax_highlighter(_highlighter)
-		_highlighter = null
-
-	if _main_panel and is_instance_valid(_main_panel):
-		if _main_panel.get_parent() != null:
-			_main_panel.get_parent().remove_child(_main_panel)
-		_main_panel.queue_free()
-		_main_panel = null
-
 func _make_visible(visible: bool) -> void:
+	if not _main_panel or not is_instance_valid(_main_panel):
+		var main_screen = EditorInterface.get_editor_main_screen()
+		if main_screen:
+			_main_panel = main_screen.find_child("CrystalPanel", false, false)
 	if not _main_panel or not is_instance_valid(_main_panel):
 		var base_ctrl = EditorInterface.get_base_control()
 		if base_ctrl:
@@ -134,34 +55,10 @@ func _make_visible(visible: bool) -> void:
 	if _main_panel and is_instance_valid(_main_panel):
 		_main_panel.visible = visible
 
-func _apply_highlighter_to_current_script(_script: Script = null) -> void:
-	var se = EditorInterface.get_script_editor()
-	if not se or not _highlighter:
-		return
-	var cur_ed = se.get_current_editor()
-	if not cur_ed:
-		return
-	var script = se.get_current_script()
-	if script and (script.resource_path.ends_with(".cr") or script.get_path().ends_with(".cr") or script.get_class() == "CrystalScript"):
-		var base_ed = cur_ed.get_base_editor()
-		if base_ed and base_ed is CodeEdit:
-			if not base_ed.syntax_highlighter or base_ed.syntax_highlighter.get_class() != "CrystalHighlighter":
-				var hl = ClassDB.instantiate("CrystalHighlighter") if ClassDB.can_instantiate("CrystalHighlighter") else _highlighter
-				base_ed.set_syntax_highlighter(hl)
-				base_ed.queue_redraw()
-
-func _apply_highlighter_to_all_scripts() -> void:
-	var se = EditorInterface.get_script_editor()
-	if not se or not _highlighter:
-		return
-	for ed in se.get_open_script_editors():
-		if not ed:
-			continue
-		var script = ed.get_current_script()
-		if script and (script.resource_path.ends_with(".cr") or script.get_path().ends_with(".cr") or script.get_class() == "CrystalScript"):
-			var base_ed = ed.get_base_editor()
-			if base_ed and base_ed is CodeEdit:
-				if not base_ed.syntax_highlighter or base_ed.syntax_highlighter.get_class() != "CrystalHighlighter":
-					var hl = ClassDB.instantiate("CrystalHighlighter") if ClassDB.can_instantiate("CrystalHighlighter") else _highlighter
-					base_ed.set_syntax_highlighter(hl)
-					base_ed.queue_redraw()
+func _build() -> bool:
+	var base_ctrl = EditorInterface.get_base_control()
+	if base_ctrl:
+		var btn = base_ctrl.find_child("BuildCrystalToolbarButton", true, false)
+		if btn:
+			btn.emit_signal("pressed")
+	return true
