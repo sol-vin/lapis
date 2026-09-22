@@ -103,9 +103,20 @@ end
 puts "  ✓ check_make passed"
 
 # -------------------------------------------------------------
-# [Spec 7] verify_all Overall Runner
+# [Spec 7] Crystalline LSP Discovery
 # -------------------------------------------------------------
-puts "[Spec 7] Verifying verify_all..."
+puts "[Spec 7] Verifying check_crystalline..."
+c_status = Lapis::Core::ToolChecker.check_crystalline
+puts "  - Found Crystalline: #{c_status.installed} (path: #{c_status.path}, ver: #{c_status.version})"
+if c_status.installed && c_status.version.nil?
+  abort "ERROR: Crystalline is installed but version was not parsed!"
+end
+puts "  ✓ check_crystalline passed"
+
+# -------------------------------------------------------------
+# [Spec 8] verify_all Overall Runner
+# -------------------------------------------------------------
+puts "[Spec 8] Verifying verify_all..."
 all_ok = Lapis::Core::ToolChecker.verify_all(strict: false)
 unless all_ok
   abort "ERROR: verify_all returned false on host environment!"

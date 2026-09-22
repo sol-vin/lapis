@@ -2,6 +2,7 @@ require "../core/env"
 require "../core/logger"
 require "../core/process_runner"
 require "../core/godot_finder"
+require "../core/tool_checker"
 require "option_parser"
 
 module Lapis
@@ -146,7 +147,20 @@ HELP
           items << CheckItem.new("Crystal Shards Manager", :warn, "shards not found in PATH", "Shards package manager enables external Crystal dependencies.")
         end
 
-        # 6. Packaging Tools (Inno Setup / dpkg-deb)
+        # 6. Language Server (Crystalline LSP)
+        c_status = Core::ToolChecker.check_crystalline
+        if c_status.installed
+          items << CheckItem.new("Crystalline LSP", :pass, "#{c_status.path} (#{c_status.version})")
+        else
+          items << CheckItem.new(
+            "Crystalline LSP",
+            :warn,
+            "Crystalline LSP not found (in-editor Crystal autocomplete & diagnostics disabled)",
+            "Download from GitHub releases (https://github.com/elbywan/crystalline/releases) or run 'lapis setup --lsp'."
+          )
+        end
+
+        # 7. Packaging Tools (Inno Setup / dpkg-deb)
         if Core::Env.windows?
           iscc = Commands::Package.find_iscc
           if iscc

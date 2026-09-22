@@ -45,6 +45,7 @@ Name: "envPath"; Description: "Add Lapis to PATH environment variable"; GroupDes
 
 [Files]
 Source: "{#SourceDir}\lapis.exe"; DestDir: "{app}\bin"; Flags: ignoreversion
+Source: "{#SourceDir}\crystalline.exe"; DestDir: "{app}\bin"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "{#SourceDir}\install_deps.ps1"; DestDir: "{tmp}"; Flags: deleteafterinstall
 
 [Icons]
@@ -58,6 +59,7 @@ var
   HasLldb: Boolean;
   HasMake: Boolean;
   HasGit: Boolean;
+  HasCrystalline: Boolean;
 
 function IsCommandInPath(const Cmd: string): Boolean;
 var
@@ -115,6 +117,20 @@ begin
             FileExists(ExpandConstant('{localappdata}\Programs\Git\cmd\git.exe'));
 end;
 
+function CheckCrystallineInstalled(): Boolean;
+var
+  UserProf: string;
+begin
+  UserProf := GetEnv('USERPROFILE');
+  Result := IsCommandInPath('crystalline.exe') or
+            FileExists(ExpandConstant('{app}\bin\crystalline.exe')) or
+            FileExists('C:\Program Files\crystalline\bin\crystalline.exe') or
+            FileExists('C:\crystalline\bin\crystalline.exe') or
+            ((UserProf <> '') and FileExists(UserProf + '\scoop\shims\crystalline.exe')) or
+            ((UserProf <> '') and FileExists(UserProf + '\scoop\apps\crystalline\current\crystalline.exe')) or
+            FileExists(ExpandConstant('{localappdata}\Programs\Lapis\bin\crystalline.exe'));
+end;
+
 procedure InitializeWizard;
 var
   Desc: string;
@@ -123,13 +139,14 @@ begin
   HasLldb := CheckLldbInstalled();
   HasMake := CheckMakeInstalled();
   HasGit := CheckGitInstalled();
+  HasCrystalline := CheckCrystallineInstalled();
 
   PrereqPage := CreateInputOptionPage(
     wpSelectDir,
     'Prerequisite Development Tools',
     'Detect and install essential toolchain dependencies',
-    'Lapis relies on several external command-line tools to build and debug Godot Crystal games.' + #13#10 +
-    'Select any missing tools below to have the installer automatically download and configure them.',
+    'Lapis relies on external command-line tools to build, debug, and provide editor intelligence for Godot Crystal games.' + #13#10 +
+    'Select any missing tools below to have the installer automatically configure them.',
     False, False
   );
 
@@ -164,6 +181,14 @@ begin
     Desc := 'Install Git (Required for shards dependency resolution)';
   PrereqPage.Add(Desc);
   PrereqPage.Values[3] := not HasGit;
+
+  // Crystalline LSP
+  if HasCrystalline then
+    Desc := 'Crystalline Language Server (Found on system)'
+  else
+    Desc := 'Install Crystalline LSP (Enables in-editor Crystal autocompletion & diagnostics)';
+  PrereqPage.Add(Desc);
+  PrereqPage.Values[4] := not HasCrystalline;
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
@@ -199,6 +224,11 @@ begin
     begin
       if Length(DepsToInstall) > 0 then DepsToInstall := DepsToInstall + ',';
       DepsToInstall := DepsToInstall + 'git';
+    end;
+    if (not HasCrystalline) and PrereqPage.Values[4] then
+    begin
+      if Length(DepsToInstall) > 0 then DepsToInstall := DepsToInstall + ',';
+      DepsToInstall := DepsToInstall + 'crystalline';
     end;
 
     if Length(DepsToInstall) > 0 then

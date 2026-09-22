@@ -22,6 +22,7 @@ Options:
   -o, --output=PATH     Package export templates into specified zip
   -f, --force           Force download even if godot executable exists
   --skip-dump           Skip dumping extension_api.json after setup
+  --lsp                 Download and configure Crystalline Language Server (LSP)
   -h, --help            Show this help screen
 
 Examples:
@@ -182,6 +183,54 @@ HELP
         0
       end
 
+      def self.setup_crystalline(root : Path, force : Bool = false) : Int32
+        dest_exe = root.join("bin", "crystalline#{Core::Env.exe_ext}")
+        FileUtils.mkdir_p(dest_exe.parent)
+
+        if File.exists?(dest_exe) && !force
+          Core::Logger.info("Crystalline LSP already configured at #{dest_exe}. Use --force to re-download.")
+          return 0
+        end
+
+        Core::Logger.step("Setup", "Configuring Crystalline Language Server at #{dest_exe}...")
+
+        # If scratch or local compiled crystalline exists, stage it
+        scratch_exe = root.join("scratch/crystalline/bin/crystalline#{Core::Env.exe_ext}")
+        if File.exists?(scratch_exe)
+          FileUtils.cp(scratch_exe.to_s, dest_exe.to_s)
+          Core::Logger.success("Installed Crystalline LSP to #{dest_exe}!")
+          return 0
+        end
+
+        # System PATH fallback
+        if (sys_path = Process.find_executable("crystalline")) && File.exists?(sys_path)
+          FileUtils.cp(sys_path, dest_exe.to_s)
+          Core::Logger.success("Copied system Crystalline (#{sys_path}) to #{dest_exe}!")
+          return 0
+        end
+
+        # Download from GitHub release
+        tag = "v0.20.0"
+        url = if Core::Env.macos?
+          "https://github.com/elbywan/crystalline/releases/download/#{tag}/crystalline_arm64-apple-darwin.gz"
+        elsif Core::Env.linux?
+          "https://github.com/elbywan/crystalline/releases/download/#{tag}/crystalline_x86_64-unknown-linux-musl.gz"
+        else
+          "https://github.com/elbywan/crystalline/releases/download/#{tag}/crystalline_x86_64-windows.zip"
+        end
+
+        temp_archive = dest_exe.parent.join("crystalline_dl_temp")
+        if download_to_file(url, temp_archive)
+          FileUtils.mv(temp_archive.to_s, dest_exe.to_s) unless File.exists?(dest_exe)
+          File.chmod(dest_exe, 0o755) unless Core::Env.windows?
+          Core::Logger.success("Downloaded and configured Crystalline LSP at #{dest_exe}!")
+          0
+        else
+          Core::Logger.warn("Could not download Crystalline from #{url}. Please download Crystalline from https://github.com/elbywan/crystalline/releases and place it at #{dest_exe}.")
+          1
+        end
+      end
+
       def self.run(args : Array(String)) : Int32
         if args.includes?("-h") || args.includes?("--help")
           print_help
@@ -192,6 +241,7 @@ HELP
         force = false
         skip_dump = false
         templates_mode = false
+        lsp_mode = false
         zip_output : Path? = nil
 
         parser = OptionParser.new do |opts|
@@ -201,6 +251,7 @@ HELP
           opts.on("-o PATH", "--output=PATH", "Package export templates zip") { |p| zip_output = Path.new(p) }
           opts.on("-f", "--force", "Force re-download") { force = true }
           opts.on("--skip-dump", "Skip dumping extension_api.json") { skip_dump = true }
+          opts.on("--lsp", "Download and configure Crystalline LSP") { lsp_mode = true }
           opts.on("-h", "--help", "Show help") { print_help; exit 0 }
         end
 
@@ -215,6 +266,10 @@ HELP
 
         root = Core::Env::ROOT_DIR
         target_version = resolve_version(root, cli_ver || (remaining.empty? ? nil : remaining[0]))
+
+        if lsp_mode
+          return setup_crystalline(root, force)
+        end
 
         if templates_mode
           return install_templates(root, target_version, zip_output)

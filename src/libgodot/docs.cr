@@ -1805,8 +1805,10 @@ module Lapis
   # #### 3. Sandboxed Language Server (Crystalline)
   #
   # While built-in code completion and syntax highlighting function out-of-the-box,
-  # LibGodot includes an optional background bridge for `crystalline`:
-  # - Auto-detects `crystalline` binary in `PATH`.
+  # LibGodot integrates the official `crystalline` Language Server Protocol daemon:
+  # - Auto-detects `crystalline` binary in `PATH`, local `bin/`, or Lapis install directory.
+  # - Bundled directly into `{app}\bin` via the Windows installer (`lapis-setup-windows-x86_64.exe`).
+  # - Available via GitHub releases or automatically downloaded via `lapis setup --lsp` and `scripts/windows/install_deps.ps1`.
   # - Sandboxed in a protected background worker; if Crystalline crashes or errors, it fails gracefully without interrupting the editor.
   #
   module J_FIRST_CLASS_CRYSTAL_SCRIPTS

@@ -42,12 +42,12 @@ Write-LapisHeader
 
 # 1. Dependency Resolution
 if (-not $SkipDeps) {
-    Write-LapisLog "INFO" "Verifying prerequisite tools (Crystal, LLDB, Make, Git)..."
+    Write-LapisLog "INFO" "Verifying prerequisite tools (Crystal, LLDB, Make, Git, Crystalline)..."
     $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path -ErrorAction SilentlyContinue
     $depsScript = if ($scriptDir) { Join-Path $scriptDir "install_deps.ps1" } else { $null }
 
     if ($depsScript -and (Test-Path $depsScript)) {
-        & $depsScript -Tools @("crystal", "lldb", "make", "git")
+        & $depsScript -Tools @("crystal", "lldb", "make", "git", "crystalline")
     } else {
         # Remote execution or standalone: download install_deps.ps1
         $tempDeps = Join-Path $env:TEMP "lapis_install_deps_$(Get-Random).ps1"
@@ -55,7 +55,7 @@ if (-not $SkipDeps) {
         try {
             [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
             Invoke-WebRequest -Uri $depsUrl -OutFile $tempDeps -UseBasicParsing
-            & $tempDeps -Tools @("crystal", "lldb", "make", "git")
+            & $tempDeps -Tools @("crystal", "lldb", "make", "git", "crystalline")
         } catch {
             Write-LapisLog "WARN" "Could not execute automated dependency installer. Proceeding with Lapis installation..."
         } finally {

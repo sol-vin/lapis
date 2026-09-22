@@ -14,8 +14,24 @@ module Lapis
     end
 
     def initialize
-      # Check if crystalline is available in system PATH
-      if found = Process.find_executable("crystalline")
+      # Check if crystalline is available in system PATH or common local candidate paths
+      found = Process.find_executable("crystalline")
+      unless found
+        candidates = [
+          "bin/crystalline.exe",
+          "bin/crystalline",
+          "../bin/crystalline.exe",
+          "../bin/crystalline",
+        ]
+        {% if flag?(:windows) %}
+          if local_app_data = ENV["LOCALAPPDATA"]?
+            candidates << File.join(local_app_data, "Programs", "Lapis", "bin", "crystalline.exe")
+          end
+        {% end %}
+        found = candidates.find { |p| File.exists?(p) }
+      end
+
+      if found
         @server_path = found
         @enabled = true
       else

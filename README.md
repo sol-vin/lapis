@@ -441,7 +441,7 @@ Low-level environment setup and cross-compilation wrapper scripts:
     </tr>
     <tr>
       <td><a href="scripts/windows/install_deps.ps1"><code>scripts/windows/install_deps.ps1</code></a></td>
-      <td>PowerShell automated dependency installer for Windows. Downloads and verifies runtime DLLs, LLVM/LLDB tooling, and build dependencies.</td>
+      <td>PowerShell automated dependency installer for Windows. Downloads and verifies runtime DLLs, LLVM/LLDB tooling, Crystalline LSP, and build dependencies.</td>
     </tr>
     <tr>
       <td><a href="scripts/windows/install.ps1"><code>scripts/windows/install.ps1</code></a></td>

@@ -446,6 +446,20 @@ CONTROL
           safe_copy(deps_script, stage_dir.join("install_deps.ps1"))
         end
 
+        # 3. Stage crystalline.exe if present (for bundling into {app}\bin)
+        crystalline_candidates = [
+          root.join("bin/crystalline#{Core::Env.exe_ext}"),
+          root.join("scratch/crystalline/bin/crystalline#{Core::Env.exe_ext}"),
+        ]
+        if found_sys = Process.find_executable("crystalline")
+          crystalline_candidates << Path.new(found_sys)
+        end
+
+        if crystalline_exe = crystalline_candidates.find { |p| File.exists?(p) }
+          safe_copy(crystalline_exe, stage_dir.join("crystalline.exe"))
+          Core::Logger.info("Staged Crystalline LSP binary (#{crystalline_exe}) for installer payload")
+        end
+
         # 5. Compile with Inno Setup Compiler (ISCC)
         iss_path = root.join("packaging/windows/lapis_installer.iss")
         unless File.exists?(iss_path)
