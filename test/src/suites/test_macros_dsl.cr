@@ -3,6 +3,8 @@
 # =============================================================================
 
 # Test class exercising declarative group, onready, and unique_node macros
+include Lapis::Test
+
 node GroupDslTestNode < Godot::Node do
   group "enemies", "flammable"
 
@@ -225,10 +227,10 @@ test_macros_dsl "Type-safe signal listeners with converted arguments (on_<signal
 
   target.emit_multi_arg_event(404, "Not Found", 3.14)
 
-  TestFramework.assert_true listener_invoked, "on_multi_arg_event callback should be invoked"
-  TestFramework.assert_eq received_code, 404
-  TestFramework.assert_eq received_label, "Not Found"
-  TestFramework.assert_true (received_ratio - 3.14).abs < 0.001
+  assert_true listener_invoked, "on_multi_arg_event callback should be invoked"
+  assert_eq received_code, 404
+  assert_eq received_label, "Not Found"
+  assert_true (received_ratio - 3.14).abs < 0.001
 
   target.disconnect("multi_arg_event")
 end
@@ -242,7 +244,7 @@ test_macros_dsl "Parameterless type-safe signal listeners (on_<signal>)" do
   end
 
   target.emit_battle_started
-  TestFramework.assert_true called, "on_battle_started should trigger with zero-argument block"
+  assert_true called, "on_battle_started should trigger with zero-argument block"
   target.disconnect("battle_started")
 end
 
@@ -259,7 +261,7 @@ test_macros_dsl "One-shot type-safe signal listener (on_<signal>_once)" do
   target.emit_test_event_fired(2)
   target.emit_test_event_fired(3)
 
-  TestFramework.assert_eq invocation_count, 1, "on_<signal>_once should trigger exactly once"
+  assert_eq invocation_count, 1, "on_<signal>_once should trigger exactly once"
 end
 
 test_macros_dsl "BoundSignal#connect_one_shot automatically disconnects" do
@@ -273,19 +275,19 @@ test_macros_dsl "BoundSignal#connect_one_shot automatically disconnects" do
   target.test_event_fired.emit(10)
   target.test_event_fired.emit(20)
 
-  TestFramework.assert_eq invocation_count, 1, "connect_one_shot should trigger only once"
+  assert_eq invocation_count, 1, "connect_one_shot should trigger only once"
 end
 
 test_macros_dsl "Signal connecting to method symbol on target object" do
   emitter = GroupDslTestNode.new
   listener = GroupDslTestNode.new
 
-  TestFramework.assert_false listener.method_called_by_symbol
+  assert_false listener.method_called_by_symbol
 
   emitter.battle_started.connect(listener, :trigger_method)
   emitter.emit_battle_started
 
-  TestFramework.assert_true listener.method_called_by_symbol, "Signal connected via method symbol should invoke method on target"
+  assert_true listener.method_called_by_symbol, "Signal connected via method symbol should invoke method on target"
   emitter.disconnect("battle_started")
   emitter.destroy
   listener.destroy
@@ -294,17 +296,17 @@ end
 test_macros_dsl "Signal introspection: has_signal? and signal_connection_count" do
   target = PropertyTestTarget.new
 
-  TestFramework.assert_true target.has_signal?("test_event_fired")
-  TestFramework.assert_true target.has_signal?("multi_arg_event")
-  TestFramework.assert_false target.has_signal?("ghost_non_existent_signal")
+  assert_true target.has_signal?("test_event_fired")
+  assert_true target.has_signal?("multi_arg_event")
+  assert_false target.has_signal?("ghost_non_existent_signal")
 
-  TestFramework.assert_eq target.signal_connection_count("test_event_fired"), 0
+  assert_eq target.signal_connection_count("test_event_fired"), 0
 
   sub = target.test_event_fired.connect { |_| }
-  TestFramework.assert_eq target.signal_connection_count("test_event_fired"), 1
+  assert_eq target.signal_connection_count("test_event_fired"), 1
 
   target.disconnect("test_event_fired")
-  TestFramework.assert_eq target.signal_connection_count("test_event_fired"), 0
+  assert_eq target.signal_connection_count("test_event_fired"), 0
 end
 
 test_macros_dsl "Declarative class-level group macro and in_group? predicate" do
@@ -313,9 +315,9 @@ test_macros_dsl "Declarative class-level group macro and in_group? predicate" do
   # Manually trigger _ready dispatch for unparented test node
   node._godot_call_virtual("_ready", 0.0)
 
-  TestFramework.assert_true node.in_group?("enemies"), "Node should be added to 'enemies' group via group macro"
-  TestFramework.assert_true node.in_group?("flammable"), "Node should be added to 'flammable' group via group macro"
-  TestFramework.assert_false node.in_group?("allies"), "Node should not be in unassigned group"
+  assert_true node.in_group?("enemies"), "Node should be added to 'enemies' group via group macro"
+  assert_true node.in_group?("flammable"), "Node should be added to 'flammable' group via group macro"
+  assert_false node.in_group?("allies"), "Node should not be in unassigned group"
   node.destroy
 end
 
@@ -327,21 +329,21 @@ test_macros_dsl "Hierarchy cast helpers on Node (get_parent_as, find_child_as, g
 
   # get_parent_as
   casted_parent = child.get_parent_as(Godot::Node2D)
-  TestFramework.assert_not_nil casted_parent
-  TestFramework.assert_true casted_parent.is_a?(Godot::Node2D)
+  assert_not_nil casted_parent
+  assert_true casted_parent.is_a?(Godot::Node2D)
 
   # find_child_as
   found_child = parent.find_child_as(Godot::Node2D, "MyUniqueChild")
-  TestFramework.assert_not_nil found_child
-  TestFramework.assert_true found_child.is_a?(Godot::Node2D)
+  assert_not_nil found_child
+  assert_true found_child.is_a?(Godot::Node2D)
 
   # Negative search returns nil without crashing
   not_found = parent.find_child_as(Godot::Node2D, "NonExistentChild_999")
-  TestFramework.assert_nil not_found
+  assert_nil not_found
 
   # get_unique_node_as
   unique_child = parent.get_unique_node_as(Godot::Node2D, "MyUniqueChild")
-  TestFramework.assert_not_nil unique_child
+  assert_not_nil unique_child
 
   parent.remove_child(child)
   child.destroy
@@ -349,17 +351,17 @@ test_macros_dsl "Hierarchy cast helpers on Node (get_parent_as, find_child_as, g
 end
 
 test_macros_dsl "Singletons accessors on Godot module" do
-  TestFramework.assert_not_nil Godot.input
-  TestFramework.assert_not_nil Godot.engine
-  TestFramework.assert_not_nil Godot.os
-  TestFramework.assert_not_nil Godot.project_settings
-  TestFramework.assert_not_nil Godot.display_server
-  TestFramework.assert_not_nil Godot.audio_server
-  TestFramework.assert_not_nil Godot.performance
+  assert_not_nil Godot.input
+  assert_not_nil Godot.engine
+  assert_not_nil Godot.os
+  assert_not_nil Godot.project_settings
+  assert_not_nil Godot.display_server
+  assert_not_nil Godot.audio_server
+  assert_not_nil Godot.performance
 
   # Singleton instances should be idempotent
-  TestFramework.assert_eq Godot.input.object_id, Godot.input.object_id
-  TestFramework.assert_eq Godot.engine.object_id, Godot.engine.object_id
+  assert_eq Godot.input.object_id, Godot.input.object_id
+  assert_eq Godot.engine.object_id, Godot.engine.object_id
 end
 
 test_macros_dsl "Input convenience query helpers" do
@@ -369,43 +371,43 @@ test_macros_dsl "Input convenience query helpers" do
   just_released = Godot::Input.action_just_released?("ui_accept")
   axis_val = Godot::Input.axis("ui_left", "ui_right")
 
-  TestFramework.assert_true pressed.is_a?(Bool)
-  TestFramework.assert_true just_pressed.is_a?(Bool)
-  TestFramework.assert_true just_released.is_a?(Bool)
-  TestFramework.assert_true axis_val.is_a?(Float32)
+  assert_true pressed.is_a?(Bool)
+  assert_true just_pressed.is_a?(Bool)
+  assert_true just_released.is_a?(Bool)
+  assert_true axis_val.is_a?(Float32)
 end
 
 test_macros_dsl "Top-level math constructor helpers: vec2 and vec3" do
   v2 = vec2(15.5, -42.0)
-  TestFramework.assert_true v2.is_a?(Vector2)
-  TestFramework.assert_true (v2.x - 15.5_f32).abs < 0.001
-  TestFramework.assert_true (v2.y - (-42.0_f32)).abs < 0.001
+  assert_true v2.is_a?(Vector2)
+  assert_true (v2.x - 15.5_f32).abs < 0.001
+  assert_true (v2.y - (-42.0_f32)).abs < 0.001
 
   v3 = vec3(1.0, 2.5, -9.9)
-  TestFramework.assert_true v3.is_a?(Vector3)
-  TestFramework.assert_true (v3.x - 1.0_f32).abs < 0.001
-  TestFramework.assert_true (v3.y - 2.5_f32).abs < 0.001
-  TestFramework.assert_true (v3.z - (-9.9_f32)).abs < 0.001
+  assert_true v3.is_a?(Vector3)
+  assert_true (v3.x - 1.0_f32).abs < 0.001
+  assert_true (v3.y - 2.5_f32).abs < 0.001
+  assert_true (v3.z - (-9.9_f32)).abs < 0.001
 end
 
 test_macros_dsl "Direct Crystal enum property binding and property dispatch" do
   node = EnumDslTestNode.new
-  TestFramework.assert_eq node.role, DslTestRole::Knight
-  TestFramework.assert_eq node.role_id, 0
+  assert_eq node.role, DslTestRole::Knight
+  assert_eq node.role_id, 0
 
   # Update via direct Crystal setter
   node.role = DslTestRole::Wizard
-  TestFramework.assert_eq node.role, DslTestRole::Wizard
+  assert_eq node.role, DslTestRole::Wizard
 
   # Dispatch set property as Godot does via pointer
   val_thief = 5_i64
   node._godot_set_property("role", pointerof(val_thief).as(Void*))
-  TestFramework.assert_eq node.role, DslTestRole::Thief
+  assert_eq node.role, DslTestRole::Thief
 
   # Dispatch get property
   val_out = 0_i64
   node._godot_get_property("role", pointerof(val_out).as(Void*))
-  TestFramework.assert_eq val_out, 5_i64
+  assert_eq val_out, 5_i64
 
   node.destroy
 end
@@ -420,26 +422,26 @@ test_macros_dsl "Transferring Crystal enum node to GDScript: reading, setting, a
 
   # GDScript reads initial enum value (Knight = 0)
   val = controller.call_i64("inspect_enum_property", enum_node, "role")
-  TestFramework.assert_eq val, 0_i64, "GDScript should read enum value 0 for Knight"
+  assert_eq val, 0_i64, "GDScript should read enum value 0 for Knight"
 
   # GDScript checks PROPERTY_HINT_ENUM
   hint = controller.call_i64("get_enum_property_hint", enum_node, "role")
-  TestFramework.assert_eq hint, 2_i64, "GDScript should identify PROPERTY_HINT_ENUM (2)"
+  assert_eq hint, 2_i64, "GDScript should identify PROPERTY_HINT_ENUM (2)"
 
   # GDScript checks enum hint_string format
   hint_str = controller.call_str("get_enum_property_hint_string", enum_node, "role")
-  TestFramework.assert_true hint_str.includes?("Knight:0"), "Hint string must include Knight:0"
-  TestFramework.assert_true hint_str.includes?("Wizard:1"), "Hint string must include Wizard:1"
-  TestFramework.assert_true hint_str.includes?("Thief:5"), "Hint string must include Thief:5"
+  assert_true hint_str.includes?("Knight:0"), "Hint string must include Knight:0"
+  assert_true hint_str.includes?("Wizard:1"), "Hint string must include Wizard:1"
+  assert_true hint_str.includes?("Thief:5"), "Hint string must include Thief:5"
 
   # GDScript writes new enum value (Thief = 5)
   success = controller.call_bool("set_enum_property", enum_node, "role", 5_i64)
-  TestFramework.assert_true success, "GDScript set_enum_property should succeed"
-  TestFramework.assert_eq enum_node.role, DslTestRole::Thief, "Crystal node must reflect updated enum state"
+  assert_true success, "GDScript set_enum_property should succeed"
+  assert_eq enum_node.role, DslTestRole::Thief, "Crystal node must reflect updated enum state"
 
   # Test ClassDB integer constant registration
   classdb_val = controller.call_i64("query_classdb_enum_constant", "EnumDslTestNode", "Thief")
-  TestFramework.assert_eq classdb_val, 5_i64, "ClassDB should return 5 for EnumDslTestNode.Thief"
+  assert_eq classdb_val, 5_i64, "ClassDB should return 5 for EnumDslTestNode.Thief"
 
   root.remove_child(enum_node)
   root.remove_child(controller)
@@ -450,132 +452,132 @@ end
 
 test_macros_dsl "Exhaustive @Export property annotation metadata and hint validation in ClassDB" do
   entry = Godot::ClassRegistry.find("ExhaustiveExportMacroNode")
-  TestFramework.assert_not_nil entry, "ExhaustiveExportMacroNode must be registered"
+  assert_not_nil entry, "ExhaustiveExportMacroNode must be registered"
   props = entry.not_nil!.properties
 
   # Range
   p_range = props.find { |p| p.name == "range_val" }
-  TestFramework.assert_not_nil p_range
-  TestFramework.assert_eq p_range.not_nil!.hint, 1_u32 # PROPERTY_HINT_RANGE
-  TestFramework.assert_eq p_range.not_nil!.hint_string, "0.0,100.0,2.5"
+  assert_not_nil p_range
+  assert_eq p_range.not_nil!.hint, 1_u32 # PROPERTY_HINT_RANGE
+  assert_eq p_range.not_nil!.hint_string, "0.0,100.0,2.5"
 
   # File
   p_file = props.find { |p| p.name == "file_val" }
-  TestFramework.assert_not_nil p_file
-  TestFramework.assert_eq p_file.not_nil!.hint, 13_u32 # PROPERTY_HINT_FILE
-  TestFramework.assert_eq p_file.not_nil!.hint_string, "*.tres"
+  assert_not_nil p_file
+  assert_eq p_file.not_nil!.hint, 13_u32 # PROPERTY_HINT_FILE
+  assert_eq p_file.not_nil!.hint_string, "*.tres"
 
   # Dir
   p_dir = props.find { |p| p.name == "dir_val" }
-  TestFramework.assert_not_nil p_dir
-  TestFramework.assert_eq p_dir.not_nil!.hint, 14_u32 # PROPERTY_HINT_DIR
+  assert_not_nil p_dir
+  assert_eq p_dir.not_nil!.hint, 14_u32 # PROPERTY_HINT_DIR
 
   # Multiline
   p_multi = props.find { |p| p.name == "multiline_val" }
-  TestFramework.assert_not_nil p_multi
-  TestFramework.assert_eq p_multi.not_nil!.hint, 18_u32 # PROPERTY_HINT_MULTILINE_TEXT
+  assert_not_nil p_multi
+  assert_eq p_multi.not_nil!.hint, 18_u32 # PROPERTY_HINT_MULTILINE_TEXT
 
   # Placeholder
   p_place = props.find { |p| p.name == "placeholder_val" }
-  TestFramework.assert_not_nil p_place
-  TestFramework.assert_eq p_place.not_nil!.hint, 20_u32 # PROPERTY_HINT_PLACEHOLDER_TEXT
-  TestFramework.assert_eq p_place.not_nil!.hint_string, "Enter name..."
+  assert_not_nil p_place
+  assert_eq p_place.not_nil!.hint, 20_u32 # PROPERTY_HINT_PLACEHOLDER_TEXT
+  assert_eq p_place.not_nil!.hint_string, "Enter name..."
 
   # ColorNoAlpha
   p_color = props.find { |p| p.name == "opaque_color" }
-  TestFramework.assert_not_nil p_color
-  TestFramework.assert_eq p_color.not_nil!.hint, 21_u32 # PROPERTY_HINT_COLOR_NO_ALPHA
+  assert_not_nil p_color
+  assert_eq p_color.not_nil!.hint, 21_u32 # PROPERTY_HINT_COLOR_NO_ALPHA
 
   # ExpEasing
   p_ease = props.find { |p| p.name == "easing_val" }
-  TestFramework.assert_not_nil p_ease
-  TestFramework.assert_eq p_ease.not_nil!.hint, 4_u32 # PROPERTY_HINT_EXP_EASING
+  assert_not_nil p_ease
+  assert_eq p_ease.not_nil!.hint, 4_u32 # PROPERTY_HINT_EXP_EASING
 
   # NodePath
   p_npath = props.find { |p| p.name == "camera_path" }
-  TestFramework.assert_not_nil p_npath
-  TestFramework.assert_eq p_npath.not_nil!.hint, 26_u32 # PROPERTY_HINT_NODE_PATH_VALID_TYPES
-  TestFramework.assert_eq p_npath.not_nil!.hint_string, "Camera3D"
+  assert_not_nil p_npath
+  assert_eq p_npath.not_nil!.hint, 26_u32 # PROPERTY_HINT_NODE_PATH_VALID_TYPES
+  assert_eq p_npath.not_nil!.hint_string, "Camera3D"
 
   # Storage
   p_stor = props.find { |p| p.name == "hidden_storage" }
-  TestFramework.assert_not_nil p_stor
-  TestFramework.assert_eq p_stor.not_nil!.usage, 2_u32 # PROPERTY_USAGE_STORAGE
+  assert_not_nil p_stor
+  assert_eq p_stor.not_nil!.usage, 2_u32 # PROPERTY_USAGE_STORAGE
 
   # Flags 2D/3D Layers
   p_r2d = props.find { |p| p.name == "render2d_flags" }
-  TestFramework.assert_not_nil p_r2d
-  TestFramework.assert_eq p_r2d.not_nil!.hint, 7_u32 # PROPERTY_HINT_LAYERS_2D_RENDER
+  assert_not_nil p_r2d
+  assert_eq p_r2d.not_nil!.hint, 7_u32 # PROPERTY_HINT_LAYERS_2D_RENDER
 
   p_p2d = props.find { |p| p.name == "physics2d_flags" }
-  TestFramework.assert_not_nil p_p2d
-  TestFramework.assert_eq p_p2d.not_nil!.hint, 8_u32 # PROPERTY_HINT_LAYERS_2D_PHYSICS
+  assert_not_nil p_p2d
+  assert_eq p_p2d.not_nil!.hint, 8_u32 # PROPERTY_HINT_LAYERS_2D_PHYSICS
 
   p_p3d = props.find { |p| p.name == "physics3d_flags" }
-  TestFramework.assert_not_nil p_p3d
-  TestFramework.assert_eq p_p3d.not_nil!.hint, 11_u32 # PROPERTY_HINT_LAYERS_3D_PHYSICS
+  assert_not_nil p_p3d
+  assert_eq p_p3d.not_nil!.hint, 11_u32 # PROPERTY_HINT_LAYERS_3D_PHYSICS
 
   # Bitflags enum
   p_flags = props.find { |p| p.name == "skills" }
-  TestFramework.assert_not_nil p_flags
-  TestFramework.assert_eq p_flags.not_nil!.hint, 6_u32 # PROPERTY_HINT_FLAGS
-  TestFramework.assert_eq p_flags.not_nil!.hint_string, "Melee,Magic,Archery"
+  assert_not_nil p_flags
+  assert_eq p_flags.not_nil!.hint, 6_u32 # PROPERTY_HINT_FLAGS
+  assert_eq p_flags.not_nil!.hint_string, "Melee,Magic,Archery"
 
   # Grouping
   grp = props.find { |p| p.usage == 64_u32 && p.name == "Combat" }
-  TestFramework.assert_not_nil grp
+  assert_not_nil grp
 
   sub = props.find { |p| p.usage == 256_u32 && p.name == "Defenses" }
-  TestFramework.assert_not_nil sub
+  assert_not_nil sub
 end
 
 test_macros_dsl "Lifecycle hooks: _enter_tree and _exit_tree callbacks" do
   node = Godot.create(LifecycleMacroTestNode)
-  TestFramework.assert_false node.enter_tree_called
-  TestFramework.assert_false node.exit_tree_called
+  assert_false node.enter_tree_called
+  assert_false node.exit_tree_called
 
   root.add_child(node)
   node._godot_call_virtual("_enter_tree", 0.0)
-  TestFramework.assert_true node.enter_tree_called, "_enter_tree should be invoked"
+  assert_true node.enter_tree_called, "_enter_tree should be invoked"
 
   root.remove_child(node)
   node._godot_call_virtual("_exit_tree", 0.0)
-  TestFramework.assert_true node.exit_tree_called, "_exit_tree should be invoked"
+  assert_true node.exit_tree_called, "_exit_tree should be invoked"
 
   node.destroy
 end
 
 test_macros_dsl "Comprehensive grouping DSL: category, group, subgroup boundaries and sentinels in ClassRegistry" do
   entry = Godot::ClassRegistry.find("ComprehensiveGroupingTestNode")
-  TestFramework.assert_not_nil entry, "ComprehensiveGroupingTestNode must be registered in ClassRegistry"
+  assert_not_nil entry, "ComprehensiveGroupingTestNode must be registered in ClassRegistry"
   props = entry.not_nil!.properties
 
   # Verify initial ungrouped property
   p_pre = props.find { |p| p.name == "pre_group_stat" }
-  TestFramework.assert_not_nil p_pre
-  TestFramework.assert_eq p_pre.not_nil!.usage, 6_u32
+  assert_not_nil p_pre
+  assert_eq p_pre.not_nil!.usage, 6_u32
 
   # Category "Combat Systems"
   p_cat = props.find { |p| p.usage == 128_u32 && p.name == "Combat Systems" }
-  TestFramework.assert_not_nil p_cat, "Category 'Combat Systems' must be registered with usage 128"
+  assert_not_nil p_cat, "Category 'Combat Systems' must be registered with usage 128"
 
   # Group "Attributes"
   p_grp = props.find { |p| p.usage == 64_u32 && p.name == "Attributes" }
-  TestFramework.assert_not_nil p_grp, "Group 'Attributes' must be registered with usage 64"
-  TestFramework.assert_eq p_grp.not_nil!.hint_string, "attr_"
+  assert_not_nil p_grp, "Group 'Attributes' must be registered with usage 64"
+  assert_eq p_grp.not_nil!.hint_string, "attr_"
 
   # Subgroup "Defenses"
   p_sub = props.find { |p| p.usage == 256_u32 && p.name == "Defenses" }
-  TestFramework.assert_not_nil p_sub, "Subgroup 'Defenses' must be registered with usage 256"
-  TestFramework.assert_eq p_sub.not_nil!.hint_string, "attr_def_"
+  assert_not_nil p_sub, "Subgroup 'Defenses' must be registered with usage 256"
+  assert_eq p_sub.not_nil!.hint_string, "attr_def_"
 
   # Verify subgroup boundary closure sentinel (name: "", usage: 256)
   sub_sentinels = props.select { |p| p.usage == 256_u32 && p.name == "" }
-  TestFramework.assert_eq sub_sentinels.size, 1, "Subgroup boundary must emit an empty sentinel with usage 256"
+  assert_eq sub_sentinels.size, 1, "Subgroup boundary must emit an empty sentinel with usage 256"
 
   # Verify group boundary closure sentinel (name: "", usage: 64)
   grp_sentinels = props.select { |p| p.usage == 64_u32 && p.name == "" }
-  TestFramework.assert_eq grp_sentinels.size, 1, "Group boundary must emit an empty sentinel with usage 64"
+  assert_eq grp_sentinels.size, 1, "Group boundary must emit an empty sentinel with usage 64"
 
   # Verify relative ordering across boundaries:
   sub_idx = props.index { |p| p.usage == 256_u32 && p.name == "Defenses" }.not_nil!
@@ -585,37 +587,37 @@ test_macros_dsl "Comprehensive grouping DSL: category, group, subgroup boundarie
   grp_sentinel_idx = props.index { |p| p.usage == 64_u32 && p.name == "" }.not_nil!
   unscoped_idx = props.index { |p| p.name == "category_unscoped" }.not_nil!
 
-  TestFramework.assert_true sub_idx < armor_idx, "Defenses subgroup must precede its properties"
-  TestFramework.assert_true armor_idx < sub_sentinel_idx, "attr_def_armor must precede subgroup sentinel"
-  TestFramework.assert_true sub_sentinel_idx < speed_idx, "attr_speed must follow subgroup sentinel (restored to Attributes group)"
-  TestFramework.assert_true speed_idx < grp_sentinel_idx, "attr_speed must precede group sentinel"
-  TestFramework.assert_true grp_sentinel_idx < unscoped_idx, "category_unscoped must follow group sentinel (restored to category)"
+  assert_true sub_idx < armor_idx, "Defenses subgroup must precede its properties"
+  assert_true armor_idx < sub_sentinel_idx, "attr_def_armor must precede subgroup sentinel"
+  assert_true sub_sentinel_idx < speed_idx, "attr_speed must follow subgroup sentinel (restored to Attributes group)"
+  assert_true speed_idx < grp_sentinel_idx, "attr_speed must precede group sentinel"
+  assert_true grp_sentinel_idx < unscoped_idx, "category_unscoped must follow group sentinel (restored to category)"
 
   # Verify all diverse export types inside group
   p_health = props.find { |p| p.name == "attr_health" }.not_nil!
-  TestFramework.assert_eq p_health.hint, 1_u32 # PROPERTY_HINT_RANGE
-  TestFramework.assert_eq p_health.hint_string, "0.0,100.0,1.0"
+  assert_eq p_health.hint, 1_u32 # PROPERTY_HINT_RANGE
+  assert_eq p_health.hint_string, "0.0,100.0,1.0"
 
   p_role = props.find { |p| p.name == "attr_role" }.not_nil!
-  TestFramework.assert_eq p_role.hint, 2_u32 # PROPERTY_HINT_ENUM
+  assert_eq p_role.hint, 2_u32 # PROPERTY_HINT_ENUM
 
   p_skills = props.find { |p| p.name == "attr_skills" }.not_nil!
-  TestFramework.assert_eq p_skills.hint, 6_u32 # PROPERTY_HINT_FLAGS
+  assert_eq p_skills.hint, 6_u32 # PROPERTY_HINT_FLAGS
 
   p_config = props.find { |p| p.name == "attr_config" }.not_nil!
-  TestFramework.assert_eq p_config.hint, 13_u32 # PROPERTY_HINT_FILE
+  assert_eq p_config.hint, 13_u32 # PROPERTY_HINT_FILE
 
   p_bio = props.find { |p| p.name == "attr_bio" }.not_nil!
-  TestFramework.assert_eq p_bio.hint, 18_u32 # PROPERTY_HINT_MULTILINE_TEXT
+  assert_eq p_bio.hint, 18_u32 # PROPERTY_HINT_MULTILINE_TEXT
 
   p_tint = props.find { |p| p.name == "attr_tint" }.not_nil!
-  TestFramework.assert_eq p_tint.hint, 21_u32 # PROPERTY_HINT_COLOR_NO_ALPHA
+  assert_eq p_tint.hint, 21_u32 # PROPERTY_HINT_COLOR_NO_ALPHA
 
   p_curve = props.find { |p| p.name == "attr_curve" }.not_nil!
-  TestFramework.assert_eq p_curve.hint, 4_u32 # PROPERTY_HINT_EXP_EASING
+  assert_eq p_curve.hint, 4_u32 # PROPERTY_HINT_EXP_EASING
 
   p_cache = props.find { |p| p.name == "attr_cache_id" }.not_nil!
-  TestFramework.assert_eq p_cache.usage, 2_u32 # PROPERTY_USAGE_STORAGE
+  assert_eq p_cache.usage, 2_u32 # PROPERTY_USAGE_STORAGE
 end
 
 test_macros_dsl "ExportNodePath type resolution: classes, unions, aliases, and strings" do
@@ -625,28 +627,28 @@ test_macros_dsl "ExportNodePath type resolution: classes, unions, aliases, and s
 
   # Direct Godot class type
   p_single = props.find { |p| p.name == "cam_single" }.not_nil!
-  TestFramework.assert_eq p_single.hint, 26_u32 # PROPERTY_HINT_NODE_PATH_VALID_TYPES
-  TestFramework.assert_eq p_single.hint_string, "Camera3D"
+  assert_eq p_single.hint, 26_u32 # PROPERTY_HINT_NODE_PATH_VALID_TYPES
+  assert_eq p_single.hint_string, "Camera3D"
 
   # Union of Godot classes
   p_union = props.find { |p| p.name == "cam_union" }.not_nil!
-  TestFramework.assert_eq p_union.hint, 26_u32
-  TestFramework.assert_eq p_union.hint_string, "Camera3D,Camera2D"
+  assert_eq p_union.hint, 26_u32
+  assert_eq p_union.hint_string, "Camera3D,Camera2D"
 
   # Type alias to single class
   p_alias = props.find { |p| p.name == "cam_alias" }.not_nil!
-  TestFramework.assert_eq p_alias.hint, 26_u32
-  TestFramework.assert_eq p_alias.hint_string, "Camera3D"
+  assert_eq p_alias.hint, 26_u32
+  assert_eq p_alias.hint_string, "Camera3D"
 
   # Type alias to union
   p_union_alias = props.find { |p| p.name == "cam_union_alias" }.not_nil!
-  TestFramework.assert_eq p_union_alias.hint, 26_u32
-  TestFramework.assert_eq p_union_alias.hint_string, "Camera3D,Camera2D"
+  assert_eq p_union_alias.hint, 26_u32
+  assert_eq p_union_alias.hint_string, "Camera3D,Camera2D"
 
   # Classical comma-separated strings
   p_strings = props.find { |p| p.name == "cam_strings" }.not_nil!
-  TestFramework.assert_eq p_strings.hint, 26_u32
-  TestFramework.assert_eq p_strings.hint_string, "Camera3D,Camera2D"
+  assert_eq p_strings.hint, 26_u32
+  assert_eq p_strings.hint_string, "Camera3D,Camera2D"
 end
 
 test_macros_dsl "Runtime property mutation and state integrity on ComprehensiveGroupingTestNode" do
@@ -654,17 +656,17 @@ test_macros_dsl "Runtime property mutation and state integrity on ComprehensiveG
   root.add_child(node)
 
   # Verify properties can be read and set at runtime
-  TestFramework.assert_eq node.attr_def_armor, 25
+  assert_eq node.attr_def_armor, 25
   node.attr_def_armor = 80
-  TestFramework.assert_eq node.attr_def_armor, 80
+  assert_eq node.attr_def_armor, 80
 
-  TestFramework.assert_eq node.category_unscoped, "standalone"
+  assert_eq node.category_unscoped, "standalone"
   node.category_unscoped = "updated"
-  TestFramework.assert_eq node.category_unscoped, "updated"
+  assert_eq node.category_unscoped, "updated"
 
-  TestFramework.assert_eq node.attr_speed, 7.5_f32
+  assert_eq node.attr_speed, 7.5_f32
   node.attr_speed = 12.0_f32
-  TestFramework.assert_eq node.attr_speed, 12.0_f32
+  assert_eq node.attr_speed, 12.0_f32
 
   root.remove_child(node)
   node.destroy
@@ -680,25 +682,25 @@ test_macros_dsl "GDScript interop: inspecting grouped node properties and Export
 
   # Inspect crystal node
   status = controller.call_str("inspect_crystal_node", node)
-  TestFramework.assert_true status.starts_with?("OK:"), "GDScript must inspect ComprehensiveGroupingTestNode"
+  assert_true status.starts_with?("OK:"), "GDScript must inspect ComprehensiveGroupingTestNode"
 
   # Verify GDScript can inspect ExportNodePath hints using helper
   cam_hint = controller.call_i64("get_enum_property_hint", node, "cam_union")
-  TestFramework.assert_eq cam_hint, 26_i64, "cam_union hint must be PROPERTY_HINT_NODE_PATH_VALID_TYPES (26)"
+  assert_eq cam_hint, 26_i64, "cam_union hint must be PROPERTY_HINT_NODE_PATH_VALID_TYPES (26)"
 
   cam_hint_str = controller.call_str("get_enum_property_hint_string", node, "cam_union")
-  TestFramework.assert_eq cam_hint_str, "Camera3D,Camera2D", "cam_union hint_string must be Camera3D,Camera2D"
+  assert_eq cam_hint_str, "Camera3D,Camera2D", "cam_union hint_string must be Camera3D,Camera2D"
 
   alias_hint_str = controller.call_str("get_enum_property_hint_string", node, "cam_union_alias")
-  TestFramework.assert_eq alias_hint_str, "Camera3D,Camera2D", "cam_union_alias hint_string must resolve alias to Camera3D,Camera2D"
+  assert_eq alias_hint_str, "Camera3D,Camera2D", "cam_union_alias hint_string must resolve alias to Camera3D,Camera2D"
 
   # Verify GDScript can read and write grouped properties
   armor_val = controller.call_i64("inspect_enum_property", node, "attr_def_armor")
-  TestFramework.assert_eq armor_val, 25_i64, "GDScript should read initial attr_def_armor value 25"
+  assert_eq armor_val, 25_i64, "GDScript should read initial attr_def_armor value 25"
 
   write_ok = controller.call_bool("set_enum_property", node, "attr_def_armor", 95_i64)
-  TestFramework.assert_true write_ok, "GDScript set_enum_property should succeed for attr_def_armor"
-  TestFramework.assert_eq node.attr_def_armor, 95, "Crystal node must reflect updated attr_def_armor"
+  assert_true write_ok, "GDScript set_enum_property should succeed for attr_def_armor"
+  assert_eq node.attr_def_armor, 95, "Crystal node must reflect updated attr_def_armor"
 
   root.remove_child(node)
   root.remove_child(controller)
@@ -718,7 +720,7 @@ test_macros_dsl "TypedSignal connect and automatic unboxing of primitive and mat
   end
   node.emit_status_ping
   node.emit_status_ping
-  TestFramework.assert_eq ping_count, 2, "Zero-arg TypedSignal connect should fire on each emit"
+  assert_eq ping_count, 2, "Zero-arg TypedSignal connect should fire on each emit"
   sub_ping.unsubscribe
 
   # 2. Multi-arg TypedSignal with primitives (Int32, Float32, String)
@@ -731,9 +733,9 @@ test_macros_dsl "TypedSignal connect and automatic unboxing of primitive and mat
     recv_title = title
   end
   node.emit_level_scored(100, 2.5_f32, "Stage Complete")
-  TestFramework.assert_eq recv_score, 100, "Primitive Int32 should be automatically unboxed"
-  TestFramework.assert_approx_eq recv_bonus, 2.5_f32, 0.001, "Primitive Float32 should be automatically unboxed"
-  TestFramework.assert_eq recv_title, "Stage Complete", "String argument should be unboxed"
+  assert_eq recv_score, 100, "Primitive Int32 should be automatically unboxed"
+  assert_approx_eq recv_bonus, 2.5_f32, 0.001, "Primitive Float32 should be automatically unboxed"
+  assert_eq recv_title, "Stage Complete", "String argument should be unboxed"
   sub_scored.unsubscribe
 
   # 3. Multi-arg TypedSignal with Godot math structs (Vector2, Color)
@@ -744,11 +746,11 @@ test_macros_dsl "TypedSignal connect and automatic unboxing of primitive and mat
     recv_tint = tint
   end
   node.emit_transform_updated(Godot::Vector2.new(42.0_f32, 84.0_f32), Godot::Color.new(0.2_f32, 0.4_f32, 0.6_f32, 1.0_f32))
-  TestFramework.assert_approx_eq recv_pos.x, 42.0_f32, 0.001, "Vector2.x should match emitted value"
-  TestFramework.assert_approx_eq recv_pos.y, 84.0_f32, 0.001, "Vector2.y should match emitted value"
-  TestFramework.assert_approx_eq recv_tint.r, 0.2_f32, 0.001, "Color.r should match emitted value"
-  TestFramework.assert_approx_eq recv_tint.g, 0.4_f32, 0.001, "Color.g should match emitted value"
-  TestFramework.assert_approx_eq recv_tint.b, 0.6_f32, 0.001, "Color.b should match emitted value"
+  assert_approx_eq recv_pos.x, 42.0_f32, 0.001, "Vector2.x should match emitted value"
+  assert_approx_eq recv_pos.y, 84.0_f32, 0.001, "Vector2.y should match emitted value"
+  assert_approx_eq recv_tint.r, 0.2_f32, 0.001, "Color.r should match emitted value"
+  assert_approx_eq recv_tint.g, 0.4_f32, 0.001, "Color.g should match emitted value"
+  assert_approx_eq recv_tint.b, 0.6_f32, 0.001, "Color.b should match emitted value"
   sub_transform.unsubscribe
 
   root.remove_child(node)
@@ -767,13 +769,13 @@ test_macros_dsl "TypedSignal ConnectFlags::OneShot and flag bitwise operations" 
   node.emit_status_ping
   node.emit_status_ping
   node.emit_status_ping
-  TestFramework.assert_eq one_shot_count, 1, "OneShot connection should fire exactly once and auto-unsubscribe"
+  assert_eq one_shot_count, 1, "OneShot connection should fire exactly once and auto-unsubscribe"
 
   # Bitwise flags composition test
   combo_flags = Godot::ConnectFlags::Persist | Godot::ConnectFlags::OneShot
-  TestFramework.assert_true combo_flags.includes?(Godot::ConnectFlags::Persist), "Combined flags should include Persist"
-  TestFramework.assert_true combo_flags.includes?(Godot::ConnectFlags::OneShot), "Combined flags should include OneShot"
-  TestFramework.assert_false combo_flags.includes?(Godot::ConnectFlags::Deferred), "Combined flags should not include Deferred"
+  assert_true combo_flags.includes?(Godot::ConnectFlags::Persist), "Combined flags should include Persist"
+  assert_true combo_flags.includes?(Godot::ConnectFlags::OneShot), "Combined flags should include OneShot"
+  assert_false combo_flags.includes?(Godot::ConnectFlags::Deferred), "Combined flags should not include Deferred"
 
   combo_count = 0
   node.single_score.connect(flags: combo_flags) do |val|
@@ -781,11 +783,11 @@ test_macros_dsl "TypedSignal ConnectFlags::OneShot and flag bitwise operations" 
   end
   node.emit_single_score(50)
   node.emit_single_score(50)
-  TestFramework.assert_eq combo_count, 50, "Combined flags with OneShot should fire only once"
+  assert_eq combo_count, 50, "Combined flags with OneShot should fire only once"
 
   # Verify Deferred flag bitwise configuration and connection
   def_flags = Godot::ConnectFlags::Deferred | Godot::ConnectFlags::OneShot
-  TestFramework.assert_true def_flags.includes?(Godot::ConnectFlags::Deferred), "Deferred flag bitwise configuration valid"
+  assert_true def_flags.includes?(Godot::ConnectFlags::Deferred), "Deferred flag bitwise configuration valid"
   node.single_score.connect(flags: def_flags) do |_|
     # Deferred callable accepted by Godot engine message queue
   end
@@ -807,7 +809,7 @@ test_macros_dsl "TypedSignal cooperative await with typed return values" do
   3.times { Fiber.yield }
   node.emit_status_ping
   5.times { Fiber.yield }
-  TestFramework.assert_eq nil_res, "was_nil", "Zero-arg await should return nil"
+  assert_eq nil_res, "was_nil", "Zero-arg await should return nil"
 
   # 2. Single-arg await returns T directly (Int32)
   single_res = 0
@@ -817,7 +819,7 @@ test_macros_dsl "TypedSignal cooperative await with typed return values" do
   3.times { Fiber.yield }
   node.emit_single_score(999)
   5.times { Fiber.yield }
-  TestFramework.assert_eq single_res, 999, "Single-arg await should return unboxed T directly"
+  assert_eq single_res, 999, "Single-arg await should return unboxed T directly"
 
   # 3. Multi-arg await returns Tuple(*T)
   scored_score = 0
@@ -832,9 +834,9 @@ test_macros_dsl "TypedSignal cooperative await with typed return values" do
   3.times { Fiber.yield }
   node.emit_level_scored(555, 3.25_f32, "Victory")
   5.times { Fiber.yield }
-  TestFramework.assert_eq scored_score, 555, "Tuple return should correctly unbox first element (Int32)"
-  TestFramework.assert_approx_eq scored_bonus, 3.25_f32, 0.001, "Tuple return should correctly unbox second element (Float32)"
-  TestFramework.assert_eq scored_title, "Victory", "Tuple return should correctly unbox third element (String)"
+  assert_eq scored_score, 555, "Tuple return should correctly unbox first element (Int32)"
+  assert_approx_eq scored_bonus, 3.25_f32, 0.001, "Tuple return should correctly unbox second element (Float32)"
+  assert_eq scored_title, "Victory", "Tuple return should correctly unbox third element (String)"
 
   root.remove_child(node)
   node.destroy
@@ -853,12 +855,12 @@ test_macros_dsl "Virtual input dispatch via _input and _unhandled_input" do
   args_buf = pointerof(motion_ptr)
 
   node._godot_call_virtual_with_data("_input", args_buf.as(Void**), Pointer(Void).null)
-  TestFramework.assert_true node.input_received, "_input should have been triggered"
+  assert_true node.input_received, "_input should have been triggered"
 
   node._godot_call_virtual_with_data("_unhandled_input", args_buf.as(Void**), Pointer(Void).null)
-  TestFramework.assert_true node.unhandled_received, "_unhandled_input should have been triggered"
-  TestFramework.assert_approx_eq node.last_relative_x, 14.5_f32, 0.01, "MouseMotion relative X should be extracted"
-  TestFramework.assert_approx_eq node.last_relative_y, -8.25_f32, 0.01, "MouseMotion relative Y should be extracted"
+  assert_true node.unhandled_received, "_unhandled_input should have been triggered"
+  assert_approx_eq node.last_relative_x, 14.5_f32, 0.01, "MouseMotion relative X should be extracted"
+  assert_approx_eq node.last_relative_y, -8.25_f32, 0.01, "MouseMotion relative Y should be extracted"
 
   root.remove_child(node)
   node.destroy
@@ -867,30 +869,30 @@ end
 test_macros_dsl "Input singleton zero-allocation polling and accumulated input toggle" do
   orig_accum = Godot::Input.use_accumulated_input
   Godot::Input.use_accumulated_input = false
-  TestFramework.assert_false Godot::Input.use_accumulated_input, "use_accumulated_input should be false after setting"
+  assert_false Godot::Input.use_accumulated_input, "use_accumulated_input should be false after setting"
   Godot::Input.use_accumulated_input = true
-  TestFramework.assert_true Godot::Input.use_accumulated_input, "use_accumulated_input should be true after setting"
+  assert_true Godot::Input.use_accumulated_input, "use_accumulated_input should be true after setting"
   Godot::Input.use_accumulated_input = orig_accum
 
   # Zero allocation vector polling
   vec = Godot::Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
-  TestFramework.assert_approx_eq vec.length, 0.0_f32, 0.001, "Initial vector should be zero when no keys pressed"
+  assert_approx_eq vec.length, 0.0_f32, 0.001, "Initial vector should be zero when no keys pressed"
 
   # Button polling
   just_rel = Godot::Input.is_action_just_released("ui_accept")
-  TestFramework.assert_false just_rel, "ui_accept should not be just released without keypress"
+  assert_false just_rel, "ui_accept should not be just released without keypress"
 
   mouse_down = Godot::Input.is_mouse_button_pressed(Godot::MouseButton::Left)
-  TestFramework.assert_false mouse_down, "Left mouse button should not be pressed in headless test"
+  assert_false mouse_down, "Left mouse button should not be pressed in headless test"
 
   # Key enum and InputEventKey typing
   key_event = Godot.create(Godot::InputEventKey)
   key_event.keycode = Godot::Key::Escape.value
-  TestFramework.assert_eq key_event.key, Godot::Key::Escape, "key_event.key should return typed Godot::Key"
-  TestFramework.assert_true (key_event.keycode == Godot::Key::Escape), "key_event.keycode should compare directly to Godot::Key"
-  TestFramework.assert_true (Godot::Key::Escape == key_event.keycode), "Godot::Key should compare directly to integer keycode"
-  TestFramework.assert_eq Godot::Key::Q.value, 81_i64, "Godot::Key::Q value should match ASCII/engine 81"
-  TestFramework.assert_eq Godot::Key::Escape.value, 4194305_i64, "Godot::Key::Escape value should match engine 4194305"
+  assert_eq key_event.key, Godot::Key::Escape, "key_event.key should return typed Godot::Key"
+  assert_true (key_event.keycode == Godot::Key::Escape), "key_event.keycode should compare directly to Godot::Key"
+  assert_true (Godot::Key::Escape == key_event.keycode), "Godot::Key should compare directly to integer keycode"
+  assert_eq Godot::Key::Q.value, 81_i64, "Godot::Key::Q value should match ASCII/engine 81"
+  assert_eq Godot::Key::Escape.value, 4194305_i64, "Godot::Key::Escape value should match engine 4194305"
 end
 
 

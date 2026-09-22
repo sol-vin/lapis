@@ -4,14 +4,18 @@ module Godot
     class_getter xml_documents = Array(String).new
 
     def self.register(xml : String)
-      @@xml_documents << xml
+      {% unless flag?(:release) %}
+        @@xml_documents << xml
+      {% end %}
     end
 
     def self.load_all
-      return if @@xml_documents.empty?
-      @@xml_documents.each do |xml|
-        Bridge.load_editor_help(xml)
-      end
+      {% unless flag?(:release) %}
+        return if @@xml_documents.empty?
+        @@xml_documents.each do |xml|
+          Bridge.load_editor_help(xml)
+        end
+      {% end %}
     end
   end
 

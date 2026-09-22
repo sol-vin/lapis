@@ -2800,7 +2800,7 @@ module Lapis
   # Guide Q: Testing Apparatus, Frame-Stepping, Signal Timeouts & In-Editor Suites
   # ===========================================================================
   #
-  # LibGodot provides a reusable, first-class **Testing Apparatus** (`TestFramework`)
+  # LibGodot provides a reusable, first-class **Testing Apparatus** (`Lapis::Test`, accessible via `include Lapis::Test`)
   # designed for game developers, addon authors, and engine engineers.
   # It unifies standard assertion matchers, cooperative async frame-stepping,
   # signal awaiting with configurable timeout failure guarantees, and live in-editor
@@ -2820,47 +2820,47 @@ module Lapis
   #   </thead>
   #   <tbody>
   #     <tr style="border-bottom: 1px solid #2d3748;">
-  #       <td style="padding: 10px 14px;"><code>TestFramework.assert_true</code></td>
+  #       <td style="padding: 10px 14px;"><code>assert_true</code></td>
   #       <td style="padding: 10px 14px;"><code>cond : Bool, msg = ""</code></td>
   #       <td style="padding: 10px 14px;">Fails if <code>cond</code> is false.</td>
   #     </tr>
   #     <tr style="border-bottom: 1px solid #2d3748;">
-  #       <td style="padding: 10px 14px;"><code>TestFramework.assert_false</code></td>
+  #       <td style="padding: 10px 14px;"><code>assert_false</code></td>
   #       <td style="padding: 10px 14px;"><code>cond : Bool, msg = ""</code></td>
   #       <td style="padding: 10px 14px;">Fails if <code>cond</code> is true.</td>
   #     </tr>
   #     <tr style="border-bottom: 1px solid #2d3748;">
-  #       <td style="padding: 10px 14px;"><code>TestFramework.assert_eq</code></td>
+  #       <td style="padding: 10px 14px;"><code>assert_eq</code></td>
   #       <td style="padding: 10px 14px;"><code>actual, expected, msg = ""</code></td>
   #       <td style="padding: 10px 14px;">Fails if <code>actual != expected</code>. Outputs formatted inspected values.</td>
   #     </tr>
   #     <tr style="border-bottom: 1px solid #2d3748;">
-  #       <td style="padding: 10px 14px;"><code>TestFramework.assert_approx_eq</code></td>
+  #       <td style="padding: 10px 14px;"><code>assert_approx_eq</code></td>
   #       <td style="padding: 10px 14px;"><code>actual, expected, epsilon = 0.001, msg = ""</code></td>
   #       <td style="padding: 10px 14px;">Fails if floating-point difference exceeds <code>epsilon</code>.</td>
   #     </tr>
   #     <tr style="border-bottom: 1px solid #2d3748;">
-  #       <td style="padding: 10px 14px;"><code>TestFramework.assert_nil</code> / <code>assert_not_nil</code></td>
+  #       <td style="padding: 10px 14px;"><code>assert_nil</code> / <code>assert_not_nil</code></td>
   #       <td style="padding: 10px 14px;"><code>val, msg = ""</code></td>
   #       <td style="padding: 10px 14px;">Asserts nil or non-nil reference.</td>
   #     </tr>
   #     <tr style="border-bottom: 1px solid #2d3748;">
-  #       <td style="padding: 10px 14px;"><code>TestFramework.assert_raises</code></td>
+  #       <td style="padding: 10px 14px;"><code>assert_raises</code></td>
   #       <td style="padding: 10px 14px;"><code>klass : T.class, msg = "", &amp;block</code></td>
   #       <td style="padding: 10px 14px;">Asserts block raises exception of type <code>T</code>. Returns the caught exception.</td>
   #     </tr>
   #     <tr style="border-bottom: 1px solid #2d3748;">
-  #       <td style="padding: 10px 14px;"><code>TestFramework.assert_includes</code></td>
+  #       <td style="padding: 10px 14px;"><code>assert_includes</code></td>
   #       <td style="padding: 10px 14px;"><code>collection, item, msg = ""</code></td>
   #       <td style="padding: 10px 14px;">Fails if collection does not contain <code>item</code>.</td>
   #     </tr>
   #     <tr style="border-bottom: 1px solid #2d3748;">
-  #       <td style="padding: 10px 14px;"><code>TestFramework.assert_in_delta</code></td>
+  #       <td style="padding: 10px 14px;"><code>assert_in_delta</code></td>
   #       <td style="padding: 10px 14px;"><code>actual, expected, delta, msg = ""</code></td>
   #       <td style="padding: 10px 14px;">Fails if difference between numbers exceeds <code>delta</code>.</td>
   #     </tr>
   #     <tr style="border-bottom: 1px solid #2d3748;">
-  #       <td style="padding: 10px 14px;"><code>TestFramework.assert_between</code></td>
+  #       <td style="padding: 10px 14px;"><code>assert_between</code></td>
   #       <td style="padding: 10px 14px;"><code>actual, min, max, msg = ""</code></td>
   #       <td style="padding: 10px 14px;">Fails if number is outside the inclusive range <code>[min, max]</code>.</td>
   #     </tr>
@@ -2884,12 +2884,12 @@ module Lapis
   #   </thead>
   #   <tbody>
   #     <tr style="border-bottom: 1px solid #2d3748;">
-  #       <td style="padding: 10px 14px;"><code>TestFramework.skip_frames</code></td>
+  #       <td style="padding: 10px 14px;"><code>skip_frames</code></td>
   #       <td style="padding: 10px 14px;"><code>count : Int32 = 1</code></td>
   #       <td style="padding: 10px 14px;">Cooperatively yields execution across <code>count</code> process (render/idle) frames using <code>Godot.next_frame</code>.</td>
   #     </tr>
   #     <tr style="border-bottom: 1px solid #2d3748;">
-  #       <td style="padding: 10px 14px;"><code>TestFramework.skip_physics_frames</code></td>
+  #       <td style="padding: 10px 14px;"><code>skip_physics_frames</code></td>
   #       <td style="padding: 10px 14px;"><code>count : Int32 = 1</code></td>
   #       <td style="padding: 10px 14px;">Cooperatively yields execution across <code>count</code> fixed physics ticks using <code>Godot.physics_frame</code>. Ideal for testing collisions and rigid body movements.</td>
   #     </tr>
@@ -2903,8 +2903,8 @@ module Lapis
   #   player.velocity = Godot::Vector3.new(0.0, 10.0, 0.0)
   #
   #   # Step 5 physics ticks
-  #   TestFramework.skip_physics_frames(5)
-  #   TestFramework.assert_true player.position.y > 0.0_f32
+  #   skip_physics_frames(5)
+  #   assert_true player.position.y > 0.0_f32
   # end
   # ```
   #
@@ -2925,22 +2925,22 @@ module Lapis
   #   </thead>
   #   <tbody>
   #     <tr style="border-bottom: 1px solid #2d3748;">
-  #       <td style="padding: 10px 14px;"><code>TestFramework.await_signal</code></td>
+  #       <td style="padding: 10px 14px;"><code>await_signal</code></td>
   #       <td style="padding: 10px 14px;"><code>emitter, signal_name, timeout_sec = 2.0</code></td>
-  #       <td style="padding: 10px 14px;">Awaits signal emission. If <code>timeout_sec</code> expires, raises <code>TestFramework::TimeoutError</code> with full emitter and signal details.</td>
+  #       <td style="padding: 10px 14px;">Awaits signal emission. If <code>timeout_sec</code> expires, raises <code>Lapis::Test::TimeoutError</code> with full emitter and signal details.</td>
   #     </tr>
   #     <tr style="border-bottom: 1px solid #2d3748;">
-  #       <td style="padding: 10px 14px;"><code>TestFramework.assert_emits</code></td>
+  #       <td style="padding: 10px 14px;"><code>assert_emits</code></td>
   #       <td style="padding: 10px 14px;"><code>emitter, signal_name, timeout_sec = 2.0, &amp;block</code></td>
-  #       <td style="padding: 10px 14px;">Yields block and verifies signal is emitted within timeout window. Raises <code>TestFramework::AssertionError</code> on timeout.</td>
+  #       <td style="padding: 10px 14px;">Yields block and verifies signal is emitted within timeout window. Raises <code>Lapis::Test::AssertionError</code> on timeout.</td>
   #     </tr>
   #     <tr style="border-bottom: 1px solid #2d3748;">
-  #       <td style="padding: 10px 14px;"><code>TestFramework.assert_no_emit</code></td>
+  #       <td style="padding: 10px 14px;"><code>assert_no_emit</code></td>
   #       <td style="padding: 10px 14px;"><code>emitter, signal_name, duration_sec = 0.5, &amp;block</code></td>
   #       <td style="padding: 10px 14px;">Yields block and verifies signal is NOT emitted during the observation window.</td>
   #     </tr>
   #     <tr style="border-bottom: 1px solid #2d3748;">
-  #       <td style="padding: 10px 14px;"><code>TestFramework.with_timeout</code></td>
+  #       <td style="padding: 10px 14px;"><code>with_timeout</code></td>
   #       <td style="padding: 10px 14px;"><code>timeout_sec = 5.0, operation_name = "Operation", &amp;block</code></td>
   #       <td style="padding: 10px 14px;">Guarded watchdog that executes a block in a fiber and aborts with <code>TimeoutError</code> if stalled.</td>
   #     </tr>
@@ -2951,14 +2951,14 @@ module Lapis
   #
   # ### 4. Signal Spies & History Inspection
   #
-  # Use `TestFramework::SignalSpy` to intercept and assert on signal parameters:
+  # Use `SignalSpy` to intercept and assert on signal parameters:
   # ```crystal
-  # spy = TestFramework::SignalSpy.new(enemy, "health_changed")
+  # spy = SignalSpy.new(enemy, "health_changed")
   # enemy.take_damage(25)
   #
-  # TestFramework.assert_true spy.emitted?
-  # TestFramework.assert_eq spy.count, 1
-  # TestFramework.assert_eq spy.first_args.not_nil!, ["75", "100"]
+  # assert_true spy.emitted?
+  # assert_eq spy.count, 1
+  # assert_eq spy.first_args.not_nil!, ["75", "100"]
   # spy.disconnect
   # ```
   #
@@ -2973,7 +2973,7 @@ module Lapis
   #    All registered suites and categories appear in the test tree with status indicators (`[⚪ Ready]`).
   # 2. **Execution Modes**:
   #    - **▶ Run All Specs**: Runs headless Crystal specs via `crystal spec`.
-  #    - **▶ Run In-Editor Tests**: Executes all registered `TestFramework` suites directly within the live engine instance.
+  #    - **▶ Run In-Editor Tests**: Executes all registered `Lapis::Test` suites directly within the live engine instance.
   #    - **Run Selected Test**: Executes only the clicked test or category.
   # 3. **Live Inspector Tool Buttons**:
   #    Adding `ToolTester2D` or `ToolTester3D` nodes to any editor scene provides clickable **▶ Run 2D Tool Tests**
@@ -2982,13 +2982,107 @@ module Lapis
   module Q_TESTING_FRAMEWORK_AND_EDITOR_SUITES
     def self.features : Array(String)
       [
-        "Reusable TestFramework with full assertion matchers (assert_eq, assert_raises, assert_between)",
+        "Reusable Lapis::Test framework with full assertion matchers (assert_eq, assert_raises, assert_between)",
         "Cooperative frame-stepping with skip_frames and skip_physics_frames",
-        "Deterministic signal awaiting with configurable timeout failure (TestFramework::TimeoutError)",
+        "Deterministic signal awaiting with configurable timeout failure (Lapis::Test::TimeoutError)",
         "Signal emission assertions (assert_emits, assert_no_emit, with_timeout watchdog)",
         "SignalSpy for recording emission counts, call histories, and parameter payloads",
         "Declarative DSL macros: test_2d, test_3d, test_shader, test_material, test_physics, test_audio",
         "Godot Editor integration via CrystalPanel dock and ToolTester2D/3D Inspector buttons"
+      ]
+    end
+  end
+
+  # # R. Release Optimization & Editor Stripping
+  #
+  # LibGodot enforces compile-time and runtime isolation between development tooling
+  # and shipping binaries. When compiling games for production (`make all RELEASE=1` or
+  # `lapis build --release`), editor-only modules and metadata are completely stripped:
+  #
+  # 1. **Compile-Time Feature Guards**:
+  #    The core library entry points (`src/lapis.cr` and `src/libgodot.cr`) wrap editor modules
+  #    in compile-time guards (`{% unless flag?(:release) || flag?(:libgodot_addon) || flag?(:no_editor) %}`).
+  #    This completely excludes `CrystalIntegrationPlugin`, `CrystalHighlighter`, `CrystalDebuggerPlugin`,
+  #    `CrystalPanel`, and `CrystalScript` from the compiled binary.
+  #
+  # 2. **DocData XML Stripping**:
+  #    In development, doc comments on nodes and exported properties are gathered into `EditorDocRegistry`
+  #    and registered with Godot's offline help database. In release mode, `EditorDocRegistry.register`
+  #    and `load_all` become no-ops, eliminating all XML strings and associated memory allocations.
+  #
+  # 3. **Native C++ ClassDB Filtering**:
+  #    In `src/bridge/classdb_registry.hpp`, when `!is_editor_active()` or in non-editor runtime contexts,
+  #    editor-specific classes are discarded prior to registering with the Godot engine `ClassDB`.
+  #
+  # 4. **Packaging Artifact Cleanliness**:
+  #    When invoking `lapis package game --release`, intermediate debug files (`*.pdb`, `*.exp`, `*.lib`,
+  #    `plugin.*`) are excluded from the distribution archive, ensuring only the minimal runtime payload
+  #    is shipped to end-users.
+  #
+  module R_RELEASE_OPTIMIZATION_AND_EDITOR_STRIPPING
+    def self.features : Array(String)
+      [
+        "Compile-time exclusion of editor plugins and UI docks via flag?(:release)",
+        "Zero XML doc comment bloat in release builds",
+        "C++ bridge ClassDB filtering suppressing editor classes in standalone runtime",
+        "Automated package pruning of debug PDBs and editor plugin binaries"
+      ]
+    end
+  end
+
+  # # S. IDE Integration & Developer Experience
+  #
+  # The Lapis toolchain provides first-class developer tooling integration for modern editors
+  # through the `lapis ide` command family.
+  #
+  # 1. **Automated IDE Setup**:
+  #    Run `lapis ide setup [editor]` to automatically generate workspace configurations:
+  #    - **VS Code / Cursor** (`lapis ide setup vscode`):
+  #      Generates `.vscode/settings.json`, `.vscode/tasks.json`, and `.vscode/launch.json`.
+  #      Configures Crystalline Language Server Protocol (`bin/crystalline.exe`), Crystal build tasks,
+  #      and LLDB launch configurations targeting `godot.exe` or standalone games.
+  #    - **Zed** (`lapis ide setup zed`):
+  #      Generates `.zed/settings.json` and `.zed/tasks.json` configuring Crystalline LSP
+  #      and one-click build tasks.
+  #    - **Neovim** (`lapis ide setup neovim`):
+  #      Generates `.nvim.lua` configuring `nvim-lspconfig` to attach Crystalline LSP
+  #      with root directory detection and stdlib discovery.
+  #
+  # 2. **Supported IDEs**:
+  #    <table>
+  #      <thead>
+  #        <tr>
+  #          <th>Editor</th>
+  #          <th>Target Configuration</th>
+  #          <th>Capabilities</th>
+  #        </tr>
+  #      </thead>
+  #      <tbody>
+  #        <tr>
+  #          <td>VS Code / Cursor</td>
+  #          <td>.vscode/settings.json, tasks.json, launch.json</td>
+  #          <td>Crystalline LSP, Build Tasks, LLDB Native Debugging</td>
+  #        </tr>
+  #        <tr>
+  #          <td>Zed</td>
+  #          <td>.zed/settings.json, tasks.json</td>
+  #          <td>Crystalline LSP, High-Speed Editor Tasks</td>
+  #        </tr>
+  #        <tr>
+  #          <td>Neovim</td>
+  #          <td>.nvim.lua</td>
+  #          <td>nvim-lspconfig Crystalline integration</td>
+  #        </tr>
+  #      </tbody>
+  #    </table>
+  #
+  module S_IDE_INTEGRATION_AND_DEVELOPER_EXPERIENCE
+    def self.features : Array(String)
+      [
+        "Automated workspace scaffolding for VS Code, Cursor, Zed, and Neovim",
+        "Built-in Crystalline LSP configuration with automatic binary discovery",
+        "Pre-configured LLDB launch configurations for in-editor and standalone debugging",
+        "Pre-configured task runners for compilation, test suites, and packaging"
       ]
     end
   end

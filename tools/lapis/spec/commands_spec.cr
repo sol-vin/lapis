@@ -62,6 +62,8 @@ describe "Lapis Subcommands" do
         File.exists?(target_addon.join("custom_inventory.gdextension")).should be_true
         File.exists?(target_addon.join("shard.yml")).should be_true
         File.exists?(target_addon.join("src/main.cr")).should be_true
+        File.exists?(target_addon.join("spec/main_spec.cr")).should be_true
+        File.exists?(target_addon.join("spec/editor/editor_spec.cr")).should be_true
 
         shard = File.read(target_addon.join("shard.yml"))
         shard.should contain("name: custom_inventory")

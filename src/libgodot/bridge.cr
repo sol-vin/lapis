@@ -502,7 +502,7 @@ module Godot
         api.value.register_deinit_callback.call(deinit_cb)
       end
 
-      {% unless flag?(:libgodot_addon) %}
+      {% unless flag?(:release) || flag?(:libgodot_addon) || flag?(:no_editor) %}
       # Early-register language, loader, and saver so Godot can load .cr files during editor layout restore
       Godot::CrystalLanguage.ensure_registered
       Godot::ResourceFormatLoaderCrystal.ensure_registered
@@ -529,7 +529,7 @@ module Godot
 
       Godot.print("[Bridge.deinit] Cleaning up script cache...")
       ClassRegistry.cleanup rescue nil
-      {% unless flag?(:libgodot_addon) %}
+      {% unless flag?(:release) || flag?(:libgodot_addon) || flag?(:no_editor) %}
       Godot.print("[Bridge.deinit] Unregistering loader...")
       Godot::ResourceFormatLoaderCrystal.unregister rescue nil
       Godot.print("[Bridge.deinit] Unregistering saver...")
@@ -1379,7 +1379,7 @@ fun crystal_godot_init(api : Godot::LibBridge::BridgeAPI*) : Void
   dummy_argv = pointerof(dummy_arg)
   LibCrystalMain.__crystal_main(1, dummy_argv)
   Godot::Bridge.init(api)
-{% unless flag?(:libgodot_addon) %}
+{% unless flag?(:release) || flag?(:libgodot_addon) || flag?(:no_editor) %}
   if ::ENV["LIBGODOT_TEST_BUILD_BUTTON"]? == "1"
     Godot::CrystalIntegrationPlugin.check_test_build_button_flow rescue nil
   end

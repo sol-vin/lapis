@@ -2,8 +2,10 @@
 # LibGodot Test Suite: Universal ClassDB Instantiation, Hierarchy & Destruction
 # =============================================================================
 
+include Lapis::Test
+
 macro test_classdb(name, &block)
-  ::TestFramework::Registry.register("ClassDB", {{name}}) do |node|
+  Registry.register("ClassDB", {{name}}) do |node|
 	root = node
 	{{block.body}}
   end
@@ -28,26 +30,26 @@ test_classdb "ClassDB coverage: all 46 core 2D Node classes create, parent, unpa
 
   classes_2d.each do |cls_name|
 	ptr = Godot::Bridge.construct_object(cls_name)
-	TestFramework.assert_false ptr.null?, "Failed to instantiate 2D class #{cls_name}"
+	assert_false ptr.null?, "Failed to instantiate 2D class #{cls_name}"
 
 	n = Godot::Node2D.new(ptr)
-	TestFramework.assert_true n.alive?, "Node #{cls_name} should be alive"
+	assert_true n.alive?, "Node #{cls_name} should be alive"
 	inst_id = n.instance_id
-	TestFramework.assert_true inst_id > 0_u64, "Node #{cls_name} should have non-zero instance ID"
+	assert_true inst_id > 0_u64, "Node #{cls_name} should have non-zero instance ID"
 
 	# Hierarchy operations
 	container.add_child(n)
-	TestFramework.assert_eq container.get_child_count, 1_i64
-	TestFramework.assert_eq n.get_parent.name, "CoverageContainer2D"
+	assert_eq container.get_child_count, 1_i64
+	assert_eq n.get_parent.name, "CoverageContainer2D"
 
 	container.remove_child(n)
-	TestFramework.assert_eq container.get_child_count, 0_i64
-	TestFramework.assert_nil n.get_parent?
+	assert_eq container.get_child_count, 0_i64
+	assert_nil n.get_parent?
 
 	# Proper destruction
 	n.destroy
-	TestFramework.assert_true n.destroyed?
-	TestFramework.assert_false Godot::Object.is_instance_id_valid(inst_id), "Instance ID for #{cls_name} must be invalidated in engine"
+	assert_true n.destroyed?
+	assert_false Godot::Object.is_instance_id_valid(inst_id), "Instance ID for #{cls_name} must be invalidated in engine"
   end
 
   container.destroy
@@ -90,20 +92,20 @@ test_classdb "ClassDB coverage: all 110 core 3D Node classes create, parent, unp
     next unless class_db.call_bool("class_exists", actual_name)
 
     ptr = Godot::Bridge.construct_object(actual_name)
-    TestFramework.assert_false ptr.null?, "Failed to instantiate 3D class #{actual_name}"
+    assert_false ptr.null?, "Failed to instantiate 3D class #{actual_name}"
 
     n = Godot::Node3D.new(ptr)
-    TestFramework.assert_true n.alive?, "Node #{actual_name} should be alive"
+    assert_true n.alive?, "Node #{actual_name} should be alive"
     inst_id = n.instance_id
 
     container.add_child(n)
-    TestFramework.assert_eq container.get_child_count, 1_i64
+    assert_eq container.get_child_count, 1_i64
     container.remove_child(n)
-    TestFramework.assert_eq container.get_child_count, 0_i64
+    assert_eq container.get_child_count, 0_i64
 
     n.destroy
-    TestFramework.assert_true n.destroyed?
-    TestFramework.assert_false Godot::Object.is_instance_id_valid(inst_id)
+    assert_true n.destroyed?
+    assert_false Godot::Object.is_instance_id_valid(inst_id)
   end
 
   container.destroy
@@ -130,20 +132,20 @@ test_classdb "ClassDB coverage: all 59 core Control UI classes create, parent, u
 
   classes_ctrl.each do |cls_name|
 	ptr = Godot::Bridge.construct_object(cls_name)
-	TestFramework.assert_false ptr.null?, "Failed to instantiate Control class #{cls_name}"
+	assert_false ptr.null?, "Failed to instantiate Control class #{cls_name}"
 
 	n = Godot::Control.new(ptr)
-	TestFramework.assert_true n.alive?
+	assert_true n.alive?
 	inst_id = n.instance_id
 
 	container.add_child(n)
-	TestFramework.assert_eq container.get_child_count, 1_i64
+	assert_eq container.get_child_count, 1_i64
 	container.remove_child(n)
-	TestFramework.assert_eq container.get_child_count, 0_i64
+	assert_eq container.get_child_count, 0_i64
 
 	n.destroy
-	TestFramework.assert_true n.destroyed?
-	TestFramework.assert_false Godot::Object.is_instance_id_valid(inst_id)
+	assert_true n.destroyed?
+	assert_false Godot::Object.is_instance_id_valid(inst_id)
   end
 
   container.destroy
@@ -164,20 +166,20 @@ test_classdb "ClassDB coverage: all 27 core Other Node classes create, parent, u
 
   classes_other.each do |cls_name|
 	ptr = Godot::Bridge.construct_object(cls_name)
-	TestFramework.assert_false ptr.null?, "Failed to instantiate Node class #{cls_name}"
+	assert_false ptr.null?, "Failed to instantiate Node class #{cls_name}"
 
 	n = Godot::Node.new(ptr)
-	TestFramework.assert_true n.alive?
+	assert_true n.alive?
 	inst_id = n.instance_id
 
 	container.add_child(n)
-	TestFramework.assert_eq container.get_child_count, 1_i64
+	assert_eq container.get_child_count, 1_i64
 	container.remove_child(n)
-	TestFramework.assert_eq container.get_child_count, 0_i64
+	assert_eq container.get_child_count, 0_i64
 
 	n.destroy
-	TestFramework.assert_true n.destroyed?
-	TestFramework.assert_false Godot::Object.is_instance_id_valid(inst_id)
+	assert_true n.destroyed?
+	assert_false Godot::Object.is_instance_id_valid(inst_id)
   end
 
   container.destroy
@@ -201,16 +203,16 @@ test_classdb "ClassDB coverage: all 16 Meshes, 11 Materials, and 17 Physics Shap
 
   resources.each do |cls_name|
 	ptr = Godot::Bridge.construct_object(cls_name)
-	TestFramework.assert_false ptr.null?, "Failed to instantiate Resource class #{cls_name}"
+	assert_false ptr.null?, "Failed to instantiate Resource class #{cls_name}"
 
 	res = Godot::Resource.new(ptr)
 	res.init_ref
-	TestFramework.assert_true res.alive?
+	assert_true res.alive?
 	inst_id = res.instance_id
 	res.destroy
 
-	TestFramework.assert_true res.destroyed?
-	TestFramework.assert_false Godot::Object.is_instance_id_valid(inst_id), "Resource #{cls_name} still valid in ObjectDB after destroy"
+	assert_true res.destroyed?
+	assert_false Godot::Object.is_instance_id_valid(inst_id), "Resource #{cls_name} still valid in ObjectDB after destroy"
   end
 end
 
@@ -225,15 +227,15 @@ test_classdb "ClassDB coverage: core RefCounted utility classes instantiation an
 
   refcounted_classes.each do |cls_name|
 	ptr = Godot::Bridge.construct_object(cls_name)
-	TestFramework.assert_false ptr.null?, "Failed to instantiate RefCounted class #{cls_name}"
+	assert_false ptr.null?, "Failed to instantiate RefCounted class #{cls_name}"
 
 	rc = Godot::RefCounted.new(ptr)
 	rc.init_ref
-	TestFramework.assert_true rc.alive?
+	assert_true rc.alive?
 	inst_id = rc.instance_id
 
 	rc.destroy
-	TestFramework.assert_true rc.destroyed?
-	TestFramework.assert_false Godot::Object.is_instance_id_valid(inst_id), "RefCounted #{cls_name} still valid in ObjectDB after destroy"
+	assert_true rc.destroyed?
+	assert_false Godot::Object.is_instance_id_valid(inst_id), "RefCounted #{cls_name} still valid in ObjectDB after destroy"
   end
 end

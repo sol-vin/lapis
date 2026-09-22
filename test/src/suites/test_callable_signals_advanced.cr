@@ -3,6 +3,8 @@
 # Replicating godot-rust's callable_test.rs and signal_disconnect_test.rs
 # =============================================================================
 
+include Lapis::Test
+
 node AdvancedSignalTargetNode < Godot::Node do
   signal action_triggered(code : Int32, tag : String)
   signal numeric_alert(value : Float64)
@@ -28,13 +30,13 @@ test_callable_adv "One-shot signal connection fires exactly once and unregisters
 
   # First emission: listener should execute
   node.fire_action(101, "FirstRun")
-  TestFramework.assert_eq fire_count, 1
-  TestFramework.assert_eq last_code, 101
+  assert_eq fire_count, 1
+  assert_eq last_code, 101
 
   # Second emission: one-shot listener must not fire
   node.fire_action(102, "SecondRun")
-  TestFramework.assert_eq fire_count, 1, "One-shot listener must not execute a second time"
-  TestFramework.assert_eq last_code, 101
+  assert_eq fire_count, 1, "One-shot listener must not execute a second time"
+  assert_eq last_code, 101
 
   node.destroy
 end
@@ -51,11 +53,11 @@ test_callable_adv "Active self-unsubscribe during signal callback preserves subs
 
   # First emission: fires and self-unsubscribes
   node.fire_numeric(3.14159)
-  TestFramework.assert_eq fire_count, 1
+  assert_eq fire_count, 1
 
   # Second emission: must not fire
   node.fire_numeric(2.71828)
-  TestFramework.assert_eq fire_count, 1, "Unsubscribed callback must not fire again"
+  assert_eq fire_count, 1, "Unsubscribed callback must not fire again"
 
   node.destroy
 end
@@ -75,16 +77,16 @@ test_callable_adv "Multiple concurrent listeners: selective unsubscription leave
 
   # Both fire on emission 1
   node.fire_action(1, "Emit1")
-  TestFramework.assert_eq count_a, 1
-  TestFramework.assert_eq count_b, 1
+  assert_eq count_a, 1
+  assert_eq count_b, 1
 
   # Unsubscribe A only
   sub_a.unsubscribe
 
   # Emission 2: Only B should fire
   node.fire_action(2, "Emit2")
-  TestFramework.assert_eq count_a, 1, "Unsubscribed listener A must not increment"
-  TestFramework.assert_eq count_b, 2, "Active listener B must continue receiving emissions"
+  assert_eq count_a, 1, "Unsubscribed listener A must not increment"
+  assert_eq count_b, 2, "Active listener B must continue receiving emissions"
 
   sub_b.unsubscribe
   node.destroy
@@ -99,12 +101,12 @@ test_callable_adv "Object disconnect clears all active signal subscriptions" do
   end
 
   node.fire_action(10, "Test")
-  TestFramework.assert_eq count, 1
+  assert_eq count, 1
 
   node.disconnect("action_triggered")
 
   node.fire_action(20, "Test2")
-  TestFramework.assert_eq count, 1, "No listeners should remain after node.disconnect"
+  assert_eq count, 1, "No listeners should remain after node.disconnect"
 
   node.destroy
 end

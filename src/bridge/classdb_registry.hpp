@@ -19,13 +19,6 @@ static std::unordered_map<GDExtensionClassLibraryPtr, std::vector<std::string>> 
 static std::unordered_map<GDExtensionClassLibraryPtr, std::vector<std::string>> g_library_scene_classes;
 static std::unordered_set<std::string> g_all_registered_class_names;
 
-inline bool is_editor_class(const CrystalClassDesc *desc) {
-    if (!desc || !desc->parent_name) return false;
-    if (strncmp(desc->parent_name, "Editor", 6) == 0) return true;
-    if (desc->parent_desc) return is_editor_class(desc->parent_desc);
-    return false;
-}
-
 inline bool is_editor_system_class(const char *name) {
     if (!name) return false;
     return (strcmp(name, "CrystalIntegrationPlugin") == 0 ||
@@ -37,6 +30,14 @@ inline bool is_editor_system_class(const char *name) {
             strcmp(name, "CrystalScript") == 0 ||
             strcmp(name, "ResourceFormatLoaderCrystal") == 0 ||
             strcmp(name, "ResourceFormatSaverCrystal") == 0);
+}
+
+inline bool is_editor_class(const CrystalClassDesc *desc) {
+    if (!desc) return false;
+    if (desc->name && is_editor_system_class(desc->name)) return true;
+    if (desc->parent_name && strncmp(desc->parent_name, "Editor", 6) == 0) return true;
+    if (desc->parent_desc) return is_editor_class(desc->parent_desc);
+    return false;
 }
 
 /**
@@ -312,6 +313,12 @@ inline int bridge_register_class(const CrystalClassDesc *p_desc) {
 
     // Defer editor-specific classes if Godot is still at SCENE initialization level
     if (g_current_init_level < GDEXTENSION_INITIALIZATION_EDITOR && is_editor_class(&pcd->desc)) {
+        if (!is_editor_active()) {
+            char log_buf[128];
+            snprintf(log_buf, sizeof(log_buf), "  [ClassDB] Suppressing editor class %s in non-editor host", pcd->desc.name);
+            godot_log_print(log_buf);
+            return 1;
+        }
         char log_buf[128];
         snprintf(log_buf, sizeof(log_buf), "  [ClassDB] Deferring editor class %s < %s to EDITOR level", pcd->desc.name, pcd->desc.parent_name);
         godot_log_print(log_buf);

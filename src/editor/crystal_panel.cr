@@ -796,6 +796,20 @@ module Lapis
       end
     end
 
+    private def find_spec_files_recursive(dir : String) : Array(String)
+      files = [] of String
+      return files unless Dir.exists?(dir)
+      Dir.children(dir).sort.each do |child|
+        full = File.join(dir, child).gsub('\\', '/')
+        if Dir.exists?(full)
+          files.concat(find_spec_files_recursive(full))
+        elsif child.ends_with?("_spec.cr")
+          files << full
+        end
+      end
+      files
+    end
+
     def refresh_spec_list : Void
       tree = @test_tree
       return unless tree
@@ -811,11 +825,7 @@ module Lapis
       spec_dir, cwd = resolve_spec_context
       return unless Dir.exists?(spec_dir)
 
-      # Use Dir.children to avoid Windows path separator / escape issues with Dir.glob
-      spec_files = Dir.children(spec_dir)
-        .select { |f| f.ends_with?("_spec.cr") }
-        .sort
-        .map { |f| File.join(spec_dir, f).gsub('\\', '/') }
+      spec_files = find_spec_files_recursive(spec_dir)
 
       total_specs = 0
       spec_files.each do |f|
@@ -888,22 +898,22 @@ module Lapis
         file_item.call("set_collapsed", false)
       end
 
-      # Populate registered In-Editor TestFramework suites
-      editor_tests = ::TestFramework::Registry.all_tests
+      # Populate registered In-Editor Lapis::Test suites
+      editor_tests = ::Lapis::Test::Registry.all_tests
       if !editor_tests.empty?
         framework_root = tree.call_obj("create_item", root)
         if framework_root
-          framework_root.call("set_text", 0, "In-Editor Test Suites (TestFramework)")
+          framework_root.call("set_text", 0, "In-Editor Test Suites (Lapis::Test)")
           framework_root.call("set_custom_color", 0, Color.new(0.4_f32, 0.9_f32, 1.0_f32, 1.0_f32))
           framework_root.call("set_text", 1, "[⚪ Ready]")
           framework_root.call("set_custom_color", 1, Color.new(0.9_f32, 0.9_f32, 0.9_f32, 1.0_f32))
           framework_root.call("set_text", 2, "editor_all")
           framework_root.call("set_collapsed", false)
 
-          ::TestFramework::Registry.categories.each do |cat|
+          ::Lapis::Test::Registry.categories.each do |cat|
             cat_item = tree.call_obj("create_item", framework_root)
             next unless cat_item
-            cat_tests = ::TestFramework::Registry.for_category(cat)
+            cat_tests = ::Lapis::Test::Registry.for_category(cat)
             cat_item.call("set_text", 0, "#{cat} (#{cat_tests.size} tests)")
             cat_item.call("set_custom_color", 0, Color.new(0.9_f32, 0.95_f32, 1.0_f32, 1.0_f32))
             cat_item.call("set_text", 1, "[⚪ Ready]")
@@ -1013,7 +1023,7 @@ module Lapis
       if path.starts_with?("category:")
         cat = path.sub(/^category:/, "")
         log_info("Running In-Editor category: #{cat}...")
-        results = ::TestFramework::Registry.run_category(cat, self)
+        results = ::Lapis::Test::Registry.run_category(cat, self)
         display_test_results("Category: #{cat}", results, selected)
         return
       elsif path.starts_with?("test:")
@@ -1021,7 +1031,7 @@ module Lapis
         cat = parts[0]
         test_name = parts[1]? || ""
         log_info("Running In-Editor test: [#{cat}] #{test_name}...")
-        results = ::TestFramework::Registry.run_category(cat, self, filter: test_name)
+        results = ::Lapis::Test::Registry.run_category(cat, self, filter: test_name)
         display_test_results("[#{cat}] #{test_name}", results, selected)
         return
       end
@@ -1054,20 +1064,20 @@ module Lapis
     end
 
     def on_run_in_editor_tests : Void
-      log_info("Executing In-Editor TestFramework suites...")
+      log_info("Executing In-Editor Lapis::Test suites...")
       if lbl = @test_status_label
         lbl.call("set_text", "Running In-Editor test suites...")
         lbl.call("add_theme_color_override", "font_color", Color.new(1.0_f32, 0.85_f32, 0.2_f32, 1.0_f32))
       end
 
       start_time = ::Time.instant
-      results = ::TestFramework::Registry.run_all(self)
+      results = ::Lapis::Test::Registry.run_all(self)
       display_test_results("In-Editor Suites", results, nil)
     rescue ex
       log_error("Error running in-editor tests: #{ex.message}")
     end
 
-    private def display_test_results(title : String, results : Array(::TestFramework::TestResult), target_item : Node?) : Void
+    private def display_test_results(title : String, results : Array(::Lapis::Test::TestResult), target_item : Node?) : Void
       passed_count = results.count(&.passed)
       total_count = results.size
       all_passed = (passed_count == total_count && total_count > 0)

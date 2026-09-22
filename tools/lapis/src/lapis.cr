@@ -16,11 +16,12 @@ require "./commands/setup"
 require "./commands/install"
 require "./commands/doctor"
 require "./commands/init"
+require "./commands/ide"
 
 module Lapis
   ALL_COMMANDS = [
     "dirs", "deps", "sync", "build", "bind", "generate", "clean",
-    "test", "editor", "run", "setup", "doctor", "init",
+    "test", "editor", "run", "setup", "doctor", "init", "ide",
     "scaffold", "new", "package", "docs", "version", "install", "uninstall", "completion"
   ]
 
@@ -147,6 +148,7 @@ Usage:
 
 \e[36mScaffolding & Distribution Commands:\e[0m
   init                  Initialize Crystal & Lapis integration in an existing Godot project
+  ide                   Configure VS Code, Cursor, Zed, or Neovim with Crystalline LSP & LLDB
   scaffold, new         Scaffold a new game, addon, or example ('lapis new game [name]')
   package               Create native .zip distribution archives or playable standalone game
   docs                  Generate and patch HTML API documentation
@@ -204,6 +206,8 @@ HELP
       Commands::Doctor.run(["--help"])
     when "init"
       Commands::Init.run(["--help"])
+    when "ide"
+      Commands::Ide.print_help
     when "scaffold", "new"
       Commands::Scaffold.print_help
     when "package"
@@ -298,6 +302,8 @@ HELP
       Commands::Doctor.run(sub_args)
     when "init"
       Commands::Init.run(sub_args)
+    when "ide"
+      Commands::Ide.run(sub_args)
     when "scaffold", "new"
       Commands::Scaffold.run(sub_args)
     when "package"

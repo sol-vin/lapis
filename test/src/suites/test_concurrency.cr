@@ -2,6 +2,8 @@
 # LibGodot Test Suite: Real Engine Concurrency, Fibers, Channels & Threads
 # =============================================================================
 
+include Lapis::Test
+
 test_concurrency "Cooperative Fiber modifying Godot Node properties across engine yields" do
   node = Godot.create(Godot::Node2D)
   node.name = "FiberConcurrentNode"
@@ -25,10 +27,10 @@ test_concurrency "Cooperative Fiber modifying Godot Node properties across engin
     Fiber.yield
   end
 
-  TestFramework.assert_true fiber_completed, "Cooperative fiber must complete across engine frame slices"
-  TestFramework.assert_eq step_count, 3, "Fiber must advance through all 3 frame steps"
-  TestFramework.assert_approx_eq node.position.x, 30.0_f32, 0.01, "Node X position must reflect final fiber mutation"
-  TestFramework.assert_approx_eq node.position.y, 30.0_f32, 0.01, "Node Y position must reflect final fiber mutation"
+  assert_true fiber_completed, "Cooperative fiber must complete across engine frame slices"
+  assert_eq step_count, 3, "Fiber must advance through all 3 frame steps"
+  assert_approx_eq node.position.x, 30.0_f32, 0.01, "Node X position must reflect final fiber mutation"
+  assert_approx_eq node.position.y, 30.0_f32, 0.01, "Node Y position must reflect final fiber mutation"
 
   node.destroy
 end
@@ -55,8 +57,8 @@ test_concurrency "Cooperative fiber awaiting custom Godot Node signals" do
     Fiber.yield
   end
 
-  TestFramework.assert_true fiber_done, "Awaiting fiber must resume upon signal emission"
-  TestFramework.assert_eq received_payload, "ConcurrencyPayload_777", "Awaited arguments must match emitted payload"
+  assert_true fiber_done, "Awaiting fiber must resume upon signal emission"
+  assert_eq received_payload, "ConcurrencyPayload_777", "Awaited arguments must match emitted payload"
 
   target.destroy
 end
@@ -73,7 +75,7 @@ test_concurrency "Dead-pointer protection: target destroyed while fiber is await
       target.signal("nonexistent_event").await
     rescue ex : Godot::DisposedObjectError
       caught_disposed_error = true
-      TestFramework.assert_eq ex.instance_id, target_id, "Exception instance ID must match destroyed target"
+      assert_eq ex.instance_id, target_id, "Exception instance ID must match destroyed target"
     ensure
       fiber_finished = true
     end
@@ -84,7 +86,7 @@ test_concurrency "Dead-pointer protection: target destroyed while fiber is await
 
   # Destroy target node in Godot ObjectDB while fiber is in-flight
   target.destroy
-  TestFramework.assert_false target.alive?, "Target must be dead in ObjectDB"
+  assert_false target.alive?, "Target must be dead in ObjectDB"
 
   # Pump cooperative loop: await loop must detect dead pointer and raise DisposedObjectError
   50.times do
@@ -92,8 +94,8 @@ test_concurrency "Dead-pointer protection: target destroyed while fiber is await
     Fiber.yield
   end
 
-  TestFramework.assert_true fiber_finished, "Fiber must not hang when target is destroyed"
-  TestFramework.assert_true caught_disposed_error, "DisposedObjectError must be raised when target node is freed"
+  assert_true fiber_finished, "Fiber must not hang when target is destroyed"
+  assert_true caught_disposed_error, "DisposedObjectError must be raised when target node is freed"
 end
 
 test_concurrency "Cooperative signal await with timeout expiration" do
@@ -105,7 +107,7 @@ test_concurrency "Cooperative signal await with timeout expiration" do
   Godot.await(target, "never_emitted_signal", timeout_sec: 0.05)
   elapsed = (::Time.instant - start_time).total_seconds
 
-  TestFramework.assert_true elapsed >= 0.04, "Await must wait until timeout expires"
+  assert_true elapsed >= 0.04, "Await must wait until timeout expires"
   target.destroy
 end
 
@@ -124,11 +126,11 @@ test_concurrency "GodotChannel actor communication from background OS thread to 
 
   # Non-blocking receive on Main Thread (safe in _process)
   received = channel.try_receive
-  TestFramework.assert_not_nil received, "Channel must contain enqueued item"
-  TestFramework.assert_eq received.to_s, "#{worker_data}_12497500", "Received item must match worker payload"
+  assert_not_nil received, "Channel must contain enqueued item"
+  assert_eq received.to_s, "#{worker_data}_12497500", "Received item must match worker payload"
 
   channel.close
-  TestFramework.assert_true channel.is_closed, "Channel must be marked closed"
+  assert_true channel.is_closed, "Channel must be marked closed"
   puts "DEBUG CHANNEL DESTROY: ref_count=#{channel.get_reference_count}, id=#{channel.instance_id}"
   channel.destroy
 end
@@ -153,7 +155,7 @@ test_concurrency "GodotChannel reactive signal received dispatch on Main Thread"
     Fiber.yield
   end
 
-  TestFramework.assert_eq received_signal_arg, "ReactiveMessage_ABC", "Reactive signal must receive payload from worker"
+  assert_eq received_signal_arg, "ReactiveMessage_ABC", "Reactive signal must receive payload from worker"
   channel.close
   channel.destroy
 end
@@ -174,7 +176,7 @@ test_concurrency "Multi-producer worker contention on GodotChannel" do
   end
 
   workers.each(&.join)
-  TestFramework.assert_eq channel.size, total_items, "Channel size must match total items sent"
+  assert_eq channel.size, total_items, "Channel size must match total items sent"
 
   # Drain all items non-blockingly from Main Thread
   drain_count = 0
@@ -182,8 +184,8 @@ test_concurrency "Multi-producer worker contention on GodotChannel" do
     drain_count += 1
   end
 
-  TestFramework.assert_eq drain_count, total_items, "All items must be drained without loss or corruption"
-  TestFramework.assert_true channel.empty?, "Channel must be empty after drain"
+  assert_eq drain_count, total_items, "All items must be drained without loss or corruption"
+  assert_true channel.empty?, "Channel must be empty after drain"
   channel.close
   channel.destroy
 end
@@ -197,11 +199,11 @@ test_concurrency "TypedChannel(T) type-safe generic message passing" do
   worker.join
 
   vec = typed_chan.try_receive
-  TestFramework.assert_not_nil vec, "Typed channel must return non-nil vector"
+  assert_not_nil vec, "Typed channel must return non-nil vector"
   if v = vec
-    TestFramework.assert_approx_eq v.x, 10.0_f32, 0.01
-    TestFramework.assert_approx_eq v.y, 20.0_f32, 0.01
-    TestFramework.assert_approx_eq v.z, 30.0_f32, 0.01
+    assert_approx_eq v.x, 10.0_f32, 0.01
+    assert_approx_eq v.y, 20.0_f32, 0.01
+    assert_approx_eq v.z, 30.0_f32, 0.01
   end
 
   typed_chan.close
@@ -226,9 +228,9 @@ test_concurrency "GodotChannel close unblocks waiting background receiver thread
   channel.close
   worker.join
 
-  TestFramework.assert_true receiver_unblocked, "Worker must unblock immediately when channel is closed"
-  TestFramework.assert_nil received_val, "Receive on closed channel must return nil"
-  TestFramework.assert_false channel.send("post_close"), "Send on closed channel must return false"
+  assert_true receiver_unblocked, "Worker must unblock immediately when channel is closed"
+  assert_nil received_val, "Receive on closed channel must return nil"
+  assert_false channel.send("post_close"), "Send on closed channel must return false"
   channel.destroy
 end
 
@@ -243,7 +245,7 @@ test_concurrency "Background thread safe deferred method dispatch (call_deferred
 
   worker.join
 
-  TestFramework.assert_true target.alive?, "Target must remain valid after deferred call"
+  assert_true target.alive?, "Target must remain valid after deferred call"
   target.destroy
 end
 
@@ -269,7 +271,7 @@ test_concurrency "Boehm GC stability during concurrent Godot allocations and cha
   # Trigger explicit GC collection cycle
   GC.collect
 
-  TestFramework.assert_true true, "GC.collect completed successfully under concurrent allocations without crash"
+  assert_true true, "GC.collect completed successfully under concurrent allocations without crash"
   channel.close
   channel.destroy
 end
@@ -278,16 +280,16 @@ test_concurrency "Godot Collections (Dictionary & Array) interop across threads"
   crystal_hash = {"health" => "100", "mana" => "50", "name" => "Hero"}
   godot_dict = crystal_hash.to_godot_dict
 
-  TestFramework.assert_eq godot_dict["health"], "100"
-  TestFramework.assert_eq godot_dict["mana"], "50"
-  TestFramework.assert_eq godot_dict["name"], "Hero"
-  TestFramework.assert_eq godot_dict.size, 3
+  assert_eq godot_dict["health"], "100"
+  assert_eq godot_dict["mana"], "50"
+  assert_eq godot_dict["name"], "Hero"
+  assert_eq godot_dict.size, 3
 
   crystal_arr = ["Apple", "Banana", "Cherry"]
   godot_arr = crystal_arr.to_godot_array
 
-  TestFramework.assert_eq godot_arr.size, 3
-  TestFramework.assert_eq godot_arr[0], "Apple"
-  TestFramework.assert_eq godot_arr[1], "Banana"
-  TestFramework.assert_eq godot_arr[2], "Cherry"
+  assert_eq godot_arr.size, 3
+  assert_eq godot_arr[0], "Apple"
+  assert_eq godot_arr[1], "Banana"
+  assert_eq godot_arr[2], "Cherry"
 end

@@ -281,7 +281,7 @@ module Lapis
           proj_dir.join("lib/lapis/src").to_s
         elsif Dir.exists?(proj_dir.join("lib/libgodot/src"))
           proj_dir.join("lib/libgodot/src").to_s
-        elsif Dir.exists?(root.join("src")) && File.exists?(root.join("src/libgodot.cr"))
+        elsif Dir.exists?(root.join("src")) && (File.exists?(root.join("src/libgodot.cr")) || File.exists?(root.join("src/lapis.cr")))
           root.join("src").to_s
         elsif (global = Core::Env.global_libgodot_path) && Dir.exists?(global.join("src"))
           global.join("src").to_s
@@ -289,8 +289,8 @@ module Lapis
           proj_dir.join("src").to_s
         end
 
-        # If project has shard.yml and lib/ does not exist, and no src_dir found with libgodot.cr, try shards install
-        if File.exists?(proj_dir.join("shard.yml")) && !Dir.exists?(proj_dir.join("lib")) && !File.exists?(Path.new(src_dir).join("libgodot.cr"))
+        # If project has shard.yml and lib/ does not exist, and no src_dir found with libgodot.cr/lapis.cr, try shards install
+        if File.exists?(proj_dir.join("shard.yml")) && !Dir.exists?(proj_dir.join("lib")) && !File.exists?(Path.new(src_dir).join("libgodot.cr")) && !File.exists?(Path.new(src_dir).join("lapis.cr"))
           if shards_exe = Core::ProcessRunner.find_executable("shards")
             Core::Logger.step("Shards", "Installing project dependencies via shards install...")
             Core::ProcessRunner.run(shards_exe, ["install"], chdir: proj_dir.to_s)

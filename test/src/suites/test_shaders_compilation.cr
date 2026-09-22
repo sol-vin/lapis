@@ -2,6 +2,8 @@
 # LibGodot Test Suite: Shaders, VisualShaders & Uniform Pipelines
 # =============================================================================
 
+include Lapis::Test
+
 test_shader "CanvasItem 2D shader compilation and ShaderMaterial binding" do
   shader = Godot.create(Godot::Shader)
   code = <<-GLSL
@@ -12,15 +14,15 @@ test_shader "CanvasItem 2D shader compilation and ShaderMaterial binding" do
   GLSL
 
   shader.set_code(code)
-  TestFramework.assert_true shader.get_code.includes?("shader_type canvas_item"), "Shader code should be stored"
+  assert_true shader.get_code.includes?("shader_type canvas_item"), "Shader code should be stored"
 
   mat = Godot.create(Godot::ShaderMaterial)
   mat.set_shader(shader)
 
   ret_shader = mat.get_shader
-  TestFramework.assert_not_nil ret_shader
-  TestFramework.assert_false ret_shader.pointer.null?
-  TestFramework.assert_eq ret_shader.get_instance_id, shader.get_instance_id
+  assert_not_nil ret_shader
+  assert_false ret_shader.pointer.null?
+  assert_eq ret_shader.get_instance_id, shader.get_instance_id
 end
 
 test_shader "Spatial 3D shader compilation with vertex and fragment stages" do
@@ -39,7 +41,7 @@ test_shader "Spatial 3D shader compilation with vertex and fragment stages" do
   GLSL
 
   shader.set_code(code)
-  TestFramework.assert_true shader.get_code.includes?("shader_type spatial"), "Spatial shader code should be stored"
+  assert_true shader.get_code.includes?("shader_type spatial"), "Spatial shader code should be stored"
 
   mat = Godot.create(Godot::ShaderMaterial)
   mat.set_shader(shader)
@@ -50,8 +52,8 @@ test_shader "Spatial 3D shader compilation with vertex and fragment stages" do
   mesh_inst.set_surface_override_material(0_i64, mat)
 
   override_mat = mesh_inst.get_surface_override_material(0_i64)
-  TestFramework.assert_not_nil override_mat
-  TestFramework.assert_false override_mat.pointer.null?
+  assert_not_nil override_mat
+  assert_false override_mat.pointer.null?
 
   mesh_inst.destroy
 end
@@ -65,7 +67,7 @@ test_shader "Particle and Sky shader types compilation" do
   }
   GLSL
   part_shader.set_code(part_code)
-  TestFramework.assert_true part_shader.get_code.includes?("shader_type particles")
+  assert_true part_shader.get_code.includes?("shader_type particles")
 
   sky_shader = Godot.create(Godot::Shader)
   sky_code = <<-GLSL
@@ -75,7 +77,7 @@ test_shader "Particle and Sky shader types compilation" do
   }
   GLSL
   sky_shader.set_code(sky_code)
-  TestFramework.assert_true sky_shader.get_code.includes?("shader_type sky")
+  assert_true sky_shader.get_code.includes?("shader_type sky")
 end
 
 test_shader "ShaderMaterial uniform parameter round-trip across Variant types" do
@@ -99,7 +101,7 @@ test_shader "ShaderMaterial uniform parameter round-trip across Variant types" d
   # 1. Float uniform
   mat.call("set_shader_parameter", "u_speed", 5.75_f64)
   val_float = mat.call_f64("get_shader_parameter", "u_speed")
-  TestFramework.assert_approx_eq val_float, 5.75
+  assert_approx_eq val_float, 5.75
 
   # 2. Vector2 uniform
   mat.call("set_shader_parameter", "u_offset", Godot::Vector2.new(42.0, 84.0))
@@ -113,7 +115,7 @@ test_shader "ShaderMaterial uniform parameter round-trip across Variant types" d
   # 5. Bool uniform
   mat.call("set_shader_parameter", "u_active", false)
   val_bool = mat.call_bool("get_shader_parameter", "u_active")
-  TestFramework.assert_false val_bool
+  assert_false val_bool
 end
 
 test_shader "VisualShader node graph creation and port connection" do
@@ -129,24 +131,24 @@ test_shader "VisualShader node graph creation and port connection" do
   node_id = 2_i64
   vs.add_node(stage, color_node, Godot::Vector2.new(100.0, 100.0), node_id)
   ret_node = vs.get_node(stage, node_id)
-  TestFramework.assert_not_nil ret_node
-  TestFramework.assert_false ret_node.pointer.null?
+  assert_not_nil ret_node
+  assert_false ret_node.pointer.null?
 
   # Node position configuration
   vs.set_node_position(stage, node_id, Godot::Vector2.new(150.0, 200.0))
   node_pos = vs.get_node_position(stage, node_id)
-  TestFramework.assert_approx_eq node_pos.x, 150.0_f32
-  TestFramework.assert_approx_eq node_pos.y, 200.0_f32
+  assert_approx_eq node_pos.x, 150.0_f32
+  assert_approx_eq node_pos.y, 200.0_f32
 
   # Connect Color output (port 0) to Albedo input (port 0 of output node 0)
   output_node_id = 0_i64
   from_port = 0_i64
   to_port = 0_i64
   vs.connect_nodes(stage, node_id, from_port, output_node_id, to_port)
-  TestFramework.assert_true vs.is_node_connection(stage, node_id, from_port, output_node_id, to_port), "VisualShader connection should exist"
+  assert_true vs.is_node_connection(stage, node_id, from_port, output_node_id, to_port), "VisualShader connection should exist"
 
   vs.disconnect_nodes(stage, node_id, from_port, output_node_id, to_port)
-  TestFramework.assert_false vs.is_node_connection(stage, node_id, from_port, output_node_id, to_port), "VisualShader connection should be severed"
+  assert_false vs.is_node_connection(stage, node_id, from_port, output_node_id, to_port), "VisualShader connection should be severed"
 
   vs.remove_node(stage, node_id)
 end

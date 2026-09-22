@@ -2,8 +2,10 @@
 # LibGodot Test Suite: Native LLDB Debugger & Multiplayer Session Isolation
 # =============================================================================
 
+include Lapis::Test
+
 macro test_debugger(name, &block)
-  ::TestFramework::Registry.register("Debugger", {{name}}) do |_node|
+  Registry.register("Debugger", {{name}}) do |_node|
     {{block.body}}
   end
 end
@@ -11,14 +13,14 @@ end
 test_debugger "Debug agent initializes and handles role reporting safely" do
   Godot::Debugger::Agent.initialize_agent
   Godot::Debugger::Agent.report_role("Server", 1)
-  TestFramework.assert_true true, "Agent role reported cleanly"
+  assert_true true, "Agent role reported cleanly"
 end
 
 test_debugger "LLDB driver initializes with clean detached state" do
   driver = Godot::Debugger::LldbDriver.new
-  TestFramework.assert_eq driver.state, Godot::Debugger::DriverState::Detached
-  TestFramework.assert_nil driver.attached_pid
-  TestFramework.assert_eq driver.breakpoints.size, 0
+  assert_eq driver.state, Godot::Debugger::DriverState::Detached
+  assert_nil driver.attached_pid
+  assert_eq driver.breakpoints.size, 0
 end
 
 test_debugger "LLDB driver stop reason parser accurately categorizes events" do
@@ -27,27 +29,27 @@ test_debugger "LLDB driver stop reason parser accurately categorizes events" do
   # Breakpoint hit
   line_bp = "* thread #1, stop reason = breakpoint 1.1\n    frame #0: 0x00007ff812345678 game.dll`Player#_physics_process(self=0x1234) at player.cr:42:5"
   info_bp = driver.parse_stop_info(line_bp)
-  TestFramework.assert_eq info_bp.reason, Godot::Debugger::StopReason::Breakpoint
-  TestFramework.assert_not_nil info_bp.frame
+  assert_eq info_bp.reason, Godot::Debugger::StopReason::Breakpoint
+  assert_not_nil info_bp.frame
   if f = info_bp.frame
-    TestFramework.assert_eq f.line, 42
-    TestFramework.assert_eq f.file, "player.cr"
+    assert_eq f.line, 42
+    assert_eq f.file, "player.cr"
   end
 
   # Signal / Crash
   line_sig = "* thread #1, stop reason = signal SIGSEGV"
   info_sig = driver.parse_stop_info(line_sig)
-  TestFramework.assert_eq info_sig.reason, Godot::Debugger::StopReason::Signal
+  assert_eq info_sig.reason, Godot::Debugger::StopReason::Signal
 
   # Step
   line_step = "* thread #1, stop reason = step over"
   info_step = driver.parse_stop_info(line_step)
-  TestFramework.assert_eq info_step.reason, Godot::Debugger::StopReason::Step
+  assert_eq info_step.reason, Godot::Debugger::StopReason::Step
 
   # Interrupt
   line_int = "* thread #1, stop reason = interrupt"
   info_int = driver.parse_stop_info(line_int)
-  TestFramework.assert_eq info_int.reason, Godot::Debugger::StopReason::UserInterrupt
+  assert_eq info_int.reason, Godot::Debugger::StopReason::UserInterrupt
 end
 
 test_debugger "Multi-session debugger isolation between Server and Client" do
@@ -58,15 +60,15 @@ test_debugger "Multi-session debugger isolation between Server and Client" do
   bp_server = Godot::Debugger::BreakpointInfo.new(1, "src/server_sync.cr", 100)
   server_driver.breakpoints[1] = bp_server
 
-  TestFramework.assert_eq server_driver.breakpoints.size, 1
-  TestFramework.assert_eq client_driver.breakpoints.size, 0, "Client session breakpoints isolated from Server"
+  assert_eq server_driver.breakpoints.size, 1
+  assert_eq client_driver.breakpoints.size, 0, "Client session breakpoints isolated from Server"
 
   # Add breakpoint to Client session only
   bp_client = Godot::Debugger::BreakpointInfo.new(1, "src/client_prediction.cr", 55)
   client_driver.breakpoints[1] = bp_client
 
-  TestFramework.assert_eq server_driver.breakpoints[1].file, "src/server_sync.cr"
-  TestFramework.assert_eq client_driver.breakpoints[1].file, "src/client_prediction.cr"
+  assert_eq server_driver.breakpoints[1].file, "src/server_sync.cr"
+  assert_eq client_driver.breakpoints[1].file, "src/client_prediction.cr"
 end
 
 test_debugger "Multiplayer lockstep signal routing logic" do
@@ -86,9 +88,9 @@ test_debugger "Multiplayer lockstep signal routing logic" do
 
   # Simulate Session 0 (Server) breaking at line 42
   signal_handler.call(0, true)
-  TestFramework.assert_eq lockstep_paused, [1, 2], "Peers 1 and 2 received lockstep pause when Server broke"
+  assert_eq lockstep_paused, [1, 2], "Peers 1 and 2 received lockstep pause when Server broke"
 
   # Simulate Session 0 resuming
   signal_handler.call(0, false)
-  TestFramework.assert_eq lockstep_resumed, [1, 2], "Peers 1 and 2 received lockstep resume when Server continued"
+  assert_eq lockstep_resumed, [1, 2], "Peers 1 and 2 received lockstep resume when Server continued"
 end

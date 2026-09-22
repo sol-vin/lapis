@@ -11,12 +11,15 @@ Compiled addons built with this template can be distributed to **any standard va
 1. **`src/main.cr`**:
    - `CrystalAddonPlugin < EditorPlugin`: An editor plugin lifecycle hook demonstrating `_enter_tree` and `_exit_tree`.
    - `CrystalAddonBanner < Control`: A custom UI node exported with properties (`message`, `text_color`) that can be placed in any scene.
-2. **`addons/crystal_addon/`**:
+2. **`spec/`**:
+   - `main_spec.cr`: Fast offline Crystal unit specifications verifying node registrations and properties.
+   - `editor/editor_spec.cr`: Live in-editor tests registered with `Lapis::Test` and executed in the Godot Editor.
+3. **`addons/crystal_addon/`**:
    - `plugin.cfg`: Godot plugin metadata.
    - `plugin.gd`: 2-line GDScript stub extending the registered Crystal `EditorPlugin`.
    - `crystal_addon.gdextension`: Configures Godot to load the native bridge from `res://addons/crystal_addon/bin/`.
    - `bin/`: Contains compiled native binaries (`crystal_bridge.dll`, `game.dll`, `gc.dll`, etc.).
-3. **`Makefile`**:
+4. **`Makefile`**:
    - Build system for compiling the Crystal code and linking with the LibGodot GDExtension bridge.
 
 ---
@@ -28,7 +31,23 @@ Compiled addons built with this template can be distributed to **any standard va
 make
 ```
 
-### 2. Test Live in the Godot Editor
+### 2. Run Automated Tests
+
+#### A. In-Editor Test Runner (Godot Editor)
+```bash
+make editor
+```
+1. Click the **Crystal** tab in the top bar of the Godot Editor.
+2. Under the **Unit Test Runner** tab, both **Crystal Specifications** and **In-Editor Test Suites** appear in the test tree.
+3. Click **▶ Run In-Editor Tests** to run live addon assertions directly inside the editor without switching scenes!
+4. Click **▶ Run All Specs** to run the offline test suite from within the editor.
+
+#### B. Offline CLI Specifications
+```bash
+make test       # or: crystal spec
+```
+
+### 3. Test Live in the Godot Editor
 ```bash
 make editor
 ```
@@ -38,7 +57,7 @@ The Godot Editor will launch with `crystal_addon` enabled. Check the bottom **Ou
 Compiled Crystal GDExtension is running without Crystal installed.
 ```
 
-### 3. Package for Distribution
+### 4. Package for Distribution
 To create a clean release `.zip` for non-Crystal users:
 ```bash
 make package RELEASE=1

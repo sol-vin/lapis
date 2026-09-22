@@ -3,6 +3,8 @@
 # Replicating godot-rust's thread_safe_apis_test.rs and AGENTS.md Invariants
 # =============================================================================
 
+include Lapis::Test
+
 record ActorWorkTask, id : Int32, payload : String
 record ActorWorkResult, id : Int32, processed_data : String
 
@@ -17,7 +19,7 @@ test_thread_safety "Godot.print and printerr are thread-safe when called from OS
   end
 
   thread.join
-  TestFramework.assert_true completed, "Background worker thread must complete execution cleanly"
+  assert_true completed, "Background worker thread must complete execution cleanly"
 end
 
 test_thread_safety "StringName and Vector math operations execute safely on OS worker threads" do
@@ -33,8 +35,8 @@ test_thread_safety "StringName and Vector math operations execute safely on OS w
   thread.join
   result_vec = computed_results.receive
 
-  TestFramework.assert_approx_eq result_vec.x, 40.0_f32, 0.01
-  TestFramework.assert_approx_eq result_vec.y, 60.0_f32, 0.01
+  assert_approx_eq result_vec.x, 40.0_f32, 0.01
+  assert_approx_eq result_vec.y, 60.0_f32, 0.01
 end
 
 test_thread_safety "Actor Pattern: OS background thread offloads computation to main thread via buffered Channel" do
@@ -62,9 +64,9 @@ test_thread_safety "Actor Pattern: OS background thread offloads computation to 
   r2 = out_channel.receive
   r3 = out_channel.receive
 
-  TestFramework.assert_eq r1.processed_data, "ahplA_PROCESSED_10"
-  TestFramework.assert_eq r2.processed_data, "ateB_PROCESSED_20"
-  TestFramework.assert_eq r3.processed_data, "ammaG_PROCESSED_30"
+  assert_eq r1.processed_data, "ahplA_PROCESSED_10"
+  assert_eq r2.processed_data, "ateB_PROCESSED_20"
+  assert_eq r3.processed_data, "ammaG_PROCESSED_30"
 end
 
 test_thread_safety "Shared collections protected by Mutex across concurrent OS threads" do
@@ -83,5 +85,5 @@ test_thread_safety "Shared collections protected by Mutex across concurrent OS t
   end
 
   threads.each(&.join)
-  TestFramework.assert_eq shared_array.size, 40, "All 40 synchronized writes must be recorded without data corruption"
+  assert_eq shared_array.size, 40, "All 40 synchronized writes must be recorded without data corruption"
 end

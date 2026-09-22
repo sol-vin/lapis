@@ -17,7 +17,7 @@ require "./libgodot/generated/singletons"
 require "./libgodot/extensions"
 require "./libgodot/docs"
 require "./libgodot/testing"
-{% unless flag?(:libgodot_addon) %}
+{% unless flag?(:release) || flag?(:libgodot_addon) || flag?(:no_editor) %}
 require "./libgodot/script"
 require "./libgodot/debugger/lldb_driver"
 require "./libgodot/debugger/agent"

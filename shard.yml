@@ -1,5 +1,5 @@
 name: lapis
-version: 0.0.8
+version: 0.0.9
 crystal: ">= 1.20.0, <= 1.21.0"
 
 authors:

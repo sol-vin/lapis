@@ -253,7 +253,7 @@ Lapis features an extensive in-code documentation suite under the `Docs` module.
     </tr>
     <tr>
       <td><a href="src/libgodot/docs.cr"><code>Docs::Q_TESTING_FRAMEWORK_AND_EDITOR_SUITES</code></a></td>
-      <td>Reusable <code>TestFramework</code> apparatus, assertion matchers, cooperative frame-stepping, signal timeouts, and live in-editor suites.</td>
+      <td>Reusable <code>Lapis::Test</code> apparatus, assertion matchers, cooperative frame-stepping, signal timeouts, and live in-editor suites.</td>
     </tr>
   </tbody>
 </table>

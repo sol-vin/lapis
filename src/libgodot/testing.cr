@@ -12,33 +12,35 @@
 
 module Lapis
   module Test
-  # Base exception raised on assertion failures
-  class AssertionError < Exception
-  end
+    extend self
 
-  # Exception raised when an asynchronous operation or signal await exceeds its timeout deadline
-  class TimeoutError < AssertionError
-  end
+    # Base exception raised on assertion failures
+    class AssertionError < Exception
+    end
 
-  # Encapsulates the execution result of a single registered test case
-  record TestResult, category : String, name : String, passed : Bool, message : String = "", duration_ms : Float64 = 0.0
+    # Exception raised when an asynchronous operation or signal await exceeds its timeout deadline
+    class TimeoutError < AssertionError
+    end
+
+    # Encapsulates the execution result of a single registered test case
+    record TestResult, category : String, name : String, passed : Bool, message : String = "", duration_ms : Float64 = 0.0
 
   # ===========================================================================
   # 1. Assertion Matchers
   # ===========================================================================
 
   # Asserts that the boolean condition evaluates to true
-  def self.assert_true(cond : Bool, msg : String = "Expected true, got false")
+  def assert_true(cond : Bool, msg : String = "Expected true, got false")
     raise AssertionError.new(msg) unless cond
   end
 
   # Asserts that the boolean condition evaluates to false
-  def self.assert_false(cond : Bool, msg : String = "Expected false, got true")
+  def assert_false(cond : Bool, msg : String = "Expected false, got true")
     raise AssertionError.new(msg) if cond
   end
 
   # Asserts that two values are equal using Crystal's == operator
-  def self.assert_eq(actual, expected, msg : String = "")
+  def assert_eq(actual, expected, msg : String = "")
     if actual != expected
       detail = msg.empty? ? "Expected #{expected.inspect}, got #{actual.inspect}" : "#{msg} (Expected #{expected.inspect}, got #{actual.inspect})"
       raise AssertionError.new(detail)
@@ -46,7 +48,7 @@ module Lapis
   end
 
   # Asserts that two floating-point values are approximately equal within a tolerance epsilon
-  def self.assert_approx_eq(actual : Float32 | Float64, expected : Float32 | Float64, epsilon : Float64 = 0.001, msg : String = "")
+  def assert_approx_eq(actual : Float32 | Float64, expected : Float32 | Float64, epsilon : Float64 = 0.001, msg : String = "")
     diff = (actual - expected).abs
     if diff > epsilon
       detail = msg.empty? ? "Expected ~#{expected}, got #{actual} (diff #{diff})" : "#{msg} (Expected ~#{expected}, got #{actual})"
@@ -55,17 +57,17 @@ module Lapis
   end
 
   # Asserts that a value is non-nil
-  def self.assert_not_nil(val, msg : String = "Expected non-nil value")
+  def assert_not_nil(val, msg : String = "Expected non-nil value")
     raise AssertionError.new(msg) if val.nil?
   end
 
   # Asserts that a value is nil
-  def self.assert_nil(val, msg : String = "Expected nil value")
+  def assert_nil(val, msg : String = "Expected nil value")
     raise AssertionError.new(msg) unless val.nil?
   end
 
   # Asserts that evaluating the block raises an exception of the expected class T
-  def self.assert_raises(klass : T.class, msg : String = "", &block) forall T
+  def assert_raises(klass : T.class, msg : String = "", &block) forall T
     begin
       yield
     rescue ex : T
@@ -79,7 +81,7 @@ module Lapis
   end
 
   # Asserts that a collection contains the specified item
-  def self.assert_includes(collection, item, msg : String = "")
+  def assert_includes(collection, item, msg : String = "")
     unless collection.includes?(item)
       detail = msg.empty? ? "Expected collection to include #{item.inspect}, but it was absent" : "#{msg} (Missing #{item.inspect})"
       raise AssertionError.new(detail)
@@ -87,7 +89,7 @@ module Lapis
   end
 
   # Asserts that a numeric value is within delta of the expected value
-  def self.assert_in_delta(actual : Number, expected : Number, delta : Number, msg : String = "")
+  def assert_in_delta(actual : Number, expected : Number, delta : Number, msg : String = "")
     diff = (actual - expected).abs
     if diff > delta
       detail = msg.empty? ? "Expected #{actual} to be within #{delta} of #{expected} (diff #{diff})" : "#{msg} (Expected #{actual} within #{delta} of #{expected})"
@@ -96,7 +98,7 @@ module Lapis
   end
 
   # Asserts that a numeric value falls within the inclusive range [min, max]
-  def self.assert_between(actual : Number, min : Number, max : Number, msg : String = "")
+  def assert_between(actual : Number, min : Number, max : Number, msg : String = "")
     if actual < min || actual > max
       detail = msg.empty? ? "Expected #{actual} to be between #{min} and #{max}" : "#{msg} (Expected #{actual} between #{min} and #{max})"
       raise AssertionError.new(detail)
@@ -104,7 +106,7 @@ module Lapis
   end
 
   # Temporarily suppresses engine error printing to stdout/stderr while evaluating the block
-  def self.suppress_errors(&block)
+  def suppress_errors(&block)
     engine = Godot::Engine.instance
     prev = engine.is_printing_error_messages
     engine.set_print_error_messages(false)
@@ -120,14 +122,14 @@ module Lapis
   # ===========================================================================
 
   # Cooperatively yields until the specified number of process (render/idle) frames have elapsed
-  def self.skip_frames(count : Int32 = 1) : Void
+  def skip_frames(count : Int32 = 1) : Void
     count.times do
       Fiber.yield
     end
   end
 
   # Cooperatively yields until the specified number of fixed physics frames have elapsed
-  def self.skip_physics_frames(count : Int32 = 1) : Void
+  def skip_physics_frames(count : Int32 = 1) : Void
     count.times do
       Fiber.yield
     end
@@ -136,7 +138,7 @@ module Lapis
   # Cooperatively awaits a signal on the target emitter.
   # If the signal is not received within `timeout_sec`, raises a descriptive `TimeoutError`.
   # Returns the emitted arguments as an Array(Variant).
-  def self.await_signal(emitter : Godot::Object, signal_name : String, timeout_sec : Float64 = 2.0) : ::Array(Variant)
+  def await_signal(emitter : Godot::Object, signal_name : String, timeout_sec : Float64 = 2.0) : ::Array(Variant)
     emitter.check_alive!
     target_id = emitter.signal_target_id
     sub = Godot.subscribe_signal(target_id, signal_name)
@@ -162,7 +164,7 @@ module Lapis
 
   # Executes the provided block and asserts that the specified signal is emitted within `timeout_sec`.
   # Returns the emitted arguments. Raises AssertionError if the signal fails to emit.
-  def self.assert_emits(emitter : Godot::Object, signal_name : String, timeout_sec : Float64 = 2.0, &block) : ::Array(Variant)
+  def assert_emits(emitter : Godot::Object, signal_name : String, timeout_sec : Float64 = 2.0, &block) : ::Array(Variant)
     emitter.check_alive!
     target_id = emitter.signal_target_id
     sub = Godot.subscribe_signal(target_id, signal_name)
@@ -188,7 +190,7 @@ module Lapis
   end
 
   # Executes the provided block and verifies that the specified signal is NOT emitted during `duration_sec`.
-  def self.assert_no_emit(emitter : Godot::Object, signal_name : String, duration_sec : Float64 = 0.5, &block) : Void
+  def assert_no_emit(emitter : Godot::Object, signal_name : String, duration_sec : Float64 = 0.5, &block) : Void
     emitter.check_alive!
     target_id = emitter.signal_target_id
     sub = Godot.subscribe_signal(target_id, signal_name)
@@ -210,7 +212,7 @@ module Lapis
   end
 
   # Executes a block with an active timeout watchdog, raising `TimeoutError` if it fails to finish in time
-  def self.with_timeout(timeout_sec : Float64 = 5.0, operation_name : String = "Operation", &block)
+  def with_timeout(timeout_sec : Float64 = 5.0, operation_name : String = "Operation", &block)
     done = false
     err : Exception? = nil
     spawn do
@@ -366,7 +368,7 @@ module Lapis
   end
 end
 
-alias TestFramework = ::Lapis::Test
+include Lapis::Test
 
 module Godot
   alias Test = ::Lapis::Test

@@ -46,6 +46,9 @@ Name: "envPath"; Description: "Add Lapis to PATH environment variable"; GroupDes
 [Files]
 Source: "{#SourceDir}\lapis.exe"; DestDir: "{app}\bin"; Flags: ignoreversion
 Source: "{#SourceDir}\crystalline.exe"; DestDir: "{app}\bin"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "{#SourceDir}\*.dll"; DestDir: "{app}\bin"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "{#SourceDir}\README.md"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "{#SourceDir}\LICENSE"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "{#SourceDir}\install_deps.ps1"; DestDir: "{tmp}"; Flags: deleteafterinstall
 
 [Icons]
@@ -120,10 +123,13 @@ end;
 function CheckCrystallineInstalled(): Boolean;
 var
   UserProf: string;
+  ProgFiles: string;
 begin
   UserProf := GetEnv('USERPROFILE');
+  ProgFiles := GetEnv('ProgramFiles');
   Result := IsCommandInPath('crystalline.exe') or
-            FileExists(ExpandConstant('{app}\bin\crystalline.exe')) or
+            ((ProgFiles <> '') and FileExists(ProgFiles + '\Lapis\bin\crystalline.exe')) or
+            FileExists('C:\Program Files\Lapis\bin\crystalline.exe') or
             FileExists('C:\Program Files\crystalline\bin\crystalline.exe') or
             FileExists('C:\crystalline\bin\crystalline.exe') or
             ((UserProf <> '') and FileExists(UserProf + '\scoop\shims\crystalline.exe')) or

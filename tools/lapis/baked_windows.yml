@@ -18,6 +18,8 @@ files:
   - template/src/my_node.cr
   - template/scenes/main.tscn
   - template/scripts/mygdnode.gd
+  - template/spec/main_spec.cr
+  - template/spec/editor/editor_spec.cr
 
   # 3. Addon Files (addons/crystal_integration/)
   - addons/crystal_integration/crystal.gdextension
@@ -31,6 +33,8 @@ files:
   - template-addon/Makefile
   - template-addon/README.md
   - template-addon/src/main.cr
+  - template-addon/spec/main_spec.cr
+  - template-addon/spec/editor/editor_spec.cr
   - template-addon/addons/crystal_addon/crystal_addon.gdextension
   - template-addon/addons/crystal_addon/plugin.cfg
   - template-addon/addons/crystal_addon/plugin.gd

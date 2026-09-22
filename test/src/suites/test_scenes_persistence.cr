@@ -2,6 +2,8 @@
 # LibGodot Test Suite: Scene Serialization, Persistence & Instantiation
 # =============================================================================
 
+include Lapis::Test
+
 enum PlayerClassEnum
   Warrior = 0
   Mage    = 1
@@ -159,40 +161,40 @@ end
 
 test_scenes "Loading and instantiating test_crystal_player_2d.tscn from disk into Crystal" do
   scene = Godot.load_as(Godot::PackedScene, "res://scenes/test_crystal_player_2d.tscn")
-  TestFramework.assert_not_nil scene, "PackedScene must load from res://scenes/test_crystal_player_2d.tscn"
+  assert_not_nil scene, "PackedScene must load from res://scenes/test_crystal_player_2d.tscn"
 
   # Instantiate typed as ComplexPlayer2D
   player = scene.instantiate_as(ComplexPlayer2D)
-  TestFramework.assert_not_nil player, "Instantiated node must cast to ComplexPlayer2D"
-  TestFramework.assert_eq player.name, "HeroPlayer"
+  assert_not_nil player, "Instantiated node must cast to ComplexPlayer2D"
+  assert_eq player.name, "HeroPlayer"
 
   # Verify values loaded from .tscn file
-  TestFramework.assert_eq player.character_name, "Arthas"
-  TestFramework.assert_approx_eq player.health, 250.0
-  TestFramework.assert_approx_eq player.mana.to_f64, 120.0
-  TestFramework.assert_eq player.level, 25
-  TestFramework.assert_eq player.experience, 75000_i64
-  TestFramework.assert_true player.is_alive
-  TestFramework.assert_approx_eq player.velocity_vector.x, 200.0_f32
-  TestFramework.assert_approx_eq player.velocity_vector.y, -100.0_f32
-  TestFramework.assert_eq player.grid_coordinates.x, 14
-  TestFramework.assert_eq player.grid_coordinates.y, 28
-  TestFramework.assert_eq player.character_class, PlayerClassEnum::Paladin
+  assert_eq player.character_name, "Arthas"
+  assert_approx_eq player.health, 250.0
+  assert_approx_eq player.mana.to_f64, 120.0
+  assert_eq player.level, 25
+  assert_eq player.experience, 75000_i64
+  assert_true player.is_alive
+  assert_approx_eq player.velocity_vector.x, 200.0_f32
+  assert_approx_eq player.velocity_vector.y, -100.0_f32
+  assert_eq player.grid_coordinates.x, 14
+  assert_eq player.grid_coordinates.y, 28
+  assert_eq player.character_class, PlayerClassEnum::Paladin
 
   # Verify nested Crystal child node (ComplexWeapon2D)
   weapon = player.find_child_as(ComplexWeapon2D, "EquippedWeapon")
-  TestFramework.assert_not_nil weapon, "EquippedWeapon child node must exist and cast to ComplexWeapon2D"
-  TestFramework.assert_eq weapon.not_nil!.weapon_title, "Frostmourne"
-  TestFramework.assert_approx_eq weapon.not_nil!.attack_power.to_f64, 99.5
-  TestFramework.assert_eq weapon.not_nil!.durability, 100
-  TestFramework.assert_eq weapon.not_nil!.elemental_type, WeaponElementEnum::Ice
+  assert_not_nil weapon, "EquippedWeapon child node must exist and cast to ComplexWeapon2D"
+  assert_eq weapon.not_nil!.weapon_title, "Frostmourne"
+  assert_approx_eq weapon.not_nil!.attack_power.to_f64, 99.5
+  assert_eq weapon.not_nil!.durability, 100
+  assert_eq weapon.not_nil!.elemental_type, WeaponElementEnum::Ice
 
   # Verify native Godot child nodes
   col = player.find_child("CollisionShape2D")
-  TestFramework.assert_not_nil col, "Native CollisionShape2D child must be instantiated"
+  assert_not_nil col, "Native CollisionShape2D child must be instantiated"
 
   marker = player.find_child("SpawnAnchor")
-  TestFramework.assert_not_nil marker, "Native SpawnAnchor Marker2D must be instantiated"
+  assert_not_nil marker, "Native SpawnAnchor Marker2D must be instantiated"
 
   player.destroy
   scene.destroy
@@ -201,46 +203,46 @@ end
 test_scenes "Loading and instantiating 3D and UI Crystal scenes from disk" do
   # 1. 3D Scene
   scene_3d = Godot.load_as(Godot::PackedScene, "res://scenes/test_crystal_entity_3d.tscn")
-  TestFramework.assert_not_nil scene_3d
+  assert_not_nil scene_3d
 
   entity = scene_3d.instantiate_as(ComplexEntity3D)
-  TestFramework.assert_not_nil entity
-  TestFramework.assert_eq entity.name, "DragonBoss"
-  TestFramework.assert_eq entity.attr_name, "Smaug"
-  TestFramework.assert_approx_eq entity.attr_max_hp, 8888.0
-  TestFramework.assert_eq entity.attr_defense, 120
-  TestFramework.assert_approx_eq entity.attr_scale_vector.x, 3.0_f32
-  TestFramework.assert_approx_eq entity.attr_scale_vector.y, 3.0_f32
-  TestFramework.assert_approx_eq entity.attr_scale_vector.z, 3.0_f32
-  TestFramework.assert_eq entity.attr_offset_grid.y, 10
-  TestFramework.assert_eq entity.attr_phase, BossPhaseEnum::PhaseTwo
-  TestFramework.assert_false entity.is_invulnerable
+  assert_not_nil entity
+  assert_eq entity.name, "DragonBoss"
+  assert_eq entity.attr_name, "Smaug"
+  assert_approx_eq entity.attr_max_hp, 8888.0
+  assert_eq entity.attr_defense, 120
+  assert_approx_eq entity.attr_scale_vector.x, 3.0_f32
+  assert_approx_eq entity.attr_scale_vector.y, 3.0_f32
+  assert_approx_eq entity.attr_scale_vector.z, 3.0_f32
+  assert_eq entity.attr_offset_grid.y, 10
+  assert_eq entity.attr_phase, BossPhaseEnum::PhaseTwo
+  assert_false entity.is_invulnerable
 
   hitbox = entity.find_child_as(ComplexHitbox3D, "HitboxArea")
-  TestFramework.assert_not_nil hitbox
-  TestFramework.assert_approx_eq hitbox.not_nil!.radius.to_f64, 4.5
-  TestFramework.assert_approx_eq hitbox.not_nil!.damage_multiplier, 2.0
-  TestFramework.assert_true hitbox.not_nil!.hitbox_active
+  assert_not_nil hitbox
+  assert_approx_eq hitbox.not_nil!.radius.to_f64, 4.5
+  assert_approx_eq hitbox.not_nil!.damage_multiplier, 2.0
+  assert_true hitbox.not_nil!.hitbox_active
 
   entity.destroy
   scene_3d.destroy
 
   # 2. UI Control Scene
   scene_ui = Godot.load_as(Godot::PackedScene, "res://scenes/test_crystal_inventory_ui.tscn")
-  TestFramework.assert_not_nil scene_ui
+  assert_not_nil scene_ui
 
   ui = scene_ui.instantiate_as(ComplexInventoryUI)
-  TestFramework.assert_not_nil ui
-  TestFramework.assert_eq ui.name, "InventoryPanel"
-  TestFramework.assert_eq ui.title, "Royal Vault"
-  TestFramework.assert_eq ui.capacity, 128
-  TestFramework.assert_eq ui.gold, 500000_i64
-  TestFramework.assert_true ui.is_visible_panel
-  TestFramework.assert_approx_eq ui.view_bounds.position.x, 20.0_f32
-  TestFramework.assert_approx_eq ui.view_bounds.size.x, 500.0_f32
+  assert_not_nil ui
+  assert_eq ui.name, "InventoryPanel"
+  assert_eq ui.title, "Royal Vault"
+  assert_eq ui.capacity, 128
+  assert_eq ui.gold, 500000_i64
+  assert_true ui.is_visible_panel
+  assert_approx_eq ui.view_bounds.position.x, 20.0_f32
+  assert_approx_eq ui.view_bounds.size.x, 500.0_f32
 
   label = ui.find_child("TitleLabel")
-  TestFramework.assert_not_nil label
+  assert_not_nil label
 
   ui.destroy
   scene_ui.destroy
@@ -248,33 +250,33 @@ end
 
 test_scenes "Instantiating composite scene with mixed native and Crystal hierarchy" do
   scene = Godot.load_as(Godot::PackedScene, "res://scenes/test_crystal_composite_world.tscn")
-  TestFramework.assert_not_nil scene
+  assert_not_nil scene
 
   root_world = scene.instantiate
-  TestFramework.assert_not_nil root_world
-  TestFramework.assert_eq root_world.name, "WorldRoot"
+  assert_not_nil root_world
+  assert_eq root_world.name, "WorldRoot"
 
   # Traverse to Crystal hero
   hero = root_world.get_node_as(ComplexPlayer2D, "Hero")
-  TestFramework.assert_not_nil hero
-  TestFramework.assert_eq hero.character_name, "Ranger"
-  TestFramework.assert_approx_eq hero.health, 180.0
-  TestFramework.assert_eq hero.level, 15
-  TestFramework.assert_eq hero.character_class, PlayerClassEnum::Rogue
+  assert_not_nil hero
+  assert_eq hero.character_name, "Ranger"
+  assert_approx_eq hero.health, 180.0
+  assert_eq hero.level, 15
+  assert_eq hero.character_class, PlayerClassEnum::Rogue
 
   # Traverse through intermediate native Node2D to equipped weapon
   bow = root_world.get_node_as(ComplexWeapon2D, "Hero/WeaponMount/EquippedBow")
-  TestFramework.assert_not_nil bow
-  TestFramework.assert_eq bow.weapon_title, "Windrunner Bow"
-  TestFramework.assert_approx_eq bow.attack_power.to_f64, 65.0
-  TestFramework.assert_eq bow.elemental_type, WeaponElementEnum::Lightning
+  assert_not_nil bow
+  assert_eq bow.weapon_title, "Windrunner Bow"
+  assert_approx_eq bow.attack_power.to_f64, 65.0
+  assert_eq bow.elemental_type, WeaponElementEnum::Lightning
 
   # Traverse to Crystal UI HUD
   hud = root_world.get_node_as(ComplexInventoryUI, "HUD")
-  TestFramework.assert_not_nil hud
-  TestFramework.assert_eq hud.title, "Quick HUD"
-  TestFramework.assert_eq hud.capacity, 16
-  TestFramework.assert_eq hud.gold, 2500_i64
+  assert_not_nil hud
+  assert_eq hud.title, "Quick HUD"
+  assert_eq hud.capacity, 16
+  assert_eq hud.gold, 2500_i64
 
   root_world.destroy
   scene.destroy
@@ -285,29 +287,29 @@ test_scenes "Lifecycle execution and clean unloading of instantiated Crystal sce
   player = scene.instantiate_as(ComplexPlayer2D)
 
   # Before adding to tree, lifecycle counters should be 0
-  TestFramework.assert_eq player.enter_tree_count, 0
-  TestFramework.assert_eq player.ready_count, 0
+  assert_eq player.enter_tree_count, 0
+  assert_eq player.ready_count, 0
 
   # Add to scene tree
   root.add_child(player)
   player._godot_call_virtual("_enter_tree", 0.0)
   player._godot_call_virtual("_ready", 0.0)
 
-  TestFramework.assert_true player.enter_tree_count >= 1, "Enter tree must trigger"
-  TestFramework.assert_true player.ready_count >= 1, "Ready must trigger"
+  assert_true player.enter_tree_count >= 1, "Enter tree must trigger"
+  assert_true player.ready_count >= 1, "Ready must trigger"
 
   # Process step
   player._godot_call_virtual("_process", 0.016)
-  TestFramework.assert_true player.process_count >= 1, "Process must trigger"
+  assert_true player.process_count >= 1, "Process must trigger"
 
   # Clean unload: remove from tree and call _exit_tree
   root.remove_child(player)
   player._godot_call_virtual("_exit_tree", 0.0)
-  TestFramework.assert_true player.exit_tree_count >= 1, "Exit tree must trigger"
+  assert_true player.exit_tree_count >= 1, "Exit tree must trigger"
 
   # Destruction
   player.destroy
-  TestFramework.assert_false player.alive?, "Player must report not alive after destruction"
+  assert_false player.alive?, "Player must report not alive after destruction"
   scene.destroy
 end
 
@@ -340,12 +342,12 @@ test_scenes "Dynamic scene tree construction, PackedScene packing, and ResourceS
   # Pack into PackedScene
   packed = Godot.create(Godot::PackedScene)
   pack_result = packed.pack(player)
-  TestFramework.assert_eq pack_result, 0_i64, "PackedScene.pack must return OK (0)"
+  assert_eq pack_result, 0_i64, "PackedScene.pack must return OK (0)"
 
   # Save to user:// sandbox storage
   save_path = "user://test_saved_dynamic_hero.tscn"
   save_err = Godot.resource_saver.save(packed, save_path, 0_i64)
-  TestFramework.assert_eq save_err, 0_i64, "ResourceSaver.save must succeed and return OK (0)"
+  assert_eq save_err, 0_i64, "ResourceSaver.save must succeed and return OK (0)"
 
   # Cleanup in-memory source node
   player.destroy
@@ -355,32 +357,32 @@ end
 test_scenes "2x check: Reloading dynamic scene from disk and verifying all serialized values" do
   save_path = "user://test_saved_dynamic_hero.tscn"
   reloaded_scene = Godot.load_as(Godot::PackedScene, save_path)
-  TestFramework.assert_not_nil reloaded_scene, "Saved scene must load from #{save_path}"
+  assert_not_nil reloaded_scene, "Saved scene must load from #{save_path}"
 
   reloaded_player = reloaded_scene.instantiate_as(ComplexPlayer2D)
-  TestFramework.assert_not_nil reloaded_player
-  TestFramework.assert_eq reloaded_player.name, "DynamicHero"
+  assert_not_nil reloaded_player
+  assert_eq reloaded_player.name, "DynamicHero"
 
   # 2x Check all serialized root properties
-  TestFramework.assert_eq reloaded_player.character_name, "Geralt of Rivia"
-  TestFramework.assert_approx_eq reloaded_player.health, 320.5
-  TestFramework.assert_approx_eq reloaded_player.mana.to_f64, 180.0
-  TestFramework.assert_eq reloaded_player.level, 70
-  TestFramework.assert_eq reloaded_player.experience, 987654321_i64
-  TestFramework.assert_true reloaded_player.is_alive
-  TestFramework.assert_approx_eq reloaded_player.velocity_vector.x, 45.0_f32
-  TestFramework.assert_approx_eq reloaded_player.velocity_vector.y, -90.0_f32
-  TestFramework.assert_eq reloaded_player.grid_coordinates.x, 21
-  TestFramework.assert_eq reloaded_player.grid_coordinates.y, 42
-  TestFramework.assert_eq reloaded_player.character_class, PlayerClassEnum::Mage
+  assert_eq reloaded_player.character_name, "Geralt of Rivia"
+  assert_approx_eq reloaded_player.health, 320.5
+  assert_approx_eq reloaded_player.mana.to_f64, 180.0
+  assert_eq reloaded_player.level, 70
+  assert_eq reloaded_player.experience, 987654321_i64
+  assert_true reloaded_player.is_alive
+  assert_approx_eq reloaded_player.velocity_vector.x, 45.0_f32
+  assert_approx_eq reloaded_player.velocity_vector.y, -90.0_f32
+  assert_eq reloaded_player.grid_coordinates.x, 21
+  assert_eq reloaded_player.grid_coordinates.y, 42
+  assert_eq reloaded_player.character_class, PlayerClassEnum::Mage
 
   # 2x Check all serialized child properties
   weapon = reloaded_player.find_child_as(ComplexWeapon2D, "SilverBlade")
-  TestFramework.assert_not_nil weapon, "SilverBlade child node must persist across save/load"
-  TestFramework.assert_eq weapon.not_nil!.weapon_title, "Aerondight"
-  TestFramework.assert_approx_eq weapon.not_nil!.attack_power.to_f64, 180.75
-  TestFramework.assert_eq weapon.not_nil!.durability, 250
-  TestFramework.assert_eq weapon.not_nil!.elemental_type, WeaponElementEnum::Fire
+  assert_not_nil weapon, "SilverBlade child node must persist across save/load"
+  assert_eq weapon.not_nil!.weapon_title, "Aerondight"
+  assert_approx_eq weapon.not_nil!.attack_power.to_f64, 180.75
+  assert_eq weapon.not_nil!.durability, 250
+  assert_eq weapon.not_nil!.elemental_type, WeaponElementEnum::Fire
 
   reloaded_player.destroy
   reloaded_scene.destroy
@@ -405,11 +407,11 @@ test_scenes "Mutation and re-saving scene round-trip verification" do
   # Pack and save v2
   packed_v2 = Godot.create(Godot::PackedScene)
   pack_res = packed_v2.pack(player)
-  TestFramework.assert_eq pack_res, 0_i64
+  assert_eq pack_res, 0_i64
 
   save_v2_path = "user://test_saved_dynamic_hero_v2.tscn"
   err = Godot.resource_saver.save(packed_v2, save_v2_path, 0_i64)
-  TestFramework.assert_eq err, 0_i64
+  assert_eq err, 0_i64
 
   player.destroy
   packed_v2.destroy
@@ -419,15 +421,15 @@ test_scenes "Mutation and re-saving scene round-trip verification" do
   scene_v2 = Godot.load_as(Godot::PackedScene, save_v2_path)
   player_v2 = scene_v2.instantiate_as(ComplexPlayer2D)
 
-  TestFramework.assert_eq player_v2.character_name, "Geralt the Ascended"
-  TestFramework.assert_approx_eq player_v2.health, 500.0
-  TestFramework.assert_eq player_v2.level, 100
-  TestFramework.assert_eq player_v2.character_class, PlayerClassEnum::Paladin
+  assert_eq player_v2.character_name, "Geralt the Ascended"
+  assert_approx_eq player_v2.health, 500.0
+  assert_eq player_v2.level, 100
+  assert_eq player_v2.character_class, PlayerClassEnum::Paladin
 
   weapon_v2 = player_v2.find_child_as(ComplexWeapon2D, "SilverBlade").not_nil!
-  TestFramework.assert_eq weapon_v2.weapon_title, "Aerondight +10"
-  TestFramework.assert_approx_eq weapon_v2.attack_power.to_f64, 999.0
-  TestFramework.assert_eq weapon_v2.elemental_type, WeaponElementEnum::Lightning
+  assert_eq weapon_v2.weapon_title, "Aerondight +10"
+  assert_approx_eq weapon_v2.attack_power.to_f64, 999.0
+  assert_eq weapon_v2.elemental_type, WeaponElementEnum::Lightning
 
   player_v2.destroy
   scene_v2.destroy
@@ -439,22 +441,22 @@ test_scenes "Repeated load, instantiate, and unload lifecycle stress test" do
   # Perform 10 rapid instantiation, tree attachment, and teardown cycles
   10.times do |i|
     scene = Godot.load_as(Godot::PackedScene, scene_path)
-    TestFramework.assert_not_nil scene
+    assert_not_nil scene
 
     inst = scene.instantiate_as(ComplexPlayer2D)
-    TestFramework.assert_not_nil inst
-    TestFramework.assert_eq inst.character_name, "Arthas"
+    assert_not_nil inst
+    assert_eq inst.character_name, "Arthas"
 
     root.add_child(inst)
     inst._godot_call_virtual("_ready", 0.0)
 
     # Mutate to verify heap isolation per instance
     inst.health = 100.0 + i.to_f64
-    TestFramework.assert_approx_eq inst.health, 100.0 + i.to_f64
+    assert_approx_eq inst.health, 100.0 + i.to_f64
 
     root.remove_child(inst)
     inst.destroy
-    TestFramework.assert_false inst.alive?
+    assert_false inst.alive?
     scene.destroy
   end
 end
@@ -466,7 +468,7 @@ test_scenes "GDScript scene loading and instantiation interop" do
 
   # Have GDScript load and inspect the Crystal scene
   verified = controller.call_bool("verify_crystal_scene_properties", "res://scenes/test_crystal_player_2d.tscn")
-  TestFramework.assert_true verified, "GDScript must load and verify Crystal scene properties"
+  assert_true verified, "GDScript must load and verify Crystal scene properties"
 
   root.remove_child(controller)
   controller.destroy

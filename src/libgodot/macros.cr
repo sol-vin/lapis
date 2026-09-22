@@ -375,7 +375,7 @@ module Godot
     end
 
     class_getter entries = ::Array(Entry).new
-    {% unless flag?(:libgodot_addon) %}
+    {% unless flag?(:release) || flag?(:libgodot_addon) || flag?(:no_editor) %}
     @@script_cache = Hash(String, CrystalScript).new
 
     def self.get_or_load_script(path : String, class_name : String, base_type : String = "Node", is_tool : Bool = false) : CrystalScript?
@@ -443,7 +443,7 @@ module Godot
     end
 
     def self.cleanup : Void
-      {% unless flag?(:libgodot_addon) %}
+      {% unless flag?(:release) || flag?(:libgodot_addon) || flag?(:no_editor) %}
       @@script_cache.each_value do |script|
         if !script.pointer.null? && script.alive?
           script.unreference rescue nil

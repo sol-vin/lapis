@@ -31,7 +31,8 @@ module LapisSpecHelper
     needs_recompile = !File.exists?(bin_path)
     if !needs_recompile
       bin_time = File.info(bin_path).modification_time
-      needs_recompile = File.info(src_entry).modification_time > bin_time ||
+      needs_recompile = Dir.glob(repo_root.join("tools/lapis/src/**/*.cr").to_s.gsub('\\', '/')).any? { |f| File.info(f).modification_time > bin_time } ||
+                        Dir.glob(repo_root.join("tools/lapis/*.yml").to_s.gsub('\\', '/')).any? { |f| File.info(f).modification_time > bin_time } ||
                         File.info(repo_root.join("shard.yml")).modification_time > bin_time
     end
 

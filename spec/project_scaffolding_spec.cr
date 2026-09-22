@@ -146,5 +146,44 @@ if File.exists?(gitignore_path)
   puts "  ✓ .gitignore properly ignores consumer godot-version.yml files"
 end
 
+# -------------------------------------------------------------
+# [Spec 6] Template & Template-Addon Spec Architecture
+# -------------------------------------------------------------
+puts "[Spec 6] Verifying template and template-addon spec architecture & main scene purity..."
+
+["template", "template-addon"].each do |proj|
+  proj_dir = File.join(root_dir, proj)
+
+  main_spec = File.join(proj_dir, "spec/main_spec.cr")
+  if !File.exists?(main_spec) || File.empty?(main_spec)
+    abort "ERROR: Project '#{proj}' is missing non-empty 'spec/main_spec.cr'!"
+  end
+
+  editor_spec = File.join(proj_dir, "spec/editor/editor_spec.cr")
+  if !File.exists?(editor_spec) || File.empty?(editor_spec)
+    abort "ERROR: Project '#{proj}' is missing non-empty 'spec/editor/editor_spec.cr'!"
+  end
+
+  main_cr = File.join(proj_dir, "src/main.cr")
+  if File.exists?(main_cr)
+    content = File.read(main_cr)
+    unless content.includes?("spec/editor")
+      abort "ERROR: Project '#{proj}/src/main.cr' does not conditionally require '../spec/editor/**'!"
+    end
+  end
+
+  puts "  ✓ #{proj} starter spec suite verified (spec/main_spec.cr and spec/editor/editor_spec.cr)"
+end
+
+# Verify template main scene purity
+template_main_tscn = File.join(root_dir, "template/scenes/main.tscn")
+if File.exists?(template_main_tscn)
+  tscn_content = File.read(template_main_tscn)
+  if tscn_content.includes?("ToolTester") || tscn_content.includes?("TestRunner")
+    abort "ERROR: template/scenes/main.tscn contains test runner nodes! Main gameplay scene must remain pure."
+  end
+  puts "  ✓ template/scenes/main.tscn verified pure of test runner pollution"
+end
+
 puts "=== All Project Scaffolding & Directory Integrity Specifications Passed! ==="
 

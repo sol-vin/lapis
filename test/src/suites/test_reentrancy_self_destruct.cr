@@ -3,6 +3,8 @@
 # Replicating godot-rust's self_destruct_test.rs and reentrant_test.rs
 # =============================================================================
 
+include Lapis::Test
+
 node SelfFreerNode < Godot::Node do
   property was_freed : Bool = false
 
@@ -47,16 +49,16 @@ end
 test_reentrancy "Direct method self-destruction mid-call completes trampoline safely" do
   freer = Godot.create(SelfFreerNode)
   freer_id = freer.instance_id
-  TestFramework.assert_true Godot::Object.is_instance_id_valid(freer_id)
+  assert_true Godot::Object.is_instance_id_valid(freer_id)
 
   # Invoking a method that calls destroy on itself mid-call (matching godot-rust SelfFreer::free_self)
   freer.free_self
-  TestFramework.assert_false Godot::Object.is_instance_id_valid(freer_id), "ObjectDB must recognize freer as deallocated"
-  TestFramework.assert_false freer.alive?, "Wrapper alive? must be false"
-  TestFramework.assert_true freer.destroyed?, "Wrapper destroyed? must be true"
+  assert_false Godot::Object.is_instance_id_valid(freer_id), "ObjectDB must recognize freer as deallocated"
+  assert_false freer.alive?, "Wrapper alive? must be false"
+  assert_true freer.destroyed?, "Wrapper destroyed? must be true"
 
   # Calling methods on dead node raises DisposedObjectError safely
-  TestFramework.assert_raises(Godot::DisposedObjectError) do
+  assert_raises(Godot::DisposedObjectError) do
     freer.call("get_name")
   end
 end
@@ -64,7 +66,7 @@ end
 test_reentrancy "Signal listener destroying emitter mid-call completes trampoline safely" do
   emitter = Godot.create(SelfDestructingEmitterNode)
   emitter_id = emitter.instance_id
-  TestFramework.assert_true Godot::Object.is_instance_id_valid(emitter_id)
+  assert_true Godot::Object.is_instance_id_valid(emitter_id)
 
   destroyed_in_handler = false
   emitter.on_request_destruction do |_id|
@@ -76,8 +78,8 @@ test_reentrancy "Signal listener destroying emitter mid-call completes trampolin
 
   emitter.trigger_destruction_event
 
-  TestFramework.assert_true destroyed_in_handler, "Destruction listener must have fired"
-  TestFramework.assert_true emitter.post_emission_reached, "Post-emission code must execute"
+  assert_true destroyed_in_handler, "Destruction listener must have fired"
+  assert_true emitter.post_emission_reached, "Post-emission code must execute"
 
   # Clean up unparented node
   emitter.destroy
@@ -88,8 +90,8 @@ test_reentrancy "Reentrant method call via Godot reflection dispatch preserves c
   caller_node.step_counter = 0
 
   final_steps = caller_node.dispatch_nested(3_i64)
-  TestFramework.assert_eq final_steps, 4_i64, "Nested reflection call should traverse 4 call frames"
-  TestFramework.assert_eq caller_node.step_counter, 4, "State mutations across recursive frames must accumulate"
+  assert_eq final_steps, 4_i64, "Nested reflection call should traverse 4 call frames"
+  assert_eq caller_node.step_counter, 4, "State mutations across recursive frames must accumulate"
 
   caller_node.destroy
 end
@@ -105,7 +107,7 @@ test_reentrancy "Reentrant signal emission inside listener loop executes determi
   end
 
   node.trigger_reentrant_signal(3_i64)
-  TestFramework.assert_eq node.step_counter, 3, "Reentrant signal emissions must complete all recursion levels"
+  assert_eq node.step_counter, 3, "Reentrant signal emissions must complete all recursion levels"
 
   node.destroy
 end

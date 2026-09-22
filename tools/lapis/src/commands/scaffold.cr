@@ -446,10 +446,64 @@ YAML
         File.write(addon_dir.join("src/main.cr"), <<-CR
 require "lapis"
 
+{% unless flag?(:release) %}
+  require "../spec/editor/**"
+{% end %}
+
 @[Tool]
 node #{name.camelcase}Node < Node do
   def _ready : Void
     Godot.print("#{name.camelcase}Node ready!")
+  end
+end
+CR
+        )
+
+        # spec/main_spec.cr
+        FileUtils.mkdir_p(addon_dir.join("spec"))
+        File.write(addon_dir.join("spec/main_spec.cr"), <<-CR
+require "spec"
+require "../src/main"
+
+describe #{name.camelcase}Node do
+  it "registers with Godot ClassRegistry" do
+    entry = Godot::ClassRegistry.find("#{name.camelcase}Node")
+    entry.should_not be_nil
+    entry.not_nil!.parent_name.should eq("Node")
+  end
+
+  it "is marked as tool node for editor execution" do
+    entry = Godot::ClassRegistry.find("#{name.camelcase}Node")
+    entry.should_not be_nil
+    entry.not_nil!.is_tool.should be_true
+  end
+end
+CR
+        )
+
+        # spec/editor/editor_spec.cr
+        FileUtils.mkdir_p(addon_dir.join("spec/editor"))
+        File.write(addon_dir.join("spec/editor/editor_spec.cr"), <<-CR
+require "spec"
+require "lapis"
+
+include Lapis::Test
+
+test_nodes "#{name.camelcase}Node is registered" do
+  entry = Godot::ClassRegistry.find("#{name.camelcase}Node")
+  assert_not_nil entry, "Expected #{name.camelcase}Node to be registered"
+  assert_eq entry.not_nil!.parent_name, "Node"
+end
+
+test_case "Editor", "#{name.camelcase}Node editor tool verification" do
+  entry = Godot::ClassRegistry.find("#{name.camelcase}Node")
+  assert_not_nil entry
+  assert_true entry.not_nil!.is_tool
+end
+
+describe "#{name.camelcase}Node In-Editor Tests" do
+  it "registers in-editor test suites" do
+    Registry.all_tests.should_not be_empty
   end
 end
 CR

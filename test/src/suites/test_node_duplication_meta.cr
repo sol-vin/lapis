@@ -3,28 +3,30 @@
 # Replicating godot-rust's gd_duplicate_test.rs and godot's test_object.cpp
 # =============================================================================
 
+include Lapis::Test
+
 test_duplication "Node duplication with GROUPS flag preserves group membership" do
   node = Godot.create(Godot::Node2D)
   node.name = "GroupSourceNode"
   node.add_to_group("test_group_alpha")
   node.add_to_group("test_group_beta")
 
-  TestFramework.assert_true node.is_in_group("test_group_alpha")
-  TestFramework.assert_true node.is_in_group("test_group_beta")
+  assert_true node.is_in_group("test_group_alpha")
+  assert_true node.is_in_group("test_group_beta")
 
   # 1. Duplicate with GROUPS flag
   groups_flag = Godot::Node::DuplicateFlags::DuplicateGroups.to_i64
   dup_grouped = Godot::Node2D.new(node.duplicate(groups_flag).pointer)
 
-  TestFramework.assert_not_nil dup_grouped
-  TestFramework.assert_true dup_grouped.is_in_group("test_group_alpha"), "Duplicate with GROUPS flag must keep group alpha"
-  TestFramework.assert_true dup_grouped.is_in_group("test_group_beta"), "Duplicate with GROUPS flag must keep group beta"
+  assert_not_nil dup_grouped
+  assert_true dup_grouped.is_in_group("test_group_alpha"), "Duplicate with GROUPS flag must keep group alpha"
+  assert_true dup_grouped.is_in_group("test_group_beta"), "Duplicate with GROUPS flag must keep group beta"
 
   # 2. Duplicate without GROUPS flag (flags: 0)
   dup_ungrouped = Godot::Node2D.new(node.duplicate(0_i64).pointer)
-  TestFramework.assert_not_nil dup_ungrouped
-  TestFramework.assert_false dup_ungrouped.is_in_group("test_group_alpha"), "Duplicate without GROUPS flag must not retain group alpha"
-  TestFramework.assert_false dup_ungrouped.is_in_group("test_group_beta"), "Duplicate without GROUPS flag must not retain group beta"
+  assert_not_nil dup_ungrouped
+  assert_false dup_ungrouped.is_in_group("test_group_alpha"), "Duplicate without GROUPS flag must not retain group alpha"
+  assert_false dup_ungrouped.is_in_group("test_group_beta"), "Duplicate without GROUPS flag must not retain group beta"
 
   dup_ungrouped.destroy
   dup_grouped.destroy
@@ -38,11 +40,11 @@ test_duplication "Node duplication preserves spatial transform properties" do
   source.scale = Godot::Vector2.new(2.5_f32, 3.0_f32)
 
   clone = Godot::Node2D.new(source.duplicate(0_i64).pointer)
-  TestFramework.assert_approx_eq clone.position.x, 123.0_f32, 0.01
-  TestFramework.assert_approx_eq clone.position.y, 456.0_f32, 0.01
-  TestFramework.assert_approx_eq clone.rotation, 1.57_f32, 0.01
-  TestFramework.assert_approx_eq clone.scale.x, 2.5_f32, 0.01
-  TestFramework.assert_approx_eq clone.scale.y, 3.0_f32, 0.01
+  assert_approx_eq clone.position.x, 123.0_f32, 0.01
+  assert_approx_eq clone.position.y, 456.0_f32, 0.01
+  assert_approx_eq clone.rotation, 1.57_f32, 0.01
+  assert_approx_eq clone.scale.x, 2.5_f32, 0.01
+  assert_approx_eq clone.scale.y, 3.0_f32, 0.01
 
   clone.destroy
   source.destroy
@@ -61,17 +63,17 @@ test_duplication "Node duplication preserves child hierarchy with unique instanc
 
   # Duplicate entire subtree
   clone_parent = Godot::Node2D.new(parent.duplicate(0_i64).pointer)
-  TestFramework.assert_not_nil clone_parent
-  TestFramework.assert_eq clone_parent.get_child_count, 2_i64
+  assert_not_nil clone_parent
+  assert_eq clone_parent.get_child_count, 2_i64
 
   c1 = clone_parent.get_child(0_i64)
   c2 = clone_parent.get_child(1_i64)
-  TestFramework.assert_not_nil c1
-  TestFramework.assert_not_nil c2
-  TestFramework.assert_eq c1.not_nil!.name, "ChildOne"
-  TestFramework.assert_eq c2.not_nil!.name, "ChildTwo"
-  TestFramework.assert_true c1.not_nil!.instance_id != child1.instance_id, "Cloned child must have unique instance ID"
-  TestFramework.assert_true c2.not_nil!.instance_id != child2.instance_id, "Cloned child must have unique instance ID"
+  assert_not_nil c1
+  assert_not_nil c2
+  assert_eq c1.not_nil!.name, "ChildOne"
+  assert_eq c2.not_nil!.name, "ChildTwo"
+  assert_true c1.not_nil!.instance_id != child1.instance_id, "Cloned child must have unique instance ID"
+  assert_true c2.not_nil!.instance_id != child2.instance_id, "Cloned child must have unique instance ID"
 
   clone_parent.destroy
   parent.destroy
@@ -80,18 +82,18 @@ end
 test_duplication "Object metadata CRUD operations across diverse Variant types" do
   obj = Godot.create(Godot::Node2D)
 
-  TestFramework.assert_false obj.has_meta("health")
+  assert_false obj.has_meta("health")
   obj.call("set_meta", "health", 100_i64)
-  TestFramework.assert_true obj.has_meta("health")
-  TestFramework.assert_eq obj.call_i64("get_meta", "health"), 100_i64
+  assert_true obj.has_meta("health")
+  assert_eq obj.call_i64("get_meta", "health"), 100_i64
 
   # Complex Variant metadata
   obj.call("set_meta", "label", "SpawnPointAlpha")
-  TestFramework.assert_eq obj.call_str("get_meta", "label"), "SpawnPointAlpha"
+  assert_eq obj.call_str("get_meta", "label"), "SpawnPointAlpha"
 
   # Remove metadata
   obj.remove_meta("health")
-  TestFramework.assert_false obj.has_meta("health")
+  assert_false obj.has_meta("health")
 
   # Removing nonexistent metadata does not error or crash
   obj.remove_meta("nonexistent_meta_key")
@@ -105,15 +107,15 @@ test_duplication "Node duplication preserves and isolates object metadata" do
   source.call("set_meta", "team", "Blue")
 
   clone = Godot::Node2D.new(source.duplicate(0_i64).pointer)
-  TestFramework.assert_true clone.has_meta("health"), "Cloned node must inherit metadata keys"
-  TestFramework.assert_true clone.has_meta("team"), "Cloned node must inherit string metadata"
-  TestFramework.assert_eq clone.call_i64("get_meta", "health"), 100_i64
-  TestFramework.assert_eq clone.call_str("get_meta", "team"), "Blue"
+  assert_true clone.has_meta("health"), "Cloned node must inherit metadata keys"
+  assert_true clone.has_meta("team"), "Cloned node must inherit string metadata"
+  assert_eq clone.call_i64("get_meta", "health"), 100_i64
+  assert_eq clone.call_str("get_meta", "team"), "Blue"
 
   # Mutating clone metadata does not affect source
   clone.call("set_meta", "health", 50_i64)
-  TestFramework.assert_eq source.call_i64("get_meta", "health"), 100_i64, "Source metadata must remain unchanged"
-  TestFramework.assert_eq clone.call_i64("get_meta", "health"), 50_i64, "Clone metadata must be mutated independently"
+  assert_eq source.call_i64("get_meta", "health"), 100_i64, "Source metadata must remain unchanged"
+  assert_eq clone.call_i64("get_meta", "health"), 50_i64, "Clone metadata must be mutated independently"
 
   clone.destroy
   source.destroy

@@ -460,6 +460,21 @@ CONTROL
           Core::Logger.info("Staged Crystalline LSP binary (#{crystalline_exe}) for installer payload")
         end
 
+        # 4. Stage runtime DLLs (gc.dll, pcre2-8.dll, iconv-2.dll)
+        ["gc.dll", "pcre2-8.dll", "iconv-2.dll"].each do |dll|
+          dll_path = root.join("bin/#{dll}")
+          if File.exists?(dll_path)
+            safe_copy(dll_path, stage_dir.join(dll))
+            Core::Logger.info("Staged runtime dependency #{dll} for installer payload")
+          end
+        end
+
+        # Stage docs and license
+        ["README.md", "LICENSE"].each do |doc|
+          doc_path = root.join(doc)
+          safe_copy(doc_path, stage_dir.join(doc)) if File.exists?(doc_path)
+        end
+
         # 5. Compile with Inno Setup Compiler (ISCC)
         iss_path = root.join("packaging/windows/lapis_installer.iss")
         unless File.exists?(iss_path)
@@ -657,6 +672,9 @@ CONTROL
               FileUtils.mkdir_p(dst_addon_bin) unless Dir.exists?(dst_addon_bin)
               Dir.each_child(src_addon_bin) do |b_file|
                 next if b_file.starts_with?("~") || b_file.ends_with?(".log")
+                if release
+                  next if b_file.starts_with?("plugin.") || b_file.ends_with?(".pdb") || b_file.ends_with?(".exp") || b_file.ends_with?(".lib")
+                end
                 safe_copy(src_addon_bin.join(b_file), dst_addon_bin.join(b_file))
               end
             end

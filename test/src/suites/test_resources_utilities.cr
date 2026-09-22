@@ -2,8 +2,10 @@
 # LibGodot Test Suite: Core Data Resources & RefCounted Engine Utilities
 # =============================================================================
 
+include Lapis::Test
+
 macro test_resources(name, &block)
-  ::TestFramework::Registry.register("Resources", {{name}}) do |node|
+  Registry.register("Resources", {{name}}) do |node|
     root = node
     {{block.body}}
   end
@@ -12,11 +14,11 @@ end
 test_resources "ConfigFile key/value persistence and sections" do
   cfg = Godot.create(Godot::ConfigFile)
   cfg.call("set_value", "audio", "master_volume", 1.0_f64)
-  TestFramework.assert_true cfg.call_bool("has_section", "audio")
-  TestFramework.assert_true cfg.call_bool("has_section_key", "audio", "master_volume")
+  assert_true cfg.call_bool("has_section", "audio")
+  assert_true cfg.call_bool("has_section_key", "audio", "master_volume")
 
   cfg.call("erase_section", "audio")
-  TestFramework.assert_false cfg.call_bool("has_section", "audio")
+  assert_false cfg.call_bool("has_section", "audio")
   cfg.destroy
 end
 
@@ -25,18 +27,18 @@ test_resources "AStar2D graph pathfinding point registration and connection" do
   astar.add_point(1_i64, Godot::Vector2.new(0.0, 0.0), 1.0_f64)
   astar.add_point(2_i64, Godot::Vector2.new(10.0, 0.0), 1.0_f64)
 
-  TestFramework.assert_true astar.has_point(1_i64)
-  TestFramework.assert_true astar.has_point(2_i64)
-  TestFramework.assert_false astar.has_point(99_i64)
+  assert_true astar.has_point(1_i64)
+  assert_true astar.has_point(2_i64)
+  assert_false astar.has_point(99_i64)
 
   astar.connect_points(1_i64, 2_i64, true)
-  TestFramework.assert_true astar.are_points_connected(1_i64, 2_i64, true)
+  assert_true astar.are_points_connected(1_i64, 2_i64, true)
 
   p1 = astar.get_point_position(1_i64)
-  TestFramework.assert_approx_eq p1.x, 0.0_f32
+  assert_approx_eq p1.x, 0.0_f32
 
   astar.clear
-  TestFramework.assert_false astar.has_point(1_i64)
+  assert_false astar.has_point(1_i64)
   astar.destroy
 end
 
@@ -45,28 +47,28 @@ test_resources "AStar3D graph pathfinding point registration and connectivity" d
   astar3d.add_point(10_i64, Godot::Vector3.new(0.0, 0.0, 0.0), 1.0_f64)
   astar3d.add_point(20_i64, Godot::Vector3.new(0.0, 10.0, 0.0), 1.0_f64)
 
-  TestFramework.assert_true astar3d.has_point(10_i64)
-  TestFramework.assert_true astar3d.has_point(20_i64)
+  assert_true astar3d.has_point(10_i64)
+  assert_true astar3d.has_point(20_i64)
 
   astar3d.connect_points(10_i64, 20_i64, true)
-  TestFramework.assert_true astar3d.are_points_connected(10_i64, 20_i64, true)
+  assert_true astar3d.are_points_connected(10_i64, 20_i64, true)
 
   astar3d.clear
-  TestFramework.assert_false astar3d.has_point(10_i64)
+  assert_false astar3d.has_point(10_i64)
   astar3d.destroy
 end
 
 test_resources "FastNoiseLite procedural noise sampling and frequencies" do
   fnl = Godot.create(Godot::FastNoiseLite)
   fnl.set_seed(4242_i64)
-  TestFramework.assert_eq fnl.get_seed, 4242_i64
+  assert_eq fnl.get_seed, 4242_i64
 
   fnl.set_frequency(0.05_f64)
-  TestFramework.assert_approx_eq fnl.get_frequency.to_f32, 0.05_f32
+  assert_approx_eq fnl.get_frequency.to_f32, 0.05_f32
 
   n1 = fnl.get_noise_2d(10.0_f64, 20.0_f64)
   n2 = fnl.get_noise_2d(10.0_f64, 20.0_f64)
-  TestFramework.assert_approx_eq n1.to_f32, n2.to_f32 # Deterministic
+  assert_approx_eq n1.to_f32, n2.to_f32 # Deterministic
 
   fnl.destroy
 end
@@ -76,30 +78,30 @@ test_resources "RandomNumberGenerator deterministic seeding and random ranges" d
   rng.set_seed(987654321_i64)
 
   r_int = rng.randi_range(1_i64, 100_i64)
-  TestFramework.assert_true r_int >= 1_i64 && r_int <= 100_i64
+  assert_true r_int >= 1_i64 && r_int <= 100_i64
 
   r_float = rng.randf_range(10.0_f64, 20.0_f64)
-  TestFramework.assert_true r_float >= 10.0 && r_float <= 20.0
+  assert_true r_float >= 10.0 && r_float <= 20.0
   rng.destroy
 end
 
 test_resources "StyleBoxFlat margins and background color" do
   sbf = Godot.create(Godot::StyleBoxFlat)
   sbf.set_bg_color(Godot::Color.new(0.2, 0.2, 0.2, 1.0))
-  TestFramework.assert_approx_eq sbf.get_bg_color.r, 0.2_f32
+  assert_approx_eq sbf.get_bg_color.r, 0.2_f32
 
   sbf.set_border_width(Godot::Side::Left.to_i64, 4_i64)
-  TestFramework.assert_eq sbf.get_border_width(Godot::Side::Left.to_i64), 4_i64
+  assert_eq sbf.get_border_width(Godot::Side::Left.to_i64), 4_i64
   sbf.destroy
 end
 
 test_resources "Environment ambient lighting and glow settings" do
   env = Godot.create(Godot::Environment)
   env.set_ambient_light_color(Godot::Color.new(0.05, 0.05, 0.1, 1.0))
-  TestFramework.assert_approx_eq env.get_ambient_light_color.b, 0.1_f32
+  assert_approx_eq env.get_ambient_light_color.b, 0.1_f32
 
   env.set_glow_enabled(true)
-  TestFramework.assert_true env.is_glow_enabled
+  assert_true env.is_glow_enabled
   env.destroy
 end
 
@@ -120,14 +122,14 @@ end
 
 test_resources "Instantiating and mutating custom Resource subclass in Crystal" do
   item = Godot.create(CustomGameItem)
-  TestFramework.assert_not_nil item, "CustomGameItem should be instantiated via Godot.create"
-  TestFramework.assert_true item.alive?, "CustomGameItem should be alive in ObjectDB"
+  assert_not_nil item, "CustomGameItem should be instantiated via Godot.create"
+  assert_true item.alive?, "CustomGameItem should be alive in ObjectDB"
 
   # Verify default exported properties
-  TestFramework.assert_eq item.item_name, "Excalibur"
-  TestFramework.assert_eq item.power, 120
-  TestFramework.assert_approx_eq item.cost, 850.0
-  TestFramework.assert_true item.is_rare
+  assert_eq item.item_name, "Excalibur"
+  assert_eq item.power, 120
+  assert_approx_eq item.cost, 850.0
+  assert_true item.is_rare
 
   # Mutate properties in Crystal
   item.item_name = "Mjolnir"
@@ -135,10 +137,10 @@ test_resources "Instantiating and mutating custom Resource subclass in Crystal" 
   item.cost = 1500.0
   item.is_rare = false
 
-  TestFramework.assert_eq item.item_name, "Mjolnir"
-  TestFramework.assert_eq item.power, 250
-  TestFramework.assert_approx_eq item.cost, 1500.0
-  TestFramework.assert_false item.is_rare
+  assert_eq item.item_name, "Mjolnir"
+  assert_eq item.power, 250
+  assert_approx_eq item.cost, 1500.0
+  assert_false item.is_rare
   item.destroy
 end
 
@@ -146,20 +148,20 @@ test_resources "Instantiating and configuring built-in engine resources in Cryst
   # StandardMaterial3D
   mat = Godot.create(Godot::StandardMaterial3D)
   mat.call("set", "roughness", 0.65_f64)
-  TestFramework.assert_true mat.alive?
-  TestFramework.assert_approx_eq mat.call_f64("get", "roughness"), 0.65
+  assert_true mat.alive?
+  assert_approx_eq mat.call_f64("get", "roughness"), 0.65
 
   # Curve
   curve = Godot.create(Godot::Curve)
   curve.call_i64("add_point", Godot::Vector2.new(0.0, 0.0))
   curve.call_i64("add_point", Godot::Vector2.new(1.0, 1.0))
   val = curve.call_f64("sample", 0.5_f64)
-  TestFramework.assert_true val >= 0.0 && val <= 1.0, "Curve sample should be valid interpolated float"
+  assert_true val >= 0.0 && val <= 1.0, "Curve sample should be valid interpolated float"
 
   # Gradient
   grad = Godot.create(Godot::Gradient)
   grad.call("set_color", 0_i64, Godot::Color.new(1.0, 0.0, 0.0, 1.0))
-  TestFramework.assert_true grad.alive?
+  assert_true grad.alive?
 
   mat.destroy
   curve.destroy
@@ -173,18 +175,18 @@ test_resources "Saving custom resource to disk via ResourceSaver and loading bac
 
   save_path = "user://test_custom_item.tres"
   err = Godot.resource_saver.call_i64("save", item, save_path)
-  TestFramework.assert_eq err, 0_i64, "ResourceSaver.save should return 0 (OK)"
+  assert_eq err, 0_i64, "ResourceSaver.save should return 0 (OK)"
 
   # Load the resource back using ResourceLoader / Godot.load
   loaded = Godot.load(save_path, cache_mode: 0_i64)
-  TestFramework.assert_not_nil loaded, "ResourceLoader should load saved .tres file"
-  TestFramework.assert_true loaded.alive?, "Loaded resource must be alive"
+  assert_not_nil loaded, "ResourceLoader should load saved .tres file"
+  assert_true loaded.alive?, "Loaded resource must be alive"
 
   # Verify persisted properties on loaded resource
   loaded_name = loaded.call_str("get", "item_name")
   loaded_power = loaded.call_i64("get", "power")
-  TestFramework.assert_eq loaded_name, "AegisShield", "Loaded resource must retain item_name"
-  TestFramework.assert_eq loaded_power, 180_i64, "Loaded resource must retain power"
+  assert_eq loaded_name, "AegisShield", "Loaded resource must retain item_name"
+  assert_eq loaded_power, 180_i64, "Loaded resource must retain power"
 
   item.call("take_over_path", "")
   item.destroy
@@ -204,19 +206,19 @@ test_resources "Passing custom Resource to GDScript, verifying properties, and m
   # GDScript reads resource name and power
   gd_name = controller.call_str("inspect_resource_name", item)
   gd_power = controller.call_i64("inspect_resource_power", item)
-  TestFramework.assert_eq gd_name, "ShadowDagger", "GDScript should read item_name from Crystal resource"
-  TestFramework.assert_eq gd_power, 75_i64, "GDScript should read power from Crystal resource"
+  assert_eq gd_name, "ShadowDagger", "GDScript should read item_name from Crystal resource"
+  assert_eq gd_power, 75_i64, "GDScript should read power from Crystal resource"
 
   # GDScript modifies resource power
   success = controller.call_bool("modify_resource_power", item, 140_i64)
-  TestFramework.assert_true success, "GDScript modify_resource_power should succeed"
-  TestFramework.assert_eq item.power, 140, "Crystal resource power must reflect mutation made by GDScript"
+  assert_true success, "GDScript modify_resource_power should succeed"
+  assert_eq item.power, 140, "Crystal resource power must reflect mutation made by GDScript"
 
   # Save to disk from Crystal, then load from disk in GDScript
   save_path = "user://gdscript_read_test.tres"
   Godot.resource_saver.call_i64("save", item, save_path)
   disk_power = controller.call_i64("load_resource_from_disk_and_get_power", save_path)
-  TestFramework.assert_eq disk_power, 140_i64, "GDScript ResourceLoader should read serialized power from disk"
+  assert_eq disk_power, 140_i64, "GDScript ResourceLoader should read serialized power from disk"
 
   root.remove_child(controller)
   controller.destroy

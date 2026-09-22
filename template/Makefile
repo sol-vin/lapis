@@ -43,7 +43,7 @@ ifeq ($(RELEASE), 1)
 	CRYSTAL_FLAGS += --release
 endif
 
-.PHONY: all game_dll game-dll game_exe game-exe package_game package-game deps bridge extension_list addons project_bindings project-bindings bindings rebuild export export_release export-release run editor run_editor run-editor setup_dev setup-dev clean help
+.PHONY: all game_dll game-dll game_exe game-exe package_game package-game deps bridge extension_list addons project_bindings project-bindings bindings rebuild export export_release export-release run editor run_editor run-editor test spec setup_dev setup-dev clean help
 
 all: dirs deps bridge extension_list addons project_bindings game_dll game_exe
 	@echo ===================================================================
@@ -111,6 +111,10 @@ export_release export-release: dirs deps bridge extension_list addons project_bi
 	@echo [Template] Exporting optimized release project to export/ directory...
 	@$(LAPIS) package game -p . -n $(or $(NAME),game) -t $(or $(TARGET_DIR),export) -r -f
 
+test spec:
+	@echo [Template] Running Crystal specifications...
+	@crystal spec
+
 help:
 	@echo ===================================================================
 	@echo   LibGodot Template - Build and Export Commands
@@ -122,6 +126,7 @@ help:
 	@echo   make package-game   Package standalone playable game
 	@echo   make export         Export standalone game package to export/
 	@echo   make export-release Export release optimized game package to export/
+	@echo   make test           Run Crystal specifications (spec/ and spec/editor/)
 	@echo   make run            Launch game in Godot
 	@echo   make editor         Open project in Godot Editor
 	@echo   make run-editor     Launch editor with diagnostics

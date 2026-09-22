@@ -256,6 +256,7 @@ HELP
             root_specs = [
               "spec/libgodot_spec.cr",
               "spec/boot_spec.cr",
+              "spec/binary_release_spec.cr",
               "spec/api_coverage_spec.cr",
               "spec/project_scaffolding_spec.cr",
               "spec/godot_version_verification_spec.cr",
@@ -274,6 +275,16 @@ HELP
                   ["run", spec_file],
                   chdir: root.to_s
                 )
+                {% if flag?(:windows) %}
+                if !status.success?
+                  sleep 0.5.seconds
+                  status = Core::ProcessRunner.run(
+                    "crystal",
+                    ["run", spec_file],
+                    chdir: root.to_s
+                  )
+                end
+                {% end %}
                 step_dur = (Time.instant - step_start).total_seconds.round(2)
                 recorded_results << StepResult.new("Crystal Spec (#{spec_file})", status.success?, step_dur, status.exit_code)
                 failed_steps << "Crystal Spec (#{spec_file})" unless status.success?

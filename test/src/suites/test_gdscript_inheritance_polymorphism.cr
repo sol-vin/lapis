@@ -3,6 +3,8 @@
 # Replicating godot-rust's InheritTests.gd and ManualFfiTests.gd
 # =============================================================================
 
+include Lapis::Test
+
 node CrystalBaseEntity < Godot::CharacterBody2D do
   @[Export]
   property base_speed : Float32 = 100.0_f32
@@ -19,15 +21,15 @@ end
 
 test_polymorphism "GDScript subclassing Crystal node inherits properties and signals" do
   entity = Godot.create(CrystalBaseEntity)
-  TestFramework.assert_not_nil entity, "CrystalBaseEntity must instantiate"
+  assert_not_nil entity, "CrystalBaseEntity must instantiate"
 
   # Base properties exported from Crystal should be accessible on entity
-  TestFramework.assert_approx_eq entity.call_f64("get", "base_speed"), 100.0, 0.01
-  TestFramework.assert_eq entity.call_i64("get", "hit_points"), 50_i64
+  assert_approx_eq entity.call_f64("get", "base_speed"), 100.0, 0.01
+  assert_eq entity.call_i64("get", "hit_points"), 50_i64
 
   # Mutating inherited property from Crystal side reflects in instance
   entity.call("set", "base_speed", 120.0_f64)
-  TestFramework.assert_approx_eq entity.call_f64("get", "base_speed"), 120.0, 0.01
+  assert_approx_eq entity.call_f64("get", "base_speed"), 120.0, 0.01
 
   # Dynamically compile and attach GDScript subclass extending CharacterBody2D
   # Replicating godot-rust's create_gdscript & node.set_script testing methodology
@@ -64,11 +66,11 @@ test_polymorphism "GDScript subclassing Crystal node inherits properties and sig
 
   # GDScript method computes damage: (10 * 2) + 15 + 120 = 155
   result = entity.call_i64("compute_damage", 10_i64)
-  TestFramework.assert_eq result, 155_i64, "GDScript method must compute damage"
+  assert_eq result, 155_i64, "GDScript method must compute damage"
 
   # GDScript method computing speed multiplier: 120.0 * 1.5 = 180.0
   eff_speed = entity.call_f64("get_effective_speed")
-  TestFramework.assert_approx_eq eff_speed, 180.0, 0.01, "GDScript method must compute speed multiplier"
+  assert_approx_eq eff_speed, 180.0, 0.01, "GDScript method must compute speed multiplier"
 
   # GDScript emitting inherited signal defined on Crystal base class
   received_signal_arg = ""
@@ -77,8 +79,8 @@ test_polymorphism "GDScript subclassing Crystal node inherits properties and sig
   end
 
   action_res = entity.call_str("trigger_entity_action", "Jump")
-  TestFramework.assert_eq action_res, "GDScriptWrapped[Jump]"
-  TestFramework.assert_eq received_signal_arg, "GDScript_Jump", "Signal declared in Crystal node must be emitted from GDScript subclass"
+  assert_eq action_res, "GDScriptWrapped[Jump]"
+  assert_eq received_signal_arg, "GDScript_Jump", "Signal declared in Crystal node must be emitted from GDScript subclass"
 
   entity.destroy
 end
