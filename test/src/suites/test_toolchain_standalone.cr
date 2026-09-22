@@ -2,6 +2,8 @@
 # LibGodot Test Suite: Standalone Portable Executable & --single-module Toolchain
 # =============================================================================
 
+require "file_utils"
+
 include Lapis::Test
 
 test_standalone_portable "Toolchain automatically enforces --single-module for shared libraries" do
