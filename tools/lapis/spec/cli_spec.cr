@@ -201,10 +201,40 @@ describe "Lapis CLI" do
       res2.output.should contain("Toolchain Installation Manager")
     end
 
-    it "handles 'lapis help' with unknown command gracefully" do
-      res = LapisSpecHelper.run_lapis(["help", "foobar_invalid"])
-      res.all_output.should contain("Unknown command for help: 'foobar_invalid'")
-      res.output.should contain("Usage:")
+    it "handles 'lapis help doctor' and 'lapis doctor --help'" do
+      res1 = LapisSpecHelper.run_lapis(["help", "doctor"])
+      res1.success?.should be_true
+      res1.output.should contain("Environment & Toolchain Diagnostics")
+
+      res2 = LapisSpecHelper.run_lapis(["doctor", "--help"])
+      res2.success?.should be_true
+      res2.output.should contain("Environment & Toolchain Diagnostics")
+    end
+
+    it "handles 'lapis help init' and 'lapis init --help'" do
+      res1 = LapisSpecHelper.run_lapis(["help", "init"])
+      res1.success?.should be_true
+      res1.output.should contain("Project Initialization Tool")
+
+      res2 = LapisSpecHelper.run_lapis(["init", "--help"])
+      res2.success?.should be_true
+      res2.output.should contain("Project Initialization Tool")
+    end
+
+    it "generates shell completions via 'lapis completion'" do
+      res_ps = LapisSpecHelper.run_lapis(["completion", "powershell"])
+      res_ps.success?.should be_true
+      res_ps.output.should contain("Register-ArgumentCompleter")
+
+      res_bash = LapisSpecHelper.run_lapis(["completion", "bash"])
+      res_bash.success?.should be_true
+      res_bash.output.should contain("_lapis_completions")
+    end
+
+    it "suggests close match command on typo" do
+      res = LapisSpecHelper.run_lapis(["biuld"])
+      res.success?.should be_false
+      res.all_output.should contain("Did you mean 'build'?")
     end
 
     it "accepts -t flag for sync command" do

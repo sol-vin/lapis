@@ -36,7 +36,7 @@ module Lapis
               next if item_path.extension == ".zip"
 
               rel_path = Path.new(item).relative_to(prefix).to_s.gsub('\\', '/')
-              if exclude_patterns.any? { |p| rel_path.includes?(p) || rel_path.starts_with?(p) }
+              if exclude_patterns.any? { |p| rel_path.includes?(p) || rel_path.starts_with?(p) || rel_path.ends_with?(p) }
                 next
               end
 
@@ -102,11 +102,18 @@ module Lapis
 
         Core::Logger.step("Package", "Packaging starter template project...")
         Core::Env.purge_foreign_binaries(template_dir)
-        excludes = [".godot", ".git", ".uid", "~", "crash_dump", "test_ext.log", "template_ext.log"]
+        excludes = [
+          ".godot", ".git", ".uid", "~", "crash_dump", "test_ext.log", "template_ext.log",
+          ".tmp", ".log", "shard.lock",
+          "template/", "test/", "performance/", "template-addon/"
+        ]
         unless bundle_binaries
           excludes << "bin/"
-          excludes << "bin\\"
+          excludes << "/bin/"
+          excludes << "\\bin\\"
           excludes << "lib/"
+          excludes << "dist/"
+          excludes << ".pdb"
         end
 
         zip_directory(
@@ -123,11 +130,17 @@ module Lapis
 
         Core::Logger.step("Package", "Packaging addon starter template...")
         Core::Env.purge_foreign_binaries(addon_dir)
-        excludes = [".godot", ".git", ".uid", "~", "crash_dump", ".log"]
+        excludes = [
+          ".godot", ".git", ".uid", "~", "crash_dump", ".log", ".tmp", "shard.lock",
+          "template/", "test/", "performance/", "template-addon/"
+        ]
         unless bundle_binaries
           excludes << "bin/"
-          excludes << "bin\\"
+          excludes << "/bin/"
+          excludes << "\\bin\\"
           excludes << "lib/"
+          excludes << "dist/"
+          excludes << ".pdb"
         end
 
         zip_directory(
@@ -478,11 +491,15 @@ CONTROL
         plat = platform_name || (Core::Env.windows? ? "windows" : (Core::Env.macos? ? "macos" : "linux"))
         zip_file = out_path || root.join("bin/examples-#{plat}.zip")
 
-        Core::Logger.step("Package", "Packaging standalone examples...")
+        Core::Logger.step("Package", "Packaging standalone examples for #{plat}...")
+        Core::Env.purge_foreign_binaries(examples_dir)
         zip_directory(
           examples_dir,
           zip_file,
-          exclude_patterns: [".godot", ".git", "~", "crash_dump", ".log"]
+          exclude_patterns: [
+            ".godot", ".git", "~", "crash_dump", ".log", ".tmp", ".uid",
+            "_loaded_", ".pdb", "template/", "test/", "performance/", "template-addon/"
+          ]
         )
         0
       end
@@ -503,7 +520,7 @@ CONTROL
         test_bin = test_dir.join("bin")
         if Dir.exists?(test_bin)
           Dir.each_child(test_bin) do |f|
-            next if f.starts_with?("~") || f.ends_with?(".log")
+            next if f.starts_with?("~") || f.ends_with?(".log") || f.ends_with?(".pdb") || f.ends_with?(".tmp") || f.ends_with?(".TMP") || f.ends_with?(".zip") || f == "tests_portable.exe"
             src_f = test_bin.join(f)
             if File.file?(src_f)
               safe_copy(src_f, stage_dir.join(f))
@@ -517,7 +534,8 @@ CONTROL
         zip_directory(
           stage_dir,
           zip_file,
-          strip_prefix: stage_dir
+          strip_prefix: stage_dir,
+          exclude_patterns: [".pdb", ".tmp", ".log", "~", "_loaded_"]
         )
         FileUtils.rm_rf(stage_dir) if Dir.exists?(stage_dir)
         0
@@ -540,7 +558,7 @@ CONTROL
         perf_bin = perf_dir.join("bin")
         if Dir.exists?(perf_bin)
           Dir.each_child(perf_bin) do |f|
-            next if f.starts_with?("~") || f.ends_with?(".log")
+            next if f.starts_with?("~") || f.ends_with?(".log") || f.ends_with?(".pdb") || f.ends_with?(".tmp") || f.ends_with?(".TMP") || f.ends_with?(".zip") || f == "perf_portable.exe"
             src_f = perf_bin.join(f)
             if File.file?(src_f)
               safe_copy(src_f, stage_dir.join(f))
@@ -552,7 +570,8 @@ CONTROL
         zip_directory(
           stage_dir,
           zip_file,
-          strip_prefix: stage_dir
+          strip_prefix: stage_dir,
+          exclude_patterns: [".pdb", ".tmp", ".log", "~", "_loaded_"]
         )
         FileUtils.rm_rf(stage_dir) if Dir.exists?(stage_dir)
         0
@@ -742,6 +761,12 @@ CONTROL
         root = Core::Env::ROOT_DIR
         out_dir = output_dir.expand
         FileUtils.mkdir_p(out_dir) unless Dir.exists?(out_dir)
+
+        # Wipe staging directory before building to guarantee clean release archives
+        Dir.each_child(out_dir) do |item|
+          p = out_dir.join(item)
+          FileUtils.rm_rf(p) rescue nil
+        end
 
         Core::Logger.step("PackageRelease", "Packaging all release archives into #{out_dir}...")
 

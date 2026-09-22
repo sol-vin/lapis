@@ -223,6 +223,34 @@ Lapis features an extensive in-code documentation suite under the `Docs` module.
       <td><a href="src/libgodot/docs.cr"><code>Docs::I_CONCURRENCY_FIBERS_AND_THREAD_SAFETY</code></a></td>
       <td>Crystal fibers, background OS threads, actor channel message passing, mutexes, and main-thread SceneTree affinity.</td>
     </tr>
+    <tr>
+      <td><a href="src/libgodot/docs.cr"><code>Docs::J_FIRST_CLASS_CRYSTAL_SCRIPTS</code></a></td>
+      <td>Direct <code>.cr</code> editing in Godot Script Editor, pure-Crystal syntax highlighting, AST reflection, and Crystalline LSP integration.</td>
+    </tr>
+    <tr>
+      <td><a href="src/libgodot/docs.cr"><code>Docs::K_CONCURRENCY_CHANNELS_AND_ERGONOMICS</code></a></td>
+      <td><code>GodotChannel</code> interop with GDScript, reactive main-thread signals, async engine helpers (<code>delay</code>, <code>next_frame</code>), and collection wrappers.</td>
+    </tr>
+    <tr>
+      <td><a href="src/libgodot/docs.cr"><code>Docs::L_MACRO_DSL_REFERENCE</code></a></td>
+      <td>Complete DSL reference for <code>node</code>, <code>resource</code>, <code>gdclass</code>, <code>@[Export*]</code>, <code>signal</code>, <code>@[Tool]</code>, <code>@[RPC]</code>, and <code>onready</code>.</td>
+    </tr>
+    <tr>
+      <td><a href="src/libgodot/docs.cr"><code>Docs::M_LLDB_NATIVE_DEBUGGING_GUIDE</code></a></td>
+      <td>Native LLDB in-editor debugger plugin, PDB/DWARF symbol parsing, gutter breakpoint sync, lockstep multiplayer debugging, and tool script debugging.</td>
+    </tr>
+    <tr>
+      <td><a href="src/libgodot/docs.cr"><code>Docs::N_GODOT_UPGRADE_GUIDE</code></a></td>
+      <td>Streamlined engine upgrades via <code>lapis setup</code>, API dumping, and workspace-wide synchronization.</td>
+    </tr>
+    <tr>
+      <td><a href="src/libgodot/docs.cr"><code>Docs::O_LOW_LATENCY_INPUT_GUIDE</code></a></td>
+      <td>Virtual input callbacks (<code>_unhandled_input</code>), sub-frame streaming (<code>use_accumulated_input</code>), zero-allocation vector queries, and mouse look latency optimization.</td>
+    </tr>
+    <tr>
+      <td><a href="src/libgodot/docs.cr"><code>Docs::P_LAPIS_TOOLCHAIN_AND_PACKAGING</code></a></td>
+      <td>Lapis CLI architecture, environment diagnostics (<code>doctor</code>), project adoption (<code>init</code>), clean packaging invariants, and storage reclamation.</td>
+    </tr>
   </tbody>
 </table>
 
@@ -321,6 +349,14 @@ Lapis includes a high-performance, cross-platform compiled CLI tool written in C
   </thead>
   <tbody>
     <tr>
+      <td><code>lapis doctor</code></td>
+      <td>Diagnoses toolchain and environment health (Crystal compiler, Godot binary, C++ compiler, LLDB debugger, packaging utilities, and project health).</td>
+    </tr>
+    <tr>
+      <td><code>lapis init [path]</code></td>
+      <td>Initializes Crystal/Lapis integration into an existing Godot project (generates <code>shard.yml</code>, <code>src/main.cr</code>, installs GDExtension addon, and syncs runtime libraries).</td>
+    </tr>
+    <tr>
       <td><code>lapis build [target]</code></td>
       <td>Compiles Crystal targets (<code>game</code>, <code>plugin</code>, <code>tests</code>, <code>bench</code>) with automatic <code>CRYSTAL_PATH</code> resolution and platform-specific linker flags.</td>
     </tr>
@@ -346,7 +382,23 @@ Lapis includes a high-performance, cross-platform compiled CLI tool written in C
     </tr>
     <tr>
       <td><code>lapis package [target]</code></td>
-      <td>Packages playable standalone game executables or distribution zip archives (<code>template</code>, <code>addon</code>).</td>
+      <td>Packages playable standalone game executables or distribution zip archives (<code>template</code>, <code>addon</code>, <code>examples</code>, <code>tests</code>, <code>perf</code>, <code>release</code>).</td>
+    </tr>
+    <tr>
+      <td><code>lapis clean [options]</code></td>
+      <td>Prunes compiled binaries, shadow DLLs, and logs while safely preserving runtime DLLs. Supports <code>-d, --dry-run</code> for space preview and reports reclaimed bytes.</td>
+    </tr>
+    <tr>
+      <td><code>lapis completion &lt;shell&gt;</code></td>
+      <td>Generates shell autocompletion scripts for <code>powershell</code>, <code>bash</code>, or <code>zsh</code>.</td>
+    </tr>
+    <tr>
+      <td><code>lapis setup</code></td>
+      <td>Downloads and sets up the targeted Godot engine binary for development and dumps the GDExtension API.</td>
+    </tr>
+    <tr>
+      <td><code>lapis docs</code></td>
+      <td>Generates offline HTML API documentation via <code>crystal docs</code> with responsive styling and sidebar navigation.</td>
     </tr>
     <tr>
       <td><code>lapis deps</code></td>
@@ -367,79 +419,29 @@ Run `lapis --help` or `lapis <command> --help` for full parameter options and fl
 
 ---
 
-## Automation & Support Scripts (`scripts/`)
+## Platform & Support Scripts (`scripts/`)
 
-In addition to the `lapis` CLI, specialized automation scripts under `scripts/` handle platform packaging, CI pipelines, and binding generation:
-
-### Build & Compilation Scripts
+Low-level environment setup and cross-compilation wrapper scripts:
 
 <table>
   <thead>
     <tr>
-      <th align="left">Command</th>
-      <th align="left">Description &amp; Role</th>
+      <th align="left">Script</th>
+      <th align="left">Purpose &amp; Description</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td><code>lapis build</code></td>
-      <td>Primary Crystal compilation driver. Compiles game libraries, editor plugins (<code>-Dlibgodot_addon</code>), dummy test addons (<code>lapis build addons</code>), or showcase examples (<code>lapis build examples</code>). Configures platform linker flags and include paths automatically.</td>
-    </tr>
-    <tr>
-      <td><code>lapis bind engine</code></td>
-      <td>Automated code generator that parses Godot's <code>extension_api.json</code> and synthesizes strongly typed Crystal classes, global enums, singletons, and method bindings into <code>src/libgodot/generated/</code>.</td>
-    </tr>
-    <tr>
-      <td><code>lapis bind project</code></td>
-      <td>Inspects custom GDScript nodes in a game project and generates typed Crystal wrapper classes for seamless cross-language interop.</td>
-    </tr>
-    <tr>
-      <td><code>lapis new game [name]</code></td>
-      <td>Scaffolds a new playable game project from the starter template in the specified directory or current working directory.</td>
-    </tr>
-    <tr>
-      <td><code>lapis scaffold &lt;addon|example&gt;</code></td>
-      <td>Scaffolds a new redistributable GDExtension addon or showcase example project.</td>
-    </tr>
-    <tr>
-      <td><code>lapis test</code></td>
-      <td>The master multi-tier test suite runner. Executes Crystal specs, in-editor <code>@tool</code> tests, standalone compiled runner (<code>tests.exe --autorun</code>), and runtime project test suites.</td>
-    </tr>
-    <tr>
-      <td><code>lapis package &lt;target&gt;</code></td>
-      <td>Creates release archives (<code>template</code>, <code>addon</code>, <code>examples</code>, <code>tests</code>, <code>perf</code>, <code>release</code>) with SHA-256 checksums, or exports a self-contained playable game package with embedded PCK and runtime DLLs (<code>lapis package game</code>).</td>
-    </tr>
-    <tr>
-      <td><code>lapis sync</code></td>
-      <td>Synchronizes compiled binaries (<code>crystal_bridge.dll</code>, <code>game.dll</code>, <code>plugin.dll</code>), runtime libraries (<code>gc.dll</code>, <code>iconv-2.dll</code>, <code>pcre2-8.dll</code>, <code>libgodot.dll</code>), and addons across all consumer projects.</td>
-    </tr>
-    <tr>
-      <td><code>lapis deps</code></td>
-      <td>Locates and copies required Crystal runtime dynamic libraries (Boehm GC, iconv, PCRE2, and LibGodot engine shared libraries) into target binary output folders.</td>
-    </tr>
-    <tr>
-      <td><code>lapis dirs</code></td>
-      <td>Ensures all required build, output, and staging directories exist across the repository workspace.</td>
-    </tr>
-    <tr>
-      <td><code>lapis editor</code></td>
-      <td>Unified Godot Editor launcher with shadow logging, auto-quit, and debugger attachment support.</td>
-    </tr>
-    <tr>
-      <td><code>lapis setup</code></td>
-      <td>Downloads and sets up the targeted Godot engine binary for development and dumps the extension API.</td>
-    </tr>
-    <tr>
-      <td><code>lapis docs</code></td>
-      <td>Generates offline HTML documentation via <code>crystal docs</code> and patches sidebar limits and styling.</td>
-    </tr>
-    <tr>
-      <td><code>lapis clean</code></td>
-      <td>Removes built binaries and caches while safely preserving runtime DLLs (<code>libgodot.dll</code>, <code>gc.dll</code>, etc.).</td>
-    </tr>
-    <tr>
       <td><a href="scripts/cc_wrapper.sh"><code>scripts/cc_wrapper.sh</code></a></td>
       <td>POSIX compiler wrapper script. Filters out <code>-rdynamic</code> on Linux shared library builds and localizes internal Crystal runtime symbols to prevent GNU ld/LLD version node link errors.</td>
+    </tr>
+    <tr>
+      <td><a href="scripts/windows/install_deps.ps1"><code>scripts/windows/install_deps.ps1</code></a></td>
+      <td>PowerShell automated dependency installer for Windows. Downloads and verifies runtime DLLs, LLVM/LLDB tooling, and build dependencies.</td>
+    </tr>
+    <tr>
+      <td><a href="scripts/windows/install.ps1"><code>scripts/windows/install.ps1</code></a></td>
+      <td>PowerShell installation script for global Lapis toolchain staging and user PATH configuration on Windows.</td>
     </tr>
   </tbody>
 </table>

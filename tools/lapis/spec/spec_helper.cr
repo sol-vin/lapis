@@ -26,10 +26,16 @@ module LapisSpecHelper
   def self.lapis_bin : Path
     exe_name = "lapis" + (Lapis::Core::Env.windows? ? ".exe" : "")
     bin_path = repo_root.join("bin", exe_name)
+    src_entry = repo_root.join("tools/lapis/src/lapis.cr")
 
-    unless File.exists?(bin_path)
-      # Compile if missing
-      src_entry = repo_root.join("tools/lapis/src/lapis.cr")
+    needs_recompile = !File.exists?(bin_path)
+    if !needs_recompile
+      bin_time = File.info(bin_path).modification_time
+      needs_recompile = File.info(src_entry).modification_time > bin_time ||
+                        File.info(repo_root.join("shard.yml")).modification_time > bin_time
+    end
+
+    if needs_recompile
       FileUtils.mkdir_p(bin_path.parent)
       res = Process.run("crystal", ["build", src_entry.to_s, "-o", bin_path.to_s], chdir: repo_root.to_s)
       unless res.success?
