@@ -84,8 +84,8 @@ static void deinitialize_crystal_module(void *p_userdata, GDExtensionInitializat
     }
 
     if (p_level == GDEXTENSION_INITIALIZATION_EDITOR) {
-        // Unregister editor classes from ClassDB in reverse registration order
-        if (gd_classdb_unregister_extension_class) {
+        // Unregister editor classes from ClassDB during hot reload only
+        if (s_is_reloading && gd_classdb_unregister_extension_class) {
             auto it_ed = g_library_editor_classes.find(lib);
             if (it_ed != g_library_editor_classes.end()) {
                 for (int i = (int)it_ed->second.size() - 1; i >= 0; i--) {
@@ -126,8 +126,8 @@ static void deinitialize_crystal_module(void *p_userdata, GDExtensionInitializat
             fn();
         }
 
-        // Unregister any remaining editor classes (e.g. in standalone mode where EDITOR level was not fired)
-        if (gd_classdb_unregister_extension_class) {
+        if (s_is_reloading && gd_classdb_unregister_extension_class) {
+            // Unregister any remaining editor classes during hot reload
             for (auto &pair : g_library_editor_classes) {
                 for (int i = (int)pair.second.size() - 1; i >= 0; i--) {
                     const std::string &cname = pair.second[i];
@@ -138,7 +138,7 @@ static void deinitialize_crystal_module(void *p_userdata, GDExtensionInitializat
             }
             g_library_editor_classes.clear();
 
-            // Unregister scene classes in reverse registration order
+            // Unregister scene classes in reverse registration order during hot reload
             for (auto &pair : g_library_scene_classes) {
                 for (int i = (int)pair.second.size() - 1; i >= 0; i--) {
                     const std::string &cname = pair.second[i];
@@ -147,6 +147,9 @@ static void deinitialize_crystal_module(void *p_userdata, GDExtensionInitializat
                     g_all_registered_class_names.erase(cname);
                 }
             }
+            g_library_scene_classes.clear();
+        } else {
+            g_library_editor_classes.clear();
             g_library_scene_classes.clear();
         }
 

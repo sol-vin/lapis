@@ -39,7 +39,6 @@ module Lapis
 
       setup_ui
       log_info("LibGodot Crystal Hub initialized.")
-      CrystalIntegrationPlugin.ensure_editor_setup rescue nil
       refresh_addons_list
       refresh_spec_list
     end

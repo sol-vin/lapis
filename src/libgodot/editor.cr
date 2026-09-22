@@ -38,6 +38,8 @@ module Lapis
   @@building : Bool = false
   @@reload_pending : Bool = false
   @@cleaning_up : Bool = false
+  @@setting_up_editor : Bool = false
+  @@setting_up_panel : Bool = false
   class_property on_cleanup : Proc(Void)? = nil
 
   def self.building? : Bool
@@ -71,6 +73,7 @@ module Lapis
   # Ensures all editor integration components are active when running inside the Godot Editor.
   # Safe to call both on startup and after GDExtension reloads.
   def self.ensure_editor_setup : Void
+    return if @@setting_up_editor
     return if headless?
     return unless has_editor_interface?
     return if Godot::EditorInterface.singleton_ptr.null?
@@ -83,12 +86,17 @@ module Lapis
       return if ds.call_str("get_name") == "headless"
     end
 
-    ensure_theme_icons
-    setup_toolbar_button
-    setup_new_script_button
-    setup_main_screen_panel
-    setup_debugger_plugin
-    ensure_highlighter_registered
+    @@setting_up_editor = true
+    begin
+      ensure_theme_icons
+      setup_toolbar_button
+      setup_new_script_button
+      setup_main_screen_panel
+      setup_debugger_plugin
+      ensure_highlighter_registered
+    ensure
+      @@setting_up_editor = false
+    end
   end
 
   def _enter_tree : Void
@@ -452,6 +460,7 @@ module Lapis
 
   # Docks the CrystalPanel into Godot Editor's main screen and makes it available to the editor
   def self.setup_main_screen_panel : Void
+    return if @@setting_up_panel
     return if headless?
     if (p = @@crystal_panel) && !p.pointer.null?
       return
@@ -478,17 +487,22 @@ module Lapis
       return
     end
 
-    if (panel = Godot.create("CrystalPanel")) && !panel.pointer.null?
-      panel.call("set_name", "CrystalPanel")
-      main_screen = ed_iface.get_editor_main_screen
-      if !main_screen.pointer.null?
-        panel.call("set_v_size_flags", 3) # SIZE_EXPAND_FILL = 3
-        panel.call("set_h_size_flags", 3) # SIZE_EXPAND_FILL = 3
-        panel.call("set_visible", false)
-        main_screen.call("add_child", panel)
+    @@setting_up_panel = true
+    begin
+      if (panel = Godot.create("CrystalPanel")) && !panel.pointer.null?
+        panel.call("set_name", "CrystalPanel")
+        @@crystal_panel = panel
+        main_screen = ed_iface.get_editor_main_screen
+        if !main_screen.pointer.null?
+          panel.call("set_v_size_flags", 3) # SIZE_EXPAND_FILL = 3
+          panel.call("set_h_size_flags", 3) # SIZE_EXPAND_FILL = 3
+          panel.call("set_visible", false)
+          main_screen.call("add_child", panel)
+        end
+        Godot.print("[CrystalIntegrationPlugin] Native Crystal Hub added to Editor Main Screen successfully.")
       end
-      @@crystal_panel = panel
-      Godot.print("[CrystalIntegrationPlugin] Native Crystal Hub added to Editor Main Screen successfully.")
+    ensure
+      @@setting_up_panel = false
     end
   rescue ex
     Godot.printerr("[CrystalIntegrationPlugin] Notice: could not setup main screen panel: #{ex.message}")
