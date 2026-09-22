@@ -1,4 +1,5 @@
-module Godot
+module Lapis
+  include Godot
   # Represents a single colored span on a line for Godot's CodeEdit
   struct SyntaxSpan
     property column : Int32
@@ -259,4 +260,12 @@ module Godot
       end
     end
   end
+end
+
+alias SyntaxSpan = Lapis::SyntaxSpan
+alias CrystalHighlighter = Lapis::CrystalHighlighter
+
+module Godot
+  alias SyntaxSpan = ::Lapis::SyntaxSpan
+  alias CrystalHighlighter = ::Lapis::CrystalHighlighter
 end

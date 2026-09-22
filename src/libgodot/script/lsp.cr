@@ -1,4 +1,4 @@
-module Godot
+module Lapis
   # Guarded, fail-safe LSP worker for Crystalline.
   # Strictly sandboxed: failures, crashes, or unresponsiveness in Crystalline
   # will NEVER freeze Godot or degrade the in-editor editing experience.
@@ -74,4 +74,10 @@ module Godot
       end
     end
   end
+end
+
+alias CrystalLSP = Lapis::CrystalLSP
+
+module Godot
+  alias CrystalLSP = ::Lapis::CrystalLSP
 end

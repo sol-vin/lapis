@@ -1,4 +1,5 @@
-module Godot
+module Lapis
+  include Godot
   # Loader connecting .cr files in Godot's FileSystem dock to CrystalScript resources.
   @[Tool]
   node ResourceFormatLoaderCrystal < ResourceFormatLoader do
@@ -459,4 +460,12 @@ module Godot
       end
     end
   end
+end
+
+alias ResourceFormatLoaderCrystal = Lapis::ResourceFormatLoaderCrystal
+alias ResourceFormatSaverCrystal = Lapis::ResourceFormatSaverCrystal
+
+module Godot
+  alias ResourceFormatLoaderCrystal = ::Lapis::ResourceFormatLoaderCrystal
+  alias ResourceFormatSaverCrystal = ::Lapis::ResourceFormatSaverCrystal
 end

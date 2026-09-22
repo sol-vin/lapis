@@ -25,6 +25,8 @@ static BridgeAPI g_bridge_api = {
     free_string_name,
     make_string,
     free_string,
+    make_nodepath,
+    free_nodepath,
     bridge_type_from_variant,
     bridge_variant_from_type,
     godot_log_print,

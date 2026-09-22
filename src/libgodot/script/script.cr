@@ -1,4 +1,5 @@
-module Godot
+module Lapis
+  include Godot
   # Exported script property descriptor for Godot's Inspector
   struct ScriptProperty
     property name : String
@@ -452,4 +453,12 @@ module Godot
       end
     end
   end
+end
+
+alias ScriptProperty = Lapis::ScriptProperty
+alias CrystalScript = Lapis::CrystalScript
+
+module Godot
+  alias ScriptProperty = ::Lapis::ScriptProperty
+  alias CrystalScript = ::Lapis::CrystalScript
 end

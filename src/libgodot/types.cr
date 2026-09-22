@@ -1183,3 +1183,12 @@ module Math
     from + (to - from) * weight
   end
 end
+
+# Top-level math constructors
+def vec2(x : Number, y : Number) : Godot::Vector2
+  Godot::Vector2.new(x.to_f32, y.to_f32)
+end
+
+def vec3(x : Number, y : Number, z : Number) : Godot::Vector3
+  Godot::Vector3.new(x.to_f32, y.to_f32, z.to_f32)
+end

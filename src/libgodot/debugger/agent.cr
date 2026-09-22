@@ -8,7 +8,8 @@
 
 require "../generated/singletons"
 
-module Godot
+module Lapis
+  include Godot
   module Debugger
     class Agent
       @@initialized : Bool = false

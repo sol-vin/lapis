@@ -230,6 +230,8 @@ struct BridgeAPI {
     void (*free_string_name)(void *sn);
     void* (*make_string)(const char *str);
     void (*free_string)(void *s);
+    void* (*make_nodepath)(const char *path);
+    void (*free_nodepath)(void *np);
     void (*type_from_variant)(int type, void *dst, const void *variant);
     void (*variant_from_type)(int type, void *variant, const void *src);
     void (*log_print)(const char *msg);

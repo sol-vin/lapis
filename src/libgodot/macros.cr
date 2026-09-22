@@ -298,9 +298,9 @@ module Godot
 
   struct SignalInfo
     getter name : String
-    getter args : Array(SignalArgInfo)
+    getter args : ::Array(SignalArgInfo)
 
-    def initialize(@name : String, @args : Array(SignalArgInfo) = [] of SignalArgInfo)
+    def initialize(@name : String, @args : ::Array(SignalArgInfo) = [] of SignalArgInfo)
     end
   end
 
@@ -331,12 +331,12 @@ module Godot
       property has_unhandled_key_input : Bool
       property has_shortcut_input : Bool
       property has_gui_input : Bool
-      property properties : Array(PropertyInfo)
-      property signals : Array(SignalInfo)
-      property constants : Array(ConstantInfo)
+      property properties : ::Array(PropertyInfo)
+      property signals : ::Array(SignalInfo)
+      property constants : ::Array(ConstantInfo)
       property icon_path : String
       property is_abstract : Bool
-      property rpc_methods : Array(NamedTuple(name: String, rpc_mode: Int32, transfer_mode: Int32, call_local: Bool, channel: Int32))
+      property rpc_methods : ::Array(NamedTuple(name: String, rpc_mode: Int32, transfer_mode: Int32, call_local: Bool, channel: Int32))
       property has_virtual_proc : (String -> Bool)? = nil
       property script_path : String = ""
 
@@ -362,19 +362,19 @@ module Godot
         @has_unhandled_key_input : Bool = false,
         @has_shortcut_input : Bool = false,
         @has_gui_input : Bool = false,
-        @properties : Array(PropertyInfo) = [] of PropertyInfo,
-        @signals : Array(SignalInfo) = [] of SignalInfo,
+        @properties : ::Array(PropertyInfo) = [] of PropertyInfo,
+        @signals : ::Array(SignalInfo) = [] of SignalInfo,
         @icon_path : String = "",
         @is_abstract : Bool = false,
-        @rpc_methods : Array(NamedTuple(name: String, rpc_mode: Int32, transfer_mode: Int32, call_local: Bool, channel: Int32)) = [] of NamedTuple(name: String, rpc_mode: Int32, transfer_mode: Int32, call_local: Bool, channel: Int32),
+        @rpc_methods : ::Array(NamedTuple(name: String, rpc_mode: Int32, transfer_mode: Int32, call_local: Bool, channel: Int32)) = [] of NamedTuple(name: String, rpc_mode: Int32, transfer_mode: Int32, call_local: Bool, channel: Int32),
         @has_virtual_proc : (String -> Bool)? = nil,
-        @constants : Array(ConstantInfo) = [] of ConstantInfo,
+        @constants : ::Array(ConstantInfo) = [] of ConstantInfo,
         @script_path : String = ""
       )
       end
     end
 
-    class_getter entries = Array(Entry).new
+    class_getter entries = ::Array(Entry).new
     {% unless flag?(:libgodot_addon) %}
     @@script_cache = Hash(String, CrystalScript).new
 
@@ -2375,4 +2375,26 @@ end
 
 macro export_category(name, &block)
   {{ yield }}
+end
+
+# Top-level await macro for intuitive GDScript-like calling syntax
+# Usage:
+#   await(enemy.died)
+#   await(enemy.died, timeout_sec: 2.0)
+#   await(enemy, "died")
+#   await(enemy, "died", timeout_sec: 2.0)
+#   await(timer.timeout)
+#   await(timer)
+#   await(1.5)
+#   await(2.seconds)
+macro await(target, signal_name = nil, timeout_sec = nil)
+  {% if signal_name != nil && timeout_sec != nil %}
+    ::Godot.await({{target}}, {{signal_name}}, timeout_sec: {{timeout_sec}})
+  {% elsif signal_name != nil %}
+    ::Godot.await({{target}}, {{signal_name}})
+  {% elsif timeout_sec != nil %}
+    ::Godot.await({{target}}, timeout_sec: {{timeout_sec}})
+  {% else %}
+    ::Godot.await({{target}})
+  {% end %}
 end

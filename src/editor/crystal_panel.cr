@@ -7,7 +7,9 @@
 
 require "../lapis"
 
-module Godot
+module Lapis
+  include Godot
+
   @[Tool]
   node CrystalPanel < Control do
     property auto_recompile_addons : Bool = true
@@ -342,21 +344,28 @@ module Godot
           ctrl_row.call("add_child", btn_run_all)
         end
 
+        btn_run_editor = Godot.create(Godot::Button)
+        if btn_run_editor
+          btn_run_editor.call("set_text", "▶ Run In-Editor Tests")
+          btn_run_editor.connect("pressed") { on_run_in_editor_tests }
+          ctrl_row.call("add_child", btn_run_editor)
+        end
+
         btn_run_sel = Godot.create(Godot::Button)
         if btn_run_sel
-          btn_run_sel.call("set_text", "Run Selected Spec")
+          btn_run_sel.call("set_text", "Run Selected Test")
           btn_run_sel.connect("pressed") { on_run_selected_spec }
           ctrl_row.call("add_child", btn_run_sel)
         end
 
         btn_refresh = Godot.create(Godot::Button)
         if btn_refresh
-          btn_refresh.call("set_text", "Refresh Specs")
+          btn_refresh.call("set_text", "Refresh Tests")
           btn_refresh.connect("pressed") { refresh_spec_list }
           ctrl_row.call("add_child", btn_refresh)
         end
 
-        [btn_run_all, btn_run_sel, btn_refresh].each do |btn|
+        [btn_run_all, btn_run_editor, btn_run_sel, btn_refresh].each do |btn|
           next unless btn
           btn.call("add_theme_color_override", "font_color", Color.new(1.0_f32, 1.0_f32, 1.0_f32, 1.0_f32))
           btn.call("add_theme_color_override", "font_hover_color", Color.new(1.0_f32, 1.0_f32, 1.0_f32, 1.0_f32))
@@ -879,8 +888,42 @@ module Godot
         file_item.call("set_collapsed", false)
       end
 
+      # Populate registered In-Editor TestFramework suites
+      editor_tests = ::TestFramework::Registry.all_tests
+      if !editor_tests.empty?
+        framework_root = tree.call_obj("create_item", root)
+        if framework_root
+          framework_root.call("set_text", 0, "In-Editor Test Suites (TestFramework)")
+          framework_root.call("set_custom_color", 0, Color.new(0.4_f32, 0.9_f32, 1.0_f32, 1.0_f32))
+          framework_root.call("set_text", 1, "[⚪ Ready]")
+          framework_root.call("set_custom_color", 1, Color.new(0.9_f32, 0.9_f32, 0.9_f32, 1.0_f32))
+          framework_root.call("set_text", 2, "editor_all")
+          framework_root.call("set_collapsed", false)
+
+          ::TestFramework::Registry.categories.each do |cat|
+            cat_item = tree.call_obj("create_item", framework_root)
+            next unless cat_item
+            cat_tests = ::TestFramework::Registry.for_category(cat)
+            cat_item.call("set_text", 0, "#{cat} (#{cat_tests.size} tests)")
+            cat_item.call("set_custom_color", 0, Color.new(0.9_f32, 0.95_f32, 1.0_f32, 1.0_f32))
+            cat_item.call("set_text", 1, "[⚪ Ready]")
+            cat_item.call("set_text", 2, "category:#{cat}")
+            cat_item.call("set_collapsed", false)
+
+            cat_tests.each do |t|
+              t_item = tree.call_obj("create_item", cat_item)
+              next unless t_item
+              t_item.call("set_text", 0, "  • #{t.name}")
+              t_item.call("set_custom_color", 0, Color.new(1.0_f32, 1.0_f32, 1.0_f32, 1.0_f32))
+              t_item.call("set_text", 1, "[⚪ Ready]")
+              t_item.call("set_text", 2, "test:#{cat}/#{t.name}")
+            end
+          end
+        end
+      end
+
       if lbl = @test_status_label
-        lbl.call("set_text", "Discovered #{spec_files.size} spec files (#{total_specs} test cases). Ready to run.")
+        lbl.call("set_text", "Discovered #{spec_files.size} spec files (#{total_specs} specs) + #{editor_tests.size} in-editor tests. Ready.")
         lbl.call("add_theme_color_override", "font_color", Color.new(1.0_f32, 1.0_f32, 1.0_f32, 1.0_f32))
       end
     end
@@ -962,8 +1005,24 @@ module Godot
       end
 
       path = selected.call_str("get_text", 2)
-      if path.empty?
-        on_run_all_specs
+      if path.empty? || path == "editor_all"
+        on_run_in_editor_tests
+        return
+      end
+
+      if path.starts_with?("category:")
+        cat = path.sub(/^category:/, "")
+        log_info("Running In-Editor category: #{cat}...")
+        results = ::TestFramework::Registry.run_category(cat, self)
+        display_test_results("Category: #{cat}", results, selected)
+        return
+      elsif path.starts_with?("test:")
+        parts = path.sub(/^test:/, "").split('/', 2)
+        cat = parts[0]
+        test_name = parts[1]? || ""
+        log_info("Running In-Editor test: [#{cat}] #{test_name}...")
+        results = ::TestFramework::Registry.run_category(cat, self, filter: test_name)
+        display_test_results("[#{cat}] #{test_name}", results, selected)
         return
       end
 
@@ -992,6 +1051,66 @@ module Godot
       end
     rescue ex
       log_error("Error running selected spec: #{ex.message}")
+    end
+
+    def on_run_in_editor_tests : Void
+      log_info("Executing In-Editor TestFramework suites...")
+      if lbl = @test_status_label
+        lbl.call("set_text", "Running In-Editor test suites...")
+        lbl.call("add_theme_color_override", "font_color", Color.new(1.0_f32, 0.85_f32, 0.2_f32, 1.0_f32))
+      end
+
+      start_time = ::Time.instant
+      results = ::TestFramework::Registry.run_all(self)
+      display_test_results("In-Editor Suites", results, nil)
+    rescue ex
+      log_error("Error running in-editor tests: #{ex.message}")
+    end
+
+    private def display_test_results(title : String, results : Array(::TestFramework::TestResult), target_item : Node?) : Void
+      passed_count = results.count(&.passed)
+      total_count = results.size
+      all_passed = (passed_count == total_count && total_count > 0)
+
+      output_io = IO::Memory.new
+      output_io.puts "Execution Results: #{title}"
+      output_io.puts "Total: #{total_count} | Passed: #{passed_count} | Failed: #{total_count - passed_count}"
+      output_io.puts "--------------------------------------------------"
+      results.each do |r|
+        status_tag = r.passed ? "[PASS]" : "[FAIL]"
+        output_io.puts "  #{status_tag} [#{r.category}] #{r.name} (#{r.duration_ms.round(1)}ms)"
+        unless r.passed
+          output_io.puts "    Error: #{r.message}"
+        end
+      end
+
+      output_text = output_io.to_s
+
+      if details = @test_details
+        if all_passed
+          details.call("set_text", "[color=#44ff88][b]All #{total_count} tests in #{title} passed cleanly![/b][/color]\n\n[color=#f5f5f5]#{output_text}[/color]")
+        else
+          details.call("set_text", "[color=#ff4444][b]Failures Detected in #{title} (#{total_count - passed_count}/#{total_count}):[/b][/color]\n\n[color=#ff8888]#{output_text}[/color]")
+        end
+      end
+
+      if item = target_item
+        status_str = all_passed ? "[✅ PASSED]" : "[❌ FAILED]"
+        status_col = all_passed ? Color.new(0.3_f32, 1.0_f32, 0.4_f32, 1.0_f32) : Color.new(1.0_f32, 0.3_f32, 0.3_f32, 1.0_f32)
+        update_tree_item_status_recursive(item, status_str, status_col)
+      end
+
+      if lbl = @test_status_label
+        if all_passed
+          lbl.call("set_text", "✅ #{title}: All #{total_count} tests passed cleanly!")
+          lbl.call("add_theme_color_override", "font_color", Color.new(0.3_f32, 1.0_f32, 0.4_f32, 1.0_f32))
+          log_success("#{title}: All #{total_count} tests passed!")
+        else
+          lbl.call("set_text", "❌ #{title}: #{total_count - passed_count}/#{total_count} tests failed.")
+          lbl.call("add_theme_color_override", "font_color", Color.new(1.0_f32, 0.3_f32, 0.3_f32, 1.0_f32))
+          log_error("#{title}: Failures detected.")
+        end
+      end
     end
 
     # =========================================================================
@@ -1030,4 +1149,8 @@ module Godot
   end
 end
 
-alias CrystalPanel = Godot::CrystalPanel
+alias CrystalPanel = Lapis::CrystalPanel
+
+module Godot
+  alias CrystalPanel = ::Lapis::CrystalPanel
+end

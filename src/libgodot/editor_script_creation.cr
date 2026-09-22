@@ -10,7 +10,8 @@
 # - SceneTree dock node context menu ("Attach/New Crystal Script...")
 # =============================================================================
 
-module Godot
+module Lapis
+  include Godot
   module EditorScriptCreation
     ID_CRYSTAL_SCRIPT = 889901_i64
     ID_SCENE_ATTACH   = 889902_i64
@@ -817,4 +818,10 @@ module Godot
       cleanup
     end
   end
+end
+
+alias EditorScriptCreation = Lapis::EditorScriptCreation
+
+module Godot
+  alias EditorScriptCreation = ::Lapis::EditorScriptCreation
 end

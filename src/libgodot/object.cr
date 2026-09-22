@@ -596,9 +596,17 @@ module Godot
       Godot.clear_signal_subscriptions(signal_target_id)
       if !@pointer.null?
         target_ptr = @pointer
+        inst_id = @instance_id
         @pointer = Pointer(Void).null
         Bridge.unregister_alive_instance_by_ptr(target_ptr)
-        Bridge.object_destroy(target_ptr)
+        if self.is_a?(RefCounted)
+          # RefCounted instances are managed by Godot's atomic reference counter;
+          # calling memdelete directly corrupts engine memory and causes heap corruption.
+          return
+        end
+        if inst_id == 0 || Bridge.is_instance_valid(inst_id)
+          Bridge.object_destroy(target_ptr)
+        end
       end
     end
 
@@ -1009,6 +1017,11 @@ module Godot
         godot_name = Bridge.node_get_name(@pointer)
         godot_name.empty? ? @name : godot_name
       end
+    end
+
+    # Returns the node name
+    def get_name : String
+      name
     end
 
     def name=(val : String)
@@ -2389,6 +2402,38 @@ module Godot
 
     def initialize(pointer : Void*)
       @path = ""
+    end
+
+    def to_s(io : IO) : Void
+      io << @path
+    end
+
+    def to_s : String
+      @path
+    end
+
+    def ==(other : NodePath) : Bool
+      @path == other.@path
+    end
+
+    def ==(other : String) : Bool
+      @path == other
+    end
+
+    def empty? : Bool
+      @path.empty?
+    end
+
+    # Returns the subname count (number of colon-separated property paths after node)
+    def get_subname_count : Int64
+      parts = @path.split(':')
+      parts.size > 1 ? (parts.size - 1).to_i64 : 0_i64
+    end
+
+    # Returns the subname at the given index
+    def get_subname(idx : Int64) : String
+      parts = @path.split(':')
+      idx + 1 < parts.size ? parts[idx + 1] : ""
     end
   end
 end

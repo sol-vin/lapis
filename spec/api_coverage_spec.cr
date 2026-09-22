@@ -107,7 +107,7 @@ if singletons = api_data["singletons"]?.try(&.as_a)
 
   singletons.each do |s|
     s_name = s["name"].as_s
-    unless singletons_content.includes?("class #{s_name} <")
+    unless singletons_content.includes?("class #{s_name} <") || singletons_content.includes?("godot_singleton(#{s_name},")
       missing_singletons << s_name
     end
   end

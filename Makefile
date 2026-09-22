@@ -123,7 +123,7 @@ dirs: $(LAPIS)
 	@$(LAPIS) dirs
 
 # Compile C++ GDExtension bridge and sync to consumer projects
-bridge: dirs
+bridge: dirs src/bridge/crystal_bridge.cpp $(wildcard src/bridge/*.hpp) $(wildcard src/bridge/*.h)
 	@echo [Bridge] Compiling GDExtension bridge $(BRIDGE_LIB)...
 ifeq ($(PLATFORM),macos)
 	$(CXX) -dynamiclib $(CXXFLAGS) src/bridge/crystal_bridge.cpp -o $(BRIDGE_LIB)
@@ -143,7 +143,6 @@ addons: dirs
 	@$(LAPIS) sync --addons-only
 
 # Build dummy test addons for multi-addon isolation stress tests
-dummy_addons: dirs deps bridge
 dummy_addons: dirs deps bridge
 	@$(LAPIS) build addons $(if $(filter 1,$(RELEASE)),--release,)
 	@$(LAPIS) sync

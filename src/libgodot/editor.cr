@@ -7,7 +7,9 @@ require "file_utils"
 require "./script"
 require "./editor_script_creation"
 
-module Godot
+module Lapis
+  include Godot
+
   @[Tool]
   node CrystalIntegrationPlugin < EditorPlugin do
   # Version of the compiled LibGodot library
@@ -1617,9 +1619,13 @@ module Godot
 end
 end
 
-alias CrystalIntegrationPlugin = Godot::CrystalIntegrationPlugin
+alias CrystalIntegrationPlugin = Lapis::CrystalIntegrationPlugin
+
+module Godot
+  alias CrystalIntegrationPlugin = ::Lapis::CrystalIntegrationPlugin
+end
 
 Godot::Bridge.register_shutdown_callback do
-  Godot::CrystalIntegrationPlugin.cleanup_on_shutdown rescue nil
+  Lapis::CrystalIntegrationPlugin.cleanup_on_shutdown rescue nil
 end
 

@@ -116,12 +116,24 @@ module Godot
       @store[index]
     end
 
+    def [](index : Int64) : T
+      @store[index.to_i32]
+    end
+
     def []?(index : Int32) : T?
       @store[index]?
     end
 
+    def []?(index : Int64) : T?
+      @store[index.to_i32]?
+    end
+
     def []=(index : Int32, value : T) : T
       @store[index] = value
+    end
+
+    def []=(index : Int64, value : T) : T
+      @store[index.to_i32] = value
     end
 
     def <<(value : T) : self
@@ -158,6 +170,10 @@ module Godot
     end
 
     def to_a : ::Array(T)
+      @store.dup
+    end
+
+    def to_array : ::Array(T)
       @store.dup
     end
 

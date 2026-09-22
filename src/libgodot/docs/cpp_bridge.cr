@@ -2,7 +2,8 @@
 # LibGodot - C++ GDExtension Loader Bridge Architecture Documentation
 # ==============================================================================
 
-module Docs
+module Lapis
+  module Docs
   # # O. C++ GDExtension Loader Bridge Architecture
   #
   # The **LibGodot C++ GDExtension Loader Bridge** (`src/bridge/`) provides the low-level,
@@ -211,5 +212,6 @@ module Docs
         "CustomCallable signal dispatching to Crystal actor fibers"
       ]
     end
+  end
   end
 end

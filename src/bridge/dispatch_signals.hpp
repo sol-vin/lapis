@@ -60,6 +60,34 @@ inline void free_string(void *s) {
     free(s);
 }
 
+/** Allocates and initializes a heap-backed Godot NodePath instance */
+inline void* make_nodepath(const char *path) {
+    if (!gd_nodepath_from_string && gd_variant_get_ptr_constructor) {
+        gd_nodepath_from_string = gd_variant_get_ptr_constructor(GDEXTENSION_VARIANT_TYPE_NODE_PATH, 2);
+    }
+    void *np = malloc(sizeof(void*));
+    memset(np, 0, sizeof(void*));
+    if (gd_nodepath_from_string) {
+        void *gd_str = make_string(path ? path : "");
+        const GDExtensionConstTypePtr cargs[1] = { gd_str };
+        gd_nodepath_from_string(np, cargs);
+        free_string(gd_str);
+    }
+    return np;
+}
+
+/** Destroys and frees a heap-backed Godot NodePath instance */
+inline void free_nodepath(void *np) {
+    if (!np) return;
+    if (!gd_nodepath_destroy && gd_variant_get_ptr_destructor) {
+        gd_nodepath_destroy = gd_variant_get_ptr_destructor(GDEXTENSION_VARIANT_TYPE_NODE_PATH);
+    }
+    if (gd_nodepath_destroy) {
+        gd_nodepath_destroy(np);
+    }
+    free(np);
+}
+
 /** Converts a Godot StringName to a C string buffer */
 inline bool string_name_to_cstr(GDExtensionConstStringNamePtr sn, char *out, size_t max_len) {
     if (!sn || !out || max_len == 0) return false;
@@ -221,13 +249,13 @@ inline GDExtensionMethodBindPtr bridge_get_method_bind(const char *class_name, c
 }
 
 inline void bridge_method_bind_ptrcall(GDExtensionMethodBindPtr method_bind, GDExtensionObjectPtr instance, const void **args, void *ret) {
-    if (gd_object_method_bind_ptrcall && method_bind && instance) {
+    if (gd_object_method_bind_ptrcall && method_bind) {
         gd_object_method_bind_ptrcall(method_bind, instance, args, ret);
     }
 }
 
 inline void bridge_method_bind_call(GDExtensionMethodBindPtr method_bind, GDExtensionObjectPtr instance, const GDExtensionConstVariantPtr *args, GDExtensionInt arg_count, GDExtensionVariantPtr ret, GDExtensionCallError *error) {
-    if (gd_object_method_bind_call && method_bind && instance) {
+    if (gd_object_method_bind_call && method_bind) {
         gd_object_method_bind_call(method_bind, instance, args, arg_count, ret, error);
     }
 }
@@ -653,27 +681,12 @@ inline GDExtensionObjectPtr bridge_node_get_node(GDExtensionObjectPtr node, cons
     }
     if (!mb_node_get_node) return nullptr;
 
-    if (!gd_nodepath_from_string && gd_variant_get_ptr_constructor) {
-        gd_nodepath_from_string = gd_variant_get_ptr_constructor(GDEXTENSION_VARIANT_TYPE_NODE_PATH, 2);
-    }
-    if (!gd_nodepath_destroy && gd_variant_get_ptr_destructor) {
-        gd_nodepath_destroy = gd_variant_get_ptr_destructor(GDEXTENSION_VARIANT_TYPE_NODE_PATH);
-    }
-
-    if (gd_nodepath_from_string && gd_object_method_bind_ptrcall) {
-        void *gd_str = make_string(path);
-        alignas(void*) char np_buf[8] = {};
-        const GDExtensionConstTypePtr cargs[1] = { gd_str };
-        gd_nodepath_from_string(np_buf, cargs);
-
-        const void *args[1] = { np_buf };
+    if (gd_object_method_bind_ptrcall) {
+        void *np = make_nodepath(path);
+        const void *args[1] = { np };
         GDExtensionObjectPtr ret_node = nullptr;
         gd_object_method_bind_ptrcall(mb_node_get_node, node, args, &ret_node);
-
-        if (gd_nodepath_destroy) {
-            gd_nodepath_destroy(np_buf);
-        }
-        free_string(gd_str);
+        free_nodepath(np);
         return ret_node;
     }
 

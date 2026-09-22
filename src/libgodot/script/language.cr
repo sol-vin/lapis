@@ -1,4 +1,5 @@
-module Godot
+module Lapis
+  include Godot
   # Completion proposal item for Godot's built-in CodeEdit popup
   struct CompletionItem
     property kind : String
@@ -496,4 +497,12 @@ module Godot
       end
     end
   end
+end
+
+alias CompletionItem = Lapis::CompletionItem
+alias CrystalLanguage = Lapis::CrystalLanguage
+
+module Godot
+  alias CompletionItem = ::Lapis::CompletionItem
+  alias CrystalLanguage = ::Lapis::CrystalLanguage
 end

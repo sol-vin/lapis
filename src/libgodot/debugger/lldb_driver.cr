@@ -5,7 +5,8 @@
 # Handles process attachment, breakpoint synchronization, call stack extraction,
 # variable inspection, and asynchronous stop event parsing.
 
-module Godot
+module Lapis
+  include Godot
   module Debugger
     enum StopReason
       Breakpoint
@@ -416,4 +417,8 @@ module Godot
       end
     end
   end
+end
+
+module Godot
+  alias Debugger = ::Lapis::Debugger
 end

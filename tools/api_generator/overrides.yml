@@ -64,20 +64,20 @@ type_map:
   StringName: String
   NodePath: NodePath
   RID: Int64
-  Callable: Void*
-  Signal: Void*
-  Dictionary: Void*
-  Array: Godot::Array
-  PackedByteArray: Void*
-  PackedInt32Array: Void*
-  PackedInt64Array: Void*
-  PackedFloat32Array: Void*
-  PackedFloat64Array: Void*
-  PackedStringArray: Void*
-  PackedVector2Array: Void*
-  PackedVector3Array: Void*
-  PackedColorArray: Void*
-  Variant: Void*
+  Callable: Pointer(Void)
+  Signal: Pointer(Void)
+  Dictionary: Pointer(Void)
+  Array: Pointer(Void)
+  PackedByteArray: Pointer(Void)
+  PackedInt32Array: Pointer(Void)
+  PackedInt64Array: Pointer(Void)
+  PackedFloat32Array: Pointer(Void)
+  PackedFloat64Array: Pointer(Void)
+  PackedStringArray: Pointer(Void)
+  PackedVector2Array: Pointer(Void)
+  PackedVector3Array: Pointer(Void)
+  PackedColorArray: Pointer(Void)
+  Variant: Pointer(Void)
   Object: Godot::Object
 
 # Classes excluded from automatic generation (handled manually or internal)

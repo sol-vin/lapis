@@ -94,6 +94,8 @@ module Godot
       free_string_name : (Void* -> Void)
       make_string : (LibC::Char* -> Void*)
       free_string : (Void* -> Void)
+      make_nodepath : (LibC::Char* -> Void*)
+      free_nodepath : (Void* -> Void)
       type_from_variant : (Int32, Void*, Void* -> Void)
       variant_from_type : (Int32, Void*, Void* -> Void)
       log_print : (LibC::Char* -> Void)
@@ -580,6 +582,11 @@ module Godot
     def self.ptrcall(method_bind : Void*, instance : Void*, args : Void**, ret : Void*) : Void
       return if @@api.null? || @@api.value.method_bind_ptrcall.pointer.null? || method_bind.null? || instance.null?
       @@api.value.method_bind_ptrcall.call(method_bind, instance, args, ret)
+    end
+
+    def self.static_ptrcall(method_bind : Void*, args : Void**, ret : Void*) : Void
+      return if @@api.null? || @@api.value.method_bind_ptrcall.pointer.null? || method_bind.null?
+      @@api.value.method_bind_ptrcall.call(method_bind, Pointer(Void).null, args, ret)
     end
 
     def self.get_singleton(name : String) : Void*
@@ -1222,6 +1229,16 @@ module Godot
       @@api.value.free_string.call(ptr)
     end
 
+    def self.make_nodepath(path : String) : Void*
+      return Pointer(Void).null if @@api.null? || @@api.value.make_nodepath.pointer.null?
+      @@api.value.make_nodepath.call(path.to_unsafe)
+    end
+
+    def self.free_nodepath(ptr : Void*?) : Void
+      return if ptr.nil? || ptr.null? || @@api.null? || @@api.value.free_nodepath.pointer.null?
+      @@api.value.free_nodepath.call(ptr)
+    end
+
     def self.is_loader_registered? : Bool
       return false if @@api.null? || @@api.value.is_loader_registered.pointer.null?
       @@api.value.is_loader_registered.call != 0
@@ -1330,6 +1347,7 @@ end
 
 # C ABI Entry point called by crystal_bridge when game library is loaded
 fun crystal_godot_init(api : Godot::LibBridge::BridgeAPI*) : Void
+
   {% unless flag?(:win32) %}
     if !api.null? && !api.value.get_gc_signals.pointer.null?
       sus_sig = 0

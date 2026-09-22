@@ -225,9 +225,11 @@ HELP
           ["test", "template", "performance"].each do |proj|
             proj_dir = root.join(proj)
             src_game = proj_dir.join("bin", game_file)
-            dst_game = proj_dir.join("addons/crystal_integration/bin", game_file)
             if File.exists?(src_game)
+              dst_game = proj_dir.join("addons/crystal_integration/bin", game_file)
               safe_copy(src_game, dst_game)
+              dst_bin_game = proj_dir.join("bin/addons/crystal_integration/bin", game_file)
+              safe_copy(src_game, dst_bin_game)
             end
           end
 

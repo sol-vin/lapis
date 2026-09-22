@@ -2,212 +2,10 @@ require "../../src/lapis"
 require "./generated/project_nodes/all_project_nodes"
 
 # =============================================================================
-# LibGodot Test Runner & Assertion Framework
 # =============================================================================
-
-module TestFramework
-  class AssertionError < Exception
-  end
-
-  record TestResult, category : String, name : String, passed : Bool, message : String = ""
-
-  def self.assert_true(cond : Bool, msg : String = "Expected true, got false")
-	raise AssertionError.new(msg) unless cond
-  end
-
-  def self.assert_false(cond : Bool, msg : String = "Expected false, got true")
-	raise AssertionError.new(msg) if cond
-  end
-
-  def self.assert_eq(actual, expected, msg : String = "")
-	if actual != expected
-	  detail = msg.empty? ? "Expected #{expected.inspect}, got #{actual.inspect}" : "#{msg} (Expected #{expected.inspect}, got #{actual.inspect})"
-	  raise AssertionError.new(detail)
-	end
-  end
-
-  def self.assert_approx_eq(actual : Float32 | Float64, expected : Float32 | Float64, epsilon : Float64 = 0.001, msg : String = "")
-	diff = (actual - expected).abs
-	if diff > epsilon
-	  detail = msg.empty? ? "Expected ~#{expected}, got #{actual} (diff #{diff})" : "#{msg} (Expected ~#{expected}, got #{actual})"
-	  raise AssertionError.new(detail)
-	end
-  end
-
-  def self.assert_not_nil(val, msg : String = "Expected non-nil value")
-	raise AssertionError.new(msg) if val.nil?
-  end
-
-  def self.assert_nil(val, msg : String = "Expected nil value")
-	raise AssertionError.new(msg) unless val.nil?
-  end
-
-  def self.assert_raises(klass : T.class, msg : String = "", &block) forall T
-	begin
-	  yield
-	rescue ex : T
-	  return ex
-	rescue ex : Exception
-	  detail = msg.empty? ? "Expected #{T.name} to be raised, but got #{ex.class.name}: #{ex.message}" : "#{msg} (Expected #{T.name}, got #{ex.class.name})"
-	  raise AssertionError.new(detail)
-	end
-	detail = msg.empty? ? "Expected #{T.name} to be raised, but no exception was raised" : "#{msg} (Expected #{T.name})"
-	raise AssertionError.new(detail)
-  end
-
-  def self.assert_includes(collection, item, msg : String = "")
-	unless collection.includes?(item)
-	  detail = msg.empty? ? "Expected collection to include #{item.inspect}, but it was absent" : "#{msg} (Missing #{item.inspect})"
-	  raise AssertionError.new(detail)
-	end
-  end
-
-  def self.assert_in_delta(actual : Number, expected : Number, delta : Number, msg : String = "")
-	diff = (actual - expected).abs
-	if diff > delta
-	  detail = msg.empty? ? "Expected #{actual} to be within #{delta} of #{expected} (diff #{diff})" : "#{msg} (Expected #{actual} within #{delta} of #{expected})"
-	  raise AssertionError.new(detail)
-	end
-  end
-
-  def self.suppress_errors(&block)
-	engine = Godot::Engine.instance
-	prev = engine.is_printing_error_messages
-	engine.set_print_error_messages(false)
-	begin
-	  yield
-	ensure
-	  engine.set_print_error_messages(prev)
-	end
-  end
-
-  # Signal Recording and Spy Helper
-  class SignalSpy
-	getter emissions = Array(Array(String)).new
-	getter emitter : Godot::Object
-	getter signal_name : String
-
-	def initialize(@emitter : Godot::Object, @signal_name : String)
-	end
-
-	def record(*args)
-	  @emissions << args.map(&.to_s).to_a
-	end
-
-	def count : Int32
-	  @emissions.size
-	end
-
-	def emitted? : Bool
-	  !@emissions.empty?
-	end
-
-	def clear
-	  @emissions.clear
-	end
-  end
-
-  # ===========================================================================
-  # Centralized Extensible Test Registry
-  # ===========================================================================
-  class TestCase
-	getter category : String
-	getter name : String
-	@block : (Godot::Node -> Void)
-
-	def initialize(@category : String, @name : String, &@block : Godot::Node -> Void)
-	end
-
-	def execute(context_node : Godot::Node) : TestResult
-	  Godot.print("  [Running] [#{@category}] #{@name}...")
-	  begin
-		@block.call(context_node)
-		TestResult.new(@category, @name, true, "PASS")
-	  rescue ex : AssertionError
-		TestResult.new(@category, @name, false, ex.message || "Assertion failed")
-	  rescue ex : Exception
-		Godot.print("[ERROR] #{ex.inspect_with_backtrace}")
-		TestResult.new(@category, @name, false, "ERROR: #{ex.class.name}: #{ex.message}\n#{ex.backtrace.join("\n")}")
-	  end
-	end
-  end
-
-  class Registry
-	@@tests = Array(TestCase).new
-
-	def self.register(category : String, name : String, &block : Godot::Node -> Void)
-	  @@tests << TestCase.new(category, name, &block)
-	end
-
-	def self.all_tests : Array(TestCase)
-	  @@tests
-	end
-
-	def self.for_category(category : String) : Array(TestCase)
-	  @@tests.select { |t| t.category == category }
-	end
-
-	def self.categories : Array(String)
-	  @@tests.map(&.category).uniq
-	end
-
-	def self.run_category(category : String, context_node : Godot::Node, filter : String? = nil) : Array(TestResult)
-	  results = Array(TestResult).new
-	  for_category(category).each do |test|
-		next if filter && !filter.empty? && !test.name.includes?(filter)
-		results << test.execute(context_node)
-	  end
-	  results
-	end
-
-	def self.run_all(context_node : Godot::Node, filter : String? = nil, category_filter : String? = nil) : Array(TestResult)
-	  results = Array(TestResult).new
-	  cat_norm = category_filter ? category_filter.downcase.sub(/^test_?/, "") : nil
-	  @@tests.each do |test|
-		if cat_norm && !cat_norm.empty?
-		  t_cat = test.category.downcase.sub(/^test_?/, "")
-		  next if t_cat != cat_norm
-		end
-		next if filter && !filter.empty? && !test.name.downcase.includes?(filter.downcase)
-		results << test.execute(context_node)
-	  end
-	  results
-	end
-  end
-end
-
-# Declarative DSL Macros for Modular Test Suite Authoring
-{% for pair in [
-  {:test_core, "Core"},
-  {:test_2d, "2D"},
-  {:test_3d, "3D"},
-  {:test_prop, "Properties"},
-  {:test_nodes, "Nodes"},
-  {:test_deferred, "Deferred"},
-  {:test_signals, "Signals"},
-  {:test_gdscript, "GDScript"},
-  {:test_mesh, "Mesh"},
-  {:test_physics, "Physics"},
-  {:test_stress, "Stress"},
-  {:test_scenes, "Scenes"},
-  {:test_concurrency, "Concurrency"},
-  {:test_macros_dsl, "MacrosDSL"},
-  {:test_reentrancy, "Reentrancy"},
-  {:test_duplication, "Duplication"},
-  {:test_callable_adv, "CallableAdv"},
-  {:test_dynamic_props, "DynamicProps"},
-  {:test_thread_safety, "ThreadSafety"},
-  {:test_polymorphism, "Polymorphism"},
-  {:test_undo_redo, "UndoRedo"},
-  {:test_standalone_portable, "StandalonePortable"},
-] %}
-  macro {{pair[0].id}}(name, &block)
-	::TestFramework::Registry.register({{pair[1]}}, \{{name}}) do |node|
-	  root = node
-	  \{{block.body}}
-	end
-  end
-{% end %}
+# TestFramework and Declarative DSL Macros are provided by `src/libgodot/testing.cr`
+# (loaded via `require "../../src/lapis"`).
+# =============================================================================
 
 # =============================================================================
 # Custom Property & Annotation Test Target Node
@@ -1055,8 +853,6 @@ test_signals "SignalSpy records signal emissions" do
 
   TestFramework.assert_false spy.emitted?
   target.emit_test_event_fired(42)
-  # Signals emitted through bridge are recorded
-  spy.record(42.to_s)
   TestFramework.assert_true spy.emitted?
   TestFramework.assert_eq spy.count, 1
   target.destroy
@@ -1649,3 +1445,11 @@ require "./suites/test_thread_safe_apis"
 require "./suites/test_gdscript_inheritance_polymorphism"
 require "./suites/test_undo_redo_history"
 require "./suites/test_toolchain_standalone"
+require "./suites/test_shaders_compilation"
+require "./suites/test_materials_textures_advanced"
+require "./suites/test_physics_simulation_raycast"
+require "./suites/test_geometry_surfacetool"
+require "./suites/test_cameras_viewports_canvas"
+require "./suites/test_tweens_animation"
+require "./suites/test_audio_system_servers"
+require "./suites/test_async_testing_apparatus"

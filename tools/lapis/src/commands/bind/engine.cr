@@ -64,9 +64,161 @@ module Lapis
           elsif godot_type.starts_with?("typedarray::")
             "Godot::Array"
           elsif godot_type.ends_with?("*") || godot_type.starts_with?("const ") || godot_type.includes?("*")
-            "Void*"
+            "Pointer(Void)"
           else
             godot_type.gsub(/[^a-zA-Z0-9_]/, "")
+          end
+        end
+
+        private def self.resolve_type_info(godot_type : String, current_class : String, type_map : Hash(String, String)) : NamedTuple(crystal_type: String, is_enum: Bool, enum_type: String?)
+          if godot_type.starts_with?("enum::") || godot_type.starts_with?("bitfield::")
+            raw = godot_type.sub(/^(?:enum|bitfield)::/, "")
+            if raw.includes?(".")
+              target_class, target_enum = raw.split(".", 2)
+              target_enum = target_enum.gsub(/[^a-zA-Z0-9_]/, "")
+              enum_type_name = if target_class == current_class
+                target_enum
+              else
+                "Godot::#{target_class}::#{target_enum}"
+              end
+              return {crystal_type: "#{enum_type_name} | Int", is_enum: true, enum_type: enum_type_name}
+            else
+              enum_name = raw.gsub(/[^a-zA-Z0-9_]/, "")
+              enum_type_name = "Godot::#{enum_name}"
+              return {crystal_type: "#{enum_type_name} | Int", is_enum: true, enum_type: enum_type_name}
+            end
+          elsif godot_type == "NodePath"
+            return {crystal_type: "NodePath | String", is_enum: false, enum_type: nil}
+          elsif mapped = type_map[godot_type]?
+            return {crystal_type: mapped, is_enum: false, enum_type: nil}
+          elsif godot_type.starts_with?("typedarray::")
+            return {crystal_type: "Pointer(Void)", is_enum: false, enum_type: nil}
+          elsif godot_type.ends_with?("*") || godot_type.starts_with?("const ") || godot_type.includes?("*")
+            return {crystal_type: "Pointer(Void)", is_enum: false, enum_type: nil}
+          else
+            clean = godot_type.gsub(/[^a-zA-Z0-9_]/, "")
+            return {crystal_type: clean, is_enum: false, enum_type: nil}
+          end
+        end
+
+        private def self.resolve_return_type(godot_type : String, current_class : String, type_map : Hash(String, String)) : NamedTuple(crystal_type: String, is_enum: Bool)
+          if godot_type.starts_with?("enum::") || godot_type.starts_with?("bitfield::")
+            raw = godot_type.sub(/^(?:enum|bitfield)::/, "")
+            if raw.includes?(".")
+              target_class, target_enum = raw.split(".", 2)
+              target_enum = target_enum.gsub(/[^a-zA-Z0-9_]/, "")
+              enum_type_name = if target_class == current_class
+                target_enum
+              else
+                "Godot::#{target_class}::#{target_enum}"
+              end
+              return {crystal_type: enum_type_name, is_enum: true}
+            else
+              enum_name = raw.gsub(/[^a-zA-Z0-9_]/, "")
+              return {crystal_type: "Godot::#{enum_name}", is_enum: true}
+            end
+          elsif godot_type == "NodePath"
+            return {crystal_type: "NodePath", is_enum: false}
+          else
+            mapped = crystal_type_name(godot_type, type_map)
+            return {crystal_type: mapped, is_enum: false}
+          end
+        end
+
+        private def self.to_snake_case(s : String) : String
+          case s
+          when "OS" then "os"
+          when "IP" then "ip"
+          else
+            s.underscore.gsub(/_2_d\b/, "_2d").gsub(/_3_d\b/, "_3d")
+          end
+        end
+
+        private def self.resolve_default_value(raw_val : String, crystal_type : String, is_enum : Bool) : String?
+          raw = raw_val.strip
+          if is_enum
+            return raw.matches?(/\A-?\d+\z/) ? raw : nil
+          end
+
+          case crystal_type
+          when "Bool"
+            case raw
+            when "true", "1" then "true"
+            when "false", "0" then "false"
+            else nil
+            end
+          when "Float64", "Float32"
+            if raw.matches?(/\A-?\d+(\.\d+)?(e-?\d+)?\z/i)
+              raw.includes?(".") || raw.includes?("e") ? "#{raw}_f64" : "#{raw}.0_f64"
+            else
+              nil
+            end
+          when "Int64", "Int32", "UInt64", "UInt32", "Int16", "UInt16", "Int8", "UInt8"
+            if raw.matches?(/\A-?\d+\z/)
+              "#{raw}_i64"
+            else
+              nil
+            end
+          when "String", "StringName"
+            if raw.starts_with?("&\"") && raw.ends_with?("\"")
+              "\"#{raw[2...-1]}\""
+            elsif raw.starts_with?("\"") && raw.ends_with?("\"")
+              raw
+            else
+              nil
+            end
+          when "NodePath | String"
+            if raw == "NodePath(\"\")" || raw == "\"\""
+              "\"\""
+            elsif raw.starts_with?("&\"") && raw.ends_with?("\"")
+              "\"#{raw[2...-1]}\""
+            elsif raw.starts_with?("\"") && raw.ends_with?("\"")
+              raw
+            else
+              nil
+            end
+          when "Vector2"
+            if m = raw.match(/\AVector2\(([^,]+),\s*([^)]+)\)\z/)
+              "Vector2.new(#{m[1]}.to_f32, #{m[2]}.to_f32)"
+            else
+              nil
+            end
+          when "Vector2i"
+            if m = raw.match(/\AVector2i\(([^,]+),\s*([^)]+)\)\z/)
+              "Vector2i.new(#{m[1]}.to_i32, #{m[2]}.to_i32)"
+            else
+              nil
+            end
+          when "Vector3"
+            if m = raw.match(/\AVector3\(([^,]+),\s*([^,]+),\s*([^)]+)\)\z/)
+              "Vector3.new(#{m[1]}.to_f32, #{m[2]}.to_f32, #{m[3]}.to_f32)"
+            else
+              nil
+            end
+          when "Vector3i"
+            if m = raw.match(/\AVector3i\(([^,]+),\s*([^,]+),\s*([^)]+)\)\z/)
+              "Vector3i.new(#{m[1]}.to_i32, #{m[2]}.to_i32, #{m[3]}.to_i32)"
+            else
+              nil
+            end
+          when "Color"
+            if m = raw.match(/\AColor\(([^,]+),\s*([^,]+),\s*([^,]+),\s*([^)]+)\)\z/)
+              "Color.new(#{m[1]}.to_f32, #{m[2]}.to_f32, #{m[3]}.to_f32, #{m[4]}.to_f32)"
+            else
+              nil
+            end
+          when "Rect2"
+            if m = raw.match(/\ARect2\(([^,]+),\s*([^,]+),\s*([^,]+),\s*([^)]+)\)\z/)
+              "Rect2.new(#{m[1]}.to_f32, #{m[2]}.to_f32, #{m[3]}.to_f32, #{m[4]}.to_f32)"
+            else
+              nil
+            end
+          else
+            if raw == "null"
+              "nil"
+            else
+              nil
+            end
           end
         end
 
@@ -160,40 +312,78 @@ module Lapis
               hash_val = m["hash"]?.try(&.as_i64) || 0_i64
               sanitized_m_name = sanitize_name(m_name, keywords)
 
+              is_static = m["is_static"]?.try(&.as_bool) || false
+              target_ptr = is_static ? "Pointer(Void).null" : "@pointer"
+              method_prefix = is_static ? "def self." : "def "
+
+              # Build argument list with default values
               args = m["arguments"]?.try(&.as_a) || [] of JSON::Any
               arg_defs = [] of String
+              arg_names = [] of String
+              arg_is_enum = [] of Bool
+
+              # Resolve defaults for all arguments
+              defaults = args.map do |a|
+                if dv = a["default_value"]?
+                  t_info = resolve_type_info(a["type"].as_s, name, type_map)
+                  resolve_default_value(dv.as_s, t_info[:crystal_type], t_info[:is_enum])
+                else
+                  nil
+                end
+              end
+
+              # Find first index from right that does NOT have a valid default value
+              first_non_default_idx = -1
+              (args.size - 1).downto(0) do |i|
+                if defaults[i].nil?
+                  first_non_default_idx = i
+                  break
+                end
+              end
 
               args.each_with_index do |a, idx|
                 raw_a_name = a["name"].as_s
                 a_name = sanitize_name(raw_a_name, keywords)
-                a_type = crystal_type_name(a["type"].as_s, type_map)
-                arg_defs << "#{a_name} : #{a_type}"
+                t_info = resolve_type_info(a["type"].as_s, name, type_map)
+                crystal_type = t_info[:crystal_type]
+                def_val = (idx > first_non_default_idx) ? defaults[idx] : nil
+                if def_val == "nil" && !crystal_type.ends_with?("?")
+                  crystal_type = "#{crystal_type}?"
+                end
+                if def_val
+                  arg_defs << "#{a_name} : #{crystal_type} = #{def_val}"
+                else
+                  arg_defs << "#{a_name} : #{crystal_type}"
+                end
+                arg_names << a_name
+                arg_is_enum << t_info[:is_enum]
               end
 
               ret_data = m["return_value"]?
               ret_type_godot = ret_data ? ret_data["type"].as_s : "void"
-              ret_type_crystal = crystal_type_name(ret_type_godot, type_map)
+              ret_info = resolve_return_type(ret_type_godot, name, type_map)
+              ret_type_crystal = ret_info[:crystal_type]
+              is_ret_enum = ret_info[:is_enum]
 
               clean_var_name = m_name.gsub(/[^a-zA-Z0-9_]/, "_")
               io.puts "    @@mb_#{clean_var_name} : Void* = Pointer(Void).null"
               if m_doc = m["description"]?.try(&.as_s.strip)
                 io.print format_doc_comment(m_doc, indent: "    ")
               end
-              io.puts "    def #{sanitized_m_name}(#{arg_defs.join(", ")}) : #{ret_type_crystal}"
-              io.puts "      if @@mb_#{clean_var_name}.null?"
-              io.puts "        @@mb_#{clean_var_name} = Bridge.get_method_bind(\"#{name}\", \"#{m_name}\", #{hash_val}_i64)"
-              io.puts "      end"
+              io.puts "    #{method_prefix}#{sanitized_m_name}(#{arg_defs.join(", ")}) : #{ret_type_crystal}"
+              io.puts "      godot_bind(@@mb_#{clean_var_name}, \"#{name}\", \"#{m_name}\", #{hash_val}_i64)"
 
               cleanups = [] of String
               args_expr = if args.empty?
                 "Pointer(Pointer(Void)).null"
               else
                 args.each_with_index do |a, idx|
-                  raw_a_name = a["name"].as_s
-                  a_name = sanitize_name(raw_a_name, keywords)
-                  a_type = crystal_type_name(a["type"].as_s, type_map)
+                  a_name = arg_names[idx]
                   godot_type = a["type"].as_s
-                  if class_names.includes?(godot_type) || a_type.starts_with?("Godot::") || ["Node", "Resource", "SceneTree", "Object", "Mesh"].includes?(a_type)
+                  if arg_is_enum[idx]
+                    io.puts "      val_#{idx} = #{a_name}.is_a?(Int) ? #{a_name}.to_i64 : #{a_name}.value.to_i64"
+                    io.puts "      arg_#{idx} = pointerof(val_#{idx}).as(Void*)"
+                  elsif class_names.includes?(godot_type) || godot_type.starts_with?("Godot::") || ["Node", "Resource", "SceneTree", "Object", "Mesh"].includes?(godot_type)
                     io.puts "      arg_ptr_#{idx} = #{a_name} ? #{a_name}.pointer : Pointer(Void).null"
                     io.puts "      arg_#{idx} = pointerof(arg_ptr_#{idx}).as(Void*)"
                   elsif godot_type == "String"
@@ -204,64 +394,84 @@ module Lapis
                     io.puts "      sn_#{idx} = Bridge.make_string_name(#{a_name})"
                     io.puts "      arg_#{idx} = sn_#{idx}"
                     cleanups << "Bridge.free_string_name(sn_#{idx})"
+                  elsif godot_type == "NodePath"
+                    io.puts "      np_#{idx} = Bridge.make_nodepath(#{a_name}.to_s)"
+                    io.puts "      arg_#{idx} = np_#{idx}"
+                    cleanups << "Bridge.free_nodepath(np_#{idx})"
                   else
                     io.puts "      val_#{idx} = #{a_name}"
                     io.puts "      arg_#{idx} = pointerof(val_#{idx}).as(Void*)"
                   end
                 end
-                arg_names = (0...args.size).map { |i| "arg_#{i}" }
-                io.puts "      args = [#{arg_names.join(", ")}]"
+                arg_array = (0...args.size).map { |i| "arg_#{i}" }
+                io.puts "      args = [#{arg_array.join(", ")}]"
                 "args.to_unsafe.as(Void**)"
               end
 
-              if ret_type_crystal == "Void"
-                io.puts "      Bridge.ptrcall(@@mb_#{clean_var_name}, @pointer, #{args_expr}, Pointer(Void).null)"
+              if is_ret_enum
+                io.puts "      ret = 0_i64"
+                io.puts "      godot_ptrcall(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr}, pointerof(ret).as(Void*))"
+                io.puts "      godot_return_enum(#{ret_type_crystal}, ret)"
+              elsif ret_type_crystal == "Void"
+                io.puts "      godot_ptrcall(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr}, Pointer(Void).null)"
               elsif ret_type_crystal == "Bool"
                 io.puts "      ret = 0_u8"
-                io.puts "      Bridge.ptrcall(@@mb_#{clean_var_name}, @pointer, #{args_expr}, pointerof(ret).as(Void*))"
+                io.puts "      godot_ptrcall(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr}, pointerof(ret).as(Void*))"
                 io.puts "      ret != 0_u8"
               elsif ret_type_crystal == "Int64" || ret_type_crystal == "Int32"
                 io.puts "      ret = 0_i64"
-                io.puts "      Bridge.ptrcall(@@mb_#{clean_var_name}, @pointer, #{args_expr}, pointerof(ret).as(Void*))"
+                io.puts "      godot_ptrcall(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr}, pointerof(ret).as(Void*))"
                 io.puts "      ret"
               elsif ret_type_crystal == "Float64" || ret_type_crystal == "Float32"
                 io.puts "      ret = 0.0_f64"
-                io.puts "      Bridge.ptrcall(@@mb_#{clean_var_name}, @pointer, #{args_expr}, pointerof(ret).as(Void*))"
+                io.puts "      godot_ptrcall(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr}, pointerof(ret).as(Void*))"
                 io.puts "      ret"
               elsif ret_type_crystal == "Vector2"
                 io.puts "      ret = Vector2.new"
-                io.puts "      Bridge.ptrcall(@@mb_#{clean_var_name}, @pointer, #{args_expr}, pointerof(ret).as(Void*))"
+                io.puts "      godot_ptrcall(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr}, pointerof(ret).as(Void*))"
                 io.puts "      ret"
               elsif ret_type_crystal == "Vector3"
                 io.puts "      ret = Vector3.new"
-                io.puts "      Bridge.ptrcall(@@mb_#{clean_var_name}, @pointer, #{args_expr}, pointerof(ret).as(Void*))"
+                io.puts "      godot_ptrcall(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr}, pointerof(ret).as(Void*))"
                 io.puts "      ret"
               elsif ret_type_crystal == "Color"
                 io.puts "      ret = Color.new"
-                io.puts "      Bridge.ptrcall(@@mb_#{clean_var_name}, @pointer, #{args_expr}, pointerof(ret).as(Void*))"
+                io.puts "      godot_ptrcall(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr}, pointerof(ret).as(Void*))"
                 io.puts "      ret"
               elsif ret_type_crystal == "Transform3D"
                 io.puts "      ret = Transform3D.new"
-                io.puts "      Bridge.ptrcall(@@mb_#{clean_var_name}, @pointer, #{args_expr}, pointerof(ret).as(Void*))"
+                io.puts "      godot_ptrcall(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr}, pointerof(ret).as(Void*))"
                 io.puts "      ret"
               elsif ret_type_crystal == "Void*" || ret_type_crystal == "Pointer(Void)"
                 if ret_type_godot == "Variant"
                   io.puts "      ret_var = StaticArray(UInt8, 24).new(0_u8)"
-                  io.puts "      Bridge.ptrcall(@@mb_#{clean_var_name}, @pointer, #{args_expr}, ret_var.to_unsafe.as(Void*))"
+                  io.puts "      godot_ptrcall(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr}, ret_var.to_unsafe.as(Void*))"
                   io.puts "      ret_ptr = Pointer(Void).null"
                   io.puts "      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))"
                   io.puts "      ret_ptr"
                 else
                   io.puts "      ret_ptr = Pointer(Void).null"
-                  io.puts "      Bridge.ptrcall(@@mb_#{clean_var_name}, @pointer, #{args_expr}, pointerof(ret_ptr).as(Void*))"
+                  io.puts "      godot_ptrcall(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr}, pointerof(ret_ptr).as(Void*))"
                   io.puts "      ret_ptr"
                 end
               elsif ret_type_crystal == "String"
-                io.puts "      \"\""
+                args_str = arg_names.empty? ? "" : ", #{arg_names.join(", ")}"
+                if is_static
+                  io.puts "      godot_static_call_str(\"#{m_name}\"#{args_str})"
+                else
+                  io.puts "      godot_call_str(\"#{m_name}\"#{args_str})"
+                end
+              elsif ret_type_crystal == "NodePath"
+                args_str = arg_names.empty? ? "" : ", #{arg_names.join(", ")}"
+                if is_static
+                  io.puts "      NodePath.new(godot_static_call_str(\"#{m_name}\"#{args_str}))"
+                else
+                  io.puts "      NodePath.new(godot_call_str(\"#{m_name}\"#{args_str}))"
+                end
               else
                 io.puts "      ret_ptr = Pointer(Void).null"
-                io.puts "      Bridge.ptrcall(@@mb_#{clean_var_name}, @pointer, #{args_expr}, pointerof(ret_ptr).as(Void*))"
-                io.puts "      #{ret_type_crystal}.new(ret_ptr)"
+                io.puts "      godot_ptrcall(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr}, pointerof(ret_ptr).as(Void*))"
+                io.puts "      godot_return_obj(#{ret_type_crystal}, ret_ptr)"
               end
 
               if !cleanups.empty?
@@ -272,6 +482,19 @@ module Lapis
               end
 
               io.puts "    end\n"
+
+              if is_static
+                io.puts "    # Instance convenience delegator for static method `#{sanitized_m_name}`"
+                io.puts "    def #{sanitized_m_name}(#{arg_defs.join(", ")}) : #{ret_type_crystal}"
+                io.puts "      self.class.#{sanitized_m_name}(#{arg_names.join(", ")})"
+                io.puts "    end\n"
+              end
+
+              if sanitized_m_name != m_name && m_name == "begin" && !args.empty?
+                io.puts "    def begin(#{arg_defs.join(", ")}) : #{ret_type_crystal}"
+                io.puts "      begin_val(#{arg_names.join(", ")})"
+                io.puts "    end\n"
+              end
             end
           end
 
@@ -370,6 +593,25 @@ module Lapis
                     end
                   end
                 end
+              end
+            end
+          end
+
+          # Signals
+          if signals = c["signals"]?
+            signals.as_a.each do |sig|
+              sig_name = sig["name"].as_s
+              next if all_method_names.includes?(sig_name)
+              clean_sig_name = sanitize_name(sig_name, keywords)
+              sig_args = sig["arguments"]?.try(&.as_a) || [] of JSON::Any
+              sig_arg_types = sig_args.map do |a|
+                t_info = resolve_return_type(a["type"].as_s, name, type_map)
+                t_info[:crystal_type]
+              end
+              if sig_arg_types.empty?
+                io.puts "    godot_signal #{clean_sig_name}"
+              else
+                io.puts "    godot_signal #{clean_sig_name}, #{sig_arg_types.join(", ")}"
               end
             end
           end
@@ -498,15 +740,15 @@ module Lapis
                 s_type = s["type"]?.try(&.as_s) || s_name
                 parent_type = s_name == "GDScriptLanguageProtocol" ? "Godot::JSONRPC" : "Godot::Object"
                 f.puts "  # Godot `#{s_name}` singleton (#{s_type})."
-                f.puts "  class #{s_name} < #{parent_type}"
-                f.puts "    @@instance : Void* = Pointer(Void).null"
-                f.puts "    def self.singleton_ptr : Void*"
-                f.puts "      if @@instance.null?"
-                f.puts "        @@instance = Bridge.get_singleton(\"#{s_name}\")"
-                f.puts "      end"
-                f.puts "      @@instance"
-                f.puts "    end"
-                f.puts "  end\n"
+                f.puts "  godot_singleton(#{s_name}, \"#{s_name}\", #{parent_type})"
+                snake_name = to_snake_case(s_name)
+                f.puts "  godot_singleton_accessor(#{snake_name}, #{s_name})"
+                if snake_name.includes?("_2d")
+                  f.puts "  godot_singleton_accessor(#{snake_name.gsub(/_2d/, "2d")}, #{s_name})"
+                elsif snake_name.includes?("_3d")
+                  f.puts "  godot_singleton_accessor(#{snake_name.gsub(/_3d/, "3d")}, #{s_name})"
+                end
+                f.puts ""
               end
             end
             f.puts "end"

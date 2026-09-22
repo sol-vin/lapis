@@ -251,6 +251,10 @@ Lapis features an extensive in-code documentation suite under the `Docs` module.
       <td><a href="src/libgodot/docs.cr"><code>Docs::P_LAPIS_TOOLCHAIN_AND_PACKAGING</code></a></td>
       <td>Lapis CLI architecture, environment diagnostics (<code>doctor</code>), project adoption (<code>init</code>), clean packaging invariants, and storage reclamation.</td>
     </tr>
+    <tr>
+      <td><a href="src/libgodot/docs.cr"><code>Docs::Q_TESTING_FRAMEWORK_AND_EDITOR_SUITES</code></a></td>
+      <td>Reusable <code>TestFramework</code> apparatus, assertion matchers, cooperative frame-stepping, signal timeouts, and live in-editor suites.</td>
+    </tr>
   </tbody>
 </table>
 

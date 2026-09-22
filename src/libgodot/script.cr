@@ -4,7 +4,7 @@ require "./script/script"
 require "./script/resource_format"
 require "./script/lsp"
 
-module Godot
+module Lapis
   # Master coordinator for first-class Crystal script support in Godot
   module ScriptIntegration
     @@lsp : CrystalLSP = CrystalLSP.instance
@@ -20,9 +20,9 @@ module Godot
   end
 end
 
-alias CrystalHighlighter = Godot::CrystalHighlighter
-alias CrystalLanguage = Godot::CrystalLanguage
-alias CrystalScript = Godot::CrystalScript
-alias ResourceFormatLoaderCrystal = Godot::ResourceFormatLoaderCrystal
-alias ResourceFormatSaverCrystal = Godot::ResourceFormatSaverCrystal
+alias ScriptIntegration = Lapis::ScriptIntegration
+
+module Godot
+  alias ScriptIntegration = ::Lapis::ScriptIntegration
+end
 

@@ -274,6 +274,17 @@ module Lapis
             end
           end
 
+          # Discover all nested addons in <proj>/bin/addons
+          ["test", "template", "performance"].each do |proj|
+            proj_bin_addons = root.join("#{proj}/bin/addons")
+            if Dir.exists?(proj_bin_addons)
+              Dir.each_child(proj_bin_addons) do |child|
+                p = proj_bin_addons.join(child)
+                dirs << p.join("bin") if Dir.exists?(p)
+              end
+            end
+          end
+
           # Discover all examples/*/bin and examples/*/addons/*/bin
           examples_dir = root.join("examples")
           if Dir.exists?(examples_dir)
