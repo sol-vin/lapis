@@ -405,10 +405,10 @@ module Lapis
       when "_find_function"
         fn = Bridge.arg_to_string(args[0])
         code = Bridge.arg_to_string(args[1])
-        target = "def #{fn}"
+        pattern = /^def\s+#{Regex.escape(fn)}(?:\b|\s|\(|:|$)/
         line_found = -1
         code.split("\n").each_with_index do |l, idx|
-          if l.strip.starts_with?(target)
+          if l.strip =~ pattern
             line_found = idx + 1
             break
           end

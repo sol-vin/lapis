@@ -65,6 +65,31 @@ jobs:
           if (-not (Test-Path "bin")) { New-Item -ItemType Directory -Force -Path "bin" | Out-Null }
           crystal build tools/lapis/src/lapis.cr -o bin/lapis.exe
 
+      - name: Install LLDB Debugger (Windows)
+        shell: pwsh
+        run: |
+          if (-not (Get-Command lldb.exe -ErrorAction SilentlyContinue)) {
+            Write-Host "Installing LLVM/LLDB via Chocolatey..."
+            choco install -y llvm
+            $llvmBin = "C:\Program Files\LLVM\bin"
+            if (Test-Path $llvmBin) {
+              $llvmBin | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+              $env:PATH = "$llvmBin;$env:PATH"
+            }
+          }
+          lldb --version
+
+      - name: Setup Crystalline LSP (Windows)
+        shell: pwsh
+        run: |
+          bin/lapis setup --lsp
+          $binDir = (Resolve-Path "bin").Path
+          $binDir | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+          $env:PATH = "$binDir;$env:PATH"
+          if (Test-Path "bin/crystalline.exe") {
+            ./bin/crystalline.exe --version
+          }
+
       - name: Setup Godot Engine
         uses: appsinacup/action_setup_godot@main
         with:
@@ -244,7 +269,7 @@ jobs:
       - name: Install Linux Build Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y lld libgc-dev xvfb
+          sudo apt-get install -y lld lldb libgc-dev xvfb
 
       - name: Verify Crystal & Toolchain
         run: |
@@ -256,6 +281,16 @@ jobs:
         run: |
           mkdir -p bin
           crystal build tools/lapis/src/lapis.cr -o bin/lapis
+
+      - name: Setup Crystalline LSP (Linux)
+        run: |
+          bin/lapis setup --lsp
+          echo "$(pwd)/bin" >> "$GITHUB_PATH"
+          export PATH="$(pwd)/bin:$PATH"
+          if [ -f "bin/crystalline" ]; then
+            ./bin/crystalline --version
+          fi
+          lldb --version
 
       - name: Setup Godot Engine
         uses: appsinacup/action_setup_godot@main
@@ -411,6 +446,16 @@ jobs:
         run: |
           mkdir -p bin
           crystal build tools/lapis/src/lapis.cr -o bin/lapis
+
+      - name: Setup Crystalline LSP & Verify LLDB (macOS)
+        run: |
+          bin/lapis setup --lsp
+          echo "$(pwd)/bin" >> "$GITHUB_PATH"
+          export PATH="$(pwd)/bin:$PATH"
+          if [ -f "bin/crystalline" ]; then
+            ./bin/crystalline --version
+          fi
+          lldb --version
 
       - name: Setup Godot Engine
         uses: appsinacup/action_setup_godot@main

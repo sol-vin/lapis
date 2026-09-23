@@ -164,6 +164,11 @@ HELP
               "spec/tool_verification_spec.cr",
               "spec/baked_file_system_spec.cr",
               "spec/standalone_portable_spec.cr",
+              "spec/lsp_spec.cr",
+              "spec/crystal_language_spec.cr",
+              "spec/platform_isolation_spec.cr",
+              "spec/safety_and_bindings_spec.cr",
+              "spec/features_spec.cr",
             ]
             root_specs.each do |spec_file|
               full_path = root.join(spec_file)

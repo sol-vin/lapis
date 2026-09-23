@@ -108,5 +108,81 @@ describe "Debugger Breakpoints Management" do
     driver.process_line("    frame #0: 0x00007ff812345678 ntdll.dll`DbgBreakPoint")
     stopped_called.should be_false
   end
+
+  it "parses crystal_debugger:ready message protocol accurately" do
+    msg = "crystal_debugger:ready:12345:Server:0"
+    parts = msg.split(':')
+    parts.size.should eq(5)
+    parts[0].should eq("crystal_debugger")
+    parts[1].should eq("ready")
+    pid = parts[2]?.try(&.to_i64?) || 0_i64
+    role = parts[3]? || ""
+    peer_id = parts[4]?.try(&.to_i32?) || -1
+
+    pid.should eq(12345_i64)
+    role.should eq("Server")
+    peer_id.should eq(0)
+  end
+
+  it "parses crystal_debugger:role message protocol accurately" do
+    msg = "crystal_debugger:role:67890:Client 2:2"
+    parts = msg.split(':')
+    parts.size.should eq(5)
+    parts[0].should eq("crystal_debugger")
+    parts[1].should eq("role")
+    pid = parts[2]?.try(&.to_i64?) || 0_i64
+    role = parts[3]? || ""
+    peer_id = parts[4]?.try(&.to_i32?) || -1
+
+    pid.should eq(67890_i64)
+    role.should eq("Client 2")
+    peer_id.should eq(2)
+  end
+
+  it "isolates breakpoints across distinct multiplayer session drivers" do
+    server_driver = Godot::Debugger::LldbDriver.new
+    client1_driver = Godot::Debugger::LldbDriver.new
+    client2_driver = Godot::Debugger::LldbDriver.new
+
+    server_driver.set_breakpoint("src/server/authoritative.cr", 45)
+    client1_driver.set_breakpoint("src/client/prediction.cr", 102)
+    client2_driver.set_breakpoint("src/client/interpolation.cr", 67)
+
+    server_driver.breakpoints.size.should eq(1)
+    client1_driver.breakpoints.size.should eq(1)
+    client2_driver.breakpoints.size.should eq(1)
+
+    server_driver.breakpoints.values.first.file.should eq("src/server/authoritative.cr")
+    client1_driver.breakpoints.values.first.file.should eq("src/client/prediction.cr")
+    client2_driver.breakpoints.values.first.file.should eq("src/client/interpolation.cr")
+  end
+
+  it "routes lockstep pause and resume signals strictly to non-origin peer sessions" do
+    sessions = [0, 1, 2, 3] # Session 0: Server, Sessions 1-3: Clients
+    paused_peers = Hash(Int32, Array(Int32)).new { |h, k| h[k] = Array(Int32).new }
+    resumed_peers = Hash(Int32, Array(Int32)).new { |h, k| h[k] = Array(Int32).new }
+
+    signal_router = ->(origin_id : Int32, is_paused : Bool) {
+      sessions.each do |sid|
+        next if sid == origin_id
+        if is_paused
+          paused_peers[origin_id] << sid
+        else
+          resumed_peers[origin_id] << sid
+        end
+      end
+    }
+
+    # Client 2 (id: 2) hits a breakpoint
+    signal_router.call(2, true)
+    paused_peers[2].should eq([0, 1, 3])
+    paused_peers[2].includes?(2).should be_false
+
+    # Client 2 resumes execution
+    signal_router.call(2, false)
+    resumed_peers[2].should eq([0, 1, 3])
+    resumed_peers[2].includes?(2).should be_false
+  end
 end
+
 

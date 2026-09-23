@@ -148,4 +148,123 @@ describe Godot::Debugger::LldbDriver do
       bp.line.should eq(90)
     end
   end
+
+  it "tracks driver state transitions across pause and resume events" do
+    driver = Godot::Debugger::LldbDriver.new
+    driver.state.should eq(Godot::Debugger::DriverState::Detached)
+
+    continue_called = false
+    driver.on_continue = -> { continue_called = true }
+
+    # Stop line transitions state to Paused
+    driver.process_line("Process 54321 stopped")
+    driver.state.should eq(Godot::Debugger::DriverState::Paused)
+
+    # Calling continue_exec when Paused transitions to Running and triggers on_continue
+    driver.continue_exec
+    driver.state.should eq(Godot::Debugger::DriverState::Running)
+    continue_called.should be_true
+
+    # Calling continue_exec when already Running is a safe no-op
+    continue_called = false
+    driver.continue_exec
+    continue_called.should be_false
+
+    # Resuming line from LLDB transitions to Running and triggers on_continue
+    driver.process_line("Process 54321 stopped")
+    driver.state.should eq(Godot::Debugger::DriverState::Paused)
+    continue_called = false
+    driver.process_line("Process 54321 resuming")
+    driver.state.should eq(Godot::Debugger::DriverState::Running)
+    continue_called.should be_true
+  end
+
+  it "suppresses Windows debugger injection artifacts and SEH probes" do
+    driver = Godot::Debugger::LldbDriver.new
+    stop_called = false
+    driver.on_stop = ->(_info : Godot::Debugger::StopInfo) { stop_called = true }
+
+    # DbgUiRemoteBreakin
+    driver.process_line("    frame #0: 0x00007ff812345678 ntdll.dll`DbgUiRemoteBreakin")
+    stop_called.should be_false
+
+    # Stack overflow probe exception (0xc00000fd / 0xC00000FD)
+    driver.process_line("* thread #3, stop reason = Exception 0xc00000fd encountered")
+    stop_called.should be_false
+    driver.process_line("* thread #3, stop reason = Exception 0xC00000FD encountered")
+    stop_called.should be_false
+
+    # Raw 0x80000003 without real breakpoint
+    driver.process_line("* thread #4, stop reason = Exception 0x80000003 encountered")
+    stop_called.should be_false
+  end
+
+  it "parses single-line compact stop events with inline frame info immediately" do
+    driver = Godot::Debugger::LldbDriver.new
+    stopped_info : Godot::Debugger::StopInfo? = nil
+    driver.on_stop = ->(info : Godot::Debugger::StopInfo) { stopped_info = info }
+
+    compact_line = "* thread #1, stop reason = breakpoint 1.1, frame #0: 0x00007ff812345678 game.dll`Player#attack(dmg=25) at player.cr:50:8"
+    driver.process_line(compact_line)
+
+    stopped_info.should_not be_nil
+    if info = stopped_info
+      info.reason.should eq(Godot::Debugger::StopReason::Breakpoint)
+      info.frame.should_not be_nil
+      if f = info.frame
+        f.index.should eq(0)
+        f.function.should contain("Player#attack")
+        f.file.should eq("player.cr")
+        f.line.should eq(50)
+      end
+    end
+  end
+
+  it "parses stack frames with diverse path, address, and symbol formats" do
+    driver = Godot::Debugger::LldbDriver.new
+
+    # 1. Native frame without file/line
+    f1 = driver.parse_frame_line("    frame #3: 0x00007ff823456789 ntdll.dll`RtlUserThreadStart + 40")
+    f1.should_not be_nil
+    if frame = f1
+      frame.index.should eq(3)
+      frame.function.should contain("RtlUserThreadStart")
+      frame.file.should eq("")
+      frame.line.should eq(0)
+      frame.address.should eq("0x00007ff823456789")
+    end
+
+    # 2. Unix path with column number
+    f2 = driver.parse_frame_line("  * frame #1: 0x00007f123456789a game.so`Player#move at /home/user/game/src/player.cr:88:14")
+    f2.should_not be_nil
+    if frame = f2
+      frame.index.should eq(1)
+      frame.function.should contain("Player#move")
+      frame.file.should eq("/home/user/game/src/player.cr")
+      frame.line.should eq(88)
+    end
+
+    # 3. Windows path without column number
+    f3 = driver.parse_frame_line("    frame #0: 0x1234 game.dll`Main#run at C:\\game\\src\\run.cr:12")
+    f3.should_not be_nil
+    if frame = f3
+      frame.index.should eq(0)
+      frame.function.should contain("Main#run")
+      frame.file.should eq("C:/game/src/run.cr")
+      frame.line.should eq(12)
+    end
+  end
+
+  it "safely executes control commands when detached without raising errors" do
+    driver = Godot::Debugger::LldbDriver.new
+    driver.step_over
+    driver.step_into
+    driver.step_out
+    driver.request_variables
+    driver.evaluate("1 + 1")
+    driver.sync_all_breakpoints
+    driver.interrupt_exec
+    driver.state.should eq(Godot::Debugger::DriverState::Detached)
+  end
 end
+

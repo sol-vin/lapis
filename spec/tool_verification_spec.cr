@@ -114,9 +114,31 @@ end
 puts "  ✓ check_crystalline passed"
 
 # -------------------------------------------------------------
-# [Spec 8] verify_all Overall Runner
+# [Spec 8] LLDB Debugger Discovery
 # -------------------------------------------------------------
-puts "[Spec 8] Verifying verify_all..."
+puts "[Spec 8] Verifying check_lldb..."
+lldb_status = Lapis::Core::ToolChecker.check_lldb
+puts "  - Found LLDB: #{lldb_status.installed} (path: #{lldb_status.path}, ver: #{lldb_status.version})"
+if lldb_status.installed && lldb_status.path.nil?
+  abort "ERROR: LLDB is installed but path was nil!"
+end
+puts "  ✓ check_lldb passed"
+
+# -------------------------------------------------------------
+# [Spec 9] Git Version Control Discovery
+# -------------------------------------------------------------
+puts "[Spec 9] Verifying check_git..."
+git_status = Lapis::Core::ToolChecker.check_git
+puts "  - Found Git: #{git_status.installed} (path: #{git_status.path}, ver: #{git_status.version})"
+unless git_status.installed
+  abort "ERROR: Git is not installed or found on host!"
+end
+puts "  ✓ check_git passed"
+
+# -------------------------------------------------------------
+# [Spec 10] verify_all Overall Runner
+# -------------------------------------------------------------
+puts "[Spec 10] Verifying verify_all..."
 all_ok = Lapis::Core::ToolChecker.verify_all(strict: false)
 unless all_ok
   abort "ERROR: verify_all returned false on host environment!"
@@ -124,3 +146,4 @@ end
 puts "  ✓ verify_all successfully verified all required tools"
 
 puts "\n>>> All Tool Verification Specifications Passed! <<<"
+

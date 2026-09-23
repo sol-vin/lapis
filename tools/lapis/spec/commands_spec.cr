@@ -123,4 +123,70 @@ describe "Lapis Subcommands" do
       end
     end
   end
+
+  describe "ide setup" do
+    it "configures VS Code workspace with settings, tasks, launch, and extensions" do
+      LapisSpecHelper.with_temp_dir("ide_vscode_test") do |dir|
+        res = LapisSpecHelper.run_lapis(["ide", "setup", "vscode", "-p", dir.to_s, "-f"])
+        res.success?.should be_true
+
+        vscode_dir = dir.join(".vscode")
+        File.exists?(vscode_dir.join("settings.json")).should be_true
+        File.exists?(vscode_dir.join("tasks.json")).should be_true
+        File.exists?(vscode_dir.join("launch.json")).should be_true
+        File.exists?(vscode_dir.join("extensions.json")).should be_true
+
+        settings = File.read(vscode_dir.join("settings.json"))
+        settings.should contain("crystal-lang.server")
+        settings.should contain("--stdio")
+
+        launch = File.read(vscode_dir.join("launch.json"))
+        launch.should contain("lldb")
+
+        tasks = File.read(vscode_dir.join("tasks.json"))
+        tasks.should contain("lapis")
+
+        extensions = File.read(vscode_dir.join("extensions.json"))
+        extensions.should contain("crystal-lang.crystal-lang")
+        extensions.should contain("geequlim.godot-tools")
+      end
+    end
+
+    it "configures Zed workspace with crystalline --stdio" do
+      LapisSpecHelper.with_temp_dir("ide_zed_test") do |dir|
+        res = LapisSpecHelper.run_lapis(["ide", "setup", "zed", "-p", dir.to_s, "-f"])
+        res.success?.should be_true
+
+        zed_file = dir.join(".zed/settings.json")
+        File.exists?(zed_file).should be_true
+        content = File.read(zed_file)
+        content.should contain("crystalline")
+        content.should contain("--stdio")
+      end
+    end
+
+    it "configures Neovim workspace with .lapis_nvim.lua" do
+      LapisSpecHelper.with_temp_dir("ide_nvim_test") do |dir|
+        res = LapisSpecHelper.run_lapis(["ide", "setup", "neovim", "-p", dir.to_s, "-f"])
+        res.success?.should be_true
+
+        nvim_file = dir.join(".lapis_nvim.lua")
+        File.exists?(nvim_file).should be_true
+        content = File.read(nvim_file)
+        content.should contain("crystalline")
+        content.should contain("--stdio")
+      end
+    end
+  end
+
+  describe "doctor" do
+    it "checks all required tools and displays diagnostic summary" do
+      res = LapisSpecHelper.run_lapis(["doctor"])
+      res.success?.should be_true
+      res.output.should contain("Diagnosing Lapis development environment")
+      res.output.should contain("Crystal Compiler")
+      res.output.should contain("Native Debugger (LLDB)")
+    end
+  end
 end
+
