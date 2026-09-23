@@ -28,6 +28,14 @@ module Godot
     ensure
       Bridge.free_string_name(sn_0)
     end
+    # Predicate alias for `is_class`
+    def is_class?(godot_class : String) : Bool
+      is_class(godot_class)
+    end
+    # Predicate alias for `is_class`
+    def class?(godot_class : String) : Bool
+      is_class(godot_class)
+    end
     @@mb_set : Void* = Pointer(Void).null
     def set(property : String, value : Pointer(Void)) : Void
       godot_bind(@@mb_set, "Object", "set", 3776071444_i64)
@@ -103,6 +111,10 @@ module Godot
       godot_ptrcall_bool(@@mb_property_can_revert, @pointer, args.to_unsafe.as(Void**))
     ensure
       Bridge.free_string_name(sn_0)
+    end
+    # Predicate alias for `property_can_revert`
+    def property_can_revert?(property : String) : Bool
+      property_can_revert(property)
     end
     @@mb_property_get_revert : Void* = Pointer(Void).null
     def property_get_revert(property : String) : Pointer(Void)
@@ -203,6 +215,10 @@ module Godot
     ensure
       Bridge.free_string_name(sn_0)
     end
+    # Predicate alias for `has_meta`
+    def has_meta?(name : String) : Bool
+      has_meta(name)
+    end
     @@mb_get_meta_list : Void* = Pointer(Void).null
     def get_meta_list() : Pointer(Void)
       godot_bind(@@mb_get_meta_list, "Object", "get_meta_list", 3995934104_i64)
@@ -231,6 +247,10 @@ module Godot
       godot_ptrcall_bool(@@mb_has_user_signal, @pointer, args.to_unsafe.as(Void**))
     ensure
       Bridge.free_string_name(sn_0)
+    end
+    # Predicate alias for `has_user_signal`
+    def has_user_signal?(signal : String) : Bool
+      has_user_signal(signal)
     end
     @@mb_remove_user_signal : Void* = Pointer(Void).null
     def remove_user_signal(signal : String) : Void
@@ -279,6 +299,10 @@ module Godot
       godot_ptrcall_bool(@@mb_has_method, @pointer, args.to_unsafe.as(Void**))
     ensure
       Bridge.free_string_name(sn_0)
+    end
+    # Predicate alias for `has_method`
+    def has_method?(method : String) : Bool
+      has_method(method)
     end
     @@mb_get_method_argument_count : Void* = Pointer(Void).null
     def get_method_argument_count(method : String) : Int64
@@ -364,6 +388,14 @@ module Godot
     ensure
       Bridge.free_string_name(sn_0)
     end
+    # Predicate alias for `is_connected`
+    def is_connected?(signal : String, callable : Pointer(Void)) : Bool
+      is_connected(signal, callable)
+    end
+    # Predicate alias for `is_connected`
+    def connected?(signal : String, callable : Pointer(Void)) : Bool
+      is_connected(signal, callable)
+    end
     @@mb_has_connections : Void* = Pointer(Void).null
     def has_connections(signal : String) : Bool
       godot_bind(@@mb_has_connections, "Object", "has_connections", 2619796661_i64)
@@ -373,6 +405,10 @@ module Godot
       godot_ptrcall_bool(@@mb_has_connections, @pointer, args.to_unsafe.as(Void**))
     ensure
       Bridge.free_string_name(sn_0)
+    end
+    # Predicate alias for `has_connections`
+    def has_connections?(signal : String) : Bool
+      has_connections(signal)
     end
     @@mb_set_block_signals : Void* = Pointer(Void).null
     def set_block_signals(enable : Bool) : Void
@@ -386,6 +422,14 @@ module Godot
     def is_blocking_signals() : Bool
       godot_bind(@@mb_is_blocking_signals, "Object", "is_blocking_signals", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_blocking_signals, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_blocking_signals`
+    def is_blocking_signals?() : Bool
+      is_blocking_signals()
+    end
+    # Predicate alias for `is_blocking_signals`
+    def blocking_signals?() : Bool
+      is_blocking_signals()
     end
     @@mb_notify_property_list_changed : Void* = Pointer(Void).null
     def notify_property_list_changed() : Void
@@ -404,6 +448,10 @@ module Godot
     def can_translate_messages() : Bool
       godot_bind(@@mb_can_translate_messages, "Object", "can_translate_messages", 36873697_i64)
       godot_ptrcall_bool(@@mb_can_translate_messages, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `can_translate_messages`
+    def can_translate_messages?() : Bool
+      can_translate_messages()
     end
     @@mb_tr : Void* = Pointer(Void).null
     def tr(message : String, context : String = "") : String
@@ -456,6 +504,14 @@ module Godot
       godot_bind(@@mb_is_queued_for_deletion, "Object", "is_queued_for_deletion", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_queued_for_deletion, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_queued_for_deletion`
+    def is_queued_for_deletion?() : Bool
+      is_queued_for_deletion()
+    end
+    # Predicate alias for `is_queued_for_deletion`
+    def queued_for_deletion?() : Bool
+      is_queued_for_deletion()
+    end
     @@mb_cancel_free : Void* = Pointer(Void).null
     def cancel_free() : Void
       godot_bind(@@mb_cancel_free, "Object", "cancel_free", 3218959716_i64)
@@ -473,15 +529,27 @@ module Godot
       godot_bind(@@mb_init_ref, "RefCounted", "init_ref", 2240911060_i64)
       godot_ptrcall_bool(@@mb_init_ref, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `init_ref`
+    def init_ref?() : Bool
+      init_ref()
+    end
     @@mb_reference : Void* = Pointer(Void).null
     def reference() : Bool
       godot_bind(@@mb_reference, "RefCounted", "reference", 2240911060_i64)
       godot_ptrcall_bool(@@mb_reference, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `reference`
+    def reference?() : Bool
+      reference()
+    end
     @@mb_unreference : Void* = Pointer(Void).null
     def unreference() : Bool
       godot_bind(@@mb_unreference, "RefCounted", "unreference", 2240911060_i64)
       godot_ptrcall_bool(@@mb_unreference, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `unreference`
+    def unreference?() : Bool
+      unreference()
     end
     @@mb_get_reference_count : Void* = Pointer(Void).null
     def get_reference_count() : Int64
@@ -608,6 +676,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_has_point, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `has_point`
+    def has_point?(id : Int64) : Bool
+      has_point(id)
+    end
     @@mb_get_point_connections : Void* = Pointer(Void).null
     def get_point_connections(id : Int64) : Pointer(Void)
       godot_bind(@@mb_get_point_connections, "AStar2D", "get_point_connections", 2865087369_i64)
@@ -638,6 +710,14 @@ module Godot
       godot_bind(@@mb_is_neighbor_filter_enabled, "AStar2D", "is_neighbor_filter_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_neighbor_filter_enabled, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_neighbor_filter_enabled`
+    def is_neighbor_filter_enabled?() : Bool
+      is_neighbor_filter_enabled()
+    end
+    # Predicate alias for `is_neighbor_filter_enabled`
+    def neighbor_filter_enabled?() : Bool
+      is_neighbor_filter_enabled()
+    end
     @@mb_set_point_disabled : Void* = Pointer(Void).null
     def set_point_disabled(id : Int64, disabled : Bool = true) : Void
       godot_bind(@@mb_set_point_disabled, "AStar2D", "set_point_disabled", 972357352_i64)
@@ -655,6 +735,14 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_point_disabled, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `is_point_disabled`
+    def is_point_disabled?(id : Int64) : Bool
+      is_point_disabled(id)
+    end
+    # Predicate alias for `is_point_disabled`
+    def point_disabled?(id : Int64) : Bool
+      is_point_disabled(id)
     end
     @@mb_connect_points : Void* = Pointer(Void).null
     def connect_points(id : Int64, to_id : Int64, bidirectional : Bool = true) : Void
@@ -691,6 +779,14 @@ module Godot
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_bool(@@mb_are_points_connected, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `are_points_connected`
+    def are_points_connected?(id : Int64, to_id : Int64, bidirectional : Bool = true) : Bool
+      are_points_connected(id, to_id, bidirectional)
+    end
+    # Predicate alias for `are_points_connected`
+    def points_connected?(id : Int64, to_id : Int64, bidirectional : Bool = true) : Bool
+      are_points_connected(id, to_id, bidirectional)
     end
     @@mb_get_point_count : Void* = Pointer(Void).null
     def get_point_count() : Int64
@@ -764,9 +860,6 @@ module Godot
     # Property `neighbor_filter_enabled` getter
     def neighbor_filter_enabled
       is_neighbor_filter_enabled
-    end
-    def neighbor_filter_enabled?
-      neighbor_filter_enabled
     end
     # Property `neighbor_filter_enabled` setter
     def neighbor_filter_enabled=(val)
@@ -846,6 +939,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_has_point, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `has_point`
+    def has_point?(id : Int64) : Bool
+      has_point(id)
+    end
     @@mb_get_point_connections : Void* = Pointer(Void).null
     def get_point_connections(id : Int64) : Pointer(Void)
       godot_bind(@@mb_get_point_connections, "AStar3D", "get_point_connections", 2865087369_i64)
@@ -881,6 +978,14 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_point_disabled, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `is_point_disabled`
+    def is_point_disabled?(id : Int64) : Bool
+      is_point_disabled(id)
+    end
+    # Predicate alias for `is_point_disabled`
+    def point_disabled?(id : Int64) : Bool
+      is_point_disabled(id)
+    end
     @@mb_set_neighbor_filter_enabled : Void* = Pointer(Void).null
     def set_neighbor_filter_enabled(enabled : Bool) : Void
       godot_bind(@@mb_set_neighbor_filter_enabled, "AStar3D", "set_neighbor_filter_enabled", 2586408642_i64)
@@ -893,6 +998,14 @@ module Godot
     def is_neighbor_filter_enabled() : Bool
       godot_bind(@@mb_is_neighbor_filter_enabled, "AStar3D", "is_neighbor_filter_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_neighbor_filter_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_neighbor_filter_enabled`
+    def is_neighbor_filter_enabled?() : Bool
+      is_neighbor_filter_enabled()
+    end
+    # Predicate alias for `is_neighbor_filter_enabled`
+    def neighbor_filter_enabled?() : Bool
+      is_neighbor_filter_enabled()
     end
     @@mb_connect_points : Void* = Pointer(Void).null
     def connect_points(id : Int64, to_id : Int64, bidirectional : Bool = true) : Void
@@ -929,6 +1042,14 @@ module Godot
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_bool(@@mb_are_points_connected, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `are_points_connected`
+    def are_points_connected?(id : Int64, to_id : Int64, bidirectional : Bool = true) : Bool
+      are_points_connected(id, to_id, bidirectional)
+    end
+    # Predicate alias for `are_points_connected`
+    def points_connected?(id : Int64, to_id : Int64, bidirectional : Bool = true) : Bool
+      are_points_connected(id, to_id, bidirectional)
     end
     @@mb_get_point_count : Void* = Pointer(Void).null
     def get_point_count() : Int64
@@ -1002,9 +1123,6 @@ module Godot
     # Property `neighbor_filter_enabled` getter
     def neighbor_filter_enabled
       is_neighbor_filter_enabled
-    end
-    def neighbor_filter_enabled?
-      neighbor_filter_enabled
     end
     # Property `neighbor_filter_enabled` setter
     def neighbor_filter_enabled=(val)
@@ -1110,6 +1228,14 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_bool(@@mb_is_in_bounds, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `is_in_bounds`
+    def is_in_bounds?(x : Int64, y : Int64) : Bool
+      is_in_bounds(x, y)
+    end
+    # Predicate alias for `is_in_bounds`
+    def in_bounds?(x : Int64, y : Int64) : Bool
+      is_in_bounds(x, y)
+    end
     @@mb_is_in_boundsv : Void* = Pointer(Void).null
     def is_in_boundsv(id : Vector2i) : Bool
       godot_bind(@@mb_is_in_boundsv, "AStarGrid2D", "is_in_boundsv", 3900751641_i64)
@@ -1118,10 +1244,26 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_in_boundsv, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `is_in_boundsv`
+    def is_in_boundsv?(id : Vector2i) : Bool
+      is_in_boundsv(id)
+    end
+    # Predicate alias for `is_in_boundsv`
+    def in_boundsv?(id : Vector2i) : Bool
+      is_in_boundsv(id)
+    end
     @@mb_is_dirty : Void* = Pointer(Void).null
     def is_dirty() : Bool
       godot_bind(@@mb_is_dirty, "AStarGrid2D", "is_dirty", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_dirty, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_dirty`
+    def is_dirty?() : Bool
+      is_dirty()
+    end
+    # Predicate alias for `is_dirty`
+    def dirty?() : Bool
+      is_dirty()
     end
     @@mb_update : Void* = Pointer(Void).null
     def update() : Void
@@ -1140,6 +1282,14 @@ module Godot
     def is_jumping_enabled() : Bool
       godot_bind(@@mb_is_jumping_enabled, "AStarGrid2D", "is_jumping_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_jumping_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_jumping_enabled`
+    def is_jumping_enabled?() : Bool
+      is_jumping_enabled()
+    end
+    # Predicate alias for `is_jumping_enabled`
+    def jumping_enabled?() : Bool
+      is_jumping_enabled()
     end
     @@mb_set_diagonal_mode : Void* = Pointer(Void).null
     def set_diagonal_mode(mode : DiagonalMode | Int) : Void
@@ -1197,6 +1347,14 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_point_solid, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `is_point_solid`
+    def is_point_solid?(id : Vector2i) : Bool
+      is_point_solid(id)
+    end
+    # Predicate alias for `is_point_solid`
+    def point_solid?(id : Vector2i) : Bool
+      is_point_solid(id)
     end
     @@mb_set_point_weight_scale : Void* = Pointer(Void).null
     def set_point_weight_scale(id : Vector2i, weight_scale : Float64) : Void
@@ -1330,9 +1488,6 @@ module Godot
     # Property `jumping_enabled` getter
     def jumping_enabled
       is_jumping_enabled
-    end
-    def jumping_enabled?
-      jumping_enabled
     end
     # Property `jumping_enabled` setter
     def jumping_enabled=(val)
@@ -1520,6 +1675,10 @@ module Godot
     ensure
       Bridge.free_nodepath(np_0)
     end
+    # Predicate alias for `has_node`
+    def has_node?(path : NodePath | String) : Bool
+      has_node(path)
+    end
     @@mb_get_node : Void* = Pointer(Void).null
     def get_node(path : NodePath | String) : Node
       godot_bind(@@mb_get_node, "Node", "get_node", 2734337346_i64)
@@ -1598,6 +1757,10 @@ module Godot
     ensure
       Bridge.free_nodepath(np_0)
     end
+    # Predicate alias for `has_node_and_resource`
+    def has_node_and_resource?(path : NodePath | String) : Bool
+      has_node_and_resource(path)
+    end
     @@mb_get_node_and_resource : Void* = Pointer(Void).null
     def get_node_and_resource(path : NodePath | String) : Pointer(Void)
       godot_bind(@@mb_get_node_and_resource, "Node", "get_node_and_resource", 502563882_i64)
@@ -1615,10 +1778,26 @@ module Godot
       godot_bind(@@mb_is_inside_tree, "Node", "is_inside_tree", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_inside_tree, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_inside_tree`
+    def is_inside_tree?() : Bool
+      is_inside_tree()
+    end
+    # Predicate alias for `is_inside_tree`
+    def inside_tree?() : Bool
+      is_inside_tree()
+    end
     @@mb_is_part_of_edited_scene : Void* = Pointer(Void).null
     def is_part_of_edited_scene() : Bool
       godot_bind(@@mb_is_part_of_edited_scene, "Node", "is_part_of_edited_scene", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_part_of_edited_scene, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_part_of_edited_scene`
+    def is_part_of_edited_scene?() : Bool
+      is_part_of_edited_scene()
+    end
+    # Predicate alias for `is_part_of_edited_scene`
+    def part_of_edited_scene?() : Bool
+      is_part_of_edited_scene()
     end
     @@mb_is_ancestor_of : Void* = Pointer(Void).null
     def is_ancestor_of(node : Node) : Bool
@@ -1628,6 +1807,14 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_ancestor_of, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `is_ancestor_of`
+    def is_ancestor_of?(node : Node) : Bool
+      is_ancestor_of(node)
+    end
+    # Predicate alias for `is_ancestor_of`
+    def ancestor_of?(node : Node) : Bool
+      is_ancestor_of(node)
+    end
     @@mb_is_greater_than : Void* = Pointer(Void).null
     def is_greater_than(node : Node) : Bool
       godot_bind(@@mb_is_greater_than, "Node", "is_greater_than", 3093956946_i64)
@@ -1635,6 +1822,14 @@ module Godot
       arg_0 = pointerof(arg_ptr_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_greater_than, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `is_greater_than`
+    def is_greater_than?(node : Node) : Bool
+      is_greater_than(node)
+    end
+    # Predicate alias for `is_greater_than`
+    def greater_than?(node : Node) : Bool
+      is_greater_than(node)
     end
     @@mb_get_path : Void* = Pointer(Void).null
     def get_path() : NodePath
@@ -1682,6 +1877,10 @@ module Godot
       godot_ptrcall_bool(@@mb_is_in_group, @pointer, args.to_unsafe.as(Void**))
     ensure
       Bridge.free_string_name(sn_0)
+    end
+    # Predicate alias for `is_in_group`
+    def is_in_group?(group : String) : Bool
+      is_in_group(group)
     end
     @@mb_move_child : Void* = Pointer(Void).null
     def move_child(child_node : Node, to_index : Int64) : Void
@@ -1796,6 +1995,14 @@ module Godot
       godot_bind(@@mb_is_physics_processing, "Node", "is_physics_processing", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_physics_processing, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_physics_processing`
+    def is_physics_processing?() : Bool
+      is_physics_processing()
+    end
+    # Predicate alias for `is_physics_processing`
+    def physics_processing?() : Bool
+      is_physics_processing()
+    end
     @@mb_get_process_delta_time : Void* = Pointer(Void).null
     def get_process_delta_time() : Float64
       godot_bind(@@mb_get_process_delta_time, "Node", "get_process_delta_time", 1740695150_i64)
@@ -1840,6 +2047,14 @@ module Godot
       godot_bind(@@mb_is_processing, "Node", "is_processing", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_processing, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_processing`
+    def is_processing?() : Bool
+      is_processing()
+    end
+    # Predicate alias for `is_processing`
+    def processing?() : Bool
+      is_processing()
+    end
     @@mb_set_process_input : Void* = Pointer(Void).null
     def set_process_input(enable : Bool) : Void
       godot_bind(@@mb_set_process_input, "Node", "set_process_input", 2586408642_i64)
@@ -1852,6 +2067,14 @@ module Godot
     def is_processing_input() : Bool
       godot_bind(@@mb_is_processing_input, "Node", "is_processing_input", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_processing_input, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_processing_input`
+    def is_processing_input?() : Bool
+      is_processing_input()
+    end
+    # Predicate alias for `is_processing_input`
+    def processing_input?() : Bool
+      is_processing_input()
     end
     @@mb_set_process_shortcut_input : Void* = Pointer(Void).null
     def set_process_shortcut_input(enable : Bool) : Void
@@ -1866,6 +2089,14 @@ module Godot
       godot_bind(@@mb_is_processing_shortcut_input, "Node", "is_processing_shortcut_input", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_processing_shortcut_input, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_processing_shortcut_input`
+    def is_processing_shortcut_input?() : Bool
+      is_processing_shortcut_input()
+    end
+    # Predicate alias for `is_processing_shortcut_input`
+    def processing_shortcut_input?() : Bool
+      is_processing_shortcut_input()
+    end
     @@mb_set_process_unhandled_input : Void* = Pointer(Void).null
     def set_process_unhandled_input(enable : Bool) : Void
       godot_bind(@@mb_set_process_unhandled_input, "Node", "set_process_unhandled_input", 2586408642_i64)
@@ -1879,6 +2110,14 @@ module Godot
       godot_bind(@@mb_is_processing_unhandled_input, "Node", "is_processing_unhandled_input", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_processing_unhandled_input, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_processing_unhandled_input`
+    def is_processing_unhandled_input?() : Bool
+      is_processing_unhandled_input()
+    end
+    # Predicate alias for `is_processing_unhandled_input`
+    def processing_unhandled_input?() : Bool
+      is_processing_unhandled_input()
+    end
     @@mb_set_process_unhandled_key_input : Void* = Pointer(Void).null
     def set_process_unhandled_key_input(enable : Bool) : Void
       godot_bind(@@mb_set_process_unhandled_key_input, "Node", "set_process_unhandled_key_input", 2586408642_i64)
@@ -1891,6 +2130,14 @@ module Godot
     def is_processing_unhandled_key_input() : Bool
       godot_bind(@@mb_is_processing_unhandled_key_input, "Node", "is_processing_unhandled_key_input", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_processing_unhandled_key_input, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_processing_unhandled_key_input`
+    def is_processing_unhandled_key_input?() : Bool
+      is_processing_unhandled_key_input()
+    end
+    # Predicate alias for `is_processing_unhandled_key_input`
+    def processing_unhandled_key_input?() : Bool
+      is_processing_unhandled_key_input()
     end
     @@mb_set_process_mode : Void* = Pointer(Void).null
     def set_process_mode(mode : ProcessMode | Int) : Void
@@ -1909,6 +2156,10 @@ module Godot
     def can_process() : Bool
       godot_bind(@@mb_can_process, "Node", "can_process", 36873697_i64)
       godot_ptrcall_bool(@@mb_can_process, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `can_process`
+    def can_process?() : Bool
+      can_process()
     end
     @@mb_set_process_thread_group : Void* = Pointer(Void).null
     def set_process_thread_group(mode : ProcessThreadGroup | Int) : Void
@@ -1972,6 +2223,14 @@ module Godot
       godot_bind(@@mb_is_displayed_folded, "Node", "is_displayed_folded", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_displayed_folded, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_displayed_folded`
+    def is_displayed_folded?() : Bool
+      is_displayed_folded()
+    end
+    # Predicate alias for `is_displayed_folded`
+    def displayed_folded?() : Bool
+      is_displayed_folded()
+    end
     @@mb_set_process_internal : Void* = Pointer(Void).null
     def set_process_internal(enable : Bool) : Void
       godot_bind(@@mb_set_process_internal, "Node", "set_process_internal", 2586408642_i64)
@@ -1985,6 +2244,14 @@ module Godot
       godot_bind(@@mb_is_processing_internal, "Node", "is_processing_internal", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_processing_internal, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_processing_internal`
+    def is_processing_internal?() : Bool
+      is_processing_internal()
+    end
+    # Predicate alias for `is_processing_internal`
+    def processing_internal?() : Bool
+      is_processing_internal()
+    end
     @@mb_set_physics_process_internal : Void* = Pointer(Void).null
     def set_physics_process_internal(enable : Bool) : Void
       godot_bind(@@mb_set_physics_process_internal, "Node", "set_physics_process_internal", 2586408642_i64)
@@ -1997,6 +2264,14 @@ module Godot
     def is_physics_processing_internal() : Bool
       godot_bind(@@mb_is_physics_processing_internal, "Node", "is_physics_processing_internal", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_physics_processing_internal, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_physics_processing_internal`
+    def is_physics_processing_internal?() : Bool
+      is_physics_processing_internal()
+    end
+    # Predicate alias for `is_physics_processing_internal`
+    def physics_processing_internal?() : Bool
+      is_physics_processing_internal()
     end
     @@mb_set_physics_interpolation_mode : Void* = Pointer(Void).null
     def set_physics_interpolation_mode(mode : PhysicsInterpolationMode | Int) : Void
@@ -2016,10 +2291,26 @@ module Godot
       godot_bind(@@mb_is_physics_interpolated, "Node", "is_physics_interpolated", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_physics_interpolated, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_physics_interpolated`
+    def is_physics_interpolated?() : Bool
+      is_physics_interpolated()
+    end
+    # Predicate alias for `is_physics_interpolated`
+    def physics_interpolated?() : Bool
+      is_physics_interpolated()
+    end
     @@mb_is_physics_interpolated_and_enabled : Void* = Pointer(Void).null
     def is_physics_interpolated_and_enabled() : Bool
       godot_bind(@@mb_is_physics_interpolated_and_enabled, "Node", "is_physics_interpolated_and_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_physics_interpolated_and_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_physics_interpolated_and_enabled`
+    def is_physics_interpolated_and_enabled?() : Bool
+      is_physics_interpolated_and_enabled()
+    end
+    # Predicate alias for `is_physics_interpolated_and_enabled`
+    def physics_interpolated_and_enabled?() : Bool
+      is_physics_interpolated_and_enabled()
     end
     @@mb_reset_physics_interpolation : Void* = Pointer(Void).null
     def reset_physics_interpolation() : Void
@@ -2043,6 +2334,10 @@ module Godot
     def can_auto_translate() : Bool
       godot_bind(@@mb_can_auto_translate, "Node", "can_auto_translate", 36873697_i64)
       godot_ptrcall_bool(@@mb_can_auto_translate, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `can_auto_translate`
+    def can_auto_translate?() : Bool
+      can_auto_translate()
     end
     @@mb_set_translation_domain_inherited : Void* = Pointer(Void).null
     def set_translation_domain_inherited() : Void
@@ -2100,6 +2395,10 @@ module Godot
       godot_bind(@@mb_get_scene_instance_load_placeholder, "Node", "get_scene_instance_load_placeholder", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_scene_instance_load_placeholder, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `get_scene_instance_load_placeholder`
+    def get_scene_instance_load_placeholder?() : Bool
+      get_scene_instance_load_placeholder()
+    end
     @@mb_set_editable_instance : Void* = Pointer(Void).null
     def set_editable_instance(node : Node, is_editable : Bool) : Void
       godot_bind(@@mb_set_editable_instance, "Node", "set_editable_instance", 2731852923_i64)
@@ -2117,6 +2416,14 @@ module Godot
       arg_0 = pointerof(arg_ptr_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_editable_instance, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `is_editable_instance`
+    def is_editable_instance?(node : Node) : Bool
+      is_editable_instance(node)
+    end
+    # Predicate alias for `is_editable_instance`
+    def editable_instance?(node : Node) : Bool
+      is_editable_instance(node)
     end
     @@mb_get_viewport : Void* = Pointer(Void).null
     def get_viewport() : Viewport
@@ -2138,6 +2445,14 @@ module Godot
       godot_bind(@@mb_is_node_ready, "Node", "is_node_ready", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_node_ready, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_node_ready`
+    def is_node_ready?() : Bool
+      is_node_ready()
+    end
+    # Predicate alias for `is_node_ready`
+    def node_ready?() : Bool
+      is_node_ready()
+    end
     @@mb_set_multiplayer_authority : Void* = Pointer(Void).null
     def set_multiplayer_authority(id : Int64, recursive : Bool = true) : Void
       godot_bind(@@mb_set_multiplayer_authority, "Node", "set_multiplayer_authority", 972357352_i64)
@@ -2157,6 +2472,14 @@ module Godot
     def is_multiplayer_authority() : Bool
       godot_bind(@@mb_is_multiplayer_authority, "Node", "is_multiplayer_authority", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_multiplayer_authority, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_multiplayer_authority`
+    def is_multiplayer_authority?() : Bool
+      is_multiplayer_authority()
+    end
+    # Predicate alias for `is_multiplayer_authority`
+    def multiplayer_authority?() : Bool
+      is_multiplayer_authority()
     end
     @@mb_get_multiplayer : Void* = Pointer(Void).null
     def get_multiplayer() : MultiplayerAPI
@@ -2211,6 +2534,14 @@ module Godot
     def is_unique_name_in_owner() : Bool
       godot_bind(@@mb_is_unique_name_in_owner, "Node", "is_unique_name_in_owner", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_unique_name_in_owner, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_unique_name_in_owner`
+    def is_unique_name_in_owner?() : Bool
+      is_unique_name_in_owner()
+    end
+    # Predicate alias for `is_unique_name_in_owner`
+    def unique_name_in_owner?() : Bool
+      is_unique_name_in_owner()
     end
     @@mb_atr : Void* = Pointer(Void).null
     def atr(message : String, context : String = "") : String
@@ -2291,9 +2622,6 @@ module Godot
     # Property `unique_name_in_owner` getter
     def unique_name_in_owner
       is_unique_name_in_owner
-    end
-    def unique_name_in_owner?
-      unique_name_in_owner
     end
     # Property `unique_name_in_owner` setter
     def unique_name_in_owner=(val)
@@ -2599,6 +2927,10 @@ module Godot
       godot_bind(@@mb_has_transparent_background, "Viewport", "has_transparent_background", 36873697_i64)
       godot_ptrcall_bool(@@mb_has_transparent_background, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `has_transparent_background`
+    def has_transparent_background?() : Bool
+      has_transparent_background()
+    end
     @@mb_set_use_hdr_2d : Void* = Pointer(Void).null
     def set_use_hdr_2d(enable : Bool) : Void
       godot_bind(@@mb_set_use_hdr_2d, "Viewport", "set_use_hdr_2d", 2586408642_i64)
@@ -2611,6 +2943,14 @@ module Godot
     def is_using_hdr_2d() : Bool
       godot_bind(@@mb_is_using_hdr_2d, "Viewport", "is_using_hdr_2d", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_using_hdr_2d, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_using_hdr_2d`
+    def is_using_hdr_2d?() : Bool
+      is_using_hdr_2d()
+    end
+    # Predicate alias for `is_using_hdr_2d`
+    def using_hdr_2d?() : Bool
+      is_using_hdr_2d()
     end
     @@mb_set_msaa_2d : Void* = Pointer(Void).null
     def set_msaa_2d(msaa : MSAA | Int) : Void
@@ -2664,6 +3004,14 @@ module Godot
       godot_bind(@@mb_is_using_taa, "Viewport", "is_using_taa", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_using_taa, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_using_taa`
+    def is_using_taa?() : Bool
+      is_using_taa()
+    end
+    # Predicate alias for `is_using_taa`
+    def using_taa?() : Bool
+      is_using_taa()
+    end
     @@mb_set_use_debanding : Void* = Pointer(Void).null
     def set_use_debanding(enable : Bool) : Void
       godot_bind(@@mb_set_use_debanding, "Viewport", "set_use_debanding", 2586408642_i64)
@@ -2677,6 +3025,14 @@ module Godot
       godot_bind(@@mb_is_using_debanding, "Viewport", "is_using_debanding", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_using_debanding, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_using_debanding`
+    def is_using_debanding?() : Bool
+      is_using_debanding()
+    end
+    # Predicate alias for `is_using_debanding`
+    def using_debanding?() : Bool
+      is_using_debanding()
+    end
     @@mb_set_use_occlusion_culling : Void* = Pointer(Void).null
     def set_use_occlusion_culling(enable : Bool) : Void
       godot_bind(@@mb_set_use_occlusion_culling, "Viewport", "set_use_occlusion_culling", 2586408642_i64)
@@ -2689,6 +3045,14 @@ module Godot
     def is_using_occlusion_culling() : Bool
       godot_bind(@@mb_is_using_occlusion_culling, "Viewport", "is_using_occlusion_culling", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_using_occlusion_culling, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_using_occlusion_culling`
+    def is_using_occlusion_culling?() : Bool
+      is_using_occlusion_culling()
+    end
+    # Predicate alias for `is_using_occlusion_culling`
+    def using_occlusion_culling?() : Bool
+      is_using_occlusion_culling()
     end
     @@mb_set_debug_draw : Void* = Pointer(Void).null
     def set_debug_draw(debug_draw : DebugDraw | Int) : Void
@@ -2715,6 +3079,14 @@ module Godot
     def is_using_oversampling() : Bool
       godot_bind(@@mb_is_using_oversampling, "Viewport", "is_using_oversampling", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_using_oversampling, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_using_oversampling`
+    def is_using_oversampling?() : Bool
+      is_using_oversampling()
+    end
+    # Predicate alias for `is_using_oversampling`
+    def using_oversampling?() : Bool
+      is_using_oversampling()
     end
     @@mb_set_oversampling_override : Void* = Pointer(Void).null
     def set_oversampling_override(oversampling : Float64) : Void
@@ -2762,6 +3134,10 @@ module Godot
       godot_bind(@@mb_get_physics_object_picking, "Viewport", "get_physics_object_picking", 2240911060_i64)
       godot_ptrcall_bool(@@mb_get_physics_object_picking, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `get_physics_object_picking`
+    def get_physics_object_picking?() : Bool
+      get_physics_object_picking()
+    end
     @@mb_set_physics_object_picking_sort : Void* = Pointer(Void).null
     def set_physics_object_picking_sort(enable : Bool) : Void
       godot_bind(@@mb_set_physics_object_picking_sort, "Viewport", "set_physics_object_picking_sort", 2586408642_i64)
@@ -2775,6 +3151,10 @@ module Godot
       godot_bind(@@mb_get_physics_object_picking_sort, "Viewport", "get_physics_object_picking_sort", 2240911060_i64)
       godot_ptrcall_bool(@@mb_get_physics_object_picking_sort, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `get_physics_object_picking_sort`
+    def get_physics_object_picking_sort?() : Bool
+      get_physics_object_picking_sort()
+    end
     @@mb_set_physics_object_picking_first_only : Void* = Pointer(Void).null
     def set_physics_object_picking_first_only(enable : Bool) : Void
       godot_bind(@@mb_set_physics_object_picking_first_only, "Viewport", "set_physics_object_picking_first_only", 2586408642_i64)
@@ -2787,6 +3167,10 @@ module Godot
     def get_physics_object_picking_first_only() : Bool
       godot_bind(@@mb_get_physics_object_picking_first_only, "Viewport", "get_physics_object_picking_first_only", 2240911060_i64)
       godot_ptrcall_bool(@@mb_get_physics_object_picking_first_only, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `get_physics_object_picking_first_only`
+    def get_physics_object_picking_first_only?() : Bool
+      get_physics_object_picking_first_only()
     end
     @@mb_get_viewport_rid : Void* = Pointer(Void).null
     def get_viewport_rid() : Int64
@@ -2885,10 +3269,18 @@ module Godot
       godot_bind(@@mb_gui_is_dragging, "Viewport", "gui_is_dragging", 36873697_i64)
       godot_ptrcall_bool(@@mb_gui_is_dragging, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `gui_is_dragging`
+    def gui_is_dragging?() : Bool
+      gui_is_dragging()
+    end
     @@mb_gui_is_drag_successful : Void* = Pointer(Void).null
     def gui_is_drag_successful() : Bool
       godot_bind(@@mb_gui_is_drag_successful, "Viewport", "gui_is_drag_successful", 36873697_i64)
       godot_ptrcall_bool(@@mb_gui_is_drag_successful, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `gui_is_drag_successful`
+    def gui_is_drag_successful?() : Bool
+      gui_is_drag_successful()
     end
     @@mb_gui_release_focus : Void* = Pointer(Void).null
     def gui_release_focus() : Void
@@ -2918,6 +3310,14 @@ module Godot
       godot_bind(@@mb_is_input_disabled, "Viewport", "is_input_disabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_input_disabled, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_input_disabled`
+    def is_input_disabled?() : Bool
+      is_input_disabled()
+    end
+    # Predicate alias for `is_input_disabled`
+    def input_disabled?() : Bool
+      is_input_disabled()
+    end
     @@mb_set_positional_shadow_atlas_size : Void* = Pointer(Void).null
     def set_positional_shadow_atlas_size(size : Int64) : Void
       godot_bind(@@mb_set_positional_shadow_atlas_size, "Viewport", "set_positional_shadow_atlas_size", 1286410249_i64)
@@ -2944,6 +3344,10 @@ module Godot
       godot_bind(@@mb_get_positional_shadow_atlas_16_bits, "Viewport", "get_positional_shadow_atlas_16_bits", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_positional_shadow_atlas_16_bits, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `get_positional_shadow_atlas_16_bits`
+    def get_positional_shadow_atlas_16_bits?() : Bool
+      get_positional_shadow_atlas_16_bits()
+    end
     @@mb_set_snap_controls_to_pixels : Void* = Pointer(Void).null
     def set_snap_controls_to_pixels(enabled : Bool) : Void
       godot_bind(@@mb_set_snap_controls_to_pixels, "Viewport", "set_snap_controls_to_pixels", 2586408642_i64)
@@ -2956,6 +3360,14 @@ module Godot
     def is_snap_controls_to_pixels_enabled() : Bool
       godot_bind(@@mb_is_snap_controls_to_pixels_enabled, "Viewport", "is_snap_controls_to_pixels_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_snap_controls_to_pixels_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_snap_controls_to_pixels_enabled`
+    def is_snap_controls_to_pixels_enabled?() : Bool
+      is_snap_controls_to_pixels_enabled()
+    end
+    # Predicate alias for `is_snap_controls_to_pixels_enabled`
+    def snap_controls_to_pixels_enabled?() : Bool
+      is_snap_controls_to_pixels_enabled()
     end
     @@mb_set_snap_2d_transforms_to_pixel : Void* = Pointer(Void).null
     def set_snap_2d_transforms_to_pixel(enabled : Bool) : Void
@@ -2970,6 +3382,14 @@ module Godot
       godot_bind(@@mb_is_snap_2d_transforms_to_pixel_enabled, "Viewport", "is_snap_2d_transforms_to_pixel_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_snap_2d_transforms_to_pixel_enabled, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_snap_2d_transforms_to_pixel_enabled`
+    def is_snap_2d_transforms_to_pixel_enabled?() : Bool
+      is_snap_2d_transforms_to_pixel_enabled()
+    end
+    # Predicate alias for `is_snap_2d_transforms_to_pixel_enabled`
+    def snap_2d_transforms_to_pixel_enabled?() : Bool
+      is_snap_2d_transforms_to_pixel_enabled()
+    end
     @@mb_set_snap_2d_vertices_to_pixel : Void* = Pointer(Void).null
     def set_snap_2d_vertices_to_pixel(enabled : Bool) : Void
       godot_bind(@@mb_set_snap_2d_vertices_to_pixel, "Viewport", "set_snap_2d_vertices_to_pixel", 2586408642_i64)
@@ -2982,6 +3402,14 @@ module Godot
     def is_snap_2d_vertices_to_pixel_enabled() : Bool
       godot_bind(@@mb_is_snap_2d_vertices_to_pixel_enabled, "Viewport", "is_snap_2d_vertices_to_pixel_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_snap_2d_vertices_to_pixel_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_snap_2d_vertices_to_pixel_enabled`
+    def is_snap_2d_vertices_to_pixel_enabled?() : Bool
+      is_snap_2d_vertices_to_pixel_enabled()
+    end
+    # Predicate alias for `is_snap_2d_vertices_to_pixel_enabled`
+    def snap_2d_vertices_to_pixel_enabled?() : Bool
+      is_snap_2d_vertices_to_pixel_enabled()
     end
     @@mb_set_positional_shadow_atlas_quadrant_subdiv : Void* = Pointer(Void).null
     def set_positional_shadow_atlas_quadrant_subdiv(quadrant : Int64, subdiv : PositionalShadowAtlasQuadrantSubdiv | Int) : Void
@@ -3011,6 +3439,14 @@ module Godot
       godot_bind(@@mb_is_input_handled, "Viewport", "is_input_handled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_input_handled, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_input_handled`
+    def is_input_handled?() : Bool
+      is_input_handled()
+    end
+    # Predicate alias for `is_input_handled`
+    def input_handled?() : Bool
+      is_input_handled()
+    end
     @@mb_set_handle_input_locally : Void* = Pointer(Void).null
     def set_handle_input_locally(enable : Bool) : Void
       godot_bind(@@mb_set_handle_input_locally, "Viewport", "set_handle_input_locally", 2586408642_i64)
@@ -3023,6 +3459,14 @@ module Godot
     def is_handling_input_locally() : Bool
       godot_bind(@@mb_is_handling_input_locally, "Viewport", "is_handling_input_locally", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_handling_input_locally, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_handling_input_locally`
+    def is_handling_input_locally?() : Bool
+      is_handling_input_locally()
+    end
+    # Predicate alias for `is_handling_input_locally`
+    def handling_input_locally?() : Bool
+      is_handling_input_locally()
     end
     @@mb_set_default_canvas_item_texture_filter : Void* = Pointer(Void).null
     def set_default_canvas_item_texture_filter(mode : DefaultCanvasItemTextureFilter | Int) : Void
@@ -3049,6 +3493,14 @@ module Godot
     def is_embedding_subwindows() : Bool
       godot_bind(@@mb_is_embedding_subwindows, "Viewport", "is_embedding_subwindows", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_embedding_subwindows, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_embedding_subwindows`
+    def is_embedding_subwindows?() : Bool
+      is_embedding_subwindows()
+    end
+    # Predicate alias for `is_embedding_subwindows`
+    def embedding_subwindows?() : Bool
+      is_embedding_subwindows()
     end
     @@mb_get_embedded_subwindows : Void* = Pointer(Void).null
     def get_embedded_subwindows() : Pointer(Void)
@@ -3100,6 +3552,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_get_canvas_cull_mask_bit, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `get_canvas_cull_mask_bit`
+    def get_canvas_cull_mask_bit?(layer : Int64) : Bool
+      get_canvas_cull_mask_bit(layer)
     end
     @@mb_set_default_canvas_item_texture_repeat : Void* = Pointer(Void).null
     def set_default_canvas_item_texture_repeat(mode : DefaultCanvasItemTextureRepeat | Int) : Void
@@ -3166,6 +3622,14 @@ module Godot
       godot_bind(@@mb_is_audio_listener_2d, "Viewport", "is_audio_listener_2d", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_audio_listener_2d, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_audio_listener_2d`
+    def is_audio_listener_2d?() : Bool
+      is_audio_listener_2d()
+    end
+    # Predicate alias for `is_audio_listener_2d`
+    def audio_listener_2d?() : Bool
+      is_audio_listener_2d()
+    end
     @@mb_get_audio_listener_2d : Void* = Pointer(Void).null
     def get_audio_listener_2d() : AudioListener2D
       godot_bind(@@mb_get_audio_listener_2d, "Viewport", "get_audio_listener_2d", 1840977180_i64)
@@ -3207,6 +3671,14 @@ module Godot
       godot_bind(@@mb_is_using_own_world_3d, "Viewport", "is_using_own_world_3d", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_using_own_world_3d, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_using_own_world_3d`
+    def is_using_own_world_3d?() : Bool
+      is_using_own_world_3d()
+    end
+    # Predicate alias for `is_using_own_world_3d`
+    def using_own_world_3d?() : Bool
+      is_using_own_world_3d()
+    end
     @@mb_get_audio_listener_3d : Void* = Pointer(Void).null
     def get_audio_listener_3d() : AudioListener3D
       godot_bind(@@mb_get_audio_listener_3d, "Viewport", "get_audio_listener_3d", 3472246991_i64)
@@ -3230,6 +3702,14 @@ module Godot
       godot_bind(@@mb_is_audio_listener_3d, "Viewport", "is_audio_listener_3d", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_audio_listener_3d, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_audio_listener_3d`
+    def is_audio_listener_3d?() : Bool
+      is_audio_listener_3d()
+    end
+    # Predicate alias for `is_audio_listener_3d`
+    def audio_listener_3d?() : Bool
+      is_audio_listener_3d()
+    end
     @@mb_set_disable_3d : Void* = Pointer(Void).null
     def set_disable_3d(disable : Bool) : Void
       godot_bind(@@mb_set_disable_3d, "Viewport", "set_disable_3d", 2586408642_i64)
@@ -3243,6 +3723,10 @@ module Godot
       godot_bind(@@mb_is_3d_disabled, "Viewport", "is_3d_disabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_3d_disabled, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_3d_disabled`
+    def is_3d_disabled?() : Bool
+      is_3d_disabled()
+    end
     @@mb_set_use_xr : Void* = Pointer(Void).null
     def set_use_xr(use : Bool) : Void
       godot_bind(@@mb_set_use_xr, "Viewport", "set_use_xr", 2586408642_i64)
@@ -3255,6 +3739,14 @@ module Godot
     def is_using_xr() : Bool
       godot_bind(@@mb_is_using_xr, "Viewport", "is_using_xr", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_using_xr, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_using_xr`
+    def is_using_xr?() : Bool
+      is_using_xr()
+    end
+    # Predicate alias for `is_using_xr`
+    def using_xr?() : Bool
+      is_using_xr()
     end
     @@mb_set_scaling_3d_mode : Void* = Pointer(Void).null
     def set_scaling_3d_mode(scaling_3d_mode : Scaling3DMode | Int) : Void
@@ -4030,6 +4522,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_get_flag, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `get_flag`
+    def get_flag?(flag : Flags | Int) : Bool
+      get_flag(flag)
+    end
     @@mb_set_hdr_output_requested : Void* = Pointer(Void).null
     def set_hdr_output_requested(requested : Bool) : Void
       godot_bind(@@mb_set_hdr_output_requested, "Window", "set_hdr_output_requested", 2586408642_i64)
@@ -4042,6 +4538,14 @@ module Godot
     def is_hdr_output_requested() : Bool
       godot_bind(@@mb_is_hdr_output_requested, "Window", "is_hdr_output_requested", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_hdr_output_requested, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_hdr_output_requested`
+    def is_hdr_output_requested?() : Bool
+      is_hdr_output_requested()
+    end
+    # Predicate alias for `is_hdr_output_requested`
+    def hdr_output_requested?() : Bool
+      is_hdr_output_requested()
     end
     @@mb_get_output_max_linear_value : Void* = Pointer(Void).null
     def get_output_max_linear_value() : Float64
@@ -4061,10 +4565,26 @@ module Godot
       godot_bind(@@mb_is_fullscreen_shortcut_enabled, "Window", "is_fullscreen_shortcut_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_fullscreen_shortcut_enabled, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_fullscreen_shortcut_enabled`
+    def is_fullscreen_shortcut_enabled?() : Bool
+      is_fullscreen_shortcut_enabled()
+    end
+    # Predicate alias for `is_fullscreen_shortcut_enabled`
+    def fullscreen_shortcut_enabled?() : Bool
+      is_fullscreen_shortcut_enabled()
+    end
     @@mb_is_maximize_allowed : Void* = Pointer(Void).null
     def is_maximize_allowed() : Bool
       godot_bind(@@mb_is_maximize_allowed, "Window", "is_maximize_allowed", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_maximize_allowed, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_maximize_allowed`
+    def is_maximize_allowed?() : Bool
+      is_maximize_allowed()
+    end
+    # Predicate alias for `is_maximize_allowed`
+    def maximize_allowed?() : Bool
+      is_maximize_allowed()
     end
     @@mb_request_attention : Void* = Pointer(Void).null
     def request_attention() : Void
@@ -4105,6 +4625,14 @@ module Godot
       godot_bind(@@mb_is_visible, "Window", "is_visible", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_visible, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_visible`
+    def is_visible?() : Bool
+      is_visible()
+    end
+    # Predicate alias for `is_visible`
+    def visible?() : Bool
+      is_visible()
+    end
     @@mb_hide : Void* = Pointer(Void).null
     def hide() : Void
       godot_bind(@@mb_hide, "Window", "hide", 3218959716_i64)
@@ -4128,6 +4656,14 @@ module Godot
       godot_bind(@@mb_is_transient, "Window", "is_transient", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_transient, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_transient`
+    def is_transient?() : Bool
+      is_transient()
+    end
+    # Predicate alias for `is_transient`
+    def transient?() : Bool
+      is_transient()
+    end
     @@mb_set_transient_to_focused : Void* = Pointer(Void).null
     def set_transient_to_focused(enable : Bool) : Void
       godot_bind(@@mb_set_transient_to_focused, "Window", "set_transient_to_focused", 2586408642_i64)
@@ -4140,6 +4676,14 @@ module Godot
     def is_transient_to_focused() : Bool
       godot_bind(@@mb_is_transient_to_focused, "Window", "is_transient_to_focused", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_transient_to_focused, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_transient_to_focused`
+    def is_transient_to_focused?() : Bool
+      is_transient_to_focused()
+    end
+    # Predicate alias for `is_transient_to_focused`
+    def transient_to_focused?() : Bool
+      is_transient_to_focused()
     end
     @@mb_set_exclusive : Void* = Pointer(Void).null
     def set_exclusive(exclusive : Bool) : Void
@@ -4154,6 +4698,14 @@ module Godot
       godot_bind(@@mb_is_exclusive, "Window", "is_exclusive", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_exclusive, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_exclusive`
+    def is_exclusive?() : Bool
+      is_exclusive()
+    end
+    # Predicate alias for `is_exclusive`
+    def exclusive?() : Bool
+      is_exclusive()
+    end
     @@mb_set_unparent_when_invisible : Void* = Pointer(Void).null
     def set_unparent_when_invisible(unparent : Bool) : Void
       godot_bind(@@mb_set_unparent_when_invisible, "Window", "set_unparent_when_invisible", 2586408642_i64)
@@ -4167,10 +4719,18 @@ module Godot
       godot_bind(@@mb_can_draw, "Window", "can_draw", 36873697_i64)
       godot_ptrcall_bool(@@mb_can_draw, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `can_draw`
+    def can_draw?() : Bool
+      can_draw()
+    end
     @@mb_has_focus : Void* = Pointer(Void).null
     def has_focus() : Bool
       godot_bind(@@mb_has_focus, "Window", "has_focus", 36873697_i64)
       godot_ptrcall_bool(@@mb_has_focus, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `has_focus`
+    def has_focus?() : Bool
+      has_focus()
     end
     @@mb_grab_focus : Void* = Pointer(Void).null
     def grab_focus() : Void
@@ -4211,6 +4771,14 @@ module Godot
       godot_bind(@@mb_is_embedded, "Window", "is_embedded", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_embedded, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_embedded`
+    def is_embedded?() : Bool
+      is_embedded()
+    end
+    # Predicate alias for `is_embedded`
+    def embedded?() : Bool
+      is_embedded()
+    end
     @@mb_get_contents_minimum_size : Void* = Pointer(Void).null
     def get_contents_minimum_size() : Vector2
       godot_bind(@@mb_get_contents_minimum_size, "Window", "get_contents_minimum_size", 3341600327_i64)
@@ -4228,6 +4796,10 @@ module Godot
     def get_force_native() : Bool
       godot_bind(@@mb_get_force_native, "Window", "get_force_native", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_force_native, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `get_force_native`
+    def get_force_native?() : Bool
+      get_force_native()
     end
     @@mb_set_content_scale_size : Void* = Pointer(Void).null
     def set_content_scale_size(size : Vector2i) : Void
@@ -4307,6 +4879,10 @@ module Godot
       godot_bind(@@mb_get_keep_title_visible, "Window", "get_keep_title_visible", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_keep_title_visible, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `get_keep_title_visible`
+    def get_keep_title_visible?() : Bool
+      get_keep_title_visible()
+    end
     @@mb_set_content_scale_factor : Void* = Pointer(Void).null
     def set_content_scale_factor(factor : Float64) : Void
       godot_bind(@@mb_set_content_scale_factor, "Window", "set_content_scale_factor", 373806689_i64)
@@ -4347,6 +4923,14 @@ module Godot
     def is_wrapping_controls() : Bool
       godot_bind(@@mb_is_wrapping_controls, "Window", "is_wrapping_controls", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_wrapping_controls, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_wrapping_controls`
+    def is_wrapping_controls?() : Bool
+      is_wrapping_controls()
+    end
+    # Predicate alias for `is_wrapping_controls`
+    def wrapping_controls?() : Bool
+      is_wrapping_controls()
     end
     @@mb_child_controls_changed : Void* = Pointer(Void).null
     def child_controls_changed() : Void
@@ -4611,6 +5195,10 @@ module Godot
     ensure
       Bridge.free_string_name(sn_0)
     end
+    # Predicate alias for `has_theme_icon_override`
+    def has_theme_icon_override?(name : String) : Bool
+      has_theme_icon_override(name)
+    end
     @@mb_has_theme_stylebox_override : Void* = Pointer(Void).null
     def has_theme_stylebox_override(name : String) : Bool
       godot_bind(@@mb_has_theme_stylebox_override, "Window", "has_theme_stylebox_override", 2619796661_i64)
@@ -4620,6 +5208,10 @@ module Godot
       godot_ptrcall_bool(@@mb_has_theme_stylebox_override, @pointer, args.to_unsafe.as(Void**))
     ensure
       Bridge.free_string_name(sn_0)
+    end
+    # Predicate alias for `has_theme_stylebox_override`
+    def has_theme_stylebox_override?(name : String) : Bool
+      has_theme_stylebox_override(name)
     end
     @@mb_has_theme_font_override : Void* = Pointer(Void).null
     def has_theme_font_override(name : String) : Bool
@@ -4631,6 +5223,10 @@ module Godot
     ensure
       Bridge.free_string_name(sn_0)
     end
+    # Predicate alias for `has_theme_font_override`
+    def has_theme_font_override?(name : String) : Bool
+      has_theme_font_override(name)
+    end
     @@mb_has_theme_font_size_override : Void* = Pointer(Void).null
     def has_theme_font_size_override(name : String) : Bool
       godot_bind(@@mb_has_theme_font_size_override, "Window", "has_theme_font_size_override", 2619796661_i64)
@@ -4640,6 +5236,10 @@ module Godot
       godot_ptrcall_bool(@@mb_has_theme_font_size_override, @pointer, args.to_unsafe.as(Void**))
     ensure
       Bridge.free_string_name(sn_0)
+    end
+    # Predicate alias for `has_theme_font_size_override`
+    def has_theme_font_size_override?(name : String) : Bool
+      has_theme_font_size_override(name)
     end
     @@mb_has_theme_color_override : Void* = Pointer(Void).null
     def has_theme_color_override(name : String) : Bool
@@ -4651,6 +5251,10 @@ module Godot
     ensure
       Bridge.free_string_name(sn_0)
     end
+    # Predicate alias for `has_theme_color_override`
+    def has_theme_color_override?(name : String) : Bool
+      has_theme_color_override(name)
+    end
     @@mb_has_theme_constant_override : Void* = Pointer(Void).null
     def has_theme_constant_override(name : String) : Bool
       godot_bind(@@mb_has_theme_constant_override, "Window", "has_theme_constant_override", 2619796661_i64)
@@ -4660,6 +5264,10 @@ module Godot
       godot_ptrcall_bool(@@mb_has_theme_constant_override, @pointer, args.to_unsafe.as(Void**))
     ensure
       Bridge.free_string_name(sn_0)
+    end
+    # Predicate alias for `has_theme_constant_override`
+    def has_theme_constant_override?(name : String) : Bool
+      has_theme_constant_override(name)
     end
     @@mb_has_theme_icon : Void* = Pointer(Void).null
     def has_theme_icon(name : String, theme_type : String = "") : Bool
@@ -4674,6 +5282,10 @@ module Godot
       Bridge.free_string_name(sn_0)
       Bridge.free_string_name(sn_1)
     end
+    # Predicate alias for `has_theme_icon`
+    def has_theme_icon?(name : String, theme_type : String = "") : Bool
+      has_theme_icon(name, theme_type)
+    end
     @@mb_has_theme_stylebox : Void* = Pointer(Void).null
     def has_theme_stylebox(name : String, theme_type : String = "") : Bool
       godot_bind(@@mb_has_theme_stylebox, "Window", "has_theme_stylebox", 866386512_i64)
@@ -4686,6 +5298,10 @@ module Godot
     ensure
       Bridge.free_string_name(sn_0)
       Bridge.free_string_name(sn_1)
+    end
+    # Predicate alias for `has_theme_stylebox`
+    def has_theme_stylebox?(name : String, theme_type : String = "") : Bool
+      has_theme_stylebox(name, theme_type)
     end
     @@mb_has_theme_font : Void* = Pointer(Void).null
     def has_theme_font(name : String, theme_type : String = "") : Bool
@@ -4700,6 +5316,10 @@ module Godot
       Bridge.free_string_name(sn_0)
       Bridge.free_string_name(sn_1)
     end
+    # Predicate alias for `has_theme_font`
+    def has_theme_font?(name : String, theme_type : String = "") : Bool
+      has_theme_font(name, theme_type)
+    end
     @@mb_has_theme_font_size : Void* = Pointer(Void).null
     def has_theme_font_size(name : String, theme_type : String = "") : Bool
       godot_bind(@@mb_has_theme_font_size, "Window", "has_theme_font_size", 866386512_i64)
@@ -4712,6 +5332,10 @@ module Godot
     ensure
       Bridge.free_string_name(sn_0)
       Bridge.free_string_name(sn_1)
+    end
+    # Predicate alias for `has_theme_font_size`
+    def has_theme_font_size?(name : String, theme_type : String = "") : Bool
+      has_theme_font_size(name, theme_type)
     end
     @@mb_has_theme_color : Void* = Pointer(Void).null
     def has_theme_color(name : String, theme_type : String = "") : Bool
@@ -4726,6 +5350,10 @@ module Godot
       Bridge.free_string_name(sn_0)
       Bridge.free_string_name(sn_1)
     end
+    # Predicate alias for `has_theme_color`
+    def has_theme_color?(name : String, theme_type : String = "") : Bool
+      has_theme_color(name, theme_type)
+    end
     @@mb_has_theme_constant : Void* = Pointer(Void).null
     def has_theme_constant(name : String, theme_type : String = "") : Bool
       godot_bind(@@mb_has_theme_constant, "Window", "has_theme_constant", 866386512_i64)
@@ -4738,6 +5366,10 @@ module Godot
     ensure
       Bridge.free_string_name(sn_0)
       Bridge.free_string_name(sn_1)
+    end
+    # Predicate alias for `has_theme_constant`
+    def has_theme_constant?(name : String, theme_type : String = "") : Bool
+      has_theme_constant(name, theme_type)
     end
     @@mb_get_theme_default_base_scale : Void* = Pointer(Void).null
     def get_theme_default_base_scale() : Float64
@@ -4816,6 +5448,14 @@ module Godot
       godot_bind(@@mb_is_layout_rtl, "Window", "is_layout_rtl", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_layout_rtl, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_layout_rtl`
+    def is_layout_rtl?() : Bool
+      is_layout_rtl()
+    end
+    # Predicate alias for `is_layout_rtl`
+    def layout_rtl?() : Bool
+      is_layout_rtl()
+    end
     @@mb_set_auto_translate : Void* = Pointer(Void).null
     def set_auto_translate(enable : Bool) : Void
       godot_bind(@@mb_set_auto_translate, "Window", "set_auto_translate", 2586408642_i64)
@@ -4829,6 +5469,14 @@ module Godot
       godot_bind(@@mb_is_auto_translating, "Window", "is_auto_translating", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_auto_translating, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_auto_translating`
+    def is_auto_translating?() : Bool
+      is_auto_translating()
+    end
+    # Predicate alias for `is_auto_translating`
+    def auto_translating?() : Bool
+      is_auto_translating()
+    end
     @@mb_set_use_font_oversampling : Void* = Pointer(Void).null
     def set_use_font_oversampling(enable : Bool) : Void
       godot_bind(@@mb_set_use_font_oversampling, "Window", "set_use_font_oversampling", 2586408642_i64)
@@ -4841,6 +5489,14 @@ module Godot
     def is_using_font_oversampling() : Bool
       godot_bind(@@mb_is_using_font_oversampling, "Window", "is_using_font_oversampling", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_using_font_oversampling, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_using_font_oversampling`
+    def is_using_font_oversampling?() : Bool
+      is_using_font_oversampling()
+    end
+    # Predicate alias for `is_using_font_oversampling`
+    def using_font_oversampling?() : Bool
+      is_using_font_oversampling()
     end
     @@mb_popup : Void* = Pointer(Void).null
     def popup(rect : Rect2i) : Void
@@ -5004,9 +5660,6 @@ module Godot
     def visible
       is_visible
     end
-    def visible?
-      visible
-    end
     # Property `visible` setter
     def visible=(val)
       set_visible(val)
@@ -5026,9 +5679,6 @@ module Godot
     def transient
       is_transient
     end
-    def transient?
-      transient
-    end
     # Property `transient` setter
     def transient=(val)
       set_transient(val)
@@ -5037,9 +5687,6 @@ module Godot
     def transient_to_focused
       is_transient_to_focused
     end
-    def transient_to_focused?
-      transient_to_focused
-    end
     # Property `transient_to_focused` setter
     def transient_to_focused=(val)
       set_transient_to_focused(val)
@@ -5047,9 +5694,6 @@ module Godot
     # Property `exclusive` getter
     def exclusive
       is_exclusive
-    end
-    def exclusive?
-      exclusive
     end
     # Property `exclusive` setter
     def exclusive=(val)
@@ -5202,9 +5846,6 @@ module Godot
     def fullscreen_shortcut_enabled
       is_fullscreen_shortcut_enabled
     end
-    def fullscreen_shortcut_enabled?
-      fullscreen_shortcut_enabled
-    end
     # Property `fullscreen_shortcut_enabled` setter
     def fullscreen_shortcut_enabled=(val)
       set_fullscreen_shortcut_enabled(val)
@@ -5290,9 +5931,6 @@ module Godot
     # Property `hdr_output_requested` getter
     def hdr_output_requested
       is_hdr_output_requested
-    end
-    def hdr_output_requested?
-      hdr_output_requested
     end
     # Property `hdr_output_requested` setter
     def hdr_output_requested=(val)
@@ -5385,6 +6023,10 @@ module Godot
       godot_bind(@@mb_get_hide_on_ok, "AcceptDialog", "get_hide_on_ok", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_hide_on_ok, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `get_hide_on_ok`
+    def get_hide_on_ok?() : Bool
+      get_hide_on_ok()
+    end
     @@mb_set_close_on_escape : Void* = Pointer(Void).null
     def set_close_on_escape(enabled : Bool) : Void
       godot_bind(@@mb_set_close_on_escape, "AcceptDialog", "set_close_on_escape", 2586408642_i64)
@@ -5397,6 +6039,10 @@ module Godot
     def get_close_on_escape() : Bool
       godot_bind(@@mb_get_close_on_escape, "AcceptDialog", "get_close_on_escape", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_close_on_escape, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `get_close_on_escape`
+    def get_close_on_escape?() : Bool
+      get_close_on_escape()
     end
     @@mb_add_button : Void* = Pointer(Void).null
     def add_button(text : String, right : Bool = false, action : String = "") : Button
@@ -5466,6 +6112,10 @@ module Godot
     def has_autowrap() : Bool
       godot_bind(@@mb_has_autowrap, "AcceptDialog", "has_autowrap", 2240911060_i64)
       godot_ptrcall_bool(@@mb_has_autowrap, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `has_autowrap`
+    def has_autowrap?() : Bool
+      has_autowrap()
     end
     @@mb_set_ok_button_text : Void* = Pointer(Void).null
     def set_ok_button_text(text : String) : Void
@@ -5654,6 +6304,14 @@ module Godot
       godot_bind(@@mb_is_supported, "AccessibilityServer", "is_supported", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_supported, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_supported`
+    def is_supported?() : Bool
+      is_supported()
+    end
+    # Predicate alias for `is_supported`
+    def supported?() : Bool
+      is_supported()
+    end
     @@mb_create_element : Void* = Pointer(Void).null
     def create_element(window_id : Int64, role : AccessibilityRole | Int) : Int64
       godot_bind(@@mb_create_element, "AccessibilityServer", "create_element", 3846965249_i64)
@@ -5699,6 +6357,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_has_element, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `has_element`
+    def has_element?(id : Int64) : Bool
+      has_element(id)
     end
     @@mb_free_element : Void* = Pointer(Void).null
     def free_element(id : Int64) : Void
@@ -6679,6 +7341,14 @@ module Godot
       godot_bind(@@mb_is_set_as_top_level, "Node3D", "is_set_as_top_level", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_set_as_top_level, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_set_as_top_level`
+    def is_set_as_top_level?() : Bool
+      is_set_as_top_level()
+    end
+    # Predicate alias for `is_set_as_top_level`
+    def set_as_top_level?() : Bool
+      is_set_as_top_level()
+    end
     @@mb_set_disable_scale : Void* = Pointer(Void).null
     def set_disable_scale(disable : Bool) : Void
       godot_bind(@@mb_set_disable_scale, "Node3D", "set_disable_scale", 2586408642_i64)
@@ -6691,6 +7361,14 @@ module Godot
     def is_scale_disabled() : Bool
       godot_bind(@@mb_is_scale_disabled, "Node3D", "is_scale_disabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_scale_disabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_scale_disabled`
+    def is_scale_disabled?() : Bool
+      is_scale_disabled()
+    end
+    # Predicate alias for `is_scale_disabled`
+    def scale_disabled?() : Bool
+      is_scale_disabled()
     end
     @@mb_get_world_3d : Void* = Pointer(Void).null
     def get_world_3d() : World3D
@@ -6772,10 +7450,22 @@ module Godot
       godot_bind(@@mb_is_visible, "Node3D", "is_visible", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_visible, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_visible`
+    def is_visible?() : Bool
+      is_visible()
+    end
     @@mb_is_visible_in_tree : Void* = Pointer(Void).null
     def is_visible_in_tree() : Bool
       godot_bind(@@mb_is_visible_in_tree, "Node3D", "is_visible_in_tree", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_visible_in_tree, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_visible_in_tree`
+    def is_visible_in_tree?() : Bool
+      is_visible_in_tree()
+    end
+    # Predicate alias for `is_visible_in_tree`
+    def visible_in_tree?() : Bool
+      is_visible_in_tree()
     end
     @@mb_show : Void* = Pointer(Void).null
     def show() : Void
@@ -6800,6 +7490,14 @@ module Godot
       godot_bind(@@mb_is_local_transform_notification_enabled, "Node3D", "is_local_transform_notification_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_local_transform_notification_enabled, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_local_transform_notification_enabled`
+    def is_local_transform_notification_enabled?() : Bool
+      is_local_transform_notification_enabled()
+    end
+    # Predicate alias for `is_local_transform_notification_enabled`
+    def local_transform_notification_enabled?() : Bool
+      is_local_transform_notification_enabled()
+    end
     @@mb_set_notify_transform : Void* = Pointer(Void).null
     def set_notify_transform(enable : Bool) : Void
       godot_bind(@@mb_set_notify_transform, "Node3D", "set_notify_transform", 2586408642_i64)
@@ -6812,6 +7510,14 @@ module Godot
     def is_transform_notification_enabled() : Bool
       godot_bind(@@mb_is_transform_notification_enabled, "Node3D", "is_transform_notification_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_transform_notification_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_transform_notification_enabled`
+    def is_transform_notification_enabled?() : Bool
+      is_transform_notification_enabled()
+    end
+    # Predicate alias for `is_transform_notification_enabled`
+    def transform_notification_enabled?() : Bool
+      is_transform_notification_enabled()
     end
     @@mb_rotate : Void* = Pointer(Void).null
     def rotate(axis : Vector3, angle : Float64) : Void
@@ -7049,6 +7755,14 @@ module Godot
       godot_bind(@@mb_is_active, "SkeletonModifier3D", "is_active", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_active, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_active`
+    def is_active?() : Bool
+      is_active()
+    end
+    # Predicate alias for `is_active`
+    def active?() : Bool
+      is_active()
+    end
     @@mb_set_influence : Void* = Pointer(Void).null
     def set_influence(influence : Float64) : Void
       godot_bind(@@mb_set_influence, "SkeletonModifier3D", "set_influence", 373806689_i64)
@@ -7065,9 +7779,6 @@ module Godot
     # Property `active` getter
     def active
       is_active
-    end
-    def active?
-      active
     end
     # Property `active` setter
     def active=(val)
@@ -7282,6 +7993,14 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_using_euler, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `is_using_euler`
+    def is_using_euler?(index : Int64) : Bool
+      is_using_euler(index)
+    end
+    # Predicate alias for `is_using_euler`
+    def using_euler?(index : Int64) : Bool
+      is_using_euler(index)
+    end
     @@mb_set_primary_rotation_axis : Void* = Pointer(Void).null
     def set_primary_rotation_axis(index : Int64, axis : Godot::Vector3::Axis | Int) : Void
       godot_bind(@@mb_set_primary_rotation_axis, "AimModifier3D", "set_primary_rotation_axis", 776736805_i64)
@@ -7318,6 +8037,14 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_using_secondary_rotation, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `is_using_secondary_rotation`
+    def is_using_secondary_rotation?(index : Int64) : Bool
+      is_using_secondary_rotation(index)
+    end
+    # Predicate alias for `is_using_secondary_rotation`
+    def using_secondary_rotation?(index : Int64) : Bool
+      is_using_secondary_rotation(index)
+    end
     @@mb_set_relative : Void* = Pointer(Void).null
     def set_relative(index : Int64, enabled : Bool) : Void
       godot_bind(@@mb_set_relative, "AimModifier3D", "set_relative", 300928843_i64)
@@ -7335,6 +8062,14 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_relative, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `is_relative`
+    def is_relative?(index : Int64) : Bool
+      is_relative(index)
+    end
+    # Predicate alias for `is_relative`
+    def relative?(index : Int64) : Bool
+      is_relative(index)
     end
     # Property `setting_count` getter
     def setting_count
@@ -7396,10 +8131,26 @@ module Godot
       godot_bind(@@mb_is_visible, "CanvasItem", "is_visible", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_visible, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_visible`
+    def is_visible?() : Bool
+      is_visible()
+    end
+    # Predicate alias for `is_visible`
+    def visible?() : Bool
+      is_visible()
+    end
     @@mb_is_visible_in_tree : Void* = Pointer(Void).null
     def is_visible_in_tree() : Bool
       godot_bind(@@mb_is_visible_in_tree, "CanvasItem", "is_visible_in_tree", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_visible_in_tree, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_visible_in_tree`
+    def is_visible_in_tree?() : Bool
+      is_visible_in_tree()
+    end
+    # Predicate alias for `is_visible_in_tree`
+    def visible_in_tree?() : Bool
+      is_visible_in_tree()
     end
     @@mb_show : Void* = Pointer(Void).null
     def show() : Void
@@ -7433,6 +8184,14 @@ module Godot
     def is_set_as_top_level() : Bool
       godot_bind(@@mb_is_set_as_top_level, "CanvasItem", "is_set_as_top_level", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_set_as_top_level, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_set_as_top_level`
+    def is_set_as_top_level?() : Bool
+      is_set_as_top_level()
+    end
+    # Predicate alias for `is_set_as_top_level`
+    def set_as_top_level?() : Bool
+      is_set_as_top_level()
     end
     @@mb_set_light_mask : Void* = Pointer(Void).null
     def set_light_mask(light_mask : Int64) : Void
@@ -7499,6 +8258,14 @@ module Godot
       godot_bind(@@mb_is_z_relative, "CanvasItem", "is_z_relative", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_z_relative, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_z_relative`
+    def is_z_relative?() : Bool
+      is_z_relative()
+    end
+    # Predicate alias for `is_z_relative`
+    def z_relative?() : Bool
+      is_z_relative()
+    end
     @@mb_set_y_sort_enabled : Void* = Pointer(Void).null
     def set_y_sort_enabled(enabled : Bool) : Void
       godot_bind(@@mb_set_y_sort_enabled, "CanvasItem", "set_y_sort_enabled", 2586408642_i64)
@@ -7512,6 +8279,14 @@ module Godot
       godot_bind(@@mb_is_y_sort_enabled, "CanvasItem", "is_y_sort_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_y_sort_enabled, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_y_sort_enabled`
+    def is_y_sort_enabled?() : Bool
+      is_y_sort_enabled()
+    end
+    # Predicate alias for `is_y_sort_enabled`
+    def y_sort_enabled?() : Bool
+      is_y_sort_enabled()
+    end
     @@mb_set_draw_behind_parent : Void* = Pointer(Void).null
     def set_draw_behind_parent(enable : Bool) : Void
       godot_bind(@@mb_set_draw_behind_parent, "CanvasItem", "set_draw_behind_parent", 2586408642_i64)
@@ -7524,6 +8299,14 @@ module Godot
     def is_draw_behind_parent_enabled() : Bool
       godot_bind(@@mb_is_draw_behind_parent_enabled, "CanvasItem", "is_draw_behind_parent_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_draw_behind_parent_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_draw_behind_parent_enabled`
+    def is_draw_behind_parent_enabled?() : Bool
+      is_draw_behind_parent_enabled()
+    end
+    # Predicate alias for `is_draw_behind_parent_enabled`
+    def draw_behind_parent_enabled?() : Bool
+      is_draw_behind_parent_enabled()
     end
     @@mb_draw_line : Void* = Pointer(Void).null
     def draw_line(from : Vector2, to : Vector2, color : Color, width : Float64 = -1.0_f64, antialiased : Bool = false) : Void
@@ -8198,6 +8981,10 @@ module Godot
       godot_bind(@@mb_get_use_parent_material, "CanvasItem", "get_use_parent_material", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_use_parent_material, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `get_use_parent_material`
+    def get_use_parent_material?() : Bool
+      get_use_parent_material()
+    end
     @@mb_set_notify_local_transform : Void* = Pointer(Void).null
     def set_notify_local_transform(enable : Bool) : Void
       godot_bind(@@mb_set_notify_local_transform, "CanvasItem", "set_notify_local_transform", 2586408642_i64)
@@ -8211,6 +8998,14 @@ module Godot
       godot_bind(@@mb_is_local_transform_notification_enabled, "CanvasItem", "is_local_transform_notification_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_local_transform_notification_enabled, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_local_transform_notification_enabled`
+    def is_local_transform_notification_enabled?() : Bool
+      is_local_transform_notification_enabled()
+    end
+    # Predicate alias for `is_local_transform_notification_enabled`
+    def local_transform_notification_enabled?() : Bool
+      is_local_transform_notification_enabled()
+    end
     @@mb_set_notify_transform : Void* = Pointer(Void).null
     def set_notify_transform(enable : Bool) : Void
       godot_bind(@@mb_set_notify_transform, "CanvasItem", "set_notify_transform", 2586408642_i64)
@@ -8223,6 +9018,14 @@ module Godot
     def is_transform_notification_enabled() : Bool
       godot_bind(@@mb_is_transform_notification_enabled, "CanvasItem", "is_transform_notification_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_transform_notification_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_transform_notification_enabled`
+    def is_transform_notification_enabled?() : Bool
+      is_transform_notification_enabled()
+    end
+    # Predicate alias for `is_transform_notification_enabled`
+    def transform_notification_enabled?() : Bool
+      is_transform_notification_enabled()
     end
     @@mb_force_update_transform : Void* = Pointer(Void).null
     def force_update_transform() : Void
@@ -8275,6 +9078,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_get_visibility_layer_bit, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `get_visibility_layer_bit`
+    def get_visibility_layer_bit?(layer : Int64) : Bool
+      get_visibility_layer_bit(layer)
     end
     @@mb_set_texture_filter : Void* = Pointer(Void).null
     def set_texture_filter(mode : TextureFilter | Int) : Void
@@ -8331,9 +9138,6 @@ module Godot
     # Property `visible` getter
     def visible
       is_visible
-    end
-    def visible?
-      visible
     end
     # Property `visible` setter
     def visible=(val)
@@ -8431,9 +9235,6 @@ module Godot
     # Property `y_sort_enabled` getter
     def y_sort_enabled
       is_y_sort_enabled
-    end
-    def y_sort_enabled?
-      y_sort_enabled
     end
     # Property `y_sort_enabled` setter
     def y_sort_enabled=(val)
@@ -8779,6 +9580,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_get_collision_layer_value, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `get_collision_layer_value`
+    def get_collision_layer_value?(layer_number : Int64) : Bool
+      get_collision_layer_value(layer_number)
+    end
     @@mb_set_collision_mask_value : Void* = Pointer(Void).null
     def set_collision_mask_value(layer_number : Int64, value : Bool) : Void
       godot_bind(@@mb_set_collision_mask_value, "CollisionObject2D", "set_collision_mask_value", 300928843_i64)
@@ -8796,6 +9601,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_get_collision_mask_value, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `get_collision_mask_value`
+    def get_collision_mask_value?(layer_number : Int64) : Bool
+      get_collision_mask_value(layer_number)
     end
     @@mb_set_collision_priority : Void* = Pointer(Void).null
     def set_collision_priority(priority : Float64) : Void
@@ -8835,6 +9644,14 @@ module Godot
     def is_pickable() : Bool
       godot_bind(@@mb_is_pickable, "CollisionObject2D", "is_pickable", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_pickable, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_pickable`
+    def is_pickable?() : Bool
+      is_pickable()
+    end
+    # Predicate alias for `is_pickable`
+    def pickable?() : Bool
+      is_pickable()
     end
     @@mb_create_shape_owner : Void* = Pointer(Void).null
     def create_shape_owner(owner : Godot::Object) : Int64
@@ -8903,6 +9720,14 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_shape_owner_disabled, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `is_shape_owner_disabled`
+    def is_shape_owner_disabled?(owner_id : Int64) : Bool
+      is_shape_owner_disabled(owner_id)
+    end
+    # Predicate alias for `is_shape_owner_disabled`
+    def shape_owner_disabled?(owner_id : Int64) : Bool
+      is_shape_owner_disabled(owner_id)
+    end
     @@mb_shape_owner_set_one_way_collision : Void* = Pointer(Void).null
     def shape_owner_set_one_way_collision(owner_id : Int64, enable : Bool) : Void
       godot_bind(@@mb_shape_owner_set_one_way_collision, "CollisionObject2D", "shape_owner_set_one_way_collision", 300928843_i64)
@@ -8920,6 +9745,14 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_shape_owner_one_way_collision_enabled, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `is_shape_owner_one_way_collision_enabled`
+    def is_shape_owner_one_way_collision_enabled?(owner_id : Int64) : Bool
+      is_shape_owner_one_way_collision_enabled(owner_id)
+    end
+    # Predicate alias for `is_shape_owner_one_way_collision_enabled`
+    def shape_owner_one_way_collision_enabled?(owner_id : Int64) : Bool
+      is_shape_owner_one_way_collision_enabled(owner_id)
     end
     @@mb_shape_owner_set_one_way_collision_margin : Void* = Pointer(Void).null
     def shape_owner_set_one_way_collision_margin(owner_id : Int64, margin : Float64) : Void
@@ -9104,6 +9937,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
       godot_ptrcall_bool(@@mb_test_move, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `test_move`
+    def test_move?(from : Transform2D, motion : Vector2, collision : KinematicCollision2D? = nil, safe_margin : Float64 = 0.08_f64, recovery_as_collision : Bool = false) : Bool
+      test_move(from, motion, collision, safe_margin, recovery_as_collision)
+    end
     @@mb_get_gravity : Void* = Pointer(Void).null
     def get_gravity() : Vector2
       godot_bind(@@mb_get_gravity, "PhysicsBody2D", "get_gravity", 3341600327_i64)
@@ -9218,6 +10055,14 @@ module Godot
       godot_bind(@@mb_is_sync_to_physics_enabled, "AnimatableBody2D", "is_sync_to_physics_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_sync_to_physics_enabled, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_sync_to_physics_enabled`
+    def is_sync_to_physics_enabled?() : Bool
+      is_sync_to_physics_enabled()
+    end
+    # Predicate alias for `is_sync_to_physics_enabled`
+    def sync_to_physics_enabled?() : Bool
+      is_sync_to_physics_enabled()
+    end
     # Property `sync_to_physics` getter
     def sync_to_physics
       is_sync_to_physics_enabled
@@ -9283,6 +10128,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_get_collision_layer_value, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `get_collision_layer_value`
+    def get_collision_layer_value?(layer_number : Int64) : Bool
+      get_collision_layer_value(layer_number)
+    end
     @@mb_set_collision_mask_value : Void* = Pointer(Void).null
     def set_collision_mask_value(layer_number : Int64, value : Bool) : Void
       godot_bind(@@mb_set_collision_mask_value, "CollisionObject3D", "set_collision_mask_value", 300928843_i64)
@@ -9300,6 +10149,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_get_collision_mask_value, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `get_collision_mask_value`
+    def get_collision_mask_value?(layer_number : Int64) : Bool
+      get_collision_mask_value(layer_number)
     end
     @@mb_set_collision_priority : Void* = Pointer(Void).null
     def set_collision_priority(priority : Float64) : Void
@@ -9340,6 +10193,14 @@ module Godot
       godot_bind(@@mb_is_ray_pickable, "CollisionObject3D", "is_ray_pickable", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_ray_pickable, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_ray_pickable`
+    def is_ray_pickable?() : Bool
+      is_ray_pickable()
+    end
+    # Predicate alias for `is_ray_pickable`
+    def ray_pickable?() : Bool
+      is_ray_pickable()
+    end
     @@mb_set_capture_input_on_drag : Void* = Pointer(Void).null
     def set_capture_input_on_drag(enable : Bool) : Void
       godot_bind(@@mb_set_capture_input_on_drag, "CollisionObject3D", "set_capture_input_on_drag", 2586408642_i64)
@@ -9352,6 +10213,10 @@ module Godot
     def get_capture_input_on_drag() : Bool
       godot_bind(@@mb_get_capture_input_on_drag, "CollisionObject3D", "get_capture_input_on_drag", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_capture_input_on_drag, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `get_capture_input_on_drag`
+    def get_capture_input_on_drag?() : Bool
+      get_capture_input_on_drag()
     end
     @@mb_get_rid : Void* = Pointer(Void).null
     def get_rid() : Int64
@@ -9424,6 +10289,14 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_shape_owner_disabled, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `is_shape_owner_disabled`
+    def is_shape_owner_disabled?(owner_id : Int64) : Bool
+      is_shape_owner_disabled(owner_id)
+    end
+    # Predicate alias for `is_shape_owner_disabled`
+    def shape_owner_disabled?(owner_id : Int64) : Bool
+      is_shape_owner_disabled(owner_id)
     end
     @@mb_shape_owner_add_shape : Void* = Pointer(Void).null
     def shape_owner_add_shape(owner_id : Int64, shape : Shape3D) : Void
@@ -9585,6 +10458,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5]
       godot_ptrcall_bool(@@mb_test_move, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `test_move`
+    def test_move?(from : Transform3D, motion : Vector3, collision : KinematicCollision3D? = nil, safe_margin : Float64 = 0.001_f64, recovery_as_collision : Bool = false, max_collisions : Int64 = 1_i64) : Bool
+      test_move(from, motion, collision, safe_margin, recovery_as_collision, max_collisions)
+    end
     @@mb_get_gravity : Void* = Pointer(Void).null
     def get_gravity() : Vector3
       godot_bind(@@mb_get_gravity, "PhysicsBody3D", "get_gravity", 3360562783_i64)
@@ -9607,6 +10484,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_get_axis_lock, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `get_axis_lock`
+    def get_axis_lock?(axis : Godot::PhysicsServer3D::BodyAxis | Int) : Bool
+      get_axis_lock(axis)
     end
     @@mb_get_collision_exceptions : Void* = Pointer(Void).null
     def get_collision_exceptions() : Pointer(Void)
@@ -9783,6 +10664,14 @@ module Godot
       godot_bind(@@mb_is_sync_to_physics_enabled, "AnimatableBody3D", "is_sync_to_physics_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_sync_to_physics_enabled, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_sync_to_physics_enabled`
+    def is_sync_to_physics_enabled?() : Bool
+      is_sync_to_physics_enabled()
+    end
+    # Predicate alias for `is_sync_to_physics_enabled`
+    def sync_to_physics_enabled?() : Bool
+      is_sync_to_physics_enabled()
+    end
     # Property `sync_to_physics` getter
     def sync_to_physics
       is_sync_to_physics_enabled
@@ -9847,6 +10736,14 @@ module Godot
       godot_bind(@@mb_is_playing, "AnimatedSprite2D", "is_playing", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_playing, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_playing`
+    def is_playing?() : Bool
+      is_playing()
+    end
+    # Predicate alias for `is_playing`
+    def playing?() : Bool
+      is_playing()
+    end
     @@mb_play : Void* = Pointer(Void).null
     def play(name : String = "", custom_speed : Float64 = 1.0_f64, from_end : Bool = false) : Void
       godot_bind(@@mb_play, "AnimatedSprite2D", "play", 3269405555_i64)
@@ -9894,6 +10791,14 @@ module Godot
       godot_bind(@@mb_is_centered, "AnimatedSprite2D", "is_centered", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_centered, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_centered`
+    def is_centered?() : Bool
+      is_centered()
+    end
+    # Predicate alias for `is_centered`
+    def centered?() : Bool
+      is_centered()
+    end
     @@mb_set_offset : Void* = Pointer(Void).null
     def set_offset(offset : Vector2) : Void
       godot_bind(@@mb_set_offset, "AnimatedSprite2D", "set_offset", 743155724_i64)
@@ -9920,6 +10825,14 @@ module Godot
       godot_bind(@@mb_is_flipped_h, "AnimatedSprite2D", "is_flipped_h", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_flipped_h, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_flipped_h`
+    def is_flipped_h?() : Bool
+      is_flipped_h()
+    end
+    # Predicate alias for `is_flipped_h`
+    def flipped_h?() : Bool
+      is_flipped_h()
+    end
     @@mb_set_flip_v : Void* = Pointer(Void).null
     def set_flip_v(flip_v : Bool) : Void
       godot_bind(@@mb_set_flip_v, "AnimatedSprite2D", "set_flip_v", 2586408642_i64)
@@ -9932,6 +10845,14 @@ module Godot
     def is_flipped_v() : Bool
       godot_bind(@@mb_is_flipped_v, "AnimatedSprite2D", "is_flipped_v", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_flipped_v, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_flipped_v`
+    def is_flipped_v?() : Bool
+      is_flipped_v()
+    end
+    # Predicate alias for `is_flipped_v`
+    def flipped_v?() : Bool
+      is_flipped_v()
     end
     @@mb_set_frame : Void* = Pointer(Void).null
     def set_frame(frame : Int64) : Void
@@ -10039,9 +10960,6 @@ module Godot
     def centered
       is_centered
     end
-    def centered?
-      centered
-    end
     # Property `centered` setter
     def centered=(val)
       set_centered(val)
@@ -10135,6 +11053,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_get_layer_mask_value, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `get_layer_mask_value`
+    def get_layer_mask_value?(layer_number : Int64) : Bool
+      get_layer_mask_value(layer_number)
+    end
     @@mb_set_sorting_offset : Void* = Pointer(Void).null
     def set_sorting_offset(offset : Float64) : Void
       godot_bind(@@mb_set_sorting_offset, "VisualInstance3D", "set_sorting_offset", 373806689_i64)
@@ -10161,6 +11083,14 @@ module Godot
       godot_bind(@@mb_is_sorting_use_aabb_center, "VisualInstance3D", "is_sorting_use_aabb_center", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_sorting_use_aabb_center, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_sorting_use_aabb_center`
+    def is_sorting_use_aabb_center?() : Bool
+      is_sorting_use_aabb_center()
+    end
+    # Predicate alias for `is_sorting_use_aabb_center`
+    def sorting_use_aabb_center?() : Bool
+      is_sorting_use_aabb_center()
+    end
     @@mb_get_aabb : Void* = Pointer(Void).null
     def get_aabb() : AABB
       godot_bind(@@mb_get_aabb, "VisualInstance3D", "get_aabb", 1068685055_i64)
@@ -10185,9 +11115,6 @@ module Godot
     # Property `sorting_use_aabb_center` getter
     def sorting_use_aabb_center
       is_sorting_use_aabb_center
-    end
-    def sorting_use_aabb_center?
-      sorting_use_aabb_center
     end
     # Property `sorting_use_aabb_center` setter
     def sorting_use_aabb_center=(val)
@@ -10442,6 +11369,14 @@ module Godot
       godot_bind(@@mb_is_ignoring_occlusion_culling, "GeometryInstance3D", "is_ignoring_occlusion_culling", 2240911060_i64)
       godot_ptrcall_bool(@@mb_is_ignoring_occlusion_culling, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_ignoring_occlusion_culling`
+    def is_ignoring_occlusion_culling?() : Bool
+      is_ignoring_occlusion_culling()
+    end
+    # Predicate alias for `is_ignoring_occlusion_culling`
+    def ignoring_occlusion_culling?() : Bool
+      is_ignoring_occlusion_culling()
+    end
     @@mb_set_custom_aabb : Void* = Pointer(Void).null
     def set_custom_aabb(aabb : AABB) : Void
       godot_bind(@@mb_set_custom_aabb, "GeometryInstance3D", "set_custom_aabb", 259215842_i64)
@@ -10618,6 +11553,14 @@ module Godot
       godot_bind(@@mb_is_centered, "SpriteBase3D", "is_centered", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_centered, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_centered`
+    def is_centered?() : Bool
+      is_centered()
+    end
+    # Predicate alias for `is_centered`
+    def centered?() : Bool
+      is_centered()
+    end
     @@mb_set_offset : Void* = Pointer(Void).null
     def set_offset(offset : Vector2) : Void
       godot_bind(@@mb_set_offset, "SpriteBase3D", "set_offset", 743155724_i64)
@@ -10644,6 +11587,14 @@ module Godot
       godot_bind(@@mb_is_flipped_h, "SpriteBase3D", "is_flipped_h", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_flipped_h, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_flipped_h`
+    def is_flipped_h?() : Bool
+      is_flipped_h()
+    end
+    # Predicate alias for `is_flipped_h`
+    def flipped_h?() : Bool
+      is_flipped_h()
+    end
     @@mb_set_flip_v : Void* = Pointer(Void).null
     def set_flip_v(flip_v : Bool) : Void
       godot_bind(@@mb_set_flip_v, "SpriteBase3D", "set_flip_v", 2586408642_i64)
@@ -10656,6 +11607,14 @@ module Godot
     def is_flipped_v() : Bool
       godot_bind(@@mb_is_flipped_v, "SpriteBase3D", "is_flipped_v", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_flipped_v, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_flipped_v`
+    def is_flipped_v?() : Bool
+      is_flipped_v()
+    end
+    # Predicate alias for `is_flipped_v`
+    def flipped_v?() : Bool
+      is_flipped_v()
     end
     @@mb_set_modulate : Void* = Pointer(Void).null
     def set_modulate(modulate : Color) : Void
@@ -10726,6 +11685,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_get_draw_flag, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `get_draw_flag`
+    def get_draw_flag?(flag : DrawFlags | Int) : Bool
+      get_draw_flag(flag)
     end
     @@mb_set_alpha_cut_mode : Void* = Pointer(Void).null
     def set_alpha_cut_mode(mode : AlphaCutMode | Int) : Void
@@ -10831,9 +11794,6 @@ module Godot
     # Property `centered` getter
     def centered
       is_centered
-    end
-    def centered?
-      centered
     end
     # Property `centered` setter
     def centered=(val)
@@ -11065,6 +12025,14 @@ module Godot
       godot_bind(@@mb_is_playing, "AnimatedSprite3D", "is_playing", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_playing, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_playing`
+    def is_playing?() : Bool
+      is_playing()
+    end
+    # Predicate alias for `is_playing`
+    def playing?() : Bool
+      is_playing()
+    end
     @@mb_play : Void* = Pointer(Void).null
     def play(name : String = "", custom_speed : Float64 = 1.0_f64, from_end : Bool = false) : Void
       godot_bind(@@mb_play, "AnimatedSprite3D", "play", 3269405555_i64)
@@ -11284,6 +12252,14 @@ module Godot
       godot_bind(@@mb_is_local_to_scene, "Resource", "is_local_to_scene", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_local_to_scene, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_local_to_scene`
+    def is_local_to_scene?() : Bool
+      is_local_to_scene()
+    end
+    # Predicate alias for `is_local_to_scene`
+    def local_to_scene?() : Bool
+      is_local_to_scene()
+    end
     @@mb_get_local_scene : Void* = Pointer(Void).null
     def get_local_scene() : Node
       godot_bind(@@mb_get_local_scene, "Resource", "get_local_scene", 3160264692_i64)
@@ -11326,6 +12302,14 @@ module Godot
     def is_built_in() : Bool
       godot_bind(@@mb_is_built_in, "Resource", "is_built_in", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_built_in, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_built_in`
+    def is_built_in?() : Bool
+      is_built_in()
+    end
+    # Predicate alias for `is_built_in`
+    def built_in?() : Bool
+      is_built_in()
     end
     @@mb_generate_scene_unique_id : Void* = Pointer(Void).null
     def self.generate_scene_unique_id() : String
@@ -11457,10 +12441,18 @@ module Godot
       godot_bind(@@mb_has_alpha, "Texture2D", "has_alpha", 36873697_i64)
       godot_ptrcall_bool(@@mb_has_alpha, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `has_alpha`
+    def has_alpha?() : Bool
+      has_alpha()
+    end
     @@mb_has_mipmaps : Void* = Pointer(Void).null
     def has_mipmaps() : Bool
       godot_bind(@@mb_has_mipmaps, "Texture2D", "has_mipmaps", 36873697_i64)
       godot_ptrcall_bool(@@mb_has_mipmaps, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `has_mipmaps`
+    def has_mipmaps?() : Bool
+      has_mipmaps()
     end
     @@mb_draw : Void* = Pointer(Void).null
     def draw(canvas_item : Int64, position : Vector2, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32), transpose : Bool = false) : Void
@@ -11564,6 +12556,10 @@ module Godot
       godot_bind(@@mb_get_pause, "AnimatedTexture", "get_pause", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_pause, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `get_pause`
+    def get_pause?() : Bool
+      get_pause()
+    end
     @@mb_set_one_shot : Void* = Pointer(Void).null
     def set_one_shot(one_shot : Bool) : Void
       godot_bind(@@mb_set_one_shot, "AnimatedTexture", "set_one_shot", 2586408642_i64)
@@ -11576,6 +12572,10 @@ module Godot
     def get_one_shot() : Bool
       godot_bind(@@mb_get_one_shot, "AnimatedTexture", "get_one_shot", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_one_shot, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `get_one_shot`
+    def get_one_shot?() : Bool
+      get_one_shot()
     end
     @@mb_set_speed_scale : Void* = Pointer(Void).null
     def set_speed_scale(scale : Float64) : Void
@@ -11832,6 +12832,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_track_is_imported, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `track_is_imported`
+    def track_is_imported?(track_idx : Int64) : Bool
+      track_is_imported(track_idx)
+    end
     @@mb_track_set_enabled : Void* = Pointer(Void).null
     def track_set_enabled(track_idx : Int64, enabled : Bool) : Void
       godot_bind(@@mb_track_set_enabled, "Animation", "track_set_enabled", 300928843_i64)
@@ -11849,6 +12853,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_track_is_enabled, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `track_is_enabled`
+    def track_is_enabled?(track_idx : Int64) : Bool
+      track_is_enabled(track_idx)
     end
     @@mb_position_track_insert_key : Void* = Pointer(Void).null
     def position_track_insert_key(track_idx : Int64, time : Float64, position : Vector3) : Int64
@@ -12110,6 +13118,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_track_get_interpolation_loop_wrap, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `track_get_interpolation_loop_wrap`
+    def track_get_interpolation_loop_wrap?(track_idx : Int64) : Bool
+      track_get_interpolation_loop_wrap(track_idx)
+    end
     @@mb_track_is_compressed : Void* = Pointer(Void).null
     def track_is_compressed(track_idx : Int64) : Bool
       godot_bind(@@mb_track_is_compressed, "Animation", "track_is_compressed", 1116898809_i64)
@@ -12117,6 +13129,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_track_is_compressed, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `track_is_compressed`
+    def track_is_compressed?(track_idx : Int64) : Bool
+      track_is_compressed(track_idx)
     end
     @@mb_value_track_set_update_mode : Void* = Pointer(Void).null
     def value_track_set_update_mode(track_idx : Int64, mode : UpdateMode | Int) : Void
@@ -12370,6 +13386,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_audio_track_is_use_blend, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `audio_track_is_use_blend`
+    def audio_track_is_use_blend?(track_idx : Int64) : Bool
+      audio_track_is_use_blend(track_idx)
+    end
     @@mb_animation_track_insert_key : Void* = Pointer(Void).null
     def animation_track_insert_key(track_idx : Int64, time : Float64, animation : String) : Int64
       godot_bind(@@mb_animation_track_insert_key, "Animation", "animation_track_insert_key", 158676774_i64)
@@ -12439,6 +13459,10 @@ module Godot
       godot_ptrcall_bool(@@mb_has_marker, @pointer, args.to_unsafe.as(Void**))
     ensure
       Bridge.free_string_name(sn_0)
+    end
+    # Predicate alias for `has_marker`
+    def has_marker?(name : String) : Bool
+      has_marker(name)
     end
     @@mb_get_marker_at_time : Void* = Pointer(Void).null
     def get_marker_at_time(time : Float64) : String
@@ -12586,6 +13610,14 @@ module Godot
       godot_bind(@@mb_is_capture_included, "Animation", "is_capture_included", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_capture_included, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_capture_included`
+    def is_capture_included?() : Bool
+      is_capture_included()
+    end
+    # Predicate alias for `is_capture_included`
+    def capture_included?() : Bool
+      is_capture_included()
+    end
     # Property `length` getter
     def length
       get_length
@@ -12613,9 +13645,6 @@ module Godot
     # Property `capture_included` getter
     def capture_included
       is_capture_included
-    end
-    def capture_included?
-      capture_included
     end
   end
   class AnimationLibrary < Godot::Resource
@@ -12666,6 +13695,10 @@ module Godot
       godot_ptrcall_bool(@@mb_has_animation, @pointer, args.to_unsafe.as(Void**))
     ensure
       Bridge.free_string_name(sn_0)
+    end
+    # Predicate alias for `has_animation`
+    def has_animation?(name : String) : Bool
+      has_animation(name)
     end
     @@mb_get_animation : Void* = Pointer(Void).null
     def get_animation(name : String) : Animation
@@ -12757,6 +13790,10 @@ module Godot
     ensure
       Bridge.free_string_name(sn_0)
     end
+    # Predicate alias for `has_animation_library`
+    def has_animation_library?(name : String) : Bool
+      has_animation_library(name)
+    end
     @@mb_get_animation_library : Void* = Pointer(Void).null
     def get_animation_library(name : String) : AnimationLibrary
       godot_bind(@@mb_get_animation_library, "AnimationMixer", "get_animation_library", 147342321_i64)
@@ -12783,6 +13820,10 @@ module Godot
       godot_ptrcall_bool(@@mb_has_animation, @pointer, args.to_unsafe.as(Void**))
     ensure
       Bridge.free_string_name(sn_0)
+    end
+    # Predicate alias for `has_animation`
+    def has_animation?(name : String) : Bool
+      has_animation(name)
     end
     @@mb_get_animation : Void* = Pointer(Void).null
     def get_animation(name : String) : Animation
@@ -12814,6 +13855,14 @@ module Godot
       godot_bind(@@mb_is_active, "AnimationMixer", "is_active", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_active, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_active`
+    def is_active?() : Bool
+      is_active()
+    end
+    # Predicate alias for `is_active`
+    def active?() : Bool
+      is_active()
+    end
     @@mb_set_deterministic : Void* = Pointer(Void).null
     def set_deterministic(deterministic : Bool) : Void
       godot_bind(@@mb_set_deterministic, "AnimationMixer", "set_deterministic", 2586408642_i64)
@@ -12826,6 +13875,14 @@ module Godot
     def is_deterministic() : Bool
       godot_bind(@@mb_is_deterministic, "AnimationMixer", "is_deterministic", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_deterministic, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_deterministic`
+    def is_deterministic?() : Bool
+      is_deterministic()
+    end
+    # Predicate alias for `is_deterministic`
+    def deterministic?() : Bool
+      is_deterministic()
     end
     @@mb_set_root_node : Void* = Pointer(Void).null
     def set_root_node(path : NodePath | String) : Void
@@ -12922,6 +13979,14 @@ module Godot
       godot_bind(@@mb_is_root_motion_local, "AnimationMixer", "is_root_motion_local", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_root_motion_local, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_root_motion_local`
+    def is_root_motion_local?() : Bool
+      is_root_motion_local()
+    end
+    # Predicate alias for `is_root_motion_local`
+    def root_motion_local?() : Bool
+      is_root_motion_local()
+    end
     @@mb_get_root_motion_position : Void* = Pointer(Void).null
     def get_root_motion_position() : Vector3
       godot_bind(@@mb_get_root_motion_position, "AnimationMixer", "get_root_motion_position", 3360562783_i64)
@@ -12994,6 +14059,14 @@ module Godot
       godot_bind(@@mb_is_reset_on_save_enabled, "AnimationMixer", "is_reset_on_save_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_reset_on_save_enabled, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_reset_on_save_enabled`
+    def is_reset_on_save_enabled?() : Bool
+      is_reset_on_save_enabled()
+    end
+    # Predicate alias for `is_reset_on_save_enabled`
+    def reset_on_save_enabled?() : Bool
+      is_reset_on_save_enabled()
+    end
     @@mb_find_animation : Void* = Pointer(Void).null
     def find_animation(animation : Animation) : String
       godot_bind(@@mb_find_animation, "AnimationMixer", "find_animation", 1559484580_i64)
@@ -13014,9 +14087,6 @@ module Godot
     def active
       is_active
     end
-    def active?
-      active
-    end
     # Property `active` setter
     def active=(val)
       set_active(val)
@@ -13024,9 +14094,6 @@ module Godot
     # Property `deterministic` getter
     def deterministic
       is_deterministic
-    end
-    def deterministic?
-      deterministic
     end
     # Property `deterministic` setter
     def deterministic=(val)
@@ -13062,9 +14129,6 @@ module Godot
     # Property `root_motion_local` getter
     def root_motion_local
       is_root_motion_local
-    end
-    def root_motion_local?
-      root_motion_local
     end
     # Property `root_motion_local` setter
     def root_motion_local=(val)
@@ -13130,6 +14194,10 @@ module Godot
     ensure
       Bridge.free_string(str_0)
     end
+    # Predicate alias for `add_input`
+    def add_input?(name : String) : Bool
+      add_input(name)
+    end
     @@mb_remove_input : Void* = Pointer(Void).null
     def remove_input(index : Int64) : Void
       godot_bind(@@mb_remove_input, "AnimationNode", "remove_input", 1286410249_i64)
@@ -13149,6 +14217,10 @@ module Godot
       godot_ptrcall_bool(@@mb_set_input_name, @pointer, args.to_unsafe.as(Void**))
     ensure
       Bridge.free_string(str_1)
+    end
+    # Predicate alias for `set_input_name`
+    def set_input_name?(input : Int64, name : String) : Bool
+      set_input_name(input, name)
     end
     @@mb_get_input_name : Void* = Pointer(Void).null
     def get_input_name(input : Int64) : String
@@ -13195,6 +14267,14 @@ module Godot
     ensure
       Bridge.free_nodepath(np_0)
     end
+    # Predicate alias for `is_path_filtered`
+    def is_path_filtered?(path : NodePath | String) : Bool
+      is_path_filtered(path)
+    end
+    # Predicate alias for `is_path_filtered`
+    def path_filtered?(path : NodePath | String) : Bool
+      is_path_filtered(path)
+    end
     @@mb_set_filter_enabled : Void* = Pointer(Void).null
     def set_filter_enabled(enable : Bool) : Void
       godot_bind(@@mb_set_filter_enabled, "AnimationNode", "set_filter_enabled", 2586408642_i64)
@@ -13208,6 +14288,14 @@ module Godot
       godot_bind(@@mb_is_filter_enabled, "AnimationNode", "is_filter_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_filter_enabled, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_filter_enabled`
+    def is_filter_enabled?() : Bool
+      is_filter_enabled()
+    end
+    # Predicate alias for `is_filter_enabled`
+    def filter_enabled?() : Bool
+      is_filter_enabled()
+    end
     @@mb_get_processing_animation_tree_instance_id : Void* = Pointer(Void).null
     def get_processing_animation_tree_instance_id() : Int64
       godot_bind(@@mb_get_processing_animation_tree_instance_id, "AnimationNode", "get_processing_animation_tree_instance_id", 3905245786_i64)
@@ -13217,6 +14305,14 @@ module Godot
     def is_process_testing() : Bool
       godot_bind(@@mb_is_process_testing, "AnimationNode", "is_process_testing", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_process_testing, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_process_testing`
+    def is_process_testing?() : Bool
+      is_process_testing()
+    end
+    # Predicate alias for `is_process_testing`
+    def process_testing?() : Bool
+      is_process_testing()
     end
     @@mb_blend_animation : Void* = Pointer(Void).null
     def blend_animation(animation : String, time : Float64, delta : Float64, seeked : Bool, is_external_seeking : Bool, blend : Float64, looped_flag : Godot::Animation::LoopedFlag | Int = 0) : Void
@@ -13318,9 +14414,6 @@ module Godot
     def filter_enabled
       is_filter_enabled
     end
-    def filter_enabled?
-      filter_enabled
-    end
     # Property `filter_enabled` setter
     def filter_enabled=(val)
       set_filter_enabled(val)
@@ -13354,6 +14447,14 @@ module Godot
     def is_using_sync() : Bool
       godot_bind(@@mb_is_using_sync, "AnimationNodeSync", "is_using_sync", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_using_sync, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_using_sync`
+    def is_using_sync?() : Bool
+      is_using_sync()
+    end
+    # Predicate alias for `is_using_sync`
+    def using_sync?() : Bool
+      is_using_sync()
     end
     # Property `sync` getter
     def sync
@@ -13431,6 +14532,14 @@ module Godot
       godot_bind(@@mb_is_advance_on_start, "AnimationNodeAnimation", "is_advance_on_start", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_advance_on_start, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_advance_on_start`
+    def is_advance_on_start?() : Bool
+      is_advance_on_start()
+    end
+    # Predicate alias for `is_advance_on_start`
+    def advance_on_start?() : Bool
+      is_advance_on_start()
+    end
     @@mb_set_use_custom_timeline : Void* = Pointer(Void).null
     def set_use_custom_timeline(use_custom_timeline : Bool) : Void
       godot_bind(@@mb_set_use_custom_timeline, "AnimationNodeAnimation", "set_use_custom_timeline", 2586408642_i64)
@@ -13443,6 +14552,14 @@ module Godot
     def is_using_custom_timeline() : Bool
       godot_bind(@@mb_is_using_custom_timeline, "AnimationNodeAnimation", "is_using_custom_timeline", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_using_custom_timeline, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_using_custom_timeline`
+    def is_using_custom_timeline?() : Bool
+      is_using_custom_timeline()
+    end
+    # Predicate alias for `is_using_custom_timeline`
+    def using_custom_timeline?() : Bool
+      is_using_custom_timeline()
     end
     @@mb_set_timeline_length : Void* = Pointer(Void).null
     def set_timeline_length(timeline_length : Float64) : Void
@@ -13469,6 +14586,14 @@ module Godot
     def is_stretching_time_scale() : Bool
       godot_bind(@@mb_is_stretching_time_scale, "AnimationNodeAnimation", "is_stretching_time_scale", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_stretching_time_scale, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_stretching_time_scale`
+    def is_stretching_time_scale?() : Bool
+      is_stretching_time_scale()
+    end
+    # Predicate alias for `is_stretching_time_scale`
+    def stretching_time_scale?() : Bool
+      is_stretching_time_scale()
     end
     @@mb_set_start_offset : Void* = Pointer(Void).null
     def set_start_offset(start_offset : Float64) : Void
@@ -13515,9 +14640,6 @@ module Godot
     # Property `advance_on_start` getter
     def advance_on_start
       is_advance_on_start
-    end
-    def advance_on_start?
-      advance_on_start
     end
     # Property `advance_on_start` setter
     def advance_on_start=(val)
@@ -13779,6 +14901,14 @@ module Godot
     def is_using_sync() : Bool
       godot_bind(@@mb_is_using_sync, "AnimationNodeBlendSpace1D", "is_using_sync", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_using_sync, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_using_sync`
+    def is_using_sync?() : Bool
+      is_using_sync()
+    end
+    # Predicate alias for `is_using_sync`
+    def using_sync?() : Bool
+      is_using_sync()
     end
     @@mb_set_sync_mode : Void* = Pointer(Void).null
     def set_sync_mode(sync_mode : SyncMode | Int) : Void
@@ -14113,6 +15243,10 @@ module Godot
       godot_bind(@@mb_get_auto_triangles, "AnimationNodeBlendSpace2D", "get_auto_triangles", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_auto_triangles, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `get_auto_triangles`
+    def get_auto_triangles?() : Bool
+      get_auto_triangles()
+    end
     @@mb_set_blend_mode : Void* = Pointer(Void).null
     def set_blend_mode(mode : BlendMode | Int) : Void
       godot_bind(@@mb_set_blend_mode, "AnimationNodeBlendSpace2D", "set_blend_mode", 81193520_i64)
@@ -14138,6 +15272,14 @@ module Godot
     def is_using_sync() : Bool
       godot_bind(@@mb_is_using_sync, "AnimationNodeBlendSpace2D", "is_using_sync", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_using_sync, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_using_sync`
+    def is_using_sync?() : Bool
+      is_using_sync()
+    end
+    # Predicate alias for `is_using_sync`
+    def using_sync?() : Bool
+      is_using_sync()
     end
     @@mb_set_sync_mode : Void* = Pointer(Void).null
     def set_sync_mode(sync_mode : SyncMode | Int) : Void
@@ -14314,6 +15456,10 @@ module Godot
     ensure
       Bridge.free_string_name(sn_0)
     end
+    # Predicate alias for `has_node`
+    def has_node?(name : String) : Bool
+      has_node(name)
+    end
     @@mb_connect_node : Void* = Pointer(Void).null
     def connect_node(input_node : String, input_index : Int64, output_node : String) : Void
       godot_bind(@@mb_connect_node, "AnimationNodeBlendTree", "connect_node", 2168001410_i64)
@@ -14408,6 +15554,22 @@ module Godot
     # Instance convenience delegator for static method `is_looping`
     def is_looping(node_info : Pointer(Void)) : Bool
       self.class.is_looping(node_info)
+    end
+    # Predicate alias for `is_looping`
+    def self.is_looping?(node_info : Pointer(Void)) : Bool
+      self.class.is_looping(node_info)
+    end
+    # Instance convenience delegator for static predicate `is_looping`
+    def is_looping?(node_info : Pointer(Void)) : Bool
+      self.class.is_looping?(node_info)
+    end
+    # Predicate alias for `is_looping`
+    def self.looping?(node_info : Pointer(Void)) : Bool
+      self.class.is_looping(node_info)
+    end
+    # Instance convenience delegator for static predicate `is_looping`
+    def looping?(node_info : Pointer(Void)) : Bool
+      self.class.looping?(node_info)
     end
     @@mb_get_remaining_time : Void* = Pointer(Void).null
     def self.get_remaining_time(node_info : Pointer(Void), break_loop : Bool) : Float64
@@ -14530,6 +15692,14 @@ module Godot
       godot_bind(@@mb_is_loop_broken_at_end, "AnimationNodeOneShot", "is_loop_broken_at_end", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_loop_broken_at_end, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_loop_broken_at_end`
+    def is_loop_broken_at_end?() : Bool
+      is_loop_broken_at_end()
+    end
+    # Predicate alias for `is_loop_broken_at_end`
+    def loop_broken_at_end?() : Bool
+      is_loop_broken_at_end()
+    end
     @@mb_set_abort_on_reset : Void* = Pointer(Void).null
     def set_abort_on_reset(enable : Bool) : Void
       godot_bind(@@mb_set_abort_on_reset, "AnimationNodeOneShot", "set_abort_on_reset", 2586408642_i64)
@@ -14543,6 +15713,14 @@ module Godot
       godot_bind(@@mb_is_aborted_on_reset, "AnimationNodeOneShot", "is_aborted_on_reset", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_aborted_on_reset, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_aborted_on_reset`
+    def is_aborted_on_reset?() : Bool
+      is_aborted_on_reset()
+    end
+    # Predicate alias for `is_aborted_on_reset`
+    def aborted_on_reset?() : Bool
+      is_aborted_on_reset()
+    end
     @@mb_set_autorestart : Void* = Pointer(Void).null
     def set_autorestart(active : Bool) : Void
       godot_bind(@@mb_set_autorestart, "AnimationNodeOneShot", "set_autorestart", 2586408642_i64)
@@ -14555,6 +15733,10 @@ module Godot
     def has_autorestart() : Bool
       godot_bind(@@mb_has_autorestart, "AnimationNodeOneShot", "has_autorestart", 36873697_i64)
       godot_ptrcall_bool(@@mb_has_autorestart, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `has_autorestart`
+    def has_autorestart?() : Bool
+      has_autorestart()
     end
     @@mb_set_autorestart_delay : Void* = Pointer(Void).null
     def set_autorestart_delay(time : Float64) : Void
@@ -14768,6 +15950,10 @@ module Godot
     ensure
       Bridge.free_string_name(sn_0)
     end
+    # Predicate alias for `has_node`
+    def has_node?(name : String) : Bool
+      has_node(name)
+    end
     @@mb_get_node_name : Void* = Pointer(Void).null
     def get_node_name(node : AnimationNode) : String
       godot_bind(@@mb_get_node_name, "AnimationNodeStateMachine", "get_node_name", 739213945_i64)
@@ -14817,6 +16003,10 @@ module Godot
     ensure
       Bridge.free_string_name(sn_0)
       Bridge.free_string_name(sn_1)
+    end
+    # Predicate alias for `has_transition`
+    def has_transition?(from : String, to : String) : Bool
+      has_transition(from, to)
     end
     @@mb_add_transition : Void* = Pointer(Void).null
     def add_transition(from : String, to : String, transition : AnimationNodeStateMachineTransition) : Void
@@ -14922,6 +16112,14 @@ module Godot
       godot_bind(@@mb_is_allow_transition_to_self, "AnimationNodeStateMachine", "is_allow_transition_to_self", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_allow_transition_to_self, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_allow_transition_to_self`
+    def is_allow_transition_to_self?() : Bool
+      is_allow_transition_to_self()
+    end
+    # Predicate alias for `is_allow_transition_to_self`
+    def allow_transition_to_self?() : Bool
+      is_allow_transition_to_self()
+    end
     @@mb_set_reset_ends : Void* = Pointer(Void).null
     def set_reset_ends(enable : Bool) : Void
       godot_bind(@@mb_set_reset_ends, "AnimationNodeStateMachine", "set_reset_ends", 2586408642_i64)
@@ -14935,6 +16133,14 @@ module Godot
       godot_bind(@@mb_are_ends_reset, "AnimationNodeStateMachine", "are_ends_reset", 36873697_i64)
       godot_ptrcall_bool(@@mb_are_ends_reset, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `are_ends_reset`
+    def are_ends_reset?() : Bool
+      are_ends_reset()
+    end
+    # Predicate alias for `are_ends_reset`
+    def ends_reset?() : Bool
+      are_ends_reset()
+    end
     # Property `state_machine_type` getter
     def state_machine_type
       get_state_machine_type
@@ -14946,9 +16152,6 @@ module Godot
     # Property `allow_transition_to_self` getter
     def allow_transition_to_self
       is_allow_transition_to_self
-    end
-    def allow_transition_to_self?
-      allow_transition_to_self
     end
     # Property `allow_transition_to_self` setter
     def allow_transition_to_self=(val)
@@ -15008,6 +16211,14 @@ module Godot
     def is_playing() : Bool
       godot_bind(@@mb_is_playing, "AnimationNodeStateMachinePlayback", "is_playing", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_playing, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_playing`
+    def is_playing?() : Bool
+      is_playing()
+    end
+    # Predicate alias for `is_playing`
+    def playing?() : Bool
+      is_playing()
     end
     @@mb_get_current_node : Void* = Pointer(Void).null
     def get_current_node() : String
@@ -15153,6 +16364,14 @@ module Godot
       godot_bind(@@mb_is_loop_broken_at_end, "AnimationNodeStateMachineTransition", "is_loop_broken_at_end", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_loop_broken_at_end, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_loop_broken_at_end`
+    def is_loop_broken_at_end?() : Bool
+      is_loop_broken_at_end()
+    end
+    # Predicate alias for `is_loop_broken_at_end`
+    def loop_broken_at_end?() : Bool
+      is_loop_broken_at_end()
+    end
     @@mb_set_reset : Void* = Pointer(Void).null
     def set_reset(reset : Bool) : Void
       godot_bind(@@mb_set_reset, "AnimationNodeStateMachineTransition", "set_reset", 2586408642_i64)
@@ -15165,6 +16384,14 @@ module Godot
     def is_reset() : Bool
       godot_bind(@@mb_is_reset, "AnimationNodeStateMachineTransition", "is_reset", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_reset, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_reset`
+    def is_reset?() : Bool
+      is_reset()
+    end
+    # Predicate alias for `is_reset`
+    def reset?() : Bool
+      is_reset()
     end
     @@mb_set_priority : Void* = Pointer(Void).null
     def set_priority(priority : Int64) : Void
@@ -15224,9 +16451,6 @@ module Godot
     # Property `reset` getter
     def reset
       is_reset
-    end
-    def reset?
-      reset
     end
     # Property `reset` setter
     def reset=(val)
@@ -15301,12 +16525,17 @@ module Godot
       godot_bind(@@mb_is_explicit_elapse, "AnimationNodeTimeSeek", "is_explicit_elapse", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_explicit_elapse, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_explicit_elapse`
+    def is_explicit_elapse?() : Bool
+      is_explicit_elapse()
+    end
+    # Predicate alias for `is_explicit_elapse`
+    def explicit_elapse?() : Bool
+      is_explicit_elapse()
+    end
     # Property `explicit_elapse` getter
     def explicit_elapse
       is_explicit_elapse
-    end
-    def explicit_elapse?
-      explicit_elapse
     end
     # Property `explicit_elapse` setter
     def explicit_elapse=(val)
@@ -15343,6 +16572,14 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_input_set_as_auto_advance, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `is_input_set_as_auto_advance`
+    def is_input_set_as_auto_advance?(input : Int64) : Bool
+      is_input_set_as_auto_advance(input)
+    end
+    # Predicate alias for `is_input_set_as_auto_advance`
+    def input_set_as_auto_advance?(input : Int64) : Bool
+      is_input_set_as_auto_advance(input)
+    end
     @@mb_set_input_break_loop_at_end : Void* = Pointer(Void).null
     def set_input_break_loop_at_end(input : Int64, enable : Bool) : Void
       godot_bind(@@mb_set_input_break_loop_at_end, "AnimationNodeTransition", "set_input_break_loop_at_end", 300928843_i64)
@@ -15361,6 +16598,14 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_input_loop_broken_at_end, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `is_input_loop_broken_at_end`
+    def is_input_loop_broken_at_end?(input : Int64) : Bool
+      is_input_loop_broken_at_end(input)
+    end
+    # Predicate alias for `is_input_loop_broken_at_end`
+    def input_loop_broken_at_end?(input : Int64) : Bool
+      is_input_loop_broken_at_end(input)
+    end
     @@mb_set_input_reset : Void* = Pointer(Void).null
     def set_input_reset(input : Int64, enable : Bool) : Void
       godot_bind(@@mb_set_input_reset, "AnimationNodeTransition", "set_input_reset", 300928843_i64)
@@ -15378,6 +16623,14 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_input_reset, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `is_input_reset`
+    def is_input_reset?(input : Int64) : Bool
+      is_input_reset(input)
+    end
+    # Predicate alias for `is_input_reset`
+    def input_reset?(input : Int64) : Bool
+      is_input_reset(input)
     end
     @@mb_set_xfade_time : Void* = Pointer(Void).null
     def set_xfade_time(time : Float64) : Void
@@ -15418,6 +16671,14 @@ module Godot
       godot_bind(@@mb_is_allow_transition_to_self, "AnimationNodeTransition", "is_allow_transition_to_self", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_allow_transition_to_self, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_allow_transition_to_self`
+    def is_allow_transition_to_self?() : Bool
+      is_allow_transition_to_self()
+    end
+    # Predicate alias for `is_allow_transition_to_self`
+    def allow_transition_to_self?() : Bool
+      is_allow_transition_to_self()
+    end
     # Property `xfade_time` getter
     def xfade_time
       get_xfade_time
@@ -15437,9 +16698,6 @@ module Godot
     # Property `allow_transition_to_self` getter
     def allow_transition_to_self
       is_allow_transition_to_self
-    end
-    def allow_transition_to_self?
-      allow_transition_to_self
     end
     # Property `allow_transition_to_self` setter
     def allow_transition_to_self=(val)
@@ -15543,6 +16801,14 @@ module Godot
     def is_auto_capture() : Bool
       godot_bind(@@mb_is_auto_capture, "AnimationPlayer", "is_auto_capture", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_auto_capture, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_auto_capture`
+    def is_auto_capture?() : Bool
+      is_auto_capture()
+    end
+    # Predicate alias for `is_auto_capture`
+    def auto_capture?() : Bool
+      is_auto_capture()
     end
     @@mb_set_auto_capture_duration : Void* = Pointer(Void).null
     def set_auto_capture_duration(auto_capture_duration : Float64) : Void
@@ -15727,10 +16993,26 @@ module Godot
       godot_bind(@@mb_is_playing, "AnimationPlayer", "is_playing", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_playing, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_playing`
+    def is_playing?() : Bool
+      is_playing()
+    end
+    # Predicate alias for `is_playing`
+    def playing?() : Bool
+      is_playing()
+    end
     @@mb_is_animation_active : Void* = Pointer(Void).null
     def is_animation_active() : Bool
       godot_bind(@@mb_is_animation_active, "AnimationPlayer", "is_animation_active", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_animation_active, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_animation_active`
+    def is_animation_active?() : Bool
+      is_animation_active()
+    end
+    # Predicate alias for `is_animation_active`
+    def animation_active?() : Bool
+      is_animation_active()
     end
     @@mb_set_current_animation : Void* = Pointer(Void).null
     def set_current_animation(animation : String) : Void
@@ -15830,6 +17112,14 @@ module Godot
       godot_bind(@@mb_is_movie_quit_on_finish_enabled, "AnimationPlayer", "is_movie_quit_on_finish_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_movie_quit_on_finish_enabled, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_movie_quit_on_finish_enabled`
+    def is_movie_quit_on_finish_enabled?() : Bool
+      is_movie_quit_on_finish_enabled()
+    end
+    # Predicate alias for `is_movie_quit_on_finish_enabled`
+    def movie_quit_on_finish_enabled?() : Bool
+      is_movie_quit_on_finish_enabled()
+    end
     @@mb_set_clear_cache_on_stop_enabled : Void* = Pointer(Void).null
     def set_clear_cache_on_stop_enabled(enabled : Bool) : Void
       godot_bind(@@mb_set_clear_cache_on_stop_enabled, "AnimationPlayer", "set_clear_cache_on_stop_enabled", 2586408642_i64)
@@ -15842,6 +17132,14 @@ module Godot
     def is_clear_cache_on_stop_enabled() : Bool
       godot_bind(@@mb_is_clear_cache_on_stop_enabled, "AnimationPlayer", "is_clear_cache_on_stop_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_clear_cache_on_stop_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_clear_cache_on_stop_enabled`
+    def is_clear_cache_on_stop_enabled?() : Bool
+      is_clear_cache_on_stop_enabled()
+    end
+    # Predicate alias for `is_clear_cache_on_stop_enabled`
+    def clear_cache_on_stop_enabled?() : Bool
+      is_clear_cache_on_stop_enabled()
     end
     @@mb_get_current_animation_position : Void* = Pointer(Void).null
     def get_current_animation_position() : Float64
@@ -15895,6 +17193,10 @@ module Godot
     def has_section() : Bool
       godot_bind(@@mb_has_section, "AnimationPlayer", "has_section", 36873697_i64)
       godot_ptrcall_bool(@@mb_has_section, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `has_section`
+    def has_section?() : Bool
+      has_section()
     end
     @@mb_seek : Void* = Pointer(Void).null
     def seek(seconds : Float64, update : Bool = false, update_only : Bool = false) : Void
@@ -16185,6 +17487,14 @@ module Godot
       godot_bind(@@mb_is_gravity_a_point, "Area2D", "is_gravity_a_point", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_gravity_a_point, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_gravity_a_point`
+    def is_gravity_a_point?() : Bool
+      is_gravity_a_point()
+    end
+    # Predicate alias for `is_gravity_a_point`
+    def gravity_a_point?() : Bool
+      is_gravity_a_point()
+    end
     @@mb_set_gravity_point_unit_distance : Void* = Pointer(Void).null
     def set_gravity_point_unit_distance(distance_scale : Float64) : Void
       godot_bind(@@mb_set_gravity_point_unit_distance, "Area2D", "set_gravity_point_unit_distance", 373806689_i64)
@@ -16315,6 +17625,14 @@ module Godot
       godot_bind(@@mb_is_monitoring, "Area2D", "is_monitoring", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_monitoring, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_monitoring`
+    def is_monitoring?() : Bool
+      is_monitoring()
+    end
+    # Predicate alias for `is_monitoring`
+    def monitoring?() : Bool
+      is_monitoring()
+    end
     @@mb_set_monitorable : Void* = Pointer(Void).null
     def set_monitorable(enable : Bool) : Void
       godot_bind(@@mb_set_monitorable, "Area2D", "set_monitorable", 2586408642_i64)
@@ -16327,6 +17645,14 @@ module Godot
     def is_monitorable() : Bool
       godot_bind(@@mb_is_monitorable, "Area2D", "is_monitorable", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_monitorable, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_monitorable`
+    def is_monitorable?() : Bool
+      is_monitorable()
+    end
+    # Predicate alias for `is_monitorable`
+    def monitorable?() : Bool
+      is_monitorable()
     end
     @@mb_get_overlapping_bodies : Void* = Pointer(Void).null
     def get_overlapping_bodies() : Pointer(Void)
@@ -16347,10 +17673,18 @@ module Godot
       godot_bind(@@mb_has_overlapping_bodies, "Area2D", "has_overlapping_bodies", 36873697_i64)
       godot_ptrcall_bool(@@mb_has_overlapping_bodies, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `has_overlapping_bodies`
+    def has_overlapping_bodies?() : Bool
+      has_overlapping_bodies()
+    end
     @@mb_has_overlapping_areas : Void* = Pointer(Void).null
     def has_overlapping_areas() : Bool
       godot_bind(@@mb_has_overlapping_areas, "Area2D", "has_overlapping_areas", 36873697_i64)
       godot_ptrcall_bool(@@mb_has_overlapping_areas, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `has_overlapping_areas`
+    def has_overlapping_areas?() : Bool
+      has_overlapping_areas()
     end
     @@mb_overlaps_body : Void* = Pointer(Void).null
     def overlaps_body(body : Node) : Bool
@@ -16360,6 +17694,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_overlaps_body, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `overlaps_body`
+    def overlaps_body?(body : Node) : Bool
+      overlaps_body(body)
+    end
     @@mb_overlaps_area : Void* = Pointer(Void).null
     def overlaps_area(area : Node) : Bool
       godot_bind(@@mb_overlaps_area, "Area2D", "overlaps_area", 3093956946_i64)
@@ -16367,6 +17705,10 @@ module Godot
       arg_0 = pointerof(arg_ptr_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_overlaps_area, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `overlaps_area`
+    def overlaps_area?(area : Node) : Bool
+      overlaps_area(area)
     end
     @@mb_set_audio_bus_name : Void* = Pointer(Void).null
     def set_audio_bus_name(name : String) : Void
@@ -16396,12 +17738,17 @@ module Godot
       godot_bind(@@mb_is_overriding_audio_bus, "Area2D", "is_overriding_audio_bus", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_overriding_audio_bus, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_overriding_audio_bus`
+    def is_overriding_audio_bus?() : Bool
+      is_overriding_audio_bus()
+    end
+    # Predicate alias for `is_overriding_audio_bus`
+    def overriding_audio_bus?() : Bool
+      is_overriding_audio_bus()
+    end
     # Property `monitoring` getter
     def monitoring
       is_monitoring
-    end
-    def monitoring?
-      monitoring
     end
     # Property `monitoring` setter
     def monitoring=(val)
@@ -16410,9 +17757,6 @@ module Godot
     # Property `monitorable` getter
     def monitorable
       is_monitorable
-    end
-    def monitorable?
-      monitorable
     end
     # Property `monitorable` setter
     def monitorable=(val)
@@ -16573,6 +17917,14 @@ module Godot
     def is_gravity_a_point() : Bool
       godot_bind(@@mb_is_gravity_a_point, "Area3D", "is_gravity_a_point", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_gravity_a_point, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_gravity_a_point`
+    def is_gravity_a_point?() : Bool
+      is_gravity_a_point()
+    end
+    # Predicate alias for `is_gravity_a_point`
+    def gravity_a_point?() : Bool
+      is_gravity_a_point()
     end
     @@mb_set_gravity_point_unit_distance : Void* = Pointer(Void).null
     def set_gravity_point_unit_distance(distance_scale : Float64) : Void
@@ -16745,6 +18097,14 @@ module Godot
       godot_bind(@@mb_is_monitorable, "Area3D", "is_monitorable", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_monitorable, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_monitorable`
+    def is_monitorable?() : Bool
+      is_monitorable()
+    end
+    # Predicate alias for `is_monitorable`
+    def monitorable?() : Bool
+      is_monitorable()
+    end
     @@mb_set_monitoring : Void* = Pointer(Void).null
     def set_monitoring(enable : Bool) : Void
       godot_bind(@@mb_set_monitoring, "Area3D", "set_monitoring", 2586408642_i64)
@@ -16757,6 +18117,14 @@ module Godot
     def is_monitoring() : Bool
       godot_bind(@@mb_is_monitoring, "Area3D", "is_monitoring", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_monitoring, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_monitoring`
+    def is_monitoring?() : Bool
+      is_monitoring()
+    end
+    # Predicate alias for `is_monitoring`
+    def monitoring?() : Bool
+      is_monitoring()
     end
     @@mb_get_overlapping_bodies : Void* = Pointer(Void).null
     def get_overlapping_bodies() : Pointer(Void)
@@ -16777,10 +18145,18 @@ module Godot
       godot_bind(@@mb_has_overlapping_bodies, "Area3D", "has_overlapping_bodies", 36873697_i64)
       godot_ptrcall_bool(@@mb_has_overlapping_bodies, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `has_overlapping_bodies`
+    def has_overlapping_bodies?() : Bool
+      has_overlapping_bodies()
+    end
     @@mb_has_overlapping_areas : Void* = Pointer(Void).null
     def has_overlapping_areas() : Bool
       godot_bind(@@mb_has_overlapping_areas, "Area3D", "has_overlapping_areas", 36873697_i64)
       godot_ptrcall_bool(@@mb_has_overlapping_areas, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `has_overlapping_areas`
+    def has_overlapping_areas?() : Bool
+      has_overlapping_areas()
     end
     @@mb_overlaps_body : Void* = Pointer(Void).null
     def overlaps_body(body : Node) : Bool
@@ -16790,6 +18166,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_overlaps_body, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `overlaps_body`
+    def overlaps_body?(body : Node) : Bool
+      overlaps_body(body)
+    end
     @@mb_overlaps_area : Void* = Pointer(Void).null
     def overlaps_area(area : Node) : Bool
       godot_bind(@@mb_overlaps_area, "Area3D", "overlaps_area", 3093956946_i64)
@@ -16797,6 +18177,10 @@ module Godot
       arg_0 = pointerof(arg_ptr_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_overlaps_area, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `overlaps_area`
+    def overlaps_area?(area : Node) : Bool
+      overlaps_area(area)
     end
     @@mb_set_audio_bus_override : Void* = Pointer(Void).null
     def set_audio_bus_override(enable : Bool) : Void
@@ -16810,6 +18194,14 @@ module Godot
     def is_overriding_audio_bus() : Bool
       godot_bind(@@mb_is_overriding_audio_bus, "Area3D", "is_overriding_audio_bus", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_overriding_audio_bus, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_overriding_audio_bus`
+    def is_overriding_audio_bus?() : Bool
+      is_overriding_audio_bus()
+    end
+    # Predicate alias for `is_overriding_audio_bus`
+    def overriding_audio_bus?() : Bool
+      is_overriding_audio_bus()
     end
     @@mb_set_audio_bus_name : Void* = Pointer(Void).null
     def set_audio_bus_name(name : String) : Void
@@ -16838,6 +18230,14 @@ module Godot
     def is_using_reverb_bus() : Bool
       godot_bind(@@mb_is_using_reverb_bus, "Area3D", "is_using_reverb_bus", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_using_reverb_bus, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_using_reverb_bus`
+    def is_using_reverb_bus?() : Bool
+      is_using_reverb_bus()
+    end
+    # Predicate alias for `is_using_reverb_bus`
+    def using_reverb_bus?() : Bool
+      is_using_reverb_bus()
     end
     @@mb_set_reverb_bus_name : Void* = Pointer(Void).null
     def set_reverb_bus_name(name : String) : Void
@@ -16884,9 +18284,6 @@ module Godot
     def monitoring
       is_monitoring
     end
-    def monitoring?
-      monitoring
-    end
     # Property `monitoring` setter
     def monitoring=(val)
       set_monitoring(val)
@@ -16894,9 +18291,6 @@ module Godot
     # Property `monitorable` getter
     def monitorable
       is_monitorable
-    end
-    def monitorable?
-      monitorable
     end
     # Property `monitorable` setter
     def monitorable=(val)
@@ -17128,6 +18522,14 @@ module Godot
       godot_bind(@@mb_is_editor_only, "Light3D", "is_editor_only", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_editor_only, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_editor_only`
+    def is_editor_only?() : Bool
+      is_editor_only()
+    end
+    # Predicate alias for `is_editor_only`
+    def editor_only?() : Bool
+      is_editor_only()
+    end
     @@mb_set_param : Void* = Pointer(Void).null
     def set_param(param : Param | Int, value : Float64) : Void
       godot_bind(@@mb_set_param, "Light3D", "set_param", 1722734213_i64)
@@ -17159,6 +18561,10 @@ module Godot
       godot_bind(@@mb_has_shadow, "Light3D", "has_shadow", 36873697_i64)
       godot_ptrcall_bool(@@mb_has_shadow, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `has_shadow`
+    def has_shadow?() : Bool
+      has_shadow()
+    end
     @@mb_set_negative : Void* = Pointer(Void).null
     def set_negative(enabled : Bool) : Void
       godot_bind(@@mb_set_negative, "Light3D", "set_negative", 2586408642_i64)
@@ -17171,6 +18577,14 @@ module Godot
     def is_negative() : Bool
       godot_bind(@@mb_is_negative, "Light3D", "is_negative", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_negative, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_negative`
+    def is_negative?() : Bool
+      is_negative()
+    end
+    # Predicate alias for `is_negative`
+    def negative?() : Bool
+      is_negative()
     end
     @@mb_set_cull_mask : Void* = Pointer(Void).null
     def set_cull_mask(cull_mask : Int64) : Void
@@ -17197,6 +18611,14 @@ module Godot
     def is_distance_fade_enabled() : Bool
       godot_bind(@@mb_is_distance_fade_enabled, "Light3D", "is_distance_fade_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_distance_fade_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_distance_fade_enabled`
+    def is_distance_fade_enabled?() : Bool
+      is_distance_fade_enabled()
+    end
+    # Predicate alias for `is_distance_fade_enabled`
+    def distance_fade_enabled?() : Bool
+      is_distance_fade_enabled()
     end
     @@mb_set_distance_fade_begin : Void* = Pointer(Void).null
     def set_distance_fade_begin(distance : Float64) : Void
@@ -17263,6 +18685,10 @@ module Godot
       godot_bind(@@mb_get_shadow_reverse_cull_face, "Light3D", "get_shadow_reverse_cull_face", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_shadow_reverse_cull_face, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `get_shadow_reverse_cull_face`
+    def get_shadow_reverse_cull_face?() : Bool
+      get_shadow_reverse_cull_face()
+    end
     @@mb_set_shadow_caster_mask : Void* = Pointer(Void).null
     def set_shadow_caster_mask(caster_mask : Int64) : Void
       godot_bind(@@mb_set_shadow_caster_mask, "Light3D", "set_shadow_caster_mask", 1286410249_i64)
@@ -17288,6 +18714,10 @@ module Godot
     def get_allow_contact_shadows() : Bool
       godot_bind(@@mb_get_allow_contact_shadows, "Light3D", "get_allow_contact_shadows", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_allow_contact_shadows, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `get_allow_contact_shadows`
+    def get_allow_contact_shadows?() : Bool
+      get_allow_contact_shadows()
     end
     @@mb_set_bake_mode : Void* = Pointer(Void).null
     def set_bake_mode(bake_mode : BakeMode | Int) : Void
@@ -17549,9 +18979,6 @@ module Godot
     def distance_fade_enabled
       is_distance_fade_enabled
     end
-    def distance_fade_enabled?
-      distance_fade_enabled
-    end
     # Property `distance_fade_enabled` setter
     def distance_fade_enabled=(val)
       set_enable_distance_fade(val)
@@ -17583,9 +19010,6 @@ module Godot
     # Property `editor_only` getter
     def editor_only
       is_editor_only
-    end
-    def editor_only?
-      editor_only
     end
     # Property `editor_only` setter
     def editor_only=(val)
@@ -17634,6 +19058,14 @@ module Godot
     def is_area_normalizing_energy() : Bool
       godot_bind(@@mb_is_area_normalizing_energy, "AreaLight3D", "is_area_normalizing_energy", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_area_normalizing_energy, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_area_normalizing_energy`
+    def is_area_normalizing_energy?() : Bool
+      is_area_normalizing_energy()
+    end
+    # Predicate alias for `is_area_normalizing_energy`
+    def area_normalizing_energy?() : Bool
+      is_area_normalizing_energy()
     end
     # Property `area_range` getter
     def area_range
@@ -18316,6 +19748,14 @@ module Godot
       godot_bind(@@mb_is_propagating_maximum_size, "Control", "is_propagating_maximum_size", 2240911060_i64)
       godot_ptrcall_bool(@@mb_is_propagating_maximum_size, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_propagating_maximum_size`
+    def is_propagating_maximum_size?() : Bool
+      is_propagating_maximum_size()
+    end
+    # Predicate alias for `is_propagating_maximum_size`
+    def propagating_maximum_size?() : Bool
+      is_propagating_maximum_size()
+    end
     @@mb_get_bound_minimum_size : Void* = Pointer(Void).null
     def get_bound_minimum_size() : Vector2
       godot_bind(@@mb_get_bound_minimum_size, "Control", "get_bound_minimum_size", 3341600327_i64)
@@ -18640,6 +20080,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_has_focus, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `has_focus`
+    def has_focus?(ignore_hidden_focus : Bool = false) : Bool
+      has_focus(ignore_hidden_focus)
+    end
     @@mb_grab_focus : Void* = Pointer(Void).null
     def grab_focus(hide_focus : Bool = false) : Void
       godot_bind(@@mb_grab_focus, "Control", "grab_focus", 107499316_i64)
@@ -18722,6 +20166,14 @@ module Godot
     def is_offset_transform_enabled() : Bool
       godot_bind(@@mb_is_offset_transform_enabled, "Control", "is_offset_transform_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_offset_transform_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_offset_transform_enabled`
+    def is_offset_transform_enabled?() : Bool
+      is_offset_transform_enabled()
+    end
+    # Predicate alias for `is_offset_transform_enabled`
+    def offset_transform_enabled?() : Bool
+      is_offset_transform_enabled()
     end
     @@mb_set_offset_transform_position : Void* = Pointer(Void).null
     def set_offset_transform_position(offset : Vector2) : Void
@@ -18813,6 +20265,14 @@ module Godot
     def is_offset_transform_visual_only() : Bool
       godot_bind(@@mb_is_offset_transform_visual_only, "Control", "is_offset_transform_visual_only", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_offset_transform_visual_only, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_offset_transform_visual_only`
+    def is_offset_transform_visual_only?() : Bool
+      is_offset_transform_visual_only()
+    end
+    # Predicate alias for `is_offset_transform_visual_only`
+    def offset_transform_visual_only?() : Bool
+      is_offset_transform_visual_only()
     end
     @@mb_set_theme : Void* = Pointer(Void).null
     def set_theme(theme : Theme) : Void
@@ -19072,6 +20532,10 @@ module Godot
     ensure
       Bridge.free_string_name(sn_0)
     end
+    # Predicate alias for `has_theme_icon_override`
+    def has_theme_icon_override?(name : String) : Bool
+      has_theme_icon_override(name)
+    end
     @@mb_has_theme_stylebox_override : Void* = Pointer(Void).null
     def has_theme_stylebox_override(name : String) : Bool
       godot_bind(@@mb_has_theme_stylebox_override, "Control", "has_theme_stylebox_override", 2619796661_i64)
@@ -19081,6 +20545,10 @@ module Godot
       godot_ptrcall_bool(@@mb_has_theme_stylebox_override, @pointer, args.to_unsafe.as(Void**))
     ensure
       Bridge.free_string_name(sn_0)
+    end
+    # Predicate alias for `has_theme_stylebox_override`
+    def has_theme_stylebox_override?(name : String) : Bool
+      has_theme_stylebox_override(name)
     end
     @@mb_has_theme_font_override : Void* = Pointer(Void).null
     def has_theme_font_override(name : String) : Bool
@@ -19092,6 +20560,10 @@ module Godot
     ensure
       Bridge.free_string_name(sn_0)
     end
+    # Predicate alias for `has_theme_font_override`
+    def has_theme_font_override?(name : String) : Bool
+      has_theme_font_override(name)
+    end
     @@mb_has_theme_font_size_override : Void* = Pointer(Void).null
     def has_theme_font_size_override(name : String) : Bool
       godot_bind(@@mb_has_theme_font_size_override, "Control", "has_theme_font_size_override", 2619796661_i64)
@@ -19101,6 +20573,10 @@ module Godot
       godot_ptrcall_bool(@@mb_has_theme_font_size_override, @pointer, args.to_unsafe.as(Void**))
     ensure
       Bridge.free_string_name(sn_0)
+    end
+    # Predicate alias for `has_theme_font_size_override`
+    def has_theme_font_size_override?(name : String) : Bool
+      has_theme_font_size_override(name)
     end
     @@mb_has_theme_color_override : Void* = Pointer(Void).null
     def has_theme_color_override(name : String) : Bool
@@ -19112,6 +20588,10 @@ module Godot
     ensure
       Bridge.free_string_name(sn_0)
     end
+    # Predicate alias for `has_theme_color_override`
+    def has_theme_color_override?(name : String) : Bool
+      has_theme_color_override(name)
+    end
     @@mb_has_theme_constant_override : Void* = Pointer(Void).null
     def has_theme_constant_override(name : String) : Bool
       godot_bind(@@mb_has_theme_constant_override, "Control", "has_theme_constant_override", 2619796661_i64)
@@ -19121,6 +20601,10 @@ module Godot
       godot_ptrcall_bool(@@mb_has_theme_constant_override, @pointer, args.to_unsafe.as(Void**))
     ensure
       Bridge.free_string_name(sn_0)
+    end
+    # Predicate alias for `has_theme_constant_override`
+    def has_theme_constant_override?(name : String) : Bool
+      has_theme_constant_override(name)
     end
     @@mb_has_theme_icon : Void* = Pointer(Void).null
     def has_theme_icon(name : String, theme_type : String = "") : Bool
@@ -19135,6 +20619,10 @@ module Godot
       Bridge.free_string_name(sn_0)
       Bridge.free_string_name(sn_1)
     end
+    # Predicate alias for `has_theme_icon`
+    def has_theme_icon?(name : String, theme_type : String = "") : Bool
+      has_theme_icon(name, theme_type)
+    end
     @@mb_has_theme_stylebox : Void* = Pointer(Void).null
     def has_theme_stylebox(name : String, theme_type : String = "") : Bool
       godot_bind(@@mb_has_theme_stylebox, "Control", "has_theme_stylebox", 866386512_i64)
@@ -19147,6 +20635,10 @@ module Godot
     ensure
       Bridge.free_string_name(sn_0)
       Bridge.free_string_name(sn_1)
+    end
+    # Predicate alias for `has_theme_stylebox`
+    def has_theme_stylebox?(name : String, theme_type : String = "") : Bool
+      has_theme_stylebox(name, theme_type)
     end
     @@mb_has_theme_font : Void* = Pointer(Void).null
     def has_theme_font(name : String, theme_type : String = "") : Bool
@@ -19161,6 +20653,10 @@ module Godot
       Bridge.free_string_name(sn_0)
       Bridge.free_string_name(sn_1)
     end
+    # Predicate alias for `has_theme_font`
+    def has_theme_font?(name : String, theme_type : String = "") : Bool
+      has_theme_font(name, theme_type)
+    end
     @@mb_has_theme_font_size : Void* = Pointer(Void).null
     def has_theme_font_size(name : String, theme_type : String = "") : Bool
       godot_bind(@@mb_has_theme_font_size, "Control", "has_theme_font_size", 866386512_i64)
@@ -19173,6 +20669,10 @@ module Godot
     ensure
       Bridge.free_string_name(sn_0)
       Bridge.free_string_name(sn_1)
+    end
+    # Predicate alias for `has_theme_font_size`
+    def has_theme_font_size?(name : String, theme_type : String = "") : Bool
+      has_theme_font_size(name, theme_type)
     end
     @@mb_has_theme_color : Void* = Pointer(Void).null
     def has_theme_color(name : String, theme_type : String = "") : Bool
@@ -19187,6 +20687,10 @@ module Godot
       Bridge.free_string_name(sn_0)
       Bridge.free_string_name(sn_1)
     end
+    # Predicate alias for `has_theme_color`
+    def has_theme_color?(name : String, theme_type : String = "") : Bool
+      has_theme_color(name, theme_type)
+    end
     @@mb_has_theme_constant : Void* = Pointer(Void).null
     def has_theme_constant(name : String, theme_type : String = "") : Bool
       godot_bind(@@mb_has_theme_constant, "Control", "has_theme_constant", 866386512_i64)
@@ -19199,6 +20703,10 @@ module Godot
     ensure
       Bridge.free_string_name(sn_0)
       Bridge.free_string_name(sn_1)
+    end
+    # Predicate alias for `has_theme_constant`
+    def has_theme_constant?(name : String, theme_type : String = "") : Bool
+      has_theme_constant(name, theme_type)
     end
     @@mb_get_theme_default_base_scale : Void* = Pointer(Void).null
     def get_theme_default_base_scale() : Float64
@@ -19535,6 +21043,14 @@ module Godot
       godot_bind(@@mb_is_force_pass_scroll_events, "Control", "is_force_pass_scroll_events", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_force_pass_scroll_events, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_force_pass_scroll_events`
+    def is_force_pass_scroll_events?() : Bool
+      is_force_pass_scroll_events()
+    end
+    # Predicate alias for `is_force_pass_scroll_events`
+    def force_pass_scroll_events?() : Bool
+      is_force_pass_scroll_events()
+    end
     @@mb_set_clip_contents : Void* = Pointer(Void).null
     def set_clip_contents(enable : Bool) : Void
       godot_bind(@@mb_set_clip_contents, "Control", "set_clip_contents", 2586408642_i64)
@@ -19547,6 +21063,14 @@ module Godot
     def is_clipping_contents() : Bool
       godot_bind(@@mb_is_clipping_contents, "Control", "is_clipping_contents", 2240911060_i64)
       godot_ptrcall_bool(@@mb_is_clipping_contents, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_clipping_contents`
+    def is_clipping_contents?() : Bool
+      is_clipping_contents()
+    end
+    # Predicate alias for `is_clipping_contents`
+    def clipping_contents?() : Bool
+      is_clipping_contents()
     end
     @@mb_grab_click_focus : Void* = Pointer(Void).null
     def grab_click_focus() : Void
@@ -19577,6 +21101,14 @@ module Godot
     def is_drag_successful() : Bool
       godot_bind(@@mb_is_drag_successful, "Control", "is_drag_successful", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_drag_successful, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_drag_successful`
+    def is_drag_successful?() : Bool
+      is_drag_successful()
+    end
+    # Predicate alias for `is_drag_successful`
+    def drag_successful?() : Bool
+      is_drag_successful()
     end
     @@mb_warp_mouse : Void* = Pointer(Void).null
     def warp_mouse(position : Vector2) : Void
@@ -19627,6 +21159,14 @@ module Godot
       godot_bind(@@mb_is_layout_rtl, "Control", "is_layout_rtl", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_layout_rtl, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_layout_rtl`
+    def is_layout_rtl?() : Bool
+      is_layout_rtl()
+    end
+    # Predicate alias for `is_layout_rtl`
+    def layout_rtl?() : Bool
+      is_layout_rtl()
+    end
     @@mb_set_auto_translate : Void* = Pointer(Void).null
     def set_auto_translate(enable : Bool) : Void
       godot_bind(@@mb_set_auto_translate, "Control", "set_auto_translate", 2586408642_i64)
@@ -19640,6 +21180,14 @@ module Godot
       godot_bind(@@mb_is_auto_translating, "Control", "is_auto_translating", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_auto_translating, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_auto_translating`
+    def is_auto_translating?() : Bool
+      is_auto_translating()
+    end
+    # Predicate alias for `is_auto_translating`
+    def auto_translating?() : Bool
+      is_auto_translating()
+    end
     @@mb_set_localize_numeral_system : Void* = Pointer(Void).null
     def set_localize_numeral_system(enable : Bool) : Void
       godot_bind(@@mb_set_localize_numeral_system, "Control", "set_localize_numeral_system", 2586408642_i64)
@@ -19652,6 +21200,14 @@ module Godot
     def is_localizing_numeral_system() : Bool
       godot_bind(@@mb_is_localizing_numeral_system, "Control", "is_localizing_numeral_system", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_localizing_numeral_system, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_localizing_numeral_system`
+    def is_localizing_numeral_system?() : Bool
+      is_localizing_numeral_system()
+    end
+    # Predicate alias for `is_localizing_numeral_system`
+    def localizing_numeral_system?() : Bool
+      is_localizing_numeral_system()
     end
     # Property `custom_minimum_size` getter
     def custom_minimum_size
@@ -19823,9 +21379,6 @@ module Godot
     def offset_transform_enabled
       is_offset_transform_enabled
     end
-    def offset_transform_enabled?
-      offset_transform_enabled
-    end
     # Property `offset_transform_enabled` setter
     def offset_transform_enabled=(val)
       set_offset_transform_enabled(val)
@@ -19881,9 +21434,6 @@ module Godot
     # Property `offset_transform_visual_only` getter
     def offset_transform_visual_only
       is_offset_transform_visual_only
-    end
-    def offset_transform_visual_only?
-      offset_transform_visual_only
     end
     # Property `offset_transform_visual_only` setter
     def offset_transform_visual_only=(val)
@@ -20165,12 +21715,17 @@ module Godot
       godot_bind(@@mb_is_accessibility_region, "Container", "is_accessibility_region", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_accessibility_region, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_accessibility_region`
+    def is_accessibility_region?() : Bool
+      is_accessibility_region()
+    end
+    # Predicate alias for `is_accessibility_region`
+    def accessibility_region?() : Bool
+      is_accessibility_region()
+    end
     # Property `accessibility_region` getter
     def accessibility_region
       is_accessibility_region
-    end
-    def accessibility_region?
-      accessibility_region
     end
     # Property `accessibility_region` setter
     def accessibility_region=(val)
@@ -20334,6 +21889,10 @@ module Godot
     def has_filter_clip() : Bool
       godot_bind(@@mb_has_filter_clip, "AtlasTexture", "has_filter_clip", 36873697_i64)
       godot_ptrcall_bool(@@mb_has_filter_clip, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `has_filter_clip`
+    def has_filter_clip?() : Bool
+      has_filter_clip()
     end
     # Property `atlas` getter
     def atlas
@@ -20544,6 +22103,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_can_get_buffer, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `can_get_buffer`
+    def can_get_buffer?(frames : Int64) : Bool
+      can_get_buffer(frames)
     end
     @@mb_get_buffer : Void* = Pointer(Void).null
     def get_buffer(frames : Int64) : Pointer(Void)
@@ -20962,6 +22525,14 @@ module Godot
       godot_bind(@@mb_is_tap1_active, "AudioEffectDelay", "is_tap1_active", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_tap1_active, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_tap1_active`
+    def is_tap1_active?() : Bool
+      is_tap1_active()
+    end
+    # Predicate alias for `is_tap1_active`
+    def tap1_active?() : Bool
+      is_tap1_active()
+    end
     @@mb_set_tap1_delay_ms : Void* = Pointer(Void).null
     def set_tap1_delay_ms(amount : Float64) : Void
       godot_bind(@@mb_set_tap1_delay_ms, "AudioEffectDelay", "set_tap1_delay_ms", 373806689_i64)
@@ -21013,6 +22584,14 @@ module Godot
     def is_tap2_active() : Bool
       godot_bind(@@mb_is_tap2_active, "AudioEffectDelay", "is_tap2_active", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_tap2_active, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_tap2_active`
+    def is_tap2_active?() : Bool
+      is_tap2_active()
+    end
+    # Predicate alias for `is_tap2_active`
+    def tap2_active?() : Bool
+      is_tap2_active()
     end
     @@mb_set_tap2_delay_ms : Void* = Pointer(Void).null
     def set_tap2_delay_ms(amount : Float64) : Void
@@ -21066,6 +22645,14 @@ module Godot
       godot_bind(@@mb_is_feedback_active, "AudioEffectDelay", "is_feedback_active", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_feedback_active, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_feedback_active`
+    def is_feedback_active?() : Bool
+      is_feedback_active()
+    end
+    # Predicate alias for `is_feedback_active`
+    def feedback_active?() : Bool
+      is_feedback_active()
+    end
     @@mb_set_feedback_delay_ms : Void* = Pointer(Void).null
     def set_feedback_delay_ms(amount : Float64) : Void
       godot_bind(@@mb_set_feedback_delay_ms, "AudioEffectDelay", "set_feedback_delay_ms", 373806689_i64)
@@ -21117,9 +22704,6 @@ module Godot
     def tap1_active
       is_tap1_active
     end
-    def tap1_active?
-      tap1_active
-    end
     # Property `tap1_active` setter
     def tap1_active=(val)
       set_tap1_active(val)
@@ -21152,9 +22736,6 @@ module Godot
     def tap2_active
       is_tap2_active
     end
-    def tap2_active?
-      tap2_active
-    end
     # Property `tap2_active` setter
     def tap2_active=(val)
       set_tap2_active(val)
@@ -21186,9 +22767,6 @@ module Godot
     # Property `feedback_active` getter
     def feedback_active
       is_feedback_active
-    end
-    def feedback_active?
-      feedback_active
     end
     # Property `feedback_active` setter
     def feedback_active=(val)
@@ -21795,6 +23373,14 @@ module Godot
       godot_bind(@@mb_is_recording_active, "AudioEffectRecord", "is_recording_active", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_recording_active, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_recording_active`
+    def is_recording_active?() : Bool
+      is_recording_active()
+    end
+    # Predicate alias for `is_recording_active`
+    def recording_active?() : Bool
+      is_recording_active()
+    end
     @@mb_set_format : Void* = Pointer(Void).null
     def set_format(format : Godot::AudioStreamWAV::Format | Int) : Void
       godot_bind(@@mb_set_format, "AudioEffectRecord", "set_format", 60648488_i64)
@@ -22158,6 +23744,14 @@ module Godot
       godot_bind(@@mb_is_current, "AudioListener2D", "is_current", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_current, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_current`
+    def is_current?() : Bool
+      is_current()
+    end
+    # Predicate alias for `is_current`
+    def current?() : Bool
+      is_current()
+    end
   end
   class AudioListener3D < Godot::Node3D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -22182,6 +23776,14 @@ module Godot
     def is_current() : Bool
       godot_bind(@@mb_is_current, "AudioListener3D", "is_current", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_current, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_current`
+    def is_current?() : Bool
+      is_current()
+    end
+    # Predicate alias for `is_current`
+    def current?() : Bool
+      is_current()
     end
     @@mb_get_listener_transform : Void* = Pointer(Void).null
     def get_listener_transform() : Transform3D
@@ -22387,6 +23989,14 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_bus_solo, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `is_bus_solo`
+    def is_bus_solo?(bus_idx : Int64) : Bool
+      is_bus_solo(bus_idx)
+    end
+    # Predicate alias for `is_bus_solo`
+    def bus_solo?(bus_idx : Int64) : Bool
+      is_bus_solo(bus_idx)
+    end
     @@mb_set_bus_mute : Void* = Pointer(Void).null
     def set_bus_mute(bus_idx : Int64, enable : Bool) : Void
       godot_bind(@@mb_set_bus_mute, "AudioServer", "set_bus_mute", 300928843_i64)
@@ -22405,6 +24015,14 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_bus_mute, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `is_bus_mute`
+    def is_bus_mute?(bus_idx : Int64) : Bool
+      is_bus_mute(bus_idx)
+    end
+    # Predicate alias for `is_bus_mute`
+    def bus_mute?(bus_idx : Int64) : Bool
+      is_bus_mute(bus_idx)
+    end
     @@mb_set_bus_bypass_effects : Void* = Pointer(Void).null
     def set_bus_bypass_effects(bus_idx : Int64, enable : Bool) : Void
       godot_bind(@@mb_set_bus_bypass_effects, "AudioServer", "set_bus_bypass_effects", 300928843_i64)
@@ -22422,6 +24040,14 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_bus_bypassing_effects, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `is_bus_bypassing_effects`
+    def is_bus_bypassing_effects?(bus_idx : Int64) : Bool
+      is_bus_bypassing_effects(bus_idx)
+    end
+    # Predicate alias for `is_bus_bypassing_effects`
+    def bus_bypassing_effects?(bus_idx : Int64) : Bool
+      is_bus_bypassing_effects(bus_idx)
     end
     @@mb_add_bus_effect : Void* = Pointer(Void).null
     def add_bus_effect(bus_idx : Int64, effect : AudioEffect, at_position : Int64 = -1_i64) : Void
@@ -22508,6 +24134,14 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_bool(@@mb_is_bus_effect_enabled, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `is_bus_effect_enabled`
+    def is_bus_effect_enabled?(bus_idx : Int64, effect_idx : Int64) : Bool
+      is_bus_effect_enabled(bus_idx, effect_idx)
+    end
+    # Predicate alias for `is_bus_effect_enabled`
+    def bus_effect_enabled?(bus_idx : Int64, effect_idx : Int64) : Bool
+      is_bus_effect_enabled(bus_idx, effect_idx)
     end
     @@mb_get_bus_peak_volume_left_db : Void* = Pointer(Void).null
     def get_bus_peak_volume_left_db(bus_idx : Int64, channel : Int64) : Float64
@@ -22688,6 +24322,14 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_stream_registered_as_sample, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `is_stream_registered_as_sample`
+    def is_stream_registered_as_sample?(stream : AudioStream) : Bool
+      is_stream_registered_as_sample(stream)
+    end
+    # Predicate alias for `is_stream_registered_as_sample`
+    def stream_registered_as_sample?(stream : AudioStream) : Bool
+      is_stream_registered_as_sample(stream)
+    end
     @@mb_register_stream_as_sample : Void* = Pointer(Void).null
     def register_stream_as_sample(stream : AudioStream) : Void
       godot_bind(@@mb_register_stream_as_sample, "AudioServer", "register_stream_as_sample", 2210767741_i64)
@@ -22745,6 +24387,14 @@ module Godot
       godot_bind(@@mb_is_monophonic, "AudioStream", "is_monophonic", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_monophonic, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_monophonic`
+    def is_monophonic?() : Bool
+      is_monophonic()
+    end
+    # Predicate alias for `is_monophonic`
+    def monophonic?() : Bool
+      is_monophonic()
+    end
     @@mb_instantiate_playback : Void* = Pointer(Void).null
     def instantiate_playback() : AudioStreamPlayback
       godot_bind(@@mb_instantiate_playback, "AudioStream", "instantiate_playback", 210135309_i64)
@@ -22755,6 +24405,10 @@ module Godot
       godot_bind(@@mb_can_be_sampled, "AudioStream", "can_be_sampled", 36873697_i64)
       godot_ptrcall_bool(@@mb_can_be_sampled, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `can_be_sampled`
+    def can_be_sampled?() : Bool
+      can_be_sampled()
+    end
     @@mb_generate_sample : Void* = Pointer(Void).null
     def generate_sample() : AudioSample
       godot_bind(@@mb_generate_sample, "AudioStream", "generate_sample", 2646048999_i64)
@@ -22764,6 +24418,14 @@ module Godot
     def is_meta_stream() : Bool
       godot_bind(@@mb_is_meta_stream, "AudioStream", "is_meta_stream", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_meta_stream, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_meta_stream`
+    def is_meta_stream?() : Bool
+      is_meta_stream()
+    end
+    # Predicate alias for `is_meta_stream`
+    def meta_stream?() : Bool
+      is_meta_stream()
     end
     godot_signal parameter_list_changed
   end
@@ -22906,6 +24568,14 @@ module Godot
       godot_bind(@@mb_is_playing, "AudioStreamPlayback", "is_playing", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_playing, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_playing`
+    def is_playing?() : Bool
+      is_playing()
+    end
+    # Predicate alias for `is_playing`
+    def playing?() : Bool
+      is_playing()
+    end
   end
   class AudioStreamPlaybackResampled < Godot::AudioStreamPlayback
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -22929,6 +24599,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_push_frame, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `push_frame`
+    def push_frame?(frame : Vector2) : Bool
+      push_frame(frame)
+    end
     @@mb_can_push_buffer : Void* = Pointer(Void).null
     def can_push_buffer(amount : Int64) : Bool
       godot_bind(@@mb_can_push_buffer, "AudioStreamGeneratorPlayback", "can_push_buffer", 1116898809_i64)
@@ -22937,6 +24611,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_can_push_buffer, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `can_push_buffer`
+    def can_push_buffer?(amount : Int64) : Bool
+      can_push_buffer(amount)
+    end
     @@mb_push_buffer : Void* = Pointer(Void).null
     def push_buffer(frames : Pointer(Void)) : Bool
       godot_bind(@@mb_push_buffer, "AudioStreamGeneratorPlayback", "push_buffer", 1361156557_i64)
@@ -22944,6 +24622,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_push_buffer, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `push_buffer`
+    def push_buffer?(frames : Pointer(Void)) : Bool
+      push_buffer(frames)
     end
     @@mb_get_frames_available : Void* = Pointer(Void).null
     def get_frames_available() : Int64
@@ -23122,6 +24804,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_bool(@@mb_has_transition, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `has_transition`
+    def has_transition?(from_clip : Int64, to_clip : Int64) : Bool
+      has_transition(from_clip, to_clip)
+    end
     @@mb_erase_transition : Void* = Pointer(Void).null
     def erase_transition(from_clip : Int64, to_clip : Int64) : Void
       godot_bind(@@mb_erase_transition, "AudioStreamInteractive", "erase_transition", 3937882851_i64)
@@ -23189,6 +24875,14 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_bool(@@mb_is_transition_using_filler_clip, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `is_transition_using_filler_clip`
+    def is_transition_using_filler_clip?(from_clip : Int64, to_clip : Int64) : Bool
+      is_transition_using_filler_clip(from_clip, to_clip)
+    end
+    # Predicate alias for `is_transition_using_filler_clip`
+    def transition_using_filler_clip?(from_clip : Int64, to_clip : Int64) : Bool
+      is_transition_using_filler_clip(from_clip, to_clip)
+    end
     @@mb_get_transition_filler_clip : Void* = Pointer(Void).null
     def get_transition_filler_clip(from_clip : Int64, to_clip : Int64) : Int64
       godot_bind(@@mb_get_transition_filler_clip, "AudioStreamInteractive", "get_transition_filler_clip", 3175239445_i64)
@@ -23208,6 +24902,14 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_bool(@@mb_is_transition_holding_previous, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `is_transition_holding_previous`
+    def is_transition_holding_previous?(from_clip : Int64, to_clip : Int64) : Bool
+      is_transition_holding_previous(from_clip, to_clip)
+    end
+    # Predicate alias for `is_transition_holding_previous`
+    def transition_holding_previous?(from_clip : Int64, to_clip : Int64) : Bool
+      is_transition_holding_previous(from_clip, to_clip)
     end
     # Property `clip_count` getter
     def clip_count
@@ -23283,6 +24985,10 @@ module Godot
     def has_loop() : Bool
       godot_bind(@@mb_has_loop, "AudioStreamMP3", "has_loop", 36873697_i64)
       godot_ptrcall_bool(@@mb_has_loop, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `has_loop`
+    def has_loop?() : Bool
+      has_loop()
     end
     @@mb_set_loop_offset : Void* = Pointer(Void).null
     def set_loop_offset(seconds : Float64) : Void
@@ -23448,6 +25154,10 @@ module Godot
     def has_loop() : Bool
       godot_bind(@@mb_has_loop, "AudioStreamOggVorbis", "has_loop", 36873697_i64)
       godot_ptrcall_bool(@@mb_has_loop, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `has_loop`
+    def has_loop?() : Bool
+      has_loop()
     end
     @@mb_set_loop_offset : Void* = Pointer(Void).null
     def set_loop_offset(seconds : Float64) : Void
@@ -23666,6 +25376,14 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_stream_playing, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `is_stream_playing`
+    def is_stream_playing?(stream : Int64) : Bool
+      is_stream_playing(stream)
+    end
+    # Predicate alias for `is_stream_playing`
+    def stream_playing?(stream : Int64) : Bool
+      is_stream_playing(stream)
+    end
     @@mb_stop_stream : Void* = Pointer(Void).null
     def stop_stream(stream : Int64) : Void
       godot_bind(@@mb_stop_stream, "AudioStreamPlaybackPolyphonic", "stop_stream", 1286410249_i64)
@@ -23767,6 +25485,14 @@ module Godot
       godot_bind(@@mb_is_playing, "AudioStreamPlayer", "is_playing", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_playing, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_playing`
+    def is_playing?() : Bool
+      is_playing()
+    end
+    # Predicate alias for `is_playing`
+    def playing?() : Bool
+      is_playing()
+    end
     @@mb_get_playback_position : Void* = Pointer(Void).null
     def get_playback_position() : Float64
       godot_bind(@@mb_get_playback_position, "AudioStreamPlayer", "get_playback_position", 191475506_i64)
@@ -23799,6 +25525,14 @@ module Godot
     def is_autoplay_enabled() : Bool
       godot_bind(@@mb_is_autoplay_enabled, "AudioStreamPlayer", "is_autoplay_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_autoplay_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_autoplay_enabled`
+    def is_autoplay_enabled?() : Bool
+      is_autoplay_enabled()
+    end
+    # Predicate alias for `is_autoplay_enabled`
+    def autoplay_enabled?() : Bool
+      is_autoplay_enabled()
     end
     @@mb_set_mix_target : Void* = Pointer(Void).null
     def set_mix_target(mix_target : MixTarget | Int) : Void
@@ -23834,6 +25568,10 @@ module Godot
       godot_bind(@@mb_get_stream_paused, "AudioStreamPlayer", "get_stream_paused", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_stream_paused, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `get_stream_paused`
+    def get_stream_paused?() : Bool
+      get_stream_paused()
+    end
     @@mb_set_max_polyphony : Void* = Pointer(Void).null
     def set_max_polyphony(max_polyphony : Int64) : Void
       godot_bind(@@mb_set_max_polyphony, "AudioStreamPlayer", "set_max_polyphony", 1286410249_i64)
@@ -23851,6 +25589,10 @@ module Godot
     def has_stream_playback() : Bool
       godot_bind(@@mb_has_stream_playback, "AudioStreamPlayer", "has_stream_playback", 2240911060_i64)
       godot_ptrcall_bool(@@mb_has_stream_playback, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `has_stream_playback`
+    def has_stream_playback?() : Bool
+      has_stream_playback()
     end
     @@mb_get_stream_playback : Void* = Pointer(Void).null
     def get_stream_playback() : AudioStreamPlayback
@@ -23905,9 +25647,6 @@ module Godot
     # Property `playing` getter
     def playing
       is_playing
-    end
-    def playing?
-      playing
     end
     # Property `playing` setter
     def playing=(val)
@@ -24051,6 +25790,14 @@ module Godot
       godot_bind(@@mb_is_playing, "AudioStreamPlayer2D", "is_playing", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_playing, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_playing`
+    def is_playing?() : Bool
+      is_playing()
+    end
+    # Predicate alias for `is_playing`
+    def playing?() : Bool
+      is_playing()
+    end
     @@mb_get_playback_position : Void* = Pointer(Void).null
     def get_playback_position() : Float64
       godot_bind(@@mb_get_playback_position, "AudioStreamPlayer2D", "get_playback_position", 191475506_i64)
@@ -24083,6 +25830,14 @@ module Godot
     def is_autoplay_enabled() : Bool
       godot_bind(@@mb_is_autoplay_enabled, "AudioStreamPlayer2D", "is_autoplay_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_autoplay_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_autoplay_enabled`
+    def is_autoplay_enabled?() : Bool
+      is_autoplay_enabled()
+    end
+    # Predicate alias for `is_autoplay_enabled`
+    def autoplay_enabled?() : Bool
+      is_autoplay_enabled()
     end
     @@mb_set_playing : Void* = Pointer(Void).null
     def set_playing(enable : Bool) : Void
@@ -24144,6 +25899,10 @@ module Godot
       godot_bind(@@mb_get_stream_paused, "AudioStreamPlayer2D", "get_stream_paused", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_stream_paused, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `get_stream_paused`
+    def get_stream_paused?() : Bool
+      get_stream_paused()
+    end
     @@mb_set_max_polyphony : Void* = Pointer(Void).null
     def set_max_polyphony(max_polyphony : Int64) : Void
       godot_bind(@@mb_set_max_polyphony, "AudioStreamPlayer2D", "set_max_polyphony", 1286410249_i64)
@@ -24174,6 +25933,10 @@ module Godot
     def has_stream_playback() : Bool
       godot_bind(@@mb_has_stream_playback, "AudioStreamPlayer2D", "has_stream_playback", 2240911060_i64)
       godot_ptrcall_bool(@@mb_has_stream_playback, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `has_stream_playback`
+    def has_stream_playback?() : Bool
+      has_stream_playback()
     end
     @@mb_get_stream_playback : Void* = Pointer(Void).null
     def get_stream_playback() : AudioStreamPlayback
@@ -24228,9 +25991,6 @@ module Godot
     # Property `playing` getter
     def playing
       is_playing
-    end
-    def playing?
-      playing
     end
     # Property `playing` setter
     def playing=(val)
@@ -24435,6 +26195,14 @@ module Godot
       godot_bind(@@mb_is_playing, "AudioStreamPlayer3D", "is_playing", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_playing, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_playing`
+    def is_playing?() : Bool
+      is_playing()
+    end
+    # Predicate alias for `is_playing`
+    def playing?() : Bool
+      is_playing()
+    end
     @@mb_get_playback_position : Void* = Pointer(Void).null
     def get_playback_position() : Float64
       godot_bind(@@mb_get_playback_position, "AudioStreamPlayer3D", "get_playback_position", 191475506_i64)
@@ -24467,6 +26235,14 @@ module Godot
     def is_autoplay_enabled() : Bool
       godot_bind(@@mb_is_autoplay_enabled, "AudioStreamPlayer3D", "is_autoplay_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_autoplay_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_autoplay_enabled`
+    def is_autoplay_enabled?() : Bool
+      is_autoplay_enabled()
+    end
+    # Predicate alias for `is_autoplay_enabled`
+    def autoplay_enabled?() : Bool
+      is_autoplay_enabled()
     end
     @@mb_set_playing : Void* = Pointer(Void).null
     def set_playing(enable : Bool) : Void
@@ -24527,6 +26303,14 @@ module Godot
     def is_emission_angle_enabled() : Bool
       godot_bind(@@mb_is_emission_angle_enabled, "AudioStreamPlayer3D", "is_emission_angle_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_emission_angle_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_emission_angle_enabled`
+    def is_emission_angle_enabled?() : Bool
+      is_emission_angle_enabled()
+    end
+    # Predicate alias for `is_emission_angle_enabled`
+    def emission_angle_enabled?() : Bool
+      is_emission_angle_enabled()
     end
     @@mb_set_emission_angle_filter_attenuation_db : Void* = Pointer(Void).null
     def set_emission_angle_filter_attenuation_db(db : Float64) : Void
@@ -24606,6 +26390,10 @@ module Godot
       godot_bind(@@mb_get_stream_paused, "AudioStreamPlayer3D", "get_stream_paused", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_stream_paused, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `get_stream_paused`
+    def get_stream_paused?() : Bool
+      get_stream_paused()
+    end
     @@mb_set_max_polyphony : Void* = Pointer(Void).null
     def set_max_polyphony(max_polyphony : Int64) : Void
       godot_bind(@@mb_set_max_polyphony, "AudioStreamPlayer3D", "set_max_polyphony", 1286410249_i64)
@@ -24636,6 +26424,10 @@ module Godot
     def has_stream_playback() : Bool
       godot_bind(@@mb_has_stream_playback, "AudioStreamPlayer3D", "has_stream_playback", 2240911060_i64)
       godot_ptrcall_bool(@@mb_has_stream_playback, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `has_stream_playback`
+    def has_stream_playback?() : Bool
+      has_stream_playback()
     end
     @@mb_get_stream_playback : Void* = Pointer(Void).null
     def get_stream_playback() : AudioStreamPlayback
@@ -24715,9 +26507,6 @@ module Godot
     def playing
       is_playing
     end
-    def playing?
-      playing
-    end
     # Property `playing` setter
     def playing=(val)
       set_playing(val)
@@ -24795,9 +26584,6 @@ module Godot
     # Property `emission_angle_enabled` getter
     def emission_angle_enabled
       is_emission_angle_enabled
-    end
-    def emission_angle_enabled?
-      emission_angle_enabled
     end
     # Property `emission_angle_enabled` setter
     def emission_angle_enabled=(val)
@@ -24898,6 +26684,10 @@ module Godot
       godot_bind(@@mb_get_shuffle, "AudioStreamPlaylist", "get_shuffle", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_shuffle, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `get_shuffle`
+    def get_shuffle?() : Bool
+      get_shuffle()
+    end
     @@mb_set_fade_time : Void* = Pointer(Void).null
     def set_fade_time(dec : Float64) : Void
       godot_bind(@@mb_set_fade_time, "AudioStreamPlaylist", "set_fade_time", 373806689_i64)
@@ -24923,6 +26713,10 @@ module Godot
     def has_loop() : Bool
       godot_bind(@@mb_has_loop, "AudioStreamPlaylist", "has_loop", 36873697_i64)
       godot_ptrcall_bool(@@mb_has_loop, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `has_loop`
+    def has_loop?() : Bool
+      has_loop()
     end
     # Property `shuffle` getter
     def shuffle
@@ -25883,6 +27677,14 @@ module Godot
       godot_bind(@@mb_is_stereo, "AudioStreamWAV", "is_stereo", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_stereo, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_stereo`
+    def is_stereo?() : Bool
+      is_stereo()
+    end
+    # Predicate alias for `is_stereo`
+    def stereo?() : Bool
+      is_stereo()
+    end
     @@mb_set_tags : Void* = Pointer(Void).null
     def set_tags(tags : Pointer(Void)) : Void
       godot_bind(@@mb_set_tags, "AudioStreamWAV", "set_tags", 4155329257_i64)
@@ -25959,9 +27761,6 @@ module Godot
     # Property `stereo` getter
     def stereo
       is_stereo
-    end
-    def stereo?
-      stereo
     end
     # Property `stereo` setter
     def stereo=(val)
@@ -26088,10 +27887,26 @@ module Godot
       godot_bind(@@mb_is_pressed, "BaseButton", "is_pressed", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_pressed, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_pressed`
+    def is_pressed?() : Bool
+      is_pressed()
+    end
+    # Predicate alias for `is_pressed`
+    def pressed?() : Bool
+      is_pressed()
+    end
     @@mb_is_hovered : Void* = Pointer(Void).null
     def is_hovered() : Bool
       godot_bind(@@mb_is_hovered, "BaseButton", "is_hovered", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_hovered, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_hovered`
+    def is_hovered?() : Bool
+      is_hovered()
+    end
+    # Predicate alias for `is_hovered`
+    def hovered?() : Bool
+      is_hovered()
     end
     @@mb_set_toggle_mode : Void* = Pointer(Void).null
     def set_toggle_mode(enabled : Bool) : Void
@@ -26106,6 +27921,14 @@ module Godot
       godot_bind(@@mb_is_toggle_mode, "BaseButton", "is_toggle_mode", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_toggle_mode, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_toggle_mode`
+    def is_toggle_mode?() : Bool
+      is_toggle_mode()
+    end
+    # Predicate alias for `is_toggle_mode`
+    def toggle_mode?() : Bool
+      is_toggle_mode()
+    end
     @@mb_set_shortcut_in_tooltip : Void* = Pointer(Void).null
     def set_shortcut_in_tooltip(enabled : Bool) : Void
       godot_bind(@@mb_set_shortcut_in_tooltip, "BaseButton", "set_shortcut_in_tooltip", 2586408642_i64)
@@ -26119,6 +27942,14 @@ module Godot
       godot_bind(@@mb_is_shortcut_in_tooltip_enabled, "BaseButton", "is_shortcut_in_tooltip_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_shortcut_in_tooltip_enabled, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_shortcut_in_tooltip_enabled`
+    def is_shortcut_in_tooltip_enabled?() : Bool
+      is_shortcut_in_tooltip_enabled()
+    end
+    # Predicate alias for `is_shortcut_in_tooltip_enabled`
+    def shortcut_in_tooltip_enabled?() : Bool
+      is_shortcut_in_tooltip_enabled()
+    end
     @@mb_set_disabled : Void* = Pointer(Void).null
     def set_disabled(disabled : Bool) : Void
       godot_bind(@@mb_set_disabled, "BaseButton", "set_disabled", 2586408642_i64)
@@ -26131,6 +27962,14 @@ module Godot
     def is_disabled() : Bool
       godot_bind(@@mb_is_disabled, "BaseButton", "is_disabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_disabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_disabled`
+    def is_disabled?() : Bool
+      is_disabled()
+    end
+    # Predicate alias for `is_disabled`
+    def disabled?() : Bool
+      is_disabled()
     end
     @@mb_set_action_mode : Void* = Pointer(Void).null
     def set_action_mode(mode : ActionMode | Int) : Void
@@ -26176,6 +28015,14 @@ module Godot
       godot_bind(@@mb_is_keep_pressed_outside, "BaseButton", "is_keep_pressed_outside", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_keep_pressed_outside, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_keep_pressed_outside`
+    def is_keep_pressed_outside?() : Bool
+      is_keep_pressed_outside()
+    end
+    # Predicate alias for `is_keep_pressed_outside`
+    def keep_pressed_outside?() : Bool
+      is_keep_pressed_outside()
+    end
     @@mb_set_shortcut_feedback : Void* = Pointer(Void).null
     def set_shortcut_feedback(enabled : Bool) : Void
       godot_bind(@@mb_set_shortcut_feedback, "BaseButton", "set_shortcut_feedback", 2586408642_i64)
@@ -26188,6 +28035,14 @@ module Godot
     def is_shortcut_feedback() : Bool
       godot_bind(@@mb_is_shortcut_feedback, "BaseButton", "is_shortcut_feedback", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_shortcut_feedback, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_shortcut_feedback`
+    def is_shortcut_feedback?() : Bool
+      is_shortcut_feedback()
+    end
+    # Predicate alias for `is_shortcut_feedback`
+    def shortcut_feedback?() : Bool
+      is_shortcut_feedback()
     end
     @@mb_set_shortcut : Void* = Pointer(Void).null
     def set_shortcut(shortcut : Shortcut) : Void
@@ -26219,9 +28074,6 @@ module Godot
     def disabled
       is_disabled
     end
-    def disabled?
-      disabled
-    end
     # Property `disabled` setter
     def disabled=(val)
       set_disabled(val)
@@ -26229,9 +28081,6 @@ module Godot
     # Property `toggle_mode` getter
     def toggle_mode
       is_toggle_mode
-    end
-    def toggle_mode?
-      toggle_mode
     end
     # Property `toggle_mode` setter
     def toggle_mode=(val)
@@ -26268,9 +28117,6 @@ module Godot
     def keep_pressed_outside
       is_keep_pressed_outside
     end
-    def keep_pressed_outside?
-      keep_pressed_outside
-    end
     # Property `keep_pressed_outside` setter
     def keep_pressed_outside=(val)
       set_keep_pressed_outside(val)
@@ -26294,9 +28140,6 @@ module Godot
     # Property `shortcut_feedback` getter
     def shortcut_feedback
       is_shortcut_feedback
-    end
-    def shortcut_feedback?
-      shortcut_feedback
     end
     # Property `shortcut_feedback` setter
     def shortcut_feedback=(val)
@@ -26987,6 +28830,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_get_flag, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `get_flag`
+    def get_flag?(flag : Flags | Int) : Bool
+      get_flag(flag)
+    end
     @@mb_set_texture_filter : Void* = Pointer(Void).null
     def set_texture_filter(mode : TextureFilter | Int) : Void
       godot_bind(@@mb_set_texture_filter, "BaseMaterial3D", "set_texture_filter", 22904437_i64)
@@ -27017,6 +28864,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_get_feature, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `get_feature`
+    def get_feature?(feature : Feature | Int) : Bool
+      get_feature(feature)
     end
     @@mb_set_texture : Void* = Pointer(Void).null
     def set_texture(param : TextureParam | Int, texture : Texture2D) : Void
@@ -27179,6 +29030,10 @@ module Godot
       godot_bind(@@mb_get_particles_anim_loop, "BaseMaterial3D", "get_particles_anim_loop", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_particles_anim_loop, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `get_particles_anim_loop`
+    def get_particles_anim_loop?() : Bool
+      get_particles_anim_loop()
+    end
     @@mb_set_heightmap_deep_parallax : Void* = Pointer(Void).null
     def set_heightmap_deep_parallax(enable : Bool) : Void
       godot_bind(@@mb_set_heightmap_deep_parallax, "BaseMaterial3D", "set_heightmap_deep_parallax", 2586408642_i64)
@@ -27191,6 +29046,14 @@ module Godot
     def is_heightmap_deep_parallax_enabled() : Bool
       godot_bind(@@mb_is_heightmap_deep_parallax_enabled, "BaseMaterial3D", "is_heightmap_deep_parallax_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_heightmap_deep_parallax_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_heightmap_deep_parallax_enabled`
+    def is_heightmap_deep_parallax_enabled?() : Bool
+      is_heightmap_deep_parallax_enabled()
+    end
+    # Predicate alias for `is_heightmap_deep_parallax_enabled`
+    def heightmap_deep_parallax_enabled?() : Bool
+      is_heightmap_deep_parallax_enabled()
     end
     @@mb_set_heightmap_deep_parallax_min_layers : Void* = Pointer(Void).null
     def set_heightmap_deep_parallax_min_layers(layer : Int64) : Void
@@ -27231,6 +29094,10 @@ module Godot
       godot_bind(@@mb_get_heightmap_deep_parallax_flip_tangent, "BaseMaterial3D", "get_heightmap_deep_parallax_flip_tangent", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_heightmap_deep_parallax_flip_tangent, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `get_heightmap_deep_parallax_flip_tangent`
+    def get_heightmap_deep_parallax_flip_tangent?() : Bool
+      get_heightmap_deep_parallax_flip_tangent()
+    end
     @@mb_set_heightmap_deep_parallax_flip_binormal : Void* = Pointer(Void).null
     def set_heightmap_deep_parallax_flip_binormal(flip : Bool) : Void
       godot_bind(@@mb_set_heightmap_deep_parallax_flip_binormal, "BaseMaterial3D", "set_heightmap_deep_parallax_flip_binormal", 2586408642_i64)
@@ -27243,6 +29110,10 @@ module Godot
     def get_heightmap_deep_parallax_flip_binormal() : Bool
       godot_bind(@@mb_get_heightmap_deep_parallax_flip_binormal, "BaseMaterial3D", "get_heightmap_deep_parallax_flip_binormal", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_heightmap_deep_parallax_flip_binormal, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `get_heightmap_deep_parallax_flip_binormal`
+    def get_heightmap_deep_parallax_flip_binormal?() : Bool
+      get_heightmap_deep_parallax_flip_binormal()
     end
     @@mb_set_grow : Void* = Pointer(Void).null
     def set_grow(amount : Float64) : Void
@@ -27322,6 +29193,14 @@ module Godot
       godot_bind(@@mb_is_grow_enabled, "BaseMaterial3D", "is_grow_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_grow_enabled, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_grow_enabled`
+    def is_grow_enabled?() : Bool
+      is_grow_enabled()
+    end
+    # Predicate alias for `is_grow_enabled`
+    def grow_enabled?() : Bool
+      is_grow_enabled()
+    end
     @@mb_set_metallic_texture_channel : Void* = Pointer(Void).null
     def set_metallic_texture_channel(channel : TextureChannel | Int) : Void
       godot_bind(@@mb_set_metallic_texture_channel, "BaseMaterial3D", "set_metallic_texture_channel", 744167988_i64)
@@ -27386,6 +29265,14 @@ module Godot
     def is_proximity_fade_enabled() : Bool
       godot_bind(@@mb_is_proximity_fade_enabled, "BaseMaterial3D", "is_proximity_fade_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_proximity_fade_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_proximity_fade_enabled`
+    def is_proximity_fade_enabled?() : Bool
+      is_proximity_fade_enabled()
+    end
+    # Predicate alias for `is_proximity_fade_enabled`
+    def proximity_fade_enabled?() : Bool
+      is_proximity_fade_enabled()
     end
     @@mb_set_proximity_fade_distance : Void* = Pointer(Void).null
     def set_proximity_fade_distance(distance : Float64) : Void
@@ -28657,9 +30544,6 @@ module Godot
     def proximity_fade_enabled
       is_proximity_fade_enabled
     end
-    def proximity_fade_enabled?
-      proximity_fade_enabled
-    end
     # Property `proximity_fade_enabled` setter
     def proximity_fade_enabled=(val)
       set_proximity_fade_enabled(val)
@@ -28813,6 +30697,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_get_bitv, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `get_bitv`
+    def get_bitv?(position : Vector2i) : Bool
+      get_bitv(position)
+    end
     @@mb_get_bit : Void* = Pointer(Void).null
     def get_bit(x : Int64, y : Int64) : Bool
       godot_bind(@@mb_get_bit, "BitMap", "get_bit", 2522259332_i64)
@@ -28822,6 +30710,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_bool(@@mb_get_bit, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `get_bit`
+    def get_bit?(x : Int64, y : Int64) : Bool
+      get_bit(x, y)
     end
     @@mb_set_bit_rect : Void* = Pointer(Void).null
     def set_bit_rect(rect : Rect2i, bit : Bool) : Void
@@ -28966,6 +30858,10 @@ module Godot
       godot_bind(@@mb_get_autocalculate_length_and_angle, "Bone2D", "get_autocalculate_length_and_angle", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_autocalculate_length_and_angle, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `get_autocalculate_length_and_angle`
+    def get_autocalculate_length_and_angle?() : Bool
+      get_autocalculate_length_and_angle()
+    end
     @@mb_set_length : Void* = Pointer(Void).null
     def set_length(length : Float64) : Void
       godot_bind(@@mb_set_length, "Bone2D", "set_length", 373806689_i64)
@@ -29056,6 +30952,10 @@ module Godot
       godot_bind(@@mb_get_override_pose, "BoneAttachment3D", "get_override_pose", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_override_pose, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `get_override_pose`
+    def get_override_pose?() : Bool
+      get_override_pose()
+    end
     @@mb_set_use_external_skeleton : Void* = Pointer(Void).null
     def set_use_external_skeleton(use_external_skeleton : Bool) : Void
       godot_bind(@@mb_set_use_external_skeleton, "BoneAttachment3D", "set_use_external_skeleton", 2586408642_i64)
@@ -29068,6 +30968,10 @@ module Godot
     def get_use_external_skeleton() : Bool
       godot_bind(@@mb_get_use_external_skeleton, "BoneAttachment3D", "get_use_external_skeleton", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_use_external_skeleton, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `get_use_external_skeleton`
+    def get_use_external_skeleton?() : Bool
+      get_use_external_skeleton()
     end
     @@mb_set_external_skeleton : Void* = Pointer(Void).null
     def set_external_skeleton(external_skeleton : NodePath | String) : Void
@@ -29209,6 +31113,14 @@ module Godot
       godot_bind(@@mb_are_all_bones_using_bone_skin_scale, "BoneSpaceAdjuster3D", "are_all_bones_using_bone_skin_scale", 36873697_i64)
       godot_ptrcall_bool(@@mb_are_all_bones_using_bone_skin_scale, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `are_all_bones_using_bone_skin_scale`
+    def are_all_bones_using_bone_skin_scale?() : Bool
+      are_all_bones_using_bone_skin_scale()
+    end
+    # Predicate alias for `are_all_bones_using_bone_skin_scale`
+    def all_bones_using_bone_skin_scale?() : Bool
+      are_all_bones_using_bone_skin_scale()
+    end
     @@mb_set_bone_name : Void* = Pointer(Void).null
     def set_bone_name(index : Int64, bone_name : String) : Void
       godot_bind(@@mb_set_bone_name, "BoneSpaceAdjuster3D", "set_bone_name", 3780747571_i64)
@@ -29264,6 +31176,14 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_using_bone_skin_scale, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `is_using_bone_skin_scale`
+    def is_using_bone_skin_scale?(index : Int64) : Bool
+      is_using_bone_skin_scale(index)
+    end
+    # Predicate alias for `is_using_bone_skin_scale`
+    def using_bone_skin_scale?(index : Int64) : Bool
+      is_using_bone_skin_scale(index)
     end
     @@mb_set_bone_scale : Void* = Pointer(Void).null
     def set_bone_scale(index : Int64, scale : Vector3) : Void
@@ -29360,6 +31280,14 @@ module Godot
     def are_bone_axes_mutable() : Bool
       godot_bind(@@mb_are_bone_axes_mutable, "BoneTwistDisperser3D", "are_bone_axes_mutable", 36873697_i64)
       godot_ptrcall_bool(@@mb_are_bone_axes_mutable, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `are_bone_axes_mutable`
+    def are_bone_axes_mutable?() : Bool
+      are_bone_axes_mutable()
+    end
+    # Predicate alias for `are_bone_axes_mutable`
+    def bone_axes_mutable?() : Bool
+      are_bone_axes_mutable()
     end
     @@mb_set_root_bone_name : Void* = Pointer(Void).null
     def set_root_bone_name(index : Int64, bone_name : String) : Void
@@ -29471,6 +31399,14 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_end_bone_extended, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `is_end_bone_extended`
+    def is_end_bone_extended?(index : Int64) : Bool
+      is_end_bone_extended(index)
+    end
+    # Predicate alias for `is_end_bone_extended`
+    def end_bone_extended?(index : Int64) : Bool
+      is_end_bone_extended(index)
+    end
     @@mb_set_end_bone_direction : Void* = Pointer(Void).null
     def set_end_bone_direction(index : Int64, bone_direction : Godot::SkeletonModifier3D::BoneDirection | Int) : Void
       godot_bind(@@mb_set_end_bone_direction, "BoneTwistDisperser3D", "set_end_bone_direction", 2838484201_i64)
@@ -29506,6 +31442,14 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_twist_from_rest, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `is_twist_from_rest`
+    def is_twist_from_rest?(index : Int64) : Bool
+      is_twist_from_rest(index)
+    end
+    # Predicate alias for `is_twist_from_rest`
+    def twist_from_rest?(index : Int64) : Bool
+      is_twist_from_rest(index)
     end
     @@mb_set_twist_from : Void* = Pointer(Void).null
     def set_twist_from(index : Int64, from : Quaternion) : Void
@@ -29692,6 +31636,14 @@ module Godot
       godot_bind(@@mb_is_vertical, "BoxContainer", "is_vertical", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_vertical, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_vertical`
+    def is_vertical?() : Bool
+      is_vertical()
+    end
+    # Predicate alias for `is_vertical`
+    def vertical?() : Bool
+      is_vertical()
+    end
     @@mb_set_reverse_sort : Void* = Pointer(Void).null
     def set_reverse_sort(reverse_sort : Bool) : Void
       godot_bind(@@mb_set_reverse_sort, "BoxContainer", "set_reverse_sort", 2586408642_i64)
@@ -29705,6 +31657,14 @@ module Godot
       godot_bind(@@mb_is_reverse_sort, "BoxContainer", "is_reverse_sort", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_reverse_sort, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_reverse_sort`
+    def is_reverse_sort?() : Bool
+      is_reverse_sort()
+    end
+    # Predicate alias for `is_reverse_sort`
+    def reverse_sort?() : Bool
+      is_reverse_sort()
+    end
     # Property `alignment` getter
     def alignment
       get_alignment
@@ -29717,9 +31677,6 @@ module Godot
     def vertical
       is_vertical
     end
-    def vertical?
-      vertical
-    end
     # Property `vertical` setter
     def vertical=(val)
       set_vertical(val)
@@ -29727,9 +31684,6 @@ module Godot
     # Property `reverse_sort` getter
     def reverse_sort
       is_reverse_sort
-    end
-    def reverse_sort?
-      reverse_sort
     end
     # Property `reverse_sort` setter
     def reverse_sort=(val)
@@ -29786,6 +31740,10 @@ module Godot
       godot_bind(@@mb_get_flip_faces, "PrimitiveMesh", "get_flip_faces", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_flip_faces, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `get_flip_faces`
+    def get_flip_faces?() : Bool
+      get_flip_faces()
+    end
     @@mb_set_add_uv2 : Void* = Pointer(Void).null
     def set_add_uv2(add_uv2 : Bool) : Void
       godot_bind(@@mb_set_add_uv2, "PrimitiveMesh", "set_add_uv2", 2586408642_i64)
@@ -29798,6 +31756,10 @@ module Godot
     def get_add_uv2() : Bool
       godot_bind(@@mb_get_add_uv2, "PrimitiveMesh", "get_add_uv2", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_add_uv2, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `get_add_uv2`
+    def get_add_uv2?() : Bool
+      get_add_uv2()
     end
     @@mb_set_uv2_padding : Void* = Pointer(Void).null
     def set_uv2_padding(uv2_padding : Float64) : Void
@@ -30169,6 +32131,14 @@ module Godot
       godot_bind(@@mb_is_flat, "Button", "is_flat", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_flat, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_flat`
+    def is_flat?() : Bool
+      is_flat()
+    end
+    # Predicate alias for `is_flat`
+    def flat?() : Bool
+      is_flat()
+    end
     @@mb_set_clip_text : Void* = Pointer(Void).null
     def set_clip_text(enabled : Bool) : Void
       godot_bind(@@mb_set_clip_text, "Button", "set_clip_text", 2586408642_i64)
@@ -30181,6 +32151,10 @@ module Godot
     def get_clip_text() : Bool
       godot_bind(@@mb_get_clip_text, "Button", "get_clip_text", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_clip_text, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `get_clip_text`
+    def get_clip_text?() : Bool
+      get_clip_text()
     end
     @@mb_set_text_alignment : Void* = Pointer(Void).null
     def set_text_alignment(alignment : Godot::HorizontalAlignment | Int) : Void
@@ -30234,6 +32208,14 @@ module Godot
       godot_bind(@@mb_is_expand_icon, "Button", "is_expand_icon", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_expand_icon, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_expand_icon`
+    def is_expand_icon?() : Bool
+      is_expand_icon()
+    end
+    # Predicate alias for `is_expand_icon`
+    def expand_icon?() : Bool
+      is_expand_icon()
+    end
     # Property `text` getter
     def text
       get_text
@@ -30253,9 +32235,6 @@ module Godot
     # Property `flat` getter
     def flat
       is_flat
-    end
-    def flat?
-      flat
     end
     # Property `flat` setter
     def flat=(val)
@@ -30324,9 +32303,6 @@ module Godot
     def expand_icon
       is_expand_icon
     end
-    def expand_icon?
-      expand_icon
-    end
     # Property `expand_icon` setter
     def expand_icon=(val)
       set_expand_icon(val)
@@ -30377,12 +32353,17 @@ module Godot
       godot_bind(@@mb_is_allow_unpress, "ButtonGroup", "is_allow_unpress", 2240911060_i64)
       godot_ptrcall_bool(@@mb_is_allow_unpress, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_allow_unpress`
+    def is_allow_unpress?() : Bool
+      is_allow_unpress()
+    end
+    # Predicate alias for `is_allow_unpress`
+    def allow_unpress?() : Bool
+      is_allow_unpress()
+    end
     # Property `allow_unpress` getter
     def allow_unpress
       is_allow_unpress
-    end
-    def allow_unpress?
-      allow_unpress
     end
     # Property `allow_unpress` setter
     def allow_unpress=(val)
@@ -30424,6 +32405,14 @@ module Godot
     def are_bone_axes_mutable() : Bool
       godot_bind(@@mb_are_bone_axes_mutable, "IKModifier3D", "are_bone_axes_mutable", 36873697_i64)
       godot_ptrcall_bool(@@mb_are_bone_axes_mutable, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `are_bone_axes_mutable`
+    def are_bone_axes_mutable?() : Bool
+      are_bone_axes_mutable()
+    end
+    # Predicate alias for `are_bone_axes_mutable`
+    def bone_axes_mutable?() : Bool
+      are_bone_axes_mutable()
     end
     @@mb_reset : Void* = Pointer(Void).null
     def reset() : Void
@@ -30539,6 +32528,14 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_end_bone_extended, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `is_end_bone_extended`
+    def is_end_bone_extended?(index : Int64) : Bool
+      is_end_bone_extended(index)
+    end
+    # Predicate alias for `is_end_bone_extended`
+    def end_bone_extended?(index : Int64) : Bool
+      is_end_bone_extended(index)
     end
     @@mb_set_end_bone_direction : Void* = Pointer(Void).null
     def set_end_bone_direction(index : Int64, bone_direction : Godot::SkeletonModifier3D::BoneDirection | Int) : Void
@@ -30660,6 +32657,14 @@ module Godot
     def is_deterministic() : Bool
       godot_bind(@@mb_is_deterministic, "IterateIK3D", "is_deterministic", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_deterministic, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_deterministic`
+    def is_deterministic?() : Bool
+      is_deterministic()
+    end
+    # Predicate alias for `is_deterministic`
+    def deterministic?() : Bool
+      is_deterministic()
     end
     @@mb_set_target_node : Void* = Pointer(Void).null
     def set_target_node(index : Int64, target_node : NodePath | String) : Void
@@ -30835,6 +32840,14 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_bool(@@mb_is_joint_using_rest_for_limitation, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `is_joint_using_rest_for_limitation`
+    def is_joint_using_rest_for_limitation?(index : Int64, joint : Int64) : Bool
+      is_joint_using_rest_for_limitation(index, joint)
+    end
+    # Predicate alias for `is_joint_using_rest_for_limitation`
+    def joint_using_rest_for_limitation?(index : Int64, joint : Int64) : Bool
+      is_joint_using_rest_for_limitation(index, joint)
+    end
     # Property `max_iterations` getter
     def max_iterations
       get_max_iterations
@@ -30862,9 +32875,6 @@ module Godot
     # Property `deterministic` getter
     def deterministic
       is_deterministic
-    end
-    def deterministic?
-      deterministic
     end
     # Property `deterministic` setter
     def deterministic=(val)
@@ -31034,6 +33044,14 @@ module Godot
       godot_bind(@@mb_is_emitting, "CPUParticles2D", "is_emitting", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_emitting, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_emitting`
+    def is_emitting?() : Bool
+      is_emitting()
+    end
+    # Predicate alias for `is_emitting`
+    def emitting?() : Bool
+      is_emitting()
+    end
     @@mb_get_amount : Void* = Pointer(Void).null
     def get_amount() : Int64
       godot_bind(@@mb_get_amount, "CPUParticles2D", "get_amount", 3905245786_i64)
@@ -31048,6 +33066,10 @@ module Godot
     def get_one_shot() : Bool
       godot_bind(@@mb_get_one_shot, "CPUParticles2D", "get_one_shot", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_one_shot, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `get_one_shot`
+    def get_one_shot?() : Bool
+      get_one_shot()
     end
     @@mb_get_pre_process_time : Void* = Pointer(Void).null
     def get_pre_process_time() : Float64
@@ -31074,6 +33096,10 @@ module Godot
       godot_bind(@@mb_get_use_local_coordinates, "CPUParticles2D", "get_use_local_coordinates", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_use_local_coordinates, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `get_use_local_coordinates`
+    def get_use_local_coordinates?() : Bool
+      get_use_local_coordinates()
+    end
     @@mb_get_fixed_fps : Void* = Pointer(Void).null
     def get_fixed_fps() : Int64
       godot_bind(@@mb_get_fixed_fps, "CPUParticles2D", "get_fixed_fps", 3905245786_i64)
@@ -31083,6 +33109,10 @@ module Godot
     def get_fractional_delta() : Bool
       godot_bind(@@mb_get_fractional_delta, "CPUParticles2D", "get_fractional_delta", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_fractional_delta, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `get_fractional_delta`
+    def get_fractional_delta?() : Bool
+      get_fractional_delta()
     end
     @@mb_get_speed_scale : Void* = Pointer(Void).null
     def get_speed_scale() : Float64
@@ -31101,6 +33131,10 @@ module Godot
     def get_use_fixed_seed() : Bool
       godot_bind(@@mb_get_use_fixed_seed, "CPUParticles2D", "get_use_fixed_seed", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_use_fixed_seed, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `get_use_fixed_seed`
+    def get_use_fixed_seed?() : Bool
+      get_use_fixed_seed()
     end
     @@mb_set_seed : Void* = Pointer(Void).null
     def set_seed(seed : Int64) : Void
@@ -31286,6 +33320,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_get_particle_flag, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `get_particle_flag`
+    def get_particle_flag?(particle_flag : ParticleFlags | Int) : Bool
+      get_particle_flag(particle_flag)
+    end
     @@mb_set_emission_shape : Void* = Pointer(Void).null
     def set_emission_shape(shape : EmissionShape | Int) : Void
       godot_bind(@@mb_set_emission_shape, "CPUParticles2D", "set_emission_shape", 393763892_i64)
@@ -31414,6 +33452,10 @@ module Godot
       godot_bind(@@mb_get_split_scale, "CPUParticles2D", "get_split_scale", 2240911060_i64)
       godot_ptrcall_bool(@@mb_get_split_scale, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `get_split_scale`
+    def get_split_scale?() : Bool
+      get_split_scale()
+    end
     @@mb_set_split_scale : Void* = Pointer(Void).null
     def set_split_scale(split_scale : Bool) : Void
       godot_bind(@@mb_set_split_scale, "CPUParticles2D", "set_split_scale", 2586408642_i64)
@@ -31459,9 +33501,6 @@ module Godot
     # Property `emitting` getter
     def emitting
       is_emitting
-    end
-    def emitting?
-      emitting
     end
     # Property `emitting` setter
     def emitting=(val)
@@ -32180,6 +34219,14 @@ module Godot
       godot_bind(@@mb_is_emitting, "CPUParticles3D", "is_emitting", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_emitting, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_emitting`
+    def is_emitting?() : Bool
+      is_emitting()
+    end
+    # Predicate alias for `is_emitting`
+    def emitting?() : Bool
+      is_emitting()
+    end
     @@mb_get_amount : Void* = Pointer(Void).null
     def get_amount() : Int64
       godot_bind(@@mb_get_amount, "CPUParticles3D", "get_amount", 3905245786_i64)
@@ -32194,6 +34241,10 @@ module Godot
     def get_one_shot() : Bool
       godot_bind(@@mb_get_one_shot, "CPUParticles3D", "get_one_shot", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_one_shot, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `get_one_shot`
+    def get_one_shot?() : Bool
+      get_one_shot()
     end
     @@mb_get_pre_process_time : Void* = Pointer(Void).null
     def get_pre_process_time() : Float64
@@ -32225,6 +34276,10 @@ module Godot
       godot_bind(@@mb_get_use_local_coordinates, "CPUParticles3D", "get_use_local_coordinates", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_use_local_coordinates, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `get_use_local_coordinates`
+    def get_use_local_coordinates?() : Bool
+      get_use_local_coordinates()
+    end
     @@mb_get_fixed_fps : Void* = Pointer(Void).null
     def get_fixed_fps() : Int64
       godot_bind(@@mb_get_fixed_fps, "CPUParticles3D", "get_fixed_fps", 3905245786_i64)
@@ -32234,6 +34289,10 @@ module Godot
     def get_fractional_delta() : Bool
       godot_bind(@@mb_get_fractional_delta, "CPUParticles3D", "get_fractional_delta", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_fractional_delta, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `get_fractional_delta`
+    def get_fractional_delta?() : Bool
+      get_fractional_delta()
     end
     @@mb_get_speed_scale : Void* = Pointer(Void).null
     def get_speed_scale() : Float64
@@ -32278,6 +34337,10 @@ module Godot
     def get_use_fixed_seed() : Bool
       godot_bind(@@mb_get_use_fixed_seed, "CPUParticles3D", "get_use_fixed_seed", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_use_fixed_seed, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `get_use_fixed_seed`
+    def get_use_fixed_seed?() : Bool
+      get_use_fixed_seed()
     end
     @@mb_set_seed : Void* = Pointer(Void).null
     def set_seed(seed : Int64) : Void
@@ -32465,6 +34528,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_get_particle_flag, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `get_particle_flag`
+    def get_particle_flag?(particle_flag : ParticleFlags | Int) : Bool
+      get_particle_flag(particle_flag)
+    end
     @@mb_set_emission_shape : Void* = Pointer(Void).null
     def set_emission_shape(shape : EmissionShape | Int) : Void
       godot_bind(@@mb_set_emission_shape, "CPUParticles3D", "set_emission_shape", 491823814_i64)
@@ -32632,6 +34699,10 @@ module Godot
       godot_bind(@@mb_get_split_scale, "CPUParticles3D", "get_split_scale", 2240911060_i64)
       godot_ptrcall_bool(@@mb_get_split_scale, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `get_split_scale`
+    def get_split_scale?() : Bool
+      get_split_scale()
+    end
     @@mb_set_split_scale : Void* = Pointer(Void).null
     def set_split_scale(split_scale : Bool) : Void
       godot_bind(@@mb_set_split_scale, "CPUParticles3D", "set_split_scale", 2586408642_i64)
@@ -32690,9 +34761,6 @@ module Godot
     # Property `emitting` getter
     def emitting
       is_emitting
-    end
-    def emitting?
-      emitting
     end
     # Property `emitting` setter
     def emitting=(val)
@@ -33346,6 +35414,14 @@ module Godot
       godot_bind(@@mb_is_root_shape, "CSGShape3D", "is_root_shape", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_root_shape, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_root_shape`
+    def is_root_shape?() : Bool
+      is_root_shape()
+    end
+    # Predicate alias for `is_root_shape`
+    def root_shape?() : Bool
+      is_root_shape()
+    end
     @@mb_set_operation : Void* = Pointer(Void).null
     def set_operation(operation : Operation | Int) : Void
       godot_bind(@@mb_set_operation, "CSGShape3D", "set_operation", 811425055_i64)
@@ -33384,6 +35460,14 @@ module Godot
     def is_using_collision() : Bool
       godot_bind(@@mb_is_using_collision, "CSGShape3D", "is_using_collision", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_using_collision, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_using_collision`
+    def is_using_collision?() : Bool
+      is_using_collision()
+    end
+    # Predicate alias for `is_using_collision`
+    def using_collision?() : Bool
+      is_using_collision()
     end
     @@mb_set_collision_layer : Void* = Pointer(Void).null
     def set_collision_layer(layer : Int64) : Void
@@ -33429,6 +35513,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_get_collision_mask_value, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `get_collision_mask_value`
+    def get_collision_mask_value?(layer_number : Int64) : Bool
+      get_collision_mask_value(layer_number)
+    end
     @@mb_set_collision_layer_value : Void* = Pointer(Void).null
     def set_collision_layer_value(layer_number : Int64, value : Bool) : Void
       godot_bind(@@mb_set_collision_layer_value, "CSGShape3D", "set_collision_layer_value", 300928843_i64)
@@ -33446,6 +35534,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_get_collision_layer_value, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `get_collision_layer_value`
+    def get_collision_layer_value?(layer_number : Int64) : Bool
+      get_collision_layer_value(layer_number)
     end
     @@mb_set_collision_priority : Void* = Pointer(Void).null
     def set_collision_priority(priority : Float64) : Void
@@ -33478,6 +35570,14 @@ module Godot
       godot_bind(@@mb_is_calculating_tangents, "CSGShape3D", "is_calculating_tangents", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_calculating_tangents, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_calculating_tangents`
+    def is_calculating_tangents?() : Bool
+      is_calculating_tangents()
+    end
+    # Predicate alias for `is_calculating_tangents`
+    def calculating_tangents?() : Bool
+      is_calculating_tangents()
+    end
     @@mb_get_meshes : Void* = Pointer(Void).null
     def get_meshes() : Pointer(Void)
       godot_bind(@@mb_get_meshes, "CSGShape3D", "get_meshes", 3995934104_i64)
@@ -33503,6 +35603,14 @@ module Godot
       godot_bind(@@mb_is_autosmooth, "CSGShape3D", "is_autosmooth", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_autosmooth, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_autosmooth`
+    def is_autosmooth?() : Bool
+      is_autosmooth()
+    end
+    # Predicate alias for `is_autosmooth`
+    def autosmooth?() : Bool
+      is_autosmooth()
+    end
     @@mb_set_smoothing_angle : Void* = Pointer(Void).null
     def set_smoothing_angle(smoothing_angle : Float64) : Void
       godot_bind(@@mb_set_smoothing_angle, "CSGShape3D", "set_smoothing_angle", 373806689_i64)
@@ -33519,9 +35627,6 @@ module Godot
     # Property `autosmooth` getter
     def autosmooth
       is_autosmooth
-    end
-    def autosmooth?
-      autosmooth
     end
     # Property `autosmooth` setter
     def autosmooth=(val)
@@ -33614,6 +35719,10 @@ module Godot
     def get_flip_faces() : Bool
       godot_bind(@@mb_get_flip_faces, "CSGPrimitive3D", "get_flip_faces", 2240911060_i64)
       godot_ptrcall_bool(@@mb_get_flip_faces, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `get_flip_faces`
+    def get_flip_faces?() : Bool
+      get_flip_faces()
     end
     # Property `flip_faces` getter
     def flip_faces
@@ -33735,6 +35844,14 @@ module Godot
       godot_bind(@@mb_is_cone, "CSGCylinder3D", "is_cone", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_cone, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_cone`
+    def is_cone?() : Bool
+      is_cone()
+    end
+    # Predicate alias for `is_cone`
+    def cone?() : Bool
+      is_cone()
+    end
     @@mb_set_material : Void* = Pointer(Void).null
     def set_material(material : Material) : Void
       godot_bind(@@mb_set_material, "CSGCylinder3D", "set_material", 2757459619_i64)
@@ -33760,6 +35877,10 @@ module Godot
     def get_smooth_faces() : Bool
       godot_bind(@@mb_get_smooth_faces, "CSGCylinder3D", "get_smooth_faces", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_smooth_faces, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `get_smooth_faces`
+    def get_smooth_faces?() : Bool
+      get_smooth_faces()
     end
     # Property `radius` getter
     def radius
@@ -33788,9 +35909,6 @@ module Godot
     # Property `cone` getter
     def cone
       is_cone
-    end
-    def cone?
-      cone
     end
     # Property `cone` setter
     def cone=(val)
@@ -34028,6 +36146,10 @@ module Godot
       godot_bind(@@mb_get_path_rotation_accurate, "CSGPolygon3D", "get_path_rotation_accurate", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_path_rotation_accurate, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `get_path_rotation_accurate`
+    def get_path_rotation_accurate?() : Bool
+      get_path_rotation_accurate()
+    end
     @@mb_set_path_local : Void* = Pointer(Void).null
     def set_path_local(enable : Bool) : Void
       godot_bind(@@mb_set_path_local, "CSGPolygon3D", "set_path_local", 2586408642_i64)
@@ -34041,6 +36163,14 @@ module Godot
       godot_bind(@@mb_is_path_local, "CSGPolygon3D", "is_path_local", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_path_local, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_path_local`
+    def is_path_local?() : Bool
+      is_path_local()
+    end
+    # Predicate alias for `is_path_local`
+    def path_local?() : Bool
+      is_path_local()
+    end
     @@mb_set_path_continuous_u : Void* = Pointer(Void).null
     def set_path_continuous_u(enable : Bool) : Void
       godot_bind(@@mb_set_path_continuous_u, "CSGPolygon3D", "set_path_continuous_u", 2586408642_i64)
@@ -34053,6 +36183,14 @@ module Godot
     def is_path_continuous_u() : Bool
       godot_bind(@@mb_is_path_continuous_u, "CSGPolygon3D", "is_path_continuous_u", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_path_continuous_u, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_path_continuous_u`
+    def is_path_continuous_u?() : Bool
+      is_path_continuous_u()
+    end
+    # Predicate alias for `is_path_continuous_u`
+    def path_continuous_u?() : Bool
+      is_path_continuous_u()
     end
     @@mb_set_path_u_distance : Void* = Pointer(Void).null
     def set_path_u_distance(distance : Float64) : Void
@@ -34080,6 +36218,14 @@ module Godot
       godot_bind(@@mb_is_path_joined, "CSGPolygon3D", "is_path_joined", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_path_joined, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_path_joined`
+    def is_path_joined?() : Bool
+      is_path_joined()
+    end
+    # Predicate alias for `is_path_joined`
+    def path_joined?() : Bool
+      is_path_joined()
+    end
     @@mb_set_material : Void* = Pointer(Void).null
     def set_material(material : Material) : Void
       godot_bind(@@mb_set_material, "CSGPolygon3D", "set_material", 2757459619_i64)
@@ -34105,6 +36251,10 @@ module Godot
     def get_smooth_faces() : Bool
       godot_bind(@@mb_get_smooth_faces, "CSGPolygon3D", "get_smooth_faces", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_smooth_faces, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `get_smooth_faces`
+    def get_smooth_faces?() : Bool
+      get_smooth_faces()
     end
     # Property `polygon` getter
     def polygon
@@ -34201,9 +36351,6 @@ module Godot
     def path_local
       is_path_local
     end
-    def path_local?
-      path_local
-    end
     # Property `path_local` setter
     def path_local=(val)
       set_path_local(val)
@@ -34211,9 +36358,6 @@ module Godot
     # Property `path_continuous_u` getter
     def path_continuous_u
       is_path_continuous_u
-    end
-    def path_continuous_u?
-      path_continuous_u
     end
     # Property `path_continuous_u` setter
     def path_continuous_u=(val)
@@ -34230,9 +36374,6 @@ module Godot
     # Property `path_joined` getter
     def path_joined
       is_path_joined
-    end
-    def path_joined?
-      path_joined
     end
     # Property `path_joined` setter
     def path_joined=(val)
@@ -34313,6 +36454,10 @@ module Godot
     def get_smooth_faces() : Bool
       godot_bind(@@mb_get_smooth_faces, "CSGSphere3D", "get_smooth_faces", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_smooth_faces, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `get_smooth_faces`
+    def get_smooth_faces?() : Bool
+      get_smooth_faces()
     end
     @@mb_set_material : Void* = Pointer(Void).null
     def set_material(material : Material) : Void
@@ -34453,6 +36598,10 @@ module Godot
       godot_bind(@@mb_get_smooth_faces, "CSGTorus3D", "get_smooth_faces", 36873697_i64)
       godot_ptrcall_bool(@@mb_get_smooth_faces, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `get_smooth_faces`
+    def get_smooth_faces?() : Bool
+      get_smooth_faces()
+    end
     # Property `inner_radius` getter
     def inner_radius
       get_inner_radius
@@ -34569,6 +36718,14 @@ module Godot
       godot_bind(@@mb_is_ignoring_rotation, "Camera2D", "is_ignoring_rotation", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_ignoring_rotation, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_ignoring_rotation`
+    def is_ignoring_rotation?() : Bool
+      is_ignoring_rotation()
+    end
+    # Predicate alias for `is_ignoring_rotation`
+    def ignoring_rotation?() : Bool
+      is_ignoring_rotation()
+    end
     @@mb_set_process_callback : Void* = Pointer(Void).null
     def set_process_callback(mode : Camera2DProcessCallback | Int) : Void
       godot_bind(@@mb_set_process_callback, "Camera2D", "set_process_callback", 4201947462_i64)
@@ -34595,6 +36752,14 @@ module Godot
       godot_bind(@@mb_is_enabled, "Camera2D", "is_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_enabled, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_enabled`
+    def is_enabled?() : Bool
+      is_enabled()
+    end
+    # Predicate alias for `is_enabled`
+    def enabled?() : Bool
+      is_enabled()
+    end
     @@mb_make_current : Void* = Pointer(Void).null
     def make_current() : Void
       godot_bind(@@mb_make_current, "Camera2D", "make_current", 3218959716_i64)
@@ -34604,6 +36769,14 @@ module Godot
     def is_current() : Bool
       godot_bind(@@mb_is_current, "Camera2D", "is_current", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_current, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_current`
+    def is_current?() : Bool
+      is_current()
+    end
+    # Predicate alias for `is_current`
+    def current?() : Bool
+      is_current()
     end
     @@mb_set_limit_enabled : Void* = Pointer(Void).null
     def set_limit_enabled(limit_enabled : Bool) : Void
@@ -34617,6 +36790,14 @@ module Godot
     def is_limit_enabled() : Bool
       godot_bind(@@mb_is_limit_enabled, "Camera2D", "is_limit_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_limit_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_limit_enabled`
+    def is_limit_enabled?() : Bool
+      is_limit_enabled()
+    end
+    # Predicate alias for `is_limit_enabled`
+    def limit_enabled?() : Bool
+      is_limit_enabled()
     end
     @@mb_set_limit : Void* = Pointer(Void).null
     def set_limit(margin : Godot::Side | Int, limit : Int64) : Void
@@ -34649,6 +36830,14 @@ module Godot
       godot_bind(@@mb_is_limit_smoothing_enabled, "Camera2D", "is_limit_smoothing_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_limit_smoothing_enabled, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_limit_smoothing_enabled`
+    def is_limit_smoothing_enabled?() : Bool
+      is_limit_smoothing_enabled()
+    end
+    # Predicate alias for `is_limit_smoothing_enabled`
+    def limit_smoothing_enabled?() : Bool
+      is_limit_smoothing_enabled()
+    end
     @@mb_set_drag_vertical_enabled : Void* = Pointer(Void).null
     def set_drag_vertical_enabled(enabled : Bool) : Void
       godot_bind(@@mb_set_drag_vertical_enabled, "Camera2D", "set_drag_vertical_enabled", 2586408642_i64)
@@ -34662,6 +36851,14 @@ module Godot
       godot_bind(@@mb_is_drag_vertical_enabled, "Camera2D", "is_drag_vertical_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_drag_vertical_enabled, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_drag_vertical_enabled`
+    def is_drag_vertical_enabled?() : Bool
+      is_drag_vertical_enabled()
+    end
+    # Predicate alias for `is_drag_vertical_enabled`
+    def drag_vertical_enabled?() : Bool
+      is_drag_vertical_enabled()
+    end
     @@mb_set_drag_horizontal_enabled : Void* = Pointer(Void).null
     def set_drag_horizontal_enabled(enabled : Bool) : Void
       godot_bind(@@mb_set_drag_horizontal_enabled, "Camera2D", "set_drag_horizontal_enabled", 2586408642_i64)
@@ -34674,6 +36871,14 @@ module Godot
     def is_drag_horizontal_enabled() : Bool
       godot_bind(@@mb_is_drag_horizontal_enabled, "Camera2D", "is_drag_horizontal_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_drag_horizontal_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_drag_horizontal_enabled`
+    def is_drag_horizontal_enabled?() : Bool
+      is_drag_horizontal_enabled()
+    end
+    # Predicate alias for `is_drag_horizontal_enabled`
+    def drag_horizontal_enabled?() : Bool
+      is_drag_horizontal_enabled()
     end
     @@mb_set_drag_vertical_offset : Void* = Pointer(Void).null
     def set_drag_vertical_offset(offset : Float64) : Void
@@ -34786,6 +36991,14 @@ module Godot
       godot_bind(@@mb_is_position_smoothing_enabled, "Camera2D", "is_position_smoothing_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_position_smoothing_enabled, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_position_smoothing_enabled`
+    def is_position_smoothing_enabled?() : Bool
+      is_position_smoothing_enabled()
+    end
+    # Predicate alias for `is_position_smoothing_enabled`
+    def position_smoothing_enabled?() : Bool
+      is_position_smoothing_enabled()
+    end
     @@mb_set_rotation_smoothing_enabled : Void* = Pointer(Void).null
     def set_rotation_smoothing_enabled(enabled : Bool) : Void
       godot_bind(@@mb_set_rotation_smoothing_enabled, "Camera2D", "set_rotation_smoothing_enabled", 2586408642_i64)
@@ -34798,6 +37011,14 @@ module Godot
     def is_rotation_smoothing_enabled() : Bool
       godot_bind(@@mb_is_rotation_smoothing_enabled, "Camera2D", "is_rotation_smoothing_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_rotation_smoothing_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_rotation_smoothing_enabled`
+    def is_rotation_smoothing_enabled?() : Bool
+      is_rotation_smoothing_enabled()
+    end
+    # Predicate alias for `is_rotation_smoothing_enabled`
+    def rotation_smoothing_enabled?() : Bool
+      is_rotation_smoothing_enabled()
     end
     @@mb_set_rotation_smoothing_speed : Void* = Pointer(Void).null
     def set_rotation_smoothing_speed(speed : Float64) : Void
@@ -34840,6 +37061,14 @@ module Godot
       godot_bind(@@mb_is_screen_drawing_enabled, "Camera2D", "is_screen_drawing_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_screen_drawing_enabled, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_screen_drawing_enabled`
+    def is_screen_drawing_enabled?() : Bool
+      is_screen_drawing_enabled()
+    end
+    # Predicate alias for `is_screen_drawing_enabled`
+    def screen_drawing_enabled?() : Bool
+      is_screen_drawing_enabled()
+    end
     @@mb_set_limit_drawing_enabled : Void* = Pointer(Void).null
     def set_limit_drawing_enabled(limit_drawing_enabled : Bool) : Void
       godot_bind(@@mb_set_limit_drawing_enabled, "Camera2D", "set_limit_drawing_enabled", 2586408642_i64)
@@ -34853,6 +37082,14 @@ module Godot
       godot_bind(@@mb_is_limit_drawing_enabled, "Camera2D", "is_limit_drawing_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_limit_drawing_enabled, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_limit_drawing_enabled`
+    def is_limit_drawing_enabled?() : Bool
+      is_limit_drawing_enabled()
+    end
+    # Predicate alias for `is_limit_drawing_enabled`
+    def limit_drawing_enabled?() : Bool
+      is_limit_drawing_enabled()
+    end
     @@mb_set_margin_drawing_enabled : Void* = Pointer(Void).null
     def set_margin_drawing_enabled(margin_drawing_enabled : Bool) : Void
       godot_bind(@@mb_set_margin_drawing_enabled, "Camera2D", "set_margin_drawing_enabled", 2586408642_i64)
@@ -34865,6 +37102,14 @@ module Godot
     def is_margin_drawing_enabled() : Bool
       godot_bind(@@mb_is_margin_drawing_enabled, "Camera2D", "is_margin_drawing_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_margin_drawing_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_margin_drawing_enabled`
+    def is_margin_drawing_enabled?() : Bool
+      is_margin_drawing_enabled()
+    end
+    # Predicate alias for `is_margin_drawing_enabled`
+    def margin_drawing_enabled?() : Bool
+      is_margin_drawing_enabled()
     end
     # Property `offset` getter
     def offset
@@ -34897,9 +37142,6 @@ module Godot
     def enabled
       is_enabled
     end
-    def enabled?
-      enabled
-    end
     # Property `enabled` setter
     def enabled=(val)
       set_enabled(val)
@@ -34931,9 +37173,6 @@ module Godot
     # Property `limit_enabled` getter
     def limit_enabled
       is_limit_enabled
-    end
-    def limit_enabled?
-      limit_enabled
     end
     # Property `limit_enabled` setter
     def limit_enabled=(val)
@@ -34986,9 +37225,6 @@ module Godot
     def position_smoothing_enabled
       is_position_smoothing_enabled
     end
-    def position_smoothing_enabled?
-      position_smoothing_enabled
-    end
     # Property `position_smoothing_enabled` setter
     def position_smoothing_enabled=(val)
       set_position_smoothing_enabled(val)
@@ -35004,9 +37240,6 @@ module Godot
     # Property `rotation_smoothing_enabled` getter
     def rotation_smoothing_enabled
       is_rotation_smoothing_enabled
-    end
-    def rotation_smoothing_enabled?
-      rotation_smoothing_enabled
     end
     # Property `rotation_smoothing_enabled` setter
     def rotation_smoothing_enabled=(val)
@@ -35024,9 +37257,6 @@ module Godot
     def drag_horizontal_enabled
       is_drag_horizontal_enabled
     end
-    def drag_horizontal_enabled?
-      drag_horizontal_enabled
-    end
     # Property `drag_horizontal_enabled` setter
     def drag_horizontal_enabled=(val)
       set_drag_horizontal_enabled(val)
@@ -35034,9 +37264,6 @@ module Godot
     # Property `drag_vertical_enabled` getter
     def drag_vertical_enabled
       is_drag_vertical_enabled
-    end
-    def drag_vertical_enabled?
-      drag_vertical_enabled
     end
     # Property `drag_vertical_enabled` setter
     def drag_vertical_enabled=(val)
@@ -35182,6 +37409,14 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_position_behind, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `is_position_behind`
+    def is_position_behind?(world_point : Vector3) : Bool
+      is_position_behind(world_point)
+    end
+    # Predicate alias for `is_position_behind`
+    def position_behind?(world_point : Vector3) : Bool
+      is_position_behind(world_point)
+    end
     @@mb_project_position : Void* = Pointer(Void).null
     def project_position(screen_point : Vector2, z_depth : Float64) : Vector3
       godot_bind(@@mb_project_position, "Camera3D", "project_position", 2171975744_i64)
@@ -35255,6 +37490,10 @@ module Godot
     def is_current() : Bool
       godot_bind(@@mb_is_current, "Camera3D", "is_current", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_current, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_current`
+    def is_current?() : Bool
+      is_current()
     end
     @@mb_get_camera_transform : Void* = Pointer(Void).null
     def get_camera_transform() : Transform3D
@@ -35463,6 +37702,14 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_position_in_frustum, @pointer, args.to_unsafe.as(Void**))
     end
+    # Predicate alias for `is_position_in_frustum`
+    def is_position_in_frustum?(world_point : Vector3) : Bool
+      is_position_in_frustum(world_point)
+    end
+    # Predicate alias for `is_position_in_frustum`
+    def position_in_frustum?(world_point : Vector3) : Bool
+      is_position_in_frustum(world_point)
+    end
     @@mb_get_camera_rid : Void* = Pointer(Void).null
     def get_camera_rid() : Int64
       godot_bind(@@mb_get_camera_rid, "Camera3D", "get_camera_rid", 2944877500_i64)
@@ -35490,6 +37737,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_get_cull_mask_value, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `get_cull_mask_value`
+    def get_cull_mask_value?(layer_number : Int64) : Bool
+      get_cull_mask_value(layer_number)
     end
     # Property `keep_aspect` getter
     def keep_aspect
@@ -35623,6 +37874,14 @@ module Godot
       godot_bind(@@mb_is_auto_exposure_enabled, "CameraAttributes", "is_auto_exposure_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_auto_exposure_enabled, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_auto_exposure_enabled`
+    def is_auto_exposure_enabled?() : Bool
+      is_auto_exposure_enabled()
+    end
+    # Predicate alias for `is_auto_exposure_enabled`
+    def auto_exposure_enabled?() : Bool
+      is_auto_exposure_enabled()
+    end
     @@mb_set_auto_exposure_speed : Void* = Pointer(Void).null
     def set_auto_exposure_speed(exposure_speed : Float64) : Void
       godot_bind(@@mb_set_auto_exposure_speed, "CameraAttributes", "set_auto_exposure_speed", 373806689_i64)
@@ -35668,9 +37927,6 @@ module Godot
     # Property `auto_exposure_enabled` getter
     def auto_exposure_enabled
       is_auto_exposure_enabled
-    end
-    def auto_exposure_enabled?
-      auto_exposure_enabled
     end
     # Property `auto_exposure_enabled` setter
     def auto_exposure_enabled=(val)
@@ -35888,6 +38144,14 @@ module Godot
       godot_bind(@@mb_is_dof_blur_far_enabled, "CameraAttributesPractical", "is_dof_blur_far_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_dof_blur_far_enabled, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Predicate alias for `is_dof_blur_far_enabled`
+    def is_dof_blur_far_enabled?() : Bool
+      is_dof_blur_far_enabled()
+    end
+    # Predicate alias for `is_dof_blur_far_enabled`
+    def dof_blur_far_enabled?() : Bool
+      is_dof_blur_far_enabled()
+    end
     @@mb_set_dof_blur_far_distance : Void* = Pointer(Void).null
     def set_dof_blur_far_distance(distance : Float64) : Void
       godot_bind(@@mb_set_dof_blur_far_distance, "CameraAttributesPractical", "set_dof_blur_far_distance", 373806689_i64)
@@ -35926,6 +38190,14 @@ module Godot
     def is_dof_blur_near_enabled() : Bool
       godot_bind(@@mb_is_dof_blur_near_enabled, "CameraAttributesPractical", "is_dof_blur_near_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_dof_blur_near_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_dof_blur_near_enabled`
+    def is_dof_blur_near_enabled?() : Bool
+      is_dof_blur_near_enabled()
+    end
+    # Predicate alias for `is_dof_blur_near_enabled`
+    def dof_blur_near_enabled?() : Bool
+      is_dof_blur_near_enabled()
     end
     @@mb_set_dof_blur_near_distance : Void* = Pointer(Void).null
     def set_dof_blur_near_distance(distance : Float64) : Void
@@ -35996,9 +38268,6 @@ module Godot
     def dof_blur_far_enabled
       is_dof_blur_far_enabled
     end
-    def dof_blur_far_enabled?
-      dof_blur_far_enabled
-    end
     # Property `dof_blur_far_enabled` setter
     def dof_blur_far_enabled=(val)
       set_dof_blur_far_enabled(val)
@@ -36022,9 +38291,6 @@ module Godot
     # Property `dof_blur_near_enabled` getter
     def dof_blur_near_enabled
       is_dof_blur_near_enabled
-    end
-    def dof_blur_near_enabled?
-      dof_blur_near_enabled
     end
     # Property `dof_blur_near_enabled` setter
     def dof_blur_near_enabled=(val)
@@ -36096,6 +38362,14 @@ module Godot
     def is_active() : Bool
       godot_bind(@@mb_is_active, "CameraFeed", "is_active", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_active, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_active`
+    def is_active?() : Bool
+      is_active()
+    end
+    # Predicate alias for `is_active`
+    def active?() : Bool
+      is_active()
     end
     @@mb_set_active : Void* = Pointer(Void).null
     def set_active(active : Bool) : Void
@@ -36211,6 +38485,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_bool(@@mb_set_format, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `set_format`
+    def set_format?(index : Int64, parameters : Pointer(Void)) : Bool
+      set_format(index, parameters)
     end
     # Property `feed_is_active` getter
     def feed_is_active

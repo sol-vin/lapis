@@ -51,6 +51,13 @@ if tm = overrides["type_map"]?
   end
 end
 
+predicate_aliases = Hash(String, Array(String)).new
+if pa = overrides["predicate_aliases"]?
+  pa.as_h.each do |k, v|
+    predicate_aliases[k.to_s] = v.as_a.map(&.to_s)
+  end
+end
+
 def sanitize_name(name : String, keywords : Hash(String, String)) : String
   clean = name.gsub(/[^a-zA-Z0-9_]/, "_")
   clean = clean.underscore
@@ -395,7 +402,12 @@ classes.each do |c|
 end
 
 manual_methods = Hash(String, Set(String)).new
-["src/libgodot/object.cr", "src/libgodot.cr"].each do |manual_file|
+ext_files = Dir.glob("src/libgodot/extensions/*.cr")
+if ext_files.empty?
+  ext_files = Dir.glob(File.join(__DIR__, "..", "..", "src", "libgodot", "extensions", "*.cr"))
+end
+manual_files = ["src/libgodot/object.cr", "src/libgodot.cr"] + ext_files
+manual_files.each do |manual_file|
   path = if File.exists?(manual_file)
            manual_file
          elsif File.exists?(File.join(__DIR__, "..", "..", manual_file))
@@ -411,7 +423,7 @@ manual_methods = Hash(String, Set(String)).new
       curr_class = $1
       manual_methods[curr_class] ||= Set(String).new
     elsif curr_class
-      if line =~ /^\s*(?:def|property|getter|setter)\??\s+([A-Za-z0-9_]+[=?]?)/
+      if line =~ /^\s*(?:def|property|getter|setter)\??\s+(?:self\.)?([A-Za-z0-9_]+[=?]?)/
         m_ident = $1
         manual_methods[curr_class].add(m_ident)
         manual_methods[curr_class].add("#{m_ident}=") unless m_ident.ends_with?("=")
@@ -420,10 +432,12 @@ manual_methods = Hash(String, Set(String)).new
   end
 end
 
-def generate_class_code(io : IO, c : JSON::Any, keywords : Hash(String, String), type_map : Hash(String, String), class_names : Set(String), all_method_names : Set(String), manual_methods : Hash(String, Set(String)))
+def generate_class_code(io : IO, c : JSON::Any, keywords : Hash(String, String), type_map : Hash(String, String), class_names : Set(String), all_method_names : Set(String), manual_methods : Hash(String, Set(String)), predicate_aliases : Hash(String, Array(String)))
   name = c["name"].as_s
   parent = c["inherits"]?.try(&.as_s) || "Godot::Object"
   parent_type = parent == "Godot::Object" ? parent : (parent.starts_with?("Godot::") ? parent : "Godot::#{parent}")
+  class_manuals = manual_methods[name]?
+  defined_class_methods = Set(String).new
 
   # Class documentation
   class_doc_parts = [] of String
@@ -489,6 +503,11 @@ def generate_class_code(io : IO, c : JSON::Any, keywords : Hash(String, String),
       is_static = m["is_static"]?.try(&.as_bool) || false
       target_ptr = is_static ? "Pointer(Void).null" : "@pointer"
       method_prefix = is_static ? "def self." : "def "
+
+      defined_class_methods.add("#{method_prefix}#{sanitized_m_name}")
+      if is_static
+        defined_class_methods.add("def #{sanitized_m_name}")
+      end
 
       # Build argument list with default values
       args = m["arguments"]?.try(&.as_a) || [] of JSON::Any
@@ -651,15 +670,50 @@ def generate_class_code(io : IO, c : JSON::Any, keywords : Hash(String, String),
       end
 
       # Automatic predicate syntactic sugar (? alias) for all methods returning Bool
-      if ret_type_crystal == "Bool" && !sanitized_m_name.ends_with?('?')
-        io.puts "    # Predicate alias for `#{sanitized_m_name}`"
-        io.puts "    #{method_prefix}#{sanitized_m_name}?(#{arg_defs.join(", ")}) : Bool"
-        if is_static
-          io.puts "      self.class.#{sanitized_m_name}(#{arg_names.join(", ")})"
-        else
-          io.puts "      #{sanitized_m_name}(#{arg_names.join(", ")})"
+      if ret_type_crystal == "Bool"
+        pred_candidates = [] of String
+        pred_candidates << "#{sanitized_m_name}?" unless sanitized_m_name.ends_with?('?')
+
+        if sanitized_m_name.starts_with?("is_")
+          stripped = sanitized_m_name.sub(/^is_/, "")
+          pred_candidates << "#{stripped}?" if !stripped.empty? && !stripped.starts_with?(/[0-9]/)
+        elsif sanitized_m_name.starts_with?("are_")
+          stripped = sanitized_m_name.sub(/^are_/, "")
+          pred_candidates << "#{stripped}?" if !stripped.empty? && !stripped.starts_with?(/[0-9]/)
         end
-        io.puts "    end\n"
+
+        if extra_aliases = predicate_aliases[m_name]?
+          extra_aliases.each do |alias_name|
+            pred_candidates << (alias_name.ends_with?('?') ? alias_name : "#{alias_name}?")
+          end
+        end
+
+        pred_candidates.each do |pred_name|
+          pred_sig = "#{method_prefix}#{pred_name}"
+          next if defined_class_methods.includes?(pred_sig)
+          next if class_manuals && class_manuals.includes?(pred_name)
+
+          defined_class_methods.add(pred_sig)
+          io.puts "    # Predicate alias for `#{sanitized_m_name}`"
+          io.puts "    #{pred_sig}(#{arg_defs.join(", ")}) : Bool"
+          if is_static
+            io.puts "      self.class.#{sanitized_m_name}(#{arg_names.join(", ")})"
+          else
+            io.puts "      #{sanitized_m_name}(#{arg_names.join(", ")})"
+          end
+          io.puts "    end\n"
+
+          if is_static
+            inst_pred_sig = "def #{pred_name}"
+            if !defined_class_methods.includes?(inst_pred_sig) && !(class_manuals && class_manuals.includes?(pred_name))
+              defined_class_methods.add(inst_pred_sig)
+              io.puts "    # Instance convenience delegator for static predicate `#{sanitized_m_name}`"
+              io.puts "    #{inst_pred_sig}(#{arg_defs.join(", ")}) : Bool"
+              io.puts "      self.class.#{pred_name}(#{arg_names.join(", ")})"
+              io.puts "    end\n"
+            end
+          end
+        end
       end
     end
   end
@@ -675,7 +729,7 @@ def generate_class_code(io : IO, c : JSON::Any, keywords : Hash(String, String),
       clean_p_name = sanitize_name(raw_p_name, keywords)
 
       # Avoid colliding if a method with the exact same name already exists directly on this class
-      next if existing_methods.includes?(clean_p_name)
+      next if existing_methods.includes?(clean_p_name) || defined_class_methods.includes?("def #{clean_p_name}")
 
       raw_setter = p["setter"]?.try(&.as_s) || ""
       raw_getter = p["getter"]?.try(&.as_s) || ""
@@ -704,7 +758,6 @@ def generate_class_code(io : IO, c : JSON::Any, keywords : Hash(String, String),
       clean_getter = resolved_getter ? sanitize_name(resolved_getter, keywords) : nil
       clean_setter = resolved_setter ? sanitize_name(resolved_setter, keywords) : nil
       p_type = p["type"].as_s
-      class_manuals = manual_methods[name]?
 
       # Generate Getter
       if clean_getter
@@ -720,12 +773,18 @@ def generate_class_code(io : IO, c : JSON::Any, keywords : Hash(String, String),
             io.puts "      #{clean_getter}"
             io.puts "    end\n"
           end
+          defined_class_methods.add("def #{clean_p_name}")
 
           # Boolean predicate alias
           if p_type == "bool" || raw_getter.starts_with?("is_") || raw_getter.starts_with?("has_")
-            io.puts "    def #{clean_p_name}?"
-            io.puts "      #{clean_p_name}"
-            io.puts "    end\n"
+            pred_name = "#{clean_p_name}?"
+            pred_sig = "def #{pred_name}"
+            if !defined_class_methods.includes?(pred_sig) && !(class_manuals && class_manuals.includes?(pred_name))
+              defined_class_methods.add(pred_sig)
+              io.puts "    def #{pred_name}"
+              io.puts "      #{clean_p_name}"
+              io.puts "    end\n"
+            end
           end
         end
       end
@@ -816,7 +875,7 @@ num_parts.times do |part_idx|
     f.puts "# Generated classes part #{part_num} (in topological order)"
     f.puts "module Godot"
     part_classes.each do |c|
-      generate_class_code(f, c, keywords, type_map, class_names, all_method_names, manual_methods)
+      generate_class_code(f, c, keywords, type_map, class_names, all_method_names, manual_methods, predicate_aliases)
     end
     f.puts "end"
   end

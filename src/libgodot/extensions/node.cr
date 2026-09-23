@@ -3,11 +3,6 @@ module Godot
   # Node Idiomatic & Generic Extensions
   # ===========================================================================
   class Node
-    # Returns true if this node is currently a member of the active SceneTree.
-    def inside_tree? : Bool
-      is_inside_tree
-    end
-
     getter local_groups : Set(String) = Set(String).new
 
     # Adds this node to the specified group (with default non-persistent flag)

@@ -110,10 +110,6 @@ module Godot
       self.size = r.size
     end
 
-    def visible? : Bool
-      is_visible
-    end
-
     def mouse_in_rect?(screen_pos : Vector2) : Bool
       get_global_rect.has_point(screen_pos)
     end

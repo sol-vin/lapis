@@ -2,12 +2,17 @@ name: Test Suite
 
 on:
   push:
-    branches-ignore:
+    branches:
       - master
       - main
   pull_request:
     branches: [master, main]
   workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
 
 concurrency:
   group: test-${{ github.ref }}
@@ -198,6 +203,35 @@ jobs:
           # Per AGENTS.md, agents and CI must execute 'make all'
           make all
 
+      - name: Publish JUnit Test Report
+        uses: mikepenz/action-junit-report@v5
+        if: always()
+        with:
+          report_paths: |
+            test/bin/junit.xml
+            test/junit.xml
+            test/bin/junit_tool_2d.xml
+            test/bin/junit_tool_3d.xml
+            test/bin/junit_engine_specs/output.xml
+            test/bin/junit_cli_specs/output.xml
+            **/junit.xml
+            **/junit_*.xml
+          detailed_summary: true
+          include_passed: true
+
+      - name: Upload JUnit XML Artifacts (Windows)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: junit-test-results-windows
+          path: |
+            test/bin/junit.xml
+            test/junit.xml
+            test/bin/junit_*.xml
+            test/bin/**/output.xml
+            junit.xml
+          if-no-files-found: ignore
+
       - name: Upload Test Status Report & Artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -214,6 +248,10 @@ jobs:
             test/.tool_tests_failed
             test/.runtime_tests_passed
             test/.runtime_tests_failed
+            test/bin/junit.xml
+            test/junit.xml
+            test/bin/junit_*.xml
+            test/bin/**/output.xml
           if-no-files-found: ignore
 
       - name: Publish Test Status Report to Step Summary
@@ -374,6 +412,35 @@ jobs:
         run: |
           xvfb-run --auto-servernum make all
 
+      - name: Publish JUnit Test Report
+        uses: mikepenz/action-junit-report@v5
+        if: always()
+        with:
+          report_paths: |
+            test/bin/junit.xml
+            test/junit.xml
+            test/bin/junit_tool_2d.xml
+            test/bin/junit_tool_3d.xml
+            test/bin/junit_engine_specs/output.xml
+            test/bin/junit_cli_specs/output.xml
+            **/junit.xml
+            **/junit_*.xml
+          detailed_summary: true
+          include_passed: true
+
+      - name: Upload JUnit XML Artifacts (Linux)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: junit-test-results-linux
+          path: |
+            test/bin/junit.xml
+            test/junit.xml
+            test/bin/junit_*.xml
+            test/bin/**/output.xml
+            junit.xml
+          if-no-files-found: ignore
+
       - name: Upload Test Status Report & Artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -387,6 +454,10 @@ jobs:
             test/.tool_tests_failed
             test/.runtime_tests_passed
             test/.runtime_tests_failed
+            test/bin/junit.xml
+            test/junit.xml
+            test/bin/junit_*.xml
+            test/bin/**/output.xml
           if-no-files-found: ignore
 
       - name: Publish Test Status Report to Step Summary
@@ -547,6 +618,35 @@ jobs:
         run: |
           make all
 
+      - name: Publish JUnit Test Report
+        uses: mikepenz/action-junit-report@v5
+        if: always()
+        with:
+          report_paths: |
+            test/bin/junit.xml
+            test/junit.xml
+            test/bin/junit_tool_2d.xml
+            test/bin/junit_tool_3d.xml
+            test/bin/junit_engine_specs/output.xml
+            test/bin/junit_cli_specs/output.xml
+            **/junit.xml
+            **/junit_*.xml
+          detailed_summary: true
+          include_passed: true
+
+      - name: Upload JUnit XML Artifacts (macOS)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: junit-test-results-macos
+          path: |
+            test/bin/junit.xml
+            test/junit.xml
+            test/bin/junit_*.xml
+            test/bin/**/output.xml
+            junit.xml
+          if-no-files-found: ignore
+
       - name: Upload Test Status Report & Artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -560,6 +660,10 @@ jobs:
             test/.tool_tests_failed
             test/.runtime_tests_passed
             test/.runtime_tests_failed
+            test/bin/junit.xml
+            test/junit.xml
+            test/bin/junit_*.xml
+            test/bin/**/output.xml
           if-no-files-found: ignore
 
       - name: Publish Test Status Report to Step Summary

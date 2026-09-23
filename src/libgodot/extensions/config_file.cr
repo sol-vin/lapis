@@ -3,15 +3,6 @@ module Godot
   # ConfigFile Ergonomic Extensions
   # ===========================================================================
   class ConfigFile
-    # Predicate alias for `has_section`
-    def has_section?(section : String) : Bool
-      has_section(section)
-    end
-
-    # Predicate alias for `has_section_key`
-    def has_section_key?(section : String, key : String) : Bool
-      has_section_key(section, key)
-    end
 
     # Sets a value for a section and key with automatic variant conversion, returning value for chaining
     def set_value(section : String, key : String, value)

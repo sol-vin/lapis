@@ -12,10 +12,5 @@ module Godot
     def size : Vector2i
       Vector2i.new(get_width.to_i32, get_height.to_i32)
     end
-
-    # Returns true if the image has zero width or height
-    def empty? : Bool
-      is_empty
-    end
   end
 end

@@ -64,6 +64,12 @@ node ToolTester2D < Godot::Node2D do
       Godot::SystemIO.write_file("bin/.tool_tests_failed", "Failed: #{total - passed} test(s) failed.\n")
       Godot::SystemIO.write_file("test/bin/.tool_tests_failed", "Failed: #{total - passed} test(s) failed.\n")
     end
+
+    begin
+      Lapis::Test::JUnitExporter.generate(results, "test/bin/junit_tool_2d.xml")
+      Lapis::Test::JUnitExporter.generate(results, "test/junit_tool_2d.xml")
+    rescue
+    end
   end
 end
 
@@ -117,6 +123,12 @@ node ToolTester3D < Godot::Node3D do
       Godot.printerr("[ToolTester3D] FAILED: #{total - passed} test(s) failed.")
       Godot::SystemIO.write_file("bin/.tool_tests_failed", "Failed: #{total - passed} test(s) failed.\n")
       Godot::SystemIO.write_file("test/bin/.tool_tests_failed", "Failed: #{total - passed} test(s) failed.\n")
+    end
+
+    begin
+      Lapis::Test::JUnitExporter.generate(results, "test/bin/junit_tool_3d.xml")
+      Lapis::Test::JUnitExporter.generate(results, "test/junit_tool_3d.xml")
+    rescue
     end
   end
 end
@@ -277,6 +289,14 @@ node RunTesterPanel < Godot::Control do
           Godot::SystemIO.delete_file("bin/.runtime_tests_passed") if Godot::SystemIO.file_exists?("bin/.runtime_tests_passed")
           Godot::SystemIO.delete_file("test/bin/.runtime_tests_passed") if Godot::SystemIO.file_exists?("test/bin/.runtime_tests_passed")
         end
+
+        if junit_path = extract_cli_arg("--junit")
+          Lapis::Test::JUnitExporter.generate(results, junit_path) rescue nil
+        end
+        Lapis::Test::JUnitExporter.generate(results, "junit.xml") rescue nil
+        Lapis::Test::JUnitExporter.generate(results, "test/junit.xml") rescue nil
+        Lapis::Test::JUnitExporter.generate(results, "test/bin/junit.xml") rescue nil
+        Lapis::Test::JUnitExporter.generate(results, "bin/junit.xml") rescue nil
       rescue
       end
 

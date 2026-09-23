@@ -72,6 +72,8 @@ cc_wrapper.sh
 **/cc_wrapper.sh
 
 test_report.*
+junit*.xml
+**/junit*.xml
 android_audit_report.txt
 godot-src/
 

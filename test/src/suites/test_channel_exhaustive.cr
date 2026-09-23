@@ -389,6 +389,7 @@ test_suite "ChannelExhaustive" do
         c.send("Cycle_#{i}")
         _ = c.try_receive
         c.close
+        c.destroy
       end
     end
   end

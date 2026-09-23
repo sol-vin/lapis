@@ -1,5 +1,6 @@
 require "./env"
 require "./logger"
+require "./junit_parser"
 require "json"
 
 module Lapis
@@ -32,6 +33,25 @@ module Lapis
       property runtime_failed : Int32 = 0
       property runtime_details = [] of String
       property total_duration : Float64 = 0.0
+      property junit_report : JUnitParser::Report? = nil
+
+      def load_junit_report(path : String | Path) : Void
+        if rep = JUnitParser.parse_file(path)
+          if existing = @junit_report
+            @junit_report = existing.merge(rep)
+          else
+            @junit_report = rep
+          end
+          if current = @junit_report
+            set_runtime_metrics(
+              total: current.total_tests,
+              passed: current.total_passed,
+              failed: current.total_failures + current.total_errors,
+              details: current.failed_cases.map { |fc| "[#{fc.classname}] #{fc.name}: #{fc.failure_message}" }
+            )
+          end
+        end
+      end
 
       def initialize(
         @title : String = "LibGodot Workflow Status",
@@ -209,6 +229,35 @@ module Lapis
                   md.puts line
                 end
                 md.puts "```"
+              end
+              md.puts "</details>"
+              md.puts
+            end
+
+            if jrep = @junit_report
+              md.puts
+              md.puts "---"
+              md.puts
+              status_badge = jrep.passed? ? "PASS" : "FAIL (#{jrep.total_failures + jrep.total_errors} failed)"
+              md.puts "<details open><summary><b>🧪 Granular Test Results (JUnit Report: #{jrep.total_passed} / #{jrep.total_tests} Passed — #{status_badge})</b></summary>"
+              md.puts
+              md.puts "| Suite / Category | Tests | Passed | Failed | Duration |"
+              md.puts "| :--- | :---: | :---: | :---: | :---: |"
+              jrep.suites.each do |s|
+                s_passed = [s.tests - (s.failures + s.errors + s.skipped), 0].max
+                s_status = s.failures > 0 || s.errors > 0 ? "❌ #{s.failures + s.errors} failed" : "✓ PASS"
+                md.puts "| **#{s.name}** | #{s.tests} | #{s_passed} | #{s_status} | #{s.time.round(3)}s |"
+              end
+              md.puts
+              if !jrep.passed?
+                md.puts "#### 🚨 Test Failures Detail"
+                md.puts
+                jrep.failed_cases.each do |fc|
+                  md.puts "> [!CAUTION]"
+                  md.puts "> **[#{fc.classname}] #{fc.name}**"
+                  md.puts "> #{fc.failure_message.to_s.strip}" if fc.failure_message
+                  md.puts
+                end
               end
               md.puts "</details>"
               md.puts

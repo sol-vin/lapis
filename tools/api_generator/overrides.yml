@@ -90,3 +90,8 @@ method_renames:
     to_string: to_godot_string
   Node:
     type: node_type
+
+# Additional custom predicate aliases for methods
+predicate_aliases:
+  is_colliding:
+    - has_collider

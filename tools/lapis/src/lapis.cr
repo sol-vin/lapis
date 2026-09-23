@@ -7,6 +7,7 @@ require "./commands/deps"
 require "./commands/sync"
 require "./commands/build"
 require "./commands/test"
+require "./commands/spec"
 require "./commands/editor"
 require "./commands/scaffold"
 require "./commands/package"
@@ -22,7 +23,7 @@ require "./commands/ide"
 module Lapis
   ALL_COMMANDS = [
     "dirs", "deps", "sync", "build", "bind", "generate", "clean",
-    "test", "editor", "run", "setup", "doctor", "init", "ide",
+    "test", "spec", "editor", "run", "setup", "doctor", "init", "ide",
     "scaffold", "new", "package", "docs", "version", "install", "uninstall", "completion",
   ]
 
@@ -175,6 +176,8 @@ HELP
       Commands::Clean.run(["--help"])
     when "test"
       Commands::Test.run(["--help"])
+    when "spec"
+      Commands::Spec.run(["--help"])
     when "editor", "run"
       Commands::Editor.run(["--help"])
     when "setup"
@@ -276,6 +279,8 @@ HELP
       Commands::Clean.run(sub_args)
     when "test"
       Commands::Test.run(sub_args)
+    when "spec"
+      Commands::Spec.run(sub_args)
     when "editor"
       Commands::Editor.run(sub_args)
     when "run"

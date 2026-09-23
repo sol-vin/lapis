@@ -615,6 +615,10 @@ module Godot
       @destroyed || !alive?
     end
 
+    def explicitly_freed? : Bool
+      @destroyed
+    end
+
     # Returns true if running inside the Godot Editor
     def editor_hint? : Bool
       Godot.editor_hint?
@@ -853,6 +857,9 @@ module Godot
     # Returns true if this object or its registered class defines the given signal.
     def has_signal?(signal_name : String) : Bool
       check_alive!
+      if !@pointer.null? && @instance_id > 0
+        return true if has_signal(signal_name)
+      end
       class_name = self.class.name.split("::").last
       if entry = Godot::ClassRegistry.find(class_name)
         return true if entry.signals.any? { |s| s.name == signal_name }

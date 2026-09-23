@@ -23,6 +23,9 @@ Options:
   --skip-tool-tests     Skip headless in-editor @tool tests
   --skip-runtime-tests  Skip Godot runtime test project
   --skip-standalone     Skip standalone compiled test executable
+  -f, --filter=PATTERN  Run only runtime tests matching PATTERN
+  -c, --category=NAME   Run only runtime tests in category NAME
+  --junit=PATH          Export runtime test results to JUnit XML report
   -g, --godot=PATH      Explicit Godot engine executable path
   -v, --verbose         Enable verbose diagnostic logging and pass to Godot
   -h, --help            Show this help screen
@@ -30,8 +33,9 @@ Options:
 Examples:
   lapis test
   lapis test --skip-specs
-  lapis test --skip-cli-specs
-  lapis test --skip-runtime-tests
+  lapis test -f "Signal"
+  lapis test -c "2D"
+  lapis test --junit reports/junit.xml
 HELP
       end
 
@@ -74,6 +78,9 @@ HELP
         skip_tool_tests = false
         skip_runtime_tests = false
         skip_standalone = false
+        filter_pattern : String? = nil
+        category_filter : String? = nil
+        junit_path : String? = nil
         godot_path : String? = nil
 
         parser = OptionParser.new do |opts|
@@ -84,6 +91,9 @@ HELP
           opts.on("--skip-tool-tests", "Skip in-editor @tool tests") { skip_tool_tests = true }
           opts.on("--skip-runtime-tests", "Skip Godot runtime test project") { skip_runtime_tests = true }
           opts.on("--skip-standalone", "Skip standalone test executable") { skip_standalone = true }
+          opts.on("-f PATTERN", "--filter=PATTERN", "Run only tests matching PATTERN") { |p| filter_pattern = p }
+          opts.on("-c NAME", "--category=NAME", "Run only tests in category NAME") { |c| category_filter = c }
+          opts.on("--junit=PATH", "Export test results to JUnit XML report") { |j| junit_path = j }
           opts.on("-g PATH", "--godot=PATH", "Explicit Godot executable path") { |p| godot_path = p }
           opts.on("-v", "--verbose", "Enable verbose diagnostic logging") { Core::Logger.verbose = true }
           opts.on("-h", "--help", "Show help") { print_help; exit 0 }
@@ -95,6 +105,13 @@ HELP
         test_dir = root.join("test")
         test_bin_dir = test_dir.join("bin")
         godot_exe = Core::GodotFinder.resolve(godot_path)
+
+        junit_path ||= test_bin_dir.join("junit.xml").to_s
+
+        extra_runtime_args = [] of String
+        extra_runtime_args << "--filter=#{filter_pattern}" if filter_pattern
+        extra_runtime_args << "--category=#{category_filter}" if category_filter
+        extra_runtime_args << "--junit=#{junit_path}" if junit_path
 
         step_summary = Core::StepSummary.new("LibGodot Test Suite Status Report", godot_exe)
         clear_markers(test_dir, test_bin_dir)
@@ -110,9 +127,10 @@ HELP
               if Dir.exists?(spec_dir)
                 Core::Logger.step("Test:Specs:Engine", "Running Phase 1a: Engine specifications in test/spec...")
                 step_start = Time.instant
+                spec_junit_dir = test_bin_dir.join("junit_engine_specs")
                 res = Core::ProcessRunner.run_with_capture(
                   "crystal",
-                  ["spec", "test/spec"],
+                  ["spec", "test/spec", "--", "--junit_output", spec_junit_dir.to_s],
                   chdir: root.to_s
                 )
                 step_dur = (Time.instant - step_start).total_seconds.round(2)
@@ -134,9 +152,10 @@ HELP
               if Dir.exists?(lapis_spec_dir)
                 Core::Logger.step("Test:Specs:CLI", "Running Phase 1b: Lapis toolchain specifications in tools/lapis/spec...")
                 step_start = Time.instant
+                cli_junit_dir = test_bin_dir.join("junit_cli_specs")
                 res = Core::ProcessRunner.run_with_capture(
                   "crystal",
-                  ["spec", "tools/lapis/spec"],
+                  ["spec", "tools/lapis/spec", "--", "--junit_output", cli_junit_dir.to_s],
                   chdir: root.to_s
                 )
                 step_dur = (Time.instant - step_start).total_seconds.round(2)
@@ -300,7 +319,7 @@ HELP
               res = begin
                 Core::ProcessRunner.run_with_capture(
                   standalone_exe.to_s,
-                  ["--headless", "--rendering-driver", "opengl3", "--audio-driver", "Dummy", "--quit-after", "600", "--", "--autorun"],
+                  ["--headless", "--rendering-driver", "opengl3", "--audio-driver", "Dummy", "--quit-after", "600", "--", "--autorun"] + extra_runtime_args,
                   chdir: test_bin_dir.to_s
                 )
               rescue ex
@@ -375,7 +394,7 @@ HELP
               res = begin
                 Core::ProcessRunner.run_with_capture(
                   sandbox_exe.to_s,
-                  ["--headless", "--rendering-driver", "opengl3", "--audio-driver", "Dummy", "--quit-after", "600", "--", "--autorun"],
+                  ["--headless", "--rendering-driver", "opengl3", "--audio-driver", "Dummy", "--quit-after", "600", "--", "--autorun"] + extra_runtime_args,
                   chdir: sandbox_dir.to_s
                 )
               rescue ex
@@ -424,7 +443,7 @@ HELP
               res = begin
                 Core::ProcessRunner.run_with_capture(
                   godot_exe,
-                  ["--headless", "--rendering-driver", "opengl3", "--audio-driver", "Dummy", "--path", ".", "--quit-after", "600", "--", "--autorun"],
+                  ["--headless", "--rendering-driver", "opengl3", "--audio-driver", "Dummy", "--path", ".", "--quit-after", "600", "--", "--autorun"] + extra_runtime_args,
                   chdir: test_dir.to_s
                 )
               rescue ex
@@ -484,6 +503,27 @@ HELP
             failed_details = File.read(failed_file).lines.map(&.strip).reject(&.empty?)
           end
           step_summary.set_runtime_metrics(runtime_total, runtime_passed, runtime_failed, failed_details)
+
+          # Harvest JUnit XML test reports if available
+          junit_candidates = [
+            junit_path,
+            test_bin_dir.join("junit.xml").to_s,
+            test_dir.join("junit.xml").to_s,
+            root.join("junit.xml").to_s,
+            test_bin_dir.join("junit_tool_2d.xml").to_s,
+            test_dir.join("junit_tool_2d.xml").to_s,
+            test_bin_dir.join("junit_tool_3d.xml").to_s,
+            test_dir.join("junit_tool_3d.xml").to_s,
+            test_bin_dir.join("junit_engine_specs/output.xml").to_s,
+            test_bin_dir.join("junit_cli_specs/output.xml").to_s,
+          ].compact.uniq
+
+          junit_candidates.each do |j_cand|
+            if File.exists?(j_cand) && File.size(j_cand) > 0
+              step_summary.load_junit_report(j_cand)
+              step_summary.add_artifact(Path.new(j_cand).basename, j_cand)
+            end
+          end
 
           # Record built test artifacts
           [
