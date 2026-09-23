@@ -2403,3 +2403,57 @@ macro await(target, signal_name = nil, timeout_sec = nil)
     ::Godot.await({{target}})
   {% end %}
 end
+
+# Cooperatively yields the current fiber while the condition evaluates to truthy.
+# Usage:
+#   await_while(tween.is_running)
+#   await_while(character.moving?, timeout_sec: 5.0)
+macro await_while(condition, timeout_sec = nil)
+  %timeout = {{timeout_sec}}
+  %start = ::Time.instant
+  while {{condition}}
+    Fiber.yield
+    if %timeout && (::Time.instant - %start).total_seconds > %timeout
+      raise Godot::TimeoutError.new("Timed out after #{%timeout}s awaiting condition to become false")
+    end
+  end
+end
+
+macro await_while(condition, timeout_sec, &block)
+  %timeout = {{timeout_sec}}
+  %start = ::Time.instant
+  while {{condition}}
+    {{block.body}}
+    Fiber.yield
+    if %timeout && (::Time.instant - %start).total_seconds > %timeout
+      raise Godot::TimeoutError.new("Timed out after #{%timeout}s awaiting condition to become false")
+    end
+  end
+end
+
+# Cooperatively yields the current fiber until the condition evaluates to truthy.
+# Usage:
+#   await_until(character.on_floor?)
+#   await_until(resource.loaded?, timeout_sec: 10.0)
+macro await_until(condition, timeout_sec = nil)
+  %timeout = {{timeout_sec}}
+  %start = ::Time.instant
+  until {{condition}}
+    Fiber.yield
+    if %timeout && (::Time.instant - %start).total_seconds > %timeout
+      raise Godot::TimeoutError.new("Timed out after #{%timeout}s awaiting condition to become true")
+    end
+  end
+end
+
+macro await_until(condition, timeout_sec, &block)
+  %timeout = {{timeout_sec}}
+  %start = ::Time.instant
+  until {{condition}}
+    {{block.body}}
+    Fiber.yield
+    if %timeout && (::Time.instant - %start).total_seconds > %timeout
+      raise Godot::TimeoutError.new("Timed out after #{%timeout}s awaiting condition to become true")
+    end
+  end
+end

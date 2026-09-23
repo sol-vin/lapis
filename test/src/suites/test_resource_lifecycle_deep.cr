@@ -5,7 +5,8 @@
 include Lapis::Test
 
 
-test_resource_deep "RefCounted atomic lifecycle and ObjectDB cleanup" do
+test_suite "ResourceDeep" do
+  test "RefCounted atomic lifecycle and ObjectDB cleanup" do
   ref_obj = Godot.create(Godot::RefCounted)
   inst_id = ref_obj.instance_id
   assert_true Godot::Object.is_instance_id_valid(inst_id)
@@ -27,7 +28,7 @@ test_resource_deep "RefCounted atomic lifecycle and ObjectDB cleanup" do
   assert_false Godot::Object.is_instance_id_valid(inst_id)
 end
 
-test_resource_deep "StandardMaterial3D with child ImageTexture cleans up all server RIDs" do
+  test "StandardMaterial3D with child ImageTexture cleans up all server RIDs" do
   # Create backing image and image texture
   img = Godot.create(Godot::Image)
   assert_not_nil img
@@ -55,7 +56,7 @@ test_resource_deep "StandardMaterial3D with child ImageTexture cleans up all ser
   assert_false Godot::Object.is_instance_id_valid(img_id)
 end
 
-test_resource_deep "Physics 3D collision shapes allocate and release server RIDs cleanly" do
+  test "Physics 3D collision shapes allocate and release server RIDs cleanly" do
   shapes = [
     Godot.create(Godot::BoxShape3D).as(Godot::Shape3D),
     Godot.create(Godot::SphereShape3D).as(Godot::Shape3D),
@@ -92,7 +93,7 @@ test_resource_deep "Physics 3D collision shapes allocate and release server RIDs
   end
 end
 
-test_resource_deep "Zero-accumulation high-churn allocation loop leaves baseline ObjectDB count" do
+  test "Zero-accumulation high-churn allocation loop leaves baseline ObjectDB count" do
   GC.collect
 
   perf = Godot::Performance.new(Godot::Performance.singleton_ptr)
@@ -116,4 +117,6 @@ test_resource_deep "Zero-accumulation high-churn allocation loop leaves baseline
   # Difference in object count must be 0 (no native leak)
   delta = final_objs - baseline_objs
   assert_true delta <= 0.0, "ObjectDB leaked #{delta} objects after 500-iteration churn loop!"
+end
+
 end

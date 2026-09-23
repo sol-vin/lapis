@@ -5,7 +5,8 @@
 
 include Lapis::Test
 
-test_duplication "Node duplication with GROUPS flag preserves group membership" do
+test_suite "Duplication" do
+  test "Node duplication with GROUPS flag preserves group membership" do
   node = Godot.create(Godot::Node2D)
   node.name = "GroupSourceNode"
   node.add_to_group("test_group_alpha")
@@ -33,7 +34,7 @@ test_duplication "Node duplication with GROUPS flag preserves group membership" 
   node.destroy
 end
 
-test_duplication "Node duplication preserves spatial transform properties" do
+  test "Node duplication preserves spatial transform properties" do
   source = Godot.create(Godot::Node2D)
   source.position = Godot::Vector2.new(123.0_f32, 456.0_f32)
   source.rotation = 1.57_f32
@@ -50,7 +51,7 @@ test_duplication "Node duplication preserves spatial transform properties" do
   source.destroy
 end
 
-test_duplication "Node duplication preserves child hierarchy with unique instance IDs" do
+  test "Node duplication preserves child hierarchy with unique instance IDs" do
   parent = Godot.create(Godot::Node2D)
   parent.name = "RootParent"
   child1 = Godot.create(Godot::Node2D)
@@ -79,7 +80,7 @@ test_duplication "Node duplication preserves child hierarchy with unique instanc
   parent.destroy
 end
 
-test_duplication "Object metadata CRUD operations across diverse Variant types" do
+  test "Object metadata CRUD operations across diverse Variant types" do
   obj = Godot.create(Godot::Node2D)
 
   assert_false obj.has_meta("health")
@@ -101,7 +102,7 @@ test_duplication "Object metadata CRUD operations across diverse Variant types" 
   obj.destroy
 end
 
-test_duplication "Node duplication preserves and isolates object metadata" do
+  test "Node duplication preserves and isolates object metadata" do
   source = Godot.create(Godot::Node2D)
   source.call("set_meta", "health", 100_i64)
   source.call("set_meta", "team", "Blue")
@@ -119,4 +120,6 @@ test_duplication "Node duplication preserves and isolates object metadata" do
 
   clone.destroy
   source.destroy
+end
+
 end

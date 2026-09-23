@@ -6,14 +6,17 @@ include Lapis::Test
 
 
 {% if flag?(:release) %}
-  test_script_first_class "Editor script integration cleanly stripped in release mode" do
+test_suite "ScriptFirstClass" do
+  test "Editor script integration cleanly stripped in release mode" do
     class_db = Godot::ClassDB.new(Godot::ClassDB.singleton_ptr)
     assert_false class_db.call_bool("class_exists", "CrystalHighlighter"), "CrystalHighlighter must not be registered in release mode"
     assert_false class_db.call_bool("class_exists", "CrystalIntegrationPlugin"), "CrystalIntegrationPlugin must not be registered in release mode"
     assert_false class_db.call_bool("class_exists", "CrystalPanel"), "CrystalPanel must not be registered in release mode"
   end
+end
 {% else %}
-  test_script_first_class "CrystalHighlighter pure-Crystal lexer tokenization" do
+test_suite "ScriptFirstClass" do
+  test "CrystalHighlighter pure-Crystal lexer tokenization" do
     # Test line with keywords, types, annotations, symbols, numbers, and comments
     line = "  @[Export(range: 1.0_f32..20.0_f32)] property speed : Float32 = 7.5_f32 # player speed"
     spans = Godot::CrystalHighlighter.highlight_line(line)
@@ -34,7 +37,7 @@ include Lapis::Test
     assert_true str_spans.size > 0, "Highlighter should color strings and string interpolation"
   end
 
-  test_script_first_class "CrystalLanguage metadata, templates, and completions" do
+  test "CrystalLanguage metadata, templates, and completions" do
     lang = Godot::CrystalLanguage.instance
 
     assert_eq lang.get_name, "Crystal"
@@ -73,7 +76,7 @@ include Lapis::Test
     assert_true completions.any? { |c| c.display_text.includes?("_ready") }, "Completions should offer '_ready' callback"
   end
 
-  test_script_first_class "CrystalScript AST reflection and Inspector property extraction" do
+  test "CrystalScript AST reflection and Inspector property extraction" do
     source = <<-CRYSTAL
       require "lapis"
 
@@ -129,7 +132,7 @@ include Lapis::Test
     script.destroy
   end
 
-  test_script_first_class "ResourceFormatLoader and ResourceFormatSaver for .cr files" do
+  test "ResourceFormatLoader and ResourceFormatSaver for .cr files" do
     loader = Godot::ResourceFormatLoaderCrystal.instance
     saver = Godot::ResourceFormatSaverCrystal.instance
 
@@ -185,7 +188,7 @@ include Lapis::Test
     LibSystemIO.remove(fs_path.to_unsafe) if !fs_path.empty? && Godot::SystemIO.file_exists?(fs_path)
   end
 
-  test_script_first_class "ResourceSaver engine singleton round-trip via GDExtension boundary" do
+  test "ResourceSaver engine singleton round-trip via GDExtension boundary" do
     rs_ptr = Godot::Bridge.get_singleton("ResourceSaver")
     rl_ptr = Godot::Bridge.get_singleton("ResourceLoader")
     assert_true !rs_ptr.null?, "ResourceSaver singleton must exist"
@@ -241,7 +244,7 @@ include Lapis::Test
     end
   end
 
-  test_script_first_class "Editor ScriptEditor lifecycle: set_source_code, save, reload and AST round-trip" do
+  test "Editor ScriptEditor lifecycle: set_source_code, save, reload and AST round-trip" do
     rs_ptr = Godot::Bridge.get_singleton("ResourceSaver")
     rl_ptr = Godot::Bridge.get_singleton("ResourceLoader")
     assert_true !rs_ptr.null?, "ResourceSaver singleton must exist"
@@ -350,7 +353,7 @@ include Lapis::Test
     end
   end
 
-  test_script_first_class "ResourceFormatSaver overwrite safety guard against truncation" do
+  test "ResourceFormatSaver overwrite safety guard against truncation" do
     guard_path = "user://test_truncation_guard.cr"
     fs_path = Godot::ResourceFormatSaverCrystal.resolve_save_path(guard_path)
     initial_code = "# Valuable user code\nnode ImportantNode < Node do\nend\n"
@@ -379,7 +382,7 @@ include Lapis::Test
     end
   end
 
-  test_script_first_class "Editor script creation path adaptation and extension validation" do
+  test "Editor script creation path adaptation and extension validation" do
     # Test extension replacement preserving directory structures
     dummy_paths = {
       "res://src/player.gd"            => "res://src/player.cr",
@@ -405,7 +408,7 @@ include Lapis::Test
     end
   end
 
-  test_script_first_class "Editor script linking, ClassRegistry script_path, and global class inspection" do
+  test "Editor script linking, ClassRegistry script_path, and global class inspection" do
     # Test path normalization
     res_path = Godot.to_godot_res_path("src/libgodot.cr")
     assert_true res_path.starts_with?("res://"), "Path should normalize to res://"
@@ -465,7 +468,7 @@ include Lapis::Test
     LibSystemIO.remove(fs_invalid_path.to_unsafe) if File.exists?(fs_invalid_path)
   end
 
-  test_script_first_class "ScriptEditor save simulation: unsaved script without path, set_path, and save via ResourceSaver" do
+  test "ScriptEditor save simulation: unsaved script without path, set_path, and save via ResourceSaver" do
     rs_ptr = Godot::Bridge.get_singleton("ResourceSaver")
     rl_ptr = Godot::Bridge.get_singleton("ResourceLoader")
     assert_true !rs_ptr.null?, "ResourceSaver singleton must exist"
@@ -526,7 +529,7 @@ include Lapis::Test
     end
   end
 
-  test_script_first_class "CrystalLanguage LSP and virtual _complete_code / _lookup_code integration" do
+  test "CrystalLanguage LSP and virtual _complete_code / _lookup_code integration" do
     lang = Godot::CrystalLanguage.instance
     lsp = Lapis::CrystalLSP.instance
 
@@ -561,4 +564,5 @@ include Lapis::Test
     assert_eq c_opt.kind, 1_i64
     assert_eq c_opt.location, 0_i64
   end
+end
 {% end %}

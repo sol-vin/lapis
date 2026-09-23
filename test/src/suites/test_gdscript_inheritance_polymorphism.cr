@@ -19,7 +19,8 @@ module Godot
   alias CrystalBaseEntity = ::CrystalBaseEntity
 end
 
-test_polymorphism "GDScript subclassing Crystal node inherits properties and signals" do
+test_suite "Polymorphism" do
+  test "GDScript subclassing Crystal node inherits properties and signals" do
   entity = Godot.create(CrystalBaseEntity)
   assert_not_nil entity, "CrystalBaseEntity must instantiate"
 
@@ -83,4 +84,6 @@ test_polymorphism "GDScript subclassing Crystal node inherits properties and sig
   assert_eq received_signal_arg, "GDScript_Jump", "Signal declared in Crystal node must be emitted from GDScript subclass"
 
   entity.destroy
+end
+
 end

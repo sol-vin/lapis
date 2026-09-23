@@ -601,7 +601,7 @@ end
 
 # Modern declarative suite macro allowing grouped tests and category-scoped lifecycle hooks
 macro test_suite(category, &block)
-  {% for exp in block.body.expressions %}
+  {% for exp in (block.body.is_a?(Expressions) ? block.body.expressions : [block.body]) %}
     {% if exp.is_a?(Call) && exp.name == "test" %}
       ::Lapis::Test::Registry.register({{category}}, {{exp.args[0]}}, {{exp.filename}}, {{exp.line_number}}) do |node|
         root = node
@@ -631,59 +631,4 @@ macro test_case(category, name, &block)
   end
 end
 
-# Backwards-compatible domain-specific category macros
-{% for pair in [
-                 {:test_core, "Core"},
-                 {:test_2d, "2D"},
-                 {:test_3d, "3D"},
-                 {:test_prop, "Properties"},
-                 {:test_nodes, "Nodes"},
-                 {:test_deferred, "Deferred"},
-                 {:test_signals, "Signals"},
-                 {:test_gdscript, "GDScript"},
-                 {:test_mesh, "Mesh"},
-                 {:test_physics, "Physics"},
-                 {:test_stress, "Stress"},
-                 {:test_scenes, "Scenes"},
-                 {:test_concurrency, "Concurrency"},
-                 {:test_macros_dsl, "MacrosDSL"},
-                 {:test_reentrancy, "Reentrancy"},
-                 {:test_duplication, "Duplication"},
-                 {:test_callable_adv, "CallableAdv"},
-                 {:test_dynamic_props, "DynamicProps"},
-                 {:test_thread_safety, "ThreadSafety"},
-                 {:test_polymorphism, "Polymorphism"},
-                 {:test_undo_redo, "UndoRedo"},
-                 {:test_standalone_portable, "StandalonePortable"},
-                 {:test_shader, "Shaders"},
-                 {:test_material, "Materials"},
-                 {:test_geometry, "Geometry"},
-                 {:test_camera, "Cameras"},
-                 {:test_viewport, "Viewports"},
-                 {:test_tween, "Tweens"},
-                 {:test_audio_server, "AudioServer"},
-                 {:test_async_testing, "AsyncTesting"},
-                 {:test_dead_pointer_safety, "DeadPointerSafety"},
-                 {:test_script_first_class, "ScriptFirstClass"},
-                 {:test_resource_deep, "ResourceDeep"},
-                 {:test_resources, "Resources"},
-                 {:test_multi_addon, "MultiAddon"},
-                 {:test_lifecycle, "Lifecycle"},
-                 {:test_debugger, "Debugger"},
-                 {:test_ui, "UI"},
-                 {:test_classdb, "ClassDB"},
-                 {:test_audio_anim, "AudioAnim"},
-                 {:test_packed_arrays, "PackedArrays"},
-                 {:test_variant_math, "VariantMath"},
-                 {:test_memory_cyclic, "MemoryCyclic"},
-                 {:test_servers_rid, "ServersRID"},
-                 {:test_virtual_methods, "VirtualMethods"},
-                 {:test_concurrency_stress, "ConcurrencyStress"},
-               ] %}
-  macro {{pair[0].id}}(name, &block)
-    ::Lapis::Test::Registry.register({{pair[1]}}, \{{name}}, __FILE__, __LINE__) do |node|
-      root = node
-      \{{block.body}}
-    end
-  end
-{% end %}
+

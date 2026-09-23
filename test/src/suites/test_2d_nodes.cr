@@ -4,7 +4,8 @@
 
 include Lapis::Test
 
-test_2d "Sprite2D properties and frame manipulation" do
+test_suite "2D" do
+  test "Sprite2D properties and frame manipulation" do
   sprite = Godot.create(Godot::Sprite2D)
   assert_not_nil sprite
   assert_true sprite.alive?
@@ -30,7 +31,7 @@ test_2d "Sprite2D properties and frame manipulation" do
   assert_true sprite.destroyed?
 end
 
-test_2d "Camera2D zoom, offset, and projection settings" do
+  test "Camera2D zoom, offset, and projection settings" do
   cam = Godot.create(Godot::Camera2D)
   assert_not_nil cam
 
@@ -51,14 +52,14 @@ test_2d "Camera2D zoom, offset, and projection settings" do
   cam.destroy
 end
 
-test_2d "Marker2D gizmo configuration" do
+  test "Marker2D gizmo configuration" do
   marker = Godot.create(Godot::Marker2D)
   marker.set_gizmo_extents(24.0_f64)
   assert_approx_eq marker.get_gizmo_extents.to_f32, 24.0_f32
   marker.destroy
 end
 
-test_2d "Line2D point array construction and coloring" do
+  test "Line2D point array construction and coloring" do
   line = Godot.create(Godot::Line2D)
   assert_eq line.get_point_count, 0_i64
 
@@ -82,7 +83,7 @@ test_2d "Line2D point array construction and coloring" do
   line.destroy
 end
 
-test_2d "Polygon2D color and geometry definition" do
+  test "Polygon2D color and geometry definition" do
   poly = Godot.create(Godot::Polygon2D)
   poly.set_color(Godot::Color::RED)
   assert_approx_eq poly.get_color.r, 1.0_f32
@@ -92,7 +93,7 @@ test_2d "Polygon2D color and geometry definition" do
   poly.destroy
 end
 
-test_2d "RayCast2D collision targeting and mask" do
+  test "RayCast2D collision targeting and mask" do
   ray = Godot.create(Godot::RayCast2D)
   ray.set_target_position(Godot::Vector2.new(0.0, 150.0))
   assert_approx_eq ray.get_target_position.y, 150.0_f32
@@ -111,7 +112,7 @@ test_2d "RayCast2D collision targeting and mask" do
   ray.destroy
 end
 
-test_2d "ShapeCast2D multi-result collision querying" do
+  test "ShapeCast2D multi-result collision querying" do
   sc = Godot.create(Godot::ShapeCast2D)
   sc.set_target_position(Godot::Vector2.new(50.0, 0.0))
   assert_approx_eq sc.get_target_position.x, 50.0_f32
@@ -124,7 +125,7 @@ test_2d "ShapeCast2D multi-result collision querying" do
   sc.destroy
 end
 
-test_2d "Path2D and PathFollow2D progress tracking" do
+  test "Path2D and PathFollow2D progress tracking" do
   path = Godot.create(Godot::Path2D)
   follow = Godot.create(Godot::PathFollow2D)
   path.add_child(follow)
@@ -143,7 +144,7 @@ test_2d "Path2D and PathFollow2D progress tracking" do
   path.destroy
 end
 
-test_2d "RemoteTransform2D coordinate forwarding" do
+  test "RemoteTransform2D coordinate forwarding" do
   rt = Godot.create(Godot::RemoteTransform2D)
   rt.set_use_global_coordinates(false)
   assert_false rt.get_use_global_coordinates
@@ -159,7 +160,7 @@ test_2d "RemoteTransform2D coordinate forwarding" do
   rt.destroy
 end
 
-test_2d "ParallaxBackground and ParallaxLayer scrolling motion" do
+  test "ParallaxBackground and ParallaxLayer scrolling motion" do
   bg = Godot.create(Godot::ParallaxBackground)
   layer = Godot.create(Godot::ParallaxLayer)
   bg.add_child(layer)
@@ -179,7 +180,7 @@ test_2d "ParallaxBackground and ParallaxLayer scrolling motion" do
   bg.destroy
 end
 
-test_2d "PointLight2D and DirectionalLight2D illumination properties" do
+  test "PointLight2D and DirectionalLight2D illumination properties" do
   pt_light = Godot.create(Godot::PointLight2D)
   pt_light.set_energy(1.75_f64)
   assert_approx_eq pt_light.get_energy.to_f32, 1.75_f32
@@ -198,18 +199,20 @@ test_2d "PointLight2D and DirectionalLight2D illumination properties" do
   dir_light.destroy
 end
 
-test_2d "CanvasModulate ambient color tinting" do
+  test "CanvasModulate ambient color tinting" do
   cm = Godot.create(Godot::CanvasModulate)
   cm.set_color(Godot::Color.new(0.1, 0.1, 0.2, 1.0))
   assert_approx_eq cm.get_color.b, 0.2_f32
   cm.destroy
 end
 
-test_2d "AudioListener2D activation" do
+  test "AudioListener2D activation" do
   al = Godot.create(Godot::AudioListener2D)
   al.make_current
   assert_true al.is_current
   al.clear_current
   assert_false al.is_current
   al.destroy
+end
+
 end

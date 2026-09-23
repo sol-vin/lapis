@@ -99,14 +99,14 @@ module Lapis
                       end
 
         Core::Logger.step("Build", "Compiling #{output_path.basename}...")
-        t0 = Time.monotonic
+        t0 = Time.instant
         status = Core::ProcessRunner.run(
           "crystal",
           cmd_args,
           env: env,
           chdir: working_dir.to_s
         )
-        elapsed = (Time.monotonic - t0).total_seconds
+        elapsed = (Time.instant - t0).total_seconds
 
         if status.success?
           Core::Logger.success("#{output_path.basename} built successfully in #{elapsed.round(2)}s!")

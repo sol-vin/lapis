@@ -6,7 +6,8 @@ require "file_utils"
 
 include Lapis::Test
 
-test_standalone_portable "Toolchain automatically enforces --single-module for shared libraries" do
+test_suite "StandalonePortable" do
+  test "Toolchain automatically enforces --single-module for shared libraries" do
   # Verify shared library detection logic for --single-module
   shared_exts = [".so", ".dll", ".dylib"]
   shared_exts.each do |ext|
@@ -21,7 +22,7 @@ test_standalone_portable "Toolchain automatically enforces --single-module for s
   assert_false is_exe_shared, "Executable binary must not be identified as shared library"
 end
 
-test_standalone_portable "Standalone executable contains valid GDPC embedded PCK footer" do
+  test "Standalone executable contains valid GDPC embedded PCK footer" do
   root_dir = File.expand_path("../../..", __DIR__)
   scratch_dir = File.join(root_dir, "scratch", "test_embedded_pck")
   FileUtils.mkdir_p(scratch_dir) unless Dir.exists?(scratch_dir)
@@ -72,7 +73,7 @@ test_standalone_portable "Standalone executable contains valid GDPC embedded PCK
   FileUtils.rm_rf(scratch_dir) if Dir.exists?(scratch_dir)
 end
 
-test_standalone_portable "Active tests executable GDPC footer verification" do
+  test "Active tests executable GDPC footer verification" do
   root_dir = File.expand_path("../../..", __DIR__)
   exe_ext = ({% if flag?(:windows) %} ".exe" {% else %} "" {% end %})
   tests_exe = File.join(root_dir, "test", "bin", "tests_portable" + exe_ext)
@@ -95,4 +96,6 @@ test_standalone_portable "Active tests executable GDPC footer verification" do
       end
     end
   end
+end
+
 end

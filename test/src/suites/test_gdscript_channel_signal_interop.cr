@@ -25,7 +25,8 @@ node CrystalSignalEmitterNode < Godot::Node do
   end
 end
 
-test_gdscript "Crystal signal emitted from Crystal is received by GDScript listener" do
+test_suite "GDScript" do
+  test "Crystal signal emitted from Crystal is received by GDScript listener" do
   scene = Godot.load_as(Godot::PackedScene, "res://scenes/test_gdscript_interop.tscn")
   assert_not_nil scene
   root = scene.not_nil!.instantiate
@@ -66,7 +67,7 @@ test_gdscript "Crystal signal emitted from Crystal is received by GDScript liste
   scene.destroy
 end
 
-test_gdscript "Crystal signal emitted from GDScript is received by Crystal listener" do
+  test "Crystal signal emitted from GDScript is received by Crystal listener" do
   scene = Godot.load_as(Godot::PackedScene, "res://scenes/test_gdscript_interop.tscn")
   root = scene.not_nil!.instantiate
 
@@ -94,7 +95,7 @@ test_gdscript "Crystal signal emitted from GDScript is received by Crystal liste
   scene.destroy
 end
 
-test_gdscript "GodotChannel created in GDScript passed to Crystal: GDScript sends -> Crystal receives" do
+  test "GodotChannel created in GDScript passed to Crystal: GDScript sends -> Crystal receives" do
   scene = Godot.load_as(Godot::PackedScene, "res://scenes/test_gdscript_interop.tscn")
   root = scene.not_nil!.instantiate
 
@@ -120,7 +121,7 @@ test_gdscript "GodotChannel created in GDScript passed to Crystal: GDScript send
   scene.destroy
 end
 
-test_gdscript "GodotChannel created in Crystal passed to GDScript: Crystal sends -> GDScript receives" do
+  test "GodotChannel created in Crystal passed to GDScript: Crystal sends -> GDScript receives" do
   scene = Godot.load_as(Godot::PackedScene, "res://scenes/test_gdscript_interop.tscn")
   root = scene.not_nil!.instantiate
 
@@ -142,7 +143,7 @@ test_gdscript "GodotChannel created in Crystal passed to GDScript: Crystal sends
   scene.destroy
 end
 
-test_gdscript "Bidirectional multi-message Ping-Pong conversation over channels" do
+  test "Bidirectional multi-message Ping-Pong conversation over channels" do
   scene = Godot.load_as(Godot::PackedScene, "res://scenes/test_gdscript_interop.tscn")
   root = scene.not_nil!.instantiate
 
@@ -179,7 +180,7 @@ test_gdscript "Bidirectional multi-message Ping-Pong conversation over channels"
   scene.destroy
 end
 
-test_gdscript "Channel state inspection from GDScript (empty, full, size, close)" do
+  test "Channel state inspection from GDScript (empty, full, size, close)" do
   scene = Godot.load_as(Godot::PackedScene, "res://scenes/test_gdscript_interop.tscn")
   root = scene.not_nil!.instantiate
 
@@ -212,7 +213,7 @@ test_gdscript "Channel state inspection from GDScript (empty, full, size, close)
   scene.destroy
 end
 
-test_gdscript "GodotChannel received signal notifies GDScript reactive listener" do
+  test "GodotChannel received signal notifies GDScript reactive listener" do
   scene = Godot.load_as(Godot::PackedScene, "res://scenes/test_gdscript_interop.tscn")
   root = scene.not_nil!.instantiate
 
@@ -239,7 +240,7 @@ test_gdscript "GodotChannel received signal notifies GDScript reactive listener"
   scene.destroy
 end
 
-test_gdscript "Auto-generated typed GDScript binding InteropController methods and properties" do
+  test "Auto-generated typed GDScript binding InteropController methods and properties" do
   scene = Godot.load_as(Godot::PackedScene, "res://scenes/test_gdscript_interop.tscn")
   assert_not_nil scene
   root = scene.not_nil!.instantiate
@@ -272,4 +273,6 @@ test_gdscript "Auto-generated typed GDScript binding InteropController methods a
 
   root.destroy
   scene.destroy
+end
+
 end

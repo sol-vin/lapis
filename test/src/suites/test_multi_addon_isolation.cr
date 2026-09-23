@@ -5,7 +5,8 @@
 include Lapis::Test
 
 
-test_multi_addon "Multi-addon ClassDB registration and isolation" do
+test_suite "MultiAddon" do
+  test "Multi-addon ClassDB registration and isolation" do
   class_db = Godot::ClassDB.new(Godot::ClassDB.singleton_ptr)
 
   # In editor sessions, EditorPlugin classes are registered in ClassDB at EDITOR initialization level.
@@ -43,7 +44,7 @@ test_multi_addon "Multi-addon ClassDB registration and isolation" do
   assert_true audio.destroyed?
 end
 
-test_multi_addon "EditorPlugin coexistence and single compiler hook enforcement" do
+  test "EditorPlugin coexistence and single compiler hook enforcement" do
   class_db = Godot::ClassDB.new(Godot::ClassDB.singleton_ptr)
 
   # When in editor sessions (where EditorPlugin classes are registered):
@@ -68,7 +69,7 @@ test_multi_addon "EditorPlugin coexistence and single compiler hook enforcement"
   end
 end
 
-test_multi_addon "EditorPlugin documentation and public methods registration" do
+  test "EditorPlugin documentation and public methods registration" do
   class_db = Godot::ClassDB.new(Godot::ClassDB.singleton_ptr)
 
   # Check that plugins have their exported properties and signals registered in ClassDB
@@ -84,7 +85,7 @@ test_multi_addon "EditorPlugin documentation and public methods registration" do
   assert_true class_db.call_bool("class_has_signal", "InventoryGrid", "item_added"), "InventoryGrid must expose item_added signal"
 end
 
-test_multi_addon "Zero memory leak across multiple addon nodes" do
+  test "Zero memory leak across multiple addon nodes" do
   addon_nodes = Array(Godot::Control).new
   5.times do |i|
     # Add dummy dialogue boxes
@@ -116,7 +117,7 @@ test_multi_addon "Zero memory leak across multiple addon nodes" do
   assert_true true, "Multi-addon nodes cleanly allocated and deallocated"
 end
 
-test_multi_addon "Shared Boehm GC heap metrics and cross-plugin allocation integrity" do
+  test "Shared Boehm GC heap metrics and cross-plugin allocation integrity" do
   # Confirm Boehm GC is active and tracking heap allocations across modules
   stats_initial = GC.stats
   assert_true stats_initial.heap_size > 0, "Boehm GC heap size must be positive"
@@ -153,7 +154,7 @@ test_multi_addon "Shared Boehm GC heap metrics and cross-plugin allocation integ
   assert_true stats_final.total_bytes >= stats_initial.total_bytes, "Boehm GC tracked cumulative multi-plugin allocations"
 end
 
-test_multi_addon "Concurrent multi-threaded cross-plugin GC allocation stress test" do
+  test "Concurrent multi-threaded cross-plugin GC allocation stress test" do
   chan1 = Channel(Int32).new(1)
   chan2 = Channel(Int32).new(1)
 
@@ -206,7 +207,7 @@ test_multi_addon "Concurrent multi-threaded cross-plugin GC allocation stress te
   assert_true true, "Cross-plugin concurrent GC allocations completed without crashing"
 end
 
-test_multi_addon "ClassDB property and signal namespace isolation across independent addons" do
+  test "ClassDB property and signal namespace isolation across independent addons" do
   class_db = Godot::ClassDB.new(Godot::ClassDB.singleton_ptr)
 
   # Verify DialogueBox does NOT inherit InventoryGrid properties or signals
@@ -220,4 +221,6 @@ test_multi_addon "ClassDB property and signal namespace isolation across indepen
   # Verify AudioStreamPlayerCrystal is strictly isolated
   assert_false class_db.call_bool("class_has_signal", "AudioStreamPlayerCrystal", "line_finished"), "AudioStreamPlayerCrystal must NOT have line_finished signal"
   assert_false class_db.call_bool("class_has_signal", "AudioStreamPlayerCrystal", "item_added"), "AudioStreamPlayerCrystal must NOT have item_added signal"
+end
+
 end

@@ -4,7 +4,8 @@
 
 include Lapis::Test
 
-test_tween "Fluent Tween creation, transition/ease configuration, and control methods" do
+test_suite "Tweens" do
+  test "Fluent Tween creation, transition/ease configuration, and control methods" do
   node = Godot.create(Godot::Node2D)
   root.call("add_child", node)
 
@@ -34,7 +35,7 @@ test_tween "Fluent Tween creation, transition/ease configuration, and control me
   node.destroy
 end
 
-test_tween "AnimationPlayer, AnimationLibrary and programmatic track authoring" do
+  test "AnimationPlayer, AnimationLibrary and programmatic track authoring" do
   anim_player = Godot.create(Godot::AnimationPlayer)
   anim_lib = Godot.create(Godot::AnimationLibrary)
   anim = Godot.create(Godot::Animation)
@@ -65,4 +66,6 @@ test_tween "AnimationPlayer, AnimationLibrary and programmatic track authoring" 
   assert_true anim_player.has_animation("move_horizontal")
 
   anim_player.destroy
+end
+
 end

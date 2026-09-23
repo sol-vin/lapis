@@ -8,7 +8,8 @@ include Lapis::Test
 record ActorWorkTask, id : Int32, payload : String
 record ActorWorkResult, id : Int32, processed_data : String
 
-test_thread_safety "Godot.print and printerr are thread-safe when called from OS background threads" do
+test_suite "ThreadSafety" do
+  test "Godot.print and printerr are thread-safe when called from OS background threads" do
   completed = false
 
   thread = Thread.new do
@@ -22,7 +23,7 @@ test_thread_safety "Godot.print and printerr are thread-safe when called from OS
   assert_true completed, "Background worker thread must complete execution cleanly"
 end
 
-test_thread_safety "StringName and Vector math operations execute safely on OS worker threads" do
+  test "StringName and Vector math operations execute safely on OS worker threads" do
   computed_results = Channel(Godot::Vector2).new(4)
 
   thread = Thread.new do
@@ -39,7 +40,7 @@ test_thread_safety "StringName and Vector math operations execute safely on OS w
   assert_approx_eq result_vec.y, 60.0_f32, 0.01
 end
 
-test_thread_safety "Actor Pattern: OS background thread offloads computation to main thread via buffered Channel" do
+  test "Actor Pattern: OS background thread offloads computation to main thread via buffered Channel" do
   in_channel = Channel(ActorWorkTask).new(8)
   out_channel = Channel(ActorWorkResult).new(8)
 
@@ -69,7 +70,7 @@ test_thread_safety "Actor Pattern: OS background thread offloads computation to 
   assert_eq r3.processed_data, "ammaG_PROCESSED_30"
 end
 
-test_thread_safety "Shared collections protected by Mutex across concurrent OS threads" do
+  test "Shared collections protected by Mutex across concurrent OS threads" do
   mutex = ::Thread::Mutex.new
   shared_array = Array(Int32).new
 
@@ -86,4 +87,6 @@ test_thread_safety "Shared collections protected by Mutex across concurrent OS t
 
   threads.each(&.join)
   assert_eq shared_array.size, 40, "All 40 synchronized writes must be recorded without data corruption"
+end
+
 end

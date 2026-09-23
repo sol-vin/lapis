@@ -46,7 +46,8 @@ node ReentrantCallerNode < Godot::Node do
   end
 end
 
-test_reentrancy "Direct method self-destruction mid-call completes trampoline safely" do
+test_suite "Reentrancy" do
+  test "Direct method self-destruction mid-call completes trampoline safely" do
   freer = Godot.create(SelfFreerNode)
   freer_id = freer.instance_id
   assert_true Godot::Object.is_instance_id_valid(freer_id)
@@ -63,7 +64,7 @@ test_reentrancy "Direct method self-destruction mid-call completes trampoline sa
   end
 end
 
-test_reentrancy "Signal listener destroying emitter mid-call completes trampoline safely" do
+  test "Signal listener destroying emitter mid-call completes trampoline safely" do
   emitter = Godot.create(SelfDestructingEmitterNode)
   emitter_id = emitter.instance_id
   assert_true Godot::Object.is_instance_id_valid(emitter_id)
@@ -85,7 +86,7 @@ test_reentrancy "Signal listener destroying emitter mid-call completes trampolin
   emitter.destroy
 end
 
-test_reentrancy "Reentrant method call via Godot reflection dispatch preserves call stack" do
+  test "Reentrant method call via Godot reflection dispatch preserves call stack" do
   caller_node = Godot.create(ReentrantCallerNode)
   caller_node.step_counter = 0
 
@@ -96,7 +97,7 @@ test_reentrancy "Reentrant method call via Godot reflection dispatch preserves c
   caller_node.destroy
 end
 
-test_reentrancy "Reentrant signal emission inside listener loop executes deterministically" do
+  test "Reentrant signal emission inside listener loop executes deterministically" do
   node = Godot.create(ReentrantCallerNode)
   node.step_counter = 0
 
@@ -110,4 +111,6 @@ test_reentrancy "Reentrant signal emission inside listener loop executes determi
   assert_eq node.step_counter, 3, "Reentrant signal emissions must complete all recursion levels"
 
   node.destroy
+end
+
 end

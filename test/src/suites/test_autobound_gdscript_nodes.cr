@@ -7,7 +7,8 @@
 
 include Lapis::Test
 
-test_gdscript "Auto-bound ComprehensiveInteropNode instantiation and inheritance" do
+test_suite "GDScript" do
+  test "Auto-bound ComprehensiveInteropNode instantiation and inheritance" do
   scene = Godot.load_as(Godot::PackedScene, "res://scenes/test_comprehensive_interop.tscn")
   assert_not_nil scene, "Test scene must load"
   root = scene.not_nil!.instantiate
@@ -31,7 +32,7 @@ test_gdscript "Auto-bound ComprehensiveInteropNode instantiation and inheritance
   scene.destroy
 end
 
-test_gdscript "Auto-bound typed properties get and set" do
+  test "Auto-bound typed properties get and set" do
   scene = Godot.load_as(Godot::PackedScene, "res://scenes/test_comprehensive_interop.tscn")
   root = scene.not_nil!.instantiate
   comp = Godot::ComprehensiveInteropNode.from(root)
@@ -58,7 +59,7 @@ test_gdscript "Auto-bound typed properties get and set" do
   scene.destroy
 end
 
-test_gdscript "Auto-bound typed arithmetic, string, and boolean methods" do
+  test "Auto-bound typed arithmetic, string, and boolean methods" do
   scene = Godot.load_as(Godot::PackedScene, "res://scenes/test_comprehensive_interop.tscn")
   root = scene.not_nil!.instantiate
   comp = Godot::ComprehensiveInteropNode.from(root)
@@ -85,7 +86,7 @@ test_gdscript "Auto-bound typed arithmetic, string, and boolean methods" do
   scene.destroy
 end
 
-test_gdscript "Auto-bound vector, color, and node object parameters" do
+  test "Auto-bound vector, color, and node object parameters" do
   scene = Godot.load_as(Godot::PackedScene, "res://scenes/test_comprehensive_interop.tscn")
   root = scene.not_nil!.instantiate
   comp = Godot::ComprehensiveInteropNode.from(root)
@@ -123,7 +124,7 @@ test_gdscript "Auto-bound vector, color, and node object parameters" do
   scene.destroy
 end
 
-test_gdscript "Auto-bound void method and state mutation" do
+  test "Auto-bound void method and state mutation" do
   scene = Godot.load_as(Godot::PackedScene, "res://scenes/test_comprehensive_interop.tscn")
   root = scene.not_nil!.instantiate
   comp = Godot::ComprehensiveInteropNode.from(root)
@@ -145,7 +146,7 @@ test_gdscript "Auto-bound void method and state mutation" do
   scene.destroy
 end
 
-test_gdscript "Auto-bound signals and emission listening" do
+  test "Auto-bound signals and emission listening" do
   scene = Godot.load_as(Godot::PackedScene, "res://scenes/test_comprehensive_interop.tscn")
   root = scene.not_nil!.instantiate
   comp = Godot::ComprehensiveInteropNode.from(root)
@@ -177,4 +178,6 @@ test_gdscript "Auto-bound signals and emission listening" do
   sub.unsubscribe
   root.destroy
   scene.destroy
+end
+
 end

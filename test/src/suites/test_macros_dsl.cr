@@ -209,7 +209,8 @@ node ComprehensiveGroupingTestNode < Godot::Node do
   end
 end
 
-test_macros_dsl "Type-safe signal listeners with converted arguments (on_<signal>)" do
+test_suite "MacrosDSL" do
+  test "Type-safe signal listeners with converted arguments (on_<signal>)" do
   target = PropertyTestTarget.new
   received_code = 0
   received_label = ""
@@ -234,7 +235,7 @@ test_macros_dsl "Type-safe signal listeners with converted arguments (on_<signal
   target.disconnect("multi_arg_event")
 end
 
-test_macros_dsl "Parameterless type-safe signal listeners (on_<signal>)" do
+  test "Parameterless type-safe signal listeners (on_<signal>)" do
   target = GroupDslTestNode.new
   called = false
 
@@ -247,7 +248,7 @@ test_macros_dsl "Parameterless type-safe signal listeners (on_<signal>)" do
   target.disconnect("battle_started")
 end
 
-test_macros_dsl "One-shot type-safe signal listener (on_<signal>_once)" do
+  test "One-shot type-safe signal listener (on_<signal>_once)" do
   target = PropertyTestTarget.new
   invocation_count = 0
 
@@ -263,7 +264,7 @@ test_macros_dsl "One-shot type-safe signal listener (on_<signal>_once)" do
   assert_eq invocation_count, 1, "on_<signal>_once should trigger exactly once"
 end
 
-test_macros_dsl "BoundSignal#connect_one_shot automatically disconnects" do
+  test "BoundSignal#connect_one_shot automatically disconnects" do
   target = PropertyTestTarget.new
   invocation_count = 0
 
@@ -277,7 +278,7 @@ test_macros_dsl "BoundSignal#connect_one_shot automatically disconnects" do
   assert_eq invocation_count, 1, "connect_one_shot should trigger only once"
 end
 
-test_macros_dsl "Signal connecting to method symbol on target object" do
+  test "Signal connecting to method symbol on target object" do
   emitter = GroupDslTestNode.new
   listener = GroupDslTestNode.new
 
@@ -292,7 +293,7 @@ test_macros_dsl "Signal connecting to method symbol on target object" do
   listener.destroy
 end
 
-test_macros_dsl "Signal introspection: has_signal? and signal_connection_count" do
+  test "Signal introspection: has_signal? and signal_connection_count" do
   target = PropertyTestTarget.new
 
   assert_true target.has_signal?("test_event_fired")
@@ -308,7 +309,7 @@ test_macros_dsl "Signal introspection: has_signal? and signal_connection_count" 
   assert_eq target.signal_connection_count("test_event_fired"), 0
 end
 
-test_macros_dsl "Declarative class-level group macro and in_group? predicate" do
+  test "Declarative class-level group macro and in_group? predicate" do
   node = GroupDslTestNode.new
 
   # Manually trigger _ready dispatch for unparented test node
@@ -320,7 +321,7 @@ test_macros_dsl "Declarative class-level group macro and in_group? predicate" do
   node.destroy
 end
 
-test_macros_dsl "Hierarchy cast helpers on Node (get_parent_as, find_child_as, get_unique_node_as)" do
+  test "Hierarchy cast helpers on Node (get_parent_as, find_child_as, get_unique_node_as)" do
   parent = Godot.create(Godot::Node2D)
   child = Godot.create(Godot::Node2D)
   child.name = "MyUniqueChild"
@@ -349,7 +350,7 @@ test_macros_dsl "Hierarchy cast helpers on Node (get_parent_as, find_child_as, g
   parent.destroy
 end
 
-test_macros_dsl "Singletons accessors on Godot module" do
+  test "Singletons accessors on Godot module" do
   assert_not_nil Godot.input
   assert_not_nil Godot.engine
   assert_not_nil Godot.os
@@ -363,7 +364,7 @@ test_macros_dsl "Singletons accessors on Godot module" do
   assert_eq Godot.engine.object_id, Godot.engine.object_id
 end
 
-test_macros_dsl "Input convenience query helpers" do
+  test "Input convenience query helpers" do
   # These methods shouldn't crash when querying unconfigured actions
   pressed = Godot::Input.action_pressed?("ui_accept")
   just_pressed = Godot::Input.action_just_pressed?("ui_accept")
@@ -376,7 +377,7 @@ test_macros_dsl "Input convenience query helpers" do
   assert_true axis_val.is_a?(Float32)
 end
 
-test_macros_dsl "Top-level math constructor helpers: vec2 and vec3" do
+  test "Top-level math constructor helpers: vec2 and vec3" do
   v2 = vec2(15.5, -42.0)
   assert_true v2.is_a?(Vector2)
   assert_true (v2.x - 15.5_f32).abs < 0.001
@@ -389,7 +390,7 @@ test_macros_dsl "Top-level math constructor helpers: vec2 and vec3" do
   assert_true (v3.z - (-9.9_f32)).abs < 0.001
 end
 
-test_macros_dsl "Direct Crystal enum property binding and property dispatch" do
+  test "Direct Crystal enum property binding and property dispatch" do
   node = EnumDslTestNode.new
   assert_eq node.role, DslTestRole::Knight
   assert_eq node.role_id, 0
@@ -411,7 +412,7 @@ test_macros_dsl "Direct Crystal enum property binding and property dispatch" do
   node.destroy
 end
 
-test_macros_dsl "Transferring Crystal enum node to GDScript: reading, setting, and inspecting property metadata" do
+  test "Transferring Crystal enum node to GDScript: reading, setting, and inspecting property metadata" do
   enum_node = Godot.create(EnumDslTestNode)
   root.add_child(enum_node)
 
@@ -449,7 +450,7 @@ test_macros_dsl "Transferring Crystal enum node to GDScript: reading, setting, a
   scene.destroy
 end
 
-test_macros_dsl "Exhaustive @Export property annotation metadata and hint validation in ClassDB" do
+  test "Exhaustive @Export property annotation metadata and hint validation in ClassDB" do
   entry = Godot::ClassRegistry.find("ExhaustiveExportMacroNode")
   assert_not_nil entry, "ExhaustiveExportMacroNode must be registered"
   props = entry.not_nil!.properties
@@ -530,7 +531,7 @@ test_macros_dsl "Exhaustive @Export property annotation metadata and hint valida
   assert_not_nil sub
 end
 
-test_macros_dsl "Lifecycle hooks: _enter_tree and _exit_tree callbacks" do
+  test "Lifecycle hooks: _enter_tree and _exit_tree callbacks" do
   node = Godot.create(LifecycleMacroTestNode)
   assert_false node.enter_tree_called
   assert_false node.exit_tree_called
@@ -546,7 +547,7 @@ test_macros_dsl "Lifecycle hooks: _enter_tree and _exit_tree callbacks" do
   node.destroy
 end
 
-test_macros_dsl "Comprehensive grouping DSL: category, group, subgroup boundaries and sentinels in ClassRegistry" do
+  test "Comprehensive grouping DSL: category, group, subgroup boundaries and sentinels in ClassRegistry" do
   entry = Godot::ClassRegistry.find("ComprehensiveGroupingTestNode")
   assert_not_nil entry, "ComprehensiveGroupingTestNode must be registered in ClassRegistry"
   props = entry.not_nil!.properties
@@ -619,7 +620,7 @@ test_macros_dsl "Comprehensive grouping DSL: category, group, subgroup boundarie
   assert_eq p_cache.usage, 2_u32 # PROPERTY_USAGE_STORAGE
 end
 
-test_macros_dsl "ExportNodePath type resolution: classes, unions, aliases, and strings" do
+  test "ExportNodePath type resolution: classes, unions, aliases, and strings" do
   entry = Godot::ClassRegistry.find("ComprehensiveGroupingTestNode").not_nil!
   props = entry.properties
 
@@ -649,7 +650,7 @@ test_macros_dsl "ExportNodePath type resolution: classes, unions, aliases, and s
   assert_eq p_strings.hint_string, "Camera3D,Camera2D"
 end
 
-test_macros_dsl "Runtime property mutation and state integrity on ComprehensiveGroupingTestNode" do
+  test "Runtime property mutation and state integrity on ComprehensiveGroupingTestNode" do
   node = Godot.create(ComprehensiveGroupingTestNode)
   root.add_child(node)
 
@@ -670,7 +671,7 @@ test_macros_dsl "Runtime property mutation and state integrity on ComprehensiveG
   node.destroy
 end
 
-test_macros_dsl "GDScript interop: inspecting grouped node properties and ExportNodePath hints" do
+  test "GDScript interop: inspecting grouped node properties and ExportNodePath hints" do
   node = Godot.create(ComprehensiveGroupingTestNode)
   root.add_child(node)
 
@@ -707,7 +708,7 @@ test_macros_dsl "GDScript interop: inspecting grouped node properties and Export
   scene.destroy
 end
 
-test_macros_dsl "TypedSignal connect and automatic unboxing of primitive and math types" do
+  test "TypedSignal connect and automatic unboxing of primitive and math types" do
   node = Godot.create(TypedSignalTestEmitterNode)
   root.add_child(node)
 
@@ -755,7 +756,7 @@ test_macros_dsl "TypedSignal connect and automatic unboxing of primitive and mat
   node.destroy
 end
 
-test_macros_dsl "TypedSignal ConnectFlags::OneShot and flag bitwise operations" do
+  test "TypedSignal ConnectFlags::OneShot and flag bitwise operations" do
   node = Godot.create(TypedSignalTestEmitterNode)
   root.add_child(node)
 
@@ -794,7 +795,7 @@ test_macros_dsl "TypedSignal ConnectFlags::OneShot and flag bitwise operations" 
   node.destroy
 end
 
-test_macros_dsl "TypedSignal cooperative await with typed return values" do
+  test "TypedSignal cooperative await with typed return values" do
   node = Godot.create(TypedSignalTestEmitterNode)
   root.add_child(node)
 
@@ -840,7 +841,7 @@ test_macros_dsl "TypedSignal cooperative await with typed return values" do
   node.destroy
 end
 
-test_macros_dsl "Virtual input dispatch via _input and _unhandled_input" do
+  test "Virtual input dispatch via _input and _unhandled_input" do
   node = Godot.create(InputDispatchTestNode)
   root.add_child(node)
 
@@ -864,7 +865,7 @@ test_macros_dsl "Virtual input dispatch via _input and _unhandled_input" do
   node.destroy
 end
 
-test_macros_dsl "Input singleton zero-allocation polling and accumulated input toggle" do
+  test "Input singleton zero-allocation polling and accumulated input toggle" do
   orig_accum = Godot::Input.use_accumulated_input
   Godot::Input.use_accumulated_input = false
   assert_false Godot::Input.use_accumulated_input, "use_accumulated_input should be false after setting"
@@ -891,4 +892,6 @@ test_macros_dsl "Input singleton zero-allocation polling and accumulated input t
   assert_true (Godot::Key::Escape == key_event.keycode), "Godot::Key should compare directly to integer keycode"
   assert_eq Godot::Key::Q.value, 81_i64, "Godot::Key::Q value should match ASCII/engine 81"
   assert_eq Godot::Key::Escape.value, 4194305_i64, "Godot::Key::Escape value should match engine 4194305"
+end
+
 end

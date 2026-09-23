@@ -489,10 +489,12 @@ require "lapis"
 
 include Lapis::Test
 
-test_nodes "#{name.camelcase}Node is registered" do
-  entry = Godot::ClassRegistry.find("#{name.camelcase}Node")
-  assert_not_nil entry, "Expected #{name.camelcase}Node to be registered"
-  assert_eq entry.not_nil!.parent_name, "Node"
+test_suite "Nodes" do
+  test "#{name.camelcase}Node is registered" do
+    entry = Godot::ClassRegistry.find("#{name.camelcase}Node")
+    assert_not_nil entry, "Expected #{name.camelcase}Node to be registered"
+    assert_eq entry.not_nil!.parent_name, "Node"
+  end
 end
 
 test_case "Editor", "#{name.camelcase}Node editor tool verification" do

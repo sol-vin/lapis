@@ -4,7 +4,8 @@
 
 include Lapis::Test
 
-test_concurrency "Cooperative Fiber modifying Godot Node properties across engine yields" do
+test_suite "Concurrency" do
+  test "Cooperative Fiber modifying Godot Node properties across engine yields" do
   node = Godot.create(Godot::Node2D)
   node.name = "FiberConcurrentNode"
   node.position = Godot::Vector2.new(0.0_f32, 0.0_f32)
@@ -35,7 +36,7 @@ test_concurrency "Cooperative Fiber modifying Godot Node properties across engin
   node.destroy
 end
 
-test_concurrency "Cooperative fiber awaiting custom Godot Node signals" do
+  test "Cooperative fiber awaiting custom Godot Node signals" do
   target = Godot.create(PropertyTestTarget)
   received_payload = ""
   fiber_done = false
@@ -63,7 +64,7 @@ test_concurrency "Cooperative fiber awaiting custom Godot Node signals" do
   target.destroy
 end
 
-test_concurrency "Dead-pointer protection: target destroyed while fiber is awaiting signal" do
+  test "Dead-pointer protection: target destroyed while fiber is awaiting signal" do
   target = Godot.create(Godot::Node2D)
   target_id = target.instance_id
 
@@ -98,7 +99,7 @@ test_concurrency "Dead-pointer protection: target destroyed while fiber is await
   assert_true caught_disposed_error, "DisposedObjectError must be raised when target node is freed"
 end
 
-test_concurrency "Cooperative signal await with timeout expiration" do
+  test "Cooperative signal await with timeout expiration" do
   target = Godot.create(PropertyTestTarget)
   timed_out = false
 
@@ -111,7 +112,7 @@ test_concurrency "Cooperative signal await with timeout expiration" do
   target.destroy
 end
 
-test_concurrency "GodotChannel actor communication from background OS thread to Main Thread" do
+  test "GodotChannel actor communication from background OS thread to Main Thread" do
   channel = Godot::Channel.new(8)
   worker_data = "ActorResult_Worker_999"
 
@@ -135,7 +136,7 @@ test_concurrency "GodotChannel actor communication from background OS thread to 
   channel.destroy
 end
 
-test_concurrency "GodotChannel reactive signal received dispatch on Main Thread" do
+  test "GodotChannel reactive signal received dispatch on Main Thread" do
   channel = Godot::Channel.new(4)
   received_signal_arg = ""
 
@@ -160,7 +161,7 @@ test_concurrency "GodotChannel reactive signal received dispatch on Main Thread"
   channel.destroy
 end
 
-test_concurrency "Multi-producer worker contention on GodotChannel" do
+  test "Multi-producer worker contention on GodotChannel" do
   worker_count = 4
   items_per_worker = 25
   total_items = worker_count * items_per_worker
@@ -190,7 +191,7 @@ test_concurrency "Multi-producer worker contention on GodotChannel" do
   channel.destroy
 end
 
-test_concurrency "TypedChannel(T) type-safe generic message passing" do
+  test "TypedChannel(T) type-safe generic message passing" do
   typed_chan = Godot::TypedChannel(Godot::Vector3).new(5)
 
   worker = Thread.new do
@@ -210,7 +211,7 @@ test_concurrency "TypedChannel(T) type-safe generic message passing" do
   typed_chan.destroy
 end
 
-test_concurrency "GodotChannel close unblocks waiting background receiver threads" do
+  test "GodotChannel close unblocks waiting background receiver threads" do
   channel = Godot::Channel.new(4)
   receiver_unblocked = false
   received_val : Godot::ChannelItem? = "dummy"
@@ -234,7 +235,7 @@ test_concurrency "GodotChannel close unblocks waiting background receiver thread
   channel.destroy
 end
 
-test_concurrency "Background thread safe deferred method dispatch (call_deferred)" do
+  test "Background thread safe deferred method dispatch (call_deferred)" do
   target = Godot.create(Godot::Node2D)
   target.name = "InitialTargetName"
 
@@ -249,7 +250,7 @@ test_concurrency "Background thread safe deferred method dispatch (call_deferred
   target.destroy
 end
 
-test_concurrency "Boehm GC stability during concurrent Godot allocations and channel messaging" do
+  test "Boehm GC stability during concurrent Godot allocations and channel messaging" do
   thread_count = 3
   allocations_per_thread = 500
   channel = Godot::Channel.new(100)
@@ -276,7 +277,7 @@ test_concurrency "Boehm GC stability during concurrent Godot allocations and cha
   channel.destroy
 end
 
-test_concurrency "Godot Collections (Dictionary & Array) interop across threads" do
+  test "Godot Collections (Dictionary & Array) interop across threads" do
   crystal_hash = {"health" => "100", "mana" => "50", "name" => "Hero"}
   godot_dict = crystal_hash.to_godot_dict
 
@@ -292,4 +293,6 @@ test_concurrency "Godot Collections (Dictionary & Array) interop across threads"
   assert_eq godot_arr[0], "Apple"
   assert_eq godot_arr[1], "Banana"
   assert_eq godot_arr[2], "Cherry"
+end
+
 end

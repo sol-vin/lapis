@@ -29,7 +29,8 @@ node DynamicPropertyTargetNode < Godot::Node do
   property defense_power : Float32 = 20.0_f32
 end
 
-test_dynamic_props "ClassDB registers typed property hints and valid hint strings for custom properties" do
+test_suite "DynamicProps" do
+  test "ClassDB registers typed property hints and valid hint strings for custom properties" do
   entry = Godot::ClassRegistry.find("DynamicPropertyTargetNode")
   assert_not_nil entry, "DynamicPropertyTargetNode must be registered in ClassRegistry"
 
@@ -51,7 +52,7 @@ test_dynamic_props "ClassDB registers typed property hints and valid hint string
   assert_eq file_prop.not_nil!.hint_string, "*.svg"
 end
 
-test_dynamic_props "Storage-only property is registered with PROPERTY_USAGE_STORAGE without EDITOR flag" do
+  test "Storage-only property is registered with PROPERTY_USAGE_STORAGE without EDITOR flag" do
   entry = Godot::ClassRegistry.find("DynamicPropertyTargetNode")
   assert_not_nil entry
 
@@ -65,7 +66,7 @@ test_dynamic_props "Storage-only property is registered with PROPERTY_USAGE_STOR
   assert_eq (usage & 4_u32), 0_u32, "Usage must NOT include PROPERTY_USAGE_EDITOR"
 end
 
-test_dynamic_props "Inspector categories and groups register proper usage bitmasks" do
+  test "Inspector categories and groups register proper usage bitmasks" do
   entry = Godot::ClassRegistry.find("DynamicPropertyTargetNode")
   assert_not_nil entry
 
@@ -80,7 +81,7 @@ test_dynamic_props "Inspector categories and groups register proper usage bitmas
   assert_eq (grp.not_nil!.usage & 64_u32), 64_u32, "Group usage must include PROPERTY_USAGE_GROUP"
 end
 
-test_dynamic_props "Property reflection round-trip: set and get via dynamic string dispatch" do
+  test "Property reflection round-trip: set and get via dynamic string dispatch" do
   node = Godot.create(DynamicPropertyTargetNode)
 
   # Initial value verification
@@ -108,4 +109,6 @@ test_dynamic_props "Property reflection round-trip: set and get via dynamic stri
   assert_approx_eq node.attack_power, 99.5_f32, 0.01
 
   node.destroy
+end
+
 end

@@ -649,6 +649,18 @@ def generate_class_code(io : IO, c : JSON::Any, keywords : Hash(String, String),
         io.puts "      begin_val(#{arg_names.join(", ")})"
         io.puts "    end\n"
       end
+
+      # Automatic predicate syntactic sugar (? alias) for all methods returning Bool
+      if ret_type_crystal == "Bool" && !sanitized_m_name.ends_with?('?')
+        io.puts "    # Predicate alias for `#{sanitized_m_name}`"
+        io.puts "    #{method_prefix}#{sanitized_m_name}?(#{arg_defs.join(", ")}) : Bool"
+        if is_static
+          io.puts "      self.class.#{sanitized_m_name}(#{arg_names.join(", ")})"
+        else
+          io.puts "      #{sanitized_m_name}(#{arg_names.join(", ")})"
+        end
+        io.puts "    end\n"
+      end
     end
   end
 

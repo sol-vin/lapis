@@ -5,7 +5,8 @@
 include Lapis::Test
 
 
-test_ui "Label text, alignment, and formatting" do
+test_suite "UI" do
+  test "Label text, alignment, and formatting" do
   lbl = Godot.create(Godot::Label)
   assert_not_nil lbl
 
@@ -21,7 +22,7 @@ test_ui "Label text, alignment, and formatting" do
   lbl.destroy
 end
 
-test_ui "Button and state toggles" do
+  test "Button and state toggles" do
   btn = Godot.create(Godot::Button)
   btn.call("set_text", "Click Action")
   assert_eq btn.call_str("get_text"), "Click Action"
@@ -35,7 +36,7 @@ test_ui "Button and state toggles" do
   btn.destroy
 end
 
-test_ui "CheckBox and CheckButton boolean states" do
+  test "CheckBox and CheckButton boolean states" do
   cb = Godot.create(Godot::CheckBox)
   cb.call("set_text", "Enable Option")
   cb.set_pressed(true)
@@ -49,7 +50,7 @@ test_ui "CheckBox and CheckButton boolean states" do
   cbtn.destroy
 end
 
-test_ui "LineEdit text entry, password masking, and constraints" do
+  test "LineEdit text entry, password masking, and constraints" do
   le = Godot.create(Godot::LineEdit)
   le.call("set_text", "SecretPassword123")
   assert_eq le.call_str("get_text"), "SecretPassword123"
@@ -69,7 +70,7 @@ test_ui "LineEdit text entry, password masking, and constraints" do
   le.destroy
 end
 
-test_ui "TextEdit and CodeEdit multi-line buffers" do
+  test "TextEdit and CodeEdit multi-line buffers" do
   te = Godot.create(Godot::TextEdit)
   te.call("set_text", "Line 1\nLine 2\nLine 3")
   assert_eq te.call_i64("get_line_count"), 3_i64
@@ -82,7 +83,7 @@ test_ui "TextEdit and CodeEdit multi-line buffers" do
   ce.destroy
 end
 
-test_ui "RichTextLabel BBCode and auto-fitting" do
+  test "RichTextLabel BBCode and auto-fitting" do
   rtl = Godot.create(Godot::RichTextLabel)
   rtl.set_use_bbcode(true)
   assert_true rtl.is_using_bbcode
@@ -96,7 +97,7 @@ test_ui "RichTextLabel BBCode and auto-fitting" do
   rtl.destroy
 end
 
-test_ui "ProgressBar and Slider Range controls" do
+  test "ProgressBar and Slider Range controls" do
   pb = Godot.create(Godot::ProgressBar)
   pb.set_min(0.0_f64)
   pb.set_max(200.0_f64)
@@ -124,7 +125,7 @@ test_ui "ProgressBar and Slider Range controls" do
   spin.destroy
 end
 
-test_ui "ColorRect, TextureRect, and NinePatchRect display elements" do
+  test "ColorRect, TextureRect, and NinePatchRect display elements" do
   cr = Godot.create(Godot::ColorRect)
   cr.set_color(Godot::Color.new(0.3, 0.6, 0.9, 1.0))
   assert_approx_eq cr.get_color.b, 0.9_f32
@@ -143,7 +144,7 @@ test_ui "ColorRect, TextureRect, and NinePatchRect display elements" do
   np.destroy
 end
 
-test_ui "Containers hierarchy management (HBox, VBox, Grid, Margin, Panel, Scroll)" do
+  test "Containers hierarchy management (HBox, VBox, Grid, Margin, Panel, Scroll)" do
   hbox = Godot.create(Godot::HBoxContainer)
   vbox = Godot.create(Godot::VBoxContainer)
   grid = Godot.create(Godot::GridContainer)
@@ -167,7 +168,7 @@ test_ui "Containers hierarchy management (HBox, VBox, Grid, Margin, Panel, Scrol
   margin.destroy
 end
 
-test_ui "ItemList items addition, indexing, and clearing" do
+  test "ItemList items addition, indexing, and clearing" do
   il = Godot.create(Godot::ItemList)
   assert_eq il.get_item_count, 0_i64
 
@@ -182,4 +183,6 @@ test_ui "ItemList items addition, indexing, and clearing" do
   il.clear
   assert_eq il.get_item_count, 0_i64
   il.destroy
+end
+
 end

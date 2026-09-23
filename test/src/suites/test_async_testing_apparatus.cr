@@ -4,7 +4,8 @@
 
 include Lapis::Test
 
-test_async_testing "skip_frames cooperatively steps idle process frames" do
+test_suite "AsyncTesting" do
+  test "skip_frames cooperatively steps idle process frames" do
   steps = 0
   spawn do
     3.times do
@@ -16,7 +17,7 @@ test_async_testing "skip_frames cooperatively steps idle process frames" do
   assert_true steps >= 1, "Expected cooperative fibers to advance during skip_frames"
 end
 
-test_async_testing "skip_physics_frames cooperatively steps physics ticks" do
+  test "skip_physics_frames cooperatively steps physics ticks" do
   steps = 0
   spawn do
     2.times do
@@ -28,7 +29,7 @@ test_async_testing "skip_physics_frames cooperatively steps physics ticks" do
   assert_true steps >= 1, "Expected cooperative fibers to advance during skip_physics_frames"
 end
 
-test_async_testing "await_signal successfully resolves when signal is emitted" do
+  test "await_signal successfully resolves when signal is emitted" do
   node = Godot.create(Godot::Node)
   root.call("add_child", node)
 
@@ -47,7 +48,7 @@ test_async_testing "await_signal successfully resolves when signal is emitted" d
   node.destroy
 end
 
-test_async_testing "await_signal raises TimeoutError when deadline is exceeded" do
+  test "await_signal raises TimeoutError when deadline is exceeded" do
   node = Godot.create(Godot::Node)
 
   # Signal that is never emitted must raise TimeoutError within 0.1s
@@ -61,7 +62,7 @@ test_async_testing "await_signal raises TimeoutError when deadline is exceeded" 
   node.destroy
 end
 
-test_async_testing "assert_emits validates signal firing within timeout window" do
+  test "assert_emits validates signal firing within timeout window" do
   node = Godot.create(Godot::Node)
   root.call("add_child", node)
 
@@ -74,7 +75,7 @@ test_async_testing "assert_emits validates signal firing within timeout window" 
   node.destroy
 end
 
-test_async_testing "assert_no_emit confirms silence during observation window" do
+  test "assert_no_emit confirms silence during observation window" do
   node = Godot.create(Godot::Node)
 
   assert_no_emit(node, "renamed", duration_sec: 0.1) do
@@ -85,7 +86,7 @@ test_async_testing "assert_no_emit confirms silence during observation window" d
   node.destroy
 end
 
-test_async_testing "SignalSpy records emission history, counts and parameters accurately" do
+  test "SignalSpy records emission history, counts and parameters accurately" do
   node = Godot.create(Godot::Node)
   root.call("add_child", node)
   spy = SignalSpy.new(node, "renamed")
@@ -108,7 +109,7 @@ test_async_testing "SignalSpy records emission history, counts and parameters ac
   node.destroy
 end
 
-test_async_testing "Assertion matchers: assert_between, assert_in_delta, assert_approx_eq" do
+  test "Assertion matchers: assert_between, assert_in_delta, assert_approx_eq" do
   assert_between(42, 10, 50)
   assert_between(3.14, 3.0, 4.0)
 
@@ -118,4 +119,6 @@ test_async_testing "Assertion matchers: assert_between, assert_in_delta, assert_
 
   assert_in_delta(10.05, 10.0, 0.1)
   assert_approx_eq(1.0002_f32, 1.0001_f32, 0.001)
+end
+
 end

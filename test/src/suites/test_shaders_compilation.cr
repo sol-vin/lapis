@@ -4,7 +4,8 @@
 
 include Lapis::Test
 
-test_shader "CanvasItem 2D shader compilation and ShaderMaterial binding" do
+test_suite "Shaders" do
+  test "CanvasItem 2D shader compilation and ShaderMaterial binding" do
   shader = Godot.create(Godot::Shader)
   code = <<-GLSL
   shader_type canvas_item;
@@ -25,7 +26,7 @@ test_shader "CanvasItem 2D shader compilation and ShaderMaterial binding" do
   assert_eq ret_shader.get_instance_id, shader.get_instance_id
 end
 
-test_shader "Spatial 3D shader compilation with vertex and fragment stages" do
+  test "Spatial 3D shader compilation with vertex and fragment stages" do
   shader = Godot.create(Godot::Shader)
   code = <<-GLSL
   shader_type spatial;
@@ -58,7 +59,7 @@ test_shader "Spatial 3D shader compilation with vertex and fragment stages" do
   mesh_inst.destroy
 end
 
-test_shader "Particle and Sky shader types compilation" do
+  test "Particle and Sky shader types compilation" do
   part_shader = Godot.create(Godot::Shader)
   part_code = <<-GLSL
   shader_type particles;
@@ -80,7 +81,7 @@ test_shader "Particle and Sky shader types compilation" do
   assert_true sky_shader.get_code.includes?("shader_type sky")
 end
 
-test_shader "ShaderMaterial uniform parameter round-trip across Variant types" do
+  test "ShaderMaterial uniform parameter round-trip across Variant types" do
   shader = Godot.create(Godot::Shader)
   code = <<-GLSL
   shader_type canvas_item;
@@ -118,7 +119,7 @@ test_shader "ShaderMaterial uniform parameter round-trip across Variant types" d
   assert_false val_bool
 end
 
-test_shader "VisualShader node graph creation and port connection" do
+  test "VisualShader node graph creation and port connection" do
   vs = Godot.create(Godot::VisualShader)
   vs.set_mode(Godot::Shader::Mode::ModeSpatial)
 
@@ -151,4 +152,6 @@ test_shader "VisualShader node graph creation and port connection" do
   assert_false vs.is_node_connection(stage, node_id, from_port, output_node_id, to_port), "VisualShader connection should be severed"
 
   vs.remove_node(stage, node_id)
+end
+
 end

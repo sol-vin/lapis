@@ -5,7 +5,8 @@
 include Lapis::Test
 
 
-test_dead_pointer_safety "Multi-wrapper aliasing detects remote destruction via monotonic instance ID" do
+test_suite "DeadPointerSafety" do
+  test "Multi-wrapper aliasing detects remote destruction via monotonic instance ID" do
   node_native = Godot.create(Godot::Node2D)
   node_id = node_native.instance_id
   assert_true node_native.alive?
@@ -34,7 +35,7 @@ test_dead_pointer_safety "Multi-wrapper aliasing detects remote destruction via 
   assert_true caught, "Wrapper2 must raise DisposedObjectError upon accessing remotely destroyed object"
 end
 
-test_dead_pointer_safety "Child hierarchy cascade marks sub-tree nodes dead when parent is destroyed" do
+  test "Child hierarchy cascade marks sub-tree nodes dead when parent is destroyed" do
   parent = Godot.create(Godot::Node2D)
   child1 = Godot.create(Godot::Node2D)
   child2 = Godot.create(Godot::Sprite2D)
@@ -74,7 +75,7 @@ test_dead_pointer_safety "Child hierarchy cascade marks sub-tree nodes dead when
   assert_true caught, "Child method dispatch must raise DisposedObjectError after parent destruction"
 end
 
-test_dead_pointer_safety "Collections of node references safely filter out disposed entities" do
+  test "Collections of node references safely filter out disposed entities" do
   entities = [] of Godot::Node2D
   3.times do |i|
     n = Godot.create(Godot::Node2D)
@@ -99,7 +100,7 @@ test_dead_pointer_safety "Collections of node references safely filter out dispo
   assert_true entities.all?(&.destroyed?)
 end
 
-test_dead_pointer_safety "Dynamic call on destroyed object returns safe DisposedObjectError without memory fault" do
+  test "Dynamic call on destroyed object returns safe DisposedObjectError without memory fault" do
   sprite = Godot.create(Godot::Sprite2D)
   sprite.destroy
 
@@ -133,4 +134,6 @@ test_dead_pointer_safety "Dynamic call on destroyed object returns safe Disposed
   end
 
   assert_eq disposed_count, 4, "All dynamic call variants must intercept dead pointers via check_alive!"
+end
+
 end

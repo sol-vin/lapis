@@ -5,7 +5,8 @@
 include Lapis::Test
 
 
-test_lifecycle "Object creation tracks valid 64-bit instance ID in ObjectDB" do
+test_suite "Lifecycle" do
+  test "Object creation tracks valid 64-bit instance ID in ObjectDB" do
   obj = Godot.create(Godot::Node2D)
   assert_true obj.alive?
   assert_false obj.destroyed?
@@ -21,7 +22,7 @@ test_lifecycle "Object creation tracks valid 64-bit instance ID in ObjectDB" do
   assert_false Godot::Object.is_instance_id_valid(inst_id)
 end
 
-test_lifecycle "Immediate destruction via #destroy invalidates pointer and engine ID" do
+  test "Immediate destruction via #destroy invalidates pointer and engine ID" do
   timer = Godot.create(Godot::Timer)
   timer_id = timer.instance_id
   assert_true Godot::Object.is_instance_id_valid(timer_id)
@@ -32,7 +33,7 @@ test_lifecycle "Immediate destruction via #destroy invalidates pointer and engin
   assert_false Godot::Object.is_instance_id_valid(timer_id)
 end
 
-test_lifecycle "Dead-pointer access raises DisposedObjectError safely instead of segfaulting" do
+  test "Dead-pointer access raises DisposedObjectError safely instead of segfaulting" do
   dummy = Godot.create(Godot::Node)
   dummy_id = dummy.instance_id
   dummy.destroy
@@ -49,7 +50,7 @@ test_lifecycle "Dead-pointer access raises DisposedObjectError safely instead of
   assert_true caught, "Expected DisposedObjectError when accessing deleted node"
 end
 
-test_lifecycle "GDScript destroying node causes Crystal to detect dead pointer and raise DisposedObjectError" do
+  test "GDScript destroying node causes Crystal to detect dead pointer and raise DisposedObjectError" do
   scene = Godot.load_as(Godot::PackedScene, "res://scenes/test_gdscript_interop.tscn")
   interop_root = scene.instantiate
 
@@ -84,7 +85,7 @@ test_lifecycle "GDScript destroying node causes Crystal to detect dead pointer a
   scene.destroy
 end
 
-test_lifecycle "Node hierarchy lifecycle: add_child, reparent, remove_child, and queue_free" do
+  test "Node hierarchy lifecycle: add_child, reparent, remove_child, and queue_free" do
   parent = Godot.create(Godot::Node2D)
   parent.name = "LifecycleParent"
   child = Godot.create(Godot::Node2D)
@@ -107,7 +108,7 @@ test_lifecycle "Node hierarchy lifecycle: add_child, reparent, remove_child, and
   parent.destroy
 end
 
-test_lifecycle "Node get_children, each_child, and get_children_as hierarchy traversal" do
+  test "Node get_children, each_child, and get_children_as hierarchy traversal" do
   parent = Godot.create(Godot::Node2D)
   parent.name = "ParentNode"
 
@@ -155,7 +156,7 @@ test_lifecycle "Node get_children, each_child, and get_children_as hierarchy tra
   parent.destroy
 end
 
-test_lifecycle "RefCounted atomic lifecycle: reference, unreference, and automated deallocation" do
+  test "RefCounted atomic lifecycle: reference, unreference, and automated deallocation" do
   rc = Godot.create(Godot::RefCounted)
   rc_id = rc.instance_id
 
@@ -178,7 +179,7 @@ test_lifecycle "RefCounted atomic lifecycle: reference, unreference, and automat
   assert_false Godot::Object.is_instance_id_valid(rc_id)
 end
 
-test_lifecycle "Quantitative zero-leak verification using Performance monitors and GC.collect" do
+  test "Quantitative zero-leak verification using Performance monitors and GC.collect" do
   # Query SceneTree node count directly via native typed method
   get_node_count = -> {
     root.get_tree.get_node_count
@@ -214,7 +215,7 @@ test_lifecycle "Quantitative zero-leak verification using Performance monitors a
   assert_eq final_nodes, baseline_nodes, "Node count must return to baseline after destruction (zero leaks)"
 end
 
-test_lifecycle "Engine value equality (==), hashing, and null safety" do
+  test "Engine value equality (==), hashing, and null safety" do
   node_a = Godot.create(Godot::Node2D)
   # Wrap the exact same native engine pointer in a second distinct Crystal wrapper
   node_b = Godot::Node2D.new(node_a.pointer)
@@ -248,4 +249,6 @@ test_lifecycle "Engine value equality (==), hashing, and null safety" do
   assert_true (nil == null_obj), "Nil must equal null wrapper symmetrically"
 
   node_a.destroy
+end
+
 end

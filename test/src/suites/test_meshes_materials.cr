@@ -4,7 +4,8 @@
 
 include Lapis::Test
 
-test_mesh "SphereMesh radius, height, and rings configuration" do
+test_suite "Mesh" do
+  test "SphereMesh radius, height, and rings configuration" do
   sphere = Godot.create(Godot::SphereMesh)
   sphere.set_radius(2.5_f64)
   sphere.set_height(5.0_f64)
@@ -18,7 +19,7 @@ test_mesh "SphereMesh radius, height, and rings configuration" do
   sphere.destroy
 end
 
-test_mesh "CylinderMesh radii and height" do
+  test "CylinderMesh radii and height" do
   cyl = Godot.create(Godot::CylinderMesh)
   cyl.set_top_radius(1.0_f64)
   cyl.set_bottom_radius(2.0_f64)
@@ -30,7 +31,7 @@ test_mesh "CylinderMesh radii and height" do
   cyl.destroy
 end
 
-test_mesh "CapsuleMesh radius, height, and segments" do
+  test "CapsuleMesh radius, height, and segments" do
   cap = Godot.create(Godot::CapsuleMesh)
   cap.set_radius(0.75_f64)
   cap.set_height(2.5_f64)
@@ -39,7 +40,7 @@ test_mesh "CapsuleMesh radius, height, and segments" do
   cap.destroy
 end
 
-test_mesh "PrismMesh, PlaneMesh, and QuadMesh sizing" do
+  test "PrismMesh, PlaneMesh, and QuadMesh sizing" do
   prism = Godot.create(Godot::PrismMesh)
   prism.set_size(Godot::Vector3.new(3.0, 4.0, 5.0))
   assert_approx_eq prism.get_size.y, 4.0_f32
@@ -59,7 +60,7 @@ test_mesh "PrismMesh, PlaneMesh, and QuadMesh sizing" do
   quad.destroy
 end
 
-test_mesh "TorusMesh ring radii definition" do
+  test "TorusMesh ring radii definition" do
   torus = Godot.create(Godot::TorusMesh)
   torus.set_inner_radius(1.2_f64)
   torus.set_outer_radius(3.6_f64)
@@ -68,7 +69,7 @@ test_mesh "TorusMesh ring radii definition" do
   torus.destroy
 end
 
-test_mesh "TextMesh text string and font size" do
+  test "TextMesh text string and font size" do
   tm = Godot.create(Godot::TextMesh)
   tm.call("set_text", "3D Text in Engine")
   tm.set_font_size(48_i64)
@@ -77,7 +78,7 @@ test_mesh "TextMesh text string and font size" do
   tm.destroy
 end
 
-test_mesh "StandardMaterial3D metallic, roughness, and emission" do
+  test "StandardMaterial3D metallic, roughness, and emission" do
   mat = Godot.create(Godot::StandardMaterial3D)
   mat.set_metallic(0.85_f64)
   mat.set_roughness(0.15_f64)
@@ -90,7 +91,7 @@ test_mesh "StandardMaterial3D metallic, roughness, and emission" do
   mat.destroy
 end
 
-test_mesh "ORMMaterial3D and CanvasItemMaterial properties" do
+  test "ORMMaterial3D and CanvasItemMaterial properties" do
   orm = Godot.create(Godot::ORMMaterial3D)
   orm.set_shading_mode(0_i64) # SHADING_MODE_UNSHADED
   assert_eq orm.get_shading_mode, 0_i64
@@ -101,4 +102,6 @@ test_mesh "ORMMaterial3D and CanvasItemMaterial properties" do
 
   orm.destroy
   cim.destroy
+end
+
 end

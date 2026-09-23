@@ -4,7 +4,8 @@
 
 include Lapis::Test
 
-test_audio_server "AudioServer bus management, decibel volume and mute toggles" do
+test_suite "AudioServer" do
+  test "AudioServer bus management, decibel volume and mute toggles" do
   server = Godot::AudioServer.instance
   assert_not_nil server
 
@@ -31,7 +32,7 @@ test_audio_server "AudioServer bus management, decibel volume and mute toggles" 
   end
 end
 
-test_audio_server "Dynamic audio bus creation, naming, Reverb effect routing, and teardown" do
+  test "Dynamic audio bus creation, naming, Reverb effect routing, and teardown" do
   server = Godot::AudioServer.instance
   initial_buses = server.get_bus_count
 
@@ -63,7 +64,7 @@ test_audio_server "Dynamic audio bus creation, naming, Reverb effect routing, an
   assert_eq server.get_bus_count, initial_buses
 end
 
-test_audio_server "AudioStreamPlayer2D & 3D spatial properties and bus assignments" do
+  test "AudioStreamPlayer2D & 3D spatial properties and bus assignments" do
   player2d = Godot.create(Godot::AudioStreamPlayer2D)
   player2d.set_bus("Master")
   player2d.set_max_distance(1200.0_f32)
@@ -83,4 +84,6 @@ test_audio_server "AudioStreamPlayer2D & 3D spatial properties and bus assignmen
   assert_approx_eq player3d.get_unit_size, 15.0_f32
   assert_approx_eq player3d.get_max_distance, 500.0_f32
   player3d.destroy
+end
+
 end

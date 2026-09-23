@@ -5,7 +5,8 @@
 include Lapis::Test
 
 
-test_classdb "ClassDB coverage: all 46 core 2D Node classes create, parent, unparent, and destroy" do
+test_suite "ClassDB" do
+  test "ClassDB coverage: all 46 core 2D Node classes create, parent, unparent, and destroy" do
   classes_2d = [
     "AnimatableBody2D", "AnimatedSprite2D", "Area2D", "AudioListener2D", "AudioStreamPlayer2D",
     "BackBufferCopy", "Bone2D", "CPUParticles2D", "Camera2D", "CanvasGroup",
@@ -49,7 +50,7 @@ test_classdb "ClassDB coverage: all 46 core 2D Node classes create, parent, unpa
   container.destroy
 end
 
-test_classdb "ClassDB coverage: all 110 core 3D Node classes create, parent, unparent, and destroy" do
+  test "ClassDB coverage: all 110 core 3D Node classes create, parent, unparent, and destroy" do
   classes_3d = [
     "AimModifier3D", "AnimatableBody3D", "AnimatedSprite3D", "Area3D", "AreaLight3D",
     "AudioListener3D", "AudioStreamPlayer3D", "BoneAttachment3D", "BoneConstraint3D", "BoneSpaceAdjuster3D",
@@ -105,7 +106,7 @@ test_classdb "ClassDB coverage: all 110 core 3D Node classes create, parent, unp
   container.destroy
 end
 
-test_classdb "ClassDB coverage: all 59 core Control UI classes create, parent, unparent, and destroy" do
+  test "ClassDB coverage: all 59 core Control UI classes create, parent, unparent, and destroy" do
   classes_ctrl = [
     "AspectRatioContainer", "BaseButton", "BoxContainer", "Button", "CenterContainer",
     "CheckBox", "CheckButton", "CodeEdit", "ColorPicker", "ColorPickerButton",
@@ -145,7 +146,7 @@ test_classdb "ClassDB coverage: all 59 core Control UI classes create, parent, u
   container.destroy
 end
 
-test_classdb "ClassDB coverage: all 27 core Other Node classes create, parent, unparent, and destroy" do
+  test "ClassDB coverage: all 27 core Other Node classes create, parent, unparent, and destroy" do
   classes_other = [
     "AcceptDialog", "AnimationPlayer", "AnimationTree", "AudioStreamPlayer", "CanvasLayer",
     "ConfirmationDialog", "Control", "FileDialog", "HTTPRequest", "MissingNode",
@@ -179,7 +180,7 @@ test_classdb "ClassDB coverage: all 27 core Other Node classes create, parent, u
   container.destroy
 end
 
-test_classdb "ClassDB coverage: all 16 Meshes, 11 Materials, and 17 Physics Shapes" do
+  test "ClassDB coverage: all 16 Meshes, 11 Materials, and 17 Physics Shapes" do
   resources = [
     # 16 Meshes
     "ArrayMesh", "BoxMesh", "CapsuleMesh", "CylinderMesh", "ImmediateMesh",
@@ -210,7 +211,7 @@ test_classdb "ClassDB coverage: all 16 Meshes, 11 Materials, and 17 Physics Shap
   end
 end
 
-test_classdb "ClassDB coverage: core RefCounted utility classes instantiation and cleanup" do
+  test "ClassDB coverage: core RefCounted utility classes instantiation and cleanup" do
   refcounted_classes = [
     "AESContext", "AStar2D", "AStar3D", "AStarGrid2D", "AnimatedTexture",
     "Animation", "AnimationLibrary", "AnimationNodeAnimation", "AnimationNodeBlendTree",
@@ -232,4 +233,6 @@ test_classdb "ClassDB coverage: core RefCounted utility classes instantiation an
     assert_true rc.destroyed?
     assert_false Godot::Object.is_instance_id_valid(inst_id), "RefCounted #{cls_name} still valid in ObjectDB after destroy"
   end
+end
+
 end

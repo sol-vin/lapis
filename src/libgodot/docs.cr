@@ -2897,14 +2897,16 @@ module Lapis
     # </table>
     #
     # ```
-    # test_physics "Player jump acceleration" do
-    #   player = Godot.create(PlayerNode)
-    #   root.call("add_child", player)
-    #   player.velocity = Godot::Vector3.new(0.0, 10.0, 0.0)
+    # test_suite "Physics" do
+    #   test "Player jump acceleration" do
+    #     player = Godot.create(PlayerNode)
+    #     root.call("add_child", player)
+    #     player.velocity = Godot::Vector3.new(0.0, 10.0, 0.0)
     #
-    #   # Step 5 physics ticks
-    #   skip_physics_frames(5)
-    #   assert_true player.position.y > 0.0_f32
+    #     # Step 5 physics ticks
+    #     skip_physics_frames(5)
+    #     assert_true player.position.y > 0.0_f32
+    #   end
     # end
     # ```
     #
@@ -2966,7 +2968,7 @@ module Lapis
     #
     # ### 5. In-Editor Test Execution & Editor Plugin Dock
     #
-    # Tests registered via declarative macros (`test_2d`, `test_3d`, `test_shader`, etc.)
+    # Tests registered via declarative macros (`test_suite`, `test_case`)
     # are accessible directly inside the Godot Editor:
     # 1. **Crystal Engine Hub Dock**:
     #    Open the **Crystal** main screen dock in the editor and click the **Unit Test Runner** tab.
@@ -2987,7 +2989,7 @@ module Lapis
           "Deterministic signal awaiting with configurable timeout failure (Lapis::Test::TimeoutError)",
           "Signal emission assertions (assert_emits, assert_no_emit, with_timeout watchdog)",
           "SignalSpy for recording emission counts, call histories, and parameter payloads",
-          "Declarative DSL macros: test_2d, test_3d, test_shader, test_material, test_physics, test_audio",
+          "Declarative DSL macros: test_suite, test_case with lifecycle hooks (before_each, after_each)",
           "Godot Editor integration via CrystalPanel dock and ToolTester2D/3D Inspector buttons",
         ]
       end

@@ -6,24 +6,27 @@ include Lapis::Test
 
 
 {% if flag?(:release) %}
-  test_debugger "Debugger components cleanly stripped in release mode" do
+test_suite "Debugger" do
+  test "Debugger components cleanly stripped in release mode" do
     assert_true true, "Debugger components omitted in release builds"
   end
+end
 {% else %}
-  test_debugger "Debug agent initializes and handles role reporting safely" do
+test_suite "Debugger" do
+  test "Debug agent initializes and handles role reporting safely" do
     Godot::Debugger::Agent.initialize_agent
     Godot::Debugger::Agent.report_role("Server", 1)
     assert_true true, "Agent role reported cleanly"
   end
 
-  test_debugger "LLDB driver initializes with clean detached state" do
+  test "LLDB driver initializes with clean detached state" do
     driver = Godot::Debugger::LldbDriver.new
     assert_eq driver.state, Godot::Debugger::DriverState::Detached
     assert_nil driver.attached_pid
     assert_eq driver.breakpoints.size, 0
   end
 
-  test_debugger "LLDB driver stop reason parser accurately categorizes events" do
+  test "LLDB driver stop reason parser accurately categorizes events" do
     driver = Godot::Debugger::LldbDriver.new
 
     # Breakpoint hit
@@ -52,7 +55,7 @@ include Lapis::Test
     assert_eq info_int.reason, Godot::Debugger::StopReason::UserInterrupt
   end
 
-  test_debugger "Multi-session debugger isolation between Server and Client" do
+  test "Multi-session debugger isolation between Server and Client" do
     server_driver = Godot::Debugger::LldbDriver.new
     client_driver = Godot::Debugger::LldbDriver.new
 
@@ -71,7 +74,7 @@ include Lapis::Test
     assert_eq client_driver.breakpoints[1].file, "src/client_prediction.cr"
   end
 
-  test_debugger "LLDB driver handles streaming split stop lines and backtrace" do
+  test "LLDB driver handles streaming split stop lines and backtrace" do
     driver = Godot::Debugger::LldbDriver.new
     stopped_info : Godot::Debugger::StopInfo? = nil
     driver.on_stop = ->(info : Godot::Debugger::StopInfo) {
@@ -93,34 +96,37 @@ include Lapis::Test
     end
   end
 
-  test_debugger "Godot.breakpoint helper executes cleanly" do
+  test "Godot.breakpoint helper executes cleanly" do
     # When no debugger is actively attached, breakpoint(can_continue: true) returns without aborting
     Godot.breakpoint(can_continue: true)
     Godot::Debugger::Agent.breakpoint(can_continue: true)
     assert_true true, "Godot.breakpoint executed safely"
   end
+end
 {% end %}
 
-test_debugger "Multiplayer lockstep signal routing logic" do
-  lockstep_paused = [] of Int32
-  lockstep_resumed = [] of Int32
+test_suite "Debugger" do
+  test "Multiplayer lockstep signal routing logic" do
+    lockstep_paused = [] of Int32
+    lockstep_resumed = [] of Int32
 
-  signal_handler = ->(origin_id : Int32, is_paused : Bool) {
-    [0, 1, 2].each do |peer_id|
-      next if peer_id == origin_id
-      if is_paused
-        lockstep_paused << peer_id
-      else
-        lockstep_resumed << peer_id
+    signal_handler = ->(origin_id : Int32, is_paused : Bool) {
+      [0, 1, 2].each do |peer_id|
+        next if peer_id == origin_id
+        if is_paused
+          lockstep_paused << peer_id
+        else
+          lockstep_resumed << peer_id
+        end
       end
-    end
-  }
+    }
 
-  # Simulate Session 0 (Server) breaking at line 42
-  signal_handler.call(0, true)
-  assert_eq lockstep_paused, [1, 2], "Peers 1 and 2 received lockstep pause when Server broke"
+    # Simulate Session 0 (Server) breaking at line 42
+    signal_handler.call(0, true)
+    assert_eq lockstep_paused, [1, 2], "Peers 1 and 2 received lockstep pause when Server broke"
 
-  # Simulate Session 0 resuming
-  signal_handler.call(0, false)
-  assert_eq lockstep_resumed, [1, 2], "Peers 1 and 2 received lockstep resume when Server continued"
+    # Simulate Session 0 resuming
+    signal_handler.call(0, false)
+    assert_eq lockstep_resumed, [1, 2], "Peers 1 and 2 received lockstep resume when Server continued"
+  end
 end

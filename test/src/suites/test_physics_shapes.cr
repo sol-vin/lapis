@@ -4,7 +4,8 @@
 
 include Lapis::Test
 
-test_physics "CircleShape2D and RectangleShape2D geometric metrics" do
+test_suite "Physics" do
+  test "CircleShape2D and RectangleShape2D geometric metrics" do
   circle = Godot.create(Godot::CircleShape2D)
   circle.set_radius(32.0_f64)
   assert_approx_eq circle.get_radius.to_f32, 32.0_f32
@@ -18,7 +19,7 @@ test_physics "CircleShape2D and RectangleShape2D geometric metrics" do
   rect.destroy
 end
 
-test_physics "CapsuleShape2D and SegmentShape2D geometry" do
+  test "CapsuleShape2D and SegmentShape2D geometry" do
   cap2d = Godot.create(Godot::CapsuleShape2D)
   cap2d.set_radius(16.0_f64)
   cap2d.set_height(48.0_f64)
@@ -35,7 +36,7 @@ test_physics "CapsuleShape2D and SegmentShape2D geometry" do
   seg.destroy
 end
 
-test_physics "CollisionShape2D shape assignment and disabled flag" do
+  test "CollisionShape2D shape assignment and disabled flag" do
   cs2d = Godot.create(Godot::CollisionShape2D)
   circle = Godot.create(Godot::CircleShape2D)
   cs2d.set_shape(circle)
@@ -52,7 +53,7 @@ test_physics "CollisionShape2D shape assignment and disabled flag" do
   circle.destroy
 end
 
-test_physics "RigidBody2D mass, gravity, and freeze mode" do
+  test "RigidBody2D mass, gravity, and freeze mode" do
   rb2d = Godot.create(Godot::RigidBody2D)
   rb2d.set_mass(15.5_f64)
   assert_approx_eq rb2d.get_mass.to_f32, 15.5_f32
@@ -65,7 +66,7 @@ test_physics "RigidBody2D mass, gravity, and freeze mode" do
   rb2d.destroy
 end
 
-test_physics "BoxShape3D, SphereShape3D, CapsuleShape3D dimensions" do
+  test "BoxShape3D, SphereShape3D, CapsuleShape3D dimensions" do
   box = Godot.create(Godot::BoxShape3D)
   box.set_size(Godot::Vector3.new(2.0, 3.0, 4.0))
   assert_approx_eq box.get_size.x, 2.0_f32
@@ -85,7 +86,7 @@ test_physics "BoxShape3D, SphereShape3D, CapsuleShape3D dimensions" do
   cap3d.destroy
 end
 
-test_physics "CollisionShape3D shape assignment and debug color" do
+  test "CollisionShape3D shape assignment and debug color" do
   cs3d = Godot.create(Godot::CollisionShape3D)
   box = Godot.create(Godot::BoxShape3D)
   cs3d.set_shape(box)
@@ -102,7 +103,7 @@ test_physics "CollisionShape3D shape assignment and debug color" do
   box.destroy
 end
 
-test_physics "RigidBody3D dynamics parameters" do
+  test "RigidBody3D dynamics parameters" do
   rb3d = Godot.create(Godot::RigidBody3D)
   rb3d.set_mass(50.0_f64)
   assert_approx_eq rb3d.get_mass.to_f32, 50.0_f32
@@ -118,7 +119,7 @@ test_physics "RigidBody3D dynamics parameters" do
   rb3d.destroy
 end
 
-test_physics "VehicleBody3D and VehicleWheel3D motor and suspension parameters" do
+  test "VehicleBody3D and VehicleWheel3D motor and suspension parameters" do
   vb = Godot.create(Godot::VehicleBody3D)
   vw = Godot.create(Godot::VehicleWheel3D)
   vb.add_child(vw)
@@ -143,7 +144,7 @@ test_physics "VehicleBody3D and VehicleWheel3D motor and suspension parameters" 
   vb.destroy
 end
 
-test_physics "RayCast3D and ShapeCast3D null-safe get_collider? queries" do
+  test "RayCast3D and ShapeCast3D null-safe get_collider? queries" do
   rc3d = Godot.create(Godot::RayCast3D)
   assert_nil rc3d.get_collider?, "RayCast3D get_collider? must return nil when not colliding"
 
@@ -160,4 +161,6 @@ test_physics "RayCast3D and ShapeCast3D null-safe get_collider? queries" do
   sc3d.destroy
   rc2d.destroy
   sc2d.destroy
+end
+
 end

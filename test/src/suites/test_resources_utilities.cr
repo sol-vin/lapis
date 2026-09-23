@@ -5,7 +5,8 @@
 include Lapis::Test
 
 
-test_resources "ConfigFile key/value persistence and sections" do
+test_suite "Resources" do
+  test "ConfigFile key/value persistence and sections" do
   cfg = Godot.create(Godot::ConfigFile)
   cfg.set_value("audio", "master_volume", 1.0_f64)
   assert_true cfg.has_section("audio")
@@ -26,7 +27,7 @@ test_resources "ConfigFile key/value persistence and sections" do
   cfg.destroy
 end
 
-test_resources "AStar2D graph pathfinding point registration and connection" do
+  test "AStar2D graph pathfinding point registration and connection" do
   astar = Godot.create(Godot::AStar2D)
   astar.add_point(1_i64, Godot::Vector2.new(0.0, 0.0), 1.0_f64)
   astar.add_point(2_i64, Godot::Vector2.new(10.0, 0.0), 1.0_f64)
@@ -48,7 +49,7 @@ test_resources "AStar2D graph pathfinding point registration and connection" do
   astar.destroy
 end
 
-test_resources "AStar3D graph pathfinding point registration and connectivity" do
+  test "AStar3D graph pathfinding point registration and connectivity" do
   astar3d = Godot.create(Godot::AStar3D)
   astar3d.add_point(10_i64, Godot::Vector3.new(0.0, 0.0, 0.0), 1.0_f64)
   astar3d.add_point(20_i64, Godot::Vector3.new(0.0, 10.0, 0.0), 1.0_f64)
@@ -67,7 +68,7 @@ test_resources "AStar3D graph pathfinding point registration and connectivity" d
   astar3d.destroy
 end
 
-test_resources "FastNoiseLite procedural noise sampling and frequencies" do
+  test "FastNoiseLite procedural noise sampling and frequencies" do
   fnl = Godot.create(Godot::FastNoiseLite)
   fnl.set_seed(4242_i64)
   assert_eq fnl.get_seed, 4242_i64
@@ -82,7 +83,7 @@ test_resources "FastNoiseLite procedural noise sampling and frequencies" do
   fnl.destroy
 end
 
-test_resources "RandomNumberGenerator deterministic seeding and random ranges" do
+  test "RandomNumberGenerator deterministic seeding and random ranges" do
   rng = Godot.create(Godot::RandomNumberGenerator)
   rng.set_seed(987654321_i64)
 
@@ -94,7 +95,7 @@ test_resources "RandomNumberGenerator deterministic seeding and random ranges" d
   rng.destroy
 end
 
-test_resources "StyleBoxFlat margins and background color" do
+  test "StyleBoxFlat margins and background color" do
   sbf = Godot.create(Godot::StyleBoxFlat)
   sbf.set_bg_color(Godot::Color.new(0.2, 0.2, 0.2, 1.0))
   assert_approx_eq sbf.get_bg_color.r, 0.2_f32
@@ -104,7 +105,7 @@ test_resources "StyleBoxFlat margins and background color" do
   sbf.destroy
 end
 
-test_resources "Environment ambient lighting and glow settings" do
+  test "Environment ambient lighting and glow settings" do
   env = Godot.create(Godot::Environment)
   env.set_ambient_light_color(Godot::Color.new(0.05, 0.05, 0.1, 1.0))
   assert_approx_eq env.get_ambient_light_color.b, 0.1_f32
@@ -129,7 +130,7 @@ resource CustomGameItem < Resource do
   property is_rare : Bool = true
 end
 
-test_resources "Instantiating and mutating custom Resource subclass in Crystal" do
+  test "Instantiating and mutating custom Resource subclass in Crystal" do
   item = Godot.create(CustomGameItem)
   assert_not_nil item, "CustomGameItem should be instantiated via Godot.create"
   assert_true item.alive?, "CustomGameItem should be alive in ObjectDB"
@@ -153,7 +154,7 @@ test_resources "Instantiating and mutating custom Resource subclass in Crystal" 
   item.destroy
 end
 
-test_resources "Instantiating and configuring built-in engine resources in Crystal" do
+  test "Instantiating and configuring built-in engine resources in Crystal" do
   # StandardMaterial3D - using typed property setters and getters
   mat = Godot.create(Godot::StandardMaterial3D)
   mat.roughness = 0.65_f32
@@ -177,7 +178,7 @@ test_resources "Instantiating and configuring built-in engine resources in Cryst
   grad.destroy
 end
 
-test_resources "Saving custom resource to disk via ResourceSaver and loading back via ResourceLoader" do
+  test "Saving custom resource to disk via ResourceSaver and loading back via ResourceLoader" do
   item = Godot.create(CustomGameItem)
   item.item_name = "AegisShield"
   item.power = 180
@@ -203,7 +204,7 @@ test_resources "Saving custom resource to disk via ResourceSaver and loading bac
   loaded.destroy
 end
 
-test_resources "Passing custom Resource to GDScript, verifying properties, and mutating across boundary" do
+  test "Passing custom Resource to GDScript, verifying properties, and mutating across boundary" do
   scene = Godot.load_as(Godot::PackedScene, "res://scenes/test_gdscript_interop.tscn")
   controller = scene.instantiate
   root.add_child(controller)
@@ -234,4 +235,6 @@ test_resources "Passing custom Resource to GDScript, verifying properties, and m
   scene.destroy
   item.take_over_path("")
   item.destroy
+end
+
 end

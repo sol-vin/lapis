@@ -18,7 +18,8 @@ node AdvancedSignalTargetNode < Godot::Node do
   end
 end
 
-test_callable_adv "One-shot signal connection fires exactly once and unregisters" do
+test_suite "CallableAdv" do
+  test "One-shot signal connection fires exactly once and unregisters" do
   node = Godot.create(AdvancedSignalTargetNode)
   fire_count = 0
   last_code = 0
@@ -41,7 +42,7 @@ test_callable_adv "One-shot signal connection fires exactly once and unregisters
   node.destroy
 end
 
-test_callable_adv "Active self-unsubscribe during signal callback preserves subscriber array" do
+  test "Active self-unsubscribe during signal callback preserves subscriber array" do
   node = Godot.create(AdvancedSignalTargetNode)
   fire_count = 0
 
@@ -62,7 +63,7 @@ test_callable_adv "Active self-unsubscribe during signal callback preserves subs
   node.destroy
 end
 
-test_callable_adv "Multiple concurrent listeners: selective unsubscription leaves sibling intact" do
+  test "Multiple concurrent listeners: selective unsubscription leaves sibling intact" do
   node = Godot.create(AdvancedSignalTargetNode)
   count_a = 0
   count_b = 0
@@ -92,21 +93,84 @@ test_callable_adv "Multiple concurrent listeners: selective unsubscription leave
   node.destroy
 end
 
-test_callable_adv "Object disconnect clears all active signal subscriptions" do
-  node = Godot.create(AdvancedSignalTargetNode)
-  count = 0
+  test "Object disconnect clears all active signal subscriptions" do
+    node = Godot.create(AdvancedSignalTargetNode)
+    count = 0
 
-  node.on_action_triggered do |_code, _tag|
-    count += 1
+    node.on_action_triggered do |_code, _tag|
+      count += 1
+    end
+
+    node.fire_action(10, "Test")
+    assert_eq count, 1
+
+    node.disconnect("action_triggered")
+
+    node.fire_action(20, "Test2")
+    assert_eq count, 1, "No listeners should remain after node.disconnect"
+
+    node.destroy
   end
 
-  node.fire_action(10, "Test")
-  assert_eq count, 1
+  test "Signal ergonomics: << operator, once helper, 0-arg blocks, and connection queries" do
+    node = Godot.create(AdvancedSignalTargetNode)
+    sig = node.action_triggered
 
-  node.disconnect("action_triggered")
+    assert_false sig.connected?
+    assert_eq sig.connection_count, 0
 
-  node.fire_action(20, "Test2")
-  assert_eq count, 1, "No listeners should remain after node.disconnect"
+    # 1. Test operator << with typed args
+    typed_fired = 0
+    sub_stream = (sig << ->(code : Int32, tag : String) {
+      typed_fired += code
+    })
+    assert_true sig.connected?
+    assert_eq sig.connection_count, 1
 
-  node.destroy
+    # 2. Test 0-argument block on a signal with arguments
+    no_arg_fired = 0
+    sub_no_arg = sig.connect do
+      no_arg_fired += 1
+    end
+    assert_eq sig.connection_count, 2
+
+    # 3. Test `once` shorthand with 0 arguments
+    once_fired = 0
+    sig.once do
+      once_fired += 1
+    end
+    assert_eq sig.connection_count, 3
+
+    # 4. Test 0-arg node-level `on_action_triggered` helper
+    node_on_fired = 0
+    sub_node = node.on_action_triggered do
+      node_on_fired += 1
+    end
+    assert_eq sig.connection_count, 4
+
+    # First emission
+    node.fire_action(5, "Ergo")
+    assert_eq typed_fired, 5
+    assert_eq no_arg_fired, 1
+    assert_eq once_fired, 1
+    assert_eq node_on_fired, 1
+    # `once` should have auto-unregistered
+    assert_eq sig.connection_count, 3
+
+    # Second emission
+    node.fire_action(10, "Ergo2")
+    assert_eq typed_fired, 15
+    assert_eq no_arg_fired, 2
+    assert_eq once_fired, 1, "once listener should not fire a second time"
+    assert_eq node_on_fired, 2
+
+    # Cleanup
+    sub_stream.unsubscribe
+    sub_no_arg.unsubscribe
+    sub_node.unsubscribe
+    assert_false sig.connected?
+    assert_eq sig.connection_count, 0
+
+    node.destroy
+  end
 end

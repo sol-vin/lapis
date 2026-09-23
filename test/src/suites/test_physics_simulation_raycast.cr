@@ -4,7 +4,8 @@
 
 include Lapis::Test
 
-test_physics "PhysicsRayQueryParameters3D configuration and spatial raycast query" do
+test_suite "Physics" do
+  test "PhysicsRayQueryParameters3D configuration and spatial raycast query" do
   query = Godot.create(Godot::PhysicsRayQueryParameters3D)
   query.set_from(Godot::Vector3.new(0.0, 10.0, 0.0))
   query.set_to(Godot::Vector3.new(0.0, -10.0, 0.0))
@@ -21,7 +22,7 @@ test_physics "PhysicsRayQueryParameters3D configuration and spatial raycast quer
   assert_true query.is_collide_with_areas_enabled
 end
 
-test_physics "PhysicsRayQueryParameters2D configuration and planar raycast query" do
+  test "PhysicsRayQueryParameters2D configuration and planar raycast query" do
   query2d = Godot.create(Godot::PhysicsRayQueryParameters2D)
   query2d.set_from(Godot::Vector2.new(100.0, 0.0))
   query2d.set_to(Godot::Vector2.new(100.0, 500.0))
@@ -35,7 +36,7 @@ test_physics "PhysicsRayQueryParameters2D configuration and planar raycast query
   assert_true query2d.is_hit_from_inside_enabled
 end
 
-test_physics "Collision layer and mask bitwise flag manipulation (2D & 3D)" do
+  test "Collision layer and mask bitwise flag manipulation (2D & 3D)" do
   body3d = Godot.create(Godot::StaticBody3D)
   body3d.set_collision_layer(0_i64)
   body3d.set_collision_mask(0_i64)
@@ -64,7 +65,7 @@ test_physics "Collision layer and mask bitwise flag manipulation (2D & 3D)" do
   body2d.destroy
 end
 
-test_physics "CharacterBody3D move_and_slide velocity and motion properties" do
+  test "CharacterBody3D move_and_slide velocity and motion properties" do
   char3d = Godot.create(Godot::CharacterBody3D)
 
   # Velocity configuration
@@ -82,7 +83,7 @@ test_physics "CharacterBody3D move_and_slide velocity and motion properties" do
   char3d.destroy
 end
 
-test_physics "Area3D and Area2D monitoring and overlap query configuration" do
+  test "Area3D and Area2D monitoring and overlap query configuration" do
   area3d = Godot.create(Godot::Area3D)
   area3d.set_monitoring(true)
   area3d.set_monitorable(true)
@@ -106,7 +107,7 @@ test_physics "Area3D and Area2D monitoring and overlap query configuration" do
   area2d.destroy
 end
 
-test_physics "RigidBody3D impulse application, mass and linear velocity" do
+  test "RigidBody3D impulse application, mass and linear velocity" do
   rb = Godot.create(Godot::RigidBody3D)
   rb.set_mass(25.0_f64)
   rb.set_linear_damp(0.1_f64)
@@ -126,4 +127,6 @@ test_physics "RigidBody3D impulse application, mass and linear velocity" do
   rb.apply_torque_impulse(Godot::Vector3.new(0.0, 10.0, 0.0))
 
   rb.destroy
+end
+
 end

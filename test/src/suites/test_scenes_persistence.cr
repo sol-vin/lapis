@@ -159,7 +159,8 @@ end
 # Test Cases
 # -----------------------------------------------------------------------------
 
-test_scenes "Loading and instantiating test_crystal_player_2d.tscn from disk into Crystal" do
+test_suite "Scenes" do
+  test "Loading and instantiating test_crystal_player_2d.tscn from disk into Crystal" do
   scene = Godot.load_as(Godot::PackedScene, "res://scenes/test_crystal_player_2d.tscn")
   assert_not_nil scene, "PackedScene must load from res://scenes/test_crystal_player_2d.tscn"
 
@@ -200,7 +201,7 @@ test_scenes "Loading and instantiating test_crystal_player_2d.tscn from disk int
   scene.destroy
 end
 
-test_scenes "Loading and instantiating 3D and UI Crystal scenes from disk" do
+  test "Loading and instantiating 3D and UI Crystal scenes from disk" do
   # 1. 3D Scene
   scene_3d = Godot.load_as(Godot::PackedScene, "res://scenes/test_crystal_entity_3d.tscn")
   assert_not_nil scene_3d
@@ -248,7 +249,7 @@ test_scenes "Loading and instantiating 3D and UI Crystal scenes from disk" do
   scene_ui.destroy
 end
 
-test_scenes "Instantiating composite scene with mixed native and Crystal hierarchy" do
+  test "Instantiating composite scene with mixed native and Crystal hierarchy" do
   scene = Godot.load_as(Godot::PackedScene, "res://scenes/test_crystal_composite_world.tscn")
   assert_not_nil scene
 
@@ -282,7 +283,7 @@ test_scenes "Instantiating composite scene with mixed native and Crystal hierarc
   scene.destroy
 end
 
-test_scenes "Lifecycle execution and clean unloading of instantiated Crystal scene" do
+  test "Lifecycle execution and clean unloading of instantiated Crystal scene" do
   scene = Godot.load_as(Godot::PackedScene, "res://scenes/test_crystal_player_2d.tscn")
   player = scene.instantiate_as(ComplexPlayer2D)
 
@@ -313,7 +314,7 @@ test_scenes "Lifecycle execution and clean unloading of instantiated Crystal sce
   scene.destroy
 end
 
-test_scenes "Dynamic scene tree construction, PackedScene packing, and ResourceSaver disk save" do
+  test "Dynamic scene tree construction, PackedScene packing, and ResourceSaver disk save" do
   player = Godot.create(ComplexPlayer2D)
   player.name = "DynamicHero"
   player.character_name = "Geralt of Rivia"
@@ -354,7 +355,7 @@ test_scenes "Dynamic scene tree construction, PackedScene packing, and ResourceS
   packed.destroy
 end
 
-test_scenes "2x check: Reloading dynamic scene from disk and verifying all serialized values" do
+  test "2x check: Reloading dynamic scene from disk and verifying all serialized values" do
   save_path = "user://test_saved_dynamic_hero.tscn"
   reloaded_scene = Godot.load_as(Godot::PackedScene, save_path)
   assert_not_nil reloaded_scene, "Saved scene must load from #{save_path}"
@@ -388,7 +389,7 @@ test_scenes "2x check: Reloading dynamic scene from disk and verifying all seria
   reloaded_scene.destroy
 end
 
-test_scenes "Mutation and re-saving scene round-trip verification" do
+  test "Mutation and re-saving scene round-trip verification" do
   # Load original saved scene
   scene = Godot.load_as(Godot::PackedScene, "user://test_saved_dynamic_hero.tscn")
   player = scene.instantiate_as(ComplexPlayer2D)
@@ -435,7 +436,7 @@ test_scenes "Mutation and re-saving scene round-trip verification" do
   scene_v2.destroy
 end
 
-test_scenes "Repeated load, instantiate, and unload lifecycle stress test" do
+  test "Repeated load, instantiate, and unload lifecycle stress test" do
   scene_path = "res://scenes/test_crystal_player_2d.tscn"
 
   # Perform 10 rapid instantiation, tree attachment, and teardown cycles
@@ -461,7 +462,7 @@ test_scenes "Repeated load, instantiate, and unload lifecycle stress test" do
   end
 end
 
-test_scenes "GDScript scene loading and instantiation interop" do
+  test "GDScript scene loading and instantiation interop" do
   scene_interop = Godot.load_as(Godot::PackedScene, "res://scenes/test_gdscript_interop.tscn")
   controller = scene_interop.instantiate
   root.add_child(controller)
@@ -473,4 +474,6 @@ test_scenes "GDScript scene loading and instantiation interop" do
   root.remove_child(controller)
   controller.destroy
   scene_interop.destroy
+end
+
 end

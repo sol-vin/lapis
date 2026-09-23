@@ -5,7 +5,8 @@
 
 include Lapis::Test
 
-test_undo_redo "UndoRedo action creation, property changes, and commit lifecycle" do
+test_suite "UndoRedo" do
+  test "UndoRedo action creation, property changes, and commit lifecycle" do
   ur = Godot.create(Godot::UndoRedo)
   target = Godot.create(Godot::Node2D)
   target.position = Godot::Vector2.new(0.0_f32, 0.0_f32)
@@ -49,4 +50,6 @@ test_undo_redo "UndoRedo action creation, property changes, and commit lifecycle
 
   target.destroy
   ur.destroy
+end
+
 end

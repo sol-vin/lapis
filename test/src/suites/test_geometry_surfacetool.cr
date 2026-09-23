@@ -4,7 +4,8 @@
 
 include Lapis::Test
 
-test_geometry "SurfaceTool procedural triangle construction, normal generation and ArrayMesh commit" do
+test_suite "Geometry" do
+  test "SurfaceTool procedural triangle construction, normal generation and ArrayMesh commit" do
   st = Godot.create(Godot::SurfaceTool)
 
   # Begin building surface using Godot::Mesh::PrimitiveType::PrimitiveTriangles directly
@@ -54,7 +55,7 @@ test_geometry "SurfaceTool procedural triangle construction, normal generation a
   st.clear
 end
 
-test_geometry "ArrayMesh surface naming, blend shapes and lifecycle management" do
+  test "ArrayMesh surface naming, blend shapes and lifecycle management" do
   st = Godot.create(Godot::SurfaceTool)
   st.begin(Godot::Mesh::PrimitiveType::PrimitiveTriangles)
 
@@ -104,7 +105,7 @@ test_geometry "ArrayMesh surface naming, blend shapes and lifecycle management" 
   st.clear
 end
 
-test_geometry "ImmediateMesh dynamic surface creation, vertex emission and surface clearing" do
+  test "ImmediateMesh dynamic surface creation, vertex emission and surface clearing" do
   imm = Godot.create(Godot::ImmediateMesh)
   assert_eq imm.get_surface_count, 0_i64
 
@@ -121,4 +122,6 @@ test_geometry "ImmediateMesh dynamic surface creation, vertex emission and surfa
   # Clear surfaces
   imm.clear_surfaces
   assert_eq imm.get_surface_count, 0_i64
+end
+
 end

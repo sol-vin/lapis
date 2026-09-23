@@ -1,54 +1,6 @@
 require "./types"
 
 module Godot
-  # Godot Engine Logging & Diagnostics System
-  def self.print(*args)
-    msg = args.join(" ")
-    if Bridge.api && !Bridge.api.null?
-      Bridge.print(msg)
-    else
-      puts msg
-    end
-  end
-
-  def self.printerr(*args)
-    msg = args.join(" ")
-    if Bridge.api && !Bridge.api.null?
-      Bridge.printerr(msg)
-    else
-      STDERR.puts msg
-    end
-  end
-
-  def self.print_error(msg : String, func : String = "", file : String = __FILE__, line : Int32 = __LINE__)
-    if Bridge.api && !Bridge.api.null?
-      Bridge.error(msg, "", func, file, line)
-    else
-      STDERR.puts "[ERROR] #{msg} (#{file}:#{line} in #{func})"
-    end
-  end
-
-  def self.print_warning(msg : String, func : String = "", file : String = __FILE__, line : Int32 = __LINE__)
-    if Bridge.api && !Bridge.api.null?
-      Bridge.warning(msg, "", func, file, line)
-    else
-      STDERR.puts "[WARNING] #{msg}"
-    end
-  end
-
-  def self.verbose? : Bool
-    Bridge.verbose?
-  end
-
-  def self.print_verbose(*args)
-    msg = args.join(" ")
-    Bridge.print_verbose(msg)
-  end
-
-  def self.debug(*args)
-    print_verbose(*args)
-  end
-
   # Returns true if the code is currently executing inside the Godot Editor
   def self.editor_hint? : Bool
     engine = Bridge.get_singleton("Engine")
@@ -127,6 +79,10 @@ module Godot
     end
   end
 
+  # Raised when an asynchronous operation or await condition exceeds its configured timeout duration.
+  class TimeoutError < Exception
+  end
+
   @[Flags]
   enum ConnectFlags : UInt32
     None             = 0_u32
@@ -175,8 +131,22 @@ module Godot
       @args.map(&.to_s)
     end
 
+    getter? unsubscribed : Bool = false
+
     def unsubscribe : Void
+      return if @unsubscribed
+      @unsubscribed = true
       Godot.unsubscribe_signal(self)
+    end
+
+    # Idiomatic alias for `unsubscribe`
+    def disconnect : Void
+      unsubscribe
+    end
+
+    # Returns true if this subscription is still active and listening
+    def active? : Bool
+      !@unsubscribed && !@completed
     end
   end
 
@@ -392,7 +362,7 @@ module Godot
       @target.connect(@name, flags, callback)
     end
 
-    # Connects a callback block to this signal
+    # Connects a callback block to this signal (supports 1-arg `|args|` and 0-arg blocks)
     def connect(flags : ConnectFlags = ConnectFlags::None, &block : ::Array(Variant) -> Void) : SignalSubscription
       @target.connect(@name, flags, &block)
     end
@@ -400,6 +370,30 @@ module Godot
     # Backwards-compatibility helper redirecting to ConnectFlags::OneShot
     def connect_one_shot(&block : ::Array(Variant) -> Void) : SignalSubscription
       connect(flags: ConnectFlags::OneShot, &block)
+    end
+
+    # Idiomatic shorthand alias for `connect_one_shot`
+    def once(&block : ::Array(Variant) -> Void) : SignalSubscription
+      connect(flags: ConnectFlags::OneShot, &block)
+    end
+
+    # Operator `<<` syntactic sugar for `connect` with a block
+    def <<(&block : ::Array(Variant) -> Void) : SignalSubscription
+      connect(&block)
+    end
+
+    # Operator `<<` syntactic sugar for `connect` with a Proc
+    def <<(proc : Proc(::Array(Variant), R)) : SignalSubscription forall R
+      connect do |args|
+        proc.call(args)
+      end
+    end
+
+    # Operator `<<` syntactic sugar for `connect` with a 0-argument Proc
+    def <<(proc : Proc(R)) : SignalSubscription forall R
+      connect do
+        proc.call
+      end
     end
 
     # Connects this signal to a method call on a target object by symbol name
@@ -417,6 +411,21 @@ module Godot
     # Emits this signal on the target object
     def emit(*args) : Void
       @target.emit_signal(@name, *args)
+    end
+
+    # Returns the count of active subscriptions for this signal
+    def connection_count : Int32
+      @target.signal_connection_count(@name)
+    end
+
+    # Returns true if this signal currently has any active subscribers
+    def connected? : Bool
+      connection_count > 0
+    end
+
+    # Alias to `connected?`
+    def has_connections? : Bool
+      connected?
     end
 
     def to_s(io : IO) : Void
@@ -451,6 +460,35 @@ module Godot
     # Backwards-compatibility helper redirecting to ConnectFlags::OneShot
     def connect_one_shot(&block : *T -> Void) : SignalSubscription
       connect(flags: ConnectFlags::OneShot, &block)
+    end
+
+    # Idiomatic shorthand alias for `connect_one_shot`
+    def once(&block : *T -> Void) : SignalSubscription
+      connect(flags: ConnectFlags::OneShot, &block)
+    end
+
+    # Operator `<<` syntactic sugar for type-safe connect with a block
+    def <<(&block : *T -> Void) : SignalSubscription
+      connect(&block)
+    end
+
+    # Operator `<<` syntactic sugar for type-safe connect with a Proc
+    def <<(proc : Proc(*T, R)) : SignalSubscription forall R
+      connect do |*args|
+        proc.call(*args)
+      end
+    end
+
+    # Operator `<<` syntactic sugar for 0-argument Proc
+    def <<(proc : Proc(R)) : SignalSubscription forall R
+      connect do
+        proc.call
+      end
+    end
+
+    # Emits this typed signal with compile-time type safety matching the signal declaration
+    def emit(*args : *T) : Void
+      @target.emit_signal(@name, *args)
     end
 
     # Cooperatively awaits this typed signal returning unboxed values or tuple
@@ -1090,6 +1128,11 @@ module Godot
           return typed
         end
       end
+      if node.is_a?(T)
+        return node
+      elsif !node.pointer.null? && Bridge.object_is_class(node.pointer, T.name.split("::").last)
+        return T.new(node.pointer)
+      end
       T.new(node.pointer)
     end
 
@@ -1101,7 +1144,11 @@ module Godot
             return typed
           end
         end
-        T.new(node.pointer)
+        if node.is_a?(T)
+          return node
+        elsif !node.pointer.null? && Bridge.object_is_class(node.pointer, T.name.split("::").last)
+          return T.new(node.pointer)
+        end
       end
     end
 

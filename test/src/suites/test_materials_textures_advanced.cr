@@ -4,7 +4,8 @@
 
 include Lapis::Test
 
-test_material "StandardMaterial3D surface features, transparency, cull mode & triplanar" do
+test_suite "Materials" do
+  test "StandardMaterial3D surface features, transparency, cull mode & triplanar" do
   mat = Godot.create(Godot::StandardMaterial3D)
 
   # Albedo color & roughness
@@ -41,7 +42,7 @@ test_material "StandardMaterial3D surface features, transparency, cull mode & tr
   assert_true mat.get_flag(Godot::BaseMaterial3D::Flags::FlagAlbedoFromVertexColor.value)
 end
 
-test_material "ORMMaterial3D occlusion, roughness, and metallic channels" do
+  test "ORMMaterial3D occlusion, roughness, and metallic channels" do
   orm = Godot.create(Godot::ORMMaterial3D)
   orm.set_roughness(0.65_f64)
   orm.set_metallic(0.35_f64)
@@ -52,7 +53,7 @@ test_material "ORMMaterial3D occlusion, roughness, and metallic channels" do
   assert_eq orm.get_cull_mode, 1_i64
 end
 
-test_material "CanvasItemMaterial 2D blend and light modes" do
+  test "CanvasItemMaterial 2D blend and light modes" do
   cim = Godot.create(Godot::CanvasItemMaterial)
   cim.set_blend_mode(Godot::CanvasItemMaterial::BlendMode::BlendModeAdd)
   assert_eq cim.get_blend_mode, 1_i64
@@ -67,7 +68,7 @@ test_material "CanvasItemMaterial 2D blend and light modes" do
   assert_eq cim.get_light_mode, 1_i64
 end
 
-test_material "ParticleProcessMaterial emission shape, velocity and gravity" do
+  test "ParticleProcessMaterial emission shape, velocity and gravity" do
   ppm = Godot.create(Godot::ParticleProcessMaterial)
 
   # Sphere emission shape using strongly typed enum directly
@@ -88,7 +89,7 @@ test_material "ParticleProcessMaterial emission shape, velocity and gravity" do
   assert_approx_eq ppm.get_param_max(Godot::ParticleProcessMaterial::Parameter::ParamInitialLinearVelocity).to_f32, 30.0_f32
 end
 
-test_material "Dynamic Image pixel read/write and ImageTexture material binding" do
+  test "Dynamic Image pixel read/write and ImageTexture material binding" do
   # Strongly typed enum passed directly without manual .value extraction to factory constructor
   img = Godot::Image.create_empty(16, 16, false, Godot::Image::Format::FormatRgba8)
   assert_not_nil img
@@ -119,4 +120,6 @@ test_material "Dynamic Image pixel read/write and ImageTexture material binding"
   assert_not_nil ret_tex
   assert_false ret_tex.pointer.null?
   assert_eq ret_tex.get_width, 16_i64
+end
+
 end
