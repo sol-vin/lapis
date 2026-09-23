@@ -54,7 +54,7 @@ static void initialize_crystal_module(void *p_userdata, GDExtensionInitializatio
         setenv("CRYSTAL_WORKERS", "1", 0);
 #endif
         init_common_method_binds();
-        godot_log_print("[CrystalBridge] Initializing generic Crystal GDExtension host...");
+        godot_log_verbose("[CrystalBridge] Initializing generic Crystal GDExtension host...");
         load_crystal_game_library((GDExtensionClassLibraryPtr)p_userdata);
     } else if (p_level == GDEXTENSION_INITIALIZATION_EDITOR) {
         register_deferred_editor_classes();
@@ -167,7 +167,7 @@ static void deinitialize_crystal_module(void *p_userdata, GDExtensionInitializat
             s_is_reloading = 0;
             bridge_cleanup_string_name_cache();
             unload_crystal_game_library();
-            godot_log_print("[CrystalBridge] Crystal module deinitialized.");
+            godot_log_verbose("[CrystalBridge] Crystal module deinitialized.");
         }
     }
 }
@@ -348,6 +348,10 @@ extern "C" GDE_EXPORT GDExtensionBool crystal_library_init(
         void *sn_printerr = make_string_name("printerr");
         gd_util_printerr = gd_variant_get_ptr_utility_function(sn_printerr, 2648703342ULL);
         free_string_name(sn_printerr);
+
+        void *sn_print_verbose = make_string_name("print_verbose");
+        gd_util_print_verbose = gd_variant_get_ptr_utility_function(sn_print_verbose, 2648703342ULL);
+        free_string_name(sn_print_verbose);
     }
 
     if (gd_get_variant_from_type_constructor) {

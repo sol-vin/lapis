@@ -334,7 +334,7 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
     if (bridge_dir[0] != '\0') {
         char dir_log[512];
         snprintf(dir_log, sizeof(dir_log), "[CrystalBridge] Resolved bridge directory: %s", bridge_dir);
-        godot_log_print(dir_log);
+        godot_log_verbose(dir_log);
     }
 
     // Clean up stale shadow copies from previous editor sessions
@@ -528,7 +528,7 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
     if (to_load.empty()) {
         HMODULE hSys = bridge_load_library("libgame.so");
         if (hSys) {
-            godot_log_print("[CrystalBridge] Loaded game library via system dlopen('libgame.so')");
+            godot_log_verbose("[CrystalBridge] Loaded game library via system dlopen('libgame.so')");
             g_hGame = hSys;
             g_loaded_modules.push_back(hSys);
             typedef void (*CrystalInitFn)(const BridgeAPI *api);
@@ -589,7 +589,7 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
             if (hModule) {
                 char buf[512];
                 snprintf(buf, sizeof(buf), "[CrystalBridge] Loaded library from %s via shadow copy %s", candidate_path.c_str(), shadow_path);
-                godot_log_print(buf);
+                godot_log_verbose(buf);
             } else {
                 char err_buf[256];
                 bridge_get_last_error(err_buf, sizeof(err_buf));
@@ -624,7 +624,7 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
                 if (hModule) {
                     char buf[512];
                     snprintf(buf, sizeof(buf), "[CrystalBridge] Loaded library directly from %s", candidate_path.c_str());
-                    godot_log_print(buf);
+                    godot_log_verbose(buf);
                 } else {
                     char err_buf[256];
                     bridge_get_last_error(err_buf, sizeof(err_buf));

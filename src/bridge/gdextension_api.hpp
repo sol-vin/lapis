@@ -58,6 +58,7 @@ static GDExtensionPtrDestructor gd_nodepath_destroy = nullptr;
 static GDExtensionPtrConstructor gd_string_from_string_name = nullptr;
 static GDExtensionPtrUtilityFunction gd_util_print = nullptr;
 static GDExtensionPtrUtilityFunction gd_util_printerr = nullptr;
+static GDExtensionPtrUtilityFunction gd_util_print_verbose = nullptr;
 static GDExtensionVariantFromTypeConstructorFunc gd_variant_from_string = nullptr;
 static GDExtensionPtrDestructor gd_string_destroy = nullptr;
 static GDExtensionPtrDestructor gd_string_name_destroy = nullptr;
@@ -115,6 +116,38 @@ static GDExtensionMethodBindPtr mb_text_edit_get_line = nullptr;
 // ==============================================================================
 // Godot Engine Diagnostic & Console Logging Helpers
 // ==============================================================================
+
+inline bool is_bridge_verbose() {
+    static int cached = -1;
+    if (cached == -1) {
+        const char *v1 = getenv("LIBGODOT_VERBOSE");
+        const char *v2 = getenv("GODOT_VERBOSE");
+        cached = ((v1 && (strcmp(v1, "1") == 0 || strcmp(v1, "true") == 0)) ||
+                  (v2 && (strcmp(v2, "1") == 0 || strcmp(v2, "true") == 0))) ? 1 : 0;
+    }
+    return cached == 1;
+}
+
+inline void godot_log_print(const char *msg);
+
+inline void godot_log_verbose(const char *msg) {
+    if (!msg) return;
+
+    if (is_bridge_verbose()) {
+        godot_log_print(msg);
+    } else if (gd_util_print_verbose && gd_variant_from_string && gd_string_new_with_utf8_chars && gd_variant_destroy) {
+        alignas(void*) char gd_str[sizeof(void*)];
+        gd_string_new_with_utf8_chars(gd_str, msg);
+        alignas(void*) char var_buf[24];
+        gd_variant_from_string(var_buf, gd_str);
+        const void *args[1] = { var_buf };
+        gd_util_print_verbose(nullptr, args, 1);
+        gd_variant_destroy(var_buf);
+        if (gd_string_destroy) {
+            gd_string_destroy(gd_str);
+        }
+    }
+}
 
 inline void godot_log_print(const char *msg) {
     if (!msg) return;

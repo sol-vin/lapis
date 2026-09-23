@@ -181,6 +181,12 @@ inline GDExtensionObjectPtr generic_class_create(void *p_class_userdata, GDExten
     gd_object_set_instance(obj, class_sn, (GDExtensionClassInstancePtr)inst);
     register_extension_instance(obj, inst);
 
+    if (is_bridge_verbose()) {
+        char buf[256];
+        snprintf(buf, sizeof(buf), "  [GenericExtensionInstance] Created %s (godot=%p, crystal=%p)", desc->name, (void*)obj, inst->crystal_instance);
+        godot_log_verbose(buf);
+    }
+
     bool allow_processing = !is_editor_active() || is_tool_desc(desc);
 
     // Auto-enable physics process if requested
@@ -248,6 +254,11 @@ inline void generic_class_free(void *p_class_userdata, GDExtensionClassInstanceP
     ensure_gc_thread_registered();
     GenericExtensionInstance *inst = (GenericExtensionInstance*)p_instance;
     if (inst) {
+        if (is_bridge_verbose() && inst->desc) {
+            char buf[256];
+            snprintf(buf, sizeof(buf), "  [GenericExtensionInstance] Freed %s (godot=%p, crystal=%p)", inst->desc->name, (void*)inst->godot_object, inst->crystal_instance);
+            godot_log_verbose(buf);
+        }
         if (inst->godot_object) {
             unregister_extension_instance(inst->godot_object);
         }
@@ -595,6 +606,13 @@ inline void generic_class_call_virtual_with_data(
         method_name = name_buf;
     }
     if (!method_name) return;
+
+    if (is_bridge_verbose() && strcmp(method_name, "_process") != 0 && strcmp(method_name, "process") != 0 &&
+        strcmp(method_name, "_physics_process") != 0 && strcmp(method_name, "physics_process") != 0) {
+        char buf[256];
+        snprintf(buf, sizeof(buf), "  [GenericExtensionInstance] CallVirtual %s::%s", inst->desc ? inst->desc->name : "Unknown", method_name);
+        godot_log_verbose(buf);
+    }
 
     if (strcmp(method_name, "_ready") == 0 || strcmp(method_name, "ready") == 0) {
         if (is_editor_active() && !is_tool_desc(inst->desc)) return;
@@ -1238,6 +1256,11 @@ inline GDExtensionBool generic_class_set(GDExtensionClassInstancePtr p_instance,
             if (strcmp(prop_name_buf, curr->properties[i].name) == 0) {
                 alignas(void*) char raw_buf[128] = {};
                 bridge_type_from_variant(curr->properties[i].variant_type, raw_buf, p_value);
+                if (is_bridge_verbose()) {
+                    char buf[256];
+                    snprintf(buf, sizeof(buf), "  [GenericExtensionInstance] Set %s::%s", curr->name ? curr->name : "Object", curr->properties[i].name);
+                    godot_log_verbose(buf);
+                }
                 inst->desc->set_property(inst->crystal_instance, curr->properties[i].name, raw_buf);
                 return 1;
             }
@@ -1270,6 +1293,11 @@ inline GDExtensionBool generic_class_get(GDExtensionClassInstancePtr p_instance,
                 alignas(void*) char raw_buf[128] = {};
                 inst->desc->get_property(inst->crystal_instance, curr->properties[i].name, raw_buf);
                 bridge_variant_from_type(curr->properties[i].variant_type, r_ret, raw_buf);
+                if (is_bridge_verbose()) {
+                    char buf[256];
+                    snprintf(buf, sizeof(buf), "  [GenericExtensionInstance] Get %s::%s", curr->name ? curr->name : "Object", curr->properties[i].name);
+                    godot_log_verbose(buf);
+                }
                 return 1;
             }
         }

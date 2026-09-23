@@ -13,10 +13,10 @@ module Lapis
 
         begin
           dst_path = dst.to_s
+          src_info = File.info(src)
           if File.exists?(dst_path)
-            src_info = File.info(src)
             dst_info = File.info(dst_path)
-            if src_info.size == dst_info.size && src_info.modification_time <= dst_info.modification_time
+            if src_info.size == dst_info.size && src_info.modification_time == dst_info.modification_time
               return true
             end
           end
@@ -24,6 +24,7 @@ module Lapis
           dst_dir = File.dirname(dst_path)
           FileUtils.mkdir_p(dst_dir) unless Dir.exists?(dst_dir)
           FileUtils.cp(src.to_s, dst_path)
+          File.touch(dst_path, src_info.modification_time) rescue nil
           Core::Logger.debug("Synced #{src} -> #{dst}")
           true
         rescue ex
@@ -166,18 +167,17 @@ HELP
 
           synced_count = 0
           target_dirs.each do |dir|
+            next if dir == bin_dir
             FileUtils.mkdir_p(dir) unless Dir.exists?(dir)
 
             # Purge foreign platform binaries (.so on Windows, .dll on Linux)
             Core::Env.purge_foreign_binaries(dir)
 
             platform_files.each do |bin_name|
-              src = if File.exists?(bin_dir.join(bin_name)) && bin_dir != dir
+              src = if File.exists?(bin_dir.join(bin_name))
                 bin_dir.join(bin_name)
               elsif File.exists?(root.join("addons/crystal_integration/bin").join(bin_name)) && root.join("addons/crystal_integration/bin") != dir
                 root.join("addons/crystal_integration/bin").join(bin_name)
-              elsif File.exists?(bin_dir.join(bin_name))
-                bin_dir.join(bin_name)
               else
                 nil
               end

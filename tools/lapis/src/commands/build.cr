@@ -419,6 +419,7 @@ HELP
           opts.on("-m", "--single-module", "Generate a single LLVM module (auto-enabled for shared libraries)") { single_module = true }
           opts.on("--no-single-module", "Disable single LLVM module generation") { single_module = false }
           opts.on("-s PATH", "--source-path=PATH", "Source path for CRYSTAL_PATH") { |v| source_path = v }
+          opts.on("-v", "--verbose", "Enable verbose diagnostic output") { Core::Logger.verbose = true }
           opts.on("-h", "--help", "Show help") { print_help; exit 0 }
         end
 

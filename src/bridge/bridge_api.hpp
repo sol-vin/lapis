@@ -14,6 +14,10 @@
  * ==============================================================================
  */
 
+inline int bridge_is_verbose() {
+    return is_bridge_verbose() ? 1 : 0;
+}
+
 static BridgeAPI g_bridge_api = {
     bridge_register_class,
     bridge_get_method_bind,
@@ -91,7 +95,9 @@ static BridgeAPI g_bridge_api = {
     bridge_object_is_class,
     bridge_register_gc_functions,
     bridge_get_gc_signals,
-    bridge_object_get_class_name
+    bridge_object_get_class_name,
+    godot_log_verbose,
+    bridge_is_verbose
 };
 
 // ==============================================================================

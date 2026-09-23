@@ -1,6 +1,7 @@
 require "../core/env"
 require "../core/logger"
 require "../core/process_runner"
+require "../core/step_summary"
 require "../core/godot_finder"
 require "file_utils"
 require "option_parser"
@@ -23,6 +24,7 @@ Options:
   --skip-runtime-tests  Skip Godot runtime test project
   --skip-standalone     Skip standalone compiled test executable
   -g, --godot=PATH      Explicit Godot engine executable path
+  -v, --verbose         Enable verbose diagnostic logging and pass to Godot
   -h, --help            Show this help screen
 
 Examples:
@@ -54,127 +56,6 @@ HELP
         end
       end
 
-      record StepResult,
-        name : String,
-        success : Bool,
-        duration : Float64,
-        exit_code : Int32
-
-      def self.generate_status_report(
-        test_dir : Path,
-        test_bin_dir : Path,
-        godot_exe : String?,
-        recorded_results : Array(StepResult),
-        failed_steps : Array(String),
-        total_duration : Float64
-      ) : Void
-        platform_arch = Core::Env.windows? ? "x86_64" : (Core::Env.macos? ? "arm64" : "x86_64")
-        platform_name = if Core::Env.windows?
-          "Windows (#{platform_arch})"
-        elsif Core::Env.macos?
-          "macOS (#{platform_arch})"
-        else
-          "Linux (#{platform_arch})"
-        end
-
-        crystal_ver = "Crystal #{Crystal::VERSION}"
-        godot_ver = "Unknown"
-        if g = godot_exe
-          res = Core::ProcessRunner.capture(g.to_s, ["--version"])
-          godot_ver = res[:output].lines.first?.try(&.strip) || "Unknown" if res[:status].success?
-        end
-
-        runtime_total = 0
-        runtime_passed = 0
-        runtime_failed = 0
-        summary_file = [test_dir.join(".runtime_test_results.txt"), test_bin_dir.join(".runtime_test_results.txt")].find { |f| File.exists?(f) }
-        if summary_file
-          content = File.read(summary_file)
-          runtime_total = $1.to_i if content =~ /TOTAL=(\d+)/
-          runtime_passed = $1.to_i if content =~ /PASSED=(\d+)/
-          runtime_failed = $1.to_i if content =~ /FAILED=(\d+)/
-        end
-
-        status_badge = failed_steps.empty? ? "**SUCCESS (All Passed)**" : "**FAILED (#{failed_steps.size} failed)**"
-
-        md_report = String.build do |md|
-          md.puts "## LibGodot Test Suite Status Report (#{platform_name})"
-          md.puts
-          md.puts "| Metric | Value |"
-          md.puts "| :--- | :--- |"
-          md.puts "| **Overall Status** | #{status_badge} |"
-          md.puts "| **Platform** | #{platform_name} |"
-          md.puts "| **Crystal Version** | #{crystal_ver} |"
-          md.puts "| **Godot Version** | #{godot_ver} |"
-          md.puts "| **Total Duration** | #{total_duration}s |"
-          if runtime_total > 0
-            md.puts "| **Runtime Assertions** | #{runtime_passed} / #{runtime_total} passed |"
-          end
-          md.puts
-          md.puts "### Executed Test Steps"
-          md.puts
-          md.puts "| Status | Phase / Test Step | Duration | Exit Code |"
-          md.puts "| :---: | :--- | :---: | :---: |"
-          recorded_results.each do |r|
-            status_icon = r.success ? "PASSED" : "FAILED"
-            md.puts "| #{status_icon} | #{r.name} | #{r.duration}s | #{r.exit_code} |"
-          end
-          if !failed_steps.empty?
-            md.puts
-            md.puts "### Failures Detected (#{failed_steps.size})"
-            failed_steps.each do |f|
-              md.puts "- FAIL: #{f}"
-            end
-          end
-        end
-
-        json_steps = recorded_results.map do |r|
-          %{{"name": #{r.name.to_json}, "success": #{r.success}, "duration": #{r.duration}, "exit_code": #{r.exit_code}}}
-        end.join(", ")
-
-        json_failed = failed_steps.map(&.to_json).join(", ")
-
-        json_report = %{{
-  "platform": #{platform_name.to_json},
-  "crystal_version": #{crystal_ver.to_json},
-  "godot_version": #{godot_ver.to_json},
-  "duration_seconds": #{total_duration},
-  "overall_success": #{failed_steps.empty?},
-  "failed_steps_count": #{failed_steps.size},
-  "failed_steps": [#{json_failed}],
-  "runtime_summary": {
-    "total": #{runtime_total},
-    "passed": #{runtime_passed},
-    "failed": #{runtime_failed}
-  },
-  "steps": [#{json_steps}],
-  "timestamp": #{Time.utc.to_rfc3339.to_json}
-}}
-
-        FileUtils.mkdir_p(test_dir) unless Dir.exists?(test_dir)
-        FileUtils.mkdir_p(test_bin_dir) unless Dir.exists?(test_bin_dir)
-
-        File.write(test_dir.join("test_report.md"), md_report)
-        File.write(test_bin_dir.join("test_report.md"), md_report)
-        File.write(test_dir.join("test_report.json"), json_report)
-        File.write(test_bin_dir.join("test_report.json"), json_report)
-
-        if gsummary = ENV["GITHUB_STEP_SUMMARY"]?
-          begin
-            File.open(gsummary, "a") do |io|
-              io.puts "\n"
-              io.puts md_report
-              io.puts "\n"
-            end
-            Core::Logger.info("Published test report to GitHub Step Summary.")
-          rescue ex
-            Core::Logger.warn("Could not write to GITHUB_STEP_SUMMARY: #{ex.message}")
-          end
-        end
-      rescue ex
-        Core::Logger.warn("Error generating test status report: #{ex.message}")
-      end
-
       private def self.safe_exit_code(status : Process::Status) : Int32
         status.normal_exit? ? status.exit_code : -1
       end
@@ -203,6 +84,7 @@ HELP
           opts.on("--skip-runtime-tests", "Skip Godot runtime test project") { skip_runtime_tests = true }
           opts.on("--skip-standalone", "Skip standalone test executable") { skip_standalone = true }
           opts.on("-g PATH", "--godot=PATH", "Explicit Godot executable path") { |p| godot_path = p }
+          opts.on("-v", "--verbose", "Enable verbose diagnostic logging") { Core::Logger.verbose = true }
           opts.on("-h", "--help", "Show help") { print_help; exit 0 }
         end
 
@@ -213,8 +95,7 @@ HELP
         test_bin_dir = test_dir.join("bin")
         godot_exe = Core::GodotFinder.resolve(godot_path)
 
-        failed_steps = [] of String
-        recorded_results = [] of StepResult
+        step_summary = Core::StepSummary.new("LibGodot Test Suite Status Report", godot_exe)
         clear_markers(test_dir, test_bin_dir)
 
         begin
@@ -228,14 +109,21 @@ HELP
               if Dir.exists?(spec_dir)
                 Core::Logger.step("Test:Specs:Engine", "Running Phase 1a: Engine specifications in test/spec...")
                 step_start = Time.instant
-                status = Core::ProcessRunner.run(
+                res = Core::ProcessRunner.run_with_capture(
                   "crystal",
                   ["spec", "test/spec"],
                   chdir: root.to_s
                 )
                 step_dur = (Time.instant - step_start).total_seconds.round(2)
-                recorded_results << StepResult.new("Phase 1a: Engine Specifications (test/spec)", status.success?, step_dur, safe_exit_code(status))
-                failed_steps << "Phase 1a: Engine Specifications (test/spec)" unless status.success?
+                step_summary.add_phase(
+                  tag: "[TEST:SPECS:ENGINE]",
+                  name: "Engine Specifications (test/spec)",
+                  category: "Spec",
+                  success: res[:status].success?,
+                  duration: step_dur,
+                  exit_code: safe_exit_code(res[:status]),
+                  error_excerpt: res[:error_excerpt]
+                )
               end
             end
 
@@ -245,14 +133,21 @@ HELP
               if Dir.exists?(lapis_spec_dir)
                 Core::Logger.step("Test:Specs:CLI", "Running Phase 1b: Lapis toolchain specifications in tools/lapis/spec...")
                 step_start = Time.instant
-                status = Core::ProcessRunner.run(
+                res = Core::ProcessRunner.run_with_capture(
                   "crystal",
                   ["spec", "tools/lapis/spec"],
                   chdir: root.to_s
                 )
                 step_dur = (Time.instant - step_start).total_seconds.round(2)
-                recorded_results << StepResult.new("Phase 1b: Lapis CLI Specifications (tools/lapis/spec)", status.success?, step_dur, safe_exit_code(status))
-                failed_steps << "Phase 1b: Lapis CLI Specifications (tools/lapis/spec)" unless status.success?
+                step_summary.add_phase(
+                  tag: "[TEST:SPECS:CLI]",
+                  name: "Lapis CLI Specifications (tools/lapis/spec)",
+                  category: "Spec",
+                  success: res[:status].success?,
+                  duration: step_dur,
+                  exit_code: safe_exit_code(res[:status]),
+                  error_excerpt: res[:error_excerpt]
+                )
               end
             end
 
@@ -272,17 +167,18 @@ HELP
             root_specs.each do |spec_file|
               full_path = root.join(spec_file)
               if File.exists?(full_path)
+                spec_tag_name = Path.new(spec_file).basename.gsub(".cr", "").upcase
                 Core::Logger.step("Test:Specs:Root", "Running #{spec_file}...")
                 step_start = Time.instant
-                status = Core::ProcessRunner.run(
+                res = Core::ProcessRunner.run_with_capture(
                   "crystal",
                   ["run", spec_file],
                   chdir: root.to_s
                 )
                 {% if flag?(:windows) %}
-                if !status.success?
+                if !res[:status].success?
                   sleep 0.5.seconds
-                  status = Core::ProcessRunner.run(
+                  res = Core::ProcessRunner.run_with_capture(
                     "crystal",
                     ["run", spec_file],
                     chdir: root.to_s
@@ -290,8 +186,15 @@ HELP
                 end
                 {% end %}
                 step_dur = (Time.instant - step_start).total_seconds.round(2)
-                recorded_results << StepResult.new("Crystal Spec (#{spec_file})", status.success?, step_dur, safe_exit_code(status))
-                failed_steps << "Crystal Spec (#{spec_file})" unless status.success?
+                step_summary.add_phase(
+                  tag: "[TEST:SPECS:#{spec_tag_name}]",
+                  name: "Architectural Spec (#{spec_file})",
+                  category: "Spec",
+                  success: res[:status].success?,
+                  duration: step_dur,
+                  exit_code: safe_exit_code(res[:status]),
+                  error_excerpt: res[:error_excerpt]
+                )
               end
             end
           end
@@ -310,7 +213,7 @@ HELP
               }
               clear_markers(test_dir, test_bin_dir)
               step_start = Time.instant
-              status = Core::ProcessRunner.run(
+              res = Core::ProcessRunner.run_with_capture(
                 godot_exe,
                 ["--headless", "--rendering-driver", "opengl3", "--audio-driver", "Dummy", "--editor", "--path", "test", "--quit-after", "600"],
                 env: env,
@@ -322,17 +225,27 @@ HELP
               passed_tool_marker = [test_dir.join(".tool_tests_passed"), test_bin_dir.join(".tool_tests_passed")].find { |f| File.exists?(f) }
 
               editor_success = true
+              tool_err : String? = nil
               if failed_tool_marker
                 Core::Logger.error("In-editor @tool tests reported failures.")
-                failed_steps << "In-Editor Tests (Phase 2a/2b)"
                 editor_success = false
-              elsif !passed_tool_marker && !status.success?
-                failed_steps << "In-Editor Tests (Phase 2a/2b)"
+                tool_err = File.read(failed_tool_marker) rescue "In-editor @tool test failure reported in marker."
+              elsif !passed_tool_marker && !res[:status].success?
                 editor_success = false
+                tool_err = res[:error_excerpt] || "In-editor tests crashed before completing."
               else
                 Core::Logger.success("In-editor @tool tests verified successfully!")
               end
-              recorded_results << StepResult.new("In-Editor Tests (Phase 2a/2b)", editor_success, step_dur, safe_exit_code(status))
+
+              step_summary.add_phase(
+                tag: "[TEST:TOOL_NODES]",
+                name: "Headless In-Editor @tool Tests (Phase 2a/2b)",
+                category: "Test",
+                success: editor_success,
+                duration: step_dur,
+                exit_code: safe_exit_code(res[:status]),
+                error_excerpt: tool_err
+              )
             else
               Core::Logger.warn("Godot executable not found, skipping in-editor tests.")
             end
@@ -350,15 +263,15 @@ HELP
               Core::Logger.step("Test:Standalone", "Running Standalone Test Runner (Regular with separate .pck & DLL/SO: #{standalone_exe.basename})...")
               clear_markers(test_dir, test_bin_dir)
               step_start = Time.instant
-              status = begin
-                Core::ProcessRunner.run(
+              res = begin
+                Core::ProcessRunner.run_with_capture(
                   standalone_exe.to_s,
                   ["--headless", "--rendering-driver", "opengl3", "--audio-driver", "Dummy", "--quit-after", "600", "--", "--autorun"],
                   chdir: test_bin_dir.to_s
                 )
               rescue ex
                 Core::Logger.error("Failed to execute regular standalone runner: #{ex.message}")
-                Process::Status[1]
+                {status: Process::Status[1], error_excerpt: ex.message}
               end
               step_dur = (Time.instant - step_start).total_seconds.round(2)
 
@@ -366,17 +279,27 @@ HELP
               passed_marker = [test_dir.join(".runtime_tests_passed"), test_bin_dir.join(".runtime_tests_passed")].find { |f| File.exists?(f) }
 
               standalone_success = true
+              standalone_err : String? = nil
               if failed_marker
                 Core::Logger.error("Regular standalone test runner reported failures.")
-                failed_steps << "Regular Standalone Test Runner"
                 standalone_success = false
-              elsif !passed_marker && !status.success?
-                failed_steps << "Regular Standalone Test Runner"
+                standalone_err = File.read(failed_marker) rescue "Runtime assertion failures reported."
+              elsif !passed_marker && !res[:status].success?
                 standalone_success = false
+                standalone_err = res[:error_excerpt] || "Process exited abnormally."
               else
                 Core::Logger.success("Regular standalone test runner verified successfully!")
               end
-              recorded_results << StepResult.new("Regular Standalone Test Runner", standalone_success, step_dur, safe_exit_code(status))
+
+              step_summary.add_phase(
+                tag: "[TEST:STANDALONE]",
+                name: "Regular Standalone Test Runner (#{standalone_exe.basename})",
+                category: "Test",
+                success: standalone_success,
+                duration: step_dur,
+                exit_code: safe_exit_code(res[:status]),
+                error_excerpt: standalone_err
+              )
             end
 
             # -----------------------------------------------------------------------
@@ -415,15 +338,15 @@ HELP
               clear_markers(test_dir, sandbox_dir)
 
               step_start = Time.instant
-              status = begin
-                Core::ProcessRunner.run(
+              res = begin
+                Core::ProcessRunner.run_with_capture(
                   sandbox_exe.to_s,
                   ["--headless", "--rendering-driver", "opengl3", "--audio-driver", "Dummy", "--quit-after", "600", "--", "--autorun"],
                   chdir: sandbox_dir.to_s
                 )
               rescue ex
                 Core::Logger.error("Failed to execute portable runner: #{ex.message}")
-                Process::Status[1]
+                {status: Process::Status[1], error_excerpt: ex.message}
               end
               step_dur = (Time.instant - step_start).total_seconds.round(2)
 
@@ -431,14 +354,27 @@ HELP
               passed_marker = [test_dir.join(".runtime_tests_passed"), sandbox_dir.join(".runtime_tests_passed")].find { |f| File.exists?(f) }
 
               portable_success = true
-              if failed_marker || !passed_marker || !status.success?
+              portable_err : String? = nil
+              if failed_marker
                 Core::Logger.error("Standalone portable test runner reported failures in isolated sandbox.")
-                failed_steps << "Standalone Portable Test Runner"
                 portable_success = false
+                portable_err = File.read(failed_marker) rescue "Runtime assertion failures reported."
+              elsif !passed_marker && !res[:status].success?
+                portable_success = false
+                portable_err = res[:error_excerpt] || "Portable runner exited abnormally in sandbox."
               else
                 Core::Logger.success("Standalone portable test runner verified successfully in isolated sandbox!")
               end
-              recorded_results << StepResult.new("Standalone Portable Test Runner", portable_success, step_dur, safe_exit_code(status))
+
+              step_summary.add_phase(
+                tag: "[TEST:PORTABLE]",
+                name: "Standalone Portable Test Runner in Sandbox",
+                category: "Test",
+                success: portable_success,
+                duration: step_dur,
+                exit_code: safe_exit_code(res[:status]),
+                error_excerpt: portable_err
+              )
 
               FileUtils.rm_rf(sandbox_dir) if Dir.exists?(sandbox_dir)
             end
@@ -451,15 +387,15 @@ HELP
             if godot_exe
               Core::Logger.step("Test:Runtime", "Running In-Project Runtime Test Runner (main_test_runner.tscn)...")
               step_start = Time.instant
-              status = begin
-                Core::ProcessRunner.run(
+              res = begin
+                Core::ProcessRunner.run_with_capture(
                   godot_exe,
                   ["--headless", "--rendering-driver", "opengl3", "--audio-driver", "Dummy", "--path", ".", "--quit-after", "600", "--", "--autorun"],
                   chdir: test_dir.to_s
                 )
               rescue ex
                 Core::Logger.error("Failed to execute runtime runner: #{ex.message}")
-                Process::Status[1]
+                {status: Process::Status[1], error_excerpt: ex.message}
               end
               step_dur = (Time.instant - step_start).total_seconds.round(2)
 
@@ -467,32 +403,76 @@ HELP
               passed_marker = [test_dir.join(".runtime_tests_passed"), test_bin_dir.join(".runtime_tests_passed")].find { |f| File.exists?(f) }
 
               runtime_success = true
+              runtime_err : String? = nil
               if failed_marker
                 Core::Logger.error("Runtime test runner reported failures.")
-                failed_steps << "Runtime Tests"
                 runtime_success = false
-              elsif !passed_marker && !status.success?
-                failed_steps << "Runtime Tests"
+                runtime_err = File.read(failed_marker) rescue "Runtime assertion failures reported."
+              elsif !passed_marker && !res[:status].success?
                 runtime_success = false
+                runtime_err = res[:error_excerpt] || "Runtime project exited abnormally."
               else
                 Core::Logger.success("Runtime test suite verified successfully!")
               end
-              recorded_results << StepResult.new("Runtime Tests (main_test_runner.tscn)", runtime_success, step_dur, safe_exit_code(status))
+
+              step_summary.add_phase(
+                tag: "[TEST:RUNTIME]",
+                name: "In-Project Runtime Test Runner (main_test_runner.tscn)",
+                category: "Test",
+                success: runtime_success,
+                duration: step_dur,
+                exit_code: safe_exit_code(res[:status]),
+                error_excerpt: runtime_err
+              )
             else
               Core::Logger.warn("Godot executable not found, skipping runtime tests.")
             end
           end
         ensure
           total_duration = (Time.instant - start_time).total_seconds.round(2)
-          generate_status_report(test_dir, test_bin_dir, godot_exe, recorded_results, failed_steps, total_duration)
+          step_summary.total_duration = total_duration
+
+          # Harvest runtime metrics if available
+          summary_file = [test_dir.join(".runtime_test_results.txt"), test_bin_dir.join(".runtime_test_results.txt")].find { |f| File.exists?(f) }
+          runtime_total = 0
+          runtime_passed = 0
+          runtime_failed = 0
+          if summary_file
+            content = File.read(summary_file)
+            runtime_total = $1.to_i if content =~ /TOTAL=(\d+)/
+            runtime_passed = $1.to_i if content =~ /PASSED=(\d+)/
+            runtime_failed = $1.to_i if content =~ /FAILED=(\d+)/
+          end
+
+          failed_details = [] of String
+          failed_file = [test_dir.join(".runtime_tests_failed"), test_bin_dir.join(".runtime_tests_failed")].find { |f| File.exists?(f) }
+          if failed_file
+            failed_details = File.read(failed_file).lines.map(&.strip).reject(&.empty?)
+          end
+          step_summary.set_runtime_metrics(runtime_total, runtime_passed, runtime_failed, failed_details)
+
+          # Record built test artifacts
+          [
+            test_bin_dir.join("tests#{Core::Env.exe_ext}"),
+            test_bin_dir.join("tests_portable#{Core::Env.exe_ext}"),
+            test_bin_dir.join("tests.pck"),
+            root.join("bin/test-suite-windows.zip"),
+            root.join("bin/test-suite-linux.zip"),
+            root.join("bin/test-suite-macos.zip"),
+          ].each do |art|
+            step_summary.add_artifact(art.basename, art) if File.exists?(art)
+          end
+
+          step_summary.publish([test_dir, test_bin_dir], append_to_github_summary: true)
         end
 
         puts
-        if failed_steps.empty?
+        if step_summary.overall_success?
           Core::Logger.success("All test suites passed successfully! (#{total_duration}s)")
           0
         else
-          Core::Logger.error("The following test suites failed (#{total_duration}s): #{failed_steps.join(", ")}")
+          failed_tags = step_summary.failed_phases.map(&.tag)
+          Core::Logger.error("The following test phases failed (#{total_duration}s): #{failed_tags.join(", ")}")
           1
         end
       end

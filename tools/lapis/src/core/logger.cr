@@ -2,7 +2,19 @@ module Lapis
   module Core
     module Logger
       class_property? quiet : Bool = false
-      class_property? verbose : Bool = false
+      @@verbose : Bool = (ENV["LIBGODOT_VERBOSE"]? == "1" || ENV["GODOT_VERBOSE"]? == "1")
+
+      def self.verbose? : Bool
+        @@verbose
+      end
+
+      def self.verbose=(v : Bool)
+        @@verbose = v
+        if v
+          ENV["LIBGODOT_VERBOSE"] = "1"
+          ENV["GODOT_VERBOSE"] = "1"
+        end
+      end
 
       def self.info(msg : String)
         return if @@quiet
@@ -31,6 +43,12 @@ module Lapis
         return unless @@verbose
         puts "\e[90m[debug]\e[0m #{msg}"
       end
+
+      def self.trace(tag : String, msg : String)
+        return unless @@verbose
+        puts "\e[90m[#{tag}:trace]\e[0m #{msg}"
+      end
     end
   end
 end
+

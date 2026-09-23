@@ -36,6 +36,19 @@ module Godot
     end
   end
 
+  def self.verbose? : Bool
+    Bridge.verbose?
+  end
+
+  def self.print_verbose(*args)
+    msg = args.join(" ")
+    Bridge.print_verbose(msg)
+  end
+
+  def self.debug(*args)
+    print_verbose(*args)
+  end
+
   # Returns true if the code is currently executing inside the Godot Editor
   def self.editor_hint? : Bool
     engine = Bridge.get_singleton("Engine")

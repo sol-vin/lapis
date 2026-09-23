@@ -25,6 +25,9 @@ module Lapis
 
         prefix = strip_prefix || source_dir
         pattern = source_dir.to_s.gsub('\\', '/') + "/**/*"
+        start_time = ::Time.instant
+        file_count = 0
+        total_uncompressed_bytes = 0_i64
 
         File.open(zip_path.to_s, "w") do |file|
           Compress::Zip::Writer.open(file) do |zip|
@@ -40,6 +43,11 @@ module Lapis
                 next
               end
 
+              sz = File.size(item)
+              file_count += 1
+              total_uncompressed_bytes += sz
+              Core::Logger.trace("Package:Zip", "[#{zip_path.basename}] Adding #{rel_path} (#{sz} bytes)")
+
               File.open(item) do |io|
                 zip.add(rel_path, io)
               end
@@ -47,7 +55,8 @@ module Lapis
           end
         end
 
-        Core::Logger.success("Packaged archive: #{zip_path.basename} (#{File.size(zip_path)} bytes)")
+        duration_ms = (::Time.instant - start_time).total_milliseconds
+        Core::Logger.success("Packaged archive: #{zip_path.basename} (#{File.size(zip_path)} bytes, #{file_count} files in #{duration_ms.round(1)}ms)")
       end
 
       # Calculate SHA256 checksum of a file
@@ -540,7 +549,7 @@ CONTROL
 
         Core::Logger.step("Package", "Packaging standalone test runner...")
         # First ensure standalone runner is built (generates tests.exe, tests.pck, and tests_portable.exe)
-        package_game(test_dir, name: "tests", release: release, force_compile: false, portable: true)
+        package_game(test_dir, name: "tests", release: release, force_compile: false, embed_pck: true, portable: false)
 
         stage_dir = root.join("scratch/tests-#{plat}-stage")
         FileUtils.rm_rf(stage_dir) if Dir.exists?(stage_dir)
@@ -922,6 +931,7 @@ HELP
           opts.on("--bundle-binaries", "Include compiled binaries in archive") { bundle_binaries = true }
           opts.on("--skip-tests", "Skip tests in release") { skip_tests = true }
           opts.on("--skip-perf", "Skip perf in release") { skip_perf = true }
+          opts.on("--verbose", "Enable verbose logging") { Core::Logger.verbose = true }
           opts.on("-h", "--help", "Show help") { print_help; exit 0 }
         end
 

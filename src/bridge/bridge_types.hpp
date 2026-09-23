@@ -297,6 +297,8 @@ struct BridgeAPI {
     void (*register_gc_functions)(const struct BridgeGCFunctions *funcs);
     void (*get_gc_signals)(int *out_suspend, int *out_restart);
     void (*object_get_class_name)(GDExtensionObjectPtr obj, char *buf, int max_len);
+    void (*log_verbose)(const char *msg);
+    int (*is_verbose)();
 };
 
 struct BridgeGCFunctions {

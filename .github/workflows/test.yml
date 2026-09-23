@@ -18,6 +18,9 @@ jobs:
     name: Run Test Suite (Windows)
     runs-on: windows-latest
     timeout-minutes: 35
+    env:
+      LIBGODOT_VERBOSE: 1
+      GODOT_VERBOSE: 1
 
     steps:
       - name: Checkout Repository
@@ -170,6 +173,24 @@ jobs:
                 Get-Content "test/test_report.md" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
               } elseif (Test-Path "test/bin/test_report.md") {
                 Get-Content "test/bin/test_report.md" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+              } else {
+                $runUrl = "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
+                $failMd = @"
+## 🚀 LibGodot CI Workflow Status — Windows (x86_64)
+
+| Overall Status | Platform | Failure Count |
+| :---: | :---: | :---: |
+| 🔴 **EARLY BUILD FAILURE** | **Windows (x86_64)** | **1** |
+
+> 🔗 **GitHub Actions Run**: [View Complete Run Logs]($runUrl)
+
+### 🚨 Failure Investigation & Error Replication Panel
+
+> [!CAUTION]
+> **Build Phase Failed**: The compilation or synchronization pipeline failed before tests could execute.
+> Check the **Build and Run LibGodot Test Suite** step logs in GitHub Actions for full compilation errors.
+"@
+                $failMd | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
               }
             }
           }
@@ -189,6 +210,9 @@ jobs:
     name: Run Test Suite (Linux)
     runs-on: ubuntu-latest
     timeout-minutes: 35
+    env:
+      LIBGODOT_VERBOSE: 1
+      GODOT_VERBOSE: 1
 
     steps:
       - name: Checkout Repository
@@ -305,12 +329,29 @@ jobs:
         if: always()
         shell: bash
         run: |
-          if [ -n "$GITHUB_STEP_SUMMARY" ] && [ -f "$GITHUB_STEP_SUMMARY" ]; then
-            if ! grep -q "LibGodot Test Suite Status Report" "$GITHUB_STEP_SUMMARY"; then
+          if [ -n "$GITHUB_STEP_SUMMARY" ]; then
+            if ! grep -q "LibGodot Test Suite Status Report" "$GITHUB_STEP_SUMMARY" 2>/dev/null; then
               if [ -f "test/test_report.md" ]; then
                 cat test/test_report.md >> "$GITHUB_STEP_SUMMARY"
               elif [ -f "test/bin/test_report.md" ]; then
                 cat test/bin/test_report.md >> "$GITHUB_STEP_SUMMARY"
+              else
+                run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+                cat << EOF >> "$GITHUB_STEP_SUMMARY"
+## 🚀 LibGodot CI Workflow Status — Linux (x86_64)
+
+| Overall Status | Platform | Failure Count |
+| :---: | :---: | :---: |
+| 🔴 **EARLY BUILD FAILURE** | **Linux (x86_64)** | **1** |
+
+> 🔗 **GitHub Actions Run**: [View Complete Run Logs](${run_url})
+
+### 🚨 Failure Investigation & Error Replication Panel
+
+> [!CAUTION]
+> **Build Phase Failed**: The compilation or synchronization pipeline failed before tests could execute.
+> Check the **Build and Run LibGodot Test Suite** step logs in GitHub Actions for full compilation errors.
+EOF
               fi
             fi
           fi
@@ -330,6 +371,9 @@ jobs:
     name: Run Test Suite (macOS)
     runs-on: macos-latest
     timeout-minutes: 35
+    env:
+      LIBGODOT_VERBOSE: 1
+      GODOT_VERBOSE: 1
 
     steps:
       - name: Checkout Repository
@@ -446,12 +490,29 @@ jobs:
         if: always()
         shell: bash
         run: |
-          if [ -n "$GITHUB_STEP_SUMMARY" ] && [ -f "$GITHUB_STEP_SUMMARY" ]; then
-            if ! grep -q "LibGodot Test Suite Status Report" "$GITHUB_STEP_SUMMARY"; then
+          if [ -n "$GITHUB_STEP_SUMMARY" ]; then
+            if ! grep -q "LibGodot Test Suite Status Report" "$GITHUB_STEP_SUMMARY" 2>/dev/null; then
               if [ -f "test/test_report.md" ]; then
                 cat test/test_report.md >> "$GITHUB_STEP_SUMMARY"
               elif [ -f "test/bin/test_report.md" ]; then
                 cat test/bin/test_report.md >> "$GITHUB_STEP_SUMMARY"
+              else
+                run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+                cat << EOF >> "$GITHUB_STEP_SUMMARY"
+## 🚀 LibGodot CI Workflow Status — macOS (arm64)
+
+| Overall Status | Platform | Failure Count |
+| :---: | :---: | :---: |
+| 🔴 **EARLY BUILD FAILURE** | **macOS (arm64)** | **1** |
+
+> 🔗 **GitHub Actions Run**: [View Complete Run Logs](${run_url})
+
+### 🚨 Failure Investigation & Error Replication Panel
+
+> [!CAUTION]
+> **Build Phase Failed**: The compilation or synchronization pipeline failed before tests could execute.
+> Check the **Build and Run LibGodot Test Suite** step logs in GitHub Actions for full compilation errors.
+EOF
               fi
             fi
           fi

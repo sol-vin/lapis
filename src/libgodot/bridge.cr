@@ -161,6 +161,8 @@ module Godot
       register_gc_functions : (BridgeGCFunctions* -> Void)
       get_gc_signals : (LibC::Int*, LibC::Int* -> Void)
       object_get_class_name : (Void*, LibC::Char*, Int32 -> Void)
+      log_verbose : (LibC::Char* -> Void)
+      is_verbose : (-> Int32)
     end
 
     struct BridgeGCFunctions
@@ -253,49 +255,49 @@ module Godot
       return if @@initialized
       @@initialized = true
       @@api = api
-      print "[CrystalBridge] Initializing Crystal runtime from game.dll..."
+      debug "[CrystalBridge] Initializing Crystal runtime from game.dll..."
 
       # Cache CharacterBody3D Method Binds
-      print "[CrystalBridge] Step 1: Getting CharacterBody3D method binds..."
+      debug "[CrystalBridge] Step 1: Getting CharacterBody3D method binds..."
       if !api.value.get_method_bind.pointer.null?
         @@mb_cb3d_move_and_slide = api.value.get_method_bind.call("CharacterBody3D".to_unsafe, "move_and_slide".to_unsafe, 2240911060_i64)
-        print "[CrystalBridge]   move_and_slide: #{@@mb_cb3d_move_and_slide}"
+        debug "[CrystalBridge]   move_and_slide: #{@@mb_cb3d_move_and_slide}"
         @@mb_cb3d_is_on_floor = api.value.get_method_bind.call("CharacterBody3D".to_unsafe, "is_on_floor".to_unsafe, 36873697_i64)
-        print "[CrystalBridge]   is_on_floor: #{@@mb_cb3d_is_on_floor}"
+        debug "[CrystalBridge]   is_on_floor: #{@@mb_cb3d_is_on_floor}"
         @@mb_cb3d_get_velocity = api.value.get_method_bind.call("CharacterBody3D".to_unsafe, "get_velocity".to_unsafe, 3360562783_i64)
-        print "[CrystalBridge]   get_velocity: #{@@mb_cb3d_get_velocity}"
+        debug "[CrystalBridge]   get_velocity: #{@@mb_cb3d_get_velocity}"
         @@mb_cb3d_set_velocity = api.value.get_method_bind.call("CharacterBody3D".to_unsafe, "set_velocity".to_unsafe, 3460891852_i64)
-        print "[CrystalBridge]   set_velocity: #{@@mb_cb3d_set_velocity}"
+        debug "[CrystalBridge]   set_velocity: #{@@mb_cb3d_set_velocity}"
       end
 
       # Cache Input Singleton and Method Binds
-      print "[CrystalBridge] Step 2: Getting Input singleton..."
+      debug "[CrystalBridge] Step 2: Getting Input singleton..."
       if !api.value.get_singleton.pointer.null?
         @@singleton_input = api.value.get_singleton.call("Input".to_unsafe)
-        print "[CrystalBridge]   singleton_input: #{@@singleton_input}"
+        debug "[CrystalBridge]   singleton_input: #{@@singleton_input}"
       end
 
       if !api.value.get_method_bind.pointer.null?
         @@mb_input_is_key_pressed = api.value.get_method_bind.call("Input".to_unsafe, "is_key_pressed".to_unsafe, 1938909964_i64)
-        print "[CrystalBridge]   is_key_pressed: #{@@mb_input_is_key_pressed}"
+        debug "[CrystalBridge]   is_key_pressed: #{@@mb_input_is_key_pressed}"
         @@mb_input_is_physical_key_pressed = api.value.get_method_bind.call("Input".to_unsafe, "is_physical_key_pressed".to_unsafe, 1938909964_i64)
-        print "[CrystalBridge]   is_physical_key_pressed: #{@@mb_input_is_physical_key_pressed}"
+        debug "[CrystalBridge]   is_physical_key_pressed: #{@@mb_input_is_physical_key_pressed}"
         @@mb_input_is_action_just_pressed = api.value.get_method_bind.call("Input".to_unsafe, "is_action_just_pressed".to_unsafe, 1558498928_i64)
-        print "[CrystalBridge]   is_action_just_pressed: #{@@mb_input_is_action_just_pressed}"
+        debug "[CrystalBridge]   is_action_just_pressed: #{@@mb_input_is_action_just_pressed}"
         @@mb_input_is_action_pressed = api.value.get_method_bind.call("Input".to_unsafe, "is_action_pressed".to_unsafe, 1558498928_i64)
-        print "[CrystalBridge]   is_action_pressed: #{@@mb_input_is_action_pressed}"
+        debug "[CrystalBridge]   is_action_pressed: #{@@mb_input_is_action_pressed}"
         @@mb_input_is_action_just_released = api.value.get_method_bind.call("Input".to_unsafe, "is_action_just_released".to_unsafe, 1558498928_i64)
-        print "[CrystalBridge]   is_action_just_released: #{@@mb_input_is_action_just_released}"
+        debug "[CrystalBridge]   is_action_just_released: #{@@mb_input_is_action_just_released}"
         @@mb_input_get_axis = api.value.get_method_bind.call("Input".to_unsafe, "get_axis".to_unsafe, 1958752504_i64)
-        print "[CrystalBridge]   get_axis: #{@@mb_input_get_axis}"
+        debug "[CrystalBridge]   get_axis: #{@@mb_input_get_axis}"
         @@mb_input_get_vector = api.value.get_method_bind.call("Input".to_unsafe, "get_vector".to_unsafe, 2479607902_i64)
-        print "[CrystalBridge]   get_vector: #{@@mb_input_get_vector}"
+        debug "[CrystalBridge]   get_vector: #{@@mb_input_get_vector}"
         @@mb_input_is_mouse_button_pressed = api.value.get_method_bind.call("Input".to_unsafe, "is_mouse_button_pressed".to_unsafe, 1821097125_i64)
-        print "[CrystalBridge]   is_mouse_button_pressed: #{@@mb_input_is_mouse_button_pressed}"
+        debug "[CrystalBridge]   is_mouse_button_pressed: #{@@mb_input_is_mouse_button_pressed}"
         @@mb_input_use_accumulated_input = api.value.get_method_bind.call("Input".to_unsafe, "is_using_accumulated_input".to_unsafe, 2240911060_i64)
-        print "[CrystalBridge]   is_using_accumulated_input: #{@@mb_input_use_accumulated_input}"
+        debug "[CrystalBridge]   is_using_accumulated_input: #{@@mb_input_use_accumulated_input}"
         @@mb_input_set_use_accumulated_input = api.value.get_method_bind.call("Input".to_unsafe, "set_use_accumulated_input".to_unsafe, 2586408642_i64)
-        print "[CrystalBridge]   set_use_accumulated_input: #{@@mb_input_set_use_accumulated_input}"
+        debug "[CrystalBridge]   set_use_accumulated_input: #{@@mb_input_set_use_accumulated_input}"
       end
 
       # Callbacks for C host
@@ -380,9 +382,9 @@ module Godot
       }
 
       # Register every class defined in Crystal
-      print "[CrystalBridge] Step 3: ClassRegistry has #{Godot::ClassRegistry.entries.size} entries"
+      debug "[CrystalBridge] Step 3: ClassRegistry has #{Godot::ClassRegistry.entries.size} entries"
       Godot::ClassRegistry.entries.each do |entry|
-        print "[CrystalBridge]   Registering entry: #{entry.class_name} < #{entry.parent_name} (props=#{entry.properties.size}, sigs=#{entry.signals.size})..."
+        debug "[CrystalBridge]   Registering entry: #{entry.class_name} < #{entry.parent_name} (props=#{entry.properties.size}, sigs=#{entry.signals.size})..."
         # Populate properties dynamically without fixed limits
         p_count = entry.properties.size
         props = Pointer(LibBridge::CrystalPropertyDesc).malloc(p_count > 0 ? p_count : 1)
@@ -468,12 +470,12 @@ module Godot
         desc_ptr.value = desc
         @@registered_descs << desc
 
-        print "[CrystalBridge]   Calling api.register_class for #{entry.class_name}..."
+        debug "[CrystalBridge]   Calling api.register_class for #{entry.class_name}..."
         api.value.register_class.call(desc_ptr)
-        print "[CrystalBridge]   Done registering #{entry.class_name}!"
+        debug "[CrystalBridge]   Done registering #{entry.class_name}!"
       end
 
-      print "[CrystalBridge] Successfully registered #{Godot::ClassRegistry.entries.size} Crystal classes with Godot!"
+      debug "[CrystalBridge] Successfully registered #{Godot::ClassRegistry.entries.size} Crystal classes with Godot!"
       # Load all compile-time generated XML documentation into Godot Editor Help & Inspector
       Godot::EditorDocRegistry.load_all
 
@@ -517,30 +519,49 @@ module Godot
     end
 
     def self.deinit : Void
-      Godot.print("[Bridge.deinit] Cleaning up registered shutdown callbacks...")
+      Godot.debug("[Bridge.deinit] Cleaning up registered shutdown callbacks...")
       @@shutdown_callbacks.each do |cb|
         begin
           cb.call
         rescue ex
-          Godot.print("[Bridge.deinit] Error in shutdown callback: #{ex.message}")
+          Godot.debug("[Bridge.deinit] Error in shutdown callback: #{ex.message}")
         end
       end
       @@shutdown_callbacks.clear
 
-      Godot.print("[Bridge.deinit] Cleaning up script cache...")
+      Godot.debug("[Bridge.deinit] Cleaning up script cache...")
       ClassRegistry.cleanup rescue nil
       {% unless flag?(:release) || flag?(:libgodot_addon) || flag?(:no_editor) %}
-      Godot.print("[Bridge.deinit] Unregistering loader...")
+      Godot.debug("[Bridge.deinit] Unregistering loader...")
       Godot::ResourceFormatLoaderCrystal.unregister rescue nil
-      Godot.print("[Bridge.deinit] Unregistering saver...")
+      Godot.debug("[Bridge.deinit] Unregistering saver...")
       Godot::ResourceFormatSaverCrystal.unregister rescue nil
-      Godot.print("[Bridge.deinit] Unregistering language...")
+      Godot.debug("[Bridge.deinit] Unregistering language...")
       Godot::CrystalLanguage.unregister rescue nil
       {% end %}
-      Godot.print("[Bridge.deinit] Completed successfully!")
+      Godot.debug("[Bridge.deinit] Completed successfully!")
     end
 
     # Engine Logging Helpers
+    def self.verbose? : Bool
+      if !@@api.null? && !@@api.value.is_verbose.pointer.null?
+        return @@api.value.is_verbose.call == 1
+      end
+      ENV["LIBGODOT_VERBOSE"]? == "1" || ENV["GODOT_VERBOSE"]? == "1"
+    end
+
+    def self.print_verbose(msg : String) : Void
+      if !@@api.null? && !@@api.value.log_verbose.pointer.null?
+        @@api.value.log_verbose.call(msg.to_unsafe)
+      elsif verbose?
+        puts msg
+      end
+    end
+
+    def self.debug(msg : String) : Void
+      print_verbose(msg)
+    end
+
     def self.print(msg : String) : Void
       if !@@api.null? && !@@api.value.log_print.pointer.null?
         @@api.value.log_print.call(msg.to_unsafe)

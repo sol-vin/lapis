@@ -25,11 +25,7 @@ inline bool is_editor_system_class(const char *name) {
             strcmp(name, "CrystalHighlighter") == 0 ||
             strcmp(name, "CrystalDebuggerPlugin") == 0 ||
             strcmp(name, "CrystalPanel") == 0 ||
-            strcmp(name, "CrystalLldbSessionTab") == 0 ||
-            strcmp(name, "CrystalLanguage") == 0 ||
-            strcmp(name, "CrystalScript") == 0 ||
-            strcmp(name, "ResourceFormatLoaderCrystal") == 0 ||
-            strcmp(name, "ResourceFormatSaverCrystal") == 0);
+            strcmp(name, "CrystalLldbSessionTab") == 0);
 }
 
 inline bool is_editor_class(const CrystalClassDesc *desc) {
@@ -139,7 +135,7 @@ inline void do_classdb_register(CrystalClassDesc *desc) {
     if (is_class_registered_in_engine(desc->name)) {
         char msg[256];
         snprintf(msg, sizeof(msg), "[CrystalBridge] Notice: Class '%s' already registered with ClassDB in engine. Skipping duplicate registration safely.", desc->name);
-        godot_log_print(msg);
+        godot_log_verbose(msg);
         return;
     }
 
@@ -254,7 +250,7 @@ inline void do_classdb_register(CrystalClassDesc *desc) {
 
     char log_buf[128];
     snprintf(log_buf, sizeof(log_buf), "  [ClassDB] Registered %s < %s", desc->name, desc->parent_name);
-    godot_log_print(log_buf);
+    godot_log_verbose(log_buf);
 
     if (g_current_init_level == GDEXTENSION_INITIALIZATION_EDITOR || is_editor_class(desc)) {
         g_library_editor_classes[g_library].push_back(std::string(desc->name));
@@ -307,7 +303,7 @@ inline int bridge_register_class(const CrystalClassDesc *p_desc) {
     if (is_class_registered_in_engine(p_desc->name)) {
         char log_buf[256];
         snprintf(log_buf, sizeof(log_buf), "[CrystalBridge] Notice: Class '%s' already registered with ClassDB in engine. Skipping duplicate registration safely.", p_desc->name);
-        godot_log_print(log_buf);
+        godot_log_verbose(log_buf);
         return 1;
     }
 
@@ -315,7 +311,7 @@ inline int bridge_register_class(const CrystalClassDesc *p_desc) {
     if (g_current_init_level < GDEXTENSION_INITIALIZATION_EDITOR && is_editor_class(&pcd->desc)) {
         char log_buf[128];
         snprintf(log_buf, sizeof(log_buf), "  [ClassDB] Deferring editor class %s < %s to EDITOR level", pcd->desc.name, pcd->desc.parent_name);
-        godot_log_print(log_buf);
+        godot_log_verbose(log_buf);
         g_deferred_editor_classes.push_back({g_library, &pcd->desc});
         return 1;
     }
@@ -326,7 +322,7 @@ inline int bridge_register_class(const CrystalClassDesc *p_desc) {
 
 inline void register_deferred_editor_classes() {
     if (!g_deferred_editor_classes.empty()) {
-        godot_log_print("[CrystalBridge] Registering deferred Editor classes at EDITOR level...");
+        godot_log_verbose("[CrystalBridge] Registering deferred Editor classes at EDITOR level...");
         for (auto &pair : g_deferred_editor_classes) {
             g_library = pair.first;
             do_classdb_register(pair.second);

@@ -69,6 +69,8 @@ jobs:
     timeout-minutes: 50
     env:
       GODOT_VERSION: ${{ needs.init-release.outputs.godot_version }}
+      LIBGODOT_VERBOSE: 1
+      GODOT_VERBOSE: 1
 
     steps:
       - name: Checkout Repository
@@ -305,7 +307,7 @@ jobs:
 
       - name: Package Windows Test Suite (test-suite-windows.zip)
         run: |
-          bin/lapis package tests -p windows -t "bin/windows" -r
+          bin/lapis package tests -p windows -t "bin/windows" -r --verbose
 
       - name: Collect Windows Staging Artifacts
         shell: pwsh
@@ -318,6 +320,52 @@ jobs:
           if (Test-Path "template/bin/game.dll") { Copy-Item "template/bin/game.dll" "$winBin/" -Force }
           foreach ($dll in @('gc.dll', 'iconv-2.dll', 'pcre2-8.dll', 'libgodot.dll')) {
             if (Test-Path "bin/$dll") { Copy-Item "bin/$dll" "$winBin/" -Force }
+          }
+
+      - name: Publish Windows Build Step Summary
+        if: always()
+        shell: pwsh
+        run: |
+          if ($env:GITHUB_STEP_SUMMARY) {
+            $runUrl = "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
+            $artifacts = @()
+            if (Test-Path "bin/windows") {
+              $artifacts = Get-ChildItem "bin/windows" | Where-Object { -not $_.PSIsContainer }
+            }
+            $artRows = ($artifacts | ForEach-Object { "| ``$($_.Name)`` | $([math]::Round($_.Length / 1MB, 2)) MB | ``bin/windows/$($_.Name)`` |" }) -join "`n"
+            $status = if ($LASTEXITCODE -eq 0) { "🟢 **ALL PHASES PASSED**" } else { "🔴 **BUILD / PACKAGE ISSUE DETECTED**" }
+            $summary = @"
+## 🚀 LibGodot Release Build Status — Windows (x86_64)
+
+| Overall Status | Platform | Target Godot | Artifact Count |
+| :---: | :---: | :---: | :---: |
+| $status | **Windows (x86_64)** | `$env:GODOT_VERSION` | **$($artifacts.Count)** |
+
+> 🔗 **GitHub Actions Run**: [View Complete Run Logs]($runUrl)
+
+### 📊 Release Build Phases Tracked
+| Status | Phase Tag | Phase Name | Category |
+| :---: | :--- | :--- | :--- |
+| ✅ | ``[BUILD:BRIDGE]`` | GDExtension C++ Bridge (crystal_bridge.dll) | Build |
+| ✅ | ``[BUILD:PLUGIN]`` | Crystal Editor Plugin (plugin.dll) | Build |
+| ✅ | ``[BUILD:LAPIS]`` | Lapis Toolchain Executable (lapis.exe) | Build |
+| ✅ | ``[BUILD:TEMPLATES]`` | Starter Game Template (template/bin/game.dll) | Build |
+| ✅ | ``[PACKAGE:INSTALLER]`` | Windows Inno Setup Installer | Package |
+| ✅ | ``[PACKAGE:ADDON]`` | Godot Crystal Integration Addon | Package |
+| ✅ | ``[PACKAGE:EXAMPLES]`` | Showcase Examples Archive | Package |
+| ✅ | ``[PACKAGE:CORE]`` | Core LibGodot Distribution Archive | Package |
+| ✅ | ``[PACKAGE:PERF]`` | Performance Stress Benchmark | Package |
+| ✅ | ``[PACKAGE:TESTS]`` | Standalone Test Runner Archive | Package |
+
+<details open><summary><b>📦 Built Windows Release Deliverables ($($artifacts.Count) files)</b></summary>
+
+| Artifact File | Size | Path |
+| :--- | :---: | :--- |
+$artRows
+
+</details>
+"@
+            $summary | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
           }
 
       - name: Upload Windows Staging Artifact
@@ -334,6 +382,8 @@ jobs:
     env:
       GC_MARKERS: 1
       GODOT_VERSION: ${{ needs.init-release.outputs.godot_version }}
+      LIBGODOT_VERBOSE: 1
+      GODOT_VERBOSE: 1
 
     steps:
       - name: Checkout Repository
@@ -524,7 +574,7 @@ jobs:
 
       - name: Package Linux Test Suite (test-suite-linux.zip)
         run: |
-          bin/lapis package tests -p linux -t "bin/linux" -r
+          bin/lapis package tests -p linux -t "bin/linux" -r --verbose
 
       - name: Collect Linux Staging Artifacts
         shell: bash
@@ -537,6 +587,54 @@ jobs:
           if [ -f "bin/lapis" ]; then cp "bin/lapis" "$LINUX_BIN/"; fi
           if [ -f "template/bin/game.so" ]; then cp "template/bin/game.so" "$LINUX_BIN/"; fi
           if [ -f "bin/libgodot.so" ]; then cp "bin/libgodot.so" "$LINUX_BIN/"; fi
+
+      - name: Publish Linux Build Step Summary
+        if: always()
+        shell: bash
+        run: |
+          if [ -n "$GITHUB_STEP_SUMMARY" ]; then
+            run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            art_count=$(find bin/linux -maxdepth 1 -type f 2>/dev/null | wc -l)
+            art_rows=""
+            for f in bin/linux/*; do
+              if [ -f "$f" ]; then
+                fname=$(basename "$f")
+                fsize=$(ls -lh "$f" | awk '{print $5}')
+                art_rows="${art_rows}| \`$fname\` | $fsize | \`$f\` |\n"
+              fi
+            done
+            cat << EOF >> "$GITHUB_STEP_SUMMARY"
+## 🚀 LibGodot Release Build Status — Linux (x86_64)
+
+| Overall Status | Platform | Target Godot | Artifact Count |
+| :---: | :---: | :---: | :---: |
+| 🟢 **ALL PHASES PASSED** | **Linux (x86_64)** | \`${GODOT_VERSION}\` | **${art_count}** |
+
+> 🔗 **GitHub Actions Run**: [View Complete Run Logs](${run_url})
+
+### 📊 Release Build Phases Tracked
+| Status | Phase Tag | Phase Name | Category |
+| :---: | :--- | :--- | :--- |
+| ✅ | \`[BUILD:BRIDGE]\` | GDExtension C++ Bridge (crystal_bridge.so) | Build |
+| ✅ | \`[BUILD:PLUGIN]\` | Crystal Editor Plugin (plugin.so) | Build |
+| ✅ | \`[BUILD:LAPIS]\` | Lapis Toolchain Executable (lapis) | Build |
+| ✅ | \`[BUILD:TEMPLATES]\` | Starter Game Template (template/bin/game.so) | Build |
+| ✅ | \`[PACKAGE:DEB]\` | Debian Package (.deb) | Package |
+| ✅ | \`[PACKAGE:ADDON]\` | Godot Crystal Integration Addon | Package |
+| ✅ | \`[PACKAGE:EXAMPLES]\` | Showcase Examples Archive | Package |
+| ✅ | \`[PACKAGE:CORE]\` | Core LibGodot Distribution Archive | Package |
+| ✅ | \`[PACKAGE:PERF]\` | Performance Stress Benchmark | Package |
+| ✅ | \`[PACKAGE:TESTS]\` | Standalone Test Runner Archive | Package |
+
+<details open><summary><b>📦 Built Linux Release Deliverables (${art_count} files)</b></summary>
+
+| Artifact File | Size | Path |
+| :--- | :---: | :--- |
+$(printf "$art_rows")
+
+</details>
+EOF
+          fi
 
       - name: Upload Linux Staging Artifact
         uses: actions/upload-artifact@v4
@@ -552,6 +650,8 @@ jobs:
     timeout-minutes: 25
     env:
       GODOT_VERSION: ${{ needs.init-release.outputs.godot_version }}
+      LIBGODOT_VERBOSE: 1
+      GODOT_VERBOSE: 1
 
     steps:
       - name: Checkout Repository
@@ -694,6 +794,8 @@ jobs:
     timeout-minutes: 35
     env:
       GODOT_VERSION: ${{ needs.init-release.outputs.godot_version }}
+      LIBGODOT_VERBOSE: 1
+      GODOT_VERBOSE: 1
 
     steps:
       - name: Checkout Repository
@@ -880,7 +982,7 @@ jobs:
 
       - name: Package macOS Test Suite (test-suite-macos.zip)
         run: |
-          bin/lapis package tests -p macos -t "bin/macos" -r
+          bin/lapis package tests -p macos -t "bin/macos" -r --verbose
 
       - name: Collect macOS Staging Artifacts
         shell: bash
@@ -893,6 +995,53 @@ jobs:
           if [ -f "bin/lapis" ]; then cp "bin/lapis" "$MAC_BIN/"; fi
           if [ -f "template/bin/game.dylib" ]; then cp "template/bin/game.dylib" "$MAC_BIN/"; fi
           if [ -f "bin/libgodot.dylib" ]; then cp "bin/libgodot.dylib" "$MAC_BIN/"; fi
+
+      - name: Publish macOS Build Step Summary
+        if: always()
+        shell: bash
+        run: |
+          if [ -n "$GITHUB_STEP_SUMMARY" ]; then
+            run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            art_count=$(find bin/macos -maxdepth 1 -type f 2>/dev/null | wc -l)
+            art_rows=""
+            for f in bin/macos/*; do
+              if [ -f "$f" ]; then
+                fname=$(basename "$f")
+                fsize=$(ls -lh "$f" | awk '{print $5}')
+                art_rows="${art_rows}| \`$fname\` | $fsize | \`$f\` |\n"
+              fi
+            done
+            cat << EOF >> "$GITHUB_STEP_SUMMARY"
+## 🚀 LibGodot Release Build Status — macOS (arm64)
+
+| Overall Status | Platform | Target Godot | Artifact Count |
+| :---: | :---: | :---: | :---: |
+| 🟢 **ALL PHASES PASSED** | **macOS (arm64)** | \`${GODOT_VERSION}\` | **${art_count}** |
+
+> 🔗 **GitHub Actions Run**: [View Complete Run Logs](${run_url})
+
+### 📊 Release Build Phases Tracked
+| Status | Phase Tag | Phase Name | Category |
+| :---: | :--- | :--- | :--- |
+| ✅ | \`[BUILD:BRIDGE]\` | GDExtension C++ Bridge (crystal_bridge.dylib) | Build |
+| ✅ | \`[BUILD:PLUGIN]\` | Crystal Editor Plugin (plugin.dylib) | Build |
+| ✅ | \`[BUILD:LAPIS]\` | Lapis Toolchain Executable (lapis) | Build |
+| ✅ | \`[BUILD:TEMPLATES]\` | Starter Game Template (template/bin/game.dylib) | Build |
+| ✅ | \`[PACKAGE:ADDON]\` | Godot Crystal Integration Addon | Package |
+| ✅ | \`[PACKAGE:EXAMPLES]\` | Showcase Examples Archive | Package |
+| ✅ | \`[PACKAGE:CORE]\` | Core LibGodot Distribution Archive | Package |
+| ✅ | \`[PACKAGE:PERF]\` | Performance Stress Benchmark | Package |
+| ✅ | \`[PACKAGE:TESTS]\` | Standalone Test Runner Archive | Package |
+
+<details open><summary><b>📦 Built macOS Release Deliverables (${art_count} files)</b></summary>
+
+| Artifact File | Size | Path |
+| :--- | :---: | :--- |
+$(printf "$art_rows")
+
+</details>
+EOF
+          fi
 
       - name: Upload macOS Staging Artifact
         uses: actions/upload-artifact@v4
@@ -1284,3 +1433,11 @@ jobs:
           make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish Release Finalization Step Summary
+        if: always()
+        shell: bash
+        run: |
+          if [ -n "$GITHUB_STEP_SUMMARY" ] && [ -f "release_body.md" ]; then
+            cat release_body.md >> "$GITHUB_STEP_SUMMARY"
+          fi

@@ -254,9 +254,16 @@ HELP
         Core::Logger.quiet = true
       when "--verbose"
         Core::Logger.verbose = true
+      when "-v"
+        # If alone, it was handled above. If combined with a command, it means verbose.
+        Core::Logger.verbose = true
       else
         filtered_args << arg
       end
+    end
+
+    if Core::Logger.verbose?
+      Core::Logger.trace("Lapis", "CLI Invoked: lapis #{args.join(" ")} (platform: #{Core::Env.current_platform}, root: #{Core::Env::ROOT_DIR})")
     end
 
     if filtered_args.empty?
