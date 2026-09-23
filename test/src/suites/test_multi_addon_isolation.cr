@@ -4,12 +4,6 @@
 
 include Lapis::Test
 
-macro test_multi_addon(name, &block)
-  Registry.register("MultiAddon", {{name}}) do |node|
-    root = node
-    {{block.body}}
-  end
-end
 
 test_multi_addon "Multi-addon ClassDB registration and isolation" do
   class_db = Godot::ClassDB.new(Godot::ClassDB.singleton_ptr)

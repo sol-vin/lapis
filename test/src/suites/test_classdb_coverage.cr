@@ -4,12 +4,6 @@
 
 include Lapis::Test
 
-macro test_classdb(name, &block)
-  Registry.register("ClassDB", {{name}}) do |node|
-    root = node
-    {{block.body}}
-  end
-end
 
 test_classdb "ClassDB coverage: all 46 core 2D Node classes create, parent, unparent, and destroy" do
   classes_2d = [

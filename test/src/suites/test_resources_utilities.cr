@@ -4,12 +4,6 @@
 
 include Lapis::Test
 
-macro test_resources(name, &block)
-  Registry.register("Resources", {{name}}) do |node|
-    root = node
-    {{block.body}}
-  end
-end
 
 test_resources "ConfigFile key/value persistence and sections" do
   cfg = Godot.create(Godot::ConfigFile)

@@ -4,12 +4,6 @@
 
 include Lapis::Test
 
-macro test_audio_anim(name, &block)
-  Registry.register("AudioAnim", {{name}}) do |node|
-    root = node
-    {{block.body}}
-  end
-end
 
 test_audio_anim "Timer interval, one_shot, autostart, and pause flags" do
   timer = Godot.create(Godot::Timer)

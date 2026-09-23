@@ -816,6 +816,16 @@ module Godot
     RED   = Color.new(1.0_f32, 0.0_f32, 0.0_f32, 1.0_f32)
     GREEN = Color.new(0.0_f32, 1.0_f32, 0.0_f32, 1.0_f32)
     BLUE  = Color.new(0.0_f32, 0.0_f32, 1.0_f32, 1.0_f32)
+
+    def lerp(to : Color, weight : Number) : Color
+      w = weight.to_f32
+      Color.new(
+        @r + (to.r - @r) * w,
+        @g + (to.g - @g) * w,
+        @b + (to.b - @b) * w,
+        @a + (to.a - @a) * w
+      )
+    end
   end
 
   # A 2x3 matrix (2 column vectors + origin) used for 2D affine transformations.
@@ -882,6 +892,23 @@ module Godot
       Transform2D.new(new_x, new_y, new_origin)
     end
 
+    def translated(offset : Vector2) : Transform2D
+      Transform2D.new(@x, @y, @origin + offset)
+    end
+
+    def rotated(angle : Number) : Transform2D
+      rot = Transform2D.new(angle, Vector2.new(0.0_f32, 0.0_f32))
+      self * rot
+    end
+
+    def scaled(scale : Vector2) : Transform2D
+      Transform2D.new(
+        Vector2.new(@x.x * scale.x, @x.y * scale.x),
+        Vector2.new(@y.x * scale.y, @y.y * scale.y),
+        @origin
+      )
+    end
+
     IDENTITY = Transform2D.new
   end
 
@@ -935,6 +962,14 @@ module Godot
         Vector3.new(@x.x, @y.x, @z.x),
         Vector3.new(@x.y, @y.y, @z.y),
         Vector3.new(@x.z, @y.z, @z.z)
+      )
+    end
+
+    def scaled(scale : Vector3) : Basis
+      Basis.new(
+        @x * scale.x,
+        @y * scale.y,
+        @z * scale.z
       )
     end
 
@@ -1050,6 +1085,59 @@ module Godot
       io << "(" << @x << ", " << @y << ", " << @z << ", " << @w << ")"
     end
 
+    def length_squared : Float32
+      @x * @x + @y * @y + @z * @z + @w * @w
+    end
+
+    def length : Float32
+      Math.sqrt(length_squared.to_f64).to_f32
+    end
+
+    def normalized : Quaternion
+      len = length
+      if len == 0.0_f32
+        IDENTITY
+      else
+        Quaternion.new(@x / len, @y / len, @z / len, @w / len)
+      end
+    end
+
+    def dot(other : Quaternion) : Float32
+      @x * other.x + @y * other.y + @z * other.z + @w * other.w
+    end
+
+    def ==(other : Quaternion) : Bool
+      @x == other.x && @y == other.y && @z == other.z && @w == other.w
+    end
+
+    def slerp(to : Quaternion, weight : Number) : Quaternion
+      t = weight.to_f32
+      cos_om = dot(to)
+      to_copy = to
+
+      if cos_om < 0.0_f32
+        cos_om = -cos_om
+        to_copy = Quaternion.new(-to.x, -to.y, -to.z, -to.w)
+      end
+
+      if (1.0_f32 - cos_om) > 0.0001_f32
+        omega = Math.acos(cos_om.to_f64).to_f32
+        sin_om = Math.sin(omega.to_f64).to_f32
+        scale0 = Math.sin(((1.0_f32 - t) * omega).to_f64).to_f32 / sin_om
+        scale1 = Math.sin((t * omega).to_f64).to_f32 / sin_om
+      else
+        scale0 = 1.0_f32 - t
+        scale1 = t
+      end
+
+      Quaternion.new(
+        scale0 * @x + scale1 * to_copy.x,
+        scale0 * @y + scale1 * to_copy.y,
+        scale0 * @z + scale1 * to_copy.z,
+        scale0 * @w + scale1 * to_copy.w
+      )
+    end
+
     IDENTITY = Quaternion.new(0.0_f32, 0.0_f32, 0.0_f32, 1.0_f32)
   end
 
@@ -1075,6 +1163,15 @@ module Godot
     def to_s(io : IO) : Void
       io << "[N: " << @normal << ", D: " << @d << "]"
     end
+
+    def distance_to(point : Vector3) : Float32
+      @normal.dot(point) - @d
+    end
+
+    def has_point(point : Vector3, tolerance : Number = 0.00001_f32) : Bool
+      dist = distance_to(point)
+      dist.abs <= tolerance.to_f32
+    end
   end
 
   # An axis-aligned bounding box in 3D space.
@@ -1098,6 +1195,21 @@ module Godot
 
     def to_s(io : IO) : Void
       io << "[P: " << @position << ", S: " << @size << "]"
+    end
+
+    def has_point(point : Vector3) : Bool
+      point.x >= @position.x && point.x <= @position.x + @size.x &&
+      point.y >= @position.y && point.y <= @position.y + @size.y &&
+      point.z >= @position.z && point.z <= @position.z + @size.z
+    end
+
+    def intersects(other : AABB) : Bool
+      !(@position.x >= other.position.x + other.size.x ||
+        @position.x + @size.x <= other.position.x ||
+        @position.y >= other.position.y + other.size.y ||
+        @position.y + @size.y <= other.position.y ||
+        @position.z >= other.position.z + other.size.z ||
+        @position.z + @size.z <= other.position.z)
     end
   end
 

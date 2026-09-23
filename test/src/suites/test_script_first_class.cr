@@ -4,12 +4,6 @@
 
 include Lapis::Test
 
-macro test_script_first_class(name, &block)
-  Registry.register("ScriptFirstClass", {{name}}) do |node|
-    root = node
-    {{block.body}}
-  end
-end
 
 {% if flag?(:release) %}
   test_script_first_class "Editor script integration cleanly stripped in release mode" do

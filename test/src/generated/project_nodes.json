@@ -3129,6 +3129,40 @@
 					"name": "transform_updated"
 				}
 			]
+		},
+		{
+			"constants": {},
+			"inherits": "Node",
+			"is_instantiable": true,
+			"methods": [],
+			"name": "VirtualDispatchProbeNode",
+			"properties": [
+				{
+					"class_name": "Bool",
+					"hint": 0,
+					"hint_string": "",
+					"name": "ready_fired",
+					"type": 1,
+					"type_name": "bool"
+				},
+				{
+					"class_name": "Bool",
+					"hint": 0,
+					"hint_string": "",
+					"name": "enter_tree_fired",
+					"type": 1,
+					"type_name": "bool"
+				},
+				{
+					"class_name": "Int32",
+					"hint": 0,
+					"hint_string": "",
+					"name": "process_ticks",
+					"type": 2,
+					"type_name": "int"
+				}
+			],
+			"signals": []
 		}
 	],
 	"project_name": "LibGodot Test Suite"

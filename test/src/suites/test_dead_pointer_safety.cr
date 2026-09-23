@@ -4,12 +4,6 @@
 
 include Lapis::Test
 
-macro test_dead_pointer_safety(name, &block)
-  Registry.register("DeadPointerSafety", {{name}}) do |node|
-    root = node
-    {{block.body}}
-  end
-end
 
 test_dead_pointer_safety "Multi-wrapper aliasing detects remote destruction via monotonic instance ID" do
   node_native = Godot.create(Godot::Node2D)

@@ -4,11 +4,6 @@
 
 include Lapis::Test
 
-macro test_debugger(name, &block)
-  Registry.register("Debugger", {{name}}) do |_node|
-    {{block.body}}
-  end
-end
 
 {% if flag?(:release) %}
   test_debugger "Debugger components cleanly stripped in release mode" do

@@ -4,12 +4,6 @@
 
 include Lapis::Test
 
-macro test_resource_deep(name, &block)
-  Registry.register("ResourceDeep", {{name}}) do |node|
-    root = node
-    {{block.body}}
-  end
-end
 
 test_resource_deep "RefCounted atomic lifecycle and ObjectDB cleanup" do
   ref_obj = Godot.create(Godot::RefCounted)

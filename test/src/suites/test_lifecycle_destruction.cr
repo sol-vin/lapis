@@ -4,12 +4,6 @@
 
 include Lapis::Test
 
-macro test_lifecycle(name, &block)
-  Registry.register("Lifecycle", {{name}}) do |node|
-    root = node
-    {{block.body}}
-  end
-end
 
 test_lifecycle "Object creation tracks valid 64-bit instance ID in ObjectDB" do
   obj = Godot.create(Godot::Node2D)

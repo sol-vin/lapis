@@ -4,12 +4,6 @@
 
 include Lapis::Test
 
-macro test_ui(name, &block)
-  Registry.register("UI", {{name}}) do |node|
-    root = node
-    {{block.body}}
-  end
-end
 
 test_ui "Label text, alignment, and formatting" do
   lbl = Godot.create(Godot::Label)

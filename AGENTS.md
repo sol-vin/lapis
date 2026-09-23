@@ -241,9 +241,9 @@ end
 2. **Headless In-Editor `@tool` Tests (`ToolTester2D`, `ToolTester3D`)**:
    - Run in Godot with `--headless` to verify editor plugins, tool button actions, and scene instantiation.
 3. **Standalone Runtime Test Project (`test/`)**:
-   - Regular and portable standalone runners testing 2D nodes, 3D nodes, UI controls, audio, animation, physics, and concurrency suites in `test/src/suites/`.
+   - Regular and portable standalone runners executing 40+ modular test suites in `test/src/suites/` using the unified `Lapis::Test` apparatus (`test_suite`, `before_each`/`after_each` lifecycle fixtures, exact source locations, Godot domain assertions).
 4. **Quantitative Zero Memory Leak Verification**:
-   - Leverages Godot's `Performance` singleton monitors (`OBJECT_COUNT`, `OBJECT_NODE_COUNT`, `MEMORY_STATIC`) and Crystal's `GC.collect` to mathematically verify zero object or memory leaks.
+   - Standardized via `Lapis::Test.assert_no_leak`, leveraging Godot's `Performance` singleton monitors (`OBJECT_COUNT`, `OBJECT_NODE_COUNT`, `MEMORY_STATIC`) and Crystal's `GC.collect` to mathematically verify zero object or memory leaks.
 
 ### Quality Gate Requirements:
 - **Never add shortcuts, mock classes, or fake implementations** into `libgodot` solely to make a test pass. Features must be properly implemented through Godot's GDExtension C-API and the Crystal runtime bridge.
