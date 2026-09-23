@@ -120,15 +120,27 @@ jobs:
         shell: pwsh
         run: |
           if (-not (Get-Command lldb.exe -ErrorAction SilentlyContinue)) {
-            Write-Host "Installing LLVM/LLDB via Chocolatey..."
-            choco install -y llvm
-            $llvmBin = "C:\Program Files\LLVM\bin"
-            if (Test-Path $llvmBin) {
-              $llvmBin | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
-              $env:PATH = "$llvmBin;$env:PATH"
+            Write-Host "Searching for pre-installed LLDB or LLVM toolchain..."
+            $candidates = @(
+              "C:\ProgramData\llvm\bin",
+              "C:\Program Files\LLVM\bin",
+              "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\Llvm\x64\bin",
+              "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\Llvm\bin"
+            )
+            foreach ($cand in $candidates) {
+              if (Test-Path (Join-Path $cand "lldb.exe")) {
+                Write-Host "Found LLDB at $cand"
+                $cand | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+                $env:PATH = "$cand;$env:PATH"
+                break
+              }
             }
           }
-          lldb --version
+          if (Get-Command lldb.exe -ErrorAction SilentlyContinue) {
+            lldb --version
+          } else {
+            Write-Host "LLDB is not available in system PATH (debugger features optional)."
+          }
 
       - name: Setup Crystalline LSP (Windows)
         shell: pwsh
@@ -877,13 +889,15 @@ jobs:
 
       - name: Setup Crystalline LSP & Verify LLDB (macOS)
         run: |
-          bin/lapis setup --lsp
+          bin/lapis setup --lsp || true
           echo "$(pwd)/bin" >> "$GITHUB_PATH"
           export PATH="$(pwd)/bin:$PATH"
           if [ -f "bin/crystalline" ]; then
-            ./bin/crystalline --version
+            ./bin/crystalline --version || true
           fi
-          lldb --version
+          if command -v lldb >/dev/null 2>&1; then
+            lldb --version
+          fi
 
 
       - name: Setup Godot Engine

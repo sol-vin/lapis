@@ -9,7 +9,7 @@ lib LibSystemIO
   {% if flag?(:windows) %}
     fun _mkdir(dirname : LibC::Char*) : LibC::Int
   {% else %}
-    fun mkdir(dirname : LibC::Char*, mode : LibC::Int) : LibC::Int
+    fun mkdir(dirname : LibC::Char*, mode : LibC::ModeT) : LibC::Int
   {% end %}
 end
 
@@ -146,7 +146,7 @@ module Godot
         {% if flag?(:windows) %}
           LibSystemIO._mkdir(current.to_unsafe)
         {% else %}
-          LibSystemIO.mkdir(current.to_unsafe, 0o755)
+          LibSystemIO.mkdir(current.to_unsafe, LibC::ModeT.new(0o755))
         {% end %}
       end
       true
