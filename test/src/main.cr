@@ -111,7 +111,7 @@ node PropertyTestTarget < Godot::Node do
   property storage_only_prop : Int32 = 999
 
   @[ExportToolButton("Click Here")]
-  property tool_btn_prop = ->{
+  property tool_btn_prop = -> {
 	@tool_btn_fired = true
   }
 
@@ -121,7 +121,7 @@ node PropertyTestTarget < Godot::Node do
   property proc_btn_ptr = ->tool_proc_method
 
   @[ExportToolButton("Proc Lambda Button")]
-  property proc_btn_lambda = ->{
+  property proc_btn_lambda = -> {
 	@proc_action_fired = true
   }
 
@@ -213,11 +213,11 @@ node ToolTester2D < Godot::Node2D do
 	Godot.print("------------------------------------------------------------------")
 	Godot.print("[ToolTester2D] Executing In-Editor 2D Test Suite...")
 	Godot.print("------------------------------------------------------------------")
-	
+
 	results = Registry.run_category("2D", self)
 	passed = results.count(&.passed)
 	total = results.size
-	
+
 	results.each do |r|
 	  if r.passed
 		Godot.print("  [PASS] [#{r.category}] #{r.name}")
@@ -225,7 +225,7 @@ node ToolTester2D < Godot::Node2D do
 		Godot.printerr("  [FAIL] [#{r.category}] #{r.name}: #{r.message}")
 	  end
 	end
-	
+
 	if passed == total
 	  @test_status = "All #{total}/#{total} Tests Passed!"
 	  Godot.print("[ToolTester2D] SUCCESS: All #{total} in-editor tests passed cleanly!")
@@ -236,7 +236,6 @@ node ToolTester2D < Godot::Node2D do
 	  Godot::SystemIO.write_file("test/bin/.tool_tests_failed", "Failed: #{total - passed} test(s) failed.\n")
 	end
   end
-
 end
 
 @[Tool]
@@ -266,11 +265,11 @@ node ToolTester3D < Godot::Node3D do
 	Godot.print("------------------------------------------------------------------")
 	Godot.print("[ToolTester3D] Executing In-Editor 3D Test Suite...")
 	Godot.print("------------------------------------------------------------------")
-	
+
 	results = Registry.run_category("3D", self)
 	passed = results.count(&.passed)
 	total = results.size
-	
+
 	results.each do |r|
 	  if r.passed
 		Godot.print("  [PASS] [#{r.category}] #{r.name}")
@@ -278,7 +277,7 @@ node ToolTester3D < Godot::Node3D do
 		Godot.printerr("  [FAIL] [#{r.category}] #{r.name}: #{r.message}")
 	  end
 	end
-	
+
 	if passed == total
 	  @test_status = "All #{total}/#{total} Tests Passed!"
 	  Godot.print("[ToolTester3D] SUCCESS: All #{total} in-editor tests passed cleanly!")
@@ -289,7 +288,6 @@ node ToolTester3D < Godot::Node3D do
 	  Godot::SystemIO.write_file("test/bin/.tool_tests_failed", "Failed: #{total - passed} test(s) failed.\n")
 	end
   end
-
 end
 
 # =============================================================================
@@ -304,7 +302,7 @@ node RunTesterPanel < Godot::Control do
 	Godot.print("==================================================================")
 	Godot.print("    LibGodot Interactive Test Runner Loaded (Two-Click Testing)   ")
 	Godot.print("==================================================================")
-	
+
 	# Connect category buttons if present in scene
 	hook_button("MarginContainer/VBox/ButtonBox/BtnRunAll") { run_and_display_all }
 	hook_button("MarginContainer/VBox/ButtonBox/BtnRun2D") { run_and_display_category("2D") }
@@ -366,14 +364,14 @@ node RunTesterPanel < Godot::Control do
 	  category = cli_category
 	  results = Registry.run_all(self, filter: filter, category_filter: category)
 	  label = if category && filter
-	    "All [Category: #{category}, Filter: #{filter}]"
-	  elsif category
-	    "All [Category: #{category}]"
-	  elsif filter
-	    "All [Filter: #{filter}]"
-	  else
-	    "All"
-	  end
+				"All [Category: #{category}, Filter: #{filter}]"
+			  elsif category
+				"All [Category: #{category}]"
+			  elsif filter
+				"All [Filter: #{filter}]"
+			  else
+				"All"
+			  end
 	  display_results(results, label)
 	ensure
 	  @@is_running_tests = false
@@ -1362,12 +1360,12 @@ test_prop "Property hints registered correctly in ClassDB" do
   target._godot_call_tool_button("proc_btn_dyn") # nil, should safely be a no-op
   assert_false target.proc_action_fired
 
-  target.proc_btn_dyn = ->{ target.proc_action_fired = true; nil }
+  target.proc_btn_dyn = -> { target.proc_action_fired = true; nil }
   target._godot_call_tool_button("proc_btn_dyn")
   assert_true target.proc_action_fired
 
   custom_called = false
-  target.proc_btn_ptr = ->{ custom_called = true; nil }
+  target.proc_btn_ptr = -> { custom_called = true; nil }
   target._godot_call_tool_button("proc_btn_ptr")
   assert_true custom_called
 

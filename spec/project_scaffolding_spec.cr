@@ -186,4 +186,3 @@ if File.exists?(template_main_tscn)
 end
 
 puts "=== All Project Scaffolding & Directory Integrity Specifications Passed! ==="
-

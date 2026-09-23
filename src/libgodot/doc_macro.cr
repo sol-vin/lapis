@@ -24,10 +24,10 @@ module Godot
     def self.escape(str : String) : String
       return "" if str.empty?
       str.gsub('&', "&amp;")
-         .gsub('<', "&lt;")
-         .gsub('>', "&gt;")
-         .gsub('"', "&quot;")
-         .gsub('\'', "&apos;")
+        .gsub('<', "&lt;")
+        .gsub('>', "&gt;")
+        .gsub('"', "&quot;")
+        .gsub('\'', "&apos;")
     end
   end
 end

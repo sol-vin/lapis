@@ -101,9 +101,7 @@ HELP
           items << CheckItem.new("C++ Bridge Compiler", :pass, "#{found_cxx} (#{cxx_version})")
         else
           has_critical_failure = true
-          tip_msg = Core::Env.windows? ?
-            "Install MinGW-w64 (via MSYS2 or winlibs.com) or Clang (via 'scoop install llvm')." :
-            "Install build tools: 'sudo apt install build-essential' (Ubuntu) or 'xcode-select --install' (macOS)."
+          tip_msg = Core::Env.windows? ? "Install MinGW-w64 (via MSYS2 or winlibs.com) or Clang (via 'scoop install llvm')." : "Install build tools: 'sudo apt install build-essential' (Ubuntu) or 'xcode-select --install' (macOS)."
           items << CheckItem.new("C++ Bridge Compiler", :fail, "No C++ compiler (g++/clang++) found in PATH", tip_msg)
         end
 
@@ -114,9 +112,7 @@ HELP
           lldb_ver = res[:output].lines.first?.try(&.strip) || "Found at #{lldb_exe}"
           items << CheckItem.new("Native Debugger (LLDB)", :pass, lldb_ver)
         else
-          tip_msg = Core::Env.windows? ?
-            "Install via 'scoop install llvm' or 'winget install LLVM.LLVM' to enable in-editor breakpoint sync." :
-            "Install via 'sudo apt install lldb' (Debian/Ubuntu) or 'brew install llvm' (macOS)."
+          tip_msg = Core::Env.windows? ? "Install via 'scoop install llvm' or 'winget install LLVM.LLVM' to enable in-editor breakpoint sync." : "Install via 'sudo apt install lldb' (Debian/Ubuntu) or 'brew install llvm' (macOS)."
           items << CheckItem.new(
             "Native Debugger (LLDB)",
             :warn,
@@ -248,17 +244,17 @@ HELP
         puts "\e[1mDiagnostic Results:\e[0m"
         items.each do |item|
           symbol = case item.status
-          when :pass
-            "\e[32m[✓]\e[0m"
-          when :warn
-            "\e[33m[!]\e[0m"
-          when :info
-            "\e[36m[i]\e[0m"
-          when :fail
-            "\e[31m[✗]\e[0m"
-          else
-            "[-]"
-          end
+                   when :pass
+                     "\e[32m[✓]\e[0m"
+                   when :warn
+                     "\e[33m[!]\e[0m"
+                   when :info
+                     "\e[36m[i]\e[0m"
+                   when :fail
+                     "\e[31m[✗]\e[0m"
+                   else
+                     "[-]"
+                   end
 
           puts "  #{symbol} \e[1m#{item.name}\e[0m: #{item.detail}"
           if item.tip && (item.status == :fail || item.status == :warn || verbose)

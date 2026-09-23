@@ -19,8 +19,10 @@ end
 node SpecLifecycleDocNode < Godot::Node do
   def _ready : Void
   end
+
   def _enter_tree : Void
   end
+
   def _exit_tree : Void
   end
 end
@@ -63,7 +65,7 @@ node SpecAnnotationsSuite < CharacterBody3D do
   property save_folder : String = "saves/"
 
   @[ExportToolButton("Reset")]
-  property btn_reset = ->{ }
+  property btn_reset = -> { }
 
   @[RPC(mode: :any_peer, sync: :call_local, transfer_mode: :reliable, channel: 1)]
   def attack_target(target_id : Int32)

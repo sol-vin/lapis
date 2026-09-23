@@ -15,7 +15,7 @@ module PerfFramework
     def on_setup : Void
       @test_name = "NodeSpawnBurst"
       @test_description = "Allocates thousands of Node2D instances into the SceneTree in rapid bursts."
-      
+
       c = Godot.create(Godot::Node2D)
       c.call("set_name", "SpawnContainer")
       add_child(c)

@@ -209,7 +209,6 @@ node ComprehensiveGroupingTestNode < Godot::Node do
   end
 end
 
-
 test_macros_dsl "Type-safe signal listeners with converted arguments (on_<signal>)" do
   target = PropertyTestTarget.new
   received_code = 0
@@ -624,7 +623,6 @@ test_macros_dsl "ExportNodePath type resolution: classes, unions, aliases, and s
   entry = Godot::ClassRegistry.find("ComprehensiveGroupingTestNode").not_nil!
   props = entry.properties
 
-
   # Direct Godot class type
   p_single = props.find { |p| p.name == "cam_single" }.not_nil!
   assert_eq p_single.hint, 26_u32 # PROPERTY_HINT_NODE_PATH_VALID_TYPES
@@ -894,5 +892,3 @@ test_macros_dsl "Input singleton zero-allocation polling and accumulated input t
   assert_eq Godot::Key::Q.value, 81_i64, "Godot::Key::Q value should match ASCII/engine 81"
   assert_eq Godot::Key::Escape.value, 4194305_i64, "Godot::Key::Escape value should match engine 4194305"
 end
-
-

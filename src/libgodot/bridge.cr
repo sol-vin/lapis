@@ -82,7 +82,6 @@ module Godot
       vec_val : StaticArray(Float32, 4)
     end
 
-
     struct BridgeAPI
       register_class : (CrystalClassDesc* -> Int32)
       get_method_bind : (LibC::Char*, LibC::Char*, Int64 -> Void*)
@@ -497,7 +496,7 @@ module Godot
 
       # Register deinitialization callback so Godot cleanly unregisters language, loader, and saver
       if !api.value.register_deinit_callback.pointer.null?
-        deinit_cb = ->{
+        deinit_cb = -> {
           Bridge.deinit
         }
         @@native_deinit_cb = deinit_cb
@@ -1381,7 +1380,6 @@ end
 
 # C ABI Entry point called by crystal_bridge when game library is loaded
 fun crystal_godot_init(api : Godot::LibBridge::BridgeAPI*) : Void
-
   {% unless flag?(:win32) %}
     if !api.null? && !api.value.get_gc_signals.pointer.null?
       sus_sig = 0
@@ -1413,16 +1411,16 @@ fun crystal_godot_init(api : Godot::LibBridge::BridgeAPI*) : Void
   dummy_argv = pointerof(dummy_arg)
   LibCrystalMain.__crystal_main(1, dummy_argv)
   Godot::Bridge.init(api)
-{% unless flag?(:release) || flag?(:libgodot_addon) || flag?(:no_editor) %}
-  if ::ENV["LIBGODOT_TEST_BUILD_BUTTON"]? == "1"
-    Godot::CrystalIntegrationPlugin.check_test_build_button_flow rescue nil
-  end
-{% end %}
+  {% unless flag?(:release) || flag?(:libgodot_addon) || flag?(:no_editor) %}
+    if ::ENV["LIBGODOT_TEST_BUILD_BUTTON"]? == "1"
+      Godot::CrystalIntegrationPlugin.check_test_build_button_flow rescue nil
+    end
+  {% end %}
 end
 
 {% if flag?(:libgodot_addon) %}
-@[NoInline]
-fun crystal_godot_is_addon : LibC::Int
-  1
-end
+  @[NoInline]
+  fun crystal_godot_is_addon : LibC::Int
+    1
+  end
 {% end %}

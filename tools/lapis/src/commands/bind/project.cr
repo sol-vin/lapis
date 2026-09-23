@@ -121,7 +121,7 @@ module Lapis
           parent_map : Hash(String, String?),
           visited : Set(String),
           visiting : Set(String),
-          ordered_files : Array(String)
+          ordered_files : Array(String),
         ) : Nil
           return if visited.includes?(file)
           if visiting.includes?(file)
@@ -141,7 +141,7 @@ module Lapis
         def self.generate(
           project_path : Path? = nil,
           output_dir : Path? = nil,
-          json_path : Path? = nil
+          json_path : Path? = nil,
         ) : Int32
           root = Core::Env::ROOT_DIR
           proj_dir = (project_path || Path.new(Dir.current)).expand
@@ -233,10 +233,10 @@ module Lapis
               is_custom_parent = custom_class_names.includes?(clean_inherits)
 
               inherits_type = if inherits_name.starts_with?("Crystal")
-                "Godot::Node"
-              else
-                inherits_name.starts_with?("Godot::") ? inherits_name : "Godot::#{inherits_name}"
-              end
+                                "Godot::Node"
+                              else
+                                inherits_name.starts_with?("Godot::") ? inherits_name : "Godot::#{inherits_name}"
+                              end
               script_path = c["path"]?.try(&.as_s) || ""
 
               file_basename = "#{clean_class_name.underscore}.cr"

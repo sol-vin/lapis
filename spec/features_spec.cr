@@ -37,8 +37,10 @@ abort "Failed: missing method take_damage doc comment" unless player_doc.include
 node TestLifecycleDocNode < Godot::Node do
   def _ready : Void
   end
+
   def _enter_tree : Void
   end
+
   def _exit_tree : Void
   end
 end
@@ -194,7 +196,7 @@ node TestAnnotationsSuite < CharacterBody3D do
   property internal_seed : Int64 = 123456_i64
 
   @[ExportToolButton("Reset Health")]
-  property btn_reset = ->{
+  property btn_reset = -> {
     @action_counter = 0
   }
 
@@ -202,7 +204,7 @@ node TestAnnotationsSuite < CharacterBody3D do
   property btn_method_ptr = ->action_method
 
   @[ExportToolButton("Lambda Button")]
-  property btn_lambda = ->{
+  property btn_lambda = -> {
     @action_counter += 10
   }
 
@@ -318,11 +320,11 @@ abort "Failed: btn_lambda did not execute" unless tb_test_inst.action_counter ==
 tb_test_inst._godot_call_tool_button("btn_dynamic") # nil proc initially
 abort "Failed: nil btn_dynamic should be a no-op" unless tb_test_inst.action_counter == 11
 
-tb_test_inst.btn_dynamic = ->{ tb_test_inst.action_counter += 100; nil }
+tb_test_inst.btn_dynamic = -> { tb_test_inst.action_counter += 100; nil }
 tb_test_inst._godot_call_tool_button("btn_dynamic")
 abort "Failed: dynamic proc did not execute" unless tb_test_inst.action_counter == 111
 
-tb_test_inst.btn_method_ptr = ->{ tb_test_inst.action_counter += 500; nil }
+tb_test_inst.btn_method_ptr = -> { tb_test_inst.action_counter += 500; nil }
 tb_test_inst._godot_call_tool_button("btn_method_ptr")
 abort "Failed: reassigned method proc did not execute" unless tb_test_inst.action_counter == 611
 
@@ -527,4 +529,3 @@ end
 puts "✓ Compile-time rejection of argument-taking and non-proc tool buttons verified!"
 puts "✓ Compile-time acceptance of no-arg proc literals and proc pointers verified!"
 puts "All new features passed specifications cleanly!"
-

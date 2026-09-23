@@ -60,10 +60,10 @@ HELP
 
         curr = Path.new(Dir.current).expand
         target_dir = if (pp = proj_path) && !pp.empty?
-          Path.new(pp).expand
-        else
-          curr
-        end
+                       Path.new(pp).expand
+                     else
+                       curr
+                     end
 
         FileUtils.mkdir_p(target_dir) unless Dir.exists?(target_dir)
         root = Core::Env::ROOT_DIR
@@ -92,12 +92,12 @@ GODOT
         shard_yml = target_dir.join("shard.yml")
         if !File.exists?(shard_yml) || force
           dep_str = if local_dep || Core::Env.is_libgodot_repo?(root)
-            rel_root = Path.new(root).relative_to(target_dir).to_s.gsub('\\', '/')
-            rel_root = "./#{rel_root}" unless rel_root.starts_with?(".")
-            "  lapis:\n    path: #{rel_root}"
-          else
-            "  lapis:\n    github: sol-vin/lapis\n    branch: master"
-          end
+                      rel_root = Path.new(root).relative_to(target_dir).to_s.gsub('\\', '/')
+                      rel_root = "./#{rel_root}" unless rel_root.starts_with?(".")
+                      "  lapis:\n    path: #{rel_root}"
+                    else
+                      "  lapis:\n    github: sol-vin/lapis\n    branch: master"
+                    end
 
           shard_content = <<-YAML
 name: #{slug}

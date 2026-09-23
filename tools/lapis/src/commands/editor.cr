@@ -189,21 +189,21 @@ HELP
         end
 
         proj_display_name = if (pp = proj_path) && !pp.empty? && pp != "."
-          pp
-        else
-          target_dir.basename
-        end
+                              pp
+                            else
+                              target_dir.basename
+                            end
 
         action_name = run_standalone ? "Running Godot standalone" : "Launching Godot Editor"
         Core::Logger.step("Editor", "#{action_name} for #{proj_display_name} (#{File.basename(godot_exe)})...")
 
         status = if lldb
-          lldb_cmd = Core::ProcessRunner.find_executable("lldb") || "lldb"
-          lldb_args = ["--", godot_exe] + godot_args
-          Core::ProcessRunner.run(lldb_cmd, lldb_args, chdir: target_dir.to_s)
-        else
-          Core::ProcessRunner.run(godot_exe, godot_args, chdir: target_dir.to_s)
-        end
+                   lldb_cmd = Core::ProcessRunner.find_executable("lldb") || "lldb"
+                   lldb_args = ["--", godot_exe] + godot_args
+                   Core::ProcessRunner.run(lldb_cmd, lldb_args, chdir: target_dir.to_s)
+                 else
+                   Core::ProcessRunner.run(godot_exe, godot_args, chdir: target_dir.to_s)
+                 end
 
         status.normal_exit? ? status.exit_code : 0
       end

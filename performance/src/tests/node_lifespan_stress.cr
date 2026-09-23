@@ -73,7 +73,7 @@ module PerfFramework
 
       while @spawn_accumulator >= 1.0 && @living_nodes.size < max_living
         @spawn_accumulator -= 1.0
-        
+
         n = Godot.create(Godot::Node2D)
         @total_spawned += 1
 

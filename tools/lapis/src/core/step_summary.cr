@@ -35,16 +35,16 @@ module Lapis
 
       def initialize(
         @title : String = "LibGodot Workflow Status",
-        godot_exe : String? = nil
+        godot_exe : String? = nil,
       )
         platform_arch = Core::Env.windows? ? "x86_64" : (Core::Env.macos? ? "arm64" : "x86_64")
         @platform_name = if Core::Env.windows?
-          "Windows (#{platform_arch})"
-        elsif Core::Env.macos?
-          "macOS (#{platform_arch})"
-        else
-          "Linux (#{platform_arch})"
-        end
+                           "Windows (#{platform_arch})"
+                         elsif Core::Env.macos?
+                           "macOS (#{platform_arch})"
+                         else
+                           "Linux (#{platform_arch})"
+                         end
 
         @crystal_version = "Crystal #{Crystal::VERSION}"
         @godot_version = "Unknown"
@@ -63,7 +63,7 @@ module Lapis
         exit_code : Int32,
         error_excerpt : String? = nil,
         details : String? = nil,
-        log_line_range : String? = nil
+        log_line_range : String? = nil,
       ) : Void
         @phases << PhaseResult.new(
           tag: tag,

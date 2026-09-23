@@ -119,16 +119,16 @@ HELP
 
       def self.install_templates(root : Path, target_version : String, zip_output : Path? = nil) : Int32
         template_base = if Core::Env.windows?
-          if appdata = ENV["APPDATA"]?
-            Path.new(appdata).join("Godot/export_templates")
-          else
-            Path.home.join("AppData/Roaming/Godot/export_templates")
-          end
-        elsif Core::Env.macos?
-          Path.home.join("Library/Application Support/Godot/export_templates")
-        else
-          Path.home.join(".local/share/godot/export_templates")
-        end
+                          if appdata = ENV["APPDATA"]?
+                            Path.new(appdata).join("Godot/export_templates")
+                          else
+                            Path.home.join("AppData/Roaming/Godot/export_templates")
+                          end
+                        elsif Core::Env.macos?
+                          Path.home.join("Library/Application Support/Godot/export_templates")
+                        else
+                          Path.home.join(".local/share/godot/export_templates")
+                        end
 
         ver_folder = target_version.gsub('-', '.')
         target_dir = template_base.join(ver_folder)
@@ -212,12 +212,12 @@ HELP
         # Download from GitHub release
         tag = "v0.20.0"
         url = if Core::Env.macos?
-          "https://github.com/elbywan/crystalline/releases/download/#{tag}/crystalline_arm64-apple-darwin.gz"
-        elsif Core::Env.linux?
-          "https://github.com/elbywan/crystalline/releases/download/#{tag}/crystalline_x86_64-unknown-linux-musl.gz"
-        else
-          "https://github.com/elbywan/crystalline/releases/download/#{tag}/crystalline_x86_64-windows.zip"
-        end
+                "https://github.com/elbywan/crystalline/releases/download/#{tag}/crystalline_arm64-apple-darwin.gz"
+              elsif Core::Env.linux?
+                "https://github.com/elbywan/crystalline/releases/download/#{tag}/crystalline_x86_64-unknown-linux-musl.gz"
+              else
+                "https://github.com/elbywan/crystalline/releases/download/#{tag}/crystalline_x86_64-windows.zip"
+              end
 
         temp_archive = dest_exe.parent.join("crystalline_dl_temp")
         if download_to_file(url, temp_archive)
@@ -283,12 +283,12 @@ HELP
           Core::Logger.info("Godot binary already exists at #{dest_exe}. Use --force to re-download.")
         else
           platform_suffix = if Core::Env.windows?
-            "win64.exe.zip"
-          elsif Core::Env.macos?
-            "macos.universal.zip"
-          else
-            "linux.x86_64.zip"
-          end
+                              "win64.exe.zip"
+                            elsif Core::Env.macos?
+                              "macos.universal.zip"
+                            else
+                              "linux.x86_64.zip"
+                            end
 
           url = "https://github.com/godotengine/godot-builds/releases/download/#{target_version}/Godot_v#{target_version}_#{platform_suffix}"
           success = download_and_extract(url, dest_exe)

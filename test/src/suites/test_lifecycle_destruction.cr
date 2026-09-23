@@ -6,8 +6,8 @@ include Lapis::Test
 
 macro test_lifecycle(name, &block)
   Registry.register("Lifecycle", {{name}}) do |node|
-	root = node
-	{{block.body}}
+    root = node
+    {{block.body}}
   end
 end
 
@@ -227,8 +227,8 @@ test_lifecycle "Engine value equality (==), hashing, and null safety" do
 
   assert_true node_a.alive?
   assert_true node_b.alive?
-  assert_false (node_a == nil)
-  assert_false (nil == node_a)
+  assert_false(node_a == nil)
+  assert_false(nil == node_a)
 
   # Value equality
   assert_true (node_a == node_b), "Distinct wrappers of the same engine instance must compare equal via =="

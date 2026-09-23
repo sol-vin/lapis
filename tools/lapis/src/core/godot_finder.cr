@@ -6,8 +6,8 @@ module Lapis
   module Core
     module GodotFinder
       EMBEDDED_GODOT_VERSION = {{
-        read_file("#{__DIR__}/../../../../godot-version.yml").split("\n").find(&.includes?("version:")).split(":")[1].gsub(/["'\r\n]/, "").strip
-      }}
+                                 read_file("#{__DIR__}/../../../../godot-version.yml").split("\n").find(&.includes?("version:")).split(":")[1].gsub(/["'\r\n]/, "").strip
+                               }}
 
       # Determines the expected Godot version by checking project-local godot-version.yml,
       # repository root godot-version.yml, or falling back to compile-time EMBEDDED_GODOT_VERSION.

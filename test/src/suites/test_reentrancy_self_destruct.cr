@@ -111,4 +111,3 @@ test_reentrancy "Reentrant signal emission inside listener loop executes determi
 
   node.destroy
 end
-

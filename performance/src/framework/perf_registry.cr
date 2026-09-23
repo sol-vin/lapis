@@ -22,7 +22,7 @@ module PerfFramework
       @description : String,
       @scene_path : String,
       @default_count : Int32,
-      @default_duration : Float64
+      @default_duration : Float64,
     )
     end
 
@@ -52,7 +52,7 @@ module PerfFramework
       description : String,
       scene_path : String,
       default_count : Int32 = 5000,
-      default_duration : Float64 = 15.0
+      default_duration : Float64 = 15.0,
     ) : TestDefinition
       test_def = TestDefinition.new(id, title, category, description, scene_path, default_count, default_duration)
       @@tests[id] = test_def

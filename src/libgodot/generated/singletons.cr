@@ -167,5 +167,4 @@ module Godot
   # Godot `XRServer` singleton (XRServer).
   godot_singleton(XRServer, "XRServer", Godot::Object)
   godot_singleton_accessor(xr_server, XRServer)
-
 end

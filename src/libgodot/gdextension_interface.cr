@@ -21,87 +21,87 @@ module LibGodot
   alias GDExtensionClassLibraryPtr = Void*
 
   enum GDExtensionInitializationLevel
-    Core = 0
+    Core    = 0
     Servers = 1
-    Scene = 2
-    Editor = 3
+    Scene   = 2
+    Editor  = 3
   end
 
   enum GDExtensionVariantType
-    Nil = 0
-    Bool = 1
-    Int = 2
-    Float = 3
-    String = 4
-    Vector2 = 5
-    Vector2i = 6
-    Rect2 = 7
-    Rect2i = 8
-    Vector3 = 9
-    Vector3i = 10
-    Transform2D = 11
-    Vector4 = 12
-    Vector4i = 13
-    Plane = 14
-    Quaternion = 15
-    AABB = 16
-    Basis = 17
-    Transform3D = 18
-    Projection = 19
-    Color = 20
-    StringName = 21
-    NodePath = 22
-    RID = 23
-    Object = 24
-    Callable = 25
-    Signal = 26
-    Dictionary = 27
-    Array = 28
-    PackedByteArray = 29
-    PackedInt32Array = 30
-    PackedInt64Array = 31
+    Nil                =  0
+    Bool               =  1
+    Int                =  2
+    Float              =  3
+    String             =  4
+    Vector2            =  5
+    Vector2i           =  6
+    Rect2              =  7
+    Rect2i             =  8
+    Vector3            =  9
+    Vector3i           = 10
+    Transform2D        = 11
+    Vector4            = 12
+    Vector4i           = 13
+    Plane              = 14
+    Quaternion         = 15
+    AABB               = 16
+    Basis              = 17
+    Transform3D        = 18
+    Projection         = 19
+    Color              = 20
+    StringName         = 21
+    NodePath           = 22
+    RID                = 23
+    Object             = 24
+    Callable           = 25
+    Signal             = 26
+    Dictionary         = 27
+    Array              = 28
+    PackedByteArray    = 29
+    PackedInt32Array   = 30
+    PackedInt64Array   = 31
     PackedFloat32Array = 32
     PackedFloat64Array = 33
-    PackedStringArray = 34
+    PackedStringArray  = 34
     PackedVector2Array = 35
     PackedVector3Array = 36
-    PackedColorArray = 37
+    PackedColorArray   = 37
     PackedVector4Array = 38
-    VariantMax = 39
+    VariantMax         = 39
   end
 
   enum GDExtensionCallErrorType
-    Ok = 0
-    InvalidMethod = 1
-    InvalidArgument = 2
+    Ok               = 0
+    InvalidMethod    = 1
+    InvalidArgument  = 2
     TooManyArguments = 3
-    TooFewArguments = 4
-    InstanceIsNull = 5
+    TooFewArguments  = 4
+    InstanceIsNull   = 5
     MethodCallFailed = 6
   end
 
   enum GDExtensionClassMethodArgumentMetadata
-    None = 0
-    IntIsInt8 = 1
-    IntIsInt16 = 2
-    IntIsInt32 = 3
-    IntIsInt64 = 4
-    IntIsUint8 = 5
-    IntIsUint16 = 6
-    IntIsUint32 = 7
-    IntIsUint64 = 8
-    FloatIsFloat = 9
+    None          =  0
+    IntIsInt8     =  1
+    IntIsInt16    =  2
+    IntIsInt32    =  3
+    IntIsInt64    =  4
+    IntIsUint8    =  5
+    IntIsUint16   =  6
+    IntIsUint32   =  7
+    IntIsUint64   =  8
+    FloatIsFloat  =  9
     FloatIsDouble = 10
   end
 
   @[Flags]
   enum GDExtensionClassMethodFlags
-    Normal = 1
-    Editor = 2
-    Const = 4
-    Virtual = 8
-    Vararg = 16
-    Static = 32
+    Normal  =  1
+    Editor  =  2
+    Const   =  4
+    Virtual =  8
+    Vararg  = 16
+    Static  = 32
   end
 
   alias GDExtensionInterfaceFunctionPtr = (-> Void)
@@ -213,4 +213,3 @@ module LibGodot
   alias GDExtensionCallError = ABI::GDExtensionCallError
   alias GDExtensionInitializationFunction = (GDExtensionInterfaceGetProcAddress, GDExtensionClassLibraryPtr, GDExtensionInitialization* -> GDExtensionBool)
 end
-

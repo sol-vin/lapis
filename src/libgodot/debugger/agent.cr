@@ -10,6 +10,7 @@ require "../generated/singletons"
 
 module Lapis
   include Godot
+
   module Debugger
     class Agent
       @@initialized : Bool = false

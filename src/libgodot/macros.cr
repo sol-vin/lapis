@@ -1,6 +1,6 @@
 # Marks an instance variable as an exported property visible in the Godot inspector.
 #
-# ```crystal
+# ```
 # @[Export]
 # property speed : Float32 = 100.0_f32
 # ```
@@ -9,7 +9,7 @@ annotation Export; end
 # Exports a numeric property constrained to a specific range in the Godot inspector.
 # Supports min, max, and optional step size.
 #
-# ```crystal
+# ```
 # @[ExportRange(0.0, 100.0, 0.5)]
 # property health : Float64 = 100.0
 # ```
@@ -18,7 +18,7 @@ annotation ExportRange; end
 # Exports a property whose values are constrained to an enumeration or list of string choices.
 # Can take a list of string choices, or a Crystal `Enum` type directly (`@[ExportEnum(MyEnum)]`).
 #
-# ```crystal
+# ```
 # enum CharacterClass
 #   Warrior
 #   Mage
@@ -42,7 +42,7 @@ annotation ExportEnum; end
 # Exports a string property as a file picker in the Godot inspector.
 # Accepts optional file extension filters (e.g. `"*.png,*.jpg"`).
 #
-# ```crystal
+# ```
 # @[ExportFile("*.png")]
 # property sprite_path : String = ""
 # ```
@@ -53,7 +53,7 @@ annotation ExportFilePath; end
 
 # Exports a string property as a directory picker in the Godot inspector.
 #
-# ```crystal
+# ```
 # @[ExportDir]
 # property assets_dir : String = "res://assets"
 # ```
@@ -67,7 +67,7 @@ annotation ExportGlobalDir; end
 
 # Exports a string property with a multiline text editor in the Godot inspector.
 #
-# ```crystal
+# ```
 # @[ExportMultiline]
 # property dialogue : String = "Hello\nWorld!"
 # ```
@@ -75,7 +75,7 @@ annotation ExportMultiline; end
 
 # Exports a string property with placeholder ghost text shown when empty.
 #
-# ```crystal
+# ```
 # @[ExportPlaceholder("Enter player name...")]
 # property player_name : String = ""
 # ```
@@ -84,7 +84,7 @@ annotation ExportPlaceholder; end
 # Exports an integer property as a bitmask flag field in the Godot inspector.
 # Can take a list of flag names or a Crystal `@[Flags] enum` type directly (`@[ExportFlags(CombatFlags)]`).
 #
-# ```crystal
+# ```
 # @[Flags]
 # enum CombatFlags
 #   Melee
@@ -132,7 +132,7 @@ annotation ExportExpEasing; end
 
 # Exports a Color property while suppressing the alpha (transparency) channel selector.
 #
-# ```crystal
+# ```
 # @[ExportColorNoAlpha]
 # property team_color : Color = Color::RED
 # ```
@@ -140,7 +140,7 @@ annotation ExportColorNoAlpha; end
 
 # Exports a NodePath property restricted to specific node types in the scene hierarchy.
 #
-# ```crystal
+# ```
 # @[ExportNodePath("Camera3D")]
 # property camera_path : NodePath = NodePath.new
 # ```
@@ -154,7 +154,7 @@ annotation ExportToolButton; end
 
 # Exports a property with custom PropertyHint and hint string parameters.
 #
-# ```crystal
+# ```
 # @[ExportCustom(hint: 1_u32, hint_string: "0,10,1")]
 # property custom_val : Int32 = 5
 # ```
@@ -166,7 +166,7 @@ annotation ExportCategory; end
 # Groups subsequent exported properties under a collapsible heading in the inspector.
 # An optional prefix strips common prefixes from property names in the group.
 #
-# ```crystal
+# ```
 # @[ExportGroup("Movement", prefix: "move_")]
 # property move_speed : Float32 = 200.0_f32
 # ```
@@ -181,7 +181,7 @@ annotation GodotClass; end
 
 # Marks a script class to execute in the editor as a tool script.
 #
-# ```crystal
+# ```
 # @[Tool]
 # class LevelEditorHelper < Godot::Node3D
 # end
@@ -190,7 +190,7 @@ annotation Tool; end
 
 # Specifies a custom editor icon path for the node class.
 #
-# ```crystal
+# ```
 # @[Icon("res://icons/player.svg")]
 # class Player < Godot::CharacterBody3D
 # end
@@ -208,7 +208,7 @@ annotation ScriptPath; end
 
 # Automatically initializes a node property when `_ready` is called by querying the scene tree.
 #
-# ```crystal
+# ```
 # @[OnReady("Sprite2D")]
 # property sprite : Godot::Node2D? = nil
 # ```
@@ -216,7 +216,7 @@ annotation OnReady; end
 
 # Assigns the node to one or more scene tree groups upon `_ready`.
 #
-# ```crystal
+# ```
 # @[Group("enemies", "flammable")]
 # class Enemy < Godot::Node2D
 # end
@@ -226,7 +226,7 @@ annotation Group; end
 # Configures Remote Procedure Call (RPC) network replication for a method.
 # Accepts mode, sync, transfer_mode, and channel parameters.
 #
-# ```crystal
+# ```
 # @[RPC(mode: :any_peer, call_local: true)]
 # def sync_player_position(pos : Vector3) : Void
 # end
@@ -242,29 +242,39 @@ annotation WarningIgnoreStart; end
 # Restores normal warning behavior following a suppression block.
 annotation WarningIgnoreRestore; end
 
-
 # Convenience macro to mark extension library unloading behavior.
-macro static_unload; end
+macro static_unload
+end
 
 # Convenience macro to designate a class as abstract in Godot.
-macro abstract_class; end
+macro abstract_class
+end
 
 # Convenience macro to set a custom icon path in the editor.
-macro icon(path); end
+macro icon(path)
+end
 
 # Convenience macro to create a category header in the inspector.
-macro export_category(name); end
+macro export_category(name)
+end
 
 # Convenience macro to group properties under a collapsible section in the inspector.
-macro export_group(name, prefix = ""); end
+macro export_group(name, prefix = "")
+end
 
 # Convenience macro to create a subgroup under an existing inspector group.
-macro export_subgroup(name, prefix = ""); end
+macro export_subgroup(name, prefix = "")
+end
 
 # Convenience macro to suppress compiler warnings.
-macro warning_ignore(name); end
-macro warning_ignore_start(name); end
-macro warning_ignore_restore(name); end
+macro warning_ignore(name)
+end
+
+macro warning_ignore_start(name)
+end
+
+macro warning_ignore_restore(name)
+end
 
 # Declares an `@onready` node property initialized from the scene tree during `_ready`.
 macro onready(decl)
@@ -369,56 +379,56 @@ module Godot
         @rpc_methods : ::Array(NamedTuple(name: String, rpc_mode: Int32, transfer_mode: Int32, call_local: Bool, channel: Int32)) = [] of NamedTuple(name: String, rpc_mode: Int32, transfer_mode: Int32, call_local: Bool, channel: Int32),
         @has_virtual_proc : (String -> Bool)? = nil,
         @constants : ::Array(ConstantInfo) = [] of ConstantInfo,
-        @script_path : String = ""
+        @script_path : String = "",
       )
       end
     end
 
     class_getter entries = ::Array(Entry).new
     {% unless flag?(:release) || flag?(:libgodot_addon) || flag?(:no_editor) %}
-    @@script_cache = Hash(String, CrystalScript).new
+      @@script_cache = Hash(String, CrystalScript).new
 
-    def self.get_or_load_script(path : String, class_name : String, base_type : String = "Node", is_tool : Bool = false) : CrystalScript?
-      return nil if path.empty? || path == "res://" || path == "res:///"
-      if script = @@script_cache[path]?
-        return script
-      end
-      # Prefer canonical cached script from Godot's ResourceLoader / ResourceCache
-      begin
-        res = Godot.load(path)
-        if res && !res.pointer.null?
-          cs = if alive = Bridge.find_alive_instance(res.pointer)
-            alive.as?(CrystalScript) || CrystalScript.new(res.pointer)
-          else
-            CrystalScript.new(res.pointer)
-          end
-          if cs && !cs.pointer.null?
-            @@script_cache[path] = cs
-            return cs
-          end
+      def self.get_or_load_script(path : String, class_name : String, base_type : String = "Node", is_tool : Bool = false) : CrystalScript?
+        return nil if path.empty? || path == "res://" || path == "res:///"
+        if script = @@script_cache[path]?
+          return script
         end
-      rescue
+        # Prefer canonical cached script from Godot's ResourceLoader / ResourceCache
+        begin
+          res = Godot.load(path)
+          if res && !res.pointer.null?
+            cs = if alive = Bridge.find_alive_instance(res.pointer)
+                   alive.as?(CrystalScript) || CrystalScript.new(res.pointer)
+                 else
+                   CrystalScript.new(res.pointer)
+                 end
+            if cs && !cs.pointer.null?
+              @@script_cache[path] = cs
+              return cs
+            end
+          end
+        rescue
+        end
+        source = ""
+        fs_path = path.starts_with?("res://") ? path.sub("res://", "") : path
+        if File.exists?(fs_path)
+          source = File.read(fs_path) rescue ""
+        end
+        script = Godot.create(Godot::CrystalScript)
+        return nil unless script
+        script.script_path = path
+        script.source_code = source
+        script.script_class_name = class_name
+        script.script_base_type = base_type
+        script.is_tool_script = is_tool
+        script.take_over_path(path) rescue script.call("take_over_path", path) rescue script.set_path_cache(path) rescue nil
+        @@script_cache[path] = script
+        script
       end
-      source = ""
-      fs_path = path.starts_with?("res://") ? path.sub("res://", "") : path
-      if File.exists?(fs_path)
-        source = File.read(fs_path) rescue ""
-      end
-      script = Godot.create(Godot::CrystalScript)
-      return nil unless script
-      script.script_path = path
-      script.source_code = source
-      script.script_class_name = class_name
-      script.script_base_type = base_type
-      script.is_tool_script = is_tool
-      script.take_over_path(path) rescue script.call("take_over_path", path) rescue script.set_path_cache(path) rescue nil
-      @@script_cache[path] = script
-      script
-    end
     {% else %}
-    def self.get_or_load_script(path : String, class_name : String, base_type : String = "Node", is_tool : Bool = false) : Nil
-      nil
-    end
+      def self.get_or_load_script(path : String, class_name : String, base_type : String = "Node", is_tool : Bool = false) : Nil
+        nil
+      end
     {% end %}
 
     def self.register(entry : Entry)
@@ -444,12 +454,12 @@ module Godot
 
     def self.cleanup : Void
       {% unless flag?(:release) || flag?(:libgodot_addon) || flag?(:no_editor) %}
-      @@script_cache.each_value do |script|
-        if !script.pointer.null? && script.alive?
-          script.unreference rescue nil
+        @@script_cache.each_value do |script|
+          if !script.pointer.null? && script.alive?
+            script.unreference rescue nil
+          end
         end
-      end
-      @@script_cache.clear
+        @@script_cache.clear
       {% end %}
     end
   end
@@ -520,14 +530,14 @@ macro node(decl, &block)
     class_constants = [] of Nil
     class_doc = ""
     raw_stmts = if block.is_a?(Nop)
-      [] of Nil
-    elsif block.body.is_a?(Expressions)
-      block.body.expressions
-    elsif block.body.is_a?(Nop)
-      [] of Nil
-    else
-      [block.body]
-    end
+                  [] of Nil
+                elsif block.body.is_a?(Expressions)
+                  block.body.expressions
+                elsif block.body.is_a?(Nop)
+                  [] of Nil
+                else
+                  [block.body]
+                end
 
     stmts_items = [] of Nil
     raw_stmts.each do |s|
@@ -2127,7 +2137,7 @@ end
 # Declares a custom Godot Resource class registered with ClassDB and EditorHelp.
 # Supports @[Export] properties, custom signals, and serialization to `.tres`.
 #
-# ```crystal
+# ```
 # resource ItemData < Resource do
 #   @[Export]
 #   property item_name : String = "Health Potion"
@@ -2136,7 +2146,7 @@ end
 # Defaults to inheriting `Resource` when no parent is specified.
 # Can be called with or without a block (e.g. `resource MyItem`).
 #
-# ```crystal
+# ```
 # resource CustomPotion do
 #   @[Export]
 #   property item_name : String = "Health Potion"
@@ -2168,7 +2178,7 @@ end
 # Defaults to inheriting `RefCounted` when no parent is specified.
 # Can be called with or without a block (e.g. `gdclass MyState`).
 #
-# ```crystal
+# ```
 # gdclass StateMachine < RefCounted do
 #   @[Export]
 #   property current_state : String = "idle"
@@ -2195,7 +2205,7 @@ end
 
 # Declares a custom Godot signal and generates a type-safe `emit_<signal_name>` helper method.
 #
-# ```crystal
+# ```
 # class Player < Godot::CharacterBody3D
 #   signal health_changed(new_health : Int32, max_health : Int32)
 #   signal died
@@ -2300,8 +2310,8 @@ end
 # Declares a lazy-cached Scene Unique Node property (Godot 4 `%Node` syntax).
 #
 # Examples:
-# ```crystal
-# unique_node health_bar, ProgressBar # fetches "%HealthBar"
+# ```
+# unique_node health_bar, ProgressBar      # fetches "%HealthBar"
 # unique_node main_hud, CanvasLayer, "HUD" # fetches "%HUD"
 # ```
 macro unique_node(name, type, unique_name = nil)
@@ -2317,7 +2327,7 @@ end
 
 # Declaratively assigns the node to one or more scene tree groups upon `_ready`.
 #
-# ```crystal
+# ```
 # node Player < CharacterBody3D do
 #   group "players", "flammable"
 # end
@@ -2329,7 +2339,7 @@ end
 # Groups exported properties in the Godot inspector.
 #
 # May be used standalone or as a block scoping exported properties:
-# ```crystal
+# ```
 # export_group "Movement", prefix: "move_" do
 #   @[Export]
 #   property move_speed : Float32 = 5.0_f32
@@ -2346,7 +2356,7 @@ end
 # Subgroups exported properties under the current inspector group.
 #
 # May be used standalone or as a block scoping exported properties:
-# ```crystal
+# ```
 # export_subgroup "Advanced", prefix: "adv_" do
 #   @[Export]
 #   property adv_friction : Float32 = 0.1_f32
@@ -2363,7 +2373,7 @@ end
 # Categories group top-level inspector sections in Godot.
 #
 # May be used standalone or as a block scoping exported properties:
-# ```crystal
+# ```
 # export_category "Combat" do
 #   @[Export]
 #   property health : Int32 = 100

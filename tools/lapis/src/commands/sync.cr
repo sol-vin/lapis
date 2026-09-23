@@ -175,12 +175,12 @@ HELP
 
             platform_files.each do |bin_name|
               src = if File.exists?(bin_dir.join(bin_name))
-                bin_dir.join(bin_name)
-              elsif File.exists?(root.join("addons/crystal_integration/bin").join(bin_name)) && root.join("addons/crystal_integration/bin") != dir
-                root.join("addons/crystal_integration/bin").join(bin_name)
-              else
-                nil
-              end
+                      bin_dir.join(bin_name)
+                    elsif File.exists?(root.join("addons/crystal_integration/bin").join(bin_name)) && root.join("addons/crystal_integration/bin") != dir
+                      root.join("addons/crystal_integration/bin").join(bin_name)
+                    else
+                      nil
+                    end
 
               if src && safe_copy(src, dir.join(bin_name))
                 synced_count += 1

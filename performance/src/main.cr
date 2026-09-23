@@ -128,7 +128,7 @@ module PerfFramework
       count : Int32? = nil,
       duration : Float64? = nil,
       is_infinite : Bool = false,
-      cycles : Int32? = nil
+      cycles : Int32? = nil,
     ) : Void
       tdef = TestRegistry.find?(id)
       if tdef.nil?
@@ -145,7 +145,7 @@ module PerfFramework
       count : Int32? = nil,
       duration : Float64? = nil,
       is_infinite : Bool = false,
-      cycles : Int32? = nil
+      cycles : Int32? = nil,
     ) : Void
       cleanup_active_test
 

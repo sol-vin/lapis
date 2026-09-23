@@ -221,13 +221,13 @@ module Godot
       io << "(" << @x << ", " << @y << ")"
     end
 
-    ZERO = Vector2.new(0.0_f32, 0.0_f32)
-    ONE  = Vector2.new(1.0_f32, 1.0_f32)
-    UP   = Vector2.new(0.0_f32, -1.0_f32)
-    DOWN = Vector2.new(0.0_f32, 1.0_f32)
-    LEFT = Vector2.new(-1.0_f32, 0.0_f32)
-    RIGHT= Vector2.new(1.0_f32, 0.0_f32)
-    INF  = Vector2.new(Float32::INFINITY, Float32::INFINITY)
+    ZERO  = Vector2.new(0.0_f32, 0.0_f32)
+    ONE   = Vector2.new(1.0_f32, 1.0_f32)
+    UP    = Vector2.new(0.0_f32, -1.0_f32)
+    DOWN  = Vector2.new(0.0_f32, 1.0_f32)
+    LEFT  = Vector2.new(-1.0_f32, 0.0_f32)
+    RIGHT = Vector2.new(1.0_f32, 0.0_f32)
+    INF   = Vector2.new(Float32::INFINITY, Float32::INFINITY)
   end
 
   # 2-element structure that can be used to represent 2D grid coordinates or discrete positions with 32-bit integers.
@@ -307,12 +307,12 @@ module Godot
       io << "(" << @x << ", " << @y << ")"
     end
 
-    ZERO = Vector2i.new(0, 0)
-    ONE  = Vector2i.new(1, 1)
-    LEFT = Vector2i.new(-1, 0)
-    RIGHT= Vector2i.new(1, 0)
-    UP   = Vector2i.new(0, -1)
-    DOWN = Vector2i.new(0, 1)
+    ZERO  = Vector2i.new(0, 0)
+    ONE   = Vector2i.new(1, 1)
+    LEFT  = Vector2i.new(-1, 0)
+    RIGHT = Vector2i.new(1, 0)
+    UP    = Vector2i.new(0, -1)
+    DOWN  = Vector2i.new(0, 1)
   end
 
   # 3-element structure that can be used to represent 3D coordinates or vectors with 32-bit floating point precision.
@@ -827,7 +827,7 @@ module Godot
     def initialize(
       @x : Vector2 = Vector2.new(1.0_f32, 0.0_f32),
       @y : Vector2 = Vector2.new(0.0_f32, 1.0_f32),
-      @origin : Vector2 = Vector2.new(0.0_f32, 0.0_f32)
+      @origin : Vector2 = Vector2.new(0.0_f32, 0.0_f32),
     )
     end
 
@@ -894,7 +894,7 @@ module Godot
     def initialize(
       @x : Vector3 = Vector3.new(1.0_f32, 0.0_f32, 0.0_f32),
       @y : Vector3 = Vector3.new(0.0_f32, 1.0_f32, 0.0_f32),
-      @z : Vector3 = Vector3.new(0.0_f32, 0.0_f32, 1.0_f32)
+      @z : Vector3 = Vector3.new(0.0_f32, 0.0_f32, 1.0_f32),
     )
     end
 
@@ -940,8 +940,8 @@ module Godot
 
     def determinant : Float32
       @x.x * (@y.y * @z.z - @y.z * @z.y) -
-      @x.y * (@y.x * @z.z - @y.z * @z.x) +
-      @x.z * (@y.x * @z.y - @y.y * @z.x)
+        @x.y * (@y.x * @z.z - @y.z * @z.x) +
+        @x.z * (@y.x * @z.y - @y.y * @z.x)
     end
 
     def inverse : Basis

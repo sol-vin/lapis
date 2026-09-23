@@ -47,7 +47,7 @@ HELP
         proj_title : String,
         proj_slug : String,
         root : Path,
-        local_dep : Bool
+        local_dep : Bool,
       ) : Void
         godot_proj = dst_dir.join("project.godot")
         if File.exists?(godot_proj)
@@ -110,12 +110,12 @@ MD
         proj_title : String,
         proj_slug : String,
         root : Path,
-        local_dep : Bool
+        local_dep : Bool,
       ) : Void
         excludes = [
           ".godot", ".git", ".uid", "crash_dump",
           "test_ext.log", "template_ext.log",
-          "bin", "lib", "dist"
+          "bin", "lib", "dist",
         ]
 
         pattern = src_dir.to_s.gsub('\\', '/') + "/**/*"
@@ -141,25 +141,25 @@ MD
         target_dir : Path?,
         force : Bool = false,
         local_dep : Bool = false,
-        skip_godot : Bool = false
+        skip_godot : Bool = false,
       ) : Int32
         root = Core::Env::ROOT_DIR
 
         # 1. Resolve destination directory
         dest = if target_dir
-          target_dir.expand
-        elsif name && name != "." && name != "./"
-          Path.new(Dir.current).join(name).expand
-        else
-          Path.new(Dir.current).expand
-        end
+                 target_dir.expand
+               elsif name && name != "." && name != "./"
+                 Path.new(Dir.current).join(name).expand
+               else
+                 Path.new(Dir.current).expand
+               end
 
         # 2. Resolve project title and slug
         raw_name = if name && name != "." && name != "./"
-          name
-        else
-          dest.basename
-        end
+                     name
+                   else
+                     dest.basename
+                   end
         raw_name = "MyGame" if raw_name.empty? || raw_name == "."
 
         proj_slug = raw_name.underscore
@@ -247,12 +247,12 @@ MD
         candidate_bin_dirs = Core::Env.candidate_runtime_dirs(root)
 
         needed_libs = if Core::Env.windows?
-          ["crystal_bridge.dll", "plugin.dll", "gc.dll", "iconv-2.dll", "pcre2-8.dll", "libgodot.dll"]
-        elsif Core::Env.macos?
-          ["crystal_bridge.dylib", "plugin.dylib", "libgodot.dylib"]
-        else
-          ["crystal_bridge.so", "plugin.so", "libgodot.so"]
-        end
+                        ["crystal_bridge.dll", "plugin.dll", "gc.dll", "iconv-2.dll", "pcre2-8.dll", "libgodot.dll"]
+                      elsif Core::Env.macos?
+                        ["crystal_bridge.dylib", "plugin.dylib", "libgodot.dylib"]
+                      else
+                        ["crystal_bridge.so", "plugin.so", "libgodot.so"]
+                      end
 
         needed_libs.each do |lib_name|
           target_addon_file = addon_bin.join(lib_name)
@@ -284,12 +284,12 @@ MD
           else
             target_ver = Commands::Setup.resolve_version(dest, nil)
             platform_suffix = if Core::Env.windows?
-              "win64.exe.zip"
-            elsif Core::Env.macos?
-              "macos.universal.zip"
-            else
-              "linux.x86_64.zip"
-            end
+                                "win64.exe.zip"
+                              elsif Core::Env.macos?
+                                "macos.universal.zip"
+                              else
+                                "linux.x86_64.zip"
+                              end
             url = "https://github.com/godotengine/godot-builds/releases/download/#{target_ver}/Godot_v#{target_ver}_#{platform_suffix}"
             begin
               Core::Logger.step("Scaffold", "Downloading Godot engine (#{target_ver}) to #{godot_dest.basename}...")

@@ -33,7 +33,7 @@ test_cases = [
   {"1.20.1", {1, 20, 1}},
   {"Crystal 1.20.0 [57cf7da] (2026-03-01)", {1, 20, 0}},
   {"2.0", {2, 0, 0}},
-  {"invalid", {0, 0, 0}}
+  {"invalid", {0, 0, 0}},
 ]
 
 test_cases.each do |input, expected|

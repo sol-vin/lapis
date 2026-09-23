@@ -60,10 +60,10 @@ module Godot
 
     def as_bool : Bool
       case v = @raw
-      when Bool then v
-      when Int64 then v != 0
+      when Bool   then v
+      when Int64  then v != 0
       when String then v == "true" || v == "1"
-      else !is_nil?
+      else             !is_nil?
       end
     end
 
@@ -77,11 +77,11 @@ module Godot
 
     def as_i64 : Int64
       case v = @raw
-      when Int64 then v
+      when Int64   then v
       when Float64 then v.to_i64
-      when Bool then v ? 1_i64 : 0_i64
-      when String then v.to_i64? || 0_i64
-      else 0_i64
+      when Bool    then v ? 1_i64 : 0_i64
+      when String  then v.to_i64? || 0_i64
+      else              0_i64
       end
     end
 
@@ -104,10 +104,10 @@ module Godot
     def as_f64 : Float64
       case v = @raw
       when Float64 then v
-      when Int64 then v.to_f64
-      when Bool then v ? 1.0 : 0.0
-      when String then v.to_f64? || 0.0
-      else 0.0
+      when Int64   then v.to_f64
+      when Bool    then v ? 1.0 : 0.0
+      when String  then v.to_f64? || 0.0
+      else              0.0
       end
     end
 
@@ -125,17 +125,17 @@ module Godot
 
     def as_v2 : Vector2
       case v = @raw
-      when Vector2 then v
+      when Vector2  then v
       when Vector2i then Vector2.new(v.x.to_f32, v.y.to_f32)
-      else Vector2.new
+      else               Vector2.new
       end
     end
 
     def as_v2i : Vector2i
       case v = @raw
       when Vector2i then v
-      when Vector2 then Vector2i.new(v.x.to_i32, v.y.to_i32)
-      else Vector2i.new
+      when Vector2  then Vector2i.new(v.x.to_i32, v.y.to_i32)
+      else               Vector2i.new
       end
     end
 
@@ -149,17 +149,17 @@ module Godot
 
     def as_v3 : Vector3
       case v = @raw
-      when Vector3 then v
+      when Vector3  then v
       when Vector3i then Vector3.new(v.x.to_f32, v.y.to_f32, v.z.to_f32)
-      else Vector3.new
+      else               Vector3.new
       end
     end
 
     def as_v3i : Vector3i
       case v = @raw
       when Vector3i then v
-      when Vector3 then Vector3i.new(v.x.to_i32, v.y.to_i32, v.z.to_i32)
-      else Vector3i.new
+      when Vector3  then Vector3i.new(v.x.to_i32, v.y.to_i32, v.z.to_i32)
+      else               Vector3i.new
       end
     end
 
@@ -358,9 +358,9 @@ module Godot
 
     def to_s(io : IO) : Void
       case v = @raw
-      when Nil then io << "nil"
+      when Nil           then io << "nil"
       when Godot::Object then v.to_s(io)
-      else io << v
+      else                    io << v
       end
     end
 
@@ -374,9 +374,9 @@ module Godot
 
     def ==(other : Number) : Bool
       case v = @raw
-      when Int64 then v == other
+      when Int64   then v == other
       when Float64 then v == other.to_f64
-      else to_s == other.to_s
+      else              to_s == other.to_s
       end
     end
 

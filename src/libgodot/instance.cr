@@ -20,11 +20,7 @@ module Godot
       argc = c_args.size
       argv = c_args.to_unsafe
 
-      init_callback = ->(
-        p_get_proc_address : LibGodot::GDExtensionInterfaceGetProcAddress,
-        p_library : LibGodot::GDExtensionClassLibraryPtr,
-        r_initialization : LibGodot::GDExtensionInitialization*
-      ) : LibGodot::GDExtensionBool {
+      init_callback = ->(p_get_proc_address : LibGodot::GDExtensionInterfaceGetProcAddress, p_library : LibGodot::GDExtensionClassLibraryPtr, r_initialization : LibGodot::GDExtensionInitialization*) : LibGodot::GDExtensionBool {
         # Configure initialization struct
         r_initialization.value.minimum_initialization_level = LibGodot::GDExtensionInitializationLevel::Scene
         r_initialization.value.userdata = Pointer(Void).null

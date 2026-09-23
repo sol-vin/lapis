@@ -18,7 +18,7 @@ module Lapis
         source_dir : Path,
         zip_path : Path,
         strip_prefix : Path? = nil,
-        exclude_patterns : Array(String) = [] of String
+        exclude_patterns : Array(String) = [] of String,
       )
         FileUtils.mkdir_p(zip_path.parent) unless Dir.exists?(zip_path.parent)
         File.delete(zip_path) if File.exists?(zip_path)
@@ -114,7 +114,7 @@ module Lapis
         excludes = [
           ".godot", ".git", ".uid", "~", "crash_dump", "test_ext.log", "template_ext.log",
           ".tmp", ".log", "shard.lock",
-          "template/", "test/", "performance/", "template-addon/"
+          "template/", "test/", "performance/", "template-addon/",
         ]
         unless bundle_binaries
           excludes << "bin/"
@@ -141,7 +141,7 @@ module Lapis
         Core::Env.purge_foreign_binaries(addon_dir)
         excludes = [
           ".godot", ".git", ".uid", "~", "crash_dump", ".log", ".tmp", "shard.lock",
-          "template/", "test/", "performance/", "template-addon/"
+          "template/", "test/", "performance/", "template-addon/",
         ]
         unless bundle_binaries
           excludes << "bin/"
@@ -165,7 +165,7 @@ module Lapis
         out_path : Path?,
         name : String? = nil,
         project_path : Path? = nil,
-        platform : String? = nil
+        platform : String? = nil,
       ) : Int32
         base = project_path || root
         addon_name = name || "crystal_integration"
@@ -173,10 +173,10 @@ module Lapis
 
         plat = platform.try(&.downcase) || Core::Env.current_platform
         default_zip = if plat && !plat.empty?
-          base.join(name ? "dist/#{addon_name}-#{plat}.zip" : "bin/godot-crystal-addon-#{plat}.zip")
-        else
-          base.join(name ? "dist/#{addon_name}.zip" : "bin/godot-crystal-addon.zip")
-        end
+                        base.join(name ? "dist/#{addon_name}-#{plat}.zip" : "bin/godot-crystal-addon-#{plat}.zip")
+                      else
+                        base.join(name ? "dist/#{addon_name}.zip" : "bin/godot-crystal-addon.zip")
+                      end
         zip_file = out_path || default_zip
 
         Core::Logger.step("Package", "Packaging #{addon_name} addon for #{plat}...")
@@ -322,10 +322,10 @@ module Lapis
         pkg_ver = version || Lapis::VERSION
         pkg_ver = pkg_ver.lstrip('v')
         deb_control_ver = if pkg_ver.empty? || !pkg_ver[0].ascii_number?
-          "#{Lapis::VERSION}+#{pkg_ver}"
-        else
-          pkg_ver
-        end
+                            "#{Lapis::VERSION}+#{pkg_ver}"
+                          else
+                            pkg_ver
+                          end
         deb_file = out_path || root.join("bin/lapis_#{pkg_ver}_#{arch}.deb")
 
         Core::Logger.step("Package", "Packaging Debian package for Lapis v#{deb_control_ver} (#{arch})...")
@@ -424,7 +424,7 @@ CONTROL
         root : Path,
         out_path : Path?,
         version : String? = nil,
-        release : Bool = false
+        release : Bool = false,
       ) : Int32
         unless Core::Env.windows?
           Core::Logger.error("Target 'windows-installer' is only available on Windows. Current platform: #{Core::Env.current_platform}.")
@@ -536,7 +536,7 @@ CONTROL
           zip_file,
           exclude_patterns: [
             ".godot", ".git", "~", "crash_dump", ".log", ".tmp", ".uid",
-            "_loaded_", ".pdb", "template/", "test/", "performance/", "template-addon/"
+            "_loaded_", ".pdb", "template/", "test/", "performance/", "template-addon/",
           ]
         )
         0
@@ -622,7 +622,7 @@ CONTROL
         target_dir : Path? = nil,
         force_compile : Bool = false,
         embed_pck : Bool = false,
-        portable : Bool = false
+        portable : Bool = false,
       ) : Int32
         root = Core::Env::ROOT_DIR
         proj_dir = project_path.expand
@@ -708,12 +708,12 @@ CONTROL
 
         if needs_compile && File.exists?(main_cr)
           source_dir = if Dir.exists?(proj_dir.join("lib/lapis/src"))
-            proj_dir.join("lib/lapis/src").to_s
-          elsif Dir.exists?(root.join("src"))
-            root.join("src").to_s
-          else
-            proj_dir.join("src").to_s
-          end
+                         proj_dir.join("lib/lapis/src").to_s
+                       elsif Dir.exists?(root.join("src"))
+                         root.join("src").to_s
+                       else
+                         proj_dir.join("src").to_s
+                       end
 
           code = Build.compile_binary(
             entry_path: main_cr,
@@ -733,12 +733,12 @@ CONTROL
 
           # Determine export preset
           preset = if Core::Env.windows?
-            "Windows Desktop"
-          elsif Core::Env.macos?
-            "macOS"
-          else
-            "Linux"
-          end
+                     "Windows Desktop"
+                   elsif Core::Env.macos?
+                     "macOS"
+                   else
+                     "Linux"
+                   end
 
           pck_file = bin_dir.join("#{game_name}.pck")
           Core::Logger.step("PackageGame", "Generating standalone project pack: #{pck_file.basename}...")
@@ -797,7 +797,7 @@ CONTROL
         output_dir : Path,
         release : Bool = true,
         skip_tests : Bool = false,
-        skip_perf : Bool = false
+        skip_perf : Bool = false,
       ) : Int32
         root = Core::Env::ROOT_DIR
         out_dir = output_dir.expand

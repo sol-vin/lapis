@@ -1,5 +1,6 @@
 module Lapis
   include Godot
+
   # Exported script property descriptor for Godot's Inspector
   struct ScriptProperty
     property name : String
@@ -17,7 +18,7 @@ module Lapis
       hint : Number = 0,
       @hint_string : String = "",
       usage : Number = 6, # PROPERTY_USAGE_DEFAULT
-      @default_value : String = ""
+      @default_value : String = "",
     )
       @variant_type = variant_type.to_i32
       @hint = hint.to_u32
@@ -40,7 +41,10 @@ module Lapis
     @methods : Array(String) = [] of String
     @doc_comments : Hash(String, String) = {} of String => String
 
-    def script_path : String; @script_path; end
+    def script_path : String
+      @script_path
+    end
+
     def script_path=(v : String)
       @script_path = v
       if !@pointer.null? && !v.empty?
@@ -48,7 +52,10 @@ module Lapis
       end
     end
 
-    def source_code : String; @source_code; end
+    def source_code : String
+      @source_code
+    end
+
     def source_code=(v : String)
       @source_code = v
       if !@pointer.null?
@@ -56,26 +63,61 @@ module Lapis
       end
     end
 
-    def script_class_name : String; @script_class_name; end
-    def script_class_name=(v : String); @script_class_name = v; end
+    def script_class_name : String
+      @script_class_name
+    end
 
-    def script_base_type : String; @script_base_type; end
-    def script_base_type=(v : String); @script_base_type = v; end
+    def script_class_name=(v : String)
+      @script_class_name = v
+    end
 
-    def is_tool_script : Bool; @is_tool_script; end
-    def is_tool_script=(v : Bool); @is_tool_script = v; end
+    def script_base_type : String
+      @script_base_type
+    end
 
-    def properties : Array(ScriptProperty); @properties; end
-    def properties=(v : Array(ScriptProperty)); @properties = v; end
+    def script_base_type=(v : String)
+      @script_base_type = v
+    end
 
-    def signals : Array(String); @signals; end
-    def signals=(v : Array(String)); @signals = v; end
+    def is_tool_script : Bool
+      @is_tool_script
+    end
 
-    def methods : Array(String); @methods; end
-    def methods=(v : Array(String)); @methods = v; end
+    def is_tool_script=(v : Bool)
+      @is_tool_script = v
+    end
 
-    def doc_comments : Hash(String, String); @doc_comments; end
-    def doc_comments=(v : Hash(String, String)); @doc_comments = v; end
+    def properties : Array(ScriptProperty)
+      @properties
+    end
+
+    def properties=(v : Array(ScriptProperty))
+      @properties = v
+    end
+
+    def signals : Array(String)
+      @signals
+    end
+
+    def signals=(v : Array(String))
+      @signals = v
+    end
+
+    def methods : Array(String)
+      @methods
+    end
+
+    def methods=(v : Array(String))
+      @methods = v
+    end
+
+    def doc_comments : Hash(String, String)
+      @doc_comments
+    end
+
+    def doc_comments=(v : Hash(String, String))
+      @doc_comments = v
+    end
 
     def initialize(pointer : Void* = Pointer(Void).null)
       super(pointer)

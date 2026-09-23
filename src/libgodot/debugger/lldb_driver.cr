@@ -7,6 +7,7 @@
 
 module Lapis
   include Godot
+
   module Debugger
     enum StopReason
       Breakpoint
@@ -126,7 +127,7 @@ module Lapis
             "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\Llvm\\bin\\lldb.exe",
             "C:\\Program Files\\Microsoft Visual Studio\\2022\\Professional\\VC\\Tools\\Llvm\\bin\\lldb.exe",
             "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\Llvm\\bin\\lldb.exe",
-            "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\Llvm\\bin\\lldb.exe"
+            "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\Llvm\\bin\\lldb.exe",
           ]
           candidates.each do |cand|
             return cand if File.exists?(cand)

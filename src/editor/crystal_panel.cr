@@ -33,8 +33,8 @@ module Lapis
 
     def _ready : Void
       call("set_anchors_preset", 15) # PRESET_FULL_RECT
-      call("set_h_size_flags", 3)     # SIZE_EXPAND_FILL
-      call("set_v_size_flags", 3)     # SIZE_EXPAND_FILL
+      call("set_h_size_flags", 3)    # SIZE_EXPAND_FILL
+      call("set_v_size_flags", 3)    # SIZE_EXPAND_FILL
       call("set_custom_minimum_size", Vector2.new(0_f32, 240_f32))
 
       setup_ui
@@ -600,7 +600,7 @@ module Lapis
         "addons/crystal_integration/bin/lapis.exe", "addons/crystal_integration/bin/lapis",
         "bin/lapis.exe", "bin/lapis",
         "../bin/lapis.exe", "../bin/lapis",
-        "../../bin/lapis.exe", "../../bin/lapis"
+        "../../bin/lapis.exe", "../../bin/lapis",
       ]
       lapis_candidates.find { |p| File.exists?(p) }
     end

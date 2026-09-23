@@ -7,11 +7,11 @@ module LibGodot
     fun libgodot_create_godot_instance = libgodot_create_godot_instance(
       argc : Int32,
       argv : UInt8**,
-      init_func : Void*
+      init_func : Void*,
     ) : GDExtensionObjectPtr
 
     fun libgodot_destroy_godot_instance = libgodot_destroy_godot_instance(
-      godot_instance : GDExtensionObjectPtr
+      godot_instance : GDExtensionObjectPtr,
     ) : Void
   end
 
@@ -62,7 +62,7 @@ module LibGodot
             "bin/libgodot.dll",
             "bin/libgodot.windows.template_debug.x86_64.dll",
             "bin/godot.windows.template_debug.x86_64.dll",
-            "godot-src/bin/godot.windows.template_debug.x86_64.dll"
+            "godot-src/bin/godot.windows.template_debug.x86_64.dll",
           ]
           alternates.each do |alt|
             @handle = Kernel32.LoadLibraryA(alt.to_unsafe)
@@ -84,7 +84,7 @@ module LibGodot
             "bin/libgodot.so",
             "bin/libgodot.linux.template_debug.x86_64.so",
             "bin/godot.linux.template_debug.x86_64.so",
-            "godot-src/bin/godot.linuxbsd.template_debug.x86_64.so"
+            "godot-src/bin/godot.linuxbsd.template_debug.x86_64.so",
           ]
           alternates.each do |alt|
             @handle = LibDl.dlopen(alt.to_unsafe, 2)

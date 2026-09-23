@@ -7,7 +7,7 @@ node MyCrystalNode < Node do
   property my_var : Int32 = 1234
 
   def _ready : Void
-	Godot.print("my_node initialized")
+    Godot.print("my_node initialized")
   end
 
   def _process(delta : Float64) : Void

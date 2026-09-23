@@ -25,7 +25,7 @@ module PerfFramework
       title : String,
       color : Godot::Color,
       max_samples : Int32 = 80,
-      color2 : Godot::Color? = nil
+      color2 : Godot::Color? = nil,
     )
       @color = color
       @color2 = color2
@@ -114,7 +114,7 @@ module PerfFramework
       samples2 : Array(Float64),
       current_text : String,
       min_val : Float64? = nil,
-      max_val : Float64? = nil
+      max_val : Float64? = nil,
     )
       @value_label.call("set_text", current_text)
       @line.clear_points
@@ -313,7 +313,7 @@ module PerfFramework
       @graph_ram = MetricGraphView.new(
         @graphs_box.not_nil!,
         "RAM: Engine / GC",
-        Godot::Color.new(0.2, 0.8, 1.0, 1.0),       # Cyan = Godot Static RAM
+        Godot::Color.new(0.2, 0.8, 1.0, 1.0),        # Cyan = Godot Static RAM
         color2: Godot::Color.new(1.0, 0.4, 0.8, 1.0) # Magenta = Crystal GC Active RAM
       )
 

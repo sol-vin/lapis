@@ -3,12 +3,12 @@ require "../src/lapis"
 puts "=== Verifying LibGodot DLL Loading ==="
 
 lib_name = {% if flag?(:windows) %}
-  "bin/libgodot.dll"
-{% elsif flag?(:darwin) %}
-  "bin/libgodot.dylib"
-{% else %}
-  "bin/libgodot.so"
-{% end %}
+             "bin/libgodot.dll"
+           {% elsif flag?(:darwin) %}
+             "bin/libgodot.dylib"
+           {% else %}
+             "bin/libgodot.so"
+           {% end %}
 
 if !File.exists?(lib_name)
   puts "INFO: #{lib_name} is not present (requires 'make engine' from godot-src or prebuilt binary)."

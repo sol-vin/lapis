@@ -422,4 +422,3 @@ struct Int
     to_i64 == other.value
   end
 end
-

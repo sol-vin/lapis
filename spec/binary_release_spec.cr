@@ -52,7 +52,7 @@ build_args = [
   entry_cr,
   "-o", output_bin,
   "--release",
-  "--link-flags", link_flags
+  "--link-flags", link_flags,
 ]
 
 # Set CRYSTAL_PATH to include src/
@@ -102,7 +102,7 @@ editor_only_symbols = [
   "CrystalHighlighter",
   "CrystalDebuggerPlugin",
   "CrystalPanel",
-  "CrystalLldbSessionTab"
+  "CrystalLldbSessionTab",
 ]
 
 editor_only_symbols.each do |sym|

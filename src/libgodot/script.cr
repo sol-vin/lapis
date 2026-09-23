@@ -25,4 +25,3 @@ alias ScriptIntegration = Lapis::ScriptIntegration
 module Godot
   alias ScriptIntegration = ::Lapis::ScriptIntegration
 end
-

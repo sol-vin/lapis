@@ -51,7 +51,7 @@ module PerfFramework
       target_count : Int32? = nil,
       duration : Float64? = nil,
       infinite : Bool? = nil,
-      cycles : Int32? = nil
+      cycles : Int32? = nil,
     ) : Void
     end
 
@@ -71,7 +71,7 @@ module PerfFramework
     property test_name : String = "StressTest"
     property test_description : String = "Stress test scenario"
     property target_count : Int32 = 5000
-    property target_cycles : Int32 = 0 # 0 = infinite cycles
+    property target_cycles : Int32 = 0        # 0 = infinite cycles
     property finite_duration : Float64 = 15.0 # 0 = infinite duration
     property is_infinite : Bool = false
 
@@ -94,7 +94,7 @@ module PerfFramework
       target_count : Int32? = nil,
       duration : Float64? = nil,
       infinite : Bool? = nil,
-      cycles : Int32? = nil
+      cycles : Int32? = nil,
     ) : Void
       @target_count = target_count if target_count
       @finite_duration = duration if duration

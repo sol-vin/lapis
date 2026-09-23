@@ -132,6 +132,7 @@ module Godot
   # Raised when an operation is attempted on a Godot Object that has been deleted or freed.
   class DisposedObjectError < Exception
     getter instance_id : UInt64
+
     def initialize(@instance_id : UInt64 = 0_u64, msg : String? = nil)
       message = msg || "Attempted to operate on a deleted or freed Godot Object (instance ID: #{@instance_id})"
       super(message)
@@ -140,10 +141,10 @@ module Godot
 
   @[Flags]
   enum ConnectFlags : UInt32
-    None = 0_u32
-    Deferred = 1_u32
-    Persist = 2_u32
-    OneShot = 4_u32
+    None             = 0_u32
+    Deferred         = 1_u32
+    Persist          = 2_u32
+    OneShot          = 4_u32
     ReferenceCounted = 8_u32
   end
 
@@ -160,7 +161,7 @@ module Godot
       @target_id : UInt64,
       @signal_name : String,
       @flags : ConnectFlags = ConnectFlags::None,
-      @callback : Proc(::Array(Variant), Void)? = nil
+      @callback : Proc(::Array(Variant), Void)? = nil,
     )
     end
 
@@ -199,7 +200,7 @@ module Godot
     target_id : UInt64,
     signal_name : String,
     flags : ConnectFlags = ConnectFlags::None,
-    callback : Proc(::Array(Variant), Void)? = nil
+    callback : Proc(::Array(Variant), Void)? = nil,
   ) : SignalSubscription
     sub = SignalSubscription.new(target_id, signal_name, flags, callback)
     key = {target_id, signal_name}
@@ -364,7 +365,7 @@ module Godot
   # Enables first-class signal handling, inspection, connection, emission, and non-blocking `await`.
   #
   # Examples:
-  # ```crystal
+  # ```
   # await(enemy.died)
   # await(enemy.died, timeout_sec: 2.0)
   # enemy.died.await
@@ -1065,7 +1066,6 @@ module Godot
         set_owner(o)
       end
     end
-
 
     # Returns the SceneTree containing this node.
     def get_tree : SceneTree

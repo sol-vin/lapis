@@ -40,10 +40,10 @@ module Lapis
         dir = config_dir
         FileUtils.mkdir_p(dir) unless Dir.exists?(dir)
         cfg = {
-          "version"        => Lapis::VERSION,
-          "libgodot_path"  => libgodot_path.expand.to_s.gsub('\\', '/'),
-          "bin_path"       => bin_path.expand.to_s.gsub('\\', '/'),
-          "installed_at"   => Time.utc.to_s("%Y-%m-%dT%H:%M:%SZ"),
+          "version"       => Lapis::VERSION,
+          "libgodot_path" => libgodot_path.expand.to_s.gsub('\\', '/'),
+          "bin_path"      => bin_path.expand.to_s.gsub('\\', '/'),
+          "installed_at"  => Time.utc.to_s("%Y-%m-%dT%H:%M:%SZ"),
         }
         File.write(config_file, cfg.to_pretty_json)
         Core::Logger.debug("Saved Lapis global config to #{config_file}")
@@ -278,7 +278,7 @@ HELP
             if (local_app_data = ENV["LOCALAPPDATA"]?) && !local_app_data.empty?
               [
                 Path.new(local_app_data).join("Microsoft", "WindowsApps", exe_name),
-                Path.new(local_app_data).join("Programs", "Lapis", "bin", exe_name)
+                Path.new(local_app_data).join("Programs", "Lapis", "bin", exe_name),
               ].each do |alt_bin|
                 if alt_bin != dest_bin && File.exists?(alt_bin)
                   FileUtils.cp(src_bin.to_s, alt_bin.to_s) rescue nil

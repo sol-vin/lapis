@@ -176,14 +176,14 @@ HELP
                   chdir: root.to_s
                 )
                 {% if flag?(:windows) %}
-                if !res[:status].success?
-                  sleep 0.5.seconds
-                  res = Core::ProcessRunner.run_with_capture(
-                    "crystal",
-                    ["run", spec_file],
-                    chdir: root.to_s
-                  )
-                end
+                  if !res[:status].success?
+                    sleep 0.5.seconds
+                    res = Core::ProcessRunner.run_with_capture(
+                      "crystal",
+                      ["run", spec_file],
+                      chdir: root.to_s
+                    )
+                  end
                 {% end %}
                 step_dur = (Time.instant - step_start).total_seconds.round(2)
                 step_summary.add_phase(
@@ -206,10 +206,10 @@ HELP
             if godot_exe
               Core::Logger.step("Test:Editor", "Running In-Editor Tool Tests (Headless Phase 2a/2b)...")
               env = {
-                "CRYSTAL_TOOL_TEST"      => "1",
-                "GODOT_RUN_TOOL_TESTS"   => "1",
-                "GODOT_HEADLESS"         => "1",
-                "LIBGL_ALWAYS_SOFTWARE"  => "1"
+                "CRYSTAL_TOOL_TEST"     => "1",
+                "GODOT_RUN_TOOL_TESTS"  => "1",
+                "GODOT_HEADLESS"        => "1",
+                "LIBGL_ALWAYS_SOFTWARE" => "1",
               }
               clear_markers(test_dir, test_bin_dir)
               step_start = Time.instant

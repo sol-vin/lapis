@@ -44,12 +44,12 @@ module Lapis
 
         # 2. Check global configuration file
         cfg_path = if windows?
-          appdata = ENV["APPDATA"]? || ENV["LOCALAPPDATA"]? || (ENV["USERPROFILE"]? ? File.join(ENV["USERPROFILE"], "AppData", "Roaming") : nil)
-          appdata ? Path.new(appdata).join("lapis", "config.json") : Path.home.join(".config", "lapis", "config.json")
-        else
-          xdg = ENV["XDG_CONFIG_HOME"]?
-          (xdg && !xdg.empty?) ? Path.new(xdg).join("lapis", "config.json") : Path.home.join(".config", "lapis", "config.json")
-        end
+                     appdata = ENV["APPDATA"]? || ENV["LOCALAPPDATA"]? || (ENV["USERPROFILE"]? ? File.join(ENV["USERPROFILE"], "AppData", "Roaming") : nil)
+                     appdata ? Path.new(appdata).join("lapis", "config.json") : Path.home.join(".config", "lapis", "config.json")
+                   else
+                     xdg = ENV["XDG_CONFIG_HOME"]?
+                     (xdg && !xdg.empty?) ? Path.new(xdg).join("lapis", "config.json") : Path.home.join(".config", "lapis", "config.json")
+                   end
 
         if File.exists?(cfg_path)
           begin

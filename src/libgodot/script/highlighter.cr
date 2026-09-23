@@ -1,5 +1,6 @@
 module Lapis
   include Godot
+
   # Represents a single colored span on a line for Godot's CodeEdit
   struct SyntaxSpan
     property column : Int32
@@ -31,19 +32,19 @@ module Lapis
     KEYWORDS_DEF = Set{
       "node", "resource", "gdclass", "class", "module", "struct", "def", "end", "property", "getter",
       "setter", "signal", "alias", "enum", "lib", "fun", "macro", "onready",
-      "abstract_class", "static_unload"
+      "abstract_class", "static_unload",
     }
 
     KEYWORDS_CONTROL = Set{
       "if", "else", "elsif", "unless", "while", "until", "for", "in",
       "case", "when", "then", "return", "break", "next", "yield",
-      "begin", "rescue", "ensure", "raise", "do", "select"
+      "begin", "rescue", "ensure", "raise", "do", "select",
     }
 
     KEYWORDS_SPECIAL = Set{
       "self", "super", "nil", "true", "false", "as", "as?", "is_a?",
       "responds_to?", "sizeof", "instance_sizeof", "typeof", "require",
-      "include", "extend", "spawn"
+      "include", "extend", "spawn",
     }
 
     def self._godot_has_virtual_method(method_name : String) : Bool

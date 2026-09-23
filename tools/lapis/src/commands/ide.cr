@@ -60,10 +60,10 @@ HELP
         parser.parse(args)
 
         target_dir = if (pp = proj_path) && !pp.empty?
-          Path.new(pp).expand
-        else
-          Path.new(Dir.current).expand
-        end
+                       Path.new(pp).expand
+                     else
+                       Path.new(Dir.current).expand
+                     end
 
         case subcmd.downcase
         when "setup"

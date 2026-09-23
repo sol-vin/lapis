@@ -54,7 +54,7 @@ module Lapis
         args : Array(String) = [] of String,
         env : Process::Env = nil,
         chdir : String? = nil,
-        max_lines : Int32 = 80
+        max_lines : Int32 = 80,
       ) : {status: Process::Status, error_excerpt: String?}
         actual_args = args.dup
         is_godot = Path.new(command).basename.downcase.starts_with?("godot")
@@ -104,7 +104,7 @@ module Lapis
         command : String,
         args : Array(String) = [] of String,
         env : Process::Env = nil,
-        chdir : String? = nil
+        chdir : String? = nil,
       ) : Process::Status
         actual_args = args.dup
         is_godot = Path.new(command).basename.downcase.starts_with?("godot")
@@ -141,7 +141,7 @@ module Lapis
         command : String,
         args : Array(String) = [] of String,
         env : Process::Env = nil,
-        chdir : String? = nil
+        chdir : String? = nil,
       ) : {status: Process::Status, output: String, error: String}
         actual_args = args.dup
         is_godot = Path.new(command).basename.downcase.starts_with?("godot")

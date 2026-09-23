@@ -302,7 +302,7 @@ module Godot
 
   # Strongly-typed generic wrapper around `Godot::Channel` for type-safe Crystal gameplay code.
   #
-  # ```crystal
+  # ```
   # channel = Godot::TypedChannel(Godot::Vector3).new(16)
   # channel.send(Godot::Vector3.new(1.0, 2.0, 3.0))
   #
@@ -376,36 +376,36 @@ module Godot
 end
 
 {% unless flag?(:libgodot_addon) %}
-# Register GodotChannel with LibGodot ClassRegistry so Godot discovers it in ClassDB
-::Godot::ClassRegistry.register(
-  ::Godot::ClassRegistry::Entry.new(
-    "GodotChannel",
-    "RefCounted",
-    ->(godot_ptr : Void*) {
-      inst = ::Godot::Channel.new(godot_ptr)
-      inst.as(::Godot::Object)
-    },
-    false, # is_tool
-    false, # has_ready
-    false, # has_process
-    false, # has_physics_process
-    false, # has_enter_tree
-    false, # has_exit_tree
-    false, # has_input
-    false, # has_unhandled_input
-    false, # has_unhandled_key_input
-    false, # has_shortcut_input
-    false, # has_gui_input
-    [
+  # Register GodotChannel with LibGodot ClassRegistry so Godot discovers it in ClassDB
+  ::Godot::ClassRegistry.register(
+    ::Godot::ClassRegistry::Entry.new(
+      "GodotChannel",
+      "RefCounted",
+      ->(godot_ptr : Void*) {
+        inst = ::Godot::Channel.new(godot_ptr)
+        inst.as(::Godot::Object)
+      },
+      false, # is_tool
+      false, # has_ready
+      false, # has_process
+      false, # has_physics_process
+      false, # has_enter_tree
+      false, # has_exit_tree
+      false, # has_input
+      false, # has_unhandled_input
+      false, # has_unhandled_key_input
+      false, # has_shortcut_input
+      false, # has_gui_input
+      [
       ::Godot::PropertyInfo.new("capacity", "Int32", 2, 0_u32, "", 6_u32),
     ],
-    [
-      ::Godot::SignalInfo.new("received", [::Godot::SignalArgInfo.new("value", 4)]),
-      ::Godot::SignalInfo.new("closed", [] of ::Godot::SignalArgInfo),
-    ],
-    "",    # icon_path
-    false, # is_abstract
-    [] of NamedTuple(name: String, rpc_mode: Int32, transfer_mode: Int32, call_local: Bool, channel: Int32)
+      [
+        ::Godot::SignalInfo.new("received", [::Godot::SignalArgInfo.new("value", 4)]),
+        ::Godot::SignalInfo.new("closed", [] of ::Godot::SignalArgInfo),
+      ],
+      "",    # icon_path
+      false, # is_abstract
+      [] of NamedTuple(name: String, rpc_mode: Int32, transfer_mode: Int32, call_local: Bool, channel: Int32)
+    )
   )
-)
 {% end %}

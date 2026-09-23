@@ -37,7 +37,7 @@ module Lapis
         flags : String? = nil,
         release : Bool = false,
         source_path : String? = nil,
-        single_module : Bool? = nil
+        single_module : Bool? = nil,
       ) : Int32
         root = Core::Env::ROOT_DIR
         FileUtils.mkdir_p(output_path.parent) unless Dir.exists?(output_path.parent)
@@ -45,10 +45,10 @@ module Lapis
         check_and_generate_project_bindings(entry_path, root)
 
         src_dir = if sp = source_path
-          Path.new(sp).expand
-        else
-          root.join("src")
-        end
+                    Path.new(sp).expand
+                  else
+                    root.join("src")
+                  end
         base_crystal_path = Core::ProcessRunner.capture("crystal", ["env", "CRYSTAL_PATH"])[:output].strip
         full_crystal_path = "#{src_dir}#{Core::Env.path_sep}#{base_crystal_path}"
 
@@ -88,10 +88,10 @@ module Lapis
         env = {"CRYSTAL_PATH" => full_crystal_path}
 
         working_dir = if entry_path.parent.basename == "src"
-          entry_path.parent.parent
-        else
-          entry_path.parent
-        end
+                        entry_path.parent.parent
+                      else
+                        entry_path.parent
+                      end
 
         Core::Logger.step("Build", "Compiling #{output_path.basename}...")
         status = Core::ProcessRunner.run(
@@ -198,10 +198,10 @@ module Lapis
             bin_dir = ex_dir.join("bin")
             FileUtils.mkdir_p(bin_dir) unless Dir.exists?(bin_dir)
             out_file = if exe
-              bin_dir.join("game#{Core::Env.exe_ext}")
-            else
-              bin_dir.join("game.#{Core::Env.dll_ext}")
-            end
+                         bin_dir.join("game#{Core::Env.exe_ext}")
+                       else
+                         bin_dir.join("game.#{Core::Env.dll_ext}")
+                       end
             link_flags = exe ? nil : Core::Env.link_flags
 
             Core::Logger.step("Examples", "Building #{name} -> #{out_file.basename}...")
@@ -253,16 +253,16 @@ module Lapis
         curr = Path.new(Dir.current).expand
 
         proj_dir = if (pp = proj_path) && !pp.empty?
-          Path.new(pp).expand
-        elsif File.exists?(curr.join("project.godot")) || File.exists?(curr.join("src/main.cr"))
-          curr
-        elsif File.exists?(root.join("project.godot")) || File.exists?(root.join("src/main.cr"))
-          root
-        elsif File.exists?(root.join("template/project.godot"))
-          root.join("template")
-        else
-          curr
-        end
+                     Path.new(pp).expand
+                   elsif File.exists?(curr.join("project.godot")) || File.exists?(curr.join("src/main.cr"))
+                     curr
+                   elsif File.exists?(root.join("project.godot")) || File.exists?(root.join("src/main.cr"))
+                     root
+                   elsif File.exists?(root.join("template/project.godot"))
+                     root.join("template")
+                   else
+                     curr
+                   end
 
         main_cr = proj_dir.join("src/main.cr")
         unless File.exists?(main_cr)
@@ -276,18 +276,18 @@ module Lapis
 
         # Resolve libgodot Crystal source path
         src_dir = if sp = source_path
-          Path.new(sp).expand.to_s
-        elsif Dir.exists?(proj_dir.join("lib/lapis/src"))
-          proj_dir.join("lib/lapis/src").to_s
-        elsif Dir.exists?(proj_dir.join("lib/libgodot/src"))
-          proj_dir.join("lib/libgodot/src").to_s
-        elsif Dir.exists?(root.join("src")) && (File.exists?(root.join("src/libgodot.cr")) || File.exists?(root.join("src/lapis.cr")))
-          root.join("src").to_s
-        elsif (global = Core::Env.global_libgodot_path) && Dir.exists?(global.join("src"))
-          global.join("src").to_s
-        else
-          proj_dir.join("src").to_s
-        end
+                    Path.new(sp).expand.to_s
+                  elsif Dir.exists?(proj_dir.join("lib/lapis/src"))
+                    proj_dir.join("lib/lapis/src").to_s
+                  elsif Dir.exists?(proj_dir.join("lib/libgodot/src"))
+                    proj_dir.join("lib/libgodot/src").to_s
+                  elsif Dir.exists?(root.join("src")) && (File.exists?(root.join("src/libgodot.cr")) || File.exists?(root.join("src/lapis.cr")))
+                    root.join("src").to_s
+                  elsif (global = Core::Env.global_libgodot_path) && Dir.exists?(global.join("src"))
+                    global.join("src").to_s
+                  else
+                    proj_dir.join("src").to_s
+                  end
 
         # If project has shard.yml and lib/ does not exist, and no src_dir found with libgodot.cr/lapis.cr, try shards install
         if File.exists?(proj_dir.join("shard.yml")) && !Dir.exists?(proj_dir.join("lib")) && !File.exists?(Path.new(src_dir).join("libgodot.cr")) && !File.exists?(Path.new(src_dir).join("lapis.cr"))

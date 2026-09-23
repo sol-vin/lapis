@@ -1,5 +1,6 @@
 module Lapis
   include Godot
+
   # Completion proposal item for Godot's built-in CodeEdit popup
   struct CompletionItem
     property kind : String
@@ -162,14 +163,14 @@ module Lapis
         "signal", "alias", "enum", "lib", "fun", "macro", "onready",
         "if", "else", "elsif", "unless", "while", "until", "for", "in", "case", "when",
         "return", "break", "next", "yield", "begin", "rescue", "ensure", "raise", "do",
-        "self", "super", "nil", "true", "false", "await", "spawn", "select"
+        "self", "super", "nil", "true", "false", "await", "spawn", "select",
       ]
     end
 
     def is_control_flow_keyword(kw : String) : Bool
       [
         "if", "else", "elsif", "unless", "while", "until", "for", "in",
-        "case", "when", "return", "break", "next", "yield", "begin", "rescue", "ensure", "raise"
+        "case", "when", "return", "break", "next", "yield", "begin", "rescue", "ensure", "raise",
       ].includes?(kw)
     end
 
@@ -271,14 +272,14 @@ module Lapis
           "signal", "alias", "enum", "lib", "fun", "macro", "onready",
           "if", "else", "elsif", "unless", "while", "until", "for", "in", "case", "when",
           "return", "break", "next", "yield", "begin", "rescue", "ensure", "raise", "do",
-          "self", "super", "nil", "true", "false", "await", "spawn", "select"
+          "self", "super", "nil", "true", "false", "await", "spawn", "select",
         ]
         Bridge.ret_packed_string_array(ret, words)
       when "_is_control_flow_keyword"
         kw = Bridge.arg_to_string(args[0])
         is_ctrl = [
           "if", "else", "elsif", "unless", "while", "until", "for", "in",
-          "case", "when", "return", "break", "next", "yield", "begin", "rescue", "ensure", "raise"
+          "case", "when", "return", "break", "next", "yield", "begin", "rescue", "ensure", "raise",
         ].includes?(kw)
         ret.as(UInt8*).value = is_ctrl ? 1_u8 : 0_u8
       when "_get_comment_delimiters"
@@ -296,10 +297,10 @@ module Lapis
           b_name = "Node" if b_name.empty?
 
           code = if !template.empty?
-            template.gsub("_CLASS_", c_name).gsub("_BASE_", b_name)
-          else
-            "require \"lapis\"\n\n# #{c_name} node\nnode #{c_name} < #{b_name} do\n  def _ready : Void\n    Godot.print(\"#{c_name} initialized\")\n  end\n\n  def _process(delta : Float64) : Void\n  end\nend\n"
-          end
+                   template.gsub("_CLASS_", c_name).gsub("_BASE_", b_name)
+                 else
+                   "require \"lapis\"\n\n# #{c_name} node\nnode #{c_name} < #{b_name} do\n  def _ready : Void\n    Godot.print(\"#{c_name} initialized\")\n  end\n\n  def _process(delta : Float64) : Void\n  end\nend\n"
+                 end
 
           script = Godot.create(Godot::CrystalScript)
           if script && !script.pointer.null?

@@ -15,7 +15,7 @@ module PerfFramework
     def on_setup : Void
       @test_name = "NodeChurnCycle"
       @test_description = "Creates, attaches, mutates, and deletes 250+ nodes every single frame to catch memory creep."
-      
+
       c = Godot.create(Godot::Node2D)
       c.call("set_name", "ChurnContainer")
       add_child(c)

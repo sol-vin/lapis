@@ -18,10 +18,10 @@ require "./libgodot/extensions"
 require "./libgodot/docs"
 require "./libgodot/testing"
 {% unless flag?(:release) || flag?(:libgodot_addon) || flag?(:no_editor) %}
-require "./libgodot/script"
-require "./libgodot/debugger/lldb_driver"
-require "./libgodot/debugger/agent"
-require "./libgodot/editor"
+  require "./libgodot/script"
+  require "./libgodot/debugger/lldb_driver"
+  require "./libgodot/debugger/agent"
+  require "./libgodot/editor"
 {% end %}
 
 module Lapis
@@ -49,7 +49,7 @@ end
 #
 # ### Basic Example
 #
-# ```crystal
+# ```
 # require "libgodot"
 #
 # node Player < CharacterBody3D do
@@ -80,10 +80,10 @@ end
 # end
 # ```
 module Godot
-  VERSION = "0.1.0"
+  VERSION              = "0.1.0"
   TARGET_GODOT_VERSION = {{
-    read_file("#{__DIR__}/../godot-version.yml").split("\n").find(&.includes?("version:")).split(":")[1].gsub(/["'\r\n]/, "").strip
-  }}
+                           read_file("#{__DIR__}/../godot-version.yml").split("\n").find(&.includes?("version:")).split(":")[1].gsub(/["'\r\n]/, "").strip
+                         }}
   {% begin %}
     {%
       shard_content = read_file("#{__DIR__}/../shard.yml")
@@ -144,8 +144,3 @@ alias Quaternion = Godot::Quaternion
 alias Plane = Godot::Plane
 alias AABB = Godot::AABB
 alias Bridge = Godot::Bridge
-
-
-
-
-

@@ -40,16 +40,16 @@ module PerfFramework
             val = Math.sin(task_id.to_f64 * 0.01) * Math.cos(thread_id.to_f64 * 0.05)
             px = ((task_id * 13) % 1100).to_f32 + 50.0_f32
             py = ((task_id * 17) % 400).to_f32 + 250.0_f32
-            
+
             payload = WorkerTaskPayload.new(task_id, px, py, val)
-            
+
             # Non-blocking or bounded channel send
             begin
               @channel.send(payload)
             rescue
               break
             end
-            
+
             # Cooperative thread pause using Thread.sleep (never top-level sleep in Thread.new)
             Crystal::System::Thread.sleep(Time::Span.new(nanoseconds: 200_000)) # 0.2ms
           end

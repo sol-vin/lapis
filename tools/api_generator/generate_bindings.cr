@@ -5,37 +5,37 @@ puts "=== LibGodot Crystal Binding Generator ==="
 puts "Loading extension_api.json..."
 
 api_file = if File.exists?("extension_api.json")
-  "extension_api.json"
-elsif File.exists?("rsrc/extension_api.json")
-  "rsrc/extension_api.json"
-elsif File.exists?(File.join(__DIR__, "..", "..", "rsrc", "extension_api.json"))
-  File.join(__DIR__, "..", "..", "rsrc", "extension_api.json")
-elsif File.exists?(File.join(__DIR__, "..", "..", "extension_api.json"))
-  File.join(__DIR__, "..", "..", "extension_api.json")
-else
-  puts "Error: extension_api.json not found! Run godot.exe --headless --dump-extension-api first."
-  exit 1
-end
+             "extension_api.json"
+           elsif File.exists?("rsrc/extension_api.json")
+             "rsrc/extension_api.json"
+           elsif File.exists?(File.join(__DIR__, "..", "..", "rsrc", "extension_api.json"))
+             File.join(__DIR__, "..", "..", "rsrc", "extension_api.json")
+           elsif File.exists?(File.join(__DIR__, "..", "..", "extension_api.json"))
+             File.join(__DIR__, "..", "..", "extension_api.json")
+           else
+             puts "Error: extension_api.json not found! Run godot.exe --headless --dump-extension-api first."
+             exit 1
+           end
 
 api_json = File.read(api_file)
 api_data = JSON.parse(api_json)
 
 # Load overrides
 overrides_file = if File.exists?("tools/api_generator/overrides.yml")
-  "tools/api_generator/overrides.yml"
-elsif File.exists?(File.join(__DIR__, "overrides.yml"))
-  File.join(__DIR__, "overrides.yml")
-elsif File.exists?("scripts/overrides.yml")
-  "scripts/overrides.yml"
-else
-  nil
-end
+                   "tools/api_generator/overrides.yml"
+                 elsif File.exists?(File.join(__DIR__, "overrides.yml"))
+                   File.join(__DIR__, "overrides.yml")
+                 elsif File.exists?("scripts/overrides.yml")
+                   "scripts/overrides.yml"
+                 else
+                   nil
+                 end
 
 overrides = if overrides_file && File.exists?(overrides_file)
-  YAML.parse(File.read(overrides_file))
-else
-  YAML.parse("{}")
-end
+              YAML.parse(File.read(overrides_file))
+            else
+              YAML.parse("{}")
+            end
 
 keywords = Hash(String, String).new
 if kw = overrides["keywords"]?
@@ -87,10 +87,10 @@ def resolve_type_info(godot_type : String, current_class : String, type_map : Ha
       target_class, target_enum = raw.split(".", 2)
       target_enum = target_enum.gsub(/[^a-zA-Z0-9_]/, "")
       enum_type_name = if target_class == current_class
-        target_enum
-      else
-        "Godot::#{target_class}::#{target_enum}"
-      end
+                         target_enum
+                       else
+                         "Godot::#{target_class}::#{target_enum}"
+                       end
       return {crystal_type: "#{enum_type_name} | Int", is_enum: true, enum_type: enum_type_name}
     else
       enum_name = raw.gsub(/[^a-zA-Z0-9_]/, "")
@@ -118,10 +118,10 @@ def resolve_return_type(godot_type : String, current_class : String, type_map : 
       target_class, target_enum = raw.split(".", 2)
       target_enum = target_enum.gsub(/[^a-zA-Z0-9_]/, "")
       enum_type_name = if target_class == current_class
-        target_enum
-      else
-        "Godot::#{target_class}::#{target_enum}"
-      end
+                         target_enum
+                       else
+                         "Godot::#{target_class}::#{target_enum}"
+                       end
       return {crystal_type: enum_type_name, is_enum: true}
     else
       enum_name = raw.gsub(/[^a-zA-Z0-9_]/, "")
@@ -153,9 +153,9 @@ def resolve_default_value(raw_val : String, crystal_type : String, is_enum : Boo
   case crystal_type
   when "Bool"
     case raw
-    when "true", "1" then "true"
+    when "true", "1"  then "true"
     when "false", "0" then "false"
-    else nil
+    else                   nil
     end
   when "Float64", "Float32"
     if raw.matches?(/\A-?\d+(\.\d+)?(e-?\d+)?\z/i)
@@ -280,7 +280,7 @@ puts "Generating global enums..."
 File.open("src/libgodot/generated/global_enums.cr", "w") do |f|
   f.puts "# Generated Global Enums for Godot 4.8+"
   f.puts "module Godot"
-  
+
   if global_enums = api_data["global_enums"]?
     global_enums.as_a.each do |e|
       raw_enum_name = e["name"].as_s
@@ -295,12 +295,12 @@ File.open("src/libgodot/generated/global_enums.cr", "w") do |f|
         values.as_a.each do |v|
           val_name = v["name"].as_s
           clean_val = if val_name.starts_with?(enum_prefix)
-            val_name[enum_prefix.size..]
-          elsif val_name.starts_with?(alt_prefix)
-            val_name[alt_prefix.size..]
-          else
-            val_name
-          end
+                        val_name[enum_prefix.size..]
+                      elsif val_name.starts_with?(alt_prefix)
+                        val_name[alt_prefix.size..]
+                      else
+                        val_name
+                      end
           parts = clean_val.split('_')
           camel_val = parts.map(&.capitalize).join
           camel_val = "Val#{camel_val}" if camel_val.starts_with?(/[0-9]/)
@@ -397,12 +397,12 @@ end
 manual_methods = Hash(String, Set(String)).new
 ["src/libgodot/object.cr", "src/libgodot.cr"].each do |manual_file|
   path = if File.exists?(manual_file)
-    manual_file
-  elsif File.exists?(File.join(__DIR__, "..", "..", manual_file))
-    File.join(__DIR__, "..", "..", manual_file)
-  else
-    nil
-  end
+           manual_file
+         elsif File.exists?(File.join(__DIR__, "..", "..", manual_file))
+           File.join(__DIR__, "..", "..", manual_file)
+         else
+           nil
+         end
   next unless path && File.exists?(path)
 
   curr_class : String? = nil
@@ -552,39 +552,39 @@ def generate_class_code(io : IO, c : JSON::Any, keywords : Hash(String, String),
       # Prepare arguments using macros
       cleanups = [] of String
       args_expr = if args.empty?
-        "Pointer(Pointer(Void)).null"
-      else
-        args.each_with_index do |a, idx|
-          a_name = arg_names[idx]
-          godot_type = a["type"].as_s
-          if arg_is_enum[idx]
-            io.puts "      val_#{idx} = #{a_name}.is_a?(Int) ? #{a_name}.to_i64 : #{a_name}.value.to_i64"
-            io.puts "      arg_#{idx} = pointerof(val_#{idx}).as(Void*)"
-          elsif class_names.includes?(godot_type) || godot_type.starts_with?("Godot::") || ["Node", "Resource", "SceneTree", "Object", "Mesh"].includes?(godot_type)
-            io.puts "      arg_ptr_#{idx} = #{a_name} ? #{a_name}.pointer : Pointer(Void).null"
-            io.puts "      arg_#{idx} = pointerof(arg_ptr_#{idx}).as(Void*)"
-          elsif godot_type == "String"
-            io.puts "      str_#{idx} = Bridge.make_string(#{a_name})"
-            io.puts "      arg_#{idx} = str_#{idx}"
-            cleanups << "Bridge.free_string(str_#{idx})"
-          elsif godot_type == "StringName"
-            io.puts "      sn_#{idx} = Bridge.make_string_name(#{a_name})"
-            io.puts "      arg_#{idx} = sn_#{idx}"
-            cleanups << "Bridge.free_string_name(sn_#{idx})"
-          elsif godot_type == "NodePath"
-            io.puts "      np_#{idx} = Bridge.make_nodepath(#{a_name}.to_s)"
-            io.puts "      arg_#{idx} = np_#{idx}"
-            cleanups << "Bridge.free_nodepath(np_#{idx})"
-          else
-            io.puts "      val_#{idx} = #{a_name}"
-            io.puts "      arg_#{idx} = pointerof(val_#{idx}).as(Void*)"
-          end
-        end
-        arg_array = (0...args.size).map { |i| "arg_#{i}" }
-        io.puts "      args = [#{arg_array.join(", ")}]"
-        "args.to_unsafe.as(Void**)"
-      end
-      
+                    "Pointer(Pointer(Void)).null"
+                  else
+                    args.each_with_index do |a, idx|
+                      a_name = arg_names[idx]
+                      godot_type = a["type"].as_s
+                      if arg_is_enum[idx]
+                        io.puts "      val_#{idx} = #{a_name}.is_a?(Int) ? #{a_name}.to_i64 : #{a_name}.value.to_i64"
+                        io.puts "      arg_#{idx} = pointerof(val_#{idx}).as(Void*)"
+                      elsif class_names.includes?(godot_type) || godot_type.starts_with?("Godot::") || ["Node", "Resource", "SceneTree", "Object", "Mesh"].includes?(godot_type)
+                        io.puts "      arg_ptr_#{idx} = #{a_name} ? #{a_name}.pointer : Pointer(Void).null"
+                        io.puts "      arg_#{idx} = pointerof(arg_ptr_#{idx}).as(Void*)"
+                      elsif godot_type == "String"
+                        io.puts "      str_#{idx} = Bridge.make_string(#{a_name})"
+                        io.puts "      arg_#{idx} = str_#{idx}"
+                        cleanups << "Bridge.free_string(str_#{idx})"
+                      elsif godot_type == "StringName"
+                        io.puts "      sn_#{idx} = Bridge.make_string_name(#{a_name})"
+                        io.puts "      arg_#{idx} = sn_#{idx}"
+                        cleanups << "Bridge.free_string_name(sn_#{idx})"
+                      elsif godot_type == "NodePath"
+                        io.puts "      np_#{idx} = Bridge.make_nodepath(#{a_name}.to_s)"
+                        io.puts "      arg_#{idx} = np_#{idx}"
+                        cleanups << "Bridge.free_nodepath(np_#{idx})"
+                      else
+                        io.puts "      val_#{idx} = #{a_name}"
+                        io.puts "      arg_#{idx} = pointerof(val_#{idx}).as(Void*)"
+                      end
+                    end
+                    arg_array = (0...args.size).map { |i| "arg_#{i}" }
+                    io.puts "      args = [#{arg_array.join(", ")}]"
+                    "args.to_unsafe.as(Void**)"
+                  end
+
       # Marshalling return value
       if is_ret_enum
         io.puts "      ret = 0_i64"
@@ -697,21 +697,21 @@ def generate_class_code(io : IO, c : JSON::Any, keywords : Hash(String, String),
 
       # Resolve getter
       resolved_getter = if all_method_names.includes?(raw_getter)
-        raw_getter
-      elsif raw_getter.starts_with?("_") && all_method_names.includes?(raw_getter.lstrip('_'))
-        raw_getter.lstrip('_')
-      else
-        nil
-      end
+                          raw_getter
+                        elsif raw_getter.starts_with?("_") && all_method_names.includes?(raw_getter.lstrip('_'))
+                          raw_getter.lstrip('_')
+                        else
+                          nil
+                        end
 
       # Resolve setter
       resolved_setter = if all_method_names.includes?(raw_setter)
-        raw_setter
-      elsif raw_setter.starts_with?("_") && all_method_names.includes?(raw_setter.lstrip('_'))
-        raw_setter.lstrip('_')
-      else
-        nil
-      end
+                          raw_setter
+                        elsif raw_setter.starts_with?("_") && all_method_names.includes?(raw_setter.lstrip('_'))
+                          raw_setter.lstrip('_')
+                        else
+                          nil
+                        end
 
       clean_getter = resolved_getter ? sanitize_name(resolved_getter, keywords) : nil
       clean_setter = resolved_setter ? sanitize_name(resolved_setter, keywords) : nil

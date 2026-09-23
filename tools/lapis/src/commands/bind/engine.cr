@@ -77,10 +77,10 @@ module Lapis
               target_class, target_enum = raw.split(".", 2)
               target_enum = target_enum.gsub(/[^a-zA-Z0-9_]/, "")
               enum_type_name = if target_class == current_class
-                target_enum
-              else
-                "Godot::#{target_class}::#{target_enum}"
-              end
+                                 target_enum
+                               else
+                                 "Godot::#{target_class}::#{target_enum}"
+                               end
               return {crystal_type: "#{enum_type_name} | Int", is_enum: true, enum_type: enum_type_name}
             else
               enum_name = raw.gsub(/[^a-zA-Z0-9_]/, "")
@@ -108,10 +108,10 @@ module Lapis
               target_class, target_enum = raw.split(".", 2)
               target_enum = target_enum.gsub(/[^a-zA-Z0-9_]/, "")
               enum_type_name = if target_class == current_class
-                target_enum
-              else
-                "Godot::#{target_class}::#{target_enum}"
-              end
+                                 target_enum
+                               else
+                                 "Godot::#{target_class}::#{target_enum}"
+                               end
               return {crystal_type: enum_type_name, is_enum: true}
             else
               enum_name = raw.gsub(/[^a-zA-Z0-9_]/, "")
@@ -143,9 +143,9 @@ module Lapis
           case crystal_type
           when "Bool"
             case raw
-            when "true", "1" then "true"
+            when "true", "1"  then "true"
             when "false", "0" then "false"
-            else nil
+            else                   nil
             end
           when "Float64", "Float32"
             if raw.matches?(/\A-?\d+(\.\d+)?(e-?\d+)?\z/i)
@@ -227,7 +227,7 @@ module Lapis
           class_map : Hash(String, JSON::Any),
           inherits_map : Hash(String, String?),
           visited : Set(String),
-          sorted_classes : Array(JSON::Any)
+          sorted_classes : Array(JSON::Any),
         ) : Void
           return if visited.includes?(name)
           visited.add(name)
@@ -248,7 +248,7 @@ module Lapis
           type_map : Hash(String, String),
           class_names : Set(String),
           all_method_names : Set(String),
-          manual_methods : Hash(String, Set(String))
+          manual_methods : Hash(String, Set(String)),
         ) : Void
           name = c["name"].as_s
           parent = c["inherits"]?.try(&.as_s) || "Godot::Object"
@@ -375,38 +375,38 @@ module Lapis
 
               cleanups = [] of String
               args_expr = if args.empty?
-                "Pointer(Pointer(Void)).null"
-              else
-                args.each_with_index do |a, idx|
-                  a_name = arg_names[idx]
-                  godot_type = a["type"].as_s
-                  if arg_is_enum[idx]
-                    io.puts "      val_#{idx} = #{a_name}.is_a?(Int) ? #{a_name}.to_i64 : #{a_name}.value.to_i64"
-                    io.puts "      arg_#{idx} = pointerof(val_#{idx}).as(Void*)"
-                  elsif class_names.includes?(godot_type) || godot_type.starts_with?("Godot::") || ["Node", "Resource", "SceneTree", "Object", "Mesh"].includes?(godot_type)
-                    io.puts "      arg_ptr_#{idx} = #{a_name} ? #{a_name}.pointer : Pointer(Void).null"
-                    io.puts "      arg_#{idx} = pointerof(arg_ptr_#{idx}).as(Void*)"
-                  elsif godot_type == "String"
-                    io.puts "      str_#{idx} = Bridge.make_string(#{a_name})"
-                    io.puts "      arg_#{idx} = str_#{idx}"
-                    cleanups << "Bridge.free_string(str_#{idx})"
-                  elsif godot_type == "StringName"
-                    io.puts "      sn_#{idx} = Bridge.make_string_name(#{a_name})"
-                    io.puts "      arg_#{idx} = sn_#{idx}"
-                    cleanups << "Bridge.free_string_name(sn_#{idx})"
-                  elsif godot_type == "NodePath"
-                    io.puts "      np_#{idx} = Bridge.make_nodepath(#{a_name}.to_s)"
-                    io.puts "      arg_#{idx} = np_#{idx}"
-                    cleanups << "Bridge.free_nodepath(np_#{idx})"
-                  else
-                    io.puts "      val_#{idx} = #{a_name}"
-                    io.puts "      arg_#{idx} = pointerof(val_#{idx}).as(Void*)"
-                  end
-                end
-                arg_array = (0...args.size).map { |i| "arg_#{i}" }
-                io.puts "      args = [#{arg_array.join(", ")}]"
-                "args.to_unsafe.as(Void**)"
-              end
+                            "Pointer(Pointer(Void)).null"
+                          else
+                            args.each_with_index do |a, idx|
+                              a_name = arg_names[idx]
+                              godot_type = a["type"].as_s
+                              if arg_is_enum[idx]
+                                io.puts "      val_#{idx} = #{a_name}.is_a?(Int) ? #{a_name}.to_i64 : #{a_name}.value.to_i64"
+                                io.puts "      arg_#{idx} = pointerof(val_#{idx}).as(Void*)"
+                              elsif class_names.includes?(godot_type) || godot_type.starts_with?("Godot::") || ["Node", "Resource", "SceneTree", "Object", "Mesh"].includes?(godot_type)
+                                io.puts "      arg_ptr_#{idx} = #{a_name} ? #{a_name}.pointer : Pointer(Void).null"
+                                io.puts "      arg_#{idx} = pointerof(arg_ptr_#{idx}).as(Void*)"
+                              elsif godot_type == "String"
+                                io.puts "      str_#{idx} = Bridge.make_string(#{a_name})"
+                                io.puts "      arg_#{idx} = str_#{idx}"
+                                cleanups << "Bridge.free_string(str_#{idx})"
+                              elsif godot_type == "StringName"
+                                io.puts "      sn_#{idx} = Bridge.make_string_name(#{a_name})"
+                                io.puts "      arg_#{idx} = sn_#{idx}"
+                                cleanups << "Bridge.free_string_name(sn_#{idx})"
+                              elsif godot_type == "NodePath"
+                                io.puts "      np_#{idx} = Bridge.make_nodepath(#{a_name}.to_s)"
+                                io.puts "      arg_#{idx} = np_#{idx}"
+                                cleanups << "Bridge.free_nodepath(np_#{idx})"
+                              else
+                                io.puts "      val_#{idx} = #{a_name}"
+                                io.puts "      arg_#{idx} = pointerof(val_#{idx}).as(Void*)"
+                              end
+                            end
+                            arg_array = (0...args.size).map { |i| "arg_#{i}" }
+                            io.puts "      args = [#{arg_array.join(", ")}]"
+                            "args.to_unsafe.as(Void**)"
+                          end
 
               if is_ret_enum
                 io.puts "      ret = 0_i64"
@@ -515,20 +515,20 @@ module Lapis
               index_val = has_index ? "#{index}_i64" : ""
 
               resolved_getter = if all_method_names.includes?(raw_getter)
-                raw_getter
-              elsif raw_getter.starts_with?("_") && all_method_names.includes?(raw_getter.lstrip('_'))
-                raw_getter.lstrip('_')
-              else
-                nil
-              end
+                                  raw_getter
+                                elsif raw_getter.starts_with?("_") && all_method_names.includes?(raw_getter.lstrip('_'))
+                                  raw_getter.lstrip('_')
+                                else
+                                  nil
+                                end
 
               resolved_setter = if all_method_names.includes?(raw_setter)
-                raw_setter
-              elsif raw_setter.starts_with?("_") && all_method_names.includes?(raw_setter.lstrip('_'))
-                raw_setter.lstrip('_')
-              else
-                nil
-              end
+                                  raw_setter
+                                elsif raw_setter.starts_with?("_") && all_method_names.includes?(raw_setter.lstrip('_'))
+                                  raw_setter.lstrip('_')
+                                else
+                                  nil
+                                end
 
               clean_getter = resolved_getter ? sanitize_name(resolved_getter, keywords) : nil
               clean_setter = resolved_setter ? sanitize_name(resolved_setter, keywords) : nil
@@ -623,7 +623,7 @@ module Lapis
           api_path : Path? = nil,
           output_dir : Path? = nil,
           overrides_path : Path? = nil,
-          dump_api : Bool = false
+          dump_api : Bool = false,
         ) : Int32
           root = Core::Env::ROOT_DIR
 
@@ -672,10 +672,10 @@ module Lapis
           ].find { |p| File.exists?(p) }
 
           overrides = if ov_file && File.exists?(ov_file)
-            YAML.parse(File.read(ov_file))
-          else
-            YAML.parse("{}")
-          end
+                        YAML.parse(File.read(ov_file))
+                      else
+                        YAML.parse("{}")
+                      end
 
           keywords = Hash(String, String).new
           if kw = overrides["keywords"]?
@@ -709,12 +709,12 @@ module Lapis
                   values.as_a.each do |v|
                     val_name = v["name"].as_s
                     clean_val = if val_name.starts_with?(enum_prefix)
-                      val_name[enum_prefix.size..]
-                    elsif val_name.starts_with?(alt_prefix)
-                      val_name[alt_prefix.size..]
-                    else
-                      val_name
-                    end
+                                  val_name[enum_prefix.size..]
+                                elsif val_name.starts_with?(alt_prefix)
+                                  val_name[alt_prefix.size..]
+                                else
+                                  val_name
+                                end
                     parts = clean_val.split('_')
                     camel_val = parts.map(&.capitalize).join
                     camel_val = "Val#{camel_val}" if camel_val.starts_with?(/[0-9]/)

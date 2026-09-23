@@ -5,25 +5,25 @@
 require "lapis"
 
 {% if flag?(:windows) %}
-@[Link("kernel32")]
-@[Link("psapi")]
-lib LibPsapi
-  struct PROCESS_MEMORY_COUNTERS
-    cb : UInt32
-    page_fault_count : UInt32
-    peak_working_set_size : LibC::SizeT
-    working_set_size : LibC::SizeT
-    quota_peak_paged_pool_usage : LibC::SizeT
-    quota_paged_pool_usage : LibC::SizeT
-    quota_peak_non_paged_pool_usage : LibC::SizeT
-    quota_non_paged_pool_usage : LibC::SizeT
-    pagefile_usage : LibC::SizeT
-    peak_pagefile_usage : LibC::SizeT
-  end
+  @[Link("kernel32")]
+  @[Link("psapi")]
+  lib LibPsapi
+    struct PROCESS_MEMORY_COUNTERS
+      cb : UInt32
+      page_fault_count : UInt32
+      peak_working_set_size : LibC::SizeT
+      working_set_size : LibC::SizeT
+      quota_peak_paged_pool_usage : LibC::SizeT
+      quota_paged_pool_usage : LibC::SizeT
+      quota_peak_non_paged_pool_usage : LibC::SizeT
+      quota_non_paged_pool_usage : LibC::SizeT
+      pagefile_usage : LibC::SizeT
+      peak_pagefile_usage : LibC::SizeT
+    end
 
-  fun GetCurrentProcess : Void*
-  fun GetProcessMemoryInfo(hProcess : Void*, ppsmps : PROCESS_MEMORY_COUNTERS*, cb : UInt32) : LibC::BOOL
-end
+    fun GetCurrentProcess : Void*
+    fun GetProcessMemoryInfo(hProcess : Void*, ppsmps : PROCESS_MEMORY_COUNTERS*, cb : UInt32) : LibC::BOOL
+  end
 {% end %}
 
 module PerfFramework
@@ -63,7 +63,7 @@ module PerfFramework
       @node_count : Int64 = 0_i64,
       @orphan_count : Int64 = 0_i64,
       @resource_count : Int64 = 0_i64,
-      @timestamp_sec : Float64 = 0.0
+      @timestamp_sec : Float64 = 0.0,
     )
     end
   end
@@ -88,14 +88,14 @@ module PerfFramework
       perf = Godot.performance
 
       # Godot built-in performance monitors
-      fps = perf.get_monitor(0_i64)               # TimeFps
-      time_process = perf.get_monitor(1_i64)      # TimeProcess
-      time_physics = perf.get_monitor(2_i64)      # TimePhysicsProcess
-      mem_static = perf.get_monitor(4_i64)        # MemoryStatic
-      mem_peak = perf.get_monitor(5_i64)          # MemoryStaticMax
-      obj_count = perf.get_monitor(7_i64).to_i64  # ObjectCount
-      res_count = perf.get_monitor(8_i64).to_i64  # ObjectResourceCount
-      node_count = perf.get_monitor(9_i64).to_i64 # ObjectNodeCount
+      fps = perf.get_monitor(0_i64)                  # TimeFps
+      time_process = perf.get_monitor(1_i64)         # TimeProcess
+      time_physics = perf.get_monitor(2_i64)         # TimePhysicsProcess
+      mem_static = perf.get_monitor(4_i64)           # MemoryStatic
+      mem_peak = perf.get_monitor(5_i64)             # MemoryStaticMax
+      obj_count = perf.get_monitor(7_i64).to_i64     # ObjectCount
+      res_count = perf.get_monitor(8_i64).to_i64     # ObjectResourceCount
+      node_count = perf.get_monitor(9_i64).to_i64    # ObjectNodeCount
       orphan_count = perf.get_monitor(10_i64).to_i64 # ObjectOrphanNodeCount
 
       # Crystal Boehm GC heap metrics
@@ -124,15 +124,15 @@ module PerfFramework
       os_commit_mb = 0.0_f64
 
       {% if flag?(:windows) %}
-      begin
-        counters = LibPsapi::PROCESS_MEMORY_COUNTERS.new
-        counters.cb = sizeof(LibPsapi::PROCESS_MEMORY_COUNTERS).to_u32
-        if LibPsapi.GetProcessMemoryInfo(LibPsapi.GetCurrentProcess, pointerof(counters), counters.cb) != 0
-          os_ws_mb = counters.working_set_size.to_f64 / (1024.0 * 1024.0)
-          os_commit_mb = counters.pagefile_usage.to_f64 / (1024.0 * 1024.0)
+        begin
+          counters = LibPsapi::PROCESS_MEMORY_COUNTERS.new
+          counters.cb = sizeof(LibPsapi::PROCESS_MEMORY_COUNTERS).to_u32
+          if LibPsapi.GetProcessMemoryInfo(LibPsapi.GetCurrentProcess, pointerof(counters), counters.cb) != 0
+            os_ws_mb = counters.working_set_size.to_f64 / (1024.0 * 1024.0)
+            os_commit_mb = counters.pagefile_usage.to_f64 / (1024.0 * 1024.0)
+          end
+        rescue
         end
-      rescue
-      end
       {% end %}
 
       now_sec = (Time.instant - @start_time).total_seconds

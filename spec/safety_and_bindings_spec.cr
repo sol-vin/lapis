@@ -255,4 +255,3 @@ abort "Failed: null_shape.get_collider? should be nil" unless null_shape.get_col
 puts "  ✓ Engine identity equality (==), hashing, and null safety verified!"
 
 puts "All safety, memory, and dynamic binding specifications passed cleanly!"
-

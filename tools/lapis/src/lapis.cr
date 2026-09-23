@@ -22,7 +22,7 @@ module Lapis
   ALL_COMMANDS = [
     "dirs", "deps", "sync", "build", "bind", "generate", "clean",
     "test", "editor", "run", "setup", "doctor", "init", "ide",
-    "scaffold", "new", "package", "docs", "version", "install", "uninstall", "completion"
+    "scaffold", "new", "package", "docs", "version", "install", "uninstall", "completion",
   ]
 
   def self.levenshtein_distance(str1 : String, str2 : String) : Int32
@@ -37,11 +37,11 @@ module Lapis
       (1..n).each do |j|
         cost = (s1[i - 1] == s2[j - 1]) ? 0 : 1
         d[i][j] = Math.min(
-          d[i - 1][j] + 1,      # deletion
+          d[i - 1][j] + 1, # deletion
           Math.min(
-            d[i][j - 1] + 1,    # insertion
-            d[i - 1][j - 1] + cost # substitution
-          )
+          d[i][j - 1] + 1,       # insertion
+          d[i - 1][j - 1] + cost # substitution
+        )
         )
       end
     end

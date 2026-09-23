@@ -66,4 +66,3 @@ test_tween "AnimationPlayer, AnimationLibrary and programmatic track authoring" 
 
   anim_player.destroy
 end
-

@@ -226,4 +226,3 @@ test_resources "Passing custom Resource to GDScript, verifying properties, and m
   item.call("take_over_path", "")
   item.destroy
 end
-

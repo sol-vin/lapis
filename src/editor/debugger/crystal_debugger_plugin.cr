@@ -25,7 +25,7 @@ module Godot
     def initialize(pointer : Void* = Pointer(Void).null)
       super(pointer)
       @@instance = self
-      cleanup_proc = ->{
+      cleanup_proc = -> {
         if inst = @@instance
           inst.cleanup rescue nil
         end
@@ -211,4 +211,3 @@ module Godot
     end
   end
 end
-

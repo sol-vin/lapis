@@ -16,7 +16,7 @@ module PerfFramework
     def on_setup : Void
       @test_name = "NodeDeleteBurst"
       @test_description = "Spawns 10,000+ nodes and tears them down in bulk to test deallocation throughput and GC reclamation."
-      
+
       c = Godot.create(Godot::Node2D)
       c.call("set_name", "DeleteContainer")
       add_child(c)

@@ -11,9 +11,8 @@ node DemoScene do
   end
 end
 
-
 node ModifierNode < Node3D do
   def _ready
-    self.get_parent().get_node("RunMe").call_deferred("imma_print")
+    self.get_parent.get_node("RunMe").call_deferred("imma_print")
   end
 end

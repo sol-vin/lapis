@@ -12,6 +12,7 @@
 
 module Lapis
   include Godot
+
   module EditorScriptCreation
     ID_CRYSTAL_SCRIPT = 889901_i64
     ID_SCENE_ATTACH   = 889902_i64
@@ -29,14 +30,14 @@ module Lapis
       "RigidBody3D",
       "RigidBody2D",
       "Resource",
-      "RefCounted"
+      "RefCounted",
     ]
 
     TEMPLATES = [
       "Standard Node (_ready & _process)",
       "Physics Movement (CharacterBody)",
       "Tool Script (@[Tool] In-Editor Execution)",
-      "Empty Class"
+      "Empty Class",
     ]
 
     @@dialog : ConfirmationDialog? = nil
@@ -199,12 +200,12 @@ module Lapis
           if args && args.size > 0 && (args[0].as_i64 rescue -1_i64) == ID_CRYSTAL_SCRIPT
             current_path = fs_dock.call_str("get_current_path") rescue ""
             current_dir = if current_path.empty? || current_path == "res://"
-              "res://src"
-            elsif Dir.exists?(current_path.sub("res://", ""))
-              current_path
-            else
-              File.dirname(current_path)
-            end
+                            "res://src"
+                          elsif Dir.exists?(current_path.sub("res://", ""))
+                            current_path
+                          else
+                            File.dirname(current_path)
+                          end
             show_dialog(initial_path: current_dir)
           end
         end
@@ -248,12 +249,12 @@ module Lapis
           if args && args.size > 0 && (args[0].as_i64 rescue -1_i64) == ID_CRYSTAL_SCRIPT
             current_path = fs_dock.call_str("get_current_path") rescue ""
             current_dir = if current_path.empty? || current_path == "res://"
-              "res://src"
-            elsif Dir.exists?(current_path.sub("res://", ""))
-              current_path
-            else
-              File.dirname(current_path)
-            end
+                            "res://src"
+                          elsif Dir.exists?(current_path.sub("res://", ""))
+                            current_path
+                          else
+                            File.dirname(current_path)
+                          end
             show_dialog(initial_path: current_dir)
           end
         end
@@ -360,12 +361,12 @@ module Lapis
             fs_dock = ed_iface.get_file_system_dock
             current_path = fs_dock.call_str("get_current_path") rescue ""
             current_dir = if current_path.empty? || current_path == "res://"
-              "res://src"
-            elsif Dir.exists?(current_path.sub("res://", ""))
-              current_path
-            else
-              File.dirname(current_path)
-            end
+                            "res://src"
+                          elsif Dir.exists?(current_path.sub("res://", ""))
+                            current_path
+                          else
+                            File.dirname(current_path)
+                          end
 
             # Present our dedicated, native CrystalScriptCreateDialog
             show_dialog(initial_path: current_dir)
@@ -408,10 +409,10 @@ module Lapis
           # Prune any out-of-bounds surplus items beyond actual registered script languages
           engine_ptr = Bridge.get_singleton("Engine")
           max_lang_count = if !engine_ptr.null?
-            Godot::Engine.new(engine_ptr).get_script_language_count rescue 2_i64
-          else
-            2_i64
-          end
+                             Godot::Engine.new(engine_ptr).get_script_language_count rescue 2_i64
+                           else
+                             2_i64
+                           end
           max_lang_count = 2_i64 if max_lang_count < 2_i64
 
           cur_count = opt.call_i64("get_item_count") rescue 0_i64
@@ -423,10 +424,10 @@ module Lapis
           # If index 1 exists in the underlying popup, ensure its label is "Crystal" and its icon is our Crystal logo
           popup_obj = opt.call_obj("get_popup") rescue nil
           pop_count = if popup_obj && !popup_obj.pointer.null?
-            popup_obj.call_i64("get_item_count") rescue 0_i64
-          else
-            0_i64
-          end
+                        popup_obj.call_i64("get_item_count") rescue 0_i64
+                      else
+                        0_i64
+                      end
 
           if cur_count >= 2_i64 && pop_count >= 2_i64
             opt.call("set_item_text", 1_i64, "Crystal") rescue nil
@@ -539,11 +540,11 @@ module Lapis
       final_name = "NewNode" if final_name.empty?
       final_base = "Node" if final_base.empty?
       final_dir = if initial_path.strip.empty? || initial_path.strip == "." || initial_path.strip == "./" || initial_path.strip == "res://" || initial_path.strip == "res://."
-        "res://src"
-      else
-        p = initial_path.strip.rstrip('/')
-        p.starts_with?("res://") ? p : "res://#{p.sub(/^\.\//, "")}"
-      end
+                    "res://src"
+                  else
+                    p = initial_path.strip.rstrip('/')
+                    p.starts_with?("res://") ? p : "res://#{p.sub(/^\.\//, "")}"
+                  end
       final_file = "#{final_dir}/#{to_snake_case(final_name)}.cr"
 
       if dlg = @@dialog
@@ -682,10 +683,10 @@ module Lapis
           main_content = File.read(main_cr_path)
           unless main_content.includes?(%(require "./**"))
             updated_content = if main_content.includes?(%(require "lapis"))
-              main_content.sub(%(require "lapis"), %(require "lapis"\nrequire "./**"))
-            else
-              %(require "./**"\n) + main_content
-            end
+                                main_content.sub(%(require "lapis"), %(require "lapis"\nrequire "./**"))
+                              else
+                                %(require "./**"\n) + main_content
+                              end
             File.write(main_cr_path, updated_content)
             Godot.print("[CrystalIntegration] Updated src/main.cr to automatically include all project scripts via require \"./**\"")
           end

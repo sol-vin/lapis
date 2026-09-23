@@ -114,17 +114,17 @@ module PerfFramework
 
     def build_menu : Void
       # Dock below HUD (HUD occupies top ~195px), stretching to fill the remaining window
-      set_anchors_preset(15_i64, false) # PRESET_FULL_RECT
+      set_anchors_preset(15_i64, false)    # PRESET_FULL_RECT
       set_anchor(0_i64, 0.0, false, false) # Left
       set_anchor(1_i64, 0.0, false, false) # Top
       set_anchor(2_i64, 1.0, false, false) # Right
       set_anchor(3_i64, 1.0, false, false) # Bottom
-      set_offset(0_i64, 16.0)  # Left margin
-      set_offset(1_i64, 208.0) # Top offset (below HUD)
-      set_offset(2_i64, -16.0) # Right margin
-      set_offset(3_i64, -12.0) # Bottom margin
-      set_h_size_flags(3_i64) # SIZE_EXPAND_FILL
-      set_v_size_flags(3_i64) # SIZE_EXPAND_FILL
+      set_offset(0_i64, 16.0)              # Left margin
+      set_offset(1_i64, 208.0)             # Top offset (below HUD)
+      set_offset(2_i64, -16.0)             # Right margin
+      set_offset(3_i64, -12.0)             # Bottom margin
+      set_h_size_flags(3_i64)              # SIZE_EXPAND_FILL
+      set_v_size_flags(3_i64)              # SIZE_EXPAND_FILL
 
       root_vbox = Godot.create(Godot::VBoxContainer)
       root_vbox.set_anchors_preset(15_i64, false)
@@ -248,8 +248,8 @@ module PerfFramework
       # 3. Responsive ScrollContainer with Vertical Scrollbar
       # -------------------------------------------------------------------------
       scroll = Godot.create(Godot::ScrollContainer)
-      scroll.set_h_size_flags(3_i64) # SIZE_EXPAND_FILL
-      scroll.set_v_size_flags(3_i64) # SIZE_EXPAND_FILL
+      scroll.set_h_size_flags(3_i64)                   # SIZE_EXPAND_FILL
+      scroll.set_v_size_flags(3_i64)                   # SIZE_EXPAND_FILL
       scroll.call("set_horizontal_scroll_mode", 0_i64) # ScrollMode::DISABLED
       scroll.call("set_vertical_scroll_mode", 2_i64)   # ScrollMode::SHOW_ALWAYS
       root_vbox.add_child(scroll)
