@@ -75,6 +75,35 @@ end
     assert_eq server_driver.breakpoints[1].file, "src/server_sync.cr"
     assert_eq client_driver.breakpoints[1].file, "src/client_prediction.cr"
   end
+
+  test_debugger "LLDB driver handles streaming split stop lines and backtrace" do
+    driver = Godot::Debugger::LldbDriver.new
+    stopped_info : Godot::Debugger::StopInfo? = nil
+    driver.on_stop = ->(info : Godot::Debugger::StopInfo) {
+      stopped_info = info
+    }
+
+    driver.process_line("* thread #1, stop reason = breakpoint 1.1")
+    assert_nil stopped_info, "Pending stop event waits for frame line"
+
+    driver.process_line("    frame #0: 0x00007ff812345678 game.dll`Main#_ready at C:\\game\\src\\main.cr:25:3")
+    assert_not_nil stopped_info, "Stop info populated once frame line arrives"
+    if info = stopped_info
+      assert_eq info.reason, Godot::Debugger::StopReason::Breakpoint
+      assert_not_nil info.frame
+      if f = info.frame
+        assert_eq f.line, 25
+        assert_eq f.file, "C:/game/src/main.cr"
+      end
+    end
+  end
+
+  test_debugger "Godot.breakpoint helper executes cleanly" do
+    # When no debugger is actively attached, breakpoint(can_continue: true) returns without aborting
+    Godot.breakpoint(can_continue: true)
+    Godot::Debugger::Agent.breakpoint(can_continue: true)
+    assert_true true, "Godot.breakpoint executed safely"
+  end
 {% end %}
 
 test_debugger "Multiplayer lockstep signal routing logic" do

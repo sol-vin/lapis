@@ -53,7 +53,11 @@ module Lapis
         full_crystal_path = "#{src_dir}#{Core::Env.path_sep}#{base_crystal_path}"
 
         cmd_args = ["build", entry_path.to_s, "-o", output_path.to_s]
-        cmd_args << "--release" if release
+        if release
+          cmd_args << "--release"
+        else
+          cmd_args << "--debug"
+        end
 
         # Determine whether to use --single-module:
         # 1. If explicitly specified, respect that choice.
@@ -318,6 +322,17 @@ module Lapis
         # Ensure runtime dependencies & bridge are synced into bin
         Deps.run(["-t", bin_dir.to_s])
         Sync.run(["-t", bin_dir.to_s, "--bins-only"])
+
+        # If project has addons/crystal_integration/bin, sync game binary & PDB there as well
+        addon_bin = proj_dir.join("addons/crystal_integration/bin")
+        if Dir.exists?(addon_bin)
+          Commands::Deps.safe_copy(output_lib, addon_bin.join(output_lib.basename))
+          if Core::Env.windows?
+            src_pdb = Path.new(output_lib.to_s.sub(/\.dll$/, ".pdb"))
+            dst_pdb = addon_bin.join(output_lib.basename.to_s.sub(/\.dll$/, ".pdb"))
+            Commands::Deps.safe_copy(src_pdb, dst_pdb) if File.exists?(src_pdb)
+          end
+        end
 
         Core::Logger.success("Game library compiled and synced: #{output_lib.basename}")
         0

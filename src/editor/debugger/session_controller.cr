@@ -148,12 +148,10 @@ module Godot
 
       if !Godot::EditorInterface.singleton_ptr.null?
         ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
-        se = ed_iface.get_script_editor
-        if !se.pointer.null?
-          res = Godot.load(res_path, "Script")
-          if res && !res.pointer.null?
-            se.call("goto_line", frame.line - 1)
-          end
+        res = Godot.load(res_path, "Script")
+        if res && !res.pointer.null?
+          target_line = (frame.line > 0 ? frame.line - 1 : 0).to_i64
+          ed_iface.edit_script(Godot::Script.new(res.pointer), target_line, 0_i64, true)
         end
       end
     rescue
@@ -178,6 +176,10 @@ module Godot
             cb.call(@session_id, true)
           end
         end
+      }
+
+      @driver.on_backtrace = ->(frames : Array(Debugger::StackFrame)) {
+        @tab.try(&.update_stack_frames(frames))
       }
 
       @driver.on_continue = -> {

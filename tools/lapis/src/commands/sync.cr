@@ -234,6 +234,13 @@ HELP
               safe_copy(src_game, dst_game)
               dst_bin_game = proj_dir.join("bin/addons/crystal_integration/bin", game_file)
               safe_copy(src_game, dst_bin_game)
+              if Core::Env.windows?
+                src_pdb = proj_dir.join("bin", "game.pdb")
+                if File.exists?(src_pdb)
+                  safe_copy(src_pdb, proj_dir.join("addons/crystal_integration/bin", "game.pdb"))
+                  safe_copy(src_pdb, proj_dir.join("bin/addons/crystal_integration/bin", "game.pdb"))
+                end
+              end
             end
           end
 

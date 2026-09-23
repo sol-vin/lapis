@@ -198,6 +198,34 @@ HELP
                 )
               end
             end
+
+            # Phase 1d: Debugger & Crash Handler Specifications
+            debugger_specs = [
+              "spec/crash_handler_spec.cr",
+              "spec/lldb_driver_spec.cr",
+              "spec/debugger_breakpoints_spec.cr",
+              "spec/lldb_integration_spec.cr",
+            ]
+            active_dbg_specs = debugger_specs.select { |f| File.exists?(root.join(f)) }
+            if active_dbg_specs.any?
+              Core::Logger.step("Test:Specs:Debugger", "Running Phase 1d: Debugger and crash handler specifications...")
+              step_start = Time.instant
+              res = Core::ProcessRunner.run_with_capture(
+                "crystal",
+                ["spec"] + active_dbg_specs,
+                chdir: root.to_s
+              )
+              step_dur = (Time.instant - step_start).total_seconds.round(2)
+              step_summary.add_phase(
+                tag: "[TEST:SPECS:DEBUGGER]",
+                name: "Debugger & Crash Handler Specifications",
+                category: "Spec",
+                success: res[:status].success?,
+                duration: step_dur,
+                exit_code: safe_exit_code(res[:status]),
+                error_excerpt: res[:error_excerpt]
+              )
+            end
           end
 
           # -----------------------------------------------------------------------

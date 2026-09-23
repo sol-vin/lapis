@@ -60,7 +60,7 @@ HELP
         dest_expanded = dst_dir.expand.to_s.gsub('\\', '/')
         root_expanded = root.expand.to_s.gsub('\\', '/')
 
-        if local_dep || (Core::Env.is_libgodot_repo?(root) && dest_expanded.starts_with?("#{root_expanded}/examples"))
+        if local_dep || (Core::Env.is_libgodot_repo?(root) && (dest_expanded.starts_with?("#{root_expanded}/examples") || dest_expanded.starts_with?("#{root_expanded}/bin/test")))
           rel_root = Path.new(root).relative_to(dst_dir).to_s.gsub('\\', '/')
           rel_root = "./#{rel_root}" unless rel_root.starts_with?(".")
           dep_str = "  lapis:\n    path: #{rel_root}"

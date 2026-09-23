@@ -90,7 +90,7 @@ PLUGIN_DLL       = $(PLUGIN_LIB)
 GAME_DLL         = $(GAME_LIB)
 LIBGODOT_DLL     = $(LIBGODOT_LIB)
 
-.PHONY: all lapis install uninstall bridge plugin test_project test_standalone package_tests package-tests package_lapis package-lapis package_deb package-deb package_template package-template package_template_addon package-template-addon package_examples package-examples package_addon package-addon package_all package-all package_release package-release package_perf package-perf package_game package-game new_addon new-addon new_example new-example setup_dev setup-dev run_editor run-editor run_test run-test run_ci_local run-ci-local ci-local ci export_templates export-templates recompile_addons recompile-addons verify_editor verify-editor test_wsl test-wsl report_android report-android examples examples_exe template template_addon perf perf_standalone perf_run perf_editor game_dll game_exe android package_android generate dump_api project_bindings deps addons sync engine spec spec_cli spec-cli test_cli test-cli test tests docs run editor clean help
+.PHONY: all lapis install uninstall bridge plugin test_project test_standalone package_installer package-installer windows_installer windows-installer installer package_tests package-tests package_lapis package-lapis package_deb package-deb package_template package-template package_template_addon package-template-addon package_examples package-examples package_addon package-addon package_all package-all package_release package-release package_perf package-perf package_game package-game new_addon new-addon new_example new-example setup_dev setup-dev run_editor run-editor run_test run-test run_ci_local run-ci-local ci-local ci export_templates export-templates recompile_addons recompile-addons verify_editor verify-editor test_wsl test-wsl report_android report-android examples examples_exe template template_addon perf perf_standalone perf_run perf_editor game_dll game_exe android package_android generate dump_api project_bindings deps addons sync engine spec spec_cli spec-cli test_cli test-cli test tests debug debug_editor debug-editor docs run editor clean help
 
 # Compile Lapis CLI toolchain if not present or source changed
 $(LAPIS): $(wildcard tools/lapis/src/**/*.cr) $(wildcard tools/lapis/src/*.cr) $(wildcard tools/lapis/*.yml) $(wildcard template/**/*) $(wildcard template-addon/**/*) $(wildcard addons/crystal_integration/*) shard.yml godot-version.yml
@@ -111,8 +111,8 @@ install: $(LAPIS)
 uninstall: $(LAPIS)
 	@$(LAPIS) install --uninstall $(if $(INSTALL_DIR),--dir "$(INSTALL_DIR)",) $(if $(PREFIX),--prefix "$(PREFIX)",)
 
-# Default target: compile bridge, plugin, test project, standalone runner, examples, template, template_addon, perf, sync DLLs, and run test suite
-all: dirs deps bridge plugin addons dummy_addons test_project test_standalone examples template template_addon perf perf_standalone sync test
+# Default target: compile bridge, plugin, test project, standalone runner, examples, template, template_addon, perf, sync DLLs, run test suite, and Windows installer
+all: dirs deps bridge plugin addons dummy_addons test_project test_standalone examples template template_addon perf perf_standalone sync test $(if $(filter windows,$(PLATFORM)),$(if $(filter 1,$(SKIP_INSTALLER)),,package_installer),)
 	@echo ===================================================================
 	@echo   LibGodot Crystal library build completed successfully!
 	@echo   Run 'make run' to launch test runner or 'make editor' for editor.
@@ -233,7 +233,7 @@ else
 endif
 
 # Package Windows Inno Setup installer executable (.exe)
-package_installer package-installer: $(LAPIS)
+package_installer package-installer windows_installer windows-installer installer: $(LAPIS)
 ifneq ($(PLATFORM),windows)
 	@echo Error: Windows installer (.exe) can only be built on Windows (current platform: $(PLATFORM)).
 	@exit 1
@@ -372,6 +372,16 @@ editor:
 # Unified Godot editor launcher with shadow logging, auto-quit, and LLDB flags
 run_editor run-editor:
 	@$(LAPIS) editor -p "$(or $(PROJECT),$(PATH),test)" $(if $(or $(QUIT),$(QUIT_AFTER)),--quit-after $(or $(QUIT),$(QUIT_AFTER)),)
+
+# Run project under LLDB debugger
+debug:
+	@echo Launching Crystal LibGodot under LLDB Debugger...
+	@$(LAPIS) editor -r -p "$(or $(PROJECT),$(PATH),test)" --lldb $(if $(filter 1,$(BATCH)),--batch,)
+
+# Open Godot Editor under LLDB debugger
+debug_editor debug-editor:
+	@echo Opening Godot Editor under LLDB Debugger...
+	@$(LAPIS) editor -p "$(or $(PROJECT),$(PATH),test)" --lldb $(if $(or $(QUIT),$(QUIT_AFTER)),--quit-after $(or $(QUIT),$(QUIT_AFTER)),)
 
 # Recompile all Crystal addons found across a project
 recompile_addons recompile-addons:

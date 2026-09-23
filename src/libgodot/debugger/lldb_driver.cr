@@ -5,6 +5,9 @@
 # Handles process attachment, breakpoint synchronization, call stack extraction,
 # variable inspection, and asynchronous stop event parsing.
 
+module Godot
+end
+
 module Lapis
   include Godot
 
@@ -19,7 +22,7 @@ module Lapis
       Unknown
     end
 
-    struct StackFrame
+    class StackFrame
       property index : Int32
       property function : String
       property file : String
@@ -36,7 +39,7 @@ module Lapis
       end
     end
 
-    struct BreakpointInfo
+    class BreakpointInfo
       property id : Int32
       property file : String
       property line : Int32
@@ -48,7 +51,7 @@ module Lapis
       end
     end
 
-    struct VariableInfo
+    class VariableInfo
       property name : String
       property type_name : String
       property value : String
@@ -57,7 +60,7 @@ module Lapis
       end
     end
 
-    struct StopInfo
+    class StopInfo
       property reason : StopReason
       property thread_id : Int32
       property frame : StackFrame?
@@ -84,6 +87,7 @@ module Lapis
       property on_continue : Proc(Nil)? = nil
       property on_output : Proc(String, Nil)? = nil
       property on_exit : Proc(Int32, Nil)? = nil
+      property on_backtrace : Proc(Array(StackFrame), Nil)? = nil
 
       @process : Process? = nil
       @reader_thread : ::Thread? = nil
@@ -92,6 +96,11 @@ module Lapis
       @command_response : String = ""
       @waiting_for_prompt : Bool = false
       @response_channel : ::Channel(String)? = nil
+      @pending_stop_reason : StopReason? = nil
+      @pending_stop_desc : String = ""
+      @collecting_backtrace : Bool = false
+      @backtrace_frames : Array(StackFrame) = Array(StackFrame).new
+      @initial_attach_pending : Bool = false
 
       def initialize(@lldb_path : String = "lldb")
       end
@@ -163,17 +172,38 @@ module Lapis
 
           start_reader_threads(proc)
 
-          # Send attach command
+          # Send attach command asynchronously to LLDB
+          @initial_attach_pending = true
+          {% if flag?(:windows) %}
+            send_command("process handle 0xc00000fd --stop false --pass true")
+          {% end %}
           send_command("process attach --pid #{pid}")
-          @state = DriverState::Paused
+
+          # Note: We stay in DriverState::Attaching until LLDB confirms attachment
+          # with "Process <pid> stopped" / stop reason. Upon receiving that event in
+          # handle_lldb_output_line, we synchronize all breakpoints and then resume execution.
           true
         rescue ex
           @state = DriverState::Detached
           @attached_pid = nil
+          @initial_attach_pending = false
           if cb = @on_output
             cb.call("[LLDB Error] Failed to spawn #{exe}: #{ex.message}\n")
           end
           false
+        end
+      end
+
+      # Synchronizes all cached breakpoints to the active LLDB process
+      def sync_all_breakpoints : Void
+        return unless @process && !@process.try(&.terminated?)
+        @mutex.synchronize do
+          @breakpoints.each_value do |bp|
+            if bp.enabled && bp.line > 0
+              cmd = "breakpoint set --file \"#{File.basename(bp.file)}\" --line #{bp.line}"
+              send_command(cmd)
+            end
+          end
         end
       end
 
@@ -191,6 +221,7 @@ module Lapis
 
         @state = DriverState::Detached
         @attached_pid = nil
+        @initial_attach_pending = false
         close_process
       end
 
@@ -208,12 +239,21 @@ module Lapis
         end
       end
 
-      # Sets a breakpoint at the given file and line
+      # Sets a breakpoint at the given file and line (line is 1-based)
       def set_breakpoint(file : String, line : Int32) : BreakpointInfo
         # Clean path for LLDB
         clean_file = file.gsub('\\', '/')
-        cmd = "breakpoint set --file \"#{File.basename(clean_file)}\" --line #{line}"
-        send_command(cmd)
+
+        # Check if already registered in @breakpoints to prevent duplicates
+        existing = @mutex.synchronize do
+          @breakpoints.values.find { |b| b.file == clean_file && b.line == line }
+        end
+        return existing if existing
+
+        if line > 0 && @process && !@process.try(&.terminated?) && @state != DriverState::Attaching
+          cmd = "breakpoint set --file \"#{File.basename(clean_file)}\" --line #{line}"
+          send_command(cmd)
+        end
 
         id = @breakpoints.size + 1
         bp = BreakpointInfo.new(id, clean_file, line, enabled: true, resolved: true)
@@ -230,6 +270,25 @@ module Lapis
           @breakpoints.delete(id)
         end
         true
+      end
+
+      # Removes a breakpoint by file and line
+      def remove_breakpoint(file : String, line : Int32) : Bool
+        clean_file = file.gsub('\\', '/')
+        target_id : Int32? = nil
+        @mutex.synchronize do
+          @breakpoints.each do |id, bp|
+            if bp.file == clean_file && bp.line == line
+              target_id = id
+              break
+            end
+          end
+        end
+        if tid = target_id
+          remove_breakpoint(tid)
+        else
+          false
+        end
       end
 
       # Resumes execution
@@ -268,6 +327,8 @@ module Lapis
 
       # Requests call stack backtrace
       def request_backtrace : Void
+        @collecting_backtrace = true
+        @backtrace_frames.clear
         send_command("thread backtrace")
       end
 
@@ -308,47 +369,111 @@ module Lapis
       end
 
       # Parses lines coming from LLDB stdout
-      private def handle_lldb_output_line(line : String) : Void
+      def handle_lldb_output_line(line : String) : Void
         if cb = @on_output
           cb.call(line + "\n")
+        end
+
+        # Handle initial attach stop notification:
+        # LLDB interrupts and pauses the process when attaching.
+        # Synchronize all queued breakpoints and resume execution immediately.
+        if @initial_attach_pending
+          if line.includes?("stopped") || line.includes?("stop reason =") || (line.includes?("Process") && line.includes?("attached"))
+            @state = DriverState::Paused
+            @initial_attach_pending = false
+            @pending_stop_reason = nil
+            sync_all_breakpoints
+            continue_exec
+            return
+          end
+        end
+
+        # Suppress Windows debugger injection thread breakpoints/exceptions from triggering fake user stops
+        if line.includes?("DbgBreakPoint") || line.includes?("DbgUiRemoteBreakin") || line.includes?("0xc00000fd") || line.includes?("0xC00000FD") || (line.includes?("0x80000003") && !line.includes?("breakpoint"))
+          return
         end
 
         # Check for stop events
         # e.g.: "* thread #1, stop reason = breakpoint 1.1"
         # e.g.: "Process 12345 stopped"
-        if line.includes?("stop reason =") || line.includes?("Process") && line.includes?("stopped")
+        if line.includes?("stop reason =") || (line.includes?("Process") && line.includes?("stopped"))
           @state = DriverState::Paused
-          info = parse_stop_info(line)
-          if cb = @on_stop
-            cb.call(info)
+          reason = parse_stop_reason(line)
+          @pending_stop_reason = reason
+          @pending_stop_desc = line
+
+          # If line also includes inline frame information (e.g. compact single-line output)
+          if line.includes?("frame #0")
+            frame = parse_frame_line(line)
+            info = StopInfo.new(reason: reason, thread_id: 1, frame: frame, description: line)
+            @pending_stop_reason = nil
+            if cb = @on_stop
+              cb.call(info)
+            end
+          end
+        elsif line.includes?("frame #")
+          if frame = parse_frame_line(line)
+            if @collecting_backtrace
+              @backtrace_frames << frame
+            end
+
+            # If this is frame #0 arriving immediately following a pending stop event
+            if frame.index == 0 && (reason = @pending_stop_reason)
+              info = StopInfo.new(reason: reason, thread_id: 1, frame: frame, description: @pending_stop_desc)
+              @pending_stop_reason = nil
+              if cb = @on_stop
+                cb.call(info)
+              end
+            end
           end
         elsif line.includes?("Process") && line.includes?("resuming")
           @state = DriverState::Running
+          @pending_stop_reason = nil
           if cb = @on_continue
             cb.call
           end
+        elsif @collecting_backtrace && (line.includes?("(lldb)") || line.strip.empty?)
+          if !@backtrace_frames.empty?
+            @collecting_backtrace = false
+            frames = @backtrace_frames.dup
+            @backtrace_frames.clear
+            if cb = @on_backtrace
+              cb.call(frames)
+            end
+          end
+        end
+      end
+
+      # Feeds a line to the LLDB output handler (useful for testing and simulated streaming)
+      def process_line(line : String) : Void
+        handle_lldb_output_line(line)
+      end
+
+      # Parses stop event string into StopReason enum
+      def parse_stop_reason(line : String) : StopReason
+        if line.includes?("breakpoint")
+          StopReason::Breakpoint
+        elsif line.includes?("signal") || line.includes?("SIG") || line.includes?("EXCEPTION")
+          StopReason::Signal
+        elsif line.includes?("step")
+          StopReason::Step
+        elsif line.includes?("interrupt")
+          StopReason::UserInterrupt
+        else
+          StopReason::Unknown
         end
       end
 
       # Parses stop event string into StopInfo
       def parse_stop_info(line : String) : StopInfo
-        reason = StopReason::Unknown
-        if line.includes?("breakpoint")
-          reason = StopReason::Breakpoint
-        elsif line.includes?("signal") || line.includes?("SIG") || line.includes?("EXCEPTION")
-          reason = StopReason::Signal
-        elsif line.includes?("step")
-          reason = StopReason::Step
-        elsif line.includes?("interrupt")
-          reason = StopReason::UserInterrupt
-        end
-
+        reason = parse_stop_reason(line)
         frame = parse_frame_line(line)
         StopInfo.new(reason: reason, thread_id: 1, frame: frame, description: line)
       end
 
       # Extracts StackFrame from LLDB frame line
       # e.g.: "    frame #0: 0x00007ff812345678 game.dll`Player#_physics_process(self=0x...) at player.cr:42:5"
+      # e.g.: "  * frame #0: 0x00007ff812345678 game.dll`main + 46 at C:\Users\Ian\player.cr:42:5"
       def parse_frame_line(line : String) : StackFrame?
         return nil unless line.includes?("frame #")
 
@@ -358,15 +483,19 @@ module Lapis
         line_num = 0
         addr = ""
 
-        # Extract frame index
-        if match = line.match(/frame #(\d+): (0x[0-9a-fA-F]+)\s+([^\s]+)(.*)/)
+        # Extract frame index, address, and function signature
+        if match = line.match(/frame #(\d+):\s*(0x[0-9a-fA-F]+)?\s*([^\s]+)(.*)/)
           idx = match[1].to_i32 rescue 0
-          addr = match[2]
+          addr = match[2]? || ""
           fn = match[3]
-          rest = match[4]
+          rest = match[4]? || ""
 
-          if at_match = rest.match(/at\s+([^:]+):(\d+)/)
-            file = at_match[1].strip
+          # Match "at <file>:<line>[:column]" robustly supporting Windows drive letters (e.g. C:\...)
+          if at_match = rest.match(/at\s+(.+?):(\d+)(?::\d+)?(?:\s*$|\s+\[)/)
+            file = at_match[1].strip.gsub('\\', '/')
+            line_num = at_match[2].to_i32 rescue 0
+          elsif at_match = rest.match(/at\s+([^:\r\n]+):(\d+)/)
+            file = at_match[1].strip.gsub('\\', '/')
             line_num = at_match[2].to_i32 rescue 0
           end
         end
@@ -421,5 +550,7 @@ module Lapis
 end
 
 module Godot
-  alias Debugger = ::Lapis::Debugger
+  {% unless Godot.has_constant?(:Debugger) %}
+    alias Debugger = ::Lapis::Debugger
+  {% end %}
 end

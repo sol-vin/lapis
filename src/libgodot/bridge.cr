@@ -328,7 +328,13 @@ module Godot
       virtual_fn = ->(crystal_inst : Void*, method_name : LibC::Char*, delta : Float64) {
         if !crystal_inst.null?
           inst = Box(Godot::Object).unbox(crystal_inst)
-          inst._godot_call_virtual(String.new(method_name), delta)
+          m = String.new(method_name)
+          {% unless flag?(:release) %}
+            if (m == "_ready" || m == "_enter_tree") && !Godot::Debugger::Agent.initialized?
+              Godot::Debugger::Agent.initialize_agent rescue nil
+            end
+          {% end %}
+          inst._godot_call_virtual(m, delta)
         end
       }
 
@@ -1411,6 +1417,9 @@ fun crystal_godot_init(api : Godot::LibBridge::BridgeAPI*) : Void
   dummy_argv = pointerof(dummy_arg)
   LibCrystalMain.__crystal_main(1, dummy_argv)
   Godot::Bridge.init(api)
+  {% unless flag?(:release) %}
+    Godot::Debugger::Agent.initialize_agent rescue nil
+  {% end %}
   {% unless flag?(:release) || flag?(:libgodot_addon) || flag?(:no_editor) %}
     if ::ENV["LIBGODOT_TEST_BUILD_BUTTON"]? == "1"
       Godot::CrystalIntegrationPlugin.check_test_build_button_flow rescue nil

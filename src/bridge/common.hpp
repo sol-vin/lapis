@@ -52,6 +52,17 @@
 // Custom crash handler for Windows SEH to produce diagnostic crash dumps
 static LONG WINAPI custom_crash_handler(PEXCEPTION_POINTERS pExceptionInfo) {
     DWORD code = pExceptionInfo->ExceptionRecord->ExceptionCode;
+    if (code == 0xC00000FD) { // EXCEPTION_STACK_OVERFLOW
+        // When LLDB attaches to a running Windows process, Windows injects a remote
+        // thread (ntdll!DbgUiRemoteBreakin) with a small stack. Crystal's SetThreadStackGuarantee
+        // causes an artificial EXCEPTION_STACK_OVERFLOW when foreign threads enter.
+        // Recover the stack and continue execution instead of triggering false Crystal crash reports.
+        typedef int (__cdecl *ResetStkOflwFn)();
+        static ResetStkOflwFn p_reset = (ResetStkOflwFn)GetProcAddress(GetModuleHandleA("msvcrt.dll"), "_resetstkoflw");
+        if (!p_reset) p_reset = (ResetStkOflwFn)GetProcAddress(GetModuleHandleA("ucrtbase.dll"), "_resetstkoflw");
+        if (p_reset) p_reset();
+        return EXCEPTION_CONTINUE_EXECUTION;
+    }
     if (code == EXCEPTION_ACCESS_VIOLATION || code == 0xC0000374) {
         void *faulting_addr = pExceptionInfo->ExceptionRecord->ExceptionAddress;
 

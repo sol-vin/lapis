@@ -13,14 +13,13 @@ module Lapis
 
   module Debugger
     class Agent
-      @@initialized : Bool = false
+      class_getter? initialized : Bool = false
       @@cached_role : String = "Peer"
       @@cached_peer_id : Int32 = 0
 
       # Initializes the debug agent inside the running game instance
-      def self.initialize_agent : Void
-        return if @@initialized
-        @@initialized = true
+      def self.initialize_agent : Bool
+        return true if @@initialized
 
         if !Godot::EngineDebugger.singleton_ptr.null?
           ed = Godot::EngineDebugger.new(Godot::EngineDebugger.singleton_ptr)
@@ -28,12 +27,17 @@ module Lapis
             pid = Process.pid.to_i64
             role = detect_role
             msg = "crystal_debugger:ready:#{pid}:#{role}:#{@@cached_peer_id}"
-            ed.call("send_message", msg)
+            empty_data = Godot::GodotArray(String).new
+            ed.call("send_message", msg, empty_data)
+            @@initialized = true
             Godot.print("[CrystalDebugAgent] Connected to editor debugger. Reported PID: #{pid}, Role: #{role}")
+            return true
           end
         end
+        false
       rescue ex
         Godot.print("[CrystalDebugAgent] Notice: #{ex.message}")
+        false
       end
 
       # Updates the multiplayer role of this instance (e.g. Server, Client 1, Client 2)
@@ -46,22 +50,29 @@ module Lapis
           if ed.call_bool("is_active")
             pid = Process.pid.to_i64
             msg = "crystal_debugger:role:#{pid}:#{role}:#{peer_id}"
-            ed.call("send_message", msg)
+            empty_data = Godot::GodotArray(String).new
+            ed.call("send_message", msg, empty_data)
             Godot.print("[CrystalDebugAgent] Updated multiplayer role: #{role} (ID: #{peer_id})")
           end
         end
       rescue
       end
 
-      # Triggers Godot's built-in debug pause loop
+      # Triggers Godot's built-in debug pause loop or traps into attached LLDB
       def self.debug_break(can_continue : Bool = true, is_error : Bool = false) : Void
         if !Godot::EngineDebugger.singleton_ptr.null?
           ed = Godot::EngineDebugger.new(Godot::EngineDebugger.singleton_ptr)
           if ed.call_bool("is_active")
             ed.call("debug", can_continue, is_error)
+            return
           end
         end
       rescue
+      end
+
+      # Alias for debug_break
+      def self.breakpoint(can_continue : Bool = true, is_error : Bool = false) : Void
+        debug_break(can_continue, is_error)
       end
 
       # Automatically determines if this game instance is Server, Client, or Standalone
@@ -83,5 +94,16 @@ module Lapis
         "Game Instance"
       end
     end
+  end
+end
+
+module Godot
+  {% unless Godot.has_constant?(:Debugger) %}
+    alias Debugger = ::Lapis::Debugger
+  {% end %}
+
+  # Pauses execution in Godot's engine debugger or attached LLDB session
+  def self.breakpoint(can_continue : Bool = true) : Void
+    Debugger::Agent.debug_break(can_continue)
   end
 end

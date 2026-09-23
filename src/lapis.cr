@@ -1,3 +1,4 @@
+require "./libgodot/crash_handler"
 require "./libgodot/types"
 require "./libgodot/variant"
 require "./libgodot/system_io"
@@ -17,10 +18,12 @@ require "./libgodot/generated/singletons"
 require "./libgodot/extensions"
 require "./libgodot/docs"
 require "./libgodot/testing"
+{% unless flag?(:release) %}
+  require "./libgodot/debugger/agent"
+{% end %}
 {% unless flag?(:release) || flag?(:libgodot_addon) || flag?(:no_editor) %}
   require "./libgodot/script"
   require "./libgodot/debugger/lldb_driver"
-  require "./libgodot/debugger/agent"
   require "./libgodot/editor"
 {% end %}
 

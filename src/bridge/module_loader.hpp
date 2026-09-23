@@ -203,6 +203,17 @@ inline void cleanup_old_shadow_dlls(const char *dir) {
         } while (FindNextFileA(hFind, &fd));
         FindClose(hFind);
     }
+
+    snprintf(search_pattern, sizeof(search_pattern), "%s\\*_loaded_*.pdb", dir);
+    hFind = FindFirstFileA(search_pattern, &fd);
+    if (hFind != INVALID_HANDLE_VALUE) {
+        do {
+            char file_path[MAX_PATH];
+            snprintf(file_path, sizeof(file_path), "%s\\%s", dir, fd.cFileName);
+            DeleteFileA(file_path);
+        } while (FindNextFileA(hFind, &fd));
+        FindClose(hFind);
+    }
 #else
     DIR *d = opendir(dir);
     if (!d) return;
@@ -585,6 +596,31 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
                 snprintf(log_buf, sizeof(log_buf), "[CrystalBridge] Copy failed from %s to %s (%s)", candidate_path.c_str(), shadow_path, err_buf);
                 godot_log_error(log_buf, nullptr, "load_crystal_game_library", __FILE__, __LINE__);
             }
+#ifdef _WIN32
+            // If matching .pdb exists for candidate_path (e.g. game.pdb for game.dll), copy shadow PDB
+            // so LLDB / debuggers can load full symbols for the shadow DLL without locking original PDB.
+            size_t c_len = candidate_path.length();
+            if (c_len > 4 && candidate_path.compare(c_len - 4, 4, ".dll") == 0) {
+                std::string orig_pdb = candidate_path.substr(0, c_len - 4) + ".pdb";
+                if (!bridge_file_exists(orig_pdb.c_str())) {
+                    // Check project bin directory if candidate is in addons/<name>/bin
+                    char rel_pdb[MAX_PATH] = {0};
+                    snprintf(rel_pdb, sizeof(rel_pdb), "%s%s..%s..%s..%sbin%sgame.pdb",
+                             bridge_dir, path_sep, path_sep, path_sep, path_sep, path_sep);
+                    if (bridge_file_exists(rel_pdb)) {
+                        orig_pdb = std::string(rel_pdb);
+                    }
+                }
+                if (bridge_file_exists(orig_pdb.c_str())) {
+                    std::string shadow_pdb = std::string(shadow_path);
+                    size_t s_len = shadow_pdb.length();
+                    if (s_len > 4 && shadow_pdb.compare(s_len - 4, 4, ".dll") == 0) {
+                        shadow_pdb = shadow_pdb.substr(0, s_len - 4) + ".pdb";
+                        bridge_copy_file(orig_pdb.c_str(), shadow_pdb.c_str());
+                    }
+                }
+            }
+#endif
             hModule = bridge_load_library(shadow_path);
             if (hModule) {
                 char buf[512];

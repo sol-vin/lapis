@@ -510,6 +510,10 @@ CONTROL
           status = Core::ProcessRunner.run(iscc, args)
           if status.success? && File.exists?(dest_exe)
             Core::Logger.success("Successfully generated Windows installer: #{dest_exe.basename} (#{File.size(dest_exe)} bytes)")
+            rel_dist = root.join("bin/release_dist")
+            if Dir.exists?(rel_dist) && dest_exe.parent != rel_dist
+              safe_copy(dest_exe, rel_dist.join(dest_exe.basename))
+            end
             FileUtils.rm_rf(stage_dir) if Dir.exists?(stage_dir)
             return 0
           else

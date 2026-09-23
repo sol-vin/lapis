@@ -41,6 +41,7 @@ module Lapis
     @@setting_up_editor : Bool = false
     @@setting_up_panel : Bool = false
     class_property on_cleanup : Proc(Void)? = nil
+    class_property on_poll : Proc(Void)? = nil
 
     def self.building? : Bool
       @@building
@@ -1150,6 +1151,9 @@ module Lapis
       @@building = true
       begin
         self.class.save_open_editor_files
+        if (dbg = @@debugger_plugin) && !dbg.pointer.null?
+          dbg.call("sync_editor_breakpoints") rescue nil
+        end
         Godot.print("[CrystalIntegrationPlugin] Editor build requested (F5 / Play). Compiling Crystal...")
         self.class.recompile_modified_addons_silent
         self.class.execute_crystal_build
@@ -1528,6 +1532,9 @@ module Lapis
     @@hl_check_accum : Float64 = 0.0_f64
 
     def _process(delta : Float64) : Void
+      if poll_proc = @@on_poll
+        poll_proc.call rescue nil
+      end
       if dbg = @@debugger_plugin
         dbg.call("poll") rescue nil
       end
