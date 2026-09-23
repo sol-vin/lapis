@@ -252,9 +252,7 @@ to_uri_fn = ->(abs : String) {
 uri_to_path_fn = ->(uri : String) {
   return uri unless uri.starts_with?("file://")
   p = uri.sub("file://", "")
-  {% if flag?(:windows) %}
-    p = p.lstrip('/') if p =~ %r{^/[A-Za-z]:}
-  {% end %}
+  p = p.lstrip('/') if p =~ %r{^/[A-Za-z]:}
   p.gsub('/', File::SEPARATOR)
 }
 
@@ -271,8 +269,8 @@ test_paths.each do |original|
     abort "ERROR: to_uri failed to prepend file:// to #{original}"
   end
   converted_back = uri_to_path_fn.call(uri).gsub('\\', '/')
-  norm_check = norm_orig.starts_with?('/') ? norm_orig : norm_orig
-  unless converted_back.downcase.ends_with?(File.basename(original).downcase)
+  expected_basename = norm_orig.split('/').last
+  unless converted_back.downcase.ends_with?(expected_basename.downcase)
     abort "ERROR: URI roundtrip failed: #{original} -> #{uri} -> #{converted_back}"
   end
 end

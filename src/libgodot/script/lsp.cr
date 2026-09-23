@@ -477,9 +477,7 @@ module Lapis
     private def uri_to_path(uri : String) : String
       return uri unless uri.starts_with?("file://")
       p = uri.sub("file://", "")
-      {% if flag?(:windows) %}
-        p = p.lstrip('/') if p =~ %r{^/[A-Za-z]:}
-      {% end %}
+      p = p.lstrip('/') if p =~ %r{^/[A-Za-z]:}
       p.gsub('/', File::SEPARATOR)
     end
 
