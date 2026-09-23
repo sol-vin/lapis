@@ -164,8 +164,10 @@ static void deinitialize_crystal_module(void *p_userdata, GDExtensionInitializat
             g_loader_registered = 0;
             g_saver_registered = 0;
             g_language_registered = 0;
+            if (!s_is_reloading) {
+                bridge_cleanup_string_name_cache();
+            }
             s_is_reloading = 0;
-            bridge_cleanup_string_name_cache();
             unload_crystal_game_library();
             godot_log_verbose("[CrystalBridge] Crystal module deinitialized.");
         }

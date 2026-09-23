@@ -504,11 +504,24 @@ module Godot
         api.value.register_deinit_callback.call(deinit_cb)
       end
 
-      {% unless flag?(:release) || flag?(:libgodot_addon) || flag?(:no_editor) %}
       # Early-register language, loader, and saver so Godot can load .cr files during editor layout restore
-      Godot::CrystalLanguage.ensure_registered
-      Godot::ResourceFormatLoaderCrystal.ensure_registered
-      Godot::ResourceFormatSaverCrystal.ensure_registered
+      early_register_component("CrystalLanguage")
+      early_register_component("ResourceFormatLoaderCrystal")
+      early_register_component("ResourceFormatSaverCrystal")
+    end
+
+    # Early-registers an engine component if it is defined in the current compilation unit
+    macro early_register_component(class_name)
+      {% if @top_level.has_constant?("Godot") && @top_level.constant("Godot").has_constant?(class_name) %}
+        Godot::{{class_name.id}}.ensure_registered
+      {% end %}
+    end
+
+    # Unregisters an engine component during bridge deinitialization if defined in the current compilation unit
+    macro unregister_component(class_name, display_name = nil)
+      {% if @top_level.has_constant?("Godot") && @top_level.constant("Godot").has_constant?(class_name) %}
+        Godot.debug("[Bridge.deinit] Unregistering {{ (display_name || class_name).id }}...")
+        Godot::{{class_name.id}}.unregister rescue nil
       {% end %}
     end
 
@@ -518,7 +531,12 @@ module Godot
       @@shutdown_callbacks << block
     end
 
+    @@deinitialized : Bool = false
+
     def self.deinit : Void
+      return if @@deinitialized
+      @@deinitialized = true
+
       Godot.debug("[Bridge.deinit] Cleaning up registered shutdown callbacks...")
       @@shutdown_callbacks.each do |cb|
         begin
@@ -531,14 +549,9 @@ module Godot
 
       Godot.debug("[Bridge.deinit] Cleaning up script cache...")
       ClassRegistry.cleanup rescue nil
-      {% unless flag?(:release) || flag?(:libgodot_addon) || flag?(:no_editor) %}
-      Godot.debug("[Bridge.deinit] Unregistering loader...")
-      Godot::ResourceFormatLoaderCrystal.unregister rescue nil
-      Godot.debug("[Bridge.deinit] Unregistering saver...")
-      Godot::ResourceFormatSaverCrystal.unregister rescue nil
-      Godot.debug("[Bridge.deinit] Unregistering language...")
-      Godot::CrystalLanguage.unregister rescue nil
-      {% end %}
+      unregister_component("ResourceFormatLoaderCrystal", "loader")
+      unregister_component("ResourceFormatSaverCrystal", "saver")
+      unregister_component("CrystalLanguage", "language")
       Godot.debug("[Bridge.deinit] Completed successfully!")
     end
 

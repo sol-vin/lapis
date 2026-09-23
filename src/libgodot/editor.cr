@@ -119,20 +119,24 @@ module Lapis
       if !Godot::EditorInterface.singleton_ptr.null?
         ed_interface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
         ed_settings = ed_interface.get_editor_settings
-        if !ed_settings.pointer.null?
-          ed_settings.call("set_setting", "text_editor/appearance/gutters/highlight_type_safe_lines", false)
-          ed_settings.call("set_initial_value", "text_editor/appearance/gutters/highlight_type_safe_lines", false, false)
-          ed_settings.call("set_setting", "text_editor/appearance/guidelines/highlight_type_safe_lines", false)
+        begin
+          if !ed_settings.pointer.null?
+            ed_settings.call("set_setting", "text_editor/appearance/gutters/highlight_type_safe_lines", false)
+            ed_settings.call("set_initial_value", "text_editor/appearance/gutters/highlight_type_safe_lines", false, false)
+            ed_settings.call("set_setting", "text_editor/appearance/guidelines/highlight_type_safe_lines", false)
 
-          # Ensure 'cr' is not marked as a plain textfile so Godot treats .cr as a typed Script resource
-          val = ed_settings.call_str("get_setting", "docks/filesystem/textfile_extensions")
-          exts = (val.empty? ? "txt,md,cfg,ini,log,json,yml,yaml,toml,xml" : val).split(',').map(&.strip).reject(&.empty?)
-          if exts.includes?("cr")
-            exts.delete("cr")
-            new_val = exts.join(",")
-            ed_settings.call("set_setting", "docks/filesystem/textfile_extensions", new_val)
-            ed_settings.call("set_initial_value", "docks/filesystem/textfile_extensions", new_val, false)
+            # Ensure 'cr' is not marked as a plain textfile so Godot treats .cr as a typed Script resource
+            val = ed_settings.call_str("get_setting", "docks/filesystem/textfile_extensions")
+            exts = (val.empty? ? "txt,md,cfg,ini,log,json,yml,yaml,toml,xml" : val).split(',').map(&.strip).reject(&.empty?)
+            if exts.includes?("cr")
+              exts.delete("cr")
+              new_val = exts.join(",")
+              ed_settings.call("set_setting", "docks/filesystem/textfile_extensions", new_val)
+              ed_settings.call("set_initial_value", "docks/filesystem/textfile_extensions", new_val, false)
+            end
           end
+        ensure
+          ed_settings.unreference rescue nil if ed_settings
         end
       end
 
@@ -178,11 +182,15 @@ module Lapis
     theme = ed_iface.get_editor_theme rescue nil
     return if theme.nil? || theme.pointer.null?
 
-    if icon_tex = get_crystal_icon_texture
-      ["CrystalScript", "CrystalLanguage", "Crystal"].each do |type_name|
-        theme.set_icon(type_name, "EditorIcons", icon_tex) rescue nil
+    begin
+      if icon_tex = get_crystal_icon_texture
+        ["CrystalScript", "CrystalLanguage", "Crystal"].each do |type_name|
+          theme.set_icon(type_name, "EditorIcons", icon_tex) rescue nil
+        end
+        Godot.print("[CrystalIntegrationPlugin] Registered Crystal theme icons into EditorIcons theme.")
       end
-      Godot.print("[CrystalIntegrationPlugin] Registered Crystal theme icons into EditorIcons theme.")
+    ensure
+      theme.unreference rescue nil if theme
     end
   rescue ex
     Godot.printerr("[CrystalIntegrationPlugin] Notice: theme icons registration: #{ex.message}")
@@ -426,9 +434,13 @@ module Lapis
 
     lldb_path = "lldb"
     ed_settings = ed_interface.get_editor_settings
-    if !ed_settings.pointer.null?
-      custom_lldb = ed_settings.call_str("get_setting", "crystal/debugger/lldb_path")
-      lldb_path = custom_lldb unless custom_lldb.empty?
+    begin
+      if !ed_settings.pointer.null?
+        custom_lldb = ed_settings.call_str("get_setting", "crystal/debugger/lldb_path")
+        lldb_path = custom_lldb unless custom_lldb.empty?
+      end
+    ensure
+      ed_settings.unreference rescue nil if ed_settings
     end
 
     if Debugger::LldbDriver.available?(lldb_path)

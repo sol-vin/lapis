@@ -30,7 +30,11 @@ module Lapis
       if loader = Godot.create(Godot::ResourceFormatLoaderCrystal)
         @@instance = loader
         @@created_by_us = true
-        r_loader.call("add_resource_format_loader", loader, true)
+        begin
+          r_loader.add_resource_format_loader(loader, true)
+        rescue
+          r_loader.call("add_resource_format_loader", loader, true) rescue nil
+        end
         Bridge.set_loader_registered(true)
         @@registered = true
       else
@@ -54,8 +58,9 @@ module Lapis
       unless rl_ptr.null?
         r_loader = Godot::ResourceLoader.new(rl_ptr)
         begin
-          r_loader.call("remove_resource_format_loader", loader)
+          r_loader.remove_resource_format_loader(loader)
         rescue
+          r_loader.call("remove_resource_format_loader", loader) rescue nil
         end
       end
       while loader.alive? && loader.get_reference_count > 0
@@ -220,7 +225,11 @@ module Lapis
         @@instance = saver
         @@created_by_us = true
         r_saver = Godot::ResourceSaver.new(rs_ptr)
-        r_saver.call("add_resource_format_saver", saver, true)
+        begin
+          r_saver.add_resource_format_saver(saver, true)
+        rescue
+          r_saver.call("add_resource_format_saver", saver, true) rescue nil
+        end
         Bridge.set_saver_registered(true)
         @@registered = true
       else
@@ -244,8 +253,9 @@ module Lapis
       unless rs_ptr.null?
         r_saver = Godot::ResourceSaver.new(rs_ptr)
         begin
-          r_saver.call("remove_resource_format_saver", saver)
+          r_saver.remove_resource_format_saver(saver)
         rescue
+          r_saver.call("remove_resource_format_saver", saver) rescue nil
         end
       end
       while saver.alive? && saver.get_reference_count > 0
