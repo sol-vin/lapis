@@ -1,8 +1,8 @@
+require "./script/lsp"
 require "./script/highlighter"
 require "./script/language"
 require "./script/script"
 require "./script/resource_format"
-require "./script/lsp"
 
 module Lapis
   # Master coordinator for first-class Crystal script support in Godot

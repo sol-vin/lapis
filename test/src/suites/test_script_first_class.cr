@@ -531,4 +531,40 @@ end
       end
     end
   end
+
+  test_script_first_class "CrystalLanguage LSP and virtual _complete_code / _lookup_code integration" do
+    lang = Godot::CrystalLanguage.instance
+    lsp = Lapis::CrystalLSP.instance
+
+    assert_true lsp.available?, "CrystalLSP should be discovered and available in dev environment"
+
+    # Test complete_code proposal generation with Node DSL and Godot callbacks
+    source_sample = <<-CRYSTAL
+    node TestWarrior < CharacterBody3D do
+      property armor : Int32 = 50
+      signal shield_broken
+
+      def block_attack : Void
+      end
+    end
+    CRYSTAL
+
+    items = lang.complete_code(source_sample, "res://warrior.cr")
+    assert_true items.any? { |c| c.display_text == "armor" && c.kind_id == 4_i64 }, "Local property 'armor' should be completed with MemberVariable kind"
+    assert_true items.any? { |c| c.display_text == "shield_broken" && c.kind_id == 2_i64 }, "Local signal 'shield_broken' should be completed with Signal kind"
+    assert_true items.any? { |c| c.display_text == "block_attack()" && c.kind_id == 1_i64 }, "Local method 'block_attack()' should be completed with Function kind"
+    assert_true items.any? { |c| c.display_text == "CharacterBody3D" && c.kind_id == 0_i64 }, "Godot engine class CharacterBody3D should be completed with Class kind"
+    assert_true items.any? { |c| c.display_text.includes?("_physics_process") && c.kind_id == 1_i64 }, "Godot lifecycle callback _physics_process should be completed"
+
+    # Test Bridge completion option C-ABI data layout
+    c_opt = Godot::Bridge::BridgeCompletionOption.new(
+      1_i64,
+      "test_method".to_unsafe,
+      "test_method()".to_unsafe,
+      "".to_unsafe,
+      0_i64
+    )
+    assert_eq c_opt.kind, 1_i64
+    assert_eq c_opt.location, 0_i64
+  end
 {% end %}

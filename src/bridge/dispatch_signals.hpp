@@ -1340,12 +1340,114 @@ inline void bridge_ret_dictionary_complete_code(void *r_ret) {
     dict_set_variant(r_ret, "call_hint", GDEXTENSION_VARIANT_TYPE_STRING, &v_hint);
 }
 
+static GDExtensionPtrBuiltInMethod gd_array_push_back = nullptr;
+
+inline void bridge_ret_dictionary_complete_code_ex(
+    void *r_ret,
+    int64_t result,
+    uint8_t force,
+    const char *call_hint,
+    const BridgeCompletionOption *options,
+    int option_count
+) {
+    if (!r_ret) return;
+    int64_t v_res = result;
+    dict_set_variant(r_ret, "result", GDEXTENSION_VARIANT_TYPE_INT, &v_res);
+    uint8_t v_force = force;
+    dict_set_variant(r_ret, "force", GDEXTENSION_VARIANT_TYPE_BOOL, &v_force);
+    const char *v_hint = call_hint ? call_hint : "";
+    dict_set_variant(r_ret, "call_hint", GDEXTENSION_VARIANT_TYPE_STRING, &v_hint);
+
+    // Initialize an empty Array variant for "options"
+    alignas(void*) char arr_options[24] = {};
+    if (!gd_array_constructor && gd_variant_get_ptr_constructor) {
+        gd_array_constructor = gd_variant_get_ptr_constructor(GDEXTENSION_VARIANT_TYPE_ARRAY, 0);
+    }
+    if (gd_array_constructor) {
+        gd_array_constructor(arr_options, nullptr);
+    }
+
+    if (!gd_array_push_back && gd_variant_get_ptr_builtin_method) {
+        void *sn_pb = make_string_name("push_back");
+        gd_array_push_back = gd_variant_get_ptr_builtin_method(GDEXTENSION_VARIANT_TYPE_ARRAY, sn_pb, 3316032543ULL);
+        free_string_name(sn_pb);
+    }
+
+    if (gd_array_push_back && options && option_count > 0) {
+        for (int i = 0; i < option_count; i++) {
+            alignas(void*) char opt_dict[24] = {};
+            if (!gd_dictionary_constructor && gd_variant_get_ptr_constructor) {
+                gd_dictionary_constructor = gd_variant_get_ptr_constructor(GDEXTENSION_VARIANT_TYPE_DICTIONARY, 0);
+            }
+            if (gd_dictionary_constructor) {
+                gd_dictionary_constructor(opt_dict, nullptr);
+            }
+
+            int64_t k = options[i].kind;
+            dict_set_variant(opt_dict, "kind", GDEXTENSION_VARIANT_TYPE_INT, &k);
+
+            const char *disp = options[i].display ? options[i].display : "";
+            dict_set_variant(opt_dict, "display", GDEXTENSION_VARIANT_TYPE_STRING, &disp);
+
+            const char *ins = options[i].insert_text ? options[i].insert_text : disp;
+            dict_set_variant(opt_dict, "insert_text", GDEXTENSION_VARIANT_TYPE_STRING, &ins);
+
+            const char *def_val = options[i].default_value ? options[i].default_value : "";
+            dict_set_variant(opt_dict, "default_value", GDEXTENSION_VARIANT_TYPE_STRING, &def_val);
+
+            int64_t loc = options[i].location;
+            dict_set_variant(opt_dict, "location", GDEXTENSION_VARIANT_TYPE_INT, &loc);
+
+            const GDExtensionConstTypePtr pb_args[1] = { opt_dict };
+            alignas(void*) uint8_t pb_ret = 0;
+            gd_array_push_back(arr_options, pb_args, &pb_ret, 1);
+
+            if (gd_variant_destroy) {
+                gd_variant_destroy(opt_dict);
+            }
+        }
+    }
+
+    dict_set_variant(r_ret, "options", GDEXTENSION_VARIANT_TYPE_ARRAY, arr_options);
+
+    if (gd_variant_destroy) {
+        gd_variant_destroy(arr_options);
+    }
+}
+
 inline void bridge_ret_dictionary_lookup_code(void *r_ret) {
     if (!r_ret) return;
     int64_t v_res = 2; // ERR_UNAVAILABLE
     dict_set_variant(r_ret, "result", GDEXTENSION_VARIANT_TYPE_INT, &v_res);
     int64_t v_type = 0;
     dict_set_variant(r_ret, "type", GDEXTENSION_VARIANT_TYPE_INT, &v_type);
+}
+
+inline void bridge_ret_dictionary_lookup_code_ex(
+    void *r_ret,
+    int64_t result,
+    int64_t type,
+    const char *class_name,
+    const char *class_member,
+    const char *description,
+    const char *script_path,
+    int64_t location
+) {
+    if (!r_ret) return;
+    int64_t v_res = result;
+    dict_set_variant(r_ret, "result", GDEXTENSION_VARIANT_TYPE_INT, &v_res);
+    int64_t v_type = type;
+    dict_set_variant(r_ret, "type", GDEXTENSION_VARIANT_TYPE_INT, &v_type);
+    const char *cn = class_name ? class_name : "";
+    dict_set_variant(r_ret, "class_name", GDEXTENSION_VARIANT_TYPE_STRING, &cn);
+    const char *cm = class_member ? class_member : "";
+    dict_set_variant(r_ret, "class_member", GDEXTENSION_VARIANT_TYPE_STRING, &cm);
+    const char *desc = description ? description : "";
+    dict_set_variant(r_ret, "description", GDEXTENSION_VARIANT_TYPE_STRING, &desc);
+    const char *sp = script_path ? script_path : "";
+    dict_set_variant(r_ret, "script_path", GDEXTENSION_VARIANT_TYPE_STRING, &sp);
+    int64_t v_loc = location;
+    dict_set_variant(r_ret, "location", GDEXTENSION_VARIANT_TYPE_INT, &v_loc);
 }
 
 inline void bridge_ret_dictionary_global_class(void *r_ret, const char *class_name, const char *base_type, const char *icon_path) {

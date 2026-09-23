@@ -5,6 +5,7 @@ require "./bind/engine"
 require "file_utils"
 require "option_parser"
 require "compress/zip"
+require "compress/gzip"
 require "http/client"
 
 module Lapis
@@ -219,12 +220,42 @@ HELP
                 "https://github.com/elbywan/crystalline/releases/download/#{tag}/crystalline_x86_64-windows.zip"
               end
 
-        temp_archive = dest_exe.parent.join("crystalline_dl_temp")
+        temp_archive = dest_exe.parent.join("crystalline_dl_temp.archive")
         if download_to_file(url, temp_archive)
-          FileUtils.mv(temp_archive.to_s, dest_exe.to_s) unless File.exists?(dest_exe)
-          File.chmod(dest_exe, 0o755) unless Core::Env.windows?
-          Core::Logger.success("Downloaded and configured Crystalline LSP at #{dest_exe}!")
-          0
+          begin
+            if Core::Env.windows?
+              extracted = false
+              Compress::Zip::Reader.open(temp_archive.to_s) do |zip|
+                zip.each_entry do |entry|
+                  if entry.file? && (entry.filename.ends_with?("crystalline.exe") || entry.filename == "crystalline.exe")
+                    File.open(dest_exe, "wb") do |f|
+                      IO.copy(entry.io, f)
+                    end
+                    extracted = true
+                    break
+                  end
+                end
+              end
+              unless extracted
+                Core::Logger.error("Failed to find crystalline.exe inside downloaded archive #{url}.")
+                return 1
+              end
+            else
+              File.open(dest_exe, "wb") do |f|
+                Compress::Gzip::Reader.open(temp_archive.to_s) do |gz|
+                  IO.copy(gz, f)
+                end
+              end
+              File.chmod(dest_exe, 0o755)
+            end
+            Core::Logger.success("Downloaded and configured Crystalline LSP at #{dest_exe}!")
+            0
+          rescue ex
+            Core::Logger.error("Failed to extract Crystalline archive: #{ex.message}")
+            1
+          ensure
+            File.delete(temp_archive) if File.exists?(temp_archive)
+          end
         else
           Core::Logger.warn("Could not download Crystalline from #{url}. Please download Crystalline from https://github.com/elbywan/crystalline/releases and place it at #{dest_exe}.")
           1

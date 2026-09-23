@@ -100,6 +100,7 @@ HELP
           settings_json = <<-JSON
 {
   "crystal-lang.server": "#{crystalline_path}",
+  "crystal-lang.serverArguments": ["--stdio"],
   "crystal-lang.compiler": "crystal",
   "files.associations": {
     "*.cr": "crystal",
@@ -196,6 +197,24 @@ JSON
           Core::Logger.info("#{launch_file} already exists (use --force to overwrite)")
         end
 
+        # 4. extensions.json
+        ext_file = vscode_dir.join("extensions.json")
+        if !File.exists?(ext_file) || force
+          ext_json = <<-JSON
+{
+  "recommendations": [
+    "crystal-lang.crystal-lang",
+    "geequlim.godot-tools",
+    "vadimcn.vscode-lldb"
+  ]
+}
+JSON
+          File.write(ext_file, ext_json)
+          Core::Logger.success("Generated #{ext_file}")
+        else
+          Core::Logger.info("#{ext_file} already exists (use --force to overwrite)")
+        end
+
         Core::Logger.success("VS Code workspace configured for Lapis and Crystal!")
         0
       end
@@ -217,7 +236,8 @@ JSON
   "lsp": {
     "crystalline": {
       "binary": {
-        "path": "#{crystalline_path}"
+        "path": "#{crystalline_path}",
+        "arguments": ["--stdio"]
       }
     }
   }

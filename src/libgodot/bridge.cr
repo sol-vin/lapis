@@ -82,6 +82,14 @@ module Godot
       vec_val : StaticArray(Float32, 4)
     end
 
+    struct BridgeCompletionOption
+      kind : Int64
+      display : LibC::Char*
+      insert_text : LibC::Char*
+      default_value : LibC::Char*
+      location : Int64
+    end
+
     struct BridgeAPI
       register_class : (CrystalClassDesc* -> Int32)
       get_method_bind : (LibC::Char*, LibC::Char*, Int64 -> Void*)
@@ -135,6 +143,8 @@ module Godot
       ret_dictionary_validate : (Void*, UInt8 -> Void)
       ret_dictionary_complete_code : (Void* -> Void)
       ret_dictionary_lookup_code : (Void* -> Void)
+      ret_dictionary_complete_code_ex : (Void*, Int64, UInt8, LibC::Char*, BridgeCompletionOption*, Int32 -> Void)
+      ret_dictionary_lookup_code_ex : (Void*, Int64, Int64, LibC::Char*, LibC::Char*, LibC::Char*, LibC::Char*, Int64 -> Void)
       ret_dictionary_global_class : (Void*, LibC::Char*, LibC::Char*, LibC::Char* -> Void)
       placeholder_script_instance_create : (Void*, Void*, Void* -> Void*)
       text_edit_get_line : (Void*, Int64, LibC::Char*, Int32 -> Int32)
@@ -176,7 +186,20 @@ module Godot
     end
   end
 
+  struct LibBridge::BridgeCompletionOption
+    def initialize(
+      @kind : Int64,
+      @display : LibC::Char*,
+      @insert_text : LibC::Char*,
+      @default_value : LibC::Char*,
+      @location : Int64
+    )
+    end
+  end
+
   module Bridge
+    alias BridgeCompletionOption = LibBridge::BridgeCompletionOption
+
     @@api : LibBridge::BridgeAPI* = Pointer(LibBridge::BridgeAPI).null
 
     # Method Binds Cache
@@ -1183,6 +1206,48 @@ module Godot
     def self.ret_dictionary_lookup_code(ret : Void*) : Void
       return if ret.null? || @@api.null? || @@api.value.ret_dictionary_lookup_code.pointer.null?
       @@api.value.ret_dictionary_lookup_code.call(ret)
+    end
+
+    def self.ret_dictionary_complete_code_ex(
+      ret : Void*,
+      result : Int64,
+      force : Bool,
+      call_hint : String,
+      options : Slice(BridgeCompletionOption) | Array(BridgeCompletionOption)
+    ) : Void
+      return if ret.null? || @@api.null? || @@api.value.ret_dictionary_complete_code_ex.pointer.null?
+      opt_ptr = options.empty? ? Pointer(BridgeCompletionOption).null : options.to_unsafe
+      @@api.value.ret_dictionary_complete_code_ex.call(
+        ret,
+        result,
+        force ? 1_u8 : 0_u8,
+        call_hint.to_unsafe,
+        opt_ptr,
+        options.size.to_i32
+      )
+    end
+
+    def self.ret_dictionary_lookup_code_ex(
+      ret : Void*,
+      result : Int64,
+      type : Int64,
+      class_name : String,
+      class_member : String,
+      description : String,
+      script_path : String,
+      location : Int64
+    ) : Void
+      return if ret.null? || @@api.null? || @@api.value.ret_dictionary_lookup_code_ex.pointer.null?
+      @@api.value.ret_dictionary_lookup_code_ex.call(
+        ret,
+        result,
+        type,
+        class_name.to_unsafe,
+        class_member.to_unsafe,
+        description.to_unsafe,
+        script_path.to_unsafe,
+        location
+      )
     end
 
     def self.ret_dictionary_global_class(ret : Void*, class_name : String, base_type : String = "Node", icon_path : String = "") : Void

@@ -685,14 +685,7 @@ inline void generic_class_call_virtual_with_data(
         }
         return;
     }
-    if (strcmp(method_name, "_lookup_code") == 0 || strcmp(method_name, "lookup_code") == 0) {
-        bridge_ret_dictionary_lookup_code(r_ret);
-        return;
-    }
-    if (strcmp(method_name, "_complete_code") == 0 || strcmp(method_name, "complete_code") == 0) {
-        bridge_ret_dictionary_complete_code(r_ret);
-        return;
-    }
+
     if (strcmp(method_name, "_get_plugin_icon") == 0 || strcmp(method_name, "get_plugin_icon") == 0) {
         if (is_headless_display()) {
             bridge_ret_ref(r_ret, nullptr);

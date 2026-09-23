@@ -71,6 +71,8 @@ static BridgeAPI g_bridge_api = {
     bridge_ret_dictionary_validate,
     bridge_ret_dictionary_complete_code,
     bridge_ret_dictionary_lookup_code,
+    bridge_ret_dictionary_complete_code_ex,
+    bridge_ret_dictionary_lookup_code_ex,
     bridge_ret_dictionary_global_class,
     bridge_placeholder_script_instance_create,
     bridge_text_edit_get_line,
