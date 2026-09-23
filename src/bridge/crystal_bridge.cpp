@@ -84,8 +84,8 @@ static void deinitialize_crystal_module(void *p_userdata, GDExtensionInitializat
     }
 
     if (p_level == GDEXTENSION_INITIALIZATION_EDITOR) {
-        // Unregister editor classes from ClassDB during hot reload only
-        if (s_is_reloading && gd_classdb_unregister_extension_class) {
+        // Unregister editor classes from ClassDB for this library in reverse registration order
+        if (gd_classdb_unregister_extension_class && lib) {
             auto it_ed = g_library_editor_classes.find(lib);
             if (it_ed != g_library_editor_classes.end()) {
                 for (int i = (int)it_ed->second.size() - 1; i >= 0; i--) {
@@ -98,67 +98,75 @@ static void deinitialize_crystal_module(void *p_userdata, GDExtensionInitializat
             }
         }
     } else if (p_level == GDEXTENSION_INITIALIZATION_SCENE) {
-        // Run Crystal deinitialization callbacks (e.g. unregistering scripts, loader, saver, language)
+        // Run Crystal deinitialization callbacks for this library (e.g. unregistering scripts, loader, saver, language)
         // at SCENE level after editor has finished shutting down.
-        std::vector<CrystalDeinitCallbackFn> cbs_to_run;
         if (lib) {
             auto it = g_library_deinit_callbacks.find(lib);
             if (it != g_library_deinit_callbacks.end()) {
                 for (auto fn : it->second) {
-                    if (fn) cbs_to_run.push_back(fn);
+                    if (fn) fn();
                 }
                 g_library_deinit_callbacks.erase(it);
             }
         }
-        for (auto &pair : g_library_deinit_callbacks) {
-            for (auto fn : pair.second) {
-                if (fn) {
-                    bool already = false;
-                    for (auto ran : cbs_to_run) {
-                        if (ran == fn) { already = true; break; }
-                    }
-                    if (!already) cbs_to_run.push_back(fn);
-                }
-            }
-        }
-        g_library_deinit_callbacks.clear();
-        for (auto fn : cbs_to_run) {
-            fn();
-        }
 
-        if (s_is_reloading && gd_classdb_unregister_extension_class) {
-            // Unregister any remaining editor classes during hot reload
-            for (auto &pair : g_library_editor_classes) {
-                for (int i = (int)pair.second.size() - 1; i >= 0; i--) {
-                    const std::string &cname = pair.second[i];
+        if (gd_classdb_unregister_extension_class && lib) {
+            // Unregister any remaining editor classes for this library (e.g. in standalone mode where EDITOR level was not fired)
+            auto it_ed = g_library_editor_classes.find(lib);
+            if (it_ed != g_library_editor_classes.end()) {
+                for (int i = (int)it_ed->second.size() - 1; i >= 0; i--) {
+                    const std::string &cname = it_ed->second[i];
                     void *sn = make_string_name(cname.c_str());
-                    gd_classdb_unregister_extension_class(pair.first, sn);
+                    gd_classdb_unregister_extension_class(it_ed->first, sn);
                     g_all_registered_class_names.erase(cname);
                 }
+                g_library_editor_classes.erase(it_ed);
             }
-            g_library_editor_classes.clear();
 
-            // Unregister scene classes in reverse registration order during hot reload
-            for (auto &pair : g_library_scene_classes) {
-                for (int i = (int)pair.second.size() - 1; i >= 0; i--) {
-                    const std::string &cname = pair.second[i];
+            // Unregister scene classes for this library in reverse registration order
+            auto it_sc = g_library_scene_classes.find(lib);
+            if (it_sc != g_library_scene_classes.end()) {
+                for (int i = (int)it_sc->second.size() - 1; i >= 0; i--) {
+                    const std::string &cname = it_sc->second[i];
                     void *sn = make_string_name(cname.c_str());
-                    gd_classdb_unregister_extension_class(pair.first, sn);
+                    gd_classdb_unregister_extension_class(it_sc->first, sn);
                     g_all_registered_class_names.erase(cname);
                 }
+                g_library_scene_classes.erase(it_sc);
             }
-            g_library_scene_classes.clear();
-        } else {
-            g_library_editor_classes.clear();
-            g_library_scene_classes.clear();
         }
 
         g_active_extension_count--;
         if (g_active_extension_count <= 0) {
             g_active_extension_count = 0;
+
+            // Run any fallback callbacks for extensions that didn't deinit cleanly
+            for (auto &pair : g_library_deinit_callbacks) {
+                for (auto fn : pair.second) {
+                    if (fn) fn();
+                }
+            }
             g_library_deinit_callbacks.clear();
-            g_library_scene_classes.clear();
+
+            // Fallback: sweep any remaining unregistered classes across any untracked libraries
+            if (gd_classdb_unregister_extension_class) {
+                for (auto &pair : g_library_editor_classes) {
+                    for (int i = (int)pair.second.size() - 1; i >= 0; i--) {
+                        void *sn = make_string_name(pair.second[i].c_str());
+                        gd_classdb_unregister_extension_class(pair.first, sn);
+                        g_all_registered_class_names.erase(pair.second[i]);
+                    }
+                }
+                for (auto &pair : g_library_scene_classes) {
+                    for (int i = (int)pair.second.size() - 1; i >= 0; i--) {
+                        void *sn = make_string_name(pair.second[i].c_str());
+                        gd_classdb_unregister_extension_class(pair.first, sn);
+                        g_all_registered_class_names.erase(pair.second[i]);
+                    }
+                }
+            }
             g_library_editor_classes.clear();
+            g_library_scene_classes.clear();
             g_deferred_editor_classes.clear();
             g_editor_doc_xmls.clear();
             g_loader_registered = 0;
