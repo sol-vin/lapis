@@ -73,6 +73,33 @@ module Godot
       call("set", "signal_call_count", val)
     end
 
+    # Property `last_selected_channel_value` (String)
+    def last_selected_channel_value : String
+      call_str("get", "last_selected_channel_value")
+    end
+
+    def last_selected_channel_value=(val) : Void
+      call("set", "last_selected_channel_value", val)
+    end
+
+    # Property `last_channel_pair_val` (String)
+    def last_channel_pair_val : String
+      call_str("get", "last_channel_pair_val")
+    end
+
+    def last_channel_pair_val=(val) : Void
+      call("set", "last_channel_pair_val", val)
+    end
+
+    # Property `last_channel_pair_id` (Int64)
+    def last_channel_pair_id : Int64
+      call_i64("get", "last_channel_pair_id")
+    end
+
+    def last_channel_pair_id=(val) : Void
+      call("set", "last_channel_pair_id", val)
+    end
+
     # Method `add_numbers` -> Int64
     def add_numbers(a : Int64, b : Int64) : Int64
       call_i64("add_numbers", a, b)
@@ -298,6 +325,74 @@ module Godot
       call_bool("verify_crystal_scene_properties", scene_path)
     end
 
+    # Method `select_channel_from_pair` -> Godot::RefCounted?
+    def select_channel_from_pair(ch1 : Godot::RefCounted, ch2 : Godot::RefCounted) : Godot::RefCounted?
+      call_obj_as(Godot::RefCounted, "select_channel_from_pair", ch1, ch2)
+    end
+
+    # Method `setup_channel_pair_listener` -> Void
+    def setup_channel_pair_listener(ch1 : Godot::RefCounted, ch2 : Godot::RefCounted) : Void
+      call("setup_channel_pair_listener", ch1, ch2)
+      nil
+    end
+
+    # Method `get_crystal_node_count` -> Int64
+    def get_crystal_node_count(node : Godot::Node) : Int64
+      call_i64("get_crystal_node_count", node)
+    end
+
+    # Method `set_crystal_node_count` -> Bool
+    def set_crystal_node_count(node : Godot::Node, val : Int64) : Bool
+      call_bool("set_crystal_node_count", node, val)
+    end
+
+    # Method `select_channel_nonblocking` -> Void
+    def select_channel_nonblocking(channels : Godot::Array) : Void
+      call("select_channel_nonblocking", channels)
+      nil
+    end
+
+    # Method `await_channel_select` -> Void
+    def await_channel_select(channels : Godot::Array, timeout_sec : Float64) : Void
+      call("await_channel_select", channels, timeout_sec)
+      nil
+    end
+
+    # Method `start_worker_thread_channel_producer` -> Int64
+    def start_worker_thread_channel_producer(ch : Godot::RefCounted, count : Int64, prefix : String) : Int64
+      call_i64("start_worker_thread_channel_producer", ch, count, prefix)
+    end
+
+    # Method `wait_for_worker_task` -> Void
+    def wait_for_worker_task(task_id : Int64) : Void
+      call("wait_for_worker_task", task_id)
+      nil
+    end
+
+    # Method `mutate_dictionary` -> Void
+    def mutate_dictionary(dict : Godot::Dictionary) : Void
+      call("mutate_dictionary", dict)
+      nil
+    end
+
+    # Method `mutate_array` -> Void
+    def mutate_array(arr : Godot::Array) : Void
+      call("mutate_array", arr)
+      nil
+    end
+
+    # Method `invoke_callable` -> Void
+    def invoke_callable(cb : Godot::Callable, arg : String) : Void
+      call("invoke_callable", cb, arg)
+      nil
+    end
+
+    # Method `drain_channel_async` -> Void
+    def drain_channel_async(ch : Godot::RefCounted) : Void
+      call("drain_channel_async", ch)
+      nil
+    end
+
     # Bound Signal `gd_ping`
     def gd_ping : Godot::BoundSignal
       signal("gd_ping")
@@ -306,6 +401,11 @@ module Godot
     # Bound Signal `gd_pong`
     def gd_pong : Godot::BoundSignal
       signal("gd_pong")
+    end
+
+    # Bound Signal `channel_select_completed`
+    def channel_select_completed : Godot::BoundSignal
+      signal("channel_select_completed")
     end
   end
 end

@@ -56,6 +56,8 @@ node ToolTester2D < Godot::Node2D do
     if passed == total
       @test_status = "All #{total}/#{total} Tests Passed!"
       Godot.print("[ToolTester2D] SUCCESS: All #{total} in-editor tests passed cleanly!")
+      Godot::SystemIO.write_file("test/bin/.tool_tests_passed", "All #{total}/#{total} Tests Passed!\n")
+      Godot::SystemIO.write_file("test/.tool_tests_passed", "All #{total}/#{total} Tests Passed!\n")
     else
       @test_status = "Failed: #{total - passed}/#{total} Errors"
       Godot.printerr("[ToolTester2D] FAILED: #{total - passed} test(s) failed.")
@@ -108,6 +110,8 @@ node ToolTester3D < Godot::Node3D do
     if passed == total
       @test_status = "All #{total}/#{total} Tests Passed!"
       Godot.print("[ToolTester3D] SUCCESS: All #{total} in-editor tests passed cleanly!")
+      Godot::SystemIO.write_file("test/bin/.tool_tests_passed", "All #{total}/#{total} Tests Passed!\n")
+      Godot::SystemIO.write_file("test/.tool_tests_passed", "All #{total}/#{total} Tests Passed!\n")
     else
       @test_status = "Failed: #{total - passed}/#{total} Errors"
       Godot.printerr("[ToolTester3D] FAILED: #{total - passed} test(s) failed.")
@@ -376,3 +380,5 @@ require "./suites/test_memory_cyclic_refcounting"
 require "./suites/test_servers_low_level_rid"
 require "./suites/test_virtual_methods_dispatch"
 require "./suites/test_concurrency_multi_thread_gc"
+require "./suites/test_channel_exhaustive"
+require "./suites/test_gdscript_crystal_interop_deep"

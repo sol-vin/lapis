@@ -13,6 +13,13 @@ end
 
 node ModifierNode < Node3D do
   def _ready
-    self.get_parent.get_node("RunMe").call_deferred("imma_print")
+    if p = get_parent
+      begin
+        if run_me = p.get_node("RunMe")
+          run_me.call_deferred("imma_print")
+        end
+      rescue
+      end
+    end
   end
 end

@@ -1162,6 +1162,228 @@
 					"return_class_name": "",
 					"return_type": 1,
 					"return_type_name": "bool"
+				},
+				{
+					"args": [
+						{
+							"class_name": "RefCounted",
+							"name": "ch1",
+							"type": 24,
+							"type_name": "Object"
+						},
+						{
+							"class_name": "RefCounted",
+							"name": "ch2",
+							"type": 24,
+							"type_name": "Object"
+						}
+					],
+					"flags": 1,
+					"name": "select_channel_from_pair",
+					"return_class_name": "RefCounted",
+					"return_type": 24,
+					"return_type_name": "Object"
+				},
+				{
+					"args": [
+						{
+							"class_name": "RefCounted",
+							"name": "ch1",
+							"type": 24,
+							"type_name": "Object"
+						},
+						{
+							"class_name": "RefCounted",
+							"name": "ch2",
+							"type": 24,
+							"type_name": "Object"
+						}
+					],
+					"flags": 1,
+					"name": "setup_channel_pair_listener",
+					"return_class_name": "",
+					"return_type": 0,
+					"return_type_name": "Nil"
+				},
+				{
+					"args": [
+						{
+							"class_name": "Node",
+							"name": "node",
+							"type": 24,
+							"type_name": "Object"
+						}
+					],
+					"flags": 1,
+					"name": "get_crystal_node_count",
+					"return_class_name": "",
+					"return_type": 2,
+					"return_type_name": "int"
+				},
+				{
+					"args": [
+						{
+							"class_name": "Node",
+							"name": "node",
+							"type": 24,
+							"type_name": "Object"
+						},
+						{
+							"class_name": "",
+							"name": "val",
+							"type": 2,
+							"type_name": "int"
+						}
+					],
+					"flags": 1,
+					"name": "set_crystal_node_count",
+					"return_class_name": "",
+					"return_type": 1,
+					"return_type_name": "bool"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "channels",
+							"type": 28,
+							"type_name": "Array"
+						}
+					],
+					"flags": 1,
+					"name": "select_channel_nonblocking",
+					"return_class_name": "",
+					"return_type": 28,
+					"return_type_name": "Array"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "channels",
+							"type": 28,
+							"type_name": "Array"
+						},
+						{
+							"class_name": "",
+							"name": "timeout_sec",
+							"type": 3,
+							"type_name": "float"
+						}
+					],
+					"flags": 1,
+					"name": "await_channel_select",
+					"return_class_name": "",
+					"return_type": 28,
+					"return_type_name": "Array"
+				},
+				{
+					"args": [
+						{
+							"class_name": "RefCounted",
+							"name": "ch",
+							"type": 24,
+							"type_name": "Object"
+						},
+						{
+							"class_name": "",
+							"name": "count",
+							"type": 2,
+							"type_name": "int"
+						},
+						{
+							"class_name": "",
+							"name": "prefix",
+							"type": 4,
+							"type_name": "String"
+						}
+					],
+					"flags": 1,
+					"name": "start_worker_thread_channel_producer",
+					"return_class_name": "",
+					"return_type": 2,
+					"return_type_name": "int"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "task_id",
+							"type": 2,
+							"type_name": "int"
+						}
+					],
+					"flags": 1,
+					"name": "wait_for_worker_task",
+					"return_class_name": "",
+					"return_type": 0,
+					"return_type_name": "Nil"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "dict",
+							"type": 27,
+							"type_name": "Dictionary"
+						}
+					],
+					"flags": 1,
+					"name": "mutate_dictionary",
+					"return_class_name": "",
+					"return_type": 27,
+					"return_type_name": "Dictionary"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "arr",
+							"type": 28,
+							"type_name": "Array"
+						}
+					],
+					"flags": 1,
+					"name": "mutate_array",
+					"return_class_name": "",
+					"return_type": 28,
+					"return_type_name": "Array"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "cb",
+							"type": 25,
+							"type_name": "Callable"
+						},
+						{
+							"class_name": "",
+							"name": "arg",
+							"type": 4,
+							"type_name": "String"
+						}
+					],
+					"flags": 1,
+					"name": "invoke_callable",
+					"return_class_name": "",
+					"return_type": 0,
+					"return_type_name": "Nil"
+				},
+				{
+					"args": [
+						{
+							"class_name": "RefCounted",
+							"name": "ch",
+							"type": 24,
+							"type_name": "Object"
+						}
+					],
+					"flags": 1,
+					"name": "drain_channel_async",
+					"return_class_name": "",
+					"return_type": 28,
+					"return_type_name": "Array"
 				}
 			],
 			"name": "InteropController",
@@ -1222,6 +1444,30 @@
 					"name": "signal_call_count",
 					"type": 2,
 					"type_name": "int"
+				},
+				{
+					"class_name": "",
+					"hint": 0,
+					"hint_string": "",
+					"name": "last_selected_channel_value",
+					"type": 4,
+					"type_name": "String"
+				},
+				{
+					"class_name": "",
+					"hint": 0,
+					"hint_string": "",
+					"name": "last_channel_pair_val",
+					"type": 4,
+					"type_name": "String"
+				},
+				{
+					"class_name": "",
+					"hint": 0,
+					"hint_string": "",
+					"name": "last_channel_pair_id",
+					"type": 2,
+					"type_name": "int"
 				}
 			],
 			"signals": [
@@ -1246,6 +1492,23 @@
 						}
 					],
 					"name": "gd_pong"
+				},
+				{
+					"args": [
+						{
+							"class_name": "RefCounted",
+							"name": "ch",
+							"type": 24,
+							"type_name": "Object"
+						},
+						{
+							"class_name": "",
+							"name": "val",
+							"type": 4,
+							"type_name": "String"
+						}
+					],
+					"name": "channel_select_completed"
 				}
 			]
 		}

@@ -7,12 +7,22 @@ include Lapis::Test
 
 test_resources "ConfigFile key/value persistence and sections" do
   cfg = Godot.create(Godot::ConfigFile)
-  cfg.call("set_value", "audio", "master_volume", 1.0_f64)
-  assert_true cfg.call_bool("has_section", "audio")
-  assert_true cfg.call_bool("has_section_key", "audio", "master_volume")
+  cfg.set_value("audio", "master_volume", 1.0_f64)
+  assert_true cfg.has_section("audio")
+  assert_true cfg.has_section?("audio")
+  assert_true cfg.has_section_key("audio", "master_volume")
+  assert_true cfg.has_section_key?("audio", "master_volume")
+  assert_approx_eq cfg.get_value_f64("audio", "master_volume"), 1.0_f64
 
-  cfg.call("erase_section", "audio")
-  assert_false cfg.call_bool("has_section", "audio")
+  # Indexer brackets ergonomics
+  cfg["display", "fullscreen"] = true
+  assert_true cfg.has_section?("display")
+  assert_true cfg.has_section_key?("display", "fullscreen")
+  assert_true cfg.get_value_bool("display", "fullscreen")
+
+  cfg.erase_section("audio")
+  assert_false cfg.has_section("audio")
+  assert_false cfg.has_section?("audio")
   cfg.destroy
 end
 
@@ -22,17 +32,19 @@ test_resources "AStar2D graph pathfinding point registration and connection" do
   astar.add_point(2_i64, Godot::Vector2.new(10.0, 0.0), 1.0_f64)
 
   assert_true astar.has_point(1_i64)
-  assert_true astar.has_point(2_i64)
+  assert_true astar.has_point?(1_i64)
   assert_false astar.has_point(99_i64)
+  assert_false astar.has_point?(99_i64)
 
   astar.connect_points(1_i64, 2_i64, true)
   assert_true astar.are_points_connected(1_i64, 2_i64, true)
+  assert_true astar.points_connected?(1_i64, 2_i64, true)
 
   p1 = astar.get_point_position(1_i64)
   assert_approx_eq p1.x, 0.0_f32
 
   astar.clear
-  assert_false astar.has_point(1_i64)
+  assert_false astar.has_point?(1_i64)
   astar.destroy
 end
 
@@ -42,13 +54,16 @@ test_resources "AStar3D graph pathfinding point registration and connectivity" d
   astar3d.add_point(20_i64, Godot::Vector3.new(0.0, 10.0, 0.0), 1.0_f64)
 
   assert_true astar3d.has_point(10_i64)
-  assert_true astar3d.has_point(20_i64)
+  assert_true astar3d.has_point?(10_i64)
+  assert_false astar3d.has_point(99_i64)
+  assert_false astar3d.has_point?(99_i64)
 
   astar3d.connect_points(10_i64, 20_i64, true)
   assert_true astar3d.are_points_connected(10_i64, 20_i64, true)
+  assert_true astar3d.points_connected?(10_i64, 20_i64, true)
 
   astar3d.clear
-  assert_false astar3d.has_point(10_i64)
+  assert_false astar3d.has_point?(10_i64)
   astar3d.destroy
 end
 
@@ -139,22 +154,22 @@ test_resources "Instantiating and mutating custom Resource subclass in Crystal" 
 end
 
 test_resources "Instantiating and configuring built-in engine resources in Crystal" do
-  # StandardMaterial3D
+  # StandardMaterial3D - using typed property setters and getters
   mat = Godot.create(Godot::StandardMaterial3D)
-  mat.call("set", "roughness", 0.65_f64)
+  mat.roughness = 0.65_f32
   assert_true mat.alive?
-  assert_approx_eq mat.call_f64("get", "roughness"), 0.65
+  assert_approx_eq mat.roughness.to_f64, 0.65
 
-  # Curve
+  # Curve - using strongly-typed method bindings
   curve = Godot.create(Godot::Curve)
-  curve.call_i64("add_point", Godot::Vector2.new(0.0, 0.0))
-  curve.call_i64("add_point", Godot::Vector2.new(1.0, 1.0))
-  val = curve.call_f64("sample", 0.5_f64)
+  curve.add_point(Godot::Vector2.new(0.0, 0.0))
+  curve.add_point(Godot::Vector2.new(1.0, 1.0))
+  val = curve.sample(0.5_f64)
   assert_true val >= 0.0 && val <= 1.0, "Curve sample should be valid interpolated float"
 
-  # Gradient
+  # Gradient - using strongly-typed method bindings
   grad = Godot.create(Godot::Gradient)
-  grad.call("set_color", 0_i64, Godot::Color.new(1.0, 0.0, 0.0, 1.0))
+  grad.set_color(0_i64, Godot::Color.new(1.0, 0.0, 0.0, 1.0))
   assert_true grad.alive?
 
   mat.destroy
@@ -168,8 +183,8 @@ test_resources "Saving custom resource to disk via ResourceSaver and loading bac
   item.power = 180
 
   save_path = "user://test_custom_item.tres"
-  err = Godot.resource_saver.call_i64("save", item, save_path)
-  assert_eq err, 0_i64, "ResourceSaver.save should return 0 (OK)"
+  err = Godot.resource_saver.save(item, save_path)
+  assert_true err == Godot::Error::Ok || err.value == 0_i64, "ResourceSaver.save should return 0 (OK)"
 
   # Load the resource back using ResourceLoader / Godot.load
   loaded = Godot.load(save_path, cache_mode: 0_i64)
@@ -182,9 +197,9 @@ test_resources "Saving custom resource to disk via ResourceSaver and loading bac
   assert_eq loaded_name, "AegisShield", "Loaded resource must retain item_name"
   assert_eq loaded_power, 180_i64, "Loaded resource must retain power"
 
-  item.call("take_over_path", "")
+  item.take_over_path("")
   item.destroy
-  loaded.call("take_over_path", "")
+  loaded.take_over_path("")
   loaded.destroy
 end
 
@@ -210,13 +225,13 @@ test_resources "Passing custom Resource to GDScript, verifying properties, and m
 
   # Save to disk from Crystal, then load from disk in GDScript
   save_path = "user://gdscript_read_test.tres"
-  Godot.resource_saver.call_i64("save", item, save_path)
+  Godot.resource_saver.save(item, save_path)
   disk_power = controller.call_i64("load_resource_from_disk_and_get_power", save_path)
   assert_eq disk_power, 140_i64, "GDScript ResourceLoader should read serialized power from disk"
 
   root.remove_child(controller)
   controller.destroy
   scene.destroy
-  item.call("take_over_path", "")
+  item.take_over_path("")
   item.destroy
 end

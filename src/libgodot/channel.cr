@@ -2,7 +2,7 @@ require "./object"
 require "./types"
 
 module Godot
-  alias ChannelItem = Nil | Bool | Int64 | Float64 | String | Godot::Object | Godot::Vector2 | Godot::Vector3 | Godot::Color
+  alias ChannelItem = Nil | Bool | Int32 | Int64 | Float32 | Float64 | String | Godot::Object | Godot::Vector2 | Godot::Vector3 | Godot::Color
 
   # A thread-safe, actor-style communication channel bridging Crystal OS threads,
   # cooperative gameplay fibers, Godot C++ threads, and GDScript coroutines.
@@ -16,20 +16,30 @@ module Godot
   # safety across all threads by utilizing native OS synchronization (`Thread::Mutex` +
   # `Thread::ConditionVariable`) and cooperative yielding (`Fiber.yield`) on the Main Thread.
   class Channel < RefCounted
-    property capacity : Int32
     getter? closed : Bool = false
+    @capacity : Int32
     @buffer : Deque(ChannelItem)
     @mutex : ::Thread::Mutex = ::Thread::Mutex.new
     @not_empty : ::Thread::ConditionVariable = ::Thread::ConditionVariable.new
     @not_full : ::Thread::ConditionVariable = ::Thread::ConditionVariable.new
     @last_received_cache : String? = nil
 
-    def initialize(@capacity : Int32 = 16)
+    def capacity : Int32
+      @capacity
+    end
+
+    def capacity=(val : Int32)
+      @capacity = [val, 1].max
+    end
+
+    def initialize(capacity : Int32 = 16)
+      @capacity = [capacity, 1].max
       super()
       @buffer = Deque(ChannelItem).new
     end
 
-    def initialize(pointer : Void*, @capacity : Int32 = 16)
+    def initialize(pointer : Void*, capacity : Int32 = 16)
+      @capacity = [capacity, 1].max
       super(pointer)
       @buffer = Deque(ChannelItem).new
     end
@@ -173,6 +183,83 @@ module Godot
         end
         Fiber.yield
       end
+    end
+
+    # Non-blockingly yields all currently available items in the channel.
+    # Returns the number of items drained.
+    def drain(&block : ChannelItem -> Void) : Int32
+      count = 0
+      while item = try_receive
+        block.call(item)
+        count += 1
+      end
+      count
+    end
+
+    # Non-blockingly drains and returns all currently available items as an Array.
+    def drain_all : Array(ChannelItem)
+      items = [] of ChannelItem
+      drain { |item| items << item }
+      items
+    end
+
+    # Non-blocking multi-channel multiplexer (select_any).
+    # Returns the first channel that has an available item and the item itself,
+    # or nil if all provided channels are empty.
+    def self.select_any(*channels : Channel) : Tuple(Channel, ChannelItem)?
+      select_any(channels.to_a)
+    end
+
+    def self.select_any(channels : Array(Channel)) : Tuple(Channel, ChannelItem)?
+      channels.each do |ch|
+        if item = ch.try_receive
+          return {ch, item}
+        end
+      end
+      nil
+    end
+
+    # Cooperative multi-channel await multiplexer for gameplay fibers on the Main Thread.
+    # Polls channels with fair round-robin scheduling and yields execution slices
+    # with Fiber.yield every frame, returning as soon as any channel delivers data or timeout expires.
+    def self.await_select(*channels : Channel, timeout_sec : Float64? = nil) : Tuple(Channel, ChannelItem)?
+      await_select(channels.to_a, timeout_sec: timeout_sec)
+    end
+
+    def self.await_select(channels : Array(Channel), timeout_sec : Float64? = nil) : Tuple(Channel, ChannelItem)?
+      return nil if channels.empty?
+      start_time = ::Time.instant
+      offset = 0
+      loop do
+        count = channels.size
+        count.times do |i|
+          idx = (offset + i) % count
+          ch = channels[idx]
+          if item = ch.try_receive
+            return {ch, item}
+          end
+        end
+        offset = (offset + 1) % count
+
+        # If all channels are closed, return nil
+        if channels.all?(&.is_closed)
+          return nil
+        end
+
+        if timeout = timeout_sec
+          if (::Time.instant - start_time).total_seconds >= timeout
+            return nil
+          end
+        end
+        Fiber.yield
+      end
+    end
+
+    # Declarative CSP-style select DSL block
+    def self.select_any(&block : ChannelSelect -> Void) : Bool
+      cs = ChannelSelect.new
+      block.call(cs)
+      cs.execute
     end
 
     # Closes the channel. Unblocks all waiting senders and receivers and emits `signal closed`.
@@ -340,28 +427,54 @@ module Godot
     end
 
     def send(val : T) : Bool
-      @channel.send(val.as(ChannelItem))
+      {% if T < Godot::Object %}
+        @channel.send(val.as(Godot::Object))
+      {% else %}
+        @channel.send(val.as(ChannelItem))
+      {% end %}
     end
 
     def try_send(val : T) : Bool
-      @channel.try_send(val.as(ChannelItem))
+      {% if T < Godot::Object %}
+        @channel.try_send(val.as(Godot::Object))
+      {% else %}
+        @channel.try_send(val.as(ChannelItem))
+      {% end %}
     end
 
     def receive(timeout_sec : Float64? = nil) : T?
       if item = @channel.receive(timeout_sec)
-        item.as?(T)
+        {% if T < Godot::Object %}
+          if obj = item.as?(Godot::Object)
+            obj.as?(T)
+          end
+        {% else %}
+          item.as?(T)
+        {% end %}
       end
     end
 
     def try_receive : T?
       if item = @channel.try_receive
-        item.as?(T)
+        {% if T < Godot::Object %}
+          if obj = item.as?(Godot::Object)
+            obj.as?(T)
+          end
+        {% else %}
+          item.as?(T)
+        {% end %}
       end
     end
 
     def await_receive(timeout_sec : Float64? = nil) : T?
       if item = @channel.await_receive(timeout_sec)
-        item.as?(T)
+        {% if T < Godot::Object %}
+          if obj = item.as?(Godot::Object)
+            obj.as?(T)
+          end
+        {% else %}
+          item.as?(T)
+        {% end %}
       end
     end
 
@@ -371,6 +484,85 @@ module Godot
 
     def destroy : Void
       close
+    end
+
+    def is_empty : Bool
+      @channel.is_empty
+    end
+
+    def is_full : Bool
+      @channel.is_full
+    end
+
+    def is_closed : Bool
+      @channel.is_closed
+    end
+
+    def drain(&block : T -> Void) : Int32
+      count = 0
+      while item = try_receive
+        block.call(item)
+        count += 1
+      end
+      count
+    end
+
+    def drain_all : Array(T)
+      items = [] of T
+      drain { |item| items << item }
+      items
+    end
+  end
+
+  # CSP-style declarative multiplexing helper for `Godot::Channel.select_any`
+  class ChannelSelect
+    alias ClauseProc = Proc(ChannelItem, Nil)
+    @clauses : Array(Tuple(Channel, ClauseProc))
+    @else_block : Proc(Nil)?
+
+    def initialize
+      @clauses = Array(Tuple(Channel, ClauseProc)).new
+      @else_block = nil
+    end
+
+    def receive(channel : Channel, &block : ChannelItem ->)
+      cb = Proc(ChannelItem, Nil).new do |item|
+        block.call(item)
+        nil
+      end
+      @clauses << {channel, cb}
+    end
+
+    def receive(typed_channel : TypedChannel(T), &block : T ->) forall T
+      ch = typed_channel.channel
+      cb = Proc(ChannelItem, Nil).new do |item|
+        if casted = item.as?(T)
+          block.call(casted)
+        end
+        nil
+      end
+      @clauses << {ch, cb}
+    end
+
+    def else(&block : ->)
+      @else_block = Proc(Nil).new do
+        block.call
+        nil
+      end
+    end
+
+    def execute : Bool
+      @clauses.each do |ch, callback|
+        if item = ch.try_receive
+          callback.call(item)
+          return true
+        end
+      end
+      if eb = @else_block
+        eb.call
+        return true
+      end
+      false
     end
   end
 end

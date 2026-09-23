@@ -372,6 +372,78 @@ module Godot
       get_format
     end
   end
+
+  # ===========================================================================
+  # ConfigFile Ergonomic Extensions
+  # ===========================================================================
+  class ConfigFile < RefCounted
+    # Predicate alias for `has_section`
+    def has_section?(section : String) : Bool
+      has_section(section)
+    end
+
+    # Predicate alias for `has_section_key`
+    def has_section_key?(section : String, key : String) : Bool
+      has_section_key(section, key)
+    end
+
+    # Sets a value for a section and key with automatic variant conversion
+    def set_value(section : String, key : String, value) : Void
+      call("set_value", section, key, value)
+    end
+
+    # Sets a value using indexer syntax: `cfg["audio", "master_volume"] = 1.0`
+    def []=(section : String, key : String, value) : Void
+      call("set_value", section, key, value)
+    end
+
+    # Gets a Float64 value for a section and key with an optional default
+    def get_value_f64(section : String, key : String, default : Float64 = 0.0_f64) : Float64
+      call_f64("get_value", section, key, default)
+    end
+
+    # Gets a String value for a section and key with an optional default
+    def get_value_str(section : String, key : String, default : String = "") : String
+      call_str("get_value", section, key, default)
+    end
+
+    # Gets an Int64 value for a section and key with an optional default
+    def get_value_i64(section : String, key : String, default : Int64 = 0_i64) : Int64
+      call_i64("get_value", section, key, default)
+    end
+
+    # Gets a Bool value for a section and key with an optional default
+    def get_value_bool(section : String, key : String, default : Bool = false) : Bool
+      call_bool("get_value", section, key, default)
+    end
+  end
+
+  # ===========================================================================
+  # AStar2D & AStar3D Ergonomic Extensions
+  # ===========================================================================
+  class AStar2D < RefCounted
+    # Predicate alias for `has_point`
+    def has_point?(id : Int64) : Bool
+      has_point(id)
+    end
+
+    # Predicate alias for `are_points_connected`
+    def points_connected?(id : Int64, with_id : Int64, bidirectional : Bool = true) : Bool
+      are_points_connected(id, with_id, bidirectional)
+    end
+  end
+
+  class AStar3D < RefCounted
+    # Predicate alias for `has_point`
+    def has_point?(id : Int64) : Bool
+      has_point(id)
+    end
+
+    # Predicate alias for `are_points_connected`
+    def points_connected?(id : Int64, with_id : Int64, bidirectional : Bool = true) : Bool
+      are_points_connected(id, with_id, bidirectional)
+    end
+  end
 end
 
 struct Enum

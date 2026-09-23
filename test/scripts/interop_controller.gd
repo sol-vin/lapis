@@ -5,6 +5,7 @@ class_name InteropController
 # GDScript <-> Crystal Interoperability Test Controller
 signal gd_ping(val: int)
 signal gd_pong(msg: String)
+signal channel_select_completed(ch: RefCounted, val: String)
 
 var counter: int = 0
 var received_node_name: String = ""
@@ -272,5 +273,106 @@ func verify_crystal_scene_properties(scene_path: String) -> bool:
 	if res.get("level") != 25:
 		return false
 	return true
+
+# GDScript Multi-Channel Select & Multiplexing
+var last_selected_channel_value: String = ""
+
+func select_channel_from_pair(ch1: RefCounted, ch2: RefCounted) -> RefCounted:
+	var ch = null
+	if ch1 != null and not ch1.is_empty():
+		ch = ch1
+	elif ch2 != null and not ch2.is_empty():
+		ch = ch2
+	if ch != null:
+		last_selected_channel_value = str(ch.try_receive())
+		return ch
+	last_selected_channel_value = ""
+	return null
+
+var last_channel_pair_val: String = ""
+var last_channel_pair_id: int = 0
+
+func setup_channel_pair_listener(ch1: RefCounted, ch2: RefCounted) -> void:
+	last_channel_pair_val = ""
+	last_channel_pair_id = 0
+	var on_ch1 = func(val):
+		if last_channel_pair_val == "" and ch1 != null and not ch1.is_empty():
+			last_channel_pair_val = str(ch1.try_receive())
+			last_channel_pair_id = ch1.get_instance_id()
+	var on_ch2 = func(val):
+		if last_channel_pair_val == "" and ch2 != null and not ch2.is_empty():
+			last_channel_pair_val = str(ch2.try_receive())
+			last_channel_pair_id = ch2.get_instance_id()
+	if ch1 != null:
+		ch1.connect("received", on_ch1)
+	if ch2 != null:
+		ch2.connect("received", on_ch2)
+
+func get_crystal_node_count(node: Node) -> int:
+	if node != null:
+		return int(node.get("crystal_count"))
+	return -1
+
+func set_crystal_node_count(node: Node, val: int) -> bool:
+	if node != null:
+		node.set("crystal_count", val)
+		return true
+	return false
+
+func select_channel_nonblocking(channels: Array) -> Array:
+	for ch in channels:
+		if ch != null and not ch.is_empty():
+			var val = ch.try_receive()
+			return [ch, val]
+	return []
+
+func await_channel_select(channels: Array, timeout_sec: float = 0.0) -> Array:
+	# 1. Immediate non-blocking check
+	for ch in channels:
+		if ch != null and not ch.is_empty():
+			return [ch, ch.try_receive()]
+
+	# 2. Cooperative polling across frames
+	var start_time = Time.get_ticks_msec() / 1000.0
+	while true:
+		for ch in channels:
+			if ch != null and not ch.is_empty():
+				return [ch, ch.try_receive()]
+		if timeout_sec > 0.0 and (Time.get_ticks_msec() / 1000.0 - start_time) >= timeout_sec:
+			break
+		await get_tree().process_frame
+	return []
+
+# WorkerThreadPool Background Processing
+func start_worker_thread_channel_producer(ch: RefCounted, count: int, prefix: String) -> int:
+	var task = func():
+		for i in range(count):
+			ch.send("%s_%d" % [prefix, i])
+	return WorkerThreadPool.add_task(task)
+
+func wait_for_worker_task(task_id: int) -> void:
+	WorkerThreadPool.wait_for_task_completion(task_id)
+
+# Container Mutation & Interop
+func mutate_dictionary(dict: Dictionary) -> Dictionary:
+	dict["gdscript_key"] = "gdscript_value"
+	dict["added_count"] = 42
+	return dict
+
+func mutate_array(arr: Array) -> Array:
+	arr.append("appended_by_gdscript")
+	return arr
+
+func invoke_callable(cb: Callable, arg: String) -> Variant:
+	if cb.is_valid():
+		return cb.call(arg)
+	return null
+
+func drain_channel_async(ch: RefCounted) -> Array:
+	var items = []
+	while ch != null and not ch.is_empty():
+		items.append(ch.try_receive())
+	return items
+
 
 
