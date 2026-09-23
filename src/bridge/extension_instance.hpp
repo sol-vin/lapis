@@ -434,11 +434,18 @@ inline void* generic_class_get_virtual_call_data(void *p_class_userdata, GDExten
         }
 
         if (strcmp(desc->name, "CrystalLanguage") == 0) {
-            if (strcmp(norm_name, "_get_name") == 0 ||
-                strcmp(norm_name, "_init") == 0 ||
+            // Note: _init, _finish, _thread_enter, _thread_exit, and _frame are required by Godot's
+            // ScriptLanguageExtension base class. They are intercepted at the very top of
+            // generic_class_call_virtual_with_data to return immediately without registering
+            // terminating threads in Boehm GC or invoking Crystal code on foreign threads.
+            if (strcmp(norm_name, "_init") == 0 ||
+                strcmp(norm_name, "_finish") == 0 ||
+                strcmp(norm_name, "_thread_enter") == 0 ||
+                strcmp(norm_name, "_thread_exit") == 0 ||
+                strcmp(norm_name, "_frame") == 0 ||
+                strcmp(norm_name, "_get_name") == 0 ||
                 strcmp(norm_name, "_get_type") == 0 ||
                 strcmp(norm_name, "_get_extension") == 0 ||
-                strcmp(norm_name, "_finish") == 0 ||
                 strcmp(norm_name, "_get_recognized_extensions") == 0 ||
                 strcmp(norm_name, "_get_reserved_words") == 0 ||
                 strcmp(norm_name, "_is_control_flow_keyword") == 0 ||
@@ -467,9 +474,6 @@ inline void* generic_class_get_virtual_call_data(void *p_class_userdata, GDExten
                 strcmp(norm_name, "_add_global_constant") == 0 ||
                 strcmp(norm_name, "_add_named_global_constant") == 0 ||
                 strcmp(norm_name, "_remove_named_global_constant") == 0 ||
-                strcmp(norm_name, "_thread_enter") == 0 ||
-                strcmp(norm_name, "_thread_exit") == 0 ||
-                strcmp(norm_name, "_frame") == 0 ||
                 strcmp(norm_name, "_reload_all_scripts") == 0 ||
                 strcmp(norm_name, "_reload_scripts") == 0 ||
                 strcmp(norm_name, "_reload_tool_script") == 0 ||
@@ -595,7 +599,6 @@ inline void generic_class_call_virtual_with_data(
     const GDExtensionConstTypePtr *p_args,
     GDExtensionTypePtr r_ret
 ) {
-    ensure_gc_thread_registered();
     GenericExtensionInstance *inst = (GenericExtensionInstance*)p_instance;
     if (!inst || !inst->desc) return;
 
@@ -606,6 +609,19 @@ inline void generic_class_call_virtual_with_data(
         method_name = name_buf;
     }
     if (!method_name) return;
+
+    // Fast-path: thread lifecycle hooks and no-op engine ticks must never touch Crystal runtime
+    // or register foreign exiting threads with Boehm GC. Running GC registration or Crystal code
+    // on a terminating thread (e.g. during EditorSettings saving or thread exit) causes C0000005 crashes.
+    if (strcmp(method_name, "_thread_enter") == 0 || strcmp(method_name, "thread_enter") == 0 ||
+        strcmp(method_name, "_thread_exit") == 0 || strcmp(method_name, "thread_exit") == 0 ||
+        strcmp(method_name, "_frame") == 0 || strcmp(method_name, "frame") == 0 ||
+        strcmp(method_name, "_init") == 0 || strcmp(method_name, "init") == 0 ||
+        strcmp(method_name, "_finish") == 0 || strcmp(method_name, "finish") == 0) {
+        return;
+    }
+
+    ensure_gc_thread_registered();
 
     if (is_bridge_verbose() && strcmp(method_name, "_process") != 0 && strcmp(method_name, "process") != 0 &&
         strcmp(method_name, "_physics_process") != 0 && strcmp(method_name, "physics_process") != 0) {

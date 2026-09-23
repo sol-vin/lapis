@@ -6,8 +6,8 @@ include Lapis::Test
 
 macro test_ui(name, &block)
   Registry.register("UI", {{name}}) do |node|
-	root = node
-	{{block.body}}
+    root = node
+    {{block.body}}
   end
 end
 

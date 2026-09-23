@@ -59,33 +59,33 @@ node PropertyTestTarget < Godot::Node do
   @tool_action_fired : Bool = false
 
   def health_percentage : Float32
-	(@raw_health / 100.0_f32) * 100.0_f32
+    (@raw_health / 100.0_f32) * 100.0_f32
   end
 
   def clamped_health=(val : Float32)
-	@raw_health = val.clamp(0.0_f32, 100.0_f32)
+    @raw_health = val.clamp(0.0_f32, 100.0_f32)
   end
 
   def clamped_health : Float32
-	@raw_health
+    @raw_health
   end
 
   def dirty_trigger=(val : Int32)
-	@dirty_counter += val
+    @dirty_counter += val
   end
 
   def dirty_trigger : Int32
-	@dirty_counter
+    @dirty_counter
   end
 
   def tool_button_trigger=(val : Bool)
-	if val
-	  @tool_action_fired = true
-	end
+    if val
+      @tool_action_fired = true
+    end
   end
 
   def tool_button_trigger : Bool
-	@tool_action_fired
+    @tool_action_fired
   end
 
   # 3. Export Property Hints
@@ -112,7 +112,7 @@ node PropertyTestTarget < Godot::Node do
 
   @[ExportToolButton("Click Here")]
   property tool_btn_prop = -> {
-	@tool_btn_fired = true
+    @tool_btn_fired = true
   }
 
   property tool_btn_fired : Bool = false
@@ -122,7 +122,7 @@ node PropertyTestTarget < Godot::Node do
 
   @[ExportToolButton("Proc Lambda Button")]
   property proc_btn_lambda = -> {
-	@proc_action_fired = true
+    @proc_action_fired = true
   }
 
   @[ExportToolButton("Proc Dynamic Button")]
@@ -131,12 +131,12 @@ node PropertyTestTarget < Godot::Node do
   property proc_action_fired : Bool = false
 
   def tool_proc_method : Void
-	@proc_action_fired = true
+    @proc_action_fired = true
   end
 
   @[ExportToolButton("Method Action", icon: "Play")]
   def test_method_action : Void
-	@tool_action_fired = true
+    @tool_action_fired = true
   end
 
   @[ExportCustom(hint: 1_u32, hint_string: "0,50,5")]
@@ -173,11 +173,11 @@ node GDScriptInteropTarget < Godot::Node do
   signal crystal_ping(val : Int32)
 
   def multiply(a : Int32, b : Int32) : Int32
-	a * b
+    a * b
   end
 
   def ping(val : Int32)
-	emit_crystal_ping(val)
+    emit_crystal_ping(val)
   end
 end
 
@@ -192,49 +192,49 @@ node ToolTester2D < Godot::Node2D do
 
   @[ExportToolButton("Execute 2D Tests Direct", icon: "Play")]
   def execute_2d_tests_direct : Void
-	run_tool_tests
+    run_tool_tests
   end
 
   property test_status : String = "Ready"
 
   def is_editor_environment : Bool
-	Godot.editor_hint?
+    Godot.editor_hint?
   end
 
   def _ready
-	# Automatically execute complete in-editor suite when loaded into Godot Editor
-	if is_editor_environment
-	  Godot.print("[ToolTester2D] Editor detected. Auto-executing in-editor tests...")
-	  run_tool_tests
-	end
+    # Automatically execute complete in-editor suite when loaded into Godot Editor
+    if is_editor_environment
+      Godot.print("[ToolTester2D] Editor detected. Auto-executing in-editor tests...")
+      run_tool_tests
+    end
   end
 
   def run_tool_tests
-	Godot.print("------------------------------------------------------------------")
-	Godot.print("[ToolTester2D] Executing In-Editor 2D Test Suite...")
-	Godot.print("------------------------------------------------------------------")
+    Godot.print("------------------------------------------------------------------")
+    Godot.print("[ToolTester2D] Executing In-Editor 2D Test Suite...")
+    Godot.print("------------------------------------------------------------------")
 
-	results = Registry.run_category("2D", self)
-	passed = results.count(&.passed)
-	total = results.size
+    results = Registry.run_category("2D", self)
+    passed = results.count(&.passed)
+    total = results.size
 
-	results.each do |r|
-	  if r.passed
-		Godot.print("  [PASS] [#{r.category}] #{r.name}")
-	  else
-		Godot.printerr("  [FAIL] [#{r.category}] #{r.name}: #{r.message}")
-	  end
-	end
+    results.each do |r|
+      if r.passed
+        Godot.print("  [PASS] [#{r.category}] #{r.name}")
+      else
+        Godot.printerr("  [FAIL] [#{r.category}] #{r.name}: #{r.message}")
+      end
+    end
 
-	if passed == total
-	  @test_status = "All #{total}/#{total} Tests Passed!"
-	  Godot.print("[ToolTester2D] SUCCESS: All #{total} in-editor tests passed cleanly!")
-	else
-	  @test_status = "Failed: #{total - passed}/#{total} Errors"
-	  Godot.printerr("[ToolTester2D] FAILED: #{total - passed} test(s) failed.")
-	  Godot::SystemIO.write_file("bin/.tool_tests_failed", "Failed: #{total - passed} test(s) failed.\n")
-	  Godot::SystemIO.write_file("test/bin/.tool_tests_failed", "Failed: #{total - passed} test(s) failed.\n")
-	end
+    if passed == total
+      @test_status = "All #{total}/#{total} Tests Passed!"
+      Godot.print("[ToolTester2D] SUCCESS: All #{total} in-editor tests passed cleanly!")
+    else
+      @test_status = "Failed: #{total - passed}/#{total} Errors"
+      Godot.printerr("[ToolTester2D] FAILED: #{total - passed} test(s) failed.")
+      Godot::SystemIO.write_file("bin/.tool_tests_failed", "Failed: #{total - passed} test(s) failed.\n")
+      Godot::SystemIO.write_file("test/bin/.tool_tests_failed", "Failed: #{total - passed} test(s) failed.\n")
+    end
   end
 end
 
@@ -245,48 +245,48 @@ node ToolTester3D < Godot::Node3D do
 
   @[ExportToolButton("Execute 3D Tests Direct", icon: "Play")]
   def execute_3d_tests_direct : Void
-	run_tool_tests
+    run_tool_tests
   end
 
   property test_status : String = "Ready"
 
   def is_editor_environment : Bool
-	Godot.editor_hint?
+    Godot.editor_hint?
   end
 
   def _ready
-	if is_editor_environment
-	  Godot.print("[ToolTester3D] Editor detected. Auto-executing in-editor tests...")
-	  run_tool_tests
-	end
+    if is_editor_environment
+      Godot.print("[ToolTester3D] Editor detected. Auto-executing in-editor tests...")
+      run_tool_tests
+    end
   end
 
   def run_tool_tests
-	Godot.print("------------------------------------------------------------------")
-	Godot.print("[ToolTester3D] Executing In-Editor 3D Test Suite...")
-	Godot.print("------------------------------------------------------------------")
+    Godot.print("------------------------------------------------------------------")
+    Godot.print("[ToolTester3D] Executing In-Editor 3D Test Suite...")
+    Godot.print("------------------------------------------------------------------")
 
-	results = Registry.run_category("3D", self)
-	passed = results.count(&.passed)
-	total = results.size
+    results = Registry.run_category("3D", self)
+    passed = results.count(&.passed)
+    total = results.size
 
-	results.each do |r|
-	  if r.passed
-		Godot.print("  [PASS] [#{r.category}] #{r.name}")
-	  else
-		Godot.printerr("  [FAIL] [#{r.category}] #{r.name}: #{r.message}")
-	  end
-	end
+    results.each do |r|
+      if r.passed
+        Godot.print("  [PASS] [#{r.category}] #{r.name}")
+      else
+        Godot.printerr("  [FAIL] [#{r.category}] #{r.name}: #{r.message}")
+      end
+    end
 
-	if passed == total
-	  @test_status = "All #{total}/#{total} Tests Passed!"
-	  Godot.print("[ToolTester3D] SUCCESS: All #{total} in-editor tests passed cleanly!")
-	else
-	  @test_status = "Failed: #{total - passed}/#{total} Errors"
-	  Godot.printerr("[ToolTester3D] FAILED: #{total - passed} test(s) failed.")
-	  Godot::SystemIO.write_file("bin/.tool_tests_failed", "Failed: #{total - passed} test(s) failed.\n")
-	  Godot::SystemIO.write_file("test/bin/.tool_tests_failed", "Failed: #{total - passed} test(s) failed.\n")
-	end
+    if passed == total
+      @test_status = "All #{total}/#{total} Tests Passed!"
+      Godot.print("[ToolTester3D] SUCCESS: All #{total} in-editor tests passed cleanly!")
+    else
+      @test_status = "Failed: #{total - passed}/#{total} Errors"
+      Godot.printerr("[ToolTester3D] FAILED: #{total - passed} test(s) failed.")
+      Godot::SystemIO.write_file("bin/.tool_tests_failed", "Failed: #{total - passed} test(s) failed.\n")
+      Godot::SystemIO.write_file("test/bin/.tool_tests_failed", "Failed: #{total - passed} test(s) failed.\n")
+    end
   end
 end
 
@@ -299,167 +299,167 @@ node RunTesterPanel < Godot::Control do
   @@is_running_tests : Bool = false
 
   def _ready
-	Godot.print("==================================================================")
-	Godot.print("    LibGodot Interactive Test Runner Loaded (Two-Click Testing)   ")
-	Godot.print("==================================================================")
+    Godot.print("==================================================================")
+    Godot.print("    LibGodot Interactive Test Runner Loaded (Two-Click Testing)   ")
+    Godot.print("==================================================================")
 
-	# Connect category buttons if present in scene
-	hook_button("MarginContainer/VBox/ButtonBox/BtnRunAll") { run_and_display_all }
-	hook_button("MarginContainer/VBox/ButtonBox/BtnRun2D") { run_and_display_category("2D") }
-	hook_button("MarginContainer/VBox/ButtonBox/BtnRun3D") { run_and_display_category("3D") }
-	hook_button("MarginContainer/VBox/ButtonBox/BtnRunCore") { run_and_display_category("Core") }
-	hook_button("MarginContainer/VBox/ButtonBox/BtnRunProps") { run_and_display_category("Properties") }
-	hook_button("MarginContainer/VBox/ButtonBox/BtnRunNodes") { run_and_display_category("Nodes") }
-	hook_button("MarginContainer/VBox/ButtonBox/BtnRunGDScript") { run_and_display_category("GDScript") }
-	hook_button("MarginContainer/VBox/ButtonBox/BtnRunMesh") { run_and_display_category("Mesh") }
-	hook_button("MarginContainer/VBox/ButtonBox/BtnRunPhysics") { run_and_display_category("Physics") }
-	hook_button("MarginContainer/VBox/ButtonBox/BtnRunStress") { run_and_display_category("Stress") }
-	hook_button("MarginContainer/VBox/ButtonBox/BtnRunUI") { run_and_display_category("UI") }
-	hook_button("MarginContainer/VBox/ButtonBox/BtnRunAudioAnim") { run_and_display_category("AudioAnim") }
-	hook_button("MarginContainer/VBox/ButtonBox/BtnRunResources") { run_and_display_category("Resources") }
-	hook_button("MarginContainer/VBox/ButtonBox/BtnRunLifecycle") { run_and_display_category("Lifecycle") }
-	hook_button("MarginContainer/VBox/ButtonBox/BtnRunClassDB") { run_and_display_category("ClassDB") }
+    # Connect category buttons if present in scene
+    hook_button("MarginContainer/VBox/ButtonBox/BtnRunAll") { run_and_display_all }
+    hook_button("MarginContainer/VBox/ButtonBox/BtnRun2D") { run_and_display_category("2D") }
+    hook_button("MarginContainer/VBox/ButtonBox/BtnRun3D") { run_and_display_category("3D") }
+    hook_button("MarginContainer/VBox/ButtonBox/BtnRunCore") { run_and_display_category("Core") }
+    hook_button("MarginContainer/VBox/ButtonBox/BtnRunProps") { run_and_display_category("Properties") }
+    hook_button("MarginContainer/VBox/ButtonBox/BtnRunNodes") { run_and_display_category("Nodes") }
+    hook_button("MarginContainer/VBox/ButtonBox/BtnRunGDScript") { run_and_display_category("GDScript") }
+    hook_button("MarginContainer/VBox/ButtonBox/BtnRunMesh") { run_and_display_category("Mesh") }
+    hook_button("MarginContainer/VBox/ButtonBox/BtnRunPhysics") { run_and_display_category("Physics") }
+    hook_button("MarginContainer/VBox/ButtonBox/BtnRunStress") { run_and_display_category("Stress") }
+    hook_button("MarginContainer/VBox/ButtonBox/BtnRunUI") { run_and_display_category("UI") }
+    hook_button("MarginContainer/VBox/ButtonBox/BtnRunAudioAnim") { run_and_display_category("AudioAnim") }
+    hook_button("MarginContainer/VBox/ButtonBox/BtnRunResources") { run_and_display_category("Resources") }
+    hook_button("MarginContainer/VBox/ButtonBox/BtnRunLifecycle") { run_and_display_category("Lifecycle") }
+    hook_button("MarginContainer/VBox/ButtonBox/BtnRunClassDB") { run_and_display_category("ClassDB") }
 
-	# Automatically execute all tests on startup only in game runtime (not editor workspace)
-	run_and_display_all unless Godot.editor_hint?
+    # Automatically execute all tests on startup only in game runtime (not editor workspace)
+    run_and_display_all unless Godot.editor_hint?
   end
 
   def hook_button(path : String, &callback)
-	# UI hook helper
+    # UI hook helper
   end
 
   def cli_filter : String?
-	extract_cli_arg("--filter")
+    extract_cli_arg("--filter")
   end
 
   def cli_category : String?
-	extract_cli_arg("--category")
+    extract_cli_arg("--category")
   end
 
   def extract_cli_arg(prefix : String) : String?
-	begin
-	  ARGV.each_with_index do |arg, idx|
-		if arg.starts_with?("#{prefix}=")
-		  return arg.sub("#{prefix}=", "").strip
-		elsif arg == prefix && idx + 1 < ARGV.size
-		  return ARGV[idx + 1].strip
-		end
-	  end
-	rescue
-	end
-	nil
+    begin
+      ARGV.each_with_index do |arg, idx|
+        if arg.starts_with?("#{prefix}=")
+          return arg.sub("#{prefix}=", "").strip
+        elsif arg == prefix && idx + 1 < ARGV.size
+          return ARGV[idx + 1].strip
+        end
+      end
+    rescue
+    end
+    nil
   end
 
   def run_and_display_category(category : String)
-	filter = cli_filter
-	results = Registry.run_category(category, self, filter: filter)
-	display_results(results, category)
+    filter = cli_filter
+    results = Registry.run_category(category, self, filter: filter)
+    display_results(results, category)
   end
 
   def run_and_display_all : Void
-	return if @@is_running_tests
-	@@is_running_tests = true
-	begin
-	  filter = cli_filter
-	  category = cli_category
-	  results = Registry.run_all(self, filter: filter, category_filter: category)
-	  label = if category && filter
-				"All [Category: #{category}, Filter: #{filter}]"
-			  elsif category
-				"All [Category: #{category}]"
-			  elsif filter
-				"All [Filter: #{filter}]"
-			  else
-				"All"
-			  end
-	  display_results(results, label)
-	ensure
-	  @@is_running_tests = false
-	end
+    return if @@is_running_tests
+    @@is_running_tests = true
+    begin
+      filter = cli_filter
+      category = cli_category
+      results = Registry.run_all(self, filter: filter, category_filter: category)
+      label = if category && filter
+                "All [Category: #{category}, Filter: #{filter}]"
+              elsif category
+                "All [Category: #{category}]"
+              elsif filter
+                "All [Filter: #{filter}]"
+              else
+                "All"
+              end
+      display_results(results, label)
+    ensure
+      @@is_running_tests = false
+    end
   end
 
   def display_results(results : Array(TestResult), suite_label : String)
-	passed = results.count(&.passed)
-	total = results.size
+    passed = results.count(&.passed)
+    total = results.size
 
-	Godot.print("\n=== LibGodot Test Results [#{suite_label}]: #{passed}/#{total} Passed ===")
-	results.each do |r|
-	  if r.passed
-		Godot.print("  ✔ [#{r.category}] #{r.name}")
-	  else
-		Godot.printerr("  ✘ [#{r.category}] #{r.name}: #{r.message}")
-	  end
-	end
+    Godot.print("\n=== LibGodot Test Results [#{suite_label}]: #{passed}/#{total} Passed ===")
+    results.each do |r|
+      if r.passed
+        Godot.print("  ✔ [#{r.category}] #{r.name}")
+      else
+        Godot.printerr("  ✘ [#{r.category}] #{r.name}: #{r.message}")
+      end
+    end
 
-	if stats_label = get_node?("MarginContainer/VBox/StatsLabel")
-	  stats_label.call("set_text", "Results: #{passed} / #{total} Passed (#{total - passed} Failed)")
-	end
+    if stats_label = get_node?("MarginContainer/VBox/StatsLabel")
+      stats_label.call("set_text", "Results: #{passed} / #{total} Passed (#{total - passed} Failed)")
+    end
 
-	if badge = get_node?("MarginContainer/VBox/HeaderBox/StatusBadge")
-	  badge.call("set_text", passed == total ? "ALL PASSED" : "#{total - passed} FAILED")
-	end
+    if badge = get_node?("MarginContainer/VBox/HeaderBox/StatusBadge")
+      badge.call("set_text", passed == total ? "ALL PASSED" : "#{total - passed} FAILED")
+    end
 
-	if log_box = get_node?("MarginContainer/VBox/LogOutput")
-	  lines = [] of String
-	  lines << "[b]=== LibGodot Test Execution Suite: #{suite_label} ===[/b]"
-	  results.each do |r|
-		color = r.passed ? "#44ff88" : "#ff4444"
-		icon = r.passed ? "[color=#{color}]✔ PASS[/color]" : "[color=#{color}]✘ FAIL[/color]"
-		lines << "#{icon} [b][#{r.category}][/b] #{r.name} - #{r.message}"
-	  end
-	  log_box.call("set_text", lines.join("\n"))
-	end
+    if log_box = get_node?("MarginContainer/VBox/LogOutput")
+      lines = [] of String
+      lines << "[b]=== LibGodot Test Execution Suite: #{suite_label} ===[/b]"
+      results.each do |r|
+        color = r.passed ? "#44ff88" : "#ff4444"
+        icon = r.passed ? "[color=#{color}]✔ PASS[/color]" : "[color=#{color}]✘ FAIL[/color]"
+        lines << "#{icon} [b][#{r.category}][/b] #{r.name} - #{r.message}"
+      end
+      log_box.call("set_text", lines.join("\n"))
+    end
 
-	if suite_label.starts_with?("All")
-	  begin
-		summary = "TOTAL=#{total}\nPASSED=#{passed}\nFAILED=#{total - passed}\n"
-		Godot::SystemIO.write_file(".runtime_test_results.txt", summary) rescue nil
-		Godot::SystemIO.write_file("bin/.runtime_test_results.txt", summary) rescue nil
-		Godot::SystemIO.write_file("test/bin/.runtime_test_results.txt", summary) rescue nil
-		if passed == total
-		  Godot::SystemIO.write_file(".runtime_tests_passed", "PASSED\n") rescue nil
-		  Godot::SystemIO.write_file("bin/.runtime_tests_passed", "PASSED\n") rescue nil
-		  Godot::SystemIO.write_file("test/bin/.runtime_tests_passed", "PASSED\n") rescue nil
-		  Godot::SystemIO.delete_file(".runtime_tests_failed") if Godot::SystemIO.file_exists?(".runtime_tests_failed")
-		  Godot::SystemIO.delete_file("bin/.runtime_tests_failed") if Godot::SystemIO.file_exists?("bin/.runtime_tests_failed")
-		  Godot::SystemIO.delete_file("test/bin/.runtime_tests_failed") if Godot::SystemIO.file_exists?("test/bin/.runtime_tests_failed")
-		else
-		  failed_lines = results.reject(&.passed).map { |r| "FAILED: [#{r.category}] #{r.name} - #{r.message}" }.join("\n")
-		  Godot::SystemIO.write_file(".runtime_tests_failed", "FAILED: #{total - passed} test(s) failed\n#{failed_lines}\n") rescue nil
-		  Godot::SystemIO.write_file("bin/.runtime_tests_failed", "FAILED: #{total - passed} test(s) failed\n#{failed_lines}\n") rescue nil
-		  Godot::SystemIO.write_file("test/bin/.runtime_tests_failed", "FAILED: #{total - passed} test(s) failed\n#{failed_lines}\n") rescue nil
-		  Godot::SystemIO.delete_file(".runtime_tests_passed") if Godot::SystemIO.file_exists?(".runtime_tests_passed")
-		  Godot::SystemIO.delete_file("bin/.runtime_tests_passed") if Godot::SystemIO.file_exists?("bin/.runtime_tests_passed")
-		  Godot::SystemIO.delete_file("test/bin/.runtime_tests_passed") if Godot::SystemIO.file_exists?("test/bin/.runtime_tests_passed")
-		end
-	  rescue
-	  end
+    if suite_label.starts_with?("All")
+      begin
+        summary = "TOTAL=#{total}\nPASSED=#{passed}\nFAILED=#{total - passed}\n"
+        Godot::SystemIO.write_file(".runtime_test_results.txt", summary) rescue nil
+        Godot::SystemIO.write_file("bin/.runtime_test_results.txt", summary) rescue nil
+        Godot::SystemIO.write_file("test/bin/.runtime_test_results.txt", summary) rescue nil
+        if passed == total
+          Godot::SystemIO.write_file(".runtime_tests_passed", "PASSED\n") rescue nil
+          Godot::SystemIO.write_file("bin/.runtime_tests_passed", "PASSED\n") rescue nil
+          Godot::SystemIO.write_file("test/bin/.runtime_tests_passed", "PASSED\n") rescue nil
+          Godot::SystemIO.delete_file(".runtime_tests_failed") if Godot::SystemIO.file_exists?(".runtime_tests_failed")
+          Godot::SystemIO.delete_file("bin/.runtime_tests_failed") if Godot::SystemIO.file_exists?("bin/.runtime_tests_failed")
+          Godot::SystemIO.delete_file("test/bin/.runtime_tests_failed") if Godot::SystemIO.file_exists?("test/bin/.runtime_tests_failed")
+        else
+          failed_lines = results.reject(&.passed).map { |r| "FAILED: [#{r.category}] #{r.name} - #{r.message}" }.join("\n")
+          Godot::SystemIO.write_file(".runtime_tests_failed", "FAILED: #{total - passed} test(s) failed\n#{failed_lines}\n") rescue nil
+          Godot::SystemIO.write_file("bin/.runtime_tests_failed", "FAILED: #{total - passed} test(s) failed\n#{failed_lines}\n") rescue nil
+          Godot::SystemIO.write_file("test/bin/.runtime_tests_failed", "FAILED: #{total - passed} test(s) failed\n#{failed_lines}\n") rescue nil
+          Godot::SystemIO.delete_file(".runtime_tests_passed") if Godot::SystemIO.file_exists?(".runtime_tests_passed")
+          Godot::SystemIO.delete_file("bin/.runtime_tests_passed") if Godot::SystemIO.file_exists?("bin/.runtime_tests_passed")
+          Godot::SystemIO.delete_file("test/bin/.runtime_tests_passed") if Godot::SystemIO.file_exists?("test/bin/.runtime_tests_passed")
+        end
+      rescue
+      end
 
-	  if should_autorun? && !Godot.editor_hint?
-		GC.collect
-		tree = get_tree
-		tree.quit(passed == total ? 0_i64 : 1_i64) unless tree.pointer.null?
-	  end
-	end
+      if should_autorun? && !Godot.editor_hint?
+        GC.collect
+        tree = get_tree
+        tree.quit(passed == total ? 0_i64 : 1_i64) unless tree.pointer.null?
+      end
+    end
   end
 
   def should_autorun? : Bool
-	return true if ENV["GODOT_TEST_AUTORUN"]? == "1"
-	begin
-	  return true if ARGV.includes?("--autorun")
-	rescue
-	end
-	begin
-	  cmdline_args = Godot.os.call_str("get_cmdline_args")
-	  return true if cmdline_args.includes?("--autorun")
-	rescue
-	end
-	begin
-	  user_args = Godot.os.call_str("get_cmdline_user_args")
-	  return true if user_args.includes?("--autorun")
-	rescue
-	end
-	false
+    return true if ENV["GODOT_TEST_AUTORUN"]? == "1"
+    begin
+      return true if ARGV.includes?("--autorun")
+    rescue
+    end
+    begin
+      cmdline_args = Godot.os.call_str("get_cmdline_args")
+      return true if cmdline_args.includes?("--autorun")
+    rescue
+    end
+    begin
+      user_args = Godot.os.call_str("get_cmdline_user_args")
+      return true if user_args.includes?("--autorun")
+    rescue
+    end
+    false
   end
 end
 
@@ -595,38 +595,38 @@ end
 
 test_2d "Node2D position, rotation, and scale" do
   if node.is_a?(Godot::Node2D)
-	node.position = Godot::Vector2.new(120.0, 240.0)
-	assert_approx_eq node.position.x, 120.0_f32
-	assert_approx_eq node.position.y, 240.0_f32
+    node.position = Godot::Vector2.new(120.0, 240.0)
+    assert_approx_eq node.position.x, 120.0_f32
+    assert_approx_eq node.position.y, 240.0_f32
 
-	node.rotation = 1.5708_f32
-	assert_approx_eq node.rotation, 1.5708_f32, 0.001
+    node.rotation = 1.5708_f32
+    assert_approx_eq node.rotation, 1.5708_f32, 0.001
 
-	node.scale = Godot::Vector2.new(2.0, 2.0)
-	assert_approx_eq node.scale.x, 2.0_f32
-	assert_approx_eq node.scale.y, 2.0_f32
+    node.scale = Godot::Vector2.new(2.0, 2.0)
+    assert_approx_eq node.scale.x, 2.0_f32
+    assert_approx_eq node.scale.y, 2.0_f32
   else
-	n = Godot.create(Godot::Node2D)
-	n.position = Godot::Vector2.new(50.0, 60.0)
-	assert_approx_eq n.position.x, 50.0_f32
-	n.destroy
+    n = Godot.create(Godot::Node2D)
+    n.position = Godot::Vector2.new(50.0, 60.0)
+    assert_approx_eq n.position.x, 50.0_f32
+    n.destroy
   end
 end
 
 test_3d "Node3D position, rotation, and scale" do
   if node.is_a?(Godot::Node3D)
-	node.position = Godot::Vector3.new(10.0, 20.0, 30.0)
-	assert_approx_eq node.position.x, 10.0_f32
-	assert_approx_eq node.position.y, 20.0_f32
-	assert_approx_eq node.position.z, 30.0_f32
+    node.position = Godot::Vector3.new(10.0, 20.0, 30.0)
+    assert_approx_eq node.position.x, 10.0_f32
+    assert_approx_eq node.position.y, 20.0_f32
+    assert_approx_eq node.position.z, 30.0_f32
 
-	node.scale = Godot::Vector3.new(3.0, 3.0, 3.0)
-	assert_approx_eq node.scale.x, 3.0_f32
+    node.scale = Godot::Vector3.new(3.0, 3.0, 3.0)
+    assert_approx_eq node.scale.x, 3.0_f32
   else
-	n = Godot.create(Godot::Node3D)
-	n.position = Godot::Vector3.new(1.0, 2.0, 3.0)
-	assert_approx_eq n.position.x, 1.0_f32
-	n.destroy
+    n = Godot.create(Godot::Node3D)
+    n.position = Godot::Vector3.new(1.0, 2.0, 3.0)
+    assert_approx_eq n.position.x, 1.0_f32
+    n.destroy
   end
 end
 
@@ -738,10 +738,10 @@ test_nodes "is_inside_tree accurately reflects tree membership" do
   assert_false orphan.is_inside_tree
 
   if !root.pointer.null?
-	root.add_child(orphan)
-	assert_true orphan.is_inside_tree
-	root.remove_child(orphan)
-	assert_false orphan.is_inside_tree
+    root.add_child(orphan)
+    assert_true orphan.is_inside_tree
+    root.remove_child(orphan)
+    assert_false orphan.is_inside_tree
   end
   orphan.destroy
 end
@@ -753,13 +753,13 @@ end
 test_nodes "get_node retrieves existing child and nested path" do
   target = node.find_child("ToolTester2D") || node
   if child2d = target.get_node?("Child2D")
-	assert_not_nil child2d
-	assert_eq child2d.name, "Child2D"
+    assert_not_nil child2d
+    assert_eq child2d.name, "Child2D"
 
-	if marker = target.get_node?("Child2D/Marker2D")
-	  assert_not_nil marker
-	  assert_eq marker.name, "Marker2D"
-	end
+    if marker = target.get_node?("Child2D/Marker2D")
+      assert_not_nil marker
+      assert_eq marker.name, "Marker2D"
+    end
   end
 end
 
@@ -771,9 +771,9 @@ end
 test_nodes "get_node raises exception when node is not found" do
   caught = false
   begin
-	node.get_node("GhostNode_Should_Fail_987")
+    node.get_node("GhostNode_Should_Fail_987")
   rescue ex : Exception
-	caught = true
+    caught = true
   end
   assert_true caught, "get_node should raise when node does not exist"
 end
@@ -781,22 +781,22 @@ end
 test_nodes "get_node_as casts to Crystal node class" do
   target = node.find_child("ToolTester2D") || node
   if target.get_node?("Child2D")
-	casted = target.get_node_as(Godot::Node2D, "Child2D")
-	assert_not_nil casted
-	assert_true casted.is_a?(Godot::Node2D)
+    casted = target.get_node_as(Godot::Node2D, "Child2D")
+    assert_not_nil casted
+    assert_true casted.is_a?(Godot::Node2D)
   end
 end
 
 test_nodes "find_child locates node anywhere in subtree" do
   found = node.find_child("Marker2D") || node.find_child("Marker3D")
   if found.nil?
-	sub = Godot.create(Godot::Node)
-	sub.name = "DynamicSub"
-	target = Godot.create(Godot::Node)
-	target.name = "DynamicTarget"
-	sub.add_child(target)
-	node.add_child(sub)
-	found = node.find_child("DynamicTarget")
+    sub = Godot.create(Godot::Node)
+    sub.name = "DynamicSub"
+    target = Godot.create(Godot::Node)
+    target.name = "DynamicTarget"
+    sub.add_child(target)
+    node.add_child(sub)
+    found = node.find_child("DynamicTarget")
   end
   assert_not_nil found
 end
@@ -809,9 +809,9 @@ end
 test_nodes "relative path traversal navigates upward with .." do
   target = root.find_child("ToolTester2D") || root
   if child = target.get_node?("Child2D")
-	parent_via_path = child.get_node?("..")
-	assert_not_nil parent_via_path
-	assert_eq parent_via_path.not_nil!.name, target.name
+    parent_via_path = child.get_node?("..")
+    assert_not_nil parent_via_path
+    assert_eq parent_via_path.not_nil!.name, target.name
   end
 end
 
@@ -1095,13 +1095,13 @@ test_stress "Spawning and moving 100 Node2D nodes in 2D grid" do
 
   nodes = Array(Godot::Node2D).new(100)
   100.times do |i|
-	n = Godot.create(Godot::Node2D)
-	n.name = "Node2D_#{i}"
-	x = (i % 10).to_f32 * 32.0_f32
-	y = (i // 10).to_f32 * 32.0_f32
-	n.position = Godot::Vector2.new(x, y)
-	container.add_child(n)
-	nodes << n
+    n = Godot.create(Godot::Node2D)
+    n.name = "Node2D_#{i}"
+    x = (i % 10).to_f32 * 32.0_f32
+    y = (i // 10).to_f32 * 32.0_f32
+    n.position = Godot::Vector2.new(x, y)
+    container.add_child(n)
+    nodes << n
   end
 
   assert_eq container.get_child_count, 100_i64
@@ -1110,14 +1110,14 @@ test_stress "Spawning and moving 100 Node2D nodes in 2D grid" do
 
   # Move all 100 nodes
   nodes.each_with_index do |n, idx|
-	n.position = Godot::Vector2.new(n.position.x + 10.0_f32, n.position.y + 10.0_f32)
+    n.position = Godot::Vector2.new(n.position.x + 10.0_f32, n.position.y + 10.0_f32)
   end
   assert_approx_eq nodes[55].position.x, 170.0_f32
 
   # Clean batch disposal
   nodes.each do |n|
-	container.remove_child(n)
-	n.destroy
+    container.remove_child(n)
+    n.destroy
   end
   assert_eq container.get_child_count, 0_i64
   container.destroy
@@ -1129,29 +1129,29 @@ test_stress "Spawning, transforming, and freeing 1,000 Node3D instances" do
 
   nodes = Array(Godot::Node3D).new(1000)
   1000.times do |i|
-	n = Godot.create(Godot::Node3D)
-	n.name = "Entity3D_#{i}"
-	x = (i % 10).to_f32 * 2.0_f32
-	y = ((i // 10) % 10).to_f32 * 2.0_f32
-	z = (i // 100).to_f32 * 2.0_f32
-	n.position = Godot::Vector3.new(x, y, z)
-	arena.add_child(n)
-	nodes << n
+    n = Godot.create(Godot::Node3D)
+    n.name = "Entity3D_#{i}"
+    x = (i % 10).to_f32 * 2.0_f32
+    y = ((i // 10) % 10).to_f32 * 2.0_f32
+    z = (i // 100).to_f32 * 2.0_f32
+    n.position = Godot::Vector3.new(x, y, z)
+    arena.add_child(n)
+    nodes << n
   end
 
   assert_eq arena.get_child_count, 1000_i64
 
   # Animate all 1,000 nodes with trigonometric wave
   nodes.each_with_index do |n, idx|
-	rad = idx.to_f64 * 0.01
-	offset_y = Math.sin(rad).to_f32 * 5.0_f32
-	n.position = Godot::Vector3.new(n.position.x, n.position.y + offset_y, n.position.z)
+    rad = idx.to_f64 * 0.01
+    offset_y = Math.sin(rad).to_f32 * 5.0_f32
+    n.position = Godot::Vector3.new(n.position.x, n.position.y + offset_y, n.position.z)
   end
 
   # Batch free all 1,000 nodes
   nodes.each do |n|
-	arena.remove_child(n)
-	n.destroy
+    arena.remove_child(n)
+    n.destroy
   end
   assert_eq arena.get_child_count, 0_i64
   arena.destroy
