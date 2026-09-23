@@ -133,7 +133,7 @@ jobs:
               if (Test-Path $exe) {
                 $ver = & $exe --version 2>&1
                 if ($LASTEXITCODE -eq 0) {
-                  Write-Host "Found functional LLDB toolchain candidate at $cand: $ver"
+                  Write-Host "Found functional LLDB toolchain candidate at $cand ($ver)"
                   $cand | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
                   $env:PATH = "$cand;$env:PATH"
                   break
