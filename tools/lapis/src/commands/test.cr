@@ -51,6 +51,7 @@ HELP
           test_bin_dir.join(".runtime_tests_passed"),
           test_bin_dir.join(".runtime_tests_failed"),
           test_bin_dir.join(".runtime_test_results.txt"),
+          test_dir.join(".godot/editor/script_editor_cache.cfg"),
         ].each do |marker|
           File.delete(marker) if File.exists?(marker)
         end

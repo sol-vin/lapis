@@ -13,6 +13,8 @@ func _enter_tree():
 	if settings:
 		settings.set_setting("text_editor/appearance/gutters/highlight_type_safe_lines", false)
 		settings.set_setting("text_editor/appearance/guidelines/highlight_type_safe_lines", false)
+		settings.set_setting("text_editor/behavior/indent/type", 1)
+		settings.set_setting("text_editor/behavior/indent/size", 2)
 	if OS.get_environment("GODOT_RUN_TOOL_TESTS") == "1" or OS.get_environment("CRYSTAL_TOOL_TEST") == "1" or "--run-tool-tests" in OS.get_cmdline_args():
 		call_deferred("_run_in_editor_tool_tests")
 
@@ -28,6 +30,8 @@ func _run_in_editor_tool_tests():
 	if settings:
 		settings.set_setting("text_editor/appearance/gutters/highlight_type_safe_lines", false)
 		settings.set_setting("text_editor/appearance/guidelines/highlight_type_safe_lines", false)
+		settings.set_setting("text_editor/behavior/indent/type", 1)
+		settings.set_setting("text_editor/behavior/indent/size", 2)
 
 	for i in range(5):
 		await get_tree().process_frame
@@ -229,8 +233,14 @@ func _run_in_editor_tool_tests():
 					print("[CrystalToolTester]   ✔ Switching to 'Crystal' tab successfully displayed CrystalPanel (visible=true)!")
 
 	# 4. Open a .cr script in the editor to verify Script tab integration and saving
-	print("[CrystalToolTester] Testing Script Tab: Loading, editing, and saving res://src/main.cr...")
-	var cr_script = load("res://src/main.cr")
+	var test_tab_script_path = "res://bin/test_editor_tab_script.cr"
+	var tab_test_source = "require \"lapis\"\n\nnode TabTestNode < Node do\n  def _ready : Void\n  end\nend\n"
+	var f_tab = FileAccess.open(test_tab_script_path, FileAccess.WRITE)
+	if f_tab:
+		f_tab.store_string(tab_test_source)
+		f_tab.close()
+	print("[CrystalToolTester] Testing Script Tab: Loading, editing, and saving %s..." % test_tab_script_path)
+	var cr_script = load(test_tab_script_path)
 	if cr_script:
 		print("[CrystalToolTester]   ✔ Loaded %s as %s" % [cr_script.resource_path, cr_script.get_class()])
 		EditorInterface.edit_script(cr_script, -1, 0, false)
@@ -253,6 +263,7 @@ func _run_in_editor_tool_tests():
 			errors += 1
 		else:
 			print("[CrystalToolTester]   ✔ Successfully saved %s via ResourceSaver (OK)!" % cr_script.resource_path)
+		DirAccess.remove_absolute(test_tab_script_path)
 
 		# Test creating, saving, and reloading a new CrystalScript
 		print("[CrystalToolTester] Testing creation and saving of new CrystalScript resource...")

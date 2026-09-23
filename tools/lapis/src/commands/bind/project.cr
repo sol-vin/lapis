@@ -382,6 +382,9 @@ module Lapis
             end
           end
 
+          # Automatically format generated wrappers using crystal tool format
+          Process.run("crystal", ["tool", "format", out_dir.to_s]) rescue nil
+
           Core::Logger.success("Project bindings generated successfully (#{generated_files.size} nodes) in #{out_dir}!")
           0
         end

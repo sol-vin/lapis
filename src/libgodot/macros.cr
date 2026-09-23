@@ -454,11 +454,6 @@ module Godot
 
     def self.cleanup : Void
       {% unless flag?(:release) || flag?(:libgodot_addon) || flag?(:no_editor) %}
-        @@script_cache.each_value do |script|
-          if !script.pointer.null? && script.alive?
-            script.unreference rescue nil
-          end
-        end
         @@script_cache.clear
       {% end %}
     end

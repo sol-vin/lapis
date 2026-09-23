@@ -63,9 +63,9 @@ module Lapis
           r_loader.call("remove_resource_format_loader", loader) rescue nil
         end
       end
-      while loader.alive? && loader.get_reference_count > 0
-        break unless loader.unreference
-      end
+      # Dropping loader from ResourceLoader drops Godot's reference safely
+      loader = nil
+      @@instance = nil
     end
 
     def self.instance : ResourceFormatLoaderCrystal
@@ -258,9 +258,9 @@ module Lapis
           r_saver.call("remove_resource_format_saver", saver) rescue nil
         end
       end
-      while saver.alive? && saver.get_reference_count > 0
-        break unless saver.unreference
-      end
+      # Dropping saver from ResourceSaver drops Godot's reference safely
+      saver = nil
+      @@instance = nil
     end
 
     def self.instance : ResourceFormatSaverCrystal
@@ -454,6 +454,9 @@ module Lapis
             return
           end
         end
+
+        # Enforce strict 2-space indentation standard for all saved Crystal code:
+        code = code.gsub('\t', "  ")
 
         dir_path = File.dirname(fs_path)
         Dir.mkdir_p(dir_path) unless dir_path.empty? || dir_path == "."
