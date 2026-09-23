@@ -12,12 +12,26 @@
  * ==============================================================================
  * LibGodot - Master BridgeAPI Table Exposed to Crystal & Exported C-ABI Functions
  * ==============================================================================
+ *
+ * Architecture & ABI Invariant:
+ * ----------------------------
+ * `g_bridge_api` is the primary static dispatch table shared between the native C++
+ * GDExtension loader bridge (`crystal_bridge.dll` / `.so`) and the dynamically compiled
+ * Crystal game library (`game.dll` / `.so`).
+ *
+ * When `load_crystal_game_library` initializes the game library, it passes `&g_bridge_api`
+ * to `crystal_godot_init`. The order, alignment, and function signature of every entry
+ * in `g_bridge_api` MUST match `struct BridgeAPI` in `src/libgodot/c_api.cr` exactly.
  */
 
 inline int bridge_is_verbose() {
     return is_bridge_verbose() ? 1 : 0;
 }
 
+/**
+ * Master GDExtension bridge function pointer dispatch table.
+ * Indexed 1:1 by Crystal's `LibGodot::BridgeAPI` struct.
+ */
 static BridgeAPI g_bridge_api = {
     bridge_register_class,
     bridge_get_method_bind,
@@ -105,45 +119,58 @@ static BridgeAPI g_bridge_api = {
 // ==============================================================================
 // Exported C API Functions
 // ==============================================================================
-// Accessible by dynamic linking or foreign language bindings.
+// Dynamically exported symbols accessible to foreign language runtimes or standalone hosts.
 
 extern "C" {
+    /** Prints message to Godot editor console and stdout */
     GDE_EXPORT inline void crystal_godot_print(const char *msg) {
         godot_log_print(msg);
     }
+    /** Prints error message to Godot editor console and stderr */
     GDE_EXPORT inline void crystal_godot_printerr(const char *msg) {
         godot_log_printerr(msg);
     }
+    /** Reports a structured error to Godot debugger and stderr */
     GDE_EXPORT inline void crystal_godot_error(const char *msg, const char *func, const char *file, int line) {
         godot_log_error(msg, nullptr, func, file, line);
     }
+    /** Reports a structured warning to Godot debugger and stderr */
     GDE_EXPORT inline void crystal_godot_warning(const char *msg, const char *func, const char *file, int line) {
         godot_log_warning(msg, nullptr, func, file, line);
     }
+    /** Emits a Godot signal on a target object with typed arguments */
     GDE_EXPORT inline void crystal_object_emit_signal(GDExtensionObjectPtr instance, const char *signal_name, const BridgeSignalArg *args, int arg_count) {
         bridge_object_emit_signal(instance, signal_name, args, arg_count);
     }
+    /** Finds a child node matching pattern */
     GDE_EXPORT inline GDExtensionObjectPtr crystal_node_find_child(GDExtensionObjectPtr node, const char *pattern, bool recursive, bool owned) {
         return bridge_node_find_child(node, pattern, recursive, owned);
     }
+    /** Resolves a node by NodePath */
     GDE_EXPORT inline GDExtensionObjectPtr crystal_node_get_node(GDExtensionObjectPtr node, const char *path) {
         return bridge_node_get_node(node, path);
     }
+    /** Sets numerical value on a Range node */
     GDE_EXPORT inline void crystal_range_set_value(GDExtensionObjectPtr range_obj, double value) {
         bridge_range_set_value(range_obj, value);
     }
+    /** Connects a Godot signal to the Crystal CustomCallable bridge */
     GDE_EXPORT inline void crystal_object_connect_signal(GDExtensionObjectPtr instance, const char *signal_name, uint32_t flags) {
         bridge_object_connect_signal(instance, signal_name, flags);
     }
+    /** Disconnects a Godot signal from the Crystal CustomCallable bridge */
     GDE_EXPORT inline void crystal_object_disconnect_signal(GDExtensionObjectPtr instance, const char *signal_name) {
         bridge_object_disconnect_signal(instance, signal_name);
     }
+    /** Registers a Crystal signal callback to receive dispatched signals */
     GDE_EXPORT inline void crystal_register_signal_callback(CrystalSignalCallbackFn fn) {
         bridge_register_signal_callback(fn);
     }
+    /** Returns pointer to the master BridgeAPI table for Crystal FFI bootstrapping */
     GDE_EXPORT inline const BridgeAPI* crystal_bridge_get_api() {
         return &g_bridge_api;
     }
+    /** Sets hot reload status flag */
     GDE_EXPORT inline void crystal_bridge_set_reloading(int reloading) {
         bridge_set_reloading(reloading);
     }

@@ -68,7 +68,15 @@ inline void free_string(void *s) {
     free(s);
 }
 
-/** RAII wrapper for an allocated heap-backed Godot String */
+/**
+ * RAII wrapper for an allocated heap-backed Godot String.
+ *
+ * Invariants & Lifecycle:
+ * - Automatically destroys the underlying Godot String (`gd_string_destroy`) and frees allocated memory.
+ * - Prevents copy construction to eliminate double-free errors.
+ * - Supports move construction and move assignment for clean resource transfer across scopes.
+ * - Provides implicit conversion to `void*` for passing directly to Godot GDExtension API functions.
+ */
 struct ScopedString {
     void *ptr;
     explicit ScopedString(const char *str) : ptr(make_string(str)) {}
@@ -94,7 +102,14 @@ struct ScopedString {
     }
 };
 
-/** RAII wrapper for an interned Godot StringName */
+/**
+ * RAII wrapper for an interned Godot StringName instance.
+ *
+ * Invariants & Lifecycle:
+ * - Manages an interned StringName pointer from `make_string_name`.
+ * - Prevents copying while supporting move semantics for safe scope transfers.
+ * - Automatically executes cleanup hooks on scope exit.
+ */
 struct ScopedStringName {
     void *ptr;
     explicit ScopedStringName(const char *name) : ptr(make_string_name(name)) {}
@@ -179,17 +194,21 @@ inline bool string_name_to_cstr(GDExtensionConstStringNamePtr sn, char *out, siz
 /**
  * Extracts a native Godot Object pointer from a Variant buffer.
  *
- * Uses three sequential fallback strategies to guarantee robust Object unboxing
- * across different Godot 4.x minor versions:
- * 1. Fast Path: variant_get_internal_ptr_object (direct pointer access, fastest).
- * 2. Standard Path: get_variant_to_type_constructor (official type unboxing).
- * 3. Fallback Path: get_object_instance_id + get_instance_from_id (safe ID lookup).
+ * Employs a 3-tier fallback strategy to guarantee robust Object unboxing across Godot minor versions:
+ * - Segment 1: Type verification and Fast Path (`variant_get_internal_ptr_object`).
+ * - Segment 2: Standard API Path (`get_variant_to_type_constructor` for GDEXTENSION_VARIANT_TYPE_OBJECT).
+ * - Segment 3: Instance ID Fallback (`get_object_instance_id` + `get_instance_from_id` via ObjectDB).
+ *
+ * @param variant Pointer to the input Variant buffer.
+ * @return GDExtensionObjectPtr native engine pointer, or nullptr if unboxing fails or object is dead.
  */
 inline GDExtensionObjectPtr bridge_object_from_variant(const void *variant) {
     if (!variant) return nullptr;
     if (gd_variant_get_type && gd_variant_get_type((GDExtensionConstVariantPtr)variant) != GDEXTENSION_VARIANT_TYPE_OBJECT) {
         return nullptr;
     }
+
+    // --- Segment 1: Fast Path (Direct Internal Pointer) ---
     if (gd_variant_get_internal_ptr_object) {
         void *internal_ptr = gd_variant_get_internal_ptr_object((GDExtensionVariantPtr)variant);
         if (internal_ptr) {
@@ -197,6 +216,8 @@ inline GDExtensionObjectPtr bridge_object_from_variant(const void *variant) {
             if (obj) return obj;
         }
     }
+
+    // --- Segment 2: Standard Type-from-Variant Constructor ---
     GDExtensionObjectPtr obj = nullptr;
     if (gd_get_variant_to_type_constructor) {
         GDExtensionTypeFromVariantConstructorFunc conv = gd_get_variant_to_type_constructor(GDEXTENSION_VARIANT_TYPE_OBJECT);
@@ -205,6 +226,8 @@ inline GDExtensionObjectPtr bridge_object_from_variant(const void *variant) {
             if (obj) return obj;
         }
     }
+
+    // --- Segment 3: ObjectDB Instance ID Resolution Fallback ---
     if (gd_variant_get_object_instance_id && gd_object_get_instance_from_id) {
         GDObjectInstanceID id = gd_variant_get_object_instance_id(variant);
         if (id != 0) {
@@ -216,14 +239,28 @@ inline GDExtensionObjectPtr bridge_object_from_variant(const void *variant) {
 
 /**
  * Unboxes a Godot Variant into a raw C/Crystal destination buffer based on variant_type.
+ *
+ * @param variant_type Target Godot Variant type enum.
+ * @param dst Destination buffer to receive unpacked typed bytes.
+ * @param variant Source Godot Variant buffer.
+ *
+ * Segments:
+ * - Segment 1: Object pointer unboxing via 3-tier `bridge_object_from_variant`.
+ * - Segment 2: String conversion using thread-local ring buffer pool to avoid allocations.
+ * - Segment 3: Strict type verification for Object targets.
+ * - Segment 4: Generic GDExtension type converter fallback for POD math primitives.
  */
 inline void bridge_type_from_variant(int variant_type, void *dst, const void *variant) {
     if (!variant || !dst) return;
+
+    // --- Segment 1: Object Pointer Unboxing ---
     if (variant_type == GDEXTENSION_VARIANT_TYPE_OBJECT) {
         GDExtensionObjectPtr obj = bridge_object_from_variant(variant);
         memcpy(dst, &obj, sizeof(GDExtensionObjectPtr));
         return;
     }
+
+    // --- Segment 2: Thread-Safe Ring Buffered String Unboxing ---
     if (variant_type == GDEXTENSION_VARIANT_TYPE_STRING) {
         static thread_local std::string s_type_str_pool[8];
         static thread_local size_t s_pool_idx = 0;
@@ -247,6 +284,8 @@ inline void bridge_type_from_variant(int variant_type, void *dst, const void *va
         *(const char**)dst = s_type_str.c_str();
         return;
     }
+
+    // --- Segment 3: Object Type Guard ---
     if (variant_type == GDEXTENSION_VARIANT_TYPE_OBJECT && gd_variant_get_type) {
         GDExtensionVariantType actual_type = gd_variant_get_type((GDExtensionConstVariantPtr)variant);
         if (actual_type != GDEXTENSION_VARIANT_TYPE_OBJECT) {
@@ -254,6 +293,8 @@ inline void bridge_type_from_variant(int variant_type, void *dst, const void *va
             return;
         }
     }
+
+    // --- Segment 4: Generic GDExtension Type Converter Fallback ---
     if (gd_get_variant_to_type_constructor) {
         GDExtensionTypeFromVariantConstructorFunc conv = gd_get_variant_to_type_constructor((GDExtensionVariantType)variant_type);
         if (conv) {
@@ -264,9 +305,21 @@ inline void bridge_type_from_variant(int variant_type, void *dst, const void *va
 
 /**
  * Boxes a raw C/Crystal source buffer into a Godot Variant buffer.
+ *
+ * @param variant_type Source type identifier.
+ * @param variant Destination Godot Variant buffer.
+ * @param src Pointer to the source typed value.
+ *
+ * Segments:
+ * - Segment 1: Parameter validation.
+ * - Segment 2: String boxing via temporary Godot String and `gd_variant_from_string`.
+ * - Segment 3: Generic Variant-from-type constructor dispatch for POD types.
  */
 inline void bridge_variant_from_type(int variant_type, void *variant, const void *src) {
+    // --- Segment 1: Parameter Validation ---
     if (!variant || !src) return;
+
+    // --- Segment 2: String Boxing ---
     if (variant_type == GDEXTENSION_VARIANT_TYPE_STRING) {
         const char *s = *(const char**)src;
         void *gd_str = make_string(s ? s : "");
@@ -279,6 +332,8 @@ inline void bridge_variant_from_type(int variant_type, void *variant, const void
         free(gd_str);
         return;
     }
+
+    // --- Segment 3: Generic Type-to-Variant Constructor Dispatch ---
     if (gd_get_variant_from_type_constructor && variant && src) {
         GDExtensionVariantFromTypeConstructorFunc conv = gd_get_variant_from_type_constructor((GDExtensionVariantType)variant_type);
         if (conv) {
@@ -324,7 +379,24 @@ inline void bridge_method_bind_call(GDExtensionMethodBindPtr method_bind, GDExte
 // Dynamic Vararg Invocation & Signal Dispatch
 // ==============================================================================
 
+/**
+ * Calls a Godot vararg method bind with a StringName first argument (such as emit_signal)
+ * and an arbitrary list of typed signal/method arguments.
+ *
+ * @param mb Pointer to Godot's GDExtensionMethodBindPtr.
+ * @param instance Target native Godot Object pointer.
+ * @param first_arg_name First argument string (typically signal or method name).
+ * @param args Array of typed BridgeSignalArg structs.
+ * @param arg_count Number of arguments in the args array.
+ *
+ * Segments:
+ * - Segment 1: Parameter validation and StringName boxing for first_arg_name.
+ * - Segment 2: Vararg packing into stack-allocated Variant array (up to 16 arguments).
+ * - Segment 3: Object method invocation via gd_object_method_bind_call.
+ * - Segment 4: Variant buffer destruction and memory cleanup.
+ */
 inline void bridge_call_method_vararg(GDExtensionMethodBindPtr mb, GDExtensionObjectPtr instance, const char *first_arg_name, const BridgeSignalArg *args, int arg_count) {
+    // --- Segment 1: Validation & StringName Boxing ---
     if (!instance || !first_arg_name || !mb || !gd_object_method_bind_call) return;
 
     if (!gd_variant_from_string_name && gd_get_variant_from_type_constructor) {
@@ -338,6 +410,7 @@ inline void bridge_call_method_vararg(GDExtensionMethodBindPtr mb, GDExtensionOb
         gd_variant_from_string_name(var_first_arg, sn);
     }
 
+    // --- Segment 2: Vararg Variant Packing ---
     alignas(void*) char var_args[16][24];
     const void *call_args[17];
     call_args[0] = var_first_arg;
@@ -382,12 +455,13 @@ inline void bridge_call_method_vararg(GDExtensionMethodBindPtr mb, GDExtensionOb
         call_args[i + 1] = var_args[i];
     }
 
+    // --- Segment 3: Object Method Dispatch ---
     alignas(void*) char var_ret[24];
     memset(var_ret, 0, sizeof(var_ret));
     GDExtensionCallError call_err;
     gd_object_method_bind_call(mb, instance, (const GDExtensionConstVariantPtr*)call_args, actual_count + 1, var_ret, &call_err);
 
-    // Cleanup
+    // --- Segment 4: Memory Cleanup ---
     if (gd_variant_destroy) {
         gd_variant_destroy(var_ret);
         for (int i = 0; i < actual_count; i++) {
@@ -1556,7 +1630,26 @@ static int g_language_registered = 0;
 static GDExtensionObjectPtr g_language_object = nullptr;
 static int s_is_reloading = 0;
 
+/**
+ * Callback invoked by Godot's Callable engine when an engine signal connected via
+ * `bridge_object_connect_signal` fires. Unboxes Godot Variant arguments into C-ABI
+ * `VariantArg` structs and dispatches them into registered Crystal callbacks.
+ *
+ * @param callable_userdata Pointer to the heap-allocated CustomSignalBinding struct.
+ * @param p_args Array of pointers to input Variant arguments passed by Godot.
+ * @param p_argument_count Number of arguments passed.
+ * @param r_return Destination Variant buffer for return value (always Nil for signals).
+ * @param r_error Call error indicator populated if invocation fails.
+ *
+ * Segments:
+ * - Segment 1: GC Thread Registration, Call Error initialization, and UserData unpacking.
+ * - Segment 2: Argument vector pre-allocation and type inspection.
+ * - Segment 3: Scalar and string unmarshaling (Bool, Int, Float, String, StringName, NodePath).
+ * - Segment 4: Math vectors, colors, and native Object unboxing (Vector2, Rect2, Vector3, Color, Object ID).
+ * - Segment 5: Signal dispatch into registered Crystal signal callbacks (`g_crystal_signal_callbacks`).
+ */
 inline void custom_callable_call(void *callable_userdata, const GDExtensionConstVariantPtr *p_args, GDExtensionInt p_argument_count, GDExtensionVariantPtr r_return, GDExtensionCallError *r_error) {
+    // --- Segment 1: Thread Registration & Status Initialization ---
     if (r_error) {
         r_error->error = GDEXTENSION_CALL_OK;
         r_error->argument = 0;
@@ -1570,6 +1663,7 @@ inline void custom_callable_call(void *callable_userdata, const GDExtensionConst
     CustomSignalBinding *binding = (CustomSignalBinding*)callable_userdata;
     if (g_crystal_signal_callbacks.empty()) return;
 
+    // --- Segment 2: Argument Vector Pre-allocation ---
     int count = (int)p_argument_count;
     std::vector<std::string> str_storage;
     std::vector<VariantArg> variant_args;
@@ -1585,6 +1679,8 @@ inline void custom_callable_call(void *callable_userdata, const GDExtensionConst
             }
             int vt = gd_variant_get_type ? (int)gd_variant_get_type((GDExtensionConstVariantPtr)p_args[i]) : 0;
             arg.type = vt;
+
+            // --- Segment 3: Scalar & String Unmarshaling ---
             switch (vt) {
                 case GDEXTENSION_VARIANT_TYPE_NIL:
                     break;
@@ -1628,6 +1724,7 @@ inline void custom_callable_call(void *callable_userdata, const GDExtensionConst
                     }
                     break;
                 }
+                // --- Segment 4: Math Vectors, Colors, and Native Object Unboxing ---
                 case GDEXTENSION_VARIANT_TYPE_VECTOR2: {
                     struct { float x, y; } v2 = {0, 0};
                     bridge_type_from_variant(GDEXTENSION_VARIANT_TYPE_VECTOR2, &v2, p_args[i]);
@@ -1705,6 +1802,7 @@ inline void custom_callable_call(void *callable_userdata, const GDExtensionConst
         }
     }
 
+    // --- Segment 5: Signal Dispatch into Crystal Callbacks ---
     std::vector<CrystalSignalCallbackFn> callbacks = g_crystal_signal_callbacks;
     for (auto cb : callbacks) {
         if (cb) {
@@ -1801,13 +1899,30 @@ inline void bridge_trigger_debugger_cleanup() {
     }
 }
 
+/**
+ * Connects a native Godot engine signal to the Crystal CustomCallable bridge.
+ *
+ * @param instance Target native Godot Object pointer.
+ * @param signal_name Signal name to connect to.
+ * @param flags Godot ConnectFlags bitmask (e.g. CONNECT_DEFERRED, CONNECT_PERSIST).
+ *
+ * Segments:
+ * - Segment 1: Parameter validation and Object instance ID resolution.
+ * - Segment 2: Caching Object::connect, is_connected, disconnect, and has_signal method binds.
+ * - Segment 3: Signal existence check via Object::has_signal.
+ * - Segment 4: CustomCallable creation with CustomSignalBinding userdata and callback table.
+ * - Segment 5: Duplicate check via Object::is_connected and connection execution.
+ * - Segment 6: Temporary StringName and Callable buffer cleanup.
+ */
 inline void bridge_object_connect_signal(GDExtensionObjectPtr instance, const char *signal_name, uint32_t flags) {
+    // --- Segment 1: Validation & Instance ID Resolution ---
     if (!instance || !signal_name || !gd_classdb_get_method_bind || !gd_object_method_bind_ptrcall) return;
     if (!gd_callable_custom_create2 && !gd_callable_custom_create) return;
 
     uint64_t target_id = bridge_object_get_instance_id(instance);
     if (target_id == 0) return;
 
+    // --- Segment 2: Method Bind Caching ---
     if (!mb_object_connect) {
         void *sn_obj = make_string_name("Object");
         void *sn_conn = make_string_name("connect");
@@ -1830,6 +1945,7 @@ inline void bridge_object_connect_signal(GDExtensionObjectPtr instance, const ch
     }
     if (!mb_object_connect) return;
 
+    // --- Segment 3: Signal Existence Verification ---
     void *sn_sig = make_string_name(signal_name);
 
     if (mb_object_has_signal) {
@@ -1842,6 +1958,7 @@ inline void bridge_object_connect_signal(GDExtensionObjectPtr instance, const ch
         }
     }
 
+    // --- Segment 4: CustomCallable Construction ---
     CustomSignalBinding *binding = new CustomSignalBinding{ target_id, signal_name };
     alignas(void*) char callable_buf[32] = {0};
 
@@ -1875,6 +1992,7 @@ inline void bridge_object_connect_signal(GDExtensionObjectPtr instance, const ch
         gd_callable_custom_create(callable_buf, &info);
     }
 
+    // --- Segment 5: Duplicate Check & Signal Connection ---
     uint8_t already_connected = 0;
     if (mb_object_is_connected) {
         const void *check_args[2] = { sn_sig, callable_buf };
@@ -1887,6 +2005,7 @@ inline void bridge_object_connect_signal(GDExtensionObjectPtr instance, const ch
         gd_object_method_bind_ptrcall(mb_object_connect, instance, (GDExtensionConstTypePtr*)conn_args, &err);
     }
 
+    // --- Segment 6: Temporary Resource Cleanup ---
     free_string_name(sn_sig);
 
     if (gd_callable_destroy) {
@@ -1894,11 +2013,24 @@ inline void bridge_object_connect_signal(GDExtensionObjectPtr instance, const ch
     }
 }
 
+/**
+ * Disconnects a native Godot engine signal previously bound to Crystal CustomCallable.
+ *
+ * @param instance Target native Godot Object pointer.
+ * @param signal_name Signal name to disconnect.
+ *
+ * Segments:
+ * - Segment 1: Parameter validation and instance ID verification.
+ * - Segment 2: Temporary Callable synthesis matching CustomSignalBinding hash/equal contract.
+ * - Segment 3: Disconnection execution via Object::disconnect and cleanup.
+ */
 inline void bridge_object_disconnect_signal(GDExtensionObjectPtr instance, const char *signal_name) {
+    // --- Segment 1: Parameter Validation ---
     if (!instance || !signal_name || !mb_object_disconnect || !gd_object_method_bind_ptrcall) return;
     uint64_t target_id = bridge_object_get_instance_id(instance);
     if (target_id == 0) return;
 
+    // --- Segment 2: Temporary Callable Synthesis for Matching ---
     CustomSignalBinding temp_binding{ target_id, signal_name };
     alignas(void*) char callable_buf[32] = {0};
     if (gd_callable_custom_create2) {
@@ -1925,6 +2057,7 @@ inline void bridge_object_disconnect_signal(GDExtensionObjectPtr instance, const
         gd_callable_custom_create(callable_buf, &info);
     }
 
+    // --- Segment 3: Disconnection Execution & Cleanup ---
     void *sn_sig = make_string_name(signal_name);
     uint8_t is_conn = 0;
     if (mb_object_is_connected) {

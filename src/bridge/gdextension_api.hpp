@@ -117,6 +117,12 @@ static GDExtensionMethodBindPtr mb_text_edit_get_line = nullptr;
 // Godot Engine Diagnostic & Console Logging Helpers
 // ==============================================================================
 
+/**
+ * Checks whether bridge debug/verbose logging is enabled via environment variables.
+ * Caches the result in a static integer for zero-cost subsequent checks.
+ *
+ * @return True if LIBGODOT_VERBOSE=1 or GODOT_VERBOSE=1; false otherwise.
+ */
 inline bool is_bridge_verbose() {
     static int cached = -1;
     if (cached == -1) {
@@ -130,6 +136,12 @@ inline bool is_bridge_verbose() {
 
 inline void godot_log_print(const char *msg);
 
+/**
+ * Emits a diagnostic message to Godot's verbose log stream or standard output.
+ * If verbose logging is enabled, routes to `godot_log_print`; otherwise routes to `gd_util_print_verbose`.
+ *
+ * @param msg Null-terminated string message.
+ */
 inline void godot_log_verbose(const char *msg) {
     if (!msg) return;
 
@@ -149,9 +161,21 @@ inline void godot_log_verbose(const char *msg) {
     }
 }
 
+/**
+ * Emits an informational message to Godot's editor output console and standard out.
+ *
+ * @param msg Null-terminated string message.
+ *
+ * Segments:
+ * - Segment 1: Parameter validation.
+ * - Segment 2: Native Godot engine console dispatch via `gd_util_print`.
+ * - Segment 3: Fallback standard stdout printing.
+ */
 inline void godot_log_print(const char *msg) {
+    // --- Segment 1: Validation ---
     if (!msg) return;
 
+    // --- Segment 2: Native Engine Console Dispatch ---
     if (gd_util_print && gd_variant_from_string && gd_string_new_with_utf8_chars && gd_variant_destroy) {
         alignas(void*) char gd_str[sizeof(void*)];
         gd_string_new_with_utf8_chars(gd_str, msg);
@@ -164,14 +188,27 @@ inline void godot_log_print(const char *msg) {
             gd_string_destroy(gd_str);
         }
     } else {
+        // --- Segment 3: Fallback stdout ---
         printf("%s\n", msg);
         fflush(stdout);
     }
 }
 
+/**
+ * Emits an error string to Godot's editor error console and standard error stream.
+ *
+ * @param msg Null-terminated error message.
+ *
+ * Segments:
+ * - Segment 1: Parameter validation.
+ * - Segment 2: Native Godot engine console dispatch via `gd_util_printerr`.
+ * - Segment 3: Fallback stderr printing.
+ */
 inline void godot_log_printerr(const char *msg) {
+    // --- Segment 1: Validation ---
     if (!msg) return;
 
+    // --- Segment 2: Native Engine Error Console Dispatch ---
     if (gd_util_printerr && gd_variant_from_string && gd_string_new_with_utf8_chars && gd_variant_destroy) {
         alignas(void*) char gd_str[sizeof(void*)];
         gd_string_new_with_utf8_chars(gd_str, msg);
@@ -184,11 +221,22 @@ inline void godot_log_printerr(const char *msg) {
             gd_string_destroy(gd_str);
         }
     } else {
+        // --- Segment 3: Fallback stderr ---
         fprintf(stderr, "%s\n", msg);
         fflush(stderr);
     }
 }
 
+/**
+ * Logs a structured error with source file, function name, line number, and description
+ * to both stderr and Godot's native debugger / crash reporting panel.
+ *
+ * @param desc High-level error description.
+ * @param msg Detailed error message.
+ * @param func Function name where the error occurred.
+ * @param file Source file where the error occurred.
+ * @param line Line number where the error occurred.
+ */
 inline void godot_log_error(const char *desc, const char *msg, const char *func, const char *file, int line) {
     const char *safe_func = (func && func[0] != '\0') ? func : "libgodot";
     const char *safe_file = (file && file[0] != '\0') ? file : "libgodot.cr";
@@ -204,6 +252,16 @@ inline void godot_log_error(const char *desc, const char *msg, const char *func,
     }
 }
 
+/**
+ * Logs a structured warning with source file, function name, line number, and description
+ * to both stderr and Godot's native debugger warning panel.
+ *
+ * @param desc High-level warning description.
+ * @param msg Detailed warning message.
+ * @param func Function name where the warning occurred.
+ * @param file Source file where the warning occurred.
+ * @param line Line number where the warning occurred.
+ */
 inline void godot_log_warning(const char *desc, const char *msg, const char *func, const char *file, int line) {
     const char *safe_func = (func && func[0] != '\0') ? func : "libgodot";
     const char *safe_file = (file && file[0] != '\0') ? file : "libgodot.cr";

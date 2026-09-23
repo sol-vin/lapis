@@ -11,15 +11,41 @@
 
 /**
  * ==============================================================================
- * LibGodot - Dynamic Library Loading, Shadow Copying & Hot-Reloading
+ * LibGodot - Dynamic Library Loading, Shadow Copying & Hot-Reloading (module_loader.hpp)
+ * ==============================================================================
+ *
+ * Architecture & Design:
+ * ----------------------
+ * In Godot development workflows, game logic is frequently recompiled while the Godot
+ * Editor remains open. On Windows, loading a dynamic library via standard Win32 `LoadLibraryA`
+ * places a mandatory shared read-lock on the file on disk. Consequently, subsequent compiler
+ * invocations fail with OS error `LNK1104: cannot open file 'bin/game.dll'`.
+ *
+ * The Shadow Loading Subsystem resolves this invariant:
+ * 1. Timestamped Shadow Copies: Instead of loading `game.dll` directly, the loader creates
+ *    a uniquely named copy (`game_loaded_<PID>_<TIMESTAMP>.dll`) in the target directory.
+ * 2. Unlocked Production Binary: `bin/game.dll` remains completely unlocked on disk, allowing
+ *    the Crystal compiler to rebuild the game at any moment while the Godot Editor stays running.
+ * 3. Hot-Reloading Trigger: When the editor detects a build completion (or receives F5/F6),
+ *    Godot calls GDExtension reload. The loader sweeps orphaned shadow files and creates a new
+ *    shadow copy with the latest timestamp.
+ * 4. PDB Symbol Synchronization: On Windows, debuggers like LLDB require symbol files. The loader
+ *    detects companion `.pdb` files and creates matching `game_loaded_<PID>_<TIMESTAMP>.pdb` files,
+ *    allowing live breakpoint resolution without locking the developer's primary PDB.
  * ==============================================================================
  */
 
-
 /**
- * Copies a binary file from src to dst.
- * Windows: CopyFileA with failIfExists=FALSE.
- * POSIX: Buffered open/read/write/close.
+ * Copies a binary file from source path to destination path.
+ *
+ * @param src Null-terminated path to source file.
+ * @param dst Null-terminated path to destination file.
+ * @return True on success; false on failure.
+ *
+ * Implementation Details:
+ * - Windows: Uses `CopyFileA(src, dst, FALSE)` with `bFailIfExists=FALSE` to overwrite.
+ * - POSIX: Performs chunked 8KB buffer transfers via kernel `open`/`read`/`write` descriptors
+ *   with octal mode `0755` preserving execution permissions.
  */
 inline bool bridge_copy_file(const char *src, const char *dst) {
 #ifdef _WIN32
@@ -47,7 +73,11 @@ inline bool bridge_copy_file(const char *src, const char *dst) {
 #endif
 }
 
-/** Deletes a file on disk (DeleteFileA / unlink) */
+/**
+ * Deletes a file on disk.
+ *
+ * @param path Null-terminated path of the file to remove.
+ */
 inline void bridge_delete_file(const char *path) {
 #ifdef _WIN32
     DeleteFileA(path);
@@ -56,7 +86,11 @@ inline void bridge_delete_file(const char *path) {
 #endif
 }
 
-/** Retrieves the OS Process ID */
+/**
+ * Retrieves the operating system Process ID (PID) for the active host process.
+ *
+ * @return Process identifier integer.
+ */
 inline unsigned long bridge_get_pid() {
 #ifdef _WIN32
     return (unsigned long)GetCurrentProcessId();
@@ -65,7 +99,11 @@ inline unsigned long bridge_get_pid() {
 #endif
 }
 
-/** Retrieves high-resolution monotonic millisecond timestamp */
+/**
+ * Retrieves a high-resolution monotonic millisecond timestamp.
+ *
+ * @return Monotonic time in milliseconds since system boot.
+ */
 inline uint64_t bridge_get_tick_count() {
 #ifdef _WIN32
     return GetTickCount64();
@@ -77,9 +115,15 @@ inline uint64_t bridge_get_tick_count() {
 }
 
 /**
- * Loads a shared dynamic library into the current process address space.
- * Windows: LoadLibraryExA with LOAD_WITH_ALTERED_SEARCH_PATH.
- * POSIX: dlopen with RTLD_NOW | RTLD_GLOBAL.
+ * Loads a dynamic shared library into the current process address space.
+ *
+ * @param path Filesystem path to the dynamic library.
+ * @return Module handle (HMODULE on Windows, void* on POSIX) or nullptr on error.
+ *
+ * Implementation Details:
+ * - Windows: Uses `LoadLibraryExA` with `LOAD_WITH_ALTERED_SEARCH_PATH` so dependent DLLs
+ *   located in the same directory as the target DLL are automatically discovered.
+ * - POSIX: Uses `dlopen` with `RTLD_NOW | RTLD_LOCAL | RTLD_DEEPBIND` to prefer internal symbols.
  */
 inline HMODULE bridge_load_library(const char *path) {
 #ifdef _WIN32
@@ -95,7 +139,13 @@ inline HMODULE bridge_load_library(const char *path) {
 #endif
 }
 
-/** Resolves an exported symbol address from a loaded shared library */
+/**
+ * Resolves an exported symbol address from a loaded dynamic library.
+ *
+ * @param hMod Loaded module handle.
+ * @param proc_name Null-terminated C string of the exported function identifier.
+ * @return Raw pointer to the function entry point or nullptr if not found.
+ */
 inline void* bridge_get_proc(HMODULE hMod, const char *proc_name) {
 #ifdef _WIN32
     return (void*)GetProcAddress(hMod, proc_name);
@@ -104,42 +154,39 @@ inline void* bridge_get_proc(HMODULE hMod, const char *proc_name) {
 #endif
 }
 
-/** Formats the most recent dynamic link error message into out_buf */
+/**
+ * Formats the last operating system dynamic linker error into a caller-supplied buffer.
+ *
+ * @param out_buf Destination character buffer.
+ * @param buf_size Maximum capacity of output buffer in bytes.
+ */
 inline void bridge_get_last_error(char *out_buf, size_t buf_size) {
 #ifdef _WIN32
-    snprintf(out_buf, buf_size, "error code %lu", (unsigned long)GetLastError());
+    DWORD err = GetLastError();
+    FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                   NULL, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                   out_buf, (DWORD)buf_size, NULL);
 #else
     const char *err = dlerror();
-    snprintf(out_buf, buf_size, "%s", err ? err : "unknown dl error");
+    if (err) {
+        snprintf(out_buf, buf_size, "%s", err);
+    } else {
+        snprintf(out_buf, buf_size, "Unknown dlopen error");
+    }
 #endif
 }
 
-/** Queries the last modification timestamp of a file on disk */
+/**
+ * Internal helper to retrieve file modification time in seconds since epoch.
+ */
 inline uint64_t get_file_mtime(const char *path) {
 #ifdef _WIN32
     WIN32_FILE_ATTRIBUTE_DATA data;
     if (GetFileAttributesExA(path, GetFileExInfoStandard, &data)) {
-        return ((uint64_t)data.ftLastWriteTime.dwHighDateTime << 32) | data.ftLastWriteTime.dwLowDateTime;
-    }
-    return 0;
-#else
-    struct stat st;
-    if (stat(path, &st) == 0) {
-        return (uint64_t)st.st_mtime;
-    }
-    return 0;
-#endif
-}
-
-inline uint64_t bridge_get_file_mtime(const char *path) {
-    if (!path || path[0] == '\0') return 0;
-#ifdef _WIN32
-    WIN32_FILE_ATTRIBUTE_DATA fad;
-    if (GetFileAttributesExA(path, GetFileExInfoStandard, &fad)) {
         ULARGE_INTEGER uli;
-        uli.LowPart = fad.ftLastWriteTime.dwLowDateTime;
-        uli.HighPart = fad.ftLastWriteTime.dwHighDateTime;
-        return uli.QuadPart;
+        uli.LowPart = data.ftLastWriteTime.dwLowDateTime;
+        uli.HighPart = data.ftLastWriteTime.dwHighDateTime;
+        return (uli.QuadPart / 10000000ULL) - 11644473600ULL;
     }
     return 0;
 #else
@@ -151,45 +198,48 @@ inline uint64_t bridge_get_file_mtime(const char *path) {
 #endif
 }
 
+/** Public file modification time wrapper */
+inline uint64_t bridge_get_file_mtime(const char *path) {
+    return get_file_mtime(path);
+}
+
+/** Tracking structure for a dynamically loaded Crystal module */
 struct LoadedModuleInfo {
-    HMODULE handle;
-    uint64_t mtime;
+    HMODULE handle;       /** OS module handle */
+    uint64_t mtime;       /** Modification timestamp when loaded */
 };
 
-/** Global handle to the currently loaded Crystal game library (game.dll/so) */
 static HMODULE g_hGame = NULL;
-/** List of all loaded Crystal module handles (plugin.dll, game.dll, etc.) */
 static std::vector<HMODULE> g_loaded_modules;
-/** Set of absolute library file paths that have already been loaded */
-static std::unordered_set<std::string> g_loaded_module_paths;
-/** Set of crystal_godot_init entry function pointers already invoked */
-static std::unordered_set<void*> g_initialized_init_fns;
-/** Count of active GDExtension initializations sharing this bridge */
-static int g_active_extension_count = 0;
 static std::unordered_map<std::string, LoadedModuleInfo> g_loaded_modules_map;
+static std::unordered_set<std::string> g_loaded_module_paths;
 
 /**
- * Unloads the Crystal game library reference.
- * Note: FreeLibrary/dlclose is intentionally NOT called. Crystal's Boehm GC
- * and runtime internals must remain resident in memory across hot-reloads;
- * subsequent builds are loaded via unique shadow library copies.
+ * Unloads all loaded Crystal game and addon modules and resets internal tracking.
+ * Called when extension count reaches zero or during engine shutdown.
  */
 inline void unload_crystal_game_library() {
-    g_hGame = NULL;
-    g_loaded_modules.clear();
     g_loaded_module_paths.clear();
     g_loaded_modules_map.clear();
-    g_crystal_signal_callbacks.clear();
-    g_initialized_init_fns.clear();
+    g_loaded_modules.clear();
+    g_hGame = NULL;
 }
 
 /**
  * Scans the bridge directory and removes stale temporary shadow copies
- * (`*_loaded_*.dll/so`) left behind by previous, closed editor sessions.
+ * (`*_loaded_*.dll/so/pdb`) left behind by closed or crashed editor sessions.
+ *
+ * @param dir Target directory containing bridge and game libraries.
+ *
+ * Safety & Segments:
+ * - Segment 1: Scans for shadow DLL files matching `*_loaded_*.dll`.
+ * - Segment 2: Scans for shadow PDB debug symbols matching `*_loaded_*.pdb`.
+ * - Segment 3: POSIX directory iteration with `opendir`/`readdir` filtering for `_loaded_`.
  */
 inline void cleanup_old_shadow_dlls(const char *dir) {
     if (!dir || dir[0] == '\0') return;
 #ifdef _WIN32
+    // --- Segment 1: Win32 Shadow DLL Scan & Removal ---
     char search_pattern[MAX_PATH];
     snprintf(search_pattern, sizeof(search_pattern), "%s\\*_loaded_*.dll", dir);
 
@@ -204,6 +254,7 @@ inline void cleanup_old_shadow_dlls(const char *dir) {
         FindClose(hFind);
     }
 
+    // --- Segment 2: Win32 Shadow PDB Scan & Removal ---
     snprintf(search_pattern, sizeof(search_pattern), "%s\\*_loaded_*.pdb", dir);
     hFind = FindFirstFileA(search_pattern, &fd);
     if (hFind != INVALID_HANDLE_VALUE) {
@@ -215,6 +266,7 @@ inline void cleanup_old_shadow_dlls(const char *dir) {
         FindClose(hFind);
     }
 #else
+    // --- Segment 3: POSIX Shadow Library Scan & Removal ---
     DIR *d = opendir(dir);
     if (!d) return;
     struct dirent *entry;
@@ -232,6 +284,11 @@ inline void cleanup_old_shadow_dlls(const char *dir) {
 /**
  * Determines whether the bridge should create a temporary shadow copy
  * (`game_loaded_<PID>_<timestamp>.dll/so`) before loading the Crystal library.
+ *
+ * Rules:
+ * 1. Disabled on mobile/embedded targets (Android) where filesystems are sandboxed.
+ * 2. Disabled in standalone game runtime (`!is_editor_active()`), where recompilation is not occurring.
+ * 3. Can be explicitly disabled via `LIBGODOT_NO_SHADOW=1` or `LIBGODOT_HOT_RELOAD=0`.
  */
 inline bool bridge_should_use_shadow_copy() {
 #if defined(__ANDROID__) || defined(ANDROID)
@@ -253,7 +310,22 @@ inline bool bridge_should_use_shadow_copy() {
 }
 
 /**
- * Locates, loads, and initializes the Crystal game library (game.dll / game.so / libgame.so).
+ * Locates, shadow-copies, loads, and initializes the Crystal game library (game.dll / game.so).
+ *
+ * @param p_library Opaque handle to the active GDExtension library.
+ *
+ * Internal Execution Segments:
+ * - Segment 1: Resolve the bridge directory from own loaded module address.
+ * - Segment 2: Query GDExtension library path via `gd_get_library_path` for multi-addon isolation.
+ * - Segment 3: Clean up stale shadow copies from previous closed editor sessions.
+ * - Segment 4: Construct platform-specific candidate binary names (plugin, game, addon).
+ * - Segment 5: Enumerate bridge directory for any custom addon DLL/SO files.
+ * - Segment 6: Fall back to project relative paths if bridge is in an addon subfolder.
+ * - Segment 7: Preload Win32 runtime dependencies (gc.dll, iconv-2.dll, pcre2-8.dll).
+ * - Segment 8: Canonicalize paths and filter against already loaded module sets.
+ * - Segment 9: Perform timestamped shadow copy on Windows (preventing compiler file lock).
+ * - Segment 10: Copy companion .pdb for LLDB source-level debugging of shadow DLL.
+ * - Segment 11: Dynamic LoadLibrary, resolve `crystal_godot_init(&g_bridge_api)`, and register GC thread.
  */
 inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nullptr) {
     if (p_library) {
@@ -261,6 +333,9 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
     }
     char bridge_dir[MAX_PATH] = {0};
 
+    // --- Segment 1: Bridge Directory Resolution ---
+    // Identify the absolute filesystem directory containing this bridge binary using
+    // its own function pointer address (`&load_crystal_game_library`).
 #ifdef _WIN32
     HMODULE hBridge = NULL;
     if (GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCSTR)&load_crystal_game_library, &hBridge)) {
@@ -283,8 +358,10 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
     }
 #endif
 
-    // If multiple GDExtensions share the same loaded bridge DLL/dylib in memory,
-    // use gd_get_library_path to identify the specific addon directory for this extension instance.
+    // --- Segment 2: GDExtension Multi-Addon Path Isolation ---
+    // If multiple distinct GDExtensions share the same loaded bridge DLL in memory,
+    // invoke Godot's `gd_get_library_path` on the specific library pointer to resolve
+    // that addon's dedicated subfolder rather than assuming the root bridge directory.
     GDExtensionClassLibraryPtr lib_target = p_library ? p_library : g_library;
     if (gd_get_library_path && lib_target && gd_string_to_utf8_chars) {
         uint8_t gd_str_storage[64] = {0};
@@ -318,6 +395,7 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
                     strncpy(resolved_addon_dir, p, sizeof(resolved_addon_dir) - 1);
                 }
             }
+
             char *slash = strrchr(resolved_addon_dir, '/');
             if (!slash) slash = strrchr(resolved_addon_dir, '\\');
             if (slash) *slash = '\0';
@@ -348,13 +426,15 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
         godot_log_verbose(dir_log);
     }
 
-    // Clean up stale shadow copies from previous editor sessions
+    // --- Segment 3: Stale Shadow Artifact Cleanup ---
+    // Remove temporary DLLs and PDBs left behind from previous engine sessions.
     cleanup_old_shadow_dlls(bridge_dir);
 
     bool use_shadow = bridge_should_use_shadow_copy();
     uint64_t ts = bridge_get_tick_count();
     unsigned long pid = bridge_get_pid();
 
+    // --- Segment 4: Candidate Library Names by Platform ---
 #ifdef _WIN32
     const char *candidate_names[] = { "plugin.dll", "game.dll", "crystal_addon.dll" };
     const char *path_sep = "\\";
@@ -376,7 +456,8 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
     std::vector<std::string> to_load;
     bool loaded_game_or_addon = false;
 
-    // 1. Primary candidates sitting directly next to crystal_bridge
+    // --- Segment 5: Primary Directory Scanning ---
+    // Check candidate binaries sitting directly adjacent to crystal_bridge.
     if (bridge_dir[0] != '\0') {
 #ifdef _WIN32
         SetDllDirectoryA(bridge_dir);
@@ -384,7 +465,7 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
         for (size_t c = 0; c < sizeof(candidate_names) / sizeof(candidate_names[0]); c++) {
             bool is_plugin = (strstr(candidate_names[c], "plugin") != nullptr);
             if (!is_editor_active() && is_plugin) {
-                continue;
+                continue; // Do not load editor plugins in standalone game runtime
             }
             if (loaded_game_or_addon && !is_plugin) {
                 continue;
@@ -408,7 +489,7 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
             HANDLE hFind = FindFirstFileA(search_pattern, &fd);
             if (hFind != INVALID_HANDLE_VALUE) {
                 do {
-                    // Skip system/runtime dlls and temporary shadow dlls
+                    // Skip system runtime dlls and existing shadow dlls
                     if (strstr(fd.cFileName, "crystal_bridge") == nullptr &&
                         fd.cFileName[0] != '~' &&
                         strcmp(fd.cFileName, "gc.dll") != 0 &&
@@ -451,7 +532,8 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
 #endif
         }
 
-        // Check relative project bin directory if bridge sits in addons/<name>/bin and no game/addon was found in bridge_dir
+        // --- Segment 6: Relative Project Directory Traversal ---
+        // If bridge sits in an addon subfolder (`addons/<name>/bin/`), check the root game binary.
         if (!loaded_game_or_addon) {
             char rel_game_path[MAX_PATH] = {0};
             snprintf(rel_game_path, sizeof(rel_game_path), "%s%s..%s..%s..%sbin%sgame.%s",
@@ -463,8 +545,10 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
         }
     }
 
+    // --- Segment 7: Windows Runtime Dependency Preloading ---
+    // Ensure gc.dll, iconv-2.dll, and pcre2-8.dll are pre-loaded in memory so dynamic linkage
+    // inside game.dll resolves immediately without relying on system PATH.
 #ifdef _WIN32
-    // Preload runtime dependencies on Windows if present
     const char *runtime_deps[] = { "gc.dll", "iconv-2.dll", "pcre2-8.dll" };
     for (int r = 0; r < 3; r++) {
         char dep_path[MAX_PATH];
@@ -476,7 +560,7 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
     }
 #endif
 
-    // Fallback search paths if no game or addon was found yet
+    // --- Segment 8: Fallback Search Path Resolution ---
     if (!loaded_game_or_addon) {
 #ifdef _WIN32
         const char *fallbacks[] = {
@@ -557,6 +641,7 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
 
     typedef void (*CrystalInitFn)(const BridgeAPI *api);
 
+    // --- Segment 9: Module Processing, Shadow Copying & Loading ---
     for (size_t i = 0; i < to_load.size(); i++) {
         const std::string &candidate_path = to_load[i];
         char canonical_path[MAX_PATH] = {0};
@@ -576,12 +661,14 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
 #endif
         uint64_t current_mtime = bridge_get_file_mtime(candidate_path.c_str());
 
+        // Skip if module already loaded at current path
         if (g_loaded_module_paths.find(canonical_path) != g_loaded_module_paths.end()) {
             continue;
         }
 
         HMODULE hModule = NULL;
 
+        // --- Segment 10: Shadow Copy Creation (Windows File-Lock Avoidance) ---
         if (use_shadow) {
             char shadow_path[MAX_PATH] = {0};
             do {
@@ -596,9 +683,9 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
                 snprintf(log_buf, sizeof(log_buf), "[CrystalBridge] Copy failed from %s to %s (%s)", candidate_path.c_str(), shadow_path, err_buf);
                 godot_log_error(log_buf, nullptr, "load_crystal_game_library", __FILE__, __LINE__);
             }
+
+            // Copy companion PDB on Windows so LLDB can debug shadow DLL with full symbols
 #ifdef _WIN32
-            // If matching .pdb exists for candidate_path (e.g. game.pdb for game.dll), copy shadow PDB
-            // so LLDB / debuggers can load full symbols for the shadow DLL without locking original PDB.
             size_t c_len = candidate_path.length();
             if (c_len > 4 && candidate_path.compare(c_len - 4, 4, ".dll") == 0) {
                 std::string orig_pdb = candidate_path.substr(0, c_len - 4) + ".pdb";
@@ -634,6 +721,7 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
                 godot_log_warning(log_buf, nullptr, "load_crystal_game_library", __FILE__, __LINE__);
             }
         } else {
+            // Direct loading (e.g. standalone production runner without shadow copying)
 #ifdef _WIN32
             HMODULE hExisting = GetModuleHandleA(candidate_path.c_str());
             if (!hExisting) hExisting = GetModuleHandleA(canonical_path);
@@ -671,11 +759,14 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
             }
         }
 
+        // --- Segment 11: Crystal Initialization Handshake & GC Hook ---
         if (hModule) {
             g_loaded_modules_map[canonical_path] = { hModule, current_mtime };
             g_loaded_module_paths.insert(canonical_path);
             g_hGame = hModule;
             g_loaded_modules.push_back(hModule);
+
+            // Resolve exported crystal_godot_init entry point and pass the BridgeAPI table
             CrystalInitFn init_fn = (CrystalInitFn)bridge_get_proc(hModule, "crystal_godot_init");
             if (init_fn) {
                 init_fn(&g_bridge_api);
@@ -690,8 +781,16 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
 
 /**
  * Pre-caches frequently used Godot engine method binds and utility functions.
+ * Resolves StringNames and queries ClassDB once at SCENE level to avoid per-call lookups.
+ *
+ * Segments:
+ * - Segment 1: Caches Node process methods (`set_physics_process`, `set_process`).
+ * - Segment 2: Caches global utility functions (`print`, `printerr`, `is_instance_id_valid`, `instance_from_id`).
+ * - Segment 3: Caches Object reflection methods (`get_instance_id`).
+ * - Segment 4: Resolves string-to-variant constructor.
  */
 inline void init_common_method_binds() {
+    // --- Segment 1: Node Process Controls ---
     void *sn_node = make_string_name("Node");
     void *sn_spp = make_string_name("set_physics_process");
     void *sn_sp = make_string_name("set_process");
@@ -699,8 +798,11 @@ inline void init_common_method_binds() {
     mb_set_physics_process = gd_classdb_get_method_bind(sn_node, sn_spp, 2586408642);
     mb_set_process = gd_classdb_get_method_bind(sn_node, sn_sp, 2586408642);
 
-    free_string_name(sn_node); free_string_name(sn_spp); free_string_name(sn_sp);
+    free_string_name(sn_node);
+    free_string_name(sn_spp);
+    free_string_name(sn_sp);
 
+    // --- Segment 2: Global Utility Functions ---
     if (gd_variant_get_ptr_utility_function) {
         void *sn_p = make_string_name("print");
         gd_util_print = gd_variant_get_ptr_utility_function(sn_p, 2648703342ULL);
@@ -719,13 +821,16 @@ inline void init_common_method_binds() {
         free_string_name(sn_ifi);
     }
 
+    // --- Segment 3: Object Reflection Methods ---
     if (gd_classdb_get_method_bind) {
         void *sn_obj = make_string_name("Object");
         void *sn_gid = make_string_name("get_instance_id");
         mb_object_get_instance_id = gd_classdb_get_method_bind(sn_obj, sn_gid, 3905245786ULL);
-        free_string_name(sn_obj); free_string_name(sn_gid);
+        free_string_name(sn_obj);
+        free_string_name(sn_gid);
     }
 
+    // --- Segment 4: Variant Conversion Constructors ---
     if (gd_get_variant_from_type_constructor) {
         gd_variant_from_string = gd_get_variant_from_type_constructor(GDEXTENSION_VARIANT_TYPE_STRING);
     }

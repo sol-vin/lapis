@@ -131,18 +131,28 @@ inline GenericExtensionInstance* find_extension_instance(void *obj) {
 /**
  * Instantiates a new Godot Object for a registered Crystal class.
  *
- * Traverses parent descriptors to determine the root native Godot class
- * (e.g. Node, Node3D, CharacterBody3D), invokes ClassDB to allocate the native
- * object, wraps it in a GenericExtensionInstance, invokes Crystal's create_instance
- * constructor callback, and configures automatic physics/idle processing flags.
+ * @param p_class_userdata Pointer to the CrystalClassDesc descriptor registered in ClassDB.
+ * @param p_notify_postinitialize Godot post-initialize notification flag.
+ * @return Raw GDExtensionObjectPtr of the newly allocated Godot C++ object.
+ *
+ * Internal Execution Segments:
+ * - Segment 1: GC Thread Registration and Input Validation.
+ * - Segment 2: Native Godot Parent Class Traversal (walking inheritance DAG to find C++ base).
+ * - Segment 3: Native Engine Allocation via `gd_classdb_construct_object`.
+ * - Segment 4: Bridge Wrapper Allocation and Crystal Instance Creation (`desc->create_instance`).
+ * - Segment 5: Instance Association (`gd_object_set_instance`) & Global Map Registration.
+ * - Segment 6: Automatic Physics and Idle Process Enabling based on class descriptor flags.
  */
 inline GDExtensionObjectPtr generic_class_create(void *p_class_userdata, GDExtensionBool p_notify_postinitialize) {
     (void)p_notify_postinitialize;
+    // --- Segment 1: GC Thread Registration & Validation ---
     ensure_gc_thread_registered();
     const CrystalClassDesc *desc = (const CrystalClassDesc*)p_class_userdata;
     if (!desc) return nullptr;
 
-    // Find the closest native Godot parent class to construct
+    // --- Segment 2: Native Godot Parent Resolution ---
+    // A Crystal class can inherit from another Crystal class (e.g. Boss < Enemy < CharacterBody2D).
+    // Walk up the parent_desc chain to find the root native Godot engine C++ class to instantiate.
     const CrystalClassDesc *root_desc = desc;
     int depth = 0;
     while (root_desc->parent_desc && depth++ < 32) {
@@ -157,6 +167,7 @@ inline GDExtensionObjectPtr generic_class_create(void *p_class_userdata, GDExten
         return nullptr;
     }
 
+    // --- Segment 3: Native Engine Object Allocation ---
     void *parent_sn = make_string_name(native_parent);
     void *class_sn = make_string_name(desc->name);
 
@@ -169,6 +180,9 @@ inline GDExtensionObjectPtr generic_class_create(void *p_class_userdata, GDExten
         return nullptr;
     }
 
+    // --- Segment 4: Wrapper Allocation & Crystal Host Instance Creation ---
+    // Allocate the GenericExtensionInstance bridge tracking struct, then invoke Crystal's
+    // `create_instance` callback so Crystal allocates its GC wrapper and captures the Object pointer.
     GenericExtensionInstance *inst = new GenericExtensionInstance();
     inst->godot_object = obj;
     inst->desc = desc;
@@ -178,6 +192,9 @@ inline GDExtensionObjectPtr generic_class_create(void *p_class_userdata, GDExten
         inst->crystal_instance = nullptr;
     }
 
+    // --- Segment 5: Instance Association & Global Map Registration ---
+    // Bind the GenericExtensionInstance to Godot's C++ object via gd_object_set_instance,
+    // and record the mapping in s_object_to_extension_instance for fast O(1) thread-safe lookups.
     gd_object_set_instance(obj, class_sn, (GDExtensionClassInstancePtr)inst);
     register_extension_instance(obj, inst);
 
@@ -187,15 +204,16 @@ inline GDExtensionObjectPtr generic_class_create(void *p_class_userdata, GDExten
         godot_log_verbose(buf);
     }
 
+    // --- Segment 6: Automatic Physics and Idle Process Enabling ---
+    // If the class defines _physics_process or _process, auto-enable processing via ptrcall.
+    // If running inside the Godot Editor, suppress processing unless the class is marked @[Tool].
     bool allow_processing = !is_editor_active() || is_tool_desc(desc);
 
-    // Auto-enable physics process if requested
     if (desc->has_physics_process && mb_set_physics_process && allow_processing) {
         uint8_t enabled = 1;
         const void *args[1] = { &enabled };
         gd_object_method_bind_ptrcall(mb_set_physics_process, obj, args, nullptr);
     }
-    // Auto-enable idle process if requested
     if (desc->has_process && mb_set_process && allow_processing) {
         uint8_t enabled = 1;
         const void *args[1] = { &enabled };
@@ -210,8 +228,13 @@ inline GDExtensionObjectPtr generic_class_create(void *p_class_userdata, GDExten
 /**
  * Recreates a Crystal extension instance wrapper on an existing native Godot Object.
  * Used during scene deserialization, editor reload, or hot-reload recreation.
+ *
+ * @param p_class_userdata Pointer to the CrystalClassDesc descriptor.
+ * @param p_object Pointer to the already-allocated native Godot Object.
+ * @return GDExtensionClassInstancePtr tracking pointer to the new GenericExtensionInstance.
  */
 inline GDExtensionClassInstancePtr generic_class_recreate(void *p_class_userdata, GDExtensionObjectPtr p_object) {
+    // --- Segment 1: Thread Registration & Instance Allocation ---
     ensure_gc_thread_registered();
     const CrystalClassDesc *desc = (const CrystalClassDesc*)p_class_userdata;
     if (!desc) return nullptr;
@@ -219,6 +242,8 @@ inline GDExtensionClassInstancePtr generic_class_recreate(void *p_class_userdata
     GenericExtensionInstance *inst = new GenericExtensionInstance();
     inst->godot_object = p_object;
     inst->desc = desc;
+
+    // --- Segment 2: Crystal Host Reconnection ---
     if (desc->create_instance) {
         inst->crystal_instance = desc->create_instance(desc, p_object);
     } else {
@@ -227,15 +252,14 @@ inline GDExtensionClassInstancePtr generic_class_recreate(void *p_class_userdata
 
     register_extension_instance(p_object, inst);
 
+    // --- Segment 3: Process Flag Reconfiguration ---
     bool allow_processing = !is_editor_active() || is_tool_desc(desc);
 
-    // Auto-enable physics process if requested
     if (desc->has_physics_process && mb_set_physics_process && allow_processing) {
         uint8_t enabled = 1;
         const void *args[1] = { &enabled };
         gd_object_method_bind_ptrcall(mb_set_physics_process, p_object, args, nullptr);
     }
-    // Auto-enable idle process if requested
     if (desc->has_process && mb_set_process && allow_processing) {
         uint8_t enabled = 1;
         const void *args[1] = { &enabled };
@@ -248,9 +272,18 @@ inline GDExtensionClassInstancePtr generic_class_recreate(void *p_class_userdata
 /**
  * Frees the Crystal extension instance wrapper and invokes Crystal's free_instance callback.
  * Called by Godot when the underlying C++ Object is destroyed.
+ *
+ * @param p_class_userdata Pointer to the CrystalClassDesc descriptor.
+ * @param p_instance Pointer to the GenericExtensionInstance being freed.
+ *
+ * Segments:
+ * - Segment 1: Thread Registration and Logging.
+ * - Segment 2: Unregistering from the global instance tracking map.
+ * - Segment 3: Invoking Crystal's `free_instance` callback and deleting the C++ wrapper.
  */
 inline void generic_class_free(void *p_class_userdata, GDExtensionClassInstancePtr p_instance) {
     (void)p_class_userdata;
+    // --- Segment 1: Thread Registration & Diagnostics ---
     ensure_gc_thread_registered();
     GenericExtensionInstance *inst = (GenericExtensionInstance*)p_instance;
     if (inst) {
@@ -259,9 +292,11 @@ inline void generic_class_free(void *p_class_userdata, GDExtensionClassInstanceP
             snprintf(buf, sizeof(buf), "  [GenericExtensionInstance] Freed %s (godot=%p, crystal=%p)", inst->desc->name, (void*)inst->godot_object, inst->crystal_instance);
             godot_log_verbose(buf);
         }
+        // --- Segment 2: Unregister from Global Tracking Map ---
         if (inst->godot_object) {
             unregister_extension_instance(inst->godot_object);
         }
+        // --- Segment 3: Invoke Crystal Teardown & Delete Wrapper ---
         if (inst->desc && inst->desc->free_instance && inst->crystal_instance) {
             inst->desc->free_instance(inst->crystal_instance);
         }
@@ -332,13 +367,27 @@ inline void generic_virtual_build(GDExtensionClassInstancePtr p_instance, const 
     if (inst->desc->call_virtual) inst->desc->call_virtual(inst->crystal_instance, "_build", 0.0);
 }
 
+/**
+ * Returns a static C function pointer for core lifecycle virtual methods.
+ * Called by Godot during method table initialization for registered classes.
+ *
+ * @param p_class_userdata Pointer to CrystalClassDesc descriptor.
+ * @param p_name StringName of the virtual method queried by Godot.
+ * @return GDExtensionClassCallVirtual function pointer or nullptr if not handled statically.
+ *
+ * Segments:
+ * - Segment 1: Descriptor validation and method name string conversion.
+ * - Segment 2: Fixed lifecycle method mapping (_ready, _process, _physics_process, _enter_tree, _exit_tree, _build).
+ */
 inline GDExtensionClassCallVirtual generic_class_get_virtual(void *p_class_userdata, GDExtensionConstStringNamePtr p_name) {
+    // --- Segment 1: Descriptor Validation & String Conversion ---
     const CrystalClassDesc *desc = (const CrystalClassDesc*)p_class_userdata;
     if (!desc) return nullptr;
 
     char method_buf[64];
     if (!string_name_to_cstr(p_name, method_buf, sizeof(method_buf))) return nullptr;
 
+    // --- Segment 2: Core Lifecycle Method Dispatch Pointer Matching ---
     if (desc->has_physics_process && strcmp(method_buf, "_physics_process") == 0) {
         return generic_virtual_physics_process;
     }
@@ -363,6 +412,10 @@ inline GDExtensionClassCallVirtual generic_class_get_virtual(void *p_class_userd
 
 static std::unordered_set<std::string> g_interned_virtual_methods;
 
+/**
+ * Interns a virtual method name string in a process-wide set to guarantee stable pointer lifetimes.
+ * Pointers returned by this function remain valid for the lifetime of the process.
+ */
 inline const char* intern_virtual_method(const char *name) {
     if (!name) return nullptr;
     auto it = g_interned_virtual_methods.find(name);
@@ -375,10 +428,23 @@ inline const char* intern_virtual_method(const char *name) {
 
 /**
  * Resolves virtual call user data for Godot 4 virtual methods.
- * Returning non-null indicates the virtual method is overridden by the extension.
+ * Returning a non-null pointer indicates the virtual method is implemented or overridden
+ * by this Crystal class and should be dispatched to `generic_class_call_virtual_with_data`.
+ *
+ * @param p_class_userdata Pointer to the CrystalClassDesc descriptor.
+ * @param p_name StringName of the virtual method.
+ * @param p_hash Method hash (optional/ignored for GDExtension virtuals).
+ * @return Stable pointer to the interned method name string if implemented, nullptr otherwise.
+ *
+ * Segments:
+ * - Segment 1: Method name extraction from StringName.
+ * - Segment 2: Standard lifecycle virtual method resolution (_ready, _process, _input, etc.).
+ * - Segment 3: ScriptLanguageExtension and editor plugin class resolution (CrystalLanguage, CrystalScript, etc.).
+ * - Segment 4: Dynamic virtual method query delegated to Crystal class descriptor (`has_virtual_method`).
  */
 inline void* generic_class_get_virtual_call_data(void *p_class_userdata, GDExtensionConstStringNamePtr p_name, uint32_t p_hash) {
     (void)p_hash;
+    // --- Segment 1: Descriptor Validation & String Conversion ---
     const CrystalClassDesc *desc = (const CrystalClassDesc*)p_class_userdata;
     if (!desc) return nullptr;
 
@@ -388,7 +454,7 @@ inline void* generic_class_get_virtual_call_data(void *p_class_userdata, GDExten
         return nullptr;
     }
 
-    // Built-in lifecycle methods
+    // --- Segment 2: Built-in Engine Lifecycle Methods ---
     if (match_virtual_method(method_buf, "_ready")) {
         return desc->has_ready ? (void*)intern_virtual_method(method_buf) : nullptr;
     }
@@ -423,7 +489,9 @@ inline void* generic_class_get_virtual_call_data(void *p_class_userdata, GDExten
         return (void*)intern_virtual_method(method_buf);
     }
 
-    // Direct resolution for first-class script language extension classes
+    // --- Segment 3: First-Class ScriptLanguageExtension and Plugin Resolution ---
+    // Godot 4 requires ScriptLanguageExtension and related types to override dozens of engine virtuals.
+    // Rather than dispatching dynamically across the C ABI for every probe, fast-resolve them directly.
     if (desc->name) {
         const char *norm_name = (method_buf[0] == '_') ? method_buf : nullptr;
         char prefixed[130];
@@ -567,7 +635,9 @@ inline void* generic_class_get_virtual_call_data(void *p_class_userdata, GDExten
         }
     }
 
-    // Generic virtual method queried via Crystal callback (check verbatim, un-prefixed, and prefixed)
+    // --- Segment 4: Dynamic Virtual Method Query via Crystal Descriptor ---
+    // If the method is not a known engine lifecycle or plugin method, query the Crystal class descriptor's
+    // `has_virtual_method` callback. Check verbatim name, stripped underscore name, and prepended underscore name.
     if (desc->has_virtual_method) {
         if (desc->has_virtual_method(desc, method_buf)) {
             return (void*)intern_virtual_method(method_buf);
@@ -591,7 +661,26 @@ inline void* generic_class_get_virtual_call_data(void *p_class_userdata, GDExten
 }
 
 /**
- * Dispatches generic virtual methods with arguments and return buffers into Crystal.
+ * Dispatches generic Godot 4 virtual method calls with arguments and return buffers into Crystal.
+ * Handles engine lifecycle callbacks, script language extensions, and user-defined virtual methods.
+ *
+ * @param p_instance Pointer to the GenericExtensionInstance.
+ * @param p_name StringName of the virtual method (fallback if user data is null).
+ * @param p_virtual_call_userdata Interned C string pointer identifying the virtual method.
+ * @param p_args Array of pointers to input argument values (ptrcall ABI).
+ * @param p_ret Pointer to caller-allocated return buffer (ptrcall ABI).
+ *
+ * Segments:
+ * - Segment 1: Thread Lifecycle Guard & Fast-Path Rejection (rejecting _thread_enter, _thread_exit,
+ *              _frame, _init, _finish BEFORE GC registration to prevent terminating-thread crashes).
+ * - Segment 2: GC Thread Registration (ensure_gc_thread_registered) and verbose call tracing.
+ * - Segment 3: Engine Lifecycle Virtuals (_ready, _process, _physics_process, _enter_tree,
+ *              _exit_tree, input events, _build) with editor @[Tool] filtering.
+ * - Segment 4: Script Language Extension Fast-Paths (CrystalLanguage, CrystalScript).
+ * - Segment 5: Resource Loader & Saver Mechanics (ResourceFormatLoaderCrystal & ResourceFormatSaverCrystal
+ *              with safe file IO and empty code truncation protection).
+ * - Segment 6: Syntax Highlighter & Editor Plugin Hooks (CrystalHighlighter, CrystalIntegrationPlugin).
+ * - Segment 7: Fallback Dynamic Dispatch into Crystal (inst->desc->call_virtual_with_data).
  */
 inline void generic_class_call_virtual_with_data(
     GDExtensionClassInstancePtr p_instance,
@@ -611,6 +700,7 @@ inline void generic_class_call_virtual_with_data(
     }
     if (!method_name) return;
 
+    // --- Segment 1: Thread Lifecycle Guard & Fast-Path Rejection ---
     // Fast-path: thread lifecycle hooks and no-op engine ticks must never touch Crystal runtime
     // or register foreign exiting threads with Boehm GC. Running GC registration or Crystal code
     // on a terminating thread (e.g. during EditorSettings saving or thread exit) causes C0000005 crashes.
@@ -622,6 +712,7 @@ inline void generic_class_call_virtual_with_data(
         return;
     }
 
+    // --- Segment 2: Boehm GC Thread Registration & Diagnostics ---
     ensure_gc_thread_registered();
 
     if (is_bridge_verbose() && strcmp(method_name, "_process") != 0 && strcmp(method_name, "process") != 0 &&
@@ -631,6 +722,7 @@ inline void generic_class_call_virtual_with_data(
         godot_log_verbose(buf);
     }
 
+    // --- Segment 3: Engine Lifecycle Virtuals & Editor @[Tool] Filtering ---
     if (match_virtual_method(method_name, "_ready")) {
         if (is_editor_active() && !is_tool_desc(inst->desc)) return;
         if (inst->crystal_instance && inst->desc->call_virtual) inst->desc->call_virtual(inst->crystal_instance, "_ready", 0.0);
@@ -694,7 +786,8 @@ inline void generic_class_call_virtual_with_data(
         }
     }
 
-    // Fast-path virtual dispatches for Crystal script integration classes
+    // --- Segment 4: Script Language Extension Fast-Paths ---
+    // Fast-path virtual dispatches for Crystal script integration classes to bypass reflection overhead.
     if (inst->desc && inst->desc->name) {
         if (strcmp(inst->desc->name, "CrystalLanguage") == 0) {
             if (strcmp(method_name, "_init") == 0 || strcmp(method_name, "init") == 0) {
@@ -792,7 +885,9 @@ inline void generic_class_call_virtual_with_data(
                 bridge_ret_ref(r_ret, script_obj);
                 return;
             }
-        } else if (strcmp(inst->desc->name, "ResourceFormatLoaderCrystal") == 0) {
+        }
+        // --- Segment 5: Resource Loader & Saver Mechanics (.cr Scripts & Serialization) ---
+        else if (strcmp(inst->desc->name, "ResourceFormatLoaderCrystal") == 0) {
             if (strcmp(method_name, "_get_recognized_extensions") == 0 || strcmp(method_name, "get_recognized_extensions") == 0) {
                 const char *exts[] = { "cr" };
                 bridge_ret_packed_string_array(r_ret, exts, 1);
@@ -1100,7 +1195,9 @@ inline void generic_class_call_virtual_with_data(
                 }
                 return;
             }
-        } else if (strcmp(inst->desc->name, "CrystalIntegrationPlugin") == 0) {
+        }
+        // --- Segment 6: Syntax Highlighter & Editor Plugin Hooks ---
+        else if (strcmp(inst->desc->name, "CrystalIntegrationPlugin") == 0) {
             if (strcmp(method_name, "_has_main_screen") == 0) {
                 if (r_ret) *(uint8_t*)r_ret = 1;
                 return;
@@ -1243,15 +1340,31 @@ inline void generic_class_call_virtual_with_data(
         }
     }
 
+    // --- Segment 7: Fallback Dynamic Dispatch into Crystal ---
+    // If not handled by fast-paths, forward the method invocation, argument array, and return buffer
+    // directly to the Crystal class instance via its call_virtual_with_data function pointer.
     if (inst->crystal_instance && inst->desc->call_virtual_with_data) {
         inst->desc->call_virtual_with_data(inst->crystal_instance, method_name, (const void**)p_args, (void*)r_ret);
     }
 }
 
 /**
- * Dynamic property setter called by Godot's inspector, animations, or scripts.
+ * Dynamic property setter called by Godot's inspector, animation player, or script bindings.
+ * Matches the property name against the class descriptor hierarchy, unmarshals the input Variant
+ * into a typed C/Crystal representation, and invokes the Crystal `set_property` callback.
+ *
+ * @param p_instance Pointer to the GenericExtensionInstance.
+ * @param p_name StringName of the property being assigned.
+ * @param p_value Pointer to the source Variant value.
+ * @return 1 (true) if the property was matched and assigned; 0 (false) otherwise.
+ *
+ * Segments:
+ * - Segment 1: GC Thread Registration and StringName conversion to C string.
+ * - Segment 2: Class Hierarchy Traversal (walking `parent_desc` to find exported property).
+ * - Segment 3: Variant Unmarshaling into raw POD buffer and invoking Crystal setter callback.
  */
 inline GDExtensionBool generic_class_set(GDExtensionClassInstancePtr p_instance, GDExtensionConstStringNamePtr p_name, GDExtensionConstVariantPtr p_value) {
+    // --- Segment 1: Thread Registration & Property Name Resolution ---
     ensure_gc_thread_registered();
     GenericExtensionInstance *inst = (GenericExtensionInstance*)p_instance;
     if (!inst || !inst->desc || !inst->desc->set_property || !inst->crystal_instance) return 0;
@@ -1259,11 +1372,14 @@ inline GDExtensionBool generic_class_set(GDExtensionClassInstancePtr p_instance,
     char prop_name_buf[128];
     if (!string_name_to_cstr(p_name, prop_name_buf, sizeof(prop_name_buf))) return 0;
 
+    // --- Segment 2: Class Hierarchy Traversal ---
     const CrystalClassDesc *curr = inst->desc;
     while (curr) {
         for (int i = 0; i < curr->property_count; i++) {
+            // Ignore internal / group / category property markers (PROPERTY_USAGE_GROUP, etc.)
             if (curr->properties[i].usage & (64 | 128 | 256)) continue;
             if (strcmp(prop_name_buf, curr->properties[i].name) == 0) {
+                // --- Segment 3: Variant Unmarshaling & Crystal Setter Dispatch ---
                 alignas(void*) char raw_buf[128] = {};
                 bridge_type_from_variant(curr->properties[i].variant_type, raw_buf, p_value);
                 if (is_bridge_verbose()) {
@@ -1281,9 +1397,22 @@ inline GDExtensionBool generic_class_set(GDExtensionClassInstancePtr p_instance,
 }
 
 /**
- * Dynamic property getter called by Godot's inspector, serialization, or scripts.
+ * Dynamic property getter called by Godot's inspector, scene serialization, or script bindings.
+ * Traverses the class hierarchy to find the property, invokes the Crystal `get_property` callback,
+ * and marshals the resulting value into the destination Variant buffer.
+ *
+ * @param p_instance Pointer to the GenericExtensionInstance.
+ * @param p_name StringName of the property being queried.
+ * @param r_ret Pointer to the destination Variant to receive the value.
+ * @return 1 (true) if the property was resolved and returned; 0 (false) otherwise.
+ *
+ * Segments:
+ * - Segment 1: GC Thread Registration and StringName conversion to C string.
+ * - Segment 2: Class Hierarchy Traversal and Tool Button (hint 39) callable synthesis.
+ * - Segment 3: Invoking Crystal getter callback and marshaling POD data into Godot Variant.
  */
 inline GDExtensionBool generic_class_get(GDExtensionClassInstancePtr p_instance, GDExtensionConstStringNamePtr p_name, GDExtensionVariantPtr r_ret) {
+    // --- Segment 1: Thread Registration & Property Name Resolution ---
     ensure_gc_thread_registered();
     GenericExtensionInstance *inst = (GenericExtensionInstance*)p_instance;
     if (!inst || !inst->desc || !inst->desc->get_property || !inst->crystal_instance) return 0;
@@ -1291,15 +1420,18 @@ inline GDExtensionBool generic_class_get(GDExtensionClassInstancePtr p_instance,
     char prop_name_buf[128];
     if (!string_name_to_cstr(p_name, prop_name_buf, sizeof(prop_name_buf))) return 0;
 
+    // --- Segment 2: Class Hierarchy Traversal & Special Hint Handling ---
     const CrystalClassDesc *curr = inst->desc;
     while (curr) {
         for (int i = 0; i < curr->property_count; i++) {
             if (curr->properties[i].usage & (64 | 128 | 256)) continue;
             if (strcmp(prop_name_buf, curr->properties[i].name) == 0) {
+                // Hint 39 corresponds to PROPERTY_HINT_TOOL_BUTTON; synthesize a Callable for the inspector button
                 if (curr->properties[i].hint == 39) {
                     create_tool_button_callable(inst, curr->properties[i].name, r_ret);
                     return 1;
                 }
+                // --- Segment 3: Crystal Getter Dispatch & Variant Marshaling ---
                 alignas(void*) char raw_buf[128] = {};
                 inst->desc->get_property(inst->crystal_instance, curr->properties[i].name, raw_buf);
                 bridge_variant_from_type(curr->properties[i].variant_type, r_ret, raw_buf);
@@ -1317,7 +1449,20 @@ inline GDExtensionBool generic_class_get(GDExtensionClassInstancePtr p_instance,
 }
 
 /**
- * Dynamic method dispatcher for GodotChannel helper objects.
+ * Method call dispatcher for GodotChannel inter-thread/actor communication helper objects.
+ * Marshals string messages, booleans, and channel sizes across Godot's Variant ABI.
+ *
+ * @param method_userdata Interned C string pointer identifying the channel method name.
+ * @param p_instance Pointer to the GenericExtensionInstance representing the GodotChannel.
+ * @param p_args Array of pointers to Variant arguments.
+ * @param p_argument_count Number of arguments passed.
+ * @param r_return Destination Variant buffer for the return value.
+ * @param r_error Call error indicator populated if instance is null or method fails.
+ *
+ * Segments:
+ * - Segment 1: Thread Registration, Instance Validation, and Error Status Setup.
+ * - Segment 2: Dispatch and Variant Conversion for send, try_send, receive, try_receive,
+ *              close, size, is_empty, is_full, and is_closed.
  */
 inline void channel_method_call(
     void *method_userdata,
@@ -1327,6 +1472,7 @@ inline void channel_method_call(
     GDExtensionVariantPtr r_return,
     GDExtensionCallError *r_error
 ) {
+    // --- Segment 1: GC Thread Registration & Instance Validation ---
     ensure_gc_thread_registered();
     GenericExtensionInstance *inst = (GenericExtensionInstance*)p_instance;
     if (!inst || !inst->desc || !inst->crystal_instance || !inst->desc->call_virtual_with_data) {
@@ -1338,6 +1484,7 @@ inline void channel_method_call(
     const char *mname = (const char*)method_userdata;
     if (!mname) return;
 
+    // --- Segment 2: Channel Method Dispatch & Variant Marshaling ---
     if (strcmp(mname, "send") == 0 || strcmp(mname, "try_send") == 0) {
         const char *s_val = "";
         char str_buf[1024] = {};

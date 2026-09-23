@@ -8,6 +8,19 @@
  * ==============================================================================
  */
 
+/**
+ * C-ABI POD representation of an unpacked Godot Variant value passed across the FFI boundary.
+ *
+ * Binary Layout Invariant:
+ * Must match `struct VariantArg` in `src/libgodot/c_api.cr` byte-for-byte (64-bit alignment):
+ * - `type` (int32): GDExtensionVariantType enum value.
+ * - `extra_flags` (int32): Bitflags or sub-type flags (padding to 64-bit alignment).
+ * - `int_val` (int64): Integer value (for bool, int, enum, and integer components).
+ * - `float_val` (float64): Floating-point value (for float and double).
+ * - `ptr_val` (void*): Pointer to string, Object*, or buffer.
+ * - `instance_id` (uint64): Monotonic 64-bit Godot ObjectDB instance ID.
+ * - `vec_val` (float[4]): Vector / Color components (x, y, z, w / r, g, b, a).
+ */
 struct VariantArg {
     int32_t type;
     int32_t extra_flags;
@@ -18,23 +31,33 @@ struct VariantArg {
     float vec_val[4];
 };
 
+/**
+ * Lightweight type-tagged pointer passed into vararg signal emitters and dispatches.
+ */
 struct BridgeSignalArg {
-    int32_t arg_type;
-    void *data;
+    int32_t arg_type; /** GDExtensionVariantType enum */
+    void *data;       /** Pointer to typed value */
 };
 
+/**
+ * Autocompletion suggestion entry passed to the Godot script editor for Crystal code.
+ */
 struct BridgeCompletionOption {
-    int64_t kind;
-    const char *display;
-    const char *insert_text;
-    const char *default_value;
-    int64_t location;
+    int64_t kind;             /** CodeCompletionKind enum */
+    const char *display;      /** Display text in completion dropdown */
+    const char *insert_text;  /** Code text inserted upon acceptance */
+    const char *default_value;/** Default value text if applicable */
+    int64_t location;         /** Code completion location index */
 };
 
 using CrystalSignalCallbackFn = void (*)(uint64_t target_id, const char *signal_name, const VariantArg *args, int arg_count);
 using CrystalDeinitCallbackFn = void (*)();
 using CrystalCleanupCallbackFn = void (*)();
 
+/**
+ * Class property descriptor registered into Godot's ClassDB.
+ * Populated by Crystal macros for `@Export` properties and inspector groups.
+ */
 struct CrystalPropertyDesc {
     const char *name;         /** Property identifier (e.g., "speed", "player_name") */
     const char *type_name;    /** Godot type name (e.g., "float", "Vector3", "Node3D") */
@@ -44,22 +67,32 @@ struct CrystalPropertyDesc {
     uint32_t usage;           /** PropertyUsageFlags bitmask (defaults to PROPERTY_USAGE_DEFAULT) */
 };
 
+/**
+ * Parameter descriptor for a class signal.
+ */
 struct CrystalSignalArgDesc {
-    const char *name;         /** Argument name */
+    const char *name;         /** Parameter identifier name */
     int variant_type;         /** GDExtensionVariantType of the parameter */
 };
 
+/**
+ * Signal descriptor registered into Godot's ClassDB.
+ * Populated by Crystal macros for `signal name(arg : Type)` declarations.
+ */
 struct CrystalSignalDesc {
-    const char *name;                   /** Signal name (e.g., "health_changed", "goal_scored") */
+    const char *name;                   /** Signal name (e.g., "health_changed", "died") */
     int arg_count;                      /** Number of arguments in the signal signature */
     const CrystalSignalArgDesc *args;   /** Array of argument descriptors */
 };
 
+/**
+ * Class integer or enum constant registered into Godot's ClassDB.
+ */
 struct CrystalConstantDesc {
-    const char *enum_name;     /** Name of the enum or empty string */
+    const char *enum_name;     /** Name of the enum or empty string if standalone constant */
     const char *constant_name; /** Name of the constant */
     int64_t value;             /** Value of the constant */
-    bool is_bitfield;          /** True if part of a bitfield */
+    bool is_bitfield;          /** True if part of a bitfield flags enum */
 };
 
 struct CrystalClassDesc {

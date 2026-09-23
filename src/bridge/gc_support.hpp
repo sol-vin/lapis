@@ -183,7 +183,24 @@ inline void bridge_register_gc_functions(const BridgeGCFunctions *funcs) {
     g_gc_modules.push_back(entry);
 }
 
+/**
+ * Discovers and dynamically links Boehm Garbage Collector runtime symbols.
+ *
+ * Invariants & Thread Safety:
+ * - On Windows: Resolves functions dynamically from `gc.dll` (either already loaded or via `LoadLibraryA`).
+ * - On POSIX: Detects whether Boehm GC is statically linked into the game module or loaded dynamically.
+ *   Enforces strict single-instance registration to prevent duplicate pthread key destructor collisions.
+ * - Protects module list mutations with recursive mutex `g_gc_modules_mutex`.
+ *
+ * @param game_module_handle Optional handle to the loaded Crystal game shared library.
+ *
+ * Segments:
+ * - Segment 1: Handle caching and thread synchronization.
+ * - Segment 2: Windows dynamic GC library linking (`gc.dll`).
+ * - Segment 3: POSIX GC candidate traversal and single-instance registration.
+ */
 inline void init_gc_library(void *game_module_handle = nullptr) {
+    // --- Segment 1: Handle Caching & Thread Synchronization ---
     std::lock_guard<std::recursive_mutex> lock(g_gc_modules_mutex);
 
     if (game_module_handle) {
@@ -193,6 +210,7 @@ inline void init_gc_library(void *game_module_handle = nullptr) {
     }
 
 #ifdef _WIN32
+    // --- Segment 2: Windows Dynamic GC Linking (gc.dll) ---
     HMODULE hGc = GetModuleHandleA("gc.dll");
     if (!hGc) hGc = LoadLibraryA("gc.dll");
     if (hGc) {
@@ -220,6 +238,7 @@ inline void init_gc_library(void *game_module_handle = nullptr) {
         }
     }
 #else
+    // --- Segment 3: POSIX Single-Instance GC Registration ---
     // On POSIX platforms where Boehm GC is statically linked into shared libraries,
     // registering multiple static GC instances to track the same OS threads causes
     // fatal collisions in pthread key destructors (signal 11 / SIGSEGV at address 0x18).
@@ -277,11 +296,27 @@ inline void init_gc_library(void *game_module_handle = nullptr) {
 #endif
 }
 
+/**
+ * Registers the calling OS thread with Boehm Garbage Collector.
+ *
+ * Essential Invariant:
+ * Foreign engine threads (Godot's `WorkerThreadPool`, AudioServer, PhysicsServer, or OS threads)
+ * will trigger fatal segmentation faults (`0xC0000005` or signal 11) if they allocate Crystal
+ * heap objects or dereference GC-managed memory before their stack boundaries are registered.
+ * This function guarantees safe registration with thread-local caching for zero per-call overhead.
+ *
+ * Segments:
+ * - Segment 1: Thread-local fast path and module snapshot acquisition.
+ * - Segment 2: POSIX signal unmasking for thread suspend/restart signals.
+ * - Segment 3: Native stack base pointer resolution (with OS-level fallbacks).
+ * - Segment 4: Foreign thread registration and RAII unregistration guard activation.
+ */
 inline void ensure_gc_thread_registered() {
 #ifndef _WIN32
     record_main_thread();
 #endif
 
+    // --- Segment 1: Thread-Local Fast Path & Module Snapshot Acquisition ---
     std::vector<GCModuleEntry> modules_snapshot;
     {
         std::lock_guard<std::recursive_mutex> lock(g_gc_modules_mutex);
@@ -298,6 +333,7 @@ inline void ensure_gc_thread_registered() {
     }
 
 #ifndef _WIN32
+    // --- Segment 2: POSIX Real-Time Signal Unmasking ---
     // Unmask Boehm GC thread suspend/restart signals on foreign threads before registering.
     sigset_t set;
     sigemptyset(&set);
@@ -329,6 +365,7 @@ inline void ensure_gc_thread_registered() {
     pthread_sigmask(SIG_UNBLOCK, &set, nullptr);
 #endif
 
+    // --- Segment 3: Native Stack Base Resolution ---
     struct GC_stack_base sb;
     sb.mem_base = nullptr;
     int rc = -1;
@@ -363,6 +400,7 @@ inline void ensure_gc_thread_registered() {
     }
 #endif
 
+    // --- Segment 4: Thread Registration & RAII Guard Activation ---
     if (rc == 0 && sb.mem_base != nullptr) {
         for (const auto &mod : modules_snapshot) {
             if (mod.register_my_thread) {

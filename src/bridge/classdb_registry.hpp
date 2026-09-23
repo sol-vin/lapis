@@ -128,9 +128,25 @@ inline void register_channel_methods(void *class_sn) {
 }
 
 /**
- * Internal helper that executes ClassDB registration with Godot.
+ * Internal helper that registers a Crystal class with Godot's ClassDB.
+ *
+ * Configures the GDExtensionClassCreationInfo6 structure with bridge callback pointers,
+ * registers exported properties (and inspector groups/subgroups), signals, integer/enum
+ * constants, and channel communication methods.
+ *
+ * @param desc Pointer to the CrystalClassDesc descriptor.
+ *
+ * Segments:
+ * - Segment 1: Parameter validation, duplicate registration check, and StringName allocation.
+ * - Segment 2: GDExtensionClassCreationInfo6 configuration with GenericExtensionInstance callbacks.
+ * - Segment 3: Native ClassDB class registration (`gd_classdb_register_extension_class6`).
+ * - Segment 4: Property Group & Export Property Registration.
+ * - Segment 5: Signal Registration with typed parameter metadata.
+ * - Segment 6: Integer and Enum Constant Registration.
+ * - Segment 7: GodotChannel Method Registration & Editor/Scene Class Tracking.
  */
 inline void do_classdb_register(CrystalClassDesc *desc) {
+    // --- Segment 1: Validation & StringName Allocation ---
     if (!desc || !g_library) return;
     if (is_class_registered_in_engine(desc->name)) {
         char msg[256];
@@ -142,6 +158,7 @@ inline void do_classdb_register(CrystalClassDesc *desc) {
     void *class_sn = make_string_name(desc->name);
     void *parent_sn = make_string_name(desc->parent_name);
 
+    // --- Segment 2: GDExtension Class Creation Struct Setup ---
     GDExtensionClassCreationInfo6 cinfo = {};
     cinfo.is_virtual = desc->is_virtual ? 1 : 0;
     cinfo.is_abstract = desc->is_abstract ? 1 : 0;
@@ -158,13 +175,14 @@ inline void do_classdb_register(CrystalClassDesc *desc) {
     cinfo.call_virtual_with_data_func = generic_class_call_virtual_with_data;
     cinfo.class_userdata = (void*)desc;
 
+    // --- Segment 3: Native Engine ClassDB Registration ---
     gd_classdb_register_extension_class6(g_library, class_sn, parent_sn, &cinfo);
 
     if (cinfo.icon_path) {
         free_string((void*)cinfo.icon_path);
     }
 
-    // Register properties dynamically without arbitrary limits
+    // --- Segment 4: Property Group & Export Property Registration ---
     for (int i = 0; i < desc->property_count; i++) {
         const CrystalPropertyDesc &p = desc->properties[i];
 
@@ -197,7 +215,7 @@ inline void do_classdb_register(CrystalClassDesc *desc) {
         gd_classdb_register_extension_class_property(g_library, class_sn, &pinfo, setter_sn, getter_sn);
     }
 
-    // Register signals dynamically with vector
+    // --- Segment 5: Signal Registration ---
     for (int i = 0; i < desc->signal_count; i++) {
         const CrystalSignalDesc &s = desc->signals[i];
         void *sig_sn = make_string_name(s.name);
@@ -219,7 +237,7 @@ inline void do_classdb_register(CrystalClassDesc *desc) {
         }
     }
 
-    // Register class integer / enum constants
+    // --- Segment 6: Integer & Enum Constant Registration ---
     if (gd_classdb_register_extension_class_integer_constant) {
         for (int i = 0; i < desc->constant_count; i++) {
             const CrystalConstantDesc &c = desc->constants[i];
@@ -238,6 +256,7 @@ inline void do_classdb_register(CrystalClassDesc *desc) {
         }
     }
 
+    // --- Segment 7: GodotChannel Method Registration & Class Tracking ---
     if (strcmp(desc->name, "GodotChannel") == 0) {
         register_channel_methods(class_sn);
     }
@@ -259,9 +278,25 @@ inline void do_classdb_register(CrystalClassDesc *desc) {
 /**
  * Registers a Crystal class, all its exported properties, and all its signals with Godot ClassDB.
  *
- * Called by Crystal during game library initialization (crystal_godot_init).
+ * Invariants & Lifecycle:
+ * - Allocates or updates an address-invariant `PersistentClassDesc` structure in process memory.
+ *   Even when `game.dll` is recompiled and reloaded, the persistent descriptor's heap address
+ *   remains invariant, so Godot's ClassDB never references a dangling pointer.
+ * - Re-links the parent-child class hierarchy DAG across reloads.
+ * - If Godot is at SCENE level, defers editor-only classes to the EDITOR initialization level.
+ *
+ * @param p_desc Pointer to the CrystalClassDesc exported by the compiled Crystal DLL.
+ * @return 1 on success; 0 on invalid parameters.
+ *
+ * Segments:
+ * - Segment 1: Parameter validation and persistent descriptor allocation or update.
+ * - Segment 2: Bidirectional parent-child DAG relinking.
+ * - Segment 3: Engine pre-registration check.
+ * - Segment 4: Deferral of editor-only classes when engine is still at SCENE level.
+ * - Segment 5: Execution of `do_classdb_register`.
  */
 inline int bridge_register_class(const CrystalClassDesc *p_desc) {
+    // --- Segment 1: Parameter Validation & Persistent Descriptor Allocation/Update ---
     if (!p_desc || !p_desc->name || !g_library) return 0;
 
     std::string cname = p_desc->name;
@@ -280,6 +315,7 @@ inline int bridge_register_class(const CrystalClassDesc *p_desc) {
         g_all_registered_class_names.insert(cname);
     }
 
+    // --- Segment 2: Bidirectional Parent-Child DAG Relinking ---
     // Link / Re-link parent_desc if parent is in the persistent map
     if (!pcd->parent_name.empty()) {
         auto pit = g_persistent_class_descs.find(pcd->parent_name);
@@ -294,6 +330,7 @@ inline int bridge_register_class(const CrystalClassDesc *p_desc) {
         }
     }
 
+    // --- Segment 3: Engine Pre-Registration Duplicate Check ---
     if (is_class_registered_in_engine(p_desc->name)) {
         char log_buf[256];
         snprintf(log_buf, sizeof(log_buf), "[CrystalBridge] Notice: Class '%s' already registered with ClassDB in engine. Skipping duplicate registration safely.", p_desc->name);
@@ -301,6 +338,7 @@ inline int bridge_register_class(const CrystalClassDesc *p_desc) {
         return 1;
     }
 
+    // --- Segment 4: Editor Class Deferral to EDITOR Level ---
     // Defer editor-specific classes if Godot is still at SCENE initialization level
     if (g_current_init_level < GDEXTENSION_INITIALIZATION_EDITOR && is_editor_class(&pcd->desc)) {
         char log_buf[128];
@@ -310,10 +348,15 @@ inline int bridge_register_class(const CrystalClassDesc *p_desc) {
         return 1;
     }
 
+    // --- Segment 5: Execution of ClassDB Registration ---
     do_classdb_register(&pcd->desc);
     return 1;
 }
 
+/**
+ * Registers all editor-specific classes that were deferred during SCENE initialization.
+ * Invoked when Godot reaches GDEXTENSION_INITIALIZATION_EDITOR level.
+ */
 inline void register_deferred_editor_classes() {
     if (!g_deferred_editor_classes.empty()) {
         godot_log_verbose("[CrystalBridge] Registering deferred Editor classes at EDITOR level...");
