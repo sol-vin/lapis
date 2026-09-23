@@ -54,11 +54,3 @@ func _make_visible(visible: bool) -> void:
 			_main_panel = base_ctrl.find_child("CrystalPanel", true, false)
 	if _main_panel and is_instance_valid(_main_panel):
 		_main_panel.visible = visible
-
-func _build() -> bool:
-	var base_ctrl = EditorInterface.get_base_control()
-	if base_ctrl:
-		var btn = base_ctrl.find_child("BuildCrystalToolbarButton", true, false)
-		if btn:
-			btn.emit_signal("pressed")
-	return true
