@@ -82,7 +82,7 @@ end
 CRYSTAL
 
 indented_result = lang.auto_indent_code(unindented_code, 0, unindented_code.lines.size - 1)
-unless indented_result == expected_indented
+unless indented_result.gsub("\r\n", "\n") == expected_indented.gsub("\r\n", "\n")
   puts "Expected:\n#{expected_indented}\nGot:\n#{indented_result}"
   abort "ERROR: auto_indent_code failed to correctly format block indentation!"
 end

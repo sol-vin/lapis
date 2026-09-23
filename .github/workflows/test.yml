@@ -74,21 +74,25 @@ jobs:
             "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\Llvm\x64\bin",
             "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\Llvm\bin"
           )
-          foreach ($cand in $candidates) {
-            if (Test-Path (Join-Path $cand "lldb.exe")) {
-              Write-Host "Found LLDB toolchain candidate at $cand"
-              $cand | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
-              $env:PATH = "$cand;$env:PATH"
-              break
-            }
-          }
           $prevEAP = $ErrorActionPreference
           $ErrorActionPreference = 'Continue'
           try {
+            foreach ($cand in $candidates) {
+              $exe = Join-Path $cand "lldb.exe"
+              if (Test-Path $exe) {
+                $ver = & $exe --version 2>&1
+                if ($LASTEXITCODE -eq 0) {
+                  Write-Host "Found functional LLDB toolchain candidate at $cand: $ver"
+                  $cand | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+                  $env:PATH = "$cand;$env:PATH"
+                  break
+                } else {
+                  Write-Host "Candidate $cand has lldb.exe but execution test failed (exit $LASTEXITCODE); skipping."
+                }
+              }
+            }
             if (Get-Command lldb.exe -ErrorAction SilentlyContinue) {
               Write-Host "LLDB command resolved: $((Get-Command lldb.exe).Source)"
-              $ver = & lldb.exe --version 2>&1
-              Write-Host "LLDB version: $ver"
             } else {
               Write-Host "LLDB is not available in system PATH (debugger features optional)."
             }

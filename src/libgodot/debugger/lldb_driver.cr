@@ -105,11 +105,27 @@ module Lapis
       def initialize(@lldb_path : String = "lldb")
       end
 
+      # Checks whether a given LLDB executable is functional and runnable
+      def self.runnable?(path : String) : Bool
+        return false unless File.exists?(path)
+        begin
+          res = Process.run(
+            path,
+            ["--no-lldbinit", "--batch", "-o", "version"],
+            output: Process::Redirect::Close,
+            error: Process::Redirect::Close
+          )
+          res.success?
+        rescue
+          false
+        end
+      end
+
       # Discovers the lldb executable on the system
       def self.find_lldb(custom_path : String? = nil) : String?
         if custom_path && !custom_path.strip.empty?
           clean = custom_path.strip
-          return clean if File.exists?(clean)
+          return clean if File.exists?(clean) && runnable?(clean)
         end
 
         # Check PATH
@@ -120,7 +136,7 @@ module Lapis
           next if dir.empty?
           path_exts.each do |ext|
             candidate = File.join(dir, "lldb#{ext}")
-            return candidate if File.exists?(candidate)
+            return candidate if File.exists?(candidate) && runnable?(candidate)
           end
         end
 
@@ -139,7 +155,7 @@ module Lapis
             "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\Llvm\\bin\\lldb.exe",
           ]
           candidates.each do |cand|
-            return cand if File.exists?(cand)
+            return cand if File.exists?(cand) && runnable?(cand)
           end
         {% end %}
 

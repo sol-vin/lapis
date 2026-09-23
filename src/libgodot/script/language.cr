@@ -613,7 +613,9 @@ module Lapis
     end
 
     def auto_indent_code(code : String, from_line : Int32, to_line : Int32) : String
-      lines = code.split("\n")
+      crlf = code.includes?("\r\n")
+      newline = crlf ? "\r\n" : "\n"
+      lines = code.gsub("\r\n", "\n").split('\n')
       indent_level = 0
       result = [] of String
 
@@ -641,7 +643,7 @@ module Lapis
         end
       end
 
-      result.join("\n")
+      result.join(newline)
     end
 
     def self.inspect_file_global_class(path : String) : Tuple(String, String, String)

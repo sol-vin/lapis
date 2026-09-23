@@ -199,7 +199,7 @@ module Lapis
 
       def self.find_lldb : String?
         if path = ProcessRunner.find_executable("lldb")
-          return path
+          return path if get_lldb_version(path)
         end
 
         {% if flag?(:windows) %}
@@ -215,7 +215,7 @@ module Lapis
             "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\Llvm\\bin\\lldb.exe",
           ]
           candidates.each do |cand|
-            return cand if File.exists?(cand)
+            return cand if File.exists?(cand) && get_lldb_version(cand)
           end
         {% end %}
         nil
@@ -241,12 +241,24 @@ module Lapis
             version: nil,
             supported: false,
             path: nil,
-            message: "LLDB debugger ('lldb') was not found. Install LLVM (e.g. 'winget install LLVM.LLVM' or 'scoop install llvm' on Windows, 'apt install lldb' on Linux) for native Crystal debugging.",
+            message: "LLDB debugger ('lldb') was not found or failed execution check. Install LLVM (e.g. 'winget install LLVM.LLVM' or 'scoop install llvm' on Windows, 'apt install lldb' on Linux) for native Crystal debugging.",
             required: false
           )
         end
 
-        ver = get_lldb_version(lldb_path) || "present"
+        ver = get_lldb_version(lldb_path)
+        unless ver
+          return ToolStatus.new(
+            name: "lldb",
+            installed: false,
+            version: nil,
+            supported: false,
+            path: lldb_path,
+            message: "LLDB debugger executable exists at #{lldb_path}, but failed execution check. Verify toolchain dependencies.",
+            required: false
+          )
+        end
+
         ToolStatus.new(
           name: "lldb",
           installed: true,
