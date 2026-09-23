@@ -334,37 +334,38 @@ jobs:
             }
             $artRows = ($artifacts | ForEach-Object { "| ``$($_.Name)`` | $([math]::Round($_.Length / 1MB, 2)) MB | ``bin/windows/$($_.Name)`` |" }) -join "`n"
             $status = if ($LASTEXITCODE -eq 0) { "🟢 **ALL PHASES PASSED**" } else { "🔴 **BUILD / PACKAGE ISSUE DETECTED**" }
-            $summary = @"
-## 🚀 LibGodot Release Build Status — Windows (x86_64)
-
-| Overall Status | Platform | Target Godot | Artifact Count |
-| :---: | :---: | :---: | :---: |
-| $status | **Windows (x86_64)** | `$env:GODOT_VERSION` | **$($artifacts.Count)** |
-
-> 🔗 **GitHub Actions Run**: [View Complete Run Logs]($runUrl)
-
-### 📊 Release Build Phases Tracked
-| Status | Phase Tag | Phase Name | Category |
-| :---: | :--- | :--- | :--- |
-| ✅ | ``[BUILD:BRIDGE]`` | GDExtension C++ Bridge (crystal_bridge.dll) | Build |
-| ✅ | ``[BUILD:PLUGIN]`` | Crystal Editor Plugin (plugin.dll) | Build |
-| ✅ | ``[BUILD:LAPIS]`` | Lapis Toolchain Executable (lapis.exe) | Build |
-| ✅ | ``[BUILD:TEMPLATES]`` | Starter Game Template (template/bin/game.dll) | Build |
-| ✅ | ``[PACKAGE:INSTALLER]`` | Windows Inno Setup Installer | Package |
-| ✅ | ``[PACKAGE:ADDON]`` | Godot Crystal Integration Addon | Package |
-| ✅ | ``[PACKAGE:EXAMPLES]`` | Showcase Examples Archive | Package |
-| ✅ | ``[PACKAGE:CORE]`` | Core LibGodot Distribution Archive | Package |
-| ✅ | ``[PACKAGE:PERF]`` | Performance Stress Benchmark | Package |
-| ✅ | ``[PACKAGE:TESTS]`` | Standalone Test Runner Archive | Package |
-
-<details open><summary><b>📦 Built Windows Release Deliverables ($($artifacts.Count) files)</b></summary>
-
-| Artifact File | Size | Path |
-| :--- | :---: | :--- |
-$artRows
-
-</details>
-"@
+            $summaryLines = @(
+              "## 🚀 LibGodot Release Build Status — Windows (x86_64)",
+              "",
+              "| Overall Status | Platform | Target Godot | Artifact Count |",
+              "| :---: | :---: | :---: | :---: |",
+              "| $status | **Windows (x86_64)** | `$env:GODOT_VERSION` | **$($artifacts.Count)** |",
+              "",
+              "> 🔗 **GitHub Actions Run**: [View Complete Run Logs]($runUrl)",
+              "",
+              "### 📊 Release Build Phases Tracked",
+              "| Status | Phase Tag | Phase Name | Category |",
+              "| :---: | :--- | :--- | :--- |",
+              "| ✅ | ``[BUILD:BRIDGE]`` | GDExtension C++ Bridge (crystal_bridge.dll) | Build |",
+              "| ✅ | ``[BUILD:PLUGIN]`` | Crystal Editor Plugin (plugin.dll) | Build |",
+              "| ✅ | ``[BUILD:LAPIS]`` | Lapis Toolchain Executable (lapis.exe) | Build |",
+              "| ✅ | ``[BUILD:TEMPLATES]`` | Starter Game Template (template/bin/game.dll) | Build |",
+              "| ✅ | ``[PACKAGE:INSTALLER]`` | Windows Inno Setup Installer | Package |",
+              "| ✅ | ``[PACKAGE:ADDON]`` | Godot Crystal Integration Addon | Package |",
+              "| ✅ | ``[PACKAGE:EXAMPLES]`` | Showcase Examples Archive | Package |",
+              "| ✅ | ``[PACKAGE:CORE]`` | Core LibGodot Distribution Archive | Package |",
+              "| ✅ | ``[PACKAGE:PERF]`` | Performance Stress Benchmark | Package |",
+              "| ✅ | ``[PACKAGE:TESTS]`` | Standalone Test Runner Archive | Package |",
+              "",
+              "<details open><summary><b>📦 Built Windows Release Deliverables ($($artifacts.Count) files)</b></summary>",
+              "",
+              "| Artifact File | Size | Path |",
+              "| :--- | :---: | :--- |",
+              $artRows,
+              "",
+              "</details>"
+            )
+            $summary = $summaryLines -join "`n"
             $summary | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
           }
 
@@ -603,37 +604,37 @@ $artRows
                 art_rows="${art_rows}| \`$fname\` | $fsize | \`$f\` |\n"
               fi
             done
-            cat << EOF >> "$GITHUB_STEP_SUMMARY"
-## 🚀 LibGodot Release Build Status — Linux (x86_64)
-
-| Overall Status | Platform | Target Godot | Artifact Count |
-| :---: | :---: | :---: | :---: |
-| 🟢 **ALL PHASES PASSED** | **Linux (x86_64)** | \`${GODOT_VERSION}\` | **${art_count}** |
-
-> 🔗 **GitHub Actions Run**: [View Complete Run Logs](${run_url})
-
-### 📊 Release Build Phases Tracked
-| Status | Phase Tag | Phase Name | Category |
-| :---: | :--- | :--- | :--- |
-| ✅ | \`[BUILD:BRIDGE]\` | GDExtension C++ Bridge (crystal_bridge.so) | Build |
-| ✅ | \`[BUILD:PLUGIN]\` | Crystal Editor Plugin (plugin.so) | Build |
-| ✅ | \`[BUILD:LAPIS]\` | Lapis Toolchain Executable (lapis) | Build |
-| ✅ | \`[BUILD:TEMPLATES]\` | Starter Game Template (template/bin/game.so) | Build |
-| ✅ | \`[PACKAGE:DEB]\` | Debian Package (.deb) | Package |
-| ✅ | \`[PACKAGE:ADDON]\` | Godot Crystal Integration Addon | Package |
-| ✅ | \`[PACKAGE:EXAMPLES]\` | Showcase Examples Archive | Package |
-| ✅ | \`[PACKAGE:CORE]\` | Core LibGodot Distribution Archive | Package |
-| ✅ | \`[PACKAGE:PERF]\` | Performance Stress Benchmark | Package |
-| ✅ | \`[PACKAGE:TESTS]\` | Standalone Test Runner Archive | Package |
-
-<details open><summary><b>📦 Built Linux Release Deliverables (${art_count} files)</b></summary>
-
-| Artifact File | Size | Path |
-| :--- | :---: | :--- |
-$(printf "$art_rows")
-
-</details>
-EOF
+            {
+              echo "## 🚀 LibGodot Release Build Status — Linux (x86_64)"
+              echo ""
+              echo "| Overall Status | Platform | Target Godot | Artifact Count |"
+              echo "| :---: | :---: | :---: | :---: |"
+              echo "| 🟢 **ALL PHASES PASSED** | **Linux (x86_64)** | \`${GODOT_VERSION}\` | **${art_count}** |"
+              echo ""
+              echo "> 🔗 **GitHub Actions Run**: [View Complete Run Logs](${run_url})"
+              echo ""
+              echo "### 📊 Release Build Phases Tracked"
+              echo "| Status | Phase Tag | Phase Name | Category |"
+              echo "| :---: | :--- | :--- | :--- |"
+              echo "| ✅ | \`[BUILD:BRIDGE]\` | GDExtension C++ Bridge (crystal_bridge.so) | Build |"
+              echo "| ✅ | \`[BUILD:PLUGIN]\` | Crystal Editor Plugin (plugin.so) | Build |"
+              echo "| ✅ | \`[BUILD:LAPIS]\` | Lapis Toolchain Executable (lapis) | Build |"
+              echo "| ✅ | \`[BUILD:TEMPLATES]\` | Starter Game Template (template/bin/game.so) | Build |"
+              echo "| ✅ | \`[PACKAGE:DEB]\` | Debian Package (.deb) | Package |"
+              echo "| ✅ | \`[PACKAGE:ADDON]\` | Godot Crystal Integration Addon | Package |"
+              echo "| ✅ | \`[PACKAGE:EXAMPLES]\` | Showcase Examples Archive | Package |"
+              echo "| ✅ | \`[PACKAGE:CORE]\` | Core LibGodot Distribution Archive | Package |"
+              echo "| ✅ | \`[PACKAGE:PERF]\` | Performance Stress Benchmark | Package |"
+              echo "| ✅ | \`[PACKAGE:TESTS]\` | Standalone Test Runner Archive | Package |"
+              echo ""
+              echo "<details open><summary><b>📦 Built Linux Release Deliverables (${art_count} files)</b></summary>"
+              echo ""
+              echo "| Artifact File | Size | Path |"
+              echo "| :--- | :---: | :--- |"
+              printf "%b" "$art_rows"
+              echo ""
+              echo "</details>"
+            } >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - name: Upload Linux Staging Artifact
@@ -1011,36 +1012,36 @@ EOF
                 art_rows="${art_rows}| \`$fname\` | $fsize | \`$f\` |\n"
               fi
             done
-            cat << EOF >> "$GITHUB_STEP_SUMMARY"
-## 🚀 LibGodot Release Build Status — macOS (arm64)
-
-| Overall Status | Platform | Target Godot | Artifact Count |
-| :---: | :---: | :---: | :---: |
-| 🟢 **ALL PHASES PASSED** | **macOS (arm64)** | \`${GODOT_VERSION}\` | **${art_count}** |
-
-> 🔗 **GitHub Actions Run**: [View Complete Run Logs](${run_url})
-
-### 📊 Release Build Phases Tracked
-| Status | Phase Tag | Phase Name | Category |
-| :---: | :--- | :--- | :--- |
-| ✅ | \`[BUILD:BRIDGE]\` | GDExtension C++ Bridge (crystal_bridge.dylib) | Build |
-| ✅ | \`[BUILD:PLUGIN]\` | Crystal Editor Plugin (plugin.dylib) | Build |
-| ✅ | \`[BUILD:LAPIS]\` | Lapis Toolchain Executable (lapis) | Build |
-| ✅ | \`[BUILD:TEMPLATES]\` | Starter Game Template (template/bin/game.dylib) | Build |
-| ✅ | \`[PACKAGE:ADDON]\` | Godot Crystal Integration Addon | Package |
-| ✅ | \`[PACKAGE:EXAMPLES]\` | Showcase Examples Archive | Package |
-| ✅ | \`[PACKAGE:CORE]\` | Core LibGodot Distribution Archive | Package |
-| ✅ | \`[PACKAGE:PERF]\` | Performance Stress Benchmark | Package |
-| ✅ | \`[PACKAGE:TESTS]\` | Standalone Test Runner Archive | Package |
-
-<details open><summary><b>📦 Built macOS Release Deliverables (${art_count} files)</b></summary>
-
-| Artifact File | Size | Path |
-| :--- | :---: | :--- |
-$(printf "$art_rows")
-
-</details>
-EOF
+            {
+              echo "## 🚀 LibGodot Release Build Status — macOS (arm64)"
+              echo ""
+              echo "| Overall Status | Platform | Target Godot | Artifact Count |"
+              echo "| :---: | :---: | :---: | :---: |"
+              echo "| 🟢 **ALL PHASES PASSED** | **macOS (arm64)** | \`${GODOT_VERSION}\` | **${art_count}** |"
+              echo ""
+              echo "> 🔗 **GitHub Actions Run**: [View Complete Run Logs](${run_url})"
+              echo ""
+              echo "### 📊 Release Build Phases Tracked"
+              echo "| Status | Phase Tag | Phase Name | Category |"
+              echo "| :---: | :--- | :--- | :--- |"
+              echo "| ✅ | \`[BUILD:BRIDGE]\` | GDExtension C++ Bridge (crystal_bridge.dylib) | Build |"
+              echo "| ✅ | \`[BUILD:PLUGIN]\` | Crystal Editor Plugin (plugin.dylib) | Build |"
+              echo "| ✅ | \`[BUILD:LAPIS]\` | Lapis Toolchain Executable (lapis) | Build |"
+              echo "| ✅ | \`[BUILD:TEMPLATES]\` | Starter Game Template (template/bin/game.dylib) | Build |"
+              echo "| ✅ | \`[PACKAGE:ADDON]\` | Godot Crystal Integration Addon | Package |"
+              echo "| ✅ | \`[PACKAGE:EXAMPLES]\` | Showcase Examples Archive | Package |"
+              echo "| ✅ | \`[PACKAGE:CORE]\` | Core LibGodot Distribution Archive | Package |"
+              echo "| ✅ | \`[PACKAGE:PERF]\` | Performance Stress Benchmark | Package |"
+              echo "| ✅ | \`[PACKAGE:TESTS]\` | Standalone Test Runner Archive | Package |"
+              echo ""
+              echo "<details open><summary><b>📦 Built macOS Release Deliverables (${art_count} files)</b></summary>"
+              echo ""
+              echo "| Artifact File | Size | Path |"
+              echo "| :--- | :---: | :--- |"
+              printf "%b" "$art_rows"
+              echo ""
+              echo "</details>"
+            } >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - name: Upload macOS Staging Artifact
