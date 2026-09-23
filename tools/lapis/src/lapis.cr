@@ -1,6 +1,7 @@
 require "./version"
 require "./core/env"
 require "./core/logger"
+require "./core/text"
 require "./commands/dirs"
 require "./commands/deps"
 require "./commands/sync"
@@ -26,35 +27,11 @@ module Lapis
   ]
 
   def self.levenshtein_distance(str1 : String, str2 : String) : Int32
-    s1, s2 = str1.chars, str2.chars
-    m, n = s1.size, s2.size
-    d = Array.new(m + 1) { Array.new(n + 1, 0) }
-
-    (0..m).each { |i| d[i][0] = i }
-    (0..n).each { |j| d[0][j] = j }
-
-    (1..m).each do |i|
-      (1..n).each do |j|
-        cost = (s1[i - 1] == s2[j - 1]) ? 0 : 1
-        d[i][j] = Math.min(
-          d[i - 1][j] + 1, # deletion
-          Math.min(
-          d[i][j - 1] + 1,       # insertion
-          d[i - 1][j - 1] + cost # substitution
-        )
-        )
-      end
-    end
-    d[m][n]
+    Core::Text.levenshtein_distance(str1, str2)
   end
 
   def self.suggest_command(typo : String) : String?
-    best = ALL_COMMANDS.min_by? { |c| levenshtein_distance(typo.downcase, c) }
-    if best && levenshtein_distance(typo.downcase, best) <= 3
-      best
-    else
-      nil
-    end
+    Core::Text.suggest(typo, ALL_COMMANDS)
   end
 
   def self.generate_completion(shell : String) : Int32

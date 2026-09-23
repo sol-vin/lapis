@@ -169,38 +169,32 @@ inline void do_classdb_register(CrystalClassDesc *desc) {
         const CrystalPropertyDesc &p = desc->properties[i];
 
         if ((p.usage & 64) && gd_classdb_register_extension_class_property_group) {
-            void *grp_str = make_string(p.name ? p.name : "");
-            void *pfx_str = make_string(p.hint_string ? p.hint_string : "");
+            ScopedString grp_str(p.name ? p.name : "");
+            ScopedString pfx_str(p.hint_string ? p.hint_string : "");
             gd_classdb_register_extension_class_property_group(g_library, class_sn, grp_str, pfx_str);
-            free_string(grp_str);
-            free_string(pfx_str);
             continue;
         }
 
         if ((p.usage & 256) && gd_classdb_register_extension_class_property_subgroup) {
-            void *sub_str = make_string(p.name ? p.name : "");
-            void *pfx_str = make_string(p.hint_string ? p.hint_string : "");
+            ScopedString sub_str(p.name ? p.name : "");
+            ScopedString pfx_str(p.hint_string ? p.hint_string : "");
             gd_classdb_register_extension_class_property_subgroup(g_library, class_sn, sub_str, pfx_str);
-            free_string(sub_str);
-            free_string(pfx_str);
             continue;
         }
 
+        ScopedString hint_str(p.hint_string ? p.hint_string : "");
         GDExtensionPropertyInfo pinfo = {};
         pinfo.type = (GDExtensionVariantType)p.variant_type;
         pinfo.name = make_string_name(p.name);
         pinfo.class_name = make_string_name(p.type_name ? p.type_name : "");
         pinfo.hint = p.hint;
-        pinfo.hint_string = make_string(p.hint_string ? p.hint_string : "");
+        pinfo.hint_string = hint_str;
         pinfo.usage = p.usage ? p.usage : 6; // PROPERTY_USAGE_DEFAULT
 
         void *setter_sn = make_string_name("");
         void *getter_sn = make_string_name("");
 
         gd_classdb_register_extension_class_property(g_library, class_sn, &pinfo, setter_sn, getter_sn);
-
-        free_string_name(pinfo.name); free_string_name(pinfo.class_name); free_string(pinfo.hint_string);
-        free_string_name(setter_sn); free_string_name(getter_sn);
     }
 
     // Register signals dynamically with vector

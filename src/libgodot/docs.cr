@@ -3086,6 +3086,187 @@ module Lapis
         ]
       end
     end
+
+    # # T. Bindings Architecture & Engine Code Generator
+    #
+    # LibGodot provides a high-performance binding generator (`tools/api_generator/generate_bindings.cr`
+    # and `lapis bind`) that ingests Godot's machine-readable `extension_api.json` and emits strongly-typed
+    # Crystal wrapper classes, enums, singletons, and ptrcall dispatches.
+    #
+    # ---
+    #
+    # ### 1. Extension API Ingestion & Inheritance Resolution
+    #
+    # When Godot runs `godot --dump-extension-api`, it dumps the complete reflection specification of the
+    # engine API into `extension_api.json`. The generator parses:
+    # - **Global Enums and Constants**: Core engine flags, key codes, and return codes.
+    # - **Core Builtin Classes**: Math value types (Vector2, Vector3, Transform2D, Color, etc.).
+    # - **Engine Classes & Singletons**: All 1,000+ classes derived from `Godot::Object`.
+    #
+    # Because Crystal requires base classes to be defined before subclasses, the generator constructs
+    # a Directed Acyclic Graph (DAG) of class inheritance and performs a **topological sort**
+    # (`inherit_chain`), ensuring foundational classes like `Godot::Object`, `Godot::RefCounted`,
+    # and `Godot::Node` precede derived nodes like `Godot::Sprite2D` or `Godot::Camera3D`.
+    #
+    # ---
+    #
+    # ### 2. Zero-Allocation Stack Ptrcall (`StaticArray`)
+    #
+    # High-performance games step hundreds of nodes 60 or 120 times per second in `_process` and
+    # `_physics_process`. Heap allocations during method dispatch trigger frequent GC pauses.
+    #
+    # LibGodot generates method invocations using stack-allocated `StaticArray` buffers:
+    # ```crystal
+    # # Zero-heap allocation: array resides on the C execution stack
+    # args = StaticArray[pointerof(arg_0).as(Void*), pointerof(arg_1).as(Void*)]
+    # godot_ptrcall_val(m_bind, @pointer, args, ret_val)
+    # ```
+    #
+    # ---
+    #
+    # ### 3. Type Marshalling Reference Table
+    #
+    # <table style="width: 100%; border-collapse: collapse; margin: 1em 0;">
+    #   <thead>
+    #     <tr style="border-bottom: 2px solid #4a5568; text-align: left;">
+    #       <th style="padding: 10px 14px;">Godot Engine Type</th>
+    #       <th style="padding: 10px 14px;">Crystal Binding Type</th>
+    #       <th style="padding: 10px 14px;">Dispatch Mechanism</th>
+    #       <th style="padding: 10px 14px;">Memory Characteristics</th>
+    #     </tr>
+    #   </thead>
+    #   <tbody>
+    #     <tr style="border-bottom: 1px solid #2d3748;">
+    #       <td style="padding: 10px 14px;"><code>int / float / bool</code></td>
+    #       <td style="padding: 10px 14px;"><code>Int64 / Float64 / Bool</code></td>
+    #       <td style="padding: 10px 14px;"><code>godot_ptrcall_int / float / bool</code></td>
+    #       <td style="padding: 10px 14px;">Direct stack pass, zero allocation</td>
+    #     </tr>
+    #     <tr style="border-bottom: 1px solid #2d3748;">
+    #       <td style="padding: 10px 14px;"><code>Vector2 / Vector3 / Transform3D</code></td>
+    #       <td style="padding: 10px 14px;"><code>Godot::Vector2 / Vector3 / Transform3D</code></td>
+    #       <td style="padding: 10px 14px;"><code>godot_ptrcall_val</code></td>
+    #       <td style="padding: 10px 14px;">Value struct copied by reference on stack</td>
+    #     </tr>
+    #     <tr style="border-bottom: 1px solid #2d3748;">
+    #       <td style="padding: 10px 14px;"><code>Object / Node / Resource</code></td>
+    #       <td style="padding: 10px 14px;"><code>Godot::Object</code> wrapper instance</td>
+    #       <td style="padding: 10px 14px;"><code>godot_ptrcall_obj</code></td>
+    #       <td style="padding: 10px 14px;">Native pointer wrapped with monotonic instance ID tracking</td>
+    #     </tr>
+    #     <tr style="border-bottom: 1px solid #2d3748;">
+    #       <td style="padding: 10px 14px;"><code>String / StringName</code></td>
+    #       <td style="padding: 10px 14px;"><code>String / Godot::StringName</code></td>
+    #       <td style="padding: 10px 14px;"><code>bridge_string_to_crystal</code> / ptrcall</td>
+    #       <td style="padding: 10px 14px;">UTF-8 conversion via bridge C-API</td>
+    #     </tr>
+    #   </tbody>
+    # </table>
+    #
+    module T_BINDINGS_ARCHITECTURE_AND_GENERATOR
+      def self.features : Array(String)
+        [
+          "Automated extension_api.json ingestion with topological class DAG resolution",
+          "Zero-heap-allocation ptrcalls using stack-allocated StaticArray parameter buffers",
+          "Dynamic method bind caching through bridge_get_method_bind",
+          "Dedicated macros for void, primitive, value-struct, object, and enum dispatches",
+        ]
+      end
+    end
+
+    # # U. Code Cleanup, DRY Patterns & C++ RAII
+    #
+    # LibGodot adheres to strict Don't Repeat Yourself (DRY) principles and RAII safety standards
+    # across both its Crystal macro DSL and native C++ loader bridge.
+    #
+    # ---
+    #
+    # ### 1. Ptrcall Dispatch Macros
+    #
+    # Rather than repeating raw pointer declarations, `nil` checks, and unsafe casts across 1,000+ classes,
+    # LibGodot consolidates ptrcall execution into dedicated macros in `src/libgodot/binding_macros.cr`:
+    # - `godot_ptrcall_void`: Executes a non-returning engine method call.
+    # - `godot_ptrcall_bool`: Dispatches and returns a primitive boolean.
+    # - `godot_ptrcall_int`: Dispatches and casts a typed integer.
+    # - `godot_ptrcall_float`: Dispatches and casts a floating-point scalar.
+    # - `godot_ptrcall_val`: Allocates a value-type struct buffer on the stack and populates it.
+    # - `godot_ptrcall_obj`: Marshals a native pointer return into a typed `Godot::Object` wrapper.
+    # - `godot_ptrcall_enum`: Safely casts an underlying integer return to a Crystal enum member.
+    #
+    # ---
+    #
+    # ### 2. Singleton & Instance Delegation
+    #
+    # Engine singletons (e.g. `Input`, `Time`, `OS`, `DisplayServer`) often expose global convenience methods.
+    # The `delegate_to_instance` and `delegate_property_to_instance` macros synthesize class-level
+    # forwarders to the underlying singleton instance in a single declarative line:
+    # ```crystal
+    # class Input
+    #   delegate_to_instance(
+    #     is_action_pressed, is_action_just_pressed, is_action_just_released,
+    #     get_action_strength, get_vector, get_axis
+    #   )
+    #   delegate_property_to_instance(mouse_mode, use_accumulated_input)
+    # end
+    # ```
+    #
+    # ---
+    #
+    # ### 3. Native C++ RAII Scoped Handlers
+    #
+    # In `src/bridge/`, manual memory management is safeguarded using RAII (Resource Acquisition Is
+    # Initialization) primitives:
+    # - **`ScopedString`**: Automatically frees heap-allocated temporary C strings upon scope exit.
+    # - **`ScopedStringName`**: Encapsulates Godot `StringName` allocations with automated cleanup.
+    # - **`generic_dispatch_lifecycle`**: Unifies node lifecycle callbacks (`_ready`, `_process`,
+    #   `_physics_process`, `_enter_tree`, `_exit_tree`) under a single thread-safe, GC-registered template.
+    #
+    # ---
+    #
+    # ### 4. Architectural Evolution Summary
+    #
+    # <table style="width: 100%; border-collapse: collapse; margin: 1em 0;">
+    #   <thead>
+    #     <tr style="border-bottom: 2px solid #4a5568; text-align: left;">
+    #       <th style="padding: 10px 14px;">Area</th>
+    #       <th style="padding: 10px 14px;">Legacy Pattern</th>
+    #       <th style="padding: 10px 14px;">Modernized DRY Pattern</th>
+    #     </tr>
+    #   </thead>
+    #   <tbody>
+    #     <tr style="border-bottom: 1px solid #2d3748;">
+    #       <td style="padding: 10px 14px;"><strong>Method Dispatch</strong></td>
+    #       <td style="padding: 10px 14px;">Heap <code>Array(Void*)</code> with 12 lines per method</td>
+    #       <td style="padding: 10px 14px;">Stack <code>StaticArray</code> + one-line <code>godot_ptrcall_*</code> macro</td>
+    #     </tr>
+    #     <tr style="border-bottom: 1px solid #2d3748;">
+    #       <td style="padding: 10px 14px;"><strong>Singleton Proxies</strong></td>
+    #       <td style="padding: 10px 14px;">Manual <code>def self.foo; Bridge.foo; end</code> forwarders</td>
+    #       <td style="padding: 10px 14px;">Declarative <code>delegate_to_instance</code> macro</td>
+    #     </tr>
+    #     <tr style="border-bottom: 1px solid #2d3748;">
+    #       <td style="padding: 10px 14px;"><strong>C++ Memory Safety</strong></td>
+    #       <td style="padding: 10px 14px;">Manual <code>free()</code> / <code>destructor</code> pairs</td>
+    #       <td style="padding: 10px 14px;">RAII <code>ScopedString</code> and <code>ScopedStringName</code> wrappers</td>
+    #     </tr>
+    #     <tr style="border-bottom: 1px solid #2d3748;">
+    #       <td style="padding: 10px 14px;"><strong>Runtime Errors</strong></td>
+    #       <td style="padding: 10px 14px;">Generic exceptions without context</td>
+    #       <td style="padding: 10px 14px;">Actionable hints (child listing for get_node, #alive? for disposed objects)</td>
+    #     </tr>
+    #   </tbody>
+    # </table>
+    #
+    module U_CODE_CLEANUP_AND_DRY_PATTERNS
+      def self.features : Array(String)
+        [
+          "Centralized ptrcall dispatch macros eliminating thousands of lines of boilerplate",
+          "Declarative singleton delegation macros for clean, idiomatic Crystal APIs",
+          "C++ RAII primitives ensuring exception safety and leak-free native bridge execution",
+          "Actionable runtime diagnostics with child hierarchy hints and dead-pointer recovery advice",
+        ]
+      end
+    end
   end
 end
 

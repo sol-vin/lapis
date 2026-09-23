@@ -72,6 +72,53 @@ macro godot_static_call_str(method_name, *args)
   ::Godot::Bridge.object_call_ret_string(Pointer(Void).null, {{method_name}}{% if !args.empty? %}, {{args.splat}}{% end %})
 end
 
+# Executes a void ptrcall with no return buffer
+macro godot_ptrcall_void(mb, target_ptr, args_slice)
+  godot_ptrcall({{mb}}, {{target_ptr}}, {{args_slice}}, Pointer(Void).null)
+end
+
+# Executes a ptrcall returning a boolean
+macro godot_ptrcall_bool(mb, target_ptr, args_slice)
+  ret_bool_val = 0_u8
+  godot_ptrcall({{mb}}, {{target_ptr}}, {{args_slice}}, pointerof(ret_bool_val).as(Void*))
+  ret_bool_val != 0_u8
+end
+
+# Executes a ptrcall returning an integer (Int64 / Int32)
+macro godot_ptrcall_int(mb, target_ptr, args_slice)
+  ret_int_val = 0_i64
+  godot_ptrcall({{mb}}, {{target_ptr}}, {{args_slice}}, pointerof(ret_int_val).as(Void*))
+  ret_int_val
+end
+
+# Executes a ptrcall returning a float (Float64 / Float32)
+macro godot_ptrcall_float(mb, target_ptr, args_slice)
+  ret_float_val = 0.0_f64
+  godot_ptrcall({{mb}}, {{target_ptr}}, {{args_slice}}, pointerof(ret_float_val).as(Void*))
+  ret_float_val
+end
+
+# Executes a ptrcall returning a value type with default constructor (e.g. Vector2, Vector3, Color, Transform3D)
+macro godot_ptrcall_val(mb, target_ptr, args_slice, type_name)
+  ret_val = {{type_name.id}}.new
+  godot_ptrcall({{mb}}, {{target_ptr}}, {{args_slice}}, pointerof(ret_val).as(Void*))
+  ret_val
+end
+
+# Executes a ptrcall returning a typed object wrapper
+macro godot_ptrcall_obj(mb, target_ptr, args_slice, class_type)
+  ret_obj_ptr = Pointer(Void).null
+  godot_ptrcall({{mb}}, {{target_ptr}}, {{args_slice}}, pointerof(ret_obj_ptr).as(Void*))
+  {{class_type.id}}.new(ret_obj_ptr)
+end
+
+# Executes a ptrcall returning a strongly-typed enum
+macro godot_ptrcall_enum(mb, target_ptr, args_slice, enum_type)
+  ret_enum_val = 0_i64
+  godot_ptrcall({{mb}}, {{target_ptr}}, {{args_slice}}, pointerof(ret_enum_val).as(Void*))
+  {{enum_type.id}}.new(ret_enum_val)
+end
+
 # ===========================================================================
 # Return Marshalling Macros
 # ===========================================================================
@@ -84,6 +131,32 @@ end
 # Wraps a returned native object pointer into its typed Crystal wrapper
 macro godot_return_obj(class_type, ret_ptr)
   {{class_type.id}}.new({{ret_ptr.id}})
+end
+
+# ===========================================================================
+# Delegation Macros
+# ===========================================================================
+
+# Forwards class-level methods to the class singleton instance (e.g. Input, AudioServer)
+macro delegate_to_instance(*method_names)
+  {% for method in method_names %}
+    def self.{{method.id}}(*args, **kwargs)
+      instance.{{method.id}}(*args, **kwargs)
+    end
+  {% end %}
+end
+
+# Forwards class-level properties to the class singleton instance
+macro delegate_property_to_instance(*prop_names)
+  {% for prop in prop_names %}
+    def self.{{prop.id}}
+      instance.{{prop.id}}
+    end
+
+    def self.{{prop.id}}=(val)
+      instance.{{prop.id}} = val
+    end
+  {% end %}
 end
 
 # ===========================================================================

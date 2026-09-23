@@ -86,21 +86,9 @@ module Godot
     bname.empty? ? "" : "res://#{bname}"
   end
 
-  # Loads a resource from the given path (e.g. "res://scenes/my_scene.tscn")
-  def self.load(path : String, type_hint : String = "", cache_mode : Int64 = 0_i64) : Resource
-    ptr = Bridge.resource_loader_load(path, type_hint, cache_mode)
-    Resource.new(ptr)
-  end
-
-  # Preloads/loads a resource from the given path
+  # Preloads/loads a resource from the given path (convenience alias to Godot.load)
   def self.preload(path : String) : Resource
     self.load(path)
-  end
-
-  # Loads a resource and casts to the given Crystal resource class (e.g. PackedScene)
-  def self.load_as(type : T.class, path : String, type_hint : String = "", cache_mode : Int64 = 0_i64) : T forall T
-    res = self.load(path, type_hint, cache_mode)
-    T.new(res.pointer)
   end
 
   # Constructs a new native Godot engine object of the given class name (e.g. "Node2D", "MeshInstance3D", "BoxMesh")
@@ -134,7 +122,7 @@ module Godot
     getter instance_id : UInt64
 
     def initialize(@instance_id : UInt64 = 0_u64, msg : String? = nil)
-      message = msg || "Attempted to operate on a deleted or freed Godot Object (instance ID: #{@instance_id})"
+      message = msg || "Attempted to operate on a deleted or freed Godot Object (instance ID: #{@instance_id})\n💡 Hint: Check '#alive?' or '#if_alive' before accessing transient nodes, or use 'node.queue_free' instead of manual free."
       super(message)
     end
   end
@@ -879,34 +867,22 @@ module Godot
 
     def init_ref : Bool
       check_alive!
-      if @@mb_ref_init_ref.null?
-        @@mb_ref_init_ref = Bridge.get_method_bind("RefCounted", "init_ref", 2240911060_i64)
-      end
-      ret = 0_u8
-      Bridge.ptrcall(@@mb_ref_init_ref, @pointer, Pointer(Pointer(Void)).null, pointerof(ret).as(Void*))
-      ret != 0_u8
+      godot_bind(@@mb_ref_init_ref, "RefCounted", "init_ref", 2240911060_i64)
+      godot_ptrcall_bool(@@mb_ref_init_ref, @pointer, Pointer(Pointer(Void)).null)
     end
 
     def reference : Bool
       check_alive!
-      if @@mb_ref_reference.null?
-        @@mb_ref_reference = Bridge.get_method_bind("RefCounted", "reference", 2240911060_i64)
-      end
-      ret = 0_u8
-      Bridge.ptrcall(@@mb_ref_reference, @pointer, Pointer(Pointer(Void)).null, pointerof(ret).as(Void*))
-      ret != 0_u8
+      godot_bind(@@mb_ref_reference, "RefCounted", "reference", 2240911060_i64)
+      godot_ptrcall_bool(@@mb_ref_reference, @pointer, Pointer(Pointer(Void)).null)
     end
 
     def unreference : Bool
       return false if !alive?
-      if @@mb_ref_unreference.null?
-        @@mb_ref_unreference = Bridge.get_method_bind("RefCounted", "unreference", 2240911060_i64)
-      end
+      godot_bind(@@mb_ref_unreference, "RefCounted", "unreference", 2240911060_i64)
       target_ptr = @pointer
       target_id = signal_target_id
-      ret = 0_u8
-      Bridge.ptrcall(@@mb_ref_unreference, target_ptr, Pointer(Pointer(Void)).null, pointerof(ret).as(Void*))
-      should_free = (ret != 0_u8)
+      should_free = godot_ptrcall_bool(@@mb_ref_unreference, target_ptr, Pointer(Pointer(Void)).null)
       if should_free
         inst_id = @instance_id
         @destroyed = true
@@ -921,12 +897,8 @@ module Godot
 
     def get_reference_count : Int64
       check_alive!
-      if @@mb_ref_get_reference_count.null?
-        @@mb_ref_get_reference_count = Bridge.get_method_bind("RefCounted", "get_reference_count", 3905245786_i64)
-      end
-      ret = 0_i64
-      Bridge.ptrcall(@@mb_ref_get_reference_count, @pointer, Pointer(Pointer(Void)).null, pointerof(ret).as(Void*))
-      ret
+      godot_bind(@@mb_ref_get_reference_count, "RefCounted", "get_reference_count", 3905245786_i64)
+      godot_ptrcall_int(@@mb_ref_get_reference_count, @pointer, Pointer(Pointer(Void)).null)
     end
 
     # Safely destroys or unreferences this RefCounted object.
@@ -1077,7 +1049,23 @@ module Godot
     def get_node(path : String) : Node
       ptr = Bridge.node_get_node(@pointer, path)
       if ptr.null?
-        raise "Node not found: '#{path}' (relative to '#{self.name}')"
+        child_names = [] of String
+        if !@pointer.null?
+          child_count = Bridge.object_call_ret_int(@pointer, "get_child_count") rescue 0_i64
+          child_count.times do |i|
+            child_ptr = Bridge.object_call_ret_object(@pointer, "get_child", i) rescue nil
+            if child_ptr && !child_ptr.null?
+              cname = Bridge.node_get_name(child_ptr) rescue ""
+              child_names << cname unless cname.empty?
+            end
+          end
+        end
+        hint = if child_names.empty?
+                 "Node '#{self.name}' has no direct children."
+               else
+                 "Direct children: #{child_names.inspect}."
+               end
+        raise "Node not found: '#{path}' (relative to '#{self.name}'). #{hint} 💡 Tip: To search anywhere in the subtree, use find_child('#{path}') or scene unique name '%#{path}'."
       end
       Node.new(ptr)
     end
@@ -1141,18 +1129,6 @@ module Godot
     def find_child(pattern : String, recursive : Bool = true, owned : Bool = false) : Node?
       ptr = Bridge.node_find_child(@pointer, pattern, recursive, owned)
       ptr.null? ? nil : Node.new(ptr)
-    end
-
-    # Finds a child node matching `pattern` and casts to `T`.
-    def find_child_as(type : T.class, pattern : String, recursive : Bool = true, owned : Bool = false) : T? forall T
-      if node = find_child(pattern, recursive, owned)
-        if alive = Bridge.find_alive_instance(node.pointer)
-          if typed = alive.as?(T)
-            return typed
-          end
-        end
-        T.new(node.pointer)
-      end
     end
 
     # Lifecycle callback called when the node enters the active scene tree.

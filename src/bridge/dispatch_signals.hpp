@@ -68,6 +68,58 @@ inline void free_string(void *s) {
     free(s);
 }
 
+/** RAII wrapper for an allocated heap-backed Godot String */
+struct ScopedString {
+    void *ptr;
+    explicit ScopedString(const char *str) : ptr(make_string(str)) {}
+    explicit ScopedString(void *p) : ptr(p) {}
+    ~ScopedString() {
+        if (ptr) {
+            free_string(ptr);
+            ptr = nullptr;
+        }
+    }
+    operator void*() const { return ptr; }
+    void* get() const { return ptr; }
+    ScopedString(const ScopedString&) = delete;
+    ScopedString& operator=(const ScopedString&) = delete;
+    ScopedString(ScopedString&& other) noexcept : ptr(other.ptr) { other.ptr = nullptr; }
+    ScopedString& operator=(ScopedString&& other) noexcept {
+        if (this != &other) {
+            if (ptr) free_string(ptr);
+            ptr = other.ptr;
+            other.ptr = nullptr;
+        }
+        return *this;
+    }
+};
+
+/** RAII wrapper for an interned Godot StringName */
+struct ScopedStringName {
+    void *ptr;
+    explicit ScopedStringName(const char *name) : ptr(make_string_name(name)) {}
+    explicit ScopedStringName(void *p) : ptr(p) {}
+    ~ScopedStringName() {
+        if (ptr) {
+            free_string_name(ptr);
+            ptr = nullptr;
+        }
+    }
+    operator void*() const { return ptr; }
+    void* get() const { return ptr; }
+    ScopedStringName(const ScopedStringName&) = delete;
+    ScopedStringName& operator=(const ScopedStringName&) = delete;
+    ScopedStringName(ScopedStringName&& other) noexcept : ptr(other.ptr) { other.ptr = nullptr; }
+    ScopedStringName& operator=(ScopedStringName&& other) noexcept {
+        if (this != &other) {
+            if (ptr) free_string_name(ptr);
+            ptr = other.ptr;
+            other.ptr = nullptr;
+        }
+        return *this;
+    }
+};
+
 /** Allocates and initializes a heap-backed Godot NodePath instance */
 inline void* make_nodepath(const char *path) {
     if (!gd_nodepath_from_string && gd_variant_get_ptr_constructor) {
@@ -586,52 +638,34 @@ inline GDExtensionObjectPtr bridge_object_call_ret_object(GDExtensionObjectPtr i
     return ret_obj;
 }
 
-inline int64_t bridge_object_call_ret_int(GDExtensionObjectPtr instance, const char *method_name, const BridgeSignalArg *args, int arg_count) {
-    if (!instance || !method_name || !gd_classdb_get_method_bind || !gd_object_method_bind_call) return 0;
+template <typename T, GDExtensionVariantType VType>
+inline T bridge_object_call_ret_pod(GDExtensionObjectPtr instance, const char *method_name, const BridgeSignalArg *args, int arg_count, T default_val = T{}) {
+    if (!instance || !method_name || !gd_classdb_get_method_bind || !gd_object_method_bind_call) return default_val;
     if (!mb_object_call) {
         mb_object_call = bridge_get_method_bind("Object", "call", 3400424181ULL);
     }
-    if (!mb_object_call) return 0;
+    if (!mb_object_call) return default_val;
 
     alignas(void*) char var_ret[24] = {0};
     bridge_call_method_vararg_ret(mb_object_call, instance, method_name, args, arg_count, var_ret);
 
-    int64_t ret_val = 0;
-    bridge_type_from_variant(GDEXTENSION_VARIANT_TYPE_INT, &ret_val, var_ret);
+    T ret_val = default_val;
+    bridge_type_from_variant(VType, &ret_val, var_ret);
     if (gd_variant_destroy) gd_variant_destroy(var_ret);
     return ret_val;
+}
+
+inline int64_t bridge_object_call_ret_int(GDExtensionObjectPtr instance, const char *method_name, const BridgeSignalArg *args, int arg_count) {
+    return bridge_object_call_ret_pod<int64_t, GDEXTENSION_VARIANT_TYPE_INT>(instance, method_name, args, arg_count, (int64_t)0);
 }
 
 inline double bridge_object_call_ret_float(GDExtensionObjectPtr instance, const char *method_name, const BridgeSignalArg *args, int arg_count) {
-    if (!instance || !method_name || !gd_classdb_get_method_bind || !gd_object_method_bind_call) return 0.0;
-    if (!mb_object_call) {
-        mb_object_call = bridge_get_method_bind("Object", "call", 3400424181ULL);
-    }
-    if (!mb_object_call) return 0.0;
-
-    alignas(void*) char var_ret[24] = {0};
-    bridge_call_method_vararg_ret(mb_object_call, instance, method_name, args, arg_count, var_ret);
-
-    double ret_val = 0.0;
-    bridge_type_from_variant(GDEXTENSION_VARIANT_TYPE_FLOAT, &ret_val, var_ret);
-    if (gd_variant_destroy) gd_variant_destroy(var_ret);
-    return ret_val;
+    return bridge_object_call_ret_pod<double, GDEXTENSION_VARIANT_TYPE_FLOAT>(instance, method_name, args, arg_count, 0.0);
 }
 
 inline bool bridge_object_call_ret_bool(GDExtensionObjectPtr instance, const char *method_name, const BridgeSignalArg *args = nullptr, int arg_count = 0) {
-    if (!instance || !method_name || !gd_classdb_get_method_bind || !gd_object_method_bind_call) return false;
-    if (!mb_object_call) {
-        mb_object_call = bridge_get_method_bind("Object", "call", 3400424181ULL);
-    }
-    if (!mb_object_call) return false;
-
-    alignas(void*) char var_ret[24] = {0};
-    bridge_call_method_vararg_ret(mb_object_call, instance, method_name, args, arg_count, var_ret);
-
-    uint8_t ret_val = 0;
-    bridge_type_from_variant(GDEXTENSION_VARIANT_TYPE_BOOL, &ret_val, var_ret);
-    if (gd_variant_destroy) gd_variant_destroy(var_ret);
-    return ret_val != 0;
+    uint8_t ret = bridge_object_call_ret_pod<uint8_t, GDEXTENSION_VARIANT_TYPE_BOOL>(instance, method_name, args, arg_count, (uint8_t)0);
+    return ret != 0;
 }
 
 inline const char* bridge_object_call_ret_string(GDExtensionObjectPtr instance, const char *method_name, const BridgeSignalArg *args = nullptr, int arg_count = 0) {

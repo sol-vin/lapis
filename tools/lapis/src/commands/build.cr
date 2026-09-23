@@ -1,5 +1,6 @@
 require "../core/env"
 require "../core/logger"
+require "../core/text"
 require "../core/process_runner"
 require "../core/godot_finder"
 require "./bind/project"
@@ -98,18 +99,20 @@ module Lapis
                       end
 
         Core::Logger.step("Build", "Compiling #{output_path.basename}...")
+        t0 = Time.monotonic
         status = Core::ProcessRunner.run(
           "crystal",
           cmd_args,
           env: env,
           chdir: working_dir.to_s
         )
+        elapsed = (Time.monotonic - t0).total_seconds
 
         if status.success?
-          Core::Logger.success("#{output_path.basename} built successfully!")
+          Core::Logger.success("#{output_path.basename} built successfully in #{elapsed.round(2)}s!")
           0
         else
-          Core::Logger.error("Build failed with exit code #{status.exit_code}")
+          Core::Logger.error("Build failed with exit code #{status.exit_code} after #{elapsed.round(2)}s")
           status.exit_code
         end
       end
@@ -396,6 +399,13 @@ HELP
             return build_examples(args[1..])
           elsif args[0] == "game"
             return build_game(args[1..])
+          elsif !args[0].starts_with?("-") && !args[0].ends_with?(".cr")
+            targets = ["game", "addons", "examples"]
+            if suggestion = Core::Text.suggest(args[0], targets)
+              Core::Logger.error("Unknown build target: '#{args[0]}'")
+              puts "  \e[33mDid you mean 'lapis build #{suggestion}'?\e[0m\n\n"
+              return 1
+            end
           end
         end
 

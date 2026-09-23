@@ -329,6 +329,10 @@ node RunTesterPanel < Godot::Control do
   end
 
   def cli_filter : String?
+    if edit = get_node?("MarginContainer/VBox/FilterBox/FilterInput")
+      txt = edit.call_str("get_text").strip
+      return txt unless txt.empty?
+    end
     extract_cli_arg("--filter")
   end
 

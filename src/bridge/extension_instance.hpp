@@ -269,56 +269,57 @@ inline void generic_class_free(void *p_class_userdata, GDExtensionClassInstanceP
     }
 }
 
+/** Matches a virtual method name with or without leading underscore */
+inline bool match_virtual_method(const char *name, const char *target) {
+    if (!name || !target) return false;
+    if (strcmp(name, target) == 0) return true;
+    if (target[0] == '_' && strcmp(name, target + 1) == 0) return true;
+    if (name[0] == '_' && strcmp(name + 1, target) == 0) return true;
+    return false;
+}
+
+/** Unified helper for dispatching lifecycle virtual calls into Crystal */
+inline void generic_dispatch_lifecycle(GenericExtensionInstance *inst, const char *method_name, double delta = 0.0) {
+    if (!inst || !inst->desc || !inst->desc->call_virtual || !inst->crystal_instance) return;
+    if (is_editor_active() && !is_tool_desc(inst->desc)) return;
+    inst->desc->call_virtual(inst->crystal_instance, method_name, delta);
+}
+
 /** Dispatches Godot's _physics_process(delta) virtual callback into Crystal */
 inline void generic_virtual_physics_process(GDExtensionClassInstancePtr p_instance, const GDExtensionConstTypePtr *p_args, GDExtensionTypePtr r_ret) {
     (void)r_ret;
     ensure_gc_thread_registered();
-    GenericExtensionInstance *inst = (GenericExtensionInstance*)p_instance;
-    if (!inst || !inst->desc || !inst->desc->call_virtual || !inst->crystal_instance) return;
-    if (is_editor_active() && !is_tool_desc(inst->desc)) return;
     double delta = (p_args && p_args[0]) ? *(const double*)p_args[0] : 0.016666666666666666;
-    inst->desc->call_virtual(inst->crystal_instance, "_physics_process", delta);
+    generic_dispatch_lifecycle((GenericExtensionInstance*)p_instance, "_physics_process", delta);
 }
 
 /** Dispatches Godot's _process(delta) virtual callback into Crystal */
 inline void generic_virtual_process(GDExtensionClassInstancePtr p_instance, const GDExtensionConstTypePtr *p_args, GDExtensionTypePtr r_ret) {
     (void)r_ret;
     ensure_gc_thread_registered();
-    GenericExtensionInstance *inst = (GenericExtensionInstance*)p_instance;
-    if (!inst || !inst->desc || !inst->desc->call_virtual || !inst->crystal_instance) return;
-    if (is_editor_active() && !is_tool_desc(inst->desc)) return;
     double delta = (p_args && p_args[0]) ? *(const double*)p_args[0] : 0.016666666666666666;
-    inst->desc->call_virtual(inst->crystal_instance, "_process", delta);
+    generic_dispatch_lifecycle((GenericExtensionInstance*)p_instance, "_process", delta);
 }
 
 /** Dispatches Godot's _ready() virtual callback into Crystal */
 inline void generic_virtual_ready(GDExtensionClassInstancePtr p_instance, const GDExtensionConstTypePtr *p_args, GDExtensionTypePtr r_ret) {
     (void)p_args; (void)r_ret;
     ensure_gc_thread_registered();
-    GenericExtensionInstance *inst = (GenericExtensionInstance*)p_instance;
-    if (!inst || !inst->desc || !inst->desc->call_virtual || !inst->crystal_instance) return;
-    if (is_editor_active() && !is_tool_desc(inst->desc)) return;
-    inst->desc->call_virtual(inst->crystal_instance, "_ready", 0.0);
+    generic_dispatch_lifecycle((GenericExtensionInstance*)p_instance, "_ready", 0.0);
 }
 
 /** Dispatches Godot's _enter_tree() virtual callback into Crystal */
 inline void generic_virtual_enter_tree(GDExtensionClassInstancePtr p_instance, const GDExtensionConstTypePtr *p_args, GDExtensionTypePtr r_ret) {
     (void)p_args; (void)r_ret;
     ensure_gc_thread_registered();
-    GenericExtensionInstance *inst = (GenericExtensionInstance*)p_instance;
-    if (!inst || !inst->desc || !inst->desc->call_virtual || !inst->crystal_instance) return;
-    if (is_editor_active() && !is_tool_desc(inst->desc)) return;
-    inst->desc->call_virtual(inst->crystal_instance, "_enter_tree", 0.0);
+    generic_dispatch_lifecycle((GenericExtensionInstance*)p_instance, "_enter_tree", 0.0);
 }
 
 /** Dispatches Godot's _exit_tree() virtual callback into Crystal */
 inline void generic_virtual_exit_tree(GDExtensionClassInstancePtr p_instance, const GDExtensionConstTypePtr *p_args, GDExtensionTypePtr r_ret) {
     (void)p_args; (void)r_ret;
     ensure_gc_thread_registered();
-    GenericExtensionInstance *inst = (GenericExtensionInstance*)p_instance;
-    if (!inst || !inst->desc || !inst->desc->call_virtual || !inst->crystal_instance) return;
-    if (is_editor_active() && !is_tool_desc(inst->desc)) return;
-    inst->desc->call_virtual(inst->crystal_instance, "_exit_tree", 0.0);
+    generic_dispatch_lifecycle((GenericExtensionInstance*)p_instance, "_exit_tree", 0.0);
 }
 
 /** Dispatches Godot's _build() virtual callback for EditorPlugin into Crystal */
@@ -387,38 +388,38 @@ inline void* generic_class_get_virtual_call_data(void *p_class_userdata, GDExten
         return nullptr;
     }
 
-    // Built-in lifecycle methods (check both with and without leading underscore)
-    if (strcmp(method_buf, "_ready") == 0 || strcmp(method_buf, "ready") == 0) {
+    // Built-in lifecycle methods
+    if (match_virtual_method(method_buf, "_ready")) {
         return desc->has_ready ? (void*)intern_virtual_method(method_buf) : nullptr;
     }
-    if (strcmp(method_buf, "_process") == 0 || strcmp(method_buf, "process") == 0) {
+    if (match_virtual_method(method_buf, "_process")) {
         return desc->has_process ? (void*)intern_virtual_method(method_buf) : nullptr;
     }
-    if (strcmp(method_buf, "_physics_process") == 0 || strcmp(method_buf, "physics_process") == 0) {
+    if (match_virtual_method(method_buf, "_physics_process")) {
         return desc->has_physics_process ? (void*)intern_virtual_method(method_buf) : nullptr;
     }
-    if (strcmp(method_buf, "_enter_tree") == 0 || strcmp(method_buf, "enter_tree") == 0) {
+    if (match_virtual_method(method_buf, "_enter_tree")) {
         return desc->has_enter_tree ? (void*)intern_virtual_method(method_buf) : nullptr;
     }
-    if (strcmp(method_buf, "_exit_tree") == 0 || strcmp(method_buf, "exit_tree") == 0) {
+    if (match_virtual_method(method_buf, "_exit_tree")) {
         return desc->has_exit_tree ? (void*)intern_virtual_method(method_buf) : nullptr;
     }
-    if (strcmp(method_buf, "_input") == 0 || strcmp(method_buf, "input") == 0) {
+    if (match_virtual_method(method_buf, "_input")) {
         return desc->has_input ? (void*)intern_virtual_method(method_buf) : nullptr;
     }
-    if (strcmp(method_buf, "_unhandled_input") == 0 || strcmp(method_buf, "unhandled_input") == 0) {
+    if (match_virtual_method(method_buf, "_unhandled_input")) {
         return desc->has_unhandled_input ? (void*)intern_virtual_method(method_buf) : nullptr;
     }
-    if (strcmp(method_buf, "_unhandled_key_input") == 0 || strcmp(method_buf, "unhandled_key_input") == 0) {
+    if (match_virtual_method(method_buf, "_unhandled_key_input")) {
         return desc->has_unhandled_key_input ? (void*)intern_virtual_method(method_buf) : nullptr;
     }
-    if (strcmp(method_buf, "_shortcut_input") == 0 || strcmp(method_buf, "shortcut_input") == 0) {
+    if (match_virtual_method(method_buf, "_shortcut_input")) {
         return desc->has_shortcut_input ? (void*)intern_virtual_method(method_buf) : nullptr;
     }
-    if (strcmp(method_buf, "_gui_input") == 0 || strcmp(method_buf, "gui_input") == 0) {
+    if (match_virtual_method(method_buf, "_gui_input")) {
         return desc->has_gui_input ? (void*)intern_virtual_method(method_buf) : nullptr;
     }
-    if (strcmp(method_buf, "_build") == 0 || strcmp(method_buf, "build") == 0) {
+    if (match_virtual_method(method_buf, "_build")) {
         return (void*)intern_virtual_method(method_buf);
     }
 
@@ -630,37 +631,37 @@ inline void generic_class_call_virtual_with_data(
         godot_log_verbose(buf);
     }
 
-    if (strcmp(method_name, "_ready") == 0 || strcmp(method_name, "ready") == 0) {
+    if (match_virtual_method(method_name, "_ready")) {
         if (is_editor_active() && !is_tool_desc(inst->desc)) return;
         if (inst->crystal_instance && inst->desc->call_virtual) inst->desc->call_virtual(inst->crystal_instance, "_ready", 0.0);
         return;
     }
-    if (strcmp(method_name, "_process") == 0 || strcmp(method_name, "process") == 0) {
+    if (match_virtual_method(method_name, "_process")) {
         if (is_editor_active() && !is_tool_desc(inst->desc)) return;
         double delta = (p_args && p_args[0]) ? *(const double*)p_args[0] : 0.016666666666666666;
         if (inst->crystal_instance && inst->desc->call_virtual) inst->desc->call_virtual(inst->crystal_instance, "_process", delta);
         return;
     }
-    if (strcmp(method_name, "_physics_process") == 0 || strcmp(method_name, "physics_process") == 0) {
+    if (match_virtual_method(method_name, "_physics_process")) {
         if (is_editor_active() && !is_tool_desc(inst->desc)) return;
         double delta = (p_args && p_args[0]) ? *(const double*)p_args[0] : 0.016666666666666666;
         if (inst->crystal_instance && inst->desc->call_virtual) inst->desc->call_virtual(inst->crystal_instance, "_physics_process", delta);
         return;
     }
-    if (strcmp(method_name, "_enter_tree") == 0 || strcmp(method_name, "enter_tree") == 0) {
+    if (match_virtual_method(method_name, "_enter_tree")) {
         if (inst->crystal_instance && inst->desc->call_virtual) inst->desc->call_virtual(inst->crystal_instance, "_enter_tree", 0.0);
         return;
     }
-    if (strcmp(method_name, "_exit_tree") == 0 || strcmp(method_name, "exit_tree") == 0) {
+    if (match_virtual_method(method_name, "_exit_tree")) {
         if (is_editor_active() && !is_tool_desc(inst->desc)) return;
         if (inst->crystal_instance && inst->desc->call_virtual) inst->desc->call_virtual(inst->crystal_instance, "_exit_tree", 0.0);
         return;
     }
-    if (strcmp(method_name, "_input") == 0 || strcmp(method_name, "input") == 0 ||
-        strcmp(method_name, "_unhandled_input") == 0 || strcmp(method_name, "unhandled_input") == 0 ||
-        strcmp(method_name, "_unhandled_key_input") == 0 || strcmp(method_name, "unhandled_key_input") == 0 ||
-        strcmp(method_name, "_shortcut_input") == 0 || strcmp(method_name, "shortcut_input") == 0 ||
-        strcmp(method_name, "_gui_input") == 0 || strcmp(method_name, "gui_input") == 0) {
+    if (match_virtual_method(method_name, "_input") ||
+        match_virtual_method(method_name, "_unhandled_input") ||
+        match_virtual_method(method_name, "_unhandled_key_input") ||
+        match_virtual_method(method_name, "_shortcut_input") ||
+        match_virtual_method(method_name, "_gui_input")) {
         if (is_editor_active() && !is_tool_desc(inst->desc)) return;
         if (inst->crystal_instance && inst->desc->call_virtual_with_data) {
             void *event_obj = (p_args && p_args[0]) ? bridge_ref_get_object(p_args[0]) : nullptr;

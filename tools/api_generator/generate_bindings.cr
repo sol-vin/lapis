@@ -581,45 +581,23 @@ def generate_class_code(io : IO, c : JSON::Any, keywords : Hash(String, String),
                       end
                     end
                     arg_array = (0...args.size).map { |i| "arg_#{i}" }
-                    io.puts "      args = [#{arg_array.join(", ")}]"
+                    io.puts "      args = StaticArray[#{arg_array.join(", ")}]"
                     "args.to_unsafe.as(Void**)"
                   end
 
-      # Marshalling return value
+      # Marshalling return value using ptrcall macros
       if is_ret_enum
-        io.puts "      ret = 0_i64"
-        io.puts "      godot_ptrcall(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr}, pointerof(ret).as(Void*))"
-        io.puts "      godot_return_enum(#{ret_type_crystal}, ret)"
+        io.puts "      godot_ptrcall_enum(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr}, #{ret_type_crystal})"
       elsif ret_type_crystal == "Void"
-        io.puts "      godot_ptrcall(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr}, Pointer(Void).null)"
+        io.puts "      godot_ptrcall_void(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr})"
       elsif ret_type_crystal == "Bool"
-        io.puts "      ret = 0_u8"
-        io.puts "      godot_ptrcall(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr}, pointerof(ret).as(Void*))"
-        io.puts "      ret != 0_u8"
+        io.puts "      godot_ptrcall_bool(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr})"
       elsif ret_type_crystal == "Int64" || ret_type_crystal == "Int32"
-        io.puts "      ret = 0_i64"
-        io.puts "      godot_ptrcall(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr}, pointerof(ret).as(Void*))"
-        io.puts "      ret"
+        io.puts "      godot_ptrcall_int(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr})"
       elsif ret_type_crystal == "Float64" || ret_type_crystal == "Float32"
-        io.puts "      ret = 0.0_f64"
-        io.puts "      godot_ptrcall(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr}, pointerof(ret).as(Void*))"
-        io.puts "      ret"
-      elsif ret_type_crystal == "Vector2"
-        io.puts "      ret = Vector2.new"
-        io.puts "      godot_ptrcall(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr}, pointerof(ret).as(Void*))"
-        io.puts "      ret"
-      elsif ret_type_crystal == "Vector3"
-        io.puts "      ret = Vector3.new"
-        io.puts "      godot_ptrcall(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr}, pointerof(ret).as(Void*))"
-        io.puts "      ret"
-      elsif ret_type_crystal == "Color"
-        io.puts "      ret = Color.new"
-        io.puts "      godot_ptrcall(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr}, pointerof(ret).as(Void*))"
-        io.puts "      ret"
-      elsif ret_type_crystal == "Transform3D"
-        io.puts "      ret = Transform3D.new"
-        io.puts "      godot_ptrcall(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr}, pointerof(ret).as(Void*))"
-        io.puts "      ret"
+        io.puts "      godot_ptrcall_float(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr})"
+      elsif ["Vector2", "Vector2i", "Vector3", "Vector3i", "Vector4", "Vector4i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Basis", "Quaternion", "Plane", "AABB"].includes?(ret_type_crystal)
+        io.puts "      godot_ptrcall_val(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr}, #{ret_type_crystal})"
       elsif ret_type_crystal == "Void*" || ret_type_crystal == "Pointer(Void)"
         if ret_type_godot == "Variant"
           io.puts "      ret_var = StaticArray(UInt8, 24).new(0_u8)"
@@ -647,9 +625,7 @@ def generate_class_code(io : IO, c : JSON::Any, keywords : Hash(String, String),
           io.puts "      NodePath.new(godot_call_str(\"#{m_name}\"#{args_str}))"
         end
       else
-        io.puts "      ret_ptr = Pointer(Void).null"
-        io.puts "      godot_ptrcall(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr}, pointerof(ret_ptr).as(Void*))"
-        io.puts "      godot_return_obj(#{ret_type_crystal}, ret_ptr)"
+        io.puts "      godot_ptrcall_obj(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr}, #{ret_type_crystal})"
       end
 
       if !cleanups.empty?
