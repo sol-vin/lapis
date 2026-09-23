@@ -210,14 +210,17 @@ HELP
           return 0
         end
 
+        if Core::Env.windows?
+          Core::Logger.info("Pre-built Crystalline binaries are currently only published for Linux and macOS. On Windows, build from source or place crystalline.exe at #{dest_exe}.")
+          return 0
+        end
+
         # Download from GitHub release
         tag = "v0.20.0"
         url = if Core::Env.macos?
                 "https://github.com/elbywan/crystalline/releases/download/#{tag}/crystalline_arm64-apple-darwin.gz"
-              elsif Core::Env.linux?
-                "https://github.com/elbywan/crystalline/releases/download/#{tag}/crystalline_x86_64-unknown-linux-musl.gz"
               else
-                "https://github.com/elbywan/crystalline/releases/download/#{tag}/crystalline_x86_64-windows.zip"
+                "https://github.com/elbywan/crystalline/releases/download/#{tag}/crystalline_x86_64-unknown-linux-musl.gz"
               end
 
         temp_archive = dest_exe.parent.join("crystalline_dl_temp.archive")

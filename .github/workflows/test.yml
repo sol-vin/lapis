@@ -102,13 +102,18 @@ jobs:
       - name: Setup Crystalline LSP (Windows)
         shell: pwsh
         run: |
-          bin/lapis setup --lsp
+          try {
+            bin/lapis setup --lsp
+          } catch {
+            Write-Host "Crystalline LSP setup notice: $_"
+          }
           $binDir = (Resolve-Path "bin").Path
           $binDir | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
           $env:PATH = "$binDir;$env:PATH"
           if (Test-Path "bin/crystalline.exe") {
             ./bin/crystalline.exe --version
           }
+          exit 0
 
       - name: Setup Godot Engine
         uses: appsinacup/action_setup_godot@main
