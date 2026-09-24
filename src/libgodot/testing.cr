@@ -1060,7 +1060,7 @@ module Lapis
             if (::Time.instant - start_wait).total_seconds > 8.0
               proc.terminate rescue nil
               {% unless flag?(:windows) %}
-                proc.signal(Signal.new(9)) rescue nil
+                proc.signal(::Signal.new(9)) rescue nil
               {% end %}
               timed_out = true
               break
