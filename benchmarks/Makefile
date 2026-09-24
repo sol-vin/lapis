@@ -27,7 +27,19 @@ TARGETS := $(BIN_DIR)/matmul$(EXE_EXT) \
            $(BIN_DIR)/transform_math$(EXE_EXT) \
            $(BIN_DIR)/node_lifecycle$(EXE_EXT) \
            $(BIN_DIR)/material_resources$(EXE_EXT) \
-           $(BIN_DIR)/signals$(EXE_EXT)
+           $(BIN_DIR)/signals$(EXE_EXT) \
+           $(BIN_DIR)/perlin_noise$(EXE_EXT) \
+           $(BIN_DIR)/simplex_noise$(EXE_EXT) \
+           $(BIN_DIR)/cellular_noise$(EXE_EXT) \
+           $(BIN_DIR)/surface_tool$(EXE_EXT) \
+           $(BIN_DIR)/astar_2d$(EXE_EXT) \
+           $(BIN_DIR)/tree_traversal$(EXE_EXT) \
+           $(BIN_DIR)/image_processing$(EXE_EXT) \
+           $(BIN_DIR)/transform_hierarchy$(EXE_EXT) \
+           $(BIN_DIR)/node_groups$(EXE_EXT) \
+           $(BIN_DIR)/vector_math_2d$(EXE_EXT) \
+           $(BIN_DIR)/dictionary_ops$(EXE_EXT) \
+           $(BIN_DIR)/config_file$(EXE_EXT)
 
 .PHONY: all build run chart clean help
 
@@ -86,6 +98,54 @@ $(BIN_DIR)/material_resources$(EXE_EXT): material_resources/material_resources.c
 $(BIN_DIR)/signals$(EXE_EXT): signals/signals.cr | $(BIN_DIR)
 	@echo [Compile] signals...
 	@$(CRYSTAL) build $(CRYSTAL_FLAGS) signals/signals.cr -o $(BIN_DIR)/signals$(EXE_EXT)
+
+$(BIN_DIR)/perlin_noise$(EXE_EXT): perlin_noise/perlin_noise.cr | $(BIN_DIR)
+	@echo [Compile] perlin_noise...
+	@$(CRYSTAL) build $(CRYSTAL_FLAGS) perlin_noise/perlin_noise.cr -o $(BIN_DIR)/perlin_noise$(EXE_EXT)
+
+$(BIN_DIR)/simplex_noise$(EXE_EXT): simplex_noise/simplex_noise.cr | $(BIN_DIR)
+	@echo [Compile] simplex_noise...
+	@$(CRYSTAL) build $(CRYSTAL_FLAGS) simplex_noise/simplex_noise.cr -o $(BIN_DIR)/simplex_noise$(EXE_EXT)
+
+$(BIN_DIR)/cellular_noise$(EXE_EXT): cellular_noise/cellular_noise.cr | $(BIN_DIR)
+	@echo [Compile] cellular_noise...
+	@$(CRYSTAL) build $(CRYSTAL_FLAGS) cellular_noise/cellular_noise.cr -o $(BIN_DIR)/cellular_noise$(EXE_EXT)
+
+$(BIN_DIR)/surface_tool$(EXE_EXT): surface_tool/surface_tool.cr | $(BIN_DIR)
+	@echo [Compile] surface_tool...
+	@$(CRYSTAL) build $(CRYSTAL_FLAGS) surface_tool/surface_tool.cr -o $(BIN_DIR)/surface_tool$(EXE_EXT)
+
+$(BIN_DIR)/astar_2d$(EXE_EXT): astar_2d/astar_2d.cr | $(BIN_DIR)
+	@echo [Compile] astar_2d...
+	@$(CRYSTAL) build $(CRYSTAL_FLAGS) astar_2d/astar_2d.cr -o $(BIN_DIR)/astar_2d$(EXE_EXT)
+
+$(BIN_DIR)/tree_traversal$(EXE_EXT): tree_traversal/tree_traversal.cr | $(BIN_DIR)
+	@echo [Compile] tree_traversal...
+	@$(CRYSTAL) build $(CRYSTAL_FLAGS) tree_traversal/tree_traversal.cr -o $(BIN_DIR)/tree_traversal$(EXE_EXT)
+
+$(BIN_DIR)/image_processing$(EXE_EXT): image_processing/image_processing.cr | $(BIN_DIR)
+	@echo [Compile] image_processing...
+	@$(CRYSTAL) build $(CRYSTAL_FLAGS) image_processing/image_processing.cr -o $(BIN_DIR)/image_processing$(EXE_EXT)
+
+$(BIN_DIR)/transform_hierarchy$(EXE_EXT): transform_hierarchy/transform_hierarchy.cr | $(BIN_DIR)
+	@echo [Compile] transform_hierarchy...
+	@$(CRYSTAL) build $(CRYSTAL_FLAGS) transform_hierarchy/transform_hierarchy.cr -o $(BIN_DIR)/transform_hierarchy$(EXE_EXT)
+
+$(BIN_DIR)/node_groups$(EXE_EXT): node_groups/node_groups.cr | $(BIN_DIR)
+	@echo [Compile] node_groups...
+	@$(CRYSTAL) build $(CRYSTAL_FLAGS) node_groups/node_groups.cr -o $(BIN_DIR)/node_groups$(EXE_EXT)
+
+$(BIN_DIR)/vector_math_2d$(EXE_EXT): vector_math_2d/vector_math_2d.cr | $(BIN_DIR)
+	@echo [Compile] vector_math_2d...
+	@$(CRYSTAL) build $(CRYSTAL_FLAGS) vector_math_2d/vector_math_2d.cr -o $(BIN_DIR)/vector_math_2d$(EXE_EXT)
+
+$(BIN_DIR)/dictionary_ops$(EXE_EXT): dictionary_ops/dictionary_ops.cr | $(BIN_DIR)
+	@echo [Compile] dictionary_ops...
+	@$(CRYSTAL) build $(CRYSTAL_FLAGS) dictionary_ops/dictionary_ops.cr -o $(BIN_DIR)/dictionary_ops$(EXE_EXT)
+
+$(BIN_DIR)/config_file$(EXE_EXT): config_file/config_file.cr | $(BIN_DIR)
+	@echo [Compile] config_file...
+	@$(CRYSTAL) build $(CRYSTAL_FLAGS) config_file/config_file.cr -o $(BIN_DIR)/config_file$(EXE_EXT)
 
 $(RUNNER): runner.cr $(wildcard src/*.cr) $(wildcard src/reporters/*.cr) | $(BIN_DIR)
 	@echo [Compile] benchmark runner...

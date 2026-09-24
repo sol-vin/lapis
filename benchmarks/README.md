@@ -21,11 +21,23 @@ All benchmarks have matching, standalone tests in both Crystal (`.cr`) and GDScr
 - **BinaryTrees**: GC pressure, bottom-up binary tree allocation & depth traversal (`depth=12`)
 - **Mandelbrot**: 2D coordinate escape-time fractal rasterization (`500x500`)
 - **TransformMath**: Transform3D translations, rotations & Vector3 projections (`200k ops`)
+- **VectorMath2D**: Vector2 lerp, dot, distance, and normalization (`500k ops`)
 
-#### 2. Godot Engine Core Operations
+#### 2. Godot Engine Core Operations & Common Tasks
 - **NodeLifecycle**: `Node2D` allocation, property mutation, `add_child`, `remove_child`, `free` (`20k entities`)
 - **MaterialResources**: `StandardMaterial3D` allocation, property mutation, `duplicate`, refcounting (`10k resources`)
 - **Signals**: Signal connection, argument marshalling & dynamic emission (`50k calls`)
+- **PerlinNoise**: `FastNoiseLite` 2D Perlin noise across 500x500 grid (`250k samples`)
+- **SimplexNoise**: `FastNoiseLite` 3D Simplex Smooth noise density evaluation (`100k samples`)
+- **CellularNoise**: `FastNoiseLite` 2D Cellular (Voronoi) noise across 500x500 grid (`250k samples`)
+- **SurfaceTool**: `SurfaceTool` procedural mesh generation with normals, colors, UVs (`10k triangles`)
+- **AStar2D**: `AStar2D` pathfinding on 100x100 grid (`10k points`, 500 queries)
+- **TreeTraversal**: Scene tree recursive traversal & property inspection (`20k nodes`)
+- **ImageProcessing**: 512x512 `Image` procedural pixel computation & gamma blending (`262k pixels`)
+- **TransformHierarchy**: 15,000 `Node3D` hierarchy transformations & global position resolution
+- **NodeGroups**: 20,000 nodes partitioned into 10 groups, group assignment & queries
+- **DictionaryOps**: Godot `Dictionary` 50,000 insertions and random access lookups
+- **ConfigFileOps**: `ConfigFile` parsing, querying and encoding 1,000 section INI config
 
 ---
 

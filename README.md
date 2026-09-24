@@ -3,6 +3,7 @@
 [![Crystal](https://img.shields.io/badge/Crystal-1.20+-black.svg?style=flat&logo=crystal)](https://crystal-lang.org)
 [![Godot](https://img.shields.io/badge/Godot-4.8--dev5-blue.svg?style=flat&logo=godotengine)](https://godotengine.org)
 [![Docs](https://img.shields.io/badge/Docs-Online-blueviolet.svg?style=flat)](https://sol-vin.github.io/lapis/)
+[![Benchmarks](https://img.shields.io/badge/Benchmarks-Interactive%20Report-success.svg?style=flat)](https://sol-vin.github.io/lapis/benchmarks.html)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 **Lapis for Crystal** provides high-performance Crystal bindings and a bidirectional runtime integration for **Godot Engine 4.8+** using LibGodot and GDExtension. It empowers game developers to write Godot games with native machine speed, complete compile-time type safety, and Ruby-like elegance. https://youtu.be/EKMw_zQjovc
@@ -78,7 +79,8 @@ For native in-editor debugging, breakpoint synchronization, and multiplayer lock
 ## Documentation
 
 - **Official Online Documentation Site**: [https://sol-vin.github.io/lapis/](https://sol-vin.github.io/lapis/)
-- **Architecture & Guides in `Docs` Module**: Complete guides covering architecture, build toolchains, memory management, and concurrency are contained in [`Docs`](src/libgodot/docs.cr) (such as [`Docs::I_CONCURRENCY_FIBERS_AND_THREAD_SAFETY`](src/libgodot/docs.cr)).
+- **Interactive Performance Benchmarks Report**: [https://sol-vin.github.io/lapis/benchmarks.html](https://sol-vin.github.io/lapis/benchmarks.html) (12 matching benchmarks comparing native Crystal against GDScript, featuring interactive SVG charts, in-editor overhead analysis, and raw metrics).
+- **Architecture & Guides in `Docs` Module**: Complete guides covering architecture, build toolchains, memory management, and concurrency are contained in [`Docs`](src/libgodot/docs.cr) (such as [`Docs::I_CONCURRENCY_FIBERS_AND_THREAD_SAFETY`](src/libgodot/docs.cr) and [`Docs::V_PERFORMANCE_AND_BENCHMARKS`](src/libgodot/docs.cr)).
 - **Offline HTML API Documentation**: Generate complete API documentation locally with `make docs` (output at `docs/index.html`).
 - **In-Editor Help**: Class and method descriptions are harvested at compile time and accessible directly inside Godot via `F1` or Inspector tooltips.
 
@@ -175,6 +177,55 @@ end
 
 ---
 
+## Performance & Benchmarks
+
+Lapis includes a comprehensive, 1-to-1 cross-language benchmark suite comparing native compiled **Crystal (GDExtension)** against **GDScript (Godot 4 Bytecode)** across algorithmic compute and engine-core operations:
+
+> 📊 **Explore the Live Dashboard**: [https://sol-vin.github.io/lapis/benchmarks.html](https://sol-vin.github.io/lapis/benchmarks.html)
+
+<table>
+  <thead>
+    <tr>
+      <th align="left">Category</th>
+      <th align="left">Benchmarks Included</th>
+      <th align="left">Speedup Range</th>
+      <th align="left">Key Advantage</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Algorithmic & Compute</strong></td>
+      <td><code>Matmul</code>, <code>Primes</code>, <code>Brainfuck</code>, <code>Base64</code>, <code>JSON</code>, <code>NBody</code>, <code>BinaryTrees</code>, <code>Mandelbrot</code>, <code>TransformMath</code></td>
+      <td><strong>3.1x – 227.6x faster</strong></td>
+      <td>LLVM <code>-O3</code> auto-vectorization, native unboxed arithmetic, zero variant boxing.</td>
+    </tr>
+    <tr>
+      <td><strong>Godot Engine Core</strong></td>
+      <td><code>NodeLifecycle</code>, <code>MaterialResources</code>, <code>Signals</code></td>
+      <td><strong>1.1x – 307.7x faster</strong></td>
+      <td>Direct GDExtension C-API dispatch, low GC pause times, fast resource allocation.</td>
+    </tr>
+  </tbody>
+</table>
+
+### Running Benchmarks Locally
+```bash
+# Compile and run the complete benchmark suite and open the report
+make benchmarks-run [ITERATIONS=3]
+
+# Run specific category or filter using the Lapis CLI runner
+crystal run benchmarks/runner.cr -- -c compute
+crystal run benchmarks/runner.cr -- -c engine
+crystal run benchmarks/runner.cr -- --filter=signals
+```
+Reports are automatically generated into `benchmarks/results/`:
+- `benchmark_report.html`: Full dark-mode interactive dashboard with SVG charts and KPI cards
+- `benchmark_chart.svg`: High-resolution comparative bar chart
+- `benchmark_report.md`: Markdown report for GitHub comments and summaries
+- `benchmark_report.json` / `benchmark_report.csv`: Machine-readable metrics for automated CI ingestion
+
+---
+
 ## Comprehensive In-Code Documentation (`Docs` Module)
 
 Lapis features an extensive in-code documentation suite under the `Docs` module. Each submodule details internal mechanics, macro pipelines, export options, and engine caveats:
@@ -254,6 +305,10 @@ Lapis features an extensive in-code documentation suite under the `Docs` module.
     <tr>
       <td><a href="src/libgodot/docs.cr"><code>Docs::Q_TESTING_FRAMEWORK_AND_EDITOR_SUITES</code></a></td>
       <td>Reusable <code>Lapis::Test</code> apparatus, assertion matchers, cooperative frame-stepping, signal timeouts, and live in-editor suites.</td>
+    </tr>
+    <tr>
+      <td><a href="src/libgodot/docs.cr"><code>Docs::V_PERFORMANCE_AND_BENCHMARKS</code></a></td>
+      <td>Crystal vs GDScript benchmark architecture, reporter patterns, in-editor overhead measurement, and performance dashboard.</td>
     </tr>
   </tbody>
 </table>

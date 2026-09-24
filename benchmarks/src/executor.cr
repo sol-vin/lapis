@@ -4,25 +4,37 @@ require "./models"
 module Benchmarks
   class Executor
     def self.resolve_godot(base_dir : String? = nil) : String
-      candidates = [
-        "./godot.exe", "godot.exe", "../godot.exe", "../../godot.exe",
-        "./godot", "godot", "../godot", "../../godot"
-      ]
+      env_godot = ENV["GODOT_BIN"]? || ENV["GODOT"]?
+      return File.expand_path(env_godot) if env_godot && File.file?(env_godot)
+
+      candidates = [] of String
       if base_dir
-        candidates.unshift(File.join(base_dir, "godot.exe"))
-        candidates.unshift(File.join(base_dir, "../godot.exe"))
-        candidates.unshift(File.join(base_dir, "godot"))
-        candidates.unshift(File.join(base_dir, "../godot"))
+        {% if flag?(:windows) %}
+          candidates << File.join(base_dir, "godot.exe")
+          candidates << File.join(base_dir, "../godot.exe")
+          candidates << File.join(base_dir, "../../godot.exe")
+        {% else %}
+          candidates << File.join(base_dir, "godot")
+          candidates << File.join(base_dir, "../godot")
+          candidates << File.join(base_dir, "../../godot")
+        {% end %}
       end
+
+      {% if flag?(:windows) %}
+        candidates.concat(["./godot.exe", "godot.exe", "../godot.exe", "../../godot.exe"])
+      {% else %}
+        candidates.concat(["./godot", "godot", "../godot", "../../godot"])
+      {% end %}
+
       candidates.each do |c|
-        return File.expand_path(c) if File.exists?(c)
+        return File.expand_path(c) if File.file?(c)
         return c if Process.find_executable(c)
       end
-      ENV["GODOT_BIN"]? || ENV["GODOT"]? || "godot.exe"
+      {% if flag?(:windows) %} "godot.exe" {% else %} "godot" {% end %}
     end
 
     def self.compile_crystal(bench : BenchmarkCase, base_dir : String, release : Bool = true) : Bool
-      bin_name = Process.run("cmd", ["/c", "ver"], output: IO::Memory.new).success? ? "#{bench.crystal_bin}.exe" : bench.crystal_bin
+      bin_name = {% if flag?(:windows) %} "#{bench.crystal_bin}.exe" {% else %} bench.crystal_bin {% end %}
       out_path = File.join(base_dir, bin_name)
       src_path = File.join(base_dir, bench.crystal_src)
       bin_dir = File.dirname(out_path)
@@ -86,7 +98,7 @@ module Benchmarks
         return nil
       end
 
-      bin_ext = Process.run("cmd", ["/c", "ver"], output: IO::Memory.new).success? ? ".exe" : ""
+      bin_ext = {% if flag?(:windows) %} ".exe" {% else %} "" {% end %}
       cr_bin_path = File.join(base_dir, "#{bench.crystal_bin}#{bin_ext}")
 
       print "  Benchmarking Crystal... "

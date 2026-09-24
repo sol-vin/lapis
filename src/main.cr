@@ -519,3 +519,9 @@ require "../spec/suites/test_concurrency_multi_thread_gc"
 require "../spec/suites/test_channel_exhaustive"
 require "../spec/suites/test_gdscript_crystal_interop_deep"
 require "../spec/suites/test_cold_boot"
+
+# Procedural Generation, Navigation & System Utilities Suites
+require "../spec/suites/test_noise_procedural_generation"
+require "../spec/suites/test_astar_navigation"
+require "../spec/suites/test_image_pixel_buffer"
+require "../spec/suites/test_config_file_serialization"

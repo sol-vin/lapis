@@ -147,5 +147,125 @@ module Benchmarks
       args: ["50000"],
       description: "Signal connection, argument marshalling & dynamic emission (50k calls)"
     )
+
+    register BenchmarkCase.new(
+      name: "PerlinNoise",
+      category: Category::EngineCore,
+      crystal_src: "perlin_noise/perlin_noise.cr",
+      crystal_bin: "bin/perlin_noise",
+      gdscript_src: "perlin_noise/perlin_noise.gd",
+      args: ["500"],
+      description: "FastNoiseLite 2D Perlin noise across 500x500 grid (250k samples)"
+    )
+
+    register BenchmarkCase.new(
+      name: "SimplexNoise",
+      category: Category::EngineCore,
+      crystal_src: "simplex_noise/simplex_noise.cr",
+      crystal_bin: "bin/simplex_noise",
+      gdscript_src: "simplex_noise/simplex_noise.gd",
+      args: ["100000"],
+      description: "FastNoiseLite 3D Simplex Smooth noise across 100k samples"
+    )
+
+    register BenchmarkCase.new(
+      name: "CellularNoise",
+      category: Category::EngineCore,
+      crystal_src: "cellular_noise/cellular_noise.cr",
+      crystal_bin: "bin/cellular_noise",
+      gdscript_src: "cellular_noise/cellular_noise.gd",
+      args: ["500"],
+      description: "FastNoiseLite 2D Cellular Voronoi noise across 500x500 grid (250k samples)"
+    )
+
+    register BenchmarkCase.new(
+      name: "SurfaceTool",
+      category: Category::EngineCore,
+      crystal_src: "surface_tool/surface_tool.cr",
+      crystal_bin: "bin/surface_tool",
+      gdscript_src: "surface_tool/surface_tool.gd",
+      args: ["10000"],
+      description: "SurfaceTool procedural mesh generation with normals/UVs (10k triangles)"
+    )
+
+    register BenchmarkCase.new(
+      name: "AStar2D",
+      category: Category::EngineCore,
+      crystal_src: "astar_2d/astar_2d.cr",
+      crystal_bin: "bin/astar_2d",
+      gdscript_src: "astar_2d/astar_2d.gd",
+      args: ["100", "500"],
+      description: "AStar2D pathfinding on 100x100 grid (10k points, 500 queries)"
+    )
+
+    register BenchmarkCase.new(
+      name: "TreeTraversal",
+      category: Category::EngineCore,
+      crystal_src: "tree_traversal/tree_traversal.cr",
+      crystal_bin: "bin/tree_traversal",
+      gdscript_src: "tree_traversal/tree_traversal.gd",
+      args: ["20000"],
+      description: "Scene tree recursive traversal & property inspection (20k nodes)"
+    )
+
+    register BenchmarkCase.new(
+      name: "ImageProcessing",
+      category: Category::EngineCore,
+      crystal_src: "image_processing/image_processing.cr",
+      crystal_bin: "bin/image_processing",
+      gdscript_src: "image_processing/image_processing.gd",
+      args: ["512"],
+      description: "512x512 Image procedural pixel computation and gamma blending (262k px)"
+    )
+
+    register BenchmarkCase.new(
+      name: "TransformHierarchy",
+      category: Category::EngineCore,
+      crystal_src: "transform_hierarchy/transform_hierarchy.cr",
+      crystal_bin: "bin/transform_hierarchy",
+      gdscript_src: "transform_hierarchy/transform_hierarchy.gd",
+      args: ["15000"],
+      description: "15,000 Node3D hierarchy transformations & global position resolution"
+    )
+
+    register BenchmarkCase.new(
+      name: "NodeGroups",
+      category: Category::EngineCore,
+      crystal_src: "node_groups/node_groups.cr",
+      crystal_bin: "bin/node_groups",
+      gdscript_src: "node_groups/node_groups.gd",
+      args: ["20000"],
+      description: "20,000 nodes partitioned into 10 groups, group assignment & queries"
+    )
+
+    register BenchmarkCase.new(
+      name: "VectorMath2D",
+      category: Category::Compute,
+      crystal_src: "vector_math_2d/vector_math_2d.cr",
+      crystal_bin: "bin/vector_math_2d",
+      gdscript_src: "vector_math_2d/vector_math_2d.gd",
+      args: ["500000"],
+      description: "Vector2 lerp, dot, distance, and normalization across 500k ops"
+    )
+
+    register BenchmarkCase.new(
+      name: "DictionaryOps",
+      category: Category::EngineCore,
+      crystal_src: "dictionary_ops/dictionary_ops.cr",
+      crystal_bin: "bin/dictionary_ops",
+      gdscript_src: "dictionary_ops/dictionary_ops.gd",
+      args: ["50000"],
+      description: "Godot Dictionary 50,000 insertions and random access lookups"
+    )
+
+    register BenchmarkCase.new(
+      name: "ConfigFileOps",
+      category: Category::EngineCore,
+      crystal_src: "config_file/config_file.cr",
+      crystal_bin: "bin/config_file",
+      gdscript_src: "config_file/config_file.gd",
+      args: ["1000"],
+      description: "ConfigFile parsing, querying and encoding 1,000 section INI config"
+    )
   end
 end

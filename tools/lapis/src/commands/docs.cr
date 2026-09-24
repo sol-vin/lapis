@@ -31,10 +31,12 @@ HELP
         # 1. Patch CSS max-height cutoff in sidebar tree
         if File.exists?(css_file)
           css = File.read(css_file)
-          if css.includes?("max-height: 1000em;")
-            Core::Logger.step("Docs:Patch", "Removing max-height cutoff (1000em to none) in CSS...")
-            File.write(css_file, css.gsub("max-height: 1000em;", "max-height: none;"))
-            Core::Logger.success("CSS sidebar height cutoff patched successfully!")
+          if css.includes?("max-height: 1000em;") || css.includes?("max-height: none;")
+            Core::Logger.step("Docs:Patch", "Setting sidebar max-height to 3000em in CSS...")
+            css = css.gsub("max-height: 1000em;", "max-height: 3000em;")
+            css = css.gsub("max-height: none;", "max-height: 3000em;")
+            File.write(css_file, css)
+            Core::Logger.success("CSS sidebar height cutoff patched to 3000em successfully!")
           end
         end
 
@@ -46,6 +48,23 @@ HELP
             File.write(js_file, js.gsub("CrystalDocs.MAX_RESULTS_DISPLAY = 140;", "CrystalDocs.MAX_RESULTS_DISPLAY = 500;"))
             Core::Logger.success("Search display limit increased successfully!")
           end
+        end
+
+        # 3. Embed benchmark reports if available
+        root = Core::Env::ROOT_DIR
+        bench_report = root.join("benchmarks/results/benchmark_report.html")
+        if File.exists?(bench_report)
+          bench_dir = docs_dir.join("benchmarks")
+          FileUtils.mkdir_p(bench_dir)
+          FileUtils.cp(bench_report, docs_dir.join("benchmarks.html"))
+          FileUtils.cp(bench_report, docs_dir.join("benchmark_report.html"))
+          FileUtils.cp(bench_report, bench_dir.join("index.html"))
+          bench_svg = root.join("benchmarks/results/benchmark_chart.svg")
+          if File.exists?(bench_svg)
+            FileUtils.cp(bench_svg, bench_dir.join("benchmark_chart.svg"))
+            FileUtils.cp(bench_svg, docs_dir.join("benchmark_chart.svg"))
+          end
+          Core::Logger.success("Embedded benchmark report into documentation (#{docs_dir.join("benchmarks.html")})!")
         end
       end
 
