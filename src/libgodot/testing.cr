@@ -1059,9 +1059,6 @@ module Lapis
           while !proc.terminated?
             if (::Time.instant - start_wait).total_seconds > 15.0
               proc.terminate rescue nil
-              {% unless flag?(:windows) %}
-                proc.signal(Signal::KILL) rescue nil
-              {% end %}
               timed_out = true
               break
             end
@@ -1113,9 +1110,6 @@ module Lapis
           while !proc.terminated?
             if (::Time.instant - start_wait).total_seconds > 15.0
               proc.terminate rescue nil
-              {% unless flag?(:windows) %}
-                proc.signal(Signal::KILL) rescue nil
-              {% end %}
               timed_out = true
               break
             end
