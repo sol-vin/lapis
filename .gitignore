@@ -13,16 +13,12 @@ godot.exe
 /template/bin/*
 !/template/bin/.gitkeep
 /template/addons/
-/template/scripts/
-/template/src/generated/
 /template/*.exe
 
 /template-addon/.godot/
 /template-addon/bin/
-/template-addon/scripts/
 /template-addon/addons/*/bin/
 /template-addon/addons/crystal_integration/
-/template-addon/src/generated/
 /template-addon/dist/
 
 /examples/*/.godot/
