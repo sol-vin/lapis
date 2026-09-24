@@ -1059,10 +1059,14 @@ module Lapis
           while !proc.terminated?
             if (::Time.instant - start_wait).total_seconds > 15.0
               proc.terminate rescue nil
+              {% unless flag?(:windows) %}
+                proc.signal(Signal::KILL) rescue nil
+              {% end %}
               timed_out = true
               break
             end
-            sleep 0.1.seconds
+            Crystal::System::Thread.sleep(20.milliseconds)
+            Fiber.yield
           end
           status = proc.wait
           out_file.rewind
@@ -1109,10 +1113,14 @@ module Lapis
           while !proc.terminated?
             if (::Time.instant - start_wait).total_seconds > 15.0
               proc.terminate rescue nil
+              {% unless flag?(:windows) %}
+                proc.signal(Signal::KILL) rescue nil
+              {% end %}
               timed_out = true
               break
             end
-            sleep 0.1.seconds
+            Crystal::System::Thread.sleep(20.milliseconds)
+            Fiber.yield
           end
           status = proc.wait
           out_file.rewind
