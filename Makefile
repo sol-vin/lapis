@@ -90,7 +90,7 @@ PLUGIN_DLL       = $(PLUGIN_LIB)
 GAME_DLL         = $(GAME_LIB)
 LIBGODOT_DLL     = $(LIBGODOT_LIB)
 
-.PHONY: all lapis install uninstall bridge plugin test_project test_standalone package_installer package-installer windows_installer windows-installer installer package_tests package-tests package_lapis package-lapis package_deb package-deb package_template package-template package_template_addon package-template-addon package_examples package-examples package_addon package-addon package_all package-all package_release package-release package_perf package-perf package_game package-game new_addon new-addon new_example new-example setup_dev setup-dev run_editor run-editor run_test run-test run_ci_local run-ci-local ci-local ci export_templates export-templates recompile_addons recompile-addons verify_editor verify-editor test_wsl test-wsl report_android report-android examples examples_exe template template_addon perf perf_standalone perf_run perf_editor game_dll game_exe android package_android generate dump_api project_bindings deps addons sync engine spec spec_cli spec-cli test_cli test-cli test tests debug debug_editor debug-editor docs run editor clean help
+.PHONY: all lapis install uninstall bridge plugin test_project test_standalone package_installer package-installer windows_installer windows-installer installer package_tests package-tests package_lapis package-lapis package_deb package-deb package_template package-template package_template_addon package-template-addon package_examples package-examples package_addon package-addon package_all package-all package_release package-release package_perf package-perf package_benchmarks package-benchmarks benchmarks benchmarks_run benchmarks-run package_game package-game new_addon new-addon new_example new-example setup_dev setup-dev run_editor run-editor run_test run-test run_ci_local run-ci-local ci-local ci export_templates export-templates recompile_addons recompile-addons verify_editor verify-editor test_wsl test-wsl report_android report-android examples examples_exe template template_addon perf perf_standalone perf_run perf_editor game_dll game_exe android package_android generate dump_api project_bindings deps addons sync engine spec spec_cli spec-cli test_cli test-cli test tests debug debug_editor debug-editor docs run editor clean help
 
 # Compile Lapis CLI toolchain if not present or source changed
 $(LAPIS): $(wildcard tools/lapis/src/**/*.cr) $(wildcard tools/lapis/src/*.cr) $(wildcard tools/lapis/*.yml) $(wildcard template/**/*) $(wildcard template-addon/**/*) $(wildcard addons/crystal_integration/*) shard.yml godot-version.yml
@@ -247,7 +247,22 @@ endif
 # Package all release archives and checksums into bin/release_dist/
 package_all package-all package_release package-release:
 	@echo [Package] Packaging all release archives into $(or $(OUTPUT_DIR),$(TARGET_DIR),bin/release_dist)...
-	@$(LAPIS) package release $(if $(or $(OUTPUT_DIR),$(TARGET_DIR)),-t "$(or $(OUTPUT_DIR),$(TARGET_DIR))",) $(if $(filter 1,$(SKIP_TESTS)),--skip-tests,) $(if $(filter 1,$(SKIP_PERF)),--skip-perf,)
+	@$(LAPIS) package release $(if $(or $(OUTPUT_DIR),$(TARGET_DIR)),-t "$(or $(OUTPUT_DIR),$(TARGET_DIR))",) $(if $(filter 1,$(SKIP_TESTS)),--skip-tests,) $(if $(filter 1,$(SKIP_PERF)),--skip-perf,) $(if $(filter 1,$(SKIP_BENCHMARKS)),--skip-benchmarks,)
+
+# Package Crystal vs GDScript benchmarks suite
+package_benchmarks package-benchmarks:
+	@echo [Package] Packaging benchmarks into $(or $(OUTPUT_DIR),$(TARGET_DIR),bin/release_dist)...
+	@$(LAPIS) package benchmarks $(if $(or $(OUTPUT_DIR),$(TARGET_DIR)),-t "$(or $(OUTPUT_DIR),$(TARGET_DIR))",) $(if $(or $(OUTPUT),$(ARCHIVE)),-o "$(or $(OUTPUT),$(ARCHIVE))",) $(if $(filter 1,$(RELEASE)),-r,)
+
+# Build benchmarks suite binaries
+benchmarks:
+	@echo [Benchmarks] Building Crystal vs GDScript benchmarks suite...
+	@$(MAKE) -C benchmarks build RELEASE=$(RELEASE)
+
+# Run benchmarks and output visual bar chart
+benchmarks_run benchmarks-run: benchmarks
+	@echo [Benchmarks] Running Crystal vs GDScript benchmarks and generating chart...
+	@$(MAKE) -C benchmarks run ITERATIONS=$(or $(ITERATIONS),3)
 
 # Package playable standalone Godot game (binary + PCK + runtime DLLs)
 package_game package-game:
@@ -429,6 +444,11 @@ help:
 	@echo     make package-examples       Package examples into examples-^<platform^>.zip
 	@echo     make package-addon          Package crystal_integration addon into zip
 	@echo     make package-perf           Package performance benchmark into perf-^<platform^>.zip
+	@echo     make package-benchmarks     Package benchmarks suite into benchmarks-^<platform^>.zip
+	@echo.
+	@echo   BENCHMARKS:
+	@echo     make benchmarks             Compile Crystal vs GDScript benchmarks suite
+	@echo     make benchmarks-run         Run benchmarks and generate comparative SVG/ANSI chart [ITERATIONS=3]
 	@echo.
 	@echo   EXECUTION, TESTING AND DEBUGGING:
 	@echo     make run                    Launch test suite in Godot

@@ -1001,24 +1001,168 @@ module Lapis
     # 9. Centralized Extensible Test Registry & Lifecycle Runner
     # ===========================================================================
 
+    # Encapsulates a dedicated, completely isolated ephemeral Godot engine environment
+    # for tests requiring cold boot execution without polluting the shared engine or project.
+    class ColdBootContext
+      getter sandbox_dir : String
+      getter test_name : String
+      getter godot_exe : String
+
+      def initialize(@test_name : String)
+        @godot_exe = resolve_godot || "godot.exe"
+        unique_id = "#{::Time.utc.to_unix}_#{::Random.rand(1000..9999)}"
+        safe_name = @test_name.downcase.gsub(/[^a-z0-9_]+/, "_")
+        @sandbox_dir = File.expand_path("scratch/.cold_boot_#{safe_name}_#{unique_id}")
+        FileUtils.mkdir_p(@sandbox_dir)
+
+        # Write clean minimal project configuration
+        project_file = File.join(@sandbox_dir, "project.godot")
+        unless File.exists?(project_file)
+          File.write(project_file, "config_version=5\n\n[application]\nconfig/name=\"ColdBoot_#{safe_name}\"\n")
+        end
+      end
+
+      # Writes an isolated test script into the ephemeral sandbox.
+      # This code only exists for this test and will NEVER be replicated across the project.
+      def write_script(rel_path : String, code : String) : String
+        full_path = File.join(@sandbox_dir, rel_path)
+        FileUtils.mkdir_p(File.dirname(full_path))
+        File.write(full_path, code)
+        full_path
+      end
+
+      # Writes an isolated scene, resource, or configuration file into the sandbox.
+      def write_file(rel_path : String, content : String) : String
+        write_script(rel_path, content)
+      end
+
+      # Runs an isolated script in a dedicated headless Godot process with complete environment isolation.
+      def run_isolated_script(script_rel_path : String, args : Array(String) = [] of String) : TestResult
+        script_path = File.join(@sandbox_dir, script_rel_path)
+        env = {
+          "GODOT_HEADLESS"        => "1",
+          "LIBGL_ALWAYS_SOFTWARE" => "1",
+          "LAPIS_COLD_BOOT"       => "1",
+        }
+        run_args = [
+          "--headless",
+          "--rendering-driver", "opengl3",
+          "--audio-driver", "Dummy",
+          "--path", @sandbox_dir,
+          "--script", script_path,
+          "--"
+        ] + args
+
+        stdout = IO::Memory.new
+        stderr = IO::Memory.new
+        start = ::Time.instant
+        begin
+          status = Process.run(@godot_exe, run_args, env: env, output: stdout, error: stderr)
+          duration = (::Time.instant - start).total_milliseconds
+          out_str = stdout.to_s + "\n" + stderr.to_s
+          success = status.success?
+          status_str = success ? "PASS" : "FAIL"
+          TestResult.new("ColdBoot", @test_name, success, success ? out_str.strip : "Process exited with code #{status.exit_code}: #{out_str}", duration, status_str)
+        rescue ex
+          duration = (::Time.instant - start).total_milliseconds
+          TestResult.new("ColdBoot", @test_name, false, "Failed to launch isolated engine: #{ex.message}", duration, "FAIL")
+        end
+      end
+
+      # Executes the isolated project in headless runtime mode
+      def run_isolated_project(args : Array(String) = [] of String) : TestResult
+        env = {
+          "GODOT_HEADLESS"        => "1",
+          "LIBGL_ALWAYS_SOFTWARE" => "1",
+          "LAPIS_COLD_BOOT"       => "1",
+        }
+        run_args = [
+          "--headless",
+          "--rendering-driver", "opengl3",
+          "--audio-driver", "Dummy",
+          "--path", @sandbox_dir,
+        ] + args
+
+        stdout = IO::Memory.new
+        stderr = IO::Memory.new
+        start = ::Time.instant
+        begin
+          status = Process.run(@godot_exe, run_args, env: env, output: stdout, error: stderr)
+          duration = (::Time.instant - start).total_milliseconds
+          out_str = stdout.to_s + "\n" + stderr.to_s
+          success = status.success?
+          status_str = success ? "PASS" : "FAIL"
+          TestResult.new("ColdBoot", @test_name, success, success ? out_str.strip : "Process exited with code #{status.exit_code}: #{out_str}", duration, status_str)
+        rescue ex
+          duration = (::Time.instant - start).total_milliseconds
+          TestResult.new("ColdBoot", @test_name, false, "Failed to launch isolated engine project: #{ex.message}", duration, "FAIL")
+        end
+      end
+
+      # Guarantees that ephemeral sandbox files are completely wiped upon completion.
+      def cleanup : Void
+        FileUtils.rm_rf(@sandbox_dir) if Dir.exists?(@sandbox_dir)
+      end
+
+      private def resolve_godot : String?
+        if env_bin = ENV["GODOT_BIN"]? || ENV["GODOT"]?
+          return env_bin if File.exists?(env_bin)
+        end
+        ["./godot.exe", "../godot.exe", "godot.exe", "./godot", "../godot", "godot"].each do |c|
+          return c if File.exists?(c) || Process.find_executable(c)
+        end
+        nil
+      end
+    end
+
     class TestCase
       getter category : String
       getter name : String
       getter file : String
       getter line : Int32
-      @block : (Godot::Node -> Void)
+      getter? cold_boot : Bool
+      @block : (Godot::Node -> Void)?
+      @cold_boot_block : (ColdBootContext -> Void)?
 
-      def initialize(@category : String, @name : String, @file : String = "", @line : Int32 = 0, &@block : Godot::Node -> Void)
+      def initialize(@category : String, @name : String, @file : String = "", @line : Int32 = 0, @cold_boot : Bool = false, &block : Godot::Node -> Void)
+        @block = block
+        @cold_boot_block = nil
+      end
+
+      def self.new_cold_boot(category : String, name : String, file : String = "", line : Int32 = 0, &block : ColdBootContext -> Void)
+        tc = allocate
+        tc.initialize_cold_boot(category, name, file, line, &block)
+        tc
+      end
+
+      protected def initialize_cold_boot(@category : String, @name : String, @file : String = "", @line : Int32 = 0, &block : ColdBootContext -> Void)
+        @cold_boot = true
+        @block = nil
+        @cold_boot_block = block
       end
 
       def execute(context_node : Godot::Node) : TestResult
-        Godot.print("  [Running] [#{@category}] #{@name}...")
+        cb_str = @cold_boot ? " [COLD_BOOT]" : ""
+        Godot.print("  [Running] [#{@category}] #{@name}#{cb_str}...")
         start = ::Time.instant
         begin
           # Run before_each hooks
           Registry.run_before_each(@category, context_node)
 
-          @block.call(context_node)
+          if @cold_boot
+            boot_ctx = ColdBootContext.new("#{@category}_#{@name}")
+            begin
+              if cb = @cold_boot_block
+                cb.call(boot_ctx)
+              elsif blk = @block
+                blk.call(context_node)
+              end
+            ensure
+              boot_ctx.cleanup
+            end
+          else
+            @block.not_nil!.call(context_node)
+          end
 
           duration = (::Time.instant - start).total_milliseconds
           TestResult.new(@category, @name, true, "PASS", duration, "PASS")
@@ -1055,8 +1199,12 @@ module Lapis
       @@before_each_hooks = Hash(String, Array(Godot::Node -> Void)).new
       @@after_each_hooks = Hash(String, Array(Godot::Node -> Void)).new
 
-      def self.register(category : String, name : String, file : String = "", line : Int32 = 0, &block : Godot::Node -> Void)
-        @@tests << TestCase.new(category, name, file, line, &block)
+      def self.register(category : String, name : String, file : String = "", line : Int32 = 0, cold_boot : Bool = false, &block : Godot::Node -> Void)
+        @@tests << TestCase.new(category, name, file, line, cold_boot, &block)
+      end
+
+      def self.register_cold_boot(category : String, name : String, file : String = "", line : Int32 = 0, &block : ColdBootContext -> Void)
+        @@tests << TestCase.new_cold_boot(category, name, file, line, &block)
       end
 
       def self.before_all(category : String = "global", &block : Godot::Node -> Void)
@@ -1272,6 +1420,15 @@ macro test_suite(category, &block)
             {{exp.block.body}}
           end
         {% end %}
+      {% elsif exp.named_args && exp.named_args.any? { |a| a.name == "cold_boot" } && exp.named_args.find { |a| a.name == "cold_boot" }.value %}
+        ::Lapis::Test::Registry.register_cold_boot({{category}}, {{exp.args[0]}}, {{exp.filename}}, {{exp.line_number}}) do |_boot_|
+          {% if exp.block.args.size > 0 %}
+            {{exp.block.args[0]}} = _boot_
+          {% else %}
+            boot = _boot_
+          {% end %}
+          {{exp.block.body}}
+        end
       {% else %}
         ::Lapis::Test::Registry.register({{category}}, {{exp.args[0]}}, {{exp.filename}}, {{exp.line_number}}) do |node|
           root = node
@@ -1305,9 +1462,32 @@ macro test_suite(category, &block)
 end
 
 # Base test_case macro
-macro test_case(category, name, &block)
-  ::Lapis::Test::Registry.register({{category}}, {{name}}, __FILE__, __LINE__) do |node|
-    root = node
+macro test_case(category, name, cold_boot = false, &block)
+  {% if cold_boot %}
+    ::Lapis::Test::Registry.register_cold_boot({{category}}, {{name}}, __FILE__, __LINE__) do |_boot_|
+      {% if block.args.size > 0 %}
+        {{block.args[0]}} = _boot_
+      {% else %}
+        boot = _boot_
+      {% end %}
+      {{block.body}}
+    end
+  {% else %}
+    ::Lapis::Test::Registry.register({{category}}, {{name}}, __FILE__, __LINE__) do |node|
+      root = node
+      {{block.body}}
+    end
+  {% end %}
+end
+
+# Dedicated declarative cold boot test macro
+macro cold_boot_test(category, name, &block)
+  ::Lapis::Test::Registry.register_cold_boot({{category}}, {{name}}, __FILE__, __LINE__) do |_boot_|
+    {% if block.args.size > 0 %}
+      {{block.args[0]}} = _boot_
+    {% else %}
+      boot = _boot_
+    {% end %}
     {{block.body}}
   end
 end

@@ -62,12 +62,25 @@ func _init():
 
 	# 1. Global GDScript Classes (declared with class_name)
 	var global_classes = ProjectSettings.get_global_class_list()
+	var skip_prefixes = ["res://godot-src", "res://benchmarks", "res://examples", "res://template", "res://template-addon", "res://scratch"]
 	for c in global_classes:
 		var script_path = c["path"]
 		if not script_path.ends_with(".gd"):
 			continue
+		var should_skip = false
+		for sp in skip_prefixes:
+			if script_path.begins_with(sp):
+				should_skip = true
+				break
+		if should_skip:
+			continue
+		var raw_cls = c.get("class", "")
+		var raw_base = c.get("base", "Node")
+		if raw_cls.begins_with("_") or raw_base.begins_with("_"):
+			continue
+
 		processed_script_paths[script_path] = true
-		var cls_info = inspect_gdscript(c["class"], script_path, c.get("base", "Node"))
+		var cls_info = inspect_gdscript(raw_cls, script_path, raw_base)
 		if cls_info != null:
 			result["gdscript_classes"].append(cls_info)
 
@@ -261,11 +274,11 @@ func find_gdscripts_recursive(dir_path: String) -> Array:
 	var dir = DirAccess.open(dir_path)
 	if not dir:
 		return scripts
-
 	dir.list_dir_begin()
 	var file_name = dir.get_next()
 	while file_name != "":
-		if file_name.begins_with(".") or file_name == "addons" or file_name == "bin" or file_name == "lib" or file_name == "export" or file_name == "dist" or file_name.ends_with("dump_project_nodes.gd"):
+		var skip_dirs = ["addons", "bin", "lib", "export", "dist", "godot-src", "benchmarks", "examples", "template", "template-addon", "scratch", "docs"]
+		if file_name.begins_with(".") or file_name in skip_dirs or file_name.ends_with("dump_project_nodes.gd"):
 			file_name = dir.get_next()
 			continue
 

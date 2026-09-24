@@ -75,9 +75,9 @@ module Godot
     def monitoring_feeds=(val)
       set_monitoring_feeds(val)
     end
-    godot_signal camera_feed_added, Int64
-    godot_signal camera_feed_removed, Int64
-    godot_signal camera_feeds_updated
+    signal camera_feed_added, Int64
+    signal camera_feed_removed, Int64
+    signal camera_feeds_updated
   end
   class CameraTexture < Godot::Texture2D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -622,7 +622,7 @@ module Godot
     def follow_viewport_scale=(val : Number)
       set_follow_viewport_scale(val.to_f64)
     end
-    godot_signal visibility_changed
+    signal visibility_changed
   end
   class CanvasModulate < Godot::Node2D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -5706,13 +5706,13 @@ module Godot
     def structured_text_bidi_override_options=(val)
       set_structured_text_bidi_override_options(val)
     end
-    godot_signal text_set
-    godot_signal text_changed
-    godot_signal lines_edited_from, Int64, Int64
-    godot_signal caret_changed
-    godot_signal gutter_clicked, Int64, Int64
-    godot_signal gutter_added
-    godot_signal gutter_removed
+    signal text_set
+    signal text_changed
+    signal lines_edited_from, Int64, Int64
+    signal caret_changed
+    signal gutter_clicked, Int64, Int64
+    signal gutter_added
+    signal gutter_removed
   end
   class CodeEdit < Godot::TextEdit
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -6990,11 +6990,11 @@ module Godot
     def auto_brace_completion_pairs=(val)
       set_auto_brace_completion_pairs(val)
     end
-    godot_signal breakpoint_toggled, Int64
-    godot_signal code_completion_requested
-    godot_signal symbol_lookup, String, Int64, Int64
-    godot_signal symbol_validate, String
-    godot_signal symbol_hovered, String, Int64, Int64
+    signal breakpoint_toggled, Int64
+    signal code_completion_requested
+    signal symbol_lookup, String, Int64, Int64
+    signal symbol_validate, String
+    signal symbol_hovered, String, Int64, Int64
   end
   class SyntaxHighlighter < Godot::Resource
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -8326,9 +8326,9 @@ module Godot
     def presets_visible=(val)
       set_presets_visible(val)
     end
-    godot_signal color_changed, Color
-    godot_signal preset_added, Color
-    godot_signal preset_removed, Color
+    signal color_changed, Color
+    signal preset_added, Color
+    signal preset_removed, Color
   end
   class ColorPickerButton < Godot::Button
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -8429,9 +8429,9 @@ module Godot
     def edit_intensity=(val)
       set_edit_intensity(val)
     end
-    godot_signal color_changed, Color
-    godot_signal popup_closed
-    godot_signal picker_created
+    signal color_changed, Color
+    signal popup_closed
+    signal picker_created
   end
   class ColorRect < Godot::Control
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -10610,8 +10610,8 @@ module Godot
     def point_count=(val : Int)
       set_point_count(val.to_i64)
     end
-    godot_signal range_changed
-    godot_signal domain_changed
+    signal range_changed
+    signal domain_changed
   end
   class Curve2D < Godot::Resource
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -16600,7 +16600,7 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_pip_mode_set_auto_enter_on_background, @pointer, args.to_unsafe.as(Void**))
     end
-    godot_signal orientation_changed, SensorOrientation
+    signal orientation_changed, SensorOrientation
   end
   class DrawableTexture2D < Godot::Texture2D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -17125,8 +17125,8 @@ module Godot
     def transfer_channel=(val : Int)
       set_transfer_channel(val.to_i64)
     end
-    godot_signal peer_connected, Int64
-    godot_signal peer_disconnected, Int64
+    signal peer_connected, Int64
+    signal peer_disconnected, Int64
   end
   class ENetMultiplayerPeer < Godot::MultiplayerPeer
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -17590,10 +17590,10 @@ module Godot
     ensure
       Bridge.free_string(str_0)
     end
-    godot_signal started
-    godot_signal stopped
-    godot_signal breaked, Bool
-    godot_signal continued
+    signal started
+    signal stopped
+    signal breaked, Bool
+    signal continued
   end
   class MarginContainer < Godot::Container
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -17960,8 +17960,8 @@ module Godot
     def available_layouts=(val : Int)
       set_available_layouts(val.to_i64)
     end
-    godot_signal opened
-    godot_signal closed
+    signal opened
+    signal closed
   end
   class EditorExportPlatform < Godot::RefCounted
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -19760,10 +19760,10 @@ module Godot
     def current_path=(val)
       set_current_path(val)
     end
-    godot_signal file_selected, String
-    godot_signal files_selected, Pointer(Void)
-    godot_signal dir_selected, String
-    godot_signal filename_filter_changed, String
+    signal file_selected, String
+    signal files_selected, Pointer(Void)
+    signal dir_selected, String
+    signal filename_filter_changed, String
   end
   class EditorFileDialog < Godot::FileDialog
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -19902,12 +19902,12 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_reimport_files, @pointer, args.to_unsafe.as(Void**))
     end
-    godot_signal filesystem_changed
-    godot_signal script_classes_updated
-    godot_signal sources_changed, Bool
-    godot_signal resources_reimporting, Pointer(Void)
-    godot_signal resources_reimported, Pointer(Void)
-    godot_signal resources_reload, Pointer(Void)
+    signal filesystem_changed
+    signal script_classes_updated
+    signal sources_changed, Bool
+    signal resources_reimporting, Pointer(Void)
+    signal resources_reimported, Pointer(Void)
+    signal resources_reload, Pointer(Void)
   end
   class EditorFileSystemDirectory < Godot::Object
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -20380,8 +20380,8 @@ module Godot
     def tile_scroll_hint=(val)
       set_tile_scroll_hint(val)
     end
-    godot_signal scroll_started
-    godot_signal scroll_ended
+    signal scroll_started
+    signal scroll_ended
   end
   class EditorInspector < Godot::ScrollContainer
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -20484,15 +20484,15 @@ module Godot
     def get_property_clipboard() : Pointer(Void)
       self.class.get_property_clipboard()
     end
-    godot_signal property_selected, String
-    godot_signal property_keyed, String, Pointer(Void), Bool
-    godot_signal property_deleted, String
-    godot_signal resource_selected, Resource, String
-    godot_signal object_id_selected, Int64
-    godot_signal property_edited, String
-    godot_signal property_toggled, String, Bool
-    godot_signal edited_object_changed
-    godot_signal restart_requested
+    signal property_selected, String
+    signal property_keyed, String, Pointer(Void), Bool
+    signal property_deleted, String
+    signal resource_selected, Resource, String
+    signal object_id_selected, Int64
+    signal property_edited, String
+    signal property_toggled, String, Bool
+    signal edited_object_changed
+    signal restart_requested
   end
   class EditorInspectorPlugin < Godot::RefCounted
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -21918,12 +21918,12 @@ module Godot
       godot_bind(@@mb_get_plugin_version, "EditorPlugin", "get_plugin_version", 201670096_i64)
       godot_call_str("get_plugin_version")
     end
-    godot_signal scene_changed, Node
-    godot_signal scene_closed, String
-    godot_signal main_screen_changed, String
-    godot_signal resource_saved, Resource
-    godot_signal scene_saved, String
-    godot_signal project_settings_changed
+    signal scene_changed, Node
+    signal scene_closed, String
+    signal main_screen_changed, String
+    signal resource_saved, Resource
+    signal scene_saved, String
+    signal project_settings_changed
   end
   class EditorProperty < Godot::Container
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -22360,19 +22360,19 @@ module Godot
     def name_split_ratio=(val : Number)
       set_name_split_ratio(val.to_f64)
     end
-    godot_signal property_changed, String, Pointer(Void), String, Bool
-    godot_signal multiple_properties_changed, Pointer(Void), Pointer(Void)
-    godot_signal property_keyed, String
-    godot_signal property_deleted, String
-    godot_signal property_keyed_with_value, String, Pointer(Void)
-    godot_signal property_checked, String, Bool
-    godot_signal property_overridden
-    godot_signal property_favorited, String, Bool
-    godot_signal property_pinned, String, Bool
-    godot_signal property_can_revert_changed, String, Bool
-    godot_signal resource_selected, String, Resource
-    godot_signal object_id_selected, String, Int64
-    godot_signal selected, String, Int64
+    signal property_changed, String, Pointer(Void), String, Bool
+    signal multiple_properties_changed, Pointer(Void), Pointer(Void)
+    signal property_keyed, String
+    signal property_deleted, String
+    signal property_keyed_with_value, String, Pointer(Void)
+    signal property_checked, String, Bool
+    signal property_overridden
+    signal property_favorited, String, Bool
+    signal property_pinned, String, Bool
+    signal property_can_revert_changed, String, Bool
+    signal resource_selected, String, Resource
+    signal object_id_selected, String, Int64
+    signal selected, String, Int64
   end
   class EditorResourceConversionPlugin < Godot::RefCounted
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -22505,7 +22505,7 @@ module Godot
     def toggle_mode=(val)
       set_toggle_mode(val)
     end
-    godot_signal resource_selected, Resource, Bool
+    signal resource_selected, Resource, Bool
   end
   class EditorResourcePreview < Godot::Node
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -22570,7 +22570,7 @@ module Godot
     ensure
       Bridge.free_string(str_0)
     end
-    godot_signal preview_invalidated, String
+    signal preview_invalidated, String
   end
   class EditorResourcePreviewGenerator < Godot::RefCounted
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -22836,7 +22836,7 @@ module Godot
       godot_ptrcall(@@mb_get_transformable_selected_nodes, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
       ret_ptr
     end
-    godot_signal selection_changed
+    signal selection_changed
   end
   class EditorSettings < Godot::Resource
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -23094,7 +23094,7 @@ module Godot
     ensure
       Bridge.free_string(str_0)
     end
-    godot_signal settings_changed
+    signal settings_changed
   end
   class Range < Godot::Control
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -23327,8 +23327,8 @@ module Godot
     def allow_lesser=(val)
       set_allow_lesser(val)
     end
-    godot_signal value_changed, Float64
-    godot_signal changed
+    signal value_changed, Float64
+    signal changed
   end
   class EditorSpinSlider < Godot::Range
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -23560,11 +23560,11 @@ module Godot
     def deferred_drag_mode=(val)
       set_deferred_drag_mode_enabled(val)
     end
-    godot_signal grabbed
-    godot_signal ungrabbed
-    godot_signal updown_pressed
-    godot_signal value_focus_entered
-    godot_signal value_focus_exited
+    signal grabbed
+    signal ungrabbed
+    signal updown_pressed
+    signal value_focus_entered
+    signal value_focus_exited
   end
   class EditorSyntaxHighlighter < Godot::SyntaxHighlighter
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -23724,8 +23724,8 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_clear_history, @pointer, args.to_unsafe.as(Void**))
     end
-    godot_signal history_changed
-    godot_signal version_changed
+    signal history_changed
+    signal version_changed
   end
   class EditorVCSInterface < Godot::Object
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -29438,15 +29438,15 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_remove_resource_tooltip_plugin, @pointer, args.to_unsafe.as(Void**))
     end
-    godot_signal inherit, String
-    godot_signal resource_removed, Resource
-    godot_signal file_removed, String
-    godot_signal folder_removed, String
-    godot_signal files_moved, String, String
-    godot_signal folder_moved, String, String
-    godot_signal folder_color_changed
-    godot_signal selection_changed
-    godot_signal display_mode_changed
+    signal inherit, String
+    signal resource_removed, Resource
+    signal file_removed, String
+    signal folder_removed, String
+    signal files_moved, String, String
+    signal folder_moved, String, String
+    signal folder_color_changed
+    signal selection_changed
+    signal display_mode_changed
   end
   class FlowContainer < Godot::Container
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -29982,7 +29982,7 @@ module Godot
     def language=(val)
       set_language(val)
     end
-    godot_signal folding_changed, Bool
+    signal folding_changed, Bool
   end
   class FoldableGroup < Godot::Resource
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -30029,7 +30029,7 @@ module Godot
     def allow_folding_all=(val)
       set_allow_folding_all(val)
     end
-    godot_signal expanded, FoldableContainer
+    signal expanded, FoldableContainer
   end
   class Font < Godot::Resource
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -32422,9 +32422,9 @@ module Godot
     ensure
       Bridge.free_string(str_0)
     end
-    godot_signal extensions_reloaded
-    godot_signal extension_loaded, GDExtension
-    godot_signal extension_unloading, GDExtension
+    signal extensions_reloaded
+    signal extension_loaded, GDExtension
+    signal extension_unloading, GDExtension
   end
   class Script < Godot::Resource
     def initialize(pointer : Void* = Pointer(Void).null)

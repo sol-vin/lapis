@@ -517,8 +517,8 @@ module Godot
       godot_bind(@@mb_cancel_free, "Object", "cancel_free", 3218959716_i64)
       godot_ptrcall_void(@@mb_cancel_free, @pointer, Pointer(Pointer(Void)).null)
     end
-    godot_signal script_changed
-    godot_signal property_list_changed
+    signal script_changed
+    signal property_list_changed
   end
   class RefCounted < Godot::Object
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -2711,17 +2711,17 @@ module Godot
     def editor_description=(val)
       set_editor_description(val)
     end
-    godot_signal ready
-    godot_signal renamed
-    godot_signal tree_entered
-    godot_signal tree_exiting
-    godot_signal tree_exited
-    godot_signal child_entered_tree, Node
-    godot_signal child_exiting_tree, Node
-    godot_signal child_order_changed
-    godot_signal replacing_by, Node
-    godot_signal editor_description_changed, Node
-    godot_signal editor_state_changed
+    signal ready
+    signal renamed
+    signal tree_entered
+    signal tree_exiting
+    signal tree_exited
+    signal child_entered_tree, Node
+    signal child_exiting_tree, Node
+    signal child_order_changed
+    signal replacing_by, Node
+    signal editor_description_changed, Node
+    signal editor_state_changed
   end
   class Viewport < Godot::Node
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -4315,8 +4315,8 @@ module Godot
     def oversampling_override=(val : Number)
       set_oversampling_override(val.to_f64)
     end
-    godot_signal size_changed
-    godot_signal gui_focus_changed, Control
+    signal size_changed
+    signal gui_focus_changed, Control
   end
   class Window < Godot::Viewport
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -5979,22 +5979,22 @@ module Godot
     def theme_type_variation=(val)
       set_theme_type_variation(val)
     end
-    godot_signal window_input, InputEvent
-    godot_signal nonclient_window_input, InputEvent
-    godot_signal files_dropped, Pointer(Void)
-    godot_signal mouse_entered
-    godot_signal mouse_exited
-    godot_signal focus_entered
-    godot_signal focus_exited
-    godot_signal close_requested
-    godot_signal go_back_requested
-    godot_signal visibility_changed
-    godot_signal about_to_popup
-    godot_signal theme_changed
-    godot_signal dpi_changed
-    godot_signal titlebar_changed
-    godot_signal title_changed
-    godot_signal output_max_linear_value_changed, Float64
+    signal window_input, InputEvent
+    signal nonclient_window_input, InputEvent
+    signal files_dropped, Pointer(Void)
+    signal mouse_entered
+    signal mouse_exited
+    signal focus_entered
+    signal focus_exited
+    signal close_requested
+    signal go_back_requested
+    signal visibility_changed
+    signal about_to_popup
+    signal theme_changed
+    signal dpi_changed
+    signal titlebar_changed
+    signal title_changed
+    signal output_max_linear_value_changed, Float64
   end
   class AcceptDialog < Godot::Window
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -6181,9 +6181,9 @@ module Godot
     def dialog_autowrap=(val)
       set_autowrap(val)
     end
-    godot_signal confirmed
-    godot_signal canceled
-    godot_signal custom_action, String
+    signal confirmed
+    signal canceled
+    signal custom_action, String
   end
   class AccessibilityServer < Godot::Object
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -7697,7 +7697,7 @@ module Godot
     def visibility_parent=(val)
       set_visibility_parent(val)
     end
-    godot_signal visibility_changed
+    signal visibility_changed
   end
   class SkeletonModifier3D < Godot::Node3D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -7792,7 +7792,7 @@ module Godot
     def influence=(val : Number)
       set_influence(val.to_f64)
     end
-    godot_signal modification_processed
+    signal modification_processed
   end
   class BoneConstraint3D < Godot::SkeletonModifier3D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -9275,9 +9275,9 @@ module Godot
     def use_parent_material=(val)
       set_use_parent_material(val)
     end
-    godot_signal visibility_changed
-    godot_signal hidden
-    godot_signal item_rect_changed
+    signal visibility_changed
+    signal hidden
+    signal item_rect_changed
   end
   class Node2D < Godot::CanvasItem
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -9897,11 +9897,11 @@ module Godot
     def input_pickable=(val)
       set_pickable(val)
     end
-    godot_signal input_event, Node, InputEvent, Int64
-    godot_signal mouse_entered
-    godot_signal mouse_exited
-    godot_signal mouse_shape_entered, Int64
-    godot_signal mouse_shape_exited, Int64
+    signal input_event, Node, InputEvent, Int64
+    signal mouse_entered
+    signal mouse_exited
+    signal mouse_shape_entered, Int64
+    signal mouse_shape_exited, Int64
   end
   class PhysicsBody2D < Godot::CollisionObject2D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -10416,9 +10416,9 @@ module Godot
     def input_capture_on_drag=(val)
       set_capture_input_on_drag(val)
     end
-    godot_signal input_event, Node, InputEvent, Vector3, Vector3, Int64
-    godot_signal mouse_entered
-    godot_signal mouse_exited
+    signal input_event, Node, InputEvent, Vector3, Vector3, Int64
+    signal mouse_entered
+    signal mouse_exited
   end
   class PhysicsBody3D < Godot::CollisionObject3D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -10994,11 +10994,11 @@ module Godot
     def flip_v=(val)
       set_flip_v(val)
     end
-    godot_signal sprite_frames_changed
-    godot_signal animation_changed
-    godot_signal frame_changed
-    godot_signal animation_looped
-    godot_signal animation_finished
+    signal sprite_frames_changed
+    signal animation_changed
+    signal frame_changed
+    signal animation_looped
+    signal animation_finished
   end
   class VisualInstance3D < Godot::Node3D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -12169,11 +12169,11 @@ module Godot
     def speed_scale=(val : Number)
       set_speed_scale(val.to_f64)
     end
-    godot_signal sprite_frames_changed
-    godot_signal animation_changed
-    godot_signal frame_changed
-    godot_signal animation_looped
-    godot_signal animation_finished
+    signal sprite_frames_changed
+    signal animation_changed
+    signal frame_changed
+    signal animation_looped
+    signal animation_finished
   end
   class Resource < Godot::RefCounted
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -12399,8 +12399,8 @@ module Godot
     def resource_scene_unique_id=(val)
       set_scene_unique_id(val)
     end
-    godot_signal changed
-    godot_signal setup_local_to_scene_requested
+    signal changed
+    signal setup_local_to_scene_requested
   end
   class Texture < Godot::Resource
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -13722,10 +13722,10 @@ module Godot
       godot_bind(@@mb_get_animation_list_size, "AnimationLibrary", "get_animation_list_size", 3905245786_i64)
       godot_ptrcall_int(@@mb_get_animation_list_size, @pointer, Pointer(Pointer(Void)).null)
     end
-    godot_signal animation_added, String
-    godot_signal animation_removed, String
-    godot_signal animation_renamed, String, String
-    godot_signal animation_changed, String
+    signal animation_added, String
+    signal animation_removed, String
+    signal animation_renamed, String, String
+    signal animation_changed, String
   end
   class AnimationMixer < Godot::Node
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -14166,13 +14166,13 @@ module Godot
     def callback_mode_discrete=(val : Int)
       set_callback_mode_discrete(val.to_i64)
     end
-    godot_signal animation_list_changed
-    godot_signal animation_libraries_updated
-    godot_signal animation_finished, String
-    godot_signal animation_started, String
-    godot_signal caches_cleared
-    godot_signal mixer_applied
-    godot_signal mixer_updated
+    signal animation_list_changed
+    signal animation_libraries_updated
+    signal animation_finished, String
+    signal animation_started, String
+    signal caches_cleared
+    signal mixer_applied
+    signal mixer_updated
   end
   class AnimationNode < Godot::Resource
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -14426,10 +14426,10 @@ module Godot
     def filters=(val)
       set_filters(val)
     end
-    godot_signal tree_changed
-    godot_signal node_updated, Int64
-    godot_signal animation_node_renamed, Int64, String, String
-    godot_signal animation_node_removed, Int64, String
+    signal tree_changed
+    signal node_updated, Int64
+    signal animation_node_renamed, Int64, String, String
+    signal animation_node_removed, Int64, String
   end
   class AnimationNodeSync < Godot::AnimationNode
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -15393,7 +15393,7 @@ module Godot
     def cyclic_length=(val : Number)
       set_cyclic_length(val.to_f64)
     end
-    godot_signal triangles_updated
+    signal triangles_updated
   end
   class AnimationNodeBlendTree < Godot::AnimationRootNode
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -15537,7 +15537,7 @@ module Godot
     def graph_offset=(val)
       set_graph_offset(val)
     end
-    godot_signal node_changed, String
+    signal node_changed, String
   end
   class AnimationNodeExtension < Godot::AnimationNode
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -15595,23 +15595,23 @@ module Godot
     def initialize(pointer : Void* = Pointer(Void).null)
       super(pointer)
     end
-    godot_signal closest_point_changed, String
+    signal closest_point_changed, String
   end
   class AnimationNodeObserverOneShot < Godot::AnimationNodeObserver
     def initialize(pointer : Void* = Pointer(Void).null)
       super(pointer)
     end
-    godot_signal started
-    godot_signal fade_in_finished
-    godot_signal fade_out_started
-    godot_signal finished
+    signal started
+    signal fade_in_finished
+    signal fade_out_started
+    signal finished
   end
   class AnimationNodeObserverTransition < Godot::AnimationNodeObserver
     def initialize(pointer : Void* = Pointer(Void).null)
       super(pointer)
     end
-    godot_signal state_started, String
-    godot_signal state_finished, String
+    signal state_started, String
+    signal state_finished, String
   end
   class AnimationNodeOneShot < Godot::AnimationNodeSync
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -16267,8 +16267,8 @@ module Godot
       godot_ptrcall(@@mb_get_travel_path, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
       ret_ptr
     end
-    godot_signal state_started, String
-    godot_signal state_finished, String
+    signal state_started, String
+    signal state_finished, String
   end
   class AnimationNodeStateMachineTransition < Godot::Resource
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -16496,7 +16496,7 @@ module Godot
     def advance_expression=(val)
       set_advance_expression(val)
     end
-    godot_signal advance_condition_changed
+    signal advance_condition_changed
   end
   class AnimationNodeSub2 < Godot::AnimationNodeSync
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -17356,8 +17356,8 @@ module Godot
     def clear_cache_on_stop=(val)
       set_clear_cache_on_stop_enabled(val)
     end
-    godot_signal current_animation_changed, String
-    godot_signal animation_changed, String, String
+    signal current_animation_changed, String
+    signal animation_changed, String, String
   end
   class AnimationTree < Godot::AnimationMixer
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -17448,7 +17448,7 @@ module Godot
     def anim_player=(val)
       set_animation_player(val)
     end
-    godot_signal animation_player_changed
+    signal animation_player_changed
   end
   class Area2D < Godot::CollisionObject2D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -17872,14 +17872,14 @@ module Godot
     def audio_bus_name=(val)
       set_audio_bus_name(val)
     end
-    godot_signal body_shape_entered, Int64, Node2D, Int64, Int64
-    godot_signal body_shape_exited, Int64, Node2D, Int64, Int64
-    godot_signal body_entered, Node2D
-    godot_signal body_exited, Node2D
-    godot_signal area_shape_entered, Int64, Area2D, Int64, Int64
-    godot_signal area_shape_exited, Int64, Area2D, Int64, Int64
-    godot_signal area_entered, Area2D
-    godot_signal area_exited, Area2D
+    signal body_shape_entered, Int64, Node2D, Int64, Int64
+    signal body_shape_exited, Int64, Node2D, Int64, Int64
+    signal body_entered, Node2D
+    signal body_exited, Node2D
+    signal area_shape_entered, Int64, Area2D, Int64, Int64
+    signal area_shape_exited, Int64, Area2D, Int64, Int64
+    signal area_entered, Area2D
+    signal area_exited, Area2D
   end
   class Area3D < Godot::CollisionObject3D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -18465,14 +18465,14 @@ module Godot
     def reverb_bus_uniformity=(val : Number)
       set_reverb_uniformity(val.to_f64)
     end
-    godot_signal body_shape_entered, Int64, Node3D, Int64, Int64
-    godot_signal body_shape_exited, Int64, Node3D, Int64, Int64
-    godot_signal body_entered, Node3D
-    godot_signal body_exited, Node3D
-    godot_signal area_shape_entered, Int64, Area3D, Int64, Int64
-    godot_signal area_shape_exited, Int64, Area3D, Int64, Int64
-    godot_signal area_entered, Area3D
-    godot_signal area_exited, Area3D
+    signal body_shape_entered, Int64, Node3D, Int64, Int64
+    signal body_shape_exited, Int64, Node3D, Int64, Int64
+    signal body_entered, Node3D
+    signal body_exited, Node3D
+    signal area_shape_entered, Int64, Area3D, Int64, Int64
+    signal area_shape_exited, Int64, Area3D, Int64, Int64
+    signal area_entered, Area3D
+    signal area_exited, Area3D
   end
   class Light3D < Godot::VisualInstance3D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -21672,16 +21672,16 @@ module Godot
     def theme_type_variation=(val)
       set_theme_type_variation(val)
     end
-    godot_signal resized
-    godot_signal gui_input, InputEvent
-    godot_signal mouse_entered
-    godot_signal mouse_exited
-    godot_signal focus_entered
-    godot_signal focus_exited
-    godot_signal size_flags_changed
-    godot_signal maximum_size_changed
-    godot_signal minimum_size_changed
-    godot_signal theme_changed
+    signal resized
+    signal gui_input, InputEvent
+    signal mouse_entered
+    signal mouse_exited
+    signal focus_entered
+    signal focus_exited
+    signal size_flags_changed
+    signal maximum_size_changed
+    signal minimum_size_changed
+    signal theme_changed
   end
   class Container < Godot::Control
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -21731,8 +21731,8 @@ module Godot
     def accessibility_region=(val)
       set_accessibility_region(val)
     end
-    godot_signal pre_sort_children
-    godot_signal sort_children
+    signal pre_sort_children
+    signal sort_children
   end
   class AspectRatioContainer < Godot::Container
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -24370,8 +24370,8 @@ module Godot
     def playback_speed_scale=(val : Number)
       set_playback_speed_scale(val.to_f64)
     end
-    godot_signal bus_layout_changed
-    godot_signal bus_renamed, Int64, String, String
+    signal bus_layout_changed
+    signal bus_renamed, Int64, String, String
   end
   class AudioStream < Godot::Resource
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -24427,7 +24427,7 @@ module Godot
     def meta_stream?() : Bool
       is_meta_stream()
     end
-    godot_signal parameter_list_changed
+    signal parameter_list_changed
   end
   class AudioStreamGenerator < Godot::AudioStream
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -25706,7 +25706,7 @@ module Godot
     def playback_type=(val : Int)
       set_playback_type(val.to_i64)
     end
-    godot_signal finished
+    signal finished
   end
   class AudioStreamPlayer2D < Godot::Node2D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -26074,7 +26074,7 @@ module Godot
     def playback_type=(val : Int)
       set_playback_type(val.to_i64)
     end
-    godot_signal finished
+    signal finished
   end
   class AudioStreamPlayer3D < Godot::Node3D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -26629,7 +26629,7 @@ module Godot
     def doppler_tracking=(val : Int)
       set_doppler_tracking(val.to_i64)
     end
-    godot_signal finished
+    signal finished
   end
   class AudioStreamPlaylist < Godot::AudioStream
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -27779,7 +27779,7 @@ module Godot
     def initialize(pointer : Void* = Pointer(Void).null)
       super(pointer)
     end
-    godot_signal finished
+    signal finished
   end
   class AwaitTweener < Godot::Tweener
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -28156,10 +28156,10 @@ module Godot
     def shortcut_in_tooltip=(val)
       set_shortcut_in_tooltip(val)
     end
-    godot_signal pressed
-    godot_signal button_up
-    godot_signal button_down
-    godot_signal toggled, Bool
+    signal pressed
+    signal button_up
+    signal button_down
+    signal toggled, Bool
   end
   class Material < Godot::Resource
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -31093,8 +31093,8 @@ module Godot
     def profile=(val)
       set_profile(val)
     end
-    godot_signal bone_map_updated
-    godot_signal profile_updated
+    signal bone_map_updated
+    signal profile_updated
   end
   class BoneSpaceAdjuster3D < Godot::SkeletonModifier3D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -32369,7 +32369,7 @@ module Godot
     def allow_unpress=(val)
       set_allow_unpress(val)
     end
-    godot_signal pressed, BaseButton
+    signal pressed, BaseButton
   end
   class IKModifier3D < Godot::SkeletonModifier3D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -34068,7 +34068,7 @@ module Godot
     def anim_offset_curve=(val)
       set_param_curve(11_i64, val)
     end
-    godot_signal finished
+    signal finished
   end
   class CPUParticles3D < Godot::GeometryInstance3D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -35398,7 +35398,7 @@ module Godot
     def anim_offset_curve=(val)
       set_param_curve(11_i64, val)
     end
-    godot_signal finished
+    signal finished
   end
   class CSGShape3D < Godot::GeometryInstance3D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -38513,7 +38513,7 @@ module Godot
     def formats
       get_formats
     end
-    godot_signal frame_changed
-    godot_signal format_changed
+    signal frame_changed
+    signal format_changed
   end
 end

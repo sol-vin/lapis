@@ -3,7 +3,32 @@ module Godot
   # Node Idiomatic & Generic Extensions
   # ===========================================================================
   class Node
+    alias Node = Godot::Node
     getter local_groups : Set(String) = Set(String).new
+    @local_children : Array(Node)?
+
+    # Returns the array of child nodes (locally tracked if standalone/unparented)
+    def children : Array(Node)
+      @local_children ||= Array(Node).new
+    end
+
+    # Adds a child node. Falls back to local children array when running standalone.
+    def add_child(node : Node, force_readable_name : Bool = false, internal : InternalMode | Int = 0) : Void
+      if @pointer.null?
+        children << node
+        return
+      end
+      previous_def(node, force_readable_name, internal)
+    end
+
+    # Removes a child node. Falls back to local children array when running standalone.
+    def remove_child(node : Node) : Void
+      if @pointer.null?
+        children.delete(node)
+        return
+      end
+      previous_def(node)
+    end
 
     # Adds this node to the specified group (with default non-persistent flag)
     def add_to_group(group : String, persistent : Bool = false) : Void

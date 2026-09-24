@@ -542,6 +542,16 @@ module Godot
     await(target, signal_name, timeout_sec.to_f64)
   end
 
+  # Emits a typed signal with compile-time type safety.
+  def self.emit(signal : Godot::TypedSignal(*T), *args : *T) : Void forall T
+    signal.emit(*args)
+  end
+
+  # Emits a bound signal dynamically on its target object.
+  def self.emit(signal : Godot::BoundSignal, *args) : Void
+    signal.emit(*args)
+  end
+
   # Base class for all Godot engine objects and extension classes.
   # Provides identity, lifecycle dispatch hooks, and signal emission functionality.
   class Object

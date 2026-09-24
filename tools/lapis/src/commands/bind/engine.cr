@@ -585,9 +585,9 @@ module Lapis
                 t_info[:crystal_type]
               end
               if sig_arg_types.empty?
-                io.puts "    godot_signal #{clean_sig_name}"
+                io.puts "    signal #{clean_sig_name}"
               else
-                io.puts "    godot_signal #{clean_sig_name}, #{sig_arg_types.join(", ")}"
+                io.puts "    signal #{clean_sig_name}, #{sig_arg_types.join(", ")}"
               end
             end
           end

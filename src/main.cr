@@ -142,6 +142,121 @@ node ToolTester3D < Godot::Node3D do
 end
 
 # =============================================================================
+# Crystal Benchmark Runner Node (In-Engine 1-to-1 Performance Testing)
+# =============================================================================
+
+@[Tool]
+node CrystalBenchmarkRunner < Godot::Node do
+  @[Export]
+  property node_count : Int32 = 20000
+
+  @[Export]
+  property mat_count : Int32 = 10000
+
+  @[Export]
+  property sig_count : Int32 = 50000
+
+  @[Export]
+  property node_bench_time : Float64 = 0.0
+
+  @[Export]
+  property mat_bench_time : Float64 = 0.0
+
+  @[Export]
+  property sig_bench_time : Float64 = 0.0
+
+  @[Export]
+  property run_all_benchmarks : Bool = false
+
+  def run_all_benchmarks=(val : Bool)
+    return unless val
+    @node_bench_time = bench_node_lifecycle(@node_count.to_i64)
+    @mat_bench_time = bench_material_resources(@mat_count.to_i64)
+    @sig_bench_time = bench_signals(@sig_count.to_i64)
+  end
+
+  # 1. Node Lifecycle
+  def bench_node_lifecycle(count : Int64) : Float64
+    root = Godot.create(Godot::Node2D)
+    start_time = ::Time.instant
+
+    count.times do |i|
+      child = Godot.create(Godot::Node2D)
+      child.set_position(Godot::Vector2.new(i.to_f32, (i * 2).to_f32))
+      child.set_rotation(0.5_f64)
+      child.set_scale(Godot::Vector2.new(1.5_f32, 1.5_f32))
+      child.set_visible(true)
+      root.add_child(child)
+      root.remove_child(child)
+      child.destroy
+    end
+
+    dur = (::Time.instant - start_time).total_milliseconds
+    root.destroy
+    dur
+  end
+
+  # 2. Material & Resources Allocation
+  def bench_material_resources(count : Int64) : Float64
+    start_time = ::Time.instant
+    materials = Array(Godot::StandardMaterial3D).new(count.to_i)
+
+    count.times do
+      mat = Godot.create(Godot::StandardMaterial3D)
+      mat.set_albedo(Godot::Color.new(0.2, 0.5, 0.8, 1.0))
+      mat.set_roughness(0.35_f64)
+      mat.set_metallic(0.75_f64)
+      mat.set_feature(Godot::BaseMaterial3D::Feature::FeatureEmission, true)
+      mat.set_emission(Godot::Color.new(1.0, 0.9, 0.1, 1.0))
+      dup = mat.call("duplicate")
+      materials << mat
+    end
+
+    dur = (::Time.instant - start_time).total_milliseconds
+    materials.clear
+    dur
+  end
+
+  # 3. Signals Connection & Emission
+  def bench_signals(count : Int64) : Float64
+    emitter = Godot.create(Godot::Node)
+    received = 0_i64
+
+    emitter.signal("renamed").connect do
+      received += 1
+    end
+
+    start_time = ::Time.instant
+    count.times do
+      emitter.call("emit_signal", "renamed")
+    end
+
+    dur = (::Time.instant - start_time).total_milliseconds
+    emitter.destroy
+    dur
+  end
+
+  # 4. Transform Math
+  def bench_transform_math(count : Int64) : Float64
+    start_time = ::Time.instant
+    t = Godot::Transform3D::IDENTITY
+    v = Godot::Vector3.new(1.0_f32, 2.0_f32, 3.0_f32)
+    axis = Godot::Vector3.new(0.0_f32, 1.0_f32, 0.0_f32)
+    sum = 0.0_f64
+
+    count.times do
+      t = t.translated(v * 0.001_f32)
+      t = t.rotated(axis, 0.005_f64)
+      proj = t * v
+      sum += (proj.x + proj.y + proj.z).to_f64
+    end
+
+    dur = (::Time.instant - start_time).total_milliseconds
+    dur
+  end
+end
+
+# =============================================================================
 # Runtime Test Runner UI Panel
 # =============================================================================
 
@@ -403,3 +518,4 @@ require "../spec/suites/test_virtual_methods_dispatch"
 require "../spec/suites/test_concurrency_multi_thread_gc"
 require "../spec/suites/test_channel_exhaustive"
 require "../spec/suites/test_gdscript_crystal_interop_deep"
+require "../spec/suites/test_cold_boot"

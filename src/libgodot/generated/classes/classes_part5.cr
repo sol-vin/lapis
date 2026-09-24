@@ -9923,8 +9923,8 @@ module Godot
     def render_loop_enabled=(val)
       set_render_loop_enabled(val)
     end
-    godot_signal frame_pre_draw
-    godot_signal frame_post_draw
+    signal frame_pre_draw
+    signal frame_post_draw
   end
   class ResourceFormatLoader < Godot::RefCounted
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -12410,10 +12410,10 @@ module Godot
     def structured_text_bidi_override_options=(val)
       set_structured_text_bidi_override_options(val)
     end
-    godot_signal meta_clicked, Pointer(Void)
-    godot_signal meta_hover_started, Pointer(Void)
-    godot_signal meta_hover_ended, Pointer(Void)
-    godot_signal finished
+    signal meta_clicked, Pointer(Void)
+    signal meta_hover_started, Pointer(Void)
+    signal meta_hover_ended, Pointer(Void)
+    signal finished
   end
   class RigidBody3D < Godot::PhysicsBody3D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -13107,11 +13107,11 @@ module Godot
     def constant_torque=(val)
       set_constant_torque(val)
     end
-    godot_signal body_shape_entered, Int64, Node, Int64, Int64
-    godot_signal body_shape_exited, Int64, Node, Int64, Int64
-    godot_signal body_entered, Node
-    godot_signal body_exited, Node
-    godot_signal sleeping_state_changed
+    signal body_shape_entered, Int64, Node, Int64, Int64
+    signal body_shape_exited, Int64, Node, Int64, Int64
+    signal body_entered, Node
+    signal body_exited, Node
+    signal sleeping_state_changed
   end
   class RootMotionView < Godot::VisualInstance3D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -13493,9 +13493,9 @@ module Godot
     def max_delta_packet_size=(val : Int)
       set_max_delta_packet_size(val.to_i64)
     end
-    godot_signal peer_authenticating, Int64
-    godot_signal peer_authentication_failed, Int64
-    godot_signal peer_packet, Int64, Pointer(Void)
+    signal peer_authenticating, Int64
+    signal peer_authentication_failed, Int64
+    signal peer_packet, Int64, Pointer(Void)
   end
   class ScenePaint2DEditor < Godot::Control
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -13532,7 +13532,7 @@ module Godot
       godot_bind(@@mb_get_painted_scene, "ScenePaint2DEditor", "get_painted_scene", 3536679914_i64)
       godot_ptrcall_obj(@@mb_get_painted_scene, @pointer, Pointer(Pointer(Void)).null, Node2D)
     end
-    godot_signal scene_painted, Node2D
+    signal scene_painted, Node2D
   end
   class SceneReplicationConfig < Godot::Resource
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -14438,15 +14438,15 @@ module Godot
     def physics_interpolation=(val)
       set_physics_interpolation_enabled(val)
     end
-    godot_signal tree_changed
-    godot_signal scene_changed
-    godot_signal tree_process_mode_changed
-    godot_signal node_added, Node
-    godot_signal node_removed, Node
-    godot_signal node_renamed, Node
-    godot_signal node_configuration_warning_changed, Node
-    godot_signal process_frame
-    godot_signal physics_frame
+    signal tree_changed
+    signal scene_changed
+    signal tree_process_mode_changed
+    signal node_added, Node
+    signal node_removed, Node
+    signal node_renamed, Node
+    signal node_configuration_warning_changed, Node
+    signal process_frame
+    signal physics_frame
   end
   class SceneTreeTimer < Godot::RefCounted
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -14473,7 +14473,7 @@ module Godot
     def time_left=(val : Number)
       set_time_left(val.to_f64)
     end
-    godot_signal timeout
+    signal timeout
   end
   class ScriptBacktrace < Godot::RefCounted
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -14647,7 +14647,7 @@ module Godot
       Bridge.free_string(str_0)
       Bridge.free_string(str_1)
     end
-    godot_signal script_created, Script
+    signal script_created, Script
   end
   class ScriptEditor < Godot::EditorDock
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -14774,8 +14774,8 @@ module Godot
     ensure
       Bridge.free_string(str_0)
     end
-    godot_signal editor_script_changed, Script
-    godot_signal script_close, Script
+    signal editor_script_changed, Script
+    signal script_close, Script
   end
   class ScriptEditorBase < Godot::VBoxContainer
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -14794,16 +14794,16 @@ module Godot
       godot_bind(@@mb_get_base_editor, "ScriptEditorBase", "get_base_editor", 2783021301_i64)
       godot_ptrcall_obj(@@mb_get_base_editor, @pointer, Pointer(Pointer(Void)).null, Control)
     end
-    godot_signal name_changed
-    godot_signal search_in_files_requested, String
-    godot_signal request_help, String
-    godot_signal request_open_script_at_line, Godot::Object, Int64
-    godot_signal go_to_help, String
-    godot_signal replace_in_files_requested, String
-    godot_signal go_to_method, Godot::Object, String
-    godot_signal request_save_history
-    godot_signal request_save_previous_state, Pointer(Void)
-    godot_signal edited_script_changed
+    signal name_changed
+    signal search_in_files_requested, String
+    signal request_help, String
+    signal request_open_script_at_line, Godot::Object, Int64
+    signal go_to_help, String
+    signal replace_in_files_requested, String
+    signal go_to_method, Godot::Object, String
+    signal request_save_history
+    signal request_save_previous_state, Pointer(Void)
+    signal edited_script_changed
   end
   class ScriptExtension < Godot::Script
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -16178,7 +16178,7 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_get_bone_local_pose_override, @pointer, args.to_unsafe.as(Void**), Transform2D)
     end
-    godot_signal bone_setup_changed
+    signal bone_setup_changed
   end
   class Skeleton3D < Godot::Node3D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -16728,12 +16728,12 @@ module Godot
     def animate_physical_bones=(val)
       set_animate_physical_bones(val)
     end
-    godot_signal rest_updated
-    godot_signal pose_updated
-    godot_signal skeleton_updated
-    godot_signal bone_enabled_changed, Int64
-    godot_signal bone_list_changed
-    godot_signal show_rest_only_changed
+    signal rest_updated
+    signal pose_updated
+    signal skeleton_updated
+    signal bone_enabled_changed, Int64
+    signal bone_list_changed
+    signal show_rest_only_changed
   end
   class SkeletonIK3D < Godot::SkeletonModifier3D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -18637,7 +18637,7 @@ module Godot
     def bone_size=(val : Int)
       set_bone_size(val.to_i64)
     end
-    godot_signal profile_updated
+    signal profile_updated
   end
   class SkeletonProfileHumanoid < Godot::SkeletonProfile
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -21485,8 +21485,8 @@ module Godot
     def region_filter_clip_enabled=(val)
       set_region_filter_clip_enabled(val)
     end
-    godot_signal frame_changed
-    godot_signal texture_changed
+    signal frame_changed
+    signal texture_changed
   end
   class Sprite3D < Godot::SpriteBase3D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -21647,8 +21647,8 @@ module Godot
     def region_rect=(val)
       set_region_rect(val)
     end
-    godot_signal frame_changed
-    godot_signal texture_changed
+    signal frame_changed
+    signal texture_changed
   end
   class SpriteFrames < Godot::Resource
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -22008,7 +22008,7 @@ module Godot
     def visible=(val)
       set_visible(val)
     end
-    godot_signal pressed, Int64, Vector2i
+    signal pressed, Int64, Vector2i
   end
   class StreamPeer < Godot::RefCounted
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -25198,14 +25198,14 @@ module Godot
     def tab_count=(val : Int)
       set_tab_count(val.to_i64)
     end
-    godot_signal tab_selected, Int64
-    godot_signal tab_changed, Int64
-    godot_signal tab_clicked, Int64
-    godot_signal tab_rmb_clicked, Int64
-    godot_signal tab_close_pressed, Int64
-    godot_signal tab_button_pressed, Int64
-    godot_signal tab_hovered, Int64
-    godot_signal active_tab_rearranged, Int64
+    signal tab_selected, Int64
+    signal tab_changed, Int64
+    signal tab_clicked, Int64
+    signal tab_rmb_clicked, Int64
+    signal tab_close_pressed, Int64
+    signal tab_button_pressed, Int64
+    signal tab_hovered, Int64
+    signal active_tab_rearranged, Int64
   end
   class TabContainer < Godot::Container
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -25783,13 +25783,13 @@ module Godot
     def deselect_enabled=(val)
       set_deselect_enabled(val)
     end
-    godot_signal active_tab_rearranged, Int64
-    godot_signal tab_changed, Int64
-    godot_signal tab_clicked, Int64
-    godot_signal tab_hovered, Int64
-    godot_signal tab_selected, Int64
-    godot_signal tab_button_pressed, Int64
-    godot_signal pre_popup_pressed
+    signal active_tab_rearranged, Int64
+    signal tab_changed, Int64
+    signal tab_clicked, Int64
+    signal tab_hovered, Int64
+    signal tab_selected, Int64
+    signal tab_button_pressed, Int64
+    signal pre_popup_pressed
   end
   class TextLine < Godot::RefCounted
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -30189,8 +30189,8 @@ module Godot
       godot_bind(@@mb_get_primary_interface, "TextServerManager", "get_primary_interface", 905850878_i64)
       godot_ptrcall_obj(@@mb_get_primary_interface, @pointer, Pointer(Pointer(Void)).null, TextServer)
     end
-    godot_signal interface_added, String
-    godot_signal interface_removed, String
+    signal interface_added, String
+    signal interface_removed, String
   end
   class Texture2DArray < Godot::ImageTextureLayered
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -31099,7 +31099,7 @@ module Godot
     def memory_budget_mb_override=(val : Int)
       set_memory_budget_mb_override(val.to_i64)
     end
-    godot_signal flush_completed
+    signal flush_completed
   end
   class Theme < Godot::Resource
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -32113,7 +32113,7 @@ module Godot
     def fallback_stylebox=(val)
       set_fallback_stylebox(val)
     end
-    godot_signal fallback_changed
+    signal fallback_changed
   end
   class Thread < Godot::RefCounted
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -32824,7 +32824,7 @@ module Godot
     def probability=(val : Number)
       set_probability(val.to_f64)
     end
-    godot_signal changed
+    signal changed
   end
   class TileMap < Godot::Node2D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -33489,7 +33489,7 @@ module Godot
     def navigation_visibility_mode=(val : Int)
       set_navigation_visibility_mode(val.to_i64)
     end
-    godot_signal changed
+    signal changed
   end
   class TileMapLayer < Godot::Node2D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -34101,7 +34101,7 @@ module Godot
     def navigation_visibility_mode=(val : Int)
       set_navigation_visibility_mode(val.to_i64)
     end
-    godot_signal changed
+    signal changed
   end
   class TileMapPattern < Godot::Resource
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -36114,7 +36114,7 @@ module Godot
     def time_left
       get_time_left
     end
-    godot_signal timeout
+    signal timeout
   end
   class TorusMesh < Godot::PrimitiveMesh
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -36444,8 +36444,8 @@ module Godot
     def visibility_mode=(val : Int)
       set_visibility_mode(val.to_i64)
     end
-    godot_signal pressed
-    godot_signal released
+    signal pressed
+    signal released
   end
   class Trail3D < Godot::Line3D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -38372,21 +38372,21 @@ module Godot
     def tile_scroll_hint=(val)
       set_tile_scroll_hint(val)
     end
-    godot_signal item_selected
-    godot_signal cell_selected
-    godot_signal multi_selected, TreeItem, Int64, Bool
-    godot_signal item_mouse_selected, Vector2, Int64
-    godot_signal empty_clicked, Vector2, Int64
-    godot_signal item_edited
-    godot_signal custom_item_clicked, Int64
-    godot_signal item_icon_double_clicked
-    godot_signal item_collapsed, TreeItem
-    godot_signal check_propagated_to_item, TreeItem, Int64
-    godot_signal button_clicked, TreeItem, Int64, Int64, Int64
-    godot_signal custom_popup_edited, Bool
-    godot_signal item_activated
-    godot_signal column_title_clicked, Int64, Int64
-    godot_signal nothing_selected
+    signal item_selected
+    signal cell_selected
+    signal multi_selected, TreeItem, Int64, Bool
+    signal item_mouse_selected, Vector2, Int64
+    signal empty_clicked, Vector2, Int64
+    signal item_edited
+    signal custom_item_clicked, Int64
+    signal item_icon_double_clicked
+    signal item_collapsed, TreeItem
+    signal check_propagated_to_item, TreeItem, Int64
+    signal button_clicked, TreeItem, Int64, Int64, Int64
+    signal custom_popup_edited, Bool
+    signal item_activated
+    signal column_title_clicked, Int64, Int64
+    signal nothing_selected
   end
   class TreeItem < Godot::Object
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -40173,9 +40173,9 @@ module Godot
     def interpolate_value(initial_value : Pointer(Void), delta_value : Pointer(Void), elapsed_time : Float64, duration : Float64, trans_type : TransitionType | Int, ease_type : EaseType | Int) : Pointer(Void)
       self.class.interpolate_value(initial_value, delta_value, elapsed_time, duration, trans_type, ease_type)
     end
-    godot_signal step_finished, Int64
-    godot_signal loop_finished, Int64
-    godot_signal finished
+    signal step_finished, Int64
+    signal loop_finished, Int64
+    signal finished
   end
   class TwoBoneIK3D < Godot::IKModifier3D
     def initialize(pointer : Void* = Pointer(Void).null)

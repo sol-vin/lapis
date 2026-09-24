@@ -359,8 +359,10 @@ module Lapis
 
                 io.puts "  end"
                 io.puts "end"
-                io.puts ""
-                io.puts "alias #{clean_class_name} = Godot::#{clean_class_name}"
+                reserved_types = Set{"Array", "Hash", "String", "Int32", "Float64", "Object", "Class", "Module", "Enum", "Struct", "Nil", "Bool", "Pointer", "Tuple", "NamedTuple"}
+                unless reserved_types.includes?(clean_class_name)
+                  io.puts "alias #{clean_class_name} = Godot::#{clean_class_name}"
+                end
               end
             end
           end

@@ -619,6 +619,44 @@ CONTROL
         0
       end
 
+      def self.package_benchmarks(root : Path, out_path : Path?, platform_name : String? = nil, release : Bool = true) : Int32
+        bench_dir = root.join("benchmarks")
+        return 0 unless Dir.exists?(bench_dir)
+
+        plat = platform_name || (Core::Env.windows? ? "windows" : (Core::Env.macos? ? "macos" : "linux"))
+        zip_file = out_path || root.join("bin/benchmarks-#{plat}.zip")
+
+        Core::Logger.step("Package", "Packaging Crystal vs GDScript benchmarks suite...")
+
+        # Make sure benchmark binaries exist in bin/
+        bin_dir = bench_dir.join("bin")
+        FileUtils.mkdir_p(bin_dir) unless Dir.exists?(bin_dir)
+        runner_exe = bin_dir.join("runner#{Core::Env.exe_ext}")
+        if !File.exists?(runner_exe)
+          Core::Logger.step("Package", "Building benchmark runner...")
+          Build.compile_binary(
+            entry_path: bench_dir.join("runner.cr"),
+            output_path: runner_exe,
+            release: release
+          )
+        end
+
+        stage_dir = root.join("scratch/benchmarks-#{plat}-stage")
+        FileUtils.rm_rf(stage_dir) if Dir.exists?(stage_dir)
+        FileUtils.mkdir_p(stage_dir)
+
+        # Copy benchmarks content
+        excludes = [".pdb", ".tmp", ".TMP", "~", ".log", "_stage"]
+        zip_directory(
+          bench_dir,
+          zip_file,
+          strip_prefix: bench_dir,
+          exclude_patterns: excludes
+        )
+        Core::Logger.success("Packaged benchmarks suite: #{zip_file.basename}!")
+        0
+      end
+
       def self.package_game(
         project_path : Path,
         name : String? = nil,
@@ -802,6 +840,7 @@ CONTROL
         release : Bool = true,
         skip_tests : Bool = false,
         skip_perf : Bool = false,
+        skip_benchmarks : Bool = false,
       ) : Int32
         root = Core::Env::ROOT_DIR
         out_dir = output_dir.expand
@@ -839,6 +878,10 @@ CONTROL
           package_perf(root, out_dir.join("perf-#{plat}.zip"), platform_name: plat, release: release)
         end
 
+        unless skip_benchmarks
+          package_benchmarks(root, out_dir.join("benchmarks-#{plat}.zip"), platform_name: plat, release: release)
+        end
+
         # Compute SHA256 sums across all generated release archives
         checksum_file = out_dir.join("checksums.txt")
         lines = [] of String
@@ -870,6 +913,7 @@ Targets:
   examples              Package standalone examples into examples-<platform>.zip
   tests                 Package standalone test runner into tests-<platform>.zip
   perf                  Package performance benchmark into perf-<platform>.zip
+  benchmarks            Package Crystal vs GDScript benchmarks into benchmarks-<platform>.zip
   release               Build and stage all release archives with SHA-256 checksums
 
 Options:
@@ -885,6 +929,7 @@ Options:
   --bundle-binaries     Include compiled binaries in archive (template only)
   --skip-tests          Skip packaging tests in release target
   --skip-perf           Skip packaging perf in release target
+  --skip-benchmarks     Skip packaging benchmarks in release target
   -h, --help            Show this help screen
 
 Examples:
@@ -918,6 +963,7 @@ HELP
         bundle_binaries = false
         skip_tests = false
         skip_perf = false
+        skip_benchmarks = false
 
         parser = OptionParser.new do |opts|
           opts.banner = "Usage: lapis package #{target} [options]"
@@ -935,6 +981,7 @@ HELP
           opts.on("--bundle-binaries", "Include compiled binaries in archive") { bundle_binaries = true }
           opts.on("--skip-tests", "Skip tests in release") { skip_tests = true }
           opts.on("--skip-perf", "Skip perf in release") { skip_perf = true }
+          opts.on("--skip-benchmarks", "Skip benchmarks in release") { skip_benchmarks = true }
           opts.on("--verbose", "Enable verbose logging") { Core::Logger.verbose = true }
           opts.on("-h", "--help", "Show help") { print_help; exit 0 }
         end
@@ -989,13 +1036,16 @@ HELP
         when "perf", "performance"
           final_out = out_path || (td_path ? td_path.join("perf-#{plat}.zip") : nil)
           package_perf(root, final_out, platform_name: plat, release: release)
+        when "benchmarks", "benchmark"
+          final_out = out_path || (td_path ? td_path.join("benchmarks-#{plat}.zip") : nil)
+          package_benchmarks(root, final_out, platform_name: plat, release: release)
         when "game"
           proj_str = (pp = project_path) && !["windows", "linux", "macos", "android"].includes?(pp.downcase) ? pp : "."
           proj = Path.new(proj_str).expand
           package_game(proj, name: name, release: release, target_dir: td_path, force_compile: force, embed_pck: embed_pck, portable: portable)
         when "release", "all"
           out_dir = td_path || out_path || root.join("bin/release_dist")
-          package_release(out_dir, release: release, skip_tests: skip_tests, skip_perf: skip_perf)
+          package_release(out_dir, release: release, skip_tests: skip_tests, skip_perf: skip_perf, skip_benchmarks: skip_benchmarks)
         else
           Core::Logger.error("Unknown packaging target: '#{target}'.")
           puts

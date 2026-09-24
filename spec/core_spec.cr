@@ -240,4 +240,79 @@ describe "LibGodot Core & Node DSL" do
       ctrl.visible?.should be_false
     end
   end
+
+  describe "Type-Safe Signals & emit Macro" do
+    it "emits member signals with typed arguments via emit(target.signal, *args)" do
+      player = SpecPlayer.new
+      health_events = [] of Tuple(Int32, Int32)
+
+      player.health_changed.connect do |new_hp, max_hp|
+        health_events << {new_hp, max_hp}
+      end
+
+      emit(player.health_changed, 80, 100)
+      emit(player.health_changed, 50, 100)
+
+      health_events.should eq([{80, 100}, {50, 100}])
+    end
+
+    it "emits zero-argument signals via emit(target.signal)" do
+      player = SpecPlayer.new
+      died_called = false
+
+      player.died.connect do
+        died_called = true
+      end
+
+      emit(player.died)
+      died_called.should be_true
+    end
+
+    it "emits signals in-class via emit(signal, *args)" do
+      player = SpecPlayer.new
+      last_health = 0
+      died_called = false
+
+      player.health_changed.connect do |new_hp, _max_hp|
+        last_health = new_hp
+      end
+      player.died.connect do
+        died_called = true
+      end
+
+      player.take_damage(60)
+      last_health.should eq(40)
+      died_called.should be_false
+
+      player.take_damage(40)
+      last_health.should eq(0)
+      died_called.should be_true
+    end
+
+    it "emits signals via first-class TypedSignal reference" do
+      player = SpecPlayer.new
+      received_name = ""
+
+      sig = player.health_changed
+      sig.connect do |new_hp, max_hp|
+        received_name = "#{new_hp}/#{max_hp}"
+      end
+
+      emit(sig, 95, 100)
+      received_name.should eq("95/100")
+    end
+
+    it "emits signals via Godot.emit helper" do
+      player = SpecPlayer.new
+      count = 0
+
+      player.died.connect do
+        count += 1
+      end
+
+      Godot.emit(player.died)
+      count.should eq(1)
+    end
+  end
 end
+

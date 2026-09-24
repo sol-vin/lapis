@@ -176,22 +176,7 @@ macro godot_prop(prop_name, getter_name, setter_name = nil)
   {% end %}
 end
 
-# ===========================================================================
-# Signal Synthesizer Macros
-# ===========================================================================
 
-# Synthesizes a first-class typed signal accessor
-macro godot_signal(name, *types)
-  {% if types.empty? %}
-    def {{name.id}} : ::Godot::TypedSignal()
-      ::Godot::TypedSignal().new(self, {{name.stringify}})
-    end
-  {% else %}
-    def {{name.id}} : ::Godot::TypedSignal({{types.splat}})
-      ::Godot::TypedSignal({{types.splat}}).new(self, {{name.stringify}})
-    end
-  {% end %}
-end
 
 # ===========================================================================
 # Singleton Macros

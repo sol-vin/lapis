@@ -11,7 +11,7 @@ describe "Lapis::Test::Registry Test Suites" do
       "Core", "2D", "3D", "UI", "Nodes", "Stress",
       "Mesh", "Shaders", "Physics", "AudioAnim", "Tweens",
       "Resources", "Lifecycle", "DeadPointerSafety", "Concurrency",
-      "CallableAdv", "ClassDB", "MacrosDSL", "MultiAddon", "GDScript"
+      "CallableAdv", "ClassDB", "MacrosDSL", "MultiAddon", "GDScript", "ColdBoot"
     ]
 
     expected_categories.each do |cat|

@@ -1092,13 +1092,13 @@ module Godot
     def hand=(val : Int)
       set_tracker_hand(val.to_i64)
     end
-    godot_signal pose_changed, XRPose
-    godot_signal pose_lost_tracking, XRPose
-    godot_signal button_pressed, String
-    godot_signal button_released, String
-    godot_signal input_float_changed, String, Float64
-    godot_signal input_vector2_changed, String, Vector2
-    godot_signal profile_changed, String
+    signal pose_changed, XRPose
+    signal pose_lost_tracking, XRPose
+    signal button_pressed, String
+    signal button_released, String
+    signal input_float_changed, String, Float64
+    signal input_vector2_changed, String, Vector2
+    signal profile_changed, String
   end
   class OpenXRSpatialEntityTracker < Godot::XRPositionalTracker
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -1185,8 +1185,8 @@ module Godot
     def spatial_tracking_state=(val : Int)
       set_spatial_tracking_state(val.to_i64)
     end
-    godot_signal next_changed
-    godot_signal spatial_tracking_state_changed, Int64
+    signal next_changed
+    signal spatial_tracking_state_changed, Int64
   end
   class OpenXRAnchorTracker < Godot::OpenXRSpatialEntityTracker
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -1224,7 +1224,7 @@ module Godot
     def uuid=(val)
       set_uuid(val)
     end
-    godot_signal uuid_changed
+    signal uuid_changed
   end
   class OpenXRExtensionWrapper < Godot::Object
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -1290,7 +1290,7 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_setup, @pointer, args.to_unsafe.as(Void**))
     end
-    godot_signal binding_modifier_removed, Godot::Object
+    signal binding_modifier_removed, Godot::Object
   end
   class OpenXRCompositionLayer < Godot::Node3D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -2547,7 +2547,7 @@ module Godot
       Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
       ret_ptr
     end
-    godot_signal completed, OpenXRFutureResult
+    signal completed, OpenXRFutureResult
   end
   class OpenXRHand < Godot::Node3D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -3595,18 +3595,18 @@ module Godot
     def vrs_strength=(val : Number)
       set_vrs_strength(val.to_f64)
     end
-    godot_signal session_begun
-    godot_signal session_stopping
-    godot_signal session_synchronized
-    godot_signal session_focussed
-    godot_signal session_visible
-    godot_signal session_loss_pending
-    godot_signal instance_exiting
-    godot_signal pose_recentered
-    godot_signal refresh_rate_changed, Float64
-    godot_signal cpu_level_changed, Int64, Int64, Int64
-    godot_signal gpu_level_changed, Int64, Int64, Int64
-    godot_signal user_presence_changed, Bool
+    signal session_begun
+    signal session_stopping
+    signal session_synchronized
+    signal session_focussed
+    signal session_visible
+    signal session_loss_pending
+    signal instance_exiting
+    signal pose_recentered
+    signal refresh_rate_changed, Float64
+    signal cpu_level_changed, Int64, Int64, Int64
+    signal gpu_level_changed, Int64, Int64, Int64
+    signal user_presence_changed, Bool
   end
   class OpenXRMarkerTracker < Godot::OpenXRSpatialEntityTracker
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -3811,7 +3811,7 @@ module Godot
     def plane_label=(val)
       set_plane_label(val)
     end
-    godot_signal mesh_changed
+    signal mesh_changed
   end
   class OpenXRRenderModel < Godot::Node3D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -3843,7 +3843,7 @@ module Godot
     def render_model=(val)
       set_render_model(val)
     end
-    godot_signal render_model_top_level_path_changed
+    signal render_model_top_level_path_changed
   end
   class OpenXRRenderModelExtension < Godot::OpenXRExtensionWrapper
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -3969,9 +3969,9 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_val(@@mb_render_model_get_animatable_node_transform, @pointer, args.to_unsafe.as(Void**), Transform3D)
     end
-    godot_signal render_model_added, Int64
-    godot_signal render_model_removed, Int64
-    godot_signal render_model_top_level_path_changed, Int64
+    signal render_model_added, Int64
+    signal render_model_removed, Int64
+    signal render_model_top_level_path_changed, Int64
   end
   class OpenXRRenderModelManager < Godot::Node3D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -4027,8 +4027,8 @@ module Godot
     def make_local_to_pose=(val)
       set_make_local_to_pose(val)
     end
-    godot_signal render_model_added, OpenXRRenderModel
-    godot_signal render_model_removed, OpenXRRenderModel
+    signal render_model_added, OpenXRRenderModel
+    signal render_model_removed, OpenXRRenderModel
   end
   class OpenXRSpatialAnchorCapability < Godot::OpenXRExtensionWrapper
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -4716,12 +4716,12 @@ module Godot
     def request_spatial_container_visible?(visible : Bool) : Bool
       request_spatial_container_visible(visible)
     end
-    godot_signal spatial_container_bounds_changed, Int64, Bool, Int64, Vector3
-    godot_signal spatial_container_bounds_mode_request_denied, Int64
-    godot_signal spatial_container_closed, Int64
-    godot_signal spatial_container_interactable_changed, Int64, Bool
-    godot_signal spatial_container_visible_changed, Int64, Bool
-    godot_signal spatial_container_visible_request_denied, Int64
+    signal spatial_container_bounds_changed, Int64, Bool, Int64, Vector3
+    signal spatial_container_bounds_mode_request_denied, Int64
+    signal spatial_container_closed, Int64
+    signal spatial_container_interactable_changed, Int64, Bool
+    signal spatial_container_visible_changed, Int64, Bool
+    signal spatial_container_visible_request_denied, Int64
   end
   class OpenXRSpatialContainerSelfRenderingExtension < Godot::OpenXRExtensionWrapper
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -5167,7 +5167,7 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_free_spatial_entity, @pointer, args.to_unsafe.as(Void**))
     end
-    godot_signal spatial_discovery_recommended, Int64
+    signal spatial_discovery_recommended, Int64
   end
   class OpenXRSpatialMarkerTrackingCapability < Godot::OpenXRExtensionWrapper
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -5999,8 +5999,8 @@ module Godot
     def item_count=(val : Int)
       set_item_count(val.to_i64)
     end
-    godot_signal item_selected, Int64
-    godot_signal item_focused, Int64
+    signal item_selected, Int64
+    signal item_focused, Int64
   end
   class PCKPacker < Godot::RefCounted
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -8831,7 +8831,7 @@ module Godot
     def sub_emitter_keep_velocity=(val)
       set_sub_emitter_keep_velocity(val)
     end
-    godot_signal emission_shape_changed
+    signal emission_shape_changed
   end
   class Path2D < Godot::Node2D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -8905,8 +8905,8 @@ module Godot
     def debug_custom_color=(val)
       set_debug_custom_color(val)
     end
-    godot_signal curve_changed
-    godot_signal debug_color_changed
+    signal curve_changed
+    signal debug_color_changed
   end
   class PathFollow2D < Godot::Node2D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -10169,11 +10169,11 @@ module Godot
     def constant_torque=(val : Number)
       set_constant_torque(val.to_f64)
     end
-    godot_signal body_shape_entered, Int64, Node, Int64, Int64
-    godot_signal body_shape_exited, Int64, Node, Int64, Int64
-    godot_signal body_entered, Node
-    godot_signal body_exited, Node
-    godot_signal sleeping_state_changed
+    signal body_shape_entered, Int64, Node, Int64, Int64
+    signal body_shape_exited, Int64, Node, Int64, Int64
+    signal body_entered, Node
+    signal body_exited, Node
+    signal sleeping_state_changed
   end
   class PhysicalBone2D < Godot::RigidBody2D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -18353,7 +18353,7 @@ module Godot
     def initialize(pointer : Void* = Pointer(Void).null)
       super(pointer)
     end
-    godot_signal popup_hide
+    signal popup_hide
   end
   class PopupMenu < Godot::Popup
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -19566,10 +19566,10 @@ module Godot
     def item_count=(val : Int)
       set_item_count(val.to_i64)
     end
-    godot_signal id_pressed, Int64
-    godot_signal id_focused, Int64
-    godot_signal index_pressed, Int64
-    godot_signal menu_changed
+    signal id_pressed, Int64
+    signal id_focused, Int64
+    signal index_pressed, Int64
+    signal menu_changed
   end
   class PopupPanel < Godot::Popup
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -20495,7 +20495,7 @@ module Godot
     def check_changed_settings_in_group?(setting_prefix : String) : Bool
       check_changed_settings_in_group(setting_prefix)
     end
-    godot_signal settings_changed
+    signal settings_changed
   end
   class PropertyTweener < Godot::Tweener
     def initialize(pointer : Void* = Pointer(Void).null)

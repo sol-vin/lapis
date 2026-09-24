@@ -13,6 +13,12 @@ node SpecPlayer < CharacterBody3D do
 
   signal health_changed(new_health : Int32, max_health : Int32)
   signal died
+
+  def take_damage(amount : Int32) : Void
+    @max_health -= amount
+    emit(health_changed, @max_health, 100)
+    emit(died) if @max_health <= 0
+  end
 end
 
 node SpecCameraRig < Godot::Node do

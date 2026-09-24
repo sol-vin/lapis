@@ -53,6 +53,12 @@ godot.exe
 /performance/addons/*/bin/
 /performance/addons/crystal_integration/
 
+/benchmarks/bin
+/benchmarks/.godot
+/benchmarks/results
+
+/tools/lapis/bin
+
 /docs/
 /scratch/
 *.obj

@@ -45,4 +45,70 @@ module Godot
       godot_return_enum(Godot::Error, err_code)
     end
   end
+
+  class StandardMaterial3D < BaseMaterial3D
+    @local_albedo : Color = Color.new(1.0, 1.0, 1.0, 1.0)
+    @local_roughness : Float32 = 1.0_f32
+    @local_metallic : Float32 = 0.0_f32
+    @local_emission_enabled : Bool = false
+    @local_emission : Color = Color.new(0.0, 0.0, 0.0, 1.0)
+
+    def albedo_color : Color
+      @pointer.null? ? @local_albedo : get_albedo
+    end
+
+    def albedo_color=(c : Color)
+      @local_albedo = c
+      set_albedo(c) unless @pointer.null?
+    end
+
+    def roughness : Float32
+      @pointer.null? ? @local_roughness : get_roughness.to_f32
+    end
+
+    def roughness=(r : Number)
+      @local_roughness = r.to_f32
+      set_roughness(r.to_f64) unless @pointer.null?
+    end
+
+    def metallic : Float32
+      @pointer.null? ? @local_metallic : get_metallic.to_f32
+    end
+
+    def metallic=(m : Number)
+      @local_metallic = m.to_f32
+      set_metallic(m.to_f64) unless @pointer.null?
+    end
+
+    def emission_enabled? : Bool
+      @pointer.null? ? @local_emission_enabled : get_feature(BaseMaterial3D::Feature::FeatureEmission)
+    end
+
+    def emission_enabled=(e : Bool)
+      @local_emission_enabled = e
+      set_feature(BaseMaterial3D::Feature::FeatureEmission, e) unless @pointer.null?
+    end
+
+    def emission : Color
+      @pointer.null? ? @local_emission : get_emission
+    end
+
+    def emission=(c : Color)
+      @local_emission = c
+      set_emission(c) unless @pointer.null?
+    end
+
+    def duplicate(deep : Bool = false) : Resource
+      if @pointer.null?
+        clone = StandardMaterial3D.new
+        clone.albedo_color = @local_albedo
+        clone.roughness = @local_roughness
+        clone.metallic = @local_metallic
+        clone.emission_enabled = @local_emission_enabled
+        clone.emission = @local_emission
+        return clone
+      end
+      super(deep)
+    end
+  end
 end

@@ -207,7 +207,7 @@ module Godot
     def max_steps=(val : Int)
       set_max_steps(val.to_i64)
     end
-    godot_signal version_changed
+    signal version_changed
   end
   class UniformSetCacheRD < Godot::Object
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -1052,7 +1052,7 @@ module Godot
     def bus=(val)
       set_bus(val)
     end
-    godot_signal finished
+    signal finished
   end
   class VideoStreamTheora < Godot::VideoStream
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -1339,11 +1339,11 @@ module Godot
     def visibility_mode=(val : Int)
       set_visibility_mode(val.to_i64)
     end
-    godot_signal pressed
-    godot_signal tapped
-    godot_signal released, Vector2
-    godot_signal flicked, Vector2
-    godot_signal flick_canceled
+    signal pressed
+    signal tapped
+    signal released, Vector2
+    signal flicked, Vector2
+    signal flick_canceled
   end
   class VisibleOnScreenNotifier2D < Godot::Node2D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -1415,8 +1415,8 @@ module Godot
     def show_rect=(val)
       set_show_rect(val)
     end
-    godot_signal screen_entered
-    godot_signal screen_exited
+    signal screen_entered
+    signal screen_exited
   end
   class VisibleOnScreenEnabler2D < Godot::VisibleOnScreenNotifier2D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -1505,8 +1505,8 @@ module Godot
     def aabb=(val)
       set_aabb(val)
     end
-    godot_signal screen_entered
-    godot_signal screen_exited
+    signal screen_entered
+    signal screen_exited
   end
   class VisibleOnScreenEnabler3D < Godot::VisibleOnScreenNotifier3D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -4139,7 +4139,7 @@ module Godot
     def input_name=(val)
       set_input_name(val)
     end
-    godot_signal input_type_changed
+    signal input_type_changed
   end
   class VisualShaderNodeIntConstant < Godot::VisualShaderNodeConstant
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -6714,9 +6714,9 @@ module Godot
       godot_bind(@@mb_get_signaling_state, "WebRTCPeerConnection", "get_signaling_state", 3342956226_i64)
       godot_ptrcall_enum(@@mb_get_signaling_state, @pointer, Pointer(Pointer(Void)).null, SignalingState)
     end
-    godot_signal session_description_created, String, String
-    godot_signal ice_candidate_created, String, Int64, String
-    godot_signal data_channel_received, WebRTCDataChannel
+    signal session_description_created, String, String
+    signal ice_candidate_created, String, Int64, String
+    signal data_channel_received, WebRTCDataChannel
   end
   class WebRTCPeerConnectionExtension < Godot::WebRTCPeerConnection
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -7358,18 +7358,18 @@ module Godot
     def visibility_state
       get_visibility_state
     end
-    godot_signal session_supported, String, Bool
-    godot_signal session_started
-    godot_signal session_ended
-    godot_signal session_failed, String
-    godot_signal selectstart, Int64
-    godot_signal selectend, Int64
-    godot_signal squeezestart, Int64
-    godot_signal squeeze, Int64
-    godot_signal squeezeend, Int64
-    godot_signal visibility_state_changed
-    godot_signal reference_space_reset
-    godot_signal display_refresh_rate_changed
+    signal session_supported, String, Bool
+    signal session_started
+    signal session_ended
+    signal session_failed, String
+    signal selectstart, Int64
+    signal selectend, Int64
+    signal squeezestart, Int64
+    signal squeeze, Int64
+    signal squeezeend, Int64
+    signal visibility_state_changed
+    signal reference_space_reset
+    signal display_refresh_rate_changed
   end
   class WorkerThreadPool < Godot::Object
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -8062,7 +8062,7 @@ module Godot
     def show_when_tracked=(val)
       set_show_when_tracked(val)
     end
-    godot_signal tracking_changed, Bool
+    signal tracking_changed, Bool
   end
   class XRAnchor3D < Godot::XRNode3D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -8439,11 +8439,11 @@ module Godot
       godot_bind(@@mb_get_tracker_hand, "XRController3D", "get_tracker_hand", 4181770860_i64)
       godot_ptrcall_enum(@@mb_get_tracker_hand, @pointer, Pointer(Pointer(Void)).null, Godot::XRPositionalTracker::TrackerHand)
     end
-    godot_signal button_pressed, String
-    godot_signal button_released, String
-    godot_signal input_float_changed, String, Float64
-    godot_signal input_vector2_changed, String, Vector2
-    godot_signal profile_changed, String
+    signal button_pressed, String
+    signal button_released, String
+    signal input_float_changed, String, Float64
+    signal input_vector2_changed, String, Vector2
+    signal profile_changed, String
   end
   class XRControllerTracker < Godot::XRPositionalTracker
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -9447,13 +9447,13 @@ module Godot
     def primary_interface=(val)
       set_primary_interface(val)
     end
-    godot_signal reference_frame_changed
-    godot_signal interface_added, String
-    godot_signal interface_removed, String
-    godot_signal tracker_added, String, Int64
-    godot_signal tracker_updated, String, Int64
-    godot_signal tracker_removed, String, Int64
-    godot_signal world_origin_changed
+    signal reference_frame_changed
+    signal interface_added, String
+    signal interface_removed, String
+    signal tracker_added, String, Int64
+    signal tracker_updated, String, Int64
+    signal tracker_removed, String, Int64
+    signal world_origin_changed
   end
   class XRVRS < Godot::Object
     def initialize(pointer : Void* = Pointer(Void).null)

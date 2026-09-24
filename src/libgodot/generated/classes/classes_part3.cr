@@ -3341,7 +3341,7 @@ module Godot
     def process_material=(val)
       set_process_material(val)
     end
-    godot_signal finished
+    signal finished
   end
   class GPUParticles3D < Godot::GeometryInstance3D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -4105,7 +4105,7 @@ module Godot
     def draw_skin=(val)
       set_skin(val)
     end
-    godot_signal finished
+    signal finished
   end
   class GPUParticlesAttractor3D < Godot::VisualInstance3D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -6850,25 +6850,25 @@ module Godot
     def show_arrange_button=(val)
       set_show_arrange_button(val)
     end
-    godot_signal connection_request, String, Int64, String, Int64
-    godot_signal disconnection_request, String, Int64, String, Int64
-    godot_signal connection_to_empty, String, Int64, Vector2
-    godot_signal connection_from_empty, String, Int64, Vector2
-    godot_signal connection_drag_started, String, Int64, Bool
-    godot_signal connection_drag_ended
-    godot_signal copy_nodes_request
-    godot_signal cut_nodes_request
-    godot_signal paste_nodes_request
-    godot_signal duplicate_nodes_request
-    godot_signal delete_nodes_request, Pointer(Void)
-    godot_signal node_selected, Node
-    godot_signal node_deselected, Node
-    godot_signal frame_rect_changed, GraphFrame, Rect2
-    godot_signal popup_request, Vector2
-    godot_signal begin_node_move
-    godot_signal end_node_move
-    godot_signal graph_elements_linked_to_frame_request, Pointer(Void), String
-    godot_signal scroll_offset_changed, Vector2
+    signal connection_request, String, Int64, String, Int64
+    signal disconnection_request, String, Int64, String, Int64
+    signal connection_to_empty, String, Int64, Vector2
+    signal connection_from_empty, String, Int64, Vector2
+    signal connection_drag_started, String, Int64, Bool
+    signal connection_drag_ended
+    signal copy_nodes_request
+    signal cut_nodes_request
+    signal paste_nodes_request
+    signal duplicate_nodes_request
+    signal delete_nodes_request, Pointer(Void)
+    signal node_selected, Node
+    signal node_deselected, Node
+    signal frame_rect_changed, GraphFrame, Rect2
+    signal popup_request, Vector2
+    signal begin_node_move
+    signal end_node_move
+    signal graph_elements_linked_to_frame_request, Pointer(Void), String
+    signal scroll_offset_changed, Vector2
   end
   class GraphElement < Godot::Container
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -7040,14 +7040,14 @@ module Godot
     def scaling_menus=(val)
       set_scaling_menus(val)
     end
-    godot_signal node_selected
-    godot_signal node_deselected
-    godot_signal raise_request
-    godot_signal delete_request
-    godot_signal resize_request, Vector2
-    godot_signal resize_end, Vector2
-    godot_signal dragged, Vector2, Vector2
-    godot_signal position_offset_changed
+    signal node_selected
+    signal node_deselected
+    signal raise_request
+    signal delete_request
+    signal resize_request, Vector2
+    signal resize_end, Vector2
+    signal dragged, Vector2, Vector2
+    signal position_offset_changed
   end
   class GraphFrame < Godot::GraphElement
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -7202,7 +7202,7 @@ module Godot
     def tint_color=(val)
       set_tint_color(val)
     end
-    godot_signal autoshrink_changed
+    signal autoshrink_changed
   end
   class GraphNode < Godot::GraphElement
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -7632,8 +7632,8 @@ module Godot
     def slots_focus_mode=(val : Int)
       set_slots_focus_mode(val.to_i64)
     end
-    godot_signal slot_updated, Int64
-    godot_signal slot_sizes_changed
+    signal slot_updated, Int64
+    signal slot_sizes_changed
   end
   class GridContainer < Godot::Container
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -8283,8 +8283,8 @@ module Godot
     def debug_octant_color=(val)
       set_debug_octant_color(val)
     end
-    godot_signal cell_size_changed, Vector3
-    godot_signal changed
+    signal cell_size_changed, Vector3
+    signal changed
   end
   class GridMapEditorPlugin < Godot::EditorPlugin
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -8452,7 +8452,7 @@ module Godot
     def custom_step=(val : Number)
       set_custom_step(val.to_f64)
     end
-    godot_signal scrolling
+    signal scrolling
   end
   class HScrollBar < Godot::ScrollBar
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -8607,8 +8607,8 @@ module Godot
     def ticks_position=(val : Int)
       set_ticks_position(val.to_i64)
     end
-    godot_signal drag_started
-    godot_signal drag_ended, Bool
+    signal drag_started
+    signal drag_ended, Bool
   end
   class HSlider < Godot::Slider
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -8952,9 +8952,9 @@ module Godot
     def split_offset=(val : Int)
       set_split_offset(val.to_i64)
     end
-    godot_signal dragged, Int64
-    godot_signal drag_started
-    godot_signal drag_ended
+    signal dragged, Int64
+    signal drag_started
+    signal drag_ended
   end
   class HSplitContainer < Godot::SplitContainer
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -9611,7 +9611,7 @@ module Godot
     def timeout=(val : Number)
       set_timeout(val.to_f64)
     end
-    godot_signal request_completed, Int64, Int64, Pointer(Void), Pointer(Void)
+    signal request_completed, Int64, Int64, Pointer(Void), Pointer(Void)
   end
   class HashingContext < Godot::RefCounted
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -12346,7 +12346,7 @@ module Godot
     def ignore_joypad_on_unfocused_application=(val)
       set_ignore_joypad_on_unfocused_application(val)
     end
-    godot_signal joy_connection_changed, Int64, Bool
+    signal joy_connection_changed, Int64, Bool
   end
   class InputEvent < Godot::Resource
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -14263,7 +14263,7 @@ module Godot
       godot_bind(@@mb_load_from_project_settings, "InputMap", "load_from_project_settings", 3218959716_i64)
       godot_ptrcall_void(@@mb_load_from_project_settings, @pointer, Pointer(Pointer(Void)).null)
     end
-    godot_signal project_settings_loaded
+    signal project_settings_loaded
   end
   class InstancePlaceholder < Godot::Node
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -15231,11 +15231,11 @@ module Godot
     def fixed_icon_size=(val)
       set_fixed_icon_size(val)
     end
-    godot_signal item_selected, Int64
-    godot_signal empty_clicked, Vector2, Int64
-    godot_signal item_clicked, Int64, Vector2, Int64
-    godot_signal multi_selected, Int64, Bool
-    godot_signal item_activated, Int64
+    signal item_selected, Int64
+    signal empty_clicked, Vector2, Int64
+    signal item_clicked, Int64, Vector2, Int64
+    signal multi_selected, Int64, Bool
+    signal item_activated, Int64
   end
   class JNISingleton < Godot::Object
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -15592,7 +15592,7 @@ module Godot
       godot_bind(@@mb_force_fs_sync, "JavaScriptBridge", "force_fs_sync", 3218959716_i64)
       godot_ptrcall_void(@@mb_force_fs_sync, @pointer, Pointer(Pointer(Void)).null)
     end
-    godot_signal pwa_update_available
+    signal pwa_update_available
   end
   class JavaScriptObject < Godot::RefCounted
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -20089,10 +20089,10 @@ module Godot
     def right_icon_scale=(val : Number)
       set_right_icon_scale(val.to_f64)
     end
-    godot_signal text_changed, String
-    godot_signal text_change_rejected, String
-    godot_signal text_submitted, String
-    godot_signal editing_toggled, Bool
+    signal text_changed, String
+    signal text_change_rejected, String
+    signal text_submitted, String
+    signal editing_toggled, Bool
   end
   class LinkButton < Godot::BaseButton
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -21070,7 +21070,7 @@ module Godot
     def initialize(pointer : Void* = Pointer(Void).null)
       super(pointer)
     end
-    godot_signal on_request_permissions_result, String, Bool
+    signal on_request_permissions_result, String, Bool
   end
   class Marker2D < Godot::Node2D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -21550,7 +21550,7 @@ module Godot
     def item_count=(val : Int)
       set_item_count(val.to_i64)
     end
-    godot_signal about_to_popup
+    signal about_to_popup
   end
   class MeshConvexDecompositionSettings < Godot::RefCounted
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -22246,7 +22246,7 @@ module Godot
     def texture=(val)
       set_texture(val)
     end
-    godot_signal texture_changed
+    signal texture_changed
   end
   class MeshInstance3D < Godot::GeometryInstance3D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -23287,7 +23287,7 @@ module Godot
     def ar_is_anchor_detection_enabled=(val)
       set_anchor_detection_is_enabled(val)
     end
-    godot_signal play_area_changed, Int64
+    signal play_area_changed, Int64
   end
   class MobileVRInterface < Godot::XRInterface
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -23942,7 +23942,7 @@ module Godot
     def texture=(val)
       set_texture(val)
     end
-    godot_signal texture_changed
+    signal texture_changed
   end
   class MultiMeshInstance3D < Godot::GeometryInstance3D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -24112,11 +24112,11 @@ module Godot
     def multiplayer_peer=(val)
       set_multiplayer_peer(val)
     end
-    godot_signal peer_connected, Int64
-    godot_signal peer_disconnected, Int64
-    godot_signal connected_to_server
-    godot_signal connection_failed
-    godot_signal server_disconnected
+    signal peer_connected, Int64
+    signal peer_disconnected, Int64
+    signal connected_to_server
+    signal connection_failed
+    signal server_disconnected
   end
   class MultiplayerAPIExtension < Godot::MultiplayerAPI
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -24235,8 +24235,8 @@ module Godot
     def spawn_function=(val)
       set_spawn_function(val)
     end
-    godot_signal despawned, Node
-    godot_signal spawned, Node
+    signal despawned, Node
+    signal spawned, Node
   end
   class MultiplayerSynchronizer < Godot::Node
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -24432,9 +24432,9 @@ module Godot
     def public_visibility=(val)
       set_visibility_public(val)
     end
-    godot_signal synchronized
-    godot_signal delta_synchronized
-    godot_signal visibility_changed, Int64
+    signal synchronized
+    signal delta_synchronized
+    signal visibility_changed, Int64
   end
   class Mutex < Godot::RefCounted
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -26221,12 +26221,12 @@ module Godot
     def debug_path_custom_line_width=(val : Number)
       set_debug_path_custom_line_width(val.to_f64)
     end
-    godot_signal path_changed
-    godot_signal target_reached
-    godot_signal waypoint_reached, Pointer(Void)
-    godot_signal link_reached, Pointer(Void)
-    godot_signal navigation_finished
-    godot_signal velocity_computed, Vector2
+    signal path_changed
+    signal target_reached
+    signal waypoint_reached, Pointer(Void)
+    signal link_reached, Pointer(Void)
+    signal navigation_finished
+    signal velocity_computed, Vector2
   end
   class NavigationAgent3D < Godot::Node
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -27135,12 +27135,12 @@ module Godot
     def debug_path_custom_point_size=(val : Number)
       set_debug_path_custom_point_size(val.to_f64)
     end
-    godot_signal path_changed
-    godot_signal target_reached
-    godot_signal waypoint_reached, Pointer(Void)
-    godot_signal link_reached, Pointer(Void)
-    godot_signal navigation_finished
-    godot_signal velocity_computed, Vector3
+    signal path_changed
+    signal target_reached
+    signal waypoint_reached, Pointer(Void)
+    signal link_reached, Pointer(Void)
+    signal navigation_finished
+    signal velocity_computed, Vector3
   end
   class NavigationLink2D < Godot::Node2D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -30638,8 +30638,8 @@ module Godot
     def travel_cost=(val : Number)
       set_travel_cost(val.to_f64)
     end
-    godot_signal navigation_polygon_changed
-    godot_signal bake_finished
+    signal navigation_polygon_changed
+    signal bake_finished
   end
   class NavigationRegion3D < Godot::Node3D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -30857,8 +30857,8 @@ module Godot
     def travel_cost=(val : Number)
       set_travel_cost(val.to_f64)
     end
-    godot_signal navigation_mesh_changed
-    godot_signal bake_finished
+    signal navigation_mesh_changed
+    signal bake_finished
   end
   class NavigationServer2D < Godot::Object
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -32186,9 +32186,9 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_process_info, @pointer, args.to_unsafe.as(Void**))
     end
-    godot_signal map_changed, Int64
-    godot_signal navigation_debug_changed
-    godot_signal avoidance_debug_changed
+    signal map_changed, Int64
+    signal navigation_debug_changed
+    signal avoidance_debug_changed
   end
   class NavigationServer2DManager < Godot::Object
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -33719,9 +33719,9 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_process_info, @pointer, args.to_unsafe.as(Void**))
     end
-    godot_signal map_changed, Int64
-    godot_signal navigation_debug_changed
-    godot_signal avoidance_debug_changed
+    signal map_changed, Int64
+    signal navigation_debug_changed
+    signal avoidance_debug_changed
   end
   class NavigationServer3DManager < Godot::Object
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -33927,7 +33927,7 @@ module Godot
     def axis_stretch_vertical=(val : Int)
       set_v_axis_stretch_mode(val.to_i64)
     end
-    godot_signal texture_changed
+    signal texture_changed
   end
   class NoiseTexture2D < Godot::Texture2D
     def initialize(pointer : Void* = Pointer(Void).null)
