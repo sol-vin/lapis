@@ -94,7 +94,7 @@ LIBGODOT_DLL     = $(LIBGODOT_LIB)
 
 # Compile Lapis CLI toolchain if not present or source changed
 $(LAPIS): $(wildcard tools/lapis/src/**/*.cr) $(wildcard tools/lapis/src/*.cr) $(wildcard tools/lapis/*.yml) $(wildcard template/**/*) $(wildcard template-addon/**/*) $(wildcard addons/crystal_integration/*) shard.yml godot-version.yml
-	@echo [Lapis] Compiling Lapis toolchain ($(LAPIS))...
+	@echo "[Lapis] Compiling Lapis toolchain $(LAPIS)..."
 ifeq ($(PLATFORM),windows)
 	@$(CRYSTAL) build $(CRYSTAL_FLAGS) --static tools/lapis/src/lapis.cr -o $(LAPIS)
 else
@@ -227,7 +227,7 @@ package_lapis package-lapis: $(LAPIS)
 # Package Lapis Debian (.deb) package
 package_deb package-deb: $(LAPIS)
 ifneq ($(PLATFORM),linux)
-	@echo Error: Debian package (.deb) can only be built on Linux (current platform: $(PLATFORM)).
+	@echo "Error: Debian package (.deb) can only be built on Linux (current platform: $(PLATFORM))."
 	@exit 1
 else
 	@echo [Package] Packaging Lapis Debian package...
@@ -237,7 +237,7 @@ endif
 # Package Windows Inno Setup installer executable (.exe)
 package_installer package-installer windows_installer windows-installer installer: $(LAPIS)
 ifneq ($(PLATFORM),windows)
-	@echo Error: Windows installer (.exe) can only be built on Windows (current platform: $(PLATFORM)).
+	@echo "Error: Windows installer (.exe) can only be built on Windows (current platform: $(PLATFORM))."
 	@exit 1
 else
 	@echo [Package] Packaging Windows installer executable...
@@ -246,7 +246,7 @@ endif
 
 # Package all release archives and checksums into bin/release_dist/
 package_all package-all package_release package-release:
-	@echo [Package] Packaging all release archives into $(or $(OUTPUT_DIR),$(TARGET_DIR),bin/release_dist)...
+	@echo "[Package] Packaging all release archives into $(or $(OUTPUT_DIR),$(TARGET_DIR),bin/release_dist)..."
 	@$(LAPIS) package release $(if $(or $(OUTPUT_DIR),$(TARGET_DIR)),-t "$(or $(OUTPUT_DIR),$(TARGET_DIR))",) $(if $(filter 1,$(SKIP_TESTS)),--skip-tests,) $(if $(filter 1,$(SKIP_PERF)),--skip-perf,) $(if $(filter 1,$(SKIP_BENCHMARKS)),--skip-benchmarks,)
 
 # Package Crystal vs GDScript benchmarks suite
@@ -415,15 +415,15 @@ help:
 	@echo =========================================================================================
 	@echo   CORE BUILD TARGETS:
 	@echo     make                        Build bridge, test project, examples, template, sync, verify
-	@echo     make bridge                 Compile C++ GDExtension bridge (bin/crystal_bridge.dll)
-	@echo     make plugin                 Compile Crystal editor plugin library (bin/plugin.dll)
-	@echo     make test_project           Compile test suite library (test/bin/game.dll)
+	@echo     make bridge                 Compile C++ GDExtension bridge: bin/crystal_bridge.dll
+	@echo     make plugin                 Compile Crystal editor plugin library: bin/plugin.dll
+	@echo     make test_project           Compile test suite library: test/bin/game.dll
 	@echo     make examples               Compile all showcase projects in examples/
-	@echo     make template               Compile starter game template (template/bin/game.dll)
-	@echo     make template_addon         Compile addon starter template (template-addon/)
-	@echo     make perf                   Compile performance stress benchmark (performance/)
+	@echo     make template               Compile starter game template: template/bin/game.dll
+	@echo     make template_addon         Compile addon starter template: template-addon/
+	@echo     make perf                   Compile performance stress benchmark: performance/
 	@echo     make game_dll               Compile and synchronize game.dll across all targets
-	@echo     make deps                   Verify and copy runtime DLLs (gc, iconv, pcre2, libgodot)
+	@echo     make deps                   Verify and copy runtime DLLs: gc, iconv, pcre2, libgodot
 	@echo     make sync                   Synchronize binaries and addons across consumer projects
 	@echo     make clean                  Remove compiled game and bridge binaries
 	@echo     make install                Install Lapis CLI globally [INSTALL_DIR=...] [PREFIX=...] [FORCE=1]
@@ -436,8 +436,8 @@ help:
 	@echo   PACKAGING TARGETS:
 	@echo     make package-game           Package playable game [PROJECT=.] [RELEASE=1] [FORCE=1]
 	@echo     make package-release        Package all release archives into bin/release_dist/
-	@echo     make package-installer      Package Windows Inno Setup installer executable (.exe)
-	@echo     make package-deb            Package Lapis Debian package (.deb)
+	@echo     make package-installer      Package Windows Inno Setup installer executable .exe
+	@echo     make package-deb            Package Lapis Debian package .deb
 	@echo     make package-tests          Package standalone test runner into tests-^<platform^>.zip
 	@echo     make package-template       Package starter template into template-project.zip
 	@echo     make package-template-addon Package addon template into template-addon-project.zip
@@ -457,7 +457,7 @@ help:
 	@echo     make run-test               Run tests [UI=1] [SKIP_SPECS=1] [SKIP_RUNTIME_TESTS=1]
 	@echo     make run-ci-local           Simulate local GitHub Actions CI matrix harness
 	@echo     make test                   Run complete test suite and verification specs
-	@echo     make spec                   Run headless Crystal unit specifications (test/spec)
+	@echo     make spec                   Run headless Crystal unit specifications: test/spec
 	@echo     make debug                  Run test suite under LLDB debugger [PROJECT=...]
 	@echo     make debug-editor           Open Godot Editor under LLDB debugger [PROJECT=...]
 	@echo.
@@ -466,7 +466,7 @@ help:
 	@echo     make export-templates       Ensure Godot export templates installed [VERSION=...]
 	@echo     make recompile-addons       Recompile all Crystal addons in project [PROJECT=...]
 	@echo     make verify-editor          Verify editor launch, hot-reload, clean exit [PROJECT=...]
-	@echo     make test-wsl               Run Linux test suite inside WSL (Ubuntu)
+	@echo     make test-wsl               Run Linux test suite inside WSL: Ubuntu
 	@echo     make report-android         Audit Android binaries and APK artifacts
 	@echo     make dump_api               Dump extension_api.json from Godot
 	@echo     make generate               Generate typed Crystal bindings from extension_api.json
