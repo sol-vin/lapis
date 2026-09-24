@@ -215,7 +215,7 @@ package_examples package-examples: examples
 	@$(LAPIS) package examples $(if $(ZIP_NAME),-o "$(ZIP_NAME)",)
 
 # Package official crystal_integration addon into godot-crystal-addon.zip
-package_addon package-addon: plugin bridge
+package_addon package-addon: $(LAPIS)
 	@echo [Package] Packaging official Crystal integration addon...
 	@$(LAPIS) package addon $(if $(PLATFORM),--platform "$(PLATFORM)",) $(if $(ZIP_NAME),-o "$(ZIP_NAME)",) $(if $(TARGET_DIR),-t "$(TARGET_DIR)",)
 

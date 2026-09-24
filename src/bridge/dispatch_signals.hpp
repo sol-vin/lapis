@@ -38,10 +38,18 @@ inline void free_string_name(void *sn) {
     (void)sn;
 }
 
-/** Cleans up all interned heap-backed Godot StringName instances at engine shutdown (no-op: engine lifetime) */
+/** Cleans up all interned heap-backed Godot StringName instances at engine shutdown */
 inline void bridge_cleanup_string_name_cache() {
-    // StringNames are interned in Godot's static string pool for the process lifetime.
-    // Releasing them during shutdown causes use-after-free crashes with Godot's string table teardown.
+    std::lock_guard<std::mutex> lock(s_string_name_mutex);
+    if (gd_string_name_destroy) {
+        for (auto &pair : s_string_name_cache) {
+            if (pair.second) {
+                gd_string_name_destroy(pair.second);
+                free(pair.second);
+            }
+        }
+    }
+    s_string_name_cache.clear();
 }
 
 /** Allocates and initializes a heap-backed Godot String instance */

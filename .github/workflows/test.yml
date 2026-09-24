@@ -1494,7 +1494,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: godot-crystal-addon-windows
-          path: bin/release_dist/godot-crystal-addon.zip
+          path: |
+            bin/*godot-crystal-addon*.zip
+            bin/release_dist/*godot-crystal-addon*.zip
           if-no-files-found: ignore
 
   package-linux-deb:
@@ -1546,7 +1548,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: godot-crystal-addon-linux
-          path: bin/release_dist/godot-crystal-addon.zip
+          path: |
+            bin/*godot-crystal-addon*.zip
+            bin/release_dist/*godot-crystal-addon*.zip
           if-no-files-found: ignore
 
   # =========================================================================

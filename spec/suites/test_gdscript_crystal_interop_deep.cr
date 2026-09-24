@@ -85,7 +85,12 @@ test_suite "GDScriptInteropDeep" do
     task_id = root.call_i64("start_worker_thread_channel_producer", ch, item_count, "WorkerPoolItem")
     assert_true task_id >= 0_i64
 
-    # Wait for completion in GDScript
+    # Wait for completion in GDScript cooperatively without blocking main loop
+    start_wait = Time.instant
+    while !root.call_bool("is_worker_task_completed", task_id)
+      break if (Time.instant - start_wait).total_seconds > 5.0
+      Fiber.yield
+    end
     root.call("wait_for_worker_task", task_id)
 
     # Crystal drains all items

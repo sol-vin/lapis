@@ -350,6 +350,9 @@ func start_worker_thread_channel_producer(ch: RefCounted, count: int, prefix: St
 			ch.send("%s_%d" % [prefix, i])
 	return WorkerThreadPool.add_task(task)
 
+func is_worker_task_completed(task_id: int) -> bool:
+	return WorkerThreadPool.is_task_completed(task_id)
+
 func wait_for_worker_task(task_id: int) -> void:
 	WorkerThreadPool.wait_for_task_completion(task_id)
 
