@@ -1060,20 +1060,20 @@ module Lapis
         begin
           proc = Process.new(@godot_exe, run_args, env: env, output: stdout, error: stderr)
           done = false
-          wait_thread = Thread.new do
+          wait_thread = ::Thread.new do
             proc.wait
             done = true
           end
 
           deadline = ::Time.instant + 15.seconds
           while !done && ::Time.instant < deadline
-            Crystal::System::Thread.sleep(Time::Span.new(nanoseconds: 50_000_000))
+            Crystal::System::Thread.sleep(50.milliseconds)
           end
 
           if !done
             proc.terminate rescue nil
-            Crystal::System::Thread.sleep(Time::Span.new(nanoseconds: 200_000_000))
-            proc.kill rescue nil
+            Crystal::System::Thread.sleep(200.milliseconds)
+            proc.terminate(graceful: false) rescue nil
             wait_thread.join
             duration = (::Time.instant - start).total_milliseconds
             return TestResult.new("ColdBoot", @test_name, false, "Isolated engine process timed out after 15s", duration, "FAIL")
@@ -1113,20 +1113,20 @@ module Lapis
         begin
           proc = Process.new(@godot_exe, run_args, env: env, output: stdout, error: stderr)
           done = false
-          wait_thread = Thread.new do
+          wait_thread = ::Thread.new do
             proc.wait
             done = true
           end
 
           deadline = ::Time.instant + 15.seconds
           while !done && ::Time.instant < deadline
-            Crystal::System::Thread.sleep(Time::Span.new(nanoseconds: 50_000_000))
+            Crystal::System::Thread.sleep(50.milliseconds)
           end
 
           if !done
             proc.terminate rescue nil
-            Crystal::System::Thread.sleep(Time::Span.new(nanoseconds: 200_000_000))
-            proc.kill rescue nil
+            Crystal::System::Thread.sleep(200.milliseconds)
+            proc.terminate(graceful: false) rescue nil
             wait_thread.join
             duration = (::Time.instant - start).total_milliseconds
             return TestResult.new("ColdBoot", @test_name, false, "Isolated engine project timed out after 15s", duration, "FAIL")
