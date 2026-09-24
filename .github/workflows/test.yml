@@ -50,11 +50,10 @@ jobs:
           crystal -v
           g++ --version
 
-      - name: Build Lapis CLI Toolchain
+      - name: Build Lapis CLI Toolchain and Bridge
         shell: pwsh
         run: |
-          if (-not (Test-Path "bin")) { New-Item -ItemType Directory -Force -Path "bin" | Out-Null }
-          crystal build tools/lapis/src/lapis.cr -o bin/lapis.exe
+          make lapis bridge
 
       - name: Run Lapis CLI Specifications
         shell: pwsh
@@ -71,11 +70,13 @@ jobs:
         run: |
           crystal spec spec/baked_file_system_spec.cr spec/godot_version_verification_spec.cr spec/tool_verification_spec.cr
 
-      - name: Upload Lapis CLI Binary
+      - name: Upload Lapis Toolchain and Bridge
         uses: actions/upload-artifact@v4
         with:
           name: lapis-cli-windows
-          path: bin/lapis.exe
+          path: |
+            bin/lapis.exe
+            bin/crystal_bridge.dll
           if-no-files-found: error
 
   fast-specs-linux:
@@ -110,10 +111,9 @@ jobs:
           crystal -v
           g++ --version
 
-      - name: Build Lapis CLI Toolchain
+      - name: Build Lapis CLI Toolchain and Bridge
         run: |
-          mkdir -p bin
-          crystal build tools/lapis/src/lapis.cr -o bin/lapis
+          make lapis bridge
 
       - name: Run Lapis CLI Specifications
         run: |
@@ -127,11 +127,13 @@ jobs:
         run: |
           crystal spec spec/baked_file_system_spec.cr spec/godot_version_verification_spec.cr spec/tool_verification_spec.cr
 
-      - name: Upload Lapis CLI Binary
+      - name: Upload Lapis Toolchain and Bridge
         uses: actions/upload-artifact@v4
         with:
           name: lapis-cli-linux
-          path: bin/lapis
+          path: |
+            bin/lapis
+            bin/crystal_bridge.so
           if-no-files-found: error
 
   fast-specs-macos:
@@ -165,10 +167,9 @@ jobs:
           crystal -v
           clang++ --version
 
-      - name: Build Lapis CLI Toolchain
+      - name: Build Lapis CLI Toolchain and Bridge
         run: |
-          mkdir -p bin
-          crystal build tools/lapis/src/lapis.cr -o bin/lapis
+          make lapis bridge
 
       - name: Run Lapis CLI Specifications
         run: |
@@ -182,11 +183,13 @@ jobs:
         run: |
           crystal spec spec/baked_file_system_spec.cr spec/godot_version_verification_spec.cr spec/tool_verification_spec.cr
 
-      - name: Upload Lapis CLI Binary
+      - name: Upload Lapis Toolchain and Bridge
         uses: actions/upload-artifact@v4
         with:
           name: lapis-cli-macos
-          path: bin/lapis
+          path: |
+            bin/lapis
+            bin/crystal_bridge.dylib
           if-no-files-found: error
 
   # =========================================================================
@@ -206,11 +209,10 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Download Lapis CLI Binary
+      - name: Download Lapis Toolchain and Bridge
         uses: actions/download-artifact@v4
         with:
           name: lapis-cli-windows
-          path: bin
 
       - name: Resolve Godot Version
         id: godot-version
@@ -331,11 +333,10 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Download Lapis CLI Binary
+      - name: Download Lapis Toolchain and Bridge
         uses: actions/download-artifact@v4
         with:
           name: lapis-cli-linux
-          path: bin
 
       - name: Fix Lapis CLI Permissions
         run: |
@@ -434,11 +435,10 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Download Lapis CLI Binary
+      - name: Download Lapis Toolchain and Bridge
         uses: actions/download-artifact@v4
         with:
           name: lapis-cli-macos
-          path: bin
 
       - name: Fix Lapis CLI Permissions
         run: |

@@ -45,6 +45,14 @@ module LapisSpecHelper
       end
     end
 
+    # Ensure crystal_bridge dynamic library exists for scaffolding tests
+    bridge_name = Lapis::Core::Env.bridge_file
+    bridge_path = repo_root.join("bin", bridge_name)
+    unless File.exists?(bridge_path)
+      make_cmd = Process.find_executable("make") || (Lapis::Core::Env.windows? ? "make.exe" : "make")
+      Process.run(make_cmd, ["bridge"], chdir: repo_root.to_s)
+    end
+
     bin_path
   end
 
