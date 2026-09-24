@@ -1679,7 +1679,8 @@ jobs:
 
       - name: Generate Crystal API Documentation
         run: |
-          crystal docs
+          shards install || true
+          crystal docs src/lapis.cr
           touch docs/.nojekyll
           # Patch sidebar cutoff so items under Godot are not truncated
           if [ -f "scripts/patch_docs.cr" ]; then

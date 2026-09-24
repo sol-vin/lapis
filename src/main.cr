@@ -426,6 +426,7 @@ node RunTesterPanel < Godot::Control do
 
   def should_autorun? : Bool
     return true if ENV["GODOT_TEST_AUTORUN"]? == "1"
+    return true if ENV["CI"]? == "true" || ENV["GITHUB_ACTIONS"]? == "true"
     begin
       return true if ARGV.includes?("--autorun")
     rescue
