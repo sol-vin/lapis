@@ -1,6 +1,6 @@
-# LibGodot Crystal Starter Template
+# Lapis Crystal Starter Template
 
-This directory provides a clean, minimal starter skeleton for creating new Godot games powered by Crystal and LibGodot.
+This directory provides a clean, minimal starter skeleton for creating new Godot games powered by Crystal and Lapis.
 
 ---
 

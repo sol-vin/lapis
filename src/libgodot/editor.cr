@@ -12,14 +12,14 @@ module Lapis
 
   @[Tool]
   node CrystalIntegrationPlugin < EditorPlugin do
-    # Version of the compiled LibGodot library
+    # Version of the compiled Lapis library
     getter version : String = ::Godot::VERSION
 
     # Active status of the compiled Crystal editor integration
     getter active : Bool = true
 
     # Status message visible in inspector or tooling
-    getter status_message : String = "LibGodot Crystal Integration Active"
+    getter status_message : String = "Lapis Crystal Integration Active"
 
     # Emitted when the Crystal editor plugin finishes initialization
     signal ready_in_editor
@@ -104,7 +104,7 @@ module Lapis
       @@instance = self
       Godot.print("==================================================================")
       Godot.print("  [CrystalIntegrationPlugin] Native Crystal editor plugin loaded!")
-      Godot.print("  LibGodot Version: #{::Godot::VERSION}")
+      Godot.print("  Lapis Version:     #{::Godot::VERSION}")
       Godot.print("  Target Godot:     #{::Godot::TARGET_GODOT_VERSION}")
       Godot.print("==================================================================")
       verify_godot_version
@@ -233,7 +233,7 @@ module Lapis
           ei = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
           dialog = Godot.create(Godot::AcceptDialog)
           if dialog
-            dialog.set_title("LibGodot: Required Tools Missing")
+            dialog.set_title("Lapis: Required Tools Missing")
             dialog.set_text("The following required development tools are missing or outdated:\n\n#{err_banner}\n\nPlease install them to enable Crystal compilation and build automation.")
             dialog.set_autowrap(true)
             dialog.set_ok_button_text("Acknowledge")

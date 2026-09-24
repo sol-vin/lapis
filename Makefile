@@ -1,11 +1,11 @@
 # =============================================================================
-# LibGodot for Crystal - Root Makefile
+# Lapis for Crystal - Root Makefile
 # =============================================================================
 #
-# Builds the complete LibGodot Crystal toolchain, editor test suite, and examples:
+# Builds the complete Lapis Crystal toolchain, editor test suite, and examples:
 #   - crystal_bridge.dll (GDExtension C++ loader bridge)
 #   - game.dll (Crystal game library for Godot GDExtension host/editor)
-#   - game.exe (Crystal standalone executable for LibGodot host paradigm)
+#   - game.exe (Crystal standalone executable for Lapis host paradigm)
 #   - Syncs binaries & runtime DLLs to bin/, test/bin/, template/bin/, and examples/*/bin/
 #
 # Usage:
@@ -114,7 +114,7 @@ uninstall: $(LAPIS)
 # Default target: compile bridge, plugin, test project, standalone runner, examples, template, template_addon, perf, sync DLLs, run test suite, and Windows installer
 all: dirs deps bridge plugin addons dummy_addons test_project test_standalone examples template template_addon perf perf_standalone sync test $(if $(filter windows,$(PLATFORM)),$(if $(filter 1,$(SKIP_INSTALLER)),,package_installer),)
 	@echo ===================================================================
-	@echo   LibGodot Crystal library build completed successfully!
+	@echo   Lapis Crystal library build completed successfully!
 	@echo   Run 'make run' to launch test runner or 'make editor' for editor.
 	@echo ===================================================================
 
@@ -265,14 +265,14 @@ else
 	@$(LAPIS) scaffold addon $(NAME) $(if $(or $(DIR),$(TARGET),$(TARGET_PATH)),-d "$(or $(DIR),$(TARGET),$(TARGET_PATH))",) $(if $(AUTHOR),-a "$(AUTHOR)",) $(if $(or $(DESC),$(DESCRIPTION)),--desc "$(or $(DESC),$(DESCRIPTION))",)
 endif
 
-# Scaffold a new LibGodot showcase example project
+# Scaffold a new Lapis showcase example project
 new_example new-example:
 ifeq ($(strip $(NAME)),)
 	@echo Error: 'NAME' parameter is required.
 	@echo Usage: make new-example NAME=my_example [DIR=path/to/example]
 	@exit 1
 else
-	@echo [Scaffold] Scaffolding new LibGodot Example '$(NAME)'...
+	@echo [Scaffold] Scaffolding new Lapis Example '$(NAME)'...
 	@$(LAPIS) scaffold example $(NAME) $(if $(or $(DIR),$(TARGET),$(TARGET_PATH)),-d "$(or $(DIR),$(TARGET),$(TARGET_PATH))",)
 endif
 
@@ -343,7 +343,7 @@ test tests: test_standalone
 # Unified test runner (supports interactive UI or automated suite)
 run_test run-test:
 ifeq ($(or $(filter 1,$(INTERACTIVE)),$(filter 1,$(UI))),1)
-	@echo Launching Crystal LibGodot Interactive Test Runner...
+	@echo Launching Crystal Lapis Interactive Test Runner...
 	@$(LAPIS) run -p .
 else
 	@$(LAPIS) test $(if $(filter 1,$(SKIP_SPECS)),--skip-specs,) $(if $(filter 1,$(SKIP_TOOL_TESTS)),--skip-tool-tests,) $(if $(filter 1,$(SKIP_RUNTIME_TESTS)),--skip-runtime-tests,) $(if $(filter 1,$(TUI)),--tui,) $(if $(or $(filter 1,$(NO_TUI)),$(filter 0,$(TUI))),--no-tui,)
@@ -363,7 +363,7 @@ docs:
 
 # Launch test project using Godot
 run:
-	@echo Launching Crystal LibGodot Test Runner...
+	@echo Launching Crystal Lapis Test Runner...
 	@$(LAPIS) run -p .
 
 # Launch Godot editor for test project
@@ -377,7 +377,7 @@ run_editor run-editor:
 
 # Run project under LLDB debugger
 debug:
-	@echo Launching Crystal LibGodot under LLDB Debugger...
+	@echo Launching Crystal Lapis under LLDB Debugger...
 	@$(LAPIS) editor -r -p "$(or $(PROJECT),$(PATH),.)" --lldb $(if $(filter 1,$(BATCH)),--batch,)
 
 # Open Godot Editor under LLDB debugger
@@ -396,7 +396,7 @@ clean:
 # Display help menu
 help:
 	@echo =========================================================================================
-	@echo   LibGodot for Crystal - Root Build and Command Reference
+	@echo   Lapis for Crystal - Root Build and Command Reference
 	@echo =========================================================================================
 	@echo   CORE BUILD TARGETS:
 	@echo     make                        Build bridge, test project, examples, template, sync, verify

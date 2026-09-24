@@ -117,7 +117,7 @@ test spec:
 
 help:
 	@echo ===================================================================
-	@echo   LibGodot Template - Build and Export Commands
+	@echo   Lapis Template - Build and Export Commands
 	@echo ===================================================================
 	@echo   make                Build game library, runnable executable, and sync
 	@echo   make rebuild        Clean and rebuild all artifacts

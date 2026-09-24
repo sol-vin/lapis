@@ -188,5 +188,14 @@ describe "Lapis Subcommands" do
       res.output.should contain("Native Debugger (LLDB)")
     end
   end
+
+  describe "test" do
+    it "resolves and runs tests scoped to a consumer project like template" do
+      res = LapisSpecHelper.run_lapis(["test", "template", "--no-tui", "--skip-runtime-tests"])
+      res.success?.should be_true, "Output:\n#{res.all_output}"
+      res.output.should contain("Running project specifications in template/spec")
+      res.output.should contain("6 examples, 0 failures")
+    end
+  end
 end
 

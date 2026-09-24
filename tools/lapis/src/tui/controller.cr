@@ -76,7 +76,7 @@ module Lapis
       # organized by phase, with failure excerpts and logs.
       def dump_results : Nil
         puts
-        puts "\e[1;97;48;5;54m 🔮 LIBGODOT TEST SUITE RUN REPORT \e[0m"
+        puts "\e[1;97;48;5;54m 🔮 #{@state.title.upcase} RUN REPORT \e[0m"
         puts
 
         executed_phases = @state.phases.reject { |p| p.status == PhaseStatus::Pending }

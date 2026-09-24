@@ -109,7 +109,7 @@ test spec:
 
 help:
 	@echo ===================================================================
-	@echo   LibGodot Addon Template - Build and Export Commands
+	@echo   Lapis Addon Template - Build and Export Commands
 	@echo ===================================================================
 	@echo   make                Build addon library and sync dependencies
 	@echo   make build          Compile addon Crystal library (game.$(SO_EXT))

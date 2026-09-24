@@ -1,5 +1,5 @@
 # =============================================================================
-# LibGodot Test Runner Application & Suite Entry Point (Root Host)
+# Lapis Test Runner Application & Suite Entry Point (Root Host)
 # =============================================================================
 
 require "./lapis"
@@ -151,7 +151,7 @@ node RunTesterPanel < Godot::Control do
 
   def _ready
     Godot.print("==================================================================")
-    Godot.print("    LibGodot Interactive Test Runner Loaded (Two-Click Testing)   ")
+    Godot.print("    Lapis Interactive Test Runner Loaded (Two-Click Testing)   ")
     Godot.print("==================================================================")
 
     # Master "Run All" button
@@ -247,7 +247,7 @@ node RunTesterPanel < Godot::Control do
     passed = results.count(&.passed)
     total = results.size
 
-    Godot.print("\n=== LibGodot Test Results [#{suite_label}]: #{passed}/#{total} Passed ===")
+    Godot.print("\n=== Lapis Test Results [#{suite_label}]: #{passed}/#{total} Passed ===")
     results.each do |r|
       if r.passed
         Godot.print("  ✔ [#{r.category}] #{r.name}")
@@ -266,7 +266,7 @@ node RunTesterPanel < Godot::Control do
 
     if log_box = get_node?("MarginContainer/VBox/LogOutput")
       lines = [] of String
-      lines << "[b]=== LibGodot Test Execution Suite: #{suite_label} ===[/b]"
+      lines << "[b]=== Lapis Test Execution Suite: #{suite_label} ===[/b]"
       results.each do |r|
         color = r.passed ? "#44ff88" : "#ff4444"
         icon = r.passed ? "[color=#{color}]✔ PASS[/color]" : "[color=#{color}]✘ FAIL[/color]"

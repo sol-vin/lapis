@@ -2,7 +2,7 @@
 
 This template demonstrates how to write, compile, and package a standalone **GDExtension Addon/Plugin in Crystal** for Godot Engine 4.8+.
 
-Compiled addons built with this template can be distributed to **any standard vanilla Godot user**—they do **not** need Crystal, MinGW, or LibGodot installed to use your plugin or custom nodes.
+Compiled addons built with this template can be distributed to **any standard vanilla Godot user**—they do **not** need Crystal, MinGW, or Lapis installed to use your plugin or custom nodes.
 
 ---
 
@@ -20,7 +20,7 @@ Compiled addons built with this template can be distributed to **any standard va
    - `crystal_addon.gdextension`: Configures Godot to load the native bridge from `res://addons/crystal_addon/bin/`.
    - `bin/`: Contains compiled native binaries (`crystal_bridge.dll`, `game.dll`, `gc.dll`, etc.).
 4. **`Makefile`**:
-   - Build system for compiling the Crystal code and linking with the LibGodot GDExtension bridge.
+   - Build system for compiling the Crystal code and linking with the Lapis GDExtension bridge.
 
 ---
 

@@ -1,6 +1,6 @@
-# Agent Guidelines for LibGodot
+# Agent Guidelines for Lapis
 
-This document is the authoritative engineering and operational manual for AI agents and contributors working on the **LibGodot for Crystal** project. Every agent working in this repository must read, understand, and strictly abide by the rules, architectural invariants, and verification protocols outlined below.
+This document is the authoritative engineering and operational manual for AI agents and contributors working on the **Lapis for Crystal** project. Every agent working in this repository must read, understand, and strictly abide by the rules, architectural invariants, and verification protocols outlined below.
 
 ---
 

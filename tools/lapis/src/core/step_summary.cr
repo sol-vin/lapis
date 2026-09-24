@@ -54,7 +54,7 @@ module Lapis
       end
 
       def initialize(
-        @title : String = "LibGodot Workflow Status",
+        @title : String = "Lapis Workflow Status",
         godot_exe : String? = nil,
       )
         platform_arch = Core::Env.windows? ? "x86_64" : (Core::Env.macos? ? "arm64" : "x86_64")

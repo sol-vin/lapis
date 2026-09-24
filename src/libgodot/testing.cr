@@ -1205,7 +1205,7 @@ module Lapis
 
         xml = String.build do |io|
           io << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-          io << "<testsuites name=\"LibGodot Test Suite\" tests=\"#{total}\" failures=\"#{failures}\" errors=\"0\" time=\"#{time_total}\">\n"
+          io << "<testsuites name=\"Lapis Test Suite\" tests=\"#{total}\" failures=\"#{failures}\" errors=\"0\" time=\"#{time_total}\">\n"
           by_cat.each do |cat, cat_results|
             cat_failures = cat_results.count(&.fail?)
             cat_time = cat_results.sum(&.duration_ms) / 1000.0

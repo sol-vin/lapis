@@ -15,15 +15,17 @@ module Lapis
         puts <<-HELP
 \e[35m=== Lapis: Automated Test Suite Runner ===\e[0m
 
-Usage: lapis test [options]
+Usage: lapis test [options] [path]
 
 Options:
+  -p, --path=PATH       Target Godot project path (default: current directory or workspace root)
+  --project=PATH        Target Godot project path (alias for --path)
   --tui                 Force launch interactive Terminal User Interface (TUI) dashboard
   --no-tui              Disable TUI and use standard streaming logs
-  --skip-specs          Skip all Crystal spec unit tests (spec, tools/lapis/spec)
-  --skip-engine-specs   Skip engine & bindings specifications (spec)
-  --skip-cli-specs      Skip Lapis toolchain & CLI specifications (tools/lapis/spec)
-  --skip-tool-tests     Skip headless in-editor @tool tests
+  --skip-specs          Skip all Crystal spec unit tests
+  --skip-engine-specs   Skip engine & bindings specifications (root engine only)
+  --skip-cli-specs      Skip Lapis toolchain & CLI specifications (root engine only)
+  --skip-tool-tests     Skip in-editor @tool tests (root engine only)
   --skip-runtime-tests  Skip Godot runtime test project
   --skip-standalone     Skip standalone compiled test executable
   -f, --filter=PATTERN  Run only runtime tests matching PATTERN
@@ -35,11 +37,33 @@ Options:
 
 Examples:
   lapis test
+  lapis test template
+  lapis test -p template
   lapis test --skip-specs
   lapis test -f "Signal"
   lapis test -c "2D"
   lapis test --junit reports/junit.xml
 HELP
+      end
+
+      def self.resolve_target_dir(proj_path : String?, root : Path) : Path
+        curr = Path.new(Dir.current).expand
+
+        if proj_path && !proj_path.empty?
+          p = Path.new(proj_path)
+          return p if p.absolute? && Dir.exists?(p)
+          return curr.join(p).expand if Dir.exists?(curr.join(p))
+          return root.join(p).expand if Dir.exists?(root.join(p))
+          return p.expand
+        end
+
+        # Auto-detect target project when no path is explicitly provided:
+        # If current directory is not root and contains project.godot or shard.yml, use current directory!
+        if curr != root && (File.exists?(curr.join("project.godot")) || File.exists?(curr.join("shard.yml")))
+          return curr
+        end
+
+        root
       end
 
       def self.clear_markers(test_dir : Path, test_bin_dir : Path)
@@ -74,6 +98,7 @@ HELP
           return 0
         end
 
+        proj_path : String? = nil
         start_time = Time.instant
         skip_specs = false
         skip_engine_specs = false
@@ -88,7 +113,9 @@ HELP
         godot_path : String? = nil
 
         parser = OptionParser.new do |opts|
-          opts.banner = "Usage: lapis test [options]"
+          opts.banner = "Usage: lapis test [options] [path]"
+          opts.on("-p PATH", "--path=PATH", "Target Godot project path") { |p| proj_path = p }
+          opts.on("--project=PATH", "Target Godot project path") { |p| proj_path = p }
           opts.on("--tui", "Force launch interactive Terminal User Interface (TUI) dashboard") { force_tui = true }
           opts.on("--no-tui", "Disable TUI and use standard streaming logs") { force_tui = false }
           opts.on("--skip-specs", "Skip all Crystal spec unit tests") { skip_specs = true }
@@ -103,14 +130,21 @@ HELP
           opts.on("-g PATH", "--godot=PATH", "Explicit Godot engine executable path") { |p| godot_path = p }
           opts.on("-v", "--verbose", "Enable verbose diagnostic logging") { Core::Logger.verbose = true }
           opts.on("-h", "--help", "Show help") { print_help; exit 0 }
+          opts.unknown_args do |before, after|
+            remaining = before + after
+            proj_path ||= remaining.first if !remaining.empty?
+          end
         end
 
         parser.parse(args)
 
         root = Core::Env::ROOT_DIR
-        test_dir = root
-        test_bin_dir = root.join("bin")
-        godot_exe = Core::GodotFinder.resolve(godot_path)
+        target_dir = resolve_target_dir(proj_path, root)
+        is_root_engine = (target_dir == root) && Core::Env.is_libgodot_repo?(root)
+        test_dir = target_dir
+        test_bin_dir = target_dir.join("bin")
+        FileUtils.mkdir_p(test_bin_dir) unless Dir.exists?(test_bin_dir)
+        godot_exe = Core::GodotFinder.resolve(godot_path, target_dir.to_s)
 
         junit_path ||= test_bin_dir.join("junit.xml").to_s
 
@@ -119,7 +153,8 @@ HELP
         extra_runtime_args << "--category=#{category_filter}" if category_filter
         extra_runtime_args << "--junit=#{junit_path}" if junit_path
 
-        step_summary = Core::StepSummary.new("LibGodot Test Suite Status Report", godot_exe)
+        proj_title = is_root_engine ? "Lapis Test Suite" : "Lapis Test Suite — #{target_dir.basename}"
+        step_summary = Core::StepSummary.new("#{proj_title} Status Report", godot_exe)
         clear_markers(test_dir, test_bin_dir)
 
         # Detect TUI availability (TTY output, not CI, or explicitly requested)
@@ -133,7 +168,7 @@ HELP
         if use_tui
           platform_str = Core::Env.windows? ? "Windows x86_64" : (Core::Env.macos? ? "macOS arm64" : "Linux x86_64")
           godot_ver = godot_exe ? (Core::GodotFinder.get_version(godot_exe) || "4.8-dev6") : "Not Found"
-          tui = TUI::Controller.new("LibGodot Test Suite", platform_str, godot_ver)
+          tui = TUI::Controller.new(proj_title, platform_str, godot_ver)
         end
 
         phase_map = {} of String => Int32
@@ -145,33 +180,53 @@ HELP
           end
         }
 
-        # Pre-register test phases into TUI checklist
-        unless skip_specs
-          add_phase_item.call("[TEST:SPECS:ENGINE]", "Engine Specifications (spec)", "Spec") unless skip_engine_specs
-          add_phase_item.call("[TEST:SPECS:CLI]", "Toolchain Specifications (tools/lapis/spec)", "Spec") unless skip_cli_specs
-          add_phase_item.call("[TEST:SPECS:ROOT]", "Headless Architectural Specifications", "Spec")
-          add_phase_item.call("[TEST:SPECS:DEBUGGER]", "Debugger & Crash Handler Specifications", "Spec")
-        end
-        add_phase_item.call("[TEST:TOOL_NODES]", "Headless In-Editor @tool Tests", "Test") unless skip_tool_tests
+        has_project_specs = Dir.exists?(target_dir.join("spec")) && !skip_specs
+        runtime_scene = [
+          target_dir.join("scenes/main_test_runner.tscn"),
+          target_dir.join("scenes/test_runner.tscn"),
+        ].find { |s| File.exists?(s) }
+        has_runtime_test_scene = !runtime_scene.nil? && !skip_runtime_tests
 
         standalone_exe = test_bin_dir.join("tests#{Core::Env.exe_ext}")
         pck_file = test_bin_dir.join("tests.pck")
-        if !File.exists?(standalone_exe) || !File.exists?(pck_file)
+        if is_root_engine && (!File.exists?(standalone_exe) || !File.exists?(pck_file))
           standalone_exe = test_bin_dir.join("game#{Core::Env.exe_ext}")
           pck_file = test_bin_dir.join("game.pck")
         end
         has_standalone = File.exists?(standalone_exe) && File.exists?(pck_file)
         portable_exe = test_bin_dir.join("tests_portable#{Core::Env.exe_ext}")
 
-        unless skip_standalone
-          if has_standalone
-            add_phase_item.call("[TEST:STANDALONE]", "Regular Standalone Test Runner", "Test")
+        if is_root_engine
+          # Pre-register test phases into TUI checklist for root engine
+          unless skip_specs
+            add_phase_item.call("[TEST:SPECS:ENGINE]", "Engine Specifications (spec)", "Spec") unless skip_engine_specs
+            add_phase_item.call("[TEST:SPECS:CLI]", "Toolchain Specifications (tools/lapis/spec)", "Spec") unless skip_cli_specs
+            add_phase_item.call("[TEST:SPECS:ROOT]", "Headless Architectural Specifications", "Spec")
+            add_phase_item.call("[TEST:SPECS:DEBUGGER]", "Debugger & Crash Handler Specifications", "Spec")
           end
-          if File.exists?(portable_exe) || has_standalone
-            add_phase_item.call("[TEST:PORTABLE]", "Standalone Portable Test Runner", "Test")
+          add_phase_item.call("[TEST:TOOL_NODES]", "Headless In-Editor @tool Tests", "Test") unless skip_tool_tests
+
+          unless skip_standalone
+            if has_standalone
+              add_phase_item.call("[TEST:STANDALONE]", "Regular Standalone Test Runner", "Test")
+            end
+            if File.exists?(portable_exe) || has_standalone
+              add_phase_item.call("[TEST:PORTABLE]", "Standalone Portable Test Runner", "Test")
+            end
+          end
+          add_phase_item.call("[TEST:RUNTIME]", "In-Project Runtime Test Runner (main_test_runner.tscn)", "Test") unless skip_runtime_tests
+        else
+          # Consumer Project (template, template-addon, examples, or standalone game)
+          if has_project_specs
+            add_phase_item.call("[TEST:SPECS]", "Project Specifications (#{target_dir.basename})", "Spec")
+          end
+          if has_standalone && !skip_standalone
+            add_phase_item.call("[TEST:STANDALONE]", "Standalone Test Runner (#{standalone_exe.basename})", "Test")
+          end
+          if has_runtime_test_scene
+            add_phase_item.call("[TEST:RUNTIME]", "In-Project Runtime Test Runner (#{runtime_scene.not_nil!.basename})", "Test")
           end
         end
-        add_phase_item.call("[TEST:RUNTIME]", "In-Project Runtime Test Runner (main_test_runner.tscn)", "Test") unless skip_runtime_tests
 
         tui.try &.start
 
@@ -179,173 +234,208 @@ HELP
           # -----------------------------------------------------------------------
           # Phase 1: Crystal Unit Specs
           # -----------------------------------------------------------------------
-          unless skip_specs
-            # Phase 1a: Engine & Core Bindings Specifications
-            unless skip_engine_specs
-              spec_dir = root.join("spec")
-              if Dir.exists?(spec_dir)
-                phase_tag = "[TEST:SPECS:ENGINE]"
-                if idx = phase_map[phase_tag]?
-                  tui.try &.begin_phase(idx)
-                end
-                Core::Logger.step("Test:Specs:Engine", "Running Phase 1a: Engine specifications in spec...") unless tui
-                step_start = Time.instant
-                spec_junit_dir = test_bin_dir.join("junit_engine_specs")
-                res = Core::ProcessRunner.run_with_capture(
-                  "crystal",
-                  ["spec", "spec", "--junit_output=#{spec_junit_dir.to_s.gsub('\\', '/')}"],
-                  chdir: root.to_s,
-                  passthrough: tui.nil?,
-                  on_line: tui ? ->(l : String) { tui.not_nil!.handle_stream_line(l) } : nil
-                )
-                step_dur = (Time.instant - step_start).total_seconds.round(2)
-                if idx = phase_map[phase_tag]?
-                  tui.try &.finish_phase(idx, res[:status].success?, step_dur, safe_exit_code(res[:status]), res[:error_excerpt])
-                end
-                step_summary.add_phase(
-                  tag: phase_tag,
-                  name: "Engine Specifications (spec)",
-                  category: "Spec",
-                  success: res[:status].success?,
-                  duration: step_dur,
-                  exit_code: safe_exit_code(res[:status]),
-                  error_excerpt: res[:error_excerpt]
-                )
-              end
-            end
-
-            return 1 if tui.try &.aborted?
-
-            # Phase 1b: Lapis Toolchain & CLI Specifications
-            unless skip_cli_specs
-              lapis_spec_dir = root.join("tools/lapis/spec")
-              if Dir.exists?(lapis_spec_dir)
-                phase_tag = "[TEST:SPECS:CLI]"
-                if idx = phase_map[phase_tag]?
-                  tui.try &.begin_phase(idx)
-                end
-                Core::Logger.step("Test:Specs:CLI", "Running Phase 1b: Lapis toolchain specifications in tools/lapis/spec...") unless tui
-                step_start = Time.instant
-                cli_junit_dir = test_bin_dir.join("junit_cli_specs")
-                res = Core::ProcessRunner.run_with_capture(
-                  "crystal",
-                  ["spec", "tools/lapis/spec", "--junit_output=#{cli_junit_dir.to_s.gsub('\\', '/')}"],
-                  chdir: root.to_s,
-                  passthrough: tui.nil?,
-                  on_line: tui ? ->(l : String) { tui.not_nil!.handle_stream_line(l) } : nil
-                )
-                step_dur = (Time.instant - step_start).total_seconds.round(2)
-                if idx = phase_map[phase_tag]?
-                  tui.try &.finish_phase(idx, res[:status].success?, step_dur, safe_exit_code(res[:status]), res[:error_excerpt])
-                end
-                step_summary.add_phase(
-                  tag: phase_tag,
-                  name: "Lapis CLI Specifications (tools/lapis/spec)",
-                  category: "Spec",
-                  success: res[:status].success?,
-                  duration: step_dur,
-                  exit_code: safe_exit_code(res[:status]),
-                  error_excerpt: res[:error_excerpt]
-                )
-              end
-            end
-
-            return 1 if tui.try &.aborted?
-
-            # Phase 1c: Headless Architectural & Integration Specs
-            root_specs = [
-              "spec/libgodot_spec.cr",
-              "spec/boot_spec.cr",
-              "spec/binary_release_spec.cr",
-              "spec/api_coverage_spec.cr",
-              "spec/project_scaffolding_spec.cr",
-              "spec/godot_version_verification_spec.cr",
-              "spec/lapis_install_spec.cr",
-              "spec/tool_verification_spec.cr",
-              "spec/baked_file_system_spec.cr",
-              "spec/standalone_portable_spec.cr",
-              "spec/lsp_spec.cr",
-              "spec/crystal_language_spec.cr",
-              "spec/platform_isolation_spec.cr",
-              "spec/safety_and_bindings_spec.cr",
-              "spec/features_spec.cr",
-            ]
-
-            phase_tag = "[TEST:SPECS:ROOT]"
-            if idx = phase_map[phase_tag]?
-              tui.try &.begin_phase(idx)
-            end
-
-            root_specs_success = true
-            root_specs_dur = 0.0
-
-            root_specs.each do |spec_file|
-              return 1 if tui.try &.aborted?
-              full_path = root.join(spec_file)
-              if File.exists?(full_path)
-                spec_tag_name = Path.new(spec_file).basename.gsub(".cr", "").upcase
-                Core::Logger.step("Test:Specs:Root", "Running #{spec_file}...") unless tui
-                step_start = Time.instant
-                res = Core::ProcessRunner.run_with_capture(
-                  "crystal",
-                  ["run", spec_file],
-                  chdir: root.to_s,
-                  passthrough: tui.nil?,
-                  on_line: tui ? ->(l : String) { tui.not_nil!.handle_stream_line(l) } : nil
-                )
-                {% if flag?(:windows) %}
-                  if !res[:status].success?
-                    sleep 0.5.seconds
-                    res = Core::ProcessRunner.run_with_capture(
-                      "crystal",
-                      ["run", spec_file],
-                      chdir: root.to_s,
-                      passthrough: tui.nil?,
-                      on_line: tui ? ->(l : String) { tui.not_nil!.handle_stream_line(l) } : nil
-                    )
+          if is_root_engine
+            unless skip_specs
+              # Phase 1a: Engine & Core Bindings Specifications
+              unless skip_engine_specs
+                spec_dir = root.join("spec")
+                if Dir.exists?(spec_dir)
+                  phase_tag = "[TEST:SPECS:ENGINE]"
+                  if idx = phase_map[phase_tag]?
+                    tui.try &.begin_phase(idx)
                   end
-                {% end %}
-                step_dur = (Time.instant - step_start).total_seconds.round(2)
-                root_specs_dur += step_dur
-                root_specs_success &&= res[:status].success?
-
-                step_summary.add_phase(
-                  tag: "[TEST:SPECS:#{spec_tag_name}]",
-                  name: "Architectural Spec (#{spec_file})",
-                  category: "Spec",
-                  success: res[:status].success?,
-                  duration: step_dur,
-                  exit_code: safe_exit_code(res[:status]),
-                  error_excerpt: res[:error_excerpt]
-                )
+                  Core::Logger.step("Test:Specs:Engine", "Running Phase 1a: Engine specifications in spec...") unless tui
+                  step_start = Time.instant
+                  spec_junit_dir = test_bin_dir.join("junit_engine_specs")
+                  res = Core::ProcessRunner.run_with_capture(
+                    "crystal",
+                    ["spec", "spec", "--junit_output=#{spec_junit_dir.to_s.gsub('\\', '/')}"],
+                    chdir: root.to_s,
+                    passthrough: tui.nil?,
+                    on_line: tui ? ->(l : String) { tui.not_nil!.handle_stream_line(l) } : nil
+                  )
+                  step_dur = (Time.instant - step_start).total_seconds.round(2)
+                  if idx = phase_map[phase_tag]?
+                    tui.try &.finish_phase(idx, res[:status].success?, step_dur, safe_exit_code(res[:status]), res[:error_excerpt])
+                  end
+                  step_summary.add_phase(
+                    tag: phase_tag,
+                    name: "Engine Specifications (spec)",
+                    category: "Spec",
+                    success: res[:status].success?,
+                    duration: step_dur,
+                    exit_code: safe_exit_code(res[:status]),
+                    error_excerpt: res[:error_excerpt]
+                  )
+                end
               end
-            end
 
-            if idx = phase_map[phase_tag]?
-              tui.try &.finish_phase(idx, root_specs_success, root_specs_dur.round(2), root_specs_success ? 0 : 1)
-            end
+              return 1 if tui.try &.aborted?
 
-            return 1 if tui.try &.aborted?
+              # Phase 1b: Lapis Toolchain & CLI Specifications
+              unless skip_cli_specs
+                lapis_spec_dir = root.join("tools/lapis/spec")
+                if Dir.exists?(lapis_spec_dir)
+                  phase_tag = "[TEST:SPECS:CLI]"
+                  if idx = phase_map[phase_tag]?
+                    tui.try &.begin_phase(idx)
+                  end
+                  Core::Logger.step("Test:Specs:CLI", "Running Phase 1b: Lapis toolchain specifications in tools/lapis/spec...") unless tui
+                  step_start = Time.instant
+                  cli_junit_dir = test_bin_dir.join("junit_cli_specs")
+                  res = Core::ProcessRunner.run_with_capture(
+                    "crystal",
+                    ["spec", "tools/lapis/spec", "--junit_output=#{cli_junit_dir.to_s.gsub('\\', '/')}"],
+                    chdir: root.to_s,
+                    passthrough: tui.nil?,
+                    on_line: tui ? ->(l : String) { tui.not_nil!.handle_stream_line(l) } : nil
+                  )
+                  step_dur = (Time.instant - step_start).total_seconds.round(2)
+                  if idx = phase_map[phase_tag]?
+                    tui.try &.finish_phase(idx, res[:status].success?, step_dur, safe_exit_code(res[:status]), res[:error_excerpt])
+                  end
+                  step_summary.add_phase(
+                    tag: phase_tag,
+                    name: "Lapis CLI Specifications (tools/lapis/spec)",
+                    category: "Spec",
+                    success: res[:status].success?,
+                    duration: step_dur,
+                    exit_code: safe_exit_code(res[:status]),
+                    error_excerpt: res[:error_excerpt]
+                  )
+                end
+              end
 
-            # Phase 1d: Debugger & Crash Handler Specifications
-            debugger_specs = [
-              "spec/crash_handler_spec.cr",
-              "spec/lldb_driver_spec.cr",
-              "spec/debugger_breakpoints_spec.cr",
-              "spec/lldb_integration_spec.cr",
-            ]
-            active_dbg_specs = debugger_specs.select { |f| File.exists?(root.join(f)) }
-            if active_dbg_specs.any?
-              phase_tag = "[TEST:SPECS:DEBUGGER]"
+              return 1 if tui.try &.aborted?
+
+              # Phase 1c: Headless Architectural & Integration Specs
+              root_specs = [
+                "spec/libgodot_spec.cr",
+                "spec/boot_spec.cr",
+                "spec/binary_release_spec.cr",
+                "spec/api_coverage_spec.cr",
+                "spec/project_scaffolding_spec.cr",
+                "spec/godot_version_verification_spec.cr",
+                "spec/lapis_install_spec.cr",
+                "spec/tool_verification_spec.cr",
+                "spec/baked_file_system_spec.cr",
+                "spec/standalone_portable_spec.cr",
+                "spec/lsp_spec.cr",
+                "spec/crystal_language_spec.cr",
+                "spec/platform_isolation_spec.cr",
+                "spec/safety_and_bindings_spec.cr",
+                "spec/features_spec.cr",
+              ]
+
+              phase_tag = "[TEST:SPECS:ROOT]"
               if idx = phase_map[phase_tag]?
                 tui.try &.begin_phase(idx)
               end
-              Core::Logger.step("Test:Specs:Debugger", "Running Phase 1d: Debugger and crash handler specifications...") unless tui
+
+              root_specs_success = true
+              root_specs_dur = 0.0
+
+              root_specs.each do |spec_file|
+                return 1 if tui.try &.aborted?
+                full_path = root.join(spec_file)
+                if File.exists?(full_path)
+                  spec_tag_name = Path.new(spec_file).basename.gsub(".cr", "").upcase
+                  Core::Logger.step("Test:Specs:Root", "Running #{spec_file}...") unless tui
+                  step_start = Time.instant
+                  res = Core::ProcessRunner.run_with_capture(
+                    "crystal",
+                    ["run", spec_file],
+                    chdir: root.to_s,
+                    passthrough: tui.nil?,
+                    on_line: tui ? ->(l : String) { tui.not_nil!.handle_stream_line(l) } : nil
+                  )
+                  {% if flag?(:windows) %}
+                    if !res[:status].success?
+                      sleep 0.5.seconds
+                      res = Core::ProcessRunner.run_with_capture(
+                        "crystal",
+                        ["run", spec_file],
+                        chdir: root.to_s,
+                        passthrough: tui.nil?,
+                        on_line: tui ? ->(l : String) { tui.not_nil!.handle_stream_line(l) } : nil
+                      )
+                    end
+                  {% end %}
+                  step_dur = (Time.instant - step_start).total_seconds.round(2)
+                  root_specs_dur += step_dur
+                  root_specs_success &&= res[:status].success?
+
+                  step_summary.add_phase(
+                    tag: "[TEST:SPECS:#{spec_tag_name}]",
+                    name: "Architectural Spec (#{spec_file})",
+                    category: "Spec",
+                    success: res[:status].success?,
+                    duration: step_dur,
+                    exit_code: safe_exit_code(res[:status]),
+                    error_excerpt: res[:error_excerpt]
+                  )
+                end
+              end
+
+              if idx = phase_map[phase_tag]?
+                tui.try &.finish_phase(idx, root_specs_success, root_specs_dur.round(2), root_specs_success ? 0 : 1)
+              end
+
+              return 1 if tui.try &.aborted?
+
+              # Phase 1d: Debugger & Crash Handler Specifications
+              debugger_specs = [
+                "spec/crash_handler_spec.cr",
+                "spec/lldb_driver_spec.cr",
+                "spec/debugger_breakpoints_spec.cr",
+                "spec/lldb_integration_spec.cr",
+              ]
+              active_dbg_specs = debugger_specs.select { |f| File.exists?(root.join(f)) }
+              if active_dbg_specs.any?
+                phase_tag = "[TEST:SPECS:DEBUGGER]"
+                if idx = phase_map[phase_tag]?
+                  tui.try &.begin_phase(idx)
+                end
+                Core::Logger.step("Test:Specs:Debugger", "Running Phase 1d: Debugger and crash handler specifications...") unless tui
+                step_start = Time.instant
+                res = Core::ProcessRunner.run_with_capture(
+                  "crystal",
+                  ["spec"] + active_dbg_specs,
+                  chdir: root.to_s,
+                  passthrough: tui.nil?,
+                  on_line: tui ? ->(l : String) { tui.not_nil!.handle_stream_line(l) } : nil
+                )
+                step_dur = (Time.instant - step_start).total_seconds.round(2)
+                if idx = phase_map[phase_tag]?
+                  tui.try &.finish_phase(idx, res[:status].success?, step_dur, safe_exit_code(res[:status]), res[:error_excerpt])
+                end
+                step_summary.add_phase(
+                  tag: phase_tag,
+                  name: "Debugger & Crash Handler Specifications",
+                  category: "Spec",
+                  success: res[:status].success?,
+                  duration: step_dur,
+                  exit_code: safe_exit_code(res[:status]),
+                  error_excerpt: res[:error_excerpt]
+                )
+              end
+            end
+          else
+            # Consumer Project Specifications (e.g. template, template-addon, examples)
+            if has_project_specs
+              phase_tag = "[TEST:SPECS]"
+              if idx = phase_map[phase_tag]?
+                tui.try &.begin_phase(idx)
+              end
+              Core::Logger.step("Test:Specs", "Running project specifications in #{target_dir.basename}/spec...") unless tui
               step_start = Time.instant
+              spec_junit_dir = test_bin_dir.join("junit_specs")
+              isolated_cache = test_bin_dir.join(".crystal_cache")
               res = Core::ProcessRunner.run_with_capture(
                 "crystal",
-                ["spec"] + active_dbg_specs,
-                chdir: root.to_s,
+                ["spec", "--junit_output=#{spec_junit_dir.to_s.gsub('\\', '/')}"],
+                env: {"CRYSTAL_CACHE_DIR" => isolated_cache.to_s},
+                chdir: target_dir.to_s,
                 passthrough: tui.nil?,
                 on_line: tui ? ->(l : String) { tui.not_nil!.handle_stream_line(l) } : nil
               )
@@ -355,7 +445,7 @@ HELP
               end
               step_summary.add_phase(
                 tag: phase_tag,
-                name: "Debugger & Crash Handler Specifications",
+                name: "Project Specifications (#{target_dir.basename})",
                 category: "Spec",
                 success: res[:status].success?,
                 duration: step_dur,
@@ -370,7 +460,7 @@ HELP
           # -----------------------------------------------------------------------
           # Phase 2: In-Editor Tool Tests (Headless)
           # -----------------------------------------------------------------------
-          unless skip_tool_tests
+          if is_root_engine && !skip_tool_tests
             if godot_exe
               phase_tag = "[TEST:TOOL_NODES]"
               if idx = phase_map[phase_tag]?
@@ -494,11 +584,11 @@ HELP
             # -----------------------------------------------------------------------
             # Phase 3b: Standalone Portable Test Runner (Embedded PCK in isolated sandbox)
             # -----------------------------------------------------------------------
-            if !File.exists?(portable_exe) && File.exists?(standalone_exe) && File.exists?(pck_file)
+            if is_root_engine && !File.exists?(portable_exe) && File.exists?(standalone_exe) && File.exists?(pck_file)
               Package.embed_pck_in_executable(standalone_exe, pck_file, portable_exe)
             end
 
-            if File.exists?(portable_exe)
+            if is_root_engine && File.exists?(portable_exe)
               phase_tag = "[TEST:PORTABLE]"
               if idx = phase_map[phase_tag]?
                 tui.try &.begin_phase(idx)
@@ -581,17 +671,22 @@ HELP
           # Phase 4: Runtime Test Project (via Godot CLI)
           # -----------------------------------------------------------------------
           unless skip_runtime_tests
-            if godot_exe
+            if godot_exe && (is_root_engine || has_runtime_test_scene)
+              runtime_name = is_root_engine ? "In-Project Runtime Test Runner (main_test_runner.tscn)" : "In-Project Runtime Test Runner (#{runtime_scene.not_nil!.basename})"
               phase_tag = "[TEST:RUNTIME]"
               if idx = phase_map[phase_tag]?
                 tui.try &.begin_phase(idx)
               end
-              Core::Logger.step("Test:Runtime", "Running In-Project Runtime Test Runner (main_test_runner.tscn)...") unless tui
+              Core::Logger.step("Test:Runtime", "Running #{runtime_name}...") unless tui
               step_start = Time.instant
+              cmd_args = ["--headless", "--rendering-driver", "opengl3", "--audio-driver", "Dummy", "--path", "."]
+              cmd_args << runtime_scene.not_nil!.to_s unless is_root_engine
+              cmd_args += ["--quit-after", "600", "--", "--autorun"] + extra_runtime_args
+
               res = begin
                 Core::ProcessRunner.run_with_capture(
                   godot_exe,
-                  ["--headless", "--rendering-driver", "opengl3", "--audio-driver", "Dummy", "--path", ".", "--quit-after", "600", "--", "--autorun"] + extra_runtime_args,
+                  cmd_args,
                   chdir: test_dir.to_s,
                   passthrough: tui.nil?,
                   on_line: tui ? ->(l : String) { tui.not_nil!.handle_stream_line(l) } : nil
@@ -624,7 +719,7 @@ HELP
 
               step_summary.add_phase(
                 tag: phase_tag,
-                name: "In-Project Runtime Test Runner (main_test_runner.tscn)",
+                name: runtime_name,
                 category: "Test",
                 success: runtime_success,
                 duration: step_dur,
@@ -632,7 +727,11 @@ HELP
                 error_excerpt: runtime_err
               )
             else
-              Core::Logger.warn("Godot executable not found, skipping runtime tests.") unless tui
+              if !is_root_engine && !has_runtime_test_scene
+                # Consumer project does not define a runtime test scene; skipping quietly
+              elsif !godot_exe
+                Core::Logger.warn("Godot executable not found, skipping runtime tests.") unless tui
+              end
             end
           end
         ensure
