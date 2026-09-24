@@ -266,7 +266,6 @@ HELP
             File.write(lib_gd, "")
           end
         end
-        Core::Env.patch_crystalline_library(root)
 
         # 4. Sync godot-version.yml across all consumer projects
         root_version_yml = root.join("godot-version.yml")

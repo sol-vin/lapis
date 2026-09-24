@@ -316,13 +316,6 @@ module Lapis
 
         dirs.uniq
       end
-
-      # Ensures lib directory has .gdignore
-      def self.patch_crystalline_library(root : Path)
-        # Ensure lib/.gdignore exists
-        gdignore = root.join("lib/.gdignore")
-        File.write(gdignore, "") unless File.exists?(gdignore)
-      end
     end
   end
 end
