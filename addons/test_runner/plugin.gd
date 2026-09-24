@@ -394,8 +394,8 @@ func _run_in_editor_tool_tests():
 
 		if is_headless:
 			print("[CrystalToolTester] Headless editor environment detected: Running test scene synchronously...")
-			var out = []
-			var exit_code = OS.execute(OS.get_executable_path(), ["--headless", "--audio-driver", "Dummy", "--path", ".", "res://scenes/main_test_runner.tscn", "--", "--autorun"], out, true)
+			var exec_args = ["--headless", "--rendering-driver", "opengl3", "--audio-driver", "Dummy", "--path", ".", "res://scenes/main_test_runner.tscn", "--", "--autorun"]
+			var exit_code = OS.execute(OS.get_executable_path(), exec_args)
 			print("[CrystalToolTester] Direct headless run exited with code: %d" % exit_code)
 			has_passed = FileAccess.file_exists("res://.runtime_tests_passed") or FileAccess.file_exists("res://bin/.runtime_tests_passed")
 			has_failed = FileAccess.file_exists("res://.runtime_tests_failed") or FileAccess.file_exists("res://bin/.runtime_tests_failed")
