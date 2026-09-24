@@ -1018,7 +1018,7 @@ module Lapis
         # Write clean minimal project configuration
         project_file = File.join(@sandbox_dir, "project.godot")
         unless File.exists?(project_file)
-          File.write(project_file, "config_version=5\n\n[application]\nconfig/name=\"ColdBoot_#{safe_name}\"\n")
+          File.write(project_file, "config_version=5\n\n[application]\nconfig/name=\"ColdBoot_#{safe_name}\"\n\n[rendering]\nrenderer/rendering_method=\"gl_compatibility\"\n")
         end
       end
 
@@ -1041,8 +1041,8 @@ module Lapis
         res_script = script_rel_path.starts_with?("res://") ? script_rel_path : "res://#{script_rel_path}"
         run_args = [
           "--headless",
-          "--rendering-driver", "opengl3",
           "--audio-driver", "Dummy",
+          "--display-driver", "headless",
           "--quit-after", "100",
           "--path", @sandbox_dir,
           "-s", res_script,
@@ -1057,8 +1057,11 @@ module Lapis
           start_wait = ::Time.instant
           timed_out = false
           while !proc.terminated?
-            if (::Time.instant - start_wait).total_seconds > 15.0
+            if (::Time.instant - start_wait).total_seconds > 8.0
               proc.terminate rescue nil
+              {% unless flag?(:windows) %}
+                proc.signal(Signal.new(9)) rescue nil
+              {% end %}
               timed_out = true
               break
             end
@@ -1074,7 +1077,7 @@ module Lapis
           success = !timed_out && status.success?
           status_str = success ? "PASS" : "FAIL"
           msg = if timed_out
-            "Process timed out after 15s: #{out_str}"
+            "Process timed out after 8s: #{out_str}"
           elsif success
             out_str.strip
           else
@@ -1094,8 +1097,8 @@ module Lapis
       def run_isolated_project(args : Array(String) = [] of String) : TestResult
         run_args = [
           "--headless",
-          "--rendering-driver", "opengl3",
           "--audio-driver", "Dummy",
+          "--display-driver", "headless",
           "--quit-after", "100",
           "--path", @sandbox_dir,
         ] + args
@@ -1108,8 +1111,11 @@ module Lapis
           start_wait = ::Time.instant
           timed_out = false
           while !proc.terminated?
-            if (::Time.instant - start_wait).total_seconds > 15.0
+            if (::Time.instant - start_wait).total_seconds > 8.0
               proc.terminate rescue nil
+              {% unless flag?(:windows) %}
+                proc.signal(Signal.new(9)) rescue nil
+              {% end %}
               timed_out = true
               break
             end
@@ -1125,7 +1131,7 @@ module Lapis
           success = !timed_out && status.success?
           status_str = success ? "PASS" : "FAIL"
           msg = if timed_out
-            "Process timed out after 15s: #{out_str}"
+            "Process timed out after 8s: #{out_str}"
           elsif success
             out_str.strip
           else
