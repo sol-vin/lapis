@@ -580,6 +580,14 @@ jobs:
           restore-keys: |
             crystal-cache-macos-${{ runner.os }}-
 
+      - name: Install macOS Dependencies (LLVM)
+        run: |
+          brew install llvm@18
+          LLVM_PATH="$(brew --prefix llvm@18)/bin"
+          echo "$LLVM_PATH" >> "$GITHUB_PATH"
+          echo "PATH=$LLVM_PATH:$PATH" >> "$GITHUB_ENV"
+          echo "LLVM_CONFIG=$LLVM_PATH/llvm-config" >> "$GITHUB_ENV"
+
       - name: Verify Crystal & Toolchain
         run: |
           crystal -v
