@@ -1,5 +1,6 @@
 require "file_utils"
 require "./base"
+require "./svg"
 
 module Benchmarks
   module Reporters
@@ -19,6 +20,7 @@ module Benchmarks
         speedups = metrics.map(&.speedup)
         geo_mean = calculate_geo_mean(speedups)
         max_metric = metrics.max_by(&.speedup)
+        svg_chart = Svg.generate_svg(results)
 
         compute_metrics = metrics.select { |m| m.category == Category::Compute }
         engine_metrics = metrics.select { |m| m.category == Category::EngineCore }
@@ -28,6 +30,75 @@ module Benchmarks
 
         eng_speedups = engine_metrics.map(&.speedup)
         eng_geo = calculate_geo_mean(eng_speedups)
+
+        has_editor = metrics.any? { |m| m.editor_ms }
+        overhead_values = metrics.compact_map(&.editor_overhead_ratio)
+        avg_overhead = overhead_values.empty? ? nil : ((overhead_values.sum / overhead_values.size - 1.0) * 100.0).round(1)
+
+        editor_kpi_card = if has_editor && avg_overhead
+          sign = avg_overhead >= 0 ? "+" : ""
+          <<-HTML
+          <div class="kpi-card">
+            <span class="kpi-title">GDScript Editor Overhead</span>
+            <span class="kpi-value purple">#{sign}#{avg_overhead}%</span>
+            <span class="kpi-sub">Avg In-Editor vs Standalone</span>
+          </div>
+          HTML
+        else
+          ""
+        end
+
+        table_header = if has_editor
+          <<-HTML
+          <tr>
+            <th>Benchmark</th>
+            <th>Description</th>
+            <th class="num">Crystal (Native)</th>
+            <th class="num">GDScript (Standalone)</th>
+            <th class="num">GDScript (In-Editor)</th>
+            <th class="num">Speedup</th>
+          </tr>
+          HTML
+        else
+          <<-HTML
+          <tr>
+            <th>Benchmark</th>
+            <th>Description</th>
+            <th class="num">Crystal (Native)</th>
+            <th class="num">GDScript (Standalone)</th>
+            <th class="num">Speedup</th>
+          </tr>
+          HTML
+        end
+
+        render_rows = ->(group_metrics : Array(BenchmarkMetric)) do
+          group_metrics.map do |m|
+            ed_cell = if has_editor
+              if ed = m.editor_ms
+                ov_html = if r = m.editor_overhead_ratio
+                  pct = ((r - 1.0) * 100.0).round(0).to_i
+                  pct >= 0 ? %(<span class="overhead-badge warn">+#{pct}%</span>) : %(<span class="overhead-badge good">#{pct}%</span>)
+                else
+                  ""
+                end
+                %(<td class="num" style="color: #d2a8ff; font-weight: 600;">#{ed.round(2)} ms #{ov_html}</td>)
+              else
+                %(<td class="num" style="color: var(--text-muted);">-</td>)
+              end
+            else
+              ""
+            end
+
+            "          <tr>
+            <td><strong>#{m.name}</strong></td>
+            <td style=\"color: var(--text-muted); font-size: 0.9rem;\">#{m.description}</td>
+            <td class=\"num\" style=\"color: var(--crystal-cyan); font-weight: 700;\">#{m.crystal_ms.round(2)} ms</td>
+            <td class=\"num\" style=\"color: var(--gd-amber); font-weight: 600;\">#{m.gdscript_ms.round(2)} ms</td>
+            #{ed_cell}
+            <td class=\"num\"><span class=\"speedup-badge\">#{m.speedup.round(1)}x faster</span></td>
+          </tr>"
+          end.join("\n")
+        end
 
         html = <<-HTML
 <!DOCTYPE html>
@@ -80,7 +151,7 @@ module Benchmarks
     }
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
       gap: 16px;
       margin-bottom: 36px;
     }
@@ -108,6 +179,7 @@ module Benchmarks
     }
     .kpi-value.cyan { color: var(--crystal-cyan); }
     .kpi-value.green { color: #3fb950; }
+    .kpi-value.purple { color: #d2a8ff; }
     .kpi-sub {
       color: var(--text-muted);
       font-size: 0.8rem;
@@ -120,11 +192,14 @@ module Benchmarks
       margin-bottom: 36px;
       box-shadow: 0 4px 16px rgba(0,0,0,0.3);
       text-align: center;
+      overflow-x: auto;
     }
-    .chart-container img {
+    .chart-container svg {
       max-width: 100%;
       height: auto;
       border-radius: 8px;
+      display: block;
+      margin: 0 auto;
     }
     .section-title {
       font-size: 1.4rem;
@@ -181,24 +256,26 @@ module Benchmarks
       background: rgba(35, 134, 54, 0.25);
       color: #3fb950;
       border: 1px solid rgba(35, 134, 54, 0.5);
+      white-space: nowrap;
     }
-    .insights-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 20px;
-      margin-bottom: 40px;
-    }
-    .insight-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
+    .overhead-badge {
+      display: inline-block;
+      padding: 2px 7px;
       border-radius: 10px;
-      padding: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-left: 6px;
+      white-space: nowrap;
     }
-    .insight-title {
-      font-size: 1.1rem;
-      font-weight: 700;
-      margin-bottom: 8px;
-      color: var(--accent);
+    .overhead-badge.warn {
+      background: rgba(210, 153, 34, 0.2);
+      color: #e3b341;
+      border: 1px solid rgba(210, 153, 34, 0.4);
+    }
+    .overhead-badge.good {
+      background: rgba(56, 139, 253, 0.2);
+      color: #58a6ff;
+      border: 1px solid rgba(56, 139, 253, 0.4);
     }
     footer {
       text-align: center;
@@ -228,6 +305,7 @@ module Benchmarks
         <span class="kpi-value green">#{max_metric.speedup.round(1)}x</span>
         <span class="kpi-sub">#{max_metric.name} benchmark</span>
       </div>
+#{editor_kpi_card}
       <div class="kpi-card">
         <span class="kpi-title">Compute Speedup</span>
         <span class="kpi-value">#{comp_geo.round(1)}x</span>
@@ -241,7 +319,7 @@ module Benchmarks
     </div>
 
     <div class="chart-container">
-      <img src="benchmark_chart.svg" alt="Performance Visual Bar Chart">
+      #{svg_chart}
     </div>
 
     <h2 class="section-title">
@@ -251,24 +329,10 @@ module Benchmarks
     <div class="table-container">
       <table>
         <thead>
-          <tr>
-            <th>Benchmark</th>
-            <th>Description</th>
-            <th class="num">Crystal</th>
-            <th class="num">GDScript</th>
-            <th class="num">Speedup</th>
-          </tr>
+#{table_header}
         </thead>
         <tbody>
-#{compute_metrics.map do |m|
-  "          <tr>
-            <td><strong>#{m.name}</strong></td>
-            <td style=\"color: var(--text-muted); font-size: 0.9rem;\">#{m.description}</td>
-            <td class=\"num\" style=\"color: var(--crystal-cyan); font-weight: 700;\">#{m.crystal_ms.round(2)} ms</td>
-            <td class=\"num\" style=\"color: var(--gd-amber); font-weight: 600;\">#{m.gdscript_ms.round(2)} ms</td>
-            <td class=\"num\"><span class=\"speedup-badge\">#{m.speedup.round(1)}x faster</span></td>
-          </tr>"
-end.join("\n")}
+#{render_rows.call(compute_metrics)}
         </tbody>
       </table>
     </div>
@@ -280,54 +344,12 @@ end.join("\n")}
     <div class="table-container">
       <table>
         <thead>
-          <tr>
-            <th>Benchmark</th>
-            <th>Description</th>
-            <th class="num">Crystal</th>
-            <th class="num">GDScript</th>
-            <th class="num">Speedup</th>
-          </tr>
+#{table_header}
         </thead>
         <tbody>
-#{engine_metrics.map do |m|
-  "          <tr>
-            <td><strong>#{m.name}</strong></td>
-            <td style=\"color: var(--text-muted); font-size: 0.9rem;\">#{m.description}</td>
-            <td class=\"num\" style=\"color: var(--crystal-cyan); font-weight: 700;\">#{m.crystal_ms.round(2)} ms</td>
-            <td class=\"num\" style=\"color: var(--gd-amber); font-weight: 600;\">#{m.gdscript_ms.round(2)} ms</td>
-            <td class=\"num\"><span class=\"speedup-badge\">#{m.speedup.round(1)}x faster</span></td>
-          </tr>"
-end.join("\n")}
+#{render_rows.call(engine_metrics)}
         </tbody>
       </table>
-    </div>
-
-    <h2 class="section-title">Architectural Deep Dive</h2>
-    <div class="insights-grid">
-      <div class="insight-card">
-        <h3 class="insight-title">LLVM Code Generation & Vectorization</h3>
-        <p style="color: var(--text-muted); font-size: 0.95rem;">
-          Crystal compiles directly to native machine instructions via LLVM, utilizing AVX/SIMD vector registers for floating-point math (N-Body, Mandelbrot, Matrix Multiplication). GDScript interprets virtual machine bytecode without JIT compilation.
-        </p>
-      </div>
-      <div class="insight-card">
-        <h3 class="insight-title">Unboxed Spatial Math Primitives</h3>
-        <p style="color: var(--text-muted); font-size: 0.95rem;">
-          In Crystal, Vector3, Basis, and Transform3D are unboxed value structures passed in CPU registers. Operations require zero heap allocation, pointer chasing, or Variant dynamic dispatch.
-        </p>
-      </div>
-      <div class="insight-card">
-        <h3 class="insight-title">High-Throughput Node Allocation</h3>
-        <p style="color: var(--text-muted); font-size: 0.95rem;">
-          Creating, configuring, and reparenting thousands of SceneTree nodes operates directly through Godot's C-API function pointers with minimal binding overhead, ideal for high entity count simulations.
-        </p>
-      </div>
-      <div class="insight-card">
-        <h3 class="insight-title">Boehm GC & Engine RefCounting Cohesion</h3>
-        <p style="color: var(--text-muted); font-size: 0.95rem;">
-          LibGodot seamlessly bridges Crystal's Boehm GC with Godot's reference-counted Resources and ObjectDB instance IDs, eliminating dead-pointer segfaults while achieving high allocation throughput.
-        </p>
-      </div>
     </div>
 
     <footer>

@@ -26,7 +26,9 @@ module Benchmarks
     crystal_ms : Float64,
     gdscript_ms : Float64,
     speedup : Float64,
-    description : String
+    description : String,
+    editor_ms : Float64? = nil,
+    editor_overhead_ratio : Float64? = nil
 
   record BenchmarkResult,
     benchmark : BenchmarkCase,
@@ -38,7 +40,10 @@ module Benchmarks
     crystal_max_ms : Float64,
     gdscript_min_ms : Float64,
     gdscript_max_ms : Float64,
-    speedup : Float64 do
+    speedup : Float64,
+    editor_samples : Array(Float64) = [] of Float64,
+    editor_ms : Float64? = nil,
+    editor_overhead_ratio : Float64? = nil do
 
     def name : String
       benchmark.name
@@ -59,7 +64,9 @@ module Benchmarks
         crystal_ms: crystal_ms,
         gdscript_ms: gdscript_ms,
         speedup: speedup,
-        description: description
+        description: description,
+        editor_ms: editor_ms,
+        editor_overhead_ratio: editor_overhead_ratio
       )
     end
   end

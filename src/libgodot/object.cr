@@ -146,7 +146,17 @@ module Godot
 
     # Returns true if this subscription is still active and listening
     def active? : Bool
-      !@unsubscribed && !@completed
+      return false if @unsubscribed
+      if @flags.includes?(ConnectFlags::OneShot)
+        !@completed
+      else
+        true
+      end
+    end
+
+    # Idiomatic alias for `active?`
+    def connected? : Bool
+      active?
     end
   end
 
@@ -584,12 +594,14 @@ module Godot
       @instance_id > 0 ? @instance_id : object_id.to_u64
     end
 
-    # Value equality based on Godot engine identity (instance ID or underlying pointer)
+    # Value equality based on Godot engine identity (instance ID, underlying pointer, or reference identity)
     def ==(other : Godot::Object) : Bool
       if @instance_id > 0 && other.instance_id > 0
         @instance_id == other.instance_id
-      else
+      elsif !@pointer.null? || !other.pointer.null?
         @pointer == other.pointer
+      else
+        same?(other)
       end
     end
 
@@ -1127,6 +1139,12 @@ module Godot
 
     # Retrieves a child or sibling node by NodePath string, or returns nil if not found.
     def get_node?(path : String) : Node?
+      if @pointer.null?
+        if self.is_a?(Node)
+          return self.as(Node).children.find { |c| c.name == path }
+        end
+        return nil
+      end
       ptr = Bridge.node_get_node(@pointer, path)
       ptr.null? ? nil : Node.new(ptr)
     end

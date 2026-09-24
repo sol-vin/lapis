@@ -38,9 +38,12 @@ module Benchmarks
                     json.field "description", r.description
                     json.field "crystal_ms", r.crystal_ms.round(2)
                     json.field "gdscript_ms", r.gdscript_ms.round(2)
+                    json.field "editor_ms", r.editor_ms.try(&.round(2))
+                    json.field "editor_overhead_ratio", r.editor_overhead_ratio.try(&.round(3))
                     json.field "speedup", r.speedup.round(2)
                     json.field "crystal_samples", r.crystal_samples
                     json.field "gdscript_samples", r.gdscript_samples
+                    json.field "editor_samples", r.editor_samples
                   end
                 end
               end

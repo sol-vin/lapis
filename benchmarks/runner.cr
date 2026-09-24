@@ -13,6 +13,7 @@ filter = ""
 category_filter : Benchmarks::Category? = nil
 requested_formats = ["console", "svg", "markdown", "html", "json", "csv"]
 release_build = true
+env_mode = "standalone"
 base_dir = if File.exists?("benchmarks/runner.cr")
              File.expand_path("benchmarks")
            elsif File.exists?("runner.cr")
@@ -42,6 +43,20 @@ OptionParser.parse do |opts|
                         STDERR.puts "Unknown category: '#{cat}' (expected 'compute' or 'engine')"
                         exit(1)
                       end
+  end
+
+  opts.on("-e ENV", "--env=ENV", "Execution environment: standalone, editor, or all (default: standalone)") do |e|
+    case e.downcase
+    when "standalone", "std"
+      env_mode = "standalone"
+    when "editor", "ed"
+      env_mode = "editor"
+    when "all", "both"
+      env_mode = "all"
+    else
+      STDERR.puts "Unknown env: '#{e}' (expected 'standalone', 'editor', or 'all')"
+      exit(1)
+    end
   end
 
   opts.on("--format=FORMATS", "Comma-separated output formats: console,svg,markdown,html,json,csv (default: all)") do |fmt|
@@ -74,6 +89,7 @@ godot_exe = Benchmarks::Executor.resolve_godot(base_dir)
 
 puts "\e[1;35m=== Lapis Benchmarks Suite ===\e[0m"
 puts "  Godot Executable: #{godot_exe}"
+puts "  Environment:      #{env_mode.capitalize}"
 puts "  Iterations:       #{iterations}"
 puts "  Optimization:     #{release_build ? "Release (-O3)" : "Debug"}"
 puts "  Reporters:        #{requested_formats.join(", ")}"
@@ -105,7 +121,8 @@ target_benchmarks.each do |bench|
     iterations: iterations,
     base_dir: base_dir,
     godot_exe: godot_exe,
-    release: release_build
+    release: release_build,
+    env_mode: env_mode
   )
     results << res
   end

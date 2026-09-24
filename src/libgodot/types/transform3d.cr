@@ -22,10 +22,12 @@ module Godot
       end
     end
 
+    @[AlwaysInline]
     def *(vec : Vector3) : Vector3
       @basis * vec + @origin
     end
 
+    @[AlwaysInline]
     def *(other : Transform3D) : Transform3D
       Transform3D.new(@basis * other.basis, self * other.origin)
     end
@@ -39,10 +41,12 @@ module Godot
       affine_inverse
     end
 
+    @[AlwaysInline]
     def translated(offset : Vector3) : Transform3D
       Transform3D.new(@basis, @origin + offset)
     end
 
+    @[AlwaysInline]
     def rotated(axis : Vector3, angle : Number) : Transform3D
       rot = Basis.from_axis_angle(axis, angle)
       Transform3D.new(rot * @basis, rot * @origin)

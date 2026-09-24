@@ -25,6 +25,7 @@ module Godot
       end
     end
 
+    @[AlwaysInline]
     def *(vec : Vector3) : Vector3
       Vector3.new(
         @x.dot(vec),
@@ -33,14 +34,27 @@ module Godot
       )
     end
 
+    @[AlwaysInline]
+    def tdotx(v : Vector3) : Float32
+      @x.x * v.x + @y.x * v.y + @z.x * v.z
+    end
+
+    @[AlwaysInline]
+    def tdoty(v : Vector3) : Float32
+      @x.y * v.x + @y.y * v.y + @z.y * v.z
+    end
+
+    @[AlwaysInline]
+    def tdotz(v : Vector3) : Float32
+      @x.z * v.x + @y.z * v.y + @z.z * v.z
+    end
+
+    @[AlwaysInline]
     def *(other : Basis) : Basis
-      c0 = Vector3.new(other.x.x, other.y.x, other.z.x)
-      c1 = Vector3.new(other.x.y, other.y.y, other.z.y)
-      c2 = Vector3.new(other.x.z, other.y.z, other.z.z)
       Basis.new(
-        Vector3.new(@x.dot(c0), @x.dot(c1), @x.dot(c2)),
-        Vector3.new(@y.dot(c0), @y.dot(c1), @y.dot(c2)),
-        Vector3.new(@z.dot(c0), @z.dot(c1), @z.dot(c2))
+        Vector3.new(other.tdotx(@x), other.tdoty(@x), other.tdotz(@x)),
+        Vector3.new(other.tdotx(@y), other.tdoty(@y), other.tdotz(@y)),
+        Vector3.new(other.tdotx(@z), other.tdoty(@z), other.tdotz(@z))
       )
     end
 
@@ -113,32 +127,35 @@ module Godot
       Basis.new(v_x, v_y, v_z)
     end
 
-    def self.from_axis_angle(axis : Vector3, angle : Number) : Basis
-      axis_n = axis.normalized
-      cos_a = Math.cos(angle.to_f32)
-      sin_a = Math.sin(angle.to_f32)
-      one_minus_c = 1.0_f32 - cos_a
+    @[AlwaysInline]
+    def self.from_axis_angle(p_axis : Vector3, p_angle : Number) : Basis
+      cosine = Math.cos(p_angle.to_f32)
+      sine = Math.sin(p_angle.to_f32)
+      t = 1.0_f32 - cosine
 
-      x = axis_n.x
-      y = axis_n.y
-      z = axis_n.z
+      axis_sq_x = p_axis.x * p_axis.x
+      axis_sq_y = p_axis.y * p_axis.y
+      axis_sq_z = p_axis.z * p_axis.z
+
+      xyzt = p_axis.x * p_axis.y * t
+      zyxs = p_axis.z * sine
+      r01 = xyzt - zyxs
+      r10 = xyzt + zyxs
+
+      xyzt = p_axis.x * p_axis.z * t
+      zyxs = p_axis.y * sine
+      r02 = xyzt + zyxs
+      r20 = xyzt - zyxs
+
+      xyzt = p_axis.y * p_axis.z * t
+      zyxs = p_axis.x * sine
+      r12 = xyzt - zyxs
+      r21 = xyzt + zyxs
 
       Basis.new(
-        Vector3.new(
-          cos_a + x * x * one_minus_c,
-          x * y * one_minus_c - z * sin_a,
-          x * z * one_minus_c + y * sin_a
-        ),
-        Vector3.new(
-          y * x * one_minus_c + z * sin_a,
-          cos_a + y * y * one_minus_c,
-          y * z * one_minus_c - x * sin_a
-        ),
-        Vector3.new(
-          z * x * one_minus_c - y * sin_a,
-          z * y * one_minus_c + x * sin_a,
-          cos_a + z * z * one_minus_c
-        )
+        Vector3.new(axis_sq_x + cosine * (1.0_f32 - axis_sq_x), r01, r02),
+        Vector3.new(r10, axis_sq_y + cosine * (1.0_f32 - axis_sq_y), r12),
+        Vector3.new(r20, r21, axis_sq_z + cosine * (1.0_f32 - axis_sq_z))
       )
     end
 

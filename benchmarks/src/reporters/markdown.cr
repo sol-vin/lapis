@@ -23,9 +23,13 @@ module Benchmarks
         compute_metrics = metrics.select { |m| m.category == Category::Compute }
         engine_metrics = metrics.select { |m| m.category == Category::EngineCore }
 
+        has_editor = metrics.any? { |m| m.editor_ms }
+
         md = String.build do |io|
           io << "# Lapis Performance Report: Crystal vs GDScript Benchmarks\n\n"
-          io << "Automated performance comparison between compiled **Crystal (Native GDExtension)** and **GDScript (Godot 4 Bytecode)**.\n\n"
+          io << "Automated performance comparison between compiled **Crystal (Native GDExtension)** and **GDScript (Godot 4 Bytecode)**"
+          io << " with **In-Editor Overhead Analysis**" if has_editor
+          io << ".\n\n"
           io << "### Executive Summary\n\n"
           io << "- **Geometric Mean Speedup**: **#{geo_mean.round(1)}x faster**\n"
           io << "- **Peak Speedup**: **#{max_metric.speedup.round(1)}x faster** (#{max_metric.name})\n"
@@ -33,18 +37,48 @@ module Benchmarks
           io << "- **Optimization**: Crystal `--release -O3` vs Godot Engine Headless\n\n"
 
           io << "## 1. Algorithmic & Compute Benchmarks\n\n"
-          io << "| Benchmark | Crystal (ms) | GDScript (ms) | Speedup Factor | Description |\n"
-          io << "| :--- | ---: | ---: | ---: | :--- |\n"
-          compute_metrics.each do |m|
-            io << "| **#{m.name}** | **#{m.crystal_ms.round(2)} ms** | #{m.gdscript_ms.round(2)} ms | **#{m.speedup.round(1)}x** | #{m.description} |\n"
+          if has_editor
+            io << "| Benchmark | Crystal (Native) | GDScript (Standalone) | GDScript (In-Editor) | Speedup / Overhead | Description |\n"
+            io << "| :--- | ---: | ---: | ---: | ---: | :--- |\n"
+            compute_metrics.each do |m|
+              ed_str = m.editor_ms ? "#{m.editor_ms.not_nil!.round(2)} ms" : "-"
+              ov_str = if r = m.editor_overhead_ratio
+                         pct = (r - 1.0) * 100.0
+                         pct >= 0 ? "**#{m.speedup.round(1)}x** (+#{pct.round(0)}% ed)" : "**#{m.speedup.round(1)}x** (#{pct.round(0)}% ed)"
+                       else
+                         "**#{m.speedup.round(1)}x**"
+                       end
+              io << "| **#{m.name}** | **#{m.crystal_ms.round(2)} ms** | #{m.gdscript_ms.round(2)} ms | #{ed_str} | #{ov_str} | #{m.description} |\n"
+            end
+          else
+            io << "| Benchmark | Crystal (Native) | GDScript (Standalone) | Speedup Factor | Description |\n"
+            io << "| :--- | ---: | ---: | ---: | :--- |\n"
+            compute_metrics.each do |m|
+              io << "| **#{m.name}** | **#{m.crystal_ms.round(2)} ms** | #{m.gdscript_ms.round(2)} ms | **#{m.speedup.round(1)}x** | #{m.description} |\n"
+            end
           end
           io << "\n"
 
           io << "## 2. Godot Engine Core & SceneTree Benchmarks\n\n"
-          io << "| Benchmark | Crystal (ms) | GDScript (ms) | Speedup Factor | Description |\n"
-          io << "| :--- | ---: | ---: | ---: | :--- |\n"
-          engine_metrics.each do |m|
-            io << "| **#{m.name}** | **#{m.crystal_ms.round(2)} ms** | #{m.gdscript_ms.round(2)} ms | **#{m.speedup.round(1)}x** | #{m.description} |\n"
+          if has_editor
+            io << "| Benchmark | Crystal (Native) | GDScript (Standalone) | GDScript (In-Editor) | Speedup / Overhead | Description |\n"
+            io << "| :--- | ---: | ---: | ---: | ---: | :--- |\n"
+            engine_metrics.each do |m|
+              ed_str = m.editor_ms ? "#{m.editor_ms.not_nil!.round(2)} ms" : "-"
+              ov_str = if r = m.editor_overhead_ratio
+                         pct = (r - 1.0) * 100.0
+                         pct >= 0 ? "**#{m.speedup.round(1)}x** (+#{pct.round(0)}% ed)" : "**#{m.speedup.round(1)}x** (#{pct.round(0)}% ed)"
+                       else
+                         "**#{m.speedup.round(1)}x**"
+                       end
+              io << "| **#{m.name}** | **#{m.crystal_ms.round(2)} ms** | #{m.gdscript_ms.round(2)} ms | #{ed_str} | #{ov_str} | #{m.description} |\n"
+            end
+          else
+            io << "| Benchmark | Crystal (ms) | GDScript (ms) | Speedup Factor | Description |\n"
+            io << "| :--- | ---: | ---: | ---: | :--- |\n"
+            engine_metrics.each do |m|
+              io << "| **#{m.name}** | **#{m.crystal_ms.round(2)} ms** | #{m.gdscript_ms.round(2)} ms | **#{m.speedup.round(1)}x** | #{m.description} |\n"
+            end
           end
           io << "\n"
 

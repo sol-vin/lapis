@@ -76,7 +76,8 @@ module Benchmarks
       iterations : Int32,
       base_dir : String,
       godot_exe : String,
-      release : Bool = true
+      release : Bool = true,
+      env_mode : String = "standalone"
     ) : BenchmarkResult?
       puts "\n--> Running Benchmark: \e[1;36m#{bench.name}\e[0m [#{bench.category.display_name}] (\e[2m#{bench.description}\e[0m)"
 
@@ -104,6 +105,26 @@ module Benchmarks
       speedup_badge = speedup >= 1.0 ? "\e[1;32m%5.1fx faster\e[0m" % speedup : "\e[1;33m%5.1fx slower\e[0m" % (1.0 / speedup)
       puts "\e[1;33m%6.2f ms\e[0m (median of %d) -> %s" % [gd_median, gd_samples.size, speedup_badge]
 
+      ed_samples = [] of Float64
+      ed_median = 0.0
+      ed_overhead_ratio : Float64? = nil
+
+      if env_mode == "all" || env_mode == "editor"
+        print "  Benchmarking In-Editor... "
+        ed_args = ["--headless", "--rendering-driver", "opengl3", "--audio-driver", "Dummy", "--editor", "--path", base_dir, "--script", gd_script_path, "--"] + bench.args
+        ed_samples, ed_median, _ed_min, _ed_max = measure(iterations) do
+          run_process_and_extract_ms(godot_exe, ed_args, base_dir)
+        end
+        if ed_median > 0 && gd_median > 0
+          ed_overhead_ratio = ed_median / gd_median
+          overhead_pct = ((ed_median - gd_median) / gd_median) * 100.0
+          badge = overhead_pct >= 0 ? "+%.1f%% editor overhead" % overhead_pct : "%.1f%% editor speedup" % overhead_pct
+          puts "\e[1;35m%6.2f ms\e[0m (median of %d) -> %s" % [ed_median, ed_samples.size, badge]
+        else
+          puts "\e[1;35m%6.2f ms\e[0m (median of %d)" % [ed_median, ed_samples.size]
+        end
+      end
+
       BenchmarkResult.new(
         benchmark: bench,
         crystal_samples: cr_samples,
@@ -114,7 +135,10 @@ module Benchmarks
         crystal_max_ms: cr_max,
         gdscript_min_ms: gd_min,
         gdscript_max_ms: gd_max,
-        speedup: speedup
+        speedup: speedup,
+        editor_samples: ed_samples,
+        editor_ms: (ed_median > 0 ? ed_median : nil),
+        editor_overhead_ratio: ed_overhead_ratio
       )
     end
   end

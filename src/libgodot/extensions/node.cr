@@ -7,26 +7,38 @@ module Godot
     getter local_groups : Set(String) = Set(String).new
     @local_children : Array(Node)?
 
-    # Returns the array of child nodes (locally tracked if standalone/unparented)
-    def children : Array(Node)
-      @local_children ||= Array(Node).new
+    # Idiomatic child count getter
+    def child_count : Int32
+      return children.size.to_i32 if @pointer.null?
+      get_child_count.to_i32
+    end
+
+    @local_name : String?
+
+    def name : String
+      return @local_name || "" if @pointer.null?
+      get_name
+    end
+
+    def name=(val : String)
+      if @pointer.null?
+        @local_name = val
+        return
+      end
+      set_name(val)
     end
 
     # Adds a child node. Falls back to local children array when running standalone.
     def add_child(node : Node, force_readable_name : Bool = false, internal : InternalMode | Int = 0) : Void
-      if @pointer.null?
-        children << node
-        return
-      end
+      children << node
+      return if @pointer.null?
       previous_def(node, force_readable_name, internal)
     end
 
     # Removes a child node. Falls back to local children array when running standalone.
     def remove_child(node : Node) : Void
-      if @pointer.null?
-        children.delete(node)
-        return
-      end
+      children.delete(node)
+      return if @pointer.null?
       previous_def(node)
     end
 
@@ -153,8 +165,11 @@ module Godot
       children
     end
 
-    # Alias for `get_children`
+    # Alias for `get_children` (falls back to local children array when running standalone)
     def children(include_internal : Bool = false) : ::Array(Node)
+      if @pointer.null?
+        return @local_children ||= ::Array(Node).new
+      end
       get_children(include_internal)
     end
 
