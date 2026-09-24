@@ -65,6 +65,7 @@ godot.exe
 .*_tests_*
 .*_test_results*
 dist/
+.editor_game_passed
 *.zip
 *.log
 *.dll

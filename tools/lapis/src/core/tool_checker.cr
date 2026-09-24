@@ -309,73 +309,50 @@ module Lapis
         )
       end
 
-      def self.find_crystalline : String?
-        if path = ProcessRunner.find_executable("crystalline")
-          return path
-        end
-
-        root = Env::ROOT_DIR
-        local_bin = root.join("bin", "crystalline#{Env.exe_ext}")
-        return local_bin.to_s if File.exists?(local_bin)
-
-        {% if flag?(:windows) %}
-          user_profile = ENV["USERPROFILE"]? || ""
-          local_app_data = ENV["LOCALAPPDATA"]? || ""
-          candidates = [
-            File.join(local_app_data, "Programs", "Lapis", "bin", "crystalline.exe"),
-            File.join(user_profile, "scoop", "shims", "crystalline.exe"),
-            File.join(user_profile, "scoop", "apps", "crystalline", "current", "crystalline.exe"),
-            "C:\\Program Files\\crystalline\\bin\\crystalline.exe",
-            "C:\\crystalline\\bin\\crystalline.exe",
-          ]
-          candidates.each do |cand|
-            return cand if File.exists?(cand)
-          end
-        {% else %}
-          user_bin = File.join(Path.home, ".local", "bin", "crystalline")
-          return user_bin if File.exists?(user_bin)
-          if File.exists?("/usr/local/bin/crystalline")
-            return "/usr/local/bin/crystalline"
-          end
-        {% end %}
-        nil
-      end
-
-      def self.get_crystalline_version(crystalline_bin : String) : String?
-        res = ProcessRunner.capture(crystalline_bin, ["--version"])
-        if res[:status].success?
-          res[:output].lines.first?.try(&.strip)
-        else
-          nil
-        end
-      rescue
-        nil
-      end
-
       def self.check_crystalline : ToolStatus
-        c_path = find_crystalline
-        unless c_path
+        lib_crystalline = Env::ROOT_DIR.join("lib/crystalline")
+        shard_path = Env::ROOT_DIR.join("shard.yml")
+        if Dir.exists?(lib_crystalline)
           return ToolStatus.new(
+            name: "crystalline",
+            installed: true,
+            version: "shard (lib/crystalline)",
+            supported: true,
+            path: lib_crystalline.to_s,
+            message: "Crystalline LSP library installed via shards.",
+            required: false
+          )
+        elsif File.exists?(shard_path) && File.read(shard_path).includes?("crystalline")
+          return ToolStatus.new(
+            name: "crystalline",
+            installed: true,
+            version: "shard dependency",
+            supported: true,
+            path: shard_path.to_s,
+            message: "Crystalline LSP library configured in shard.yml.",
+            required: false
+          )
+        elsif path = ProcessRunner.find_executable("crystalline")
+          return ToolStatus.new(
+            name: "crystalline",
+            installed: true,
+            version: "system",
+            supported: true,
+            path: path,
+            message: "Crystalline LSP verified at #{path}.",
+            required: false
+          )
+        else
+          ToolStatus.new(
             name: "crystalline",
             installed: false,
             version: nil,
             supported: false,
             path: nil,
-            message: "Crystalline LSP ('crystalline') was not found. Install Crystalline from GitHub releases (or via 'lapis setup --lsp') for Godot in-editor Crystal autocompletion & diagnostics.",
+            message: "Crystalline LSP library not found. Run 'shards install' or 'lapis setup --lsp'.",
             required: false
           )
         end
-
-        ver = get_crystalline_version(c_path) || "present"
-        ToolStatus.new(
-          name: "crystalline",
-          installed: true,
-          version: ver,
-          supported: true,
-          path: c_path,
-          message: "Crystalline LSP verified at #{c_path} (#{ver}).",
-          required: false
-        )
       end
 
       def self.check_all : Array(ToolStatus)

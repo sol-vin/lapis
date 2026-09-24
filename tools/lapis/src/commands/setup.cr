@@ -23,7 +23,7 @@ Options:
   -o, --output=PATH     Package export templates into specified zip
   -f, --force           Force download even if godot executable exists
   --skip-dump           Skip dumping extension_api.json after setup
-  --lsp                 Download and configure Crystalline Language Server (LSP)
+  --lsp                 Configure Crystalline Language Server (LSP) library via shards
   -h, --help            Show this help screen
 
 Examples:
@@ -185,83 +185,15 @@ HELP
       end
 
       def self.setup_crystalline(root : Path, force : Bool = false) : Int32
-        dest_exe = root.join("bin", "crystalline#{Core::Env.exe_ext}")
-        FileUtils.mkdir_p(dest_exe.parent)
-
-        if File.exists?(dest_exe) && !force
-          Core::Logger.info("Crystalline LSP already configured at #{dest_exe}. Use --force to re-download.")
-          return 0
-        end
-
-        Core::Logger.step("Setup", "Configuring Crystalline Language Server at #{dest_exe}...")
-
-        # If scratch or local compiled crystalline exists, stage it
-        scratch_exe = root.join("scratch/crystalline/bin/crystalline#{Core::Env.exe_ext}")
-        if File.exists?(scratch_exe)
-          FileUtils.cp(scratch_exe.to_s, dest_exe.to_s)
-          Core::Logger.success("Installed Crystalline LSP to #{dest_exe}!")
-          return 0
-        end
-
-        # System PATH fallback
-        if (sys_path = Process.find_executable("crystalline")) && File.exists?(sys_path)
-          FileUtils.cp(sys_path, dest_exe.to_s)
-          Core::Logger.success("Copied system Crystalline (#{sys_path}) to #{dest_exe}!")
-          return 0
-        end
-
-        if Core::Env.windows?
-          Core::Logger.info("Pre-built Crystalline binaries are currently only published for Linux and macOS. On Windows, build from source or place crystalline.exe at #{dest_exe}.")
-          return 0
-        end
-
-        # Download from GitHub release
-        tag = "v0.20.0"
-        url = if Core::Env.macos?
-                "https://github.com/elbywan/crystalline/releases/download/#{tag}/crystalline_arm64-apple-darwin.gz"
-              else
-                "https://github.com/elbywan/crystalline/releases/download/#{tag}/crystalline_x86_64-unknown-linux-musl.gz"
-              end
-
-        temp_archive = dest_exe.parent.join("crystalline_dl_temp.archive")
-        if download_to_file(url, temp_archive)
-          begin
-            if Core::Env.windows?
-              extracted = false
-              Compress::Zip::Reader.open(temp_archive.to_s) do |zip|
-                zip.each_entry do |entry|
-                  if entry.file? && (entry.filename.ends_with?("crystalline.exe") || entry.filename == "crystalline.exe")
-                    File.open(dest_exe, "wb") do |f|
-                      IO.copy(entry.io, f)
-                    end
-                    extracted = true
-                    break
-                  end
-                end
-              end
-              unless extracted
-                Core::Logger.error("Failed to find crystalline.exe inside downloaded archive #{url}.")
-                return 1
-              end
-            else
-              File.open(dest_exe, "wb") do |f|
-                Compress::Gzip::Reader.open(temp_archive.to_s) do |gz|
-                  IO.copy(gz, f)
-                end
-              end
-              File.chmod(dest_exe, 0o755)
-            end
-            Core::Logger.success("Downloaded and configured Crystalline LSP at #{dest_exe}!")
-            0
-          rescue ex
-            Core::Logger.error("Failed to extract Crystalline archive: #{ex.message}")
-            1
-          ensure
-            File.delete(temp_archive) if File.exists?(temp_archive)
-          end
+        Core::Logger.step("Setup", "Configuring Crystalline Language Server library via shards...")
+        status = Core::ProcessRunner.run("shards", ["install"], chdir: root.to_s)
+        if status.success?
+          Core::Env.patch_crystalline_library(root)
+          Core::Logger.success("Crystalline library successfully configured via shards!")
+          0
         else
-          Core::Logger.warn("Could not download Crystalline from #{url}. Please download Crystalline from https://github.com/elbywan/crystalline/releases and place it at #{dest_exe}.")
-          1
+          Core::Logger.error("Failed to install Crystalline dependency via shards.")
+          status.exit_code
         end
       end
 
@@ -285,7 +217,7 @@ HELP
           opts.on("-o PATH", "--output=PATH", "Package export templates zip") { |p| zip_output = Path.new(p) }
           opts.on("-f", "--force", "Force re-download") { force = true }
           opts.on("--skip-dump", "Skip dumping extension_api.json") { skip_dump = true }
-          opts.on("--lsp", "Download and configure Crystalline LSP") { lsp_mode = true }
+          opts.on("--lsp", "Configure Crystalline LSP library via shards") { lsp_mode = true }
           opts.on("-h", "--help", "Show help") { print_help; exit 0 }
         end
 

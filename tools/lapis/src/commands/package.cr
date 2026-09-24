@@ -455,21 +455,7 @@ CONTROL
           safe_copy(deps_script, stage_dir.join("install_deps.ps1"))
         end
 
-        # 3. Stage crystalline.exe if present (for bundling into {app}\bin)
-        crystalline_candidates = [
-          root.join("bin/crystalline#{Core::Env.exe_ext}"),
-          root.join("scratch/crystalline/bin/crystalline#{Core::Env.exe_ext}"),
-        ]
-        if found_sys = Process.find_executable("crystalline")
-          crystalline_candidates << Path.new(found_sys)
-        end
-
-        if crystalline_exe = crystalline_candidates.find { |p| File.exists?(p) }
-          safe_copy(crystalline_exe, stage_dir.join("crystalline.exe"))
-          Core::Logger.info("Staged Crystalline LSP binary (#{crystalline_exe}) for installer payload")
-        end
-
-        # 4. Stage runtime DLLs (gc.dll, pcre2-8.dll, iconv-2.dll)
+        # 3. Stage runtime DLLs (gc.dll, pcre2-8.dll, iconv-2.dll)
         ["gc.dll", "pcre2-8.dll", "iconv-2.dll"].each do |dll|
           dll_path = root.join("bin/#{dll}")
           if File.exists?(dll_path)

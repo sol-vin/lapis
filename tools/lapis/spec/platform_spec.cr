@@ -101,9 +101,11 @@ describe "Lapis Platform-Specific Operations" do
         content.should contain("[Setup]")
         content.should contain("AppName=Lapis")
         content.should contain("DefaultDirName={autopf}\\Lapis")
-        content.should contain("crystalline.exe")
-        content.should contain("HasCrystalline")
-        content.should contain("CheckCrystallineInstalled")
+        content.should contain("lapis.exe")
+        content.should contain("HasCrystal")
+        content.should_not contain("crystalline.exe")
+        content.should_not contain("HasCrystalline")
+        content.should_not contain("CheckCrystallineInstalled")
       end
 
       it "lists complete Windows runtime dependencies" do

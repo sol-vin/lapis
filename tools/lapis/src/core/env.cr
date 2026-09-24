@@ -316,6 +316,36 @@ module Lapis
 
         dirs.uniq
       end
+
+      # Ensures crystalline shard works as a clean in-process library without auto-executing CLI or macro crashes
+      def self.patch_crystalline_library(root : Path)
+        lib_cryst = root.join("lib/crystalline")
+        return unless Dir.exists?(lib_cryst)
+
+        # 1. Guard Crystalline.init so requiring crystalline doesn't launch standalone CLI
+        main_cr = lib_cryst.join("src/crystalline.cr")
+        if File.exists?(main_cr)
+          content = File.read(main_cr)
+          if content.includes?("\nCrystalline.init\n") || content.ends_with?("\nCrystalline.init")
+            content = content.gsub(/\nCrystalline\.init\b/, "\nif PROGRAM_NAME.ends_with?(\"crystalline\") || PROGRAM_NAME.ends_with?(\"crystalline.exe\")\n  Crystalline.init\nend")
+            File.write(main_cr, content)
+          end
+        end
+
+        # 2. Fix version macro on Windows/cross-platform
+        ver_cr = lib_cryst.join("src/crystalline/version.cr")
+        if File.exists?(ver_cr)
+          content = File.read(ver_cr)
+          if content.includes?("`shards version")
+            content = content.gsub(/VERSION\s*=\s*\{\{.*?\}\}/m, "VERSION = \"0.20.0\"")
+            File.write(ver_cr, content)
+          end
+        end
+
+        # 3. Ensure lib/.gdignore exists
+        gdignore = root.join("lib/.gdignore")
+        File.write(gdignore, "") unless File.exists?(gdignore)
+      end
     end
   end
 end

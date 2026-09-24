@@ -37,8 +37,10 @@ LibGodot utilizes a multi-consumer architecture. When code changes in `src/` or 
 
 | Target | Command | Purpose |
 | :--- | :--- | :--- |
-| **All (Default)** | `make all` | Compiles bridge, host test suite, examples, template, syncs all DLLs, and runs verification tests. |
+| **All (Default)** | `make all` | Compiles bridge, host test suite, examples, template, syncs all DLLs, runs verification tests, and builds Windows installer on Windows. |
 | **Release Build** | `make all RELEASE=1` | Compiles with release optimizations (`--release -O3`, `-DLIBGODOT_RELEASE=1 -DNDEBUG`). |
+| **Windows Installer** | `make windows-installer` | Remakes Windows Inno Setup installer executable (`bin/windows/lapis-setup-windows-x86_64.exe`). See `libgodot-packaging`. |
+| **Release Packaging** | `make package-release` | Packages all release archives and checksums into `bin/release_dist/`. See `libgodot-packaging`. |
 | **Standalone Executable** | `make game_exe` | Compiles Crystal host executable `bin/game.exe` (Mode B). |
 | **Addon Sync** | `make addons` | Synchronizes `addons/crystal_integration` across all consumer directories. |
 | **Clean** | `make clean` | Removes compiled game/bridge binaries while preserving `libgodot.dll` and runtime DLLs. |

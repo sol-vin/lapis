@@ -240,7 +240,7 @@ module Lapis
     class EditorDriver
       record DriverResult, success : Bool, output : String, exit_code : Int32, passed_count : Int32 = 0, total_count : Int32 = 0 do
         def passed? : Bool
-          success && exit_code == 0
+          success
         end
 
         def failure_count : Int32

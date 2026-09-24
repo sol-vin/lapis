@@ -38,18 +38,10 @@ inline void free_string_name(void *sn) {
     (void)sn;
 }
 
-/** Cleans up all interned heap-backed Godot StringName instances at engine shutdown */
+/** Cleans up all interned heap-backed Godot StringName instances at engine shutdown (no-op: engine lifetime) */
 inline void bridge_cleanup_string_name_cache() {
-    std::lock_guard<std::mutex> lock(s_string_name_mutex);
-    if (gd_string_name_destroy) {
-        for (auto &pair : s_string_name_cache) {
-            if (pair.second) {
-                gd_string_name_destroy(pair.second);
-                free(pair.second);
-            }
-        }
-    }
-    s_string_name_cache.clear();
+    // StringNames are interned in Godot's static string pool for the process lifetime.
+    // Releasing them during shutdown causes use-after-free crashes with Godot's string table teardown.
 }
 
 /** Allocates and initializes a heap-backed Godot String instance */
@@ -1438,6 +1430,10 @@ inline void bridge_ret_dictionary_validate(void *r_ret, uint8_t valid) {
     dict_set_variant(r_ret, "valid", GDEXTENSION_VARIANT_TYPE_BOOL, &v_bool);
 }
 
+static GDExtensionPtrBuiltInMethod gd_array_push_back = nullptr;
+static GDExtensionPtrDestructor gd_array_destructor = nullptr;
+static GDExtensionPtrDestructor gd_dict_destructor = nullptr;
+
 inline void bridge_ret_dictionary_complete_code(void *r_ret) {
     if (!r_ret) return;
     int64_t v_res = 0;
@@ -1446,9 +1442,23 @@ inline void bridge_ret_dictionary_complete_code(void *r_ret) {
     dict_set_variant(r_ret, "force", GDEXTENSION_VARIANT_TYPE_BOOL, &v_force);
     const char *v_hint = "";
     dict_set_variant(r_ret, "call_hint", GDEXTENSION_VARIANT_TYPE_STRING, &v_hint);
-}
 
-static GDExtensionPtrBuiltInMethod gd_array_push_back = nullptr;
+    // Initialize an empty Array variant for "options" so Godot engine validation succeeds
+    alignas(void*) char arr_options[24] = {};
+    if (!gd_array_constructor && gd_variant_get_ptr_constructor) {
+        gd_array_constructor = gd_variant_get_ptr_constructor(GDEXTENSION_VARIANT_TYPE_ARRAY, 0);
+    }
+    if (gd_array_constructor) {
+        gd_array_constructor(arr_options, nullptr);
+    }
+    dict_set_variant(r_ret, "options", GDEXTENSION_VARIANT_TYPE_ARRAY, arr_options);
+    if (!gd_array_destructor && gd_variant_get_ptr_destructor) {
+        gd_array_destructor = gd_variant_get_ptr_destructor(GDEXTENSION_VARIANT_TYPE_ARRAY);
+    }
+    if (gd_array_destructor) {
+        gd_array_destructor(arr_options);
+    }
+}
 
 inline void bridge_ret_dictionary_complete_code_ex(
     void *r_ret,
@@ -1466,7 +1476,7 @@ inline void bridge_ret_dictionary_complete_code_ex(
     const char *v_hint = call_hint ? call_hint : "";
     dict_set_variant(r_ret, "call_hint", GDEXTENSION_VARIANT_TYPE_STRING, &v_hint);
 
-    // Initialize an empty Array variant for "options"
+    // Initialize an empty Array for "options"
     alignas(void*) char arr_options[24] = {};
     if (!gd_array_constructor && gd_variant_get_ptr_constructor) {
         gd_array_constructor = gd_variant_get_ptr_constructor(GDEXTENSION_VARIANT_TYPE_ARRAY, 0);
@@ -1479,6 +1489,13 @@ inline void bridge_ret_dictionary_complete_code_ex(
         void *sn_pb = make_string_name("push_back");
         gd_array_push_back = gd_variant_get_ptr_builtin_method(GDEXTENSION_VARIANT_TYPE_ARRAY, sn_pb, 3316032543ULL);
         free_string_name(sn_pb);
+    }
+
+    if (!gd_dict_destructor && gd_variant_get_ptr_destructor) {
+        gd_dict_destructor = gd_variant_get_ptr_destructor(GDEXTENSION_VARIANT_TYPE_DICTIONARY);
+    }
+    if (!gd_array_destructor && gd_variant_get_ptr_destructor) {
+        gd_array_destructor = gd_variant_get_ptr_destructor(GDEXTENSION_VARIANT_TYPE_ARRAY);
     }
 
     if (gd_array_push_back && options && option_count > 0) {
@@ -1506,20 +1523,30 @@ inline void bridge_ret_dictionary_complete_code_ex(
             int64_t loc = options[i].location;
             dict_set_variant(opt_dict, "location", GDEXTENSION_VARIANT_TYPE_INT, &loc);
 
-            const GDExtensionConstTypePtr pb_args[1] = { opt_dict };
+            // Box opt_dict (Dictionary) into a 24-byte Variant before passing to Array.push_back
+            alignas(void*) char var_opt_dict[24] = {};
+            bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_DICTIONARY, var_opt_dict, opt_dict);
+
+            const GDExtensionConstTypePtr pb_args[1] = { var_opt_dict };
             alignas(void*) uint8_t pb_ret = 0;
             gd_array_push_back(arr_options, pb_args, &pb_ret, 1);
 
             if (gd_variant_destroy) {
-                gd_variant_destroy(opt_dict);
+                gd_variant_destroy(var_opt_dict);
+            }
+            if (!gd_dict_destructor && gd_variant_get_ptr_destructor) {
+                gd_dict_destructor = gd_variant_get_ptr_destructor(GDEXTENSION_VARIANT_TYPE_DICTIONARY);
+            }
+            if (gd_dict_destructor) {
+                gd_dict_destructor(opt_dict);
             }
         }
     }
 
     dict_set_variant(r_ret, "options", GDEXTENSION_VARIANT_TYPE_ARRAY, arr_options);
 
-    if (gd_variant_destroy) {
-        gd_variant_destroy(arr_options);
+    if (gd_array_destructor) {
+        gd_array_destructor(arr_options);
     }
 }
 

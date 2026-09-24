@@ -111,6 +111,10 @@ module Lapis
       verify_required_tools
 
       if Godot.editor_hint?
+        unless self.class.headless?
+          self.class.ensure_theme_icons
+        end
+
         # Ensure first-class language, loader, and saver are active in editor
         Godot::CrystalLanguage.ensure_registered
         Godot::ResourceFormatLoaderCrystal.ensure_registered
@@ -143,7 +147,6 @@ module Lapis
 
         unless self.class.headless?
           self.class.ensure_highlighter_registered
-          self.class.ensure_theme_icons
           self.class.setup_toolbar_button
           self.class.setup_new_script_button
           self.class.setup_main_screen_panel

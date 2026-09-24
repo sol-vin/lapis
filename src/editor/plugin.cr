@@ -1,3 +1,4 @@
+require "crystalline"
 require "../lapis"
 require "../libgodot/editor"
 require "./crystal_panel"

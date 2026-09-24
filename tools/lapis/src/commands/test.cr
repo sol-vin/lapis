@@ -758,18 +758,26 @@ HELP
           step_summary.set_runtime_metrics(runtime_total, runtime_passed, runtime_failed, failed_details)
 
           # Harvest JUnit XML test reports if available
-          junit_candidates = [
-            junit_path,
-            test_bin_dir.join("junit.xml").to_s,
-            test_dir.join("junit.xml").to_s,
-            root.join("junit.xml").to_s,
-            test_bin_dir.join("junit_tool_2d.xml").to_s,
-            test_dir.join("junit_tool_2d.xml").to_s,
-            test_bin_dir.join("junit_tool_3d.xml").to_s,
-            test_dir.join("junit_tool_3d.xml").to_s,
-            test_bin_dir.join("junit_engine_specs/output.xml").to_s,
-            test_bin_dir.join("junit_cli_specs/output.xml").to_s,
-          ].compact.uniq
+          junit_candidates = if is_root_engine
+            [
+              junit_path,
+              test_bin_dir.join("junit.xml").to_s,
+              test_dir.join("junit.xml").to_s,
+              root.join("junit.xml").to_s,
+              test_bin_dir.join("junit_tool_2d.xml").to_s,
+              test_dir.join("junit_tool_2d.xml").to_s,
+              test_bin_dir.join("junit_tool_3d.xml").to_s,
+              test_dir.join("junit_tool_3d.xml").to_s,
+              test_bin_dir.join("junit_engine_specs/output.xml").to_s,
+              test_bin_dir.join("junit_cli_specs/output.xml").to_s,
+            ]
+          else
+            [
+              junit_path,
+              test_bin_dir.join("junit.xml").to_s,
+              test_dir.join("junit.xml").to_s,
+            ]
+          end.compact.uniq
 
           junit_candidates.each do |j_cand|
             if File.exists?(j_cand) && File.size(j_cand) > 0

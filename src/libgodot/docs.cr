@@ -3041,7 +3041,7 @@ module Lapis
     #    Run `lapis ide setup [editor]` to automatically generate workspace configurations:
     #    - **VS Code / Cursor** (`lapis ide setup vscode`):
     #      Generates `.vscode/settings.json`, `.vscode/tasks.json`, and `.vscode/launch.json`.
-    #      Configures Crystalline Language Server Protocol (`bin/crystalline.exe`), Crystal build tasks,
+    #      Configures Crystalline Language Server Protocol, Crystal build tasks,
     #      and LLDB launch configurations targeting `godot.exe` or standalone games.
     #    - **Zed** (`lapis ide setup zed`):
     #      Generates `.zed/settings.json` and `.zed/tasks.json` configuring Crystalline LSP

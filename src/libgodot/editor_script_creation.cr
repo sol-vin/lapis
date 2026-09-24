@@ -429,9 +429,9 @@ module Lapis
                         0_i64
                       end
 
-          if cur_count >= 2_i64 && pop_count >= 2_i64
+          if cur_count >= 2_i64
             opt.call("set_item_text", 1_i64, "Crystal") rescue nil
-            if tex && !tex.pointer.null?
+            if tex && !tex.pointer.null? && pop_count >= 2_i64
               opt.call("set_item_icon", 1_i64, tex) rescue nil
             end
           end

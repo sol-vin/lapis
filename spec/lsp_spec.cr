@@ -1,3 +1,4 @@
+require "crystalline"
 require "../src/lapis"
 
 puts "=== Running Crystalline LSP & Code Intelligence Specifications ==="
@@ -8,12 +9,11 @@ puts "=== Running Crystalline LSP & Code Intelligence Specifications ==="
 puts "[Spec 1] Verifying CrystalLSP discovery and singleton..."
 lsp = Lapis::CrystalLSP.instance
 puts "  - Available: #{lsp.available?}"
-if File.exists?("bin/crystalline.exe") || File.exists?("bin/crystalline") || Process.find_executable("crystalline")
-  unless lsp.available?
-    abort "ERROR: Crystalline binary exists but CrystalLSP.available? returned false!"
-  end
+if lsp.available?
+  puts "  ✓ CrystalLSP discovery verified"
+else
+  abort "ERROR: CrystalLSP.available? returned false!"
 end
-puts "  ✓ CrystalLSP discovery verified"
 
 # -------------------------------------------------------------
 # [Spec 2] CrystalLanguage Built-in Completion Proposals
@@ -393,5 +393,56 @@ end
 
 puts "  ✓ Definition Location, LocationLink, and empty response parsing verified"
 
+# ==============================================================================
+# [Spec 11] Caret Detection (\u{FFFF}) and Contextual Autocomplete
+# ==============================================================================
+puts "\n[Spec 11] Verifying Caret Sentinel (\\u{FFFF}) extraction and Contextual Autocomplete..."
+
+# Test 11a: Caret position extraction
+code_with_caret = "node Player < CharacterBody3D do\n  def _ready : Void\n    \u{FFFF}\n  end\nend\n"
+if idx = code_with_caret.index('\u{FFFF}')
+  lines_before = code_with_caret[0...idx].split('\n')
+  c_line = lines_before.size
+  c_col = lines_before.last?.try(&.size) || 0
+  c_clean = code_with_caret.delete('\u{FFFF}')
+
+  unless c_line == 3 && c_col == 4
+    abort "ERROR: Caret extraction failed! Expected line 3, col 4; got line #{c_line}, col #{c_col}"
+  end
+  if c_clean.includes?('\u{FFFF}')
+    abort "ERROR: Clean code should not contain \\u{FFFF} sentinel!"
+  end
+else
+  abort "ERROR: Could not find sentinel \\u{FFFF} in test code!"
+end
+
+# Test 11b: Contextual class completion after '< '
+lang = Godot::CrystalLanguage.new(Pointer(Void).null)
+inheritance_code = "node Monster < "
+class_items = lang.complete_code(inheritance_code, "res://monster.cr", 1, 15)
+unless class_items.any? { |i| i.display_text == "CharacterBody3D" && i.kind_id == 0_i64 }
+  abort "ERROR: Contextual inheritance completion should return CharacterBody3D class!"
+end
+unless class_items.all? { |i| i.kind == "class" && i.kind_id == 0_i64 }
+  abort "ERROR: Contextual inheritance completion should only return classes!"
+end
+
+# Test 11c: Contextual annotation completion after '@['
+anno_code = "  @["
+anno_items = lang.complete_code(anno_code, "res://monster.cr", 1, 4)
+unless anno_items.any? { |i| i.display_text == "@[Export]" && i.kind_id == 10_i64 }
+  abort "ERROR: Contextual annotation completion should return @[Export]!"
+end
+
+# Test 11d: Contextual virtual callback completion after 'def _'
+cb_code = "  def _"
+cb_items = lang.complete_code(cb_code, "res://monster.cr", 1, 7)
+unless cb_items.any? { |i| i.display_text.starts_with?("_ready") }
+  abort "ERROR: Contextual virtual callback completion should return _ready!"
+end
+
+puts "  ✓ Caret sentinel extraction and contextual autocomplete verified"
+
 puts "\n>>> All Crystalline LSP & Code Intelligence Specifications Passed! <<<"
+
 

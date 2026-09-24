@@ -16,7 +16,7 @@ module Godot
     @@mb_set_intensity : Void* = Pointer(Void).null
     def set_intensity(intensity : Float64) : Void
       godot_bind(@@mb_set_intensity, "ReflectionProbe", "set_intensity", 373806689_i64)
-      val_0 = intensity
+      val_0 = intensity.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_intensity, @pointer, args.to_unsafe.as(Void**))
@@ -29,7 +29,7 @@ module Godot
     @@mb_set_blend_distance : Void* = Pointer(Void).null
     def set_blend_distance(blend_distance : Float64) : Void
       godot_bind(@@mb_set_blend_distance, "ReflectionProbe", "set_blend_distance", 373806689_i64)
-      val_0 = blend_distance
+      val_0 = blend_distance.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_blend_distance, @pointer, args.to_unsafe.as(Void**))
@@ -68,7 +68,7 @@ module Godot
     @@mb_set_ambient_color_energy : Void* = Pointer(Void).null
     def set_ambient_color_energy(ambient_energy : Float64) : Void
       godot_bind(@@mb_set_ambient_color_energy, "ReflectionProbe", "set_ambient_color_energy", 373806689_i64)
-      val_0 = ambient_energy
+      val_0 = ambient_energy.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_ambient_color_energy, @pointer, args.to_unsafe.as(Void**))
@@ -81,7 +81,7 @@ module Godot
     @@mb_set_max_distance : Void* = Pointer(Void).null
     def set_max_distance(max_distance : Float64) : Void
       godot_bind(@@mb_set_max_distance, "ReflectionProbe", "set_max_distance", 373806689_i64)
-      val_0 = max_distance
+      val_0 = max_distance.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_max_distance, @pointer, args.to_unsafe.as(Void**))
@@ -94,7 +94,7 @@ module Godot
     @@mb_set_mesh_lod_threshold : Void* = Pointer(Void).null
     def set_mesh_lod_threshold(ratio : Float64) : Void
       godot_bind(@@mb_set_mesh_lod_threshold, "ReflectionProbe", "set_mesh_lod_threshold", 373806689_i64)
-      val_0 = ratio
+      val_0 = ratio.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_mesh_lod_threshold, @pointer, args.to_unsafe.as(Void**))
@@ -196,7 +196,7 @@ module Godot
     @@mb_set_cull_mask : Void* = Pointer(Void).null
     def set_cull_mask(layers : Int64) : Void
       godot_bind(@@mb_set_cull_mask, "ReflectionProbe", "set_cull_mask", 1286410249_i64)
-      val_0 = layers
+      val_0 = layers.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_cull_mask, @pointer, args.to_unsafe.as(Void**))
@@ -209,7 +209,7 @@ module Godot
     @@mb_set_reflection_mask : Void* = Pointer(Void).null
     def set_reflection_mask(layers : Int64) : Void
       godot_bind(@@mb_set_reflection_mask, "ReflectionProbe", "set_reflection_mask", 1286410249_i64)
-      val_0 = layers
+      val_0 = layers.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_reflection_mask, @pointer, args.to_unsafe.as(Void**))
@@ -404,9 +404,9 @@ module Godot
       godot_bind(@@mb_search, "RegEx", "search", 3365977994_i64)
       str_0 = Bridge.make_string(subject)
       arg_0 = str_0
-      val_1 = offset
+      val_1 = offset.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = end_val
+      val_2 = end_val.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_obj(@@mb_search, @pointer, args.to_unsafe.as(Void**), RegExMatch)
@@ -418,9 +418,9 @@ module Godot
       godot_bind(@@mb_search_all, "RegEx", "search_all", 849021363_i64)
       str_0 = Bridge.make_string(subject)
       arg_0 = str_0
-      val_1 = offset
+      val_1 = offset.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = end_val
+      val_2 = end_val.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       ret_ptr = Pointer(Void).null
@@ -438,9 +438,9 @@ module Godot
       arg_1 = str_1
       val_2 = all
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = offset
+      val_3 = offset.to_i64
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = end_val
+      val_4 = end_val.to_i64
       arg_4 = pointerof(val_4).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
       godot_call_str("sub", subject, replacement, all, offset, end_val)
@@ -474,9 +474,9 @@ module Godot
     @@mb_get_names : Void* = Pointer(Void).null
     def get_names() : Pointer(Void)
       godot_bind(@@mb_get_names, "RegEx", "get_names", 1139954409_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_names, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_names, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
   end
   class RegExMatch < Godot::RefCounted
@@ -503,9 +503,9 @@ module Godot
     @@mb_get_strings : Void* = Pointer(Void).null
     def get_strings() : Pointer(Void)
       godot_bind(@@mb_get_strings, "RegExMatch", "get_strings", 1139954409_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_strings, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_strings, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_get_string : Void* = Pointer(Void).null
     def get_string(name : Pointer(Void)) : String
@@ -933,7 +933,7 @@ module Godot
     @@mb_set_view_count : Void* = Pointer(Void).null
     def set_view_count(view_count : Int64) : Void
       godot_bind(@@mb_set_view_count, "RenderSceneBuffersConfiguration", "set_view_count", 1286410249_i64)
-      val_0 = view_count
+      val_0 = view_count.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_view_count, @pointer, args.to_unsafe.as(Void**))
@@ -985,7 +985,7 @@ module Godot
     @@mb_set_fsr_sharpness : Void* = Pointer(Void).null
     def set_fsr_sharpness(fsr_sharpness : Float64) : Void
       godot_bind(@@mb_set_fsr_sharpness, "RenderSceneBuffersConfiguration", "set_fsr_sharpness", 373806689_i64)
-      val_0 = fsr_sharpness
+      val_0 = fsr_sharpness.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_fsr_sharpness, @pointer, args.to_unsafe.as(Void**))
@@ -998,7 +998,7 @@ module Godot
     @@mb_set_texture_mipmap_bias : Void* = Pointer(Void).null
     def set_texture_mipmap_bias(texture_mipmap_bias : Float64) : Void
       godot_bind(@@mb_set_texture_mipmap_bias, "RenderSceneBuffersConfiguration", "set_texture_mipmap_bias", 373806689_i64)
-      val_0 = texture_mipmap_bias
+      val_0 = texture_mipmap_bias.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_texture_mipmap_bias, @pointer, args.to_unsafe.as(Void**))
@@ -1138,15 +1138,15 @@ module Godot
       arg_1 = sn_1
       val_2 = data_format.is_a?(Int) ? data_format.to_i64 : data_format.value.to_i64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = usage_bits
+      val_3 = usage_bits.to_i64
       arg_3 = pointerof(val_3).as(Void*)
       val_4 = texture_samples.is_a?(Int) ? texture_samples.to_i64 : texture_samples.value.to_i64
       arg_4 = pointerof(val_4).as(Void*)
       val_5 = size
       arg_5 = pointerof(val_5).as(Void*)
-      val_6 = layers
+      val_6 = layers.to_i64
       arg_6 = pointerof(val_6).as(Void*)
-      val_7 = mipmaps
+      val_7 = mipmaps.to_i64
       arg_7 = pointerof(val_7).as(Void*)
       val_8 = unique
       arg_8 = pointerof(val_8).as(Void*)
@@ -1228,13 +1228,13 @@ module Godot
       arg_0 = sn_0
       sn_1 = Bridge.make_string_name(name)
       arg_1 = sn_1
-      val_2 = layer
+      val_2 = layer.to_i64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = mipmap
+      val_3 = mipmap.to_i64
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = layers
+      val_4 = layers.to_i64
       arg_4 = pointerof(val_4).as(Void*)
-      val_5 = mipmaps
+      val_5 = mipmaps.to_i64
       arg_5 = pointerof(val_5).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5]
       godot_ptrcall_int(@@mb_get_texture_slice, @pointer, args.to_unsafe.as(Void**))
@@ -1249,13 +1249,13 @@ module Godot
       arg_0 = sn_0
       sn_1 = Bridge.make_string_name(name)
       arg_1 = sn_1
-      val_2 = layer
+      val_2 = layer.to_i64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = mipmap
+      val_3 = mipmap.to_i64
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = layers
+      val_4 = layers.to_i64
       arg_4 = pointerof(val_4).as(Void*)
-      val_5 = mipmaps
+      val_5 = mipmaps.to_i64
       arg_5 = pointerof(val_5).as(Void*)
       arg_ptr_6 = view ? view.pointer : Pointer(Void).null
       arg_6 = pointerof(arg_ptr_6).as(Void*)
@@ -1272,7 +1272,7 @@ module Godot
       arg_0 = sn_0
       sn_1 = Bridge.make_string_name(name)
       arg_1 = sn_1
-      val_2 = mipmap
+      val_2 = mipmap.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_val(@@mb_get_texture_slice_size, @pointer, args.to_unsafe.as(Void**), Vector2i)
@@ -1301,7 +1301,7 @@ module Godot
     @@mb_get_color_layer : Void* = Pointer(Void).null
     def get_color_layer(layer : Int64, msaa : Bool = false) : Int64
       godot_bind(@@mb_get_color_layer, "RenderSceneBuffersRD", "get_color_layer", 3087988589_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = msaa
       arg_1 = pointerof(val_1).as(Void*)
@@ -1319,7 +1319,7 @@ module Godot
     @@mb_get_depth_layer : Void* = Pointer(Void).null
     def get_depth_layer(layer : Int64, msaa : Bool = false) : Int64
       godot_bind(@@mb_get_depth_layer, "RenderSceneBuffersRD", "get_depth_layer", 3087988589_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = msaa
       arg_1 = pointerof(val_1).as(Void*)
@@ -1337,7 +1337,7 @@ module Godot
     @@mb_get_velocity_layer : Void* = Pointer(Void).null
     def get_velocity_layer(layer : Int64, msaa : Bool = false) : Int64
       godot_bind(@@mb_get_velocity_layer, "RenderSceneBuffersRD", "get_velocity_layer", 3087988589_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = msaa
       arg_1 = pointerof(val_1).as(Void*)
@@ -1430,7 +1430,7 @@ module Godot
     @@mb_get_view_eye_offset : Void* = Pointer(Void).null
     def get_view_eye_offset(view : Int64) : Vector3
       godot_bind(@@mb_get_view_eye_offset, "RenderSceneData", "get_view_eye_offset", 711720468_i64)
-      val_0 = view
+      val_0 = view.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_get_view_eye_offset, @pointer, args.to_unsafe.as(Void**), Vector3)
@@ -1438,7 +1438,7 @@ module Godot
     @@mb_get_view_projection : Void* = Pointer(Void).null
     def get_view_projection(view : Int64) : Projection
       godot_bind(@@mb_get_view_projection, "RenderSceneData", "get_view_projection", 3179846605_i64)
-      val_0 = view
+      val_0 = view.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_get_view_projection, @pointer, args.to_unsafe.as(Void**), Projection)
@@ -2144,15 +2144,15 @@ module Godot
       arg_0 = pointerof(arg_ptr_0).as(Void*)
       val_1 = with_texture
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = layer
+      val_2 = layer.to_i64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = mipmap
+      val_3 = mipmap.to_i64
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = mipmaps
+      val_4 = mipmaps.to_i64
       arg_4 = pointerof(val_4).as(Void*)
       val_5 = slice_type.is_a?(Int) ? slice_type.to_i64 : slice_type.value.to_i64
       arg_5 = pointerof(val_5).as(Void*)
-      val_6 = layers
+      val_6 = layers.to_i64
       arg_6 = pointerof(val_6).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5, arg_6]
       godot_ptrcall_int(@@mb_texture_create_shared_from_slice, @pointer, args.to_unsafe.as(Void**))
@@ -2168,17 +2168,17 @@ module Godot
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = usage_flags.is_a?(Int) ? usage_flags.to_i64 : usage_flags.value.to_i64
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = image
+      val_4 = image.to_i64
       arg_4 = pointerof(val_4).as(Void*)
-      val_5 = width
+      val_5 = width.to_i64
       arg_5 = pointerof(val_5).as(Void*)
-      val_6 = height
+      val_6 = height.to_i64
       arg_6 = pointerof(val_6).as(Void*)
-      val_7 = depth
+      val_7 = depth.to_i64
       arg_7 = pointerof(val_7).as(Void*)
-      val_8 = layers
+      val_8 = layers.to_i64
       arg_8 = pointerof(val_8).as(Void*)
-      val_9 = mipmaps
+      val_9 = mipmaps.to_i64
       arg_9 = pointerof(val_9).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5, arg_6, arg_7, arg_8, arg_9]
       godot_ptrcall_int(@@mb_texture_create_from_extension, @pointer, args.to_unsafe.as(Void**))
@@ -2188,7 +2188,7 @@ module Godot
       godot_bind(@@mb_texture_update, "RenderingDevice", "texture_update", 1349464008_i64)
       val_0 = texture
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = layer
+      val_1 = layer.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = data
       arg_2 = pointerof(val_2).as(Void*)
@@ -2200,19 +2200,19 @@ module Godot
       godot_bind(@@mb_texture_get_data, "RenderingDevice", "texture_get_data", 1859412099_i64)
       val_0 = texture
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = layer
+      val_1 = layer.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_texture_get_data, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_texture_get_data, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_texture_get_data_async : Void* = Pointer(Void).null
     def texture_get_data_async(texture : Int64, layer : Int64, callback : Pointer(Void)) : Godot::Error
       godot_bind(@@mb_texture_get_data_async, "RenderingDevice", "texture_get_data_async", 498832090_i64)
       val_0 = texture
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = layer
+      val_1 = layer.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = callback
       arg_2 = pointerof(val_2).as(Void*)
@@ -2292,13 +2292,13 @@ module Godot
       arg_3 = pointerof(val_3).as(Void*)
       val_4 = size
       arg_4 = pointerof(val_4).as(Void*)
-      val_5 = src_mipmap
+      val_5 = src_mipmap.to_i64
       arg_5 = pointerof(val_5).as(Void*)
-      val_6 = dst_mipmap
+      val_6 = dst_mipmap.to_i64
       arg_6 = pointerof(val_6).as(Void*)
-      val_7 = src_layer
+      val_7 = src_layer.to_i64
       arg_7 = pointerof(val_7).as(Void*)
-      val_8 = dst_layer
+      val_8 = dst_layer.to_i64
       arg_8 = pointerof(val_8).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5, arg_6, arg_7, arg_8]
       godot_ptrcall_enum(@@mb_texture_copy, @pointer, args.to_unsafe.as(Void**), Godot::Error)
@@ -2310,13 +2310,13 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = color
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = base_mipmap
+      val_2 = base_mipmap.to_i64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = mipmap_count
+      val_3 = mipmap_count.to_i64
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = base_layer
+      val_4 = base_layer.to_i64
       arg_4 = pointerof(val_4).as(Void*)
-      val_5 = layer_count
+      val_5 = layer_count.to_i64
       arg_5 = pointerof(val_5).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5]
       godot_ptrcall_enum(@@mb_texture_clear, @pointer, args.to_unsafe.as(Void**), Godot::Error)
@@ -2352,7 +2352,7 @@ module Godot
       godot_bind(@@mb_framebuffer_format_create, "RenderingDevice", "framebuffer_format_create", 697032759_i64)
       val_0 = attachments
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = view_count
+      val_1 = view_count.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_framebuffer_format_create, @pointer, args.to_unsafe.as(Void**))
@@ -2364,7 +2364,7 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = passes
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = view_count
+      val_2 = view_count.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_int(@@mb_framebuffer_format_create_multipass, @pointer, args.to_unsafe.as(Void**))
@@ -2380,9 +2380,9 @@ module Godot
     @@mb_framebuffer_format_get_texture_samples : Void* = Pointer(Void).null
     def framebuffer_format_get_texture_samples(format : Int64, render_pass : Int64 = 0_i64) : TextureSamples
       godot_bind(@@mb_framebuffer_format_get_texture_samples, "RenderingDevice", "framebuffer_format_get_texture_samples", 4223391010_i64)
-      val_0 = format
+      val_0 = format.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = render_pass
+      val_1 = render_pass.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_enum(@@mb_framebuffer_format_get_texture_samples, @pointer, args.to_unsafe.as(Void**), TextureSamples)
@@ -2392,9 +2392,9 @@ module Godot
       godot_bind(@@mb_framebuffer_create, "RenderingDevice", "framebuffer_create", 3284231055_i64)
       val_0 = textures
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = validate_with_format
+      val_1 = validate_with_format.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = view_count
+      val_2 = view_count.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_int(@@mb_framebuffer_create, @pointer, args.to_unsafe.as(Void**))
@@ -2406,9 +2406,9 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = passes
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = validate_with_format
+      val_2 = validate_with_format.to_i64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = view_count
+      val_3 = view_count.to_i64
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_int(@@mb_framebuffer_create_multipass, @pointer, args.to_unsafe.as(Void**))
@@ -2420,7 +2420,7 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = samples.is_a?(Int) ? samples.to_i64 : samples.value.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = validate_with_format
+      val_2 = validate_with_format.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_int(@@mb_framebuffer_create_empty, @pointer, args.to_unsafe.as(Void**))
@@ -2470,7 +2470,7 @@ module Godot
     @@mb_vertex_buffer_create : Void* = Pointer(Void).null
     def vertex_buffer_create(size_bytes : Int64, data : Pointer(Void), creation_bits : BufferCreationBits | Int = 0) : Int64
       godot_bind(@@mb_vertex_buffer_create, "RenderingDevice", "vertex_buffer_create", 2089548973_i64)
-      val_0 = size_bytes
+      val_0 = size_bytes.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = data
       arg_1 = pointerof(val_1).as(Void*)
@@ -2490,9 +2490,9 @@ module Godot
     @@mb_vertex_array_create : Void* = Pointer(Void).null
     def vertex_array_create(vertex_count : Int64, vertex_format : Int64, src_buffers : Pointer(Void), offsets : Pointer(Void)) : Int64
       godot_bind(@@mb_vertex_array_create, "RenderingDevice", "vertex_array_create", 3799816279_i64)
-      val_0 = vertex_count
+      val_0 = vertex_count.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = vertex_format
+      val_1 = vertex_format.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = src_buffers
       arg_2 = pointerof(val_2).as(Void*)
@@ -2504,7 +2504,7 @@ module Godot
     @@mb_index_buffer_create : Void* = Pointer(Void).null
     def index_buffer_create(size_indices : Int64, format : IndexBufferFormat | Int, data : Pointer(Void), use_restart_indices : Bool = false, creation_bits : BufferCreationBits | Int = 0) : Int64
       godot_bind(@@mb_index_buffer_create, "RenderingDevice", "index_buffer_create", 2368684885_i64)
-      val_0 = size_indices
+      val_0 = size_indices.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = format.is_a?(Int) ? format.to_i64 : format.value.to_i64
       arg_1 = pointerof(val_1).as(Void*)
@@ -2522,9 +2522,9 @@ module Godot
       godot_bind(@@mb_index_array_create, "RenderingDevice", "index_array_create", 2256026069_i64)
       val_0 = index_buffer
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = index_offset
+      val_1 = index_offset.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = index_count
+      val_2 = index_count.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_int(@@mb_index_array_create, @pointer, args.to_unsafe.as(Void**))
@@ -2547,9 +2547,9 @@ module Godot
       str_1 = Bridge.make_string(name)
       arg_1 = str_1
       args = StaticArray[arg_0, arg_1]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_shader_compile_binary_from_spirv, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_shader_compile_binary_from_spirv, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     ensure
       Bridge.free_string(str_1)
     end
@@ -2591,7 +2591,7 @@ module Godot
     @@mb_uniform_buffer_create : Void* = Pointer(Void).null
     def uniform_buffer_create(size_bytes : Int64, data : Pointer(Void), creation_bits : BufferCreationBits | Int = 0) : Int64
       godot_bind(@@mb_uniform_buffer_create, "RenderingDevice", "uniform_buffer_create", 2089548973_i64)
-      val_0 = size_bytes
+      val_0 = size_bytes.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = data
       arg_1 = pointerof(val_1).as(Void*)
@@ -2603,7 +2603,7 @@ module Godot
     @@mb_storage_buffer_create : Void* = Pointer(Void).null
     def storage_buffer_create(size_bytes : Int64, data : Pointer(Void), usage : StorageBufferUsage | Int = 0, creation_bits : BufferCreationBits | Int = 0) : Int64
       godot_bind(@@mb_storage_buffer_create, "RenderingDevice", "storage_buffer_create", 1609052553_i64)
-      val_0 = size_bytes
+      val_0 = size_bytes.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = data
       arg_1 = pointerof(val_1).as(Void*)
@@ -2617,7 +2617,7 @@ module Godot
     @@mb_texture_buffer_create : Void* = Pointer(Void).null
     def texture_buffer_create(size_bytes : Int64, format : DataFormat | Int, data : Pointer(Void)) : Int64
       godot_bind(@@mb_texture_buffer_create, "RenderingDevice", "texture_buffer_create", 1470338698_i64)
-      val_0 = size_bytes
+      val_0 = size_bytes.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = format.is_a?(Int) ? format.to_i64 : format.value.to_i64
       arg_1 = pointerof(val_1).as(Void*)
@@ -2633,7 +2633,7 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = shader
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = shader_set
+      val_2 = shader_set.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_int(@@mb_uniform_set_create, @pointer, args.to_unsafe.as(Void**))
@@ -2657,11 +2657,11 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = dst_buffer
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = src_offset
+      val_2 = src_offset.to_i64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = dst_offset
+      val_3 = dst_offset.to_i64
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = size
+      val_4 = size.to_i64
       arg_4 = pointerof(val_4).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
       godot_ptrcall_enum(@@mb_buffer_copy, @pointer, args.to_unsafe.as(Void**), Godot::Error)
@@ -2671,9 +2671,9 @@ module Godot
       godot_bind(@@mb_buffer_update, "RenderingDevice", "buffer_update", 3454956949_i64)
       val_0 = buffer
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = offset
+      val_1 = offset.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = size_bytes
+      val_2 = size_bytes.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = data
       arg_3 = pointerof(val_3).as(Void*)
@@ -2685,9 +2685,9 @@ module Godot
       godot_bind(@@mb_buffer_clear, "RenderingDevice", "buffer_clear", 2452320800_i64)
       val_0 = buffer
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = offset
+      val_1 = offset.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = size_bytes
+      val_2 = size_bytes.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_enum(@@mb_buffer_clear, @pointer, args.to_unsafe.as(Void**), Godot::Error)
@@ -2697,14 +2697,14 @@ module Godot
       godot_bind(@@mb_buffer_get_data, "RenderingDevice", "buffer_get_data", 3101830688_i64)
       val_0 = buffer
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = offset_bytes
+      val_1 = offset_bytes.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = size_bytes
+      val_2 = size_bytes.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_buffer_get_data, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_buffer_get_data, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_buffer_get_data_async : Void* = Pointer(Void).null
     def buffer_get_data_async(buffer : Int64, callback : Pointer(Void), offset_bytes : Int64 = 0_i64, size_bytes : Int64 = 0_i64) : Godot::Error
@@ -2713,9 +2713,9 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = callback
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = offset_bytes
+      val_2 = offset_bytes.to_i64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = size_bytes
+      val_3 = size_bytes.to_i64
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_enum(@@mb_buffer_get_data_async, @pointer, args.to_unsafe.as(Void**), Godot::Error)
@@ -2733,9 +2733,9 @@ module Godot
       godot_bind(@@mb_render_pipeline_create, "RenderingDevice", "render_pipeline_create", 2385451958_i64)
       val_0 = shader
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = framebuffer_format
+      val_1 = framebuffer_format.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = vertex_format
+      val_2 = vertex_format.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = primitive.is_a?(Int) ? primitive.to_i64 : primitive.value.to_i64
       arg_3 = pointerof(val_3).as(Void*)
@@ -2749,7 +2749,7 @@ module Godot
       arg_7 = pointerof(arg_ptr_7).as(Void*)
       val_8 = dynamic_state_flags.is_a?(Int) ? dynamic_state_flags.to_i64 : dynamic_state_flags.value.to_i64
       arg_8 = pointerof(val_8).as(Void*)
-      val_9 = for_render_pass
+      val_9 = for_render_pass.to_i64
       arg_9 = pointerof(val_9).as(Void*)
       val_10 = specialization_constants
       arg_10 = pointerof(val_10).as(Void*)
@@ -2799,7 +2799,7 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = hit_groups
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = max_trace_recursion_depth
+      val_3 = max_trace_recursion_depth.to_i64
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_int(@@mb_raytracing_pipeline_create, @pointer, args.to_unsafe.as(Void**))
@@ -2829,7 +2829,7 @@ module Godot
     @@mb_tlas_create : Void* = Pointer(Void).null
     def tlas_create(max_instance_count : Int64, flags : AccelerationStructureFlagBits | Int) : Int64
       godot_bind(@@mb_tlas_create, "RenderingDevice", "tlas_create", 592780330_i64)
-      val_0 = max_instance_count
+      val_0 = max_instance_count.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = flags.is_a?(Int) ? flags.to_i64 : flags.value.to_i64
       arg_1 = pointerof(val_1).as(Void*)
@@ -2859,7 +2859,7 @@ module Godot
       godot_bind(@@mb_hit_sbt_create, "RenderingDevice", "hit_sbt_create", 2233757277_i64)
       val_0 = raytracing_pipeline
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = initial_hit_group_capacity
+      val_1 = initial_hit_group_capacity.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_hit_sbt_create, @pointer, args.to_unsafe.as(Void**))
@@ -2879,7 +2879,7 @@ module Godot
       godot_bind(@@mb_hit_sbt_range_alloc, "RenderingDevice", "hit_sbt_range_alloc", 2722015314_i64)
       val_0 = hit_sbt
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = hit_group_count
+      val_1 = hit_group_count.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_hit_sbt_range_alloc, @pointer, args.to_unsafe.as(Void**))
@@ -2889,7 +2889,7 @@ module Godot
       godot_bind(@@mb_hit_sbt_range_free, "RenderingDevice", "hit_sbt_range_free", 3804025326_i64)
       val_0 = hit_sbt
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = range
+      val_1 = range.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_enum(@@mb_hit_sbt_range_free, @pointer, args.to_unsafe.as(Void**), Godot::Error)
@@ -2899,9 +2899,9 @@ module Godot
       godot_bind(@@mb_hit_sbt_range_update, "RenderingDevice", "hit_sbt_range_update", 1332346675_i64)
       val_0 = hit_sbt
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = range
+      val_1 = range.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = offset
+      val_2 = offset.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = hit_group_indices
       arg_3 = pointerof(val_3).as(Void*)
@@ -2911,7 +2911,7 @@ module Godot
     @@mb_screen_get_width : Void* = Pointer(Void).null
     def screen_get_width(screen : Int64 = 0_i64) : Int64
       godot_bind(@@mb_screen_get_width, "RenderingDevice", "screen_get_width", 1591665591_i64)
-      val_0 = screen
+      val_0 = screen.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_screen_get_width, @pointer, args.to_unsafe.as(Void**))
@@ -2919,7 +2919,7 @@ module Godot
     @@mb_screen_get_height : Void* = Pointer(Void).null
     def screen_get_height(screen : Int64 = 0_i64) : Int64
       godot_bind(@@mb_screen_get_height, "RenderingDevice", "screen_get_height", 1591665591_i64)
-      val_0 = screen
+      val_0 = screen.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_screen_get_height, @pointer, args.to_unsafe.as(Void**))
@@ -2927,7 +2927,7 @@ module Godot
     @@mb_screen_get_framebuffer_format : Void* = Pointer(Void).null
     def screen_get_framebuffer_format(screen : Int64 = 0_i64) : Int64
       godot_bind(@@mb_screen_get_framebuffer_format, "RenderingDevice", "screen_get_framebuffer_format", 1591665591_i64)
-      val_0 = screen
+      val_0 = screen.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_screen_get_framebuffer_format, @pointer, args.to_unsafe.as(Void**))
@@ -2935,7 +2935,7 @@ module Godot
     @@mb_draw_list_begin_for_screen : Void* = Pointer(Void).null
     def draw_list_begin_for_screen(screen : Int64 = 0_i64, clear_color : Color = Color.new(0.to_f32, 0.to_f32, 0.to_f32, 1.to_f32)) : Int64
       godot_bind(@@mb_draw_list_begin_for_screen, "RenderingDevice", "draw_list_begin_for_screen", 3988079995_i64)
-      val_0 = screen
+      val_0 = screen.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = clear_color
       arg_1 = pointerof(val_1).as(Void*)
@@ -2951,13 +2951,13 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = clear_color_values
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = clear_depth_value
+      val_3 = clear_depth_value.to_f64
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = clear_stencil_value
+      val_4 = clear_stencil_value.to_i64
       arg_4 = pointerof(val_4).as(Void*)
       val_5 = region
       arg_5 = pointerof(val_5).as(Void*)
-      val_6 = breadcrumb
+      val_6 = breadcrumb.to_i64
       arg_6 = pointerof(val_6).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5, arg_6]
       godot_ptrcall_int(@@mb_draw_list_begin, @pointer, args.to_unsafe.as(Void**))
@@ -2967,7 +2967,7 @@ module Godot
       godot_bind(@@mb_draw_list_begin_split, "RenderingDevice", "draw_list_begin_split", 2406300660_i64)
       val_0 = framebuffer
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = splits
+      val_1 = splits.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = initial_color_action.is_a?(Int) ? initial_color_action.to_i64 : initial_color_action.value.to_i64
       arg_2 = pointerof(val_2).as(Void*)
@@ -2979,23 +2979,23 @@ module Godot
       arg_5 = pointerof(val_5).as(Void*)
       val_6 = clear_color_values
       arg_6 = pointerof(val_6).as(Void*)
-      val_7 = clear_depth
+      val_7 = clear_depth.to_f64
       arg_7 = pointerof(val_7).as(Void*)
-      val_8 = clear_stencil
+      val_8 = clear_stencil.to_i64
       arg_8 = pointerof(val_8).as(Void*)
       val_9 = region
       arg_9 = pointerof(val_9).as(Void*)
       val_10 = storage_textures
       arg_10 = pointerof(val_10).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5, arg_6, arg_7, arg_8, arg_9, arg_10]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_draw_list_begin_split, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_draw_list_begin_split, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_draw_list_set_blend_constants : Void* = Pointer(Void).null
     def draw_list_set_blend_constants(draw_list : Int64, color : Color) : Void
       godot_bind(@@mb_draw_list_set_blend_constants, "RenderingDevice", "draw_list_set_blend_constants", 2878471219_i64)
-      val_0 = draw_list
+      val_0 = draw_list.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = color
       arg_1 = pointerof(val_1).as(Void*)
@@ -3005,7 +3005,7 @@ module Godot
     @@mb_draw_list_bind_render_pipeline : Void* = Pointer(Void).null
     def draw_list_bind_render_pipeline(draw_list : Int64, render_pipeline : Int64) : Void
       godot_bind(@@mb_draw_list_bind_render_pipeline, "RenderingDevice", "draw_list_bind_render_pipeline", 4040184819_i64)
-      val_0 = draw_list
+      val_0 = draw_list.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = render_pipeline
       arg_1 = pointerof(val_1).as(Void*)
@@ -3015,11 +3015,11 @@ module Godot
     @@mb_draw_list_bind_uniform_set : Void* = Pointer(Void).null
     def draw_list_bind_uniform_set(draw_list : Int64, uniform_set : Int64, set_index : Int64) : Void
       godot_bind(@@mb_draw_list_bind_uniform_set, "RenderingDevice", "draw_list_bind_uniform_set", 749655778_i64)
-      val_0 = draw_list
+      val_0 = draw_list.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = uniform_set
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = set_index
+      val_2 = set_index.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_draw_list_bind_uniform_set, @pointer, args.to_unsafe.as(Void**))
@@ -3027,7 +3027,7 @@ module Godot
     @@mb_draw_list_bind_vertex_array : Void* = Pointer(Void).null
     def draw_list_bind_vertex_array(draw_list : Int64, vertex_array : Int64) : Void
       godot_bind(@@mb_draw_list_bind_vertex_array, "RenderingDevice", "draw_list_bind_vertex_array", 4040184819_i64)
-      val_0 = draw_list
+      val_0 = draw_list.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = vertex_array
       arg_1 = pointerof(val_1).as(Void*)
@@ -3037,11 +3037,11 @@ module Godot
     @@mb_draw_list_bind_vertex_buffers_format : Void* = Pointer(Void).null
     def draw_list_bind_vertex_buffers_format(draw_list : Int64, vertex_format : Int64, vertex_count : Int64, vertex_buffers : Pointer(Void), offsets : Pointer(Void)) : Void
       godot_bind(@@mb_draw_list_bind_vertex_buffers_format, "RenderingDevice", "draw_list_bind_vertex_buffers_format", 2008628980_i64)
-      val_0 = draw_list
+      val_0 = draw_list.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = vertex_format
+      val_1 = vertex_format.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = vertex_count
+      val_2 = vertex_count.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = vertex_buffers
       arg_3 = pointerof(val_3).as(Void*)
@@ -3053,7 +3053,7 @@ module Godot
     @@mb_draw_list_bind_index_array : Void* = Pointer(Void).null
     def draw_list_bind_index_array(draw_list : Int64, index_array : Int64) : Void
       godot_bind(@@mb_draw_list_bind_index_array, "RenderingDevice", "draw_list_bind_index_array", 4040184819_i64)
-      val_0 = draw_list
+      val_0 = draw_list.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = index_array
       arg_1 = pointerof(val_1).as(Void*)
@@ -3063,11 +3063,11 @@ module Godot
     @@mb_draw_list_set_push_constant : Void* = Pointer(Void).null
     def draw_list_set_push_constant(draw_list : Int64, buffer : Pointer(Void), size_bytes : Int64) : Void
       godot_bind(@@mb_draw_list_set_push_constant, "RenderingDevice", "draw_list_set_push_constant", 2772371345_i64)
-      val_0 = draw_list
+      val_0 = draw_list.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = buffer
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = size_bytes
+      val_2 = size_bytes.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_draw_list_set_push_constant, @pointer, args.to_unsafe.as(Void**))
@@ -3075,13 +3075,13 @@ module Godot
     @@mb_draw_list_draw : Void* = Pointer(Void).null
     def draw_list_draw(draw_list : Int64, use_indices : Bool, instances : Int64, procedural_vertex_count : Int64 = 0_i64) : Void
       godot_bind(@@mb_draw_list_draw, "RenderingDevice", "draw_list_draw", 4230067973_i64)
-      val_0 = draw_list
+      val_0 = draw_list.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = use_indices
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = instances
+      val_2 = instances.to_i64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = procedural_vertex_count
+      val_3 = procedural_vertex_count.to_i64
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_draw_list_draw, @pointer, args.to_unsafe.as(Void**))
@@ -3089,17 +3089,17 @@ module Godot
     @@mb_draw_list_draw_indirect : Void* = Pointer(Void).null
     def draw_list_draw_indirect(draw_list : Int64, use_indices : Bool, buffer : Int64, offset : Int64 = 0_i64, draw_count : Int64 = 1_i64, stride : Int64 = 0_i64) : Void
       godot_bind(@@mb_draw_list_draw_indirect, "RenderingDevice", "draw_list_draw_indirect", 1092133571_i64)
-      val_0 = draw_list
+      val_0 = draw_list.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = use_indices
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = buffer
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = offset
+      val_3 = offset.to_i64
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = draw_count
+      val_4 = draw_count.to_i64
       arg_4 = pointerof(val_4).as(Void*)
-      val_5 = stride
+      val_5 = stride.to_i64
       arg_5 = pointerof(val_5).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5]
       godot_ptrcall_void(@@mb_draw_list_draw_indirect, @pointer, args.to_unsafe.as(Void**))
@@ -3107,7 +3107,7 @@ module Godot
     @@mb_draw_list_enable_scissor : Void* = Pointer(Void).null
     def draw_list_enable_scissor(draw_list : Int64, rect : Rect2 = Rect2.new(0.to_f32, 0.to_f32, 0.to_f32, 0.to_f32)) : Void
       godot_bind(@@mb_draw_list_enable_scissor, "RenderingDevice", "draw_list_enable_scissor", 244650101_i64)
-      val_0 = draw_list
+      val_0 = draw_list.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = rect
       arg_1 = pointerof(val_1).as(Void*)
@@ -3117,7 +3117,7 @@ module Godot
     @@mb_draw_list_disable_scissor : Void* = Pointer(Void).null
     def draw_list_disable_scissor(draw_list : Int64) : Void
       godot_bind(@@mb_draw_list_disable_scissor, "RenderingDevice", "draw_list_disable_scissor", 1286410249_i64)
-      val_0 = draw_list
+      val_0 = draw_list.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_draw_list_disable_scissor, @pointer, args.to_unsafe.as(Void**))
@@ -3130,12 +3130,12 @@ module Godot
     @@mb_draw_list_switch_to_next_pass_split : Void* = Pointer(Void).null
     def draw_list_switch_to_next_pass_split(splits : Int64) : Pointer(Void)
       godot_bind(@@mb_draw_list_switch_to_next_pass_split, "RenderingDevice", "draw_list_switch_to_next_pass_split", 2865087369_i64)
-      val_0 = splits
+      val_0 = splits.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_draw_list_switch_to_next_pass_split, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_draw_list_switch_to_next_pass_split, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_draw_list_end : Void* = Pointer(Void).null
     def draw_list_end() : Void
@@ -3150,7 +3150,7 @@ module Godot
     @@mb_compute_list_bind_compute_pipeline : Void* = Pointer(Void).null
     def compute_list_bind_compute_pipeline(compute_list : Int64, compute_pipeline : Int64) : Void
       godot_bind(@@mb_compute_list_bind_compute_pipeline, "RenderingDevice", "compute_list_bind_compute_pipeline", 4040184819_i64)
-      val_0 = compute_list
+      val_0 = compute_list.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = compute_pipeline
       arg_1 = pointerof(val_1).as(Void*)
@@ -3160,11 +3160,11 @@ module Godot
     @@mb_compute_list_set_push_constant : Void* = Pointer(Void).null
     def compute_list_set_push_constant(compute_list : Int64, buffer : Pointer(Void), size_bytes : Int64) : Void
       godot_bind(@@mb_compute_list_set_push_constant, "RenderingDevice", "compute_list_set_push_constant", 2772371345_i64)
-      val_0 = compute_list
+      val_0 = compute_list.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = buffer
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = size_bytes
+      val_2 = size_bytes.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_compute_list_set_push_constant, @pointer, args.to_unsafe.as(Void**))
@@ -3172,11 +3172,11 @@ module Godot
     @@mb_compute_list_bind_uniform_set : Void* = Pointer(Void).null
     def compute_list_bind_uniform_set(compute_list : Int64, uniform_set : Int64, set_index : Int64) : Void
       godot_bind(@@mb_compute_list_bind_uniform_set, "RenderingDevice", "compute_list_bind_uniform_set", 749655778_i64)
-      val_0 = compute_list
+      val_0 = compute_list.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = uniform_set
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = set_index
+      val_2 = set_index.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_compute_list_bind_uniform_set, @pointer, args.to_unsafe.as(Void**))
@@ -3184,13 +3184,13 @@ module Godot
     @@mb_compute_list_dispatch : Void* = Pointer(Void).null
     def compute_list_dispatch(compute_list : Int64, x_groups : Int64, y_groups : Int64, z_groups : Int64) : Void
       godot_bind(@@mb_compute_list_dispatch, "RenderingDevice", "compute_list_dispatch", 4275841770_i64)
-      val_0 = compute_list
+      val_0 = compute_list.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = x_groups
+      val_1 = x_groups.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = y_groups
+      val_2 = y_groups.to_i64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = z_groups
+      val_3 = z_groups.to_i64
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_compute_list_dispatch, @pointer, args.to_unsafe.as(Void**))
@@ -3198,11 +3198,11 @@ module Godot
     @@mb_compute_list_dispatch_indirect : Void* = Pointer(Void).null
     def compute_list_dispatch_indirect(compute_list : Int64, buffer : Int64, offset : Int64) : Void
       godot_bind(@@mb_compute_list_dispatch_indirect, "RenderingDevice", "compute_list_dispatch_indirect", 749655778_i64)
-      val_0 = compute_list
+      val_0 = compute_list.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = buffer
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = offset
+      val_2 = offset.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_compute_list_dispatch_indirect, @pointer, args.to_unsafe.as(Void**))
@@ -3210,7 +3210,7 @@ module Godot
     @@mb_compute_list_add_barrier : Void* = Pointer(Void).null
     def compute_list_add_barrier(compute_list : Int64) : Void
       godot_bind(@@mb_compute_list_add_barrier, "RenderingDevice", "compute_list_add_barrier", 1286410249_i64)
-      val_0 = compute_list
+      val_0 = compute_list.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_compute_list_add_barrier, @pointer, args.to_unsafe.as(Void**))
@@ -3228,7 +3228,7 @@ module Godot
     @@mb_raytracing_list_bind_raytracing_pipeline : Void* = Pointer(Void).null
     def raytracing_list_bind_raytracing_pipeline(raytracing_list : Int64, raytracing_pipeline : Int64) : Void
       godot_bind(@@mb_raytracing_list_bind_raytracing_pipeline, "RenderingDevice", "raytracing_list_bind_raytracing_pipeline", 4040184819_i64)
-      val_0 = raytracing_list
+      val_0 = raytracing_list.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = raytracing_pipeline
       arg_1 = pointerof(val_1).as(Void*)
@@ -3238,11 +3238,11 @@ module Godot
     @@mb_raytracing_list_set_push_constant : Void* = Pointer(Void).null
     def raytracing_list_set_push_constant(raytracing_list : Int64, buffer : Pointer(Void), size_bytes : Int64) : Void
       godot_bind(@@mb_raytracing_list_set_push_constant, "RenderingDevice", "raytracing_list_set_push_constant", 2772371345_i64)
-      val_0 = raytracing_list
+      val_0 = raytracing_list.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = buffer
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = size_bytes
+      val_2 = size_bytes.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_raytracing_list_set_push_constant, @pointer, args.to_unsafe.as(Void**))
@@ -3250,11 +3250,11 @@ module Godot
     @@mb_raytracing_list_bind_uniform_set : Void* = Pointer(Void).null
     def raytracing_list_bind_uniform_set(raytracing_list : Int64, uniform_set : Int64, set_index : Int64) : Void
       godot_bind(@@mb_raytracing_list_bind_uniform_set, "RenderingDevice", "raytracing_list_bind_uniform_set", 749655778_i64)
-      val_0 = raytracing_list
+      val_0 = raytracing_list.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = uniform_set
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = set_index
+      val_2 = set_index.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_raytracing_list_bind_uniform_set, @pointer, args.to_unsafe.as(Void**))
@@ -3262,17 +3262,17 @@ module Godot
     @@mb_raytracing_list_trace_rays : Void* = Pointer(Void).null
     def raytracing_list_trace_rays(raytracing_list : Int64, raygen_shader_index : Int64, hit_sbt : Int64, width : Int64, height : Int64, depth : Int64) : Void
       godot_bind(@@mb_raytracing_list_trace_rays, "RenderingDevice", "raytracing_list_trace_rays", 2559472681_i64)
-      val_0 = raytracing_list
+      val_0 = raytracing_list.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = raygen_shader_index
+      val_1 = raygen_shader_index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = hit_sbt
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = width
+      val_3 = width.to_i64
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = height
+      val_4 = height.to_i64
       arg_4 = pointerof(val_4).as(Void*)
-      val_5 = depth
+      val_5 = depth.to_i64
       arg_5 = pointerof(val_5).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5]
       godot_ptrcall_void(@@mb_raytracing_list_trace_rays, @pointer, args.to_unsafe.as(Void**))
@@ -3313,7 +3313,7 @@ module Godot
     @@mb_get_captured_timestamp_gpu_time : Void* = Pointer(Void).null
     def get_captured_timestamp_gpu_time(index : Int64) : Int64
       godot_bind(@@mb_get_captured_timestamp_gpu_time, "RenderingDevice", "get_captured_timestamp_gpu_time", 923996154_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_captured_timestamp_gpu_time, @pointer, args.to_unsafe.as(Void**))
@@ -3321,7 +3321,7 @@ module Godot
     @@mb_get_captured_timestamp_cpu_time : Void* = Pointer(Void).null
     def get_captured_timestamp_cpu_time(index : Int64) : Int64
       godot_bind(@@mb_get_captured_timestamp_cpu_time, "RenderingDevice", "get_captured_timestamp_cpu_time", 923996154_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_captured_timestamp_cpu_time, @pointer, args.to_unsafe.as(Void**))
@@ -3329,7 +3329,7 @@ module Godot
     @@mb_get_captured_timestamp_name : Void* = Pointer(Void).null
     def get_captured_timestamp_name(index : Int64) : String
       godot_bind(@@mb_get_captured_timestamp_name, "RenderingDevice", "get_captured_timestamp_name", 844755477_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_captured_timestamp_name", index)
@@ -3460,7 +3460,7 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = rid
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = index
+      val_2 = index.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_int(@@mb_get_driver_resource, @pointer, args.to_unsafe.as(Void**))
@@ -3478,7 +3478,7 @@ module Godot
     @@mb_get_tracked_object_name : Void* = Pointer(Void).null
     def get_tracked_object_name(type_index : Int64) : String
       godot_bind(@@mb_get_tracked_object_name, "RenderingDevice", "get_tracked_object_name", 844755477_i64)
-      val_0 = type_index
+      val_0 = type_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_tracked_object_name", type_index)
@@ -3501,7 +3501,7 @@ module Godot
     @@mb_get_driver_memory_by_object_type : Void* = Pointer(Void).null
     def get_driver_memory_by_object_type(get_type : Int64) : Int64
       godot_bind(@@mb_get_driver_memory_by_object_type, "RenderingDevice", "get_driver_memory_by_object_type", 923996154_i64)
-      val_0 = get_type
+      val_0 = get_type.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_driver_memory_by_object_type, @pointer, args.to_unsafe.as(Void**))
@@ -3509,7 +3509,7 @@ module Godot
     @@mb_get_driver_allocs_by_object_type : Void* = Pointer(Void).null
     def get_driver_allocs_by_object_type(get_type : Int64) : Int64
       godot_bind(@@mb_get_driver_allocs_by_object_type, "RenderingDevice", "get_driver_allocs_by_object_type", 923996154_i64)
-      val_0 = get_type
+      val_0 = get_type.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_driver_allocs_by_object_type, @pointer, args.to_unsafe.as(Void**))
@@ -3527,7 +3527,7 @@ module Godot
     @@mb_get_device_memory_by_object_type : Void* = Pointer(Void).null
     def get_device_memory_by_object_type(get_type : Int64) : Int64
       godot_bind(@@mb_get_device_memory_by_object_type, "RenderingDevice", "get_device_memory_by_object_type", 923996154_i64)
-      val_0 = get_type
+      val_0 = get_type.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_device_memory_by_object_type, @pointer, args.to_unsafe.as(Void**))
@@ -3535,7 +3535,7 @@ module Godot
     @@mb_get_device_allocs_by_object_type : Void* = Pointer(Void).null
     def get_device_allocs_by_object_type(get_type : Int64) : Int64
       godot_bind(@@mb_get_device_allocs_by_object_type, "RenderingDevice", "get_device_allocs_by_object_type", 923996154_i64)
-      val_0 = get_type
+      val_0 = get_type.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_device_allocs_by_object_type, @pointer, args.to_unsafe.as(Void**))
@@ -4240,11 +4240,11 @@ module Godot
       godot_bind(@@mb_texture_3d_create, "RenderingServer", "texture_3d_create", 4036838706_i64)
       val_0 = format.is_a?(Int) ? format.to_i64 : format.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = width
+      val_1 = width.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = height
+      val_2 = height.to_i64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = depth
+      val_3 = depth.to_i64
       arg_3 = pointerof(val_3).as(Void*)
       val_4 = mipmaps
       arg_4 = pointerof(val_4).as(Void*)
@@ -4268,15 +4268,15 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = format.is_a?(Int) ? format.to_i64 : format.value.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = native_handle
+      val_2 = native_handle.to_i64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = width
+      val_3 = width.to_i64
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = height
+      val_4 = height.to_i64
       arg_4 = pointerof(val_4).as(Void*)
-      val_5 = depth
+      val_5 = depth.to_i64
       arg_5 = pointerof(val_5).as(Void*)
-      val_6 = layers
+      val_6 = layers.to_i64
       arg_6 = pointerof(val_6).as(Void*)
       val_7 = layered_type.is_a?(Int) ? layered_type.to_i64 : layered_type.value.to_i64
       arg_7 = pointerof(val_7).as(Void*)
@@ -4286,9 +4286,9 @@ module Godot
     @@mb_texture_drawable_create : Void* = Pointer(Void).null
     def texture_drawable_create(width : Int64, height : Int64, format : TextureDrawableFormat | Int, color : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32), with_mipmaps : Bool = false) : Int64
       godot_bind(@@mb_texture_drawable_create, "RenderingServer", "texture_drawable_create", 1993613667_i64)
-      val_0 = width
+      val_0 = width.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = height
+      val_1 = height.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = format.is_a?(Int) ? format.to_i64 : format.value.to_i64
       arg_2 = pointerof(val_2).as(Void*)
@@ -4306,7 +4306,7 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       arg_ptr_1 = image ? image.pointer : Pointer(Void).null
       arg_1 = pointerof(arg_ptr_1).as(Void*)
-      val_2 = layer
+      val_2 = layer.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_texture_2d_update, @pointer, args.to_unsafe.as(Void**))
@@ -4344,7 +4344,7 @@ module Godot
       arg_3 = pointerof(val_3).as(Void*)
       val_4 = source_textures
       arg_4 = pointerof(val_4).as(Void*)
-      val_5 = to_mipmap
+      val_5 = to_mipmap.to_i64
       arg_5 = pointerof(val_5).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5]
       godot_ptrcall_void(@@mb_texture_drawable_blit_rect, @pointer, args.to_unsafe.as(Void**))
@@ -4380,7 +4380,7 @@ module Godot
       godot_bind(@@mb_texture_2d_layer_get, "RenderingServer", "texture_2d_layer_get", 2705440895_i64)
       val_0 = texture
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = layer
+      val_1 = layer.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_obj(@@mb_texture_2d_layer_get, @pointer, args.to_unsafe.as(Void**), Image)
@@ -4433,9 +4433,9 @@ module Godot
       godot_bind(@@mb_texture_set_size_override, "RenderingServer", "texture_set_size_override", 4288446313_i64)
       val_0 = texture
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = width
+      val_1 = width.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = height
+      val_2 = height.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_texture_set_size_override, @pointer, args.to_unsafe.as(Void**))
@@ -4580,7 +4580,7 @@ module Godot
       arg_1 = sn_1
       val_2 = texture
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = index
+      val_3 = index.to_i64
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_shader_set_default_texture_parameter, @pointer, args.to_unsafe.as(Void**))
@@ -4594,7 +4594,7 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       sn_1 = Bridge.make_string_name(name)
       arg_1 = sn_1
-      val_2 = index
+      val_2 = index.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_int(@@mb_shader_get_default_texture_parameter, @pointer, args.to_unsafe.as(Void**))
@@ -4651,7 +4651,7 @@ module Godot
       godot_bind(@@mb_material_set_render_priority, "RenderingServer", "material_set_render_priority", 3411492887_i64)
       val_0 = material
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = priority
+      val_1 = priority.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_material_set_render_priority, @pointer, args.to_unsafe.as(Void**))
@@ -4679,7 +4679,7 @@ module Godot
       godot_bind(@@mb_mesh_create_from_surfaces, "RenderingServer", "mesh_create_from_surfaces", 4291747531_i64)
       val_0 = surfaces
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = blend_shape_count
+      val_1 = blend_shape_count.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_mesh_create_from_surfaces, @pointer, args.to_unsafe.as(Void**))
@@ -4694,9 +4694,9 @@ module Godot
       godot_bind(@@mb_mesh_surface_get_format_offset, "RenderingServer", "mesh_surface_get_format_offset", 2981368685_i64)
       val_0 = format.is_a?(Int) ? format.to_i64 : format.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = vertex_count
+      val_1 = vertex_count.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = array_index
+      val_2 = array_index.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_int(@@mb_mesh_surface_get_format_offset, @pointer, args.to_unsafe.as(Void**))
@@ -4706,7 +4706,7 @@ module Godot
       godot_bind(@@mb_mesh_surface_get_format_vertex_stride, "RenderingServer", "mesh_surface_get_format_vertex_stride", 3188363337_i64)
       val_0 = format.is_a?(Int) ? format.to_i64 : format.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = vertex_count
+      val_1 = vertex_count.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_mesh_surface_get_format_vertex_stride, @pointer, args.to_unsafe.as(Void**))
@@ -4716,7 +4716,7 @@ module Godot
       godot_bind(@@mb_mesh_surface_get_format_normal_tangent_stride, "RenderingServer", "mesh_surface_get_format_normal_tangent_stride", 3188363337_i64)
       val_0 = format.is_a?(Int) ? format.to_i64 : format.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = vertex_count
+      val_1 = vertex_count.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_mesh_surface_get_format_normal_tangent_stride, @pointer, args.to_unsafe.as(Void**))
@@ -4726,7 +4726,7 @@ module Godot
       godot_bind(@@mb_mesh_surface_get_format_attribute_stride, "RenderingServer", "mesh_surface_get_format_attribute_stride", 3188363337_i64)
       val_0 = format.is_a?(Int) ? format.to_i64 : format.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = vertex_count
+      val_1 = vertex_count.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_mesh_surface_get_format_attribute_stride, @pointer, args.to_unsafe.as(Void**))
@@ -4736,7 +4736,7 @@ module Godot
       godot_bind(@@mb_mesh_surface_get_format_skin_stride, "RenderingServer", "mesh_surface_get_format_skin_stride", 3188363337_i64)
       val_0 = format.is_a?(Int) ? format.to_i64 : format.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = vertex_count
+      val_1 = vertex_count.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_mesh_surface_get_format_skin_stride, @pointer, args.to_unsafe.as(Void**))
@@ -4746,7 +4746,7 @@ module Godot
       godot_bind(@@mb_mesh_surface_get_format_index_stride, "RenderingServer", "mesh_surface_get_format_index_stride", 3188363337_i64)
       val_0 = format.is_a?(Int) ? format.to_i64 : format.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = vertex_count
+      val_1 = vertex_count.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_mesh_surface_get_format_index_stride, @pointer, args.to_unsafe.as(Void**))
@@ -4810,7 +4810,7 @@ module Godot
       godot_bind(@@mb_mesh_surface_set_material, "RenderingServer", "mesh_surface_set_material", 2310537182_i64)
       val_0 = mesh
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = surface
+      val_1 = surface.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = material
       arg_2 = pointerof(val_2).as(Void*)
@@ -4822,7 +4822,7 @@ module Godot
       godot_bind(@@mb_mesh_surface_get_material, "RenderingServer", "mesh_surface_get_material", 1066463050_i64)
       val_0 = mesh
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = surface
+      val_1 = surface.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_mesh_surface_get_material, @pointer, args.to_unsafe.as(Void**))
@@ -4832,7 +4832,7 @@ module Godot
       godot_bind(@@mb_mesh_get_surface, "RenderingServer", "mesh_get_surface", 186674697_i64)
       val_0 = mesh
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = surface
+      val_1 = surface.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       ret_ptr = Pointer(Void).null
@@ -4844,7 +4844,7 @@ module Godot
       godot_bind(@@mb_mesh_surface_get_arrays, "RenderingServer", "mesh_surface_get_arrays", 1778388067_i64)
       val_0 = mesh
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = surface
+      val_1 = surface.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       ret_ptr = Pointer(Void).null
@@ -4856,7 +4856,7 @@ module Godot
       godot_bind(@@mb_mesh_surface_get_blend_shape_arrays, "RenderingServer", "mesh_surface_get_blend_shape_arrays", 1778388067_i64)
       val_0 = mesh
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = surface
+      val_1 = surface.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       ret_ptr = Pointer(Void).null
@@ -4894,7 +4894,7 @@ module Godot
       godot_bind(@@mb_mesh_surface_remove, "RenderingServer", "mesh_surface_remove", 3411492887_i64)
       val_0 = mesh
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = surface
+      val_1 = surface.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_mesh_surface_remove, @pointer, args.to_unsafe.as(Void**))
@@ -4912,9 +4912,9 @@ module Godot
       godot_bind(@@mb_mesh_surface_update_vertex_region, "RenderingServer", "mesh_surface_update_vertex_region", 2900195149_i64)
       val_0 = mesh
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = surface
+      val_1 = surface.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = offset
+      val_2 = offset.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = data
       arg_3 = pointerof(val_3).as(Void*)
@@ -4926,9 +4926,9 @@ module Godot
       godot_bind(@@mb_mesh_surface_update_attribute_region, "RenderingServer", "mesh_surface_update_attribute_region", 2900195149_i64)
       val_0 = mesh
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = surface
+      val_1 = surface.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = offset
+      val_2 = offset.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = data
       arg_3 = pointerof(val_3).as(Void*)
@@ -4940,9 +4940,9 @@ module Godot
       godot_bind(@@mb_mesh_surface_update_skin_region, "RenderingServer", "mesh_surface_update_skin_region", 2900195149_i64)
       val_0 = mesh
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = surface
+      val_1 = surface.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = offset
+      val_2 = offset.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = data
       arg_3 = pointerof(val_3).as(Void*)
@@ -4954,9 +4954,9 @@ module Godot
       godot_bind(@@mb_mesh_surface_update_index_region, "RenderingServer", "mesh_surface_update_index_region", 2900195149_i64)
       val_0 = mesh
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = surface
+      val_1 = surface.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = offset
+      val_2 = offset.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = data
       arg_3 = pointerof(val_3).as(Void*)
@@ -4968,7 +4968,7 @@ module Godot
       godot_bind(@@mb_mesh_surface_get_vertex_buffer_rd_rid, "RenderingServer", "mesh_surface_get_vertex_buffer_rd_rid", 1066463050_i64)
       val_0 = mesh
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = surface
+      val_1 = surface.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_mesh_surface_get_vertex_buffer_rd_rid, @pointer, args.to_unsafe.as(Void**))
@@ -4978,7 +4978,7 @@ module Godot
       godot_bind(@@mb_mesh_surface_get_attribute_buffer_rd_rid, "RenderingServer", "mesh_surface_get_attribute_buffer_rd_rid", 1066463050_i64)
       val_0 = mesh
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = surface
+      val_1 = surface.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_mesh_surface_get_attribute_buffer_rd_rid, @pointer, args.to_unsafe.as(Void**))
@@ -4988,7 +4988,7 @@ module Godot
       godot_bind(@@mb_mesh_surface_get_skin_buffer_rd_rid, "RenderingServer", "mesh_surface_get_skin_buffer_rd_rid", 1066463050_i64)
       val_0 = mesh
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = surface
+      val_1 = surface.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_mesh_surface_get_skin_buffer_rd_rid, @pointer, args.to_unsafe.as(Void**))
@@ -4998,7 +4998,7 @@ module Godot
       godot_bind(@@mb_mesh_surface_get_index_buffer_rd_rid, "RenderingServer", "mesh_surface_get_index_buffer_rd_rid", 1066463050_i64)
       val_0 = mesh
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = surface
+      val_1 = surface.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_mesh_surface_get_index_buffer_rd_rid, @pointer, args.to_unsafe.as(Void**))
@@ -5023,7 +5023,7 @@ module Godot
       godot_bind(@@mb_multimesh_allocate_data, "RenderingServer", "multimesh_allocate_data", 557240154_i64)
       val_0 = multimesh
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = instances
+      val_1 = instances.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = transform_format.is_a?(Int) ? transform_format.to_i64 : transform_format.value.to_i64
       arg_2 = pointerof(val_2).as(Void*)
@@ -5059,7 +5059,7 @@ module Godot
       godot_bind(@@mb_multimesh_instance_set_transform, "RenderingServer", "multimesh_instance_set_transform", 675327471_i64)
       val_0 = multimesh
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = index
+      val_1 = index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = transform
       arg_2 = pointerof(val_2).as(Void*)
@@ -5071,7 +5071,7 @@ module Godot
       godot_bind(@@mb_multimesh_instance_set_transform_2d, "RenderingServer", "multimesh_instance_set_transform_2d", 736082694_i64)
       val_0 = multimesh
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = index
+      val_1 = index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = transform
       arg_2 = pointerof(val_2).as(Void*)
@@ -5083,7 +5083,7 @@ module Godot
       godot_bind(@@mb_multimesh_instance_set_color, "RenderingServer", "multimesh_instance_set_color", 176975443_i64)
       val_0 = multimesh
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = index
+      val_1 = index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = color
       arg_2 = pointerof(val_2).as(Void*)
@@ -5095,7 +5095,7 @@ module Godot
       godot_bind(@@mb_multimesh_instance_set_custom_data, "RenderingServer", "multimesh_instance_set_custom_data", 176975443_i64)
       val_0 = multimesh
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = index
+      val_1 = index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = custom_data
       arg_2 = pointerof(val_2).as(Void*)
@@ -5141,7 +5141,7 @@ module Godot
       godot_bind(@@mb_multimesh_instance_get_transform, "RenderingServer", "multimesh_instance_get_transform", 1050775521_i64)
       val_0 = multimesh
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = index
+      val_1 = index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_val(@@mb_multimesh_instance_get_transform, @pointer, args.to_unsafe.as(Void**), Transform3D)
@@ -5151,7 +5151,7 @@ module Godot
       godot_bind(@@mb_multimesh_instance_get_transform_2d, "RenderingServer", "multimesh_instance_get_transform_2d", 1324854622_i64)
       val_0 = multimesh
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = index
+      val_1 = index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_val(@@mb_multimesh_instance_get_transform_2d, @pointer, args.to_unsafe.as(Void**), Transform2D)
@@ -5161,7 +5161,7 @@ module Godot
       godot_bind(@@mb_multimesh_instance_get_color, "RenderingServer", "multimesh_instance_get_color", 2946315076_i64)
       val_0 = multimesh
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = index
+      val_1 = index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_val(@@mb_multimesh_instance_get_color, @pointer, args.to_unsafe.as(Void**), Color)
@@ -5171,7 +5171,7 @@ module Godot
       godot_bind(@@mb_multimesh_instance_get_custom_data, "RenderingServer", "multimesh_instance_get_custom_data", 2946315076_i64)
       val_0 = multimesh
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = index
+      val_1 = index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_val(@@mb_multimesh_instance_get_custom_data, @pointer, args.to_unsafe.as(Void**), Color)
@@ -5181,7 +5181,7 @@ module Godot
       godot_bind(@@mb_multimesh_set_visible_instances, "RenderingServer", "multimesh_set_visible_instances", 3411492887_i64)
       val_0 = multimesh
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = visible
+      val_1 = visible.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_multimesh_set_visible_instances, @pointer, args.to_unsafe.as(Void**))
@@ -5226,9 +5226,9 @@ module Godot
       val_0 = multimesh
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_multimesh_get_buffer, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_multimesh_get_buffer, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_multimesh_set_buffer_interpolated : Void* = Pointer(Void).null
     def multimesh_set_buffer_interpolated(multimesh : Int64, buffer : Pointer(Void), buffer_previous : Pointer(Void)) : Void
@@ -5267,7 +5267,7 @@ module Godot
       godot_bind(@@mb_multimesh_instance_reset_physics_interpolation, "RenderingServer", "multimesh_instance_reset_physics_interpolation", 3411492887_i64)
       val_0 = multimesh
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = index
+      val_1 = index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_multimesh_instance_reset_physics_interpolation, @pointer, args.to_unsafe.as(Void**))
@@ -5290,7 +5290,7 @@ module Godot
       godot_bind(@@mb_skeleton_allocate_data, "RenderingServer", "skeleton_allocate_data", 1904426712_i64)
       val_0 = skeleton
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = bones
+      val_1 = bones.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = is_2d_skeleton
       arg_2 = pointerof(val_2).as(Void*)
@@ -5310,7 +5310,7 @@ module Godot
       godot_bind(@@mb_skeleton_bone_set_transform, "RenderingServer", "skeleton_bone_set_transform", 675327471_i64)
       val_0 = skeleton
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = bone
+      val_1 = bone.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = transform
       arg_2 = pointerof(val_2).as(Void*)
@@ -5322,7 +5322,7 @@ module Godot
       godot_bind(@@mb_skeleton_bone_get_transform, "RenderingServer", "skeleton_bone_get_transform", 1050775521_i64)
       val_0 = skeleton
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = bone
+      val_1 = bone.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_val(@@mb_skeleton_bone_get_transform, @pointer, args.to_unsafe.as(Void**), Transform3D)
@@ -5332,7 +5332,7 @@ module Godot
       godot_bind(@@mb_skeleton_bone_set_transform_2d, "RenderingServer", "skeleton_bone_set_transform_2d", 736082694_i64)
       val_0 = skeleton
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = bone
+      val_1 = bone.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = transform
       arg_2 = pointerof(val_2).as(Void*)
@@ -5344,7 +5344,7 @@ module Godot
       godot_bind(@@mb_skeleton_bone_get_transform_2d, "RenderingServer", "skeleton_bone_get_transform_2d", 1324854622_i64)
       val_0 = skeleton
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = bone
+      val_1 = bone.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_val(@@mb_skeleton_bone_get_transform_2d, @pointer, args.to_unsafe.as(Void**), Transform2D)
@@ -5396,7 +5396,7 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = param.is_a?(Int) ? param.to_i64 : param.value.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = value
+      val_2 = value.to_f64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_light_set_param, @pointer, args.to_unsafe.as(Void**))
@@ -5436,7 +5436,7 @@ module Godot
       godot_bind(@@mb_light_set_cull_mask, "RenderingServer", "light_set_cull_mask", 3411492887_i64)
       val_0 = light
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = mask
+      val_1 = mask.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_light_set_cull_mask, @pointer, args.to_unsafe.as(Void**))
@@ -5448,11 +5448,11 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = enabled
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = begin_val
+      val_2 = begin_val.to_f64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = shadow
+      val_3 = shadow.to_f64
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = length
+      val_4 = length.to_f64
       arg_4 = pointerof(val_4).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
       godot_ptrcall_void(@@mb_light_set_distance_fade, @pointer, args.to_unsafe.as(Void**))
@@ -5472,7 +5472,7 @@ module Godot
       godot_bind(@@mb_light_set_shadow_caster_mask, "RenderingServer", "light_set_shadow_caster_mask", 3411492887_i64)
       val_0 = light
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = mask
+      val_1 = mask.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_light_set_shadow_caster_mask, @pointer, args.to_unsafe.as(Void**))
@@ -5492,7 +5492,7 @@ module Godot
       godot_bind(@@mb_light_set_max_sdfgi_cascade, "RenderingServer", "light_set_max_sdfgi_cascade", 3411492887_i64)
       val_0 = light
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = cascade
+      val_1 = cascade.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_light_set_max_sdfgi_cascade, @pointer, args.to_unsafe.as(Void**))
@@ -5602,7 +5602,7 @@ module Godot
     @@mb_directional_shadow_atlas_set_size : Void* = Pointer(Void).null
     def directional_shadow_atlas_set_size(size : Int64, is_16bits : Bool) : Void
       godot_bind(@@mb_directional_shadow_atlas_set_size, "RenderingServer", "directional_shadow_atlas_set_size", 300928843_i64)
-      val_0 = size
+      val_0 = size.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = is_16bits
       arg_1 = pointerof(val_1).as(Void*)
@@ -5629,7 +5629,7 @@ module Godot
       godot_bind(@@mb_reflection_probe_set_intensity, "RenderingServer", "reflection_probe_set_intensity", 1794382983_i64)
       val_0 = probe
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = intensity
+      val_1 = intensity.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_reflection_probe_set_intensity, @pointer, args.to_unsafe.as(Void**))
@@ -5639,7 +5639,7 @@ module Godot
       godot_bind(@@mb_reflection_probe_set_blend_distance, "RenderingServer", "reflection_probe_set_blend_distance", 1794382983_i64)
       val_0 = probe
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = blend_distance
+      val_1 = blend_distance.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_reflection_probe_set_blend_distance, @pointer, args.to_unsafe.as(Void**))
@@ -5669,7 +5669,7 @@ module Godot
       godot_bind(@@mb_reflection_probe_set_ambient_energy, "RenderingServer", "reflection_probe_set_ambient_energy", 1794382983_i64)
       val_0 = probe
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = energy
+      val_1 = energy.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_reflection_probe_set_ambient_energy, @pointer, args.to_unsafe.as(Void**))
@@ -5679,7 +5679,7 @@ module Godot
       godot_bind(@@mb_reflection_probe_set_max_distance, "RenderingServer", "reflection_probe_set_max_distance", 1794382983_i64)
       val_0 = probe
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = distance
+      val_1 = distance.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_reflection_probe_set_max_distance, @pointer, args.to_unsafe.as(Void**))
@@ -5739,7 +5739,7 @@ module Godot
       godot_bind(@@mb_reflection_probe_set_cull_mask, "RenderingServer", "reflection_probe_set_cull_mask", 3411492887_i64)
       val_0 = probe
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = layers
+      val_1 = layers.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_reflection_probe_set_cull_mask, @pointer, args.to_unsafe.as(Void**))
@@ -5749,7 +5749,7 @@ module Godot
       godot_bind(@@mb_reflection_probe_set_reflection_mask, "RenderingServer", "reflection_probe_set_reflection_mask", 3411492887_i64)
       val_0 = probe
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = layers
+      val_1 = layers.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_reflection_probe_set_reflection_mask, @pointer, args.to_unsafe.as(Void**))
@@ -5759,7 +5759,7 @@ module Godot
       godot_bind(@@mb_reflection_probe_set_resolution, "RenderingServer", "reflection_probe_set_resolution", 3411492887_i64)
       val_0 = probe
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = resolution
+      val_1 = resolution.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_reflection_probe_set_resolution, @pointer, args.to_unsafe.as(Void**))
@@ -5769,7 +5769,7 @@ module Godot
       godot_bind(@@mb_reflection_probe_set_mesh_lod_threshold, "RenderingServer", "reflection_probe_set_mesh_lod_threshold", 1794382983_i64)
       val_0 = probe
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = pixels
+      val_1 = pixels.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_reflection_probe_set_mesh_lod_threshold, @pointer, args.to_unsafe.as(Void**))
@@ -5806,7 +5806,7 @@ module Godot
       godot_bind(@@mb_decal_set_emission_energy, "RenderingServer", "decal_set_emission_energy", 1794382983_i64)
       val_0 = decal
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = energy
+      val_1 = energy.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_decal_set_emission_energy, @pointer, args.to_unsafe.as(Void**))
@@ -5816,7 +5816,7 @@ module Godot
       godot_bind(@@mb_decal_set_albedo_mix, "RenderingServer", "decal_set_albedo_mix", 1794382983_i64)
       val_0 = decal
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = albedo_mix
+      val_1 = albedo_mix.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_decal_set_albedo_mix, @pointer, args.to_unsafe.as(Void**))
@@ -5836,7 +5836,7 @@ module Godot
       godot_bind(@@mb_decal_set_cull_mask, "RenderingServer", "decal_set_cull_mask", 3411492887_i64)
       val_0 = decal
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = mask
+      val_1 = mask.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_decal_set_cull_mask, @pointer, args.to_unsafe.as(Void**))
@@ -5848,9 +5848,9 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = enabled
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = begin_val
+      val_2 = begin_val.to_f64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = length
+      val_3 = length.to_f64
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_decal_set_distance_fade, @pointer, args.to_unsafe.as(Void**))
@@ -5860,9 +5860,9 @@ module Godot
       godot_bind(@@mb_decal_set_fade, "RenderingServer", "decal_set_fade", 2513314492_i64)
       val_0 = decal
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = above
+      val_1 = above.to_f64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = below
+      val_2 = below.to_f64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_decal_set_fade, @pointer, args.to_unsafe.as(Void**))
@@ -5872,7 +5872,7 @@ module Godot
       godot_bind(@@mb_decal_set_normal_fade, "RenderingServer", "decal_set_normal_fade", 1794382983_i64)
       val_0 = decal
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = fade
+      val_1 = fade.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_decal_set_normal_fade, @pointer, args.to_unsafe.as(Void**))
@@ -5934,9 +5934,9 @@ module Godot
       val_0 = voxel_gi
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_voxel_gi_get_octree_cells, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_voxel_gi_get_octree_cells, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_voxel_gi_get_data_cells : Void* = Pointer(Void).null
     def voxel_gi_get_data_cells(voxel_gi : Int64) : Pointer(Void)
@@ -5944,9 +5944,9 @@ module Godot
       val_0 = voxel_gi
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_voxel_gi_get_data_cells, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_voxel_gi_get_data_cells, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_voxel_gi_get_distance_field : Void* = Pointer(Void).null
     def voxel_gi_get_distance_field(voxel_gi : Int64) : Pointer(Void)
@@ -5954,9 +5954,9 @@ module Godot
       val_0 = voxel_gi
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_voxel_gi_get_distance_field, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_voxel_gi_get_distance_field, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_voxel_gi_get_level_counts : Void* = Pointer(Void).null
     def voxel_gi_get_level_counts(voxel_gi : Int64) : Pointer(Void)
@@ -5964,9 +5964,9 @@ module Godot
       val_0 = voxel_gi
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_voxel_gi_get_level_counts, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_voxel_gi_get_level_counts, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_voxel_gi_get_to_cell_xform : Void* = Pointer(Void).null
     def voxel_gi_get_to_cell_xform(voxel_gi : Int64) : Transform3D
@@ -5981,7 +5981,7 @@ module Godot
       godot_bind(@@mb_voxel_gi_set_dynamic_range, "RenderingServer", "voxel_gi_set_dynamic_range", 1794382983_i64)
       val_0 = voxel_gi
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = range
+      val_1 = range.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_voxel_gi_set_dynamic_range, @pointer, args.to_unsafe.as(Void**))
@@ -5991,7 +5991,7 @@ module Godot
       godot_bind(@@mb_voxel_gi_set_propagation, "RenderingServer", "voxel_gi_set_propagation", 1794382983_i64)
       val_0 = voxel_gi
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = amount
+      val_1 = amount.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_voxel_gi_set_propagation, @pointer, args.to_unsafe.as(Void**))
@@ -6001,7 +6001,7 @@ module Godot
       godot_bind(@@mb_voxel_gi_set_energy, "RenderingServer", "voxel_gi_set_energy", 1794382983_i64)
       val_0 = voxel_gi
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = energy
+      val_1 = energy.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_voxel_gi_set_energy, @pointer, args.to_unsafe.as(Void**))
@@ -6011,7 +6011,7 @@ module Godot
       godot_bind(@@mb_voxel_gi_set_baked_exposure_normalization, "RenderingServer", "voxel_gi_set_baked_exposure_normalization", 1794382983_i64)
       val_0 = voxel_gi
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = baked_exposure
+      val_1 = baked_exposure.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_voxel_gi_set_baked_exposure_normalization, @pointer, args.to_unsafe.as(Void**))
@@ -6021,7 +6021,7 @@ module Godot
       godot_bind(@@mb_voxel_gi_set_bias, "RenderingServer", "voxel_gi_set_bias", 1794382983_i64)
       val_0 = voxel_gi
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = bias
+      val_1 = bias.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_voxel_gi_set_bias, @pointer, args.to_unsafe.as(Void**))
@@ -6031,7 +6031,7 @@ module Godot
       godot_bind(@@mb_voxel_gi_set_normal_bias, "RenderingServer", "voxel_gi_set_normal_bias", 1794382983_i64)
       val_0 = voxel_gi
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = bias
+      val_1 = bias.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_voxel_gi_set_normal_bias, @pointer, args.to_unsafe.as(Void**))
@@ -6123,9 +6123,9 @@ module Godot
       val_0 = lightmap
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_lightmap_get_probe_capture_points, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_lightmap_get_probe_capture_points, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_lightmap_get_probe_capture_sh : Void* = Pointer(Void).null
     def lightmap_get_probe_capture_sh(lightmap : Int64) : Pointer(Void)
@@ -6133,9 +6133,9 @@ module Godot
       val_0 = lightmap
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_lightmap_get_probe_capture_sh, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_lightmap_get_probe_capture_sh, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_lightmap_get_probe_capture_tetrahedra : Void* = Pointer(Void).null
     def lightmap_get_probe_capture_tetrahedra(lightmap : Int64) : Pointer(Void)
@@ -6143,9 +6143,9 @@ module Godot
       val_0 = lightmap
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_lightmap_get_probe_capture_tetrahedra, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_lightmap_get_probe_capture_tetrahedra, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_lightmap_get_probe_capture_bsp_tree : Void* = Pointer(Void).null
     def lightmap_get_probe_capture_bsp_tree(lightmap : Int64) : Pointer(Void)
@@ -6153,16 +6153,16 @@ module Godot
       val_0 = lightmap
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_lightmap_get_probe_capture_bsp_tree, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_lightmap_get_probe_capture_bsp_tree, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_lightmap_set_baked_exposure_normalization : Void* = Pointer(Void).null
     def lightmap_set_baked_exposure_normalization(lightmap : Int64, baked_exposure : Float64) : Void
       godot_bind(@@mb_lightmap_set_baked_exposure_normalization, "RenderingServer", "lightmap_set_baked_exposure_normalization", 1794382983_i64)
       val_0 = lightmap
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = baked_exposure
+      val_1 = baked_exposure.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_lightmap_set_baked_exposure_normalization, @pointer, args.to_unsafe.as(Void**))
@@ -6170,7 +6170,7 @@ module Godot
     @@mb_lightmap_set_probe_capture_update_speed : Void* = Pointer(Void).null
     def lightmap_set_probe_capture_update_speed(speed : Float64) : Void
       godot_bind(@@mb_lightmap_set_probe_capture_update_speed, "RenderingServer", "lightmap_set_probe_capture_update_speed", 373806689_i64)
-      val_0 = speed
+      val_0 = speed.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_lightmap_set_probe_capture_update_speed, @pointer, args.to_unsafe.as(Void**))
@@ -6217,7 +6217,7 @@ module Godot
       godot_bind(@@mb_particles_set_amount, "RenderingServer", "particles_set_amount", 3411492887_i64)
       val_0 = particles
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = amount
+      val_1 = amount.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_amount, @pointer, args.to_unsafe.as(Void**))
@@ -6227,7 +6227,7 @@ module Godot
       godot_bind(@@mb_particles_set_amount_ratio, "RenderingServer", "particles_set_amount_ratio", 1794382983_i64)
       val_0 = particles
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = ratio
+      val_1 = ratio.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_amount_ratio, @pointer, args.to_unsafe.as(Void**))
@@ -6237,7 +6237,7 @@ module Godot
       godot_bind(@@mb_particles_set_lifetime, "RenderingServer", "particles_set_lifetime", 1794382983_i64)
       val_0 = particles
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = lifetime
+      val_1 = lifetime.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_lifetime, @pointer, args.to_unsafe.as(Void**))
@@ -6257,7 +6257,7 @@ module Godot
       godot_bind(@@mb_particles_set_pre_process_time, "RenderingServer", "particles_set_pre_process_time", 1794382983_i64)
       val_0 = particles
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = time
+      val_1 = time.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_pre_process_time, @pointer, args.to_unsafe.as(Void**))
@@ -6267,9 +6267,9 @@ module Godot
       godot_bind(@@mb_particles_request_process_time, "RenderingServer", "particles_request_process_time", 1515254041_i64)
       val_0 = particles
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = process_time
+      val_1 = process_time.to_f64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = process_time_residual
+      val_2 = process_time_residual.to_f64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_particles_request_process_time, @pointer, args.to_unsafe.as(Void**))
@@ -6279,7 +6279,7 @@ module Godot
       godot_bind(@@mb_particles_set_explosiveness_ratio, "RenderingServer", "particles_set_explosiveness_ratio", 1794382983_i64)
       val_0 = particles
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = ratio
+      val_1 = ratio.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_explosiveness_ratio, @pointer, args.to_unsafe.as(Void**))
@@ -6289,7 +6289,7 @@ module Godot
       godot_bind(@@mb_particles_set_randomness_ratio, "RenderingServer", "particles_set_randomness_ratio", 1794382983_i64)
       val_0 = particles
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = ratio
+      val_1 = ratio.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_randomness_ratio, @pointer, args.to_unsafe.as(Void**))
@@ -6299,7 +6299,7 @@ module Godot
       godot_bind(@@mb_particles_set_interp_to_end, "RenderingServer", "particles_set_interp_to_end", 1794382983_i64)
       val_0 = particles
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = factor
+      val_1 = factor.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_interp_to_end, @pointer, args.to_unsafe.as(Void**))
@@ -6329,7 +6329,7 @@ module Godot
       godot_bind(@@mb_particles_set_speed_scale, "RenderingServer", "particles_set_speed_scale", 1794382983_i64)
       val_0 = particles
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = scale
+      val_1 = scale.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_speed_scale, @pointer, args.to_unsafe.as(Void**))
@@ -6359,7 +6359,7 @@ module Godot
       godot_bind(@@mb_particles_set_fixed_fps, "RenderingServer", "particles_set_fixed_fps", 3411492887_i64)
       val_0 = particles
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = fps
+      val_1 = fps.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_fixed_fps, @pointer, args.to_unsafe.as(Void**))
@@ -6389,7 +6389,7 @@ module Godot
       godot_bind(@@mb_particles_set_collision_base_size, "RenderingServer", "particles_set_collision_base_size", 1794382983_i64)
       val_0 = particles
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = size
+      val_1 = size.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_collision_base_size, @pointer, args.to_unsafe.as(Void**))
@@ -6431,7 +6431,7 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = enable
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = length_sec
+      val_2 = length_sec.to_f64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_particles_set_trails, @pointer, args.to_unsafe.as(Void**))
@@ -6497,7 +6497,7 @@ module Godot
       arg_3 = pointerof(val_3).as(Void*)
       val_4 = custom
       arg_4 = pointerof(val_4).as(Void*)
-      val_5 = emit_flags
+      val_5 = emit_flags.to_i64
       arg_5 = pointerof(val_5).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5]
       godot_ptrcall_void(@@mb_particles_emit, @pointer, args.to_unsafe.as(Void**))
@@ -6517,7 +6517,7 @@ module Godot
       godot_bind(@@mb_particles_set_draw_passes, "RenderingServer", "particles_set_draw_passes", 3411492887_i64)
       val_0 = particles
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = count
+      val_1 = count.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_draw_passes, @pointer, args.to_unsafe.as(Void**))
@@ -6527,7 +6527,7 @@ module Godot
       godot_bind(@@mb_particles_set_draw_pass_mesh, "RenderingServer", "particles_set_draw_pass_mesh", 2310537182_i64)
       val_0 = particles
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = pass
+      val_1 = pass.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = mesh
       arg_2 = pointerof(val_2).as(Void*)
@@ -6572,7 +6572,7 @@ module Godot
       godot_bind(@@mb_particles_collision_set_cull_mask, "RenderingServer", "particles_collision_set_cull_mask", 3411492887_i64)
       val_0 = particles_collision
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = mask
+      val_1 = mask.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_collision_set_cull_mask, @pointer, args.to_unsafe.as(Void**))
@@ -6582,7 +6582,7 @@ module Godot
       godot_bind(@@mb_particles_collision_set_sphere_radius, "RenderingServer", "particles_collision_set_sphere_radius", 1794382983_i64)
       val_0 = particles_collision
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = radius
+      val_1 = radius.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_collision_set_sphere_radius, @pointer, args.to_unsafe.as(Void**))
@@ -6602,7 +6602,7 @@ module Godot
       godot_bind(@@mb_particles_collision_set_attractor_strength, "RenderingServer", "particles_collision_set_attractor_strength", 1794382983_i64)
       val_0 = particles_collision
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = strength
+      val_1 = strength.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_collision_set_attractor_strength, @pointer, args.to_unsafe.as(Void**))
@@ -6612,7 +6612,7 @@ module Godot
       godot_bind(@@mb_particles_collision_set_attractor_directionality, "RenderingServer", "particles_collision_set_attractor_directionality", 1794382983_i64)
       val_0 = particles_collision
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = amount
+      val_1 = amount.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_collision_set_attractor_directionality, @pointer, args.to_unsafe.as(Void**))
@@ -6622,7 +6622,7 @@ module Godot
       godot_bind(@@mb_particles_collision_set_attractor_attenuation, "RenderingServer", "particles_collision_set_attractor_attenuation", 1794382983_i64)
       val_0 = particles_collision
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = curve
+      val_1 = curve.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_collision_set_attractor_attenuation, @pointer, args.to_unsafe.as(Void**))
@@ -6660,7 +6660,7 @@ module Godot
       godot_bind(@@mb_particles_collision_set_height_field_mask, "RenderingServer", "particles_collision_set_height_field_mask", 3411492887_i64)
       val_0 = particles_collision
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = mask
+      val_1 = mask.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_collision_set_height_field_mask, @pointer, args.to_unsafe.as(Void**))
@@ -6754,11 +6754,11 @@ module Godot
       godot_bind(@@mb_camera_set_perspective, "RenderingServer", "camera_set_perspective", 157498339_i64)
       val_0 = camera
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = fovy_degrees
+      val_1 = fovy_degrees.to_f64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = z_near
+      val_2 = z_near.to_f64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = z_far
+      val_3 = z_far.to_f64
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_camera_set_perspective, @pointer, args.to_unsafe.as(Void**))
@@ -6768,11 +6768,11 @@ module Godot
       godot_bind(@@mb_camera_set_orthogonal, "RenderingServer", "camera_set_orthogonal", 157498339_i64)
       val_0 = camera
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = size
+      val_1 = size.to_f64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = z_near
+      val_2 = z_near.to_f64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = z_far
+      val_3 = z_far.to_f64
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_camera_set_orthogonal, @pointer, args.to_unsafe.as(Void**))
@@ -6782,13 +6782,13 @@ module Godot
       godot_bind(@@mb_camera_set_frustum, "RenderingServer", "camera_set_frustum", 1889878953_i64)
       val_0 = camera
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = size
+      val_1 = size.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = offset
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = z_near
+      val_3 = z_near.to_f64
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = z_far
+      val_4 = z_far.to_f64
       arg_4 = pointerof(val_4).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
       godot_ptrcall_void(@@mb_camera_set_frustum, @pointer, args.to_unsafe.as(Void**))
@@ -6820,7 +6820,7 @@ module Godot
       godot_bind(@@mb_camera_set_cull_mask, "RenderingServer", "camera_set_cull_mask", 3411492887_i64)
       val_0 = camera
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = layers
+      val_1 = layers.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_camera_set_cull_mask, @pointer, args.to_unsafe.as(Void**))
@@ -6885,11 +6885,11 @@ module Godot
       godot_bind(@@mb_viewport_set_size, "RenderingServer", "viewport_set_size", 3313592705_i64)
       val_0 = viewport
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = width
+      val_1 = width.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = height
+      val_2 = height.to_i64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = view_count
+      val_3 = view_count.to_i64
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_viewport_set_size, @pointer, args.to_unsafe.as(Void**))
@@ -6921,7 +6921,7 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = rect
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = screen
+      val_2 = screen.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_viewport_attach_to_screen, @pointer, args.to_unsafe.as(Void**))
@@ -6941,7 +6941,7 @@ module Godot
       godot_bind(@@mb_viewport_set_canvas_cull_mask, "RenderingServer", "viewport_set_canvas_cull_mask", 3411492887_i64)
       val_0 = viewport
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = canvas_cull_mask
+      val_1 = canvas_cull_mask.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_canvas_cull_mask, @pointer, args.to_unsafe.as(Void**))
@@ -6961,7 +6961,7 @@ module Godot
       godot_bind(@@mb_viewport_set_scaling_3d_scale, "RenderingServer", "viewport_set_scaling_3d_scale", 1794382983_i64)
       val_0 = viewport
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = scale
+      val_1 = scale.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_scaling_3d_scale, @pointer, args.to_unsafe.as(Void**))
@@ -6971,7 +6971,7 @@ module Godot
       godot_bind(@@mb_viewport_set_fsr_sharpness, "RenderingServer", "viewport_set_fsr_sharpness", 1794382983_i64)
       val_0 = viewport
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = sharpness
+      val_1 = sharpness.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_fsr_sharpness, @pointer, args.to_unsafe.as(Void**))
@@ -6981,7 +6981,7 @@ module Godot
       godot_bind(@@mb_viewport_set_texture_mipmap_bias, "RenderingServer", "viewport_set_texture_mipmap_bias", 1794382983_i64)
       val_0 = viewport
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = mipmap_bias
+      val_1 = mipmap_bias.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_texture_mipmap_bias, @pointer, args.to_unsafe.as(Void**))
@@ -7169,9 +7169,9 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = canvas
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = layer
+      val_2 = layer.to_i64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = sublayer
+      val_3 = sublayer.to_i64
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_viewport_set_canvas_stacking, @pointer, args.to_unsafe.as(Void**))
@@ -7213,7 +7213,7 @@ module Godot
       godot_bind(@@mb_viewport_set_positional_shadow_atlas_size, "RenderingServer", "viewport_set_positional_shadow_atlas_size", 1904426712_i64)
       val_0 = viewport
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = size
+      val_1 = size.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = use_16_bits
       arg_2 = pointerof(val_2).as(Void*)
@@ -7225,9 +7225,9 @@ module Godot
       godot_bind(@@mb_viewport_set_positional_shadow_atlas_quadrant_subdivision, "RenderingServer", "viewport_set_positional_shadow_atlas_quadrant_subdivision", 4288446313_i64)
       val_0 = viewport
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = quadrant
+      val_1 = quadrant.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = subdivision
+      val_2 = subdivision.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_viewport_set_positional_shadow_atlas_quadrant_subdivision, @pointer, args.to_unsafe.as(Void**))
@@ -7305,7 +7305,7 @@ module Godot
     @@mb_viewport_set_occlusion_rays_per_thread : Void* = Pointer(Void).null
     def viewport_set_occlusion_rays_per_thread(rays_per_thread : Int64) : Void
       godot_bind(@@mb_viewport_set_occlusion_rays_per_thread, "RenderingServer", "viewport_set_occlusion_rays_per_thread", 1286410249_i64)
-      val_0 = rays_per_thread
+      val_0 = rays_per_thread.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_viewport_set_occlusion_rays_per_thread, @pointer, args.to_unsafe.as(Void**))
@@ -7406,7 +7406,7 @@ module Godot
       godot_bind(@@mb_sky_set_radiance_size, "RenderingServer", "sky_set_radiance_size", 3411492887_i64)
       val_0 = sky
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = radiance_size
+      val_1 = radiance_size.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_sky_set_radiance_size, @pointer, args.to_unsafe.as(Void**))
@@ -7436,7 +7436,7 @@ module Godot
       godot_bind(@@mb_sky_bake_panorama, "RenderingServer", "sky_bake_panorama", 3875285818_i64)
       val_0 = sky
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = energy
+      val_1 = energy.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = bake_irradiance
       arg_2 = pointerof(val_2).as(Void*)
@@ -7519,7 +7519,7 @@ module Godot
       godot_bind(@@mb_environment_set_camera_id, "RenderingServer", "environment_set_camera_id", 3411492887_i64)
       val_0 = env
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = id
+      val_1 = id.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_environment_set_camera_id, @pointer, args.to_unsafe.as(Void**))
@@ -7539,7 +7539,7 @@ module Godot
       godot_bind(@@mb_environment_set_sky_custom_fov, "RenderingServer", "environment_set_sky_custom_fov", 1794382983_i64)
       val_0 = env
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = scale
+      val_1 = scale.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_environment_set_sky_custom_fov, @pointer, args.to_unsafe.as(Void**))
@@ -7569,9 +7569,9 @@ module Godot
       godot_bind(@@mb_environment_set_bg_energy, "RenderingServer", "environment_set_bg_energy", 2513314492_i64)
       val_0 = env
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = multiplier
+      val_1 = multiplier.to_f64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = exposure_value
+      val_2 = exposure_value.to_f64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_environment_set_bg_energy, @pointer, args.to_unsafe.as(Void**))
@@ -7581,7 +7581,7 @@ module Godot
       godot_bind(@@mb_environment_set_canvas_max_layer, "RenderingServer", "environment_set_canvas_max_layer", 3411492887_i64)
       val_0 = env
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = max_layer
+      val_1 = max_layer.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_environment_set_canvas_max_layer, @pointer, args.to_unsafe.as(Void**))
@@ -7595,9 +7595,9 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = ambient.is_a?(Int) ? ambient.to_i64 : ambient.value.to_i64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = energy
+      val_3 = energy.to_f64
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = sky_contribution
+      val_4 = sky_contribution.to_f64
       arg_4 = pointerof(val_4).as(Void*)
       val_5 = reflection_source.is_a?(Int) ? reflection_source.to_i64 : reflection_source.value.to_i64
       arg_5 = pointerof(val_5).as(Void*)
@@ -7613,23 +7613,23 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = levels
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = intensity
+      val_3 = intensity.to_f64
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = strength
+      val_4 = strength.to_f64
       arg_4 = pointerof(val_4).as(Void*)
-      val_5 = mix
+      val_5 = mix.to_f64
       arg_5 = pointerof(val_5).as(Void*)
-      val_6 = bloom_threshold
+      val_6 = bloom_threshold.to_f64
       arg_6 = pointerof(val_6).as(Void*)
       val_7 = blend_mode.is_a?(Int) ? blend_mode.to_i64 : blend_mode.value.to_i64
       arg_7 = pointerof(val_7).as(Void*)
-      val_8 = hdr_bleed_threshold
+      val_8 = hdr_bleed_threshold.to_f64
       arg_8 = pointerof(val_8).as(Void*)
-      val_9 = hdr_bleed_scale
+      val_9 = hdr_bleed_scale.to_f64
       arg_9 = pointerof(val_9).as(Void*)
-      val_10 = hdr_luminance_cap
+      val_10 = hdr_luminance_cap.to_f64
       arg_10 = pointerof(val_10).as(Void*)
-      val_11 = glow_map_strength
+      val_11 = glow_map_strength.to_f64
       arg_11 = pointerof(val_11).as(Void*)
       val_12 = glow_map
       arg_12 = pointerof(val_12).as(Void*)
@@ -7643,9 +7643,9 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = tone_mapper.is_a?(Int) ? tone_mapper.to_i64 : tone_mapper.value.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = exposure
+      val_2 = exposure.to_f64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = white
+      val_3 = white.to_f64
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_environment_set_tonemap, @pointer, args.to_unsafe.as(Void**))
@@ -7655,7 +7655,7 @@ module Godot
       godot_bind(@@mb_environment_set_tonemap_agx_contrast, "RenderingServer", "environment_set_tonemap_agx_contrast", 1794382983_i64)
       val_0 = env
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = agx_contrast
+      val_1 = agx_contrast.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_environment_set_tonemap_agx_contrast, @pointer, args.to_unsafe.as(Void**))
@@ -7667,11 +7667,11 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = enable
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = brightness
+      val_2 = brightness.to_f64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = contrast
+      val_3 = contrast.to_f64
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = saturation
+      val_4 = saturation.to_f64
       arg_4 = pointerof(val_4).as(Void*)
       val_5 = use_1d_color_correction
       arg_5 = pointerof(val_5).as(Void*)
@@ -7687,13 +7687,13 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = enable
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = max_steps
+      val_2 = max_steps.to_i64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = fade_in
+      val_3 = fade_in.to_f64
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = fade_out
+      val_4 = fade_out.to_f64
       arg_4 = pointerof(val_4).as(Void*)
-      val_5 = depth_tolerance
+      val_5 = depth_tolerance.to_f64
       arg_5 = pointerof(val_5).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5]
       godot_ptrcall_void(@@mb_environment_set_ssr, @pointer, args.to_unsafe.as(Void**))
@@ -7705,21 +7705,21 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = enable
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = radius
+      val_2 = radius.to_f64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = intensity
+      val_3 = intensity.to_f64
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = power
+      val_4 = power.to_f64
       arg_4 = pointerof(val_4).as(Void*)
-      val_5 = detail
+      val_5 = detail.to_f64
       arg_5 = pointerof(val_5).as(Void*)
-      val_6 = horizon
+      val_6 = horizon.to_f64
       arg_6 = pointerof(val_6).as(Void*)
-      val_7 = sharpness
+      val_7 = sharpness.to_f64
       arg_7 = pointerof(val_7).as(Void*)
-      val_8 = light_affect
+      val_8 = light_affect.to_f64
       arg_8 = pointerof(val_8).as(Void*)
-      val_9 = ao_channel_affect
+      val_9 = ao_channel_affect.to_f64
       arg_9 = pointerof(val_9).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5, arg_6, arg_7, arg_8, arg_9]
       godot_ptrcall_void(@@mb_environment_set_ssao, @pointer, args.to_unsafe.as(Void**))
@@ -7733,19 +7733,19 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = light_color
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = light_energy
+      val_3 = light_energy.to_f64
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = sun_scatter
+      val_4 = sun_scatter.to_f64
       arg_4 = pointerof(val_4).as(Void*)
-      val_5 = density
+      val_5 = density.to_f64
       arg_5 = pointerof(val_5).as(Void*)
-      val_6 = height
+      val_6 = height.to_f64
       arg_6 = pointerof(val_6).as(Void*)
-      val_7 = height_density
+      val_7 = height_density.to_f64
       arg_7 = pointerof(val_7).as(Void*)
-      val_8 = aerial_perspective
+      val_8 = aerial_perspective.to_f64
       arg_8 = pointerof(val_8).as(Void*)
-      val_9 = sky_affect
+      val_9 = sky_affect.to_f64
       arg_9 = pointerof(val_9).as(Void*)
       val_10 = fog_mode.is_a?(Int) ? fog_mode.to_i64 : fog_mode.value.to_i64
       arg_10 = pointerof(val_10).as(Void*)
@@ -7757,11 +7757,11 @@ module Godot
       godot_bind(@@mb_environment_set_fog_depth, "RenderingServer", "environment_set_fog_depth", 157498339_i64)
       val_0 = env
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = curve
+      val_1 = curve.to_f64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = begin_val
+      val_2 = begin_val.to_f64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = end_val
+      val_3 = end_val.to_f64
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_environment_set_fog_depth, @pointer, args.to_unsafe.as(Void**))
@@ -7773,23 +7773,23 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = enable
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = cascades
+      val_2 = cascades.to_i64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = min_cell_size
+      val_3 = min_cell_size.to_f64
       arg_3 = pointerof(val_3).as(Void*)
       val_4 = y_scale.is_a?(Int) ? y_scale.to_i64 : y_scale.value.to_i64
       arg_4 = pointerof(val_4).as(Void*)
       val_5 = use_occlusion
       arg_5 = pointerof(val_5).as(Void*)
-      val_6 = bounce_feedback
+      val_6 = bounce_feedback.to_f64
       arg_6 = pointerof(val_6).as(Void*)
       val_7 = read_sky
       arg_7 = pointerof(val_7).as(Void*)
-      val_8 = energy
+      val_8 = energy.to_f64
       arg_8 = pointerof(val_8).as(Void*)
-      val_9 = normal_bias
+      val_9 = normal_bias.to_f64
       arg_9 = pointerof(val_9).as(Void*)
-      val_10 = probe_bias
+      val_10 = probe_bias.to_f64
       arg_10 = pointerof(val_10).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5, arg_6, arg_7, arg_8, arg_9, arg_10]
       godot_ptrcall_void(@@mb_environment_set_sdfgi, @pointer, args.to_unsafe.as(Void**))
@@ -7801,29 +7801,29 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = enable
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = density
+      val_2 = density.to_f64
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = albedo
       arg_3 = pointerof(val_3).as(Void*)
       val_4 = emission
       arg_4 = pointerof(val_4).as(Void*)
-      val_5 = emission_energy
+      val_5 = emission_energy.to_f64
       arg_5 = pointerof(val_5).as(Void*)
-      val_6 = anisotropy
+      val_6 = anisotropy.to_f64
       arg_6 = pointerof(val_6).as(Void*)
-      val_7 = length
+      val_7 = length.to_f64
       arg_7 = pointerof(val_7).as(Void*)
-      val_8 = detail_spread
+      val_8 = detail_spread.to_f64
       arg_8 = pointerof(val_8).as(Void*)
-      val_9 = gi_inject
+      val_9 = gi_inject.to_f64
       arg_9 = pointerof(val_9).as(Void*)
       val_10 = temporal_reprojection
       arg_10 = pointerof(val_10).as(Void*)
-      val_11 = temporal_reprojection_amount
+      val_11 = temporal_reprojection_amount.to_f64
       arg_11 = pointerof(val_11).as(Void*)
-      val_12 = ambient_inject
+      val_12 = ambient_inject.to_f64
       arg_12 = pointerof(val_12).as(Void*)
-      val_13 = sky_affect
+      val_13 = sky_affect.to_f64
       arg_13 = pointerof(val_13).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5, arg_6, arg_7, arg_8, arg_9, arg_10, arg_11, arg_12, arg_13]
       godot_ptrcall_void(@@mb_environment_set_volumetric_fog, @pointer, args.to_unsafe.as(Void**))
@@ -7859,13 +7859,13 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = half_size
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = adaptive_target
+      val_2 = adaptive_target.to_f64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = blur_passes
+      val_3 = blur_passes.to_i64
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = fadeout_from
+      val_4 = fadeout_from.to_f64
       arg_4 = pointerof(val_4).as(Void*)
-      val_5 = fadeout_to
+      val_5 = fadeout_to.to_f64
       arg_5 = pointerof(val_5).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5]
       godot_ptrcall_void(@@mb_environment_set_ssao_quality, @pointer, args.to_unsafe.as(Void**))
@@ -7877,13 +7877,13 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = half_size
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = adaptive_target
+      val_2 = adaptive_target.to_f64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = blur_passes
+      val_3 = blur_passes.to_i64
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = fadeout_from
+      val_4 = fadeout_from.to_f64
       arg_4 = pointerof(val_4).as(Void*)
-      val_5 = fadeout_to
+      val_5 = fadeout_to.to_f64
       arg_5 = pointerof(val_5).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5]
       godot_ptrcall_void(@@mb_environment_set_ssil_quality, @pointer, args.to_unsafe.as(Void**))
@@ -7915,9 +7915,9 @@ module Godot
     @@mb_environment_set_volumetric_fog_volume_size : Void* = Pointer(Void).null
     def environment_set_volumetric_fog_volume_size(size : Int64, depth : Int64) : Void
       godot_bind(@@mb_environment_set_volumetric_fog_volume_size, "RenderingServer", "environment_set_volumetric_fog_volume_size", 3937882851_i64)
-      val_0 = size
+      val_0 = size.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = depth
+      val_1 = depth.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_environment_set_volumetric_fog_volume_size, @pointer, args.to_unsafe.as(Void**))
@@ -7947,9 +7947,9 @@ module Godot
       godot_bind(@@mb_screen_space_roughness_limiter_set_active, "RenderingServer", "screen_space_roughness_limiter_set_active", 916716790_i64)
       val_0 = enable
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = amount
+      val_1 = amount.to_f64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = limit
+      val_2 = limit.to_f64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_screen_space_roughness_limiter_set_active, @pointer, args.to_unsafe.as(Void**))
@@ -7965,9 +7965,9 @@ module Godot
     @@mb_sub_surface_scattering_set_scale : Void* = Pointer(Void).null
     def sub_surface_scattering_set_scale(scale : Float64, depth_scale : Float64) : Void
       godot_bind(@@mb_sub_surface_scattering_set_scale, "RenderingServer", "sub_surface_scattering_set_scale", 1017552074_i64)
-      val_0 = scale
+      val_0 = scale.to_f64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = depth_scale
+      val_1 = depth_scale.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_sub_surface_scattering_set_scale, @pointer, args.to_unsafe.as(Void**))
@@ -8002,17 +8002,17 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = far_enable
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = far_distance
+      val_2 = far_distance.to_f64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = far_transition
+      val_3 = far_transition.to_f64
       arg_3 = pointerof(val_3).as(Void*)
       val_4 = near_enable
       arg_4 = pointerof(val_4).as(Void*)
-      val_5 = near_distance
+      val_5 = near_distance.to_f64
       arg_5 = pointerof(val_5).as(Void*)
-      val_6 = near_transition
+      val_6 = near_transition.to_f64
       arg_6 = pointerof(val_6).as(Void*)
-      val_7 = amount
+      val_7 = amount.to_f64
       arg_7 = pointerof(val_7).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5, arg_6, arg_7]
       godot_ptrcall_void(@@mb_camera_attributes_set_dof_blur, @pointer, args.to_unsafe.as(Void**))
@@ -8022,9 +8022,9 @@ module Godot
       godot_bind(@@mb_camera_attributes_set_exposure, "RenderingServer", "camera_attributes_set_exposure", 2513314492_i64)
       val_0 = camera_attributes
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = multiplier
+      val_1 = multiplier.to_f64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = normalization
+      val_2 = normalization.to_f64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_camera_attributes_set_exposure, @pointer, args.to_unsafe.as(Void**))
@@ -8036,13 +8036,13 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = enable
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = min_sensitivity
+      val_2 = min_sensitivity.to_f64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = max_sensitivity
+      val_3 = max_sensitivity.to_f64
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = speed
+      val_4 = speed.to_f64
       arg_4 = pointerof(val_4).as(Void*)
-      val_5 = scale
+      val_5 = scale.to_f64
       arg_5 = pointerof(val_5).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5]
       godot_ptrcall_void(@@mb_camera_attributes_set_auto_exposure, @pointer, args.to_unsafe.as(Void**))
@@ -8132,7 +8132,7 @@ module Godot
       godot_bind(@@mb_instance_set_layer_mask, "RenderingServer", "instance_set_layer_mask", 3411492887_i64)
       val_0 = instance
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = mask
+      val_1 = mask.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_instance_set_layer_mask, @pointer, args.to_unsafe.as(Void**))
@@ -8142,7 +8142,7 @@ module Godot
       godot_bind(@@mb_instance_set_pivot_data, "RenderingServer", "instance_set_pivot_data", 1280615259_i64)
       val_0 = instance
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = sorting_offset
+      val_1 = sorting_offset.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = use_aabb_center
       arg_2 = pointerof(val_2).as(Void*)
@@ -8164,7 +8164,7 @@ module Godot
       godot_bind(@@mb_instance_attach_object_instance_id, "RenderingServer", "instance_attach_object_instance_id", 3411492887_i64)
       val_0 = instance
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = id
+      val_1 = id.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_instance_attach_object_instance_id, @pointer, args.to_unsafe.as(Void**))
@@ -8174,9 +8174,9 @@ module Godot
       godot_bind(@@mb_instance_set_blend_shape_weight, "RenderingServer", "instance_set_blend_shape_weight", 1892459533_i64)
       val_0 = instance
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = shape
+      val_1 = shape.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = weight
+      val_2 = weight.to_f64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_instance_set_blend_shape_weight, @pointer, args.to_unsafe.as(Void**))
@@ -8186,7 +8186,7 @@ module Godot
       godot_bind(@@mb_instance_set_surface_override_material, "RenderingServer", "instance_set_surface_override_material", 2310537182_i64)
       val_0 = instance
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = surface
+      val_1 = surface.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = material
       arg_2 = pointerof(val_2).as(Void*)
@@ -8208,7 +8208,7 @@ module Godot
       godot_bind(@@mb_instance_geometry_set_transparency, "RenderingServer", "instance_geometry_set_transparency", 1794382983_i64)
       val_0 = instance
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = transparency
+      val_1 = transparency.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_instance_geometry_set_transparency, @pointer, args.to_unsafe.as(Void**))
@@ -8246,7 +8246,7 @@ module Godot
       godot_bind(@@mb_instance_set_extra_visibility_margin, "RenderingServer", "instance_set_extra_visibility_margin", 1794382983_i64)
       val_0 = instance
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = margin
+      val_1 = margin.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_instance_set_extra_visibility_margin, @pointer, args.to_unsafe.as(Void**))
@@ -8318,13 +8318,13 @@ module Godot
       godot_bind(@@mb_instance_geometry_set_visibility_range, "RenderingServer", "instance_geometry_set_visibility_range", 4263925858_i64)
       val_0 = instance
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = min
+      val_1 = min.to_f64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = max
+      val_2 = max.to_f64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = min_margin
+      val_3 = min_margin.to_f64
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = max_margin
+      val_4 = max_margin.to_f64
       arg_4 = pointerof(val_4).as(Void*)
       val_5 = fade_mode.is_a?(Int) ? fade_mode.to_i64 : fade_mode.value.to_i64
       arg_5 = pointerof(val_5).as(Void*)
@@ -8340,7 +8340,7 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = lightmap_uv_scale
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = lightmap_slice
+      val_3 = lightmap_slice.to_i64
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_instance_geometry_set_lightmap, @pointer, args.to_unsafe.as(Void**))
@@ -8350,7 +8350,7 @@ module Godot
       godot_bind(@@mb_instance_geometry_set_lod_bias, "RenderingServer", "instance_geometry_set_lod_bias", 1794382983_i64)
       val_0 = instance
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = lod_bias
+      val_1 = lod_bias.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_instance_geometry_set_lod_bias, @pointer, args.to_unsafe.as(Void**))
@@ -8419,9 +8419,9 @@ module Godot
       val_1 = scenario
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_instances_cull_aabb, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_instances_cull_aabb, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_instances_cull_ray : Void* = Pointer(Void).null
     def instances_cull_ray(from : Vector3, to : Vector3, scenario : Int64) : Pointer(Void)
@@ -8433,9 +8433,9 @@ module Godot
       val_2 = scenario
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_instances_cull_ray, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_instances_cull_ray, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_instances_cull_convex : Void* = Pointer(Void).null
     def instances_cull_convex(convex : Pointer(Void), scenario : Int64) : Pointer(Void)
@@ -8445,9 +8445,9 @@ module Godot
       val_1 = scenario
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_instances_cull_convex, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_instances_cull_convex, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_bake_render_uv2 : Void* = Pointer(Void).null
     def bake_render_uv2(base : Int64, material_overrides : Pointer(Void), image_size : Vector2i) : Pointer(Void)
@@ -8487,7 +8487,7 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = repeat_size
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = repeat_times
+      val_2 = repeat_times.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_canvas_set_item_repeat, @pointer, args.to_unsafe.as(Void**))
@@ -8534,7 +8534,7 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = base_color
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = shininess
+      val_2 = shininess.to_f64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_canvas_texture_set_shading_parameters, @pointer, args.to_unsafe.as(Void**))
@@ -8609,7 +8609,7 @@ module Godot
       godot_bind(@@mb_canvas_item_set_light_mask, "RenderingServer", "canvas_item_set_light_mask", 3411492887_i64)
       val_0 = item
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = mask
+      val_1 = mask.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_item_set_light_mask, @pointer, args.to_unsafe.as(Void**))
@@ -8619,7 +8619,7 @@ module Godot
       godot_bind(@@mb_canvas_item_set_visibility_layer, "RenderingServer", "canvas_item_set_visibility_layer", 3411492887_i64)
       val_0 = item
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = visibility_layer
+      val_1 = visibility_layer.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_item_set_visibility_layer, @pointer, args.to_unsafe.as(Void**))
@@ -8735,7 +8735,7 @@ module Godot
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = color
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = width
+      val_4 = width.to_f64
       arg_4 = pointerof(val_4).as(Void*)
       val_5 = antialiased
       arg_5 = pointerof(val_5).as(Void*)
@@ -8751,7 +8751,7 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = colors
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = width
+      val_3 = width.to_f64
       arg_3 = pointerof(val_3).as(Void*)
       val_4 = antialiased
       arg_4 = pointerof(val_4).as(Void*)
@@ -8767,7 +8767,7 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = colors
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = width
+      val_3 = width.to_f64
       arg_3 = pointerof(val_3).as(Void*)
       val_4 = antialiased
       arg_4 = pointerof(val_4).as(Void*)
@@ -8795,7 +8795,7 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = pos
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = radius
+      val_2 = radius.to_f64
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = color
       arg_3 = pointerof(val_3).as(Void*)
@@ -8811,9 +8811,9 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = pos
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = major
+      val_2 = major.to_f64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = minor
+      val_3 = minor.to_f64
       arg_3 = pointerof(val_3).as(Void*)
       val_4 = color
       arg_4 = pointerof(val_4).as(Void*)
@@ -8853,11 +8853,11 @@ module Godot
       arg_3 = pointerof(val_3).as(Void*)
       val_4 = modulate
       arg_4 = pointerof(val_4).as(Void*)
-      val_5 = outline_size
+      val_5 = outline_size.to_i64
       arg_5 = pointerof(val_5).as(Void*)
-      val_6 = px_range
+      val_6 = px_range.to_f64
       arg_6 = pointerof(val_6).as(Void*)
-      val_7 = scale
+      val_7 = scale.to_f64
       arg_7 = pointerof(val_7).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5, arg_6, arg_7]
       godot_ptrcall_void(@@mb_canvas_item_add_msdf_texture_rect_region, @pointer, args.to_unsafe.as(Void**))
@@ -8975,7 +8975,7 @@ module Godot
       arg_6 = pointerof(val_6).as(Void*)
       val_7 = texture
       arg_7 = pointerof(val_7).as(Void*)
-      val_8 = count
+      val_8 = count.to_i64
       arg_8 = pointerof(val_8).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5, arg_6, arg_7, arg_8]
       godot_ptrcall_void(@@mb_canvas_item_add_triangle_array, @pointer, args.to_unsafe.as(Void**))
@@ -9045,13 +9045,13 @@ module Godot
       godot_bind(@@mb_canvas_item_add_animation_slice, "RenderingServer", "canvas_item_add_animation_slice", 2646834499_i64)
       val_0 = item
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = animation_length
+      val_1 = animation_length.to_f64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = slice_begin
+      val_2 = slice_begin.to_f64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = slice_end
+      val_3 = slice_end.to_f64
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = offset
+      val_4 = offset.to_f64
       arg_4 = pointerof(val_4).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
       godot_ptrcall_void(@@mb_canvas_item_add_animation_slice, @pointer, args.to_unsafe.as(Void**))
@@ -9071,7 +9071,7 @@ module Godot
       godot_bind(@@mb_canvas_item_set_z_index, "RenderingServer", "canvas_item_set_z_index", 3411492887_i64)
       val_0 = item
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = z_index
+      val_1 = z_index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_item_set_z_index, @pointer, args.to_unsafe.as(Void**))
@@ -9121,7 +9121,7 @@ module Godot
       godot_bind(@@mb_canvas_item_set_draw_index, "RenderingServer", "canvas_item_set_draw_index", 3411492887_i64)
       val_0 = item
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = index
+      val_1 = index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_item_set_draw_index, @pointer, args.to_unsafe.as(Void**))
@@ -9225,11 +9225,11 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = mode.is_a?(Int) ? mode.to_i64 : mode.value.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = clear_margin
+      val_2 = clear_margin.to_f64
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = fit_empty
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = fit_margin
+      val_4 = fit_margin.to_f64
       arg_4 = pointerof(val_4).as(Void*)
       val_5 = blur_mipmaps
       arg_5 = pointerof(val_5).as(Void*)
@@ -9274,7 +9274,7 @@ module Godot
       godot_bind(@@mb_canvas_light_set_texture_scale, "RenderingServer", "canvas_light_set_texture_scale", 1794382983_i64)
       val_0 = light
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = scale
+      val_1 = scale.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_light_set_texture_scale, @pointer, args.to_unsafe.as(Void**))
@@ -9324,7 +9324,7 @@ module Godot
       godot_bind(@@mb_canvas_light_set_height, "RenderingServer", "canvas_light_set_height", 1794382983_i64)
       val_0 = light
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = height
+      val_1 = height.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_light_set_height, @pointer, args.to_unsafe.as(Void**))
@@ -9334,7 +9334,7 @@ module Godot
       godot_bind(@@mb_canvas_light_set_energy, "RenderingServer", "canvas_light_set_energy", 1794382983_i64)
       val_0 = light
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = energy
+      val_1 = energy.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_light_set_energy, @pointer, args.to_unsafe.as(Void**))
@@ -9344,9 +9344,9 @@ module Godot
       godot_bind(@@mb_canvas_light_set_z_range, "RenderingServer", "canvas_light_set_z_range", 4288446313_i64)
       val_0 = light
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = min_z
+      val_1 = min_z.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = max_z
+      val_2 = max_z.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_canvas_light_set_z_range, @pointer, args.to_unsafe.as(Void**))
@@ -9356,9 +9356,9 @@ module Godot
       godot_bind(@@mb_canvas_light_set_layer_range, "RenderingServer", "canvas_light_set_layer_range", 4288446313_i64)
       val_0 = light
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = min_layer
+      val_1 = min_layer.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = max_layer
+      val_2 = max_layer.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_canvas_light_set_layer_range, @pointer, args.to_unsafe.as(Void**))
@@ -9368,7 +9368,7 @@ module Godot
       godot_bind(@@mb_canvas_light_set_item_cull_mask, "RenderingServer", "canvas_light_set_item_cull_mask", 3411492887_i64)
       val_0 = light
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = mask
+      val_1 = mask.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_light_set_item_cull_mask, @pointer, args.to_unsafe.as(Void**))
@@ -9378,7 +9378,7 @@ module Godot
       godot_bind(@@mb_canvas_light_set_item_shadow_cull_mask, "RenderingServer", "canvas_light_set_item_shadow_cull_mask", 3411492887_i64)
       val_0 = light
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = mask
+      val_1 = mask.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_light_set_item_shadow_cull_mask, @pointer, args.to_unsafe.as(Void**))
@@ -9428,7 +9428,7 @@ module Godot
       godot_bind(@@mb_canvas_light_set_shadow_smooth, "RenderingServer", "canvas_light_set_shadow_smooth", 1794382983_i64)
       val_0 = light
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = smooth
+      val_1 = smooth.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_light_set_shadow_smooth, @pointer, args.to_unsafe.as(Void**))
@@ -9531,7 +9531,7 @@ module Godot
       godot_bind(@@mb_canvas_light_occluder_set_light_mask, "RenderingServer", "canvas_light_occluder_set_light_mask", 3411492887_i64)
       val_0 = occluder
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = mask
+      val_1 = mask.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_light_occluder_set_light_mask, @pointer, args.to_unsafe.as(Void**))
@@ -9594,7 +9594,7 @@ module Godot
     @@mb_canvas_set_shadow_texture_size : Void* = Pointer(Void).null
     def canvas_set_shadow_texture_size(size : Int64) : Void
       godot_bind(@@mb_canvas_set_shadow_texture_size, "RenderingServer", "canvas_set_shadow_texture_size", 1286410249_i64)
-      val_0 = size
+      val_0 = size.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_canvas_set_shadow_texture_size, @pointer, args.to_unsafe.as(Void**))
@@ -9744,11 +9744,11 @@ module Godot
     @@mb_make_sphere_mesh : Void* = Pointer(Void).null
     def make_sphere_mesh(latitudes : Int64, longitudes : Int64, radius : Float64) : Int64
       godot_bind(@@mb_make_sphere_mesh, "RenderingServer", "make_sphere_mesh", 2251015897_i64)
-      val_0 = latitudes
+      val_0 = latitudes.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = longitudes
+      val_1 = longitudes.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = radius
+      val_2 = radius.to_f64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_int(@@mb_make_sphere_mesh, @pointer, args.to_unsafe.as(Void**))
@@ -9867,7 +9867,7 @@ module Godot
       godot_bind(@@mb_force_draw, "RenderingServer", "force_draw", 1076185472_i64)
       val_0 = swap_buffers
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = frame_step
+      val_1 = frame_step.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_force_draw, @pointer, args.to_unsafe.as(Void**))
@@ -9923,8 +9923,8 @@ module Godot
     def render_loop_enabled=(val)
       set_render_loop_enabled(val)
     end
-    signal frame_pre_draw
-    signal frame_post_draw
+    godot_signal frame_pre_draw
+    godot_signal frame_post_draw
   end
   class ResourceFormatLoader < Godot::RefCounted
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -10131,9 +10131,9 @@ module Godot
       str_0 = Bridge.make_string(get_type)
       arg_0 = str_0
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_recognized_extensions_for_type, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_recognized_extensions_for_type, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     ensure
       Bridge.free_string(str_0)
     end
@@ -10169,9 +10169,9 @@ module Godot
       str_0 = Bridge.make_string(path)
       arg_0 = str_0
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_dependencies, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_dependencies, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     ensure
       Bridge.free_string(str_0)
     end
@@ -10242,9 +10242,9 @@ module Godot
       str_0 = Bridge.make_string(directory_path)
       arg_0 = str_0
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_list_directory, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_list_directory, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     ensure
       Bridge.free_string(str_0)
     end
@@ -10315,9 +10315,9 @@ module Godot
     @@mb_get_resource_list : Void* = Pointer(Void).null
     def get_resource_list() : Pointer(Void)
       godot_bind(@@mb_get_resource_list, "ResourcePreloader", "get_resource_list", 1139954409_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_resource_list, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_resource_list, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
   end
   class ResourceSaver < Godot::Object
@@ -10353,7 +10353,7 @@ module Godot
       godot_bind(@@mb_set_uid, "ResourceSaver", "set_uid", 993915709_i64)
       str_0 = Bridge.make_string(resource)
       arg_0 = str_0
-      val_1 = uid
+      val_1 = uid.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_enum(@@mb_set_uid, @pointer, args.to_unsafe.as(Void**), Godot::Error)
@@ -10366,9 +10366,9 @@ module Godot
       arg_ptr_0 = get_type ? get_type.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_recognized_extensions, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_recognized_extensions, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_add_resource_format_saver : Void* = Pointer(Void).null
     def add_resource_format_saver(format_saver : ResourceFormatSaver, at_front : Bool = false) : Void
@@ -10408,7 +10408,7 @@ module Godot
     @@mb_id_to_text : Void* = Pointer(Void).null
     def id_to_text(id : Int64) : String
       godot_bind(@@mb_id_to_text, "ResourceUID", "id_to_text", 844755477_i64)
-      val_0 = id
+      val_0 = id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("id_to_text", id)
@@ -10441,7 +10441,7 @@ module Godot
     @@mb_has_id : Void* = Pointer(Void).null
     def has_id(id : Int64) : Bool
       godot_bind(@@mb_has_id, "ResourceUID", "has_id", 1116898809_i64)
-      val_0 = id
+      val_0 = id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_has_id, @pointer, args.to_unsafe.as(Void**))
@@ -10453,7 +10453,7 @@ module Godot
     @@mb_add_id : Void* = Pointer(Void).null
     def add_id(id : Int64, path : String) : Void
       godot_bind(@@mb_add_id, "ResourceUID", "add_id", 501894301_i64)
-      val_0 = id
+      val_0 = id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       str_1 = Bridge.make_string(path)
       arg_1 = str_1
@@ -10465,7 +10465,7 @@ module Godot
     @@mb_set_id : Void* = Pointer(Void).null
     def set_id(id : Int64, path : String) : Void
       godot_bind(@@mb_set_id, "ResourceUID", "set_id", 501894301_i64)
-      val_0 = id
+      val_0 = id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       str_1 = Bridge.make_string(path)
       arg_1 = str_1
@@ -10477,7 +10477,7 @@ module Godot
     @@mb_get_id_path : Void* = Pointer(Void).null
     def get_id_path(id : Int64) : String
       godot_bind(@@mb_get_id_path, "ResourceUID", "get_id_path", 844755477_i64)
-      val_0 = id
+      val_0 = id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_id_path", id)
@@ -10485,7 +10485,7 @@ module Godot
     @@mb_remove_id : Void* = Pointer(Void).null
     def remove_id(id : Int64) : Void
       godot_bind(@@mb_remove_id, "ResourceUID", "remove_id", 1286410249_i64)
-      val_0 = id
+      val_0 = id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_remove_id, @pointer, args.to_unsafe.as(Void**))
@@ -10724,7 +10724,7 @@ module Godot
     @@mb_set_size : Void* = Pointer(Void).null
     def set_size(size : Float64) : Void
       godot_bind(@@mb_set_size, "RibbonTrailMesh", "set_size", 373806689_i64)
-      val_0 = size
+      val_0 = size.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_size, @pointer, args.to_unsafe.as(Void**))
@@ -10737,7 +10737,7 @@ module Godot
     @@mb_set_sections : Void* = Pointer(Void).null
     def set_sections(sections : Int64) : Void
       godot_bind(@@mb_set_sections, "RibbonTrailMesh", "set_sections", 1286410249_i64)
-      val_0 = sections
+      val_0 = sections.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_sections, @pointer, args.to_unsafe.as(Void**))
@@ -10750,7 +10750,7 @@ module Godot
     @@mb_set_section_length : Void* = Pointer(Void).null
     def set_section_length(section_length : Float64) : Void
       godot_bind(@@mb_set_section_length, "RibbonTrailMesh", "set_section_length", 373806689_i64)
-      val_0 = section_length
+      val_0 = section_length.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_section_length, @pointer, args.to_unsafe.as(Void**))
@@ -10763,7 +10763,7 @@ module Godot
     @@mb_set_section_segments : Void* = Pointer(Void).null
     def set_section_segments(section_segments : Int64) : Void
       godot_bind(@@mb_set_section_segments, "RibbonTrailMesh", "set_section_segments", 1286410249_i64)
-      val_0 = section_segments
+      val_0 = section_segments.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_section_segments, @pointer, args.to_unsafe.as(Void**))
@@ -10916,9 +10916,9 @@ module Godot
     @@mb_add_hr : Void* = Pointer(Void).null
     def add_hr(width : Int64 = 90_i64, height : Int64 = 2_i64, color : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32), alignment : Godot::HorizontalAlignment | Int = 1, width_in_percent : Bool = true, height_in_percent : Bool = false) : Void
       godot_bind(@@mb_add_hr, "RichTextLabel", "add_hr", 16816895_i64)
-      val_0 = width
+      val_0 = width.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = height
+      val_1 = height.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = color
       arg_2 = pointerof(val_2).as(Void*)
@@ -10936,9 +10936,9 @@ module Godot
       godot_bind(@@mb_add_image, "RichTextLabel", "add_image", 1980227702_i64)
       arg_ptr_0 = image ? image.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
-      val_1 = width
+      val_1 = width.to_f64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = height
+      val_2 = height.to_f64
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = color
       arg_3 = pointerof(val_3).as(Void*)
@@ -10973,9 +10973,9 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       arg_ptr_2 = image ? image.pointer : Pointer(Void).null
       arg_2 = pointerof(arg_ptr_2).as(Void*)
-      val_3 = width
+      val_3 = width.to_f64
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = height
+      val_4 = height.to_f64
       arg_4 = pointerof(val_4).as(Void*)
       val_5 = color
       arg_5 = pointerof(val_5).as(Void*)
@@ -11004,7 +11004,7 @@ module Godot
     @@mb_remove_paragraph : Void* = Pointer(Void).null
     def remove_paragraph(paragraph : Int64, no_invalidate : Bool = false) : Bool
       godot_bind(@@mb_remove_paragraph, "RichTextLabel", "remove_paragraph", 3262369265_i64)
-      val_0 = paragraph
+      val_0 = paragraph.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = no_invalidate
       arg_1 = pointerof(val_1).as(Void*)
@@ -11018,7 +11018,7 @@ module Godot
     @@mb_invalidate_paragraph : Void* = Pointer(Void).null
     def invalidate_paragraph(paragraph : Int64) : Bool
       godot_bind(@@mb_invalidate_paragraph, "RichTextLabel", "invalidate_paragraph", 3067735520_i64)
-      val_0 = paragraph
+      val_0 = paragraph.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_invalidate_paragraph, @pointer, args.to_unsafe.as(Void**))
@@ -11032,7 +11032,7 @@ module Godot
       godot_bind(@@mb_push_font, "RichTextLabel", "push_font", 2347424842_i64)
       arg_ptr_0 = font ? font.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
-      val_1 = font_size
+      val_1 = font_size.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_push_font, @pointer, args.to_unsafe.as(Void**))
@@ -11040,7 +11040,7 @@ module Godot
     @@mb_push_font_size : Void* = Pointer(Void).null
     def push_font_size(font_size : Int64) : Void
       godot_bind(@@mb_push_font_size, "RichTextLabel", "push_font_size", 1286410249_i64)
-      val_0 = font_size
+      val_0 = font_size.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_push_font_size, @pointer, args.to_unsafe.as(Void**))
@@ -11081,7 +11081,7 @@ module Godot
     @@mb_push_outline_size : Void* = Pointer(Void).null
     def push_outline_size(outline_size : Int64) : Void
       godot_bind(@@mb_push_outline_size, "RichTextLabel", "push_outline_size", 1286410249_i64)
-      val_0 = outline_size
+      val_0 = outline_size.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_push_outline_size, @pointer, args.to_unsafe.as(Void**))
@@ -11117,7 +11117,7 @@ module Godot
     @@mb_push_indent : Void* = Pointer(Void).null
     def push_indent(level : Int64) : Void
       godot_bind(@@mb_push_indent, "RichTextLabel", "push_indent", 1286410249_i64)
-      val_0 = level
+      val_0 = level.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_push_indent, @pointer, args.to_unsafe.as(Void**))
@@ -11125,7 +11125,7 @@ module Godot
     @@mb_push_list : Void* = Pointer(Void).null
     def push_list(level : Int64, get_type : ListType | Int, capitalize : Bool, bullet : String = "•") : Void
       godot_bind(@@mb_push_list, "RichTextLabel", "push_list", 3017143144_i64)
-      val_0 = level
+      val_0 = level.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = get_type.is_a?(Int) ? get_type.to_i64 : get_type.value.to_i64
       arg_1 = pointerof(val_1).as(Void*)
@@ -11191,11 +11191,11 @@ module Godot
     @@mb_push_table : Void* = Pointer(Void).null
     def push_table(columns : Int64, inline_align : Godot::InlineAlignment | Int = 0, align_to_row : Int64 = -1_i64, name : String = "") : Void
       godot_bind(@@mb_push_table, "RichTextLabel", "push_table", 3426862026_i64)
-      val_0 = columns
+      val_0 = columns.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = inline_align.is_a?(Int) ? inline_align.to_i64 : inline_align.value.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = align_to_row
+      val_2 = align_to_row.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       str_3 = Bridge.make_string(name)
       arg_3 = str_3
@@ -11211,13 +11211,13 @@ module Godot
       arg_0 = str_0
       arg_ptr_1 = font ? font.pointer : Pointer(Void).null
       arg_1 = pointerof(arg_ptr_1).as(Void*)
-      val_2 = size
+      val_2 = size.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = dropcap_margins
       arg_3 = pointerof(val_3).as(Void*)
       val_4 = color
       arg_4 = pointerof(val_4).as(Void*)
-      val_5 = outline_size
+      val_5 = outline_size.to_i64
       arg_5 = pointerof(val_5).as(Void*)
       val_6 = outline_color
       arg_6 = pointerof(val_6).as(Void*)
@@ -11229,11 +11229,11 @@ module Godot
     @@mb_set_table_column_expand : Void* = Pointer(Void).null
     def set_table_column_expand(column : Int64, expand : Bool, ratio : Int64 = 1_i64, shrink : Bool = true) : Void
       godot_bind(@@mb_set_table_column_expand, "RichTextLabel", "set_table_column_expand", 117236061_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = expand
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = ratio
+      val_2 = ratio.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = shrink
       arg_3 = pointerof(val_3).as(Void*)
@@ -11243,7 +11243,7 @@ module Godot
     @@mb_set_table_column_name : Void* = Pointer(Void).null
     def set_table_column_name(column : Int64, name : String) : Void
       godot_bind(@@mb_set_table_column_name, "RichTextLabel", "set_table_column_name", 501894301_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       str_1 = Bridge.make_string(name)
       arg_1 = str_1
@@ -11450,9 +11450,9 @@ module Godot
     @@mb_get_tab_stops : Void* = Pointer(Void).null
     def get_tab_stops() : Pointer(Void)
       godot_bind(@@mb_get_tab_stops, "RichTextLabel", "get_tab_stops", 675695659_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_tab_stops, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_tab_stops, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_set_autowrap_mode : Void* = Pointer(Void).null
     def set_autowrap_mode(autowrap_mode : Godot::TextServer::AutowrapMode | Int) : Void
@@ -11593,7 +11593,7 @@ module Godot
     @@mb_scroll_to_line : Void* = Pointer(Void).null
     def scroll_to_line(line : Int64) : Void
       godot_bind(@@mb_scroll_to_line, "RichTextLabel", "scroll_to_line", 1286410249_i64)
-      val_0 = line
+      val_0 = line.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_scroll_to_line, @pointer, args.to_unsafe.as(Void**))
@@ -11601,7 +11601,7 @@ module Godot
     @@mb_scroll_to_paragraph : Void* = Pointer(Void).null
     def scroll_to_paragraph(paragraph : Int64) : Void
       godot_bind(@@mb_scroll_to_paragraph, "RichTextLabel", "scroll_to_paragraph", 1286410249_i64)
-      val_0 = paragraph
+      val_0 = paragraph.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_scroll_to_paragraph, @pointer, args.to_unsafe.as(Void**))
@@ -11614,7 +11614,7 @@ module Godot
     @@mb_set_tab_size : Void* = Pointer(Void).null
     def set_tab_size(spaces : Int64) : Void
       godot_bind(@@mb_set_tab_size, "RichTextLabel", "set_tab_size", 1286410249_i64)
-      val_0 = spaces
+      val_0 = spaces.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_tab_size, @pointer, args.to_unsafe.as(Void**))
@@ -11669,7 +11669,7 @@ module Godot
     @@mb_set_minimum_font_size : Void* = Pointer(Void).null
     def set_minimum_font_size(size : Int64) : Void
       godot_bind(@@mb_set_minimum_font_size, "RichTextLabel", "set_minimum_font_size", 1286410249_i64)
-      val_0 = size
+      val_0 = size.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_minimum_font_size, @pointer, args.to_unsafe.as(Void**))
@@ -11682,7 +11682,7 @@ module Godot
     @@mb_set_maximum_font_size : Void* = Pointer(Void).null
     def set_maximum_font_size(size : Int64) : Void
       godot_bind(@@mb_set_maximum_font_size, "RichTextLabel", "set_maximum_font_size", 1286410249_i64)
-      val_0 = size
+      val_0 = size.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_maximum_font_size, @pointer, args.to_unsafe.as(Void**))
@@ -11907,7 +11907,7 @@ module Godot
     @@mb_set_progress_bar_delay : Void* = Pointer(Void).null
     def set_progress_bar_delay(delay_ms : Int64) : Void
       godot_bind(@@mb_set_progress_bar_delay, "RichTextLabel", "set_progress_bar_delay", 1286410249_i64)
-      val_0 = delay_ms
+      val_0 = delay_ms.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_progress_bar_delay, @pointer, args.to_unsafe.as(Void**))
@@ -11920,7 +11920,7 @@ module Godot
     @@mb_set_visible_characters : Void* = Pointer(Void).null
     def set_visible_characters(amount : Int64) : Void
       godot_bind(@@mb_set_visible_characters, "RichTextLabel", "set_visible_characters", 1286410249_i64)
-      val_0 = amount
+      val_0 = amount.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_visible_characters, @pointer, args.to_unsafe.as(Void**))
@@ -11946,7 +11946,7 @@ module Godot
     @@mb_set_visible_ratio : Void* = Pointer(Void).null
     def set_visible_ratio(ratio : Float64) : Void
       godot_bind(@@mb_set_visible_ratio, "RichTextLabel", "set_visible_ratio", 373806689_i64)
-      val_0 = ratio
+      val_0 = ratio.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_visible_ratio, @pointer, args.to_unsafe.as(Void**))
@@ -11959,7 +11959,7 @@ module Godot
     @@mb_get_character_line : Void* = Pointer(Void).null
     def get_character_line(character : Int64) : Int64
       godot_bind(@@mb_get_character_line, "RichTextLabel", "get_character_line", 3744713108_i64)
-      val_0 = character
+      val_0 = character.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_character_line, @pointer, args.to_unsafe.as(Void**))
@@ -11967,7 +11967,7 @@ module Godot
     @@mb_get_character_paragraph : Void* = Pointer(Void).null
     def get_character_paragraph(character : Int64) : Int64
       godot_bind(@@mb_get_character_paragraph, "RichTextLabel", "get_character_paragraph", 3744713108_i64)
-      val_0 = character
+      val_0 = character.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_character_paragraph, @pointer, args.to_unsafe.as(Void**))
@@ -12006,7 +12006,7 @@ module Godot
     @@mb_get_line_range : Void* = Pointer(Void).null
     def get_line_range(line : Int64) : Vector2i
       godot_bind(@@mb_get_line_range, "RichTextLabel", "get_line_range", 3665014314_i64)
-      val_0 = line
+      val_0 = line.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_get_line_range, @pointer, args.to_unsafe.as(Void**), Vector2i)
@@ -12039,7 +12039,7 @@ module Godot
     @@mb_get_line_height : Void* = Pointer(Void).null
     def get_line_height(line : Int64) : Int64
       godot_bind(@@mb_get_line_height, "RichTextLabel", "get_line_height", 923996154_i64)
-      val_0 = line
+      val_0 = line.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_line_height, @pointer, args.to_unsafe.as(Void**))
@@ -12047,7 +12047,7 @@ module Godot
     @@mb_get_line_width : Void* = Pointer(Void).null
     def get_line_width(line : Int64) : Int64
       godot_bind(@@mb_get_line_width, "RichTextLabel", "get_line_width", 923996154_i64)
-      val_0 = line
+      val_0 = line.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_line_width, @pointer, args.to_unsafe.as(Void**))
@@ -12060,7 +12060,7 @@ module Godot
     @@mb_get_line_offset : Void* = Pointer(Void).null
     def get_line_offset(line : Int64) : Float64
       godot_bind(@@mb_get_line_offset, "RichTextLabel", "get_line_offset", 4025615559_i64)
-      val_0 = line
+      val_0 = line.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_float(@@mb_get_line_offset, @pointer, args.to_unsafe.as(Void**))
@@ -12068,7 +12068,7 @@ module Godot
     @@mb_get_paragraph_offset : Void* = Pointer(Void).null
     def get_paragraph_offset(paragraph : Int64) : Float64
       godot_bind(@@mb_get_paragraph_offset, "RichTextLabel", "get_paragraph_offset", 4025615559_i64)
-      val_0 = paragraph
+      val_0 = paragraph.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_float(@@mb_get_paragraph_offset, @pointer, args.to_unsafe.as(Void**))
@@ -12132,7 +12132,7 @@ module Godot
     @@mb_menu_option : Void* = Pointer(Void).null
     def menu_option(option : Int64) : Void
       godot_bind(@@mb_menu_option, "RichTextLabel", "menu_option", 1286410249_i64)
-      val_0 = option
+      val_0 = option.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_menu_option, @pointer, args.to_unsafe.as(Void**))
@@ -12410,10 +12410,10 @@ module Godot
     def structured_text_bidi_override_options=(val)
       set_structured_text_bidi_override_options(val)
     end
-    signal meta_clicked, Pointer(Void)
-    signal meta_hover_started, Pointer(Void)
-    signal meta_hover_ended, Pointer(Void)
-    signal finished
+    godot_signal meta_clicked, Pointer(Void)
+    godot_signal meta_hover_started, Pointer(Void)
+    godot_signal meta_hover_ended, Pointer(Void)
+    godot_signal finished
   end
   class RigidBody3D < Godot::PhysicsBody3D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -12434,7 +12434,7 @@ module Godot
     @@mb_set_mass : Void* = Pointer(Void).null
     def set_mass(mass : Float64) : Void
       godot_bind(@@mb_set_mass, "RigidBody3D", "set_mass", 373806689_i64)
-      val_0 = mass
+      val_0 = mass.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_mass, @pointer, args.to_unsafe.as(Void**))
@@ -12530,7 +12530,7 @@ module Godot
     @@mb_set_gravity_scale : Void* = Pointer(Void).null
     def set_gravity_scale(gravity_scale : Float64) : Void
       godot_bind(@@mb_set_gravity_scale, "RigidBody3D", "set_gravity_scale", 373806689_i64)
-      val_0 = gravity_scale
+      val_0 = gravity_scale.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_gravity_scale, @pointer, args.to_unsafe.as(Void**))
@@ -12569,7 +12569,7 @@ module Godot
     @@mb_set_linear_damp : Void* = Pointer(Void).null
     def set_linear_damp(linear_damp : Float64) : Void
       godot_bind(@@mb_set_linear_damp, "RigidBody3D", "set_linear_damp", 373806689_i64)
-      val_0 = linear_damp
+      val_0 = linear_damp.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_linear_damp, @pointer, args.to_unsafe.as(Void**))
@@ -12582,7 +12582,7 @@ module Godot
     @@mb_set_angular_damp : Void* = Pointer(Void).null
     def set_angular_damp(angular_damp : Float64) : Void
       godot_bind(@@mb_set_angular_damp, "RigidBody3D", "set_angular_damp", 373806689_i64)
-      val_0 = angular_damp
+      val_0 = angular_damp.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_angular_damp, @pointer, args.to_unsafe.as(Void**))
@@ -12595,7 +12595,7 @@ module Godot
     @@mb_set_max_contacts_reported : Void* = Pointer(Void).null
     def set_max_contacts_reported(amount : Int64) : Void
       godot_bind(@@mb_set_max_contacts_reported, "RigidBody3D", "set_max_contacts_reported", 1286410249_i64)
-      val_0 = amount
+      val_0 = amount.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_max_contacts_reported, @pointer, args.to_unsafe.as(Void**))
@@ -13107,11 +13107,11 @@ module Godot
     def constant_torque=(val)
       set_constant_torque(val)
     end
-    signal body_shape_entered, Int64, Node, Int64, Int64
-    signal body_shape_exited, Int64, Node, Int64, Int64
-    signal body_entered, Node
-    signal body_exited, Node
-    signal sleeping_state_changed
+    godot_signal body_shape_entered, Int64, Node, Int64, Int64
+    godot_signal body_shape_exited, Int64, Node, Int64, Int64
+    godot_signal body_entered, Node
+    godot_signal body_exited, Node
+    godot_signal sleeping_state_changed
   end
   class RootMotionView < Godot::VisualInstance3D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -13148,7 +13148,7 @@ module Godot
     @@mb_set_cell_size : Void* = Pointer(Void).null
     def set_cell_size(size : Float64) : Void
       godot_bind(@@mb_set_cell_size, "RootMotionView", "set_cell_size", 373806689_i64)
-      val_0 = size
+      val_0 = size.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_cell_size, @pointer, args.to_unsafe.as(Void**))
@@ -13161,7 +13161,7 @@ module Godot
     @@mb_set_radius : Void* = Pointer(Void).null
     def set_radius(size : Float64) : Void
       godot_bind(@@mb_set_radius, "RootMotionView", "set_radius", 373806689_i64)
-      val_0 = size
+      val_0 = size.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_radius, @pointer, args.to_unsafe.as(Void**))
@@ -13259,7 +13259,7 @@ module Godot
     @@mb_disconnect_peer : Void* = Pointer(Void).null
     def disconnect_peer(id : Int64) : Void
       godot_bind(@@mb_disconnect_peer, "SceneMultiplayer", "disconnect_peer", 1286410249_i64)
-      val_0 = id
+      val_0 = id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_disconnect_peer, @pointer, args.to_unsafe.as(Void**))
@@ -13267,14 +13267,14 @@ module Godot
     @@mb_get_authenticating_peers : Void* = Pointer(Void).null
     def get_authenticating_peers() : Pointer(Void)
       godot_bind(@@mb_get_authenticating_peers, "SceneMultiplayer", "get_authenticating_peers", 969006518_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_authenticating_peers, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_authenticating_peers, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_send_auth : Void* = Pointer(Void).null
     def send_auth(id : Int64, data : Pointer(Void)) : Godot::Error
       godot_bind(@@mb_send_auth, "SceneMultiplayer", "send_auth", 506032537_i64)
-      val_0 = id
+      val_0 = id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = data
       arg_1 = pointerof(val_1).as(Void*)
@@ -13284,7 +13284,7 @@ module Godot
     @@mb_complete_auth : Void* = Pointer(Void).null
     def complete_auth(id : Int64) : Godot::Error
       godot_bind(@@mb_complete_auth, "SceneMultiplayer", "complete_auth", 844576869_i64)
-      val_0 = id
+      val_0 = id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_enum(@@mb_complete_auth, @pointer, args.to_unsafe.as(Void**), Godot::Error)
@@ -13300,14 +13300,14 @@ module Godot
     @@mb_get_auth_callback : Void* = Pointer(Void).null
     def get_auth_callback() : Pointer(Void)
       godot_bind(@@mb_get_auth_callback, "SceneMultiplayer", "get_auth_callback", 1307783378_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_auth_callback, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_auth_callback, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_set_auth_timeout : Void* = Pointer(Void).null
     def set_auth_timeout(timeout : Float64) : Void
       godot_bind(@@mb_set_auth_timeout, "SceneMultiplayer", "set_auth_timeout", 373806689_i64)
-      val_0 = timeout
+      val_0 = timeout.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_auth_timeout, @pointer, args.to_unsafe.as(Void**))
@@ -13385,11 +13385,11 @@ module Godot
       godot_bind(@@mb_send_bytes, "SceneMultiplayer", "send_bytes", 1307428718_i64)
       val_0 = bytes
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = id
+      val_1 = id.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = mode.is_a?(Int) ? mode.to_i64 : mode.value.to_i64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = channel
+      val_3 = channel.to_i64
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_enum(@@mb_send_bytes, @pointer, args.to_unsafe.as(Void**), Godot::Error)
@@ -13402,7 +13402,7 @@ module Godot
     @@mb_set_max_sync_packet_size : Void* = Pointer(Void).null
     def set_max_sync_packet_size(size : Int64) : Void
       godot_bind(@@mb_set_max_sync_packet_size, "SceneMultiplayer", "set_max_sync_packet_size", 1286410249_i64)
-      val_0 = size
+      val_0 = size.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_max_sync_packet_size, @pointer, args.to_unsafe.as(Void**))
@@ -13415,7 +13415,7 @@ module Godot
     @@mb_set_max_delta_packet_size : Void* = Pointer(Void).null
     def set_max_delta_packet_size(size : Int64) : Void
       godot_bind(@@mb_set_max_delta_packet_size, "SceneMultiplayer", "set_max_delta_packet_size", 1286410249_i64)
-      val_0 = size
+      val_0 = size.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_max_delta_packet_size, @pointer, args.to_unsafe.as(Void**))
@@ -13493,9 +13493,9 @@ module Godot
     def max_delta_packet_size=(val : Int)
       set_max_delta_packet_size(val.to_i64)
     end
-    signal peer_authenticating, Int64
-    signal peer_authentication_failed, Int64
-    signal peer_packet, Int64, Pointer(Void)
+    godot_signal peer_authenticating, Int64
+    godot_signal peer_authentication_failed, Int64
+    godot_signal peer_packet, Int64, Pointer(Void)
   end
   class ScenePaint2DEditor < Godot::Control
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -13532,7 +13532,7 @@ module Godot
       godot_bind(@@mb_get_painted_scene, "ScenePaint2DEditor", "get_painted_scene", 3536679914_i64)
       godot_ptrcall_obj(@@mb_get_painted_scene, @pointer, Pointer(Pointer(Void)).null, Node2D)
     end
-    signal scene_painted, Node2D
+    godot_signal scene_painted, Node2D
   end
   class SceneReplicationConfig < Godot::Resource
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -13555,7 +13555,7 @@ module Godot
       godot_bind(@@mb_add_property, "SceneReplicationConfig", "add_property", 4094619021_i64)
       np_0 = Bridge.make_nodepath(path.to_s)
       arg_0 = np_0
-      val_1 = index
+      val_1 = index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_add_property, @pointer, args.to_unsafe.as(Void**))
@@ -13725,7 +13725,7 @@ module Godot
     @@mb_get_node_type : Void* = Pointer(Void).null
     def get_node_type(idx : Int64) : String
       godot_bind(@@mb_get_node_type, "SceneState", "get_node_type", 659327637_i64)
-      val_0 = idx
+      val_0 = idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_node_type", idx)
@@ -13733,7 +13733,7 @@ module Godot
     @@mb_get_node_name : Void* = Pointer(Void).null
     def get_node_name(idx : Int64) : String
       godot_bind(@@mb_get_node_name, "SceneState", "get_node_name", 659327637_i64)
-      val_0 = idx
+      val_0 = idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_node_name", idx)
@@ -13741,7 +13741,7 @@ module Godot
     @@mb_get_node_path : Void* = Pointer(Void).null
     def get_node_path(idx : Int64, for_parent : Bool = false) : NodePath
       godot_bind(@@mb_get_node_path, "SceneState", "get_node_path", 2272487792_i64)
-      val_0 = idx
+      val_0 = idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = for_parent
       arg_1 = pointerof(val_1).as(Void*)
@@ -13751,7 +13751,7 @@ module Godot
     @@mb_get_node_owner_path : Void* = Pointer(Void).null
     def get_node_owner_path(idx : Int64) : NodePath
       godot_bind(@@mb_get_node_owner_path, "SceneState", "get_node_owner_path", 408788394_i64)
-      val_0 = idx
+      val_0 = idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       NodePath.new(godot_call_str("get_node_owner_path", idx))
@@ -13759,7 +13759,7 @@ module Godot
     @@mb_is_node_instance_placeholder : Void* = Pointer(Void).null
     def is_node_instance_placeholder(idx : Int64) : Bool
       godot_bind(@@mb_is_node_instance_placeholder, "SceneState", "is_node_instance_placeholder", 1116898809_i64)
-      val_0 = idx
+      val_0 = idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_node_instance_placeholder, @pointer, args.to_unsafe.as(Void**))
@@ -13775,7 +13775,7 @@ module Godot
     @@mb_get_node_instance_placeholder : Void* = Pointer(Void).null
     def get_node_instance_placeholder(idx : Int64) : String
       godot_bind(@@mb_get_node_instance_placeholder, "SceneState", "get_node_instance_placeholder", 844755477_i64)
-      val_0 = idx
+      val_0 = idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_node_instance_placeholder", idx)
@@ -13783,7 +13783,7 @@ module Godot
     @@mb_get_node_instance : Void* = Pointer(Void).null
     def get_node_instance(idx : Int64) : PackedScene
       godot_bind(@@mb_get_node_instance, "SceneState", "get_node_instance", 511017218_i64)
-      val_0 = idx
+      val_0 = idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_get_node_instance, @pointer, args.to_unsafe.as(Void**), PackedScene)
@@ -13791,17 +13791,17 @@ module Godot
     @@mb_get_node_groups : Void* = Pointer(Void).null
     def get_node_groups(idx : Int64) : Pointer(Void)
       godot_bind(@@mb_get_node_groups, "SceneState", "get_node_groups", 647634434_i64)
-      val_0 = idx
+      val_0 = idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_node_groups, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_node_groups, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_get_node_index : Void* = Pointer(Void).null
     def get_node_index(idx : Int64) : Int64
       godot_bind(@@mb_get_node_index, "SceneState", "get_node_index", 923996154_i64)
-      val_0 = idx
+      val_0 = idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_node_index, @pointer, args.to_unsafe.as(Void**))
@@ -13809,7 +13809,7 @@ module Godot
     @@mb_get_node_property_count : Void* = Pointer(Void).null
     def get_node_property_count(idx : Int64) : Int64
       godot_bind(@@mb_get_node_property_count, "SceneState", "get_node_property_count", 923996154_i64)
-      val_0 = idx
+      val_0 = idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_node_property_count, @pointer, args.to_unsafe.as(Void**))
@@ -13817,9 +13817,9 @@ module Godot
     @@mb_get_node_property_name : Void* = Pointer(Void).null
     def get_node_property_name(idx : Int64, prop_idx : Int64) : String
       godot_bind(@@mb_get_node_property_name, "SceneState", "get_node_property_name", 351665558_i64)
-      val_0 = idx
+      val_0 = idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = prop_idx
+      val_1 = prop_idx.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_call_str("get_node_property_name", idx, prop_idx)
@@ -13827,9 +13827,9 @@ module Godot
     @@mb_get_node_property_value : Void* = Pointer(Void).null
     def get_node_property_value(idx : Int64, prop_idx : Int64) : Pointer(Void)
       godot_bind(@@mb_get_node_property_value, "SceneState", "get_node_property_value", 678354945_i64)
-      val_0 = idx
+      val_0 = idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = prop_idx
+      val_1 = prop_idx.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
@@ -13846,7 +13846,7 @@ module Godot
     @@mb_get_connection_source : Void* = Pointer(Void).null
     def get_connection_source(idx : Int64) : NodePath
       godot_bind(@@mb_get_connection_source, "SceneState", "get_connection_source", 408788394_i64)
-      val_0 = idx
+      val_0 = idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       NodePath.new(godot_call_str("get_connection_source", idx))
@@ -13854,7 +13854,7 @@ module Godot
     @@mb_get_connection_signal : Void* = Pointer(Void).null
     def get_connection_signal(idx : Int64) : String
       godot_bind(@@mb_get_connection_signal, "SceneState", "get_connection_signal", 659327637_i64)
-      val_0 = idx
+      val_0 = idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_connection_signal", idx)
@@ -13862,7 +13862,7 @@ module Godot
     @@mb_get_connection_target : Void* = Pointer(Void).null
     def get_connection_target(idx : Int64) : NodePath
       godot_bind(@@mb_get_connection_target, "SceneState", "get_connection_target", 408788394_i64)
-      val_0 = idx
+      val_0 = idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       NodePath.new(godot_call_str("get_connection_target", idx))
@@ -13870,7 +13870,7 @@ module Godot
     @@mb_get_connection_method : Void* = Pointer(Void).null
     def get_connection_method(idx : Int64) : String
       godot_bind(@@mb_get_connection_method, "SceneState", "get_connection_method", 659327637_i64)
-      val_0 = idx
+      val_0 = idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_connection_method", idx)
@@ -13878,7 +13878,7 @@ module Godot
     @@mb_get_connection_flags : Void* = Pointer(Void).null
     def get_connection_flags(idx : Int64) : Int64
       godot_bind(@@mb_get_connection_flags, "SceneState", "get_connection_flags", 923996154_i64)
-      val_0 = idx
+      val_0 = idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_connection_flags, @pointer, args.to_unsafe.as(Void**))
@@ -13886,7 +13886,7 @@ module Godot
     @@mb_get_connection_binds : Void* = Pointer(Void).null
     def get_connection_binds(idx : Int64) : Pointer(Void)
       godot_bind(@@mb_get_connection_binds, "SceneState", "get_connection_binds", 663333327_i64)
-      val_0 = idx
+      val_0 = idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       ret_ptr = Pointer(Void).null
@@ -13896,7 +13896,7 @@ module Godot
     @@mb_get_connection_unbinds : Void* = Pointer(Void).null
     def get_connection_unbinds(idx : Int64) : Int64
       godot_bind(@@mb_get_connection_unbinds, "SceneState", "get_connection_unbinds", 923996154_i64)
-      val_0 = idx
+      val_0 = idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_connection_unbinds, @pointer, args.to_unsafe.as(Void**))
@@ -14099,7 +14099,7 @@ module Godot
     @@mb_create_timer : Void* = Pointer(Void).null
     def create_timer(time_sec : Float64, process_always : Bool = true, process_in_physics : Bool = false, ignore_time_scale : Bool = false) : SceneTreeTimer
       godot_bind(@@mb_create_timer, "SceneTree", "create_timer", 2709170273_i64)
-      val_0 = time_sec
+      val_0 = time_sec.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = process_always
       arg_1 = pointerof(val_1).as(Void*)
@@ -14135,7 +14135,7 @@ module Godot
     @@mb_quit : Void* = Pointer(Void).null
     def quit(exit_code : Int64 = 0_i64) : Void
       godot_bind(@@mb_quit, "SceneTree", "quit", 1995695955_i64)
-      val_0 = exit_code
+      val_0 = exit_code.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_quit, @pointer, args.to_unsafe.as(Void**))
@@ -14172,11 +14172,11 @@ module Godot
     @@mb_notify_group_flags : Void* = Pointer(Void).null
     def notify_group_flags(call_flags : Int64, group : String, notification : Int64) : Void
       godot_bind(@@mb_notify_group_flags, "SceneTree", "notify_group_flags", 1245489420_i64)
-      val_0 = call_flags
+      val_0 = call_flags.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       sn_1 = Bridge.make_string_name(group)
       arg_1 = sn_1
-      val_2 = notification
+      val_2 = notification.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_notify_group_flags, @pointer, args.to_unsafe.as(Void**))
@@ -14186,7 +14186,7 @@ module Godot
     @@mb_set_group_flags : Void* = Pointer(Void).null
     def set_group_flags(call_flags : Int64, group : String, property : String, value : Pointer(Void)) : Void
       godot_bind(@@mb_set_group_flags, "SceneTree", "set_group_flags", 3497599527_i64)
-      val_0 = call_flags
+      val_0 = call_flags.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       sn_1 = Bridge.make_string_name(group)
       arg_1 = sn_1
@@ -14205,7 +14205,7 @@ module Godot
       godot_bind(@@mb_notify_group, "SceneTree", "notify_group", 2415702435_i64)
       sn_0 = Bridge.make_string_name(group)
       arg_0 = sn_0
-      val_1 = notification
+      val_1 = notification.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_notify_group, @pointer, args.to_unsafe.as(Void**))
@@ -14438,15 +14438,15 @@ module Godot
     def physics_interpolation=(val)
       set_physics_interpolation_enabled(val)
     end
-    signal tree_changed
-    signal scene_changed
-    signal tree_process_mode_changed
-    signal node_added, Node
-    signal node_removed, Node
-    signal node_renamed, Node
-    signal node_configuration_warning_changed, Node
-    signal process_frame
-    signal physics_frame
+    godot_signal tree_changed
+    godot_signal scene_changed
+    godot_signal tree_process_mode_changed
+    godot_signal node_added, Node
+    godot_signal node_removed, Node
+    godot_signal node_renamed, Node
+    godot_signal node_configuration_warning_changed, Node
+    godot_signal process_frame
+    godot_signal physics_frame
   end
   class SceneTreeTimer < Godot::RefCounted
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -14455,7 +14455,7 @@ module Godot
     @@mb_set_time_left : Void* = Pointer(Void).null
     def set_time_left(time : Float64) : Void
       godot_bind(@@mb_set_time_left, "SceneTreeTimer", "set_time_left", 373806689_i64)
-      val_0 = time
+      val_0 = time.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_time_left, @pointer, args.to_unsafe.as(Void**))
@@ -14473,7 +14473,7 @@ module Godot
     def time_left=(val : Number)
       set_time_left(val.to_f64)
     end
-    signal timeout
+    godot_signal timeout
   end
   class ScriptBacktrace < Godot::RefCounted
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -14505,7 +14505,7 @@ module Godot
     @@mb_get_frame_function : Void* = Pointer(Void).null
     def get_frame_function(index : Int64) : String
       godot_bind(@@mb_get_frame_function, "ScriptBacktrace", "get_frame_function", 844755477_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_frame_function", index)
@@ -14513,7 +14513,7 @@ module Godot
     @@mb_get_frame_file : Void* = Pointer(Void).null
     def get_frame_file(index : Int64) : String
       godot_bind(@@mb_get_frame_file, "ScriptBacktrace", "get_frame_file", 844755477_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_frame_file", index)
@@ -14521,7 +14521,7 @@ module Godot
     @@mb_get_frame_line : Void* = Pointer(Void).null
     def get_frame_line(index : Int64) : Int64
       godot_bind(@@mb_get_frame_line, "ScriptBacktrace", "get_frame_line", 923996154_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_frame_line, @pointer, args.to_unsafe.as(Void**))
@@ -14534,7 +14534,7 @@ module Godot
     @@mb_get_global_variable_name : Void* = Pointer(Void).null
     def get_global_variable_name(variable_index : Int64) : String
       godot_bind(@@mb_get_global_variable_name, "ScriptBacktrace", "get_global_variable_name", 844755477_i64)
-      val_0 = variable_index
+      val_0 = variable_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_global_variable_name", variable_index)
@@ -14542,7 +14542,7 @@ module Godot
     @@mb_get_global_variable_value : Void* = Pointer(Void).null
     def get_global_variable_value(variable_index : Int64) : Pointer(Void)
       godot_bind(@@mb_get_global_variable_value, "ScriptBacktrace", "get_global_variable_value", 4227898402_i64)
-      val_0 = variable_index
+      val_0 = variable_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
@@ -14554,7 +14554,7 @@ module Godot
     @@mb_get_local_variable_count : Void* = Pointer(Void).null
     def get_local_variable_count(frame_index : Int64) : Int64
       godot_bind(@@mb_get_local_variable_count, "ScriptBacktrace", "get_local_variable_count", 923996154_i64)
-      val_0 = frame_index
+      val_0 = frame_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_local_variable_count, @pointer, args.to_unsafe.as(Void**))
@@ -14562,9 +14562,9 @@ module Godot
     @@mb_get_local_variable_name : Void* = Pointer(Void).null
     def get_local_variable_name(frame_index : Int64, variable_index : Int64) : String
       godot_bind(@@mb_get_local_variable_name, "ScriptBacktrace", "get_local_variable_name", 1391810591_i64)
-      val_0 = frame_index
+      val_0 = frame_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = variable_index
+      val_1 = variable_index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_call_str("get_local_variable_name", frame_index, variable_index)
@@ -14572,9 +14572,9 @@ module Godot
     @@mb_get_local_variable_value : Void* = Pointer(Void).null
     def get_local_variable_value(frame_index : Int64, variable_index : Int64) : Pointer(Void)
       godot_bind(@@mb_get_local_variable_value, "ScriptBacktrace", "get_local_variable_value", 678354945_i64)
-      val_0 = frame_index
+      val_0 = frame_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = variable_index
+      val_1 = variable_index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
@@ -14586,7 +14586,7 @@ module Godot
     @@mb_get_member_variable_count : Void* = Pointer(Void).null
     def get_member_variable_count(frame_index : Int64) : Int64
       godot_bind(@@mb_get_member_variable_count, "ScriptBacktrace", "get_member_variable_count", 923996154_i64)
-      val_0 = frame_index
+      val_0 = frame_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_member_variable_count, @pointer, args.to_unsafe.as(Void**))
@@ -14594,9 +14594,9 @@ module Godot
     @@mb_get_member_variable_name : Void* = Pointer(Void).null
     def get_member_variable_name(frame_index : Int64, variable_index : Int64) : String
       godot_bind(@@mb_get_member_variable_name, "ScriptBacktrace", "get_member_variable_name", 1391810591_i64)
-      val_0 = frame_index
+      val_0 = frame_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = variable_index
+      val_1 = variable_index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_call_str("get_member_variable_name", frame_index, variable_index)
@@ -14604,9 +14604,9 @@ module Godot
     @@mb_get_member_variable_value : Void* = Pointer(Void).null
     def get_member_variable_value(frame_index : Int64, variable_index : Int64) : Pointer(Void)
       godot_bind(@@mb_get_member_variable_value, "ScriptBacktrace", "get_member_variable_value", 678354945_i64)
-      val_0 = frame_index
+      val_0 = frame_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = variable_index
+      val_1 = variable_index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
@@ -14618,9 +14618,9 @@ module Godot
     @@mb_format : Void* = Pointer(Void).null
     def format(indent_all : Int64 = 0_i64, indent_frames : Int64 = 4_i64) : String
       godot_bind(@@mb_format, "ScriptBacktrace", "format", 3464456933_i64)
-      val_0 = indent_all
+      val_0 = indent_all.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = indent_frames
+      val_1 = indent_frames.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_call_str("format", indent_all, indent_frames)
@@ -14647,7 +14647,7 @@ module Godot
       Bridge.free_string(str_0)
       Bridge.free_string(str_1)
     end
-    signal script_created, Script
+    godot_signal script_created, Script
   end
   class ScriptEditor < Godot::EditorDock
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -14668,9 +14668,9 @@ module Godot
     @@mb_get_breakpoints : Void* = Pointer(Void).null
     def get_breakpoints() : Pointer(Void)
       godot_bind(@@mb_get_breakpoints, "ScriptEditor", "get_breakpoints", 2981934095_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_breakpoints, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_breakpoints, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_register_syntax_highlighter : Void* = Pointer(Void).null
     def register_syntax_highlighter(syntax_highlighter : EditorSyntaxHighlighter) : Void
@@ -14691,7 +14691,7 @@ module Godot
     @@mb_goto_line : Void* = Pointer(Void).null
     def goto_line(line_number : Int64) : Void
       godot_bind(@@mb_goto_line, "ScriptEditor", "goto_line", 1286410249_i64)
-      val_0 = line_number
+      val_0 = line_number.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_goto_line, @pointer, args.to_unsafe.as(Void**))
@@ -14755,9 +14755,9 @@ module Godot
     @@mb_get_unsaved_files : Void* = Pointer(Void).null
     def get_unsaved_files() : Pointer(Void)
       godot_bind(@@mb_get_unsaved_files, "ScriptEditor", "get_unsaved_files", 1139954409_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_unsaved_files, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_unsaved_files, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_save_all_scripts : Void* = Pointer(Void).null
     def save_all_scripts() : Void
@@ -14774,8 +14774,8 @@ module Godot
     ensure
       Bridge.free_string(str_0)
     end
-    signal editor_script_changed, Script
-    signal script_close, Script
+    godot_signal editor_script_changed, Script
+    godot_signal script_close, Script
   end
   class ScriptEditorBase < Godot::VBoxContainer
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -14794,16 +14794,16 @@ module Godot
       godot_bind(@@mb_get_base_editor, "ScriptEditorBase", "get_base_editor", 2783021301_i64)
       godot_ptrcall_obj(@@mb_get_base_editor, @pointer, Pointer(Pointer(Void)).null, Control)
     end
-    signal name_changed
-    signal search_in_files_requested, String
-    signal request_help, String
-    signal request_open_script_at_line, Godot::Object, Int64
-    signal go_to_help, String
-    signal replace_in_files_requested, String
-    signal go_to_method, Godot::Object, String
-    signal request_save_history
-    signal request_save_previous_state, Pointer(Void)
-    signal edited_script_changed
+    godot_signal name_changed
+    godot_signal search_in_files_requested, String
+    godot_signal request_help, String
+    godot_signal request_open_script_at_line, Godot::Object, Int64
+    godot_signal go_to_help, String
+    godot_signal replace_in_files_requested, String
+    godot_signal go_to_method, Godot::Object, String
+    godot_signal request_save_history
+    godot_signal request_save_previous_state, Pointer(Void)
+    godot_signal edited_script_changed
   end
   class ScriptExtension < Godot::Script
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -14929,7 +14929,7 @@ module Godot
     @@mb_post : Void* = Pointer(Void).null
     def post(count : Int64 = 1_i64) : Void
       godot_bind(@@mb_post, "Semaphore", "post", 1667783136_i64)
-      val_0 = count
+      val_0 = count.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_post, @pointer, args.to_unsafe.as(Void**))
@@ -14942,7 +14942,7 @@ module Godot
     @@mb_set_length : Void* = Pointer(Void).null
     def set_length(length : Float64) : Void
       godot_bind(@@mb_set_length, "SeparationRayShape2D", "set_length", 373806689_i64)
-      val_0 = length
+      val_0 = length.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_length, @pointer, args.to_unsafe.as(Void**))
@@ -14996,7 +14996,7 @@ module Godot
     @@mb_set_length : Void* = Pointer(Void).null
     def set_length(length : Float64) : Void
       godot_bind(@@mb_set_length, "SeparationRayShape3D", "set_length", 373806689_i64)
-      val_0 = length
+      val_0 = length.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_length, @pointer, args.to_unsafe.as(Void**))
@@ -15082,7 +15082,7 @@ module Godot
       arg_0 = sn_0
       arg_ptr_1 = texture ? texture.pointer : Pointer(Void).null
       arg_1 = pointerof(arg_ptr_1).as(Void*)
-      val_2 = index
+      val_2 = index.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_set_default_texture_parameter, @pointer, args.to_unsafe.as(Void**))
@@ -15094,7 +15094,7 @@ module Godot
       godot_bind(@@mb_get_default_texture_parameter, "Shader", "get_default_texture_parameter", 4213877425_i64)
       sn_0 = Bridge.make_string_name(name)
       arg_0 = sn_0
-      val_1 = index
+      val_1 = index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_obj(@@mb_get_default_texture_parameter, @pointer, args.to_unsafe.as(Void**), Texture)
@@ -15175,9 +15175,9 @@ module Godot
     @@mb_list_built_in_include_files : Void* = Pointer(Void).null
     def self.list_built_in_include_files() : Pointer(Void)
       godot_bind(@@mb_list_built_in_include_files, "ShaderIncludeDB", "list_built_in_include_files", 2981934095_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_list_built_in_include_files, Pointer(Void).null, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_list_built_in_include_files, Pointer(Void).null, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     # Instance convenience delegator for static method `list_built_in_include_files`
     def list_built_in_include_files() : Pointer(Void)
@@ -15326,7 +15326,7 @@ module Godot
     @@mb_set_margin : Void* = Pointer(Void).null
     def set_margin(margin : Float64) : Void
       godot_bind(@@mb_set_margin, "ShapeCast2D", "set_margin", 373806689_i64)
-      val_0 = margin
+      val_0 = margin.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_margin, @pointer, args.to_unsafe.as(Void**))
@@ -15339,7 +15339,7 @@ module Godot
     @@mb_set_max_results : Void* = Pointer(Void).null
     def set_max_results(max_results : Int64) : Void
       godot_bind(@@mb_set_max_results, "ShapeCast2D", "set_max_results", 1286410249_i64)
-      val_0 = max_results
+      val_0 = max_results.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_max_results, @pointer, args.to_unsafe.as(Void**))
@@ -15379,7 +15379,7 @@ module Godot
     @@mb_get_collider : Void* = Pointer(Void).null
     def get_collider(index : Int64) : Godot::Object
       godot_bind(@@mb_get_collider, "ShapeCast2D", "get_collider", 3332903315_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_get_collider, @pointer, args.to_unsafe.as(Void**), Godot::Object)
@@ -15387,7 +15387,7 @@ module Godot
     @@mb_get_collider_rid : Void* = Pointer(Void).null
     def get_collider_rid(index : Int64) : Int64
       godot_bind(@@mb_get_collider_rid, "ShapeCast2D", "get_collider_rid", 495598643_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_collider_rid, @pointer, args.to_unsafe.as(Void**))
@@ -15395,7 +15395,7 @@ module Godot
     @@mb_get_collider_shape : Void* = Pointer(Void).null
     def get_collider_shape(index : Int64) : Int64
       godot_bind(@@mb_get_collider_shape, "ShapeCast2D", "get_collider_shape", 923996154_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_collider_shape, @pointer, args.to_unsafe.as(Void**))
@@ -15403,7 +15403,7 @@ module Godot
     @@mb_get_collision_point : Void* = Pointer(Void).null
     def get_collision_point(index : Int64) : Vector2
       godot_bind(@@mb_get_collision_point, "ShapeCast2D", "get_collision_point", 2299179447_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_get_collision_point, @pointer, args.to_unsafe.as(Void**), Vector2)
@@ -15411,7 +15411,7 @@ module Godot
     @@mb_get_collision_normal : Void* = Pointer(Void).null
     def get_collision_normal(index : Int64) : Vector2
       godot_bind(@@mb_get_collision_normal, "ShapeCast2D", "get_collision_normal", 2299179447_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_get_collision_normal, @pointer, args.to_unsafe.as(Void**), Vector2)
@@ -15466,7 +15466,7 @@ module Godot
     @@mb_set_collision_mask : Void* = Pointer(Void).null
     def set_collision_mask(mask : Int64) : Void
       godot_bind(@@mb_set_collision_mask, "ShapeCast2D", "set_collision_mask", 1286410249_i64)
-      val_0 = mask
+      val_0 = mask.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_collision_mask, @pointer, args.to_unsafe.as(Void**))
@@ -15479,7 +15479,7 @@ module Godot
     @@mb_set_collision_mask_value : Void* = Pointer(Void).null
     def set_collision_mask_value(layer_number : Int64, value : Bool) : Void
       godot_bind(@@mb_set_collision_mask_value, "ShapeCast2D", "set_collision_mask_value", 300928843_i64)
-      val_0 = layer_number
+      val_0 = layer_number.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = value
       arg_1 = pointerof(val_1).as(Void*)
@@ -15489,7 +15489,7 @@ module Godot
     @@mb_get_collision_mask_value : Void* = Pointer(Void).null
     def get_collision_mask_value(layer_number : Int64) : Bool
       godot_bind(@@mb_get_collision_mask_value, "ShapeCast2D", "get_collision_mask_value", 1116898809_i64)
-      val_0 = layer_number
+      val_0 = layer_number.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_get_collision_mask_value, @pointer, args.to_unsafe.as(Void**))
@@ -15712,7 +15712,7 @@ module Godot
     @@mb_set_margin : Void* = Pointer(Void).null
     def set_margin(margin : Float64) : Void
       godot_bind(@@mb_set_margin, "ShapeCast3D", "set_margin", 373806689_i64)
-      val_0 = margin
+      val_0 = margin.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_margin, @pointer, args.to_unsafe.as(Void**))
@@ -15725,7 +15725,7 @@ module Godot
     @@mb_set_max_results : Void* = Pointer(Void).null
     def set_max_results(max_results : Int64) : Void
       godot_bind(@@mb_set_max_results, "ShapeCast3D", "set_max_results", 1286410249_i64)
-      val_0 = max_results
+      val_0 = max_results.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_max_results, @pointer, args.to_unsafe.as(Void**))
@@ -15765,7 +15765,7 @@ module Godot
     @@mb_get_collider : Void* = Pointer(Void).null
     def get_collider(index : Int64) : Godot::Object
       godot_bind(@@mb_get_collider, "ShapeCast3D", "get_collider", 3332903315_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_get_collider, @pointer, args.to_unsafe.as(Void**), Godot::Object)
@@ -15773,7 +15773,7 @@ module Godot
     @@mb_get_collider_rid : Void* = Pointer(Void).null
     def get_collider_rid(index : Int64) : Int64
       godot_bind(@@mb_get_collider_rid, "ShapeCast3D", "get_collider_rid", 495598643_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_collider_rid, @pointer, args.to_unsafe.as(Void**))
@@ -15781,7 +15781,7 @@ module Godot
     @@mb_get_collider_shape : Void* = Pointer(Void).null
     def get_collider_shape(index : Int64) : Int64
       godot_bind(@@mb_get_collider_shape, "ShapeCast3D", "get_collider_shape", 923996154_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_collider_shape, @pointer, args.to_unsafe.as(Void**))
@@ -15789,7 +15789,7 @@ module Godot
     @@mb_get_collision_point : Void* = Pointer(Void).null
     def get_collision_point(index : Int64) : Vector3
       godot_bind(@@mb_get_collision_point, "ShapeCast3D", "get_collision_point", 711720468_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_get_collision_point, @pointer, args.to_unsafe.as(Void**), Vector3)
@@ -15797,7 +15797,7 @@ module Godot
     @@mb_get_collision_normal : Void* = Pointer(Void).null
     def get_collision_normal(index : Int64) : Vector3
       godot_bind(@@mb_get_collision_normal, "ShapeCast3D", "get_collision_normal", 711720468_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_get_collision_normal, @pointer, args.to_unsafe.as(Void**), Vector3)
@@ -15852,7 +15852,7 @@ module Godot
     @@mb_set_collision_mask : Void* = Pointer(Void).null
     def set_collision_mask(mask : Int64) : Void
       godot_bind(@@mb_set_collision_mask, "ShapeCast3D", "set_collision_mask", 1286410249_i64)
-      val_0 = mask
+      val_0 = mask.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_collision_mask, @pointer, args.to_unsafe.as(Void**))
@@ -15865,7 +15865,7 @@ module Godot
     @@mb_set_collision_mask_value : Void* = Pointer(Void).null
     def set_collision_mask_value(layer_number : Int64, value : Bool) : Void
       godot_bind(@@mb_set_collision_mask_value, "ShapeCast3D", "set_collision_mask_value", 300928843_i64)
-      val_0 = layer_number
+      val_0 = layer_number.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = value
       arg_1 = pointerof(val_1).as(Void*)
@@ -15875,7 +15875,7 @@ module Godot
     @@mb_get_collision_mask_value : Void* = Pointer(Void).null
     def get_collision_mask_value(layer_number : Int64) : Bool
       godot_bind(@@mb_get_collision_mask_value, "ShapeCast3D", "get_collision_mask_value", 1116898809_i64)
-      val_0 = layer_number
+      val_0 = layer_number.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_get_collision_mask_value, @pointer, args.to_unsafe.as(Void**))
@@ -16123,7 +16123,7 @@ module Godot
     @@mb_get_bone : Void* = Pointer(Void).null
     def get_bone(idx : Int64) : Bone2D
       godot_bind(@@mb_get_bone, "Skeleton2D", "get_bone", 2556267111_i64)
-      val_0 = idx
+      val_0 = idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_get_bone, @pointer, args.to_unsafe.as(Void**), Bone2D)
@@ -16149,9 +16149,9 @@ module Godot
     @@mb_execute_modifications : Void* = Pointer(Void).null
     def execute_modifications(delta : Float64, execution_mode : Int64) : Void
       godot_bind(@@mb_execute_modifications, "Skeleton2D", "execute_modifications", 1005356550_i64)
-      val_0 = delta
+      val_0 = delta.to_f64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = execution_mode
+      val_1 = execution_mode.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_execute_modifications, @pointer, args.to_unsafe.as(Void**))
@@ -16159,11 +16159,11 @@ module Godot
     @@mb_set_bone_local_pose_override : Void* = Pointer(Void).null
     def set_bone_local_pose_override(bone_idx : Int64, override_pose : Transform2D, strength : Float64, persistent : Bool) : Void
       godot_bind(@@mb_set_bone_local_pose_override, "Skeleton2D", "set_bone_local_pose_override", 555457532_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = override_pose
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = strength
+      val_2 = strength.to_f64
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = persistent
       arg_3 = pointerof(val_3).as(Void*)
@@ -16173,12 +16173,12 @@ module Godot
     @@mb_get_bone_local_pose_override : Void* = Pointer(Void).null
     def get_bone_local_pose_override(bone_idx : Int64) : Transform2D
       godot_bind(@@mb_get_bone_local_pose_override, "Skeleton2D", "get_bone_local_pose_override", 2995540667_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_get_bone_local_pose_override, @pointer, args.to_unsafe.as(Void**), Transform2D)
     end
-    signal bone_setup_changed
+    godot_signal bone_setup_changed
   end
   class Skeleton3D < Godot::Node3D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -16212,7 +16212,7 @@ module Godot
     @@mb_get_bone_name : Void* = Pointer(Void).null
     def get_bone_name(bone_idx : Int64) : String
       godot_bind(@@mb_get_bone_name, "Skeleton3D", "get_bone_name", 844755477_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_bone_name", bone_idx)
@@ -16220,7 +16220,7 @@ module Godot
     @@mb_set_bone_name : Void* = Pointer(Void).null
     def set_bone_name(bone_idx : Int64, name : String) : Void
       godot_bind(@@mb_set_bone_name, "Skeleton3D", "set_bone_name", 501894301_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       str_1 = Bridge.make_string(name)
       arg_1 = str_1
@@ -16232,7 +16232,7 @@ module Godot
     @@mb_get_bone_meta : Void* = Pointer(Void).null
     def get_bone_meta(bone_idx : Int64, key : String) : Pointer(Void)
       godot_bind(@@mb_get_bone_meta, "Skeleton3D", "get_bone_meta", 203112058_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       sn_1 = Bridge.make_string_name(key)
       arg_1 = sn_1
@@ -16248,7 +16248,7 @@ module Godot
     @@mb_get_bone_meta_list : Void* = Pointer(Void).null
     def get_bone_meta_list(bone_idx : Int64) : Pointer(Void)
       godot_bind(@@mb_get_bone_meta_list, "Skeleton3D", "get_bone_meta_list", 663333327_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       ret_ptr = Pointer(Void).null
@@ -16258,7 +16258,7 @@ module Godot
     @@mb_has_bone_meta : Void* = Pointer(Void).null
     def has_bone_meta(bone_idx : Int64, key : String) : Bool
       godot_bind(@@mb_has_bone_meta, "Skeleton3D", "has_bone_meta", 921227809_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       sn_1 = Bridge.make_string_name(key)
       arg_1 = sn_1
@@ -16274,7 +16274,7 @@ module Godot
     @@mb_set_bone_meta : Void* = Pointer(Void).null
     def set_bone_meta(bone_idx : Int64, key : String, value : Pointer(Void)) : Void
       godot_bind(@@mb_set_bone_meta, "Skeleton3D", "set_bone_meta", 702482756_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       sn_1 = Bridge.make_string_name(key)
       arg_1 = sn_1
@@ -16293,7 +16293,7 @@ module Godot
     @@mb_get_bone_parent : Void* = Pointer(Void).null
     def get_bone_parent(bone_idx : Int64) : Int64
       godot_bind(@@mb_get_bone_parent, "Skeleton3D", "get_bone_parent", 923996154_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_bone_parent, @pointer, args.to_unsafe.as(Void**))
@@ -16301,9 +16301,9 @@ module Godot
     @@mb_set_bone_parent : Void* = Pointer(Void).null
     def set_bone_parent(bone_idx : Int64, parent_idx : Int64) : Void
       godot_bind(@@mb_set_bone_parent, "Skeleton3D", "set_bone_parent", 3937882851_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = parent_idx
+      val_1 = parent_idx.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_bone_parent, @pointer, args.to_unsafe.as(Void**))
@@ -16321,7 +16321,7 @@ module Godot
     @@mb_unparent_bone_and_rest : Void* = Pointer(Void).null
     def unparent_bone_and_rest(bone_idx : Int64) : Void
       godot_bind(@@mb_unparent_bone_and_rest, "Skeleton3D", "unparent_bone_and_rest", 1286410249_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_unparent_bone_and_rest, @pointer, args.to_unsafe.as(Void**))
@@ -16329,24 +16329,24 @@ module Godot
     @@mb_get_bone_children : Void* = Pointer(Void).null
     def get_bone_children(bone_idx : Int64) : Pointer(Void)
       godot_bind(@@mb_get_bone_children, "Skeleton3D", "get_bone_children", 1706082319_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_bone_children, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_bone_children, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_get_parentless_bones : Void* = Pointer(Void).null
     def get_parentless_bones() : Pointer(Void)
       godot_bind(@@mb_get_parentless_bones, "Skeleton3D", "get_parentless_bones", 1930428628_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_parentless_bones, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_parentless_bones, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_get_bone_rest : Void* = Pointer(Void).null
     def get_bone_rest(bone_idx : Int64) : Transform3D
       godot_bind(@@mb_get_bone_rest, "Skeleton3D", "get_bone_rest", 1965739696_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_get_bone_rest, @pointer, args.to_unsafe.as(Void**), Transform3D)
@@ -16354,7 +16354,7 @@ module Godot
     @@mb_set_bone_rest : Void* = Pointer(Void).null
     def set_bone_rest(bone_idx : Int64, rest : Transform3D) : Void
       godot_bind(@@mb_set_bone_rest, "Skeleton3D", "set_bone_rest", 3616898986_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = rest
       arg_1 = pointerof(val_1).as(Void*)
@@ -16364,7 +16364,7 @@ module Godot
     @@mb_get_bone_global_rest : Void* = Pointer(Void).null
     def get_bone_global_rest(bone_idx : Int64) : Transform3D
       godot_bind(@@mb_get_bone_global_rest, "Skeleton3D", "get_bone_global_rest", 1965739696_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_get_bone_global_rest, @pointer, args.to_unsafe.as(Void**), Transform3D)
@@ -16395,7 +16395,7 @@ module Godot
     @@mb_get_bone_pose : Void* = Pointer(Void).null
     def get_bone_pose(bone_idx : Int64) : Transform3D
       godot_bind(@@mb_get_bone_pose, "Skeleton3D", "get_bone_pose", 1965739696_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_get_bone_pose, @pointer, args.to_unsafe.as(Void**), Transform3D)
@@ -16403,7 +16403,7 @@ module Godot
     @@mb_set_bone_pose : Void* = Pointer(Void).null
     def set_bone_pose(bone_idx : Int64, pose : Transform3D) : Void
       godot_bind(@@mb_set_bone_pose, "Skeleton3D", "set_bone_pose", 3616898986_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = pose
       arg_1 = pointerof(val_1).as(Void*)
@@ -16413,7 +16413,7 @@ module Godot
     @@mb_set_bone_pose_position : Void* = Pointer(Void).null
     def set_bone_pose_position(bone_idx : Int64, position : Vector3) : Void
       godot_bind(@@mb_set_bone_pose_position, "Skeleton3D", "set_bone_pose_position", 1530502735_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = position
       arg_1 = pointerof(val_1).as(Void*)
@@ -16423,7 +16423,7 @@ module Godot
     @@mb_set_bone_pose_rotation : Void* = Pointer(Void).null
     def set_bone_pose_rotation(bone_idx : Int64, rotation : Quaternion) : Void
       godot_bind(@@mb_set_bone_pose_rotation, "Skeleton3D", "set_bone_pose_rotation", 2823819782_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = rotation
       arg_1 = pointerof(val_1).as(Void*)
@@ -16433,7 +16433,7 @@ module Godot
     @@mb_set_bone_pose_scale : Void* = Pointer(Void).null
     def set_bone_pose_scale(bone_idx : Int64, scale : Vector3) : Void
       godot_bind(@@mb_set_bone_pose_scale, "Skeleton3D", "set_bone_pose_scale", 1530502735_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = scale
       arg_1 = pointerof(val_1).as(Void*)
@@ -16443,7 +16443,7 @@ module Godot
     @@mb_get_bone_pose_position : Void* = Pointer(Void).null
     def get_bone_pose_position(bone_idx : Int64) : Vector3
       godot_bind(@@mb_get_bone_pose_position, "Skeleton3D", "get_bone_pose_position", 711720468_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_get_bone_pose_position, @pointer, args.to_unsafe.as(Void**), Vector3)
@@ -16451,7 +16451,7 @@ module Godot
     @@mb_get_bone_pose_rotation : Void* = Pointer(Void).null
     def get_bone_pose_rotation(bone_idx : Int64) : Quaternion
       godot_bind(@@mb_get_bone_pose_rotation, "Skeleton3D", "get_bone_pose_rotation", 476865136_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_get_bone_pose_rotation, @pointer, args.to_unsafe.as(Void**), Quaternion)
@@ -16459,7 +16459,7 @@ module Godot
     @@mb_get_bone_pose_scale : Void* = Pointer(Void).null
     def get_bone_pose_scale(bone_idx : Int64) : Vector3
       godot_bind(@@mb_get_bone_pose_scale, "Skeleton3D", "get_bone_pose_scale", 711720468_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_get_bone_pose_scale, @pointer, args.to_unsafe.as(Void**), Vector3)
@@ -16467,7 +16467,7 @@ module Godot
     @@mb_set_bone_skin_scale : Void* = Pointer(Void).null
     def set_bone_skin_scale(bone_idx : Int64, skin_scale : Vector3) : Void
       godot_bind(@@mb_set_bone_skin_scale, "Skeleton3D", "set_bone_skin_scale", 1530502735_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = skin_scale
       arg_1 = pointerof(val_1).as(Void*)
@@ -16477,7 +16477,7 @@ module Godot
     @@mb_get_bone_skin_scale : Void* = Pointer(Void).null
     def get_bone_skin_scale(bone_idx : Int64) : Vector3
       godot_bind(@@mb_get_bone_skin_scale, "Skeleton3D", "get_bone_skin_scale", 711720468_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_get_bone_skin_scale, @pointer, args.to_unsafe.as(Void**), Vector3)
@@ -16485,7 +16485,7 @@ module Godot
     @@mb_reset_bone_pose : Void* = Pointer(Void).null
     def reset_bone_pose(bone_idx : Int64, reset_bone_skin_scale : Bool = false) : Void
       godot_bind(@@mb_reset_bone_pose, "Skeleton3D", "reset_bone_pose", 4023243586_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = reset_bone_skin_scale
       arg_1 = pointerof(val_1).as(Void*)
@@ -16503,7 +16503,7 @@ module Godot
     @@mb_is_bone_enabled : Void* = Pointer(Void).null
     def is_bone_enabled(bone_idx : Int64) : Bool
       godot_bind(@@mb_is_bone_enabled, "Skeleton3D", "is_bone_enabled", 1116898809_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_bone_enabled, @pointer, args.to_unsafe.as(Void**))
@@ -16519,7 +16519,7 @@ module Godot
     @@mb_set_bone_enabled : Void* = Pointer(Void).null
     def set_bone_enabled(bone_idx : Int64, enabled : Bool = true) : Void
       godot_bind(@@mb_set_bone_enabled, "Skeleton3D", "set_bone_enabled", 972357352_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = enabled
       arg_1 = pointerof(val_1).as(Void*)
@@ -16529,7 +16529,7 @@ module Godot
     @@mb_get_bone_global_pose : Void* = Pointer(Void).null
     def get_bone_global_pose(bone_idx : Int64) : Transform3D
       godot_bind(@@mb_get_bone_global_pose, "Skeleton3D", "get_bone_global_pose", 1965739696_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_get_bone_global_pose, @pointer, args.to_unsafe.as(Void**), Transform3D)
@@ -16537,7 +16537,7 @@ module Godot
     @@mb_set_bone_global_pose : Void* = Pointer(Void).null
     def set_bone_global_pose(bone_idx : Int64, pose : Transform3D) : Void
       godot_bind(@@mb_set_bone_global_pose, "Skeleton3D", "set_bone_global_pose", 3616898986_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = pose
       arg_1 = pointerof(val_1).as(Void*)
@@ -16552,7 +16552,7 @@ module Godot
     @@mb_force_update_bone_child_transform : Void* = Pointer(Void).null
     def force_update_bone_child_transform(bone_idx : Int64) : Void
       godot_bind(@@mb_force_update_bone_child_transform, "Skeleton3D", "force_update_bone_child_transform", 1286410249_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_force_update_bone_child_transform, @pointer, args.to_unsafe.as(Void**))
@@ -16560,7 +16560,7 @@ module Godot
     @@mb_set_motion_scale : Void* = Pointer(Void).null
     def set_motion_scale(motion_scale : Float64) : Void
       godot_bind(@@mb_set_motion_scale, "Skeleton3D", "set_motion_scale", 373806689_i64)
-      val_0 = motion_scale
+      val_0 = motion_scale.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_motion_scale, @pointer, args.to_unsafe.as(Void**))
@@ -16607,7 +16607,7 @@ module Godot
     @@mb_advance : Void* = Pointer(Void).null
     def advance(delta : Float64) : Void
       godot_bind(@@mb_advance, "Skeleton3D", "advance", 373806689_i64)
-      val_0 = delta
+      val_0 = delta.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_advance, @pointer, args.to_unsafe.as(Void**))
@@ -16620,11 +16620,11 @@ module Godot
     @@mb_set_bone_global_pose_override : Void* = Pointer(Void).null
     def set_bone_global_pose_override(bone_idx : Int64, pose : Transform3D, amount : Float64, persistent : Bool = false) : Void
       godot_bind(@@mb_set_bone_global_pose_override, "Skeleton3D", "set_bone_global_pose_override", 3483398371_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = pose
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = amount
+      val_2 = amount.to_f64
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = persistent
       arg_3 = pointerof(val_3).as(Void*)
@@ -16634,7 +16634,7 @@ module Godot
     @@mb_get_bone_global_pose_override : Void* = Pointer(Void).null
     def get_bone_global_pose_override(bone_idx : Int64) : Transform3D
       godot_bind(@@mb_get_bone_global_pose_override, "Skeleton3D", "get_bone_global_pose_override", 1965739696_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_get_bone_global_pose_override, @pointer, args.to_unsafe.as(Void**), Transform3D)
@@ -16642,7 +16642,7 @@ module Godot
     @@mb_get_bone_global_pose_no_override : Void* = Pointer(Void).null
     def get_bone_global_pose_no_override(bone_idx : Int64) : Transform3D
       godot_bind(@@mb_get_bone_global_pose_no_override, "Skeleton3D", "get_bone_global_pose_no_override", 1965739696_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_get_bone_global_pose_no_override, @pointer, args.to_unsafe.as(Void**), Transform3D)
@@ -16728,12 +16728,12 @@ module Godot
     def animate_physical_bones=(val)
       set_animate_physical_bones(val)
     end
-    signal rest_updated
-    signal pose_updated
-    signal skeleton_updated
-    signal bone_enabled_changed, Int64
-    signal bone_list_changed
-    signal show_rest_only_changed
+    godot_signal rest_updated
+    godot_signal pose_updated
+    godot_signal skeleton_updated
+    godot_signal bone_enabled_changed, Int64
+    godot_signal bone_list_changed
+    godot_signal show_rest_only_changed
   end
   class SkeletonIK3D < Godot::SkeletonModifier3D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -16873,7 +16873,7 @@ module Godot
     @@mb_set_min_distance : Void* = Pointer(Void).null
     def set_min_distance(min_distance : Float64) : Void
       godot_bind(@@mb_set_min_distance, "SkeletonIK3D", "set_min_distance", 373806689_i64)
-      val_0 = min_distance
+      val_0 = min_distance.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_min_distance, @pointer, args.to_unsafe.as(Void**))
@@ -16886,7 +16886,7 @@ module Godot
     @@mb_set_max_iterations : Void* = Pointer(Void).null
     def set_max_iterations(iterations : Int64) : Void
       godot_bind(@@mb_set_max_iterations, "SkeletonIK3D", "set_max_iterations", 1286410249_i64)
-      val_0 = iterations
+      val_0 = iterations.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_max_iterations, @pointer, args.to_unsafe.as(Void**))
@@ -16912,7 +16912,7 @@ module Godot
     @@mb_set_interpolation : Void* = Pointer(Void).null
     def set_interpolation(interpolation : Float64) : Void
       godot_bind(@@mb_set_interpolation, "SkeletonIK3D", "set_interpolation", 373806689_i64)
-      val_0 = interpolation
+      val_0 = interpolation.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_interpolation, @pointer, args.to_unsafe.as(Void**))
@@ -17052,7 +17052,7 @@ module Godot
     @@mb_set_execution_mode : Void* = Pointer(Void).null
     def set_execution_mode(execution_mode : Int64) : Void
       godot_bind(@@mb_set_execution_mode, "SkeletonModification2D", "set_execution_mode", 1286410249_i64)
-      val_0 = execution_mode
+      val_0 = execution_mode.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_execution_mode, @pointer, args.to_unsafe.as(Void**))
@@ -17065,11 +17065,11 @@ module Godot
     @@mb_clamp_angle : Void* = Pointer(Void).null
     def clamp_angle(angle : Float64, min : Float64, max : Float64, invert : Bool) : Float64
       godot_bind(@@mb_clamp_angle, "SkeletonModification2D", "clamp_angle", 1229502682_i64)
-      val_0 = angle
+      val_0 = angle.to_f64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = min
+      val_1 = min.to_f64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = max
+      val_2 = max.to_f64
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = invert
       arg_3 = pointerof(val_3).as(Void*)
@@ -17150,7 +17150,7 @@ module Godot
     @@mb_set_ccdik_data_chain_length : Void* = Pointer(Void).null
     def set_ccdik_data_chain_length(length : Int64) : Void
       godot_bind(@@mb_set_ccdik_data_chain_length, "SkeletonModification2DCCDIK", "set_ccdik_data_chain_length", 1286410249_i64)
-      val_0 = length
+      val_0 = length.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_ccdik_data_chain_length, @pointer, args.to_unsafe.as(Void**))
@@ -17163,7 +17163,7 @@ module Godot
     @@mb_set_ccdik_joint_bone2d_node : Void* = Pointer(Void).null
     def set_ccdik_joint_bone2d_node(joint_idx : Int64, bone2d_nodepath : NodePath | String) : Void
       godot_bind(@@mb_set_ccdik_joint_bone2d_node, "SkeletonModification2DCCDIK", "set_ccdik_joint_bone2d_node", 2761262315_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       np_1 = Bridge.make_nodepath(bone2d_nodepath.to_s)
       arg_1 = np_1
@@ -17175,7 +17175,7 @@ module Godot
     @@mb_get_ccdik_joint_bone2d_node : Void* = Pointer(Void).null
     def get_ccdik_joint_bone2d_node(joint_idx : Int64) : NodePath
       godot_bind(@@mb_get_ccdik_joint_bone2d_node, "SkeletonModification2DCCDIK", "get_ccdik_joint_bone2d_node", 408788394_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       NodePath.new(godot_call_str("get_ccdik_joint_bone2d_node", joint_idx))
@@ -17183,9 +17183,9 @@ module Godot
     @@mb_set_ccdik_joint_bone_index : Void* = Pointer(Void).null
     def set_ccdik_joint_bone_index(joint_idx : Int64, bone_idx : Int64) : Void
       godot_bind(@@mb_set_ccdik_joint_bone_index, "SkeletonModification2DCCDIK", "set_ccdik_joint_bone_index", 3937882851_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = bone_idx
+      val_1 = bone_idx.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_ccdik_joint_bone_index, @pointer, args.to_unsafe.as(Void**))
@@ -17193,7 +17193,7 @@ module Godot
     @@mb_get_ccdik_joint_bone_index : Void* = Pointer(Void).null
     def get_ccdik_joint_bone_index(joint_idx : Int64) : Int64
       godot_bind(@@mb_get_ccdik_joint_bone_index, "SkeletonModification2DCCDIK", "get_ccdik_joint_bone_index", 923996154_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_ccdik_joint_bone_index, @pointer, args.to_unsafe.as(Void**))
@@ -17201,7 +17201,7 @@ module Godot
     @@mb_set_ccdik_joint_rotate_from_joint : Void* = Pointer(Void).null
     def set_ccdik_joint_rotate_from_joint(joint_idx : Int64, rotate_from_joint : Bool) : Void
       godot_bind(@@mb_set_ccdik_joint_rotate_from_joint, "SkeletonModification2DCCDIK", "set_ccdik_joint_rotate_from_joint", 300928843_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = rotate_from_joint
       arg_1 = pointerof(val_1).as(Void*)
@@ -17211,7 +17211,7 @@ module Godot
     @@mb_get_ccdik_joint_rotate_from_joint : Void* = Pointer(Void).null
     def get_ccdik_joint_rotate_from_joint(joint_idx : Int64) : Bool
       godot_bind(@@mb_get_ccdik_joint_rotate_from_joint, "SkeletonModification2DCCDIK", "get_ccdik_joint_rotate_from_joint", 1116898809_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_get_ccdik_joint_rotate_from_joint, @pointer, args.to_unsafe.as(Void**))
@@ -17223,7 +17223,7 @@ module Godot
     @@mb_set_ccdik_joint_enable_constraint : Void* = Pointer(Void).null
     def set_ccdik_joint_enable_constraint(joint_idx : Int64, enable_constraint : Bool) : Void
       godot_bind(@@mb_set_ccdik_joint_enable_constraint, "SkeletonModification2DCCDIK", "set_ccdik_joint_enable_constraint", 300928843_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = enable_constraint
       arg_1 = pointerof(val_1).as(Void*)
@@ -17233,7 +17233,7 @@ module Godot
     @@mb_get_ccdik_joint_enable_constraint : Void* = Pointer(Void).null
     def get_ccdik_joint_enable_constraint(joint_idx : Int64) : Bool
       godot_bind(@@mb_get_ccdik_joint_enable_constraint, "SkeletonModification2DCCDIK", "get_ccdik_joint_enable_constraint", 1116898809_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_get_ccdik_joint_enable_constraint, @pointer, args.to_unsafe.as(Void**))
@@ -17245,9 +17245,9 @@ module Godot
     @@mb_set_ccdik_joint_constraint_angle_min : Void* = Pointer(Void).null
     def set_ccdik_joint_constraint_angle_min(joint_idx : Int64, angle_min : Float64) : Void
       godot_bind(@@mb_set_ccdik_joint_constraint_angle_min, "SkeletonModification2DCCDIK", "set_ccdik_joint_constraint_angle_min", 1602489585_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = angle_min
+      val_1 = angle_min.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_ccdik_joint_constraint_angle_min, @pointer, args.to_unsafe.as(Void**))
@@ -17255,7 +17255,7 @@ module Godot
     @@mb_get_ccdik_joint_constraint_angle_min : Void* = Pointer(Void).null
     def get_ccdik_joint_constraint_angle_min(joint_idx : Int64) : Float64
       godot_bind(@@mb_get_ccdik_joint_constraint_angle_min, "SkeletonModification2DCCDIK", "get_ccdik_joint_constraint_angle_min", 2339986948_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_float(@@mb_get_ccdik_joint_constraint_angle_min, @pointer, args.to_unsafe.as(Void**))
@@ -17263,9 +17263,9 @@ module Godot
     @@mb_set_ccdik_joint_constraint_angle_max : Void* = Pointer(Void).null
     def set_ccdik_joint_constraint_angle_max(joint_idx : Int64, angle_max : Float64) : Void
       godot_bind(@@mb_set_ccdik_joint_constraint_angle_max, "SkeletonModification2DCCDIK", "set_ccdik_joint_constraint_angle_max", 1602489585_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = angle_max
+      val_1 = angle_max.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_ccdik_joint_constraint_angle_max, @pointer, args.to_unsafe.as(Void**))
@@ -17273,7 +17273,7 @@ module Godot
     @@mb_get_ccdik_joint_constraint_angle_max : Void* = Pointer(Void).null
     def get_ccdik_joint_constraint_angle_max(joint_idx : Int64) : Float64
       godot_bind(@@mb_get_ccdik_joint_constraint_angle_max, "SkeletonModification2DCCDIK", "get_ccdik_joint_constraint_angle_max", 2339986948_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_float(@@mb_get_ccdik_joint_constraint_angle_max, @pointer, args.to_unsafe.as(Void**))
@@ -17281,7 +17281,7 @@ module Godot
     @@mb_set_ccdik_joint_constraint_angle_invert : Void* = Pointer(Void).null
     def set_ccdik_joint_constraint_angle_invert(joint_idx : Int64, invert : Bool) : Void
       godot_bind(@@mb_set_ccdik_joint_constraint_angle_invert, "SkeletonModification2DCCDIK", "set_ccdik_joint_constraint_angle_invert", 300928843_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = invert
       arg_1 = pointerof(val_1).as(Void*)
@@ -17291,7 +17291,7 @@ module Godot
     @@mb_get_ccdik_joint_constraint_angle_invert : Void* = Pointer(Void).null
     def get_ccdik_joint_constraint_angle_invert(joint_idx : Int64) : Bool
       godot_bind(@@mb_get_ccdik_joint_constraint_angle_invert, "SkeletonModification2DCCDIK", "get_ccdik_joint_constraint_angle_invert", 1116898809_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_get_ccdik_joint_constraint_angle_invert, @pointer, args.to_unsafe.as(Void**))
@@ -17347,7 +17347,7 @@ module Godot
     @@mb_set_fabrik_data_chain_length : Void* = Pointer(Void).null
     def set_fabrik_data_chain_length(length : Int64) : Void
       godot_bind(@@mb_set_fabrik_data_chain_length, "SkeletonModification2DFABRIK", "set_fabrik_data_chain_length", 1286410249_i64)
-      val_0 = length
+      val_0 = length.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_fabrik_data_chain_length, @pointer, args.to_unsafe.as(Void**))
@@ -17360,7 +17360,7 @@ module Godot
     @@mb_set_fabrik_joint_bone2d_node : Void* = Pointer(Void).null
     def set_fabrik_joint_bone2d_node(joint_idx : Int64, bone2d_nodepath : NodePath | String) : Void
       godot_bind(@@mb_set_fabrik_joint_bone2d_node, "SkeletonModification2DFABRIK", "set_fabrik_joint_bone2d_node", 2761262315_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       np_1 = Bridge.make_nodepath(bone2d_nodepath.to_s)
       arg_1 = np_1
@@ -17372,7 +17372,7 @@ module Godot
     @@mb_get_fabrik_joint_bone2d_node : Void* = Pointer(Void).null
     def get_fabrik_joint_bone2d_node(joint_idx : Int64) : NodePath
       godot_bind(@@mb_get_fabrik_joint_bone2d_node, "SkeletonModification2DFABRIK", "get_fabrik_joint_bone2d_node", 408788394_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       NodePath.new(godot_call_str("get_fabrik_joint_bone2d_node", joint_idx))
@@ -17380,9 +17380,9 @@ module Godot
     @@mb_set_fabrik_joint_bone_index : Void* = Pointer(Void).null
     def set_fabrik_joint_bone_index(joint_idx : Int64, bone_idx : Int64) : Void
       godot_bind(@@mb_set_fabrik_joint_bone_index, "SkeletonModification2DFABRIK", "set_fabrik_joint_bone_index", 3937882851_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = bone_idx
+      val_1 = bone_idx.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_fabrik_joint_bone_index, @pointer, args.to_unsafe.as(Void**))
@@ -17390,7 +17390,7 @@ module Godot
     @@mb_get_fabrik_joint_bone_index : Void* = Pointer(Void).null
     def get_fabrik_joint_bone_index(joint_idx : Int64) : Int64
       godot_bind(@@mb_get_fabrik_joint_bone_index, "SkeletonModification2DFABRIK", "get_fabrik_joint_bone_index", 923996154_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_fabrik_joint_bone_index, @pointer, args.to_unsafe.as(Void**))
@@ -17398,7 +17398,7 @@ module Godot
     @@mb_set_fabrik_joint_magnet_position : Void* = Pointer(Void).null
     def set_fabrik_joint_magnet_position(joint_idx : Int64, magnet_position : Vector2) : Void
       godot_bind(@@mb_set_fabrik_joint_magnet_position, "SkeletonModification2DFABRIK", "set_fabrik_joint_magnet_position", 163021252_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = magnet_position
       arg_1 = pointerof(val_1).as(Void*)
@@ -17408,7 +17408,7 @@ module Godot
     @@mb_get_fabrik_joint_magnet_position : Void* = Pointer(Void).null
     def get_fabrik_joint_magnet_position(joint_idx : Int64) : Vector2
       godot_bind(@@mb_get_fabrik_joint_magnet_position, "SkeletonModification2DFABRIK", "get_fabrik_joint_magnet_position", 2299179447_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_get_fabrik_joint_magnet_position, @pointer, args.to_unsafe.as(Void**), Vector2)
@@ -17416,7 +17416,7 @@ module Godot
     @@mb_set_fabrik_joint_use_target_rotation : Void* = Pointer(Void).null
     def set_fabrik_joint_use_target_rotation(joint_idx : Int64, use_target_rotation : Bool) : Void
       godot_bind(@@mb_set_fabrik_joint_use_target_rotation, "SkeletonModification2DFABRIK", "set_fabrik_joint_use_target_rotation", 300928843_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = use_target_rotation
       arg_1 = pointerof(val_1).as(Void*)
@@ -17426,7 +17426,7 @@ module Godot
     @@mb_get_fabrik_joint_use_target_rotation : Void* = Pointer(Void).null
     def get_fabrik_joint_use_target_rotation(joint_idx : Int64) : Bool
       godot_bind(@@mb_get_fabrik_joint_use_target_rotation, "SkeletonModification2DFABRIK", "get_fabrik_joint_use_target_rotation", 1116898809_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_get_fabrik_joint_use_target_rotation, @pointer, args.to_unsafe.as(Void**))
@@ -17474,7 +17474,7 @@ module Godot
     @@mb_set_jiggle_data_chain_length : Void* = Pointer(Void).null
     def set_jiggle_data_chain_length(length : Int64) : Void
       godot_bind(@@mb_set_jiggle_data_chain_length, "SkeletonModification2DJiggle", "set_jiggle_data_chain_length", 1286410249_i64)
-      val_0 = length
+      val_0 = length.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_jiggle_data_chain_length, @pointer, args.to_unsafe.as(Void**))
@@ -17487,7 +17487,7 @@ module Godot
     @@mb_set_stiffness : Void* = Pointer(Void).null
     def set_stiffness(stiffness : Float64) : Void
       godot_bind(@@mb_set_stiffness, "SkeletonModification2DJiggle", "set_stiffness", 373806689_i64)
-      val_0 = stiffness
+      val_0 = stiffness.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_stiffness, @pointer, args.to_unsafe.as(Void**))
@@ -17500,7 +17500,7 @@ module Godot
     @@mb_set_mass : Void* = Pointer(Void).null
     def set_mass(mass : Float64) : Void
       godot_bind(@@mb_set_mass, "SkeletonModification2DJiggle", "set_mass", 373806689_i64)
-      val_0 = mass
+      val_0 = mass.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_mass, @pointer, args.to_unsafe.as(Void**))
@@ -17513,7 +17513,7 @@ module Godot
     @@mb_set_damping : Void* = Pointer(Void).null
     def set_damping(damping : Float64) : Void
       godot_bind(@@mb_set_damping, "SkeletonModification2DJiggle", "set_damping", 373806689_i64)
-      val_0 = damping
+      val_0 = damping.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_damping, @pointer, args.to_unsafe.as(Void**))
@@ -17573,7 +17573,7 @@ module Godot
     @@mb_set_collision_mask : Void* = Pointer(Void).null
     def set_collision_mask(collision_mask : Int64) : Void
       godot_bind(@@mb_set_collision_mask, "SkeletonModification2DJiggle", "set_collision_mask", 1286410249_i64)
-      val_0 = collision_mask
+      val_0 = collision_mask.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_collision_mask, @pointer, args.to_unsafe.as(Void**))
@@ -17591,7 +17591,7 @@ module Godot
     @@mb_set_jiggle_joint_bone2d_node : Void* = Pointer(Void).null
     def set_jiggle_joint_bone2d_node(joint_idx : Int64, bone2d_node : NodePath | String) : Void
       godot_bind(@@mb_set_jiggle_joint_bone2d_node, "SkeletonModification2DJiggle", "set_jiggle_joint_bone2d_node", 2761262315_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       np_1 = Bridge.make_nodepath(bone2d_node.to_s)
       arg_1 = np_1
@@ -17603,7 +17603,7 @@ module Godot
     @@mb_get_jiggle_joint_bone2d_node : Void* = Pointer(Void).null
     def get_jiggle_joint_bone2d_node(joint_idx : Int64) : NodePath
       godot_bind(@@mb_get_jiggle_joint_bone2d_node, "SkeletonModification2DJiggle", "get_jiggle_joint_bone2d_node", 408788394_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       NodePath.new(godot_call_str("get_jiggle_joint_bone2d_node", joint_idx))
@@ -17611,9 +17611,9 @@ module Godot
     @@mb_set_jiggle_joint_bone_index : Void* = Pointer(Void).null
     def set_jiggle_joint_bone_index(joint_idx : Int64, bone_idx : Int64) : Void
       godot_bind(@@mb_set_jiggle_joint_bone_index, "SkeletonModification2DJiggle", "set_jiggle_joint_bone_index", 3937882851_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = bone_idx
+      val_1 = bone_idx.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_jiggle_joint_bone_index, @pointer, args.to_unsafe.as(Void**))
@@ -17621,7 +17621,7 @@ module Godot
     @@mb_get_jiggle_joint_bone_index : Void* = Pointer(Void).null
     def get_jiggle_joint_bone_index(joint_idx : Int64) : Int64
       godot_bind(@@mb_get_jiggle_joint_bone_index, "SkeletonModification2DJiggle", "get_jiggle_joint_bone_index", 923996154_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_jiggle_joint_bone_index, @pointer, args.to_unsafe.as(Void**))
@@ -17629,7 +17629,7 @@ module Godot
     @@mb_set_jiggle_joint_override : Void* = Pointer(Void).null
     def set_jiggle_joint_override(joint_idx : Int64, override : Bool) : Void
       godot_bind(@@mb_set_jiggle_joint_override, "SkeletonModification2DJiggle", "set_jiggle_joint_override", 300928843_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = override
       arg_1 = pointerof(val_1).as(Void*)
@@ -17639,7 +17639,7 @@ module Godot
     @@mb_get_jiggle_joint_override : Void* = Pointer(Void).null
     def get_jiggle_joint_override(joint_idx : Int64) : Bool
       godot_bind(@@mb_get_jiggle_joint_override, "SkeletonModification2DJiggle", "get_jiggle_joint_override", 1116898809_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_get_jiggle_joint_override, @pointer, args.to_unsafe.as(Void**))
@@ -17651,9 +17651,9 @@ module Godot
     @@mb_set_jiggle_joint_stiffness : Void* = Pointer(Void).null
     def set_jiggle_joint_stiffness(joint_idx : Int64, stiffness : Float64) : Void
       godot_bind(@@mb_set_jiggle_joint_stiffness, "SkeletonModification2DJiggle", "set_jiggle_joint_stiffness", 1602489585_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = stiffness
+      val_1 = stiffness.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_jiggle_joint_stiffness, @pointer, args.to_unsafe.as(Void**))
@@ -17661,7 +17661,7 @@ module Godot
     @@mb_get_jiggle_joint_stiffness : Void* = Pointer(Void).null
     def get_jiggle_joint_stiffness(joint_idx : Int64) : Float64
       godot_bind(@@mb_get_jiggle_joint_stiffness, "SkeletonModification2DJiggle", "get_jiggle_joint_stiffness", 2339986948_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_float(@@mb_get_jiggle_joint_stiffness, @pointer, args.to_unsafe.as(Void**))
@@ -17669,9 +17669,9 @@ module Godot
     @@mb_set_jiggle_joint_mass : Void* = Pointer(Void).null
     def set_jiggle_joint_mass(joint_idx : Int64, mass : Float64) : Void
       godot_bind(@@mb_set_jiggle_joint_mass, "SkeletonModification2DJiggle", "set_jiggle_joint_mass", 1602489585_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = mass
+      val_1 = mass.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_jiggle_joint_mass, @pointer, args.to_unsafe.as(Void**))
@@ -17679,7 +17679,7 @@ module Godot
     @@mb_get_jiggle_joint_mass : Void* = Pointer(Void).null
     def get_jiggle_joint_mass(joint_idx : Int64) : Float64
       godot_bind(@@mb_get_jiggle_joint_mass, "SkeletonModification2DJiggle", "get_jiggle_joint_mass", 2339986948_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_float(@@mb_get_jiggle_joint_mass, @pointer, args.to_unsafe.as(Void**))
@@ -17687,9 +17687,9 @@ module Godot
     @@mb_set_jiggle_joint_damping : Void* = Pointer(Void).null
     def set_jiggle_joint_damping(joint_idx : Int64, damping : Float64) : Void
       godot_bind(@@mb_set_jiggle_joint_damping, "SkeletonModification2DJiggle", "set_jiggle_joint_damping", 1602489585_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = damping
+      val_1 = damping.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_jiggle_joint_damping, @pointer, args.to_unsafe.as(Void**))
@@ -17697,7 +17697,7 @@ module Godot
     @@mb_get_jiggle_joint_damping : Void* = Pointer(Void).null
     def get_jiggle_joint_damping(joint_idx : Int64) : Float64
       godot_bind(@@mb_get_jiggle_joint_damping, "SkeletonModification2DJiggle", "get_jiggle_joint_damping", 2339986948_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_float(@@mb_get_jiggle_joint_damping, @pointer, args.to_unsafe.as(Void**))
@@ -17705,7 +17705,7 @@ module Godot
     @@mb_set_jiggle_joint_use_gravity : Void* = Pointer(Void).null
     def set_jiggle_joint_use_gravity(joint_idx : Int64, use_gravity : Bool) : Void
       godot_bind(@@mb_set_jiggle_joint_use_gravity, "SkeletonModification2DJiggle", "set_jiggle_joint_use_gravity", 300928843_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = use_gravity
       arg_1 = pointerof(val_1).as(Void*)
@@ -17715,7 +17715,7 @@ module Godot
     @@mb_get_jiggle_joint_use_gravity : Void* = Pointer(Void).null
     def get_jiggle_joint_use_gravity(joint_idx : Int64) : Bool
       godot_bind(@@mb_get_jiggle_joint_use_gravity, "SkeletonModification2DJiggle", "get_jiggle_joint_use_gravity", 1116898809_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_get_jiggle_joint_use_gravity, @pointer, args.to_unsafe.as(Void**))
@@ -17727,7 +17727,7 @@ module Godot
     @@mb_set_jiggle_joint_gravity : Void* = Pointer(Void).null
     def set_jiggle_joint_gravity(joint_idx : Int64, gravity : Vector2) : Void
       godot_bind(@@mb_set_jiggle_joint_gravity, "SkeletonModification2DJiggle", "set_jiggle_joint_gravity", 163021252_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = gravity
       arg_1 = pointerof(val_1).as(Void*)
@@ -17737,7 +17737,7 @@ module Godot
     @@mb_get_jiggle_joint_gravity : Void* = Pointer(Void).null
     def get_jiggle_joint_gravity(joint_idx : Int64) : Vector2
       godot_bind(@@mb_get_jiggle_joint_gravity, "SkeletonModification2DJiggle", "get_jiggle_joint_gravity", 2299179447_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_get_jiggle_joint_gravity, @pointer, args.to_unsafe.as(Void**), Vector2)
@@ -17824,7 +17824,7 @@ module Godot
     @@mb_set_bone_index : Void* = Pointer(Void).null
     def set_bone_index(bone_idx : Int64) : Void
       godot_bind(@@mb_set_bone_index, "SkeletonModification2DLookAt", "set_bone_index", 1286410249_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_bone_index, @pointer, args.to_unsafe.as(Void**))
@@ -17852,7 +17852,7 @@ module Godot
     @@mb_set_additional_rotation : Void* = Pointer(Void).null
     def set_additional_rotation(rotation : Float64) : Void
       godot_bind(@@mb_set_additional_rotation, "SkeletonModification2DLookAt", "set_additional_rotation", 373806689_i64)
-      val_0 = rotation
+      val_0 = rotation.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_additional_rotation, @pointer, args.to_unsafe.as(Void**))
@@ -17882,7 +17882,7 @@ module Godot
     @@mb_set_constraint_angle_min : Void* = Pointer(Void).null
     def set_constraint_angle_min(angle_min : Float64) : Void
       godot_bind(@@mb_set_constraint_angle_min, "SkeletonModification2DLookAt", "set_constraint_angle_min", 373806689_i64)
-      val_0 = angle_min
+      val_0 = angle_min.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_constraint_angle_min, @pointer, args.to_unsafe.as(Void**))
@@ -17895,7 +17895,7 @@ module Godot
     @@mb_set_constraint_angle_max : Void* = Pointer(Void).null
     def set_constraint_angle_max(angle_max : Float64) : Void
       godot_bind(@@mb_set_constraint_angle_max, "SkeletonModification2DLookAt", "set_constraint_angle_max", 373806689_i64)
-      val_0 = angle_max
+      val_0 = angle_max.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_constraint_angle_max, @pointer, args.to_unsafe.as(Void**))
@@ -17954,7 +17954,7 @@ module Godot
     @@mb_set_physical_bone_chain_length : Void* = Pointer(Void).null
     def set_physical_bone_chain_length(length : Int64) : Void
       godot_bind(@@mb_set_physical_bone_chain_length, "SkeletonModification2DPhysicalBones", "set_physical_bone_chain_length", 1286410249_i64)
-      val_0 = length
+      val_0 = length.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_physical_bone_chain_length, @pointer, args.to_unsafe.as(Void**))
@@ -17967,7 +17967,7 @@ module Godot
     @@mb_set_physical_bone_node : Void* = Pointer(Void).null
     def set_physical_bone_node(joint_idx : Int64, physicalbone2d_node : NodePath | String) : Void
       godot_bind(@@mb_set_physical_bone_node, "SkeletonModification2DPhysicalBones", "set_physical_bone_node", 2761262315_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       np_1 = Bridge.make_nodepath(physicalbone2d_node.to_s)
       arg_1 = np_1
@@ -17979,7 +17979,7 @@ module Godot
     @@mb_get_physical_bone_node : Void* = Pointer(Void).null
     def get_physical_bone_node(joint_idx : Int64) : NodePath
       godot_bind(@@mb_get_physical_bone_node, "SkeletonModification2DPhysicalBones", "get_physical_bone_node", 408788394_i64)
-      val_0 = joint_idx
+      val_0 = joint_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       NodePath.new(godot_call_str("get_physical_bone_node", joint_idx))
@@ -18054,7 +18054,7 @@ module Godot
     @@mb_set_target_minimum_distance : Void* = Pointer(Void).null
     def set_target_minimum_distance(minimum_distance : Float64) : Void
       godot_bind(@@mb_set_target_minimum_distance, "SkeletonModification2DTwoBoneIK", "set_target_minimum_distance", 373806689_i64)
-      val_0 = minimum_distance
+      val_0 = minimum_distance.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_target_minimum_distance, @pointer, args.to_unsafe.as(Void**))
@@ -18067,7 +18067,7 @@ module Godot
     @@mb_set_target_maximum_distance : Void* = Pointer(Void).null
     def set_target_maximum_distance(maximum_distance : Float64) : Void
       godot_bind(@@mb_set_target_maximum_distance, "SkeletonModification2DTwoBoneIK", "set_target_maximum_distance", 373806689_i64)
-      val_0 = maximum_distance
+      val_0 = maximum_distance.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_target_maximum_distance, @pointer, args.to_unsafe.as(Void**))
@@ -18112,7 +18112,7 @@ module Godot
     @@mb_set_joint_one_bone_idx : Void* = Pointer(Void).null
     def set_joint_one_bone_idx(bone_idx : Int64) : Void
       godot_bind(@@mb_set_joint_one_bone_idx, "SkeletonModification2DTwoBoneIK", "set_joint_one_bone_idx", 1286410249_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_joint_one_bone_idx, @pointer, args.to_unsafe.as(Void**))
@@ -18140,7 +18140,7 @@ module Godot
     @@mb_set_joint_two_bone_idx : Void* = Pointer(Void).null
     def set_joint_two_bone_idx(bone_idx : Int64) : Void
       godot_bind(@@mb_set_joint_two_bone_idx, "SkeletonModification2DTwoBoneIK", "set_joint_two_bone_idx", 1286410249_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_joint_two_bone_idx, @pointer, args.to_unsafe.as(Void**))
@@ -18198,9 +18198,9 @@ module Godot
     @@mb_execute : Void* = Pointer(Void).null
     def execute(delta : Float64, execution_mode : Int64) : Void
       godot_bind(@@mb_execute, "SkeletonModificationStack2D", "execute", 1005356550_i64)
-      val_0 = delta
+      val_0 = delta.to_f64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = execution_mode
+      val_1 = execution_mode.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_execute, @pointer, args.to_unsafe.as(Void**))
@@ -18216,7 +18216,7 @@ module Godot
     @@mb_get_modification : Void* = Pointer(Void).null
     def get_modification(mod_idx : Int64) : SkeletonModification2D
       godot_bind(@@mb_get_modification, "SkeletonModificationStack2D", "get_modification", 2570274329_i64)
-      val_0 = mod_idx
+      val_0 = mod_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_get_modification, @pointer, args.to_unsafe.as(Void**), SkeletonModification2D)
@@ -18232,7 +18232,7 @@ module Godot
     @@mb_delete_modification : Void* = Pointer(Void).null
     def delete_modification(mod_idx : Int64) : Void
       godot_bind(@@mb_delete_modification, "SkeletonModificationStack2D", "delete_modification", 1286410249_i64)
-      val_0 = mod_idx
+      val_0 = mod_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_delete_modification, @pointer, args.to_unsafe.as(Void**))
@@ -18240,7 +18240,7 @@ module Godot
     @@mb_set_modification : Void* = Pointer(Void).null
     def set_modification(mod_idx : Int64, modification : SkeletonModification2D) : Void
       godot_bind(@@mb_set_modification, "SkeletonModificationStack2D", "set_modification", 1098262544_i64)
-      val_0 = mod_idx
+      val_0 = mod_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       arg_ptr_1 = modification ? modification.pointer : Pointer(Void).null
       arg_1 = pointerof(arg_ptr_1).as(Void*)
@@ -18250,7 +18250,7 @@ module Godot
     @@mb_set_modification_count : Void* = Pointer(Void).null
     def set_modification_count(count : Int64) : Void
       godot_bind(@@mb_set_modification_count, "SkeletonModificationStack2D", "set_modification_count", 1286410249_i64)
-      val_0 = count
+      val_0 = count.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_modification_count, @pointer, args.to_unsafe.as(Void**))
@@ -18289,7 +18289,7 @@ module Godot
     @@mb_set_strength : Void* = Pointer(Void).null
     def set_strength(strength : Float64) : Void
       godot_bind(@@mb_set_strength, "SkeletonModificationStack2D", "set_strength", 373806689_i64)
-      val_0 = strength
+      val_0 = strength.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_strength, @pointer, args.to_unsafe.as(Void**))
@@ -18374,7 +18374,7 @@ module Godot
     @@mb_set_group_size : Void* = Pointer(Void).null
     def set_group_size(size : Int64) : Void
       godot_bind(@@mb_set_group_size, "SkeletonProfile", "set_group_size", 1286410249_i64)
-      val_0 = size
+      val_0 = size.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_group_size, @pointer, args.to_unsafe.as(Void**))
@@ -18387,7 +18387,7 @@ module Godot
     @@mb_get_group_name : Void* = Pointer(Void).null
     def get_group_name(group_idx : Int64) : String
       godot_bind(@@mb_get_group_name, "SkeletonProfile", "get_group_name", 659327637_i64)
-      val_0 = group_idx
+      val_0 = group_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_group_name", group_idx)
@@ -18395,7 +18395,7 @@ module Godot
     @@mb_set_group_name : Void* = Pointer(Void).null
     def set_group_name(group_idx : Int64, group_name : String) : Void
       godot_bind(@@mb_set_group_name, "SkeletonProfile", "set_group_name", 3780747571_i64)
-      val_0 = group_idx
+      val_0 = group_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       sn_1 = Bridge.make_string_name(group_name)
       arg_1 = sn_1
@@ -18407,7 +18407,7 @@ module Godot
     @@mb_get_texture : Void* = Pointer(Void).null
     def get_texture(group_idx : Int64) : Texture2D
       godot_bind(@@mb_get_texture, "SkeletonProfile", "get_texture", 3536238170_i64)
-      val_0 = group_idx
+      val_0 = group_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_get_texture, @pointer, args.to_unsafe.as(Void**), Texture2D)
@@ -18415,7 +18415,7 @@ module Godot
     @@mb_set_texture : Void* = Pointer(Void).null
     def set_texture(group_idx : Int64, texture : Texture2D) : Void
       godot_bind(@@mb_set_texture, "SkeletonProfile", "set_texture", 666127730_i64)
-      val_0 = group_idx
+      val_0 = group_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       arg_ptr_1 = texture ? texture.pointer : Pointer(Void).null
       arg_1 = pointerof(arg_ptr_1).as(Void*)
@@ -18425,7 +18425,7 @@ module Godot
     @@mb_set_bone_size : Void* = Pointer(Void).null
     def set_bone_size(size : Int64) : Void
       godot_bind(@@mb_set_bone_size, "SkeletonProfile", "set_bone_size", 1286410249_i64)
-      val_0 = size
+      val_0 = size.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_bone_size, @pointer, args.to_unsafe.as(Void**))
@@ -18448,7 +18448,7 @@ module Godot
     @@mb_get_bone_name : Void* = Pointer(Void).null
     def get_bone_name(bone_idx : Int64) : String
       godot_bind(@@mb_get_bone_name, "SkeletonProfile", "get_bone_name", 659327637_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_bone_name", bone_idx)
@@ -18456,7 +18456,7 @@ module Godot
     @@mb_set_bone_name : Void* = Pointer(Void).null
     def set_bone_name(bone_idx : Int64, bone_name : String) : Void
       godot_bind(@@mb_set_bone_name, "SkeletonProfile", "set_bone_name", 3780747571_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       sn_1 = Bridge.make_string_name(bone_name)
       arg_1 = sn_1
@@ -18468,7 +18468,7 @@ module Godot
     @@mb_get_bone_parent : Void* = Pointer(Void).null
     def get_bone_parent(bone_idx : Int64) : String
       godot_bind(@@mb_get_bone_parent, "SkeletonProfile", "get_bone_parent", 659327637_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_bone_parent", bone_idx)
@@ -18476,7 +18476,7 @@ module Godot
     @@mb_set_bone_parent : Void* = Pointer(Void).null
     def set_bone_parent(bone_idx : Int64, bone_parent : String) : Void
       godot_bind(@@mb_set_bone_parent, "SkeletonProfile", "set_bone_parent", 3780747571_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       sn_1 = Bridge.make_string_name(bone_parent)
       arg_1 = sn_1
@@ -18488,7 +18488,7 @@ module Godot
     @@mb_get_tail_direction : Void* = Pointer(Void).null
     def get_tail_direction(bone_idx : Int64) : TailDirection
       godot_bind(@@mb_get_tail_direction, "SkeletonProfile", "get_tail_direction", 2675997574_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_enum(@@mb_get_tail_direction, @pointer, args.to_unsafe.as(Void**), TailDirection)
@@ -18496,7 +18496,7 @@ module Godot
     @@mb_set_tail_direction : Void* = Pointer(Void).null
     def set_tail_direction(bone_idx : Int64, tail_direction : TailDirection | Int) : Void
       godot_bind(@@mb_set_tail_direction, "SkeletonProfile", "set_tail_direction", 1231951015_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = tail_direction.is_a?(Int) ? tail_direction.to_i64 : tail_direction.value.to_i64
       arg_1 = pointerof(val_1).as(Void*)
@@ -18506,7 +18506,7 @@ module Godot
     @@mb_get_bone_tail : Void* = Pointer(Void).null
     def get_bone_tail(bone_idx : Int64) : String
       godot_bind(@@mb_get_bone_tail, "SkeletonProfile", "get_bone_tail", 659327637_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_bone_tail", bone_idx)
@@ -18514,7 +18514,7 @@ module Godot
     @@mb_set_bone_tail : Void* = Pointer(Void).null
     def set_bone_tail(bone_idx : Int64, bone_tail : String) : Void
       godot_bind(@@mb_set_bone_tail, "SkeletonProfile", "set_bone_tail", 3780747571_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       sn_1 = Bridge.make_string_name(bone_tail)
       arg_1 = sn_1
@@ -18526,7 +18526,7 @@ module Godot
     @@mb_get_reference_pose : Void* = Pointer(Void).null
     def get_reference_pose(bone_idx : Int64) : Transform3D
       godot_bind(@@mb_get_reference_pose, "SkeletonProfile", "get_reference_pose", 1965739696_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_get_reference_pose, @pointer, args.to_unsafe.as(Void**), Transform3D)
@@ -18534,7 +18534,7 @@ module Godot
     @@mb_set_reference_pose : Void* = Pointer(Void).null
     def set_reference_pose(bone_idx : Int64, bone_name : Transform3D) : Void
       godot_bind(@@mb_set_reference_pose, "SkeletonProfile", "set_reference_pose", 3616898986_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = bone_name
       arg_1 = pointerof(val_1).as(Void*)
@@ -18544,7 +18544,7 @@ module Godot
     @@mb_get_handle_offset : Void* = Pointer(Void).null
     def get_handle_offset(bone_idx : Int64) : Vector2
       godot_bind(@@mb_get_handle_offset, "SkeletonProfile", "get_handle_offset", 2299179447_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_get_handle_offset, @pointer, args.to_unsafe.as(Void**), Vector2)
@@ -18552,7 +18552,7 @@ module Godot
     @@mb_set_handle_offset : Void* = Pointer(Void).null
     def set_handle_offset(bone_idx : Int64, handle_offset : Vector2) : Void
       godot_bind(@@mb_set_handle_offset, "SkeletonProfile", "set_handle_offset", 163021252_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = handle_offset
       arg_1 = pointerof(val_1).as(Void*)
@@ -18562,7 +18562,7 @@ module Godot
     @@mb_get_group : Void* = Pointer(Void).null
     def get_group(bone_idx : Int64) : String
       godot_bind(@@mb_get_group, "SkeletonProfile", "get_group", 659327637_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_group", bone_idx)
@@ -18570,7 +18570,7 @@ module Godot
     @@mb_set_group : Void* = Pointer(Void).null
     def set_group(bone_idx : Int64, group : String) : Void
       godot_bind(@@mb_set_group, "SkeletonProfile", "set_group", 3780747571_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       sn_1 = Bridge.make_string_name(group)
       arg_1 = sn_1
@@ -18582,7 +18582,7 @@ module Godot
     @@mb_is_required : Void* = Pointer(Void).null
     def is_required(bone_idx : Int64) : Bool
       godot_bind(@@mb_is_required, "SkeletonProfile", "is_required", 1116898809_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_required, @pointer, args.to_unsafe.as(Void**))
@@ -18598,7 +18598,7 @@ module Godot
     @@mb_set_required : Void* = Pointer(Void).null
     def set_required(bone_idx : Int64, required : Bool) : Void
       godot_bind(@@mb_set_required, "SkeletonProfile", "set_required", 300928843_i64)
-      val_0 = bone_idx
+      val_0 = bone_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = required
       arg_1 = pointerof(val_1).as(Void*)
@@ -18637,7 +18637,7 @@ module Godot
     def bone_size=(val : Int)
       set_bone_size(val.to_i64)
     end
-    signal profile_updated
+    godot_signal profile_updated
   end
   class SkeletonProfileHumanoid < Godot::SkeletonProfile
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -18651,7 +18651,7 @@ module Godot
     @@mb_set_bind_count : Void* = Pointer(Void).null
     def set_bind_count(bind_count : Int64) : Void
       godot_bind(@@mb_set_bind_count, "Skin", "set_bind_count", 1286410249_i64)
-      val_0 = bind_count
+      val_0 = bind_count.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_bind_count, @pointer, args.to_unsafe.as(Void**))
@@ -18664,7 +18664,7 @@ module Godot
     @@mb_add_bind : Void* = Pointer(Void).null
     def add_bind(bone : Int64, pose : Transform3D) : Void
       godot_bind(@@mb_add_bind, "Skin", "add_bind", 3616898986_i64)
-      val_0 = bone
+      val_0 = bone.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = pose
       arg_1 = pointerof(val_1).as(Void*)
@@ -18686,7 +18686,7 @@ module Godot
     @@mb_set_bind_pose : Void* = Pointer(Void).null
     def set_bind_pose(bind_index : Int64, pose : Transform3D) : Void
       godot_bind(@@mb_set_bind_pose, "Skin", "set_bind_pose", 3616898986_i64)
-      val_0 = bind_index
+      val_0 = bind_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = pose
       arg_1 = pointerof(val_1).as(Void*)
@@ -18696,7 +18696,7 @@ module Godot
     @@mb_get_bind_pose : Void* = Pointer(Void).null
     def get_bind_pose(bind_index : Int64) : Transform3D
       godot_bind(@@mb_get_bind_pose, "Skin", "get_bind_pose", 1965739696_i64)
-      val_0 = bind_index
+      val_0 = bind_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_get_bind_pose, @pointer, args.to_unsafe.as(Void**), Transform3D)
@@ -18704,7 +18704,7 @@ module Godot
     @@mb_set_bind_name : Void* = Pointer(Void).null
     def set_bind_name(bind_index : Int64, name : String) : Void
       godot_bind(@@mb_set_bind_name, "Skin", "set_bind_name", 3780747571_i64)
-      val_0 = bind_index
+      val_0 = bind_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       sn_1 = Bridge.make_string_name(name)
       arg_1 = sn_1
@@ -18716,7 +18716,7 @@ module Godot
     @@mb_get_bind_name : Void* = Pointer(Void).null
     def get_bind_name(bind_index : Int64) : String
       godot_bind(@@mb_get_bind_name, "Skin", "get_bind_name", 659327637_i64)
-      val_0 = bind_index
+      val_0 = bind_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_bind_name", bind_index)
@@ -18724,9 +18724,9 @@ module Godot
     @@mb_set_bind_bone : Void* = Pointer(Void).null
     def set_bind_bone(bind_index : Int64, bone : Int64) : Void
       godot_bind(@@mb_set_bind_bone, "Skin", "set_bind_bone", 3937882851_i64)
-      val_0 = bind_index
+      val_0 = bind_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = bone
+      val_1 = bone.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_bind_bone, @pointer, args.to_unsafe.as(Void**))
@@ -18734,7 +18734,7 @@ module Godot
     @@mb_get_bind_bone : Void* = Pointer(Void).null
     def get_bind_bone(bind_index : Int64) : Int64
       godot_bind(@@mb_get_bind_bone, "Skin", "get_bind_bone", 923996154_i64)
-      val_0 = bind_index
+      val_0 = bind_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_bind_bone, @pointer, args.to_unsafe.as(Void**))
@@ -18878,7 +18878,7 @@ module Godot
       godot_bind(@@mb_set_param, "SliderJoint3D", "set_param", 918243683_i64)
       val_0 = param.is_a?(Int) ? param.to_i64 : param.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = value
+      val_1 = value.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_param, @pointer, args.to_unsafe.as(Void**))
@@ -18949,7 +18949,7 @@ module Godot
     @@mb_set_collision_mask : Void* = Pointer(Void).null
     def set_collision_mask(collision_mask : Int64) : Void
       godot_bind(@@mb_set_collision_mask, "SoftBody3D", "set_collision_mask", 1286410249_i64)
-      val_0 = collision_mask
+      val_0 = collision_mask.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_collision_mask, @pointer, args.to_unsafe.as(Void**))
@@ -18962,7 +18962,7 @@ module Godot
     @@mb_set_collision_layer : Void* = Pointer(Void).null
     def set_collision_layer(collision_layer : Int64) : Void
       godot_bind(@@mb_set_collision_layer, "SoftBody3D", "set_collision_layer", 1286410249_i64)
-      val_0 = collision_layer
+      val_0 = collision_layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_collision_layer, @pointer, args.to_unsafe.as(Void**))
@@ -18975,7 +18975,7 @@ module Godot
     @@mb_set_collision_mask_value : Void* = Pointer(Void).null
     def set_collision_mask_value(layer_number : Int64, value : Bool) : Void
       godot_bind(@@mb_set_collision_mask_value, "SoftBody3D", "set_collision_mask_value", 300928843_i64)
-      val_0 = layer_number
+      val_0 = layer_number.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = value
       arg_1 = pointerof(val_1).as(Void*)
@@ -18985,7 +18985,7 @@ module Godot
     @@mb_get_collision_mask_value : Void* = Pointer(Void).null
     def get_collision_mask_value(layer_number : Int64) : Bool
       godot_bind(@@mb_get_collision_mask_value, "SoftBody3D", "get_collision_mask_value", 1116898809_i64)
-      val_0 = layer_number
+      val_0 = layer_number.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_get_collision_mask_value, @pointer, args.to_unsafe.as(Void**))
@@ -18997,7 +18997,7 @@ module Godot
     @@mb_set_collision_layer_value : Void* = Pointer(Void).null
     def set_collision_layer_value(layer_number : Int64, value : Bool) : Void
       godot_bind(@@mb_set_collision_layer_value, "SoftBody3D", "set_collision_layer_value", 300928843_i64)
-      val_0 = layer_number
+      val_0 = layer_number.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = value
       arg_1 = pointerof(val_1).as(Void*)
@@ -19007,7 +19007,7 @@ module Godot
     @@mb_get_collision_layer_value : Void* = Pointer(Void).null
     def get_collision_layer_value(layer_number : Int64) : Bool
       godot_bind(@@mb_get_collision_layer_value, "SoftBody3D", "get_collision_layer_value", 1116898809_i64)
-      val_0 = layer_number
+      val_0 = layer_number.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_get_collision_layer_value, @pointer, args.to_unsafe.as(Void**))
@@ -19070,7 +19070,7 @@ module Godot
     @@mb_set_simulation_precision : Void* = Pointer(Void).null
     def set_simulation_precision(simulation_precision : Int64) : Void
       godot_bind(@@mb_set_simulation_precision, "SoftBody3D", "set_simulation_precision", 1286410249_i64)
-      val_0 = simulation_precision
+      val_0 = simulation_precision.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_simulation_precision, @pointer, args.to_unsafe.as(Void**))
@@ -19083,7 +19083,7 @@ module Godot
     @@mb_set_total_mass : Void* = Pointer(Void).null
     def set_total_mass(mass : Float64) : Void
       godot_bind(@@mb_set_total_mass, "SoftBody3D", "set_total_mass", 373806689_i64)
-      val_0 = mass
+      val_0 = mass.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_total_mass, @pointer, args.to_unsafe.as(Void**))
@@ -19096,7 +19096,7 @@ module Godot
     @@mb_set_linear_stiffness : Void* = Pointer(Void).null
     def set_linear_stiffness(linear_stiffness : Float64) : Void
       godot_bind(@@mb_set_linear_stiffness, "SoftBody3D", "set_linear_stiffness", 373806689_i64)
-      val_0 = linear_stiffness
+      val_0 = linear_stiffness.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_linear_stiffness, @pointer, args.to_unsafe.as(Void**))
@@ -19109,7 +19109,7 @@ module Godot
     @@mb_set_shrinking_factor : Void* = Pointer(Void).null
     def set_shrinking_factor(shrinking_factor : Float64) : Void
       godot_bind(@@mb_set_shrinking_factor, "SoftBody3D", "set_shrinking_factor", 373806689_i64)
-      val_0 = shrinking_factor
+      val_0 = shrinking_factor.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_shrinking_factor, @pointer, args.to_unsafe.as(Void**))
@@ -19122,7 +19122,7 @@ module Godot
     @@mb_set_pressure_coefficient : Void* = Pointer(Void).null
     def set_pressure_coefficient(pressure_coefficient : Float64) : Void
       godot_bind(@@mb_set_pressure_coefficient, "SoftBody3D", "set_pressure_coefficient", 373806689_i64)
-      val_0 = pressure_coefficient
+      val_0 = pressure_coefficient.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_pressure_coefficient, @pointer, args.to_unsafe.as(Void**))
@@ -19135,7 +19135,7 @@ module Godot
     @@mb_set_damping_coefficient : Void* = Pointer(Void).null
     def set_damping_coefficient(damping_coefficient : Float64) : Void
       godot_bind(@@mb_set_damping_coefficient, "SoftBody3D", "set_damping_coefficient", 373806689_i64)
-      val_0 = damping_coefficient
+      val_0 = damping_coefficient.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_damping_coefficient, @pointer, args.to_unsafe.as(Void**))
@@ -19148,7 +19148,7 @@ module Godot
     @@mb_set_drag_coefficient : Void* = Pointer(Void).null
     def set_drag_coefficient(drag_coefficient : Float64) : Void
       godot_bind(@@mb_set_drag_coefficient, "SoftBody3D", "set_drag_coefficient", 373806689_i64)
-      val_0 = drag_coefficient
+      val_0 = drag_coefficient.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_drag_coefficient, @pointer, args.to_unsafe.as(Void**))
@@ -19161,7 +19161,7 @@ module Godot
     @@mb_get_point_transform : Void* = Pointer(Void).null
     def get_point_transform(point_index : Int64) : Vector3
       godot_bind(@@mb_get_point_transform, "SoftBody3D", "get_point_transform", 871989493_i64)
-      val_0 = point_index
+      val_0 = point_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_get_point_transform, @pointer, args.to_unsafe.as(Void**), Vector3)
@@ -19169,7 +19169,7 @@ module Godot
     @@mb_apply_impulse : Void* = Pointer(Void).null
     def apply_impulse(point_index : Int64, impulse : Vector3) : Void
       godot_bind(@@mb_apply_impulse, "SoftBody3D", "apply_impulse", 1530502735_i64)
-      val_0 = point_index
+      val_0 = point_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = impulse
       arg_1 = pointerof(val_1).as(Void*)
@@ -19179,7 +19179,7 @@ module Godot
     @@mb_apply_force : Void* = Pointer(Void).null
     def apply_force(point_index : Int64, force : Vector3) : Void
       godot_bind(@@mb_apply_force, "SoftBody3D", "apply_force", 1530502735_i64)
-      val_0 = point_index
+      val_0 = point_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = force
       arg_1 = pointerof(val_1).as(Void*)
@@ -19205,13 +19205,13 @@ module Godot
     @@mb_set_point_pinned : Void* = Pointer(Void).null
     def set_point_pinned(point_index : Int64, pinned : Bool, attachment_path : NodePath | String = "", insert_at : Int64 = -1_i64) : Void
       godot_bind(@@mb_set_point_pinned, "SoftBody3D", "set_point_pinned", 528784402_i64)
-      val_0 = point_index
+      val_0 = point_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = pinned
       arg_1 = pointerof(val_1).as(Void*)
       np_2 = Bridge.make_nodepath(attachment_path.to_s)
       arg_2 = np_2
-      val_3 = insert_at
+      val_3 = insert_at.to_i64
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_set_point_pinned, @pointer, args.to_unsafe.as(Void**))
@@ -19221,7 +19221,7 @@ module Godot
     @@mb_is_point_pinned : Void* = Pointer(Void).null
     def is_point_pinned(point_index : Int64) : Bool
       godot_bind(@@mb_is_point_pinned, "SoftBody3D", "is_point_pinned", 1116898809_i64)
-      val_0 = point_index
+      val_0 = point_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_point_pinned, @pointer, args.to_unsafe.as(Void**))
@@ -19368,7 +19368,7 @@ module Godot
     @@mb_set_radius : Void* = Pointer(Void).null
     def set_radius(radius : Float64) : Void
       godot_bind(@@mb_set_radius, "SphereMesh", "set_radius", 373806689_i64)
-      val_0 = radius
+      val_0 = radius.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_radius, @pointer, args.to_unsafe.as(Void**))
@@ -19381,7 +19381,7 @@ module Godot
     @@mb_set_height : Void* = Pointer(Void).null
     def set_height(height : Float64) : Void
       godot_bind(@@mb_set_height, "SphereMesh", "set_height", 373806689_i64)
-      val_0 = height
+      val_0 = height.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_height, @pointer, args.to_unsafe.as(Void**))
@@ -19394,7 +19394,7 @@ module Godot
     @@mb_set_radial_segments : Void* = Pointer(Void).null
     def set_radial_segments(radial_segments : Int64) : Void
       godot_bind(@@mb_set_radial_segments, "SphereMesh", "set_radial_segments", 1286410249_i64)
-      val_0 = radial_segments
+      val_0 = radial_segments.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_radial_segments, @pointer, args.to_unsafe.as(Void**))
@@ -19407,7 +19407,7 @@ module Godot
     @@mb_set_rings : Void* = Pointer(Void).null
     def set_rings(rings : Int64) : Void
       godot_bind(@@mb_set_rings, "SphereMesh", "set_rings", 1286410249_i64)
-      val_0 = rings
+      val_0 = rings.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_rings, @pointer, args.to_unsafe.as(Void**))
@@ -19485,7 +19485,7 @@ module Godot
     @@mb_set_radius : Void* = Pointer(Void).null
     def set_radius(radius : Float64) : Void
       godot_bind(@@mb_set_radius, "SphereOccluder3D", "set_radius", 373806689_i64)
-      val_0 = radius
+      val_0 = radius.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_radius, @pointer, args.to_unsafe.as(Void**))
@@ -19511,7 +19511,7 @@ module Godot
     @@mb_set_radius : Void* = Pointer(Void).null
     def set_radius(radius : Float64) : Void
       godot_bind(@@mb_set_radius, "SphereShape3D", "set_radius", 373806689_i64)
-      val_0 = radius
+      val_0 = radius.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_radius, @pointer, args.to_unsafe.as(Void**))
@@ -19631,7 +19631,7 @@ module Godot
     @@mb_set_custom_arrow_step : Void* = Pointer(Void).null
     def set_custom_arrow_step(arrow_step : Float64) : Void
       godot_bind(@@mb_set_custom_arrow_step, "SpinBox", "set_custom_arrow_step", 373806689_i64)
-      val_0 = arrow_step
+      val_0 = arrow_step.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_custom_arrow_step, @pointer, args.to_unsafe.as(Void**))
@@ -19825,7 +19825,7 @@ module Godot
     @@mb_set_path_3d : Void* = Pointer(Void).null
     def set_path_3d(index : Int64, path_3d : NodePath | String) : Void
       godot_bind(@@mb_set_path_3d, "SplineIK3D", "set_path_3d", 2761262315_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       np_1 = Bridge.make_nodepath(path_3d.to_s)
       arg_1 = np_1
@@ -19837,7 +19837,7 @@ module Godot
     @@mb_get_path_3d : Void* = Pointer(Void).null
     def get_path_3d(index : Int64) : NodePath
       godot_bind(@@mb_get_path_3d, "SplineIK3D", "get_path_3d", 408788394_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       NodePath.new(godot_call_str("get_path_3d", index))
@@ -19845,7 +19845,7 @@ module Godot
     @@mb_set_tilt_enabled : Void* = Pointer(Void).null
     def set_tilt_enabled(index : Int64, enabled : Bool) : Void
       godot_bind(@@mb_set_tilt_enabled, "SplineIK3D", "set_tilt_enabled", 300928843_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = enabled
       arg_1 = pointerof(val_1).as(Void*)
@@ -19855,7 +19855,7 @@ module Godot
     @@mb_is_tilt_enabled : Void* = Pointer(Void).null
     def is_tilt_enabled(index : Int64) : Bool
       godot_bind(@@mb_is_tilt_enabled, "SplineIK3D", "is_tilt_enabled", 1116898809_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_tilt_enabled, @pointer, args.to_unsafe.as(Void**))
@@ -19871,9 +19871,9 @@ module Godot
     @@mb_set_tilt_fade_in : Void* = Pointer(Void).null
     def set_tilt_fade_in(index : Int64, size : Int64) : Void
       godot_bind(@@mb_set_tilt_fade_in, "SplineIK3D", "set_tilt_fade_in", 3937882851_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = size
+      val_1 = size.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_tilt_fade_in, @pointer, args.to_unsafe.as(Void**))
@@ -19881,7 +19881,7 @@ module Godot
     @@mb_get_tilt_fade_in : Void* = Pointer(Void).null
     def get_tilt_fade_in(index : Int64) : Int64
       godot_bind(@@mb_get_tilt_fade_in, "SplineIK3D", "get_tilt_fade_in", 923996154_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_tilt_fade_in, @pointer, args.to_unsafe.as(Void**))
@@ -19889,9 +19889,9 @@ module Godot
     @@mb_set_tilt_fade_out : Void* = Pointer(Void).null
     def set_tilt_fade_out(index : Int64, size : Int64) : Void
       godot_bind(@@mb_set_tilt_fade_out, "SplineIK3D", "set_tilt_fade_out", 3937882851_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = size
+      val_1 = size.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_tilt_fade_out, @pointer, args.to_unsafe.as(Void**))
@@ -19899,7 +19899,7 @@ module Godot
     @@mb_get_tilt_fade_out : Void* = Pointer(Void).null
     def get_tilt_fade_out(index : Int64) : Int64
       godot_bind(@@mb_get_tilt_fade_out, "SplineIK3D", "get_tilt_fade_out", 923996154_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_tilt_fade_out, @pointer, args.to_unsafe.as(Void**))
@@ -19962,7 +19962,7 @@ module Godot
     @@mb_set_length : Void* = Pointer(Void).null
     def set_length(length : Float64) : Void
       godot_bind(@@mb_set_length, "SpringArm3D", "set_length", 373806689_i64)
-      val_0 = length
+      val_0 = length.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_length, @pointer, args.to_unsafe.as(Void**))
@@ -20013,7 +20013,7 @@ module Godot
     @@mb_set_collision_mask : Void* = Pointer(Void).null
     def set_collision_mask(mask : Int64) : Void
       godot_bind(@@mb_set_collision_mask, "SpringArm3D", "set_collision_mask", 1286410249_i64)
-      val_0 = mask
+      val_0 = mask.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_collision_mask, @pointer, args.to_unsafe.as(Void**))
@@ -20026,7 +20026,7 @@ module Godot
     @@mb_set_margin : Void* = Pointer(Void).null
     def set_margin(margin : Float64) : Void
       godot_bind(@@mb_set_margin, "SpringArm3D", "set_margin", 373806689_i64)
-      val_0 = margin
+      val_0 = margin.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_margin, @pointer, args.to_unsafe.as(Void**))
@@ -20096,7 +20096,7 @@ module Godot
     @@mb_set_bone : Void* = Pointer(Void).null
     def set_bone(bone : Int64) : Void
       godot_bind(@@mb_set_bone, "SpringBoneCollision3D", "set_bone", 1286410249_i64)
-      val_0 = bone
+      val_0 = bone.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_bone, @pointer, args.to_unsafe.as(Void**))
@@ -20172,7 +20172,7 @@ module Godot
     @@mb_set_radius : Void* = Pointer(Void).null
     def set_radius(radius : Float64) : Void
       godot_bind(@@mb_set_radius, "SpringBoneCollisionCapsule3D", "set_radius", 373806689_i64)
-      val_0 = radius
+      val_0 = radius.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_radius, @pointer, args.to_unsafe.as(Void**))
@@ -20185,7 +20185,7 @@ module Godot
     @@mb_set_height : Void* = Pointer(Void).null
     def set_height(height : Float64) : Void
       godot_bind(@@mb_set_height, "SpringBoneCollisionCapsule3D", "set_height", 373806689_i64)
-      val_0 = height
+      val_0 = height.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_height, @pointer, args.to_unsafe.as(Void**))
@@ -20198,7 +20198,7 @@ module Godot
     @@mb_set_mid_height : Void* = Pointer(Void).null
     def set_mid_height(mid_height : Float64) : Void
       godot_bind(@@mb_set_mid_height, "SpringBoneCollisionCapsule3D", "set_mid_height", 373806689_i64)
-      val_0 = mid_height
+      val_0 = mid_height.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_mid_height, @pointer, args.to_unsafe.as(Void**))
@@ -20274,7 +20274,7 @@ module Godot
     @@mb_set_radius : Void* = Pointer(Void).null
     def set_radius(radius : Float64) : Void
       godot_bind(@@mb_set_radius, "SpringBoneCollisionSphere3D", "set_radius", 373806689_i64)
-      val_0 = radius
+      val_0 = radius.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_radius, @pointer, args.to_unsafe.as(Void**))
@@ -20334,7 +20334,7 @@ module Godot
     @@mb_set_root_bone_name : Void* = Pointer(Void).null
     def set_root_bone_name(index : Int64, bone_name : String) : Void
       godot_bind(@@mb_set_root_bone_name, "SpringBoneSimulator3D", "set_root_bone_name", 501894301_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       str_1 = Bridge.make_string(bone_name)
       arg_1 = str_1
@@ -20346,7 +20346,7 @@ module Godot
     @@mb_get_root_bone_name : Void* = Pointer(Void).null
     def get_root_bone_name(index : Int64) : String
       godot_bind(@@mb_get_root_bone_name, "SpringBoneSimulator3D", "get_root_bone_name", 844755477_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_root_bone_name", index)
@@ -20354,9 +20354,9 @@ module Godot
     @@mb_set_root_bone : Void* = Pointer(Void).null
     def set_root_bone(index : Int64, bone : Int64) : Void
       godot_bind(@@mb_set_root_bone, "SpringBoneSimulator3D", "set_root_bone", 3937882851_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = bone
+      val_1 = bone.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_root_bone, @pointer, args.to_unsafe.as(Void**))
@@ -20364,7 +20364,7 @@ module Godot
     @@mb_get_root_bone : Void* = Pointer(Void).null
     def get_root_bone(index : Int64) : Int64
       godot_bind(@@mb_get_root_bone, "SpringBoneSimulator3D", "get_root_bone", 923996154_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_root_bone, @pointer, args.to_unsafe.as(Void**))
@@ -20372,7 +20372,7 @@ module Godot
     @@mb_set_end_bone_name : Void* = Pointer(Void).null
     def set_end_bone_name(index : Int64, bone_name : String) : Void
       godot_bind(@@mb_set_end_bone_name, "SpringBoneSimulator3D", "set_end_bone_name", 501894301_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       str_1 = Bridge.make_string(bone_name)
       arg_1 = str_1
@@ -20384,7 +20384,7 @@ module Godot
     @@mb_get_end_bone_name : Void* = Pointer(Void).null
     def get_end_bone_name(index : Int64) : String
       godot_bind(@@mb_get_end_bone_name, "SpringBoneSimulator3D", "get_end_bone_name", 844755477_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_end_bone_name", index)
@@ -20392,9 +20392,9 @@ module Godot
     @@mb_set_end_bone : Void* = Pointer(Void).null
     def set_end_bone(index : Int64, bone : Int64) : Void
       godot_bind(@@mb_set_end_bone, "SpringBoneSimulator3D", "set_end_bone", 3937882851_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = bone
+      val_1 = bone.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_end_bone, @pointer, args.to_unsafe.as(Void**))
@@ -20402,7 +20402,7 @@ module Godot
     @@mb_get_end_bone : Void* = Pointer(Void).null
     def get_end_bone(index : Int64) : Int64
       godot_bind(@@mb_get_end_bone, "SpringBoneSimulator3D", "get_end_bone", 923996154_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_end_bone, @pointer, args.to_unsafe.as(Void**))
@@ -20410,7 +20410,7 @@ module Godot
     @@mb_set_extend_end_bone : Void* = Pointer(Void).null
     def set_extend_end_bone(index : Int64, enabled : Bool) : Void
       godot_bind(@@mb_set_extend_end_bone, "SpringBoneSimulator3D", "set_extend_end_bone", 300928843_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = enabled
       arg_1 = pointerof(val_1).as(Void*)
@@ -20420,7 +20420,7 @@ module Godot
     @@mb_is_end_bone_extended : Void* = Pointer(Void).null
     def is_end_bone_extended(index : Int64) : Bool
       godot_bind(@@mb_is_end_bone_extended, "SpringBoneSimulator3D", "is_end_bone_extended", 1116898809_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_end_bone_extended, @pointer, args.to_unsafe.as(Void**))
@@ -20436,7 +20436,7 @@ module Godot
     @@mb_set_end_bone_direction : Void* = Pointer(Void).null
     def set_end_bone_direction(index : Int64, bone_direction : Godot::SkeletonModifier3D::BoneDirection | Int) : Void
       godot_bind(@@mb_set_end_bone_direction, "SpringBoneSimulator3D", "set_end_bone_direction", 2838484201_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = bone_direction.is_a?(Int) ? bone_direction.to_i64 : bone_direction.value.to_i64
       arg_1 = pointerof(val_1).as(Void*)
@@ -20446,7 +20446,7 @@ module Godot
     @@mb_get_end_bone_direction : Void* = Pointer(Void).null
     def get_end_bone_direction(index : Int64) : Godot::SkeletonModifier3D::BoneDirection
       godot_bind(@@mb_get_end_bone_direction, "SpringBoneSimulator3D", "get_end_bone_direction", 1843036459_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_enum(@@mb_get_end_bone_direction, @pointer, args.to_unsafe.as(Void**), Godot::SkeletonModifier3D::BoneDirection)
@@ -20454,9 +20454,9 @@ module Godot
     @@mb_set_end_bone_length : Void* = Pointer(Void).null
     def set_end_bone_length(index : Int64, length : Float64) : Void
       godot_bind(@@mb_set_end_bone_length, "SpringBoneSimulator3D", "set_end_bone_length", 1602489585_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = length
+      val_1 = length.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_end_bone_length, @pointer, args.to_unsafe.as(Void**))
@@ -20464,7 +20464,7 @@ module Godot
     @@mb_get_end_bone_length : Void* = Pointer(Void).null
     def get_end_bone_length(index : Int64) : Float64
       godot_bind(@@mb_get_end_bone_length, "SpringBoneSimulator3D", "get_end_bone_length", 2339986948_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_float(@@mb_get_end_bone_length, @pointer, args.to_unsafe.as(Void**))
@@ -20472,7 +20472,7 @@ module Godot
     @@mb_set_center_from : Void* = Pointer(Void).null
     def set_center_from(index : Int64, center_from : CenterFrom | Int) : Void
       godot_bind(@@mb_set_center_from, "SpringBoneSimulator3D", "set_center_from", 2551505749_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = center_from.is_a?(Int) ? center_from.to_i64 : center_from.value.to_i64
       arg_1 = pointerof(val_1).as(Void*)
@@ -20482,7 +20482,7 @@ module Godot
     @@mb_get_center_from : Void* = Pointer(Void).null
     def get_center_from(index : Int64) : CenterFrom
       godot_bind(@@mb_get_center_from, "SpringBoneSimulator3D", "get_center_from", 2721930813_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_enum(@@mb_get_center_from, @pointer, args.to_unsafe.as(Void**), CenterFrom)
@@ -20490,7 +20490,7 @@ module Godot
     @@mb_set_center_node : Void* = Pointer(Void).null
     def set_center_node(index : Int64, node_path : NodePath | String) : Void
       godot_bind(@@mb_set_center_node, "SpringBoneSimulator3D", "set_center_node", 2761262315_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       np_1 = Bridge.make_nodepath(node_path.to_s)
       arg_1 = np_1
@@ -20502,7 +20502,7 @@ module Godot
     @@mb_get_center_node : Void* = Pointer(Void).null
     def get_center_node(index : Int64) : NodePath
       godot_bind(@@mb_get_center_node, "SpringBoneSimulator3D", "get_center_node", 408788394_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       NodePath.new(godot_call_str("get_center_node", index))
@@ -20510,7 +20510,7 @@ module Godot
     @@mb_set_center_bone_name : Void* = Pointer(Void).null
     def set_center_bone_name(index : Int64, bone_name : String) : Void
       godot_bind(@@mb_set_center_bone_name, "SpringBoneSimulator3D", "set_center_bone_name", 501894301_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       str_1 = Bridge.make_string(bone_name)
       arg_1 = str_1
@@ -20522,7 +20522,7 @@ module Godot
     @@mb_get_center_bone_name : Void* = Pointer(Void).null
     def get_center_bone_name(index : Int64) : String
       godot_bind(@@mb_get_center_bone_name, "SpringBoneSimulator3D", "get_center_bone_name", 844755477_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_center_bone_name", index)
@@ -20530,9 +20530,9 @@ module Godot
     @@mb_set_center_bone : Void* = Pointer(Void).null
     def set_center_bone(index : Int64, bone : Int64) : Void
       godot_bind(@@mb_set_center_bone, "SpringBoneSimulator3D", "set_center_bone", 3937882851_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = bone
+      val_1 = bone.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_center_bone, @pointer, args.to_unsafe.as(Void**))
@@ -20540,7 +20540,7 @@ module Godot
     @@mb_get_center_bone : Void* = Pointer(Void).null
     def get_center_bone(index : Int64) : Int64
       godot_bind(@@mb_get_center_bone, "SpringBoneSimulator3D", "get_center_bone", 923996154_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_center_bone, @pointer, args.to_unsafe.as(Void**))
@@ -20548,9 +20548,9 @@ module Godot
     @@mb_set_radius : Void* = Pointer(Void).null
     def set_radius(index : Int64, radius : Float64) : Void
       godot_bind(@@mb_set_radius, "SpringBoneSimulator3D", "set_radius", 1602489585_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = radius
+      val_1 = radius.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_radius, @pointer, args.to_unsafe.as(Void**))
@@ -20558,7 +20558,7 @@ module Godot
     @@mb_get_radius : Void* = Pointer(Void).null
     def get_radius(index : Int64) : Float64
       godot_bind(@@mb_get_radius, "SpringBoneSimulator3D", "get_radius", 2339986948_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_float(@@mb_get_radius, @pointer, args.to_unsafe.as(Void**))
@@ -20566,7 +20566,7 @@ module Godot
     @@mb_set_rotation_axis : Void* = Pointer(Void).null
     def set_rotation_axis(index : Int64, axis : Godot::SkeletonModifier3D::RotationAxis | Int) : Void
       godot_bind(@@mb_set_rotation_axis, "SpringBoneSimulator3D", "set_rotation_axis", 1539703856_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = axis.is_a?(Int) ? axis.to_i64 : axis.value.to_i64
       arg_1 = pointerof(val_1).as(Void*)
@@ -20576,7 +20576,7 @@ module Godot
     @@mb_get_rotation_axis : Void* = Pointer(Void).null
     def get_rotation_axis(index : Int64) : Godot::SkeletonModifier3D::RotationAxis
       godot_bind(@@mb_get_rotation_axis, "SpringBoneSimulator3D", "get_rotation_axis", 2844851118_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_enum(@@mb_get_rotation_axis, @pointer, args.to_unsafe.as(Void**), Godot::SkeletonModifier3D::RotationAxis)
@@ -20584,7 +20584,7 @@ module Godot
     @@mb_set_rotation_axis_vector : Void* = Pointer(Void).null
     def set_rotation_axis_vector(index : Int64, vector : Vector3) : Void
       godot_bind(@@mb_set_rotation_axis_vector, "SpringBoneSimulator3D", "set_rotation_axis_vector", 1530502735_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = vector
       arg_1 = pointerof(val_1).as(Void*)
@@ -20594,7 +20594,7 @@ module Godot
     @@mb_get_rotation_axis_vector : Void* = Pointer(Void).null
     def get_rotation_axis_vector(index : Int64) : Vector3
       godot_bind(@@mb_get_rotation_axis_vector, "SpringBoneSimulator3D", "get_rotation_axis_vector", 711720468_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_get_rotation_axis_vector, @pointer, args.to_unsafe.as(Void**), Vector3)
@@ -20602,7 +20602,7 @@ module Godot
     @@mb_set_radius_damping_curve : Void* = Pointer(Void).null
     def set_radius_damping_curve(index : Int64, curve : Curve) : Void
       godot_bind(@@mb_set_radius_damping_curve, "SpringBoneSimulator3D", "set_radius_damping_curve", 1447180063_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       arg_ptr_1 = curve ? curve.pointer : Pointer(Void).null
       arg_1 = pointerof(arg_ptr_1).as(Void*)
@@ -20612,7 +20612,7 @@ module Godot
     @@mb_get_radius_damping_curve : Void* = Pointer(Void).null
     def get_radius_damping_curve(index : Int64) : Curve
       godot_bind(@@mb_get_radius_damping_curve, "SpringBoneSimulator3D", "get_radius_damping_curve", 747537754_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_get_radius_damping_curve, @pointer, args.to_unsafe.as(Void**), Curve)
@@ -20620,9 +20620,9 @@ module Godot
     @@mb_set_stiffness : Void* = Pointer(Void).null
     def set_stiffness(index : Int64, stiffness : Float64) : Void
       godot_bind(@@mb_set_stiffness, "SpringBoneSimulator3D", "set_stiffness", 1602489585_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = stiffness
+      val_1 = stiffness.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_stiffness, @pointer, args.to_unsafe.as(Void**))
@@ -20630,7 +20630,7 @@ module Godot
     @@mb_get_stiffness : Void* = Pointer(Void).null
     def get_stiffness(index : Int64) : Float64
       godot_bind(@@mb_get_stiffness, "SpringBoneSimulator3D", "get_stiffness", 2339986948_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_float(@@mb_get_stiffness, @pointer, args.to_unsafe.as(Void**))
@@ -20638,7 +20638,7 @@ module Godot
     @@mb_set_stiffness_damping_curve : Void* = Pointer(Void).null
     def set_stiffness_damping_curve(index : Int64, curve : Curve) : Void
       godot_bind(@@mb_set_stiffness_damping_curve, "SpringBoneSimulator3D", "set_stiffness_damping_curve", 1447180063_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       arg_ptr_1 = curve ? curve.pointer : Pointer(Void).null
       arg_1 = pointerof(arg_ptr_1).as(Void*)
@@ -20648,7 +20648,7 @@ module Godot
     @@mb_get_stiffness_damping_curve : Void* = Pointer(Void).null
     def get_stiffness_damping_curve(index : Int64) : Curve
       godot_bind(@@mb_get_stiffness_damping_curve, "SpringBoneSimulator3D", "get_stiffness_damping_curve", 747537754_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_get_stiffness_damping_curve, @pointer, args.to_unsafe.as(Void**), Curve)
@@ -20656,9 +20656,9 @@ module Godot
     @@mb_set_drag : Void* = Pointer(Void).null
     def set_drag(index : Int64, drag : Float64) : Void
       godot_bind(@@mb_set_drag, "SpringBoneSimulator3D", "set_drag", 1602489585_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = drag
+      val_1 = drag.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_drag, @pointer, args.to_unsafe.as(Void**))
@@ -20666,7 +20666,7 @@ module Godot
     @@mb_get_drag : Void* = Pointer(Void).null
     def get_drag(index : Int64) : Float64
       godot_bind(@@mb_get_drag, "SpringBoneSimulator3D", "get_drag", 2339986948_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_float(@@mb_get_drag, @pointer, args.to_unsafe.as(Void**))
@@ -20674,7 +20674,7 @@ module Godot
     @@mb_set_drag_damping_curve : Void* = Pointer(Void).null
     def set_drag_damping_curve(index : Int64, curve : Curve) : Void
       godot_bind(@@mb_set_drag_damping_curve, "SpringBoneSimulator3D", "set_drag_damping_curve", 1447180063_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       arg_ptr_1 = curve ? curve.pointer : Pointer(Void).null
       arg_1 = pointerof(arg_ptr_1).as(Void*)
@@ -20684,7 +20684,7 @@ module Godot
     @@mb_get_drag_damping_curve : Void* = Pointer(Void).null
     def get_drag_damping_curve(index : Int64) : Curve
       godot_bind(@@mb_get_drag_damping_curve, "SpringBoneSimulator3D", "get_drag_damping_curve", 747537754_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_get_drag_damping_curve, @pointer, args.to_unsafe.as(Void**), Curve)
@@ -20692,9 +20692,9 @@ module Godot
     @@mb_set_gravity : Void* = Pointer(Void).null
     def set_gravity(index : Int64, gravity : Float64) : Void
       godot_bind(@@mb_set_gravity, "SpringBoneSimulator3D", "set_gravity", 1602489585_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = gravity
+      val_1 = gravity.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_gravity, @pointer, args.to_unsafe.as(Void**))
@@ -20702,7 +20702,7 @@ module Godot
     @@mb_get_gravity : Void* = Pointer(Void).null
     def get_gravity(index : Int64) : Float64
       godot_bind(@@mb_get_gravity, "SpringBoneSimulator3D", "get_gravity", 2339986948_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_float(@@mb_get_gravity, @pointer, args.to_unsafe.as(Void**))
@@ -20710,7 +20710,7 @@ module Godot
     @@mb_set_gravity_damping_curve : Void* = Pointer(Void).null
     def set_gravity_damping_curve(index : Int64, curve : Curve) : Void
       godot_bind(@@mb_set_gravity_damping_curve, "SpringBoneSimulator3D", "set_gravity_damping_curve", 1447180063_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       arg_ptr_1 = curve ? curve.pointer : Pointer(Void).null
       arg_1 = pointerof(arg_ptr_1).as(Void*)
@@ -20720,7 +20720,7 @@ module Godot
     @@mb_get_gravity_damping_curve : Void* = Pointer(Void).null
     def get_gravity_damping_curve(index : Int64) : Curve
       godot_bind(@@mb_get_gravity_damping_curve, "SpringBoneSimulator3D", "get_gravity_damping_curve", 747537754_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_get_gravity_damping_curve, @pointer, args.to_unsafe.as(Void**), Curve)
@@ -20728,7 +20728,7 @@ module Godot
     @@mb_set_gravity_direction : Void* = Pointer(Void).null
     def set_gravity_direction(index : Int64, gravity_direction : Vector3) : Void
       godot_bind(@@mb_set_gravity_direction, "SpringBoneSimulator3D", "set_gravity_direction", 1530502735_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = gravity_direction
       arg_1 = pointerof(val_1).as(Void*)
@@ -20738,7 +20738,7 @@ module Godot
     @@mb_get_gravity_direction : Void* = Pointer(Void).null
     def get_gravity_direction(index : Int64) : Vector3
       godot_bind(@@mb_get_gravity_direction, "SpringBoneSimulator3D", "get_gravity_direction", 711720468_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_get_gravity_direction, @pointer, args.to_unsafe.as(Void**), Vector3)
@@ -20746,7 +20746,7 @@ module Godot
     @@mb_set_setting_count : Void* = Pointer(Void).null
     def set_setting_count(count : Int64) : Void
       godot_bind(@@mb_set_setting_count, "SpringBoneSimulator3D", "set_setting_count", 1286410249_i64)
-      val_0 = count
+      val_0 = count.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_setting_count, @pointer, args.to_unsafe.as(Void**))
@@ -20764,7 +20764,7 @@ module Godot
     @@mb_set_individual_config : Void* = Pointer(Void).null
     def set_individual_config(index : Int64, enabled : Bool) : Void
       godot_bind(@@mb_set_individual_config, "SpringBoneSimulator3D", "set_individual_config", 300928843_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = enabled
       arg_1 = pointerof(val_1).as(Void*)
@@ -20774,7 +20774,7 @@ module Godot
     @@mb_is_config_individual : Void* = Pointer(Void).null
     def is_config_individual(index : Int64) : Bool
       godot_bind(@@mb_is_config_individual, "SpringBoneSimulator3D", "is_config_individual", 1116898809_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_config_individual, @pointer, args.to_unsafe.as(Void**))
@@ -20790,9 +20790,9 @@ module Godot
     @@mb_get_joint_bone_name : Void* = Pointer(Void).null
     def get_joint_bone_name(index : Int64, joint : Int64) : String
       godot_bind(@@mb_get_joint_bone_name, "SpringBoneSimulator3D", "get_joint_bone_name", 1391810591_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = joint
+      val_1 = joint.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_call_str("get_joint_bone_name", index, joint)
@@ -20800,9 +20800,9 @@ module Godot
     @@mb_get_joint_bone : Void* = Pointer(Void).null
     def get_joint_bone(index : Int64, joint : Int64) : Int64
       godot_bind(@@mb_get_joint_bone, "SpringBoneSimulator3D", "get_joint_bone", 3175239445_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = joint
+      val_1 = joint.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_get_joint_bone, @pointer, args.to_unsafe.as(Void**))
@@ -20810,9 +20810,9 @@ module Godot
     @@mb_set_joint_rotation_axis : Void* = Pointer(Void).null
     def set_joint_rotation_axis(index : Int64, joint : Int64, axis : Godot::SkeletonModifier3D::RotationAxis | Int) : Void
       godot_bind(@@mb_set_joint_rotation_axis, "SpringBoneSimulator3D", "set_joint_rotation_axis", 1391134969_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = joint
+      val_1 = joint.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = axis.is_a?(Int) ? axis.to_i64 : axis.value.to_i64
       arg_2 = pointerof(val_2).as(Void*)
@@ -20822,9 +20822,9 @@ module Godot
     @@mb_get_joint_rotation_axis : Void* = Pointer(Void).null
     def get_joint_rotation_axis(index : Int64, joint : Int64) : Godot::SkeletonModifier3D::RotationAxis
       godot_bind(@@mb_get_joint_rotation_axis, "SpringBoneSimulator3D", "get_joint_rotation_axis", 3312594080_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = joint
+      val_1 = joint.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_enum(@@mb_get_joint_rotation_axis, @pointer, args.to_unsafe.as(Void**), Godot::SkeletonModifier3D::RotationAxis)
@@ -20832,9 +20832,9 @@ module Godot
     @@mb_set_joint_rotation_axis_vector : Void* = Pointer(Void).null
     def set_joint_rotation_axis_vector(index : Int64, joint : Int64, vector : Vector3) : Void
       godot_bind(@@mb_set_joint_rotation_axis_vector, "SpringBoneSimulator3D", "set_joint_rotation_axis_vector", 2866752138_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = joint
+      val_1 = joint.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = vector
       arg_2 = pointerof(val_2).as(Void*)
@@ -20844,9 +20844,9 @@ module Godot
     @@mb_get_joint_rotation_axis_vector : Void* = Pointer(Void).null
     def get_joint_rotation_axis_vector(index : Int64, joint : Int64) : Vector3
       godot_bind(@@mb_get_joint_rotation_axis_vector, "SpringBoneSimulator3D", "get_joint_rotation_axis_vector", 1592972041_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = joint
+      val_1 = joint.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_val(@@mb_get_joint_rotation_axis_vector, @pointer, args.to_unsafe.as(Void**), Vector3)
@@ -20854,11 +20854,11 @@ module Godot
     @@mb_set_joint_radius : Void* = Pointer(Void).null
     def set_joint_radius(index : Int64, joint : Int64, radius : Float64) : Void
       godot_bind(@@mb_set_joint_radius, "SpringBoneSimulator3D", "set_joint_radius", 3506521499_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = joint
+      val_1 = joint.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = radius
+      val_2 = radius.to_f64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_set_joint_radius, @pointer, args.to_unsafe.as(Void**))
@@ -20866,9 +20866,9 @@ module Godot
     @@mb_get_joint_radius : Void* = Pointer(Void).null
     def get_joint_radius(index : Int64, joint : Int64) : Float64
       godot_bind(@@mb_get_joint_radius, "SpringBoneSimulator3D", "get_joint_radius", 3085491603_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = joint
+      val_1 = joint.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_float(@@mb_get_joint_radius, @pointer, args.to_unsafe.as(Void**))
@@ -20876,11 +20876,11 @@ module Godot
     @@mb_set_joint_stiffness : Void* = Pointer(Void).null
     def set_joint_stiffness(index : Int64, joint : Int64, stiffness : Float64) : Void
       godot_bind(@@mb_set_joint_stiffness, "SpringBoneSimulator3D", "set_joint_stiffness", 3506521499_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = joint
+      val_1 = joint.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = stiffness
+      val_2 = stiffness.to_f64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_set_joint_stiffness, @pointer, args.to_unsafe.as(Void**))
@@ -20888,9 +20888,9 @@ module Godot
     @@mb_get_joint_stiffness : Void* = Pointer(Void).null
     def get_joint_stiffness(index : Int64, joint : Int64) : Float64
       godot_bind(@@mb_get_joint_stiffness, "SpringBoneSimulator3D", "get_joint_stiffness", 3085491603_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = joint
+      val_1 = joint.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_float(@@mb_get_joint_stiffness, @pointer, args.to_unsafe.as(Void**))
@@ -20898,11 +20898,11 @@ module Godot
     @@mb_set_joint_drag : Void* = Pointer(Void).null
     def set_joint_drag(index : Int64, joint : Int64, drag : Float64) : Void
       godot_bind(@@mb_set_joint_drag, "SpringBoneSimulator3D", "set_joint_drag", 3506521499_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = joint
+      val_1 = joint.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = drag
+      val_2 = drag.to_f64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_set_joint_drag, @pointer, args.to_unsafe.as(Void**))
@@ -20910,9 +20910,9 @@ module Godot
     @@mb_get_joint_drag : Void* = Pointer(Void).null
     def get_joint_drag(index : Int64, joint : Int64) : Float64
       godot_bind(@@mb_get_joint_drag, "SpringBoneSimulator3D", "get_joint_drag", 3085491603_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = joint
+      val_1 = joint.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_float(@@mb_get_joint_drag, @pointer, args.to_unsafe.as(Void**))
@@ -20920,11 +20920,11 @@ module Godot
     @@mb_set_joint_gravity : Void* = Pointer(Void).null
     def set_joint_gravity(index : Int64, joint : Int64, gravity : Float64) : Void
       godot_bind(@@mb_set_joint_gravity, "SpringBoneSimulator3D", "set_joint_gravity", 3506521499_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = joint
+      val_1 = joint.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = gravity
+      val_2 = gravity.to_f64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_set_joint_gravity, @pointer, args.to_unsafe.as(Void**))
@@ -20932,9 +20932,9 @@ module Godot
     @@mb_get_joint_gravity : Void* = Pointer(Void).null
     def get_joint_gravity(index : Int64, joint : Int64) : Float64
       godot_bind(@@mb_get_joint_gravity, "SpringBoneSimulator3D", "get_joint_gravity", 3085491603_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = joint
+      val_1 = joint.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_float(@@mb_get_joint_gravity, @pointer, args.to_unsafe.as(Void**))
@@ -20942,9 +20942,9 @@ module Godot
     @@mb_set_joint_gravity_direction : Void* = Pointer(Void).null
     def set_joint_gravity_direction(index : Int64, joint : Int64, gravity_direction : Vector3) : Void
       godot_bind(@@mb_set_joint_gravity_direction, "SpringBoneSimulator3D", "set_joint_gravity_direction", 2866752138_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = joint
+      val_1 = joint.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = gravity_direction
       arg_2 = pointerof(val_2).as(Void*)
@@ -20954,9 +20954,9 @@ module Godot
     @@mb_get_joint_gravity_direction : Void* = Pointer(Void).null
     def get_joint_gravity_direction(index : Int64, joint : Int64) : Vector3
       godot_bind(@@mb_get_joint_gravity_direction, "SpringBoneSimulator3D", "get_joint_gravity_direction", 1592972041_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = joint
+      val_1 = joint.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_val(@@mb_get_joint_gravity_direction, @pointer, args.to_unsafe.as(Void**), Vector3)
@@ -20964,7 +20964,7 @@ module Godot
     @@mb_get_joint_count : Void* = Pointer(Void).null
     def get_joint_count(index : Int64) : Int64
       godot_bind(@@mb_get_joint_count, "SpringBoneSimulator3D", "get_joint_count", 923996154_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_joint_count, @pointer, args.to_unsafe.as(Void**))
@@ -20972,7 +20972,7 @@ module Godot
     @@mb_set_enable_all_child_collisions : Void* = Pointer(Void).null
     def set_enable_all_child_collisions(index : Int64, enabled : Bool) : Void
       godot_bind(@@mb_set_enable_all_child_collisions, "SpringBoneSimulator3D", "set_enable_all_child_collisions", 300928843_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = enabled
       arg_1 = pointerof(val_1).as(Void*)
@@ -20982,7 +20982,7 @@ module Godot
     @@mb_are_all_child_collisions_enabled : Void* = Pointer(Void).null
     def are_all_child_collisions_enabled(index : Int64) : Bool
       godot_bind(@@mb_are_all_child_collisions_enabled, "SpringBoneSimulator3D", "are_all_child_collisions_enabled", 1116898809_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_are_all_child_collisions_enabled, @pointer, args.to_unsafe.as(Void**))
@@ -20998,9 +20998,9 @@ module Godot
     @@mb_set_exclude_collision_path : Void* = Pointer(Void).null
     def set_exclude_collision_path(index : Int64, collision : Int64, node_path : NodePath | String) : Void
       godot_bind(@@mb_set_exclude_collision_path, "SpringBoneSimulator3D", "set_exclude_collision_path", 132481804_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = collision
+      val_1 = collision.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       np_2 = Bridge.make_nodepath(node_path.to_s)
       arg_2 = np_2
@@ -21012,9 +21012,9 @@ module Godot
     @@mb_get_exclude_collision_path : Void* = Pointer(Void).null
     def get_exclude_collision_path(index : Int64, collision : Int64) : NodePath
       godot_bind(@@mb_get_exclude_collision_path, "SpringBoneSimulator3D", "get_exclude_collision_path", 464924783_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = collision
+      val_1 = collision.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       NodePath.new(godot_call_str("get_exclude_collision_path", index, collision))
@@ -21022,9 +21022,9 @@ module Godot
     @@mb_set_exclude_collision_count : Void* = Pointer(Void).null
     def set_exclude_collision_count(index : Int64, count : Int64) : Void
       godot_bind(@@mb_set_exclude_collision_count, "SpringBoneSimulator3D", "set_exclude_collision_count", 3937882851_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = count
+      val_1 = count.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_exclude_collision_count, @pointer, args.to_unsafe.as(Void**))
@@ -21032,7 +21032,7 @@ module Godot
     @@mb_get_exclude_collision_count : Void* = Pointer(Void).null
     def get_exclude_collision_count(index : Int64) : Int64
       godot_bind(@@mb_get_exclude_collision_count, "SpringBoneSimulator3D", "get_exclude_collision_count", 923996154_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_exclude_collision_count, @pointer, args.to_unsafe.as(Void**))
@@ -21040,7 +21040,7 @@ module Godot
     @@mb_clear_exclude_collisions : Void* = Pointer(Void).null
     def clear_exclude_collisions(index : Int64) : Void
       godot_bind(@@mb_clear_exclude_collisions, "SpringBoneSimulator3D", "clear_exclude_collisions", 1286410249_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_clear_exclude_collisions, @pointer, args.to_unsafe.as(Void**))
@@ -21048,9 +21048,9 @@ module Godot
     @@mb_set_collision_path : Void* = Pointer(Void).null
     def set_collision_path(index : Int64, collision : Int64, node_path : NodePath | String) : Void
       godot_bind(@@mb_set_collision_path, "SpringBoneSimulator3D", "set_collision_path", 132481804_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = collision
+      val_1 = collision.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       np_2 = Bridge.make_nodepath(node_path.to_s)
       arg_2 = np_2
@@ -21062,9 +21062,9 @@ module Godot
     @@mb_get_collision_path : Void* = Pointer(Void).null
     def get_collision_path(index : Int64, collision : Int64) : NodePath
       godot_bind(@@mb_get_collision_path, "SpringBoneSimulator3D", "get_collision_path", 464924783_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = collision
+      val_1 = collision.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       NodePath.new(godot_call_str("get_collision_path", index, collision))
@@ -21072,9 +21072,9 @@ module Godot
     @@mb_set_collision_count : Void* = Pointer(Void).null
     def set_collision_count(index : Int64, count : Int64) : Void
       godot_bind(@@mb_set_collision_count, "SpringBoneSimulator3D", "set_collision_count", 3937882851_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = count
+      val_1 = count.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_collision_count, @pointer, args.to_unsafe.as(Void**))
@@ -21082,7 +21082,7 @@ module Godot
     @@mb_get_collision_count : Void* = Pointer(Void).null
     def get_collision_count(index : Int64) : Int64
       godot_bind(@@mb_get_collision_count, "SpringBoneSimulator3D", "get_collision_count", 923996154_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_collision_count, @pointer, args.to_unsafe.as(Void**))
@@ -21090,7 +21090,7 @@ module Godot
     @@mb_clear_collisions : Void* = Pointer(Void).null
     def clear_collisions(index : Int64) : Void
       godot_bind(@@mb_clear_collisions, "SpringBoneSimulator3D", "clear_collisions", 1286410249_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_clear_collisions, @pointer, args.to_unsafe.as(Void**))
@@ -21329,7 +21329,7 @@ module Godot
     @@mb_set_frame : Void* = Pointer(Void).null
     def set_frame(frame : Int64) : Void
       godot_bind(@@mb_set_frame, "Sprite2D", "set_frame", 1286410249_i64)
-      val_0 = frame
+      val_0 = frame.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_frame, @pointer, args.to_unsafe.as(Void**))
@@ -21355,7 +21355,7 @@ module Godot
     @@mb_set_vframes : Void* = Pointer(Void).null
     def set_vframes(vframes : Int64) : Void
       godot_bind(@@mb_set_vframes, "Sprite2D", "set_vframes", 1286410249_i64)
-      val_0 = vframes
+      val_0 = vframes.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_vframes, @pointer, args.to_unsafe.as(Void**))
@@ -21368,7 +21368,7 @@ module Godot
     @@mb_set_hframes : Void* = Pointer(Void).null
     def set_hframes(hframes : Int64) : Void
       godot_bind(@@mb_set_hframes, "Sprite2D", "set_hframes", 1286410249_i64)
-      val_0 = hframes
+      val_0 = hframes.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_hframes, @pointer, args.to_unsafe.as(Void**))
@@ -21485,8 +21485,8 @@ module Godot
     def region_filter_clip_enabled=(val)
       set_region_filter_clip_enabled(val)
     end
-    signal frame_changed
-    signal texture_changed
+    godot_signal frame_changed
+    godot_signal texture_changed
   end
   class Sprite3D < Godot::SpriteBase3D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -21542,7 +21542,7 @@ module Godot
     @@mb_set_frame : Void* = Pointer(Void).null
     def set_frame(frame : Int64) : Void
       godot_bind(@@mb_set_frame, "Sprite3D", "set_frame", 1286410249_i64)
-      val_0 = frame
+      val_0 = frame.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_frame, @pointer, args.to_unsafe.as(Void**))
@@ -21568,7 +21568,7 @@ module Godot
     @@mb_set_vframes : Void* = Pointer(Void).null
     def set_vframes(vframes : Int64) : Void
       godot_bind(@@mb_set_vframes, "Sprite3D", "set_vframes", 1286410249_i64)
-      val_0 = vframes
+      val_0 = vframes.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_vframes, @pointer, args.to_unsafe.as(Void**))
@@ -21581,7 +21581,7 @@ module Godot
     @@mb_set_hframes : Void* = Pointer(Void).null
     def set_hframes(hframes : Int64) : Void
       godot_bind(@@mb_set_hframes, "Sprite3D", "set_hframes", 1286410249_i64)
-      val_0 = hframes
+      val_0 = hframes.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_hframes, @pointer, args.to_unsafe.as(Void**))
@@ -21647,8 +21647,8 @@ module Godot
     def region_rect=(val)
       set_region_rect(val)
     end
-    signal frame_changed
-    signal texture_changed
+    godot_signal frame_changed
+    godot_signal texture_changed
   end
   class SpriteFrames < Godot::Resource
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -21722,16 +21722,16 @@ module Godot
     @@mb_get_animation_names : Void* = Pointer(Void).null
     def get_animation_names() : Pointer(Void)
       godot_bind(@@mb_get_animation_names, "SpriteFrames", "get_animation_names", 1139954409_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_animation_names, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_animation_names, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_set_animation_speed : Void* = Pointer(Void).null
     def set_animation_speed(anim : String, fps : Float64) : Void
       godot_bind(@@mb_set_animation_speed, "SpriteFrames", "set_animation_speed", 4135858297_i64)
       sn_0 = Bridge.make_string_name(anim)
       arg_0 = sn_0
-      val_1 = fps
+      val_1 = fps.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_animation_speed, @pointer, args.to_unsafe.as(Void**))
@@ -21803,9 +21803,9 @@ module Godot
       arg_0 = sn_0
       arg_ptr_1 = texture ? texture.pointer : Pointer(Void).null
       arg_1 = pointerof(arg_ptr_1).as(Void*)
-      val_2 = duration
+      val_2 = duration.to_f64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = at_position
+      val_3 = at_position.to_i64
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_add_frame, @pointer, args.to_unsafe.as(Void**))
@@ -21817,11 +21817,11 @@ module Godot
       godot_bind(@@mb_set_frame, "SpriteFrames", "set_frame", 56804795_i64)
       sn_0 = Bridge.make_string_name(anim)
       arg_0 = sn_0
-      val_1 = idx
+      val_1 = idx.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       arg_ptr_2 = texture ? texture.pointer : Pointer(Void).null
       arg_2 = pointerof(arg_ptr_2).as(Void*)
-      val_3 = duration
+      val_3 = duration.to_f64
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_set_frame, @pointer, args.to_unsafe.as(Void**))
@@ -21833,7 +21833,7 @@ module Godot
       godot_bind(@@mb_remove_frame, "SpriteFrames", "remove_frame", 2415702435_i64)
       sn_0 = Bridge.make_string_name(anim)
       arg_0 = sn_0
-      val_1 = idx
+      val_1 = idx.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_remove_frame, @pointer, args.to_unsafe.as(Void**))
@@ -21855,7 +21855,7 @@ module Godot
       godot_bind(@@mb_get_frame_texture, "SpriteFrames", "get_frame_texture", 2900517879_i64)
       sn_0 = Bridge.make_string_name(anim)
       arg_0 = sn_0
-      val_1 = idx
+      val_1 = idx.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_obj(@@mb_get_frame_texture, @pointer, args.to_unsafe.as(Void**), Texture2D)
@@ -21867,7 +21867,7 @@ module Godot
       godot_bind(@@mb_get_frame_duration, "SpriteFrames", "get_frame_duration", 1129309260_i64)
       sn_0 = Bridge.make_string_name(anim)
       arg_0 = sn_0
-      val_1 = idx
+      val_1 = idx.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_float(@@mb_get_frame_duration, @pointer, args.to_unsafe.as(Void**))
@@ -22008,7 +22008,7 @@ module Godot
     def visible=(val)
       set_visible(val)
     end
-    signal pressed, Int64, Vector2i
+    godot_signal pressed, Int64, Vector2i
   end
   class StreamPeer < Godot::RefCounted
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -22035,7 +22035,7 @@ module Godot
     @@mb_get_data : Void* = Pointer(Void).null
     def get_data(bytes : Int64) : Pointer(Void)
       godot_bind(@@mb_get_data, "StreamPeer", "get_data", 1171824711_i64)
-      val_0 = bytes
+      val_0 = bytes.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       ret_ptr = Pointer(Void).null
@@ -22045,7 +22045,7 @@ module Godot
     @@mb_get_partial_data : Void* = Pointer(Void).null
     def get_partial_data(bytes : Int64) : Pointer(Void)
       godot_bind(@@mb_get_partial_data, "StreamPeer", "get_partial_data", 1171824711_i64)
-      val_0 = bytes
+      val_0 = bytes.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       ret_ptr = Pointer(Void).null
@@ -22081,7 +22081,7 @@ module Godot
     @@mb_put_8 : Void* = Pointer(Void).null
     def put_8(value : Int64) : Void
       godot_bind(@@mb_put_8, "StreamPeer", "put_8", 1286410249_i64)
-      val_0 = value
+      val_0 = value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_put_8, @pointer, args.to_unsafe.as(Void**))
@@ -22089,7 +22089,7 @@ module Godot
     @@mb_put_u8 : Void* = Pointer(Void).null
     def put_u8(value : Int64) : Void
       godot_bind(@@mb_put_u8, "StreamPeer", "put_u8", 1286410249_i64)
-      val_0 = value
+      val_0 = value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_put_u8, @pointer, args.to_unsafe.as(Void**))
@@ -22097,7 +22097,7 @@ module Godot
     @@mb_put_16 : Void* = Pointer(Void).null
     def put_16(value : Int64) : Void
       godot_bind(@@mb_put_16, "StreamPeer", "put_16", 1286410249_i64)
-      val_0 = value
+      val_0 = value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_put_16, @pointer, args.to_unsafe.as(Void**))
@@ -22105,7 +22105,7 @@ module Godot
     @@mb_put_u16 : Void* = Pointer(Void).null
     def put_u16(value : Int64) : Void
       godot_bind(@@mb_put_u16, "StreamPeer", "put_u16", 1286410249_i64)
-      val_0 = value
+      val_0 = value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_put_u16, @pointer, args.to_unsafe.as(Void**))
@@ -22113,7 +22113,7 @@ module Godot
     @@mb_put_32 : Void* = Pointer(Void).null
     def put_32(value : Int64) : Void
       godot_bind(@@mb_put_32, "StreamPeer", "put_32", 1286410249_i64)
-      val_0 = value
+      val_0 = value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_put_32, @pointer, args.to_unsafe.as(Void**))
@@ -22121,7 +22121,7 @@ module Godot
     @@mb_put_u32 : Void* = Pointer(Void).null
     def put_u32(value : Int64) : Void
       godot_bind(@@mb_put_u32, "StreamPeer", "put_u32", 1286410249_i64)
-      val_0 = value
+      val_0 = value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_put_u32, @pointer, args.to_unsafe.as(Void**))
@@ -22129,7 +22129,7 @@ module Godot
     @@mb_put_64 : Void* = Pointer(Void).null
     def put_64(value : Int64) : Void
       godot_bind(@@mb_put_64, "StreamPeer", "put_64", 1286410249_i64)
-      val_0 = value
+      val_0 = value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_put_64, @pointer, args.to_unsafe.as(Void**))
@@ -22137,7 +22137,7 @@ module Godot
     @@mb_put_u64 : Void* = Pointer(Void).null
     def put_u64(value : Int64) : Void
       godot_bind(@@mb_put_u64, "StreamPeer", "put_u64", 1286410249_i64)
-      val_0 = value
+      val_0 = value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_put_u64, @pointer, args.to_unsafe.as(Void**))
@@ -22145,7 +22145,7 @@ module Godot
     @@mb_put_half : Void* = Pointer(Void).null
     def put_half(value : Float64) : Void
       godot_bind(@@mb_put_half, "StreamPeer", "put_half", 373806689_i64)
-      val_0 = value
+      val_0 = value.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_put_half, @pointer, args.to_unsafe.as(Void**))
@@ -22153,7 +22153,7 @@ module Godot
     @@mb_put_float : Void* = Pointer(Void).null
     def put_float(value : Float64) : Void
       godot_bind(@@mb_put_float, "StreamPeer", "put_float", 373806689_i64)
-      val_0 = value
+      val_0 = value.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_put_float, @pointer, args.to_unsafe.as(Void**))
@@ -22161,7 +22161,7 @@ module Godot
     @@mb_put_double : Void* = Pointer(Void).null
     def put_double(value : Float64) : Void
       godot_bind(@@mb_put_double, "StreamPeer", "put_double", 373806689_i64)
-      val_0 = value
+      val_0 = value.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_put_double, @pointer, args.to_unsafe.as(Void**))
@@ -22254,7 +22254,7 @@ module Godot
     @@mb_get_string : Void* = Pointer(Void).null
     def get_string(bytes : Int64 = -1_i64) : String
       godot_bind(@@mb_get_string, "StreamPeer", "get_string", 2309358862_i64)
-      val_0 = bytes
+      val_0 = bytes.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_string", bytes)
@@ -22262,7 +22262,7 @@ module Godot
     @@mb_get_utf8_string : Void* = Pointer(Void).null
     def get_utf8_string(bytes : Int64 = -1_i64) : String
       godot_bind(@@mb_get_utf8_string, "StreamPeer", "get_utf8_string", 2309358862_i64)
-      val_0 = bytes
+      val_0 = bytes.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_utf8_string", bytes)
@@ -22298,7 +22298,7 @@ module Godot
     @@mb_seek : Void* = Pointer(Void).null
     def seek(position : Int64) : Void
       godot_bind(@@mb_seek, "StreamPeerBuffer", "seek", 1286410249_i64)
-      val_0 = position
+      val_0 = position.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_seek, @pointer, args.to_unsafe.as(Void**))
@@ -22316,7 +22316,7 @@ module Godot
     @@mb_resize : Void* = Pointer(Void).null
     def resize(size : Int64) : Void
       godot_bind(@@mb_resize, "StreamPeerBuffer", "resize", 1286410249_i64)
-      val_0 = size
+      val_0 = size.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_resize, @pointer, args.to_unsafe.as(Void**))
@@ -22332,9 +22332,9 @@ module Godot
     @@mb_get_data_array : Void* = Pointer(Void).null
     def get_data_array() : Pointer(Void)
       godot_bind(@@mb_get_data_array, "StreamPeerBuffer", "get_data_array", 2362200018_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_data_array, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_data_array, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_clear : Void* = Pointer(Void).null
     def clear() : Void
@@ -22369,7 +22369,7 @@ module Godot
       godot_bind(@@mb_start_compression, "StreamPeerGZIP", "start_compression", 781582770_i64)
       val_0 = use_deflate
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = buffer_size
+      val_1 = buffer_size.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_enum(@@mb_start_compression, @pointer, args.to_unsafe.as(Void**), Godot::Error)
@@ -22379,7 +22379,7 @@ module Godot
       godot_bind(@@mb_start_decompression, "StreamPeerGZIP", "start_decompression", 781582770_i64)
       val_0 = use_deflate
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = buffer_size
+      val_1 = buffer_size.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_enum(@@mb_start_decompression, @pointer, args.to_unsafe.as(Void**), Godot::Error)
@@ -22428,7 +22428,7 @@ module Godot
     @@mb_bind : Void* = Pointer(Void).null
     def bind(port : Int64, host : String = "*") : Godot::Error
       godot_bind(@@mb_bind, "StreamPeerTCP", "bind", 3167955072_i64)
-      val_0 = port
+      val_0 = port.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       str_1 = Bridge.make_string(host)
       arg_1 = str_1
@@ -22442,7 +22442,7 @@ module Godot
       godot_bind(@@mb_connect_to_host, "StreamPeerTCP", "connect_to_host", 993915709_i64)
       str_0 = Bridge.make_string(host)
       arg_0 = str_0
-      val_1 = port
+      val_1 = port.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_enum(@@mb_connect_to_host, @pointer, args.to_unsafe.as(Void**), Godot::Error)
@@ -22581,7 +22581,7 @@ module Godot
     @@mb_set_max_lod_override : Void* = Pointer(Void).null
     def set_max_lod_override(max_lod : Int64) : Void
       godot_bind(@@mb_set_max_lod_override, "StreamedTexture2D", "set_max_lod_override", 1286410249_i64)
-      val_0 = max_lod
+      val_0 = max_lod.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_max_lod_override, @pointer, args.to_unsafe.as(Void**))
@@ -22594,7 +22594,7 @@ module Godot
     @@mb_set_min_lod_override : Void* = Pointer(Void).null
     def set_min_lod_override(min_lod : Int64) : Void
       godot_bind(@@mb_set_min_lod_override, "StreamedTexture2D", "set_min_lod_override", 1286410249_i64)
-      val_0 = min_lod
+      val_0 = min_lod.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_min_lod_override, @pointer, args.to_unsafe.as(Void**))
@@ -22643,7 +22643,7 @@ module Godot
       godot_bind(@@mb_set_content_margin, "StyleBox", "set_content_margin", 4290182280_i64)
       val_0 = margin.is_a?(Int) ? margin.to_i64 : margin.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = offset
+      val_1 = offset.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_content_margin, @pointer, args.to_unsafe.as(Void**))
@@ -22651,7 +22651,7 @@ module Godot
     @@mb_set_content_margin_all : Void* = Pointer(Void).null
     def set_content_margin_all(offset : Float64) : Void
       godot_bind(@@mb_set_content_margin_all, "StyleBox", "set_content_margin_all", 373806689_i64)
-      val_0 = offset
+      val_0 = offset.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_content_margin_all, @pointer, args.to_unsafe.as(Void**))
@@ -22777,7 +22777,7 @@ module Godot
     @@mb_set_border_width_all : Void* = Pointer(Void).null
     def set_border_width_all(width : Int64) : Void
       godot_bind(@@mb_set_border_width_all, "StyleBoxFlat", "set_border_width_all", 1286410249_i64)
-      val_0 = width
+      val_0 = width.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_border_width_all, @pointer, args.to_unsafe.as(Void**))
@@ -22792,7 +22792,7 @@ module Godot
       godot_bind(@@mb_set_border_width, "StyleBoxFlat", "set_border_width", 437707142_i64)
       val_0 = margin.is_a?(Int) ? margin.to_i64 : margin.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = width
+      val_1 = width.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_border_width, @pointer, args.to_unsafe.as(Void**))
@@ -22825,7 +22825,7 @@ module Godot
     @@mb_set_corner_radius_all : Void* = Pointer(Void).null
     def set_corner_radius_all(radius : Int64) : Void
       godot_bind(@@mb_set_corner_radius_all, "StyleBoxFlat", "set_corner_radius_all", 1286410249_i64)
-      val_0 = radius
+      val_0 = radius.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_corner_radius_all, @pointer, args.to_unsafe.as(Void**))
@@ -22835,7 +22835,7 @@ module Godot
       godot_bind(@@mb_set_corner_radius, "StyleBoxFlat", "set_corner_radius", 2696158768_i64)
       val_0 = corner.is_a?(Int) ? corner.to_i64 : corner.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = radius
+      val_1 = radius.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_corner_radius, @pointer, args.to_unsafe.as(Void**))
@@ -22853,7 +22853,7 @@ module Godot
       godot_bind(@@mb_set_expand_margin, "StyleBoxFlat", "set_expand_margin", 4290182280_i64)
       val_0 = margin.is_a?(Int) ? margin.to_i64 : margin.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = size
+      val_1 = size.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_expand_margin, @pointer, args.to_unsafe.as(Void**))
@@ -22861,7 +22861,7 @@ module Godot
     @@mb_set_expand_margin_all : Void* = Pointer(Void).null
     def set_expand_margin_all(size : Float64) : Void
       godot_bind(@@mb_set_expand_margin_all, "StyleBoxFlat", "set_expand_margin_all", 373806689_i64)
-      val_0 = size
+      val_0 = size.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_expand_margin_all, @pointer, args.to_unsafe.as(Void**))
@@ -22924,7 +22924,7 @@ module Godot
     @@mb_set_shadow_size : Void* = Pointer(Void).null
     def set_shadow_size(size : Int64) : Void
       godot_bind(@@mb_set_shadow_size, "StyleBoxFlat", "set_shadow_size", 1286410249_i64)
-      val_0 = size
+      val_0 = size.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_shadow_size, @pointer, args.to_unsafe.as(Void**))
@@ -22971,7 +22971,7 @@ module Godot
     @@mb_set_aa_size : Void* = Pointer(Void).null
     def set_aa_size(size : Float64) : Void
       godot_bind(@@mb_set_aa_size, "StyleBoxFlat", "set_aa_size", 373806689_i64)
-      val_0 = size
+      val_0 = size.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_aa_size, @pointer, args.to_unsafe.as(Void**))
@@ -22984,7 +22984,7 @@ module Godot
     @@mb_set_corner_detail : Void* = Pointer(Void).null
     def set_corner_detail(detail : Int64) : Void
       godot_bind(@@mb_set_corner_detail, "StyleBoxFlat", "set_corner_detail", 1286410249_i64)
-      val_0 = detail
+      val_0 = detail.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_corner_detail, @pointer, args.to_unsafe.as(Void**))
@@ -23208,7 +23208,7 @@ module Godot
     @@mb_set_thickness : Void* = Pointer(Void).null
     def set_thickness(thickness : Int64) : Void
       godot_bind(@@mb_set_thickness, "StyleBoxLine", "set_thickness", 1286410249_i64)
-      val_0 = thickness
+      val_0 = thickness.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_thickness, @pointer, args.to_unsafe.as(Void**))
@@ -23221,7 +23221,7 @@ module Godot
     @@mb_set_grow_begin : Void* = Pointer(Void).null
     def set_grow_begin(offset : Float64) : Void
       godot_bind(@@mb_set_grow_begin, "StyleBoxLine", "set_grow_begin", 373806689_i64)
-      val_0 = offset
+      val_0 = offset.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_grow_begin, @pointer, args.to_unsafe.as(Void**))
@@ -23234,7 +23234,7 @@ module Godot
     @@mb_set_grow_end : Void* = Pointer(Void).null
     def set_grow_end(offset : Float64) : Void
       godot_bind(@@mb_set_grow_end, "StyleBoxLine", "set_grow_end", 373806689_i64)
-      val_0 = offset
+      val_0 = offset.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_grow_end, @pointer, args.to_unsafe.as(Void**))
@@ -23333,7 +23333,7 @@ module Godot
       godot_bind(@@mb_set_texture_margin, "StyleBoxTexture", "set_texture_margin", 4290182280_i64)
       val_0 = margin.is_a?(Int) ? margin.to_i64 : margin.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = size
+      val_1 = size.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_texture_margin, @pointer, args.to_unsafe.as(Void**))
@@ -23341,7 +23341,7 @@ module Godot
     @@mb_set_texture_margin_all : Void* = Pointer(Void).null
     def set_texture_margin_all(size : Float64) : Void
       godot_bind(@@mb_set_texture_margin_all, "StyleBoxTexture", "set_texture_margin_all", 373806689_i64)
-      val_0 = size
+      val_0 = size.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_texture_margin_all, @pointer, args.to_unsafe.as(Void**))
@@ -23359,7 +23359,7 @@ module Godot
       godot_bind(@@mb_set_expand_margin, "StyleBoxTexture", "set_expand_margin", 4290182280_i64)
       val_0 = margin.is_a?(Int) ? margin.to_i64 : margin.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = size
+      val_1 = size.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_expand_margin, @pointer, args.to_unsafe.as(Void**))
@@ -23367,7 +23367,7 @@ module Godot
     @@mb_set_expand_margin_all : Void* = Pointer(Void).null
     def set_expand_margin_all(size : Float64) : Void
       godot_bind(@@mb_set_expand_margin_all, "StyleBoxTexture", "set_expand_margin_all", 373806689_i64)
-      val_0 = size
+      val_0 = size.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_expand_margin_all, @pointer, args.to_unsafe.as(Void**))
@@ -23597,7 +23597,7 @@ module Godot
     @@mb_set_stretch_shrink : Void* = Pointer(Void).null
     def set_stretch_shrink(amount : Int64) : Void
       godot_bind(@@mb_set_stretch_shrink, "SubViewportContainer", "set_stretch_shrink", 1286410249_i64)
-      val_0 = amount
+      val_0 = amount.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_stretch_shrink, @pointer, args.to_unsafe.as(Void**))
@@ -23666,7 +23666,7 @@ module Godot
     @@mb_set_delay : Void* = Pointer(Void).null
     def set_delay(delay : Float64) : SubtweenTweener
       godot_bind(@@mb_set_delay, "SubtweenTweener", "set_delay", 449181780_i64)
-      val_0 = delay
+      val_0 = delay.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_set_delay, @pointer, args.to_unsafe.as(Void**), SubtweenTweener)
@@ -23707,7 +23707,7 @@ module Godot
     @@mb_set_custom_format : Void* = Pointer(Void).null
     def set_custom_format(channel_index : Int64, format : CustomFormat | Int) : Void
       godot_bind(@@mb_set_custom_format, "SurfaceTool", "set_custom_format", 4087759856_i64)
-      val_0 = channel_index
+      val_0 = channel_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = format.is_a?(Int) ? format.to_i64 : format.value.to_i64
       arg_1 = pointerof(val_1).as(Void*)
@@ -23717,7 +23717,7 @@ module Godot
     @@mb_get_custom_format : Void* = Pointer(Void).null
     def get_custom_format(channel_index : Int64) : CustomFormat
       godot_bind(@@mb_get_custom_format, "SurfaceTool", "get_custom_format", 839863283_i64)
-      val_0 = channel_index
+      val_0 = channel_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_enum(@@mb_get_custom_format, @pointer, args.to_unsafe.as(Void**), CustomFormat)
@@ -23800,7 +23800,7 @@ module Godot
     @@mb_set_custom : Void* = Pointer(Void).null
     def set_custom(channel_index : Int64, custom_color : Color) : Void
       godot_bind(@@mb_set_custom, "SurfaceTool", "set_custom", 2878471219_i64)
-      val_0 = channel_index
+      val_0 = channel_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = custom_color
       arg_1 = pointerof(val_1).as(Void*)
@@ -23810,7 +23810,7 @@ module Godot
     @@mb_set_smooth_group : Void* = Pointer(Void).null
     def set_smooth_group(index : Int64) : Void
       godot_bind(@@mb_set_smooth_group, "SurfaceTool", "set_smooth_group", 1286410249_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_smooth_group, @pointer, args.to_unsafe.as(Void**))
@@ -23836,7 +23836,7 @@ module Godot
     @@mb_add_index : Void* = Pointer(Void).null
     def add_index(index : Int64) : Void
       godot_bind(@@mb_add_index, "SurfaceTool", "add_index", 1286410249_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_add_index, @pointer, args.to_unsafe.as(Void**))
@@ -23877,14 +23877,14 @@ module Godot
     @@mb_generate_lod : Void* = Pointer(Void).null
     def generate_lod(nd_threshold : Float64, target_index_count : Int64 = 3_i64) : Pointer(Void)
       godot_bind(@@mb_generate_lod, "SurfaceTool", "generate_lod", 1938056459_i64)
-      val_0 = nd_threshold
+      val_0 = nd_threshold.to_f64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = target_index_count
+      val_1 = target_index_count.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_generate_lod, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_generate_lod, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_set_material : Void* = Pointer(Void).null
     def set_material(material : Material) : Void
@@ -23909,7 +23909,7 @@ module Godot
       godot_bind(@@mb_create_from, "SurfaceTool", "create_from", 1767024570_i64)
       arg_ptr_0 = existing ? existing.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
-      val_1 = surface
+      val_1 = surface.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_create_from, @pointer, args.to_unsafe.as(Void**))
@@ -23929,7 +23929,7 @@ module Godot
       godot_bind(@@mb_create_from_blend_shape, "SurfaceTool", "create_from_blend_shape", 1306185582_i64)
       arg_ptr_0 = existing ? existing.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
-      val_1 = surface
+      val_1 = surface.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       str_2 = Bridge.make_string(blend_shape)
       arg_2 = str_2
@@ -23943,7 +23943,7 @@ module Godot
       godot_bind(@@mb_append_from, "SurfaceTool", "append_from", 2217967155_i64)
       arg_ptr_0 = existing ? existing.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
-      val_1 = surface
+      val_1 = surface.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = transform
       arg_2 = pointerof(val_2).as(Void*)
@@ -23955,7 +23955,7 @@ module Godot
       godot_bind(@@mb_commit, "SurfaceTool", "commit", 4107864055_i64)
       arg_ptr_0 = existing ? existing.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
-      val_1 = flags
+      val_1 = flags.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_obj(@@mb_commit, @pointer, args.to_unsafe.as(Void**), ArrayMesh)
@@ -24149,7 +24149,7 @@ module Godot
     @@mb_set_msdf_pixel_range : Void* = Pointer(Void).null
     def set_msdf_pixel_range(msdf_pixel_range : Int64) : Void
       godot_bind(@@mb_set_msdf_pixel_range, "SystemFont", "set_msdf_pixel_range", 1286410249_i64)
-      val_0 = msdf_pixel_range
+      val_0 = msdf_pixel_range.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_msdf_pixel_range, @pointer, args.to_unsafe.as(Void**))
@@ -24162,7 +24162,7 @@ module Godot
     @@mb_set_msdf_size : Void* = Pointer(Void).null
     def set_msdf_size(msdf_size : Int64) : Void
       godot_bind(@@mb_set_msdf_size, "SystemFont", "set_msdf_size", 1286410249_i64)
-      val_0 = msdf_size
+      val_0 = msdf_size.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_msdf_size, @pointer, args.to_unsafe.as(Void**))
@@ -24175,7 +24175,7 @@ module Godot
     @@mb_set_oversampling : Void* = Pointer(Void).null
     def set_oversampling(oversampling : Float64) : Void
       godot_bind(@@mb_set_oversampling, "SystemFont", "set_oversampling", 373806689_i64)
-      val_0 = oversampling
+      val_0 = oversampling.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_oversampling, @pointer, args.to_unsafe.as(Void**))
@@ -24188,9 +24188,9 @@ module Godot
     @@mb_get_font_names : Void* = Pointer(Void).null
     def get_font_names() : Pointer(Void)
       godot_bind(@@mb_get_font_names, "SystemFont", "get_font_names", 1139954409_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_font_names, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_font_names, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_set_font_names : Void* = Pointer(Void).null
     def set_font_names(names : Pointer(Void)) : Void
@@ -24220,7 +24220,7 @@ module Godot
     @@mb_set_font_weight : Void* = Pointer(Void).null
     def set_font_weight(weight : Int64) : Void
       godot_bind(@@mb_set_font_weight, "SystemFont", "set_font_weight", 1286410249_i64)
-      val_0 = weight
+      val_0 = weight.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_font_weight, @pointer, args.to_unsafe.as(Void**))
@@ -24228,7 +24228,7 @@ module Godot
     @@mb_set_font_stretch : Void* = Pointer(Void).null
     def set_font_stretch(stretch : Int64) : Void
       godot_bind(@@mb_set_font_stretch, "SystemFont", "set_font_stretch", 1286410249_i64)
-      val_0 = stretch
+      val_0 = stretch.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_font_stretch, @pointer, args.to_unsafe.as(Void**))
@@ -24389,7 +24389,7 @@ module Godot
     @@mb_listen : Void* = Pointer(Void).null
     def listen(port : Int64, bind_address : String = "*") : Godot::Error
       godot_bind(@@mb_listen, "TCPServer", "listen", 3167955072_i64)
-      val_0 = port
+      val_0 = port.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       str_1 = Bridge.make_string(bind_address)
       arg_1 = str_1
@@ -24528,7 +24528,7 @@ module Godot
     @@mb_set_tab_count : Void* = Pointer(Void).null
     def set_tab_count(count : Int64) : Void
       godot_bind(@@mb_set_tab_count, "TabBar", "set_tab_count", 1286410249_i64)
-      val_0 = count
+      val_0 = count.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_tab_count, @pointer, args.to_unsafe.as(Void**))
@@ -24541,7 +24541,7 @@ module Godot
     @@mb_set_current_tab : Void* = Pointer(Void).null
     def set_current_tab(tab_idx : Int64) : Void
       godot_bind(@@mb_set_current_tab, "TabBar", "set_current_tab", 1286410249_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_current_tab, @pointer, args.to_unsafe.as(Void**))
@@ -24577,7 +24577,7 @@ module Godot
     @@mb_set_tab_title : Void* = Pointer(Void).null
     def set_tab_title(tab_idx : Int64, title : String) : Void
       godot_bind(@@mb_set_tab_title, "TabBar", "set_tab_title", 501894301_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       str_1 = Bridge.make_string(title)
       arg_1 = str_1
@@ -24589,7 +24589,7 @@ module Godot
     @@mb_get_tab_title : Void* = Pointer(Void).null
     def get_tab_title(tab_idx : Int64) : String
       godot_bind(@@mb_get_tab_title, "TabBar", "get_tab_title", 844755477_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_tab_title", tab_idx)
@@ -24597,7 +24597,7 @@ module Godot
     @@mb_set_tab_tooltip : Void* = Pointer(Void).null
     def set_tab_tooltip(tab_idx : Int64, tooltip : String) : Void
       godot_bind(@@mb_set_tab_tooltip, "TabBar", "set_tab_tooltip", 501894301_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       str_1 = Bridge.make_string(tooltip)
       arg_1 = str_1
@@ -24609,7 +24609,7 @@ module Godot
     @@mb_get_tab_tooltip : Void* = Pointer(Void).null
     def get_tab_tooltip(tab_idx : Int64) : String
       godot_bind(@@mb_get_tab_tooltip, "TabBar", "get_tab_tooltip", 844755477_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_tab_tooltip", tab_idx)
@@ -24617,7 +24617,7 @@ module Godot
     @@mb_set_tab_text_direction : Void* = Pointer(Void).null
     def set_tab_text_direction(tab_idx : Int64, direction : Godot::Control::TextDirection | Int) : Void
       godot_bind(@@mb_set_tab_text_direction, "TabBar", "set_tab_text_direction", 1707680378_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = direction.is_a?(Int) ? direction.to_i64 : direction.value.to_i64
       arg_1 = pointerof(val_1).as(Void*)
@@ -24627,7 +24627,7 @@ module Godot
     @@mb_get_tab_text_direction : Void* = Pointer(Void).null
     def get_tab_text_direction(tab_idx : Int64) : Godot::Control::TextDirection
       godot_bind(@@mb_get_tab_text_direction, "TabBar", "get_tab_text_direction", 4235602388_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_enum(@@mb_get_tab_text_direction, @pointer, args.to_unsafe.as(Void**), Godot::Control::TextDirection)
@@ -24635,7 +24635,7 @@ module Godot
     @@mb_set_tab_language : Void* = Pointer(Void).null
     def set_tab_language(tab_idx : Int64, language : String) : Void
       godot_bind(@@mb_set_tab_language, "TabBar", "set_tab_language", 501894301_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       str_1 = Bridge.make_string(language)
       arg_1 = str_1
@@ -24647,7 +24647,7 @@ module Godot
     @@mb_get_tab_language : Void* = Pointer(Void).null
     def get_tab_language(tab_idx : Int64) : String
       godot_bind(@@mb_get_tab_language, "TabBar", "get_tab_language", 844755477_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_tab_language", tab_idx)
@@ -24655,7 +24655,7 @@ module Godot
     @@mb_set_tab_icon : Void* = Pointer(Void).null
     def set_tab_icon(tab_idx : Int64, icon : Texture2D) : Void
       godot_bind(@@mb_set_tab_icon, "TabBar", "set_tab_icon", 666127730_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       arg_ptr_1 = icon ? icon.pointer : Pointer(Void).null
       arg_1 = pointerof(arg_ptr_1).as(Void*)
@@ -24665,7 +24665,7 @@ module Godot
     @@mb_get_tab_icon : Void* = Pointer(Void).null
     def get_tab_icon(tab_idx : Int64) : Texture2D
       godot_bind(@@mb_get_tab_icon, "TabBar", "get_tab_icon", 3536238170_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_get_tab_icon, @pointer, args.to_unsafe.as(Void**), Texture2D)
@@ -24673,9 +24673,9 @@ module Godot
     @@mb_set_tab_icon_max_width : Void* = Pointer(Void).null
     def set_tab_icon_max_width(tab_idx : Int64, width : Int64) : Void
       godot_bind(@@mb_set_tab_icon_max_width, "TabBar", "set_tab_icon_max_width", 3937882851_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = width
+      val_1 = width.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_tab_icon_max_width, @pointer, args.to_unsafe.as(Void**))
@@ -24683,7 +24683,7 @@ module Godot
     @@mb_get_tab_icon_max_width : Void* = Pointer(Void).null
     def get_tab_icon_max_width(tab_idx : Int64) : Int64
       godot_bind(@@mb_get_tab_icon_max_width, "TabBar", "get_tab_icon_max_width", 923996154_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_tab_icon_max_width, @pointer, args.to_unsafe.as(Void**))
@@ -24691,7 +24691,7 @@ module Godot
     @@mb_set_tab_button_icon : Void* = Pointer(Void).null
     def set_tab_button_icon(tab_idx : Int64, icon : Texture2D) : Void
       godot_bind(@@mb_set_tab_button_icon, "TabBar", "set_tab_button_icon", 666127730_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       arg_ptr_1 = icon ? icon.pointer : Pointer(Void).null
       arg_1 = pointerof(arg_ptr_1).as(Void*)
@@ -24701,7 +24701,7 @@ module Godot
     @@mb_get_tab_button_icon : Void* = Pointer(Void).null
     def get_tab_button_icon(tab_idx : Int64) : Texture2D
       godot_bind(@@mb_get_tab_button_icon, "TabBar", "get_tab_button_icon", 3536238170_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_get_tab_button_icon, @pointer, args.to_unsafe.as(Void**), Texture2D)
@@ -24709,7 +24709,7 @@ module Godot
     @@mb_set_tab_disabled : Void* = Pointer(Void).null
     def set_tab_disabled(tab_idx : Int64, disabled : Bool) : Void
       godot_bind(@@mb_set_tab_disabled, "TabBar", "set_tab_disabled", 300928843_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = disabled
       arg_1 = pointerof(val_1).as(Void*)
@@ -24719,7 +24719,7 @@ module Godot
     @@mb_is_tab_disabled : Void* = Pointer(Void).null
     def is_tab_disabled(tab_idx : Int64) : Bool
       godot_bind(@@mb_is_tab_disabled, "TabBar", "is_tab_disabled", 1116898809_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_tab_disabled, @pointer, args.to_unsafe.as(Void**))
@@ -24735,7 +24735,7 @@ module Godot
     @@mb_set_tab_hidden : Void* = Pointer(Void).null
     def set_tab_hidden(tab_idx : Int64, hidden : Bool) : Void
       godot_bind(@@mb_set_tab_hidden, "TabBar", "set_tab_hidden", 300928843_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = hidden
       arg_1 = pointerof(val_1).as(Void*)
@@ -24745,7 +24745,7 @@ module Godot
     @@mb_is_tab_hidden : Void* = Pointer(Void).null
     def is_tab_hidden(tab_idx : Int64) : Bool
       godot_bind(@@mb_is_tab_hidden, "TabBar", "is_tab_hidden", 1116898809_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_tab_hidden, @pointer, args.to_unsafe.as(Void**))
@@ -24761,7 +24761,7 @@ module Godot
     @@mb_set_tab_metadata : Void* = Pointer(Void).null
     def set_tab_metadata(tab_idx : Int64, metadata : Pointer(Void)) : Void
       godot_bind(@@mb_set_tab_metadata, "TabBar", "set_tab_metadata", 2152698145_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = metadata
       arg_1 = pointerof(val_1).as(Void*)
@@ -24771,7 +24771,7 @@ module Godot
     @@mb_get_tab_metadata : Void* = Pointer(Void).null
     def get_tab_metadata(tab_idx : Int64) : Pointer(Void)
       godot_bind(@@mb_get_tab_metadata, "TabBar", "get_tab_metadata", 4227898402_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
@@ -24783,7 +24783,7 @@ module Godot
     @@mb_remove_tab : Void* = Pointer(Void).null
     def remove_tab(tab_idx : Int64) : Void
       godot_bind(@@mb_remove_tab, "TabBar", "remove_tab", 1286410249_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_remove_tab, @pointer, args.to_unsafe.as(Void**))
@@ -24868,7 +24868,7 @@ module Godot
     @@mb_ensure_tab_visible : Void* = Pointer(Void).null
     def ensure_tab_visible(idx : Int64) : Void
       godot_bind(@@mb_ensure_tab_visible, "TabBar", "ensure_tab_visible", 1286410249_i64)
-      val_0 = idx
+      val_0 = idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_ensure_tab_visible, @pointer, args.to_unsafe.as(Void**))
@@ -24876,7 +24876,7 @@ module Godot
     @@mb_get_tab_rect : Void* = Pointer(Void).null
     def get_tab_rect(tab_idx : Int64) : Rect2
       godot_bind(@@mb_get_tab_rect, "TabBar", "get_tab_rect", 3327874267_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_get_tab_rect, @pointer, args.to_unsafe.as(Void**), Rect2)
@@ -24884,9 +24884,9 @@ module Godot
     @@mb_move_tab : Void* = Pointer(Void).null
     def move_tab(from : Int64, to : Int64) : Void
       godot_bind(@@mb_move_tab, "TabBar", "move_tab", 3937882851_i64)
-      val_0 = from
+      val_0 = from.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = to
+      val_1 = to.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_move_tab, @pointer, args.to_unsafe.as(Void**))
@@ -24924,7 +24924,7 @@ module Godot
     @@mb_set_max_tab_width : Void* = Pointer(Void).null
     def set_max_tab_width(width : Int64) : Void
       godot_bind(@@mb_set_max_tab_width, "TabBar", "set_max_tab_width", 1286410249_i64)
-      val_0 = width
+      val_0 = width.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_max_tab_width, @pointer, args.to_unsafe.as(Void**))
@@ -24988,7 +24988,7 @@ module Godot
     @@mb_set_tabs_rearrange_group : Void* = Pointer(Void).null
     def set_tabs_rearrange_group(group_id : Int64) : Void
       godot_bind(@@mb_set_tabs_rearrange_group, "TabBar", "set_tabs_rearrange_group", 1286410249_i64)
-      val_0 = group_id
+      val_0 = group_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_tabs_rearrange_group, @pointer, args.to_unsafe.as(Void**))
@@ -25198,14 +25198,14 @@ module Godot
     def tab_count=(val : Int)
       set_tab_count(val.to_i64)
     end
-    signal tab_selected, Int64
-    signal tab_changed, Int64
-    signal tab_clicked, Int64
-    signal tab_rmb_clicked, Int64
-    signal tab_close_pressed, Int64
-    signal tab_button_pressed, Int64
-    signal tab_hovered, Int64
-    signal active_tab_rearranged, Int64
+    godot_signal tab_selected, Int64
+    godot_signal tab_changed, Int64
+    godot_signal tab_clicked, Int64
+    godot_signal tab_rmb_clicked, Int64
+    godot_signal tab_close_pressed, Int64
+    godot_signal tab_button_pressed, Int64
+    godot_signal tab_hovered, Int64
+    godot_signal active_tab_rearranged, Int64
   end
   class TabContainer < Godot::Container
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -25224,7 +25224,7 @@ module Godot
     @@mb_set_current_tab : Void* = Pointer(Void).null
     def set_current_tab(tab_idx : Int64) : Void
       godot_bind(@@mb_set_current_tab, "TabContainer", "set_current_tab", 1286410249_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_current_tab, @pointer, args.to_unsafe.as(Void**))
@@ -25270,7 +25270,7 @@ module Godot
     @@mb_get_tab_control : Void* = Pointer(Void).null
     def get_tab_control(tab_idx : Int64) : Control
       godot_bind(@@mb_get_tab_control, "TabContainer", "get_tab_control", 1065994134_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_get_tab_control, @pointer, args.to_unsafe.as(Void**), Control)
@@ -25376,7 +25376,7 @@ module Godot
     @@mb_set_tab_title : Void* = Pointer(Void).null
     def set_tab_title(tab_idx : Int64, title : String) : Void
       godot_bind(@@mb_set_tab_title, "TabContainer", "set_tab_title", 501894301_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       str_1 = Bridge.make_string(title)
       arg_1 = str_1
@@ -25388,7 +25388,7 @@ module Godot
     @@mb_get_tab_title : Void* = Pointer(Void).null
     def get_tab_title(tab_idx : Int64) : String
       godot_bind(@@mb_get_tab_title, "TabContainer", "get_tab_title", 844755477_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_tab_title", tab_idx)
@@ -25396,7 +25396,7 @@ module Godot
     @@mb_set_tab_tooltip : Void* = Pointer(Void).null
     def set_tab_tooltip(tab_idx : Int64, tooltip : String) : Void
       godot_bind(@@mb_set_tab_tooltip, "TabContainer", "set_tab_tooltip", 501894301_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       str_1 = Bridge.make_string(tooltip)
       arg_1 = str_1
@@ -25408,7 +25408,7 @@ module Godot
     @@mb_get_tab_tooltip : Void* = Pointer(Void).null
     def get_tab_tooltip(tab_idx : Int64) : String
       godot_bind(@@mb_get_tab_tooltip, "TabContainer", "get_tab_tooltip", 844755477_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_tab_tooltip", tab_idx)
@@ -25416,7 +25416,7 @@ module Godot
     @@mb_set_tab_icon : Void* = Pointer(Void).null
     def set_tab_icon(tab_idx : Int64, icon : Texture2D) : Void
       godot_bind(@@mb_set_tab_icon, "TabContainer", "set_tab_icon", 666127730_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       arg_ptr_1 = icon ? icon.pointer : Pointer(Void).null
       arg_1 = pointerof(arg_ptr_1).as(Void*)
@@ -25426,7 +25426,7 @@ module Godot
     @@mb_get_tab_icon : Void* = Pointer(Void).null
     def get_tab_icon(tab_idx : Int64) : Texture2D
       godot_bind(@@mb_get_tab_icon, "TabContainer", "get_tab_icon", 3536238170_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_get_tab_icon, @pointer, args.to_unsafe.as(Void**), Texture2D)
@@ -25434,9 +25434,9 @@ module Godot
     @@mb_set_tab_icon_max_width : Void* = Pointer(Void).null
     def set_tab_icon_max_width(tab_idx : Int64, width : Int64) : Void
       godot_bind(@@mb_set_tab_icon_max_width, "TabContainer", "set_tab_icon_max_width", 3937882851_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = width
+      val_1 = width.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_tab_icon_max_width, @pointer, args.to_unsafe.as(Void**))
@@ -25444,7 +25444,7 @@ module Godot
     @@mb_get_tab_icon_max_width : Void* = Pointer(Void).null
     def get_tab_icon_max_width(tab_idx : Int64) : Int64
       godot_bind(@@mb_get_tab_icon_max_width, "TabContainer", "get_tab_icon_max_width", 923996154_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_tab_icon_max_width, @pointer, args.to_unsafe.as(Void**))
@@ -25452,7 +25452,7 @@ module Godot
     @@mb_set_tab_disabled : Void* = Pointer(Void).null
     def set_tab_disabled(tab_idx : Int64, disabled : Bool) : Void
       godot_bind(@@mb_set_tab_disabled, "TabContainer", "set_tab_disabled", 300928843_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = disabled
       arg_1 = pointerof(val_1).as(Void*)
@@ -25462,7 +25462,7 @@ module Godot
     @@mb_is_tab_disabled : Void* = Pointer(Void).null
     def is_tab_disabled(tab_idx : Int64) : Bool
       godot_bind(@@mb_is_tab_disabled, "TabContainer", "is_tab_disabled", 1116898809_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_tab_disabled, @pointer, args.to_unsafe.as(Void**))
@@ -25478,7 +25478,7 @@ module Godot
     @@mb_set_tab_hidden : Void* = Pointer(Void).null
     def set_tab_hidden(tab_idx : Int64, hidden : Bool) : Void
       godot_bind(@@mb_set_tab_hidden, "TabContainer", "set_tab_hidden", 300928843_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = hidden
       arg_1 = pointerof(val_1).as(Void*)
@@ -25488,7 +25488,7 @@ module Godot
     @@mb_is_tab_hidden : Void* = Pointer(Void).null
     def is_tab_hidden(tab_idx : Int64) : Bool
       godot_bind(@@mb_is_tab_hidden, "TabContainer", "is_tab_hidden", 1116898809_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_tab_hidden, @pointer, args.to_unsafe.as(Void**))
@@ -25504,7 +25504,7 @@ module Godot
     @@mb_set_tab_metadata : Void* = Pointer(Void).null
     def set_tab_metadata(tab_idx : Int64, metadata : Pointer(Void)) : Void
       godot_bind(@@mb_set_tab_metadata, "TabContainer", "set_tab_metadata", 2152698145_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = metadata
       arg_1 = pointerof(val_1).as(Void*)
@@ -25514,7 +25514,7 @@ module Godot
     @@mb_get_tab_metadata : Void* = Pointer(Void).null
     def get_tab_metadata(tab_idx : Int64) : Pointer(Void)
       godot_bind(@@mb_get_tab_metadata, "TabContainer", "get_tab_metadata", 4227898402_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
@@ -25526,7 +25526,7 @@ module Godot
     @@mb_set_tab_button_icon : Void* = Pointer(Void).null
     def set_tab_button_icon(tab_idx : Int64, icon : Texture2D) : Void
       godot_bind(@@mb_set_tab_button_icon, "TabContainer", "set_tab_button_icon", 666127730_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       arg_ptr_1 = icon ? icon.pointer : Pointer(Void).null
       arg_1 = pointerof(arg_ptr_1).as(Void*)
@@ -25536,7 +25536,7 @@ module Godot
     @@mb_get_tab_button_icon : Void* = Pointer(Void).null
     def get_tab_button_icon(tab_idx : Int64) : Texture2D
       godot_bind(@@mb_get_tab_button_icon, "TabContainer", "get_tab_button_icon", 3536238170_i64)
-      val_0 = tab_idx
+      val_0 = tab_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_get_tab_button_icon, @pointer, args.to_unsafe.as(Void**), Texture2D)
@@ -25607,7 +25607,7 @@ module Godot
     @@mb_set_tabs_rearrange_group : Void* = Pointer(Void).null
     def set_tabs_rearrange_group(group_id : Int64) : Void
       godot_bind(@@mb_set_tabs_rearrange_group, "TabContainer", "set_tabs_rearrange_group", 1286410249_i64)
-      val_0 = group_id
+      val_0 = group_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_tabs_rearrange_group, @pointer, args.to_unsafe.as(Void**))
@@ -25783,13 +25783,13 @@ module Godot
     def deselect_enabled=(val)
       set_deselect_enabled(val)
     end
-    signal active_tab_rearranged, Int64
-    signal tab_changed, Int64
-    signal tab_clicked, Int64
-    signal tab_hovered, Int64
-    signal tab_selected, Int64
-    signal tab_button_pressed, Int64
-    signal pre_popup_pressed
+    godot_signal active_tab_rearranged, Int64
+    godot_signal tab_changed, Int64
+    godot_signal tab_clicked, Int64
+    godot_signal tab_hovered, Int64
+    godot_signal tab_selected, Int64
+    godot_signal tab_button_pressed, Int64
+    godot_signal pre_popup_pressed
   end
   class TextLine < Godot::RefCounted
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -25885,7 +25885,7 @@ module Godot
       arg_0 = str_0
       arg_ptr_1 = font ? font.pointer : Pointer(Void).null
       arg_1 = pointerof(arg_ptr_1).as(Void*)
-      val_2 = font_size
+      val_2 = font_size.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       str_3 = Bridge.make_string(language)
       arg_3 = str_3
@@ -25910,9 +25910,9 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = inline_align.is_a?(Int) ? inline_align.to_i64 : inline_align.value.to_i64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = length
+      val_3 = length.to_i64
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = baseline
+      val_4 = baseline.to_f64
       arg_4 = pointerof(val_4).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
       godot_ptrcall_bool(@@mb_add_object, @pointer, args.to_unsafe.as(Void**))
@@ -25930,7 +25930,7 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = inline_align.is_a?(Int) ? inline_align.to_i64 : inline_align.value.to_i64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = baseline
+      val_3 = baseline.to_f64
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_bool(@@mb_resize_object, @pointer, args.to_unsafe.as(Void**))
@@ -25954,7 +25954,7 @@ module Godot
     @@mb_set_width : Void* = Pointer(Void).null
     def set_width(width : Float64) : Void
       godot_bind(@@mb_set_width, "TextLine", "set_width", 373806689_i64)
-      val_0 = width
+      val_0 = width.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_width, @pointer, args.to_unsafe.as(Void**))
@@ -26085,7 +26085,7 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = color
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = oversampling
+      val_3 = oversampling.to_f64
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_draw, @pointer, args.to_unsafe.as(Void**))
@@ -26097,11 +26097,11 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = pos
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = outline_size
+      val_2 = outline_size.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = color
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = oversampling
+      val_4 = oversampling.to_f64
       arg_4 = pointerof(val_4).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
       godot_ptrcall_void(@@mb_draw_outline, @pointer, args.to_unsafe.as(Void**))
@@ -26109,7 +26109,7 @@ module Godot
     @@mb_hit_test : Void* = Pointer(Void).null
     def hit_test(coords : Float64) : Int64
       godot_bind(@@mb_hit_test, "TextLine", "hit_test", 2401831903_i64)
-      val_0 = coords
+      val_0 = coords.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_hit_test, @pointer, args.to_unsafe.as(Void**))
@@ -26254,7 +26254,7 @@ module Godot
     @@mb_set_font_size : Void* = Pointer(Void).null
     def set_font_size(font_size : Int64) : Void
       godot_bind(@@mb_set_font_size, "TextMesh", "set_font_size", 1286410249_i64)
-      val_0 = font_size
+      val_0 = font_size.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_font_size, @pointer, args.to_unsafe.as(Void**))
@@ -26267,7 +26267,7 @@ module Godot
     @@mb_set_line_spacing : Void* = Pointer(Void).null
     def set_line_spacing(line_spacing : Float64) : Void
       godot_bind(@@mb_set_line_spacing, "TextMesh", "set_line_spacing", 373806689_i64)
-      val_0 = line_spacing
+      val_0 = line_spacing.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_line_spacing, @pointer, args.to_unsafe.as(Void**))
@@ -26306,7 +26306,7 @@ module Godot
     @@mb_set_depth : Void* = Pointer(Void).null
     def set_depth(depth : Float64) : Void
       godot_bind(@@mb_set_depth, "TextMesh", "set_depth", 373806689_i64)
-      val_0 = depth
+      val_0 = depth.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_depth, @pointer, args.to_unsafe.as(Void**))
@@ -26319,7 +26319,7 @@ module Godot
     @@mb_set_width : Void* = Pointer(Void).null
     def set_width(width : Float64) : Void
       godot_bind(@@mb_set_width, "TextMesh", "set_width", 373806689_i64)
-      val_0 = width
+      val_0 = width.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_width, @pointer, args.to_unsafe.as(Void**))
@@ -26332,7 +26332,7 @@ module Godot
     @@mb_set_pixel_size : Void* = Pointer(Void).null
     def set_pixel_size(pixel_size : Float64) : Void
       godot_bind(@@mb_set_pixel_size, "TextMesh", "set_pixel_size", 373806689_i64)
-      val_0 = pixel_size
+      val_0 = pixel_size.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_pixel_size, @pointer, args.to_unsafe.as(Void**))
@@ -26358,7 +26358,7 @@ module Godot
     @@mb_set_curve_step : Void* = Pointer(Void).null
     def set_curve_step(curve_step : Float64) : Void
       godot_bind(@@mb_set_curve_step, "TextMesh", "set_curve_step", 373806689_i64)
-      val_0 = curve_step
+      val_0 = curve_step.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_curve_step, @pointer, args.to_unsafe.as(Void**))
@@ -26699,7 +26699,7 @@ module Godot
       arg_0 = str_0
       arg_ptr_1 = font ? font.pointer : Pointer(Void).null
       arg_1 = pointerof(arg_ptr_1).as(Void*)
-      val_2 = font_size
+      val_2 = font_size.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = dropcap_margins
       arg_3 = pointerof(val_3).as(Void*)
@@ -26727,7 +26727,7 @@ module Godot
       arg_0 = str_0
       arg_ptr_1 = font ? font.pointer : Pointer(Void).null
       arg_1 = pointerof(arg_ptr_1).as(Void*)
-      val_2 = font_size
+      val_2 = font_size.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       str_3 = Bridge.make_string(language)
       arg_3 = str_3
@@ -26752,9 +26752,9 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = inline_align.is_a?(Int) ? inline_align.to_i64 : inline_align.value.to_i64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = length
+      val_3 = length.to_i64
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = baseline
+      val_4 = baseline.to_f64
       arg_4 = pointerof(val_4).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
       godot_ptrcall_bool(@@mb_add_object, @pointer, args.to_unsafe.as(Void**))
@@ -26772,7 +26772,7 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = inline_align.is_a?(Int) ? inline_align.to_i64 : inline_align.value.to_i64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = baseline
+      val_3 = baseline.to_f64
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_bool(@@mb_resize_object, @pointer, args.to_unsafe.as(Void**))
@@ -26871,7 +26871,7 @@ module Godot
     @@mb_set_width : Void* = Pointer(Void).null
     def set_width(width : Float64) : Void
       godot_bind(@@mb_set_width, "TextParagraph", "set_width", 373806689_i64)
-      val_0 = width
+      val_0 = width.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_width, @pointer, args.to_unsafe.as(Void**))
@@ -26899,7 +26899,7 @@ module Godot
     @@mb_get_line_rid : Void* = Pointer(Void).null
     def get_line_rid(line : Int64) : Int64
       godot_bind(@@mb_get_line_rid, "TextParagraph", "get_line_rid", 495598643_i64)
-      val_0 = line
+      val_0 = line.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_line_rid, @pointer, args.to_unsafe.as(Void**))
@@ -26922,7 +26922,7 @@ module Godot
     @@mb_set_max_lines_visible : Void* = Pointer(Void).null
     def set_max_lines_visible(max_lines_visible : Int64) : Void
       godot_bind(@@mb_set_max_lines_visible, "TextParagraph", "set_max_lines_visible", 1286410249_i64)
-      val_0 = max_lines_visible
+      val_0 = max_lines_visible.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_max_lines_visible, @pointer, args.to_unsafe.as(Void**))
@@ -26935,7 +26935,7 @@ module Godot
     @@mb_set_line_spacing : Void* = Pointer(Void).null
     def set_line_spacing(line_spacing : Float64) : Void
       godot_bind(@@mb_set_line_spacing, "TextParagraph", "set_line_spacing", 373806689_i64)
-      val_0 = line_spacing
+      val_0 = line_spacing.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_line_spacing, @pointer, args.to_unsafe.as(Void**))
@@ -26948,7 +26948,7 @@ module Godot
     @@mb_get_line_objects : Void* = Pointer(Void).null
     def get_line_objects(line : Int64) : Pointer(Void)
       godot_bind(@@mb_get_line_objects, "TextParagraph", "get_line_objects", 663333327_i64)
-      val_0 = line
+      val_0 = line.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       ret_ptr = Pointer(Void).null
@@ -26958,7 +26958,7 @@ module Godot
     @@mb_get_line_object_rect : Void* = Pointer(Void).null
     def get_line_object_rect(line : Int64, key : Pointer(Void)) : Rect2
       godot_bind(@@mb_get_line_object_rect, "TextParagraph", "get_line_object_rect", 204315017_i64)
-      val_0 = line
+      val_0 = line.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = key
       arg_1 = pointerof(val_1).as(Void*)
@@ -26968,7 +26968,7 @@ module Godot
     @@mb_get_line_size : Void* = Pointer(Void).null
     def get_line_size(line : Int64) : Vector2
       godot_bind(@@mb_get_line_size, "TextParagraph", "get_line_size", 2299179447_i64)
-      val_0 = line
+      val_0 = line.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_get_line_size, @pointer, args.to_unsafe.as(Void**), Vector2)
@@ -26976,7 +26976,7 @@ module Godot
     @@mb_get_line_range : Void* = Pointer(Void).null
     def get_line_range(line : Int64) : Vector2i
       godot_bind(@@mb_get_line_range, "TextParagraph", "get_line_range", 880721226_i64)
-      val_0 = line
+      val_0 = line.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_get_line_range, @pointer, args.to_unsafe.as(Void**), Vector2i)
@@ -26984,7 +26984,7 @@ module Godot
     @@mb_get_line_ascent : Void* = Pointer(Void).null
     def get_line_ascent(line : Int64) : Float64
       godot_bind(@@mb_get_line_ascent, "TextParagraph", "get_line_ascent", 2339986948_i64)
-      val_0 = line
+      val_0 = line.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_float(@@mb_get_line_ascent, @pointer, args.to_unsafe.as(Void**))
@@ -26992,7 +26992,7 @@ module Godot
     @@mb_get_line_descent : Void* = Pointer(Void).null
     def get_line_descent(line : Int64) : Float64
       godot_bind(@@mb_get_line_descent, "TextParagraph", "get_line_descent", 2339986948_i64)
-      val_0 = line
+      val_0 = line.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_float(@@mb_get_line_descent, @pointer, args.to_unsafe.as(Void**))
@@ -27000,7 +27000,7 @@ module Godot
     @@mb_get_line_width : Void* = Pointer(Void).null
     def get_line_width(line : Int64) : Float64
       godot_bind(@@mb_get_line_width, "TextParagraph", "get_line_width", 2339986948_i64)
-      val_0 = line
+      val_0 = line.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_float(@@mb_get_line_width, @pointer, args.to_unsafe.as(Void**))
@@ -27008,7 +27008,7 @@ module Godot
     @@mb_get_line_underline_position : Void* = Pointer(Void).null
     def get_line_underline_position(line : Int64) : Float64
       godot_bind(@@mb_get_line_underline_position, "TextParagraph", "get_line_underline_position", 2339986948_i64)
-      val_0 = line
+      val_0 = line.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_float(@@mb_get_line_underline_position, @pointer, args.to_unsafe.as(Void**))
@@ -27016,7 +27016,7 @@ module Godot
     @@mb_get_line_underline_thickness : Void* = Pointer(Void).null
     def get_line_underline_thickness(line : Int64) : Float64
       godot_bind(@@mb_get_line_underline_thickness, "TextParagraph", "get_line_underline_thickness", 2339986948_i64)
-      val_0 = line
+      val_0 = line.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_float(@@mb_get_line_underline_thickness, @pointer, args.to_unsafe.as(Void**))
@@ -27042,7 +27042,7 @@ module Godot
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = dc_color
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = oversampling
+      val_4 = oversampling.to_f64
       arg_4 = pointerof(val_4).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
       godot_ptrcall_void(@@mb_draw, @pointer, args.to_unsafe.as(Void**))
@@ -27054,13 +27054,13 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = pos
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = outline_size
+      val_2 = outline_size.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = color
       arg_3 = pointerof(val_3).as(Void*)
       val_4 = dc_color
       arg_4 = pointerof(val_4).as(Void*)
-      val_5 = oversampling
+      val_5 = oversampling.to_f64
       arg_5 = pointerof(val_5).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5]
       godot_ptrcall_void(@@mb_draw_outline, @pointer, args.to_unsafe.as(Void**))
@@ -27072,11 +27072,11 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = pos
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = line
+      val_2 = line.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = color
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = oversampling
+      val_4 = oversampling.to_f64
       arg_4 = pointerof(val_4).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
       godot_ptrcall_void(@@mb_draw_line, @pointer, args.to_unsafe.as(Void**))
@@ -27088,13 +27088,13 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = pos
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = line
+      val_2 = line.to_i64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = outline_size
+      val_3 = outline_size.to_i64
       arg_3 = pointerof(val_3).as(Void*)
       val_4 = color
       arg_4 = pointerof(val_4).as(Void*)
-      val_5 = oversampling
+      val_5 = oversampling.to_f64
       arg_5 = pointerof(val_5).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5]
       godot_ptrcall_void(@@mb_draw_line_outline, @pointer, args.to_unsafe.as(Void**))
@@ -27108,7 +27108,7 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = color
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = oversampling
+      val_3 = oversampling.to_f64
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_draw_dropcap, @pointer, args.to_unsafe.as(Void**))
@@ -27120,11 +27120,11 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = pos
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = outline_size
+      val_2 = outline_size.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = color
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = oversampling
+      val_4 = oversampling.to_f64
       arg_4 = pointerof(val_4).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
       godot_ptrcall_void(@@mb_draw_dropcap_outline, @pointer, args.to_unsafe.as(Void**))
@@ -27473,9 +27473,9 @@ module Godot
     @@mb_get_support_data : Void* = Pointer(Void).null
     def get_support_data() : Pointer(Void)
       godot_bind(@@mb_get_support_data, "TextServer", "get_support_data", 2362200018_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_support_data, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_support_data, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_is_locale_using_support_data : Void* = Pointer(Void).null
     def is_locale_using_support_data(locale : String) : Bool
@@ -27526,7 +27526,7 @@ module Godot
     @@mb_tag_to_name : Void* = Pointer(Void).null
     def tag_to_name(tag : Int64) : String
       godot_bind(@@mb_tag_to_name, "TextServer", "tag_to_name", 844755477_i64)
-      val_0 = tag
+      val_0 = tag.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("tag_to_name", tag)
@@ -27579,7 +27579,7 @@ module Godot
       godot_bind(@@mb_font_set_face_index, "TextServer", "font_set_face_index", 3411492887_i64)
       val_0 = font_rid
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = face_index
+      val_1 = face_index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_font_set_face_index, @pointer, args.to_unsafe.as(Void**))
@@ -27673,7 +27673,7 @@ module Godot
       godot_bind(@@mb_font_set_weight, "TextServer", "font_set_weight", 3411492887_i64)
       val_0 = font_rid
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = weight
+      val_1 = weight.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_font_set_weight, @pointer, args.to_unsafe.as(Void**))
@@ -27691,7 +27691,7 @@ module Godot
       godot_bind(@@mb_font_set_stretch, "TextServer", "font_set_stretch", 3411492887_i64)
       val_0 = font_rid
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = weight
+      val_1 = weight.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_font_set_stretch, @pointer, args.to_unsafe.as(Void**))
@@ -27793,7 +27793,7 @@ module Godot
       godot_bind(@@mb_font_set_msdf_pixel_range, "TextServer", "font_set_msdf_pixel_range", 3411492887_i64)
       val_0 = font_rid
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = msdf_pixel_range
+      val_1 = msdf_pixel_range.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_font_set_msdf_pixel_range, @pointer, args.to_unsafe.as(Void**))
@@ -27811,7 +27811,7 @@ module Godot
       godot_bind(@@mb_font_set_msdf_size, "TextServer", "font_set_msdf_size", 3411492887_i64)
       val_0 = font_rid
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = msdf_size
+      val_1 = msdf_size.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_font_set_msdf_size, @pointer, args.to_unsafe.as(Void**))
@@ -27829,7 +27829,7 @@ module Godot
       godot_bind(@@mb_font_set_fixed_size, "TextServer", "font_set_fixed_size", 3411492887_i64)
       val_0 = font_rid
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = fixed_size
+      val_1 = fixed_size.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_font_set_fixed_size, @pointer, args.to_unsafe.as(Void**))
@@ -27944,7 +27944,7 @@ module Godot
       godot_bind(@@mb_font_get_palette_name, "TextServer", "font_get_palette_name", 1464764419_i64)
       val_0 = font_rid
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = index
+      val_1 = index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_call_str("font_get_palette_name", font_rid, index)
@@ -27954,12 +27954,12 @@ module Godot
       godot_bind(@@mb_font_get_palette_colors, "TextServer", "font_get_palette_colors", 1595517857_i64)
       val_0 = font_rid
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = index
+      val_1 = index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_font_get_palette_colors, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_font_get_palette_colors, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_font_set_palette_custom_colors : Void* = Pointer(Void).null
     def font_set_palette_custom_colors(font_rid : Int64, colors : Pointer(Void)) : Void
@@ -27977,9 +27977,9 @@ module Godot
       val_0 = font_rid
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_font_get_palette_custom_colors, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_font_get_palette_custom_colors, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_font_get_used_palette : Void* = Pointer(Void).null
     def font_get_used_palette(font_rid : Int64) : Int64
@@ -27994,7 +27994,7 @@ module Godot
       godot_bind(@@mb_font_set_used_palette, "TextServer", "font_set_used_palette", 3411492887_i64)
       val_0 = font_rid
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = index
+      val_1 = index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_font_set_used_palette, @pointer, args.to_unsafe.as(Void**))
@@ -28062,7 +28062,7 @@ module Godot
       godot_bind(@@mb_font_set_embolden, "TextServer", "font_set_embolden", 1794382983_i64)
       val_0 = font_rid
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = strength
+      val_1 = strength.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_font_set_embolden, @pointer, args.to_unsafe.as(Void**))
@@ -28082,7 +28082,7 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = spacing.is_a?(Int) ? spacing.to_i64 : spacing.value.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = value
+      val_2 = value.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_font_set_spacing, @pointer, args.to_unsafe.as(Void**))
@@ -28102,7 +28102,7 @@ module Godot
       godot_bind(@@mb_font_set_baseline_offset, "TextServer", "font_set_baseline_offset", 1794382983_i64)
       val_0 = font_rid
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = baseline_offset
+      val_1 = baseline_offset.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_font_set_baseline_offset, @pointer, args.to_unsafe.as(Void**))
@@ -28158,7 +28158,7 @@ module Godot
       godot_bind(@@mb_font_set_oversampling, "TextServer", "font_set_oversampling", 1794382983_i64)
       val_0 = font_rid
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = oversampling
+      val_1 = oversampling.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_font_set_oversampling, @pointer, args.to_unsafe.as(Void**))
@@ -28214,9 +28214,9 @@ module Godot
       godot_bind(@@mb_font_set_ascent, "TextServer", "font_set_ascent", 1892459533_i64)
       val_0 = font_rid
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = size
+      val_1 = size.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = ascent
+      val_2 = ascent.to_f64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_font_set_ascent, @pointer, args.to_unsafe.as(Void**))
@@ -28226,7 +28226,7 @@ module Godot
       godot_bind(@@mb_font_get_ascent, "TextServer", "font_get_ascent", 755457166_i64)
       val_0 = font_rid
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = size
+      val_1 = size.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_float(@@mb_font_get_ascent, @pointer, args.to_unsafe.as(Void**))
@@ -28236,9 +28236,9 @@ module Godot
       godot_bind(@@mb_font_set_descent, "TextServer", "font_set_descent", 1892459533_i64)
       val_0 = font_rid
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = size
+      val_1 = size.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = descent
+      val_2 = descent.to_f64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_font_set_descent, @pointer, args.to_unsafe.as(Void**))
@@ -28248,7 +28248,7 @@ module Godot
       godot_bind(@@mb_font_get_descent, "TextServer", "font_get_descent", 755457166_i64)
       val_0 = font_rid
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = size
+      val_1 = size.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_float(@@mb_font_get_descent, @pointer, args.to_unsafe.as(Void**))
@@ -28258,9 +28258,9 @@ module Godot
       godot_bind(@@mb_font_set_underline_position, "TextServer", "font_set_underline_position", 1892459533_i64)
       val_0 = font_rid
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = size
+      val_1 = size.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = underline_position
+      val_2 = underline_position.to_f64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_font_set_underline_position, @pointer, args.to_unsafe.as(Void**))
@@ -28270,7 +28270,7 @@ module Godot
       godot_bind(@@mb_font_get_underline_position, "TextServer", "font_get_underline_position", 755457166_i64)
       val_0 = font_rid
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = size
+      val_1 = size.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_float(@@mb_font_get_underline_position, @pointer, args.to_unsafe.as(Void**))
@@ -28280,9 +28280,9 @@ module Godot
       godot_bind(@@mb_font_set_underline_thickness, "TextServer", "font_set_underline_thickness", 1892459533_i64)
       val_0 = font_rid
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = size
+      val_1 = size.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = underline_thickness
+      val_2 = underline_thickness.to_f64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_font_set_underline_thickness, @pointer, args.to_unsafe.as(Void**))
@@ -28292,7 +28292,7 @@ module Godot
       godot_bind(@@mb_font_get_underline_thickness, "TextServer", "font_get_underline_thickness", 755457166_i64)
       val_0 = font_rid
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = size
+      val_1 = size.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_float(@@mb_font_get_underline_thickness, @pointer, args.to_unsafe.as(Void**))
@@ -28302,9 +28302,9 @@ module Godot
       godot_bind(@@mb_font_set_scale, "TextServer", "font_set_scale", 1892459533_i64)
       val_0 = font_rid
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = size
+      val_1 = size.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = scale
+      val_2 = scale.to_f64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_font_set_scale, @pointer, args.to_unsafe.as(Void**))
@@ -28314,7 +28314,7 @@ module Godot
       godot_bind(@@mb_font_get_scale, "TextServer", "font_get_scale", 755457166_i64)
       val_0 = font_rid
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = size
+      val_1 = size.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_float(@@mb_font_get_scale, @pointer, args.to_unsafe.as(Void**))
@@ -28346,7 +28346,7 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = size
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = texture_index
+      val_2 = texture_index.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_font_remove_texture, @pointer, args.to_unsafe.as(Void**))
@@ -28358,7 +28358,7 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = size
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = texture_index
+      val_2 = texture_index.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       arg_ptr_3 = image ? image.pointer : Pointer(Void).null
       arg_3 = pointerof(arg_ptr_3).as(Void*)
@@ -28372,7 +28372,7 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = size
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = texture_index
+      val_2 = texture_index.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_obj(@@mb_font_get_texture_image, @pointer, args.to_unsafe.as(Void**), Image)
@@ -28384,7 +28384,7 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = size
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = texture_index
+      val_2 = texture_index.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = offset
       arg_3 = pointerof(val_3).as(Void*)
@@ -28398,12 +28398,12 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = size
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = texture_index
+      val_2 = texture_index.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_font_get_texture_offsets, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_font_get_texture_offsets, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_font_get_glyph_list : Void* = Pointer(Void).null
     def font_get_glyph_list(font_rid : Int64, size : Vector2i) : Pointer(Void)
@@ -28413,9 +28413,9 @@ module Godot
       val_1 = size
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_font_get_glyph_list, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_font_get_glyph_list, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_font_clear_glyphs : Void* = Pointer(Void).null
     def font_clear_glyphs(font_rid : Int64, size : Vector2i) : Void
@@ -28434,7 +28434,7 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = size
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = glyph
+      val_2 = glyph.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_font_remove_glyph, @pointer, args.to_unsafe.as(Void**))
@@ -28444,9 +28444,9 @@ module Godot
       godot_bind(@@mb_font_get_glyph_advance, "TextServer", "font_get_glyph_advance", 2555689501_i64)
       val_0 = font_rid
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = size
+      val_1 = size.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = glyph
+      val_2 = glyph.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_val(@@mb_font_get_glyph_advance, @pointer, args.to_unsafe.as(Void**), Vector2)
@@ -28456,9 +28456,9 @@ module Godot
       godot_bind(@@mb_font_set_glyph_advance, "TextServer", "font_set_glyph_advance", 3219397315_i64)
       val_0 = font_rid
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = size
+      val_1 = size.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = glyph
+      val_2 = glyph.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = advance
       arg_3 = pointerof(val_3).as(Void*)
@@ -28472,7 +28472,7 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = size
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = glyph
+      val_2 = glyph.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_val(@@mb_font_get_glyph_offset, @pointer, args.to_unsafe.as(Void**), Vector2)
@@ -28484,7 +28484,7 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = size
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = glyph
+      val_2 = glyph.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = offset
       arg_3 = pointerof(val_3).as(Void*)
@@ -28498,7 +28498,7 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = size
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = glyph
+      val_2 = glyph.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_val(@@mb_font_get_glyph_size, @pointer, args.to_unsafe.as(Void**), Vector2)
@@ -28510,7 +28510,7 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = size
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = glyph
+      val_2 = glyph.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = gl_size
       arg_3 = pointerof(val_3).as(Void*)
@@ -28524,7 +28524,7 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = size
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = glyph
+      val_2 = glyph.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_val(@@mb_font_get_glyph_uv_rect, @pointer, args.to_unsafe.as(Void**), Rect2)
@@ -28536,7 +28536,7 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = size
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = glyph
+      val_2 = glyph.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = uv_rect
       arg_3 = pointerof(val_3).as(Void*)
@@ -28550,7 +28550,7 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = size
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = glyph
+      val_2 = glyph.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_int(@@mb_font_get_glyph_texture_idx, @pointer, args.to_unsafe.as(Void**))
@@ -28562,9 +28562,9 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = size
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = glyph
+      val_2 = glyph.to_i64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = texture_idx
+      val_3 = texture_idx.to_i64
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_font_set_glyph_texture_idx, @pointer, args.to_unsafe.as(Void**))
@@ -28576,7 +28576,7 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = size
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = glyph
+      val_2 = glyph.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_int(@@mb_font_get_glyph_texture_rid, @pointer, args.to_unsafe.as(Void**))
@@ -28588,7 +28588,7 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = size
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = glyph
+      val_2 = glyph.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_val(@@mb_font_get_glyph_texture_size, @pointer, args.to_unsafe.as(Void**), Vector2)
@@ -28598,9 +28598,9 @@ module Godot
       godot_bind(@@mb_font_get_glyph_contours, "TextServer", "font_get_glyph_contours", 2903964473_i64)
       val_0 = font
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = size
+      val_1 = size.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = index
+      val_2 = index.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       ret_ptr = Pointer(Void).null
@@ -28612,7 +28612,7 @@ module Godot
       godot_bind(@@mb_font_get_kerning_list, "TextServer", "font_get_kerning_list", 1778388067_i64)
       val_0 = font_rid
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = size
+      val_1 = size.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       ret_ptr = Pointer(Void).null
@@ -28624,7 +28624,7 @@ module Godot
       godot_bind(@@mb_font_clear_kerning_map, "TextServer", "font_clear_kerning_map", 3411492887_i64)
       val_0 = font_rid
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = size
+      val_1 = size.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_font_clear_kerning_map, @pointer, args.to_unsafe.as(Void**))
@@ -28634,7 +28634,7 @@ module Godot
       godot_bind(@@mb_font_remove_kerning, "TextServer", "font_remove_kerning", 2141860016_i64)
       val_0 = font_rid
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = size
+      val_1 = size.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = glyph_pair
       arg_2 = pointerof(val_2).as(Void*)
@@ -28646,7 +28646,7 @@ module Godot
       godot_bind(@@mb_font_set_kerning, "TextServer", "font_set_kerning", 3630965883_i64)
       val_0 = font_rid
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = size
+      val_1 = size.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = glyph_pair
       arg_2 = pointerof(val_2).as(Void*)
@@ -28660,7 +28660,7 @@ module Godot
       godot_bind(@@mb_font_get_kerning, "TextServer", "font_get_kerning", 1019980169_i64)
       val_0 = font_rid
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = size
+      val_1 = size.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = glyph_pair
       arg_2 = pointerof(val_2).as(Void*)
@@ -28672,11 +28672,11 @@ module Godot
       godot_bind(@@mb_font_get_glyph_index, "TextServer", "font_get_glyph_index", 1765635060_i64)
       val_0 = font_rid
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = size
+      val_1 = size.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = char
+      val_2 = char.to_i64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = variation_selector
+      val_3 = variation_selector.to_i64
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_int(@@mb_font_get_glyph_index, @pointer, args.to_unsafe.as(Void**))
@@ -28686,9 +28686,9 @@ module Godot
       godot_bind(@@mb_font_get_char_from_glyph_index, "TextServer", "font_get_char_from_glyph_index", 2156738276_i64)
       val_0 = font_rid
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = size
+      val_1 = size.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = glyph_index
+      val_2 = glyph_index.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_int(@@mb_font_get_char_from_glyph_index, @pointer, args.to_unsafe.as(Void**))
@@ -28698,7 +28698,7 @@ module Godot
       godot_bind(@@mb_font_has_char, "TextServer", "font_has_char", 3120086654_i64)
       val_0 = font_rid
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = char
+      val_1 = char.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_bool(@@mb_font_has_char, @pointer, args.to_unsafe.as(Void**))
@@ -28721,9 +28721,9 @@ module Godot
       val_0 = font_rid
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_font_get_supported_glyphs, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_font_get_supported_glyphs, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_font_render_range : Void* = Pointer(Void).null
     def font_render_range(font_rid : Int64, size : Vector2i, start : Int64, end_val : Int64) : Void
@@ -28732,9 +28732,9 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = size
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = start
+      val_2 = start.to_i64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = end_val
+      val_3 = end_val.to_i64
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_font_render_range, @pointer, args.to_unsafe.as(Void**))
@@ -28746,7 +28746,7 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = size
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = index
+      val_2 = index.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_font_render_glyph, @pointer, args.to_unsafe.as(Void**))
@@ -28758,15 +28758,15 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = canvas
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = size
+      val_2 = size.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = pos
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = index
+      val_4 = index.to_i64
       arg_4 = pointerof(val_4).as(Void*)
       val_5 = color
       arg_5 = pointerof(val_5).as(Void*)
-      val_6 = oversampling
+      val_6 = oversampling.to_f64
       arg_6 = pointerof(val_6).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5, arg_6]
       godot_ptrcall_void(@@mb_font_draw_glyph, @pointer, args.to_unsafe.as(Void**))
@@ -28778,17 +28778,17 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = canvas
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = size
+      val_2 = size.to_i64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = outline_size
+      val_3 = outline_size.to_i64
       arg_3 = pointerof(val_3).as(Void*)
       val_4 = pos
       arg_4 = pointerof(val_4).as(Void*)
-      val_5 = index
+      val_5 = index.to_i64
       arg_5 = pointerof(val_5).as(Void*)
       val_6 = color
       arg_6 = pointerof(val_6).as(Void*)
-      val_7 = oversampling
+      val_7 = oversampling.to_f64
       arg_7 = pointerof(val_7).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5, arg_6, arg_7]
       godot_ptrcall_void(@@mb_font_draw_glyph_outline, @pointer, args.to_unsafe.as(Void**))
@@ -28857,9 +28857,9 @@ module Godot
       val_0 = font_rid
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_font_get_language_support_overrides, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_font_get_language_support_overrides, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_font_is_script_supported : Void* = Pointer(Void).null
     def font_is_script_supported(font_rid : Int64, script : String) : Bool
@@ -28925,9 +28925,9 @@ module Godot
       val_0 = font_rid
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_font_get_script_support_overrides, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_font_get_script_support_overrides, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_font_set_opentype_feature_overrides : Void* = Pointer(Void).null
     def font_set_opentype_feature_overrides(font_rid : Int64, overrides : Pointer(Void)) : Void
@@ -28977,7 +28977,7 @@ module Godot
     @@mb_font_set_global_oversampling : Void* = Pointer(Void).null
     def font_set_global_oversampling(oversampling : Float64) : Void
       godot_bind(@@mb_font_set_global_oversampling, "TextServer", "font_set_global_oversampling", 373806689_i64)
-      val_0 = oversampling
+      val_0 = oversampling.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_font_set_global_oversampling, @pointer, args.to_unsafe.as(Void**))
@@ -28985,9 +28985,9 @@ module Godot
     @@mb_get_hex_code_box_size : Void* = Pointer(Void).null
     def get_hex_code_box_size(size : Int64, index : Int64) : Vector2
       godot_bind(@@mb_get_hex_code_box_size, "TextServer", "get_hex_code_box_size", 3016396712_i64)
-      val_0 = size
+      val_0 = size.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = index
+      val_1 = index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_val(@@mb_get_hex_code_box_size, @pointer, args.to_unsafe.as(Void**), Vector2)
@@ -28997,11 +28997,11 @@ module Godot
       godot_bind(@@mb_draw_hex_code_box, "TextServer", "draw_hex_code_box", 1602046441_i64)
       val_0 = canvas
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = size
+      val_1 = size.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = pos
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = index
+      val_3 = index.to_i64
       arg_3 = pointerof(val_3).as(Void*)
       val_4 = color
       arg_4 = pointerof(val_4).as(Void*)
@@ -29095,7 +29095,7 @@ module Godot
       godot_bind(@@mb_shaped_text_set_custom_ellipsis, "TextServer", "shaped_text_set_custom_ellipsis", 3411492887_i64)
       val_0 = shaped
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = char
+      val_1 = char.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_shaped_text_set_custom_ellipsis, @pointer, args.to_unsafe.as(Void**))
@@ -29177,7 +29177,7 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = spacing.is_a?(Int) ? spacing.to_i64 : spacing.value.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = value
+      val_2 = value.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_shaped_text_set_spacing, @pointer, args.to_unsafe.as(Void**))
@@ -29201,7 +29201,7 @@ module Godot
       arg_1 = str_1
       val_2 = fonts
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = size
+      val_3 = size.to_i64
       arg_3 = pointerof(val_3).as(Void*)
       val_4 = opentype_features
       arg_4 = pointerof(val_4).as(Void*)
@@ -29230,9 +29230,9 @@ module Godot
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = inline_align.is_a?(Int) ? inline_align.to_i64 : inline_align.value.to_i64
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = length
+      val_4 = length.to_i64
       arg_4 = pointerof(val_4).as(Void*)
-      val_5 = baseline
+      val_5 = baseline.to_f64
       arg_5 = pointerof(val_5).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5]
       godot_ptrcall_bool(@@mb_shaped_text_add_object, @pointer, args.to_unsafe.as(Void**))
@@ -29252,7 +29252,7 @@ module Godot
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = inline_align.is_a?(Int) ? inline_align.to_i64 : inline_align.value.to_i64
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = baseline
+      val_4 = baseline.to_f64
       arg_4 = pointerof(val_4).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
       godot_ptrcall_bool(@@mb_shaped_text_resize_object, @pointer, args.to_unsafe.as(Void**))
@@ -29296,7 +29296,7 @@ module Godot
       godot_bind(@@mb_shaped_get_span_meta, "TextServer", "shaped_get_span_meta", 4069510997_i64)
       val_0 = shaped
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = index
+      val_1 = index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
@@ -29310,7 +29310,7 @@ module Godot
       godot_bind(@@mb_shaped_get_span_embedded_object, "TextServer", "shaped_get_span_embedded_object", 4069510997_i64)
       val_0 = shaped
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = index
+      val_1 = index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
@@ -29324,7 +29324,7 @@ module Godot
       godot_bind(@@mb_shaped_get_span_text, "TextServer", "shaped_get_span_text", 1464764419_i64)
       val_0 = shaped
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = index
+      val_1 = index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_call_str("shaped_get_span_text", shaped, index)
@@ -29334,7 +29334,7 @@ module Godot
       godot_bind(@@mb_shaped_get_span_object, "TextServer", "shaped_get_span_object", 4069510997_i64)
       val_0 = shaped
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = index
+      val_1 = index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
@@ -29348,11 +29348,11 @@ module Godot
       godot_bind(@@mb_shaped_set_span_update_font, "TextServer", "shaped_set_span_update_font", 2022725822_i64)
       val_0 = shaped
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = index
+      val_1 = index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = fonts
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = size
+      val_3 = size.to_i64
       arg_3 = pointerof(val_3).as(Void*)
       val_4 = opentype_features
       arg_4 = pointerof(val_4).as(Void*)
@@ -29372,7 +29372,7 @@ module Godot
       godot_bind(@@mb_shaped_get_run_text, "TextServer", "shaped_get_run_text", 1464764419_i64)
       val_0 = shaped
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = index
+      val_1 = index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_call_str("shaped_get_run_text", shaped, index)
@@ -29382,7 +29382,7 @@ module Godot
       godot_bind(@@mb_shaped_get_run_range, "TextServer", "shaped_get_run_range", 4069534484_i64)
       val_0 = shaped
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = index
+      val_1 = index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_val(@@mb_shaped_get_run_range, @pointer, args.to_unsafe.as(Void**), Vector2i)
@@ -29392,7 +29392,7 @@ module Godot
       godot_bind(@@mb_shaped_get_run_glyph_range, "TextServer", "shaped_get_run_glyph_range", 4069534484_i64)
       val_0 = shaped
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = index
+      val_1 = index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_val(@@mb_shaped_get_run_glyph_range, @pointer, args.to_unsafe.as(Void**), Vector2i)
@@ -29402,7 +29402,7 @@ module Godot
       godot_bind(@@mb_shaped_get_run_font_rid, "TextServer", "shaped_get_run_font_rid", 1066463050_i64)
       val_0 = shaped
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = index
+      val_1 = index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_shaped_get_run_font_rid, @pointer, args.to_unsafe.as(Void**))
@@ -29412,7 +29412,7 @@ module Godot
       godot_bind(@@mb_shaped_get_run_font_size, "TextServer", "shaped_get_run_font_size", 1120910005_i64)
       val_0 = shaped
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = index
+      val_1 = index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_shaped_get_run_font_size, @pointer, args.to_unsafe.as(Void**))
@@ -29422,7 +29422,7 @@ module Godot
       godot_bind(@@mb_shaped_get_run_language, "TextServer", "shaped_get_run_language", 1464764419_i64)
       val_0 = shaped
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = index
+      val_1 = index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_call_str("shaped_get_run_language", shaped, index)
@@ -29432,7 +29432,7 @@ module Godot
       godot_bind(@@mb_shaped_get_run_direction, "TextServer", "shaped_get_run_direction", 2413896864_i64)
       val_0 = shaped
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = index
+      val_1 = index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_enum(@@mb_shaped_get_run_direction, @pointer, args.to_unsafe.as(Void**), Direction)
@@ -29442,7 +29442,7 @@ module Godot
       godot_bind(@@mb_shaped_get_run_object, "TextServer", "shaped_get_run_object", 4069510997_i64)
       val_0 = shaped
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = index
+      val_1 = index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
@@ -29456,9 +29456,9 @@ module Godot
       godot_bind(@@mb_shaped_text_substr, "TextServer", "shaped_text_substr", 1937682086_i64)
       val_0 = shaped
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = start
+      val_1 = start.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = length
+      val_2 = length.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_int(@@mb_shaped_text_substr, @pointer, args.to_unsafe.as(Void**))
@@ -29476,7 +29476,7 @@ module Godot
       godot_bind(@@mb_shaped_text_fit_to_width, "TextServer", "shaped_text_fit_to_width", 530670926_i64)
       val_0 = shaped
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = width
+      val_1 = width.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = justification_flags.is_a?(Int) ? justification_flags.to_i64 : justification_flags.value.to_i64
       arg_2 = pointerof(val_2).as(Void*)
@@ -29572,32 +29572,32 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = width
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = start
+      val_2 = start.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = once
       arg_3 = pointerof(val_3).as(Void*)
       val_4 = break_flags.is_a?(Int) ? break_flags.to_i64 : break_flags.value.to_i64
       arg_4 = pointerof(val_4).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_shaped_text_get_line_breaks_adv, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_shaped_text_get_line_breaks_adv, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_shaped_text_get_line_breaks : Void* = Pointer(Void).null
     def shaped_text_get_line_breaks(shaped : Int64, width : Float64, start : Int64 = 0_i64, break_flags : LineBreakFlag | Int = 3) : Pointer(Void)
       godot_bind(@@mb_shaped_text_get_line_breaks, "TextServer", "shaped_text_get_line_breaks", 2651359741_i64)
       val_0 = shaped
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = width
+      val_1 = width.to_f64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = start
+      val_2 = start.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = break_flags.is_a?(Int) ? break_flags.to_i64 : break_flags.value.to_i64
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_shaped_text_get_line_breaks, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_shaped_text_get_line_breaks, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_shaped_text_get_word_breaks : Void* = Pointer(Void).null
     def shaped_text_get_word_breaks(shaped : Int64, grapheme_flags : GraphemeFlag | Int = 264, skip_grapheme_flags : GraphemeFlag | Int = 4) : Pointer(Void)
@@ -29609,9 +29609,9 @@ module Godot
       val_2 = skip_grapheme_flags.is_a?(Int) ? skip_grapheme_flags.to_i64 : skip_grapheme_flags.value.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_shaped_text_get_word_breaks, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_shaped_text_get_word_breaks, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_shaped_text_get_trim_pos : Void* = Pointer(Void).null
     def shaped_text_get_trim_pos(shaped : Int64) : Int64
@@ -29652,7 +29652,7 @@ module Godot
       godot_bind(@@mb_shaped_text_overrun_trim_to_width, "TextServer", "shaped_text_overrun_trim_to_width", 2723146520_i64)
       val_0 = shaped
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = width
+      val_1 = width.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = overrun_trim_flags.is_a?(Int) ? overrun_trim_flags.to_i64 : overrun_trim_flags.value.to_i64
       arg_2 = pointerof(val_2).as(Void*)
@@ -29752,7 +29752,7 @@ module Godot
       godot_bind(@@mb_shaped_text_get_carets, "TextServer", "shaped_text_get_carets", 1574219346_i64)
       val_0 = shaped
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = position
+      val_1 = position.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       ret_ptr = Pointer(Void).null
@@ -29764,21 +29764,21 @@ module Godot
       godot_bind(@@mb_shaped_text_get_selection, "TextServer", "shaped_text_get_selection", 3714187733_i64)
       val_0 = shaped
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = start
+      val_1 = start.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = end_val
+      val_2 = end_val.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_shaped_text_get_selection, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_shaped_text_get_selection, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_shaped_text_hit_test_grapheme : Void* = Pointer(Void).null
     def shaped_text_hit_test_grapheme(shaped : Int64, coords : Float64) : Int64
       godot_bind(@@mb_shaped_text_hit_test_grapheme, "TextServer", "shaped_text_hit_test_grapheme", 3149310417_i64)
       val_0 = shaped
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = coords
+      val_1 = coords.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_shaped_text_hit_test_grapheme, @pointer, args.to_unsafe.as(Void**))
@@ -29788,7 +29788,7 @@ module Godot
       godot_bind(@@mb_shaped_text_hit_test_position, "TextServer", "shaped_text_hit_test_position", 3149310417_i64)
       val_0 = shaped
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = coords
+      val_1 = coords.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_shaped_text_hit_test_position, @pointer, args.to_unsafe.as(Void**))
@@ -29798,7 +29798,7 @@ module Godot
       godot_bind(@@mb_shaped_text_get_grapheme_bounds, "TextServer", "shaped_text_get_grapheme_bounds", 2546185844_i64)
       val_0 = shaped
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = pos
+      val_1 = pos.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_val(@@mb_shaped_text_get_grapheme_bounds, @pointer, args.to_unsafe.as(Void**), Vector2)
@@ -29808,7 +29808,7 @@ module Godot
       godot_bind(@@mb_shaped_text_next_grapheme_pos, "TextServer", "shaped_text_next_grapheme_pos", 1120910005_i64)
       val_0 = shaped
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = pos
+      val_1 = pos.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_shaped_text_next_grapheme_pos, @pointer, args.to_unsafe.as(Void**))
@@ -29818,7 +29818,7 @@ module Godot
       godot_bind(@@mb_shaped_text_prev_grapheme_pos, "TextServer", "shaped_text_prev_grapheme_pos", 1120910005_i64)
       val_0 = shaped
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = pos
+      val_1 = pos.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_shaped_text_prev_grapheme_pos, @pointer, args.to_unsafe.as(Void**))
@@ -29829,16 +29829,16 @@ module Godot
       val_0 = shaped
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_shaped_text_get_character_breaks, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_shaped_text_get_character_breaks, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_shaped_text_next_character_pos : Void* = Pointer(Void).null
     def shaped_text_next_character_pos(shaped : Int64, pos : Int64) : Int64
       godot_bind(@@mb_shaped_text_next_character_pos, "TextServer", "shaped_text_next_character_pos", 1120910005_i64)
       val_0 = shaped
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = pos
+      val_1 = pos.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_shaped_text_next_character_pos, @pointer, args.to_unsafe.as(Void**))
@@ -29848,7 +29848,7 @@ module Godot
       godot_bind(@@mb_shaped_text_prev_character_pos, "TextServer", "shaped_text_prev_character_pos", 1120910005_i64)
       val_0 = shaped
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = pos
+      val_1 = pos.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_shaped_text_prev_character_pos, @pointer, args.to_unsafe.as(Void**))
@@ -29858,7 +29858,7 @@ module Godot
       godot_bind(@@mb_shaped_text_closest_character_pos, "TextServer", "shaped_text_closest_character_pos", 1120910005_i64)
       val_0 = shaped
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = pos
+      val_1 = pos.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_shaped_text_closest_character_pos, @pointer, args.to_unsafe.as(Void**))
@@ -29872,13 +29872,13 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = pos
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = clip_l
+      val_3 = clip_l.to_f64
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = clip_r
+      val_4 = clip_r.to_f64
       arg_4 = pointerof(val_4).as(Void*)
       val_5 = color
       arg_5 = pointerof(val_5).as(Void*)
-      val_6 = oversampling
+      val_6 = oversampling.to_f64
       arg_6 = pointerof(val_6).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5, arg_6]
       godot_ptrcall_void(@@mb_shaped_text_draw, @pointer, args.to_unsafe.as(Void**))
@@ -29892,15 +29892,15 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = pos
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = clip_l
+      val_3 = clip_l.to_f64
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = clip_r
+      val_4 = clip_r.to_f64
       arg_4 = pointerof(val_4).as(Void*)
-      val_5 = outline_size
+      val_5 = outline_size.to_i64
       arg_5 = pointerof(val_5).as(Void*)
       val_6 = color
       arg_6 = pointerof(val_6).as(Void*)
-      val_7 = oversampling
+      val_7 = oversampling.to_f64
       arg_7 = pointerof(val_7).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5, arg_6, arg_7]
       godot_ptrcall_void(@@mb_shaped_text_draw_outline, @pointer, args.to_unsafe.as(Void**))
@@ -29910,9 +29910,9 @@ module Godot
       godot_bind(@@mb_shaped_text_get_dominant_direction_in_range, "TextServer", "shaped_text_get_dominant_direction_in_range", 3326907668_i64)
       val_0 = shaped
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = start
+      val_1 = start.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = end_val
+      val_2 = end_val.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_enum(@@mb_shaped_text_get_dominant_direction_in_range, @pointer, args.to_unsafe.as(Void**), Direction)
@@ -29960,12 +29960,12 @@ module Godot
       arg_0 = str_0
       str_1 = Bridge.make_string(language)
       arg_1 = str_1
-      val_2 = chars_per_line
+      val_2 = chars_per_line.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_string_get_word_breaks, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_string_get_word_breaks, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     ensure
       Bridge.free_string(str_0)
       Bridge.free_string(str_1)
@@ -29978,9 +29978,9 @@ module Godot
       str_1 = Bridge.make_string(language)
       arg_1 = str_1
       args = StaticArray[arg_0, arg_1]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_string_get_character_breaks, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_string_get_character_breaks, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     ensure
       Bridge.free_string(str_0)
       Bridge.free_string(str_1)
@@ -30042,7 +30042,7 @@ module Godot
     @@mb_is_valid_letter : Void* = Pointer(Void).null
     def is_valid_letter(unicode : Int64) : Bool
       godot_bind(@@mb_is_valid_letter, "TextServer", "is_valid_letter", 1116898809_i64)
-      val_0 = unicode
+      val_0 = unicode.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_valid_letter, @pointer, args.to_unsafe.as(Void**))
@@ -30154,7 +30154,7 @@ module Godot
     @@mb_get_interface : Void* = Pointer(Void).null
     def get_interface(idx : Int64) : TextServer
       godot_bind(@@mb_get_interface, "TextServerManager", "get_interface", 1672475555_i64)
-      val_0 = idx
+      val_0 = idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_get_interface, @pointer, args.to_unsafe.as(Void**), TextServer)
@@ -30189,8 +30189,8 @@ module Godot
       godot_bind(@@mb_get_primary_interface, "TextServerManager", "get_primary_interface", 905850878_i64)
       godot_ptrcall_obj(@@mb_get_primary_interface, @pointer, Pointer(Pointer(Void)).null, TextServer)
     end
-    signal interface_added, String
-    signal interface_removed, String
+    godot_signal interface_added, String
+    godot_signal interface_removed, String
   end
   class Texture2DArray < Godot::ImageTextureLayered
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -30605,7 +30605,7 @@ module Godot
     @@mb_set_fill_mode : Void* = Pointer(Void).null
     def set_fill_mode(mode : Int64) : Void
       godot_bind(@@mb_set_fill_mode, "TextureProgressBar", "set_fill_mode", 1286410249_i64)
-      val_0 = mode
+      val_0 = mode.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_fill_mode, @pointer, args.to_unsafe.as(Void**))
@@ -30670,7 +30670,7 @@ module Godot
     @@mb_set_radial_initial_angle : Void* = Pointer(Void).null
     def set_radial_initial_angle(mode : Float64) : Void
       godot_bind(@@mb_set_radial_initial_angle, "TextureProgressBar", "set_radial_initial_angle", 373806689_i64)
-      val_0 = mode
+      val_0 = mode.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_radial_initial_angle, @pointer, args.to_unsafe.as(Void**))
@@ -30696,7 +30696,7 @@ module Godot
     @@mb_set_fill_degrees : Void* = Pointer(Void).null
     def set_fill_degrees(mode : Float64) : Void
       godot_bind(@@mb_set_fill_degrees, "TextureProgressBar", "set_fill_degrees", 373806689_i64)
-      val_0 = mode
+      val_0 = mode.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_fill_degrees, @pointer, args.to_unsafe.as(Void**))
@@ -30711,7 +30711,7 @@ module Godot
       godot_bind(@@mb_set_stretch_margin, "TextureProgressBar", "set_stretch_margin", 437707142_i64)
       val_0 = margin.is_a?(Int) ? margin.to_i64 : margin.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = value
+      val_1 = value.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_stretch_margin, @pointer, args.to_unsafe.as(Void**))
@@ -31034,7 +31034,7 @@ module Godot
     @@mb_set_min_lod_override : Void* = Pointer(Void).null
     def set_min_lod_override(min_lod : Int64) : Void
       godot_bind(@@mb_set_min_lod_override, "TextureStreaming", "set_min_lod_override", 1286410249_i64)
-      val_0 = min_lod
+      val_0 = min_lod.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_min_lod_override, @pointer, args.to_unsafe.as(Void**))
@@ -31047,7 +31047,7 @@ module Godot
     @@mb_set_max_lod_override : Void* = Pointer(Void).null
     def set_max_lod_override(max_lod : Int64) : Void
       godot_bind(@@mb_set_max_lod_override, "TextureStreaming", "set_max_lod_override", 1286410249_i64)
-      val_0 = max_lod
+      val_0 = max_lod.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_max_lod_override, @pointer, args.to_unsafe.as(Void**))
@@ -31060,7 +31060,7 @@ module Godot
     @@mb_set_memory_budget_mb_override : Void* = Pointer(Void).null
     def set_memory_budget_mb_override(mb : Int64) : Void
       godot_bind(@@mb_set_memory_budget_mb_override, "TextureStreaming", "set_memory_budget_mb_override", 1286410249_i64)
-      val_0 = mb
+      val_0 = mb.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_memory_budget_mb_override, @pointer, args.to_unsafe.as(Void**))
@@ -31099,7 +31099,7 @@ module Godot
     def memory_budget_mb_override=(val : Int)
       set_memory_budget_mb_override(val.to_i64)
     end
-    signal flush_completed
+    godot_signal flush_completed
   end
   class Theme < Godot::Resource
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -31194,18 +31194,18 @@ module Godot
       str_0 = Bridge.make_string(theme_type)
       arg_0 = str_0
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_icon_list, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_icon_list, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     ensure
       Bridge.free_string(str_0)
     end
     @@mb_get_icon_type_list : Void* = Pointer(Void).null
     def get_icon_type_list() : Pointer(Void)
       godot_bind(@@mb_get_icon_type_list, "Theme", "get_icon_type_list", 1139954409_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_icon_type_list, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_icon_type_list, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_set_stylebox : Void* = Pointer(Void).null
     def set_stylebox(name : String, theme_type : String, texture : StyleBox) : Void
@@ -31287,18 +31287,18 @@ module Godot
       str_0 = Bridge.make_string(theme_type)
       arg_0 = str_0
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_stylebox_list, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_stylebox_list, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     ensure
       Bridge.free_string(str_0)
     end
     @@mb_get_stylebox_type_list : Void* = Pointer(Void).null
     def get_stylebox_type_list() : Pointer(Void)
       godot_bind(@@mb_get_stylebox_type_list, "Theme", "get_stylebox_type_list", 1139954409_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_stylebox_type_list, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_stylebox_type_list, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_set_font : Void* = Pointer(Void).null
     def set_font(name : String, theme_type : String, font : Font) : Void
@@ -31380,18 +31380,18 @@ module Godot
       str_0 = Bridge.make_string(theme_type)
       arg_0 = str_0
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_font_list, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_font_list, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     ensure
       Bridge.free_string(str_0)
     end
     @@mb_get_font_type_list : Void* = Pointer(Void).null
     def get_font_type_list() : Pointer(Void)
       godot_bind(@@mb_get_font_type_list, "Theme", "get_font_type_list", 1139954409_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_font_type_list, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_font_type_list, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_set_font_size : Void* = Pointer(Void).null
     def set_font_size(name : String, theme_type : String, font_size : Int64) : Void
@@ -31400,7 +31400,7 @@ module Godot
       arg_0 = sn_0
       sn_1 = Bridge.make_string_name(theme_type)
       arg_1 = sn_1
-      val_2 = font_size
+      val_2 = font_size.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_set_font_size, @pointer, args.to_unsafe.as(Void**))
@@ -31473,18 +31473,18 @@ module Godot
       str_0 = Bridge.make_string(theme_type)
       arg_0 = str_0
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_font_size_list, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_font_size_list, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     ensure
       Bridge.free_string(str_0)
     end
     @@mb_get_font_size_type_list : Void* = Pointer(Void).null
     def get_font_size_type_list() : Pointer(Void)
       godot_bind(@@mb_get_font_size_type_list, "Theme", "get_font_size_type_list", 1139954409_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_font_size_type_list, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_font_size_type_list, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_set_color : Void* = Pointer(Void).null
     def set_color(name : String, theme_type : String, color : Color) : Void
@@ -31566,18 +31566,18 @@ module Godot
       str_0 = Bridge.make_string(theme_type)
       arg_0 = str_0
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_color_list, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_color_list, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     ensure
       Bridge.free_string(str_0)
     end
     @@mb_get_color_type_list : Void* = Pointer(Void).null
     def get_color_type_list() : Pointer(Void)
       godot_bind(@@mb_get_color_type_list, "Theme", "get_color_type_list", 1139954409_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_color_type_list, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_color_type_list, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_set_constant : Void* = Pointer(Void).null
     def set_constant(name : String, theme_type : String, constant : Int64) : Void
@@ -31586,7 +31586,7 @@ module Godot
       arg_0 = sn_0
       sn_1 = Bridge.make_string_name(theme_type)
       arg_1 = sn_1
-      val_2 = constant
+      val_2 = constant.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_set_constant, @pointer, args.to_unsafe.as(Void**))
@@ -31659,23 +31659,23 @@ module Godot
       str_0 = Bridge.make_string(theme_type)
       arg_0 = str_0
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_constant_list, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_constant_list, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     ensure
       Bridge.free_string(str_0)
     end
     @@mb_get_constant_type_list : Void* = Pointer(Void).null
     def get_constant_type_list() : Pointer(Void)
       godot_bind(@@mb_get_constant_type_list, "Theme", "get_constant_type_list", 1139954409_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_constant_type_list, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_constant_type_list, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_set_default_base_scale : Void* = Pointer(Void).null
     def set_default_base_scale(base_scale : Float64) : Void
       godot_bind(@@mb_set_default_base_scale, "Theme", "set_default_base_scale", 373806689_i64)
-      val_0 = base_scale
+      val_0 = base_scale.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_default_base_scale, @pointer, args.to_unsafe.as(Void**))
@@ -31719,7 +31719,7 @@ module Godot
     @@mb_set_default_font_size : Void* = Pointer(Void).null
     def set_default_font_size(font_size : Int64) : Void
       godot_bind(@@mb_set_default_font_size, "Theme", "set_default_font_size", 1286410249_i64)
-      val_0 = font_size
+      val_0 = font_size.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_default_font_size, @pointer, args.to_unsafe.as(Void**))
@@ -31834,9 +31834,9 @@ module Godot
       str_1 = Bridge.make_string(theme_type)
       arg_1 = str_1
       args = StaticArray[arg_0, arg_1]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_theme_item_list, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_theme_item_list, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     ensure
       Bridge.free_string(str_1)
     end
@@ -31846,9 +31846,9 @@ module Godot
       val_0 = data_type.is_a?(Int) ? data_type.to_i64 : data_type.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_theme_item_type_list, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_theme_item_type_list, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_set_type_variation : Void* = Pointer(Void).null
     def set_type_variation(theme_type : String, base_type : String) : Void
@@ -31910,9 +31910,9 @@ module Godot
       sn_0 = Bridge.make_string_name(base_type)
       arg_0 = sn_0
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_type_variation_list, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_type_variation_list, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     ensure
       Bridge.free_string_name(sn_0)
     end
@@ -31952,9 +31952,9 @@ module Godot
     @@mb_get_type_list : Void* = Pointer(Void).null
     def get_type_list() : Pointer(Void)
       godot_bind(@@mb_get_type_list, "Theme", "get_type_list", 1139954409_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_type_list, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_type_list, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_merge_with : Void* = Pointer(Void).null
     def merge_with(other : Theme) : Void
@@ -32011,7 +32011,7 @@ module Godot
     @@mb_set_fallback_base_scale : Void* = Pointer(Void).null
     def set_fallback_base_scale(base_scale : Float64) : Void
       godot_bind(@@mb_set_fallback_base_scale, "ThemeDB", "set_fallback_base_scale", 373806689_i64)
-      val_0 = base_scale
+      val_0 = base_scale.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_fallback_base_scale, @pointer, args.to_unsafe.as(Void**))
@@ -32037,7 +32037,7 @@ module Godot
     @@mb_set_fallback_font_size : Void* = Pointer(Void).null
     def set_fallback_font_size(font_size : Int64) : Void
       godot_bind(@@mb_set_fallback_font_size, "ThemeDB", "set_fallback_font_size", 1286410249_i64)
-      val_0 = font_size
+      val_0 = font_size.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_fallback_font_size, @pointer, args.to_unsafe.as(Void**))
@@ -32113,7 +32113,7 @@ module Godot
     def fallback_stylebox=(val)
       set_fallback_stylebox(val)
     end
-    signal fallback_changed
+    godot_signal fallback_changed
   end
   class Thread < Godot::RefCounted
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -32309,7 +32309,7 @@ module Godot
     @@mb_set_z_index : Void* = Pointer(Void).null
     def set_z_index(z_index : Int64) : Void
       godot_bind(@@mb_set_z_index, "TileData", "set_z_index", 1286410249_i64)
-      val_0 = z_index
+      val_0 = z_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_z_index, @pointer, args.to_unsafe.as(Void**))
@@ -32322,7 +32322,7 @@ module Godot
     @@mb_set_y_sort_origin : Void* = Pointer(Void).null
     def set_y_sort_origin(y_sort_origin : Int64) : Void
       godot_bind(@@mb_set_y_sort_origin, "TileData", "set_y_sort_origin", 1286410249_i64)
-      val_0 = y_sort_origin
+      val_0 = y_sort_origin.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_y_sort_origin, @pointer, args.to_unsafe.as(Void**))
@@ -32335,9 +32335,9 @@ module Godot
     @@mb_set_occluder_polygons_count : Void* = Pointer(Void).null
     def set_occluder_polygons_count(layer_id : Int64, polygons_count : Int64) : Void
       godot_bind(@@mb_set_occluder_polygons_count, "TileData", "set_occluder_polygons_count", 3937882851_i64)
-      val_0 = layer_id
+      val_0 = layer_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = polygons_count
+      val_1 = polygons_count.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_occluder_polygons_count, @pointer, args.to_unsafe.as(Void**))
@@ -32345,7 +32345,7 @@ module Godot
     @@mb_get_occluder_polygons_count : Void* = Pointer(Void).null
     def get_occluder_polygons_count(layer_id : Int64) : Int64
       godot_bind(@@mb_get_occluder_polygons_count, "TileData", "get_occluder_polygons_count", 923996154_i64)
-      val_0 = layer_id
+      val_0 = layer_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_occluder_polygons_count, @pointer, args.to_unsafe.as(Void**))
@@ -32353,7 +32353,7 @@ module Godot
     @@mb_add_occluder_polygon : Void* = Pointer(Void).null
     def add_occluder_polygon(layer_id : Int64) : Void
       godot_bind(@@mb_add_occluder_polygon, "TileData", "add_occluder_polygon", 1286410249_i64)
-      val_0 = layer_id
+      val_0 = layer_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_add_occluder_polygon, @pointer, args.to_unsafe.as(Void**))
@@ -32361,9 +32361,9 @@ module Godot
     @@mb_remove_occluder_polygon : Void* = Pointer(Void).null
     def remove_occluder_polygon(layer_id : Int64, polygon_index : Int64) : Void
       godot_bind(@@mb_remove_occluder_polygon, "TileData", "remove_occluder_polygon", 3937882851_i64)
-      val_0 = layer_id
+      val_0 = layer_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = polygon_index
+      val_1 = polygon_index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_remove_occluder_polygon, @pointer, args.to_unsafe.as(Void**))
@@ -32371,9 +32371,9 @@ module Godot
     @@mb_set_occluder_polygon : Void* = Pointer(Void).null
     def set_occluder_polygon(layer_id : Int64, polygon_index : Int64, polygon : OccluderPolygon2D) : Void
       godot_bind(@@mb_set_occluder_polygon, "TileData", "set_occluder_polygon", 164249167_i64)
-      val_0 = layer_id
+      val_0 = layer_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = polygon_index
+      val_1 = polygon_index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       arg_ptr_2 = polygon ? polygon.pointer : Pointer(Void).null
       arg_2 = pointerof(arg_ptr_2).as(Void*)
@@ -32383,9 +32383,9 @@ module Godot
     @@mb_get_occluder_polygon : Void* = Pointer(Void).null
     def get_occluder_polygon(layer_id : Int64, polygon_index : Int64, flip_h : Bool = false, flip_v : Bool = false, transpose : Bool = false) : OccluderPolygon2D
       godot_bind(@@mb_get_occluder_polygon, "TileData", "get_occluder_polygon", 971166743_i64)
-      val_0 = layer_id
+      val_0 = layer_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = polygon_index
+      val_1 = polygon_index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = flip_h
       arg_2 = pointerof(val_2).as(Void*)
@@ -32399,7 +32399,7 @@ module Godot
     @@mb_set_occluder : Void* = Pointer(Void).null
     def set_occluder(layer_id : Int64, occluder_polygon : OccluderPolygon2D) : Void
       godot_bind(@@mb_set_occluder, "TileData", "set_occluder", 914399637_i64)
-      val_0 = layer_id
+      val_0 = layer_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       arg_ptr_1 = occluder_polygon ? occluder_polygon.pointer : Pointer(Void).null
       arg_1 = pointerof(arg_ptr_1).as(Void*)
@@ -32409,7 +32409,7 @@ module Godot
     @@mb_get_occluder : Void* = Pointer(Void).null
     def get_occluder(layer_id : Int64, flip_h : Bool = false, flip_v : Bool = false, transpose : Bool = false) : OccluderPolygon2D
       godot_bind(@@mb_get_occluder, "TileData", "get_occluder", 2377324099_i64)
-      val_0 = layer_id
+      val_0 = layer_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = flip_h
       arg_1 = pointerof(val_1).as(Void*)
@@ -32423,7 +32423,7 @@ module Godot
     @@mb_set_constant_linear_velocity : Void* = Pointer(Void).null
     def set_constant_linear_velocity(layer_id : Int64, velocity : Vector2) : Void
       godot_bind(@@mb_set_constant_linear_velocity, "TileData", "set_constant_linear_velocity", 163021252_i64)
-      val_0 = layer_id
+      val_0 = layer_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = velocity
       arg_1 = pointerof(val_1).as(Void*)
@@ -32433,7 +32433,7 @@ module Godot
     @@mb_get_constant_linear_velocity : Void* = Pointer(Void).null
     def get_constant_linear_velocity(layer_id : Int64) : Vector2
       godot_bind(@@mb_get_constant_linear_velocity, "TileData", "get_constant_linear_velocity", 2299179447_i64)
-      val_0 = layer_id
+      val_0 = layer_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_get_constant_linear_velocity, @pointer, args.to_unsafe.as(Void**), Vector2)
@@ -32441,9 +32441,9 @@ module Godot
     @@mb_set_constant_angular_velocity : Void* = Pointer(Void).null
     def set_constant_angular_velocity(layer_id : Int64, velocity : Float64) : Void
       godot_bind(@@mb_set_constant_angular_velocity, "TileData", "set_constant_angular_velocity", 1602489585_i64)
-      val_0 = layer_id
+      val_0 = layer_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = velocity
+      val_1 = velocity.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_constant_angular_velocity, @pointer, args.to_unsafe.as(Void**))
@@ -32451,7 +32451,7 @@ module Godot
     @@mb_get_constant_angular_velocity : Void* = Pointer(Void).null
     def get_constant_angular_velocity(layer_id : Int64) : Float64
       godot_bind(@@mb_get_constant_angular_velocity, "TileData", "get_constant_angular_velocity", 2339986948_i64)
-      val_0 = layer_id
+      val_0 = layer_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_float(@@mb_get_constant_angular_velocity, @pointer, args.to_unsafe.as(Void**))
@@ -32459,9 +32459,9 @@ module Godot
     @@mb_set_collision_polygons_count : Void* = Pointer(Void).null
     def set_collision_polygons_count(layer_id : Int64, polygons_count : Int64) : Void
       godot_bind(@@mb_set_collision_polygons_count, "TileData", "set_collision_polygons_count", 3937882851_i64)
-      val_0 = layer_id
+      val_0 = layer_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = polygons_count
+      val_1 = polygons_count.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_collision_polygons_count, @pointer, args.to_unsafe.as(Void**))
@@ -32469,7 +32469,7 @@ module Godot
     @@mb_get_collision_polygons_count : Void* = Pointer(Void).null
     def get_collision_polygons_count(layer_id : Int64) : Int64
       godot_bind(@@mb_get_collision_polygons_count, "TileData", "get_collision_polygons_count", 923996154_i64)
-      val_0 = layer_id
+      val_0 = layer_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_collision_polygons_count, @pointer, args.to_unsafe.as(Void**))
@@ -32477,7 +32477,7 @@ module Godot
     @@mb_add_collision_polygon : Void* = Pointer(Void).null
     def add_collision_polygon(layer_id : Int64) : Void
       godot_bind(@@mb_add_collision_polygon, "TileData", "add_collision_polygon", 1286410249_i64)
-      val_0 = layer_id
+      val_0 = layer_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_add_collision_polygon, @pointer, args.to_unsafe.as(Void**))
@@ -32485,9 +32485,9 @@ module Godot
     @@mb_remove_collision_polygon : Void* = Pointer(Void).null
     def remove_collision_polygon(layer_id : Int64, polygon_index : Int64) : Void
       godot_bind(@@mb_remove_collision_polygon, "TileData", "remove_collision_polygon", 3937882851_i64)
-      val_0 = layer_id
+      val_0 = layer_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = polygon_index
+      val_1 = polygon_index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_remove_collision_polygon, @pointer, args.to_unsafe.as(Void**))
@@ -32495,9 +32495,9 @@ module Godot
     @@mb_set_collision_polygon_points : Void* = Pointer(Void).null
     def set_collision_polygon_points(layer_id : Int64, polygon_index : Int64, polygon : Pointer(Void)) : Void
       godot_bind(@@mb_set_collision_polygon_points, "TileData", "set_collision_polygon_points", 3230546541_i64)
-      val_0 = layer_id
+      val_0 = layer_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = polygon_index
+      val_1 = polygon_index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = polygon
       arg_2 = pointerof(val_2).as(Void*)
@@ -32507,21 +32507,21 @@ module Godot
     @@mb_get_collision_polygon_points : Void* = Pointer(Void).null
     def get_collision_polygon_points(layer_id : Int64, polygon_index : Int64) : Pointer(Void)
       godot_bind(@@mb_get_collision_polygon_points, "TileData", "get_collision_polygon_points", 103942801_i64)
-      val_0 = layer_id
+      val_0 = layer_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = polygon_index
+      val_1 = polygon_index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_collision_polygon_points, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_collision_polygon_points, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_set_collision_polygon_one_way : Void* = Pointer(Void).null
     def set_collision_polygon_one_way(layer_id : Int64, polygon_index : Int64, one_way : Bool) : Void
       godot_bind(@@mb_set_collision_polygon_one_way, "TileData", "set_collision_polygon_one_way", 1383440665_i64)
-      val_0 = layer_id
+      val_0 = layer_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = polygon_index
+      val_1 = polygon_index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = one_way
       arg_2 = pointerof(val_2).as(Void*)
@@ -32531,9 +32531,9 @@ module Godot
     @@mb_is_collision_polygon_one_way : Void* = Pointer(Void).null
     def is_collision_polygon_one_way(layer_id : Int64, polygon_index : Int64) : Bool
       godot_bind(@@mb_is_collision_polygon_one_way, "TileData", "is_collision_polygon_one_way", 2522259332_i64)
-      val_0 = layer_id
+      val_0 = layer_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = polygon_index
+      val_1 = polygon_index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_bool(@@mb_is_collision_polygon_one_way, @pointer, args.to_unsafe.as(Void**))
@@ -32549,11 +32549,11 @@ module Godot
     @@mb_set_collision_polygon_one_way_margin : Void* = Pointer(Void).null
     def set_collision_polygon_one_way_margin(layer_id : Int64, polygon_index : Int64, one_way_margin : Float64) : Void
       godot_bind(@@mb_set_collision_polygon_one_way_margin, "TileData", "set_collision_polygon_one_way_margin", 3506521499_i64)
-      val_0 = layer_id
+      val_0 = layer_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = polygon_index
+      val_1 = polygon_index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = one_way_margin
+      val_2 = one_way_margin.to_f64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_set_collision_polygon_one_way_margin, @pointer, args.to_unsafe.as(Void**))
@@ -32561,9 +32561,9 @@ module Godot
     @@mb_get_collision_polygon_one_way_margin : Void* = Pointer(Void).null
     def get_collision_polygon_one_way_margin(layer_id : Int64, polygon_index : Int64) : Float64
       godot_bind(@@mb_get_collision_polygon_one_way_margin, "TileData", "get_collision_polygon_one_way_margin", 3085491603_i64)
-      val_0 = layer_id
+      val_0 = layer_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = polygon_index
+      val_1 = polygon_index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_float(@@mb_get_collision_polygon_one_way_margin, @pointer, args.to_unsafe.as(Void**))
@@ -32571,7 +32571,7 @@ module Godot
     @@mb_set_terrain_set : Void* = Pointer(Void).null
     def set_terrain_set(terrain_set : Int64) : Void
       godot_bind(@@mb_set_terrain_set, "TileData", "set_terrain_set", 1286410249_i64)
-      val_0 = terrain_set
+      val_0 = terrain_set.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_terrain_set, @pointer, args.to_unsafe.as(Void**))
@@ -32584,7 +32584,7 @@ module Godot
     @@mb_set_terrain : Void* = Pointer(Void).null
     def set_terrain(terrain : Int64) : Void
       godot_bind(@@mb_set_terrain, "TileData", "set_terrain", 1286410249_i64)
-      val_0 = terrain
+      val_0 = terrain.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_terrain, @pointer, args.to_unsafe.as(Void**))
@@ -32599,7 +32599,7 @@ module Godot
       godot_bind(@@mb_set_terrain_peering_bit, "TileData", "set_terrain_peering_bit", 1084452308_i64)
       val_0 = peering_bit.is_a?(Int) ? peering_bit.to_i64 : peering_bit.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = terrain
+      val_1 = terrain.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_terrain_peering_bit, @pointer, args.to_unsafe.as(Void**))
@@ -32631,7 +32631,7 @@ module Godot
     @@mb_set_navigation_polygon : Void* = Pointer(Void).null
     def set_navigation_polygon(layer_id : Int64, navigation_polygon : NavigationPolygon) : Void
       godot_bind(@@mb_set_navigation_polygon, "TileData", "set_navigation_polygon", 2224691167_i64)
-      val_0 = layer_id
+      val_0 = layer_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       arg_ptr_1 = navigation_polygon ? navigation_polygon.pointer : Pointer(Void).null
       arg_1 = pointerof(arg_ptr_1).as(Void*)
@@ -32641,7 +32641,7 @@ module Godot
     @@mb_get_navigation_polygon : Void* = Pointer(Void).null
     def get_navigation_polygon(layer_id : Int64, flip_h : Bool = false, flip_v : Bool = false, transpose : Bool = false) : NavigationPolygon
       godot_bind(@@mb_get_navigation_polygon, "TileData", "get_navigation_polygon", 2907127272_i64)
-      val_0 = layer_id
+      val_0 = layer_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = flip_h
       arg_1 = pointerof(val_1).as(Void*)
@@ -32655,7 +32655,7 @@ module Godot
     @@mb_set_probability : Void* = Pointer(Void).null
     def set_probability(probability : Float64) : Void
       godot_bind(@@mb_set_probability, "TileData", "set_probability", 373806689_i64)
-      val_0 = probability
+      val_0 = probability.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_probability, @pointer, args.to_unsafe.as(Void**))
@@ -32708,7 +32708,7 @@ module Godot
     @@mb_set_custom_data_by_layer_id : Void* = Pointer(Void).null
     def set_custom_data_by_layer_id(layer_id : Int64, value : Pointer(Void)) : Void
       godot_bind(@@mb_set_custom_data_by_layer_id, "TileData", "set_custom_data_by_layer_id", 2152698145_i64)
-      val_0 = layer_id
+      val_0 = layer_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = value
       arg_1 = pointerof(val_1).as(Void*)
@@ -32718,7 +32718,7 @@ module Godot
     @@mb_get_custom_data_by_layer_id : Void* = Pointer(Void).null
     def get_custom_data_by_layer_id(layer_id : Int64) : Pointer(Void)
       godot_bind(@@mb_get_custom_data_by_layer_id, "TileData", "get_custom_data_by_layer_id", 4227898402_i64)
-      val_0 = layer_id
+      val_0 = layer_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
@@ -32824,7 +32824,7 @@ module Godot
     def probability=(val : Number)
       set_probability(val.to_f64)
     end
-    signal changed
+    godot_signal changed
   end
   class TileMap < Godot::Node2D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -32838,7 +32838,7 @@ module Godot
     @@mb_set_navigation_map : Void* = Pointer(Void).null
     def set_navigation_map(layer : Int64, map : Int64) : Void
       godot_bind(@@mb_set_navigation_map, "TileMap", "set_navigation_map", 4040184819_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = map
       arg_1 = pointerof(val_1).as(Void*)
@@ -32848,7 +32848,7 @@ module Godot
     @@mb_get_navigation_map : Void* = Pointer(Void).null
     def get_navigation_map(layer : Int64) : Int64
       godot_bind(@@mb_get_navigation_map, "TileMap", "get_navigation_map", 495598643_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_navigation_map, @pointer, args.to_unsafe.as(Void**))
@@ -32856,7 +32856,7 @@ module Godot
     @@mb_force_update : Void* = Pointer(Void).null
     def force_update(layer : Int64 = -1_i64) : Void
       godot_bind(@@mb_force_update, "TileMap", "force_update", 1025054187_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_force_update, @pointer, args.to_unsafe.as(Void**))
@@ -32877,7 +32877,7 @@ module Godot
     @@mb_set_rendering_quadrant_size : Void* = Pointer(Void).null
     def set_rendering_quadrant_size(size : Int64) : Void
       godot_bind(@@mb_set_rendering_quadrant_size, "TileMap", "set_rendering_quadrant_size", 1286410249_i64)
-      val_0 = size
+      val_0 = size.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_rendering_quadrant_size, @pointer, args.to_unsafe.as(Void**))
@@ -32895,7 +32895,7 @@ module Godot
     @@mb_add_layer : Void* = Pointer(Void).null
     def add_layer(to_position : Int64) : Void
       godot_bind(@@mb_add_layer, "TileMap", "add_layer", 1286410249_i64)
-      val_0 = to_position
+      val_0 = to_position.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_add_layer, @pointer, args.to_unsafe.as(Void**))
@@ -32903,9 +32903,9 @@ module Godot
     @@mb_move_layer : Void* = Pointer(Void).null
     def move_layer(layer : Int64, to_position : Int64) : Void
       godot_bind(@@mb_move_layer, "TileMap", "move_layer", 3937882851_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = to_position
+      val_1 = to_position.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_move_layer, @pointer, args.to_unsafe.as(Void**))
@@ -32913,7 +32913,7 @@ module Godot
     @@mb_remove_layer : Void* = Pointer(Void).null
     def remove_layer(layer : Int64) : Void
       godot_bind(@@mb_remove_layer, "TileMap", "remove_layer", 1286410249_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_remove_layer, @pointer, args.to_unsafe.as(Void**))
@@ -32921,7 +32921,7 @@ module Godot
     @@mb_set_layer_name : Void* = Pointer(Void).null
     def set_layer_name(layer : Int64, name : String) : Void
       godot_bind(@@mb_set_layer_name, "TileMap", "set_layer_name", 501894301_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       str_1 = Bridge.make_string(name)
       arg_1 = str_1
@@ -32933,7 +32933,7 @@ module Godot
     @@mb_get_layer_name : Void* = Pointer(Void).null
     def get_layer_name(layer : Int64) : String
       godot_bind(@@mb_get_layer_name, "TileMap", "get_layer_name", 844755477_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_layer_name", layer)
@@ -32941,7 +32941,7 @@ module Godot
     @@mb_set_layer_enabled : Void* = Pointer(Void).null
     def set_layer_enabled(layer : Int64, enabled : Bool) : Void
       godot_bind(@@mb_set_layer_enabled, "TileMap", "set_layer_enabled", 300928843_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = enabled
       arg_1 = pointerof(val_1).as(Void*)
@@ -32951,7 +32951,7 @@ module Godot
     @@mb_is_layer_enabled : Void* = Pointer(Void).null
     def is_layer_enabled(layer : Int64) : Bool
       godot_bind(@@mb_is_layer_enabled, "TileMap", "is_layer_enabled", 1116898809_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_layer_enabled, @pointer, args.to_unsafe.as(Void**))
@@ -32967,7 +32967,7 @@ module Godot
     @@mb_set_layer_modulate : Void* = Pointer(Void).null
     def set_layer_modulate(layer : Int64, modulate : Color) : Void
       godot_bind(@@mb_set_layer_modulate, "TileMap", "set_layer_modulate", 2878471219_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = modulate
       arg_1 = pointerof(val_1).as(Void*)
@@ -32977,7 +32977,7 @@ module Godot
     @@mb_get_layer_modulate : Void* = Pointer(Void).null
     def get_layer_modulate(layer : Int64) : Color
       godot_bind(@@mb_get_layer_modulate, "TileMap", "get_layer_modulate", 3457211756_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_get_layer_modulate, @pointer, args.to_unsafe.as(Void**), Color)
@@ -32985,7 +32985,7 @@ module Godot
     @@mb_set_layer_y_sort_enabled : Void* = Pointer(Void).null
     def set_layer_y_sort_enabled(layer : Int64, y_sort_enabled : Bool) : Void
       godot_bind(@@mb_set_layer_y_sort_enabled, "TileMap", "set_layer_y_sort_enabled", 300928843_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = y_sort_enabled
       arg_1 = pointerof(val_1).as(Void*)
@@ -32995,7 +32995,7 @@ module Godot
     @@mb_is_layer_y_sort_enabled : Void* = Pointer(Void).null
     def is_layer_y_sort_enabled(layer : Int64) : Bool
       godot_bind(@@mb_is_layer_y_sort_enabled, "TileMap", "is_layer_y_sort_enabled", 1116898809_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_layer_y_sort_enabled, @pointer, args.to_unsafe.as(Void**))
@@ -33011,9 +33011,9 @@ module Godot
     @@mb_set_layer_y_sort_origin : Void* = Pointer(Void).null
     def set_layer_y_sort_origin(layer : Int64, y_sort_origin : Int64) : Void
       godot_bind(@@mb_set_layer_y_sort_origin, "TileMap", "set_layer_y_sort_origin", 3937882851_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = y_sort_origin
+      val_1 = y_sort_origin.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_layer_y_sort_origin, @pointer, args.to_unsafe.as(Void**))
@@ -33021,7 +33021,7 @@ module Godot
     @@mb_get_layer_y_sort_origin : Void* = Pointer(Void).null
     def get_layer_y_sort_origin(layer : Int64) : Int64
       godot_bind(@@mb_get_layer_y_sort_origin, "TileMap", "get_layer_y_sort_origin", 923996154_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_layer_y_sort_origin, @pointer, args.to_unsafe.as(Void**))
@@ -33029,9 +33029,9 @@ module Godot
     @@mb_set_layer_z_index : Void* = Pointer(Void).null
     def set_layer_z_index(layer : Int64, z_index : Int64) : Void
       godot_bind(@@mb_set_layer_z_index, "TileMap", "set_layer_z_index", 3937882851_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = z_index
+      val_1 = z_index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_layer_z_index, @pointer, args.to_unsafe.as(Void**))
@@ -33039,7 +33039,7 @@ module Godot
     @@mb_get_layer_z_index : Void* = Pointer(Void).null
     def get_layer_z_index(layer : Int64) : Int64
       godot_bind(@@mb_get_layer_z_index, "TileMap", "get_layer_z_index", 923996154_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_layer_z_index, @pointer, args.to_unsafe.as(Void**))
@@ -33047,7 +33047,7 @@ module Godot
     @@mb_set_layer_navigation_enabled : Void* = Pointer(Void).null
     def set_layer_navigation_enabled(layer : Int64, enabled : Bool) : Void
       godot_bind(@@mb_set_layer_navigation_enabled, "TileMap", "set_layer_navigation_enabled", 300928843_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = enabled
       arg_1 = pointerof(val_1).as(Void*)
@@ -33057,7 +33057,7 @@ module Godot
     @@mb_is_layer_navigation_enabled : Void* = Pointer(Void).null
     def is_layer_navigation_enabled(layer : Int64) : Bool
       godot_bind(@@mb_is_layer_navigation_enabled, "TileMap", "is_layer_navigation_enabled", 1116898809_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_layer_navigation_enabled, @pointer, args.to_unsafe.as(Void**))
@@ -33073,7 +33073,7 @@ module Godot
     @@mb_set_layer_navigation_map : Void* = Pointer(Void).null
     def set_layer_navigation_map(layer : Int64, map : Int64) : Void
       godot_bind(@@mb_set_layer_navigation_map, "TileMap", "set_layer_navigation_map", 4040184819_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = map
       arg_1 = pointerof(val_1).as(Void*)
@@ -33083,7 +33083,7 @@ module Godot
     @@mb_get_layer_navigation_map : Void* = Pointer(Void).null
     def get_layer_navigation_map(layer : Int64) : Int64
       godot_bind(@@mb_get_layer_navigation_map, "TileMap", "get_layer_navigation_map", 495598643_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_layer_navigation_map, @pointer, args.to_unsafe.as(Void**))
@@ -33138,15 +33138,15 @@ module Godot
     @@mb_set_cell : Void* = Pointer(Void).null
     def set_cell(layer : Int64, coords : Vector2i, source_id : Int64 = -1_i64, atlas_coords : Vector2i = Vector2i.new(-1.to_i32, -1.to_i32), alternative_tile : Int64 = 0_i64) : Void
       godot_bind(@@mb_set_cell, "TileMap", "set_cell", 966713560_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = coords
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = source_id
+      val_2 = source_id.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = atlas_coords
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = alternative_tile
+      val_4 = alternative_tile.to_i64
       arg_4 = pointerof(val_4).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
       godot_ptrcall_void(@@mb_set_cell, @pointer, args.to_unsafe.as(Void**))
@@ -33154,7 +33154,7 @@ module Godot
     @@mb_erase_cell : Void* = Pointer(Void).null
     def erase_cell(layer : Int64, coords : Vector2i) : Void
       godot_bind(@@mb_erase_cell, "TileMap", "erase_cell", 2311374912_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = coords
       arg_1 = pointerof(val_1).as(Void*)
@@ -33164,7 +33164,7 @@ module Godot
     @@mb_get_cell_source_id : Void* = Pointer(Void).null
     def get_cell_source_id(layer : Int64, coords : Vector2i, use_proxies : Bool = false) : Int64
       godot_bind(@@mb_get_cell_source_id, "TileMap", "get_cell_source_id", 551761942_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = coords
       arg_1 = pointerof(val_1).as(Void*)
@@ -33176,7 +33176,7 @@ module Godot
     @@mb_get_cell_atlas_coords : Void* = Pointer(Void).null
     def get_cell_atlas_coords(layer : Int64, coords : Vector2i, use_proxies : Bool = false) : Vector2i
       godot_bind(@@mb_get_cell_atlas_coords, "TileMap", "get_cell_atlas_coords", 1869815066_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = coords
       arg_1 = pointerof(val_1).as(Void*)
@@ -33188,7 +33188,7 @@ module Godot
     @@mb_get_cell_alternative_tile : Void* = Pointer(Void).null
     def get_cell_alternative_tile(layer : Int64, coords : Vector2i, use_proxies : Bool = false) : Int64
       godot_bind(@@mb_get_cell_alternative_tile, "TileMap", "get_cell_alternative_tile", 551761942_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = coords
       arg_1 = pointerof(val_1).as(Void*)
@@ -33200,7 +33200,7 @@ module Godot
     @@mb_get_cell_tile_data : Void* = Pointer(Void).null
     def get_cell_tile_data(layer : Int64, coords : Vector2i, use_proxies : Bool = false) : TileData
       godot_bind(@@mb_get_cell_tile_data, "TileMap", "get_cell_tile_data", 2849631287_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = coords
       arg_1 = pointerof(val_1).as(Void*)
@@ -33212,7 +33212,7 @@ module Godot
     @@mb_is_cell_flipped_h : Void* = Pointer(Void).null
     def is_cell_flipped_h(layer : Int64, coords : Vector2i, use_proxies : Bool = false) : Bool
       godot_bind(@@mb_is_cell_flipped_h, "TileMap", "is_cell_flipped_h", 2908343862_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = coords
       arg_1 = pointerof(val_1).as(Void*)
@@ -33232,7 +33232,7 @@ module Godot
     @@mb_is_cell_flipped_v : Void* = Pointer(Void).null
     def is_cell_flipped_v(layer : Int64, coords : Vector2i, use_proxies : Bool = false) : Bool
       godot_bind(@@mb_is_cell_flipped_v, "TileMap", "is_cell_flipped_v", 2908343862_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = coords
       arg_1 = pointerof(val_1).as(Void*)
@@ -33252,7 +33252,7 @@ module Godot
     @@mb_is_cell_transposed : Void* = Pointer(Void).null
     def is_cell_transposed(layer : Int64, coords : Vector2i, use_proxies : Bool = false) : Bool
       godot_bind(@@mb_is_cell_transposed, "TileMap", "is_cell_transposed", 2908343862_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = coords
       arg_1 = pointerof(val_1).as(Void*)
@@ -33288,7 +33288,7 @@ module Godot
     @@mb_get_pattern : Void* = Pointer(Void).null
     def get_pattern(layer : Int64, coords_array : Pointer(Void)) : TileMapPattern
       godot_bind(@@mb_get_pattern, "TileMap", "get_pattern", 2833570986_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = coords_array
       arg_1 = pointerof(val_1).as(Void*)
@@ -33310,7 +33310,7 @@ module Godot
     @@mb_set_pattern : Void* = Pointer(Void).null
     def set_pattern(layer : Int64, position : Vector2i, pattern : TileMapPattern) : Void
       godot_bind(@@mb_set_pattern, "TileMap", "set_pattern", 1195853946_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = position
       arg_1 = pointerof(val_1).as(Void*)
@@ -33322,13 +33322,13 @@ module Godot
     @@mb_set_cells_terrain_connect : Void* = Pointer(Void).null
     def set_cells_terrain_connect(layer : Int64, cells : Pointer(Void), terrain_set : Int64, terrain : Int64, ignore_empty_terrains : Bool = true) : Void
       godot_bind(@@mb_set_cells_terrain_connect, "TileMap", "set_cells_terrain_connect", 3578627656_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = cells
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = terrain_set
+      val_2 = terrain_set.to_i64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = terrain
+      val_3 = terrain.to_i64
       arg_3 = pointerof(val_3).as(Void*)
       val_4 = ignore_empty_terrains
       arg_4 = pointerof(val_4).as(Void*)
@@ -33338,13 +33338,13 @@ module Godot
     @@mb_set_cells_terrain_path : Void* = Pointer(Void).null
     def set_cells_terrain_path(layer : Int64, path : Pointer(Void), terrain_set : Int64, terrain : Int64, ignore_empty_terrains : Bool = true) : Void
       godot_bind(@@mb_set_cells_terrain_path, "TileMap", "set_cells_terrain_path", 3578627656_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = path
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = terrain_set
+      val_2 = terrain_set.to_i64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = terrain
+      val_3 = terrain.to_i64
       arg_3 = pointerof(val_3).as(Void*)
       val_4 = ignore_empty_terrains
       arg_4 = pointerof(val_4).as(Void*)
@@ -33359,7 +33359,7 @@ module Godot
     @@mb_clear_layer : Void* = Pointer(Void).null
     def clear_layer(layer : Int64) : Void
       godot_bind(@@mb_clear_layer, "TileMap", "clear_layer", 1286410249_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_clear_layer, @pointer, args.to_unsafe.as(Void**))
@@ -33377,7 +33377,7 @@ module Godot
     @@mb_notify_runtime_tile_data_update : Void* = Pointer(Void).null
     def notify_runtime_tile_data_update(layer : Int64 = -1_i64) : Void
       godot_bind(@@mb_notify_runtime_tile_data_update, "TileMap", "notify_runtime_tile_data_update", 1025054187_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_notify_runtime_tile_data_update, @pointer, args.to_unsafe.as(Void**))
@@ -33395,7 +33395,7 @@ module Godot
     @@mb_get_used_cells : Void* = Pointer(Void).null
     def get_used_cells(layer : Int64) : Pointer(Void)
       godot_bind(@@mb_get_used_cells, "TileMap", "get_used_cells", 663333327_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       ret_ptr = Pointer(Void).null
@@ -33405,13 +33405,13 @@ module Godot
     @@mb_get_used_cells_by_id : Void* = Pointer(Void).null
     def get_used_cells_by_id(layer : Int64, source_id : Int64 = -1_i64, atlas_coords : Vector2i = Vector2i.new(-1.to_i32, -1.to_i32), alternative_tile : Int64 = -1_i64) : Pointer(Void)
       godot_bind(@@mb_get_used_cells_by_id, "TileMap", "get_used_cells_by_id", 2931012785_i64)
-      val_0 = layer
+      val_0 = layer.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = source_id
+      val_1 = source_id.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = atlas_coords
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = alternative_tile
+      val_3 = alternative_tile.to_i64
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       ret_ptr = Pointer(Void).null
@@ -33489,7 +33489,7 @@ module Godot
     def navigation_visibility_mode=(val : Int)
       set_navigation_visibility_mode(val.to_i64)
     end
-    signal changed
+    godot_signal changed
   end
   class TileMapLayer < Godot::Node2D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -33505,11 +33505,11 @@ module Godot
       godot_bind(@@mb_set_cell, "TileMapLayer", "set_cell", 2428518503_i64)
       val_0 = coords
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = source_id
+      val_1 = source_id.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = atlas_coords
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = alternative_tile
+      val_3 = alternative_tile.to_i64
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_set_cell, @pointer, args.to_unsafe.as(Void**))
@@ -33622,11 +33622,11 @@ module Godot
     @@mb_get_used_cells_by_id : Void* = Pointer(Void).null
     def get_used_cells_by_id(source_id : Int64 = -1_i64, atlas_coords : Vector2i = Vector2i.new(-1.to_i32, -1.to_i32), alternative_tile : Int64 = -1_i64) : Pointer(Void)
       godot_bind(@@mb_get_used_cells_by_id, "TileMapLayer", "get_used_cells_by_id", 4175304538_i64)
-      val_0 = source_id
+      val_0 = source_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = atlas_coords
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = alternative_tile
+      val_2 = alternative_tile.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       ret_ptr = Pointer(Void).null
@@ -33661,9 +33661,9 @@ module Godot
       godot_bind(@@mb_set_cells_terrain_connect, "TileMapLayer", "set_cells_terrain_connect", 748968311_i64)
       val_0 = cells
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = terrain_set
+      val_1 = terrain_set.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = terrain
+      val_2 = terrain.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = ignore_empty_terrains
       arg_3 = pointerof(val_3).as(Void*)
@@ -33675,9 +33675,9 @@ module Godot
       godot_bind(@@mb_set_cells_terrain_path, "TileMapLayer", "set_cells_terrain_path", 748968311_i64)
       val_0 = path
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = terrain_set
+      val_1 = terrain_set.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = terrain
+      val_2 = terrain.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = ignore_empty_terrains
       arg_3 = pointerof(val_3).as(Void*)
@@ -33773,9 +33773,9 @@ module Godot
     @@mb_get_tile_map_data_as_array : Void* = Pointer(Void).null
     def get_tile_map_data_as_array() : Pointer(Void)
       godot_bind(@@mb_get_tile_map_data_as_array, "TileMapLayer", "get_tile_map_data_as_array", 2362200018_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_tile_map_data_as_array, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_tile_map_data_as_array, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_set_enabled : Void* = Pointer(Void).null
     def set_enabled(enabled : Bool) : Void
@@ -33814,7 +33814,7 @@ module Godot
     @@mb_set_y_sort_origin : Void* = Pointer(Void).null
     def set_y_sort_origin(y_sort_origin : Int64) : Void
       godot_bind(@@mb_set_y_sort_origin, "TileMapLayer", "set_y_sort_origin", 1286410249_i64)
-      val_0 = y_sort_origin
+      val_0 = y_sort_origin.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_y_sort_origin, @pointer, args.to_unsafe.as(Void**))
@@ -33848,7 +33848,7 @@ module Godot
     @@mb_set_rendering_quadrant_size : Void* = Pointer(Void).null
     def set_rendering_quadrant_size(size : Int64) : Void
       godot_bind(@@mb_set_rendering_quadrant_size, "TileMapLayer", "set_rendering_quadrant_size", 1286410249_i64)
-      val_0 = size
+      val_0 = size.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_rendering_quadrant_size, @pointer, args.to_unsafe.as(Void**))
@@ -33916,7 +33916,7 @@ module Godot
     @@mb_set_physics_quadrant_size : Void* = Pointer(Void).null
     def set_physics_quadrant_size(size : Int64) : Void
       godot_bind(@@mb_set_physics_quadrant_size, "TileMapLayer", "set_physics_quadrant_size", 1286410249_i64)
-      val_0 = size
+      val_0 = size.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_physics_quadrant_size, @pointer, args.to_unsafe.as(Void**))
@@ -34101,7 +34101,7 @@ module Godot
     def navigation_visibility_mode=(val : Int)
       set_navigation_visibility_mode(val.to_i64)
     end
-    signal changed
+    godot_signal changed
   end
   class TileMapPattern < Godot::Resource
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -34112,11 +34112,11 @@ module Godot
       godot_bind(@@mb_set_cell, "TileMapPattern", "set_cell", 2224802556_i64)
       val_0 = coords
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = source_id
+      val_1 = source_id.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = atlas_coords
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = alternative_tile
+      val_3 = alternative_tile.to_i64
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_set_cell, @pointer, args.to_unsafe.as(Void**))
@@ -34256,7 +34256,7 @@ module Godot
       godot_bind(@@mb_add_source, "TileSet", "add_source", 1059186179_i64)
       arg_ptr_0 = source ? source.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
-      val_1 = atlas_source_id_override
+      val_1 = atlas_source_id_override.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_add_source, @pointer, args.to_unsafe.as(Void**))
@@ -34264,7 +34264,7 @@ module Godot
     @@mb_remove_source : Void* = Pointer(Void).null
     def remove_source(source_id : Int64) : Void
       godot_bind(@@mb_remove_source, "TileSet", "remove_source", 1286410249_i64)
-      val_0 = source_id
+      val_0 = source_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_remove_source, @pointer, args.to_unsafe.as(Void**))
@@ -34272,9 +34272,9 @@ module Godot
     @@mb_set_source_id : Void* = Pointer(Void).null
     def set_source_id(source_id : Int64, new_source_id : Int64) : Void
       godot_bind(@@mb_set_source_id, "TileSet", "set_source_id", 3937882851_i64)
-      val_0 = source_id
+      val_0 = source_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = new_source_id
+      val_1 = new_source_id.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_source_id, @pointer, args.to_unsafe.as(Void**))
@@ -34287,7 +34287,7 @@ module Godot
     @@mb_get_source_id : Void* = Pointer(Void).null
     def get_source_id(index : Int64) : Int64
       godot_bind(@@mb_get_source_id, "TileSet", "get_source_id", 923996154_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_source_id, @pointer, args.to_unsafe.as(Void**))
@@ -34295,7 +34295,7 @@ module Godot
     @@mb_has_source : Void* = Pointer(Void).null
     def has_source(source_id : Int64) : Bool
       godot_bind(@@mb_has_source, "TileSet", "has_source", 1116898809_i64)
-      val_0 = source_id
+      val_0 = source_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_has_source, @pointer, args.to_unsafe.as(Void**))
@@ -34307,7 +34307,7 @@ module Godot
     @@mb_get_source : Void* = Pointer(Void).null
     def get_source(source_id : Int64) : TileSetSource
       godot_bind(@@mb_get_source, "TileSet", "get_source", 1763540252_i64)
-      val_0 = source_id
+      val_0 = source_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_get_source, @pointer, args.to_unsafe.as(Void**), TileSetSource)
@@ -34393,7 +34393,7 @@ module Godot
     @@mb_add_occlusion_layer : Void* = Pointer(Void).null
     def add_occlusion_layer(to_position : Int64 = -1_i64) : Void
       godot_bind(@@mb_add_occlusion_layer, "TileSet", "add_occlusion_layer", 1025054187_i64)
-      val_0 = to_position
+      val_0 = to_position.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_add_occlusion_layer, @pointer, args.to_unsafe.as(Void**))
@@ -34401,9 +34401,9 @@ module Godot
     @@mb_move_occlusion_layer : Void* = Pointer(Void).null
     def move_occlusion_layer(layer_index : Int64, to_position : Int64) : Void
       godot_bind(@@mb_move_occlusion_layer, "TileSet", "move_occlusion_layer", 3937882851_i64)
-      val_0 = layer_index
+      val_0 = layer_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = to_position
+      val_1 = to_position.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_move_occlusion_layer, @pointer, args.to_unsafe.as(Void**))
@@ -34411,7 +34411,7 @@ module Godot
     @@mb_remove_occlusion_layer : Void* = Pointer(Void).null
     def remove_occlusion_layer(layer_index : Int64) : Void
       godot_bind(@@mb_remove_occlusion_layer, "TileSet", "remove_occlusion_layer", 1286410249_i64)
-      val_0 = layer_index
+      val_0 = layer_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_remove_occlusion_layer, @pointer, args.to_unsafe.as(Void**))
@@ -34419,9 +34419,9 @@ module Godot
     @@mb_set_occlusion_layer_light_mask : Void* = Pointer(Void).null
     def set_occlusion_layer_light_mask(layer_index : Int64, light_mask : Int64) : Void
       godot_bind(@@mb_set_occlusion_layer_light_mask, "TileSet", "set_occlusion_layer_light_mask", 3937882851_i64)
-      val_0 = layer_index
+      val_0 = layer_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = light_mask
+      val_1 = light_mask.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_occlusion_layer_light_mask, @pointer, args.to_unsafe.as(Void**))
@@ -34429,7 +34429,7 @@ module Godot
     @@mb_get_occlusion_layer_light_mask : Void* = Pointer(Void).null
     def get_occlusion_layer_light_mask(layer_index : Int64) : Int64
       godot_bind(@@mb_get_occlusion_layer_light_mask, "TileSet", "get_occlusion_layer_light_mask", 923996154_i64)
-      val_0 = layer_index
+      val_0 = layer_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_occlusion_layer_light_mask, @pointer, args.to_unsafe.as(Void**))
@@ -34437,7 +34437,7 @@ module Godot
     @@mb_set_occlusion_layer_sdf_collision : Void* = Pointer(Void).null
     def set_occlusion_layer_sdf_collision(layer_index : Int64, sdf_collision : Bool) : Void
       godot_bind(@@mb_set_occlusion_layer_sdf_collision, "TileSet", "set_occlusion_layer_sdf_collision", 300928843_i64)
-      val_0 = layer_index
+      val_0 = layer_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = sdf_collision
       arg_1 = pointerof(val_1).as(Void*)
@@ -34447,7 +34447,7 @@ module Godot
     @@mb_get_occlusion_layer_sdf_collision : Void* = Pointer(Void).null
     def get_occlusion_layer_sdf_collision(layer_index : Int64) : Bool
       godot_bind(@@mb_get_occlusion_layer_sdf_collision, "TileSet", "get_occlusion_layer_sdf_collision", 1116898809_i64)
-      val_0 = layer_index
+      val_0 = layer_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_get_occlusion_layer_sdf_collision, @pointer, args.to_unsafe.as(Void**))
@@ -34464,7 +34464,7 @@ module Godot
     @@mb_add_physics_layer : Void* = Pointer(Void).null
     def add_physics_layer(to_position : Int64 = -1_i64) : Void
       godot_bind(@@mb_add_physics_layer, "TileSet", "add_physics_layer", 1025054187_i64)
-      val_0 = to_position
+      val_0 = to_position.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_add_physics_layer, @pointer, args.to_unsafe.as(Void**))
@@ -34472,9 +34472,9 @@ module Godot
     @@mb_move_physics_layer : Void* = Pointer(Void).null
     def move_physics_layer(layer_index : Int64, to_position : Int64) : Void
       godot_bind(@@mb_move_physics_layer, "TileSet", "move_physics_layer", 3937882851_i64)
-      val_0 = layer_index
+      val_0 = layer_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = to_position
+      val_1 = to_position.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_move_physics_layer, @pointer, args.to_unsafe.as(Void**))
@@ -34482,7 +34482,7 @@ module Godot
     @@mb_remove_physics_layer : Void* = Pointer(Void).null
     def remove_physics_layer(layer_index : Int64) : Void
       godot_bind(@@mb_remove_physics_layer, "TileSet", "remove_physics_layer", 1286410249_i64)
-      val_0 = layer_index
+      val_0 = layer_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_remove_physics_layer, @pointer, args.to_unsafe.as(Void**))
@@ -34490,9 +34490,9 @@ module Godot
     @@mb_set_physics_layer_collision_layer : Void* = Pointer(Void).null
     def set_physics_layer_collision_layer(layer_index : Int64, layer : Int64) : Void
       godot_bind(@@mb_set_physics_layer_collision_layer, "TileSet", "set_physics_layer_collision_layer", 3937882851_i64)
-      val_0 = layer_index
+      val_0 = layer_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = layer
+      val_1 = layer.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_physics_layer_collision_layer, @pointer, args.to_unsafe.as(Void**))
@@ -34500,7 +34500,7 @@ module Godot
     @@mb_get_physics_layer_collision_layer : Void* = Pointer(Void).null
     def get_physics_layer_collision_layer(layer_index : Int64) : Int64
       godot_bind(@@mb_get_physics_layer_collision_layer, "TileSet", "get_physics_layer_collision_layer", 923996154_i64)
-      val_0 = layer_index
+      val_0 = layer_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_physics_layer_collision_layer, @pointer, args.to_unsafe.as(Void**))
@@ -34508,9 +34508,9 @@ module Godot
     @@mb_set_physics_layer_collision_mask : Void* = Pointer(Void).null
     def set_physics_layer_collision_mask(layer_index : Int64, mask : Int64) : Void
       godot_bind(@@mb_set_physics_layer_collision_mask, "TileSet", "set_physics_layer_collision_mask", 3937882851_i64)
-      val_0 = layer_index
+      val_0 = layer_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = mask
+      val_1 = mask.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_physics_layer_collision_mask, @pointer, args.to_unsafe.as(Void**))
@@ -34518,7 +34518,7 @@ module Godot
     @@mb_get_physics_layer_collision_mask : Void* = Pointer(Void).null
     def get_physics_layer_collision_mask(layer_index : Int64) : Int64
       godot_bind(@@mb_get_physics_layer_collision_mask, "TileSet", "get_physics_layer_collision_mask", 923996154_i64)
-      val_0 = layer_index
+      val_0 = layer_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_physics_layer_collision_mask, @pointer, args.to_unsafe.as(Void**))
@@ -34526,9 +34526,9 @@ module Godot
     @@mb_set_physics_layer_collision_priority : Void* = Pointer(Void).null
     def set_physics_layer_collision_priority(layer_index : Int64, priority : Float64) : Void
       godot_bind(@@mb_set_physics_layer_collision_priority, "TileSet", "set_physics_layer_collision_priority", 1602489585_i64)
-      val_0 = layer_index
+      val_0 = layer_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = priority
+      val_1 = priority.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_physics_layer_collision_priority, @pointer, args.to_unsafe.as(Void**))
@@ -34536,7 +34536,7 @@ module Godot
     @@mb_get_physics_layer_collision_priority : Void* = Pointer(Void).null
     def get_physics_layer_collision_priority(layer_index : Int64) : Float64
       godot_bind(@@mb_get_physics_layer_collision_priority, "TileSet", "get_physics_layer_collision_priority", 2339986948_i64)
-      val_0 = layer_index
+      val_0 = layer_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_float(@@mb_get_physics_layer_collision_priority, @pointer, args.to_unsafe.as(Void**))
@@ -34544,7 +34544,7 @@ module Godot
     @@mb_set_physics_layer_physics_material : Void* = Pointer(Void).null
     def set_physics_layer_physics_material(layer_index : Int64, physics_material : PhysicsMaterial) : Void
       godot_bind(@@mb_set_physics_layer_physics_material, "TileSet", "set_physics_layer_physics_material", 1018687357_i64)
-      val_0 = layer_index
+      val_0 = layer_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       arg_ptr_1 = physics_material ? physics_material.pointer : Pointer(Void).null
       arg_1 = pointerof(arg_ptr_1).as(Void*)
@@ -34554,7 +34554,7 @@ module Godot
     @@mb_get_physics_layer_physics_material : Void* = Pointer(Void).null
     def get_physics_layer_physics_material(layer_index : Int64) : PhysicsMaterial
       godot_bind(@@mb_get_physics_layer_physics_material, "TileSet", "get_physics_layer_physics_material", 788318639_i64)
-      val_0 = layer_index
+      val_0 = layer_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_get_physics_layer_physics_material, @pointer, args.to_unsafe.as(Void**), PhysicsMaterial)
@@ -34567,7 +34567,7 @@ module Godot
     @@mb_add_terrain_set : Void* = Pointer(Void).null
     def add_terrain_set(to_position : Int64 = -1_i64) : Void
       godot_bind(@@mb_add_terrain_set, "TileSet", "add_terrain_set", 1025054187_i64)
-      val_0 = to_position
+      val_0 = to_position.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_add_terrain_set, @pointer, args.to_unsafe.as(Void**))
@@ -34575,9 +34575,9 @@ module Godot
     @@mb_move_terrain_set : Void* = Pointer(Void).null
     def move_terrain_set(terrain_set : Int64, to_position : Int64) : Void
       godot_bind(@@mb_move_terrain_set, "TileSet", "move_terrain_set", 3937882851_i64)
-      val_0 = terrain_set
+      val_0 = terrain_set.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = to_position
+      val_1 = to_position.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_move_terrain_set, @pointer, args.to_unsafe.as(Void**))
@@ -34585,7 +34585,7 @@ module Godot
     @@mb_remove_terrain_set : Void* = Pointer(Void).null
     def remove_terrain_set(terrain_set : Int64) : Void
       godot_bind(@@mb_remove_terrain_set, "TileSet", "remove_terrain_set", 1286410249_i64)
-      val_0 = terrain_set
+      val_0 = terrain_set.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_remove_terrain_set, @pointer, args.to_unsafe.as(Void**))
@@ -34593,7 +34593,7 @@ module Godot
     @@mb_set_terrain_set_mode : Void* = Pointer(Void).null
     def set_terrain_set_mode(terrain_set : Int64, mode : TerrainMode | Int) : Void
       godot_bind(@@mb_set_terrain_set_mode, "TileSet", "set_terrain_set_mode", 3943003916_i64)
-      val_0 = terrain_set
+      val_0 = terrain_set.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = mode.is_a?(Int) ? mode.to_i64 : mode.value.to_i64
       arg_1 = pointerof(val_1).as(Void*)
@@ -34603,7 +34603,7 @@ module Godot
     @@mb_get_terrain_set_mode : Void* = Pointer(Void).null
     def get_terrain_set_mode(terrain_set : Int64) : TerrainMode
       godot_bind(@@mb_get_terrain_set_mode, "TileSet", "get_terrain_set_mode", 2084469411_i64)
-      val_0 = terrain_set
+      val_0 = terrain_set.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_enum(@@mb_get_terrain_set_mode, @pointer, args.to_unsafe.as(Void**), TerrainMode)
@@ -34611,7 +34611,7 @@ module Godot
     @@mb_get_terrains_count : Void* = Pointer(Void).null
     def get_terrains_count(terrain_set : Int64) : Int64
       godot_bind(@@mb_get_terrains_count, "TileSet", "get_terrains_count", 923996154_i64)
-      val_0 = terrain_set
+      val_0 = terrain_set.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_terrains_count, @pointer, args.to_unsafe.as(Void**))
@@ -34619,9 +34619,9 @@ module Godot
     @@mb_add_terrain : Void* = Pointer(Void).null
     def add_terrain(terrain_set : Int64, to_position : Int64 = -1_i64) : Void
       godot_bind(@@mb_add_terrain, "TileSet", "add_terrain", 1230568737_i64)
-      val_0 = terrain_set
+      val_0 = terrain_set.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = to_position
+      val_1 = to_position.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_add_terrain, @pointer, args.to_unsafe.as(Void**))
@@ -34629,11 +34629,11 @@ module Godot
     @@mb_move_terrain : Void* = Pointer(Void).null
     def move_terrain(terrain_set : Int64, terrain_index : Int64, to_position : Int64) : Void
       godot_bind(@@mb_move_terrain, "TileSet", "move_terrain", 1649997291_i64)
-      val_0 = terrain_set
+      val_0 = terrain_set.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = terrain_index
+      val_1 = terrain_index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = to_position
+      val_2 = to_position.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_move_terrain, @pointer, args.to_unsafe.as(Void**))
@@ -34641,9 +34641,9 @@ module Godot
     @@mb_remove_terrain : Void* = Pointer(Void).null
     def remove_terrain(terrain_set : Int64, terrain_index : Int64) : Void
       godot_bind(@@mb_remove_terrain, "TileSet", "remove_terrain", 3937882851_i64)
-      val_0 = terrain_set
+      val_0 = terrain_set.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = terrain_index
+      val_1 = terrain_index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_remove_terrain, @pointer, args.to_unsafe.as(Void**))
@@ -34651,7 +34651,7 @@ module Godot
     @@mb_clear_terrains : Void* = Pointer(Void).null
     def clear_terrains(terrain_set : Int64) : Void
       godot_bind(@@mb_clear_terrains, "TileSet", "clear_terrains", 1286410249_i64)
-      val_0 = terrain_set
+      val_0 = terrain_set.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_clear_terrains, @pointer, args.to_unsafe.as(Void**))
@@ -34659,9 +34659,9 @@ module Godot
     @@mb_set_terrain_name : Void* = Pointer(Void).null
     def set_terrain_name(terrain_set : Int64, terrain_index : Int64, name : String) : Void
       godot_bind(@@mb_set_terrain_name, "TileSet", "set_terrain_name", 2285447957_i64)
-      val_0 = terrain_set
+      val_0 = terrain_set.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = terrain_index
+      val_1 = terrain_index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       str_2 = Bridge.make_string(name)
       arg_2 = str_2
@@ -34673,9 +34673,9 @@ module Godot
     @@mb_get_terrain_name : Void* = Pointer(Void).null
     def get_terrain_name(terrain_set : Int64, terrain_index : Int64) : String
       godot_bind(@@mb_get_terrain_name, "TileSet", "get_terrain_name", 1391810591_i64)
-      val_0 = terrain_set
+      val_0 = terrain_set.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = terrain_index
+      val_1 = terrain_index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_call_str("get_terrain_name", terrain_set, terrain_index)
@@ -34683,9 +34683,9 @@ module Godot
     @@mb_set_terrain_color : Void* = Pointer(Void).null
     def set_terrain_color(terrain_set : Int64, terrain_index : Int64, color : Color) : Void
       godot_bind(@@mb_set_terrain_color, "TileSet", "set_terrain_color", 3733378741_i64)
-      val_0 = terrain_set
+      val_0 = terrain_set.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = terrain_index
+      val_1 = terrain_index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = color
       arg_2 = pointerof(val_2).as(Void*)
@@ -34695,9 +34695,9 @@ module Godot
     @@mb_get_terrain_color : Void* = Pointer(Void).null
     def get_terrain_color(terrain_set : Int64, terrain_index : Int64) : Color
       godot_bind(@@mb_get_terrain_color, "TileSet", "get_terrain_color", 2165839948_i64)
-      val_0 = terrain_set
+      val_0 = terrain_set.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = terrain_index
+      val_1 = terrain_index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_val(@@mb_get_terrain_color, @pointer, args.to_unsafe.as(Void**), Color)
@@ -34710,7 +34710,7 @@ module Godot
     @@mb_add_navigation_layer : Void* = Pointer(Void).null
     def add_navigation_layer(to_position : Int64 = -1_i64) : Void
       godot_bind(@@mb_add_navigation_layer, "TileSet", "add_navigation_layer", 1025054187_i64)
-      val_0 = to_position
+      val_0 = to_position.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_add_navigation_layer, @pointer, args.to_unsafe.as(Void**))
@@ -34718,9 +34718,9 @@ module Godot
     @@mb_move_navigation_layer : Void* = Pointer(Void).null
     def move_navigation_layer(layer_index : Int64, to_position : Int64) : Void
       godot_bind(@@mb_move_navigation_layer, "TileSet", "move_navigation_layer", 3937882851_i64)
-      val_0 = layer_index
+      val_0 = layer_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = to_position
+      val_1 = to_position.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_move_navigation_layer, @pointer, args.to_unsafe.as(Void**))
@@ -34728,7 +34728,7 @@ module Godot
     @@mb_remove_navigation_layer : Void* = Pointer(Void).null
     def remove_navigation_layer(layer_index : Int64) : Void
       godot_bind(@@mb_remove_navigation_layer, "TileSet", "remove_navigation_layer", 1286410249_i64)
-      val_0 = layer_index
+      val_0 = layer_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_remove_navigation_layer, @pointer, args.to_unsafe.as(Void**))
@@ -34736,9 +34736,9 @@ module Godot
     @@mb_set_navigation_layer_layers : Void* = Pointer(Void).null
     def set_navigation_layer_layers(layer_index : Int64, layers : Int64) : Void
       godot_bind(@@mb_set_navigation_layer_layers, "TileSet", "set_navigation_layer_layers", 3937882851_i64)
-      val_0 = layer_index
+      val_0 = layer_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = layers
+      val_1 = layers.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_navigation_layer_layers, @pointer, args.to_unsafe.as(Void**))
@@ -34746,7 +34746,7 @@ module Godot
     @@mb_get_navigation_layer_layers : Void* = Pointer(Void).null
     def get_navigation_layer_layers(layer_index : Int64) : Int64
       godot_bind(@@mb_get_navigation_layer_layers, "TileSet", "get_navigation_layer_layers", 923996154_i64)
-      val_0 = layer_index
+      val_0 = layer_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_navigation_layer_layers, @pointer, args.to_unsafe.as(Void**))
@@ -34754,9 +34754,9 @@ module Godot
     @@mb_set_navigation_layer_layer_value : Void* = Pointer(Void).null
     def set_navigation_layer_layer_value(layer_index : Int64, layer_number : Int64, value : Bool) : Void
       godot_bind(@@mb_set_navigation_layer_layer_value, "TileSet", "set_navigation_layer_layer_value", 1383440665_i64)
-      val_0 = layer_index
+      val_0 = layer_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = layer_number
+      val_1 = layer_number.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = value
       arg_2 = pointerof(val_2).as(Void*)
@@ -34766,9 +34766,9 @@ module Godot
     @@mb_get_navigation_layer_layer_value : Void* = Pointer(Void).null
     def get_navigation_layer_layer_value(layer_index : Int64, layer_number : Int64) : Bool
       godot_bind(@@mb_get_navigation_layer_layer_value, "TileSet", "get_navigation_layer_layer_value", 2522259332_i64)
-      val_0 = layer_index
+      val_0 = layer_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = layer_number
+      val_1 = layer_number.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_bool(@@mb_get_navigation_layer_layer_value, @pointer, args.to_unsafe.as(Void**))
@@ -34785,7 +34785,7 @@ module Godot
     @@mb_add_custom_data_layer : Void* = Pointer(Void).null
     def add_custom_data_layer(to_position : Int64 = -1_i64) : Void
       godot_bind(@@mb_add_custom_data_layer, "TileSet", "add_custom_data_layer", 1025054187_i64)
-      val_0 = to_position
+      val_0 = to_position.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_add_custom_data_layer, @pointer, args.to_unsafe.as(Void**))
@@ -34793,9 +34793,9 @@ module Godot
     @@mb_move_custom_data_layer : Void* = Pointer(Void).null
     def move_custom_data_layer(layer_index : Int64, to_position : Int64) : Void
       godot_bind(@@mb_move_custom_data_layer, "TileSet", "move_custom_data_layer", 3937882851_i64)
-      val_0 = layer_index
+      val_0 = layer_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = to_position
+      val_1 = to_position.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_move_custom_data_layer, @pointer, args.to_unsafe.as(Void**))
@@ -34803,7 +34803,7 @@ module Godot
     @@mb_remove_custom_data_layer : Void* = Pointer(Void).null
     def remove_custom_data_layer(layer_index : Int64) : Void
       godot_bind(@@mb_remove_custom_data_layer, "TileSet", "remove_custom_data_layer", 1286410249_i64)
-      val_0 = layer_index
+      val_0 = layer_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_remove_custom_data_layer, @pointer, args.to_unsafe.as(Void**))
@@ -34821,7 +34821,7 @@ module Godot
     @@mb_set_custom_data_layer_name : Void* = Pointer(Void).null
     def set_custom_data_layer_name(layer_index : Int64, layer_name : String) : Void
       godot_bind(@@mb_set_custom_data_layer_name, "TileSet", "set_custom_data_layer_name", 501894301_i64)
-      val_0 = layer_index
+      val_0 = layer_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       str_1 = Bridge.make_string(layer_name)
       arg_1 = str_1
@@ -34847,7 +34847,7 @@ module Godot
     @@mb_get_custom_data_layer_name : Void* = Pointer(Void).null
     def get_custom_data_layer_name(layer_index : Int64) : String
       godot_bind(@@mb_get_custom_data_layer_name, "TileSet", "get_custom_data_layer_name", 844755477_i64)
-      val_0 = layer_index
+      val_0 = layer_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_custom_data_layer_name", layer_index)
@@ -34855,7 +34855,7 @@ module Godot
     @@mb_set_custom_data_layer_type : Void* = Pointer(Void).null
     def set_custom_data_layer_type(layer_index : Int64, layer_type : Godot::Variant::Type | Int) : Void
       godot_bind(@@mb_set_custom_data_layer_type, "TileSet", "set_custom_data_layer_type", 3492912874_i64)
-      val_0 = layer_index
+      val_0 = layer_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = layer_type.is_a?(Int) ? layer_type.to_i64 : layer_type.value.to_i64
       arg_1 = pointerof(val_1).as(Void*)
@@ -34865,7 +34865,7 @@ module Godot
     @@mb_get_custom_data_layer_type : Void* = Pointer(Void).null
     def get_custom_data_layer_type(layer_index : Int64) : Godot::Variant::Type
       godot_bind(@@mb_get_custom_data_layer_type, "TileSet", "get_custom_data_layer_type", 2990820875_i64)
-      val_0 = layer_index
+      val_0 = layer_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_enum(@@mb_get_custom_data_layer_type, @pointer, args.to_unsafe.as(Void**), Godot::Variant::Type)
@@ -34873,9 +34873,9 @@ module Godot
     @@mb_set_source_level_tile_proxy : Void* = Pointer(Void).null
     def set_source_level_tile_proxy(source_from : Int64, source_to : Int64) : Void
       godot_bind(@@mb_set_source_level_tile_proxy, "TileSet", "set_source_level_tile_proxy", 3937882851_i64)
-      val_0 = source_from
+      val_0 = source_from.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = source_to
+      val_1 = source_to.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_source_level_tile_proxy, @pointer, args.to_unsafe.as(Void**))
@@ -34883,7 +34883,7 @@ module Godot
     @@mb_get_source_level_tile_proxy : Void* = Pointer(Void).null
     def get_source_level_tile_proxy(source_from : Int64) : Int64
       godot_bind(@@mb_get_source_level_tile_proxy, "TileSet", "get_source_level_tile_proxy", 3744713108_i64)
-      val_0 = source_from
+      val_0 = source_from.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_source_level_tile_proxy, @pointer, args.to_unsafe.as(Void**))
@@ -34891,7 +34891,7 @@ module Godot
     @@mb_has_source_level_tile_proxy : Void* = Pointer(Void).null
     def has_source_level_tile_proxy(source_from : Int64) : Bool
       godot_bind(@@mb_has_source_level_tile_proxy, "TileSet", "has_source_level_tile_proxy", 3067735520_i64)
-      val_0 = source_from
+      val_0 = source_from.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_has_source_level_tile_proxy, @pointer, args.to_unsafe.as(Void**))
@@ -34903,7 +34903,7 @@ module Godot
     @@mb_remove_source_level_tile_proxy : Void* = Pointer(Void).null
     def remove_source_level_tile_proxy(source_from : Int64) : Void
       godot_bind(@@mb_remove_source_level_tile_proxy, "TileSet", "remove_source_level_tile_proxy", 1286410249_i64)
-      val_0 = source_from
+      val_0 = source_from.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_remove_source_level_tile_proxy, @pointer, args.to_unsafe.as(Void**))
@@ -34911,11 +34911,11 @@ module Godot
     @@mb_set_coords_level_tile_proxy : Void* = Pointer(Void).null
     def set_coords_level_tile_proxy(source_from : Int64, coords_from : Vector2i, source_to : Int64, coords_to : Vector2i) : Void
       godot_bind(@@mb_set_coords_level_tile_proxy, "TileSet", "set_coords_level_tile_proxy", 1769939278_i64)
-      val_0 = source_from
+      val_0 = source_from.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = coords_from
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = source_to
+      val_2 = source_to.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = coords_to
       arg_3 = pointerof(val_3).as(Void*)
@@ -34925,7 +34925,7 @@ module Godot
     @@mb_get_coords_level_tile_proxy : Void* = Pointer(Void).null
     def get_coords_level_tile_proxy(source_from : Int64, coords_from : Vector2i) : Pointer(Void)
       godot_bind(@@mb_get_coords_level_tile_proxy, "TileSet", "get_coords_level_tile_proxy", 2856536371_i64)
-      val_0 = source_from
+      val_0 = source_from.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = coords_from
       arg_1 = pointerof(val_1).as(Void*)
@@ -34937,7 +34937,7 @@ module Godot
     @@mb_has_coords_level_tile_proxy : Void* = Pointer(Void).null
     def has_coords_level_tile_proxy(source_from : Int64, coords_from : Vector2i) : Bool
       godot_bind(@@mb_has_coords_level_tile_proxy, "TileSet", "has_coords_level_tile_proxy", 3957903770_i64)
-      val_0 = source_from
+      val_0 = source_from.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = coords_from
       arg_1 = pointerof(val_1).as(Void*)
@@ -34951,7 +34951,7 @@ module Godot
     @@mb_remove_coords_level_tile_proxy : Void* = Pointer(Void).null
     def remove_coords_level_tile_proxy(source_from : Int64, coords_from : Vector2i) : Void
       godot_bind(@@mb_remove_coords_level_tile_proxy, "TileSet", "remove_coords_level_tile_proxy", 2311374912_i64)
-      val_0 = source_from
+      val_0 = source_from.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = coords_from
       arg_1 = pointerof(val_1).as(Void*)
@@ -34961,17 +34961,17 @@ module Godot
     @@mb_set_alternative_level_tile_proxy : Void* = Pointer(Void).null
     def set_alternative_level_tile_proxy(source_from : Int64, coords_from : Vector2i, alternative_from : Int64, source_to : Int64, coords_to : Vector2i, alternative_to : Int64) : Void
       godot_bind(@@mb_set_alternative_level_tile_proxy, "TileSet", "set_alternative_level_tile_proxy", 3862385460_i64)
-      val_0 = source_from
+      val_0 = source_from.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = coords_from
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = alternative_from
+      val_2 = alternative_from.to_i64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = source_to
+      val_3 = source_to.to_i64
       arg_3 = pointerof(val_3).as(Void*)
       val_4 = coords_to
       arg_4 = pointerof(val_4).as(Void*)
-      val_5 = alternative_to
+      val_5 = alternative_to.to_i64
       arg_5 = pointerof(val_5).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5]
       godot_ptrcall_void(@@mb_set_alternative_level_tile_proxy, @pointer, args.to_unsafe.as(Void**))
@@ -34979,11 +34979,11 @@ module Godot
     @@mb_get_alternative_level_tile_proxy : Void* = Pointer(Void).null
     def get_alternative_level_tile_proxy(source_from : Int64, coords_from : Vector2i, alternative_from : Int64) : Pointer(Void)
       godot_bind(@@mb_get_alternative_level_tile_proxy, "TileSet", "get_alternative_level_tile_proxy", 2303761075_i64)
-      val_0 = source_from
+      val_0 = source_from.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = coords_from
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = alternative_from
+      val_2 = alternative_from.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       ret_ptr = Pointer(Void).null
@@ -34993,11 +34993,11 @@ module Godot
     @@mb_has_alternative_level_tile_proxy : Void* = Pointer(Void).null
     def has_alternative_level_tile_proxy(source_from : Int64, coords_from : Vector2i, alternative_from : Int64) : Bool
       godot_bind(@@mb_has_alternative_level_tile_proxy, "TileSet", "has_alternative_level_tile_proxy", 180086755_i64)
-      val_0 = source_from
+      val_0 = source_from.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = coords_from
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = alternative_from
+      val_2 = alternative_from.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_bool(@@mb_has_alternative_level_tile_proxy, @pointer, args.to_unsafe.as(Void**))
@@ -35009,11 +35009,11 @@ module Godot
     @@mb_remove_alternative_level_tile_proxy : Void* = Pointer(Void).null
     def remove_alternative_level_tile_proxy(source_from : Int64, coords_from : Vector2i, alternative_from : Int64) : Void
       godot_bind(@@mb_remove_alternative_level_tile_proxy, "TileSet", "remove_alternative_level_tile_proxy", 2328951467_i64)
-      val_0 = source_from
+      val_0 = source_from.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = coords_from
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = alternative_from
+      val_2 = alternative_from.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_remove_alternative_level_tile_proxy, @pointer, args.to_unsafe.as(Void**))
@@ -35021,11 +35021,11 @@ module Godot
     @@mb_map_tile_proxy : Void* = Pointer(Void).null
     def map_tile_proxy(source_from : Int64, coords_from : Vector2i, alternative_from : Int64) : Pointer(Void)
       godot_bind(@@mb_map_tile_proxy, "TileSet", "map_tile_proxy", 4267935328_i64)
-      val_0 = source_from
+      val_0 = source_from.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = coords_from
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = alternative_from
+      val_2 = alternative_from.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       ret_ptr = Pointer(Void).null
@@ -35047,7 +35047,7 @@ module Godot
       godot_bind(@@mb_add_pattern, "TileSet", "add_pattern", 763712015_i64)
       arg_ptr_0 = pattern ? pattern.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
-      val_1 = index
+      val_1 = index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_add_pattern, @pointer, args.to_unsafe.as(Void**))
@@ -35055,7 +35055,7 @@ module Godot
     @@mb_get_pattern : Void* = Pointer(Void).null
     def get_pattern(index : Int64 = -1_i64) : TileMapPattern
       godot_bind(@@mb_get_pattern, "TileSet", "get_pattern", 4207737510_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_get_pattern, @pointer, args.to_unsafe.as(Void**), TileMapPattern)
@@ -35063,7 +35063,7 @@ module Godot
     @@mb_remove_pattern : Void* = Pointer(Void).null
     def remove_pattern(index : Int64) : Void
       godot_bind(@@mb_remove_pattern, "TileSet", "remove_pattern", 1286410249_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_remove_pattern, @pointer, args.to_unsafe.as(Void**))
@@ -35126,7 +35126,7 @@ module Godot
     @@mb_get_tile_id : Void* = Pointer(Void).null
     def get_tile_id(index : Int64) : Vector2i
       godot_bind(@@mb_get_tile_id, "TileSetSource", "get_tile_id", 880721226_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_get_tile_id, @pointer, args.to_unsafe.as(Void**), Vector2i)
@@ -35156,7 +35156,7 @@ module Godot
       godot_bind(@@mb_get_alternative_tile_id, "TileSetSource", "get_alternative_tile_id", 89881719_i64)
       val_0 = atlas_coords
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = index
+      val_1 = index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_get_alternative_tile_id, @pointer, args.to_unsafe.as(Void**))
@@ -35166,7 +35166,7 @@ module Godot
       godot_bind(@@mb_has_alternative_tile, "TileSetSource", "has_alternative_tile", 1073731340_i64)
       val_0 = atlas_coords
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = alternative_tile
+      val_1 = alternative_tile.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_bool(@@mb_has_alternative_tile, @pointer, args.to_unsafe.as(Void**))
@@ -35299,11 +35299,11 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = size
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = animation_columns
+      val_2 = animation_columns.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = animation_separation
       arg_3 = pointerof(val_3).as(Void*)
-      val_4 = frames_count
+      val_4 = frames_count.to_i64
       arg_4 = pointerof(val_4).as(Void*)
       val_5 = ignored_tile
       arg_5 = pointerof(val_5).as(Void*)
@@ -35326,9 +35326,9 @@ module Godot
       val_3 = texture_region_size
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_tiles_to_be_removed_on_change, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_tiles_to_be_removed_on_change, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_get_tile_at_coords : Void* = Pointer(Void).null
     def get_tile_at_coords(atlas_coords : Vector2i) : Vector2i
@@ -35357,7 +35357,7 @@ module Godot
       godot_bind(@@mb_set_tile_animation_columns, "TileSetAtlasSource", "set_tile_animation_columns", 3200960707_i64)
       val_0 = atlas_coords
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = frame_columns
+      val_1 = frame_columns.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_tile_animation_columns, @pointer, args.to_unsafe.as(Void**))
@@ -35393,7 +35393,7 @@ module Godot
       godot_bind(@@mb_set_tile_animation_speed, "TileSetAtlasSource", "set_tile_animation_speed", 2262553149_i64)
       val_0 = atlas_coords
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = speed
+      val_1 = speed.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_tile_animation_speed, @pointer, args.to_unsafe.as(Void**))
@@ -35429,7 +35429,7 @@ module Godot
       godot_bind(@@mb_set_tile_animation_frames_count, "TileSetAtlasSource", "set_tile_animation_frames_count", 3200960707_i64)
       val_0 = atlas_coords
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = frames_count
+      val_1 = frames_count.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_tile_animation_frames_count, @pointer, args.to_unsafe.as(Void**))
@@ -35447,9 +35447,9 @@ module Godot
       godot_bind(@@mb_set_tile_animation_frame_duration, "TileSetAtlasSource", "set_tile_animation_frame_duration", 2843487787_i64)
       val_0 = atlas_coords
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = frame_index
+      val_1 = frame_index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = duration
+      val_2 = duration.to_f64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_set_tile_animation_frame_duration, @pointer, args.to_unsafe.as(Void**))
@@ -35459,7 +35459,7 @@ module Godot
       godot_bind(@@mb_get_tile_animation_frame_duration, "TileSetAtlasSource", "get_tile_animation_frame_duration", 1802448425_i64)
       val_0 = atlas_coords
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = frame_index
+      val_1 = frame_index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_float(@@mb_get_tile_animation_frame_duration, @pointer, args.to_unsafe.as(Void**))
@@ -35477,7 +35477,7 @@ module Godot
       godot_bind(@@mb_create_alternative_tile, "TileSetAtlasSource", "create_alternative_tile", 2226298068_i64)
       val_0 = atlas_coords
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = alternative_id_override
+      val_1 = alternative_id_override.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_create_alternative_tile, @pointer, args.to_unsafe.as(Void**))
@@ -35487,7 +35487,7 @@ module Godot
       godot_bind(@@mb_remove_alternative_tile, "TileSetAtlasSource", "remove_alternative_tile", 3200960707_i64)
       val_0 = atlas_coords
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = alternative_tile
+      val_1 = alternative_tile.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_remove_alternative_tile, @pointer, args.to_unsafe.as(Void**))
@@ -35497,9 +35497,9 @@ module Godot
       godot_bind(@@mb_set_alternative_tile_id, "TileSetAtlasSource", "set_alternative_tile_id", 1499785778_i64)
       val_0 = atlas_coords
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = alternative_tile
+      val_1 = alternative_tile.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = new_id
+      val_2 = new_id.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_set_alternative_tile_id, @pointer, args.to_unsafe.as(Void**))
@@ -35517,7 +35517,7 @@ module Godot
       godot_bind(@@mb_get_tile_data, "TileSetAtlasSource", "get_tile_data", 3534028207_i64)
       val_0 = atlas_coords
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = alternative_tile
+      val_1 = alternative_tile.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_obj(@@mb_get_tile_data, @pointer, args.to_unsafe.as(Void**), TileData)
@@ -35532,7 +35532,7 @@ module Godot
       godot_bind(@@mb_get_tile_texture_region, "TileSetAtlasSource", "get_tile_texture_region", 241857547_i64)
       val_0 = atlas_coords
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = frame
+      val_1 = frame.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_val(@@mb_get_tile_texture_region, @pointer, args.to_unsafe.as(Void**), Rect2i)
@@ -35547,7 +35547,7 @@ module Godot
       godot_bind(@@mb_get_runtime_tile_texture_region, "TileSetAtlasSource", "get_runtime_tile_texture_region", 104874263_i64)
       val_0 = atlas_coords
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = frame
+      val_1 = frame.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_val(@@mb_get_runtime_tile_texture_region, @pointer, args.to_unsafe.as(Void**), Rect2i)
@@ -35608,7 +35608,7 @@ module Godot
     @@mb_get_scene_tile_id : Void* = Pointer(Void).null
     def get_scene_tile_id(index : Int64) : Int64
       godot_bind(@@mb_get_scene_tile_id, "TileSetScenesCollectionSource", "get_scene_tile_id", 3744713108_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_scene_tile_id, @pointer, args.to_unsafe.as(Void**))
@@ -35616,7 +35616,7 @@ module Godot
     @@mb_has_scene_tile_id : Void* = Pointer(Void).null
     def has_scene_tile_id(id : Int64) : Bool
       godot_bind(@@mb_has_scene_tile_id, "TileSetScenesCollectionSource", "has_scene_tile_id", 3067735520_i64)
-      val_0 = id
+      val_0 = id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_has_scene_tile_id, @pointer, args.to_unsafe.as(Void**))
@@ -35630,7 +35630,7 @@ module Godot
       godot_bind(@@mb_create_scene_tile, "TileSetScenesCollectionSource", "create_scene_tile", 1117465415_i64)
       arg_ptr_0 = packed_scene ? packed_scene.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
-      val_1 = id_override
+      val_1 = id_override.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_create_scene_tile, @pointer, args.to_unsafe.as(Void**))
@@ -35638,9 +35638,9 @@ module Godot
     @@mb_set_scene_tile_id : Void* = Pointer(Void).null
     def set_scene_tile_id(id : Int64, new_id : Int64) : Void
       godot_bind(@@mb_set_scene_tile_id, "TileSetScenesCollectionSource", "set_scene_tile_id", 3937882851_i64)
-      val_0 = id
+      val_0 = id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = new_id
+      val_1 = new_id.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_scene_tile_id, @pointer, args.to_unsafe.as(Void**))
@@ -35648,7 +35648,7 @@ module Godot
     @@mb_set_scene_tile_scene : Void* = Pointer(Void).null
     def set_scene_tile_scene(id : Int64, packed_scene : PackedScene) : Void
       godot_bind(@@mb_set_scene_tile_scene, "TileSetScenesCollectionSource", "set_scene_tile_scene", 3435852839_i64)
-      val_0 = id
+      val_0 = id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       arg_ptr_1 = packed_scene ? packed_scene.pointer : Pointer(Void).null
       arg_1 = pointerof(arg_ptr_1).as(Void*)
@@ -35658,7 +35658,7 @@ module Godot
     @@mb_get_scene_tile_scene : Void* = Pointer(Void).null
     def get_scene_tile_scene(id : Int64) : PackedScene
       godot_bind(@@mb_get_scene_tile_scene, "TileSetScenesCollectionSource", "get_scene_tile_scene", 511017218_i64)
-      val_0 = id
+      val_0 = id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_get_scene_tile_scene, @pointer, args.to_unsafe.as(Void**), PackedScene)
@@ -35666,7 +35666,7 @@ module Godot
     @@mb_set_scene_tile_display_placeholder : Void* = Pointer(Void).null
     def set_scene_tile_display_placeholder(id : Int64, display_placeholder : Bool) : Void
       godot_bind(@@mb_set_scene_tile_display_placeholder, "TileSetScenesCollectionSource", "set_scene_tile_display_placeholder", 300928843_i64)
-      val_0 = id
+      val_0 = id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = display_placeholder
       arg_1 = pointerof(val_1).as(Void*)
@@ -35676,7 +35676,7 @@ module Godot
     @@mb_get_scene_tile_display_placeholder : Void* = Pointer(Void).null
     def get_scene_tile_display_placeholder(id : Int64) : Bool
       godot_bind(@@mb_get_scene_tile_display_placeholder, "TileSetScenesCollectionSource", "get_scene_tile_display_placeholder", 1116898809_i64)
-      val_0 = id
+      val_0 = id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_get_scene_tile_display_placeholder, @pointer, args.to_unsafe.as(Void**))
@@ -35688,7 +35688,7 @@ module Godot
     @@mb_remove_scene_tile : Void* = Pointer(Void).null
     def remove_scene_tile(id : Int64) : Void
       godot_bind(@@mb_remove_scene_tile, "TileSetScenesCollectionSource", "remove_scene_tile", 1286410249_i64)
-      val_0 = id
+      val_0 = id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_remove_scene_tile, @pointer, args.to_unsafe.as(Void**))
@@ -35729,7 +35729,7 @@ module Godot
     @@mb_get_datetime_dict_from_unix_time : Void* = Pointer(Void).null
     def get_datetime_dict_from_unix_time(unix_time_val : Int64) : Pointer(Void)
       godot_bind(@@mb_get_datetime_dict_from_unix_time, "Time", "get_datetime_dict_from_unix_time", 3485342025_i64)
-      val_0 = unix_time_val
+      val_0 = unix_time_val.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       ret_ptr = Pointer(Void).null
@@ -35739,7 +35739,7 @@ module Godot
     @@mb_get_date_dict_from_unix_time : Void* = Pointer(Void).null
     def get_date_dict_from_unix_time(unix_time_val : Int64) : Pointer(Void)
       godot_bind(@@mb_get_date_dict_from_unix_time, "Time", "get_date_dict_from_unix_time", 3485342025_i64)
-      val_0 = unix_time_val
+      val_0 = unix_time_val.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       ret_ptr = Pointer(Void).null
@@ -35749,7 +35749,7 @@ module Godot
     @@mb_get_time_dict_from_unix_time : Void* = Pointer(Void).null
     def get_time_dict_from_unix_time(unix_time_val : Int64) : Pointer(Void)
       godot_bind(@@mb_get_time_dict_from_unix_time, "Time", "get_time_dict_from_unix_time", 3485342025_i64)
-      val_0 = unix_time_val
+      val_0 = unix_time_val.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       ret_ptr = Pointer(Void).null
@@ -35759,7 +35759,7 @@ module Godot
     @@mb_get_datetime_string_from_unix_time : Void* = Pointer(Void).null
     def get_datetime_string_from_unix_time(unix_time_val : Int64, use_space : Bool = false) : String
       godot_bind(@@mb_get_datetime_string_from_unix_time, "Time", "get_datetime_string_from_unix_time", 2311239925_i64)
-      val_0 = unix_time_val
+      val_0 = unix_time_val.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = use_space
       arg_1 = pointerof(val_1).as(Void*)
@@ -35769,7 +35769,7 @@ module Godot
     @@mb_get_date_string_from_unix_time : Void* = Pointer(Void).null
     def get_date_string_from_unix_time(unix_time_val : Int64) : String
       godot_bind(@@mb_get_date_string_from_unix_time, "Time", "get_date_string_from_unix_time", 844755477_i64)
-      val_0 = unix_time_val
+      val_0 = unix_time_val.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_date_string_from_unix_time", unix_time_val)
@@ -35777,7 +35777,7 @@ module Godot
     @@mb_get_time_string_from_unix_time : Void* = Pointer(Void).null
     def get_time_string_from_unix_time(unix_time_val : Int64) : String
       godot_bind(@@mb_get_time_string_from_unix_time, "Time", "get_time_string_from_unix_time", 844755477_i64)
-      val_0 = unix_time_val
+      val_0 = unix_time_val.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_time_string_from_unix_time", unix_time_val)
@@ -35827,7 +35827,7 @@ module Godot
     @@mb_get_offset_string_from_offset_minutes : Void* = Pointer(Void).null
     def get_offset_string_from_offset_minutes(offset_minutes : Int64) : String
       godot_bind(@@mb_get_offset_string_from_offset_minutes, "Time", "get_offset_string_from_offset_minutes", 844755477_i64)
-      val_0 = offset_minutes
+      val_0 = offset_minutes.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_offset_string_from_offset_minutes", offset_minutes)
@@ -35922,7 +35922,7 @@ module Godot
     @@mb_set_wait_time : Void* = Pointer(Void).null
     def set_wait_time(time_sec : Float64) : Void
       godot_bind(@@mb_set_wait_time, "Timer", "set_wait_time", 373806689_i64)
-      val_0 = time_sec
+      val_0 = time_sec.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_wait_time, @pointer, args.to_unsafe.as(Void**))
@@ -35973,7 +35973,7 @@ module Godot
     @@mb_start : Void* = Pointer(Void).null
     def start(time_sec : Float64 = -1.0_f64) : Void
       godot_bind(@@mb_start, "Timer", "start", 1392008558_i64)
-      val_0 = time_sec
+      val_0 = time_sec.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_start, @pointer, args.to_unsafe.as(Void**))
@@ -36114,7 +36114,7 @@ module Godot
     def time_left
       get_time_left
     end
-    signal timeout
+    godot_signal timeout
   end
   class TorusMesh < Godot::PrimitiveMesh
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -36123,7 +36123,7 @@ module Godot
     @@mb_set_inner_radius : Void* = Pointer(Void).null
     def set_inner_radius(radius : Float64) : Void
       godot_bind(@@mb_set_inner_radius, "TorusMesh", "set_inner_radius", 373806689_i64)
-      val_0 = radius
+      val_0 = radius.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_inner_radius, @pointer, args.to_unsafe.as(Void**))
@@ -36136,7 +36136,7 @@ module Godot
     @@mb_set_outer_radius : Void* = Pointer(Void).null
     def set_outer_radius(radius : Float64) : Void
       godot_bind(@@mb_set_outer_radius, "TorusMesh", "set_outer_radius", 373806689_i64)
-      val_0 = radius
+      val_0 = radius.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_outer_radius, @pointer, args.to_unsafe.as(Void**))
@@ -36149,7 +36149,7 @@ module Godot
     @@mb_set_rings : Void* = Pointer(Void).null
     def set_rings(rings : Int64) : Void
       godot_bind(@@mb_set_rings, "TorusMesh", "set_rings", 1286410249_i64)
-      val_0 = rings
+      val_0 = rings.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_rings, @pointer, args.to_unsafe.as(Void**))
@@ -36162,7 +36162,7 @@ module Godot
     @@mb_set_ring_segments : Void* = Pointer(Void).null
     def set_ring_segments(rings : Int64) : Void
       godot_bind(@@mb_set_ring_segments, "TorusMesh", "set_ring_segments", 1286410249_i64)
-      val_0 = rings
+      val_0 = rings.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_ring_segments, @pointer, args.to_unsafe.as(Void**))
@@ -36444,8 +36444,8 @@ module Godot
     def visibility_mode=(val : Int)
       set_visibility_mode(val.to_i64)
     end
-    signal pressed
-    signal released
+    godot_signal pressed
+    godot_signal released
   end
   class Trail3D < Godot::Line3D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -36459,7 +36459,7 @@ module Godot
     @@mb_set_width : Void* = Pointer(Void).null
     def set_width(width : Float64) : Void
       godot_bind(@@mb_set_width, "Trail3D", "set_width", 373806689_i64)
-      val_0 = width
+      val_0 = width.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_width, @pointer, args.to_unsafe.as(Void**))
@@ -36571,7 +36571,7 @@ module Godot
     @@mb_set_tiling_multiplier : Void* = Pointer(Void).null
     def set_tiling_multiplier(tiling_multiplier : Float64) : Void
       godot_bind(@@mb_set_tiling_multiplier, "Trail3D", "set_tiling_multiplier", 373806689_i64)
-      val_0 = tiling_multiplier
+      val_0 = tiling_multiplier.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_tiling_multiplier, @pointer, args.to_unsafe.as(Void**))
@@ -36602,7 +36602,7 @@ module Godot
     @@mb_set_min_section_length : Void* = Pointer(Void).null
     def set_min_section_length(min_section_length : Float64) : Void
       godot_bind(@@mb_set_min_section_length, "Trail3D", "set_min_section_length", 373806689_i64)
-      val_0 = min_section_length
+      val_0 = min_section_length.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_min_section_length, @pointer, args.to_unsafe.as(Void**))
@@ -36628,7 +36628,7 @@ module Godot
     @@mb_set_lifetime : Void* = Pointer(Void).null
     def set_lifetime(lifetime : Float64) : Void
       godot_bind(@@mb_set_lifetime, "Trail3D", "set_lifetime", 373806689_i64)
-      val_0 = lifetime
+      val_0 = lifetime.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_lifetime, @pointer, args.to_unsafe.as(Void**))
@@ -36641,7 +36641,7 @@ module Godot
     @@mb_set_max_length : Void* = Pointer(Void).null
     def set_max_length(max_length : Float64) : Void
       godot_bind(@@mb_set_max_length, "Trail3D", "set_max_length", 373806689_i64)
-      val_0 = max_length
+      val_0 = max_length.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_max_length, @pointer, args.to_unsafe.as(Void**))
@@ -36901,7 +36901,7 @@ module Godot
       arg_0 = sn_0
       sn_1 = Bridge.make_string_name(message_plural)
       arg_1 = sn_1
-      val_2 = n
+      val_2 = n.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       sn_3 = Bridge.make_string_name(context)
       arg_3 = sn_3
@@ -37082,7 +37082,7 @@ module Godot
     @@mb_set_pseudolocalization_expansion_ratio : Void* = Pointer(Void).null
     def set_pseudolocalization_expansion_ratio(ratio : Float64) : Void
       godot_bind(@@mb_set_pseudolocalization_expansion_ratio, "TranslationDomain", "set_pseudolocalization_expansion_ratio", 373806689_i64)
-      val_0 = ratio
+      val_0 = ratio.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_pseudolocalization_expansion_ratio, @pointer, args.to_unsafe.as(Void**))
@@ -37260,9 +37260,9 @@ module Godot
     @@mb_get_all_languages : Void* = Pointer(Void).null
     def get_all_languages() : Pointer(Void)
       godot_bind(@@mb_get_all_languages, "TranslationServer", "get_all_languages", 1139954409_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_all_languages, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_all_languages, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_get_language_name : Void* = Pointer(Void).null
     def get_language_name(language : String) : String
@@ -37277,9 +37277,9 @@ module Godot
     @@mb_get_all_scripts : Void* = Pointer(Void).null
     def get_all_scripts() : Pointer(Void)
       godot_bind(@@mb_get_all_scripts, "TranslationServer", "get_all_scripts", 1139954409_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_all_scripts, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_all_scripts, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_get_script_name : Void* = Pointer(Void).null
     def get_script_name(script : String) : String
@@ -37294,9 +37294,9 @@ module Godot
     @@mb_get_all_countries : Void* = Pointer(Void).null
     def get_all_countries() : Pointer(Void)
       godot_bind(@@mb_get_all_countries, "TranslationServer", "get_all_countries", 1139954409_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_all_countries, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_all_countries, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_get_country_name : Void* = Pointer(Void).null
     def get_country_name(country : String) : String
@@ -37348,7 +37348,7 @@ module Godot
       arg_0 = sn_0
       sn_1 = Bridge.make_string_name(plural_message)
       arg_1 = sn_1
-      val_2 = n
+      val_2 = n.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       sn_3 = Bridge.make_string_name(context)
       arg_3 = sn_3
@@ -37476,9 +37476,9 @@ module Godot
     @@mb_get_loaded_locales : Void* = Pointer(Void).null
     def get_loaded_locales() : Pointer(Void)
       godot_bind(@@mb_get_loaded_locales, "TranslationServer", "get_loaded_locales", 1139954409_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_loaded_locales, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_loaded_locales, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_format_number : Void* = Pointer(Void).null
     def format_number(number : String, locale : String) : String
@@ -37591,7 +37591,7 @@ module Godot
       godot_bind(@@mb_create_item, "Tree", "create_item", 528467046_i64)
       arg_ptr_0 = parent ? parent.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
-      val_1 = index
+      val_1 = index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_obj(@@mb_create_item, @pointer, args.to_unsafe.as(Void**), TreeItem)
@@ -37604,9 +37604,9 @@ module Godot
     @@mb_set_column_custom_minimum_width : Void* = Pointer(Void).null
     def set_column_custom_minimum_width(column : Int64, min_width : Int64) : Void
       godot_bind(@@mb_set_column_custom_minimum_width, "Tree", "set_column_custom_minimum_width", 3937882851_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = min_width
+      val_1 = min_width.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_column_custom_minimum_width, @pointer, args.to_unsafe.as(Void**))
@@ -37614,7 +37614,7 @@ module Godot
     @@mb_set_column_expand : Void* = Pointer(Void).null
     def set_column_expand(column : Int64, expand : Bool) : Void
       godot_bind(@@mb_set_column_expand, "Tree", "set_column_expand", 300928843_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = expand
       arg_1 = pointerof(val_1).as(Void*)
@@ -37624,9 +37624,9 @@ module Godot
     @@mb_set_column_expand_ratio : Void* = Pointer(Void).null
     def set_column_expand_ratio(column : Int64, ratio : Int64) : Void
       godot_bind(@@mb_set_column_expand_ratio, "Tree", "set_column_expand_ratio", 3937882851_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = ratio
+      val_1 = ratio.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_column_expand_ratio, @pointer, args.to_unsafe.as(Void**))
@@ -37634,7 +37634,7 @@ module Godot
     @@mb_set_column_clip_content : Void* = Pointer(Void).null
     def set_column_clip_content(column : Int64, enable : Bool) : Void
       godot_bind(@@mb_set_column_clip_content, "Tree", "set_column_clip_content", 300928843_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = enable
       arg_1 = pointerof(val_1).as(Void*)
@@ -37644,7 +37644,7 @@ module Godot
     @@mb_is_column_expanding : Void* = Pointer(Void).null
     def is_column_expanding(column : Int64) : Bool
       godot_bind(@@mb_is_column_expanding, "Tree", "is_column_expanding", 1116898809_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_column_expanding, @pointer, args.to_unsafe.as(Void**))
@@ -37660,7 +37660,7 @@ module Godot
     @@mb_is_column_clipping_content : Void* = Pointer(Void).null
     def is_column_clipping_content(column : Int64) : Bool
       godot_bind(@@mb_is_column_clipping_content, "Tree", "is_column_clipping_content", 1116898809_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_column_clipping_content, @pointer, args.to_unsafe.as(Void**))
@@ -37676,7 +37676,7 @@ module Godot
     @@mb_get_column_expand_ratio : Void* = Pointer(Void).null
     def get_column_expand_ratio(column : Int64) : Int64
       godot_bind(@@mb_get_column_expand_ratio, "Tree", "get_column_expand_ratio", 923996154_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_column_expand_ratio, @pointer, args.to_unsafe.as(Void**))
@@ -37684,7 +37684,7 @@ module Godot
     @@mb_get_column_width : Void* = Pointer(Void).null
     def get_column_width(column : Int64) : Int64
       godot_bind(@@mb_get_column_width, "Tree", "get_column_width", 923996154_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_column_width, @pointer, args.to_unsafe.as(Void**))
@@ -37733,7 +37733,7 @@ module Godot
       godot_bind(@@mb_set_selected, "Tree", "set_selected", 2662547442_i64)
       arg_ptr_0 = item ? item.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
-      val_1 = column
+      val_1 = column.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_selected, @pointer, args.to_unsafe.as(Void**))
@@ -37769,7 +37769,7 @@ module Godot
     @@mb_set_columns : Void* = Pointer(Void).null
     def set_columns(amount : Int64) : Void
       godot_bind(@@mb_set_columns, "Tree", "set_columns", 1286410249_i64)
-      val_0 = amount
+      val_0 = amount.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_columns, @pointer, args.to_unsafe.as(Void**))
@@ -37811,9 +37811,9 @@ module Godot
       godot_bind(@@mb_get_item_area_rect, "Tree", "get_item_area_rect", 47968679_i64)
       arg_ptr_0 = item ? item.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
-      val_1 = column
+      val_1 = column.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = button_index
+      val_2 = button_index.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_val(@@mb_get_item_area_rect, @pointer, args.to_unsafe.as(Void**), Rect2)
@@ -37879,7 +37879,7 @@ module Godot
     @@mb_set_column_title : Void* = Pointer(Void).null
     def set_column_title(column : Int64, title : String) : Void
       godot_bind(@@mb_set_column_title, "Tree", "set_column_title", 501894301_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       str_1 = Bridge.make_string(title)
       arg_1 = str_1
@@ -37891,7 +37891,7 @@ module Godot
     @@mb_get_column_title : Void* = Pointer(Void).null
     def get_column_title(column : Int64) : String
       godot_bind(@@mb_get_column_title, "Tree", "get_column_title", 844755477_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_column_title", column)
@@ -37899,7 +37899,7 @@ module Godot
     @@mb_set_column_title_tooltip_text : Void* = Pointer(Void).null
     def set_column_title_tooltip_text(column : Int64, tooltip_text : String) : Void
       godot_bind(@@mb_set_column_title_tooltip_text, "Tree", "set_column_title_tooltip_text", 501894301_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       str_1 = Bridge.make_string(tooltip_text)
       arg_1 = str_1
@@ -37911,7 +37911,7 @@ module Godot
     @@mb_get_column_title_tooltip_text : Void* = Pointer(Void).null
     def get_column_title_tooltip_text(column : Int64) : String
       godot_bind(@@mb_get_column_title_tooltip_text, "Tree", "get_column_title_tooltip_text", 844755477_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_column_title_tooltip_text", column)
@@ -37919,7 +37919,7 @@ module Godot
     @@mb_set_column_title_alignment : Void* = Pointer(Void).null
     def set_column_title_alignment(column : Int64, title_alignment : Godot::HorizontalAlignment | Int) : Void
       godot_bind(@@mb_set_column_title_alignment, "Tree", "set_column_title_alignment", 3276431499_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = title_alignment.is_a?(Int) ? title_alignment.to_i64 : title_alignment.value.to_i64
       arg_1 = pointerof(val_1).as(Void*)
@@ -37929,7 +37929,7 @@ module Godot
     @@mb_get_column_title_alignment : Void* = Pointer(Void).null
     def get_column_title_alignment(column : Int64) : Godot::HorizontalAlignment
       godot_bind(@@mb_get_column_title_alignment, "Tree", "get_column_title_alignment", 4171562184_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_enum(@@mb_get_column_title_alignment, @pointer, args.to_unsafe.as(Void**), Godot::HorizontalAlignment)
@@ -37937,7 +37937,7 @@ module Godot
     @@mb_set_column_title_direction : Void* = Pointer(Void).null
     def set_column_title_direction(column : Int64, direction : Godot::Control::TextDirection | Int) : Void
       godot_bind(@@mb_set_column_title_direction, "Tree", "set_column_title_direction", 1707680378_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = direction.is_a?(Int) ? direction.to_i64 : direction.value.to_i64
       arg_1 = pointerof(val_1).as(Void*)
@@ -37947,7 +37947,7 @@ module Godot
     @@mb_get_column_title_direction : Void* = Pointer(Void).null
     def get_column_title_direction(column : Int64) : Godot::Control::TextDirection
       godot_bind(@@mb_get_column_title_direction, "Tree", "get_column_title_direction", 4235602388_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_enum(@@mb_get_column_title_direction, @pointer, args.to_unsafe.as(Void**), Godot::Control::TextDirection)
@@ -37955,7 +37955,7 @@ module Godot
     @@mb_set_column_title_language : Void* = Pointer(Void).null
     def set_column_title_language(column : Int64, language : String) : Void
       godot_bind(@@mb_set_column_title_language, "Tree", "set_column_title_language", 501894301_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       str_1 = Bridge.make_string(language)
       arg_1 = str_1
@@ -37967,7 +37967,7 @@ module Godot
     @@mb_get_column_title_language : Void* = Pointer(Void).null
     def get_column_title_language(column : Int64) : String
       godot_bind(@@mb_get_column_title_language, "Tree", "get_column_title_language", 844755477_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_column_title_language", column)
@@ -38129,7 +38129,7 @@ module Godot
     @@mb_set_drop_mode_flags : Void* = Pointer(Void).null
     def set_drop_mode_flags(flags : Int64) : Void
       godot_bind(@@mb_set_drop_mode_flags, "Tree", "set_drop_mode_flags", 1286410249_i64)
-      val_0 = flags
+      val_0 = flags.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_drop_mode_flags, @pointer, args.to_unsafe.as(Void**))
@@ -38372,21 +38372,21 @@ module Godot
     def tile_scroll_hint=(val)
       set_tile_scroll_hint(val)
     end
-    signal item_selected
-    signal cell_selected
-    signal multi_selected, TreeItem, Int64, Bool
-    signal item_mouse_selected, Vector2, Int64
-    signal empty_clicked, Vector2, Int64
-    signal item_edited
-    signal custom_item_clicked, Int64
-    signal item_icon_double_clicked
-    signal item_collapsed, TreeItem
-    signal check_propagated_to_item, TreeItem, Int64
-    signal button_clicked, TreeItem, Int64, Int64, Int64
-    signal custom_popup_edited, Bool
-    signal item_activated
-    signal column_title_clicked, Int64, Int64
-    signal nothing_selected
+    godot_signal item_selected
+    godot_signal cell_selected
+    godot_signal multi_selected, TreeItem, Int64, Bool
+    godot_signal item_mouse_selected, Vector2, Int64
+    godot_signal empty_clicked, Vector2, Int64
+    godot_signal item_edited
+    godot_signal custom_item_clicked, Int64
+    godot_signal item_icon_double_clicked
+    godot_signal item_collapsed, TreeItem
+    godot_signal check_propagated_to_item, TreeItem, Int64
+    godot_signal button_clicked, TreeItem, Int64, Int64, Int64
+    godot_signal custom_popup_edited, Bool
+    godot_signal item_activated
+    godot_signal column_title_clicked, Int64, Int64
+    godot_signal nothing_selected
   end
   class TreeItem < Godot::Object
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -38402,7 +38402,7 @@ module Godot
     @@mb_set_cell_mode : Void* = Pointer(Void).null
     def set_cell_mode(column : Int64, mode : TreeCellMode | Int) : Void
       godot_bind(@@mb_set_cell_mode, "TreeItem", "set_cell_mode", 289920701_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = mode.is_a?(Int) ? mode.to_i64 : mode.value.to_i64
       arg_1 = pointerof(val_1).as(Void*)
@@ -38412,7 +38412,7 @@ module Godot
     @@mb_get_cell_mode : Void* = Pointer(Void).null
     def get_cell_mode(column : Int64) : TreeCellMode
       godot_bind(@@mb_get_cell_mode, "TreeItem", "get_cell_mode", 3406114978_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_enum(@@mb_get_cell_mode, @pointer, args.to_unsafe.as(Void**), TreeCellMode)
@@ -38420,7 +38420,7 @@ module Godot
     @@mb_set_auto_translate_mode : Void* = Pointer(Void).null
     def set_auto_translate_mode(column : Int64, mode : Godot::Node::AutoTranslateMode | Int) : Void
       godot_bind(@@mb_set_auto_translate_mode, "TreeItem", "set_auto_translate_mode", 287402019_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = mode.is_a?(Int) ? mode.to_i64 : mode.value.to_i64
       arg_1 = pointerof(val_1).as(Void*)
@@ -38430,7 +38430,7 @@ module Godot
     @@mb_get_auto_translate_mode : Void* = Pointer(Void).null
     def get_auto_translate_mode(column : Int64) : Godot::Node::AutoTranslateMode
       godot_bind(@@mb_get_auto_translate_mode, "TreeItem", "get_auto_translate_mode", 906302372_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_enum(@@mb_get_auto_translate_mode, @pointer, args.to_unsafe.as(Void**), Godot::Node::AutoTranslateMode)
@@ -38438,7 +38438,7 @@ module Godot
     @@mb_set_edit_multiline : Void* = Pointer(Void).null
     def set_edit_multiline(column : Int64, multiline : Bool) : Void
       godot_bind(@@mb_set_edit_multiline, "TreeItem", "set_edit_multiline", 300928843_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = multiline
       arg_1 = pointerof(val_1).as(Void*)
@@ -38448,7 +38448,7 @@ module Godot
     @@mb_is_edit_multiline : Void* = Pointer(Void).null
     def is_edit_multiline(column : Int64) : Bool
       godot_bind(@@mb_is_edit_multiline, "TreeItem", "is_edit_multiline", 1116898809_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_edit_multiline, @pointer, args.to_unsafe.as(Void**))
@@ -38464,7 +38464,7 @@ module Godot
     @@mb_set_checked : Void* = Pointer(Void).null
     def set_checked(column : Int64, checked : Bool) : Void
       godot_bind(@@mb_set_checked, "TreeItem", "set_checked", 300928843_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = checked
       arg_1 = pointerof(val_1).as(Void*)
@@ -38474,7 +38474,7 @@ module Godot
     @@mb_set_indeterminate : Void* = Pointer(Void).null
     def set_indeterminate(column : Int64, indeterminate : Bool) : Void
       godot_bind(@@mb_set_indeterminate, "TreeItem", "set_indeterminate", 300928843_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = indeterminate
       arg_1 = pointerof(val_1).as(Void*)
@@ -38484,7 +38484,7 @@ module Godot
     @@mb_is_checked : Void* = Pointer(Void).null
     def is_checked(column : Int64) : Bool
       godot_bind(@@mb_is_checked, "TreeItem", "is_checked", 1116898809_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_checked, @pointer, args.to_unsafe.as(Void**))
@@ -38500,7 +38500,7 @@ module Godot
     @@mb_is_indeterminate : Void* = Pointer(Void).null
     def is_indeterminate(column : Int64) : Bool
       godot_bind(@@mb_is_indeterminate, "TreeItem", "is_indeterminate", 1116898809_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_indeterminate, @pointer, args.to_unsafe.as(Void**))
@@ -38516,7 +38516,7 @@ module Godot
     @@mb_propagate_check : Void* = Pointer(Void).null
     def propagate_check(column : Int64, emit_signal : Bool = true) : Void
       godot_bind(@@mb_propagate_check, "TreeItem", "propagate_check", 972357352_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = emit_signal
       arg_1 = pointerof(val_1).as(Void*)
@@ -38526,7 +38526,7 @@ module Godot
     @@mb_set_text : Void* = Pointer(Void).null
     def set_text(column : Int64, text : String) : Void
       godot_bind(@@mb_set_text, "TreeItem", "set_text", 501894301_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       str_1 = Bridge.make_string(text)
       arg_1 = str_1
@@ -38538,7 +38538,7 @@ module Godot
     @@mb_get_text : Void* = Pointer(Void).null
     def get_text(column : Int64) : String
       godot_bind(@@mb_get_text, "TreeItem", "get_text", 844755477_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_text", column)
@@ -38546,7 +38546,7 @@ module Godot
     @@mb_set_description : Void* = Pointer(Void).null
     def set_description(column : Int64, description : String) : Void
       godot_bind(@@mb_set_description, "TreeItem", "set_description", 501894301_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       str_1 = Bridge.make_string(description)
       arg_1 = str_1
@@ -38558,7 +38558,7 @@ module Godot
     @@mb_get_description : Void* = Pointer(Void).null
     def get_description(column : Int64) : String
       godot_bind(@@mb_get_description, "TreeItem", "get_description", 844755477_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_description", column)
@@ -38566,7 +38566,7 @@ module Godot
     @@mb_set_text_direction : Void* = Pointer(Void).null
     def set_text_direction(column : Int64, direction : Godot::Control::TextDirection | Int) : Void
       godot_bind(@@mb_set_text_direction, "TreeItem", "set_text_direction", 1707680378_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = direction.is_a?(Int) ? direction.to_i64 : direction.value.to_i64
       arg_1 = pointerof(val_1).as(Void*)
@@ -38576,7 +38576,7 @@ module Godot
     @@mb_get_text_direction : Void* = Pointer(Void).null
     def get_text_direction(column : Int64) : Godot::Control::TextDirection
       godot_bind(@@mb_get_text_direction, "TreeItem", "get_text_direction", 4235602388_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_enum(@@mb_get_text_direction, @pointer, args.to_unsafe.as(Void**), Godot::Control::TextDirection)
@@ -38584,7 +38584,7 @@ module Godot
     @@mb_set_autowrap_mode : Void* = Pointer(Void).null
     def set_autowrap_mode(column : Int64, autowrap_mode : Godot::TextServer::AutowrapMode | Int) : Void
       godot_bind(@@mb_set_autowrap_mode, "TreeItem", "set_autowrap_mode", 3633006561_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = autowrap_mode.is_a?(Int) ? autowrap_mode.to_i64 : autowrap_mode.value.to_i64
       arg_1 = pointerof(val_1).as(Void*)
@@ -38594,7 +38594,7 @@ module Godot
     @@mb_get_autowrap_mode : Void* = Pointer(Void).null
     def get_autowrap_mode(column : Int64) : Godot::TextServer::AutowrapMode
       godot_bind(@@mb_get_autowrap_mode, "TreeItem", "get_autowrap_mode", 2902757236_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_enum(@@mb_get_autowrap_mode, @pointer, args.to_unsafe.as(Void**), Godot::TextServer::AutowrapMode)
@@ -38602,7 +38602,7 @@ module Godot
     @@mb_set_autowrap_trim_flags : Void* = Pointer(Void).null
     def set_autowrap_trim_flags(column : Int64, flags : Godot::TextServer::LineBreakFlag | Int) : Void
       godot_bind(@@mb_set_autowrap_trim_flags, "TreeItem", "set_autowrap_trim_flags", 2186029660_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = flags.is_a?(Int) ? flags.to_i64 : flags.value.to_i64
       arg_1 = pointerof(val_1).as(Void*)
@@ -38612,7 +38612,7 @@ module Godot
     @@mb_get_autowrap_trim_flags : Void* = Pointer(Void).null
     def get_autowrap_trim_flags(column : Int64) : Godot::TextServer::LineBreakFlag
       godot_bind(@@mb_get_autowrap_trim_flags, "TreeItem", "get_autowrap_trim_flags", 3513056523_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_enum(@@mb_get_autowrap_trim_flags, @pointer, args.to_unsafe.as(Void**), Godot::TextServer::LineBreakFlag)
@@ -38620,7 +38620,7 @@ module Godot
     @@mb_set_text_overrun_behavior : Void* = Pointer(Void).null
     def set_text_overrun_behavior(column : Int64, overrun_behavior : Godot::TextServer::OverrunBehavior | Int) : Void
       godot_bind(@@mb_set_text_overrun_behavior, "TreeItem", "set_text_overrun_behavior", 1940772195_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = overrun_behavior.is_a?(Int) ? overrun_behavior.to_i64 : overrun_behavior.value.to_i64
       arg_1 = pointerof(val_1).as(Void*)
@@ -38630,7 +38630,7 @@ module Godot
     @@mb_get_text_overrun_behavior : Void* = Pointer(Void).null
     def get_text_overrun_behavior(column : Int64) : Godot::TextServer::OverrunBehavior
       godot_bind(@@mb_get_text_overrun_behavior, "TreeItem", "get_text_overrun_behavior", 3782727860_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_enum(@@mb_get_text_overrun_behavior, @pointer, args.to_unsafe.as(Void**), Godot::TextServer::OverrunBehavior)
@@ -38638,7 +38638,7 @@ module Godot
     @@mb_set_structured_text_bidi_override : Void* = Pointer(Void).null
     def set_structured_text_bidi_override(column : Int64, parser : Godot::TextServer::StructuredTextParser | Int) : Void
       godot_bind(@@mb_set_structured_text_bidi_override, "TreeItem", "set_structured_text_bidi_override", 868756907_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = parser.is_a?(Int) ? parser.to_i64 : parser.value.to_i64
       arg_1 = pointerof(val_1).as(Void*)
@@ -38648,7 +38648,7 @@ module Godot
     @@mb_get_structured_text_bidi_override : Void* = Pointer(Void).null
     def get_structured_text_bidi_override(column : Int64) : Godot::TextServer::StructuredTextParser
       godot_bind(@@mb_get_structured_text_bidi_override, "TreeItem", "get_structured_text_bidi_override", 3377823772_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_enum(@@mb_get_structured_text_bidi_override, @pointer, args.to_unsafe.as(Void**), Godot::TextServer::StructuredTextParser)
@@ -38656,7 +38656,7 @@ module Godot
     @@mb_set_structured_text_bidi_override_options : Void* = Pointer(Void).null
     def set_structured_text_bidi_override_options(column : Int64, args : Pointer(Void)) : Void
       godot_bind(@@mb_set_structured_text_bidi_override_options, "TreeItem", "set_structured_text_bidi_override_options", 537221740_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = args
       arg_1 = pointerof(val_1).as(Void*)
@@ -38666,7 +38666,7 @@ module Godot
     @@mb_get_structured_text_bidi_override_options : Void* = Pointer(Void).null
     def get_structured_text_bidi_override_options(column : Int64) : Pointer(Void)
       godot_bind(@@mb_get_structured_text_bidi_override_options, "TreeItem", "get_structured_text_bidi_override_options", 663333327_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       ret_ptr = Pointer(Void).null
@@ -38676,7 +38676,7 @@ module Godot
     @@mb_set_language : Void* = Pointer(Void).null
     def set_language(column : Int64, language : String) : Void
       godot_bind(@@mb_set_language, "TreeItem", "set_language", 501894301_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       str_1 = Bridge.make_string(language)
       arg_1 = str_1
@@ -38688,7 +38688,7 @@ module Godot
     @@mb_get_language : Void* = Pointer(Void).null
     def get_language(column : Int64) : String
       godot_bind(@@mb_get_language, "TreeItem", "get_language", 844755477_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_language", column)
@@ -38696,7 +38696,7 @@ module Godot
     @@mb_set_suffix : Void* = Pointer(Void).null
     def set_suffix(column : Int64, text : String) : Void
       godot_bind(@@mb_set_suffix, "TreeItem", "set_suffix", 501894301_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       str_1 = Bridge.make_string(text)
       arg_1 = str_1
@@ -38708,7 +38708,7 @@ module Godot
     @@mb_get_suffix : Void* = Pointer(Void).null
     def get_suffix(column : Int64) : String
       godot_bind(@@mb_get_suffix, "TreeItem", "get_suffix", 844755477_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_suffix", column)
@@ -38716,7 +38716,7 @@ module Godot
     @@mb_set_icon : Void* = Pointer(Void).null
     def set_icon(column : Int64, texture : Texture2D) : Void
       godot_bind(@@mb_set_icon, "TreeItem", "set_icon", 666127730_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       arg_ptr_1 = texture ? texture.pointer : Pointer(Void).null
       arg_1 = pointerof(arg_ptr_1).as(Void*)
@@ -38726,7 +38726,7 @@ module Godot
     @@mb_get_icon : Void* = Pointer(Void).null
     def get_icon(column : Int64) : Texture2D
       godot_bind(@@mb_get_icon, "TreeItem", "get_icon", 3536238170_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_get_icon, @pointer, args.to_unsafe.as(Void**), Texture2D)
@@ -38734,7 +38734,7 @@ module Godot
     @@mb_set_icon_overlay : Void* = Pointer(Void).null
     def set_icon_overlay(column : Int64, texture : Texture2D) : Void
       godot_bind(@@mb_set_icon_overlay, "TreeItem", "set_icon_overlay", 666127730_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       arg_ptr_1 = texture ? texture.pointer : Pointer(Void).null
       arg_1 = pointerof(arg_ptr_1).as(Void*)
@@ -38744,7 +38744,7 @@ module Godot
     @@mb_get_icon_overlay : Void* = Pointer(Void).null
     def get_icon_overlay(column : Int64) : Texture2D
       godot_bind(@@mb_get_icon_overlay, "TreeItem", "get_icon_overlay", 3536238170_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_get_icon_overlay, @pointer, args.to_unsafe.as(Void**), Texture2D)
@@ -38752,7 +38752,7 @@ module Godot
     @@mb_set_icon_region : Void* = Pointer(Void).null
     def set_icon_region(column : Int64, region : Rect2) : Void
       godot_bind(@@mb_set_icon_region, "TreeItem", "set_icon_region", 1356297692_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = region
       arg_1 = pointerof(val_1).as(Void*)
@@ -38762,7 +38762,7 @@ module Godot
     @@mb_get_icon_region : Void* = Pointer(Void).null
     def get_icon_region(column : Int64) : Rect2
       godot_bind(@@mb_get_icon_region, "TreeItem", "get_icon_region", 3327874267_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_get_icon_region, @pointer, args.to_unsafe.as(Void**), Rect2)
@@ -38770,9 +38770,9 @@ module Godot
     @@mb_set_icon_max_width : Void* = Pointer(Void).null
     def set_icon_max_width(column : Int64, width : Int64) : Void
       godot_bind(@@mb_set_icon_max_width, "TreeItem", "set_icon_max_width", 3937882851_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = width
+      val_1 = width.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_icon_max_width, @pointer, args.to_unsafe.as(Void**))
@@ -38780,7 +38780,7 @@ module Godot
     @@mb_get_icon_max_width : Void* = Pointer(Void).null
     def get_icon_max_width(column : Int64) : Int64
       godot_bind(@@mb_get_icon_max_width, "TreeItem", "get_icon_max_width", 923996154_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_icon_max_width, @pointer, args.to_unsafe.as(Void**))
@@ -38788,7 +38788,7 @@ module Godot
     @@mb_set_icon_modulate : Void* = Pointer(Void).null
     def set_icon_modulate(column : Int64, modulate : Color) : Void
       godot_bind(@@mb_set_icon_modulate, "TreeItem", "set_icon_modulate", 2878471219_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = modulate
       arg_1 = pointerof(val_1).as(Void*)
@@ -38798,7 +38798,7 @@ module Godot
     @@mb_get_icon_modulate : Void* = Pointer(Void).null
     def get_icon_modulate(column : Int64) : Color
       godot_bind(@@mb_get_icon_modulate, "TreeItem", "get_icon_modulate", 3457211756_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_get_icon_modulate, @pointer, args.to_unsafe.as(Void**), Color)
@@ -38806,9 +38806,9 @@ module Godot
     @@mb_set_range : Void* = Pointer(Void).null
     def set_range(column : Int64, value : Float64) : Void
       godot_bind(@@mb_set_range, "TreeItem", "set_range", 1602489585_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = value
+      val_1 = value.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_range, @pointer, args.to_unsafe.as(Void**))
@@ -38816,7 +38816,7 @@ module Godot
     @@mb_get_range : Void* = Pointer(Void).null
     def get_range(column : Int64) : Float64
       godot_bind(@@mb_get_range, "TreeItem", "get_range", 2339986948_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_float(@@mb_get_range, @pointer, args.to_unsafe.as(Void**))
@@ -38824,13 +38824,13 @@ module Godot
     @@mb_set_range_config : Void* = Pointer(Void).null
     def set_range_config(column : Int64, min : Float64, max : Float64, step : Float64, expr : Bool = false) : Void
       godot_bind(@@mb_set_range_config, "TreeItem", "set_range_config", 1547181014_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = min
+      val_1 = min.to_f64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = max
+      val_2 = max.to_f64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = step
+      val_3 = step.to_f64
       arg_3 = pointerof(val_3).as(Void*)
       val_4 = expr
       arg_4 = pointerof(val_4).as(Void*)
@@ -38840,7 +38840,7 @@ module Godot
     @@mb_get_range_config : Void* = Pointer(Void).null
     def get_range_config(column : Int64) : Pointer(Void)
       godot_bind(@@mb_get_range_config, "TreeItem", "get_range_config", 3554694381_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       ret_ptr = Pointer(Void).null
@@ -38850,7 +38850,7 @@ module Godot
     @@mb_set_metadata : Void* = Pointer(Void).null
     def set_metadata(column : Int64, meta : Pointer(Void)) : Void
       godot_bind(@@mb_set_metadata, "TreeItem", "set_metadata", 2152698145_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = meta
       arg_1 = pointerof(val_1).as(Void*)
@@ -38860,7 +38860,7 @@ module Godot
     @@mb_get_metadata : Void* = Pointer(Void).null
     def get_metadata(column : Int64) : Pointer(Void)
       godot_bind(@@mb_get_metadata, "TreeItem", "get_metadata", 4227898402_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
@@ -38872,7 +38872,7 @@ module Godot
     @@mb_set_custom_draw : Void* = Pointer(Void).null
     def set_custom_draw(column : Int64, object : Godot::Object, callback : String) : Void
       godot_bind(@@mb_set_custom_draw, "TreeItem", "set_custom_draw", 272420368_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       arg_ptr_1 = object ? object.pointer : Pointer(Void).null
       arg_1 = pointerof(arg_ptr_1).as(Void*)
@@ -38886,7 +38886,7 @@ module Godot
     @@mb_set_custom_draw_callback : Void* = Pointer(Void).null
     def set_custom_draw_callback(column : Int64, callback : Pointer(Void)) : Void
       godot_bind(@@mb_set_custom_draw_callback, "TreeItem", "set_custom_draw_callback", 957362965_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = callback
       arg_1 = pointerof(val_1).as(Void*)
@@ -38896,17 +38896,17 @@ module Godot
     @@mb_get_custom_draw_callback : Void* = Pointer(Void).null
     def get_custom_draw_callback(column : Int64) : Pointer(Void)
       godot_bind(@@mb_get_custom_draw_callback, "TreeItem", "get_custom_draw_callback", 1317077508_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_custom_draw_callback, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_custom_draw_callback, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_set_custom_stylebox : Void* = Pointer(Void).null
     def set_custom_stylebox(column : Int64, stylebox : StyleBox) : Void
       godot_bind(@@mb_set_custom_stylebox, "TreeItem", "set_custom_stylebox", 1433009359_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       arg_ptr_1 = stylebox ? stylebox.pointer : Pointer(Void).null
       arg_1 = pointerof(arg_ptr_1).as(Void*)
@@ -38916,7 +38916,7 @@ module Godot
     @@mb_get_custom_stylebox : Void* = Pointer(Void).null
     def get_custom_stylebox(column : Int64) : StyleBox
       godot_bind(@@mb_get_custom_stylebox, "TreeItem", "get_custom_stylebox", 3362509644_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_get_custom_stylebox, @pointer, args.to_unsafe.as(Void**), StyleBox)
@@ -39008,7 +39008,7 @@ module Godot
     @@mb_set_custom_minimum_height : Void* = Pointer(Void).null
     def set_custom_minimum_height(height : Int64) : Void
       godot_bind(@@mb_set_custom_minimum_height, "TreeItem", "set_custom_minimum_height", 1286410249_i64)
-      val_0 = height
+      val_0 = height.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_custom_minimum_height, @pointer, args.to_unsafe.as(Void**))
@@ -39021,7 +39021,7 @@ module Godot
     @@mb_set_selectable : Void* = Pointer(Void).null
     def set_selectable(column : Int64, selectable : Bool) : Void
       godot_bind(@@mb_set_selectable, "TreeItem", "set_selectable", 300928843_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = selectable
       arg_1 = pointerof(val_1).as(Void*)
@@ -39031,7 +39031,7 @@ module Godot
     @@mb_is_selectable : Void* = Pointer(Void).null
     def is_selectable(column : Int64) : Bool
       godot_bind(@@mb_is_selectable, "TreeItem", "is_selectable", 1116898809_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_selectable, @pointer, args.to_unsafe.as(Void**))
@@ -39047,7 +39047,7 @@ module Godot
     @@mb_is_selected : Void* = Pointer(Void).null
     def is_selected(column : Int64) : Bool
       godot_bind(@@mb_is_selected, "TreeItem", "is_selected", 3067735520_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_selected, @pointer, args.to_unsafe.as(Void**))
@@ -39063,7 +39063,7 @@ module Godot
     @@mb_select : Void* = Pointer(Void).null
     def select_val(column : Int64, set_as_cursor : Bool = true) : Void
       godot_bind(@@mb_select, "TreeItem", "select", 972357352_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = set_as_cursor
       arg_1 = pointerof(val_1).as(Void*)
@@ -39073,7 +39073,7 @@ module Godot
     @@mb_deselect : Void* = Pointer(Void).null
     def deselect(column : Int64) : Void
       godot_bind(@@mb_deselect, "TreeItem", "deselect", 1286410249_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_deselect, @pointer, args.to_unsafe.as(Void**))
@@ -39081,7 +39081,7 @@ module Godot
     @@mb_set_editable : Void* = Pointer(Void).null
     def set_editable(column : Int64, enabled : Bool) : Void
       godot_bind(@@mb_set_editable, "TreeItem", "set_editable", 300928843_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = enabled
       arg_1 = pointerof(val_1).as(Void*)
@@ -39091,7 +39091,7 @@ module Godot
     @@mb_is_editable : Void* = Pointer(Void).null
     def is_editable(column : Int64) : Bool
       godot_bind(@@mb_is_editable, "TreeItem", "is_editable", 3067735520_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_editable, @pointer, args.to_unsafe.as(Void**))
@@ -39107,7 +39107,7 @@ module Godot
     @@mb_set_custom_color : Void* = Pointer(Void).null
     def set_custom_color(column : Int64, color : Color) : Void
       godot_bind(@@mb_set_custom_color, "TreeItem", "set_custom_color", 2878471219_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = color
       arg_1 = pointerof(val_1).as(Void*)
@@ -39117,7 +39117,7 @@ module Godot
     @@mb_get_custom_color : Void* = Pointer(Void).null
     def get_custom_color(column : Int64) : Color
       godot_bind(@@mb_get_custom_color, "TreeItem", "get_custom_color", 3457211756_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_get_custom_color, @pointer, args.to_unsafe.as(Void**), Color)
@@ -39125,7 +39125,7 @@ module Godot
     @@mb_clear_custom_color : Void* = Pointer(Void).null
     def clear_custom_color(column : Int64) : Void
       godot_bind(@@mb_clear_custom_color, "TreeItem", "clear_custom_color", 1286410249_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_clear_custom_color, @pointer, args.to_unsafe.as(Void**))
@@ -39133,7 +39133,7 @@ module Godot
     @@mb_set_custom_font : Void* = Pointer(Void).null
     def set_custom_font(column : Int64, font : Font) : Void
       godot_bind(@@mb_set_custom_font, "TreeItem", "set_custom_font", 2637609184_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       arg_ptr_1 = font ? font.pointer : Pointer(Void).null
       arg_1 = pointerof(arg_ptr_1).as(Void*)
@@ -39143,7 +39143,7 @@ module Godot
     @@mb_get_custom_font : Void* = Pointer(Void).null
     def get_custom_font(column : Int64) : Font
       godot_bind(@@mb_get_custom_font, "TreeItem", "get_custom_font", 4244553094_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_get_custom_font, @pointer, args.to_unsafe.as(Void**), Font)
@@ -39151,9 +39151,9 @@ module Godot
     @@mb_set_custom_font_size : Void* = Pointer(Void).null
     def set_custom_font_size(column : Int64, font_size : Int64) : Void
       godot_bind(@@mb_set_custom_font_size, "TreeItem", "set_custom_font_size", 3937882851_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = font_size
+      val_1 = font_size.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_custom_font_size, @pointer, args.to_unsafe.as(Void**))
@@ -39161,7 +39161,7 @@ module Godot
     @@mb_get_custom_font_size : Void* = Pointer(Void).null
     def get_custom_font_size(column : Int64) : Int64
       godot_bind(@@mb_get_custom_font_size, "TreeItem", "get_custom_font_size", 923996154_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_custom_font_size, @pointer, args.to_unsafe.as(Void**))
@@ -39169,7 +39169,7 @@ module Godot
     @@mb_set_custom_bg_color : Void* = Pointer(Void).null
     def set_custom_bg_color(column : Int64, color : Color, just_outline : Bool = false) : Void
       godot_bind(@@mb_set_custom_bg_color, "TreeItem", "set_custom_bg_color", 894174518_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = color
       arg_1 = pointerof(val_1).as(Void*)
@@ -39181,7 +39181,7 @@ module Godot
     @@mb_clear_custom_bg_color : Void* = Pointer(Void).null
     def clear_custom_bg_color(column : Int64) : Void
       godot_bind(@@mb_clear_custom_bg_color, "TreeItem", "clear_custom_bg_color", 1286410249_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_clear_custom_bg_color, @pointer, args.to_unsafe.as(Void**))
@@ -39189,7 +39189,7 @@ module Godot
     @@mb_get_custom_bg_color : Void* = Pointer(Void).null
     def get_custom_bg_color(column : Int64) : Color
       godot_bind(@@mb_get_custom_bg_color, "TreeItem", "get_custom_bg_color", 3457211756_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_get_custom_bg_color, @pointer, args.to_unsafe.as(Void**), Color)
@@ -39197,7 +39197,7 @@ module Godot
     @@mb_set_custom_as_button : Void* = Pointer(Void).null
     def set_custom_as_button(column : Int64, enable : Bool) : Void
       godot_bind(@@mb_set_custom_as_button, "TreeItem", "set_custom_as_button", 300928843_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = enable
       arg_1 = pointerof(val_1).as(Void*)
@@ -39207,7 +39207,7 @@ module Godot
     @@mb_is_custom_set_as_button : Void* = Pointer(Void).null
     def is_custom_set_as_button(column : Int64) : Bool
       godot_bind(@@mb_is_custom_set_as_button, "TreeItem", "is_custom_set_as_button", 1116898809_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_custom_set_as_button, @pointer, args.to_unsafe.as(Void**))
@@ -39228,11 +39228,11 @@ module Godot
     @@mb_add_button : Void* = Pointer(Void).null
     def add_button(column : Int64, button : Texture2D, id : Int64 = -1_i64, disabled : Bool = false, tooltip_text : String = "", description : String = "") : Void
       godot_bind(@@mb_add_button, "TreeItem", "add_button", 973481897_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       arg_ptr_1 = button ? button.pointer : Pointer(Void).null
       arg_1 = pointerof(arg_ptr_1).as(Void*)
-      val_2 = id
+      val_2 = id.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       val_3 = disabled
       arg_3 = pointerof(val_3).as(Void*)
@@ -39249,7 +39249,7 @@ module Godot
     @@mb_get_button_count : Void* = Pointer(Void).null
     def get_button_count(column : Int64) : Int64
       godot_bind(@@mb_get_button_count, "TreeItem", "get_button_count", 923996154_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_button_count, @pointer, args.to_unsafe.as(Void**))
@@ -39257,9 +39257,9 @@ module Godot
     @@mb_get_button_tooltip_text : Void* = Pointer(Void).null
     def get_button_tooltip_text(column : Int64, button_index : Int64) : String
       godot_bind(@@mb_get_button_tooltip_text, "TreeItem", "get_button_tooltip_text", 1391810591_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = button_index
+      val_1 = button_index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_call_str("get_button_tooltip_text", column, button_index)
@@ -39267,9 +39267,9 @@ module Godot
     @@mb_get_button_id : Void* = Pointer(Void).null
     def get_button_id(column : Int64, button_index : Int64) : Int64
       godot_bind(@@mb_get_button_id, "TreeItem", "get_button_id", 3175239445_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = button_index
+      val_1 = button_index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_get_button_id, @pointer, args.to_unsafe.as(Void**))
@@ -39277,9 +39277,9 @@ module Godot
     @@mb_get_button_by_id : Void* = Pointer(Void).null
     def get_button_by_id(column : Int64, id : Int64) : Int64
       godot_bind(@@mb_get_button_by_id, "TreeItem", "get_button_by_id", 3175239445_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = id
+      val_1 = id.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_get_button_by_id, @pointer, args.to_unsafe.as(Void**))
@@ -39287,9 +39287,9 @@ module Godot
     @@mb_get_button_color : Void* = Pointer(Void).null
     def get_button_color(column : Int64, id : Int64) : Color
       godot_bind(@@mb_get_button_color, "TreeItem", "get_button_color", 2165839948_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = id
+      val_1 = id.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_val(@@mb_get_button_color, @pointer, args.to_unsafe.as(Void**), Color)
@@ -39297,9 +39297,9 @@ module Godot
     @@mb_get_button : Void* = Pointer(Void).null
     def get_button(column : Int64, button_index : Int64) : Texture2D
       godot_bind(@@mb_get_button, "TreeItem", "get_button", 2584904275_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = button_index
+      val_1 = button_index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_obj(@@mb_get_button, @pointer, args.to_unsafe.as(Void**), Texture2D)
@@ -39307,9 +39307,9 @@ module Godot
     @@mb_set_button_tooltip_text : Void* = Pointer(Void).null
     def set_button_tooltip_text(column : Int64, button_index : Int64, tooltip : String) : Void
       godot_bind(@@mb_set_button_tooltip_text, "TreeItem", "set_button_tooltip_text", 2285447957_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = button_index
+      val_1 = button_index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       str_2 = Bridge.make_string(tooltip)
       arg_2 = str_2
@@ -39321,9 +39321,9 @@ module Godot
     @@mb_set_button : Void* = Pointer(Void).null
     def set_button(column : Int64, button_index : Int64, button : Texture2D) : Void
       godot_bind(@@mb_set_button, "TreeItem", "set_button", 176101966_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = button_index
+      val_1 = button_index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       arg_ptr_2 = button ? button.pointer : Pointer(Void).null
       arg_2 = pointerof(arg_ptr_2).as(Void*)
@@ -39333,9 +39333,9 @@ module Godot
     @@mb_erase_button : Void* = Pointer(Void).null
     def erase_button(column : Int64, button_index : Int64) : Void
       godot_bind(@@mb_erase_button, "TreeItem", "erase_button", 3937882851_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = button_index
+      val_1 = button_index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_erase_button, @pointer, args.to_unsafe.as(Void**))
@@ -39343,9 +39343,9 @@ module Godot
     @@mb_set_button_description : Void* = Pointer(Void).null
     def set_button_description(column : Int64, button_index : Int64, description : String) : Void
       godot_bind(@@mb_set_button_description, "TreeItem", "set_button_description", 2285447957_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = button_index
+      val_1 = button_index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       str_2 = Bridge.make_string(description)
       arg_2 = str_2
@@ -39357,9 +39357,9 @@ module Godot
     @@mb_set_button_disabled : Void* = Pointer(Void).null
     def set_button_disabled(column : Int64, button_index : Int64, disabled : Bool) : Void
       godot_bind(@@mb_set_button_disabled, "TreeItem", "set_button_disabled", 1383440665_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = button_index
+      val_1 = button_index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = disabled
       arg_2 = pointerof(val_2).as(Void*)
@@ -39369,9 +39369,9 @@ module Godot
     @@mb_set_button_color : Void* = Pointer(Void).null
     def set_button_color(column : Int64, button_index : Int64, color : Color) : Void
       godot_bind(@@mb_set_button_color, "TreeItem", "set_button_color", 3733378741_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = button_index
+      val_1 = button_index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = color
       arg_2 = pointerof(val_2).as(Void*)
@@ -39381,9 +39381,9 @@ module Godot
     @@mb_is_button_disabled : Void* = Pointer(Void).null
     def is_button_disabled(column : Int64, button_index : Int64) : Bool
       godot_bind(@@mb_is_button_disabled, "TreeItem", "is_button_disabled", 2522259332_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = button_index
+      val_1 = button_index.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_bool(@@mb_is_button_disabled, @pointer, args.to_unsafe.as(Void**))
@@ -39399,7 +39399,7 @@ module Godot
     @@mb_set_tooltip_text : Void* = Pointer(Void).null
     def set_tooltip_text(column : Int64, tooltip : String) : Void
       godot_bind(@@mb_set_tooltip_text, "TreeItem", "set_tooltip_text", 501894301_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       str_1 = Bridge.make_string(tooltip)
       arg_1 = str_1
@@ -39411,7 +39411,7 @@ module Godot
     @@mb_get_tooltip_text : Void* = Pointer(Void).null
     def get_tooltip_text(column : Int64) : String
       godot_bind(@@mb_get_tooltip_text, "TreeItem", "get_tooltip_text", 844755477_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_tooltip_text", column)
@@ -39419,7 +39419,7 @@ module Godot
     @@mb_set_text_alignment : Void* = Pointer(Void).null
     def set_text_alignment(column : Int64, text_alignment : Godot::HorizontalAlignment | Int) : Void
       godot_bind(@@mb_set_text_alignment, "TreeItem", "set_text_alignment", 3276431499_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = text_alignment.is_a?(Int) ? text_alignment.to_i64 : text_alignment.value.to_i64
       arg_1 = pointerof(val_1).as(Void*)
@@ -39429,7 +39429,7 @@ module Godot
     @@mb_get_text_alignment : Void* = Pointer(Void).null
     def get_text_alignment(column : Int64) : Godot::HorizontalAlignment
       godot_bind(@@mb_get_text_alignment, "TreeItem", "get_text_alignment", 4171562184_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_enum(@@mb_get_text_alignment, @pointer, args.to_unsafe.as(Void**), Godot::HorizontalAlignment)
@@ -39437,7 +39437,7 @@ module Godot
     @@mb_set_expand_right : Void* = Pointer(Void).null
     def set_expand_right(column : Int64, enable : Bool) : Void
       godot_bind(@@mb_set_expand_right, "TreeItem", "set_expand_right", 300928843_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = enable
       arg_1 = pointerof(val_1).as(Void*)
@@ -39447,7 +39447,7 @@ module Godot
     @@mb_get_expand_right : Void* = Pointer(Void).null
     def get_expand_right(column : Int64) : Bool
       godot_bind(@@mb_get_expand_right, "TreeItem", "get_expand_right", 1116898809_i64)
-      val_0 = column
+      val_0 = column.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_get_expand_right, @pointer, args.to_unsafe.as(Void**))
@@ -39501,7 +39501,7 @@ module Godot
     @@mb_create_child : Void* = Pointer(Void).null
     def create_child(index : Int64 = -1_i64) : TreeItem
       godot_bind(@@mb_create_child, "TreeItem", "create_child", 954243986_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_create_child, @pointer, args.to_unsafe.as(Void**), TreeItem)
@@ -39582,7 +39582,7 @@ module Godot
     @@mb_get_child : Void* = Pointer(Void).null
     def get_child(index : Int64) : TreeItem
       godot_bind(@@mb_get_child, "TreeItem", "get_child", 306700752_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_get_child, @pointer, args.to_unsafe.as(Void**), TreeItem)
@@ -39675,9 +39675,9 @@ module Godot
     @@mb_get_faces : Void* = Pointer(Void).null
     def get_faces() : Pointer(Void)
       godot_bind(@@mb_get_faces, "TriangleMesh", "get_faces", 497664490_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_faces, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_faces, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_intersect_segment : Void* = Pointer(Void).null
     def intersect_segment(begin_val : Vector3, end_val : Vector3) : Pointer(Void)
@@ -39711,7 +39711,7 @@ module Godot
     @@mb_set_radius : Void* = Pointer(Void).null
     def set_radius(radius : Float64) : Void
       godot_bind(@@mb_set_radius, "TubeTrailMesh", "set_radius", 373806689_i64)
-      val_0 = radius
+      val_0 = radius.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_radius, @pointer, args.to_unsafe.as(Void**))
@@ -39724,7 +39724,7 @@ module Godot
     @@mb_set_radial_steps : Void* = Pointer(Void).null
     def set_radial_steps(radial_steps : Int64) : Void
       godot_bind(@@mb_set_radial_steps, "TubeTrailMesh", "set_radial_steps", 1286410249_i64)
-      val_0 = radial_steps
+      val_0 = radial_steps.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_radial_steps, @pointer, args.to_unsafe.as(Void**))
@@ -39737,7 +39737,7 @@ module Godot
     @@mb_set_sections : Void* = Pointer(Void).null
     def set_sections(sections : Int64) : Void
       godot_bind(@@mb_set_sections, "TubeTrailMesh", "set_sections", 1286410249_i64)
-      val_0 = sections
+      val_0 = sections.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_sections, @pointer, args.to_unsafe.as(Void**))
@@ -39750,7 +39750,7 @@ module Godot
     @@mb_set_section_length : Void* = Pointer(Void).null
     def set_section_length(section_length : Float64) : Void
       godot_bind(@@mb_set_section_length, "TubeTrailMesh", "set_section_length", 373806689_i64)
-      val_0 = section_length
+      val_0 = section_length.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_section_length, @pointer, args.to_unsafe.as(Void**))
@@ -39763,7 +39763,7 @@ module Godot
     @@mb_set_section_rings : Void* = Pointer(Void).null
     def set_section_rings(section_rings : Int64) : Void
       godot_bind(@@mb_set_section_rings, "TubeTrailMesh", "set_section_rings", 1286410249_i64)
-      val_0 = section_rings
+      val_0 = section_rings.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_section_rings, @pointer, args.to_unsafe.as(Void**))
@@ -39935,7 +39935,7 @@ module Godot
       arg_1 = np_1
       val_2 = final_val
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = duration
+      val_3 = duration.to_f64
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_obj(@@mb_tween_property, @pointer, args.to_unsafe.as(Void**), PropertyTweener)
@@ -39945,7 +39945,7 @@ module Godot
     @@mb_tween_interval : Void* = Pointer(Void).null
     def tween_interval(time : Float64) : IntervalTweener
       godot_bind(@@mb_tween_interval, "Tween", "tween_interval", 413360199_i64)
-      val_0 = time
+      val_0 = time.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_tween_interval, @pointer, args.to_unsafe.as(Void**), IntervalTweener)
@@ -39967,7 +39967,7 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = to
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = duration
+      val_3 = duration.to_f64
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_obj(@@mb_tween_method, @pointer, args.to_unsafe.as(Void**), MethodTweener)
@@ -39991,7 +39991,7 @@ module Godot
     @@mb_custom_step : Void* = Pointer(Void).null
     def custom_step(delta : Float64) : Bool
       godot_bind(@@mb_custom_step, "Tween", "custom_step", 330693286_i64)
-      val_0 = delta
+      val_0 = delta.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_custom_step, @pointer, args.to_unsafe.as(Void**))
@@ -40103,7 +40103,7 @@ module Godot
     @@mb_set_loops : Void* = Pointer(Void).null
     def set_loops(loops : Int64 = 0_i64) : Tween
       godot_bind(@@mb_set_loops, "Tween", "set_loops", 2670836414_i64)
-      val_0 = loops
+      val_0 = loops.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_set_loops, @pointer, args.to_unsafe.as(Void**), Tween)
@@ -40116,7 +40116,7 @@ module Godot
     @@mb_set_speed_scale : Void* = Pointer(Void).null
     def set_speed_scale(speed : Float64) : Tween
       godot_bind(@@mb_set_speed_scale, "Tween", "set_speed_scale", 3961971106_i64)
-      val_0 = speed
+      val_0 = speed.to_f64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_set_speed_scale, @pointer, args.to_unsafe.as(Void**), Tween)
@@ -40154,9 +40154,9 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = delta_value
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = elapsed_time
+      val_2 = elapsed_time.to_f64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = duration
+      val_3 = duration.to_f64
       arg_3 = pointerof(val_3).as(Void*)
       val_4 = trans_type.is_a?(Int) ? trans_type.to_i64 : trans_type.value.to_i64
       arg_4 = pointerof(val_4).as(Void*)
@@ -40173,9 +40173,9 @@ module Godot
     def interpolate_value(initial_value : Pointer(Void), delta_value : Pointer(Void), elapsed_time : Float64, duration : Float64, trans_type : TransitionType | Int, ease_type : EaseType | Int) : Pointer(Void)
       self.class.interpolate_value(initial_value, delta_value, elapsed_time, duration, trans_type, ease_type)
     end
-    signal step_finished, Int64
-    signal loop_finished, Int64
-    signal finished
+    godot_signal step_finished, Int64
+    godot_signal loop_finished, Int64
+    godot_signal finished
   end
   class TwoBoneIK3D < Godot::IKModifier3D
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -40184,7 +40184,7 @@ module Godot
     @@mb_set_target_node : Void* = Pointer(Void).null
     def set_target_node(index : Int64, target_node : NodePath | String) : Void
       godot_bind(@@mb_set_target_node, "TwoBoneIK3D", "set_target_node", 2761262315_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       np_1 = Bridge.make_nodepath(target_node.to_s)
       arg_1 = np_1
@@ -40196,7 +40196,7 @@ module Godot
     @@mb_get_target_node : Void* = Pointer(Void).null
     def get_target_node(index : Int64) : NodePath
       godot_bind(@@mb_get_target_node, "TwoBoneIK3D", "get_target_node", 408788394_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       NodePath.new(godot_call_str("get_target_node", index))
@@ -40204,7 +40204,7 @@ module Godot
     @@mb_set_pole_node : Void* = Pointer(Void).null
     def set_pole_node(index : Int64, pole_node : NodePath | String) : Void
       godot_bind(@@mb_set_pole_node, "TwoBoneIK3D", "set_pole_node", 2761262315_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       np_1 = Bridge.make_nodepath(pole_node.to_s)
       arg_1 = np_1
@@ -40216,7 +40216,7 @@ module Godot
     @@mb_get_pole_node : Void* = Pointer(Void).null
     def get_pole_node(index : Int64) : NodePath
       godot_bind(@@mb_get_pole_node, "TwoBoneIK3D", "get_pole_node", 408788394_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       NodePath.new(godot_call_str("get_pole_node", index))
@@ -40224,7 +40224,7 @@ module Godot
     @@mb_set_root_bone_name : Void* = Pointer(Void).null
     def set_root_bone_name(index : Int64, bone_name : String) : Void
       godot_bind(@@mb_set_root_bone_name, "TwoBoneIK3D", "set_root_bone_name", 501894301_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       str_1 = Bridge.make_string(bone_name)
       arg_1 = str_1
@@ -40236,7 +40236,7 @@ module Godot
     @@mb_get_root_bone_name : Void* = Pointer(Void).null
     def get_root_bone_name(index : Int64) : String
       godot_bind(@@mb_get_root_bone_name, "TwoBoneIK3D", "get_root_bone_name", 844755477_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_root_bone_name", index)
@@ -40244,9 +40244,9 @@ module Godot
     @@mb_set_root_bone : Void* = Pointer(Void).null
     def set_root_bone(index : Int64, bone : Int64) : Void
       godot_bind(@@mb_set_root_bone, "TwoBoneIK3D", "set_root_bone", 3937882851_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = bone
+      val_1 = bone.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_root_bone, @pointer, args.to_unsafe.as(Void**))
@@ -40254,7 +40254,7 @@ module Godot
     @@mb_get_root_bone : Void* = Pointer(Void).null
     def get_root_bone(index : Int64) : Int64
       godot_bind(@@mb_get_root_bone, "TwoBoneIK3D", "get_root_bone", 923996154_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_root_bone, @pointer, args.to_unsafe.as(Void**))
@@ -40262,7 +40262,7 @@ module Godot
     @@mb_set_middle_bone_name : Void* = Pointer(Void).null
     def set_middle_bone_name(index : Int64, bone_name : String) : Void
       godot_bind(@@mb_set_middle_bone_name, "TwoBoneIK3D", "set_middle_bone_name", 501894301_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       str_1 = Bridge.make_string(bone_name)
       arg_1 = str_1
@@ -40274,7 +40274,7 @@ module Godot
     @@mb_get_middle_bone_name : Void* = Pointer(Void).null
     def get_middle_bone_name(index : Int64) : String
       godot_bind(@@mb_get_middle_bone_name, "TwoBoneIK3D", "get_middle_bone_name", 844755477_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_middle_bone_name", index)
@@ -40282,9 +40282,9 @@ module Godot
     @@mb_set_middle_bone : Void* = Pointer(Void).null
     def set_middle_bone(index : Int64, bone : Int64) : Void
       godot_bind(@@mb_set_middle_bone, "TwoBoneIK3D", "set_middle_bone", 3937882851_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = bone
+      val_1 = bone.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_middle_bone, @pointer, args.to_unsafe.as(Void**))
@@ -40292,7 +40292,7 @@ module Godot
     @@mb_get_middle_bone : Void* = Pointer(Void).null
     def get_middle_bone(index : Int64) : Int64
       godot_bind(@@mb_get_middle_bone, "TwoBoneIK3D", "get_middle_bone", 923996154_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_middle_bone, @pointer, args.to_unsafe.as(Void**))
@@ -40300,7 +40300,7 @@ module Godot
     @@mb_set_pole_direction : Void* = Pointer(Void).null
     def set_pole_direction(index : Int64, direction : Godot::SkeletonModifier3D::SecondaryDirection | Int) : Void
       godot_bind(@@mb_set_pole_direction, "TwoBoneIK3D", "set_pole_direction", 258741388_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = direction.is_a?(Int) ? direction.to_i64 : direction.value.to_i64
       arg_1 = pointerof(val_1).as(Void*)
@@ -40310,7 +40310,7 @@ module Godot
     @@mb_get_pole_direction : Void* = Pointer(Void).null
     def get_pole_direction(index : Int64) : Godot::SkeletonModifier3D::SecondaryDirection
       godot_bind(@@mb_get_pole_direction, "TwoBoneIK3D", "get_pole_direction", 377522128_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_enum(@@mb_get_pole_direction, @pointer, args.to_unsafe.as(Void**), Godot::SkeletonModifier3D::SecondaryDirection)
@@ -40318,7 +40318,7 @@ module Godot
     @@mb_set_pole_direction_vector : Void* = Pointer(Void).null
     def set_pole_direction_vector(index : Int64, vector : Vector3) : Void
       godot_bind(@@mb_set_pole_direction_vector, "TwoBoneIK3D", "set_pole_direction_vector", 1530502735_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = vector
       arg_1 = pointerof(val_1).as(Void*)
@@ -40328,7 +40328,7 @@ module Godot
     @@mb_get_pole_direction_vector : Void* = Pointer(Void).null
     def get_pole_direction_vector(index : Int64) : Vector3
       godot_bind(@@mb_get_pole_direction_vector, "TwoBoneIK3D", "get_pole_direction_vector", 711720468_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_get_pole_direction_vector, @pointer, args.to_unsafe.as(Void**), Vector3)
@@ -40336,7 +40336,7 @@ module Godot
     @@mb_set_end_bone_name : Void* = Pointer(Void).null
     def set_end_bone_name(index : Int64, bone_name : String) : Void
       godot_bind(@@mb_set_end_bone_name, "TwoBoneIK3D", "set_end_bone_name", 501894301_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       str_1 = Bridge.make_string(bone_name)
       arg_1 = str_1
@@ -40348,7 +40348,7 @@ module Godot
     @@mb_get_end_bone_name : Void* = Pointer(Void).null
     def get_end_bone_name(index : Int64) : String
       godot_bind(@@mb_get_end_bone_name, "TwoBoneIK3D", "get_end_bone_name", 844755477_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_end_bone_name", index)
@@ -40356,9 +40356,9 @@ module Godot
     @@mb_set_end_bone : Void* = Pointer(Void).null
     def set_end_bone(index : Int64, bone : Int64) : Void
       godot_bind(@@mb_set_end_bone, "TwoBoneIK3D", "set_end_bone", 3937882851_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = bone
+      val_1 = bone.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_end_bone, @pointer, args.to_unsafe.as(Void**))
@@ -40366,7 +40366,7 @@ module Godot
     @@mb_get_end_bone : Void* = Pointer(Void).null
     def get_end_bone(index : Int64) : Int64
       godot_bind(@@mb_get_end_bone, "TwoBoneIK3D", "get_end_bone", 923996154_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_end_bone, @pointer, args.to_unsafe.as(Void**))
@@ -40374,7 +40374,7 @@ module Godot
     @@mb_set_use_virtual_end : Void* = Pointer(Void).null
     def set_use_virtual_end(index : Int64, enabled : Bool) : Void
       godot_bind(@@mb_set_use_virtual_end, "TwoBoneIK3D", "set_use_virtual_end", 300928843_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = enabled
       arg_1 = pointerof(val_1).as(Void*)
@@ -40384,7 +40384,7 @@ module Godot
     @@mb_is_using_virtual_end : Void* = Pointer(Void).null
     def is_using_virtual_end(index : Int64) : Bool
       godot_bind(@@mb_is_using_virtual_end, "TwoBoneIK3D", "is_using_virtual_end", 1116898809_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_using_virtual_end, @pointer, args.to_unsafe.as(Void**))
@@ -40400,7 +40400,7 @@ module Godot
     @@mb_set_extend_end_bone : Void* = Pointer(Void).null
     def set_extend_end_bone(index : Int64, enabled : Bool) : Void
       godot_bind(@@mb_set_extend_end_bone, "TwoBoneIK3D", "set_extend_end_bone", 300928843_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = enabled
       arg_1 = pointerof(val_1).as(Void*)
@@ -40410,7 +40410,7 @@ module Godot
     @@mb_is_end_bone_extended : Void* = Pointer(Void).null
     def is_end_bone_extended(index : Int64) : Bool
       godot_bind(@@mb_is_end_bone_extended, "TwoBoneIK3D", "is_end_bone_extended", 1116898809_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_end_bone_extended, @pointer, args.to_unsafe.as(Void**))
@@ -40426,7 +40426,7 @@ module Godot
     @@mb_set_end_bone_direction : Void* = Pointer(Void).null
     def set_end_bone_direction(index : Int64, bone_direction : Godot::SkeletonModifier3D::BoneDirection | Int) : Void
       godot_bind(@@mb_set_end_bone_direction, "TwoBoneIK3D", "set_end_bone_direction", 2838484201_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = bone_direction.is_a?(Int) ? bone_direction.to_i64 : bone_direction.value.to_i64
       arg_1 = pointerof(val_1).as(Void*)
@@ -40436,7 +40436,7 @@ module Godot
     @@mb_get_end_bone_direction : Void* = Pointer(Void).null
     def get_end_bone_direction(index : Int64) : Godot::SkeletonModifier3D::BoneDirection
       godot_bind(@@mb_get_end_bone_direction, "TwoBoneIK3D", "get_end_bone_direction", 1843036459_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_enum(@@mb_get_end_bone_direction, @pointer, args.to_unsafe.as(Void**), Godot::SkeletonModifier3D::BoneDirection)
@@ -40444,9 +40444,9 @@ module Godot
     @@mb_set_end_bone_length : Void* = Pointer(Void).null
     def set_end_bone_length(index : Int64, length : Float64) : Void
       godot_bind(@@mb_set_end_bone_length, "TwoBoneIK3D", "set_end_bone_length", 1602489585_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = length
+      val_1 = length.to_f64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_end_bone_length, @pointer, args.to_unsafe.as(Void**))
@@ -40454,7 +40454,7 @@ module Godot
     @@mb_get_end_bone_length : Void* = Pointer(Void).null
     def get_end_bone_length(index : Int64) : Float64
       godot_bind(@@mb_get_end_bone_length, "TwoBoneIK3D", "get_end_bone_length", 2339986948_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_float(@@mb_get_end_bone_length, @pointer, args.to_unsafe.as(Void**))
@@ -40475,7 +40475,7 @@ module Godot
     @@mb_listen : Void* = Pointer(Void).null
     def listen(port : Int64, bind_address : String = "*") : Godot::Error
       godot_bind(@@mb_listen, "UDPServer", "listen", 3167955072_i64)
-      val_0 = port
+      val_0 = port.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       str_1 = Bridge.make_string(bind_address)
       arg_1 = str_1
@@ -40533,7 +40533,7 @@ module Godot
     @@mb_set_max_pending_connections : Void* = Pointer(Void).null
     def set_max_pending_connections(max_pending_connections : Int64) : Void
       godot_bind(@@mb_set_max_pending_connections, "UDPServer", "set_max_pending_connections", 1286410249_i64)
-      val_0 = max_pending_connections
+      val_0 = max_pending_connections.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_max_pending_connections, @pointer, args.to_unsafe.as(Void**))
@@ -40615,7 +40615,7 @@ module Godot
     @@mb_get_device : Void* = Pointer(Void).null
     def get_device(index : Int64) : UPNPDevice
       godot_bind(@@mb_get_device, "UPNP", "get_device", 2193290270_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_get_device, @pointer, args.to_unsafe.as(Void**), UPNPDevice)
@@ -40631,7 +40631,7 @@ module Godot
     @@mb_set_device : Void* = Pointer(Void).null
     def set_device(index : Int64, device : UPNPDevice) : Void
       godot_bind(@@mb_set_device, "UPNP", "set_device", 3015133723_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       arg_ptr_1 = device ? device.pointer : Pointer(Void).null
       arg_1 = pointerof(arg_ptr_1).as(Void*)
@@ -40641,7 +40641,7 @@ module Godot
     @@mb_remove_device : Void* = Pointer(Void).null
     def remove_device(index : Int64) : Void
       godot_bind(@@mb_remove_device, "UPNP", "remove_device", 1286410249_i64)
-      val_0 = index
+      val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_remove_device, @pointer, args.to_unsafe.as(Void**))
@@ -40659,9 +40659,9 @@ module Godot
     @@mb_discover : Void* = Pointer(Void).null
     def discover(timeout : Int64 = 2000_i64, ttl : Int64 = 2_i64, device_filter : String = "InternetGatewayDevice") : Int64
       godot_bind(@@mb_discover, "UPNP", "discover", 1575334765_i64)
-      val_0 = timeout
+      val_0 = timeout.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = ttl
+      val_1 = ttl.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       str_2 = Bridge.make_string(device_filter)
       arg_2 = str_2
@@ -40678,15 +40678,15 @@ module Godot
     @@mb_add_port_mapping : Void* = Pointer(Void).null
     def add_port_mapping(port : Int64, port_internal : Int64 = 0_i64, desc : String = "", proto : String = "UDP", duration : Int64 = 0_i64) : Int64
       godot_bind(@@mb_add_port_mapping, "UPNP", "add_port_mapping", 818314583_i64)
-      val_0 = port
+      val_0 = port.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = port_internal
+      val_1 = port_internal.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       str_2 = Bridge.make_string(desc)
       arg_2 = str_2
       str_3 = Bridge.make_string(proto)
       arg_3 = str_3
-      val_4 = duration
+      val_4 = duration.to_i64
       arg_4 = pointerof(val_4).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
       godot_ptrcall_int(@@mb_add_port_mapping, @pointer, args.to_unsafe.as(Void**))
@@ -40697,7 +40697,7 @@ module Godot
     @@mb_delete_port_mapping : Void* = Pointer(Void).null
     def delete_port_mapping(port : Int64, proto : String = "UDP") : Int64
       godot_bind(@@mb_delete_port_mapping, "UPNP", "delete_port_mapping", 3444187325_i64)
-      val_0 = port
+      val_0 = port.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       str_1 = Bridge.make_string(proto)
       arg_1 = str_1
@@ -40724,7 +40724,7 @@ module Godot
     @@mb_set_discover_local_port : Void* = Pointer(Void).null
     def set_discover_local_port(port : Int64) : Void
       godot_bind(@@mb_set_discover_local_port, "UPNP", "set_discover_local_port", 1286410249_i64)
-      val_0 = port
+      val_0 = port.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_discover_local_port, @pointer, args.to_unsafe.as(Void**))
@@ -40817,15 +40817,15 @@ module Godot
     @@mb_add_port_mapping : Void* = Pointer(Void).null
     def add_port_mapping(port : Int64, port_internal : Int64 = 0_i64, desc : String = "", proto : String = "UDP", duration : Int64 = 0_i64) : Int64
       godot_bind(@@mb_add_port_mapping, "UPNPDevice", "add_port_mapping", 818314583_i64)
-      val_0 = port
+      val_0 = port.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = port_internal
+      val_1 = port_internal.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       str_2 = Bridge.make_string(desc)
       arg_2 = str_2
       str_3 = Bridge.make_string(proto)
       arg_3 = str_3
-      val_4 = duration
+      val_4 = duration.to_i64
       arg_4 = pointerof(val_4).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
       godot_ptrcall_int(@@mb_add_port_mapping, @pointer, args.to_unsafe.as(Void**))
@@ -40836,7 +40836,7 @@ module Godot
     @@mb_delete_port_mapping : Void* = Pointer(Void).null
     def delete_port_mapping(port : Int64, proto : String = "UDP") : Int64
       godot_bind(@@mb_delete_port_mapping, "UPNPDevice", "delete_port_mapping", 3444187325_i64)
-      val_0 = port
+      val_0 = port.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       str_1 = Bridge.make_string(proto)
       arg_1 = str_1

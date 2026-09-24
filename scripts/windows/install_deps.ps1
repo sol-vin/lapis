@@ -6,12 +6,11 @@
 #   - LLDB / LLVM debugger (lldb.exe)
 #   - GNU Make (make.exe)
 #   - Git (git.exe)
-#   - Crystalline LSP (crystalline.exe)
 # =============================================================================
 
 [CmdletBinding()]
 param (
-    [string[]]$Tools = @("crystal", "lldb", "make", "git", "crystalline"),
+    [string[]]$Tools = @("crystal", "lldb", "make", "git"),
     [switch]$Silent,
     [switch]$Force
 )
@@ -104,18 +103,6 @@ function Find-Git {
         "$env:LOCALAPPDATA\Programs\Git\cmd\git.exe"
     )
     return Test-ExecutableExists -CommandName "git.exe" -ExtraPaths $candidates
-}
-
-function Find-Crystalline {
-    $userProfile = $env:USERPROFILE
-    $candidates = @(
-        "$env:LOCALAPPDATA\Programs\Lapis\bin\crystalline.exe",
-        "$userProfile\scoop\shims\crystalline.exe",
-        "$userProfile\scoop\apps\crystalline\current\crystalline.exe",
-        "C:\Program Files\crystalline\bin\crystalline.exe",
-        "C:\crystalline\bin\crystalline.exe"
-    )
-    return Test-ExecutableExists -CommandName "crystalline.exe" -ExtraPaths $candidates
 }
 
 # --- Installation Methods ---
@@ -277,77 +264,6 @@ foreach ($tool in $Tools) {
                 } else {
                     Write-LapisLog "ERROR" "Git installation could not be verified in PATH."
                     $results["git"] = $false
-                }
-            }
-        }
-
-        "crystalline" {
-            $existing = Find-Crystalline
-            if ($existing -and -not $Force) {
-                Write-LapisLog "SUCCESS" "Crystalline LSP is already installed at: $existing"
-                $results["crystalline"] = $true
-            } else {
-                Write-LapisLog "WARN" "Crystalline LSP not found. Initiating automated download from GitHub releases..."
-                $installed = $false
-
-                $targetDir = Join-Path $env:LOCALAPPDATA "Programs\Lapis\bin"
-                if (-not (Test-Path $targetDir)) {
-                    New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
-                }
-                $destExe = Join-Path $targetDir "crystalline.exe"
-
-                # Check if local build or repository artifact exists
-                $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path -ErrorAction SilentlyContinue
-                $repoRoot = if ($scriptDir) { Split-Path -Parent (Split-Path -Parent $scriptDir) } else { $null }
-                $localCandidates = @(
-                    (if ($repoRoot) { Join-Path $repoRoot "bin\crystalline.exe" } else { $null }),
-                    (if ($repoRoot) { Join-Path $repoRoot "scratch\crystalline\bin\crystalline.exe" } else { $null })
-                )
-                foreach ($cand in $localCandidates) {
-                    if ($cand -and (Test-Path $cand)) {
-                        Copy-Item $cand $destExe -Force
-                        $installed = $true
-                        Write-LapisLog "INFO" "Configured Crystalline LSP from local artifact: $cand"
-                        break
-                    }
-                }
-
-                if (-not $installed) {
-                    Write-LapisLog "INFO" "Downloading Crystalline binary from GitHub releases..."
-                    $releaseUrl = "https://github.com/elbywan/crystalline/releases/latest/download/crystalline_x86_64-windows.zip"
-                    $tmpZip = Join-Path $env:TEMP "crystalline_release_$(Get-Random).zip"
-                    $stageDir = Join-Path $env:TEMP "crystalline_stage_$(Get-Random)"
-                    try {
-                        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-                        Invoke-WebRequest -Uri $releaseUrl -OutFile $tmpZip -UseBasicParsing
-                        Expand-Archive -Path $tmpZip -DestinationPath $stageDir -Force
-                        $extractedExe = (Get-ChildItem -Path $stageDir -Filter "crystalline.exe" -Recurse | Select-Object -First 1).FullName
-                        if ($extractedExe -and (Test-Path $extractedExe)) {
-                            Copy-Item $extractedExe $destExe -Force
-                            $installed = $true
-                        }
-                    } catch {
-                        Write-LapisLog "WARN" "Direct release archive download failed: $_"
-                    } finally {
-                        Remove-Item $tmpZip -Force -ErrorAction SilentlyContinue
-                        Remove-Item $stageDir -Recurse -Force -ErrorAction SilentlyContinue
-                    }
-                }
-
-                # Ensure targetDir is registered in User PATH
-                $userPath = [Environment]::GetEnvironmentVariable("Path", [EnvironmentVariableTarget]::User)
-                if ($userPath -notmatch [regex]::Escape($targetDir)) {
-                    [Environment]::SetEnvironmentVariable("Path", "$userPath;$targetDir", [EnvironmentVariableTarget]::User)
-                }
-
-                Refresh-EnvironmentPath
-                $verified = Find-Crystalline
-                if ($verified) {
-                    Write-LapisLog "SUCCESS" "Crystalline LSP successfully verified at: $verified"
-                    $results["crystalline"] = $true
-                } else {
-                    Write-LapisLog "ERROR" "Crystalline LSP installation could not be verified in PATH."
-                    $results["crystalline"] = $false
                 }
             }
         }

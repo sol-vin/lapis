@@ -135,7 +135,7 @@ endif
 # Compile Crystal editor integration plugin library (plugin.dll)
 plugin: dirs deps bridge
 	@echo [Plugin] Compiling Crystal editor integration plugin $(PLUGIN_LIB)...
-	@$(LAPIS) build --entry $(PLUGIN_ENTRY) --output $(PLUGIN_LIB) --link-flags "$(LINK_FLAGS)" $(if $(filter 1,$(RELEASE)),--release,) --flags "-Dlibgodot_addon"
+	@$(LAPIS) build --entry $(PLUGIN_ENTRY) --output $(PLUGIN_LIB) --link-flags "$(LINK_FLAGS)" $(if $(filter 1,$(RELEASE)),--release,) --flags "-Dlibgodot_addon -Deditor"
 	@$(LAPIS) sync
 
 # Synchronize addons across root, test, template, and examples

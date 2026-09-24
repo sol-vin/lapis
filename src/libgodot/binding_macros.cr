@@ -84,7 +84,7 @@ macro godot_ptrcall_bool(mb, target_ptr, args_slice)
   ret_bool_val != 0_u8
 end
 
-# Executes a ptrcall returning an integer (Int64 / Int32)
+# Executes a ptrcall returning an integer (Int64)
 macro godot_ptrcall_int(mb, target_ptr, args_slice)
   ret_int_val = 0_i64
   godot_ptrcall({{mb}}, {{target_ptr}}, {{args_slice}}, pointerof(ret_int_val).as(Void*))
@@ -96,6 +96,14 @@ macro godot_ptrcall_float(mb, target_ptr, args_slice)
   ret_float_val = 0.0_f64
   godot_ptrcall({{mb}}, {{target_ptr}}, {{args_slice}}, pointerof(ret_float_val).as(Void*))
   ret_float_val
+end
+
+macro godot_ptrcall_float32(mb, target_ptr, args_slice)
+  godot_ptrcall_float({{mb}}, {{target_ptr}}, {{args_slice}})
+end
+
+macro godot_ptrcall_float64(mb, target_ptr, args_slice)
+  godot_ptrcall_float({{mb}}, {{target_ptr}}, {{args_slice}})
 end
 
 # Executes a ptrcall returning a value type with default constructor (e.g. Vector2, Vector3, Color, Transform3D)
@@ -176,7 +184,22 @@ macro godot_prop(prop_name, getter_name, setter_name = nil)
   {% end %}
 end
 
+# ===========================================================================
+# Signal Synthesizer Macros
+# ===========================================================================
 
+# Synthesizes a first-class typed signal accessor
+macro godot_signal(name, *types)
+  {% if types.empty? %}
+    def {{name.id}} : ::Godot::TypedSignal()
+      ::Godot::TypedSignal().new(self, {{name.stringify}})
+    end
+  {% else %}
+    def {{name.id}} : ::Godot::TypedSignal({{types.splat}})
+      ::Godot::TypedSignal({{types.splat}}).new(self, {{name.stringify}})
+    end
+  {% end %}
+end
 
 # ===========================================================================
 # Singleton Macros

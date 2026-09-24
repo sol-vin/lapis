@@ -399,7 +399,24 @@ module Lapis
                                 io.puts "      arg_#{idx} = np_#{idx}"
                                 cleanups << "Bridge.free_nodepath(np_#{idx})"
                               else
-                                io.puts "      val_#{idx} = #{a_name}"
+                                meta = a["meta"]? ? a["meta"].as_s : nil
+                                if godot_type == "float" && meta == "float"
+                                  io.puts "      val_#{idx} = #{a_name}.to_f32"
+                                elsif godot_type == "int" && meta == "int32"
+                                  io.puts "      val_#{idx} = #{a_name}.to_i32"
+                                elsif godot_type == "int" && meta == "int16"
+                                  io.puts "      val_#{idx} = #{a_name}.to_i16"
+                                elsif godot_type == "int" && meta == "int8"
+                                  io.puts "      val_#{idx} = #{a_name}.to_i8"
+                                elsif godot_type == "int" && meta == "uint32"
+                                  io.puts "      val_#{idx} = #{a_name}.to_u32"
+                                elsif godot_type == "int" && meta == "uint16"
+                                  io.puts "      val_#{idx} = #{a_name}.to_u16"
+                                elsif godot_type == "int" && meta == "uint8"
+                                  io.puts "      val_#{idx} = #{a_name}.to_u8"
+                                else
+                                  io.puts "      val_#{idx} = #{a_name}"
+                                end
                                 io.puts "      arg_#{idx} = pointerof(val_#{idx}).as(Void*)"
                               end
                             end
@@ -635,6 +652,12 @@ module Lapis
           unless File.exists?(api_file)
             Core::Logger.error("API definition file not found: #{api_file}")
             return 1
+          end
+          generator_script = root.join("tools/api_generator/generate_bindings.cr")
+          if File.exists?(generator_script)
+            Core::Logger.step("Bind:Engine", "Executing canonical #{generator_script.basename}...")
+            res = Core::ProcessRunner.run("crystal", [generator_script.to_s], chdir: root.to_s)
+            return res.success? ? 0 : 1
           end
 
           Core::Logger.step("Bind:Engine", "Loading #{api_file}...")

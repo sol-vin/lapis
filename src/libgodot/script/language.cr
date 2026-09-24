@@ -198,10 +198,73 @@ module Lapis
       end
     end
 
-    def complete_code(code : String, path : String) : Array(CompletionItem)
+    def complete_code(code : String, path : String, line : Int32 = 1, column : Int32 = 0) : Array(CompletionItem)
       completions = [] of CompletionItem
 
-      # 1. Node DSL macros & declarations (kind: 10 Keyword / Macro)
+      # Extract line prefix before cursor if available
+      prefix = ""
+      if !code.empty? && line >= 1
+        lines = code.split('\n')
+        if line <= lines.size
+          l_str = lines[line - 1]
+          prefix = (column >= 0 && column <= l_str.size) ? l_str[0...column] : l_str
+        end
+      end
+      trimmed_prefix = prefix.strip
+
+      # 1. Context: Inheritance (< ) -> prioritize Godot Classes
+      classes = [
+        "Node", "Node2D", "Node3D", "CharacterBody2D", "CharacterBody3D",
+        "Sprite2D", "Sprite3D", "Camera2D", "Camera3D", "Area2D", "Area3D",
+        "CollisionShape2D", "CollisionShape3D", "RigidBody2D", "RigidBody3D",
+        "Control", "Label", "Button", "TextureRect", "Panel", "ProgressBar",
+        "AudioStreamPlayer", "AudioStreamPlayer2D", "AudioStreamPlayer3D",
+        "AnimationPlayer", "Timer", "Vector2", "Vector3", "Color", "Transform2D", "Transform3D",
+        "Resource", "RefCounted", "Image", "Texture2D", "PackedScene",
+      ]
+
+      if trimmed_prefix.ends_with?("<") || trimmed_prefix.ends_with?("< ")
+        classes.each do |cls|
+          completions << CompletionItem.new("class", cls, cls, kind_id: 0_i64)
+        end
+        return completions
+      end
+
+      # 2. Context: Annotations (@[) -> prioritize Annotations
+      annotations = [
+        CompletionItem.new("annotation", "@[Export]", "@[Export]", kind_id: 10_i64),
+        CompletionItem.new("annotation", "@[Export(range: ...)]", "@[Export(range: ${1:0.0_f32}..${2:100.0_f32}, step: ${3:1.0_f32})]", kind_id: 10_i64),
+        CompletionItem.new("annotation", "@[ExportEnum(...)]", "@[ExportEnum(${1:OptionA}, ${2:OptionB})]", kind_id: 10_i64),
+        CompletionItem.new("annotation", "@[ExportFile]", "@[ExportFile(\"${1:*.png,*.jpg}\")]", kind_id: 10_i64),
+        CompletionItem.new("annotation", "@[ExportDir]", "@[ExportDir]", kind_id: 10_i64),
+        CompletionItem.new("annotation", "@[Tool]", "@[Tool]", kind_id: 10_i64),
+        CompletionItem.new("annotation", "@[Icon(...)]", "@[Icon(\"${1:res://icon.svg}\")]", kind_id: 10_i64),
+        CompletionItem.new("annotation", "@[RPC]", "@[RPC]", kind_id: 10_i64),
+        CompletionItem.new("annotation", "@[Abstract]", "@[Abstract]", kind_id: 10_i64),
+        CompletionItem.new("annotation", "@[StaticUnload]", "@[StaticUnload]", kind_id: 10_i64),
+      ]
+
+      if trimmed_prefix.starts_with?("@")
+        return annotations
+      end
+
+      # 3. Context: Virtual callbacks (def _ or _)
+      virtual_callbacks = [
+        CompletionItem.new("method", "_ready : Void", "def _ready : Void\n  $0\nend", kind_id: 1_i64),
+        CompletionItem.new("method", "_process(delta : Float64) : Void", "def _process(delta : Float64) : Void\n  $0\nend", kind_id: 1_i64),
+        CompletionItem.new("method", "_physics_process(delta : Float64) : Void", "def _physics_process(delta : Float64) : Void\n  $0\nend", kind_id: 1_i64),
+        CompletionItem.new("method", "_enter_tree : Void", "def _enter_tree : Void\n  $0\nend", kind_id: 1_i64),
+        CompletionItem.new("method", "_exit_tree : Void", "def _exit_tree : Void\n  $0\nend", kind_id: 1_i64),
+        CompletionItem.new("method", "_input(event : InputEvent) : Void", "def _input(event : InputEvent) : Void\n  $0\nend", kind_id: 1_i64),
+        CompletionItem.new("method", "_unhandled_input(event : InputEvent) : Void", "def _unhandled_input(event : InputEvent) : Void\n  $0\nend", kind_id: 1_i64),
+        CompletionItem.new("method", "_gui_input(event : InputEvent) : Void", "def _gui_input(event : InputEvent) : Void\n  $0\nend", kind_id: 1_i64),
+      ]
+
+      if trimmed_prefix.starts_with?("def _") || trimmed_prefix == "_"
+        virtual_callbacks.each { |cb| completions << cb }
+      end
+
+      # 4. Node DSL macros & declarations (kind: 10 Keyword / Macro)
       completions << CompletionItem.new("macro", "node <Class> < <Parent>", "node ${1:Name} < ${2:Node} do\n  $0\nend", kind_id: 10_i64)
       completions << CompletionItem.new("macro", "resource <Class> do", "resource ${1:Name} do\n  $0\nend", kind_id: 10_i64)
       completions << CompletionItem.new("keyword", "property <name> : <Type>", "property ${1:name} : ${2:String}", kind_id: 4_i64)
@@ -211,27 +274,17 @@ module Lapis
       completions << CompletionItem.new("keyword", "signal <name>(<args>)", "signal ${1:name}(${2:arg : String})", kind_id: 2_i64)
       completions << CompletionItem.new("keyword", "await(<signal>)", "await(${1:signal})", kind_id: 10_i64)
 
-      # 2. Annotations (kind: 10 Keyword)
-      completions << CompletionItem.new("annotation", "@[Export]", "@[Export]", kind_id: 10_i64)
-      completions << CompletionItem.new("annotation", "@[Export(range: ...)]", "@[Export(range: ${1:0.0_f32}..${2:100.0_f32}, step: ${3:1.0_f32})]", kind_id: 10_i64)
-      completions << CompletionItem.new("annotation", "@[ExportEnum(...)]", "@[ExportEnum(${1:OptionA}, ${2:OptionB})]", kind_id: 10_i64)
-      completions << CompletionItem.new("annotation", "@[ExportFile]", "@[ExportFile(\"${1:*.png,*.jpg}\")]", kind_id: 10_i64)
-      completions << CompletionItem.new("annotation", "@[ExportDir]", "@[ExportDir]", kind_id: 10_i64)
-      completions << CompletionItem.new("annotation", "@[Tool]", "@[Tool]", kind_id: 10_i64)
-      completions << CompletionItem.new("annotation", "@[Icon(...)]", "@[Icon(\"${1:res://icon.svg}\")]", kind_id: 10_i64)
-      completions << CompletionItem.new("annotation", "@[RPC]", "@[RPC]", kind_id: 10_i64)
+      # 5. Include annotations if not already filtered
+      annotations.each { |a| completions << a }
 
-      # 3. Godot virtual callbacks (kind: 1 Function)
-      completions << CompletionItem.new("method", "_ready : Void", "def _ready : Void\n  $0\nend", kind_id: 1_i64)
-      completions << CompletionItem.new("method", "_process(delta : Float64) : Void", "def _process(delta : Float64) : Void\n  $0\nend", kind_id: 1_i64)
-      completions << CompletionItem.new("method", "_physics_process(delta : Float64) : Void", "def _physics_process(delta : Float64) : Void\n  $0\nend", kind_id: 1_i64)
-      completions << CompletionItem.new("method", "_enter_tree : Void", "def _enter_tree : Void\n  $0\nend", kind_id: 1_i64)
-      completions << CompletionItem.new("method", "_exit_tree : Void", "def _exit_tree : Void\n  $0\nend", kind_id: 1_i64)
-      completions << CompletionItem.new("method", "_input(event : InputEvent) : Void", "def _input(event : InputEvent) : Void\n  $0\nend", kind_id: 1_i64)
-      completions << CompletionItem.new("method", "_unhandled_input(event : InputEvent) : Void", "def _unhandled_input(event : InputEvent) : Void\n  $0\nend", kind_id: 1_i64)
-      completions << CompletionItem.new("method", "_gui_input(event : InputEvent) : Void", "def _gui_input(event : InputEvent) : Void\n  $0\nend", kind_id: 1_i64)
+      # 6. Include virtual callbacks if not already included
+      virtual_callbacks.each do |cb|
+        unless completions.any? { |c| c.display_text == cb.display_text }
+          completions << cb
+        end
+      end
 
-      # 4. Crystal control flow & keywords (kind: 10 Keyword)
+      # 7. Crystal control flow & keywords (kind: 10 Keyword)
       keywords = [
         "def", "class", "module", "struct", "enum", "alias", "lib", "fun",
         "if", "else", "elsif", "unless", "while", "until", "for", "in", "case", "when",
@@ -242,23 +295,15 @@ module Lapis
         completions << CompletionItem.new("keyword", kw, kw, kind_id: 10_i64)
       end
 
-      # 5. Core Godot Classes (kind: 0 Class)
-      classes = [
-        "Node", "Node2D", "Node3D", "CharacterBody2D", "CharacterBody3D",
-        "Sprite2D", "Sprite3D", "Camera2D", "Camera3D", "Area2D", "Area3D",
-        "CollisionShape2D", "CollisionShape3D", "RigidBody2D", "RigidBody3D",
-        "Control", "Label", "Button", "TextureRect", "Panel", "ProgressBar",
-        "AudioStreamPlayer", "AudioStreamPlayer2D", "AudioStreamPlayer3D",
-        "AnimationPlayer", "Timer", "Vector2", "Vector3", "Color", "Transform2D", "Transform3D",
-      ]
+      # 8. Core Godot Classes
       classes.each do |cls|
         completions << CompletionItem.new("class", cls, cls, kind_id: 0_i64)
       end
 
-      # 6. Parse local symbols from active code buffer
+      # 9. Parse local symbols from active code buffer
       if !code.empty?
-        code.each_line do |line|
-          stripped = line.strip
+        code.each_line do |line_str|
+          stripped = line_str.strip
           if stripped =~ /def\s+([a-zA-Z0-9_]+)/
             fn_name = $1
             unless completions.any? { |c| c.display_text == fn_name || c.display_text.starts_with?("#{fn_name} ") }
@@ -428,15 +473,28 @@ module Lapis
         ret.as(Int32*).value = 2_i32 # SnakeCase
       when "_complete_code"
         begin
-          code = (!args.null? && !args[0].null?) ? (Bridge.arg_to_string(args[0]) rescue "") : ""
+          raw_code = (!args.null? && !args[0].null?) ? (Bridge.arg_to_string(args[0]) rescue "") : ""
           path = (!args.null? && !args[1].null?) ? (Bridge.arg_to_string(args[1]) rescue "") : ""
 
+          # Detect caret position from Godot's CodeEdit Unicode sentinel \u{FFFF}
+          caret_line = 1
+          caret_col = 0
+          clean_code = raw_code
+
+          if idx = raw_code.index('\u{FFFF}')
+            prefix_text = raw_code[0...idx]
+            lines_before = prefix_text.split('\n')
+            caret_line = lines_before.size
+            caret_col = lines_before.last?.try(&.size) || 0
+            clean_code = raw_code.delete('\u{FFFF}')
+          end
+
           # 1. Query Crystalline LSP first if running
-          items = CrystalLSP.instance.request_completion(code, path, 1, 0, timeout_ms: 150)
+          items = CrystalLSP.instance.request_completion(clean_code, path, caret_line, caret_col, timeout_ms: 150)
 
           # 2. If LSP didn't return items, use rich built-in completions
           if items.nil? || items.empty?
-            items = complete_code(code, path)
+            items = complete_code(clean_code, path, caret_line, caret_col)
           end
 
           # Convert to BridgeCompletionOption structs

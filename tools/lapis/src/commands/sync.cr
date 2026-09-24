@@ -247,7 +247,7 @@ HELP
         end
 
         # 3. Ensure .gdignore in bin/ and lib/ across all targets
-        ["test", "template", "template-addon", "performance", "benchmarks", "godot-src", "examples/basic_demo"].each do |proj|
+        (["."] + ["test", "template", "template-addon", "performance", "benchmarks", "godot-src", "examples/basic_demo"]).each do |proj|
           proj_dir = root.join(proj)
           next unless Dir.exists?(proj_dir)
           root_gd = proj_dir.join(".gdignore")
@@ -259,6 +259,7 @@ HELP
             File.write(lib_gd, "")
           end
         end
+        Core::Env.patch_crystalline_library(root)
 
         # 4. Sync godot-version.yml across all consumer projects
         root_version_yml = root.join("godot-version.yml")

@@ -167,9 +167,6 @@ jobs:
           $binDir = (Resolve-Path "bin").Path
           $binDir | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
           $env:PATH = "$binDir;$env:PATH"
-          if (Test-Path "bin/crystalline.exe") {
-            ./bin/crystalline.exe --version
-          }
           exit 0
 
       - name: Setup Godot Engine
@@ -516,9 +513,6 @@ jobs:
           bin/lapis setup --lsp
           echo "$(pwd)/bin" >> "$GITHUB_PATH"
           export PATH="$(pwd)/bin:$PATH"
-          if [ -f "bin/crystalline" ]; then
-            ./bin/crystalline --version
-          fi
 
 
       - name: Setup Godot Engine
@@ -955,9 +949,6 @@ jobs:
           bin/lapis setup --lsp || true
           echo "$(pwd)/bin" >> "$GITHUB_PATH"
           export PATH="$(pwd)/bin:$PATH"
-          if [ -f "bin/crystalline" ]; then
-            ./bin/crystalline --version || true
-          fi
           if command -v lldb >/dev/null 2>&1; then
             lldb --version
           fi

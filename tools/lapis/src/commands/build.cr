@@ -51,7 +51,8 @@ module Lapis
                     root.join("src")
                   end
         base_crystal_path = Core::ProcessRunner.capture("crystal", ["env", "CRYSTAL_PATH"])[:output].strip
-        full_crystal_path = "#{src_dir}#{Core::Env.path_sep}#{base_crystal_path}"
+        lib_dir = root.join("lib")
+        full_crystal_path = "#{src_dir}#{Core::Env.path_sep}#{lib_dir}#{Core::Env.path_sep}#{base_crystal_path}"
 
         cmd_args = ["build", entry_path.to_s, "-o", output_path.to_s]
         if release
@@ -74,7 +75,15 @@ module Lapis
           cmd_args << "--single-module"
         end
 
-        if (lf = link_flags) && !lf.empty?
+        effective_link_flags = if (lf = link_flags) && !lf.empty?
+                                 lf
+                               elsif is_shared_lib
+                                 Core::Env.link_flags
+                               else
+                                 nil
+                               end
+
+        if (lf = effective_link_flags) && !lf.empty?
           cmd_args << "--link-flags"
           cmd_args << lf
         end
@@ -92,7 +101,9 @@ module Lapis
 
         env = {"CRYSTAL_PATH" => full_crystal_path}
 
-        working_dir = if entry_path.parent.basename == "src"
+        working_dir = if entry_path.to_s.starts_with?("src/") || entry_path.to_s.starts_with?("src\\")
+                        root
+                      elsif entry_path.parent.basename == "src"
                         entry_path.parent.parent
                       else
                         entry_path.parent

@@ -555,6 +555,7 @@ def generate_class_code(io : IO, c : JSON::Any, keywords : Hash(String, String),
       # Return type
       ret_data = m["return_value"]?
       ret_type_godot = ret_data ? ret_data["type"].as_s : "void"
+      ret_meta = ret_data && ret_data["meta"]? ? ret_data["meta"].as_s : nil
       ret_info = resolve_return_type(ret_type_godot, name, type_map)
       ret_type_crystal = ret_info[:crystal_type]
       is_ret_enum = ret_info[:is_enum]
@@ -595,7 +596,13 @@ def generate_class_code(io : IO, c : JSON::Any, keywords : Hash(String, String),
                         io.puts "      arg_#{idx} = np_#{idx}"
                         cleanups << "Bridge.free_nodepath(np_#{idx})"
                       else
-                        io.puts "      val_#{idx} = #{a_name}"
+                        if godot_type == "float"
+                          io.puts "      val_#{idx} = #{a_name}.to_f64"
+                        elsif godot_type == "int" || godot_type.starts_with?("enum::") || godot_type.starts_with?("bitfield::")
+                          io.puts "      val_#{idx} = #{a_name}.to_i64"
+                        else
+                          io.puts "      val_#{idx} = #{a_name}"
+                        end
                         io.puts "      arg_#{idx} = pointerof(val_#{idx}).as(Void*)"
                       end
                     end
@@ -624,6 +631,10 @@ def generate_class_code(io : IO, c : JSON::Any, keywords : Hash(String, String),
           io.puts "      ret_ptr = Pointer(Void).null"
           io.puts "      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))"
           io.puts "      ret_ptr"
+        elsif ret_type_godot.starts_with?("Packed") || ["Callable", "Signal"].includes?(ret_type_godot)
+          io.puts "      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)"
+          io.puts "      godot_ptrcall(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr}, ret_buf.to_unsafe.as(Void*))"
+          io.puts "      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]"
         else
           io.puts "      ret_ptr = Pointer(Void).null"
           io.puts "      godot_ptrcall(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr}, pointerof(ret_ptr).as(Void*))"
