@@ -17,8 +17,8 @@ module Lapis
 Usage: lapis test [options]
 
 Options:
-  --skip-specs          Skip all Crystal spec unit tests (test/spec, tools/lapis/spec, spec/*)
-  --skip-engine-specs   Skip engine & bindings specifications (test/spec)
+  --skip-specs          Skip all Crystal spec unit tests (spec, tools/lapis/spec)
+  --skip-engine-specs   Skip engine & bindings specifications (spec)
   --skip-cli-specs      Skip Lapis toolchain & CLI specifications (tools/lapis/spec)
   --skip-tool-tests     Skip headless in-editor @tool tests
   --skip-runtime-tests  Skip Godot runtime test project
@@ -102,8 +102,8 @@ HELP
         parser.parse(args)
 
         root = Core::Env::ROOT_DIR
-        test_dir = root.join("test")
-        test_bin_dir = test_dir.join("bin")
+        test_dir = root
+        test_bin_dir = root.join("bin")
         godot_exe = Core::GodotFinder.resolve(godot_path)
 
         junit_path ||= test_bin_dir.join("junit.xml").to_s
@@ -123,20 +123,20 @@ HELP
           unless skip_specs
             # Phase 1a: Engine & Core Bindings Specifications
             unless skip_engine_specs
-              spec_dir = test_dir.join("spec")
+              spec_dir = root.join("spec")
               if Dir.exists?(spec_dir)
-                Core::Logger.step("Test:Specs:Engine", "Running Phase 1a: Engine specifications in test/spec...")
+                Core::Logger.step("Test:Specs:Engine", "Running Phase 1a: Engine specifications in spec...")
                 step_start = Time.instant
                 spec_junit_dir = test_bin_dir.join("junit_engine_specs")
                 res = Core::ProcessRunner.run_with_capture(
                   "crystal",
-                  ["spec", "test/spec", "--", "--junit_output", spec_junit_dir.to_s],
+                  ["spec", "spec", "--", "--junit_output", spec_junit_dir.to_s],
                   chdir: root.to_s
                 )
                 step_dur = (Time.instant - step_start).total_seconds.round(2)
                 step_summary.add_phase(
                   tag: "[TEST:SPECS:ENGINE]",
-                  name: "Engine Specifications (test/spec)",
+                  name: "Engine Specifications (spec)",
                   category: "Spec",
                   success: res[:status].success?,
                   duration: step_dur,
@@ -268,7 +268,7 @@ HELP
               step_start = Time.instant
               res = Core::ProcessRunner.run_with_capture(
                 godot_exe,
-                ["--headless", "--rendering-driver", "opengl3", "--audio-driver", "Dummy", "--editor", "--path", "test", "--quit-after", "600"],
+                ["--headless", "--rendering-driver", "opengl3", "--audio-driver", "Dummy", "--editor", "--path", ".", "--quit-after", "600"],
                 env: env,
                 chdir: root.to_s
               )

@@ -31,7 +31,7 @@ CRYSTAL      ?= crystal
 CXX          ?= g++
 SCONS        ?= scons
 GODOT        ?= ./godot.exe
-ENTRY        ?= test/src/main.cr
+ENTRY        ?= src/main.cr
 SCONS_JOBS   ?= 7
 
 # Platform and OS detection
@@ -73,7 +73,7 @@ endif
 
 # Output artifacts
 BIN_DIR          = bin
-TEST_BIN_DIR     = test/bin
+TEST_BIN_DIR     = bin
 TEMPLATE_BIN_DIR = template/bin
 EXAMPLES_DIR     = examples
 LAPIS            = $(BIN_DIR)/lapis$(EXE_EXT)
@@ -147,15 +147,17 @@ dummy_addons: dirs deps bridge
 	@$(LAPIS) build addons $(if $(filter 1,$(RELEASE)),--release,)
 	@$(LAPIS) sync
 
-# Build test project
+# Build test project (compiles root bin/game.dll from ENTRY)
 test_project: dirs deps bridge addons dummy_addons
-	@echo [Test] Building test suite project...
-	$(MAKE) -C test RELEASE=$(RELEASE)
+	@echo [Test] Building host test suite library $(GAME_LIB)...
+	@$(LAPIS) build --entry $(ENTRY) --output $(GAME_LIB) --link-flags "$(LINK_FLAGS)" $(if $(filter 1,$(RELEASE)),--release,)
+	@$(LAPIS) sync
 
 # Build standalone test project executable
 test_standalone: dirs deps bridge addons dummy_addons
-	@echo [Test] Building standalone test suite executable...
-	$(MAKE) -C test standalone RELEASE=$(RELEASE)
+	@echo [Test] Building standalone test suite executable $(GAME_EXE)...
+	@$(LAPIS) build --entry $(ENTRY) --output $(GAME_EXE) $(if $(filter 1,$(RELEASE)),--release,)
+	@$(LAPIS) sync
 
 # Build all showcase examples in examples/
 examples: dirs deps bridge addons
@@ -307,12 +309,12 @@ project_bindings bind_project: $(LAPIS)
 
 # Copy Crystal runtime dependencies and libgodot to all bin dirs
 deps: dirs
-	@echo [Dependencies] Ensuring runtime libraries are available in bin/, test/bin/, and template/bin/...
+	@echo [Dependencies] Ensuring runtime libraries are available in bin/ and template/bin/...
 	@$(LAPIS) deps
 
 # Synchronize compiled binaries and runtime dependencies to consumer projects
 sync: addons
-	@echo [Sync] Syncing runtime libraries and bridge to test/bin, template/bin, and examples...
+	@echo [Sync] Syncing runtime libraries and bridge to template/bin and examples...
 	@$(LAPIS) sync
 
 # Build Godot engine shared library from source (requires godot-src and scons)
@@ -322,10 +324,10 @@ engine:
 	@$(LAPIS) sync
 	@echo $(LIBGODOT_LIB) updated successfully!
 
-# Run Crystal unit specifications (test/spec and tools/lapis/spec)
+# Run Crystal unit specifications (spec and tools/lapis/spec)
 spec:
-	@echo [Spec] Running Phase 1a: Engine specifications (test/spec)...
-	$(CRYSTAL) spec test/spec
+	@echo [Spec] Running Phase 1a: Engine & EditorDriver specifications (spec)...
+	$(CRYSTAL) spec spec
 	@echo [Spec] Running Phase 1b: Lapis CLI specifications (tools/lapis/spec)...
 	$(CRYSTAL) spec tools/lapis/spec
 
@@ -342,7 +344,7 @@ test tests: test_standalone
 run_test run-test:
 ifeq ($(or $(filter 1,$(INTERACTIVE)),$(filter 1,$(UI))),1)
 	@echo Launching Crystal LibGodot Interactive Test Runner...
-	@$(LAPIS) run -p test
+	@$(LAPIS) run -p .
 else
 	@$(LAPIS) test $(if $(filter 1,$(SKIP_SPECS)),--skip-specs,) $(if $(filter 1,$(SKIP_TOOL_TESTS)),--skip-tool-tests,) $(if $(filter 1,$(SKIP_RUNTIME_TESTS)),--skip-runtime-tests,)
 endif
@@ -362,26 +364,26 @@ docs:
 # Launch test project using Godot
 run:
 	@echo Launching Crystal LibGodot Test Runner...
-	@$(LAPIS) run -p test
+	@$(LAPIS) run -p .
 
 # Launch Godot editor for test project
 editor:
 	@echo Opening Godot Editor for Test Project...
-	@$(LAPIS) editor -p test
+	@$(LAPIS) editor -p .
 
 # Unified Godot editor launcher with shadow logging, auto-quit, and LLDB flags
 run_editor run-editor:
-	@$(LAPIS) editor -p "$(or $(PROJECT),$(PATH),test)" $(if $(or $(QUIT),$(QUIT_AFTER)),--quit-after $(or $(QUIT),$(QUIT_AFTER)),)
+	@$(LAPIS) editor -p "$(or $(PROJECT),$(PATH),.)" $(if $(or $(QUIT),$(QUIT_AFTER)),--quit-after $(or $(QUIT),$(QUIT_AFTER)),)
 
 # Run project under LLDB debugger
 debug:
 	@echo Launching Crystal LibGodot under LLDB Debugger...
-	@$(LAPIS) editor -r -p "$(or $(PROJECT),$(PATH),test)" --lldb $(if $(filter 1,$(BATCH)),--batch,)
+	@$(LAPIS) editor -r -p "$(or $(PROJECT),$(PATH),.)" --lldb $(if $(filter 1,$(BATCH)),--batch,)
 
 # Open Godot Editor under LLDB debugger
 debug_editor debug-editor:
 	@echo Opening Godot Editor under LLDB Debugger...
-	@$(LAPIS) editor -p "$(or $(PROJECT),$(PATH),test)" --lldb $(if $(or $(QUIT),$(QUIT_AFTER)),--quit-after $(or $(QUIT),$(QUIT_AFTER)),)
+	@$(LAPIS) editor -p "$(or $(PROJECT),$(PATH),.)" --lldb $(if $(or $(QUIT),$(QUIT_AFTER)),--quit-after $(or $(QUIT),$(QUIT_AFTER)),)
 
 # Recompile all Crystal addons found across a project
 recompile_addons recompile-addons:

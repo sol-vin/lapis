@@ -64,11 +64,11 @@ HELP
         if !pass_files.empty?
           crystal_args.concat(pass_files)
         elsif engine_only
-          crystal_args << "test/spec"
+          crystal_args << "spec"
         elsif cli_only
           crystal_args << "tools/lapis/spec"
         else
-          crystal_args << "test/spec"
+          crystal_args << "spec"
         end
 
         Core::Logger.info("Executing: crystal #{crystal_args.join(" ")}")

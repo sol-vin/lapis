@@ -130,7 +130,7 @@ module Lapis
         parser.parse(args)
 
         root = Core::Env::ROOT_DIR
-        test_addons = root.join("test/addons")
+        test_addons = Dir.exists?(root.join("addons")) ? root.join("addons") : root.join("test/addons")
         return 0 unless Dir.exists?(test_addons)
 
         ext = Core::Env.dll_ext
@@ -138,6 +138,7 @@ module Lapis
 
         failed = 0
         Dir.each_child(test_addons) do |name|
+          next if name == "crystal_integration"
           addon_dir = test_addons.join(name)
           next unless Dir.exists?(addon_dir) && (name.starts_with?("dummy_") || File.exists?(addon_dir.join("src/main.cr")))
 

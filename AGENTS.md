@@ -10,35 +10,50 @@ The project maintains a strict boundary between the core engine bindings library
 
 ```
 libgodot/
-├── src/                          # STRICTLY the reusable LibGodot library
+├── src/                          # Reusable LibGodot library & root host application
 │   ├── libgodot.cr               # Root library entry point (require "libgodot")
+│   ├── lapis.cr                  # Lapis prelude & engine extensions
+│   ├── main.cr                   # Root host game entry point & test runner panel
 │   ├── bridge/crystal_bridge.cpp # C++ GDExtension loader bridge
 │   └── libgodot/                 # Core macros, C-API, bridge, docs, and generated classes
-├── test/                         # Dedicated standalone verification consumer project
-│   ├── src/main.cr               # Test suite application entry point
-│   ├── src/suites/               # Modular test suites by feature area
-│   ├── project.godot             # Standalone Godot test project configuration
-│   └── scenes/                   # Test scenes (main.tscn, 2d, 3d, UI)
+├── spec/                         # Unified Crystal specifications & test suites
+│   ├── spec_helper.cr            # Common spec helper and test nodes
+│   ├── editor_driver_spec.cr     # In-editor @tool and runtime tests via EditorDriver
+│   ├── suites_registry_spec.cr   # Verification of test suite registry completeness
+│   ├── suites/                   # 40+ modular engine test suites
+│   └── fixtures/                 # Spec test targets & fixtures
+├── scenes/                       # Root Godot host project scenes (main_test_runner.tscn, etc.)
+├── scripts/                      # GDScript test fixtures and interop nodes
+├── project.godot                 # Root Godot host project configuration
+├── addons/                       # GDExtensions & Editor Plugins
+│   ├── crystal_integration/      # Official GDExtension manifest & editor build hook (shipped)
+│   ├── dummy_audio/              # Test addon for multi-addon isolation (not shipped)
+│   ├── dummy_dialogue/           # Test addon for dialogue isolation (not shipped)
+│   ├── dummy_inventory/          # Test addon for inventory isolation (not shipped)
+│   └── test_runner/              # In-editor test runner dock addon (not shipped)
 ├── examples/                     # Independent consumer showcase projects
 │   └── basic_demo/               # Standard showcase project
 ├── template/                     # Starter template for new standalone games
 ├── template-addon/               # Starter template for redistributable Godot addons
-├── addons/crystal_integration/   # GDExtension manifest (.gdextension) & editor build hook
 ├── bin/                          # Output binaries, bridge DLL, and shared dependencies
-├── spec/                         # Headless Crystal unit specifications
 └── .agents/                      # Agent skills, runbooks, and customizations
 ```
 
-### Strict Separation Rules:
-1. **`src/` is strictly a reusable library**:
-   - `src/` contains **only** reusable Crystal bindings, engine reflection macros, C-API definitions, and the C++ loader bridge (`src/bridge/crystal_bridge.cpp`).
-   - **NEVER put project code, game logic, sample nodes, player scripts, or test scenes inside `src/`**.
-   - **DO NOT create `src/main.cr`**. The library entry point is `src/libgodot.cr` (`require "libgodot"`).
-   - Do not add demo-specific or test-specific classes, helpers, or workarounds inside `src/`. The library must remain clean, modular, and completely decoupled from any specific game project.
-2. **`test/` is a dedicated verification consumer**:
-   - `test/` is a standalone Godot project that can be opened in the Godot Editor (`make editor`) or run standalone (`make run`).
-   - All test definitions, assertions, test scenes, `@tool` in-editor testers (`ToolTester2D`, `ToolTester3D`), and the interactive runtime UI panel (`RunTesterPanel`) reside in `test/` (entry point: `test/src/main.cr`).
-3. **`examples/` and `template/` are independent consumers**:
+### Architectural Rules:
+1. **Root Project is the Host & Test Runner**:
+   - The workspace root is a complete, runnable Godot project (`project.godot`, `scenes/`, `scripts/`).
+   - The entry point for the root game host is `src/main.cr`, which compiles to `bin/game.dll` (GDExtension host/editor) and `bin/game.exe` (standalone LibGodot host).
+   - `src/main.cr` mounts `@tool` in-editor testers (`ToolTester2D`, `ToolTester3D`), the interactive runtime UI panel (`RunTesterPanel`), and loads modular test suites.
+2. **Unified Crystal Specifications & Test Suites in `spec/`**:
+   - All tests live under `spec/`.
+   - Headless unit specs (`spec/core_spec.cr`, `spec/math_spec.cr`, etc.) validate language bindings and GC behavior.
+   - `spec/editor_driver_spec.cr` leverages `Lapis::Test::EditorDriver` to launch Godot headlessly and execute live in-editor tool tests and runtime test suites.
+   - All 40+ modular engine test suites reside in `spec/suites/` using the unified `Lapis::Test` apparatus (`test_suite`, `test`).
+3. **Addon Isolation & Packaging Safety**:
+   - `addons/crystal_integration` is the official, redistributable GDExtension plugin.
+   - Test dummy addons (`dummy_audio`, `dummy_dialogue`, `dummy_inventory`, `test_runner`) live in `addons/` alongside `crystal_integration` for multi-addon ClassDB conflict tests.
+   - **Dummy addons are NEVER shipped**: release packaging (`package addon`, `package deb`, `package windows-installer`) strictly bundles only `crystal_integration`.
+4. **`examples/` and `template/` are independent consumers**:
    - Each example and template project is a self-contained Godot project with its own `project.godot`, `shard.yml`, `Makefile`, and `scenes/`.
    - New examples must be scaffolded using `make new-example NAME=<name> [DIR=<path>]` (or `bin/lapis scaffold example <name>`).
    - New addons must be scaffolded using `make new-addon NAME=<name> [DIR=<path>] [AUTHOR="..."] [DESC="..."]` (or `bin/lapis scaffold addon <name>`).
@@ -234,14 +249,15 @@ end
 ## 7. Testing Protocols & Quality Gates
 
 ### Multi-Tier Test Suite:
-1. **Automated Specifications**:
-   - **Tier 1a: Engine & Core Bindings Specs (`test/spec/`)**: Headless unit specs covering GC object retention, dynamic scaling (200+ properties), Variant type round-trips, and Vector math.
-   - **Tier 1b: Lapis Toolchain & CLI Specs (`tools/lapis/spec/`)**: CLI argument parsing, 14 subcommand help dispatches, standalone execution from isolated directories using embedded `BakedFileSystem` assets, and per-platform tests (Windows installer staging & runtime DLLs, Linux Debian packaging, macOS dynamic libraries, and cross-platform foreign binary purges). Run via `make spec-cli` or `cd tools/lapis && crystal spec`.
+1. **Automated Specifications (`spec/` and `tools/lapis/spec/`)**:
+   - **Tier 1a: Engine & Core Bindings Specs (`spec/`)**: Headless unit specs covering GC object retention, dynamic scaling (200+ properties), Variant type round-trips, and Vector math (`spec/core_spec.cr`, `spec/math_spec.cr`, `spec/safety_spec.cr`, `spec/features_spec.cr`).
+   - **Tier 1b: Lapis Toolchain & CLI Specs (`tools/lapis/spec/`)**: CLI argument parsing, subcommand help dispatches, standalone execution from isolated directories using embedded `BakedFileSystem` assets, and per-platform packaging tests. Run via `make spec-cli` or `cd tools/lapis && crystal spec`.
    - **Tier 1c: Headless Architectural & Integration Specs (`spec/`)**: Standalone verification scripts for LibGodot dynamic loading, API coverage, project scaffolding integrity, and tool environment discovery.
+   - **Tier 1d: In-Editor & Runtime Driver Specs (`spec/editor_driver_spec.cr`)**: Executes in-editor tool tests and runtime suites in headless Godot using `Lapis::Test::EditorDriver`.
 2. **Headless In-Editor `@tool` Tests (`ToolTester2D`, `ToolTester3D`)**:
-   - Run in Godot with `--headless` to verify editor plugins, tool button actions, and scene instantiation.
-3. **Standalone Runtime Test Project (`test/`)**:
-   - Regular and portable standalone runners executing 40+ modular test suites in `test/src/suites/` using the unified `Lapis::Test` apparatus (`test_suite`, `before_each`/`after_each` lifecycle fixtures, exact source locations, Godot domain assertions).
+   - Run in Godot with `--headless --editor --path .` to verify editor plugins, tool button actions, and live scene instantiation.
+3. **Standalone Runtime Host & Runner (`bin/game.exe`, `bin/game.dll`)**:
+   - Regular and portable standalone runners executing 40+ modular test suites in `spec/suites/` using the unified `Lapis::Test` apparatus (`test_suite`, `before_each`/`after_each` lifecycle fixtures, exact source locations, Godot domain assertions).
 4. **Quantitative Zero Memory Leak Verification**:
    - Standardized via `Lapis::Test.assert_no_leak`, leveraging Godot's `Performance` singleton monitors (`OBJECT_COUNT`, `OBJECT_NODE_COUNT`, `MEMORY_STATIC`) and Crystal's `GC.collect` to mathematically verify zero object or memory leaks.
 

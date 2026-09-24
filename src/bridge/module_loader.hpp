@@ -496,6 +496,7 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
                         strcmp(fd.cFileName, "iconv-2.dll") != 0 &&
                         strcmp(fd.cFileName, "pcre2-8.dll") != 0 &&
                         strcmp(fd.cFileName, "libgodot.dll") != 0 &&
+                        strcmp(fd.cFileName, "plugin.dll") != 0 &&
                         strstr(fd.cFileName, "_loaded_") == nullptr) {
                         char full_path[MAX_PATH];
                         snprintf(full_path, sizeof(full_path), "%s\\%s", bridge_dir, fd.cFileName);
@@ -564,40 +565,37 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
     if (!loaded_game_or_addon) {
 #ifdef _WIN32
         const char *fallbacks[] = {
-            "addons/crystal_integration/bin/plugin.dll",
-            "addons/crystal_integration/bin/game.dll",
             "bin/game.dll",
             "game.dll",
-            "test/bin/game.dll",
-            "template/bin/game.dll"
+            "template/bin/game.dll",
+            "addons/crystal_integration/bin/plugin.dll",
+            "addons/crystal_integration/bin/game.dll"
         };
 #elif defined(__ANDROID__) || defined(ANDROID)
         const char *fallbacks[] = {
-            "libplugin.so",
-            "libgame.so",
-            "addons/crystal_integration/bin/android/arm64-v8a/libgame.so",
             "bin/android/arm64-v8a/libgame.so",
-            "game.so"
+            "libgame.so",
+            "game.so",
+            "addons/crystal_integration/bin/android/arm64-v8a/libgame.so",
+            "libplugin.so"
         };
 #elif defined(__APPLE__)
         const char *fallbacks[] = {
-            "addons/crystal_integration/bin/plugin.dylib",
-            "addons/crystal_integration/bin/game.dylib",
             "bin/game.dylib",
             "game.dylib",
             "bin/libgame.dylib",
             "libgame.dylib",
-            "test/bin/game.dylib",
-            "template/bin/game.dylib"
+            "template/bin/game.dylib",
+            "addons/crystal_integration/bin/plugin.dylib",
+            "addons/crystal_integration/bin/game.dylib"
         };
 #else
         const char *fallbacks[] = {
-            "addons/crystal_integration/bin/plugin.so",
-            "addons/crystal_integration/bin/game.so",
             "bin/game.so",
             "game.so",
-            "test/bin/game.so",
-            "template/bin/game.so"
+            "template/bin/game.so",
+            "addons/crystal_integration/bin/plugin.so",
+            "addons/crystal_integration/bin/game.so"
         };
 #endif
         bool fallback_loaded_game = false;

@@ -53,7 +53,7 @@ graph TD
 - **GDScript Interoperability**: Automatic compile-time generation of typed Crystal wrappers for project GDScript nodes and scenes (`make project_bindings`).
 - **Engine Reflection & Global Singletons**: First-class access to singletons like `Godot.input`, `Godot.engine`, `Godot.audio_server`, and generated Godot classes.
 - **Native In-Editor Debugging with LLDB**: Breakpoints in Godot's Script Editor gutter seamlessly synchronize with LLDB. Includes an interactive in-editor console, call stack navigation, and Multiplayer Lockstep Break coordination to eliminate peer timeout disconnects.
-- **Strict Decoupling**: Clean separation between reusable library (`src/`), test suite (`test/`), and examples (`examples/`).
+- **Unified Testing Infrastructure**: Comprehensive Crystal specifications in `spec/` alongside live in-editor and runtime test verification powered by `Lapis::Test::EditorDriver`.
 
 ---
 
@@ -556,19 +556,29 @@ Lapis features first-class native debugging directly inside the Godot Editor usi
 
 ```
 lapis/
-├── src/                          # Reusable Lapis library (STRICTLY decoupled)
-│   ├── lapis.cr                  # Library root entry point (require "lapis")
+├── src/                          # Reusable Lapis library & root host application
+│   ├── libgodot.cr               # Library root entry point (require "libgodot")
+│   ├── lapis.cr                  # Lapis prelude & engine extensions
+│   ├── main.cr                   # Root host game entry point & test runner panel
 │   ├── bridge/crystal_bridge.cpp # C++ GDExtension loader bridge
 │   └── libgodot/                 # Core engine C-API, macros, and generated bindings
 ├── tools/                        # Built-in CLI toolchain
 │   └── lapis/                    # Compiled native CLI (bin/lapis)
-├── test/                         # Dedicated verification and test project
+├── spec/                         # Unified Crystal specifications & test suites
+│   ├── spec_helper.cr            # Common spec helper and test nodes
+│   ├── editor_driver_spec.cr     # In-editor @tool and runtime tests via EditorDriver
+│   ├── suites/                   # 40+ modular engine test suites
+│   └── fixtures/                 # Spec test targets & fixtures
+├── scenes/                       # Root Godot host project scenes (main_test_runner.tscn, etc.)
+├── scripts/                      # GDScript test fixtures and interop nodes
+├── project.godot                 # Root Godot host project configuration
+├── addons/                       # GDExtensions & Editor Plugins
+│   ├── crystal_integration/      # Official GDExtension manifest & editor build hook
+│   └── dummy_*/                  # Isolated test addons for multi-addon stress tests
 ├── examples/                     # Independent consumer showcase examples
 ├── template/                     # Clean starter template for new games
 ├── template-addon/               # Starter template for redistributable addons
-├── addons/crystal_integration/   # Godot editor extension manifest & build hook
 ├── bin/                          # Output binaries, bridge DLL, and dependencies
-├── spec/                         # Automated unit specifications
 └── AGENTS.md                     # Agent development guidelines
 ```
 

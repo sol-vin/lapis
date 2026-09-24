@@ -39,11 +39,15 @@ crystal spec spec/features_spec.cr spec/safety_and_bindings_spec.cr spec/libgodo
 
 ### 2. In-Editor `@tool` and Script Loading Verification
 Executes tool script tests and validates script resource loading inside the Godot Editor:
-- Tests `ToolTester2D` and `ToolTester3D` in `test/scenes/main.tscn`.
+- Tests `ToolTester2D` and `ToolTester3D` in `scenes/main_test_runner.tscn` (or via `spec/editor_driver_spec.cr`).
 - Verifies editor-only callbacks, tool buttons, and live inspector updates.
 - Command executed internally:
   ```bash
-  godot.exe --headless --editor --path test --quit-after 100
+  godot.exe --headless --editor --path . --quit-after 100
+  ```
+  Or via Crystal specs:
+  ```bash
+  crystal spec spec/editor_driver_spec.cr
   ```
 - **In-Editor Script Loading & Clean Shutdown Verification Protocol**:
   Whenever modifying editor integration, bridge deinitialization, or resource loaders/savers, you MUST run this verification check:
@@ -66,10 +70,10 @@ Executes tool script tests and validates script resource loading inside the Godo
      powershell -File scripts/verify_editor.ps1 -Path template -QuitAfter 50
      ```
 
-### 3. Standalone Runtime Project Tests (`test/`)
+### 3. Standalone Runtime Host & Project Tests (Root Project)
 Runs the full interactive test project in Godot:
-- Boots `test/scenes/main.tscn` containing the `RunTesterPanel` test UI.
-- Executes all modular test suites in `test/src/suites/`:
+- Boots `scenes/main_test_runner.tscn` containing the `RunTesterPanel` test UI.
+- Executes all modular test suites in `spec/suites/`:
   - `test_2d_nodes.cr`: Sprite2D, Node2D transforms, Area2D, CollisionShape2D.
   - `test_3d_nodes.cr`: Node3D transforms, Camera3D, DirectionalLight3D.
   - `test_control_nodes.cr`: Label, Button, VBoxContainer, MarginContainer.
@@ -82,7 +86,7 @@ Runs the full interactive test project in Godot:
   - `test_concurrency.cr`: Cooperative fibers, channels, mutexes, thread safety.
 - Command executed internally:
   ```bash
-  godot.exe --headless --path test --quit-after 250
+  godot.exe --headless --path . --quit-after 250
   ```
 
 ### 4. Template and Example Smoke Tests
@@ -101,10 +105,10 @@ Verifies that `template/` and all projects under `examples/` boot cleanly withou
 ## Test Artifacts and Logs
 
 After test execution, inspect:
-- `test/.runtime_test_results.txt`: Text summary of all passed and failed tests.
-- `test/.runtime_tests_passed`: Marker file containing `"PASS"` if all tests passed.
-- `test/test_report.json`: JSON output containing test statistics and timing.
-- `test/test_report.md`: Markdown summary of test execution.
+- `.runtime_test_results.txt` (and `bin/.runtime_test_results.txt`): Text summary of all passed and failed tests.
+- `.runtime_tests_passed` (and `bin/.runtime_tests_passed`): Marker file containing `"PASS"` if all tests passed.
+- `bin/test_report.json`: JSON output containing test statistics and timing.
+- `bin/test_report.md`: Markdown summary of test execution.
 
 ---
 

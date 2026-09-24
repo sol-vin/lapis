@@ -256,8 +256,6 @@ module Lapis
         if is_libgodot_repo?(root)
           dirs << root.join("bin")
           dirs << root.join("addons/crystal_integration/bin")
-          dirs << root.join("test/bin")
-          dirs << root.join("test/addons/crystal_integration/bin")
           dirs << root.join("template/bin")
           dirs << root.join("template/addons/crystal_integration/bin")
           dirs << root.join("template-addon/addons/crystal_addon/bin")
@@ -265,17 +263,17 @@ module Lapis
           dirs << root.join("performance/bin")
           dirs << root.join("performance/addons/crystal_integration/bin")
 
-          # Discover all addons in test/addons
-          test_addons = root.join("test/addons")
-          if Dir.exists?(test_addons)
-            Dir.each_child(test_addons) do |child|
-              p = test_addons.join(child)
+          # Discover all addons in addons/
+          addons_dir = root.join("addons")
+          if Dir.exists?(addons_dir)
+            Dir.each_child(addons_dir) do |child|
+              p = addons_dir.join(child)
               dirs << p.join("bin") if Dir.exists?(p)
             end
           end
 
           # Discover all nested addons in <proj>/bin/addons
-          ["test", "template", "performance"].each do |proj|
+          ["template", "performance"].each do |proj|
             proj_bin_addons = root.join("#{proj}/bin/addons")
             if Dir.exists?(proj_bin_addons)
               Dir.each_child(proj_bin_addons) do |child|

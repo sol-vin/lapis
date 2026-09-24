@@ -6,7 +6,6 @@ puts "=== Running Project Scaffolding & Directory Integrity Specifications ==="
 
 root_dir = File.expand_path("..", __DIR__)
 consumer_projects = [
-  "test",
   "template",
   "template-addon",
   "performance",

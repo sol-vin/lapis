@@ -205,11 +205,11 @@ module Lapis
     #
     # The root `Makefile` orchestrates compilation across the entire workspace:
     # - `make bridge`: Builds `bin/crystal_bridge.dll`.
-    # - `make test_project`: Builds `test/bin/game.dll`.
+    # - `make test_project`: Builds root `bin/game.dll` from `src/main.cr`.
     # - `make examples`: Builds all showcase projects in `examples/`.
     # - `make template`: Builds `template/bin/game.dll`.
     # - `make sync`: Synchronizes `crystal_bridge.dll`, runtime DLLs (`gc.dll`, `iconv-2.dll`,
-    #   `pcre2-8.dll`), and `crystal.gdextension` across `bin/`, `test/bin/`, `template/bin/`,
+    #   `pcre2-8.dll`), and `crystal.gdextension` across `bin/`, `template/bin/`,
     #   and `examples/*/bin/`.
     #
     # > **Rule**: Always execute `make all` rather than partial builds to guarantee all consumer

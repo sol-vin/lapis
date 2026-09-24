@@ -248,25 +248,47 @@ module Lapis
         end
       end
 
+      # Resolves Godot binary from argument, environment variables, or local directory
+      def self.resolve_godot(godot_path : String? = nil) : String?
+        if p = godot_path
+          return p if File.exists?(p)
+        end
+        if env_bin = ENV["GODOT_BIN"]? || ENV["GODOT"]?
+          return env_bin if File.exists?(env_bin)
+        end
+        ["./godot.exe", "godot.exe", "./godot", "godot"].each do |candidate|
+          return candidate if File.exists?(candidate) || Process.find_executable(candidate)
+        end
+        nil
+      end
+
       # Runs Godot in headless editor mode to execute in-editor @tool tests
-      def self.run_tool_tests(project : String = "test", godot_path : String? = nil, timeout_sec : Int32 = 30) : DriverResult
-        godot_exe = godot_path || ENV["GODOT_BIN"]? || "godot"
+      def self.run_tool_tests(project : String = ".", godot_path : String? = nil, quit_frames : Int32 = 20) : DriverResult
+        exe = resolve_godot(godot_path)
+        return DriverResult.new(success: false, output: "Godot executable not found", exit_code: -1) unless exe
+
         env = {
-          "CRYSTAL_TOOL_TEST"    => "1",
-          "GODOT_RUN_TOOL_TESTS" => "1",
-          "GODOT_HEADLESS"       => "1",
+          "CRYSTAL_TOOL_TEST"     => "1",
+          "GODOT_RUN_TOOL_TESTS"  => "1",
+          "GODOT_HEADLESS"        => "1",
+          "LIBGL_ALWAYS_SOFTWARE" => "1",
         }
-        args = ["--headless", "--path", project, "--quit-after", "2"]
+        args = ["--headless", "--rendering-driver", "opengl3", "--audio-driver", "Dummy", "--editor", "--path", project, "--quit-after", quit_frames.to_s]
         stdout = IO::Memory.new
         stderr = IO::Memory.new
         begin
-          status = Process.run(godot_exe, args, env: env, output: stdout, error: stderr)
+          status = Process.run(exe, args, env: env, output: stdout, error: stderr)
           out_str = stdout.to_s + "\n" + stderr.to_s
           passed_count = out_str.scan(/\[PASS\]/).size
           fail_count = out_str.scan(/\[FAIL\]/).size
           total_count = passed_count + fail_count
+
+          passed_marker = [File.join(project, ".tool_tests_passed"), File.join(project, "bin/.tool_tests_passed")].any? { |f| File.exists?(f) }
+          failed_marker = [File.join(project, ".tool_tests_failed"), File.join(project, "bin/.tool_tests_failed")].any? { |f| File.exists?(f) }
+
+          success = (status.success? || passed_marker) && !failed_marker && fail_count == 0
           DriverResult.new(
-            success: status.success? && fail_count == 0,
+            success: success,
             output: out_str,
             exit_code: status.exit_code,
             passed_count: passed_count,
@@ -275,7 +297,50 @@ module Lapis
         rescue ex
           DriverResult.new(
             success: false,
-            output: "Failed to run editor tests: #{ex.message}",
+            output: "Failed to run editor tool tests: #{ex.message}",
+            exit_code: -1
+          )
+        end
+      end
+
+      # Runs Godot in headless runtime mode to execute all modular runtime test suites
+      def self.run_runtime_tests(project : String = ".", godot_path : String? = nil, filter : String? = nil, category : String? = nil, quit_frames : Int32 = 600) : DriverResult
+        exe = resolve_godot(godot_path)
+        return DriverResult.new(success: false, output: "Godot executable not found", exit_code: -1) unless exe
+
+        env = {
+          "GODOT_TEST_AUTORUN"    => "1",
+          "GODOT_HEADLESS"        => "1",
+          "LIBGL_ALWAYS_SOFTWARE" => "1",
+        }
+        args = ["--headless", "--rendering-driver", "opengl3", "--audio-driver", "Dummy", "--path", project, "--quit-after", quit_frames.to_s, "--", "--autorun"]
+        args << "--filter=#{filter}" if filter
+        args << "--category=#{category}" if category
+
+        stdout = IO::Memory.new
+        stderr = IO::Memory.new
+        begin
+          status = Process.run(exe, args, env: env, output: stdout, error: stderr)
+          out_str = stdout.to_s + "\n" + stderr.to_s
+          passed_count = out_str.scan(/✔/).size
+          fail_count = out_str.scan(/✘/).size
+          total_count = passed_count + fail_count
+
+          passed_marker = [File.join(project, ".runtime_tests_passed"), File.join(project, "bin/.runtime_tests_passed")].any? { |f| File.exists?(f) }
+          failed_marker = [File.join(project, ".runtime_tests_failed"), File.join(project, "bin/.runtime_tests_failed")].any? { |f| File.exists?(f) }
+
+          success = (status.success? || passed_marker) && !failed_marker && fail_count == 0
+          DriverResult.new(
+            success: success,
+            output: out_str,
+            exit_code: status.exit_code,
+            passed_count: passed_count,
+            total_count: total_count
+          )
+        rescue ex
+          DriverResult.new(
+            success: false,
+            output: "Failed to run runtime tests: #{ex.message}",
             exit_code: -1
           )
         end

@@ -131,7 +131,6 @@ HELP
           src_addon = root.join("addons/crystal_integration")
           if Dir.exists?(src_addon)
             addon_targets = [
-              root.join("test/addons/crystal_integration"),
               root.join("template/addons/crystal_integration"),
               root.join("performance/addons/crystal_integration"),
             ]
@@ -147,7 +146,7 @@ HELP
               end
             end
 
-            ensure_extension_list(root.join("test"))
+            ensure_extension_list(root)
             ensure_extension_list(root.join("template"))
             ensure_extension_list(root.join("performance"))
 

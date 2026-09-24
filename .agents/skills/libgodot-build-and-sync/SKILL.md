@@ -23,9 +23,8 @@ make all RELEASE=1
 ```
 
 ### Why `make all` is Mandatory:
-LibGodot utilizes a multi-consumer architecture. When code changes in `src/`, `test/`, or the bridge, binaries must be built and synchronized across:
-- `bin/`: Primary bridge and library artifacts
-- `test/bin/`: Standalone test project binaries
+LibGodot utilizes a multi-consumer architecture. When code changes in `src/` or the bridge, binaries must be built and synchronized across:
+- `bin/`: Primary bridge, host library, and runner artifacts
 - `template/bin/`: Starter game template binaries
 - `template-addon/dist/`: Redistributable addon binaries
 - `examples/*/bin/`: All example showcase projects
@@ -38,7 +37,7 @@ LibGodot utilizes a multi-consumer architecture. When code changes in `src/`, `t
 
 | Target | Command | Purpose |
 | :--- | :--- | :--- |
-| **All (Default)** | `make all` | Compiles bridge, test, examples, template, syncs all DLLs, and runs verification tests. |
+| **All (Default)** | `make all` | Compiles bridge, host test suite, examples, template, syncs all DLLs, and runs verification tests. |
 | **Release Build** | `make all RELEASE=1` | Compiles with release optimizations (`--release -O3`, `-DLIBGODOT_RELEASE=1 -DNDEBUG`). |
 | **Standalone Executable** | `make game_exe` | Compiles Crystal host executable `bin/game.exe` (Mode B). |
 | **Addon Sync** | `make addons` | Synchronizes `addons/crystal_integration` across all consumer directories. |
@@ -48,7 +47,7 @@ LibGodot utilizes a multi-consumer architecture. When code changes in `src/`, `t
 
 ## Windows Shadow Copying & File Locking
 
-When running inside the Godot Editor (`make editor` or `godot.exe --editor --path test`):
+When running inside the Godot Editor (`make editor` or `godot.exe --editor --path .`):
 1. On Windows, `LoadLibraryA` locks loaded DLL files.
 2. In development mode (without `RELEASE=1`), `crystal_bridge.cpp` copies `bin/game.dll` to a timestamped shadow copy: `bin/game_loaded_<PID>_<TIMESTAMP>.dll`.
 3. The bridge loads the shadow copy, leaving `bin/game.dll` unlocked for recompilation.

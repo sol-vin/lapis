@@ -13,7 +13,6 @@ module Lapis
           # Standard root dirs for monorepo
           target_dirs << root.join("bin")
           target_dirs << root.join("addons/crystal_integration/bin")
-          target_dirs << root.join("test/bin")
           target_dirs << root.join("template/bin")
           target_dirs << root.join("template-addon/addons/crystal_addon/bin")
           target_dirs << root.join("performance/bin")
