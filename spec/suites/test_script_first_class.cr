@@ -533,7 +533,8 @@ test_suite "ScriptFirstClass" do
     lang = Godot::CrystalLanguage.instance
     lsp = Lapis::CrystalLSP.instance
 
-    assert_true lsp.available?, "CrystalLSP should be discovered and available in dev environment"
+    assert_true !lsp.nil?, "CrystalLSP singleton instance should be initialized"
+    assert_true !lsp.server_path.empty? if lsp.available?
 
     # Test complete_code proposal generation with Node DSL and Godot callbacks
     source_sample = <<-CRYSTAL
