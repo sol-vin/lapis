@@ -219,7 +219,7 @@ jobs:
         shell: pwsh
         run: |
           if (-not (Test-Path "bin")) { New-Item -ItemType Directory -Force -Path "bin" | Out-Null }
-          Get-ChildItem -Filter "*.exe","*.dll" | ForEach-Object {
+          Get-ChildItem -Path . -File | Where-Object { $_.Extension -in '.exe', '.dll' } | ForEach-Object {
             if (-not (Test-Path "bin/$($_.Name)")) { Move-Item -Force $_.FullName "bin/$($_.Name)" }
           }
           Get-ChildItem -Path "bin"
@@ -577,7 +577,7 @@ jobs:
         shell: pwsh
         run: |
           if (-not (Test-Path "bin")) { New-Item -ItemType Directory -Force -Path "bin" | Out-Null }
-          Get-ChildItem -Filter "*.exe","*.dll" | ForEach-Object {
+          Get-ChildItem -Path . -File | Where-Object { $_.Extension -in '.exe', '.dll' } | ForEach-Object {
             if (-not (Test-Path "bin/$($_.Name)")) { Move-Item -Force $_.FullName "bin/$($_.Name)" }
           }
           Get-ChildItem -Path "bin"
@@ -1094,7 +1094,7 @@ jobs:
         shell: pwsh
         run: |
           if (-not (Test-Path "bin")) { New-Item -ItemType Directory -Force -Path "bin" | Out-Null }
-          Get-ChildItem -Filter "*.exe","*.dll" | ForEach-Object {
+          Get-ChildItem -Path . -File | Where-Object { $_.Extension -in '.exe', '.dll' } | ForEach-Object {
             if (-not (Test-Path "bin/$($_.Name)")) { Move-Item -Force $_.FullName "bin/$($_.Name)" }
           }
           Get-ChildItem -Path "bin"
@@ -1452,7 +1452,7 @@ jobs:
         shell: pwsh
         run: |
           if (-not (Test-Path "bin")) { New-Item -ItemType Directory -Force -Path "bin" | Out-Null }
-          Get-ChildItem -Filter "*.exe","*.dll" | ForEach-Object {
+          Get-ChildItem -Path . -File | Where-Object { $_.Extension -in '.exe', '.dll' } | ForEach-Object {
             if (-not (Test-Path "bin/$($_.Name)")) { Move-Item -Force $_.FullName "bin/$($_.Name)" }
           }
           Get-ChildItem -Path "bin"
