@@ -1036,6 +1036,43 @@ module Lapis
         write_script(rel_path, content)
       end
 
+      private def wait_process(proc : Process, start_wait : ::Time::Instant, timeout_seconds : Float64 = 8.0) : {Process::Status, Bool}
+        timed_out = false
+        {% if flag?(:windows) %}
+          while !proc.terminated?
+            if (::Time.instant - start_wait).total_seconds > timeout_seconds
+              proc.terminate rescue nil
+              timed_out = true
+              break
+            end
+            Crystal::System::Thread.sleep(20.milliseconds)
+            Fiber.yield
+          end
+          status = proc.wait
+          {status, timed_out}
+        {% else %}
+          raw_status = 0
+          pid = proc.pid
+          while true
+            ret = LibC.waitpid(pid, pointerof(raw_status), LibC::WNOHANG)
+            if ret == pid || ret == -1
+              break
+            end
+            if (::Time.instant - start_wait).total_seconds > timeout_seconds
+              proc.terminate rescue nil
+              proc.signal(::Signal.new(9)) rescue nil
+              LibC.waitpid(pid, pointerof(raw_status), 0)
+              timed_out = true
+              break
+            end
+            Crystal::System::Thread.sleep(20.milliseconds)
+            Fiber.yield
+          end
+          status = Process::Status.new(raw_status)
+          {status, timed_out}
+        {% end %}
+      end
+
       # Runs an isolated script in a dedicated headless Godot process with complete environment isolation.
       def run_isolated_script(script_rel_path : String, args : Array(String) = [] of String) : TestResult
         res_script = script_rel_path.starts_with?("res://") ? script_rel_path : "res://#{script_rel_path}"
@@ -1054,21 +1091,7 @@ module Lapis
         start = ::Time.instant
         begin
           proc = Process.new(@godot_exe, run_args, output: out_file, error: err_file)
-          start_wait = ::Time.instant
-          timed_out = false
-          while !proc.terminated?
-            if (::Time.instant - start_wait).total_seconds > 8.0
-              proc.terminate rescue nil
-              {% unless flag?(:windows) %}
-                proc.signal(::Signal.new(9)) rescue nil
-              {% end %}
-              timed_out = true
-              break
-            end
-            Crystal::System::Thread.sleep(20.milliseconds)
-            Fiber.yield
-          end
-          status = proc.wait
+          status, timed_out = wait_process(proc, start)
           out_file.rewind
           err_file.rewind
           duration = (::Time.instant - start).total_milliseconds
@@ -1108,21 +1131,7 @@ module Lapis
         start = ::Time.instant
         begin
           proc = Process.new(@godot_exe, run_args, output: out_file, error: err_file)
-          start_wait = ::Time.instant
-          timed_out = false
-          while !proc.terminated?
-            if (::Time.instant - start_wait).total_seconds > 8.0
-              proc.terminate rescue nil
-              {% unless flag?(:windows) %}
-                proc.signal(::Signal.new(9)) rescue nil
-              {% end %}
-              timed_out = true
-              break
-            end
-            Crystal::System::Thread.sleep(20.milliseconds)
-            Fiber.yield
-          end
-          status = proc.wait
+          status, timed_out = wait_process(proc, start)
           out_file.rewind
           err_file.rewind
           duration = (::Time.instant - start).total_milliseconds
