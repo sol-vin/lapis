@@ -112,7 +112,7 @@ uninstall: $(LAPIS)
 	@$(LAPIS) install --uninstall $(if $(INSTALL_DIR),--dir "$(INSTALL_DIR)",) $(if $(PREFIX),--prefix "$(PREFIX)",)
 
 # Default target: compile bridge, plugin, test project, standalone runner, examples, template, template_addon, perf, sync DLLs, run test suite, and Windows installer
-all: dirs deps bridge plugin addons dummy_addons test_project test_standalone examples template template_addon perf perf_standalone sync test $(if $(filter windows,$(PLATFORM)),$(if $(filter 1,$(SKIP_INSTALLER)),,package_installer),)
+all: dirs deps bridge plugin addons dummy_addons test_project test_standalone examples template template_addon perf perf_standalone sync $(if $(filter 1,$(SKIP_TESTS)),,test) $(if $(filter windows,$(PLATFORM)),$(if $(filter 1,$(SKIP_INSTALLER)),,package_installer),)
 	@echo ===================================================================
 	@echo   Lapis Crystal library build completed successfully!
 	@echo   Run 'make run' to launch test runner or 'make editor' for editor.

@@ -1314,6 +1314,21 @@
 						}
 					],
 					"flags": 1,
+					"name": "is_worker_task_completed",
+					"return_class_name": "",
+					"return_type": 1,
+					"return_type_name": "bool"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "task_id",
+							"type": 2,
+							"type_name": "int"
+						}
+					],
+					"flags": 1,
 					"name": "wait_for_worker_task",
 					"return_class_name": "",
 					"return_type": 0,

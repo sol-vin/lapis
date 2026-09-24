@@ -217,14 +217,6 @@ static void deinitialize_crystal_module(void *p_userdata, GDExtensionInitializat
 
             s_is_reloading = 0;
             unload_crystal_game_library();
-            godot_log_verbose("[CrystalBridge] Crystal module deinitialized.");
-        }
-    }
-    // --- Segment 4: CORE Level Teardown ---
-    // Clean StringName cache only at the final core level on process shutdown
-    else if (p_level == GDEXTENSION_INITIALIZATION_CORE) {
-        if (!s_is_reloading) {
-            bridge_cleanup_string_name_cache();
         }
     }
 }

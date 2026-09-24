@@ -271,7 +271,7 @@ module Godot
         @not_full.broadcast
       end
       if alive? && !@pointer.null?
-        call_deferred("emit_signal", "closed")
+        emit_signal("closed")
       else
         Godot.notify_signal(signal_target_id, "closed", [] of Variant)
       end
@@ -281,7 +281,7 @@ module Godot
     private def notify_received(val : ChannelItem) : Void
       val_str = val.is_a?(Godot::Object) ? (val.alive? ? "<Godot::Object #{val.instance_id}>" : "<DeadObject>") : val.to_s
       if alive? && !@pointer.null?
-        call_deferred("emit_signal", "received", val_str)
+        emit_signal("received", val_str)
       else
         Godot.notify_signal(signal_target_id, "received", [Variant.new(val_str)])
       end

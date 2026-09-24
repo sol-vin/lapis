@@ -91,7 +91,9 @@ test_suite "GDScriptInteropDeep" do
       break if (Time.instant - start_wait).total_seconds > 5.0
       Fiber.yield
     end
-    root.call("wait_for_worker_task", task_id)
+    if root.call_bool("is_worker_task_completed", task_id)
+      root.call("wait_for_worker_task", task_id)
+    end
 
     # Crystal drains all items
     drained = ch.drain_all

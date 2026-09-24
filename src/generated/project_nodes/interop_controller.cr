@@ -363,6 +363,11 @@ module Godot
       call_i64("start_worker_thread_channel_producer", ch, count, prefix)
     end
 
+    # Method `is_worker_task_completed` -> Bool
+    def is_worker_task_completed(task_id : Int64) : Bool
+      call_bool("is_worker_task_completed", task_id)
+    end
+
     # Method `wait_for_worker_task` -> Void
     def wait_for_worker_task(task_id : Int64) : Void
       call("wait_for_worker_task", task_id)
