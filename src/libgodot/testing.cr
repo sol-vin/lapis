@@ -1048,6 +1048,7 @@ module Lapis
           "--headless",
           "--rendering-driver", "opengl3",
           "--audio-driver", "Dummy",
+          "--quit-after", "100",
           "--path", @sandbox_dir,
           "--script", script_path,
           "--"
@@ -1057,7 +1058,29 @@ module Lapis
         stderr = IO::Memory.new
         start = ::Time.instant
         begin
-          status = Process.run(@godot_exe, run_args, env: env, output: stdout, error: stderr)
+          proc = Process.new(@godot_exe, run_args, env: env, output: stdout, error: stderr)
+          done = false
+          wait_thread = Thread.new do
+            proc.wait
+            done = true
+          end
+
+          deadline = ::Time.instant + 15.seconds
+          while !done && ::Time.instant < deadline
+            Crystal::System::Thread.sleep(Time::Span.new(nanoseconds: 50_000_000))
+          end
+
+          if !done
+            proc.terminate rescue nil
+            Crystal::System::Thread.sleep(Time::Span.new(nanoseconds: 200_000_000))
+            proc.kill rescue nil
+            wait_thread.join
+            duration = (::Time.instant - start).total_milliseconds
+            return TestResult.new("ColdBoot", @test_name, false, "Isolated engine process timed out after 15s", duration, "FAIL")
+          end
+
+          wait_thread.join
+          status = proc.wait
           duration = (::Time.instant - start).total_milliseconds
           out_str = stdout.to_s + "\n" + stderr.to_s
           success = status.success?
@@ -1080,6 +1103,7 @@ module Lapis
           "--headless",
           "--rendering-driver", "opengl3",
           "--audio-driver", "Dummy",
+          "--quit-after", "100",
           "--path", @sandbox_dir,
         ] + args
 
@@ -1087,7 +1111,29 @@ module Lapis
         stderr = IO::Memory.new
         start = ::Time.instant
         begin
-          status = Process.run(@godot_exe, run_args, env: env, output: stdout, error: stderr)
+          proc = Process.new(@godot_exe, run_args, env: env, output: stdout, error: stderr)
+          done = false
+          wait_thread = Thread.new do
+            proc.wait
+            done = true
+          end
+
+          deadline = ::Time.instant + 15.seconds
+          while !done && ::Time.instant < deadline
+            Crystal::System::Thread.sleep(Time::Span.new(nanoseconds: 50_000_000))
+          end
+
+          if !done
+            proc.terminate rescue nil
+            Crystal::System::Thread.sleep(Time::Span.new(nanoseconds: 200_000_000))
+            proc.kill rescue nil
+            wait_thread.join
+            duration = (::Time.instant - start).total_milliseconds
+            return TestResult.new("ColdBoot", @test_name, false, "Isolated engine project timed out after 15s", duration, "FAIL")
+          end
+
+          wait_thread.join
+          status = proc.wait
           duration = (::Time.instant - start).total_milliseconds
           out_str = stdout.to_s + "\n" + stderr.to_s
           success = status.success?

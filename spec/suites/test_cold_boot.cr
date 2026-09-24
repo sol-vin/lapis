@@ -19,6 +19,10 @@ test_suite "ColdBoot" do
     script_content = <<-GDSCRIPT
 extends SceneTree
 
+func _initialize() -> void:
+	print("[ColdBootIsolated] Hello from isolated engine environment! Time: %d" % Time.get_ticks_msec())
+	quit(0)
+
 func _init() -> void:
 	print("[ColdBootIsolated] Hello from isolated engine environment! Time: %d" % Time.get_ticks_msec())
 	quit(0)
@@ -42,6 +46,13 @@ GDSCRIPT
     # Write isolated scene configuration
     scene_code = <<-GDSCRIPT
 extends SceneTree
+
+func _initialize() -> void:
+	var node = Node2D.new()
+	node.name = "IsolatedNode"
+	print("[ColdBootScene] Node created: %s" % node.name)
+	node.free()
+	quit(0)
 
 func _init() -> void:
 	var node = Node2D.new()

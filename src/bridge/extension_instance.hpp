@@ -837,6 +837,17 @@ inline void generic_class_call_virtual_with_data(
                 if (r_ret) *(uint8_t*)r_ret = 0;
                 return;
             }
+            if (strcmp(method_name, "_get_public_functions") == 0 || strcmp(method_name, "get_public_functions") == 0 ||
+                strcmp(method_name, "_get_public_annotations") == 0 || strcmp(method_name, "get_public_annotations") == 0 ||
+                strcmp(method_name, "_debug_get_current_stack_info") == 0 || strcmp(method_name, "debug_get_current_stack_info") == 0) {
+                // In Godot, r_ret is already an initialized Array passed by the caller (e.g. ScriptLanguageExtension::get_public_functions).
+                // Do not re-construct it in place.
+                return;
+            }
+            if (strcmp(method_name, "_get_public_constants") == 0 || strcmp(method_name, "get_public_constants") == 0) {
+                // In Godot, r_ret is already an initialized Dictionary passed by the caller.
+                return;
+            }
             if (strcmp(method_name, "_is_using_templates") == 0 || strcmp(method_name, "is_using_templates") == 0) {
                 if (r_ret) *(uint8_t*)r_ret = 1;
                 return;

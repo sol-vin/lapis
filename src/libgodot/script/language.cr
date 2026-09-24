@@ -654,15 +654,15 @@ module Lapis
       when "_debug_parse_stack_level_expression"
         Bridge.ret_string(ret, "")
       when "_debug_get_current_stack_info"
-        Bridge.ret_array_empty(ret)
+        return
       when "_reload_all_scripts", "_reload_scripts", "_reload_tool_script",
            "_profiling_start", "_profiling_stop", "_profiling_set_save_native_calls",
            "_add_global_constant", "_add_named_global_constant", "_remove_named_global_constant"
         return
       when "_get_public_functions", "_get_public_annotations"
-        Bridge.ret_array_empty(ret)
+        return
       when "_get_public_constants"
-        Bridge.ret_dictionary_empty(ret)
+        return
       when "_profiling_get_accumulated_data", "_profiling_get_frame_data"
         ret.as(Int32*).value = 0_i32
       else
