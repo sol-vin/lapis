@@ -16,6 +16,7 @@ require "../src/commands/clean"
 require "../src/commands/scaffold"
 require "../src/commands/package"
 require "../src/commands/install"
+require "../src/tui/tui"
 
 module LapisSpecHelper
   def self.repo_root : Path

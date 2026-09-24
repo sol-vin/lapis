@@ -129,8 +129,8 @@ LibGodot supports two distinct execution paradigms designed for both rapid in-ed
 ### Build Target Reference:
 - `make all`: Full workspace build, synchronization, and test run.
 - `make all RELEASE=1`: Full release build with `--release -O3` optimizations.
-- `make test`: Executes specs, headless in-editor tool tests, and runtime test project.
-- `make run-test`: Unified test runner (`UI=1`, `SKIP_SPECS=1`, etc.).
+- `make test`: Executes specs, headless in-editor tool tests, and runtime test project (supports `TUI=1` or `NO_TUI=1`).
+- `make run-test`: Unified test runner (`TUI=1`, `NO_TUI=1`, `UI=1`, `SKIP_SPECS=1`, etc.).
 - `make run-ci-local`: Executes local GitHub Actions CI matrix harness.
 - `make docs`: Generates offline HTML API documentation into `docs/` using `crystal docs`.
 - `make run`: Launches the test project directly in Godot.
@@ -260,6 +260,10 @@ end
    - Regular and portable standalone runners executing 40+ modular test suites in `spec/suites/` using the unified `Lapis::Test` apparatus (`test_suite`, `before_each`/`after_each` lifecycle fixtures, exact source locations, Godot domain assertions).
 4. **Quantitative Zero Memory Leak Verification**:
    - Standardized via `Lapis::Test.assert_no_leak`, leveraging Godot's `Performance` singleton monitors (`OBJECT_COUNT`, `OBJECT_NODE_COUNT`, `MEMORY_STATIC`) and Crystal's `GC.collect` to mathematically verify zero object or memory leaks.
+5. **Interactive Terminal User Interface (TUI)**:
+   - `lapis test` automatically launches an interactive double-buffered ANSI TUI dashboard on interactive terminals (or when invoked with `--tui` / `make test TUI=1`).
+   - Features real-time multi-phase status checklist, live progress metrics, split-pane rolling execution logs with syntax coloring, interactive phase navigation (`↑`/`↓`/`j`/`k`), drill-down phase log inspection modals (`Enter`/`Space`), and help overlay (`?`).
+   - Gracefully falls back to clean streaming output in non-TTY environments, automated CI, or when `--no-tui` / `make test NO_TUI=1` is specified.
 
 ### Quality Gate Requirements:
 - **Never add shortcuts, mock classes, or fake implementations** into `libgodot` solely to make a test pass. Features must be properly implemented through Godot's GDExtension C-API and the Crystal runtime bridge.

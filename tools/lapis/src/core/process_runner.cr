@@ -9,8 +9,9 @@ module Lapis
         @current_line = IO::Memory.new
         @passthrough : IO?
         @max_lines : Int32
+        @on_line : (String -> Nil)?
 
-        def initialize(@passthrough : IO? = nil, @max_lines : Int32 = 80)
+        def initialize(@passthrough : IO? = nil, @max_lines : Int32 = 80, @on_line : (String -> Nil)? = nil)
         end
 
         def read(slice : Bytes) : Int32
@@ -27,6 +28,7 @@ module Lapis
               @current_line.clear
               @captured_lines.shift if @captured_lines.size >= @max_lines
               @captured_lines << line
+              @on_line.try &.call(line)
             else
               @current_line.write_byte(byte) unless byte == '\r'.ord
             end
@@ -39,6 +41,7 @@ module Lapis
             @current_line.clear
             @captured_lines.shift if @captured_lines.size >= @max_lines
             @captured_lines << line
+            @on_line.try &.call(line)
           end
           @passthrough.try &.flush
         end
@@ -55,6 +58,8 @@ module Lapis
         env : Process::Env = nil,
         chdir : String? = nil,
         max_lines : Int32 = 80,
+        passthrough : Bool = true,
+        on_line : (String -> Nil)? = nil,
       ) : {status: Process::Status, error_excerpt: String?}
         actual_args = args.dup
         is_godot = Path.new(command).basename.downcase.starts_with?("godot")
@@ -71,8 +76,8 @@ module Lapis
 
         start_time = ::Time.instant
         Logger.debug("Executing (with live capture): #{command} #{actual_args.join(" ")} (chdir: #{chdir || Dir.current})")
-        tee_out = TeeIO.new(STDOUT, max_lines)
-        tee_err = TeeIO.new(STDERR, max_lines)
+        tee_out = TeeIO.new(passthrough ? STDOUT : nil, max_lines, on_line)
+        tee_err = TeeIO.new(passthrough ? STDERR : nil, max_lines, on_line)
 
         status = Process.run(
           command: command,

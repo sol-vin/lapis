@@ -369,8 +369,8 @@ Lapis includes a high-performance, cross-platform compiled CLI tool written in C
       <td>Synchronizes compiled binaries, runtime DLLs (GC, iconv, PCRE2, LibGodot), and addon manifests across all workspace consumers.</td>
     </tr>
     <tr>
-      <td><code>lapis test</code></td>
-      <td>Unified multi-tier test runner: executes specs, headless in-editor <code>@tool</code> tests, runtime test suites, and standalone compiled tests.</td>
+      <td><code>lapis test [options]</code></td>
+      <td>Unified multi-tier test runner with interactive Terminal User Interface (TUI) dashboard (or streaming logs via <code>--no-tui</code>): executes specs, headless in-editor <code>@tool</code> tests, runtime test suites, and standalone compiled tests.</td>
     </tr>
     <tr>
       <td><code>lapis editor</code></td>

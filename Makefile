@@ -338,7 +338,7 @@ spec_cli spec-cli test_cli test-cli:
 
 # Run complete test suites and verification (Crystal specs, in-editor @tool tests, standalone runner, runtime project tests, smoke tests)
 test tests: test_standalone
-	@$(LAPIS) test $(if $(filter 1,$(SKIP_SPECS)),--skip-specs,) $(if $(filter 1,$(SKIP_TOOL_TESTS)),--skip-tool-tests,) $(if $(filter 1,$(SKIP_RUNTIME_TESTS)),--skip-runtime-tests,)
+	@$(LAPIS) test $(if $(filter 1,$(SKIP_SPECS)),--skip-specs,) $(if $(filter 1,$(SKIP_TOOL_TESTS)),--skip-tool-tests,) $(if $(filter 1,$(SKIP_RUNTIME_TESTS)),--skip-runtime-tests,) $(if $(filter 1,$(TUI)),--tui,) $(if $(or $(filter 1,$(NO_TUI)),$(filter 0,$(TUI))),--no-tui,)
 
 # Unified test runner (supports interactive UI or automated suite)
 run_test run-test:
@@ -346,7 +346,7 @@ ifeq ($(or $(filter 1,$(INTERACTIVE)),$(filter 1,$(UI))),1)
 	@echo Launching Crystal LibGodot Interactive Test Runner...
 	@$(LAPIS) run -p .
 else
-	@$(LAPIS) test $(if $(filter 1,$(SKIP_SPECS)),--skip-specs,) $(if $(filter 1,$(SKIP_TOOL_TESTS)),--skip-tool-tests,) $(if $(filter 1,$(SKIP_RUNTIME_TESTS)),--skip-runtime-tests,)
+	@$(LAPIS) test $(if $(filter 1,$(SKIP_SPECS)),--skip-specs,) $(if $(filter 1,$(SKIP_TOOL_TESTS)),--skip-tool-tests,) $(if $(filter 1,$(SKIP_RUNTIME_TESTS)),--skip-runtime-tests,) $(if $(filter 1,$(TUI)),--tui,) $(if $(or $(filter 1,$(NO_TUI)),$(filter 0,$(TUI))),--no-tui,)
 endif
 
 # Run complete local CI test matrix harness

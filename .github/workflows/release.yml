@@ -246,20 +246,34 @@ jobs:
         with:
           name: test-status-report-windows
           path: |
+            test_report.md
+            bin/test_report.md
+            test_report.json
+            bin/test_report.json
+            .runtime_test_results.txt
+            bin/.runtime_test_results.txt
+            .tool_tests_passed
+            .tool_tests_failed
+            .runtime_tests_passed
+            .runtime_tests_failed
+            bin/.tool_tests_passed
+            bin/.tool_tests_failed
+            bin/.runtime_tests_passed
+            bin/.runtime_tests_failed
+            bin/junit.xml
+            junit.xml
+            bin/junit_*.xml
+            bin/**/output.xml
             test/test_report.md
             test/test_report.json
+            test/bin/test_report.md
+            test/bin/test_report.json
             test/.runtime_test_results.txt
+            test/bin/.runtime_test_results.txt
             test/.tool_tests_passed
             test/.tool_tests_failed
             test/.runtime_tests_passed
             test/.runtime_tests_failed
-            test/bin/test_report.md
-            test/bin/test_report.json
-            test/bin/.runtime_test_results.txt
-            test/bin/.tool_tests_passed
-            test/bin/.tool_tests_failed
-            test/bin/.runtime_tests_passed
-            test/bin/.runtime_tests_failed
           if-no-files-found: ignore
 
       - name: Publish Test Status Report to Step Summary
@@ -269,7 +283,11 @@ jobs:
           if ($env:GITHUB_STEP_SUMMARY -and (Test-Path $env:GITHUB_STEP_SUMMARY)) {
             $existing = Get-Content $env:GITHUB_STEP_SUMMARY -Raw -ErrorAction SilentlyContinue
             if ($existing -notmatch "LibGodot Test Suite Status Report") {
-              if (Test-Path "test/test_report.md") {
+              if (Test-Path "test_report.md") {
+                Get-Content "test_report.md" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+              } elseif (Test-Path "bin/test_report.md") {
+                Get-Content "bin/test_report.md" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+              } elseif (Test-Path "test/test_report.md") {
                 Get-Content "test/test_report.md" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
               } elseif (Test-Path "test/bin/test_report.md") {
                 Get-Content "test/bin/test_report.md" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
@@ -556,20 +574,34 @@ jobs:
         with:
           name: test-status-report-linux
           path: |
+            test_report.md
+            bin/test_report.md
+            test_report.json
+            bin/test_report.json
+            .runtime_test_results.txt
+            bin/.runtime_test_results.txt
+            .tool_tests_passed
+            .tool_tests_failed
+            .runtime_tests_passed
+            .runtime_tests_failed
+            bin/.tool_tests_passed
+            bin/.tool_tests_failed
+            bin/.runtime_tests_passed
+            bin/.runtime_tests_failed
+            bin/junit.xml
+            junit.xml
+            bin/junit_*.xml
+            bin/**/output.xml
             test/test_report.md
             test/test_report.json
+            test/bin/test_report.md
+            test/bin/test_report.json
             test/.runtime_test_results.txt
+            test/bin/.runtime_test_results.txt
             test/.tool_tests_passed
             test/.tool_tests_failed
             test/.runtime_tests_passed
             test/.runtime_tests_failed
-            test/bin/test_report.md
-            test/bin/test_report.json
-            test/bin/.runtime_test_results.txt
-            test/bin/.tool_tests_passed
-            test/bin/.tool_tests_failed
-            test/bin/.runtime_tests_passed
-            test/bin/.runtime_tests_failed
           if-no-files-found: ignore
 
       - name: Publish Test Status Report to Step Summary
@@ -578,7 +610,11 @@ jobs:
         run: |
           if [ -n "$GITHUB_STEP_SUMMARY" ] && [ -f "$GITHUB_STEP_SUMMARY" ]; then
             if ! grep -q "LibGodot Test Suite Status Report" "$GITHUB_STEP_SUMMARY"; then
-              if [ -f "test/test_report.md" ]; then
+              if [ -f "test_report.md" ]; then
+                cat test_report.md >> "$GITHUB_STEP_SUMMARY"
+              elif [ -f "bin/test_report.md" ]; then
+                cat bin/test_report.md >> "$GITHUB_STEP_SUMMARY"
+              elif [ -f "test/test_report.md" ]; then
                 cat test/test_report.md >> "$GITHUB_STEP_SUMMARY"
               elif [ -f "test/bin/test_report.md" ]; then
                 cat test/bin/test_report.md >> "$GITHUB_STEP_SUMMARY"
@@ -985,20 +1021,34 @@ jobs:
         with:
           name: test-status-report-macos
           path: |
+            test_report.md
+            bin/test_report.md
+            test_report.json
+            bin/test_report.json
+            .runtime_test_results.txt
+            bin/.runtime_test_results.txt
+            .tool_tests_passed
+            .tool_tests_failed
+            .runtime_tests_passed
+            .runtime_tests_failed
+            bin/.tool_tests_passed
+            bin/.tool_tests_failed
+            bin/.runtime_tests_passed
+            bin/.runtime_tests_failed
+            bin/junit.xml
+            junit.xml
+            bin/junit_*.xml
+            bin/**/output.xml
             test/test_report.md
             test/test_report.json
+            test/bin/test_report.md
+            test/bin/test_report.json
             test/.runtime_test_results.txt
+            test/bin/.runtime_test_results.txt
             test/.tool_tests_passed
             test/.tool_tests_failed
             test/.runtime_tests_passed
             test/.runtime_tests_failed
-            test/bin/test_report.md
-            test/bin/test_report.json
-            test/bin/.runtime_test_results.txt
-            test/bin/.tool_tests_passed
-            test/bin/.tool_tests_failed
-            test/bin/.runtime_tests_passed
-            test/bin/.runtime_tests_failed
           if-no-files-found: ignore
 
       - name: Publish Test Status Report to Step Summary
@@ -1007,7 +1057,11 @@ jobs:
         run: |
           if [ -n "$GITHUB_STEP_SUMMARY" ] && [ -f "$GITHUB_STEP_SUMMARY" ]; then
             if ! grep -q "LibGodot Test Suite Status Report" "$GITHUB_STEP_SUMMARY"; then
-              if [ -f "test/test_report.md" ]; then
+              if [ -f "test_report.md" ]; then
+                cat test_report.md >> "$GITHUB_STEP_SUMMARY"
+              elif [ -f "bin/test_report.md" ]; then
+                cat bin/test_report.md >> "$GITHUB_STEP_SUMMARY"
+              elif [ -f "test/test_report.md" ]; then
                 cat test/test_report.md >> "$GITHUB_STEP_SUMMARY"
               elif [ -f "test/bin/test_report.md" ]; then
                 cat test/bin/test_report.md >> "$GITHUB_STEP_SUMMARY"
