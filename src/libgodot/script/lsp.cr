@@ -49,8 +49,8 @@ module Lapis
   # will NEVER freeze Godot or degrade the in-editor editing experience.
   class CrystalLSP
     @@instance : CrystalLSP? = nil
-    @enabled : Bool = false
-    @server_path : String = "crystalline"
+    getter? enabled : Bool = false
+    getter server_path : String = "crystalline"
     @process : Process? = nil
     @is_running : Bool = false
     @next_id : Int32 = 1
