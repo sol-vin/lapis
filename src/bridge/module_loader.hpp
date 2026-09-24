@@ -517,6 +517,7 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
                                   (len > 6 && strcmp(name + len - 6, ".dylib") == 0);
                     if (is_lib &&
                         strstr(name, "crystal_bridge") == nullptr &&
+                        strstr(name, "plugin") == nullptr &&
                         strstr(name, "libgc") == nullptr &&
                         strstr(name, "libpcre2") == nullptr &&
                         strstr(name, "libiconv") == nullptr &&

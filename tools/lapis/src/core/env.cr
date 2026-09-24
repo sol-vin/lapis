@@ -326,9 +326,21 @@ module Lapis
         main_cr = lib_cryst.join("src/crystalline.cr")
         if File.exists?(main_cr)
           content = File.read(main_cr)
-          if content.includes?("\nCrystalline.init\n") || content.ends_with?("\nCrystalline.init")
-            content = content.gsub(/\nCrystalline\.init\b/, "\nif PROGRAM_NAME.ends_with?(\"crystalline\") || PROGRAM_NAME.ends_with?(\"crystalline.exe\")\n  Crystalline.init\nend")
-            File.write(main_cr, content)
+          if content.includes?("Crystalline.init") && !content.includes?("PROGRAM_NAME")
+            safe_content = <<-CR
+require "./crystalline/requires"
+require "./crystalline/*"
+
+if (PROGRAM_NAME.ends_with?("crystalline") || PROGRAM_NAME.ends_with?("crystalline.exe")) && !PROGRAM_NAME.includes?("godot")
+  if ARGV.includes?("--version")
+    puts(Crystalline::VERSION)
+    exit
+  end
+
+  Crystalline.init
+end
+CR
+            File.write(main_cr, safe_content)
           end
         end
 

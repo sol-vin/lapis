@@ -431,10 +431,32 @@ HELP
               step_start = Time.instant
               spec_junit_dir = test_bin_dir.join("junit_specs")
               isolated_cache = test_bin_dir.join(".crystal_cache")
+              # Ensure dependencies for consumer project if shard.yml exists
+              if File.exists?(target_dir.join("shard.yml")) && !Dir.exists?(target_dir.join("lib/lapis"))
+                if shards_exe = Core::ProcessRunner.find_executable("shards")
+                  Core::Logger.step("Shards", "Installing dependencies for #{target_dir.basename}...") unless tui
+                  Core::ProcessRunner.run(shards_exe, ["install"], chdir: target_dir.to_s)
+                  lib_gd = target_dir.join("lib/.gdignore")
+                  File.write(lib_gd, "") if Dir.exists?(target_dir.join("lib")) && !File.exists?(lib_gd)
+                end
+              end
+
+              # Build environment with augmented CRYSTAL_PATH
+              spec_env = {"CRYSTAL_CACHE_DIR" => isolated_cache.to_s}
+              sys_path = Core::ProcessRunner.capture("crystal", ["env", "CRYSTAL_PATH"])[:output].strip rescue ""
+              sep = Core::Env.windows? ? ";" : ":"
+              augmented_paths = [
+                target_dir.join("lib").to_s,
+                root.join("src").to_s,
+                root.join("lib").to_s,
+              ]
+              augmented_paths << sys_path unless sys_path.empty?
+              spec_env["CRYSTAL_PATH"] = augmented_paths.join(sep)
+
               res = Core::ProcessRunner.run_with_capture(
                 "crystal",
                 ["spec", "--junit_output=#{spec_junit_dir.to_s.gsub('\\', '/')}"],
-                env: {"CRYSTAL_CACHE_DIR" => isolated_cache.to_s},
+                env: spec_env,
                 chdir: target_dir.to_s,
                 passthrough: tui.nil?,
                 on_line: tui ? ->(l : String) { tui.not_nil!.handle_stream_line(l) } : nil

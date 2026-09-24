@@ -246,7 +246,7 @@ HELP
           Core::Logger.step("Sync", "Binaries synchronized across #{target_dirs.size} destinations")
         end
 
-        # 3. Ensure .gdignore in bin/ and lib/ across all targets
+        # 3. Ensure dependencies and .gdignore across all targets
         (["."] + ["test", "template", "template-addon", "performance", "benchmarks", "godot-src", "examples/basic_demo"]).each do |proj|
           proj_dir = root.join(proj)
           next unless Dir.exists?(proj_dir)
@@ -254,6 +254,13 @@ HELP
           File.write(root_gd, "") if (proj == "benchmarks" || proj == "godot-src") && !File.exists?(root_gd)
           bin_gd = proj_dir.join("bin/.gdignore")
           File.write(bin_gd, "") if Dir.exists?(proj_dir.join("bin")) && !File.exists?(bin_gd)
+
+          if File.exists?(proj_dir.join("shard.yml")) && !Dir.exists?(proj_dir.join("lib/lapis")) && proj != "."
+            if shards_exe = Core::ProcessRunner.find_executable("shards")
+              Core::ProcessRunner.run(shards_exe, ["install"], chdir: proj_dir.to_s)
+            end
+          end
+
           lib_gd = proj_dir.join("lib/.gdignore")
           if Dir.exists?(proj_dir.join("lib")) && !File.exists?(lib_gd)
             File.write(lib_gd, "")
