@@ -253,7 +253,7 @@ module Lapis
         if p = godot_path
           return p if File.exists?(p)
         end
-        if env_bin = ENV["GODOT_BIN"]? || ENV["GODOT"]?
+        if env_bin = ENV["GODOT_BIN"]? || ENV["GODOT"]? || ENV["GODOT4"]? || ENV["GODOT4_BIN"]?
           return env_bin if File.exists?(env_bin)
         end
         ["./godot.exe", "godot.exe", "./godot", "godot"].each do |candidate|
@@ -263,22 +263,28 @@ module Lapis
       end
 
       # Runs Godot in headless editor mode to execute in-editor @tool tests
-      def self.run_tool_tests(project : String = ".", godot_path : String? = nil, quit_frames : Int32 = 20) : DriverResult
+      def self.run_tool_tests(project : String = ".", godot_path : String? = nil, quit_frames : Int32 = 300) : DriverResult
         exe = resolve_godot(godot_path)
         return DriverResult.new(success: false, output: "Godot executable not found", exit_code: -1) unless exe
+
+        [".tool_tests_passed", "bin/.tool_tests_passed", ".tool_tests_failed", "bin/.tool_tests_failed"].each do |m|
+          p = File.join(project, m)
+          File.delete(p) if File.exists?(p)
+        end
 
         env = {
           "CRYSTAL_TOOL_TEST"     => "1",
           "GODOT_RUN_TOOL_TESTS"  => "1",
           "GODOT_HEADLESS"        => "1",
-          "LIBGL_ALWAYS_SOFTWARE" => "1",
         }
-        args = ["--headless", "--rendering-driver", "opengl3", "--audio-driver", "Dummy", "--editor", "--path", project, "--quit-after", quit_frames.to_s]
-        stdout = IO::Memory.new
-        stderr = IO::Memory.new
+        args = ["--headless", "--audio-driver", "Dummy", "--editor", "--path", project, "--quit-after", quit_frames.to_s]
+        out_file = File.tempfile("tool_stdout")
+        err_file = File.tempfile("tool_stderr")
         begin
-          status = Process.run(exe, args, env: env, output: stdout, error: stderr)
-          out_str = stdout.to_s + "\n" + stderr.to_s
+          status = Process.run(exe, args, env: env, output: out_file, error: err_file)
+          out_file.rewind
+          err_file.rewind
+          out_str = out_file.gets_to_end + "\n" + err_file.gets_to_end
           passed_count = out_str.scan(/\[PASS\]/).size
           fail_count = out_str.scan(/\[FAIL\]/).size
           total_count = passed_count + fail_count
@@ -300,6 +306,9 @@ module Lapis
             output: "Failed to run editor tool tests: #{ex.message}",
             exit_code: -1
           )
+        ensure
+          out_file.delete rescue nil
+          err_file.delete rescue nil
         end
       end
 
@@ -308,20 +317,26 @@ module Lapis
         exe = resolve_godot(godot_path)
         return DriverResult.new(success: false, output: "Godot executable not found", exit_code: -1) unless exe
 
+        [".runtime_tests_passed", "bin/.runtime_tests_passed", ".runtime_tests_failed", "bin/.runtime_tests_failed"].each do |m|
+          p = File.join(project, m)
+          File.delete(p) if File.exists?(p)
+        end
+
         env = {
           "GODOT_TEST_AUTORUN"    => "1",
           "GODOT_HEADLESS"        => "1",
-          "LIBGL_ALWAYS_SOFTWARE" => "1",
         }
-        args = ["--headless", "--rendering-driver", "opengl3", "--audio-driver", "Dummy", "--path", project, "--quit-after", quit_frames.to_s, "--", "--autorun"]
+        args = ["--headless", "--audio-driver", "Dummy", "--path", project, "--quit-after", quit_frames.to_s, "--", "--autorun"]
         args << "--filter=#{filter}" if filter
         args << "--category=#{category}" if category
 
-        stdout = IO::Memory.new
-        stderr = IO::Memory.new
+        out_file = File.tempfile("rt_stdout")
+        err_file = File.tempfile("rt_stderr")
         begin
-          status = Process.run(exe, args, env: env, output: stdout, error: stderr)
-          out_str = stdout.to_s + "\n" + stderr.to_s
+          status = Process.run(exe, args, env: env, output: out_file, error: err_file)
+          out_file.rewind
+          err_file.rewind
+          out_str = out_file.gets_to_end + "\n" + err_file.gets_to_end
           passed_count = out_str.scan(/✔/).size
           fail_count = out_str.scan(/✘/).size
           total_count = passed_count + fail_count
@@ -343,6 +358,9 @@ module Lapis
             output: "Failed to run runtime tests: #{ex.message}",
             exit_code: -1
           )
+        ensure
+          out_file.delete rescue nil
+          err_file.delete rescue nil
         end
       end
     end

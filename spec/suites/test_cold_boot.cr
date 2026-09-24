@@ -41,7 +41,7 @@ GDSCRIPT
 
     # Execute isolated script in a fresh Godot subprocess
     res = boot.run_isolated_script("temp_isolated_runner.gd")
-    assert_true res.passed, "Isolated cold boot process must succeed"
+    assert_true res.passed, "Isolated cold boot process must succeed: #{res.message}"
     assert_string_contains res.message, "[ColdBootIsolated] Hello from isolated engine environment!"
   end
 
@@ -70,7 +70,7 @@ GDSCRIPT
 
     boot.write_script("scene_test.gd", scene_code)
     res = boot.run_isolated_script("scene_test.gd")
-    assert_true res.passed, "Isolated scene execution should pass"
+    assert_true res.passed, "Isolated scene execution should pass: #{res.message}"
     assert_string_contains res.message, "[ColdBootScene] Node created: IsolatedNode"
   end
 end

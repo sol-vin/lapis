@@ -1041,6 +1041,7 @@ module Lapis
         res_script = script_rel_path.starts_with?("res://") ? script_rel_path : "res://#{script_rel_path}"
         run_args = [
           "--headless",
+          "--audio-driver", "Dummy",
           "--quit-after", "100",
           "--path", @sandbox_dir,
           "-s", res_script,
@@ -1063,8 +1064,11 @@ module Lapis
             proc.terminate rescue nil
             Crystal::System::Thread.sleep(100.milliseconds)
             proc.terminate(graceful: false) rescue nil
+            out_file.rewind
+            err_file.rewind
+            out_str = out_file.gets_to_end + "\n" + err_file.gets_to_end
             duration = (::Time.instant - start).total_milliseconds
-            return TestResult.new("ColdBoot", @test_name, false, "Isolated engine process timed out after 10s", duration, "FAIL")
+            return TestResult.new("ColdBoot", @test_name, false, "Isolated engine process timed out after 10s: #{out_str.strip}", duration, "FAIL")
           end
 
           status = proc.wait
@@ -1088,6 +1092,7 @@ module Lapis
       def run_isolated_project(args : Array(String) = [] of String) : TestResult
         run_args = [
           "--headless",
+          "--audio-driver", "Dummy",
           "--quit-after", "100",
           "--path", @sandbox_dir,
         ] + args
@@ -1108,8 +1113,11 @@ module Lapis
             proc.terminate rescue nil
             Crystal::System::Thread.sleep(100.milliseconds)
             proc.terminate(graceful: false) rescue nil
+            out_file.rewind
+            err_file.rewind
+            out_str = out_file.gets_to_end + "\n" + err_file.gets_to_end
             duration = (::Time.instant - start).total_milliseconds
-            return TestResult.new("ColdBoot", @test_name, false, "Isolated engine project timed out after 10s", duration, "FAIL")
+            return TestResult.new("ColdBoot", @test_name, false, "Isolated engine project timed out after 10s: #{out_str.strip}", duration, "FAIL")
           end
 
           status = proc.wait

@@ -19,8 +19,8 @@ describe Lapis::Test::EditorDriver do
     next unless godot && File.exists?(godot)
     next unless File.exists?("bin/crystal_bridge.#{ext}") && File.exists?("bin/game.#{ext}")
 
-    res = Lapis::Test::EditorDriver.run_tool_tests(project: ".", quit_frames: 40)
-    res.passed?.should be_true
+    res = Lapis::Test::EditorDriver.run_tool_tests(project: ".", quit_frames: 300)
+    res.passed?.should be_true, "In-editor tool tests failed (exit #{res.exit_code}):\n#{res.output}"
   end
 
   it "executes headless runtime test suites via EditorDriver" do
@@ -28,7 +28,7 @@ describe Lapis::Test::EditorDriver do
     next unless godot && File.exists?(godot)
     next unless File.exists?("bin/crystal_bridge.#{ext}") && File.exists?("bin/game.#{ext}")
 
-    res = Lapis::Test::EditorDriver.run_runtime_tests(project: ".", category: "Core", quit_frames: 60)
-    res.passed?.should be_true
+    res = Lapis::Test::EditorDriver.run_runtime_tests(project: ".", category: "Core", quit_frames: 600)
+    res.passed?.should be_true, "Runtime tests failed (exit #{res.exit_code}):\n#{res.output}"
   end
 end
