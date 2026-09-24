@@ -213,6 +213,16 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: lapis-cli-windows
+          path: bin
+
+      - name: Verify Lapis Toolchain and Bridge
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "bin")) { New-Item -ItemType Directory -Force -Path "bin" | Out-Null }
+          Get-ChildItem -Filter "*.exe","*.dll" | ForEach-Object {
+            if (-not (Test-Path "bin/$($_.Name)")) { Move-Item -Force $_.FullName "bin/$($_.Name)" }
+          }
+          Get-ChildItem -Path "bin"
 
       - name: Resolve Godot Version
         id: godot-version
@@ -337,10 +347,16 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: lapis-cli-linux
+          path: bin
 
       - name: Fix Lapis CLI Permissions
         run: |
-          chmod +x bin/lapis
+          mkdir -p bin
+          for f in lapis crystal_bridge.so; do
+            if [ -f "$f" ] && [ ! -f "bin/$f" ]; then mv "$f" bin/; fi
+          done
+          chmod +x bin/lapis 2>/dev/null || true
+          ls -la bin/
 
       - name: Resolve Godot Version
         id: godot-version
@@ -439,10 +455,16 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: lapis-cli-macos
+          path: bin
 
       - name: Fix Lapis CLI Permissions
         run: |
-          chmod +x bin/lapis
+          mkdir -p bin
+          for f in lapis crystal_bridge.dylib; do
+            if [ -f "$f" ] && [ ! -f "bin/$f" ]; then mv "$f" bin/; fi
+          done
+          chmod +x bin/lapis 2>/dev/null || true
+          ls -la bin/
 
       - name: Resolve Godot Version
         id: godot-version
@@ -550,6 +572,15 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: core-binaries-windows
+
+      - name: Verify Core Binaries
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "bin")) { New-Item -ItemType Directory -Force -Path "bin" | Out-Null }
+          Get-ChildItem -Filter "*.exe","*.dll" | ForEach-Object {
+            if (-not (Test-Path "bin/$($_.Name)")) { Move-Item -Force $_.FullName "bin/$($_.Name)" }
+          }
+          Get-ChildItem -Path "bin"
 
       - name: Resolve Godot Version
         id: godot-version
@@ -749,7 +780,12 @@ jobs:
 
       - name: Fix Binary Permissions
         run: |
+          mkdir -p bin
+          for f in lapis game *.so; do
+            if [ -f "$f" ] && [ ! -f "bin/$f" ]; then mv "$f" bin/; fi
+          done
           chmod +x bin/lapis bin/*.so bin/game 2>/dev/null || true
+          ls -la bin/
 
       - name: Resolve Godot Version
         id: godot-version
@@ -893,7 +929,12 @@ jobs:
 
       - name: Fix Binary Permissions
         run: |
+          mkdir -p bin
+          for f in lapis game *.dylib; do
+            if [ -f "$f" ] && [ ! -f "bin/$f" ]; then mv "$f" bin/; fi
+          done
           chmod +x bin/lapis bin/*.dylib bin/game 2>/dev/null || true
+          ls -la bin/
 
       - name: Resolve Godot Version
         id: godot-version
@@ -1049,6 +1090,15 @@ jobs:
         with:
           name: core-binaries-windows
 
+      - name: Verify Core Binaries
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "bin")) { New-Item -ItemType Directory -Force -Path "bin" | Out-Null }
+          Get-ChildItem -Filter "*.exe","*.dll" | ForEach-Object {
+            if (-not (Test-Path "bin/$($_.Name)")) { Move-Item -Force $_.FullName "bin/$($_.Name)" }
+          }
+          Get-ChildItem -Path "bin"
+
       - name: Resolve Godot Version
         id: godot-version
         shell: pwsh
@@ -1167,7 +1217,12 @@ jobs:
 
       - name: Fix Binary Permissions
         run: |
+          mkdir -p bin
+          for f in lapis game *.so; do
+            if [ -f "$f" ] && [ ! -f "bin/$f" ]; then mv "$f" bin/; fi
+          done
           chmod +x bin/lapis bin/*.so bin/game 2>/dev/null || true
+          ls -la bin/
 
       - name: Resolve Godot Version
         id: godot-version
@@ -1273,7 +1328,12 @@ jobs:
 
       - name: Fix Binary Permissions
         run: |
+          mkdir -p bin
+          for f in lapis game *.dylib; do
+            if [ -f "$f" ] && [ ! -f "bin/$f" ]; then mv "$f" bin/; fi
+          done
           chmod +x bin/lapis bin/*.dylib bin/game 2>/dev/null || true
+          ls -la bin/
 
       - name: Resolve Godot Version
         id: godot-version
@@ -1388,6 +1448,15 @@ jobs:
         with:
           name: core-binaries-windows
 
+      - name: Verify Core Binaries
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "bin")) { New-Item -ItemType Directory -Force -Path "bin" | Out-Null }
+          Get-ChildItem -Filter "*.exe","*.dll" | ForEach-Object {
+            if (-not (Test-Path "bin/$($_.Name)")) { Move-Item -Force $_.FullName "bin/$($_.Name)" }
+          }
+          Get-ChildItem -Path "bin"
+
       - name: Download Consumer Packages
         uses: actions/download-artifact@v4
         with:
@@ -1451,7 +1520,12 @@ jobs:
 
       - name: Fix Binary Permissions
         run: |
+          mkdir -p bin
+          for f in lapis game *.so; do
+            if [ -f "$f" ] && [ ! -f "bin/$f" ]; then mv "$f" bin/; fi
+          done
           chmod +x bin/lapis bin/*.so bin/game 2>/dev/null || true
+          ls -la bin/
 
       - name: Package Linux Debian Package
         run: |
