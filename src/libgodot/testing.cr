@@ -1038,7 +1038,7 @@ module Lapis
 
       # Runs an isolated script in a dedicated headless Godot process with complete environment isolation.
       def run_isolated_script(script_rel_path : String, args : Array(String) = [] of String) : TestResult
-        script_path = File.join(@sandbox_dir, script_rel_path)
+        res_script = script_rel_path.starts_with?("res://") ? script_rel_path : "res://#{script_rel_path}"
         env = {
           "GODOT_HEADLESS"        => "1",
           "LIBGL_ALWAYS_SOFTWARE" => "1",
@@ -1050,7 +1050,7 @@ module Lapis
           "--audio-driver", "Dummy",
           "--quit-after", "100",
           "--path", @sandbox_dir,
-          "--script", script_path,
+          "-s", res_script,
           "--"
         ] + args
 
@@ -1058,29 +1058,7 @@ module Lapis
         stderr = IO::Memory.new
         start = ::Time.instant
         begin
-          proc = Process.new(@godot_exe, run_args, env: env, output: stdout, error: stderr)
-          done = false
-          wait_thread = ::Thread.new do
-            proc.wait
-            done = true
-          end
-
-          deadline = ::Time.instant + 15.seconds
-          while !done && ::Time.instant < deadline
-            Crystal::System::Thread.sleep(50.milliseconds)
-          end
-
-          if !done
-            proc.terminate rescue nil
-            Crystal::System::Thread.sleep(200.milliseconds)
-            proc.terminate(graceful: false) rescue nil
-            wait_thread.join
-            duration = (::Time.instant - start).total_milliseconds
-            return TestResult.new("ColdBoot", @test_name, false, "Isolated engine process timed out after 15s", duration, "FAIL")
-          end
-
-          wait_thread.join
-          status = proc.wait
+          status = Process.run(@godot_exe, run_args, env: env, output: stdout, error: stderr)
           duration = (::Time.instant - start).total_milliseconds
           out_str = stdout.to_s + "\n" + stderr.to_s
           success = status.success?
@@ -1111,29 +1089,7 @@ module Lapis
         stderr = IO::Memory.new
         start = ::Time.instant
         begin
-          proc = Process.new(@godot_exe, run_args, env: env, output: stdout, error: stderr)
-          done = false
-          wait_thread = ::Thread.new do
-            proc.wait
-            done = true
-          end
-
-          deadline = ::Time.instant + 15.seconds
-          while !done && ::Time.instant < deadline
-            Crystal::System::Thread.sleep(50.milliseconds)
-          end
-
-          if !done
-            proc.terminate rescue nil
-            Crystal::System::Thread.sleep(200.milliseconds)
-            proc.terminate(graceful: false) rescue nil
-            wait_thread.join
-            duration = (::Time.instant - start).total_milliseconds
-            return TestResult.new("ColdBoot", @test_name, false, "Isolated engine project timed out after 15s", duration, "FAIL")
-          end
-
-          wait_thread.join
-          status = proc.wait
+          status = Process.run(@godot_exe, run_args, env: env, output: stdout, error: stderr)
           duration = (::Time.instant - start).total_milliseconds
           out_str = stdout.to_s + "\n" + stderr.to_s
           success = status.success?
@@ -1151,7 +1107,7 @@ module Lapis
       end
 
       private def resolve_godot : String?
-        if env_bin = ENV["GODOT_BIN"]? || ENV["GODOT"]?
+        if env_bin = ENV["GODOT_BIN"]? || ENV["GODOT"]? || ENV["GODOT4"]? || ENV["GODOT4_BIN"]?
           return env_bin if File.exists?(env_bin)
         end
         ["./godot.exe", "../godot.exe", "godot.exe", "./godot", "../godot", "godot"].each do |c|
