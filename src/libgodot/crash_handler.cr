@@ -39,31 +39,18 @@
           {% end %}
           LibC._exit(1)
         when LibC::EXCEPTION_STACK_OVERFLOW
-          fault_addr = exception_info.value.exceptionRecord.value.exceptionAddress
-          fault_ptr = Pointer(Void).new(fault_addr)
-          h_ntdll = LibCrashFilter.GetModuleHandleA("ntdll.dll")
-          h_kbase = LibCrashFilter.GetModuleHandleA("kernelbase.dll")
-          h_k32 = LibCrashFilter.GetModuleHandleA("kernel32.dll")
-          if h_ntdll || h_kbase || h_k32
-            h_mod = Pointer(Void).null
-            # GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS (0x4) | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT (0x2)
-            flags = 0x00000004_u32 | 0x00000002_u32
-            if LibCrashFilter.GetModuleHandleExA(flags, fault_ptr.as(LibC::Char*), pointerof(h_mod)) != 0 && (h_mod == h_ntdll || h_mod == h_kbase || h_mod == h_k32)
-              # Injected debugger thread (e.g. ntdll!DbgUiRemoteBreakin) or system stack probe.
-              LibC._resetstkoflw
-              return LibCrashFilter::EXCEPTION_CONTINUE_EXECUTION
-            end
-          end
-
-          # Genuine user code stack overflow
+          # When LLDB or any native debugger attaches to a running Windows process,
+          # Windows injects a remote thread (ntdll!DbgUiRemoteBreakin) configured with a minimal initial stack.
+          # Crystal's runtime calls SetThreadStackGuarantee during startup, which causes an artificial
+          # EXCEPTION_STACK_OVERFLOW (0xC00000FD) when foreign debugger threads enter.
+          #
+          # To safely absorb this without terminating the process (matching common.hpp segment 1):
+          # We reset the stack overflow guard page via _resetstkoflw and return
+          # EXCEPTION_CONTINUE_EXECUTION so the debugger thread can complete attachment and hit DbgBreakPoint.
+          # Genuine infinite recursion will hit the hard stack boundary, triggering
+          # EXCEPTION_ACCESS_VIOLATION (0xC0000005) which captures a full diagnostic backtrace.
           LibC._resetstkoflw
-          Crystal::System.print_error "Stack overflow (e.g., infinite or very deep recursion)\n"
-          {% if flag?(:gnu) %}
-            Exception::CallStack.print_backtrace
-          {% else %}
-            Exception::CallStack.print_backtrace(exception_info)
-          {% end %}
-          LibC._exit(1)
+          return LibCrashFilter::EXCEPTION_CONTINUE_EXECUTION
         else
           LibC::EXCEPTION_CONTINUE_SEARCH
         end
