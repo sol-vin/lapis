@@ -1,5 +1,5 @@
 name: lapis
-version: 0.0.58
+version: 0.0.59
 crystal: ">= 1.20.0, <= 1.21.0"
 
 authors:
@@ -11,9 +11,5 @@ description: |
 targets:
   lapis:
     main: tools/lapis/src/lapis.cr
-
-dependencies:
-  crystalline:
-    github: elbywan/crystalline
 
 license: MIT

@@ -63,7 +63,9 @@ module Lapis
           r_loader.call("remove_resource_format_loader", loader) rescue nil
         end
       end
-      # Dropping loader from ResourceLoader drops Godot's reference safely
+      if loader.alive?
+        loader.destroy rescue nil
+      end
       loader = nil
       @@instance = nil
     end
@@ -258,7 +260,9 @@ module Lapis
           r_saver.call("remove_resource_format_saver", saver) rescue nil
         end
       end
-      # Dropping saver from ResourceSaver drops Godot's reference safely
+      if saver.alive?
+        saver.destroy rescue nil
+      end
       saver = nil
       @@instance = nil
     end

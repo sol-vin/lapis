@@ -293,10 +293,11 @@ module Lapis
           failed_marker = [File.join(project, ".tool_tests_failed"), File.join(project, "bin/.tool_tests_failed")].any? { |f| File.exists?(f) }
 
           success = (status.success? || passed_marker) && !failed_marker && fail_count == 0
+          code = status.normal_exit? ? status.exit_code : -1
           DriverResult.new(
             success: success,
             output: out_str,
-            exit_code: status.exit_code,
+            exit_code: code,
             passed_count: passed_count,
             total_count: total_count
           )
@@ -345,10 +346,11 @@ module Lapis
           failed_marker = [File.join(project, ".runtime_tests_failed"), File.join(project, "bin/.runtime_tests_failed")].any? { |f| File.exists?(f) }
 
           success = (status.success? || passed_marker) && !failed_marker && fail_count == 0
+          code = status.normal_exit? ? status.exit_code : -1
           DriverResult.new(
             success: success,
             output: out_str,
-            exit_code: status.exit_code,
+            exit_code: code,
             passed_count: passed_count,
             total_count: total_count
           )

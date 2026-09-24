@@ -1052,33 +1052,15 @@ module Lapis
         err_file = File.tempfile("stderr")
         start = ::Time.instant
         begin
-          proc = Process.new(@godot_exe, run_args, output: out_file, error: err_file)
-          done = false
-          deadline = ::Time.instant + 10.seconds
-          while !done && ::Time.instant < deadline
-            Crystal::System::Thread.sleep(50.milliseconds)
-            done = true if proc.terminated?
-          end
-
-          if !done
-            proc.terminate rescue nil
-            Crystal::System::Thread.sleep(100.milliseconds)
-            proc.terminate(graceful: false) rescue nil
-            out_file.rewind
-            err_file.rewind
-            out_str = out_file.gets_to_end + "\n" + err_file.gets_to_end
-            duration = (::Time.instant - start).total_milliseconds
-            return TestResult.new("ColdBoot", @test_name, false, "Isolated engine process timed out after 10s: #{out_str.strip}", duration, "FAIL")
-          end
-
-          status = proc.wait
+          status = Process.run(@godot_exe, run_args, output: out_file, error: err_file)
           out_file.rewind
           err_file.rewind
           duration = (::Time.instant - start).total_milliseconds
           out_str = out_file.gets_to_end + "\n" + err_file.gets_to_end
+          code = status.normal_exit? ? status.exit_code : -1
           success = status.success?
           status_str = success ? "PASS" : "FAIL"
-          TestResult.new("ColdBoot", @test_name, success, success ? out_str.strip : "Process exited with code #{status.exit_code}: #{out_str}", duration, status_str)
+          TestResult.new("ColdBoot", @test_name, success, success ? out_str.strip : "Process exited with code #{code}: #{out_str}", duration, status_str)
         rescue ex
           duration = (::Time.instant - start).total_milliseconds
           TestResult.new("ColdBoot", @test_name, false, "Failed to launch isolated engine: #{ex.message}", duration, "FAIL")
@@ -1101,33 +1083,15 @@ module Lapis
         err_file = File.tempfile("stderr")
         start = ::Time.instant
         begin
-          proc = Process.new(@godot_exe, run_args, output: out_file, error: err_file)
-          done = false
-          deadline = ::Time.instant + 10.seconds
-          while !done && ::Time.instant < deadline
-            Crystal::System::Thread.sleep(50.milliseconds)
-            done = true if proc.terminated?
-          end
-
-          if !done
-            proc.terminate rescue nil
-            Crystal::System::Thread.sleep(100.milliseconds)
-            proc.terminate(graceful: false) rescue nil
-            out_file.rewind
-            err_file.rewind
-            out_str = out_file.gets_to_end + "\n" + err_file.gets_to_end
-            duration = (::Time.instant - start).total_milliseconds
-            return TestResult.new("ColdBoot", @test_name, false, "Isolated engine project timed out after 10s: #{out_str.strip}", duration, "FAIL")
-          end
-
-          status = proc.wait
+          status = Process.run(@godot_exe, run_args, output: out_file, error: err_file)
           out_file.rewind
           err_file.rewind
           duration = (::Time.instant - start).total_milliseconds
           out_str = out_file.gets_to_end + "\n" + err_file.gets_to_end
+          code = status.normal_exit? ? status.exit_code : -1
           success = status.success?
           status_str = success ? "PASS" : "FAIL"
-          TestResult.new("ColdBoot", @test_name, success, success ? out_str.strip : "Process exited with code #{status.exit_code}: #{out_str}", duration, status_str)
+          TestResult.new("ColdBoot", @test_name, success, success ? out_str.strip : "Process exited with code #{code}: #{out_str}", duration, status_str)
         rescue ex
           duration = (::Time.instant - start).total_milliseconds
           TestResult.new("ColdBoot", @test_name, false, "Failed to launch isolated engine project: #{ex.message}", duration, "FAIL")

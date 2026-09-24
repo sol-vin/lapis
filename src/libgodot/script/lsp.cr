@@ -63,17 +63,17 @@ module Lapis
     end
 
     def initialize
-      {% if @top_level.has_constant?("Crystalline") %}
+      exe_name = {% if flag?(:windows) %} "crystalline.exe" {% else %} "crystalline" {% end %}
+      if found = Process.find_executable("crystalline")
+        @server_path = File.expand_path(found)
         @enabled = true
-        @server_path = "crystalline"
-      {% else %}
-        if found = Process.find_executable("crystalline")
-          @server_path = File.expand_path(found)
-          @enabled = true
-        else
-          @enabled = false
-        end
-      {% end %}
+      elsif File.exists?(File.join(Dir.current, "bin", exe_name))
+        @server_path = File.expand_path(File.join(Dir.current, "bin", exe_name))
+        @enabled = true
+      else
+        @server_path = ""
+        @enabled = false
+      end
     end
 
     def available? : Bool

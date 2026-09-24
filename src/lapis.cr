@@ -22,9 +22,6 @@ require "./libgodot/testing"
 {% unless flag?(:release) %}
   require "./libgodot/debugger/agent"
 {% end %}
-{% if flag?(:editor) %}
-  require "crystalline"
-{% end %}
 {% unless flag?(:release) || flag?(:libgodot_addon) || flag?(:no_editor) %}
   require "./libgodot/script"
   require "./libgodot/debugger/lldb_driver"
