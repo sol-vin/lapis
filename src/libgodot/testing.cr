@@ -1039,65 +1039,93 @@ module Lapis
       # Runs an isolated script in a dedicated headless Godot process with complete environment isolation.
       def run_isolated_script(script_rel_path : String, args : Array(String) = [] of String) : TestResult
         res_script = script_rel_path.starts_with?("res://") ? script_rel_path : "res://#{script_rel_path}"
-        env = {
-          "GODOT_HEADLESS"        => "1",
-          "LIBGL_ALWAYS_SOFTWARE" => "1",
-          "LAPIS_COLD_BOOT"       => "1",
-        }
         run_args = [
           "--headless",
-          "--rendering-driver", "opengl3",
-          "--audio-driver", "Dummy",
           "--quit-after", "100",
           "--path", @sandbox_dir,
           "-s", res_script,
           "--"
         ] + args
 
-        stdout = IO::Memory.new
-        stderr = IO::Memory.new
+        out_file = File.tempfile("stdout")
+        err_file = File.tempfile("stderr")
         start = ::Time.instant
         begin
-          status = Process.run(@godot_exe, run_args, env: env, output: stdout, error: stderr)
+          proc = Process.new(@godot_exe, run_args, output: out_file, error: err_file)
+          done = false
+          deadline = ::Time.instant + 10.seconds
+          while !done && ::Time.instant < deadline
+            Crystal::System::Thread.sleep(50.milliseconds)
+            done = true if proc.terminated?
+          end
+
+          if !done
+            proc.terminate rescue nil
+            Crystal::System::Thread.sleep(100.milliseconds)
+            proc.terminate(graceful: false) rescue nil
+            duration = (::Time.instant - start).total_milliseconds
+            return TestResult.new("ColdBoot", @test_name, false, "Isolated engine process timed out after 10s", duration, "FAIL")
+          end
+
+          status = proc.wait
+          out_file.rewind
+          err_file.rewind
           duration = (::Time.instant - start).total_milliseconds
-          out_str = stdout.to_s + "\n" + stderr.to_s
+          out_str = out_file.gets_to_end + "\n" + err_file.gets_to_end
           success = status.success?
           status_str = success ? "PASS" : "FAIL"
           TestResult.new("ColdBoot", @test_name, success, success ? out_str.strip : "Process exited with code #{status.exit_code}: #{out_str}", duration, status_str)
         rescue ex
           duration = (::Time.instant - start).total_milliseconds
           TestResult.new("ColdBoot", @test_name, false, "Failed to launch isolated engine: #{ex.message}", duration, "FAIL")
+        ensure
+          out_file.delete rescue nil
+          err_file.delete rescue nil
         end
       end
 
       # Executes the isolated project in headless runtime mode
       def run_isolated_project(args : Array(String) = [] of String) : TestResult
-        env = {
-          "GODOT_HEADLESS"        => "1",
-          "LIBGL_ALWAYS_SOFTWARE" => "1",
-          "LAPIS_COLD_BOOT"       => "1",
-        }
         run_args = [
           "--headless",
-          "--rendering-driver", "opengl3",
-          "--audio-driver", "Dummy",
           "--quit-after", "100",
           "--path", @sandbox_dir,
         ] + args
 
-        stdout = IO::Memory.new
-        stderr = IO::Memory.new
+        out_file = File.tempfile("stdout")
+        err_file = File.tempfile("stderr")
         start = ::Time.instant
         begin
-          status = Process.run(@godot_exe, run_args, env: env, output: stdout, error: stderr)
+          proc = Process.new(@godot_exe, run_args, output: out_file, error: err_file)
+          done = false
+          deadline = ::Time.instant + 10.seconds
+          while !done && ::Time.instant < deadline
+            Crystal::System::Thread.sleep(50.milliseconds)
+            done = true if proc.terminated?
+          end
+
+          if !done
+            proc.terminate rescue nil
+            Crystal::System::Thread.sleep(100.milliseconds)
+            proc.terminate(graceful: false) rescue nil
+            duration = (::Time.instant - start).total_milliseconds
+            return TestResult.new("ColdBoot", @test_name, false, "Isolated engine project timed out after 10s", duration, "FAIL")
+          end
+
+          status = proc.wait
+          out_file.rewind
+          err_file.rewind
           duration = (::Time.instant - start).total_milliseconds
-          out_str = stdout.to_s + "\n" + stderr.to_s
+          out_str = out_file.gets_to_end + "\n" + err_file.gets_to_end
           success = status.success?
           status_str = success ? "PASS" : "FAIL"
           TestResult.new("ColdBoot", @test_name, success, success ? out_str.strip : "Process exited with code #{status.exit_code}: #{out_str}", duration, status_str)
         rescue ex
           duration = (::Time.instant - start).total_milliseconds
           TestResult.new("ColdBoot", @test_name, false, "Failed to launch isolated engine project: #{ex.message}", duration, "FAIL")
+        ensure
+          out_file.delete rescue nil
+          err_file.delete rescue nil
         end
       end
 

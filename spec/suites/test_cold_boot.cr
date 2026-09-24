@@ -26,6 +26,9 @@ func _initialize() -> void:
 func _init() -> void:
 	print("[ColdBootIsolated] Hello from isolated engine environment! Time: %d" % Time.get_ticks_msec())
 	quit(0)
+
+func _process(_delta: float) -> bool:
+	return true
 GDSCRIPT
 
     boot.write_script("temp_isolated_runner.gd", script_content)
@@ -60,6 +63,9 @@ func _init() -> void:
 	print("[ColdBootScene] Node created: %s" % node.name)
 	node.free()
 	quit(0)
+
+func _process(_delta: float) -> bool:
+	return true
 GDSCRIPT
 
     boot.write_script("scene_test.gd", scene_code)
