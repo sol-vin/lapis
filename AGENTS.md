@@ -302,6 +302,7 @@ This repository includes specialized Antigravity agent skills in `.agents/skills
 - **`libgodot-benchmarks`**: Runbook for compiling, running, profiling, and charting the Crystal vs GDScript performance benchmark suite.
 - **`libgodot-test-runner`**: Runbook for executing specs, headless in-editor tests, and runtime test suites.
 - **`libgodot-concurrency-safety`**: Safety patterns for fibers, background OS threads, actor channels, and dead-pointer prevention.
+- **`crystal-execution-contexts`**: Multithreading and fiber orchestration patterns with Crystal Execution Contexts (`Concurrent`, `Parallel`, `Isolated`, dynamic work-stealing, and thread scaling).
 - **`libgodot-api-generator`**: Guide for dumping Godot extension API and updating Crystal class bindings.
 - **`libgodot-scaffold`**: Guide for scaffolding new showcase examples and GDExtension addons.
 

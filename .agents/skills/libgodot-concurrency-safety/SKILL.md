@@ -130,3 +130,10 @@ end
 ### 4. Standalone Nodes vs Parented Nodes
 - **Parented**: Owned by the SceneTree. Use `node.queue_free`.
 - **Standalone Unparented**: If created via `Godot.create(...)` and not added to the tree, you **MUST** call `node.destroy` when finished to prevent native C++ memory leaks.
+
+---
+
+## Related Skills
+
+- **[`crystal-execution-contexts`](../crystal-execution-contexts/SKILL.md)**: Deep dive into Crystal's execution contexts (`Fiber::ExecutionContext`), work-stealing schedulers, dynamic thread scaling, `Concurrent`, `Parallel`, and `Isolated` models.
+
