@@ -125,7 +125,9 @@ func _run_in_editor_tool_tests():
 	# 3b. Verify Crystal Main Screen Editor Tab and Panel
 	print("[CrystalToolTester] Verifying Crystal main screen editor plugin configuration...")
 	var plugin_script = load("res://addons/crystal_integration/plugin.gd")
-	var crystal_plugin = plugin_script.new() if plugin_script else null
+	var crystal_plugin = null
+	if plugin_script and plugin_script.can_instantiate():
+		crystal_plugin = plugin_script.new()
 	var has_main = false
 	var plugin_name = ""
 	if crystal_plugin:

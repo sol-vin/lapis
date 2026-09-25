@@ -95,30 +95,47 @@ HELP
         end
       end
 
-      def self.download_to_file(url : String, dest_file : Path) : Bool
-        HTTP::Client.get(url) do |response|
-          if response.status_code == 301 || response.status_code == 302
-            redirect_url = response.headers["Location"]?
-            if redirect_url
-              return download_to_file(redirect_url, dest_file)
+      def self.download_to_file(url : String, dest_file : Path, max_retries : Int32 = 3) : Bool
+        attempts = 0
+        while attempts < max_retries
+          attempts += 1
+          begin
+            success = HTTP::Client.get(url) do |response|
+              if response.status_code == 301 || response.status_code == 302
+                redirect_url = response.headers["Location"]?
+                if redirect_url
+                  return download_to_file(redirect_url, dest_file, max_retries - attempts + 1)
+                end
+              end
+
+              unless response.status_code == 200
+                Core::Logger.warn("HTTP error downloading #{url}: #{response.status_code} #{response.status_message} (attempt #{attempts}/#{max_retries})")
+                next false
+              end
+
+              FileUtils.mkdir_p(dest_file.parent)
+              File.open(dest_file, "w") do |f|
+                IO.copy(response.body_io, f)
+              end
+              true
             end
+
+            return true if success
+          rescue ex
+            Core::Logger.warn("Network error downloading #{url}: #{ex.message} (attempt #{attempts}/#{max_retries})")
           end
 
-          unless response.status_code == 200
-            Core::Logger.error("HTTP error downloading #{url}: #{response.status_code} #{response.status_message}")
-            return false
+          if attempts < max_retries
+            backoff_sec = (1 << attempts)
+            sleep backoff_sec.seconds
           end
-
-          FileUtils.mkdir_p(dest_file.parent)
-          File.open(dest_file, "w") do |f|
-            IO.copy(response.body_io, f)
-          end
-          return true
         end
+
+        Core::Logger.error("Failed to download #{url} after #{max_retries} attempts")
         false
       end
 
-      def self.install_templates(root : Path, target_version : String, zip_output : Path? = nil) : Int32
+      def self.install_templates(root : Path, target_version : String, zip_output : Path? = nil, force : Bool = false) : Int32
         template_base = if Core::Env.windows?
                           if appdata = ENV["APPDATA"]?
                             Path.new(appdata).join("Godot/export_templates")
@@ -134,6 +151,25 @@ HELP
         ver_folder = target_version.gsub('-', '.')
         target_dir = template_base.join(ver_folder)
         FileUtils.mkdir_p(target_dir)
+
+        has_templates = Dir.exists?(target_dir) && (Dir.children(target_dir).size >= 3)
+        if has_templates && !force
+          Core::Logger.info("Export templates already installed at #{target_dir}. Use --force to re-download.")
+          if zo = zip_output
+            FileUtils.mkdir_p(zo.parent)
+            Core::Logger.step("Setup", "Packaging export templates zip -> #{zo}...")
+            File.open(zo, "w") do |file|
+              Compress::Zip::Writer.open(file) do |zip|
+                Dir.glob(target_dir.to_s.gsub('\\', '/') + "/**/*").each do |t_file|
+                  next if Dir.exists?(t_file)
+                  rel = Path.new(t_file).relative_to(target_dir).to_s.gsub('\\', '/')
+                  zip.add(rel, File.open(t_file))
+                end
+              end
+            end
+          end
+          return 0
+        end
 
         url = "https://github.com/godotengine/godot-builds/releases/download/#{target_version}/Godot_v#{target_version}_export_templates.tpz"
         Core::Logger.step("Setup", "Downloading Godot export templates from #{url}...")
@@ -287,7 +323,7 @@ HELP
         end
 
         if templates_mode
-          return install_templates(root, target_version, zip_output)
+          return install_templates(root, target_version, zip_output, force)
         end
 
         dest_exe = root.join("godot#{Core::Env.exe_ext}")
