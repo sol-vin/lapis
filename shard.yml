@@ -1,5 +1,5 @@
 name: lapis
-version: 0.0.86
+version: 0.0.87
 crystal: ">= 1.20.0, <= 1.21.0"
 
 authors:
@@ -8,8 +8,16 @@ authors:
 description: |
   Lapis: High-performance Crystal bindings and 2-way host integration for Godot Engine 4.8+ using LibGodot and GDExtension.
 
+crystalline:
+  main: src/main.cr
+
 targets:
   lapis:
     main: tools/lapis/src/lapis.cr
+  game:
+    main: src/main.cr
+  libgodot:
+    main: src/libgodot.cr
 
 license: MIT
+

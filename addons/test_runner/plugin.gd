@@ -243,7 +243,10 @@ func _run_in_editor_tool_tests():
 	var cr_script = load(test_tab_script_path)
 	if cr_script:
 		print("[CrystalToolTester]   ✔ Loaded %s as %s" % [cr_script.resource_path, cr_script.get_class()])
+		EditorInterface.set_main_screen_editor("Script")
 		EditorInterface.edit_script(cr_script, -1, 0, false)
+		for _f in range(3):
+			await get_tree().process_frame
 		print("[CrystalToolTester]   ✔ Successfully opened %s in EditorInterface.edit_script!" % cr_script.resource_path)
 		
 		var script_editor = EditorInterface.get_script_editor()
@@ -253,6 +256,96 @@ func _run_in_editor_tool_tests():
 				print("[CrystalToolTester]   ✔ ScriptEditor current script verified: %s (%s)" % [current_script.resource_path, current_script.get_class()])
 			else:
 				print("[CrystalToolTester]   ⚠ Note: ScriptEditor.get_current_script() returned null in headless batch mode")
+			
+			# Test Script Editor CodeEdit code completion
+			var current_editor = script_editor.get_current_editor()
+			if current_editor and current_editor.has_method("get_base_editor"):
+				var code_edit = current_editor.get_base_editor()
+				if code_edit and code_edit is CodeEdit:
+					code_edit.code_completion_enabled = true
+
+					var scenarios = [
+						{
+							"name": "Virtual Callbacks (def _)",
+							"text": "node Player < CharacterBody3D do\n  def _\nend\n",
+							"line": 1,
+							"col": 7,
+							"expected_prefix": "_ready",
+						},
+						{
+							"name": "Annotations (@)",
+							"text": "node Player < CharacterBody3D do\n  @\nend\n",
+							"line": 1,
+							"col": 3,
+							"expected_prefix": "@[Export",
+						},
+						{
+							"name": "Inheritance (<)",
+							"text": "node Player < \nend\n",
+							"line": 0,
+							"col": 14,
+							"expected_prefix": "Node",
+						},
+						{
+							"name": "Godot Singletons (Godot::)",
+							"text": "node Player < Node do\n  Godot::\nend\n",
+							"line": 1,
+							"col": 9,
+							"expected_prefix": "Engine",
+						},
+						{
+							"name": "Node Member Access (.)",
+							"text": "node Player < Node2D do\n  def test : Void\n    self.\n  end\nend\n",
+							"line": 2,
+							"col": 9,
+							"expected_prefix": "position",
+						},
+						{
+							"name": "Local Symbols & Signals",
+							"text": "node Player < Node do\n  property health : Int32 = 100\n  signal jumped\n  hea\nend\n",
+							"line": 3,
+							"col": 5,
+							"expected_prefix": "health",
+						},
+					]
+
+					for s in scenarios:
+						code_edit.set_text(s["text"])
+						code_edit.set_caret_line(s["line"])
+						code_edit.set_caret_column(s["col"])
+						code_edit.request_code_completion(true)
+						await get_tree().process_frame
+						var comp_options = code_edit.get_code_completion_options()
+						if comp_options.size() == 0:
+							var msg = "[CrystalToolTester] FAILED: CodeEdit code completion scenario '%s' returned 0 options!" % s["name"]
+							printerr(msg)
+							error_messages.append(msg)
+							errors += 1
+						else:
+							var found_expected = false
+							for opt in comp_options:
+								var d_text = opt.get("display_text", "")
+								if d_text.begins_with(s["expected_prefix"]) or d_text.contains(s["expected_prefix"]):
+									found_expected = true
+									break
+							if not found_expected:
+								var msg = "[CrystalToolTester] FAILED: CodeEdit scenario '%s' did not contain expected '%s' (got %d options, first: '%s')!" % [s["name"], s["expected_prefix"], comp_options.size(), comp_options[0].get("display_text", "") if comp_options.size() > 0 else ""]
+								printerr(msg)
+								error_messages.append(msg)
+								errors += 1
+							else:
+								print("[CrystalToolTester]   ✔ Code completion '%s' verified (%d options, matched '%s')" % [s["name"], comp_options.size(), s["expected_prefix"]])
+							
+							if s["name"].begins_with("Virtual Callbacks"):
+								code_edit.confirm_code_completion()
+								var resulting_code = code_edit.get_text()
+								if resulting_code.contains("_enter_tree : Void") or resulting_code.contains("_ready : Void") or resulting_code.contains("def _"):
+									print("[CrystalToolTester]   ✔ Code completion confirmation inserted clean callback into buffer")
+								else:
+									var msg = "[CrystalToolTester] FAILED: confirm_code_completion did not insert callback into buffer! Result:\n" + resulting_code
+									printerr(msg)
+									error_messages.append(msg)
+									errors += 1
 		
 		# Test saving the existing script via ResourceSaver
 		var save_err = ResourceSaver.save(cr_script, cr_script.resource_path)

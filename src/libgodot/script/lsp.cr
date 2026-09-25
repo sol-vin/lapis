@@ -53,6 +53,7 @@ module Lapis
     getter server_path : String = "crystalline"
     @process : Process? = nil
     @is_running : Bool = false
+    @starting : Bool = false
     @next_id : Int32 = 1
     @mutex : ::Thread::Mutex = ::Thread::Mutex.new
     @open_docs : Hash(String, Int32) = Hash(String, Int32).new
@@ -64,11 +65,17 @@ module Lapis
 
     def initialize
       exe_name = {% if flag?(:windows) %} "crystalline.exe" {% else %} "crystalline" {% end %}
+      local_app = ENV["LOCALAPPDATA"]?
+      installed_path = local_app ? File.join(local_app, "Programs", "Lapis", "bin", exe_name) : nil
+
       if found = Process.find_executable("crystalline")
         @server_path = File.expand_path(found)
         @enabled = true
       elsif File.exists?(File.join(Dir.current, "bin", exe_name))
         @server_path = File.expand_path(File.join(Dir.current, "bin", exe_name))
+        @enabled = true
+      elsif installed_path && File.exists?(installed_path)
+        @server_path = File.expand_path(installed_path)
         @enabled = true
       else
         @server_path = ""
@@ -85,6 +92,20 @@ module Lapis
         @is_running && !proc.terminated?
       else
         false
+      end
+    end
+
+    # Non-blocking background startup so editor never stalls on main thread
+    def ensure_started_async(workspace_root : String? = nil) : Void
+      return unless available?
+      return if running? || @starting
+      @starting = true
+      ::Thread.new do
+        begin
+          start(workspace_root)
+        ensure
+          @starting = false
+        end
       end
     end
 
@@ -137,8 +158,8 @@ module Lapis
           }.to_json
 
           write_message(init_req)
-          # Await initialize response (timeout 500ms)
-          res = read_message(500)
+          # Await initialize response (timeout 2000ms for reliable spawn)
+          res = read_message(2000)
           if res
             # Send initialized notification
             initialized_ntf = {
@@ -208,9 +229,11 @@ module Lapis
     end
 
     # Requests code completion from Crystalline LSP with timeout
-    def request_completion(code : String, path : String, line : Int32, column : Int32, timeout_ms : Int32 = 150) : Array(CompletionItem)?
-      start unless running?
-      return nil unless running?
+    def request_completion(code : String, path : String, line : Int32, column : Int32, timeout_ms : Int32 = 60) : Array(CompletionItem)?
+      unless running?
+        ensure_started_async
+        return nil
+      end
 
       @mutex.synchronize do
         return nil unless running?
@@ -280,9 +303,11 @@ module Lapis
     end
 
     # Requests definition jump target from Crystalline LSP with timeout
-    def request_definition(code : String, path : String, line : Int32, column : Int32, timeout_ms : Int32 = 150) : Tuple(String, Int32)?
-      start unless running?
-      return nil unless running?
+    def request_definition(code : String, path : String, line : Int32, column : Int32, timeout_ms : Int32 = 100) : Tuple(String, Int32)?
+      unless running?
+        ensure_started_async
+        return nil
+      end
 
       @mutex.synchronize do
         return nil unless running?
@@ -424,7 +449,10 @@ module Lapis
       return false unless proc && !proc.terminated?
 
       {% if flag?(:windows) %}
-        handle = Pointer(Void).new(proc.output.as(IO::FileDescriptor).fd)
+        raw_fd = proc.output.as(IO::FileDescriptor).fd
+        os_handle = LibC._get_osfhandle(raw_fd)
+        return false if os_handle == -1 || os_handle == 0
+        handle = Pointer(Void).new(os_handle.to_u64)
         bytes_avail = 0_u32
         start_instant = ::Time.instant
         loop do

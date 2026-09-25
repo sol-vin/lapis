@@ -327,8 +327,10 @@ module Godot
       # Callbacks for C host
       create_fn = ->(desc : LibBridge::CrystalClassDesc*, godot_obj : Void*) : Void* {
         class_name = String.new(desc.value.name)
+        Godot.print("[create_fn] ENTERED: class_name='#{class_name}', godot_obj=#{godot_obj}")
         if entry = Godot::ClassRegistry.find(class_name)
           inst = entry.create_proc.call(godot_obj)
+          Godot.print("[create_fn] inst=#{inst.class.name} (#{inst}) for class_name='#{class_name}'")
           inst.pointer = godot_obj
           boxed = Box(Godot::Object).box(inst)
           @@alive_mutex.synchronize do
@@ -337,6 +339,7 @@ module Godot
           end
           return boxed
         end
+        Godot.print("[create_fn] FAILED: class '#{class_name}' not found in ClassRegistry!")
         Pointer(Void).null
       }
 
@@ -388,9 +391,27 @@ module Godot
       }
 
       virtual_with_data_fn = ->(crystal_inst : Void*, method_name : LibC::Char*, args : Void**, ret : Void*) {
+        m_name = String.new(method_name)
+        inst : Godot::Object? = nil
         if !crystal_inst.null?
-          inst = Box(Godot::Object).unbox(crystal_inst)
-          m_name = String.new(method_name)
+          inst = if @@alive_mutex.synchronize { @@alive_instances.has_key?(crystal_inst) }
+                   @@alive_mutex.synchronize { @@alive_instances[crystal_inst]? }
+                 else
+                   Box(Godot::Object).unbox(crystal_inst) rescue nil
+                 end
+        end
+        {% unless flag?(:release) || flag?(:libgodot_addon) || flag?(:no_editor) %}
+          if !inst || !inst.is_a?(Godot::CrystalLanguage)
+            if m_name == "_complete_code" || m_name == "complete_code" ||
+               m_name == "_lookup_code" || m_name == "lookup_code" ||
+               m_name == "_make_template" || m_name == "make_template" ||
+               m_name == "_create_script" || m_name == "create_script" ||
+               m_name == "_auto_indent_code" || m_name == "auto_indent_code"
+              inst = Godot::CrystalLanguage.singleton_instance
+            end
+          end
+        {% end %}
+        if inst
           begin
             inst._godot_call_virtual_with_data(m_name, args, ret)
           rescue ex
@@ -543,7 +564,10 @@ module Godot
     # Early-registers an engine component if it is defined in the current compilation unit
     macro early_register_component(class_name)
       {% if @top_level.has_constant?("Godot") && @top_level.constant("Godot").has_constant?(class_name) %}
+        Godot.print("[early_register_component] Registering {{class_name.id}}...")
         Godot::{{class_name.id}}.ensure_registered
+      {% else %}
+        Godot.print("[early_register_component] {{class_name.id}} NOT FOUND in Godot constant!")
       {% end %}
     end
 
@@ -1500,6 +1524,9 @@ fun crystal_godot_init(api : Godot::LibBridge::BridgeAPI*) : Void
     Godot::Debugger::Agent.initialize_agent rescue nil
   {% end %}
   {% unless flag?(:release) || flag?(:libgodot_addon) || flag?(:no_editor) %}
+    Godot::CrystalLanguage.ensure_registered rescue nil
+    Godot::ResourceFormatLoaderCrystal.ensure_registered rescue nil
+    Godot::ResourceFormatSaverCrystal.ensure_registered rescue nil
     if ::ENV["LIBGODOT_TEST_BUILD_BUTTON"]? == "1"
       Godot::CrystalIntegrationPlugin.check_test_build_button_flow rescue nil
     end

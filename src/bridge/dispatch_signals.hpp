@@ -1130,11 +1130,14 @@ inline bool has_cr_extension(const char *path) {
     return false;
 }
 
+inline bool bridge_object_is_class(GDExtensionObjectPtr obj, const char *class_name);
+
 static GDExtensionMethodBindPtr mb_resource_get_path = nullptr;
 inline const char* bridge_resource_get_path(GDExtensionObjectPtr res) {
     static thread_local std::string s_path_buf;
     s_path_buf.clear();
     if (!res || !gd_classdb_get_method_bind || !gd_object_method_bind_ptrcall) return "";
+    if (!bridge_object_is_class(res, "Resource")) return "";
     if (!mb_resource_get_path) {
         void *sn_res = make_string_name("Resource");
         void *sn_gp = make_string_name("get_path");
@@ -1181,10 +1184,17 @@ inline void bridge_object_get_class_name(GDExtensionObjectPtr obj, char *buf, in
     }
     buf[0] = '\0';
     if (gd_object_get_class_name) {
-        alignas(void*) char sn[8] = {0};
-        gd_object_get_class_name(obj, nullptr, sn);
-        string_name_to_cstr(sn, buf, (size_t)max_len);
-        free_string_name(sn);
+        if (g_library) {
+            alignas(void*) char sn[8] = {0};
+            gd_object_get_class_name(obj, g_library, sn);
+            string_name_to_cstr(sn, buf, (size_t)max_len);
+            free_string_name(sn);
+            if (buf[0] != '\0') return;
+        }
+        alignas(void*) char sn_core[8] = {0};
+        gd_object_get_class_name(obj, nullptr, sn_core);
+        string_name_to_cstr(sn_core, buf, (size_t)max_len);
+        free_string_name(sn_core);
         return;
     }
     static GDExtensionMethodBindPtr mb_get_class = nullptr;
@@ -1512,6 +1522,7 @@ inline void bridge_ret_dictionary_complete_code_ex(
 
             const char *disp = options[i].display ? options[i].display : "";
             dict_set_variant(opt_dict, "display", GDEXTENSION_VARIANT_TYPE_STRING, &disp);
+            dict_set_variant(opt_dict, "display_text", GDEXTENSION_VARIANT_TYPE_STRING, &disp);
 
             const char *ins = options[i].insert_text ? options[i].insert_text : disp;
             dict_set_variant(opt_dict, "insert_text", GDEXTENSION_VARIANT_TYPE_STRING, &ins);
@@ -1521,6 +1532,12 @@ inline void bridge_ret_dictionary_complete_code_ex(
 
             int64_t loc = options[i].location;
             dict_set_variant(opt_dict, "location", GDEXTENSION_VARIANT_TYPE_INT, &loc);
+
+            float font_col[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+            dict_set_variant(opt_dict, "font_color", GDEXTENSION_VARIANT_TYPE_COLOR, font_col);
+
+            GDExtensionObjectPtr icon_obj = nullptr;
+            dict_set_variant(opt_dict, "icon", GDEXTENSION_VARIANT_TYPE_OBJECT, &icon_obj);
 
             // Box opt_dict (Dictionary) into a 24-byte Variant before passing to Array.push_back
             alignas(void*) char var_opt_dict[24] = {};
@@ -2052,7 +2069,48 @@ inline int bridge_is_saver_registered() { return g_saver_registered; }
 inline void bridge_set_saver_registered(int r) { g_saver_registered = r; }
 inline int bridge_is_language_registered() { return g_language_registered; }
 inline void bridge_set_language_registered(int r) { g_language_registered = r; }
-inline void* bridge_get_language_object() { return g_language_object; }
+inline void* bridge_get_language_object() {
+    if (g_language_object) return g_language_object;
+    if (gd_global_get_singleton) {
+        void *sn_engine = make_string_name("Engine");
+        GDExtensionObjectPtr engine = gd_global_get_singleton(sn_engine);
+        free_string_name(sn_engine);
+        if (engine) {
+            static GDExtensionMethodBindPtr mb_count = nullptr;
+            static GDExtensionMethodBindPtr mb_get = nullptr;
+            if (!mb_count) mb_count = bridge_get_method_bind("Engine", "get_script_language_count", 2455072627ULL);
+            if (!mb_get) mb_get = bridge_get_method_bind("Engine", "get_script_language", 2151255799ULL);
+            if (mb_count && mb_get) {
+                int64_t count = 0;
+                gd_object_method_bind_ptrcall(mb_count, engine, nullptr, &count);
+                for (int64_t i = 0; i < count; i++) {
+                    const void *args[1] = { &i };
+                    GDExtensionObjectPtr lang = nullptr;
+                    gd_object_method_bind_ptrcall(mb_get, engine, args, &lang);
+                    if (lang) {
+                        const char *ext = bridge_object_call_ret_string(lang, "get_extension");
+                        if (ext && strcmp(ext, "cr") == 0) {
+                            g_language_object = lang;
+                            return lang;
+                        }
+                        const char *name = bridge_object_call_ret_string(lang, "get_name");
+                        if (name && strcmp(name, "Crystal") == 0) {
+                            g_language_object = lang;
+                            return lang;
+                        }
+                        char class_name[128] = {0};
+                        bridge_object_get_class_name(lang, class_name, sizeof(class_name));
+                        if (strcmp(class_name, "CrystalLanguage") == 0) {
+                            g_language_object = lang;
+                            return lang;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return nullptr;
+}
 inline void bridge_set_language_object(void *obj) { g_language_object = (GDExtensionObjectPtr)obj; }
 
 inline void bridge_set_reloading(int reloading) { s_is_reloading = reloading; }

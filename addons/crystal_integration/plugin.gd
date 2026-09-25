@@ -3,6 +3,39 @@ extends CrystalIntegrationPlugin
 
 var _main_panel: Control = null
 
+func _ready() -> void:
+	var script_editor = EditorInterface.get_script_editor()
+	if script_editor:
+		if not script_editor.editor_script_changed.is_connected(_on_editor_script_changed):
+			script_editor.editor_script_changed.connect(_on_editor_script_changed)
+		_on_editor_script_changed(script_editor.get_current_script())
+
+func _on_editor_script_changed(script: Script) -> void:
+	if not script:
+		return
+	var path: String = script.resource_path
+	if path.ends_with(".cr") or script.get_class() == "CrystalScript":
+		_configure_code_editor.call_deferred()
+
+func _configure_code_editor() -> void:
+	var script_editor = EditorInterface.get_script_editor()
+	if not script_editor:
+		return
+	var current_editor = script_editor.get_current_editor()
+	if current_editor and current_editor.has_method("get_base_editor"):
+		var base_editor = current_editor.get_base_editor()
+		if base_editor and base_editor is CodeEdit:
+			base_editor.code_completion_enabled = true
+			var prefixes = base_editor.get_code_completion_prefixes()
+			var desired = [".", "::", "@", "<", "_", "$", ":"]
+			var changed = false
+			for p in desired:
+				if not prefixes.has(p):
+					prefixes.append(p)
+					changed = true
+			if changed:
+				base_editor.set_code_completion_prefixes(prefixes)
+
 func _has_main_screen() -> bool:
 	return true
 

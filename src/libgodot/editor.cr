@@ -1617,6 +1617,7 @@ module Lapis
                 base_ed.call("set_syntax_highlighter", actual_hl) rescue nil
                 base_ed.call("queue_redraw") rescue nil
               end
+              base_ed.call("set_code_completion_enabled", true) rescue nil
             end
           end
         end

@@ -192,6 +192,7 @@ inline GDExtensionObjectPtr generic_class_create(void *p_class_userdata, GDExten
         inst->crystal_instance = nullptr;
     }
 
+
     // --- Segment 5: Instance Association & Global Map Registration ---
     // Bind the GenericExtensionInstance to Godot's C++ object via gd_object_set_instance,
     // and record the mapping in s_object_to_extension_instance for fast O(1) thread-safe lookups.
@@ -249,6 +250,7 @@ inline GDExtensionClassInstancePtr generic_class_recreate(void *p_class_userdata
     } else {
         inst->crystal_instance = nullptr;
     }
+
 
     register_extension_instance(p_object, inst);
 
@@ -456,6 +458,8 @@ inline void* generic_class_get_virtual_call_data(void *p_class_userdata, GDExten
         godot_log_print("[CrystalBridge] generic_class_get_virtual_call_data: string_name_to_cstr FAILED");
         return nullptr;
     }
+
+
 
     // --- Segment 2: Built-in Engine Lifecycle Methods ---
     if (match_virtual_method(method_buf, "_ready")) {
@@ -725,6 +729,8 @@ inline void generic_class_call_virtual_with_data(
         godot_log_verbose(buf);
     }
 
+
+
     // --- Segment 3: Engine Lifecycle Virtuals & Editor @[Tool] Filtering ---
     if (match_virtual_method(method_name, "_ready")) {
         if (is_editor_active() && !is_tool_desc(inst->desc)) return;
@@ -946,6 +952,25 @@ inline void generic_class_call_virtual_with_data(
                 }
                 return;
             }
+            if (strcmp(method_name, "_complete_code") == 0 || strcmp(method_name, "complete_code") == 0) {
+
+                if (inst->desc && inst->desc->call_virtual_with_data) {
+                    ensure_gc_thread_registered();
+                    inst->desc->call_virtual_with_data(inst->crystal_instance, "_complete_code", (const void**)p_args, (void*)r_ret);
+                } else {
+                    bridge_ret_dictionary_complete_code(r_ret);
+                }
+                return;
+            }
+            if (strcmp(method_name, "_lookup_code") == 0 || strcmp(method_name, "lookup_code") == 0) {
+                if (inst->desc && inst->desc->call_virtual_with_data) {
+                    ensure_gc_thread_registered();
+                    inst->desc->call_virtual_with_data(inst->crystal_instance, "_lookup_code", (const void**)p_args, (void*)r_ret);
+                } else {
+                    bridge_ret_dictionary_lookup_code(r_ret);
+                }
+                return;
+            }
         }
         // --- Segment 5: Resource Loader & Saver Mechanics (.cr Scripts & Serialization) ---
         else if (strcmp(inst->desc->name, "ResourceFormatLoaderCrystal") == 0) {
@@ -1108,8 +1133,6 @@ inline void generic_class_call_virtual_with_data(
                             const char *path = bridge_resource_get_path(res_obj);
                             if (has_cr_extension(path)) {
                                 ok = true;
-                            } else if (bridge_object_is_class(res_obj, "Script") || bridge_object_is_class(res_obj, "ScriptExtension")) {
-                                ok = true;
                             }
                         }
                     }
@@ -1141,8 +1164,6 @@ inline void generic_class_call_virtual_with_data(
                         } else {
                             const char *path = bridge_resource_get_path(res_obj);
                             if (has_cr_extension(path)) {
-                                ok = true;
-                            } else if (bridge_object_is_class(res_obj, "Script") || bridge_object_is_class(res_obj, "ScriptExtension")) {
                                 ok = true;
                             }
                         }
@@ -1297,6 +1318,13 @@ inline void generic_class_call_virtual_with_data(
             if (strcmp(method_name, "_is_valid") == 0 || strcmp(method_name, "is_valid") == 0) {
                 if (r_ret) *(uint8_t*)r_ret = 1;
                 return;
+            }
+            if (strcmp(method_name, "_get_language") == 0 || strcmp(method_name, "get_language") == 0) {
+                void *lang = bridge_get_language_object();
+                if (lang) {
+                    if (r_ret) *(GDExtensionObjectPtr*)r_ret = (GDExtensionObjectPtr)lang;
+                    return;
+                }
             }
             if (strcmp(method_name, "_get_source_code") == 0 || strcmp(method_name, "get_source_code") == 0) {
                 std::string code;

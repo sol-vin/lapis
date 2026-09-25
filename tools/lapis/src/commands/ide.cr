@@ -3,6 +3,7 @@ require "../core/logger"
 require "../core/process_runner"
 require "file_utils"
 require "option_parser"
+require "json"
 
 module Lapis
   module Commands
@@ -94,9 +95,9 @@ HELP
 
         # 1. settings.json
         settings_file = vscode_dir.join("settings.json")
+        root = Core::Env::ROOT_DIR
+        crystalline_path = root.join("bin/crystalline" + (Core::Env.windows? ? ".exe" : "")).to_s.gsub('\\', '/')
         if !File.exists?(settings_file) || force
-          root = Core::Env::ROOT_DIR
-          crystalline_path = root.join("bin/crystalline" + (Core::Env.windows? ? ".exe" : "")).to_s.gsub('\\', '/')
           settings_json = <<-JSON
 {
   "crystal-lang.server": "#{crystalline_path}",
@@ -116,7 +117,30 @@ JSON
           File.write(settings_file, settings_json)
           Core::Logger.success("Generated #{settings_file}")
         else
-          Core::Logger.info("#{settings_file} already exists (use --force to overwrite)")
+          begin
+            parsed = ::JSON.parse(File.read(settings_file)).as_h
+            mutated = false
+            if !parsed.has_key?("crystal-lang.server")
+              parsed["crystal-lang.server"] = ::JSON::Any.new(crystalline_path)
+              mutated = true
+            end
+            if !parsed.has_key?("crystal-lang.serverArguments")
+              parsed["crystal-lang.serverArguments"] = ::JSON::Any.new([::JSON::Any.new("--stdio")])
+              mutated = true
+            end
+            if !parsed.has_key?("crystal-lang.compiler")
+              parsed["crystal-lang.compiler"] = ::JSON::Any.new("crystal")
+              mutated = true
+            end
+            if mutated
+              File.write(settings_file, parsed.to_pretty_json)
+              Core::Logger.success("Merged LSP configuration into #{settings_file}")
+            else
+              Core::Logger.info("#{settings_file} already configured (use --force to overwrite)")
+            end
+          rescue
+            Core::Logger.info("#{settings_file} already exists (use --force to overwrite)")
+          end
         end
 
         # 2. tasks.json

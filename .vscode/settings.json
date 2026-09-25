@@ -1,3 +1,27 @@
 {
-    "makefile.configureOnOpen": false
+  "makefile.configureOnOpen": false,
+  "crystal-lang.server": "C:/Users/Ian/Documents/libgodot/bin/crystalline.exe",
+  "crystal-lang.serverArguments": ["--stdio"],
+  "crystal-lang.compiler": "crystal",
+  "files.associations": {
+    "*.cr": "crystal",
+    "*.gdextension": "ini",
+    "*.tscn": "ini",
+    "*.godot": "ini"
+  },
+  "editor.formatOnSave": true,
+  "editor.suggestOnTriggerCharacters": true,
+  "editor.quickSuggestions": {
+    "other": true,
+    "comments": false,
+    "strings": true
+  },
+  "[crystal]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "editor.formatOnSave": true,
+    "editor.suggest.snippetsPreventQuickSuggestions": false
+  },
+  "godotTools.editorPath.godot4": "./godot.exe",
+  "godotTools.lsp.serverPort": 6005
 }

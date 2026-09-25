@@ -12,12 +12,10 @@ module Lapis
     @@created_by_us : Bool = false
 
     def self.ensure_registered : Void
-      return if @@registered
-      if Bridge.is_language_registered?
-        ptr = Bridge.get_language_object
-        if !ptr.null?
-          @@instance = Godot::CrystalLanguage.new(ptr)
-        end
+      return if @@registered && @@instance && !@@instance.not_nil!.pointer.null?
+      ptr = Bridge.get_language_object
+      if !ptr.null?
+        @@instance = Godot::CrystalLanguage.new(ptr)
         @@registered = true
         @@created_by_us = false
         return
@@ -57,8 +55,6 @@ module Lapis
         Bridge.set_language_registered(true)
         Bridge.set_language_object(lang.pointer)
         @@registered = true
-      else
-        Godot.printerr("[CrystalLanguage.ensure_registered] FAILED to create CrystalLanguage instance!")
       end
     end
 
@@ -92,11 +88,11 @@ module Lapis
 
     def self.singleton_instance : CrystalLanguage
       if inst = @@instance
-        return inst
+        return inst unless inst.pointer.null?
       end
       ensure_registered
       if inst = @@instance
-        return inst
+        return inst unless inst.pointer.null?
       end
       ptr = Bridge.get_language_object
       if !ptr.null?
@@ -109,18 +105,31 @@ module Lapis
         engine = Godot::Engine.new(eng_ptr)
         count = engine.call_i64("get_script_language_count") rescue 0_i64
         count.times do |i|
-          lang_obj = engine.call_obj("get_script_language", i) rescue nil
+          lang_obj = engine.call_obj("get_script_language", i.to_i64) rescue nil
           if lang_obj && !lang_obj.pointer.null?
             cls = lang_obj.call_str("get_class") rescue ""
-            if cls == "CrystalLanguage" || cls == "ScriptLanguageExtension"
+            lext = lang_obj.call_str("get_extension") rescue ""
+            lname = lang_obj.call_str("get_name") rescue ""
+            if cls == "CrystalLanguage" || lext == "cr" || lname == "Crystal"
               inst = Godot::CrystalLanguage.new(lang_obj.pointer)
               @@instance = inst
+              Bridge.set_language_object(lang_obj.pointer)
+              Bridge.set_language_registered(true)
               return inst
             end
           end
         end
+        if lang = Godot.create(Godot::CrystalLanguage)
+          @@instance = lang
+          @@created_by_us = true
+          engine.call("register_script_language", lang) rescue nil
+          Bridge.set_language_registered(true)
+          Bridge.set_language_object(lang.pointer)
+          @@registered = true
+          return lang
+        end
       end
-      @@instance || new
+      new
     end
 
     def self.instance : CrystalLanguage
@@ -212,79 +221,138 @@ module Lapis
       end
       trimmed_prefix = prefix.strip
 
-      # 1. Context: Inheritance (< ) -> prioritize Godot Classes
+      # 1. Comprehensive list of Godot engine classes
       classes = [
         "Node", "Node2D", "Node3D", "CharacterBody2D", "CharacterBody3D",
-        "Sprite2D", "Sprite3D", "Camera2D", "Camera3D", "Area2D", "Area3D",
-        "CollisionShape2D", "CollisionShape3D", "RigidBody2D", "RigidBody3D",
-        "Control", "Label", "Button", "TextureRect", "Panel", "ProgressBar",
-        "AudioStreamPlayer", "AudioStreamPlayer2D", "AudioStreamPlayer3D",
-        "AnimationPlayer", "Timer", "Vector2", "Vector3", "Color", "Transform2D", "Transform3D",
-        "Resource", "RefCounted", "Image", "Texture2D", "PackedScene",
+        "Sprite2D", "Sprite3D", "AnimatedSprite2D", "AnimatedSprite3D",
+        "Camera2D", "Camera3D", "Area2D", "Area3D",
+        "CollisionShape2D", "CollisionShape3D", "CollisionPolygon2D", "CollisionPolygon3D",
+        "RigidBody2D", "RigidBody3D", "StaticBody2D", "StaticBody3D",
+        "Path2D", "PathFollow2D", "Path3D", "PathFollow3D",
+        "Line2D", "Polygon2D", "Marker2D", "Marker3D",
+        "RayCast2D", "RayCast3D", "ShapeCast2D", "ShapeCast3D",
+        "SpringArm3D", "Decal", "PointLight2D", "DirectionalLight2D", "DirectionalLight3D", "OmniLight3D", "SpotLight3D",
+        "CanvasModulate", "ParallaxBackground", "ParallaxLayer", "RemoteTransform2D",
+        "Control", "Label", "Button", "TextureRect", "Panel", "PanelContainer", "ProgressBar",
+        "VBoxContainer", "HBoxContainer", "GridContainer", "MarginContainer", "ScrollContainer",
+        "LineEdit", "TextEdit", "CodeEdit", "TabBar", "Tree", "ItemList", "ColorRect", "NinePatchRect",
+        "AudioStreamPlayer", "AudioStreamPlayer2D", "AudioStreamPlayer3D", "AudioListener2D", "AudioListener3D",
+        "AnimationPlayer", "AnimationTree", "Timer", "Skeleton3D", "MeshInstance3D",
+        "Resource", "RefCounted", "Image", "Texture2D", "PackedScene", "Shader", "Material", "StandardMaterial3D", "ShaderMaterial",
       ]
 
-      if trimmed_prefix.ends_with?("<") || trimmed_prefix.ends_with?("< ")
+      # 2. Context: Inheritance (< ) -> prioritize Godot Classes
+      if trimmed_prefix.ends_with?("<") || trimmed_prefix.ends_with?("< ") || trimmed_prefix =~ /<\s*([A-Za-z0-9_]*)$/
         classes.each do |cls|
-          completions << CompletionItem.new("class", cls, cls, kind_id: 0_i64)
+          completions << CompletionItem.new("class", cls, cls, kind_id: 0_i64, location: 0_i64)
         end
         return completions
       end
 
-      # 2. Context: Annotations (@[) -> prioritize Annotations
+      # 3. Context: Annotations (@ or @[) -> prioritize Annotations
       annotations = [
-        CompletionItem.new("annotation", "@[Export]", "@[Export]", kind_id: 10_i64),
-        CompletionItem.new("annotation", "@[Export(range: ...)]", "@[Export(range: ${1:0.0_f32}..${2:100.0_f32}, step: ${3:1.0_f32})]", kind_id: 10_i64),
-        CompletionItem.new("annotation", "@[ExportEnum(...)]", "@[ExportEnum(${1:OptionA}, ${2:OptionB})]", kind_id: 10_i64),
-        CompletionItem.new("annotation", "@[ExportFile]", "@[ExportFile(\"${1:*.png,*.jpg}\")]", kind_id: 10_i64),
-        CompletionItem.new("annotation", "@[ExportDir]", "@[ExportDir]", kind_id: 10_i64),
-        CompletionItem.new("annotation", "@[Tool]", "@[Tool]", kind_id: 10_i64),
-        CompletionItem.new("annotation", "@[Icon(...)]", "@[Icon(\"${1:res://icon.svg}\")]", kind_id: 10_i64),
-        CompletionItem.new("annotation", "@[RPC]", "@[RPC]", kind_id: 10_i64),
-        CompletionItem.new("annotation", "@[Abstract]", "@[Abstract]", kind_id: 10_i64),
-        CompletionItem.new("annotation", "@[StaticUnload]", "@[StaticUnload]", kind_id: 10_i64),
+        CompletionItem.new("annotation", "@[Export]", "@[Export]", kind_id: 10_i64, location: 0_i64),
+        CompletionItem.new("annotation", "@[Export(range: ...)]", "@[Export(range: 0.0_f32..100.0_f32, step: 1.0_f32)]", kind_id: 10_i64, location: 0_i64),
+        CompletionItem.new("annotation", "@[ExportEnum(...)]", "@[ExportEnum(OptionA, OptionB)]", kind_id: 10_i64, location: 0_i64),
+        CompletionItem.new("annotation", "@[ExportFile]", "@[ExportFile(\"*.png,*.jpg\")]", kind_id: 10_i64, location: 0_i64),
+        CompletionItem.new("annotation", "@[ExportDir]", "@[ExportDir]", kind_id: 10_i64, location: 0_i64),
+        CompletionItem.new("annotation", "@[ExportFlags(...)]", "@[ExportFlags(FlagA, FlagB)]", kind_id: 10_i64, location: 0_i64),
+        CompletionItem.new("annotation", "@[ExportExpEasing]", "@[ExportExpEasing]", kind_id: 10_i64, location: 0_i64),
+        CompletionItem.new("annotation", "@[Tool]", "@[Tool]", kind_id: 10_i64, location: 0_i64),
+        CompletionItem.new("annotation", "@[Icon(...)]", "@[Icon(\"res://icon.svg\")]", kind_id: 10_i64, location: 0_i64),
+        CompletionItem.new("annotation", "@[RPC]", "@[RPC]", kind_id: 10_i64, location: 0_i64),
+        CompletionItem.new("annotation", "@[Abstract]", "@[Abstract]", kind_id: 10_i64, location: 0_i64),
+        CompletionItem.new("annotation", "@[StaticUnload]", "@[StaticUnload]", kind_id: 10_i64, location: 0_i64),
       ]
 
-      if trimmed_prefix.starts_with?("@")
-        return annotations
+      if trimmed_prefix.starts_with?("@") || trimmed_prefix.ends_with?("@") || trimmed_prefix.ends_with?("@[") || trimmed_prefix =~ /@\[?([A-Za-z0-9_]*)$/
+        annotations.each { |a| completions << a }
+        return completions
       end
 
-      # 3. Context: Virtual callbacks (def _ or _)
+      # 4. Context: Virtual callbacks (def _ or _ or def )
+      def_already_typed = trimmed_prefix.starts_with?("def ") || trimmed_prefix.starts_with?("def") || trimmed_prefix =~ /def\s+/
+      cb_prefix = def_already_typed ? "" : "def "
       virtual_callbacks = [
-        CompletionItem.new("method", "_ready : Void", "def _ready : Void\n  $0\nend", kind_id: 1_i64),
-        CompletionItem.new("method", "_process(delta : Float64) : Void", "def _process(delta : Float64) : Void\n  $0\nend", kind_id: 1_i64),
-        CompletionItem.new("method", "_physics_process(delta : Float64) : Void", "def _physics_process(delta : Float64) : Void\n  $0\nend", kind_id: 1_i64),
-        CompletionItem.new("method", "_enter_tree : Void", "def _enter_tree : Void\n  $0\nend", kind_id: 1_i64),
-        CompletionItem.new("method", "_exit_tree : Void", "def _exit_tree : Void\n  $0\nend", kind_id: 1_i64),
-        CompletionItem.new("method", "_input(event : InputEvent) : Void", "def _input(event : InputEvent) : Void\n  $0\nend", kind_id: 1_i64),
-        CompletionItem.new("method", "_unhandled_input(event : InputEvent) : Void", "def _unhandled_input(event : InputEvent) : Void\n  $0\nend", kind_id: 1_i64),
-        CompletionItem.new("method", "_gui_input(event : InputEvent) : Void", "def _gui_input(event : InputEvent) : Void\n  $0\nend", kind_id: 1_i64),
+        CompletionItem.new("method", "_ready : Void", "#{cb_prefix}_ready : Void\n  \nend", kind_id: 1_i64, location: 0_i64),
+        CompletionItem.new("method", "_process(delta : Float64) : Void", "#{cb_prefix}_process(delta : Float64) : Void\n  \nend", kind_id: 1_i64, location: 0_i64),
+        CompletionItem.new("method", "_physics_process(delta : Float64) : Void", "#{cb_prefix}_physics_process(delta : Float64) : Void\n  \nend", kind_id: 1_i64, location: 0_i64),
+        CompletionItem.new("method", "_enter_tree : Void", "#{cb_prefix}_enter_tree : Void\n  \nend", kind_id: 1_i64, location: 0_i64),
+        CompletionItem.new("method", "_exit_tree : Void", "#{cb_prefix}_exit_tree : Void\n  \nend", kind_id: 1_i64, location: 0_i64),
+        CompletionItem.new("method", "_input(event : InputEvent) : Void", "#{cb_prefix}_input(event : InputEvent) : Void\n  \nend", kind_id: 1_i64, location: 0_i64),
+        CompletionItem.new("method", "_unhandled_input(event : InputEvent) : Void", "#{cb_prefix}_unhandled_input(event : InputEvent) : Void\n  \nend", kind_id: 1_i64, location: 0_i64),
+        CompletionItem.new("method", "_unhandled_key_input(event : InputEvent) : Void", "#{cb_prefix}_unhandled_key_input(event : InputEvent) : Void\n  \nend", kind_id: 1_i64, location: 0_i64),
+        CompletionItem.new("method", "_shortcut_input(event : InputEvent) : Void", "#{cb_prefix}_shortcut_input(event : InputEvent) : Void\n  \nend", kind_id: 1_i64, location: 0_i64),
+        CompletionItem.new("method", "_gui_input(event : InputEvent) : Void", "#{cb_prefix}_gui_input(event : InputEvent) : Void\n  \nend", kind_id: 1_i64, location: 0_i64),
       ]
 
-      if trimmed_prefix.starts_with?("def _") || trimmed_prefix == "_"
+      if trimmed_prefix.starts_with?("def _") || trimmed_prefix == "_" || trimmed_prefix == "def" || trimmed_prefix == "def " || trimmed_prefix.ends_with?("def ") || trimmed_prefix.ends_with?("_")
         virtual_callbacks.each { |cb| completions << cb }
+        if trimmed_prefix.starts_with?("def _") || trimmed_prefix == "_" || trimmed_prefix.ends_with?("_")
+          return completions
+        end
       end
 
-      # 4. Node DSL macros & declarations (kind: 10 Keyword / Macro)
-      completions << CompletionItem.new("macro", "node <Class> < <Parent>", "node ${1:Name} < ${2:Node} do\n  $0\nend", kind_id: 10_i64)
-      completions << CompletionItem.new("macro", "resource <Class> do", "resource ${1:Name} do\n  $0\nend", kind_id: 10_i64)
-      completions << CompletionItem.new("keyword", "property <name> : <Type>", "property ${1:name} : ${2:String}", kind_id: 4_i64)
-      completions << CompletionItem.new("keyword", "getter <name> : <Type>", "getter ${1:name} : ${2:String}", kind_id: 4_i64)
-      completions << CompletionItem.new("keyword", "setter <name> : <Type>", "setter ${1:name} : ${2:String}", kind_id: 4_i64)
-      completions << CompletionItem.new("keyword", "signal <name>", "signal ${1:name}", kind_id: 2_i64)
-      completions << CompletionItem.new("keyword", "signal <name>(<args>)", "signal ${1:name}(${2:arg : String})", kind_id: 2_i64)
-      completions << CompletionItem.new("keyword", "await(<signal>)", "await(${1:signal})", kind_id: 10_i64)
+      # 5. Context: Godot Namespace & Singletons (Godot:: or ::)
+      godot_singletons = [
+        "Engine", "Input", "Time", "DisplayServer", "RenderingServer", "AudioServer",
+        "PhysicsServer2D", "PhysicsServer3D", "NavigationServer2D", "NavigationServer3D",
+        "ClassDB", "ResourceLoader", "ResourceSaver", "TranslationServer",
+        "Vector2", "Vector2i", "Vector3", "Vector3i", "Vector4", "Vector4i",
+        "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Basis", "Quaternion", "Plane", "AABB",
+        "RID", "Callable", "Signal",
+      ]
+      if trimmed_prefix.ends_with?("::") || trimmed_prefix.ends_with?("Godot::") || trimmed_prefix =~ /(?:Godot)?::([A-Za-z0-9_]*)$/
+        godot_singletons.each do |s|
+          completions << CompletionItem.new("constant", s, s, kind_id: 6_i64, location: 0_i64)
+        end
+        classes.each do |cls|
+          completions << CompletionItem.new("class", cls, cls, kind_id: 0_i64, location: 0_i64)
+        end
+        return completions
+      end
 
-      # 5. Include annotations if not already filtered
+      # 6. Context: Common Node member access (. or self.)
+      if trimmed_prefix.ends_with?(".") || trimmed_prefix =~ /\.\s*([a-zA-Z0-9_]*)$/
+        node_members = [
+          CompletionItem.new("property", "name", "name", kind_id: 4_i64, location: 0_i64),
+          CompletionItem.new("property", "position", "position", kind_id: 4_i64, location: 0_i64),
+          CompletionItem.new("property", "rotation", "rotation", kind_id: 4_i64, location: 0_i64),
+          CompletionItem.new("property", "scale", "scale", kind_id: 4_i64, location: 0_i64),
+          CompletionItem.new("property", "visible", "visible", kind_id: 4_i64, location: 0_i64),
+          CompletionItem.new("method", "queue_free", "queue_free", kind_id: 1_i64, location: 0_i64),
+          CompletionItem.new("method", "add_child(node)", "add_child(node)", kind_id: 1_i64, location: 0_i64),
+          CompletionItem.new("method", "remove_child(node)", "remove_child(node)", kind_id: 1_i64, location: 0_i64),
+          CompletionItem.new("method", "get_child(idx)", "get_child(idx)", kind_id: 1_i64, location: 0_i64),
+          CompletionItem.new("method", "get_child_count", "get_child_count", kind_id: 1_i64, location: 0_i64),
+          CompletionItem.new("method", "get_parent", "get_parent", kind_id: 1_i64, location: 0_i64),
+          CompletionItem.new("method", "get_node(path)", "get_node(\"path\")", kind_id: 1_i64, location: 0_i64),
+          CompletionItem.new("method", "get_tree", "get_tree", kind_id: 1_i64, location: 0_i64),
+          CompletionItem.new("method", "call_deferred(method)", "call_deferred(\"method\")", kind_id: 1_i64, location: 0_i64),
+        ]
+        node_members.each { |m| completions << m }
+        return completions
+      end
+
+      # 7. Node DSL macros & declarations (kind: 10 Keyword / Macro)
+      completions << CompletionItem.new("macro", "node <Class> < <Parent>", "node Name < Node do\n  \nend", kind_id: 10_i64, location: 0_i64)
+      completions << CompletionItem.new("macro", "resource <Class> do", "resource Name do\n  \nend", kind_id: 10_i64, location: 0_i64)
+      completions << CompletionItem.new("keyword", "property <name> : <Type>", "property name : String", kind_id: 4_i64, location: 0_i64)
+      completions << CompletionItem.new("keyword", "getter <name> : <Type>", "getter name : String", kind_id: 4_i64, location: 0_i64)
+      completions << CompletionItem.new("keyword", "setter <name> : <Type>", "setter name : String", kind_id: 4_i64, location: 0_i64)
+      completions << CompletionItem.new("keyword", "signal <name>", "signal name", kind_id: 2_i64, location: 0_i64)
+      completions << CompletionItem.new("keyword", "signal <name>(<args>)", "signal name(arg : String)", kind_id: 2_i64, location: 0_i64)
+      completions << CompletionItem.new("keyword", "await(<signal>)", "await(signal)", kind_id: 10_i64, location: 0_i64)
+
+      # 8. Include annotations and virtual callbacks
       annotations.each { |a| completions << a }
-
-      # 6. Include virtual callbacks if not already included
       virtual_callbacks.each do |cb|
         unless completions.any? { |c| c.display_text == cb.display_text }
           completions << cb
         end
       end
 
-      # 7. Crystal control flow & keywords (kind: 10 Keyword)
+      # 9. Crystal control flow & keywords (kind: 10 Keyword)
       keywords = [
         "def", "class", "module", "struct", "enum", "alias", "lib", "fun",
         "if", "else", "elsif", "unless", "while", "until", "for", "in", "case", "when",
@@ -292,21 +360,21 @@ module Lapis
         "self", "super", "nil", "true", "false", "spawn", "select",
       ]
       keywords.each do |kw|
-        completions << CompletionItem.new("keyword", kw, kw, kind_id: 10_i64)
+        completions << CompletionItem.new("keyword", kw, kw, kind_id: 10_i64, location: 0_i64)
       end
 
-      # 8. Core Godot Classes
+      # 10. Core Godot Classes (location: 512 so local symbols/keywords rank first)
       classes.each do |cls|
-        completions << CompletionItem.new("class", cls, cls, kind_id: 0_i64)
+        completions << CompletionItem.new("class", cls, cls, kind_id: 0_i64, location: 512_i64)
       end
 
-      # 9. Parse local symbols from active code buffer
+      # 11. Parse local symbols from active code buffer (location: 0)
       if !code.empty?
         code.each_line do |line_str|
           stripped = line_str.strip
           if stripped =~ /def\s+([a-zA-Z0-9_]+)/
             fn_name = $1
-            unless completions.any? { |c| c.display_text == fn_name || c.display_text.starts_with?("#{fn_name} ") }
+            unless completions.any? { |c| c.display_text == fn_name || c.display_text.starts_with?("#{fn_name}(") || c.display_text.starts_with?("#{fn_name} ") }
               completions << CompletionItem.new("method", "#{fn_name}()", "#{fn_name}()", kind_id: 1_i64, location: 0_i64)
             end
           elsif stripped =~ /(?:property|getter|setter)\s+([a-zA-Z0-9_]+)/
@@ -318,6 +386,7 @@ module Lapis
             sig_name = $1
             unless completions.any? { |c| c.display_text == sig_name || c.display_text.starts_with?("#{sig_name} ") }
               completions << CompletionItem.new("signal", sig_name, sig_name, kind_id: 2_i64, location: 0_i64)
+              completions << CompletionItem.new("method", "emit_#{sig_name}", "emit_#{sig_name}", kind_id: 1_i64, location: 0_i64)
             end
           end
         end
@@ -480,6 +549,7 @@ module Lapis
           caret_line = 1
           caret_col = 0
           clean_code = raw_code
+          cursor_prefix = ""
 
           if idx = raw_code.index('\u{FFFF}')
             prefix_text = raw_code[0...idx]
@@ -487,18 +557,51 @@ module Lapis
             caret_line = lines_before.size
             caret_col = lines_before.last?.try(&.size) || 0
             clean_code = raw_code.delete('\u{FFFF}')
+            cursor_prefix = lines_before.last? || ""
           end
 
-          # 1. Query Crystalline LSP first if running
-          items = CrystalLSP.instance.request_completion(clean_code, path, caret_line, caret_col, timeout_ms: 150)
+          # Determine whether to force-open popup (at trigger boundaries or empty prefix)
+          trimmed_cp = cursor_prefix.strip
+          force_popup = trimmed_cp.empty? ||
+                        trimmed_cp.ends_with?("@") ||
+                        trimmed_cp.ends_with?("@[") ||
+                        trimmed_cp.ends_with?("<") ||
+                        trimmed_cp.ends_with?("::") ||
+                        trimmed_cp.ends_with?(".") ||
+                        trimmed_cp.ends_with?("_") ||
+                        trimmed_cp.ends_with?("def") ||
+                        trimmed_cp.ends_with?("def ")
 
-          # 2. If LSP didn't return items, use rich built-in completions
-          if items.nil? || items.empty?
-            items = complete_code(clean_code, path, caret_line, caret_col)
+          # 1. Query Crystalline LSP only if it is already running (non-blocking)
+          items : Array(CompletionItem)? = nil
+          if CrystalLSP.instance.running?
+            items = CrystalLSP.instance.request_completion(clean_code, path, caret_line, caret_col, timeout_ms: 60)
+          end
+
+          # 2. Rich built-in completions
+          builtin_items = complete_code(clean_code, path, caret_line, caret_col)
+
+          # 3. Merge LSP with built-ins (prioritize LSP, ensure built-in keywords/macros remain)
+          final_items = if items && !items.empty?
+            seen = Set(String).new
+            merged = [] of CompletionItem
+            items.each do |it|
+              seen << it.display_text
+              merged << it
+            end
+            builtin_items.each do |it|
+              unless seen.includes?(it.display_text)
+                seen << it.display_text
+                merged << it
+              end
+            end
+            merged
+          else
+            builtin_items
           end
 
           # Convert to BridgeCompletionOption structs
-          c_options = items.map do |it|
+          c_options = final_items.map do |it|
             Bridge::BridgeCompletionOption.new(
               it.kind_id,
               it.display_text.to_unsafe,
@@ -508,8 +611,10 @@ module Lapis
             )
           end
 
-          Bridge.ret_dictionary_complete_code_ex(ret, 0_i64, false, "", c_options)
+          Godot.print("[CrystalLanguage._complete_code] Returning #{c_options.size} items to Godot (force=#{force_popup})")
+          Bridge.ret_dictionary_complete_code_ex(ret, 0_i64, force_popup, "", c_options)
         rescue ex
+          Godot.printerr("[CrystalLanguage._complete_code] Exception: #{ex.message}")
           Bridge.ret_dictionary_complete_code(ret)
         end
       when "_lookup_code"

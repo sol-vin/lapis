@@ -564,6 +564,22 @@ test_suite "ScriptFirstClass" do
     )
     assert_eq c_opt.kind, 1_i64
     assert_eq c_opt.location, 0_i64
+
+    # Test _complete_code virtual method dispatch with sentinel \u{FFFF}
+    sentinel_source = "node Warrior < CharacterBody3D do\n  def _ready : Void\n    \u{FFFF}\n  end\nend"
+    c_str = Godot::Bridge.make_string(sentinel_source)
+    p_str = Godot::Bridge.make_string("res://warrior.cr")
+    begin
+      args = [c_str, p_str, Pointer(Void).null]
+      lang._godot_call_virtual_with_data("_complete_code", args.to_unsafe.as(Void**), Pointer(Void).null)
+    ensure
+      Godot::Bridge.free_string(c_str)
+      Godot::Bridge.free_string(p_str)
+    end
+
+    # Test Bridge completion helpers with null ret buffer (safe no-op verification)
+    Godot::Bridge.ret_dictionary_complete_code(Pointer(Void).null)
+    Godot::Bridge.ret_dictionary_complete_code_ex(Pointer(Void).null, 0_i64, true, "", [c_opt])
   end
 end
 {% end %}

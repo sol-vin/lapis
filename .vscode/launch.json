@@ -1,0 +1,22 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Godot Game (LLDB)",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/godot.exe",
+      "args": ["--path", "${workspaceFolder}"],
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Lapis: Build Game (F5)"
+    },
+    {
+      "name": "Debug Godot Editor (LLDB)",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/godot.exe",
+      "args": ["--editor", "--path", "${workspaceFolder}"],
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}
