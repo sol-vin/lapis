@@ -535,7 +535,7 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
         }
 
         // --- Segment 6: Relative Project Directory Traversal ---
-        // If bridge sits in an addon subfolder (`addons/<name>/bin/`), check the root game binary.
+        // If bridge sits in an addon subfolder (`addons/<name>/bin/`), check the root game binary and plugin.
         if (!loaded_game_or_addon) {
             char rel_game_path[MAX_PATH] = {0};
             snprintf(rel_game_path, sizeof(rel_game_path), "%s%s..%s..%s..%sbin%sgame.%s",
@@ -543,6 +543,23 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
             if (bridge_file_exists(rel_game_path)) {
                 to_load.push_back(std::string(rel_game_path));
                 loaded_game_or_addon = true;
+            }
+        }
+        if (is_editor_active()) {
+            char rel_plugin_path[MAX_PATH] = {0};
+            snprintf(rel_plugin_path, sizeof(rel_plugin_path), "%s%s..%s..%s..%sbin%splugin.%s",
+                     bridge_dir, path_sep, path_sep, path_sep, path_sep, path_sep, shadow_ext);
+            if (bridge_file_exists(rel_plugin_path)) {
+                bool already_added = false;
+                for (const auto &p : to_load) {
+                    if (p == rel_plugin_path) {
+                        already_added = true;
+                        break;
+                    }
+                }
+                if (!already_added) {
+                    to_load.push_back(std::string(rel_plugin_path));
+                }
             }
         }
     }
@@ -563,11 +580,21 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
 #endif
 
     // --- Segment 8: Fallback Search Path Resolution ---
-    if (!loaded_game_or_addon) {
+    bool loaded_plugin = false;
+    for (const auto &p : to_load) {
+        if (p.find("plugin") != std::string::npos) {
+            loaded_plugin = true;
+            break;
+        }
+    }
+
+    if (!loaded_game_or_addon || (is_editor_active() && !loaded_plugin)) {
 #ifdef _WIN32
         const char *fallbacks[] = {
             "bin/game.dll",
             "game.dll",
+            "bin/plugin.dll",
+            "plugin.dll",
             "template/bin/game.dll",
             "addons/crystal_integration/bin/plugin.dll",
             "addons/crystal_integration/bin/game.dll"
@@ -584,6 +611,8 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
         const char *fallbacks[] = {
             "bin/game.dylib",
             "game.dylib",
+            "bin/plugin.dylib",
+            "plugin.dylib",
             "bin/libgame.dylib",
             "libgame.dylib",
             "template/bin/game.dylib",
@@ -594,24 +623,30 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
         const char *fallbacks[] = {
             "bin/game.so",
             "game.so",
+            "bin/plugin.so",
+            "plugin.so",
             "template/bin/game.so",
             "addons/crystal_integration/bin/plugin.so",
             "addons/crystal_integration/bin/game.so"
         };
 #endif
-        bool fallback_loaded_game = false;
         for (size_t i = 0; i < sizeof(fallbacks) / sizeof(fallbacks[0]); i++) {
             bool is_plugin = (strstr(fallbacks[i], "plugin") != nullptr);
             if (!is_editor_active() && is_plugin) {
                 continue;
             }
-            if (fallback_loaded_game && !is_plugin) {
+            if (loaded_game_or_addon && !is_plugin) {
+                continue;
+            }
+            if (loaded_plugin && is_plugin) {
                 continue;
             }
             if (bridge_file_exists(fallbacks[i])) {
                 to_load.push_back(std::string(fallbacks[i]));
                 if (!is_plugin) {
-                    fallback_loaded_game = true;
+                    loaded_game_or_addon = true;
+                } else {
+                    loaded_plugin = true;
                 }
             }
         }

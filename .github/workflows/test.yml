@@ -581,6 +581,7 @@ jobs:
             if (-not (Test-Path "bin/$($_.Name)")) { Move-Item -Force $_.FullName "bin/$($_.Name)" }
           }
           Get-ChildItem -Path "bin"
+          if (Test-Path "bin/lapis.exe") { .\bin\lapis.exe sync }
 
       - name: Resolve Godot Version
         id: godot-version
@@ -787,6 +788,10 @@ jobs:
           chmod +x bin/lapis bin/*.so bin/game 2>/dev/null || true
           ls -la bin/
 
+      - name: Synchronize Runtime Addon Binaries
+        run: |
+          bin/lapis sync || true
+
       - name: Resolve Godot Version
         id: godot-version
         shell: bash
@@ -935,6 +940,10 @@ jobs:
           done
           chmod +x bin/lapis bin/*.dylib bin/game 2>/dev/null || true
           ls -la bin/
+
+      - name: Synchronize Runtime Addon Binaries
+        run: |
+          bin/lapis sync || true
 
       - name: Resolve Godot Version
         id: godot-version
