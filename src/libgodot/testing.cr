@@ -1068,7 +1068,7 @@ module Lapis
             Crystal::System::Thread.sleep(20.milliseconds)
             Fiber.yield
           end
-          status = Process::Status.new(raw_status)
+          status = Process::Status.[raw_status]
           {status, timed_out}
         {% end %}
       end
