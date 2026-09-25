@@ -159,4 +159,44 @@ describe "LibGodot Concurrency & Thread Safety" do
       g_arr.to_a.should eq([10, 20, 30, 40])
     end
   end
+
+  describe "Safety & Concurrency Invariants (Audit Verification)" do
+    it "safely yields with Godot.next_frame and Godot.physics_frame with timeout guard" do
+      # When frames are not advancing (e.g. in specs), next_frame must return via timeout without hanging
+      start = ::Time.instant
+      Godot.next_frame(timeout_sec: 0.05)
+      (::Time.instant - start).total_seconds.should be < 1.0
+
+      start_physics = ::Time.instant
+      Godot.physics_frame(timeout_sec: 0.05)
+      (::Time.instant - start_physics).total_seconds.should be < 1.0
+    end
+
+    it "safely handles channel notification when pushed from background threads" do
+      ch = Godot::Channel.new(5)
+      received_via_callback = [] of String
+
+      ch.signal("received").connect do |args|
+        received_via_callback << args.first.to_s if args.size > 0
+      end
+
+      worker = Thread.new do
+        3.times do |i|
+          ch.send("SafeThreadPayload_#{i}")
+        end
+      end
+
+      worker.join
+      ch.size.should eq(3)
+
+      # Drain items
+      drained = [] of String
+      while item = ch.try_receive
+        drained << item.to_s
+      end
+      drained.should eq(["SafeThreadPayload_0", "SafeThreadPayload_1", "SafeThreadPayload_2"])
+
+      ch.close
+    end
+  end
 end

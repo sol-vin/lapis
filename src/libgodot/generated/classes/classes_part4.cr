@@ -115,7 +115,7 @@ module Godot
     end
     # Predicate alias for `openxr_is_enabled`
     def self.openxr_is_enabled?(check_run_in_editor : Bool) : Bool
-      self.class.openxr_is_enabled(check_run_in_editor)
+      self.openxr_is_enabled(check_run_in_editor)
     end
     # Instance convenience delegator for static predicate `openxr_is_enabled`
     def openxr_is_enabled?(check_run_in_editor : Bool) : Bool
@@ -19675,7 +19675,7 @@ module Godot
     end
     # Predicate alias for `is_keeping_all_compressed_buffers`
     def self.is_keeping_all_compressed_buffers?() : Bool
-      self.class.is_keeping_all_compressed_buffers()
+      self.is_keeping_all_compressed_buffers()
     end
     # Instance convenience delegator for static predicate `is_keeping_all_compressed_buffers`
     def is_keeping_all_compressed_buffers?() : Bool
@@ -19683,7 +19683,7 @@ module Godot
     end
     # Predicate alias for `is_keeping_all_compressed_buffers`
     def self.keeping_all_compressed_buffers?() : Bool
-      self.class.is_keeping_all_compressed_buffers()
+      self.is_keeping_all_compressed_buffers()
     end
     # Instance convenience delegator for static predicate `is_keeping_all_compressed_buffers`
     def keeping_all_compressed_buffers?() : Bool

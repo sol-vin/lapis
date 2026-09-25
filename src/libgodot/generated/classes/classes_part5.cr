@@ -15199,7 +15199,7 @@ module Godot
     end
     # Predicate alias for `has_built_in_include_file`
     def self.has_built_in_include_file?(filename : String) : Bool
-      self.class.has_built_in_include_file(filename)
+      self.has_built_in_include_file(filename)
     end
     # Instance convenience delegator for static predicate `has_built_in_include_file`
     def has_built_in_include_file?(filename : String) : Bool
@@ -32197,7 +32197,7 @@ module Godot
     end
     # Predicate alias for `is_main_thread`
     def self.is_main_thread?() : Bool
-      self.class.is_main_thread()
+      self.is_main_thread()
     end
     # Instance convenience delegator for static predicate `is_main_thread`
     def is_main_thread?() : Bool
@@ -32205,7 +32205,7 @@ module Godot
     end
     # Predicate alias for `is_main_thread`
     def self.main_thread?() : Bool
-      self.class.is_main_thread()
+      self.is_main_thread()
     end
     # Instance convenience delegator for static predicate `is_main_thread`
     def main_thread?() : Bool

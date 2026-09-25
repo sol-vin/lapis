@@ -411,13 +411,16 @@ inline GDExtensionClassCallVirtual generic_class_get_virtual(void *p_class_userd
 }
 
 static std::unordered_set<std::string> g_interned_virtual_methods;
+static std::mutex g_interned_virtual_methods_mutex;
 
 /**
  * Interns a virtual method name string in a process-wide set to guarantee stable pointer lifetimes.
  * Pointers returned by this function remain valid for the lifetime of the process.
+ * Protected by g_interned_virtual_methods_mutex for thread-safe concurrent reflection.
  */
 inline const char* intern_virtual_method(const char *name) {
     if (!name) return nullptr;
+    std::lock_guard<std::mutex> lock(g_interned_virtual_methods_mutex);
     auto it = g_interned_virtual_methods.find(name);
     if (it != g_interned_virtual_methods.end()) {
         return it->c_str();

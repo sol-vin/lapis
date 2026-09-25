@@ -306,10 +306,17 @@ module Godot
   end
 
   # Cooperatively yields until the next process (render/idle) frame has completed.
-  def self.next_frame : Void
+  # Includes an optional timeout (default: 5.0s) to prevent deadlock if frames are not advancing.
+  def self.next_frame(timeout_sec : Float64? = 5.0) : Void
     start_frame = process_frame_count
+    start_time = ::Time.instant
     if start_frame > 0
       while process_frame_count == start_frame
+        if timeout = timeout_sec
+          if (::Time.instant - start_time).total_seconds >= timeout
+            break
+          end
+        end
         Fiber.yield
       end
     else
@@ -318,10 +325,17 @@ module Godot
   end
 
   # Cooperatively yields until the next physics process frame has completed.
-  def self.physics_frame : Void
+  # Includes an optional timeout (default: 5.0s) to prevent deadlock if physics frames are not advancing.
+  def self.physics_frame(timeout_sec : Float64? = 5.0) : Void
     start_frame = physics_frame_count
+    start_time = ::Time.instant
     if start_frame > 0
       while physics_frame_count == start_frame
+        if timeout = timeout_sec
+          if (::Time.instant - start_time).total_seconds >= timeout
+            break
+          end
+        end
         Fiber.yield
       end
     else

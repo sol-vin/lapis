@@ -15557,7 +15557,7 @@ module Godot
     end
     # Predicate alias for `is_looping`
     def self.is_looping?(node_info : Pointer(Void)) : Bool
-      self.class.is_looping(node_info)
+      self.is_looping(node_info)
     end
     # Instance convenience delegator for static predicate `is_looping`
     def is_looping?(node_info : Pointer(Void)) : Bool
@@ -15565,7 +15565,7 @@ module Godot
     end
     # Predicate alias for `is_looping`
     def self.looping?(node_info : Pointer(Void)) : Bool
-      self.class.is_looping(node_info)
+      self.is_looping(node_info)
     end
     # Instance convenience delegator for static predicate `is_looping`
     def looping?(node_info : Pointer(Void)) : Bool

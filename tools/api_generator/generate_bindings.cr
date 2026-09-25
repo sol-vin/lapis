@@ -708,7 +708,7 @@ def generate_class_code(io : IO, c : JSON::Any, keywords : Hash(String, String),
           io.puts "    # Predicate alias for `#{sanitized_m_name}`"
           io.puts "    #{pred_sig}(#{arg_defs.join(", ")}) : Bool"
           if is_static
-            io.puts "      self.class.#{sanitized_m_name}(#{arg_names.join(", ")})"
+            io.puts "      self.#{sanitized_m_name}(#{arg_names.join(", ")})"
           else
             io.puts "      #{sanitized_m_name}(#{arg_names.join(", ")})"
           end

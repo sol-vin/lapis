@@ -12468,7 +12468,7 @@ module Godot
     end
     # Predicate alias for `dir_exists_absolute`
     def self.dir_exists_absolute?(path : String) : Bool
-      self.class.dir_exists_absolute(path)
+      self.dir_exists_absolute(path)
     end
     # Instance convenience delegator for static predicate `dir_exists_absolute`
     def dir_exists_absolute?(path : String) : Bool
@@ -29137,7 +29137,7 @@ module Godot
     end
     # Predicate alias for `file_exists`
     def self.file_exists?(path : String) : Bool
-      self.class.file_exists(path)
+      self.file_exists(path)
     end
     # Instance convenience delegator for static predicate `file_exists`
     def file_exists?(path : String) : Bool
@@ -29231,7 +29231,7 @@ module Godot
     end
     # Predicate alias for `get_hidden_attribute`
     def self.get_hidden_attribute?(file : String) : Bool
-      self.class.get_hidden_attribute(file)
+      self.get_hidden_attribute(file)
     end
     # Instance convenience delegator for static predicate `get_hidden_attribute`
     def get_hidden_attribute?(file : String) : Bool
@@ -29285,7 +29285,7 @@ module Godot
     end
     # Predicate alias for `get_read_only_attribute`
     def self.get_read_only_attribute?(file : String) : Bool
-      self.class.get_read_only_attribute(file)
+      self.get_read_only_attribute(file)
     end
     # Instance convenience delegator for static predicate `get_read_only_attribute`
     def get_read_only_attribute?(file : String) : Bool
