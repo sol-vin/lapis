@@ -48,13 +48,14 @@ func _get_plugin_icon() -> Texture2D:
 	if _icon_cache and is_instance_valid(_icon_cache):
 		return _icon_cache
 
-	# 1. First preference: check if Theme already has registered Crystal icon
-	var theme = EditorInterface.get_editor_theme()
-	if theme and theme.has_icon("Crystal", "EditorIcons"):
-		var icon = theme.get_icon("Crystal", "EditorIcons")
-		if icon and is_instance_valid(icon):
-			_icon_cache = icon
-			return _icon_cache
+	# 1. First preference: check if Theme already has registered Crystal icon (skip in headless mode to prevent null theme dereference)
+	if DisplayServer.get_name() != "headless":
+		var theme = EditorInterface.get_editor_theme() if EditorInterface else null
+		if theme and theme.has_icon("Crystal", "EditorIcons"):
+			var icon = theme.get_icon("Crystal", "EditorIcons")
+			if icon and is_instance_valid(icon):
+				_icon_cache = icon
+				return _icon_cache
 
 	# 2. Second preference: create ImageTexture directly from raw SVG on disk (no .ctex dependency)
 	var icon_path = "res://addons/crystal_integration/crystal_icon.svg"

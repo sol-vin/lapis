@@ -269,6 +269,11 @@ func _run_in_editor_tool_tests():
 				var code_edit = current_editor.get_base_editor()
 				if code_edit and code_edit is CodeEdit:
 					code_edit.code_completion_enabled = true
+					var pfxs = code_edit.get_code_completion_prefixes()
+					for p in [".", "::", "@", "<", "_", "$", ":"]:
+						if not pfxs.has(p):
+							pfxs.append(p)
+					code_edit.set_code_completion_prefixes(pfxs)
 
 					var scenarios = [
 						{
@@ -320,7 +325,8 @@ func _run_in_editor_tool_tests():
 						code_edit.set_caret_line(s["line"])
 						code_edit.set_caret_column(s["col"])
 						code_edit.request_code_completion(true)
-						await get_tree().process_frame
+						for _f in range(2):
+							await get_tree().process_frame
 						var comp_options = code_edit.get_code_completion_options()
 						if comp_options.size() == 0:
 							var msg = "[CrystalToolTester] FAILED: CodeEdit code completion scenario '%s' returned 0 options!" % s["name"]
