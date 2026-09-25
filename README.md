@@ -307,8 +307,28 @@ Lapis features an extensive in-code documentation suite under the `Docs` module.
       <td>Reusable <code>Lapis::Test</code> apparatus, assertion matchers, cooperative frame-stepping, signal timeouts, and live in-editor suites.</td>
     </tr>
     <tr>
+      <td><a href="src/libgodot/docs.cr"><code>Docs::R_RELEASE_OPTIMIZATION_AND_EDITOR_STRIPPING</code></a></td>
+      <td>Compile-time feature exclusion, DocData XML stripping, C++ ClassDB runtime filtering, and minimal distribution packaging.</td>
+    </tr>
+    <tr>
+      <td><a href="src/libgodot/docs.cr"><code>Docs::S_IDE_INTEGRATION_AND_DEVELOPER_EXPERIENCE</code></a></td>
+      <td>Automated workspace configuration for VS Code, Cursor, Zed, and Neovim with Crystalline LSP and LLDB debugging.</td>
+    </tr>
+    <tr>
+      <td><a href="src/libgodot/docs.cr"><code>Docs::T_BINDINGS_ARCHITECTURE_AND_GENERATOR</code></a></td>
+      <td>Automated <code>extension_api.json</code> ingestion, topological DAG sorting, zero-alloc stack ptrcalls, and type marshaling.</td>
+    </tr>
+    <tr>
+      <td><a href="src/libgodot/docs.cr"><code>Docs::U_CODE_CLEANUP_AND_DRY_PATTERNS</code></a></td>
+      <td>Consolidated ptrcall dispatch macros, declarative singleton delegation, C++ RAII scoped memory, and actionable errors.</td>
+    </tr>
+    <tr>
       <td><a href="src/libgodot/docs.cr"><code>Docs::V_PERFORMANCE_AND_BENCHMARKS</code></a></td>
       <td>Crystal vs GDScript benchmark architecture, reporter patterns, in-editor overhead measurement, and performance dashboard.</td>
+    </tr>
+    <tr>
+      <td><a href="src/libgodot/docs.cr"><code>Docs::W_CPP_BRIDGE_ARCHITECTURE</code></a></td>
+      <td>Native GDExtension C++ loader bridge internals, memory layout, proc address caching, shadow DLL loading, and crash guards.</td>
     </tr>
   </tbody>
 </table>

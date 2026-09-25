@@ -3,126 +3,138 @@ module Lapis
     # # K. Concurrency, Channels & Engine Ergonomics
     #
     # LibGodot bridges Crystal's fiber and thread models with Godot's multi-threaded
-    # engine architecture. This module details the actor concurrency primitives,
-    # thread safety invariants, and language ergonomics available to developers.
+    # engine architecture. This module details the actor concurrency primitives (`Godot::Channel`),
+    # GDScript interop signals, and asynchronous engine ergonomics available to developers.
     #
-    # ---
-    #
-    # ### 1. GodotChannel (Actor Concurrency)
-    #
-    # `Godot::Channel` (registered in Godot's `ClassDB` as `GodotChannel`) is a
-    # thread-safe, bounded or unbounded actor channel that can be passed between
-    # Crystal and Godot/GDScript:
-    #
-    # ```
-    # # Inside Crystal:
-    # channel = Godot::Channel.new(capacity: 16)
-    #
-    # # Spawn OS worker thread to crunch math:
-    # Thread.new do
-    #   result = compute_heavy_simulation()
-    #   channel.send(result)
-    # end
-    #
-    # # In Crystal fiber or _process:
-    # if item = channel.try_receive
-    #   apply_simulation(item)
-    # end
-    # ```
-    #
-    # In GDScript, `GodotChannel` emits `signal received` when data is sent,
-    # allowing non-blocking reactive awaits:
-    #
-    # ```gdscript
-    # # Inside GDScript:
-    # func _ready():
-    #     var channel = GodotChannel.new(16)
-    #     # Asynchronously wait for data from Crystal worker
-    #     var data = await channel.received
-    #     print("Worker returned: ", data)
-    # ```
-    #
-    # ---
-    #
-    # ### 2. Concurrency Safety Rules
+    # ### Executive Summary & Key Topics
     #
     # <table>
     #   <thead>
     #     <tr>
-    #       <th>Runtime Context</th>
-    #       <th>Allowed Operations</th>
-    #       <th>Forbidden Operations</th>
+    #       <th>Topic</th>
+    #       <th>Method / Anchor</th>
+    #       <th>Description</th>
     #     </tr>
     #   </thead>
     #   <tbody>
     #     <tr>
-    #       <td><strong>Godot Main Thread</strong></td>
-    #       <td>SceneTree mutations, node creation/destruction, <code>try_receive</code>, <code>await_receive</code></td>
-    #       <td>Blocking <code>receive()</code> (freezes window message pumping)</td>
+    #       <td><strong>GodotChannel Actor Pattern</strong></td>
+    #       <td><code>.topic_01_godot_channel_actor_pattern</code></td>
+    #       <td>Thread-safe message passing between background worker threads and main loop.</td>
     #     </tr>
     #     <tr>
-    #       <td><strong>Crystal Fibers (spawn)</strong></td>
-    #       <td><code>await(signal)</code>, <code>await(timer)</code>, <code>delay(sec)</code>, <code>next_frame</code></td>
-    #       <td>Top-level blocking <code>sleep(sec)</code></td>
+    #       <td><strong>GDScript Signal Interop</strong></td>
+    #       <td><code>.topic_02_gdscript_channel_interop</code></td>
+    #       <td>Reactive signal received emission enabling GDScript await channel.received.</td>
     #     </tr>
     #     <tr>
-    #       <td><strong>Background OS Threads</strong></td>
-    #       <td>Heavy computation, <code>channel.send</code>, <code>call_deferred</code>, blocking <code>receive</code></td>
-    #       <td>Direct SceneTree manipulation (<code>add_child</code>, <code>queue_free</code>)</td>
+    #       <td><strong>Async Engine Helpers</strong></td>
+    #       <td><code>.topic_03_async_engine_helpers</code></td>
+    #       <td>delay(sec), next_frame, physics_frame, and cooperative timing helpers.</td>
+    #     </tr>
+    #     <tr>
+    #       <td><strong>Collection Ergonomics</strong></td>
+    #       <td><code>.topic_04_collection_ergonomics</code></td>
+    #       <td>Idiomatic Crystal enumerable wrappers for Godot Array and Dictionary.</td>
     #     </tr>
     #   </tbody>
     # </table>
     #
-    # ---
-    #
-    # ### 3. Resource & RefCounted DSL
-    #
-    # In addition to the `node` macro, developers can declare custom Godot Resources
-    # and RefCounted objects with `@export` properties:
-    #
-    # ```
-    # resource ItemStats < Resource do
-    #   @[Export]
-    #   property damage : Int32 = 10
-    #
-    #   @[Export]
-    #   property rarity : String = "Legendary"
-    # end
-    #
-    # gdclass StateMachine < RefCounted do
-    #   @[Export]
-    #   property current_state : String = "idle"
-    # end
-    # ```
-    #
-    # ---
-    #
-    # ### 4. Engine Async Helpers
-    #
-    # - `Godot.next_frame`: Cooperatively yields execution until the next render/process frame.
-    # - `Godot.physics_frame`: Cooperatively yields execution until the next physics step.
-    # - `Godot.delay(seconds)`: Pauses execution for the given duration without halting the engine.
-    # - `Godot.spawn(&block)`: Spawns an exception-guarded cooperative fiber.
-    #
-    # ---
-    #
-    # ### 5. Collections Interoperability
-    #
-    # - `Godot::Dictionary` wraps Godot dictionaries and converts to/from Crystal `Hash` via `hash.to_godot_dict` and `dict.to_h`.
-    # - `Godot::Array(T)` wraps Godot arrays with full `Enumerable` support and converts via `array.to_godot_array` and `arr.to_a`.
-    #
+    # ### Related Guides & Source References
+    # - **Source Implementation**: `src/libgodot/channel.cr`, `src/libgodot/collections.cr`
+    # - **Live Specifications**: `spec/suites/test_channel_exhaustive.cr`, `spec/suites/test_gdscript_channel_signal_interop.cr`
+    # - **Related Guides**: `Docs::I_CONCURRENCY_FIBERS_AND_THREAD_SAFETY`, `Docs::F_GDSCRIPT_INTEROP`
     module K_CONCURRENCY_CHANNELS_AND_ERGONOMICS
-      def self.features : Array(String)
+      # **Key Features & Capabilities**: Core channel ergonomics supported by LibGodot.
+      def self.topic_00_key_features : Array(String)
         [
-          "Thread-safe GodotChannel exposed to GDScript as RefCounted",
-          "Reactive signal received emission on Main Thread via call_deferred",
-          "Non-blocking try_receive and cooperative fiber await_receive",
-          "resource and gdclass DSL macros for custom Resources and RefCounted objects",
-          "Engine async helpers: Godot.next_frame, Godot.physics_frame, Godot.delay, Godot.spawn",
-          "Godot::Dictionary and Godot::Array wrappers with Enumerable and Crystal conversions",
+          "GodotChannel registered in ClassDB for 2-way interop with GDScript",
+          "Thread-safe bounded or unbounded message queues",
+          "Reactive signal emission when items arrive on channel",
+          "Cooperative async helpers: delay, next_frame, physics_frame",
         ]
+      end
+
+      # **GodotChannel Actor Pattern**: Thread-safe message passing between background worker threads and main loop.
+      #
+      # `Godot::Channel` (registered in Godot's `ClassDB` as `GodotChannel`) is a
+      # thread-safe actor channel that can pass messages between Crystal OS threads and Godot:
+      #
+      # ```crystal
+      # # Create bounded channel with capacity 16:
+      # channel = Godot::Channel.new(capacity: 16)
+      #
+      # # Spawn background worker:
+      # Thread.new do
+      #   result = compute_heavy_simulation()
+      #   channel.send(result)
+      # end
+      #
+      # # Main thread non-blocking poll:
+      # if item = channel.try_receive
+      #   apply_simulation(item)
+      # end
+      # ```
+      #
+      # See also: `spec/suites/test_channel_exhaustive.cr`
+      def self.topic_01_godot_channel_actor_pattern : Nil
+      end
+
+      # **GDScript Signal Interop**: Reactive signal received emission enabling GDScript await channel.received.
+      #
+      # In GDScript, `GodotChannel` emits `signal received(item)` whenever data is pushed
+      # from Crystal, allowing clean, non-blocking coroutines:
+      #
+      # ```gdscript
+      # # GDScript consumer:
+      # func _ready():
+      #     var channel = GodotChannel.new(16)
+      #     # Asynchronously wait for worker payload:
+      #     var data = await channel.received
+      #     print("Received from Crystal worker: ", data)
+      # ```
+      #
+      # See also: `spec/suites/test_gdscript_channel_signal_interop.cr`
+      def self.topic_02_gdscript_channel_interop : Nil
+      end
+
+      # **Async Engine Helpers**: delay(sec), next_frame, physics_frame, and cooperative timing helpers.
+      #
+      # LibGodot provides non-blocking async helpers that work seamlessly inside spawned fibers:
+      #
+      # ```crystal
+      # spawn do
+      #   # Wait 1.5 seconds without freezing main thread:
+      #   Godot.delay(1.5)
+      #   Godot.print("Timer elapsed!")
+      #
+      #   # Wait exactly one render frame:
+      #   Godot.next_frame
+      #
+      #   # Wait exactly one physics step:
+      #   Godot.physics_frame
+      # end
+      # ```
+      def self.topic_03_async_engine_helpers : Nil
+      end
+
+      # **Collection Ergonomics**: Idiomatic Crystal enumerable wrappers for Godot Array and Dictionary.
+      #
+      # LibGodot wraps Godot's native `Array` and `Dictionary` types with full Crystal `Enumerable`
+      # support, map/select pipelines, and type-safe indexers:
+      #
+      # ```crystal
+      # array = Godot::Array.new
+      # array << "Alpha"
+      # array << "Beta"
+      #
+      # # Crystal Enumerable methods:
+      # names = array.map(&.to_s.upcase)
+      # ```
+      #
+      # See also: `src/libgodot/collections.cr`
+      def self.topic_04_collection_ergonomics : Nil
       end
     end
   end
 end
-

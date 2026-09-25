@@ -291,12 +291,19 @@ Whenever debugging segmentation faults (`0xC0000005`), dead pointers, memory cor
 2. **Never Use Markdown Pipe Tables in Docs; Always Use HTML Tables**:
    - Never use Markdown pipe table syntax (`| Header | ... |`) in doc comments or documentation files.
    - Always use standard HTML tables (`<table>`, `<thead>`, `<tr>`, `<th>`, `<tbody>`, `<td>`) to guarantee clean, error-free rendering across Crystal docs generators, web browsers, and Godot's XML documentation parser.
+3. **Organize Substantive Sections via Class Method Doc Comments**:
+   - Rather than dumping hundreds of lines of markdown above a dummy module, encapsulate each topic into a dedicated class method with zero-padded prefixes (`def self.topic_01_<slug> : Nil`).
+   - Use `topic_00_<name>` for metadata/feature helpers, followed by sequential `topic_01_` through `topic_XX_`. This ensures `crystal docs` sorts methods alphabetically in their natural logical sequence instead of arbitrary scrambling.
+   - Format the first line of the doc comment as `# **Title**: 1-sentence concise description.` without any periods preceding the final punctuation mark. This prevents Crystal Docs from truncating the summary into single-digit fragments (`1.`, `2.`).
+   - This ensures `crystal docs` automatically builds a clickable **Method Summary** (in-page Table of Contents) with clear titles and descriptions, deep-linkable anchors (`#[method]-class-method`), and indexes each topic in `search-index.js`.
+   - Each method doc comment must include working code examples, key invariants, and links to relevant test suites in `spec/suites/` and showcase projects in `examples/`.
 
 ---
 
 ## 9. Agent Custom Skills
 
 This repository includes specialized Antigravity agent skills in `.agents/skills/`:
+- **`libgodot-docs-authoring`**: Runbook for authoring, organizing, and maintaining the `Lapis::Docs` documentation hierarchy, method doc comments, HTML tables, and `make docs` verification.
 - **`libgodot-build-and-sync`**: Runbook for building the complete toolchain, release builds, and multi-consumer DLL synchronization.
 - **`libgodot-packaging`**: Runbook for building installers (Windows installer, Debian package), official addon archives, standalone game exports, and release distributions.
 - **`libgodot-benchmarks`**: Runbook for compiling, running, profiling, and charting the Crystal vs GDScript performance benchmark suite.
