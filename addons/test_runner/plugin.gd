@@ -36,8 +36,12 @@ func _run_in_editor_tool_tests():
 	for i in range(5):
 		await get_tree().process_frame
 	if EditorInterface.get_resource_filesystem():
-		while EditorInterface.get_resource_filesystem().is_scanning():
+		var scan_wait_frames = 0
+		while EditorInterface.get_resource_filesystem().is_scanning() and scan_wait_frames < 3600:
 			await get_tree().process_frame
+			scan_wait_frames += 1
+		if scan_wait_frames > 0:
+			print("[CrystalToolTester] Filesystem scanning settled after %d frames." % scan_wait_frames)
 
 	# 1. Tickle ToolTester2D
 	print("[CrystalToolTester] Instantiating and executing ToolTester2D...")

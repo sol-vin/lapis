@@ -499,7 +499,7 @@ HELP
               step_start = Time.instant
               res = Core::ProcessRunner.run_with_capture(
                 godot_exe,
-                ["--headless", "--rendering-driver", "opengl3", "--audio-driver", "Dummy", "--editor", "--path", ".", "--fixed-fps", "60", "--quit-after", "3600"],
+                ["--headless", "--rendering-driver", "opengl3", "--audio-driver", "Dummy", "--editor", "--path", ".", "--quit-after", "10000"],
                 env: env,
                 chdir: root.to_s,
                 passthrough: tui.nil?,
