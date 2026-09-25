@@ -26,6 +26,23 @@ module Lapis
 
         return if gd_files.empty?
 
+        # Ensure that if bin/game.dll already exists, addons/crystal_integration/bin/game.dll is synced before Godot boots.
+        # If bin/game.dll does not exist yet, remove any stale orphan in addons/crystal_integration/bin.
+        bin_game = proj_dir.join("bin", Core::Env.game_file)
+        addon_game = proj_dir.join("addons/crystal_integration/bin", Core::Env.game_file)
+        if File.exists?(bin_game)
+          if Dir.exists?(addon_game.parent)
+            Sync.safe_copy(bin_game, addon_game)
+            if Core::Env.windows?
+              src_pdb = proj_dir.join("bin", "game.pdb")
+              dst_pdb = proj_dir.join("addons/crystal_integration/bin", "game.pdb")
+              Sync.safe_copy(src_pdb, dst_pdb) if File.exists?(src_pdb)
+            end
+          end
+        elsif File.exists?(addon_game)
+          File.delete(addon_game) rescue nil
+        end
+
         Core::Logger.info("Detected custom GDScript files in #{proj_dir.basename}, generating project bindings...")
         Bind::Project.generate(project_path: proj_dir)
       end
@@ -121,6 +138,18 @@ module Lapis
 
         if status.success?
           Core::Logger.success("#{output_path.basename} built successfully in #{elapsed.round(2)}s!")
+          # If output is a game library, also sync to addons/crystal_integration/bin if present
+          if output_path.basename == Core::Env.game_file
+            addon_bin = working_dir.join("addons/crystal_integration/bin")
+            if Dir.exists?(addon_bin)
+              Commands::Sync.safe_copy(output_path, addon_bin.join(output_path.basename))
+              if Core::Env.windows?
+                src_pdb = Path.new(output_path.to_s.sub(/\.dll$/, ".pdb"))
+                dst_pdb = addon_bin.join(output_path.basename.to_s.sub(/\.dll$/, ".pdb"))
+                Commands::Sync.safe_copy(src_pdb, dst_pdb) if File.exists?(src_pdb)
+              end
+            end
+          end
           0
         else
           Core::Logger.error("Build failed with exit code #{status.exit_code} after #{elapsed.round(2)}s")

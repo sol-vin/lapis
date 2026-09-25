@@ -1122,7 +1122,6 @@ inline void generic_class_call_virtual_with_data(
                 bool ok = false;
                 if (p_args && p_args[0]) {
                     void *res_obj = bridge_ref_get_object(p_args[0]);
-                    if (!res_obj) res_obj = *(void**)p_args[0];
                     if (res_obj) {
                         GenericExtensionInstance *ext = find_extension_instance(res_obj);
                         if (ext && ext->desc && strcmp(ext->desc->name, "CrystalScript") == 0) {
@@ -1154,7 +1153,6 @@ inline void generic_class_call_virtual_with_data(
                 // Check resource object in p_args[0]
                 if (!ok && p_args && p_args[0]) {
                     void *res_obj = bridge_ref_get_object(p_args[0]);
-                    if (!res_obj) res_obj = *(void**)p_args[0];
                     if (res_obj) {
                         GenericExtensionInstance *ext = find_extension_instance(res_obj);
                         if (ext && ext->desc && strcmp(ext->desc->name, "CrystalScript") == 0) {
@@ -1177,7 +1175,6 @@ inline void generic_class_call_virtual_with_data(
                 void *res_obj = nullptr;
                 if (p_args && p_args[0]) {
                     res_obj = bridge_ref_get_object(p_args[0]);
-                    if (!res_obj) res_obj = *(void**)p_args[0];
                 }
 
                 // 2. Resolve target path

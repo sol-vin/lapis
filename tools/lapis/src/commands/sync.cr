@@ -61,8 +61,17 @@ module Lapis
 
         ext_list = godot_dir.join("extension_list.cfg")
         existing_lines = File.exists?(ext_list) ? File.read(ext_list).lines.map(&.strip).reject(&.empty?) : [] of String
-        # Clean up legacy or wrong entries
-        existing_lines.reject! { |l| l.ends_with?("crystal_integration.gdextension") }
+        # Clean up legacy, wrong, or non-existent entries
+        existing_lines.reject! do |l|
+          if l.ends_with?("crystal_integration.gdextension")
+            true
+          elsif l.starts_with?("res://")
+            rel_file = l.sub("res://", "")
+            !File.exists?(project_dir.join(rel_file))
+          else
+            false
+          end
+        end
 
         pattern = addons_dir.to_s.gsub('\\', '/') + "/**/*.gdextension"
         Dir.glob(pattern).sort.each do |gdext_path|
@@ -222,8 +231,12 @@ HELP
           # Sync game binary to corresponding addons/crystal_integration/bin for consumer projects
           game_file = Core::Env.game_file
           consumer_projs = ["test", "template", "performance"]
-          Dir.glob(root.join("examples/*").to_s).each do |ex_dir|
-            consumer_projs << "examples/#{File.basename(ex_dir)}" if File.directory?(ex_dir)
+          examples_dir = root.join("examples")
+          if Dir.exists?(examples_dir)
+            Dir.each_child(examples_dir) do |child|
+              ex_dir = examples_dir.join(child)
+              consumer_projs << "examples/#{child}" if File.directory?(ex_dir)
+            end
           end
           consumer_projs.each do |proj|
             proj_dir = root.join(proj)

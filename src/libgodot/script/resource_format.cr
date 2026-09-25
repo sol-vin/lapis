@@ -346,9 +346,6 @@ module Lapis
         res_ptr = Pointer(Void).null
         if !args.null? && !args[0].null?
           res_ptr = Bridge.ref_get_object(args[0])
-          if res_ptr.null?
-            res_ptr = args[0].as(Void**).value rescue Pointer(Void).null
-          end
         end
         recognize = false
         if !res_ptr.null?
@@ -375,9 +372,6 @@ module Lapis
         end
         if !recognize && !args.null? && !args[0].null?
           res_ptr = Bridge.ref_get_object(args[0])
-          if res_ptr.null?
-            res_ptr = args[0].as(Void**).value rescue Pointer(Void).null
-          end
           if !res_ptr.null?
             if inst = Bridge.find_alive_instance(res_ptr)
               recognize = inst.is_a?(CrystalScript)
@@ -402,9 +396,6 @@ module Lapis
         res_ptr = Pointer(Void).null
         if !args.null? && !args[0].null?
           res_ptr = Bridge.ref_get_object(args[0])
-          if res_ptr.null?
-            res_ptr = args[0].as(Void**).value rescue Pointer(Void).null
-          end
         end
 
         inst = Bridge.find_alive_instance(res_ptr)

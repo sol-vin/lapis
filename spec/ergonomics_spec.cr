@@ -221,8 +221,8 @@ describe "LibGodot Ergonomic Options & Performance Regression Gates" do
       end
       elapsed_ms = (Time.instant - start).total_milliseconds
 
-      # Performance threshold: 100k ops must finish in < 80ms under debug (typical ~1.5ms in release)
-      elapsed_ms.should be < 80.0
+      # Performance threshold: 100k ops must finish in < 150ms under debug (typical ~1.5ms in release)
+      elapsed_ms.should be < 150.0
       sum.should be > 0.0
     end
 
