@@ -273,20 +273,22 @@ node RunTesterPanel < Godot::Control do
     hook_button("MarginContainer/VBox/ButtonBox/BtnRunAll") { run_and_display_all }
 
     # Dynamically build and connect category buttons from Registry.categories
-    if button_box = get_node?("MarginContainer/VBox/ButtonBox")
-      Registry.categories.sort.each do |cat|
-        btn_name = "BtnRun#{cat.gsub(/[^a-zA-Z0-9]/, "")}"
-        btn_path = "MarginContainer/VBox/ButtonBox/#{btn_name}"
-        target_cat = cat
-        if existing_btn = get_node?(btn_path)
-          hook_button(btn_path) { run_and_display_category(target_cat) }
-        else
-          btn = Godot.create(Godot::Button)
-          btn.name = btn_name
-          btn.text = cat
-          button_box.add_child(btn)
-          btn.signal("pressed").connect do
-            run_and_display_category(target_cat)
+    unless Godot.editor_hint?
+      if button_box = get_node?("MarginContainer/VBox/ButtonBox")
+        Registry.categories.sort.each do |cat|
+          btn_name = "BtnRun#{cat.gsub(/[^a-zA-Z0-9]/, "")}"
+          btn_path = "MarginContainer/VBox/ButtonBox/#{btn_name}"
+          target_cat = cat
+          if existing_btn = get_node?(btn_path)
+            hook_button(btn_path) { run_and_display_category(target_cat) }
+          else
+            btn = Godot.create(Godot::Button)
+            btn.name = btn_name
+            btn.text = cat
+            button_box.call_deferred("add_child", btn)
+            btn.signal("pressed").connect do
+              run_and_display_category(target_cat)
+            end
           end
         end
       end

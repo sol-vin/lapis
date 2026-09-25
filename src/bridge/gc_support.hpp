@@ -71,7 +71,7 @@ static void on_bridge_load() {
 #endif
 
 inline void unregister_gc_thread() {
-#if defined(_WIN32)
+#if defined(_WIN32) || (defined(__APPLE__) && defined(__MACH__))
     t_gc_registered_module_count = 0;
     return;
 #else
