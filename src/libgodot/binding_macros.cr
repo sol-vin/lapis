@@ -188,15 +188,23 @@ end
 # Signal Synthesizer Macros
 # ===========================================================================
 
-# Synthesizes a first-class typed signal accessor
+# Synthesizes a first-class typed signal accessor and direct emission helper
 macro godot_signal(name, *types)
   {% if types.empty? %}
     def {{name.id}} : ::Godot::TypedSignal()
       ::Godot::TypedSignal().new(self, {{name.stringify}})
     end
+
+    def emit_{{name.id}} : Void
+      emit_signal({{name.stringify}})
+    end
   {% else %}
     def {{name.id}} : ::Godot::TypedSignal({{types.splat}})
       ::Godot::TypedSignal({{types.splat}}).new(self, {{name.stringify}})
+    end
+
+    def emit_{{name.id}}(*args) : Void
+      emit_signal({{name.stringify}}, *args)
     end
   {% end %}
 end
