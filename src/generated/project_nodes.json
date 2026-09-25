@@ -2471,6 +2471,63 @@
 			"signals": []
 		},
 		{
+			"constants": {},
+			"inherits": "Node",
+			"is_instantiable": true,
+			"methods": [],
+			"name": "EditorSignalTargetNode",
+			"properties": [
+				{
+					"class_name": "String",
+					"hint": 0,
+					"hint_string": "",
+					"name": "label",
+					"type": 4,
+					"type_name": "String"
+				}
+			],
+			"signals": [
+				{
+					"args": [],
+					"name": "action_triggered"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "score",
+							"type": 2,
+							"type_name": "int"
+						},
+						{
+							"class_name": "",
+							"name": "multiplier",
+							"type": 3,
+							"type_name": "float"
+						}
+					],
+					"name": "score_updated"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "tagger_name",
+							"type": 4,
+							"type_name": "String"
+						},
+						{
+							"class_name": "",
+							"name": "is_leader",
+							"type": 1,
+							"type_name": "bool"
+						}
+					],
+					"name": "player_tagged"
+				}
+			]
+		},
+		{
 			"constants": {
 				"Knight": 0,
 				"Thief": 5,

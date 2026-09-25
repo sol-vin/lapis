@@ -11,10 +11,28 @@ include Lapis::Test
 # without opening or switching scenes.
 
 test_suite "Nodes" do
-  test "MainNode is registered in ClassRegistry" do
+  test "MainNode is registered in ClassRegistry with initialized signal" do
     entry = Godot::ClassRegistry.find("MainNode")
     assert_not_nil entry, "Expected MainNode to be registered in ClassRegistry"
     assert_eq entry.not_nil!.parent_name, "Node3D"
+    sig_names = entry.not_nil!.signals.map(&.name)
+    assert_includes sig_names, "initialized"
+  end
+
+  test "MainNode signal reflection in CrystalScript" do
+    script = Godot.create(Godot::CrystalScript)
+    assert_not_nil script, "CrystalScript instance should be created"
+    if sc = script
+      sc.script_class_name = "MainNode"
+      sc.sync_class_metadata
+
+      assert_true sc.has_script_signal("initialized"), "Script should have 'initialized' signal"
+      assert_true sc.signal_defs.any? { |s| s.name == "initialized" }, "Signal 'initialized' must exist in signal_defs"
+
+      # Verify virtual call return buffer does not crash
+      sc.get_script_signal_list
+      sc.get_script_property_list
+    end
   end
 
   test "MyCrystalNode property defaults" do

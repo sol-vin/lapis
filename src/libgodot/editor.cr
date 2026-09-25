@@ -1535,6 +1535,7 @@ module Lapis
     @@hl_check_accum : Float64 = 0.0_f64
 
     def _process(delta : Float64) : Void
+      Fiber.yield
       if poll_proc = @@on_poll
         poll_proc.call rescue nil
       end

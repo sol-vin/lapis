@@ -403,6 +403,10 @@ module Godot
                    CrystalScript.new(res.pointer)
                  end
             if cs && !cs.pointer.null?
+              cs.script_class_name = class_name if cs.script_class_name.empty?
+              cs.script_base_type = base_type if cs.script_base_type.empty?
+              cs.is_tool_script = is_tool if is_tool
+              cs.sync_class_metadata
               @@script_cache[path] = cs
               return cs
             end
@@ -417,10 +421,11 @@ module Godot
         script = Godot.create(Godot::CrystalScript)
         return nil unless script
         script.script_path = path
-        script.source_code = source
         script.script_class_name = class_name
         script.script_base_type = base_type
         script.is_tool_script = is_tool
+        script.source_code = source
+        script.sync_class_metadata
         script.take_over_path(path) rescue script.call("take_over_path", path) rescue script.set_path_cache(path) rescue nil
         @@script_cache[path] = script
         script

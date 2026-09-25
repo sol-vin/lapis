@@ -360,6 +360,7 @@ module Lapis
 
       # Pumps background events non-blockingly on the Godot main thread
       def poll : Void
+        Fiber.yield
         if ch = @out_channel
           loop do
             select
@@ -519,7 +520,7 @@ module Lapis
         StackFrame.new(idx, fn, file, line_num, addr)
       end
 
-      # Spawns OS background thread to read LLDB stdout/stderr into buffered channel
+      # Spawns background fibers to read LLDB stdout/stderr into buffered channel
       private def start_reader_threads(proc : Process) : Void
         out_ch = @out_channel
         return unless out_ch
@@ -527,7 +528,7 @@ module Lapis
         stdout = proc.output
         stderr = proc.error
 
-        ::Thread.new do
+        spawn do
           begin
             if stdout
               while line = stdout.gets
@@ -540,7 +541,7 @@ module Lapis
           end
         end
 
-        ::Thread.new do
+        spawn do
           begin
             if stderr
               while err_line = stderr.gets

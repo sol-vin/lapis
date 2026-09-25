@@ -1039,22 +1039,19 @@ inline void bridge_ret_packed_string_array(void *r_ret, const char **strings, in
 
 inline void bridge_ret_dictionary_empty(void *r_ret) {
     if (!r_ret) return;
-    if (!gd_dictionary_constructor && gd_variant_get_ptr_constructor) {
-        gd_dictionary_constructor = gd_variant_get_ptr_constructor(GDEXTENSION_VARIANT_TYPE_DICTIONARY, 0);
-    }
-    if (gd_dictionary_constructor) {
-        gd_dictionary_constructor(r_ret, nullptr);
-    }
+    // In Godot virtual method calls (GDVIRTUAL_CALL) and ptrcalls, r_ret points to a container
+    // already default-constructed on the caller's stack (e.g. Dictionary).
+    // Invoking gd_dictionary_constructor with placement-new overwrites the existing instance and leaks DictionaryPrivate.
+    // The caller's stack container is already empty by default.
 }
 
 inline void bridge_ret_array_empty(void *r_ret) {
     if (!r_ret) return;
-    if (!gd_array_constructor && gd_variant_get_ptr_constructor) {
-        gd_array_constructor = gd_variant_get_ptr_constructor(GDEXTENSION_VARIANT_TYPE_ARRAY, 0);
-    }
-    if (gd_array_constructor) {
-        gd_array_constructor(r_ret, nullptr);
-    }
+    // In Godot virtual method calls (GDVIRTUAL_CALL) and ptrcalls, r_ret points to a container
+    // already default-constructed on the caller's stack (e.g. Array or TypedArray).
+    // Invoking gd_array_constructor with placement-new overwrites the existing instance, leaks ArrayPrivate,
+    // and corrupts TypedArray typing metadata, causing ACCESS_VIOLATION crashes on return.
+    // The caller's stack container is already empty by default.
 }
 
 inline void bridge_ret_object(void *r_ret, void *obj) {
@@ -1595,6 +1592,148 @@ inline void bridge_ret_dictionary_global_class(void *r_ret, const char *class_na
     dict_set_variant(r_ret, "base_type", GDEXTENSION_VARIANT_TYPE_STRING, &b_type);
     const char *i_path = icon_path ? icon_path : "";
     dict_set_variant(r_ret, "icon_path", GDEXTENSION_VARIANT_TYPE_STRING, &i_path);
+}
+
+inline void bridge_ret_signal_list(void *r_ret, const struct CrystalSignalDesc *signals, int signal_count) {
+    if (!r_ret) return;
+    if (!signals || signal_count <= 0) return;
+
+    if (!gd_dictionary_constructor && gd_variant_get_ptr_constructor) {
+        gd_dictionary_constructor = gd_variant_get_ptr_constructor(GDEXTENSION_VARIANT_TYPE_DICTIONARY, 0);
+    }
+    if (!gd_array_constructor && gd_variant_get_ptr_constructor) {
+        gd_array_constructor = gd_variant_get_ptr_constructor(GDEXTENSION_VARIANT_TYPE_ARRAY, 0);
+    }
+    if (!gd_array_push_back && gd_variant_get_ptr_builtin_method) {
+        void *sn_pb = make_string_name("push_back");
+        gd_array_push_back = gd_variant_get_ptr_builtin_method(GDEXTENSION_VARIANT_TYPE_ARRAY, sn_pb, 3316032543ULL);
+        free_string_name(sn_pb);
+    }
+    if (!gd_dict_destructor && gd_variant_get_ptr_destructor) {
+        gd_dict_destructor = gd_variant_get_ptr_destructor(GDEXTENSION_VARIANT_TYPE_DICTIONARY);
+    }
+    if (!gd_array_destructor && gd_variant_get_ptr_destructor) {
+        gd_array_destructor = gd_variant_get_ptr_destructor(GDEXTENSION_VARIANT_TYPE_ARRAY);
+    }
+
+    if (!gd_array_push_back || !gd_dictionary_constructor || !gd_array_constructor) return;
+
+    for (int i = 0; i < signal_count; i++) {
+        alignas(void*) char sig_dict[24] = {};
+        gd_dictionary_constructor(sig_dict, nullptr);
+
+        const char *s_name = signals[i].name ? signals[i].name : "";
+        dict_set_variant(sig_dict, "name", GDEXTENSION_VARIANT_TYPE_STRING, &s_name);
+
+        int64_t s_flags = 1; // METHOD_FLAG_NORMAL
+        dict_set_variant(sig_dict, "flags", GDEXTENSION_VARIANT_TYPE_INT, &s_flags);
+
+        alignas(void*) char arr_args[24] = {};
+        gd_array_constructor(arr_args, nullptr);
+
+        if (signals[i].args && signals[i].arg_count > 0) {
+            for (int j = 0; j < signals[i].arg_count; j++) {
+                alignas(void*) char arg_dict[24] = {};
+                gd_dictionary_constructor(arg_dict, nullptr);
+
+                const char *a_name = signals[i].args[j].name ? signals[i].args[j].name : "";
+                int64_t a_type = signals[i].args[j].variant_type;
+                const char *empty_str = "";
+                int64_t hint_val = 0;
+                int64_t usage_val = 6; // PROPERTY_USAGE_DEFAULT
+
+                dict_set_variant(arg_dict, "name", GDEXTENSION_VARIANT_TYPE_STRING, &a_name);
+                dict_set_variant(arg_dict, "type", GDEXTENSION_VARIANT_TYPE_INT, &a_type);
+                dict_set_variant(arg_dict, "class_name", GDEXTENSION_VARIANT_TYPE_STRING, &empty_str);
+                dict_set_variant(arg_dict, "hint", GDEXTENSION_VARIANT_TYPE_INT, &hint_val);
+                dict_set_variant(arg_dict, "hint_string", GDEXTENSION_VARIANT_TYPE_STRING, &empty_str);
+                dict_set_variant(arg_dict, "usage", GDEXTENSION_VARIANT_TYPE_INT, &usage_val);
+
+                alignas(void*) char var_arg_dict[24] = {};
+                bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_DICTIONARY, var_arg_dict, arg_dict);
+
+                const GDExtensionConstTypePtr pb_arg[1] = { var_arg_dict };
+                alignas(void*) uint8_t pb_ret1 = 0;
+                gd_array_push_back(arr_args, pb_arg, &pb_ret1, 1);
+
+                if (gd_variant_destroy) gd_variant_destroy(var_arg_dict);
+                if (gd_dict_destructor) gd_dict_destructor(arg_dict);
+            }
+        }
+
+        dict_set_variant(sig_dict, "args", GDEXTENSION_VARIANT_TYPE_ARRAY, arr_args);
+        if (gd_array_destructor) gd_array_destructor(arr_args);
+
+        alignas(void*) char arr_defargs[24] = {};
+        gd_array_constructor(arr_defargs, nullptr);
+        dict_set_variant(sig_dict, "default_args", GDEXTENSION_VARIANT_TYPE_ARRAY, arr_defargs);
+        if (gd_array_destructor) gd_array_destructor(arr_defargs);
+
+        alignas(void*) char ret_dict[24] = {};
+        gd_dictionary_constructor(ret_dict, nullptr);
+        int64_t nil_type = 0; // Variant::NIL
+        dict_set_variant(ret_dict, "type", GDEXTENSION_VARIANT_TYPE_INT, &nil_type);
+        dict_set_variant(sig_dict, "return", GDEXTENSION_VARIANT_TYPE_DICTIONARY, ret_dict);
+        if (gd_dict_destructor) gd_dict_destructor(ret_dict);
+
+        alignas(void*) char var_sig_dict[24] = {};
+        bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_DICTIONARY, var_sig_dict, sig_dict);
+
+        const GDExtensionConstTypePtr pb_sig[1] = { var_sig_dict };
+        alignas(void*) uint8_t pb_ret2 = 0;
+        gd_array_push_back(r_ret, pb_sig, &pb_ret2, 1);
+
+        if (gd_variant_destroy) gd_variant_destroy(var_sig_dict);
+        if (gd_dict_destructor) gd_dict_destructor(sig_dict);
+    }
+}
+
+inline void bridge_ret_property_list(void *r_ret, const struct CrystalPropertyDesc *props, int prop_count) {
+    if (!r_ret) return;
+    if (!props || prop_count <= 0) return;
+
+    if (!gd_dictionary_constructor && gd_variant_get_ptr_constructor) {
+        gd_dictionary_constructor = gd_variant_get_ptr_constructor(GDEXTENSION_VARIANT_TYPE_DICTIONARY, 0);
+    }
+    if (!gd_array_push_back && gd_variant_get_ptr_builtin_method) {
+        void *sn_pb = make_string_name("push_back");
+        gd_array_push_back = gd_variant_get_ptr_builtin_method(GDEXTENSION_VARIANT_TYPE_ARRAY, sn_pb, 3316032543ULL);
+        free_string_name(sn_pb);
+    }
+    if (!gd_dict_destructor && gd_variant_get_ptr_destructor) {
+        gd_dict_destructor = gd_variant_get_ptr_destructor(GDEXTENSION_VARIANT_TYPE_DICTIONARY);
+    }
+
+    if (!gd_array_push_back || !gd_dictionary_constructor) return;
+
+    for (int i = 0; i < prop_count; i++) {
+        alignas(void*) char prop_dict[24] = {};
+        gd_dictionary_constructor(prop_dict, nullptr);
+
+        const char *p_name = props[i].name ? props[i].name : "";
+        int64_t p_type = props[i].variant_type;
+        const char *p_class = (props[i].type_name && props[i].variant_type == GDEXTENSION_VARIANT_TYPE_OBJECT) ? props[i].type_name : "";
+        int64_t p_hint = props[i].hint;
+        const char *p_hint_str = props[i].hint_string ? props[i].hint_string : "";
+        int64_t p_usage = props[i].usage != 0 ? props[i].usage : 6; // PROPERTY_USAGE_DEFAULT
+
+        dict_set_variant(prop_dict, "name", GDEXTENSION_VARIANT_TYPE_STRING, &p_name);
+        dict_set_variant(prop_dict, "type", GDEXTENSION_VARIANT_TYPE_INT, &p_type);
+        dict_set_variant(prop_dict, "class_name", GDEXTENSION_VARIANT_TYPE_STRING, &p_class);
+        dict_set_variant(prop_dict, "hint", GDEXTENSION_VARIANT_TYPE_INT, &p_hint);
+        dict_set_variant(prop_dict, "hint_string", GDEXTENSION_VARIANT_TYPE_STRING, &p_hint_str);
+        dict_set_variant(prop_dict, "usage", GDEXTENSION_VARIANT_TYPE_INT, &p_usage);
+
+        alignas(void*) char var_prop_dict[24] = {};
+        bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_DICTIONARY, var_prop_dict, prop_dict);
+
+        const GDExtensionConstTypePtr pb_prop[1] = { var_prop_dict };
+        alignas(void*) uint8_t pb_ret = 0;
+        gd_array_push_back(r_ret, pb_prop, &pb_ret, 1);
+
+        if (gd_variant_destroy) gd_variant_destroy(var_prop_dict);
+        if (gd_dict_destructor) gd_dict_destructor(prop_dict);
+    }
 }
 
 inline int bridge_text_edit_get_line(void *text_edit, int64_t line, char *out_buf, int max_len) {

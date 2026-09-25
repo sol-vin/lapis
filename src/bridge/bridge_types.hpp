@@ -342,6 +342,8 @@ struct BridgeAPI {
     void (*object_get_class_name)(GDExtensionObjectPtr obj, char *buf, int max_len);
     void (*log_verbose)(const char *msg);
     int (*is_verbose)();
+    void (*ret_signal_list)(void *r_ret, const struct CrystalSignalDesc *signals, int signal_count);
+    void (*ret_property_list)(void *r_ret, const struct CrystalPropertyDesc *props, int prop_count);
 };
 
 struct BridgeGCFunctions {

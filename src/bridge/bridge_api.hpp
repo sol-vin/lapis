@@ -113,7 +113,9 @@ static BridgeAPI g_bridge_api = {
     bridge_get_gc_signals,
     bridge_object_get_class_name,
     godot_log_verbose,
-    bridge_is_verbose
+    bridge_is_verbose,
+    bridge_ret_signal_list,
+    bridge_ret_property_list
 };
 
 // ==============================================================================

@@ -12,7 +12,7 @@ require "./session_controller"
 module Godot
   @[Tool]
   node CrystalDebuggerPlugin < EditorDebuggerPlugin do
-    property auto_attach : Bool = true
+    property auto_attach : Bool = false
     property lldb_path : String = "lldb"
   end
 

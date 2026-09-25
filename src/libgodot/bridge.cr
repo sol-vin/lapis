@@ -172,6 +172,8 @@ module Godot
       object_get_class_name : (Void*, LibC::Char*, Int32 -> Void)
       log_verbose : (LibC::Char* -> Void)
       is_verbose : (-> Int32)
+      ret_signal_list : (Void*, CrystalSignalDesc*, Int32 -> Void)
+      ret_property_list : (Void*, CrystalPropertyDesc*, Int32 -> Void)
     end
 
     struct BridgeGCFunctions
@@ -1270,6 +1272,18 @@ module Godot
     def self.ret_array_empty(ret : Void*) : Void
       return if ret.null? || @@api.null? || @@api.value.ret_array_empty.pointer.null?
       @@api.value.ret_array_empty.call(ret)
+    end
+
+    def self.ret_signal_list(ret : Void*, signals : Slice(LibBridge::CrystalSignalDesc) | Array(LibBridge::CrystalSignalDesc)) : Void
+      return if ret.null? || @@api.null? || @@api.value.ret_signal_list.pointer.null?
+      sig_ptr = signals.empty? ? Pointer(LibBridge::CrystalSignalDesc).null : signals.to_unsafe
+      @@api.value.ret_signal_list.call(ret, sig_ptr, signals.size.to_i32)
+    end
+
+    def self.ret_property_list(ret : Void*, props : Slice(LibBridge::CrystalPropertyDesc) | Array(LibBridge::CrystalPropertyDesc)) : Void
+      return if ret.null? || @@api.null? || @@api.value.ret_property_list.pointer.null?
+      prop_ptr = props.empty? ? Pointer(LibBridge::CrystalPropertyDesc).null : props.to_unsafe
+      @@api.value.ret_property_list.call(ret, prop_ptr, props.size.to_i32)
     end
 
     def self.ret_object(ret : Void*, obj_ptr : Void*) : Void

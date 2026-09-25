@@ -26,6 +26,25 @@ module Lapis
     end
   end
 
+  # Parameter descriptor for an exported script signal
+  struct ScriptSignalArg
+    property name : String
+    property variant_type : Int32
+
+    def initialize(@name : String, variant_type : Number = 0)
+      @variant_type = variant_type.to_i32
+    end
+  end
+
+  # Signal descriptor for an exported script signal
+  struct ScriptSignal
+    property name : String
+    property args : Array(ScriptSignalArg)
+
+    def initialize(@name : String, @args : Array(ScriptSignalArg) = [] of ScriptSignalArg)
+    end
+  end
+
   # Represents a standalone .cr file as a first-class Godot Script resource.
   # Bridges source text, AST reflection, and Inspector property presentation.
   @[Tool]
@@ -38,6 +57,7 @@ module Lapis
     @is_tool_script : Bool = false
     @properties : Array(ScriptProperty) = [] of ScriptProperty
     @signals : Array(String) = [] of String
+    @signal_defs : Array(ScriptSignal) = [] of ScriptSignal
     @methods : Array(String) = [] of String
     @doc_comments : Hash(String, String) = {} of String => String
 
@@ -58,6 +78,7 @@ module Lapis
 
     def source_code=(v : String)
       @source_code = v
+      parse_source_metadata
       if !@pointer.null?
         call("set_source_code", v) rescue nil
       end
@@ -69,6 +90,7 @@ module Lapis
 
     def script_class_name=(v : String)
       @script_class_name = v
+      sync_class_metadata unless v.empty?
     end
 
     def script_base_type : String
@@ -101,6 +123,19 @@ module Lapis
 
     def signals=(v : Array(String))
       @signals = v
+    end
+
+    def signal_defs : Array(ScriptSignal)
+      @signal_defs
+    end
+
+    def signal_defs=(v : Array(ScriptSignal))
+      @signal_defs = v
+    end
+
+    def has_script_signal(name : String) : Bool
+      sync_class_metadata if @signals.empty? && @signal_defs.empty?
+      @signals.includes?(name) || @signal_defs.any? { |s| s.name == name }
     end
 
     def methods : Array(String)
@@ -227,7 +262,8 @@ module Lapis
         ret.as(UInt8*).value = 0_u8
       when "_has_script_signal"
         s_name = Bridge.arg_to_string_name(args[0])
-        has_s = @signals.includes?(s_name)
+        sync_class_metadata if @signals.empty? && @signal_defs.empty?
+        has_s = @signals.includes?(s_name) || @signal_defs.any? { |s| s.name == s_name }
         ret.as(UInt8*).value = has_s ? 1_u8 : 0_u8
       when "_has_property_default_value"
         ret.as(UInt8*).value = 0_u8
@@ -277,7 +313,56 @@ module Lapis
         return
       when "_get_class_icon_path"
         Bridge.ret_string(ret, "res://addons/crystal_integration/crystal_icon.svg")
-      when "_get_script_signal_list", "_get_script_method_list", "_get_script_property_list"
+      when "_get_script_signal_list"
+        sync_class_metadata if @signal_defs.empty?
+        if @signal_defs.empty? && !@signals.empty?
+          @signals.each do |sname|
+            @signal_defs << ScriptSignal.new(sname) unless @signal_defs.any? { |s| s.name == sname }
+          end
+        end
+
+        if @signal_defs.empty?
+          Bridge.ret_array_empty(ret)
+        else
+          c_descs = Array(LibBridge::CrystalSignalDesc).new(@signal_defs.size)
+          args_arrays = Array(Array(LibBridge::CrystalSignalArgDesc)).new(@signal_defs.size)
+
+          @signal_defs.each do |sdef|
+            c_args = Array(LibBridge::CrystalSignalArgDesc).new(sdef.args.size)
+            sdef.args.each do |arg|
+              c_args << LibBridge::CrystalSignalArgDesc.new(
+                name: arg.name.to_unsafe,
+                variant_type: arg.variant_type
+              )
+            end
+            args_arrays << c_args
+            c_descs << LibBridge::CrystalSignalDesc.new(
+              name: sdef.name.to_unsafe,
+              arg_count: c_args.size,
+              args: c_args.empty? ? Pointer(LibBridge::CrystalSignalArgDesc).null : c_args.to_unsafe
+            )
+          end
+          Bridge.ret_signal_list(ret, c_descs)
+        end
+      when "_get_script_property_list"
+        sync_class_metadata if @properties.empty?
+        if @properties.empty?
+          Bridge.ret_array_empty(ret)
+        else
+          c_props = Array(LibBridge::CrystalPropertyDesc).new(@properties.size)
+          @properties.each do |p|
+            c_props << LibBridge::CrystalPropertyDesc.new(
+              name: p.name.to_unsafe,
+              type_name: p.type_name.to_unsafe,
+              variant_type: p.variant_type,
+              hint: p.hint,
+              hint_string: p.hint_string.to_unsafe,
+              usage: p.usage
+            )
+          end
+          Bridge.ret_property_list(ret, c_props)
+        end
+      when "_get_script_method_list"
         Bridge.ret_array_empty(ret)
       when "_get_member_line"
         ret.as(Int32*).value = 0_i32
@@ -356,9 +441,27 @@ module Lapis
         end
 
         # Signal declaration: signal name(args...)
-        if trimmed =~ /(?:^|\s)signal\s+([A-Za-z0-9_]+)/
+        if trimmed =~ /(?:^|\s)signal\s+([A-Za-z0-9_]+)(?:\s*\(([^)]*)\))?/
           sig_name = $1
-          @signals << sig_name
+          @signals << sig_name unless @signals.includes?(sig_name)
+          args_str = $2? || ""
+          sargs = [] of ScriptSignalArg
+          if !args_str.strip.empty?
+            args_str.split(",").each do |arg_decl|
+              parts = arg_decl.split(":")
+              aname = parts[0].strip
+              atype = parts.size > 1 ? parts[1].strip.split("::").last : "Variant"
+              avtype = variant_type_from_string(atype)
+              sargs << ScriptSignalArg.new(aname, avtype)
+            end
+          end
+          existing_s = @signal_defs.find { |s| s.name == sig_name }
+          if existing_s
+            idx = @signal_defs.index(existing_s).not_nil!
+            @signal_defs[idx] = ScriptSignal.new(sig_name, sargs)
+          else
+            @signal_defs << ScriptSignal.new(sig_name, sargs)
+          end
           @doc_comments[sig_name] = current_doc unless current_doc.empty?
           current_doc = ""
           pending_export_args = ""
@@ -417,39 +520,65 @@ module Lapis
         current_doc = "" if !trimmed.empty?
       end
 
-      # Cross-reference with live ClassDB if the class is already compiled
-      if !@script_class_name.empty?
-        ClassRegistry.entries.each do |entry|
-          if entry.class_name == @script_class_name
-            @script_base_type = entry.parent_name unless entry.parent_name.empty?
-            @is_tool_script = true if entry.is_tool
-            # Merge compiled property hints
-            entry.properties.each do |cp|
-              existing = @properties.find { |p| p.name == cp.name }
-              if existing
-                idx = @properties.index(existing).not_nil!
-                @properties[idx] = ScriptProperty.new(
-                  name: cp.name,
-                  type_name: cp.type_name,
-                  variant_type: cp.variant_type,
-                  hint: cp.hint,
-                  hint_string: cp.hint_string,
-                  usage: cp.usage,
-                  default_value: existing.default_value
-                )
-              else
-                @properties << ScriptProperty.new(
-                  name: cp.name,
-                  type_name: cp.type_name,
-                  variant_type: cp.variant_type,
-                  hint: cp.hint,
-                  hint_string: cp.hint_string,
-                  usage: cp.usage
-                )
-              end
-            end
-            break
-          end
+      sync_class_metadata
+    end
+
+    def sync_class_metadata : Void
+      entry = if !@script_class_name.empty?
+        ClassRegistry.find(@script_class_name)
+      elsif !@script_path.empty?
+        norm = @script_path.starts_with?("res://") ? @script_path : "res://#{@script_path.lstrip('/')}"
+        ClassRegistry.entries.find do |e|
+          e.script_path == @script_path ||
+            e.script_path == norm ||
+            (!e.script_path.empty? && (@script_path.ends_with?(e.script_path.sub("res://", "")) || e.script_path.ends_with?(@script_path.sub("res://", ""))))
+        end
+      else
+        nil
+      end
+
+      return unless entry
+
+      @script_class_name = entry.class_name if @script_class_name.empty?
+      @script_base_type = entry.parent_name unless entry.parent_name.empty?
+      @is_tool_script = true if entry.is_tool
+
+      # Merge properties from ClassRegistry
+      entry.properties.each do |cp|
+        existing = @properties.find { |p| p.name == cp.name }
+        if existing
+          idx = @properties.index(existing).not_nil!
+          @properties[idx] = ScriptProperty.new(
+            name: cp.name,
+            type_name: cp.type_name,
+            variant_type: cp.variant_type,
+            hint: cp.hint,
+            hint_string: cp.hint_string,
+            usage: cp.usage,
+            default_value: existing.default_value
+          )
+        else
+          @properties << ScriptProperty.new(
+            name: cp.name,
+            type_name: cp.type_name,
+            variant_type: cp.variant_type,
+            hint: cp.hint,
+            hint_string: cp.hint_string,
+            usage: cp.usage
+          )
+        end
+      end
+
+      # Merge signals from ClassRegistry
+      entry.signals.each do |cs|
+        @signals << cs.name unless @signals.includes?(cs.name)
+        existing_s = @signal_defs.find { |s| s.name == cs.name }
+        sargs = cs.args.map { |a| ScriptSignalArg.new(a.name, a.variant_type) }
+        if existing_s
+          idx = @signal_defs.index(existing_s).not_nil!
+          @signal_defs[idx] = ScriptSignal.new(cs.name, sargs)
+        else
+          @signal_defs << ScriptSignal.new(cs.name, sargs)
         end
       end
     end
