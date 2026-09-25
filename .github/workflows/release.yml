@@ -398,7 +398,7 @@ jobs:
     name: Build Core Engine (Windows)
     needs: [fast-specs-windows]
     runs-on: windows-latest
-    timeout-minutes: 12
+    timeout-minutes: 20
     env:
       RELEASE: 1
       LIBGODOT_VERBOSE: 1
@@ -533,7 +533,7 @@ jobs:
     name: Build Core Engine (Linux)
     needs: [fast-specs-linux]
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 20
     env:
       RELEASE: 1
       LIBGODOT_VERBOSE: 1
@@ -642,11 +642,13 @@ jobs:
     name: Build Core Engine (macOS)
     needs: [fast-specs-macos]
     runs-on: macos-latest
-    timeout-minutes: 12
+    timeout-minutes: 25
     env:
       RELEASE: 1
       LIBGODOT_VERBOSE: 1
       GODOT_VERBOSE: 1
+      HOMEBREW_NO_AUTO_UPDATE: 1
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
 
     steps:
       - name: Checkout Repository
@@ -1530,11 +1532,13 @@ jobs:
     name: Build Consumers & Templates (macOS)
     needs: [build-core-macos]
     runs-on: macos-latest
-    timeout-minutes: 12
+    timeout-minutes: 20
     env:
       RELEASE: 1
       LIBGODOT_VERBOSE: 1
       GODOT_VERBOSE: 1
+      HOMEBREW_NO_AUTO_UPDATE: 1
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
 
     steps:
       - name: Checkout Repository
