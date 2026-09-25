@@ -1553,6 +1553,49 @@ jobs:
             bin/release_dist/*godot-crystal-addon*.zip
           if-no-files-found: ignore
 
+  package-macos-bundle:
+    name: Package macOS Bundle
+    needs: [test-engine-macos, build-consumers-macos]
+    runs-on: macos-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download Core Binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: core-binaries-macos
+
+      - name: Download Consumer Packages
+        uses: actions/download-artifact@v4
+        with:
+          name: consumer-packages-macos
+        continue-on-error: true
+
+      - name: Fix Binary Permissions
+        run: |
+          mkdir -p bin
+          for f in lapis game *.dylib; do
+            if [ -f "$f" ] && [ ! -f "bin/$f" ]; then mv "$f" bin/; fi
+          done
+          chmod +x bin/lapis bin/*.dylib bin/game 2>/dev/null || true
+          ls -la bin/
+
+      - name: Package Official Addon Archive
+        run: |
+          make package-addon
+
+      - name: Upload Addon Package Artifact (macOS)
+        uses: actions/upload-artifact@v4
+        with:
+          name: godot-crystal-addon-macos
+          path: |
+            bin/*godot-crystal-addon*.zip
+            bin/release_dist/*godot-crystal-addon*.zip
+          if-no-files-found: ignore
+
   # =========================================================================
   # ANDROID AUDIT TARGET
   # =========================================================================

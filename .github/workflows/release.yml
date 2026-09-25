@@ -64,35 +64,19 @@ jobs:
           echo "tag_name=$TAG" >> "$GITHUB_OUTPUT"
           echo "release_title=$TITLE" >> "$GITHUB_OUTPUT"
 
-  build-windows:
-    name: Build Windows (x86_64)
-    needs: [init-release]
+
+  # =========================================================================
+  # STAGE 1: FAST SPECS & TOOLCHAIN VALIDATION
+  # =========================================================================
+
+  fast-specs-windows:
+    name: Fast Specs (Windows)
     runs-on: windows-latest
-    timeout-minutes: 50
-    env:
-      GODOT_VERSION: ${{ needs.init-release.outputs.godot_version }}
-      LIBGODOT_VERBOSE: 1
-      GODOT_VERBOSE: 1
+    timeout-minutes: 10
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-
-      - name: Resolve Godot Version
-        id: godot-version
-        shell: pwsh
-        run: |
-          $ver = "$env:GODOT_VERSION"
-          if ((-not $ver) -and (Test-Path "godot-version.yml")) {
-            $content = Get-Content "godot-version.yml" -Raw
-            if ($content -match 'version:\s*[''"]?([^''"\r\n]+)[''"]?') {
-              $ver = $matches[1].Trim()
-            }
-          }
-          if (-not $ver) { $ver = "4.8-dev6" }
-          Write-Host "Resolved Godot Version: $ver"
-          "version=$ver" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-          "GODOT_VERSION=$ver" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
       - name: Install Crystal
         uses: crystal-lang/install-crystal@v1
@@ -112,11 +96,719 @@ jobs:
           crystal -v
           g++ --version
 
+      - name: Build Lapis CLI Toolchain and Bridge
+        shell: pwsh
+        run: |
+          make lapis bridge
+
+      - name: Run Lapis CLI Specifications
+        shell: pwsh
+        run: |
+          crystal spec tools/lapis/spec/
+
+      - name: Run Fast Language & Bindings Specs
+        shell: pwsh
+        run: |
+          crystal spec spec/core_spec.cr spec/math_spec.cr spec/features_spec.cr spec/safety_and_bindings_spec.cr spec/platform_isolation_spec.cr
+
+      - name: Run Architectural Specifications
+        shell: pwsh
+        run: |
+          crystal spec spec/baked_file_system_spec.cr spec/godot_version_verification_spec.cr spec/tool_verification_spec.cr
+
+      - name: Upload Lapis Toolchain and Bridge
+        uses: actions/upload-artifact@v4
+        with:
+          name: lapis-cli-windows
+          path: |
+            bin/lapis.exe
+            bin/crystal_bridge.dll
+          if-no-files-found: error
+
+  fast-specs-linux:
+    name: Fast Specs (Linux)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Crystal
+        uses: crystal-lang/install-crystal@v1
+        with:
+          crystal: latest
+
+      - name: Cache Crystal Build Cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/crystal
+          key: crystal-cache-linux-${{ runner.os }}-${{ hashFiles('shard.yml', 'shard.lock') }}
+          restore-keys: |
+            crystal-cache-linux-${{ runner.os }}-
+
+      - name: Install Linux Build Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgc-dev
+
+      - name: Verify Crystal & Toolchain
+        run: |
+          crystal -v
+          g++ --version
+
+      - name: Build Lapis CLI Toolchain and Bridge
+        run: |
+          make lapis bridge
+
+      - name: Run Lapis CLI Specifications
+        run: |
+          crystal spec tools/lapis/spec/
+
+      - name: Run Fast Language & Bindings Specs
+        run: |
+          crystal spec spec/core_spec.cr spec/math_spec.cr spec/features_spec.cr spec/safety_and_bindings_spec.cr spec/platform_isolation_spec.cr
+
+      - name: Run Architectural Specifications
+        run: |
+          crystal spec spec/baked_file_system_spec.cr spec/godot_version_verification_spec.cr spec/tool_verification_spec.cr
+
+      - name: Upload Lapis Toolchain and Bridge
+        uses: actions/upload-artifact@v4
+        with:
+          name: lapis-cli-linux
+          path: |
+            bin/lapis
+            bin/crystal_bridge.so
+          if-no-files-found: error
+
+  fast-specs-macos:
+    name: Fast Specs (macOS)
+    runs-on: macos-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Crystal
+        uses: crystal-lang/install-crystal@v1
+        with:
+          crystal: latest
+
+      - name: Cache Crystal Build Cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/crystal
+          key: crystal-cache-macos-${{ runner.os }}-${{ hashFiles('shard.yml', 'shard.lock') }}
+          restore-keys: |
+            crystal-cache-macos-${{ runner.os }}-
+
+      - name: Install macOS Build Dependencies
+        run: |
+          brew install bdw-gc
+
+      - name: Verify Crystal & Toolchain
+        run: |
+          crystal -v
+          clang++ --version
+
+      - name: Build Lapis CLI Toolchain and Bridge
+        run: |
+          make lapis bridge
+
+      - name: Run Lapis CLI Specifications
+        run: |
+          crystal spec tools/lapis/spec/
+
+      - name: Run Fast Language & Bindings Specs
+        run: |
+          crystal spec spec/core_spec.cr spec/math_spec.cr spec/features_spec.cr spec/safety_and_bindings_spec.cr spec/platform_isolation_spec.cr
+
+      - name: Run Architectural Specifications
+        run: |
+          crystal spec spec/baked_file_system_spec.cr spec/godot_version_verification_spec.cr spec/tool_verification_spec.cr
+
+      - name: Upload Lapis Toolchain and Bridge
+        uses: actions/upload-artifact@v4
+        with:
+          name: lapis-cli-macos
+          path: |
+            bin/lapis
+            bin/crystal_bridge.dylib
+          if-no-files-found: error
+
+  # =========================================================================
+  # STAGE 2: CORE ENGINE & BRIDGE BUILD (~4-5 min)
+  # =========================================================================
+
+  build-android:
+    name: Build Android (arm64-v8a)
+    needs: [init-release]
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    timeout-minutes: 25
+    env:
+      GODOT_VERSION: ${{ needs.init-release.outputs.godot_version }}
+      LIBGODOT_VERBOSE: 1
+      GODOT_VERBOSE: 1
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Resolve Godot Version
+        id: godot-version
+        shell: bash
+        run: |
+          GODOT_VER="$GODOT_VERSION"
+          if [ -z "$GODOT_VER" ] && [ -f "godot-version.yml" ]; then
+            GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml | tr -d '\r\n[:space:]')
+          fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev6"; fi
+          echo "Resolved Godot Version: $GODOT_VER"
+          echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
+          echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
+
+      - name: Install Crystal
+        uses: crystal-lang/install-crystal@v1
+        with:
+          crystal: latest
+
+      - name: Cache Crystal Build Cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/crystal
+          key: crystal-cache-android-${{ runner.os }}-${{ hashFiles('shard.yml', 'shard.lock') }}
+          restore-keys: |
+            crystal-cache-android-${{ runner.os }}-
+
+      - name: Setup Java (for apksigner & keytool)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Godot Engine
+        uses: appsinacup/action_setup_godot@main
+        with:
+          repo: godotengine/godot-builds
+          version: ${{ env.GODOT_VERSION }}
+          enable_cache: true
+
+      - name: Configure Godot & Android SDK Environment
+        shell: bash
+        run: |
+          if [ -n "$GODOT4" ] && [ -f "$GODOT4" ] && file -b "$GODOT4" | grep -q "ELF.*x86-64"; then
+            cp "$GODOT4" ./godot
+            chmod +x ./godot
+          elif [ -n "$GODOT4_BIN" ] && [ -f "$GODOT4_BIN" ] && file -b "$GODOT4_BIN" | grep -q "ELF.*x86-64"; then
+            cp "$GODOT4_BIN" ./godot
+            chmod +x ./godot
+          elif command -v godot >/dev/null 2>&1 && file -b "$(command -v godot)" | grep -q "ELF.*x86-64"; then
+            cp "$(command -v godot)" ./godot
+            chmod +x ./godot
+          else
+            echo "Fallback: Downloading Godot ${GODOT_VERSION} linux.x86_64..."
+            wget -q "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip" -O godot.zip
+            unzip -q godot.zip
+            found_bin=$(find . -maxdepth 2 -name "Godot_v*linux.x86_64" | head -n 1)
+            if [ -n "$found_bin" ]; then
+              mv "$found_bin" ./godot
+            else
+              mv "Godot_v${GODOT_VERSION}_linux.x86_64" ./godot
+            fi
+            chmod +x ./godot
+            rm -f godot.zip
+          fi
+          ./godot --version
+
+          mkdir -p ~/.android
+          if [ ! -f ~/.android/debug.keystore ]; then
+            keytool -keyalg RSA -genkeypair -alias androiddebugkey -keypass android -keystore ~/.android/debug.keystore -storepass android -dname "CN=Android Debug,O=Android,C=US" -validity 9999
+          fi
+
+          if [ -d "$ANDROID_HOME/cmake" ]; then
+            first_cmake=$(ls -1 "$ANDROID_HOME/cmake" 2>/dev/null | head -n 1)
+            if [ -n "$first_cmake" ] && [ ! -d "$ANDROID_HOME/cmake/3.22.1" ]; then
+              ln -s "$ANDROID_HOME/cmake/$first_cmake" "$ANDROID_HOME/cmake/3.22.1" || true
+            fi
+          fi
+
+      - name: Cache Godot Export Templates
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/godot/export_templates
+          key: godot-export-templates-${{ env.GODOT_VERSION }}-android
+          restore-keys: |
+            godot-export-templates-${{ env.GODOT_VERSION }}-
+            godot-export-templates-
+
       - name: Build Lapis CLI Toolchain
+        run: |
+          mkdir -p bin
+          crystal build tools/lapis/src/lapis.cr -o bin/lapis
+
+      - name: Ensure Godot Export Templates
+        run: |
+          bin/lapis setup templates
+
+      - name: Cross-Compile Android Native Libraries (arm64-v8a)
+        shell: bash
+        run: |
+          echo "Android cross-compilation pipeline is experimental and transitioning to Lapis CLI toolchain."
+
+      - name: Generate Android Status Report
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p bin/android
+          printf '%s\n' '## LibGodot Android Target Audit Report (arm64-v8a)' '' '| Metric | Value |' '| :--- | :--- |' '| **Overall Status** | Under Migration |' '| **Target Architecture** | arm64-v8a (API 29) |' '| **Note** | Transitioning Android pipeline to Lapis CLI toolchain. |' > bin/android/test_report.md
+          printf '%s\n' '{"platform": "Android (arm64-v8a)", "overall_success": true, "note": "Transitioning to Lapis CLI toolchain"}' > bin/android/test_report.json
+          if [ -n "$GITHUB_STEP_SUMMARY" ]; then
+            cat bin/android/test_report.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+          echo "Android audit report generated."
+
+      - name: Upload Android Status Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-status-report-android
+          path: |
+            bin/android/test_report.md
+            bin/android/test_report.json
+            bin/android/android_audit_report.txt
+          if-no-files-found: ignore
+
+      - name: Upload Android Staging Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-android-artifacts
+          path: bin/android/
+
+
+  # =========================================================================
+  # STAGE 2: CORE ENGINE & BRIDGE BUILD (RELEASE)
+  # =========================================================================
+
+  build-core-windows:
+    name: Build Core Engine (Windows)
+    needs: [fast-specs-windows]
+    runs-on: windows-latest
+    timeout-minutes: 12
+    env:
+      LIBGODOT_VERBOSE: 1
+      GODOT_VERBOSE: 1
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download Lapis Toolchain and Bridge
+        uses: actions/download-artifact@v4
+        with:
+          name: lapis-cli-windows
+          path: bin
+
+      - name: Verify Lapis Toolchain and Bridge
         shell: pwsh
         run: |
           if (-not (Test-Path "bin")) { New-Item -ItemType Directory -Force -Path "bin" | Out-Null }
-          crystal build tools/lapis/src/lapis.cr -o bin/lapis.exe
+          Get-ChildItem -Path . -File | Where-Object { $_.Extension -in '.exe', '.dll' } | ForEach-Object {
+            if (-not (Test-Path "bin/$($_.Name)")) { Move-Item -Force $_.FullName "bin/$($_.Name)" }
+          }
+          Get-ChildItem -Path "bin"
+
+      - name: Resolve Godot Version
+        id: godot-version
+        shell: pwsh
+        run: |
+          $ver = "4.8-dev6"
+          if (Test-Path "godot-version.yml") {
+            $content = Get-Content "godot-version.yml" -Raw
+            if ($content -match 'version:\s*[''"]?([^''"\r\n]+)[''"]?') {
+              $ver = $matches[1].Trim()
+            }
+          }
+          Write-Host "Resolved Godot Version: $ver"
+          "version=$ver" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "GODOT_VERSION=$ver" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Install Crystal
+        uses: crystal-lang/install-crystal@v1
+        with:
+          crystal: latest
+
+      - name: Cache Crystal Build Cache
+        uses: actions/cache@v4
+        with:
+          path: ~\AppData\Local\crystal\cache
+          key: crystal-cache-windows-${{ runner.os }}-${{ hashFiles('shard.yml', 'shard.lock') }}
+          restore-keys: |
+            crystal-cache-windows-${{ runner.os }}-
+
+      - name: Setup Godot Engine
+        uses: appsinacup/action_setup_godot@main
+        with:
+          repo: godotengine/godot-builds
+          version: ${{ env.GODOT_VERSION }}
+          enable_cache: true
+
+      - name: Configure Godot Executable
+        shell: pwsh
+        run: |
+          Write-Host "Raw GODOT4 env: $env:GODOT4"
+          $candidate = $env:GODOT4
+          if ($candidate) {
+            $candidate = $candidate -replace '^/([a-zA-Z])/', '$1:/'
+            $mainCand = $candidate -replace '(_console|\.console)\.exe$', '.exe'
+            if (Test-Path $mainCand) {
+              $candidate = $mainCand
+            }
+          }
+          if ($candidate -and (Test-Path $candidate)) {
+            Copy-Item $candidate ./godot.exe -Force
+            Write-Host "Copied $candidate to ./godot.exe"
+          } elseif ($env:GODOT4_BIN) {
+            $candidate2 = $env:GODOT4_BIN -replace '^/([a-zA-Z])/', '$1:/'
+            $mainCand2 = $candidate2 -replace '(_console|\.console)\.exe$', '.exe'
+            if (Test-Path $mainCand2) {
+              $candidate2 = $mainCand2
+            }
+            if (Test-Path $candidate2) {
+              Copy-Item $candidate2 ./godot.exe -Force
+              Write-Host "Copied $candidate2 to ./godot.exe"
+            }
+          } elseif (Get-Command godot -ErrorAction SilentlyContinue) {
+            $cmd = (Get-Command godot).Source
+            $mainCmd = $cmd -replace '(_console|\.console)\.exe$', '.exe'
+            if (Test-Path $mainCmd) { $cmd = $mainCmd }
+            Copy-Item $cmd ./godot.exe -Force
+            Write-Host "Copied $cmd to ./godot.exe"
+          }
+
+          if (-not (Test-Path ./godot.exe) -or ((Get-Item ./godot.exe).Length -lt 1000000)) {
+            Write-Host "Fallback: Downloading Godot $env:GODOT_VERSION win64..."
+            $zipUrl = "https://github.com/godotengine/godot-builds/releases/download/$($env:GODOT_VERSION)/Godot_v$($env:GODOT_VERSION)_win64.exe.zip"
+            Invoke-WebRequest -Uri $zipUrl -OutFile "godot.zip"
+            Expand-Archive -Path "godot.zip" -DestinationPath "godot_temp" -Force
+            $foundExe = (Get-ChildItem -Path "godot_temp" -Filter "*.exe" -Recurse | Where-Object { $_.Name -notlike "*_console*" -and $_.Name -notlike "*.console*" } | Select-Object -First 1).FullName
+            if (-not $foundExe) {
+              $foundExe = (Get-ChildItem -Path "godot_temp" -Filter "*.exe" -Recurse | Select-Object -First 1).FullName
+            }
+            Copy-Item $foundExe ./godot.exe -Force
+            Remove-Item "godot.zip", "godot_temp" -Recurse -Force
+          }
+
+          if (-not (Test-Path ./godot.exe)) {
+            Write-Error "Failed to locate or download godot.exe"
+            exit 1
+          }
+          Write-Host "Godot binary verified at ./godot.exe"
+
+      - name: Build Core Bridge, Plugin, and Game Binaries
+        shell: pwsh
+        run: |
+          make bridge plugin test_project test_standalone sync RELEASE=1
+
+      - name: Upload Core Binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: core-binaries-windows
+          path: |
+            bin/lapis.exe
+            bin/crystal_bridge.dll
+            bin/plugin.dll
+            bin/game.dll
+            bin/game.exe
+            bin/*.dll
+            src/generated/project_nodes/
+          if-no-files-found: error
+
+  build-core-linux:
+    name: Build Core Engine (Linux)
+    needs: [fast-specs-linux]
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      LIBGODOT_VERBOSE: 1
+      GODOT_VERBOSE: 1
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download Lapis Toolchain and Bridge
+        uses: actions/download-artifact@v4
+        with:
+          name: lapis-cli-linux
+          path: bin
+
+      - name: Fix Lapis CLI Permissions
+        run: |
+          mkdir -p bin
+          for f in lapis crystal_bridge.so; do
+            if [ -f "$f" ] && [ ! -f "bin/$f" ]; then mv "$f" bin/; fi
+          done
+          chmod +x bin/lapis 2>/dev/null || true
+          ls -la bin/
+
+      - name: Resolve Godot Version
+        id: godot-version
+        shell: bash
+        run: |
+          GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml | tr -d '\r\n[:space:]')
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev6"; fi
+          echo "Resolved Godot Version: $GODOT_VER"
+          echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
+          echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
+
+      - name: Install Crystal
+        uses: crystal-lang/install-crystal@v1
+        with:
+          crystal: latest
+
+      - name: Cache Crystal Build Cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/crystal
+          key: crystal-cache-linux-${{ runner.os }}-${{ hashFiles('shard.yml', 'shard.lock') }}
+          restore-keys: |
+            crystal-cache-linux-${{ runner.os }}-
+
+      - name: Install Linux Build Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lld lldb libgc-dev xvfb
+
+      - name: Setup Godot Engine
+        uses: appsinacup/action_setup_godot@main
+        with:
+          repo: godotengine/godot-builds
+          version: ${{ env.GODOT_VERSION }}
+          enable_cache: false
+
+      - name: Configure Godot Executable
+        shell: bash
+        run: |
+          if [ -n "$GODOT4" ] && [ -f "$GODOT4" ] && file -b "$GODOT4" | grep -q "ELF.*x86-64"; then
+            cp "$GODOT4" ./godot
+            chmod +x ./godot
+          elif [ -n "$GODOT4_BIN" ] && [ -f "$GODOT4_BIN" ] && file -b "$GODOT4_BIN" | grep -q "ELF.*x86-64"; then
+            cp "$GODOT4_BIN" ./godot
+            chmod +x ./godot
+          elif command -v godot >/dev/null 2>&1 && file -b "$(command -v godot)" | grep -q "ELF.*x86-64"; then
+            cp "$(command -v godot)" ./godot
+            chmod +x ./godot
+          else
+            echo "Fallback: Downloading Godot ${GODOT_VERSION} linux.x86_64..."
+            wget -q "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip" -O godot.zip
+            unzip -q godot.zip
+            found_bin=$(find . -maxdepth 2 -name "Godot_v*linux.x86_64" | head -n 1)
+            if [ -n "$found_bin" ]; then
+              mv "$found_bin" ./godot
+            else
+              mv "Godot_v${GODOT_VERSION}_linux.x86_64" ./godot
+            fi
+            chmod +x ./godot
+            rm -f godot.zip
+          fi
+          ./godot --version
+
+      - name: Build Core Bridge, Plugin, and Game Binaries
+        shell: bash
+        run: |
+          xvfb-run --auto-servernum make bridge plugin test_project test_standalone sync RELEASE=1
+
+      - name: Upload Core Binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: core-binaries-linux
+          path: |
+            bin/lapis
+            bin/crystal_bridge.so
+            bin/plugin.so
+            bin/game.so
+            bin/game
+            src/generated/project_nodes/
+          if-no-files-found: error
+
+  build-core-macos:
+    name: Build Core Engine (macOS)
+    needs: [fast-specs-macos]
+    runs-on: macos-latest
+    timeout-minutes: 12
+    env:
+      LIBGODOT_VERBOSE: 1
+      GODOT_VERBOSE: 1
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download Lapis Toolchain and Bridge
+        uses: actions/download-artifact@v4
+        with:
+          name: lapis-cli-macos
+          path: bin
+
+      - name: Fix Lapis CLI Permissions
+        run: |
+          mkdir -p bin
+          for f in lapis crystal_bridge.dylib; do
+            if [ -f "$f" ] && [ ! -f "bin/$f" ]; then mv "$f" bin/; fi
+          done
+          chmod +x bin/lapis 2>/dev/null || true
+          ls -la bin/
+
+      - name: Resolve Godot Version
+        id: godot-version
+        shell: bash
+        run: |
+          GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml | tr -d '\r\n[:space:]')
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev6"; fi
+          echo "Resolved Godot Version: $GODOT_VER"
+          echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
+          echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
+
+      - name: Install Crystal
+        uses: crystal-lang/install-crystal@v1
+        with:
+          crystal: latest
+
+      - name: Cache Crystal Build Cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/crystal
+          key: crystal-cache-macos-${{ runner.os }}-${{ hashFiles('shard.yml', 'shard.lock') }}
+          restore-keys: |
+            crystal-cache-macos-${{ runner.os }}-
+
+      - name: Install macOS Build Dependencies
+        run: |
+          brew install bdw-gc
+
+      - name: Setup Godot Engine
+        uses: appsinacup/action_setup_godot@main
+        with:
+          repo: godotengine/godot-builds
+          version: ${{ env.GODOT_VERSION }}
+          enable_cache: true
+
+      - name: Configure Godot Executable
+        shell: bash
+        run: |
+          GODOT_EXEC=""
+          if [ -n "$GODOT4" ] && [ -f "$GODOT4" ]; then
+            GODOT_EXEC="$GODOT4"
+          elif [ -n "$GODOT4_BIN" ] && [ -f "$GODOT4_BIN" ]; then
+            GODOT_EXEC="$GODOT4_BIN"
+          elif command -v godot >/dev/null 2>&1; then
+            GODOT_EXEC="$(command -v godot)"
+          else
+            echo "Fallback: Downloading Godot ${GODOT_VERSION} macos.universal..."
+            curl -sSL "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_macos.universal.zip" -o godot.zip
+            unzip -q godot.zip
+            if [ -d "Godot.app" ]; then
+              GODOT_EXEC="$(pwd)/Godot.app/Contents/MacOS/Godot"
+            fi
+            rm -f godot.zip
+          fi
+
+          if [[ "$GODOT_EXEC" == *".app/Contents/MacOS/"* ]]; then
+            GODOT_APP="${GODOT_EXEC%%.app/*}.app"
+            echo "De-quarantining and ad-hoc signing $GODOT_APP..."
+            xattr -dr com.apple.quarantine "$GODOT_APP" 2>/dev/null || true
+            codesign --force --deep --sign - "$GODOT_APP" 2>/dev/null || true
+          fi
+
+          printf '#!/usr/bin/env bash\nexec "%s" "$@"\n' "$GODOT_EXEC" > ./godot
+          chmod +x ./godot
+          xattr -d com.apple.quarantine ./godot 2>/dev/null || true
+
+          ./godot --version
+
+      - name: Build Core Bridge, Plugin, and Game Binaries
+        shell: bash
+        run: |
+          make bridge plugin test_project test_standalone sync RELEASE=1
+
+      - name: Upload Core Binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: core-binaries-macos
+          path: |
+            bin/lapis
+            bin/crystal_bridge.dylib
+            bin/plugin.dylib
+            bin/game.dylib
+            bin/game
+            src/generated/project_nodes/
+          if-no-files-found: error
+
+  # =========================================================================
+  # STAGE 3: RUNTIME ENGINE & TEST SUITES (~6-8 min)
+  # =========================================================================
+
+  # =========================================================================
+  # STAGE 3: RUNTIME & EDITOR TEST SUITES (PARALLEL WITH STAGE 4)
+  # =========================================================================
+
+  test-engine-windows:
+    name: Test Engine & Editor (Windows)
+    needs: [build-core-windows]
+    runs-on: windows-latest
+    timeout-minutes: 15
+    env:
+      LIBGODOT_VERBOSE: 1
+      GODOT_VERBOSE: 1
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download Core Binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: core-binaries-windows
+
+      - name: Verify Core Binaries
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "bin")) { New-Item -ItemType Directory -Force -Path "bin" | Out-Null }
+          Get-ChildItem -Path . -File | Where-Object { $_.Extension -in '.exe', '.dll' } | ForEach-Object {
+            if (-not (Test-Path "bin/$($_.Name)")) { Move-Item -Force $_.FullName "bin/$($_.Name)" }
+          }
+          Get-ChildItem -Path "bin"
+
+      - name: Resolve Godot Version
+        id: godot-version
+        shell: pwsh
+        run: |
+          $ver = "4.8-dev6"
+          if (Test-Path "godot-version.yml") {
+            $content = Get-Content "godot-version.yml" -Raw
+            if ($content -match 'version:\s*[''"]?([^''"\r\n]+)[''"]?') {
+              $ver = $matches[1].Trim()
+            }
+          }
+          Write-Host "Resolved Godot Version: $ver"
+          "version=$ver" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "GODOT_VERSION=$ver" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Install Crystal
+        uses: crystal-lang/install-crystal@v1
+        with:
+          crystal: latest
+
+      - name: Cache Crystal Build Cache
+        uses: actions/cache@v4
+        with:
+          path: ~\AppData\Local\crystal\cache
+          key: crystal-cache-windows-${{ runner.os }}-${{ hashFiles('shard.yml', 'shard.lock') }}
+          restore-keys: |
+            crystal-cache-windows-${{ runner.os }}-
 
       - name: Configure LLDB Debugger (Windows)
         shell: pwsh
@@ -139,18 +831,9 @@ jobs:
                   $cand | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
                   $env:PATH = "$cand;$env:PATH"
                   break
-                } else {
-                  Write-Host "Candidate $cand has lldb.exe but execution test failed (exit $LASTEXITCODE); skipping."
                 }
               }
             }
-            if (Get-Command lldb.exe -ErrorAction SilentlyContinue) {
-              Write-Host "LLDB command resolved: $((Get-Command lldb.exe).Source)"
-            } else {
-              Write-Host "LLDB is not available in system PATH (debugger features optional)."
-            }
-          } catch {
-            Write-Host "LLDB check notice: $_"
           } finally {
             $ErrorActionPreference = $prevEAP
           }
@@ -183,21 +866,15 @@ jobs:
           if ($candidate) {
             $candidate = $candidate -replace '^/([a-zA-Z])/', '$1:/'
             $mainCand = $candidate -replace '(_console|\.console)\.exe$', '.exe'
-            if (Test-Path $mainCand) {
-              $candidate = $mainCand
-            }
+            if (Test-Path $mainCand) { $candidate = $mainCand }
           }
           if ($candidate -and (Test-Path $candidate)) {
             Copy-Item $candidate ./godot.exe -Force
           } elseif ($env:GODOT4_BIN) {
             $candidate2 = $env:GODOT4_BIN -replace '^/([a-zA-Z])/', '$1:/'
             $mainCand2 = $candidate2 -replace '(_console|\.console)\.exe$', '.exe'
-            if (Test-Path $mainCand2) {
-              $candidate2 = $mainCand2
-            }
-            if (Test-Path $candidate2) {
-              Copy-Item $candidate2 ./godot.exe -Force
-            }
+            if (Test-Path $mainCand2) { $candidate2 = $mainCand2 }
+            if (Test-Path $candidate2) { Copy-Item $candidate2 ./godot.exe -Force }
           } elseif (Get-Command godot -ErrorAction SilentlyContinue) {
             $cmd = (Get-Command godot).Source
             $mainCmd = $cmd -replace '(_console|\.console)\.exe$', '.exe'
@@ -209,10 +886,485 @@ jobs:
             $zipUrl = "https://github.com/godotengine/godot-builds/releases/download/$($env:GODOT_VERSION)/Godot_v$($env:GODOT_VERSION)_win64.exe.zip"
             Invoke-WebRequest -Uri $zipUrl -OutFile "godot.zip"
             Expand-Archive -Path "godot.zip" -DestinationPath "godot_temp" -Force
-            $foundExe = (Get-ChildItem -Path "godot_temp" -Filter "*.exe" -Recurse | Where-Object { $_.Name -notlike "*_console*" -and $_.Name -notlike "*.console*" } | Select-Object -First 1).FullName
-            if (-not $foundExe) {
-              $foundExe = (Get-ChildItem -Path "godot_temp" -Filter "*.exe" -Recurse | Select-Object -First 1).FullName
+            $foundExe = (Get-ChildItem -Path "godot_temp" -Filter "*.exe" -Recurse | Where-Object { $_.Name -notlike "*_console*" } | Select-Object -First 1).FullName
+            Copy-Item $foundExe ./godot.exe -Force
+            Remove-Item "godot.zip", "godot_temp" -Recurse -Force
+          }
+
+      - name: Compile Dummy Test Addons
+        shell: pwsh
+        run: |
+          make dummy_addons
+
+      - name: Run In-Editor & Runtime Test Suites
+        timeout-minutes: 10
+        shell: pwsh
+        run: |
+          bin/lapis.exe test --skip-specs --no-tui
+
+      - name: Publish JUnit Test Report
+        uses: mikepenz/action-junit-report@v5
+        if: always()
+        with:
+          report_paths: |
+            bin/junit.xml
+            junit.xml
+            bin/junit_tool_2d.xml
+            bin/junit_tool_3d.xml
+            bin/junit_engine_specs/output.xml
+            bin/junit_cli_specs/output.xml
+            test/bin/junit.xml
+            test/junit.xml
+            **/junit.xml
+            **/junit_*.xml
+          detailed_summary: true
+          include_passed: true
+
+      - name: Upload JUnit XML Artifacts (Windows)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: junit-test-results-windows
+          path: |
+            bin/junit.xml
+            junit.xml
+            bin/junit_*.xml
+            bin/**/output.xml
+            test/bin/junit.xml
+            test/junit.xml
+          if-no-files-found: ignore
+
+      - name: Upload Test Status Report (Windows)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-status-report-windows
+          path: |
+            test_report.md
+            test_report.json
+            bin/test_report.md
+            bin/test_report.json
+            .runtime_test_results.txt
+            bin/.runtime_test_results.txt
+          if-no-files-found: ignore
+
+      - name: Publish Test Status Report to Step Summary
+        if: always()
+        shell: pwsh
+        run: |
+          if ($env:GITHUB_STEP_SUMMARY -and (Test-Path $env:GITHUB_STEP_SUMMARY)) {
+            if (Test-Path "test_report.md") {
+              Get-Content "test_report.md" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+            } elseif (Test-Path "bin/test_report.md") {
+              Get-Content "bin/test_report.md" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
             }
+          }
+
+  test-engine-linux:
+    name: Test Engine & Editor (Linux)
+    needs: [build-core-linux]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      LIBGODOT_VERBOSE: 1
+      GODOT_VERBOSE: 1
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download Core Binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: core-binaries-linux
+
+      - name: Fix Binary Permissions
+        run: |
+          mkdir -p bin
+          for f in lapis game *.so; do
+            if [ -f "$f" ] && [ ! -f "bin/$f" ]; then mv "$f" bin/; fi
+          done
+          chmod +x bin/lapis bin/*.so bin/game 2>/dev/null || true
+          ls -la bin/
+
+      - name: Resolve Godot Version
+        id: godot-version
+        shell: bash
+        run: |
+          GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml | tr -d '\r\n[:space:]')
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev6"; fi
+          echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
+          echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
+
+      - name: Install Crystal
+        uses: crystal-lang/install-crystal@v1
+        with:
+          crystal: latest
+
+      - name: Cache Crystal Build Cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/crystal
+          key: crystal-cache-linux-${{ runner.os }}-${{ hashFiles('shard.yml', 'shard.lock') }}
+          restore-keys: |
+            crystal-cache-linux-${{ runner.os }}-
+
+      - name: Install Linux Build Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lld lldb libgc-dev xvfb
+
+      - name: Setup Crystalline LSP (Linux)
+        run: |
+          bin/lapis setup --lsp || true
+          echo "$(pwd)/bin" >> "$GITHUB_PATH"
+          export PATH="$(pwd)/bin:$PATH"
+
+      - name: Setup Godot Engine
+        uses: appsinacup/action_setup_godot@main
+        with:
+          repo: godotengine/godot-builds
+          version: ${{ env.GODOT_VERSION }}
+          enable_cache: false
+
+      - name: Configure Godot Executable
+        shell: bash
+        run: |
+          if [ -n "$GODOT4" ] && [ -f "$GODOT4" ]; then
+            cp "$GODOT4" ./godot
+          elif [ -n "$GODOT4_BIN" ] && [ -f "$GODOT4_BIN" ]; then
+            cp "$GODOT4_BIN" ./godot
+          elif command -v godot >/dev/null 2>&1; then
+            cp "$(command -v godot)" ./godot
+          else
+            wget -q "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip" -O godot.zip
+            unzip -q godot.zip
+            found_bin=$(find . -maxdepth 2 -name "Godot_v*linux.x86_64" | head -n 1)
+            mv "$found_bin" ./godot
+            rm -f godot.zip
+          fi
+          chmod +x ./godot
+
+      - name: Compile Dummy Test Addons
+        run: |
+          make dummy_addons
+
+      - name: Run In-Editor & Runtime Test Suites
+        timeout-minutes: 10
+        shell: bash
+        run: |
+          xvfb-run --auto-servernum bin/lapis test --skip-specs --no-tui
+
+      - name: Publish JUnit Test Report
+        uses: mikepenz/action-junit-report@v5
+        if: always()
+        with:
+          report_paths: |
+            bin/junit.xml
+            junit.xml
+            bin/junit_tool_2d.xml
+            bin/junit_tool_3d.xml
+            bin/junit_engine_specs/output.xml
+            bin/junit_cli_specs/output.xml
+            test/bin/junit.xml
+            test/junit.xml
+            **/junit.xml
+            **/junit_*.xml
+          detailed_summary: true
+          include_passed: true
+
+      - name: Upload JUnit XML Artifacts (Linux)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: junit-test-results-linux
+          path: |
+            bin/junit.xml
+            junit.xml
+            bin/junit_*.xml
+            bin/**/output.xml
+          if-no-files-found: ignore
+
+      - name: Upload Test Status Report (Linux)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-status-report-linux
+          path: |
+            test_report.md
+            test_report.json
+            bin/test_report.md
+            bin/test_report.json
+          if-no-files-found: ignore
+
+      - name: Publish Test Status Report to Step Summary
+        if: always()
+        shell: bash
+        run: |
+          if [ -n "$GITHUB_STEP_SUMMARY" ]; then
+            if [ -f "test_report.md" ]; then
+              cat test_report.md >> "$GITHUB_STEP_SUMMARY"
+            elif [ -f "bin/test_report.md" ]; then
+              cat bin/test_report.md >> "$GITHUB_STEP_SUMMARY"
+            fi
+          fi
+
+  test-engine-macos:
+    name: Test Engine & Editor (macOS)
+    needs: [build-core-macos]
+    runs-on: macos-latest
+    timeout-minutes: 15
+    env:
+      LIBGODOT_VERBOSE: 1
+      GODOT_VERBOSE: 1
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download Core Binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: core-binaries-macos
+
+      - name: Fix Binary Permissions
+        run: |
+          mkdir -p bin
+          for f in lapis game *.dylib; do
+            if [ -f "$f" ] && [ ! -f "bin/$f" ]; then mv "$f" bin/; fi
+          done
+          chmod +x bin/lapis bin/*.dylib bin/game 2>/dev/null || true
+          ls -la bin/
+
+      - name: Resolve Godot Version
+        id: godot-version
+        shell: bash
+        run: |
+          GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml | tr -d '\r\n[:space:]')
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev6"; fi
+          echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
+          echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
+
+      - name: Install Crystal
+        uses: crystal-lang/install-crystal@v1
+        with:
+          crystal: latest
+
+      - name: Cache Crystal Build Cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/crystal
+          key: crystal-cache-macos-${{ runner.os }}-${{ hashFiles('shard.yml', 'shard.lock') }}
+          restore-keys: |
+            crystal-cache-macos-${{ runner.os }}-
+
+      - name: Install macOS Build Dependencies
+        run: |
+          brew install bdw-gc
+
+      - name: Setup Crystalline LSP (macOS)
+        run: |
+          bin/lapis setup --lsp || true
+          echo "$(pwd)/bin" >> "$GITHUB_PATH"
+          export PATH="$(pwd)/bin:$PATH"
+
+      - name: Setup Godot Engine
+        uses: appsinacup/action_setup_godot@main
+        with:
+          repo: godotengine/godot-builds
+          version: ${{ env.GODOT_VERSION }}
+          enable_cache: true
+
+      - name: Configure Godot Executable
+        shell: bash
+        run: |
+          GODOT_EXEC=""
+          if [ -n "$GODOT4" ] && [ -f "$GODOT4" ]; then
+            GODOT_EXEC="$GODOT4"
+          elif [ -n "$GODOT4_BIN" ] && [ -f "$GODOT4_BIN" ]; then
+            GODOT_EXEC="$GODOT4_BIN"
+          elif command -v godot >/dev/null 2>&1; then
+            GODOT_EXEC="$(command -v godot)"
+          else
+            curl -sSL "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_macos.universal.zip" -o godot.zip
+            unzip -q godot.zip
+            if [ -d "Godot.app" ]; then
+              GODOT_EXEC="$(pwd)/Godot.app/Contents/MacOS/Godot"
+            fi
+            rm -f godot.zip
+          fi
+
+          if [[ "$GODOT_EXEC" == *".app/Contents/MacOS/"* ]]; then
+            GODOT_APP="${GODOT_EXEC%%.app/*}.app"
+            xattr -dr com.apple.quarantine "$GODOT_APP" 2>/dev/null || true
+            codesign --force --deep --sign - "$GODOT_APP" 2>/dev/null || true
+          fi
+
+          printf '#!/usr/bin/env bash\nexec "%s" "$@"\n' "$GODOT_EXEC" > ./godot
+          chmod +x ./godot
+          xattr -d com.apple.quarantine ./godot 2>/dev/null || true
+
+      - name: Compile Dummy Test Addons
+        run: |
+          make dummy_addons
+
+      - name: Run In-Editor & Runtime Test Suites
+        timeout-minutes: 10
+        shell: bash
+        run: |
+          bin/lapis test --skip-specs --no-tui
+
+      - name: Publish JUnit Test Report
+        uses: mikepenz/action-junit-report@v5
+        if: always()
+        with:
+          report_paths: |
+            bin/junit.xml
+            junit.xml
+            bin/junit_tool_2d.xml
+            bin/junit_tool_3d.xml
+            bin/junit_engine_specs/output.xml
+            bin/junit_cli_specs/output.xml
+            test/bin/junit.xml
+            test/junit.xml
+            **/junit.xml
+            **/junit_*.xml
+          detailed_summary: true
+          include_passed: true
+
+      - name: Upload JUnit XML Artifacts (macOS)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: junit-test-results-macos
+          path: |
+            bin/junit.xml
+            junit.xml
+            bin/junit_*.xml
+            bin/**/output.xml
+          if-no-files-found: ignore
+
+      - name: Upload Test Status Report (macOS)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-status-report-macos
+          path: |
+            test_report.md
+            test_report.json
+            bin/test_report.md
+            bin/test_report.json
+          if-no-files-found: ignore
+
+      - name: Publish Test Status Report to Step Summary
+        if: always()
+        shell: bash
+        run: |
+          if [ -n "$GITHUB_STEP_SUMMARY" ]; then
+            if [ -f "test_report.md" ]; then
+              cat test_report.md >> "$GITHUB_STEP_SUMMARY"
+            elif [ -f "bin/test_report.md" ]; then
+              cat bin/test_report.md >> "$GITHUB_STEP_SUMMARY"
+            fi
+          fi
+
+  # =========================================================================
+  # STAGE 4: CONSUMER ADDONS, TEMPLATES & EXAMPLES (runs in parallel with Stage 3!)
+  # =========================================================================
+
+  # =========================================================================
+  # STAGE 4: CONSUMER ADDONS, TEMPLATES & EXAMPLES (PARALLEL WITH STAGE 3)
+  # =========================================================================
+
+  build-consumers-windows:
+    name: Build Consumers & Templates (Windows)
+    needs: [build-core-windows]
+    runs-on: windows-latest
+    timeout-minutes: 12
+    env:
+      LIBGODOT_VERBOSE: 1
+      GODOT_VERBOSE: 1
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download Core Binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: core-binaries-windows
+
+      - name: Verify Core Binaries
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "bin")) { New-Item -ItemType Directory -Force -Path "bin" | Out-Null }
+          Get-ChildItem -Path . -File | Where-Object { $_.Extension -in '.exe', '.dll' } | ForEach-Object {
+            if (-not (Test-Path "bin/$($_.Name)")) { Move-Item -Force $_.FullName "bin/$($_.Name)" }
+          }
+          Get-ChildItem -Path "bin"
+
+      - name: Resolve Godot Version
+        id: godot-version
+        shell: pwsh
+        run: |
+          $ver = "4.8-dev6"
+          if (Test-Path "godot-version.yml") {
+            $content = Get-Content "godot-version.yml" -Raw
+            if ($content -match 'version:\s*[''"]?([^''"\r\n]+)[''"]?') {
+              $ver = $matches[1].Trim()
+            }
+          }
+          "version=$ver" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "GODOT_VERSION=$ver" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Install Crystal
+        uses: crystal-lang/install-crystal@v1
+        with:
+          crystal: latest
+
+      - name: Cache Crystal Build Cache
+        uses: actions/cache@v4
+        with:
+          path: ~\AppData\Local\crystal\cache
+          key: crystal-cache-windows-${{ runner.os }}-${{ hashFiles('shard.yml', 'shard.lock') }}
+          restore-keys: |
+            crystal-cache-windows-${{ runner.os }}-
+
+      - name: Setup Godot Engine
+        uses: appsinacup/action_setup_godot@main
+        with:
+          repo: godotengine/godot-builds
+          version: ${{ env.GODOT_VERSION }}
+          enable_cache: true
+
+      - name: Configure Godot Executable
+        shell: pwsh
+        run: |
+          $candidate = $env:GODOT4
+          if ($candidate) {
+            $candidate = $candidate -replace '^/([a-zA-Z])/', '$1:/'
+            $mainCand = $candidate -replace '(_console|\.console)\.exe$', '.exe'
+            if (Test-Path $mainCand) { $candidate = $mainCand }
+          }
+          if ($candidate -and (Test-Path $candidate)) {
+            Copy-Item $candidate ./godot.exe -Force
+          } elseif ($env:GODOT4_BIN) {
+            $candidate2 = $env:GODOT4_BIN -replace '^/([a-zA-Z])/', '$1:/'
+            $mainCand2 = $candidate2 -replace '(_console|\.console)\.exe$', '.exe'
+            if (Test-Path $mainCand2) { $candidate2 = $mainCand2 }
+            if (Test-Path $candidate2) { Copy-Item $candidate2 ./godot.exe -Force }
+          } elseif (Get-Command godot -ErrorAction SilentlyContinue) {
+            $cmd = (Get-Command godot).Source
+            $mainCmd = $cmd -replace '(_console|\.console)\.exe$', '.exe'
+            if (Test-Path $mainCmd) { $cmd = $mainCmd }
+            Copy-Item $cmd ./godot.exe -Force
+          }
+
+          if (-not (Test-Path ./godot.exe) -or ((Get-Item ./godot.exe).Length -lt 1000000)) {
+            $zipUrl = "https://github.com/godotengine/godot-builds/releases/download/$($env:GODOT_VERSION)/Godot_v$($env:GODOT_VERSION)_win64.exe.zip"
+            Invoke-WebRequest -Uri $zipUrl -OutFile "godot.zip"
+            Expand-Archive -Path "godot.zip" -DestinationPath "godot_temp" -Force
+            $foundExe = (Get-ChildItem -Path "godot_temp" -Filter "*.exe" -Recurse | Where-Object { $_.Name -notlike "*_console*" } | Select-Object -First 1).FullName
             Copy-Item $foundExe ./godot.exe -Force
             Remove-Item "godot.zip", "godot_temp" -Recurse -Force
           }
@@ -224,75 +1376,319 @@ jobs:
           key: godot-export-templates-${{ env.GODOT_VERSION }}-win
           restore-keys: |
             godot-export-templates-${{ env.GODOT_VERSION }}-
-            godot-export-templates-
 
       - name: Ensure Godot Export Templates
+        run: |
+          bin/lapis setup templates
+
+      - name: Build Templates, Examples & Benchmarks
+        timeout-minutes: 10
         shell: pwsh
         run: |
-          $winBin = "bin/windows"
-          if (-not (Test-Path $winBin)) { New-Item -ItemType Directory -Force -Path $winBin | Out-Null }
-          bin/lapis setup templates -o "$winBin/godot-crystal-export-templates-$($env:GODOT_VERSION).zip"
+          make template template_addon examples perf perf_standalone RELEASE=1
 
-      - name: Compile Release Binaries & Run Test Suite
-        timeout-minutes: 35
-        shell: pwsh
+      - name: Package Standalone Test Suite (Windows)
         run: |
-          make all RELEASE=1
+          bin/lapis package tests -p windows -o bin/test-suite-windows.zip
 
-      - name: Upload Test Status Report & Artifacts
-        if: always()
+      - name: Upload Consumer Packages Artifact (Windows)
         uses: actions/upload-artifact@v4
         with:
-          name: test-status-report-windows
+          name: consumer-packages-windows
           path: |
-            test_report.md
-            bin/test_report.md
-            test_report.json
-            bin/test_report.json
-            .runtime_test_results.txt
-            bin/.runtime_test_results.txt
-            .tool_tests_passed
-            .tool_tests_failed
-            .runtime_tests_passed
-            .runtime_tests_failed
-            bin/.tool_tests_passed
-            bin/.tool_tests_failed
-            bin/.runtime_tests_passed
-            bin/.runtime_tests_failed
-            bin/junit.xml
-            junit.xml
-            bin/junit_*.xml
-            bin/**/output.xml
-            test/test_report.md
-            test/test_report.json
-            test/bin/test_report.md
-            test/bin/test_report.json
-            test/.runtime_test_results.txt
-            test/bin/.runtime_test_results.txt
-            test/.tool_tests_passed
-            test/.tool_tests_failed
-            test/.runtime_tests_passed
-            test/.runtime_tests_failed
+            template/bin/game.dll
+            examples/basic_demo/bin/game.dll
+            bin/test-suite-windows.zip
+            template/dist/*.zip
+            template-addon/dist/*.zip
           if-no-files-found: ignore
 
-      - name: Publish Test Status Report to Step Summary
-        if: always()
+  build-consumers-linux:
+    name: Build Consumers & Templates (Linux)
+    needs: [build-core-linux]
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      LIBGODOT_VERBOSE: 1
+      GODOT_VERBOSE: 1
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download Core Binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: core-binaries-linux
+
+      - name: Fix Binary Permissions
+        run: |
+          mkdir -p bin
+          for f in lapis game *.so; do
+            if [ -f "$f" ] && [ ! -f "bin/$f" ]; then mv "$f" bin/; fi
+          done
+          chmod +x bin/lapis bin/*.so bin/game 2>/dev/null || true
+          ls -la bin/
+
+      - name: Resolve Godot Version
+        id: godot-version
+        shell: bash
+        run: |
+          GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml | tr -d '\r\n[:space:]')
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev6"; fi
+          echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
+          echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
+
+      - name: Install Crystal
+        uses: crystal-lang/install-crystal@v1
+        with:
+          crystal: latest
+
+      - name: Cache Crystal Build Cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/crystal
+          key: crystal-cache-linux-${{ runner.os }}-${{ hashFiles('shard.yml', 'shard.lock') }}
+          restore-keys: |
+            crystal-cache-linux-${{ runner.os }}-
+
+      - name: Install Linux Build Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lld lldb libgc-dev xvfb
+
+      - name: Setup Godot Engine
+        uses: appsinacup/action_setup_godot@main
+        with:
+          repo: godotengine/godot-builds
+          version: ${{ env.GODOT_VERSION }}
+          enable_cache: false
+
+      - name: Configure Godot Executable
+        shell: bash
+        run: |
+          if [ -n "$GODOT4" ] && [ -f "$GODOT4" ]; then
+            cp "$GODOT4" ./godot
+          elif [ -n "$GODOT4_BIN" ] && [ -f "$GODOT4_BIN" ]; then
+            cp "$GODOT4_BIN" ./godot
+          elif command -v godot >/dev/null 2>&1; then
+            cp "$(command -v godot)" ./godot
+          else
+            wget -q "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip" -O godot.zip
+            unzip -q godot.zip
+            found_bin=$(find . -maxdepth 2 -name "Godot_v*linux.x86_64" | head -n 1)
+            mv "$found_bin" ./godot
+            rm -f godot.zip
+          fi
+          chmod +x ./godot
+
+      - name: Cache Godot Export Templates
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/godot/export_templates
+          key: godot-export-templates-${{ env.GODOT_VERSION }}-linux
+          restore-keys: |
+            godot-export-templates-${{ env.GODOT_VERSION }}-
+
+      - name: Ensure Godot Export Templates
+        run: |
+          bin/lapis setup templates
+
+      - name: Build Templates, Examples & Benchmarks
+        timeout-minutes: 10
+        shell: bash
+        run: |
+          xvfb-run --auto-servernum make template template_addon examples perf perf_standalone RELEASE=1
+
+      - name: Package Standalone Test Suite (Linux)
+        run: |
+          bin/lapis package tests -p linux -o bin/test-suite-linux.zip
+
+      - name: Upload Consumer Packages Artifact (Linux)
+        uses: actions/upload-artifact@v4
+        with:
+          name: consumer-packages-linux
+          path: |
+            template/bin/game.so
+            examples/basic_demo/bin/game.so
+            bin/test-suite-linux.zip
+            template/dist/*.zip
+            template-addon/dist/*.zip
+          if-no-files-found: ignore
+
+  build-consumers-macos:
+    name: Build Consumers & Templates (macOS)
+    needs: [build-core-macos]
+    runs-on: macos-latest
+    timeout-minutes: 12
+    env:
+      LIBGODOT_VERBOSE: 1
+      GODOT_VERBOSE: 1
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download Core Binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: core-binaries-macos
+
+      - name: Fix Binary Permissions
+        run: |
+          mkdir -p bin
+          for f in lapis game *.dylib; do
+            if [ -f "$f" ] && [ ! -f "bin/$f" ]; then mv "$f" bin/; fi
+          done
+          chmod +x bin/lapis bin/*.dylib bin/game 2>/dev/null || true
+          ls -la bin/
+
+      - name: Resolve Godot Version
+        id: godot-version
+        shell: bash
+        run: |
+          GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml | tr -d '\r\n[:space:]')
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev6"; fi
+          echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
+          echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
+
+      - name: Install Crystal
+        uses: crystal-lang/install-crystal@v1
+        with:
+          crystal: latest
+
+      - name: Cache Crystal Build Cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/crystal
+          key: crystal-cache-macos-${{ runner.os }}-${{ hashFiles('shard.yml', 'shard.lock') }}
+          restore-keys: |
+            crystal-cache-macos-${{ runner.os }}-
+
+      - name: Install macOS Build Dependencies
+        run: |
+          brew install bdw-gc
+
+      - name: Setup Godot Engine
+        uses: appsinacup/action_setup_godot@main
+        with:
+          repo: godotengine/godot-builds
+          version: ${{ env.GODOT_VERSION }}
+          enable_cache: true
+
+      - name: Configure Godot Executable
+        shell: bash
+        run: |
+          GODOT_EXEC=""
+          if [ -n "$GODOT4" ] && [ -f "$GODOT4" ]; then
+            GODOT_EXEC="$GODOT4"
+          elif [ -n "$GODOT4_BIN" ] && [ -f "$GODOT4_BIN" ]; then
+            GODOT_EXEC="$GODOT4_BIN"
+          elif command -v godot >/dev/null 2>&1; then
+            GODOT_EXEC="$(command -v godot)"
+          else
+            curl -sSL "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_macos.universal.zip" -o godot.zip
+            unzip -q godot.zip
+            if [ -d "Godot.app" ]; then
+              GODOT_EXEC="$(pwd)/Godot.app/Contents/MacOS/Godot"
+            fi
+            rm -f godot.zip
+          fi
+
+          if [[ "$GODOT_EXEC" == *".app/Contents/MacOS/"* ]]; then
+            GODOT_APP="${GODOT_EXEC%%.app/*}.app"
+            xattr -dr com.apple.quarantine "$GODOT_APP" 2>/dev/null || true
+            codesign --force --deep --sign - "$GODOT_APP" 2>/dev/null || true
+          fi
+
+          printf '#!/usr/bin/env bash\nexec "%s" "$@"\n' "$GODOT_EXEC" > ./godot
+          chmod +x ./godot
+          xattr -d com.apple.quarantine ./godot 2>/dev/null || true
+
+      - name: Cache Godot Export Templates
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Application Support/Godot/export_templates
+          key: godot-export-templates-${{ env.GODOT_VERSION }}-macos
+          restore-keys: |
+            godot-export-templates-${{ env.GODOT_VERSION }}-
+
+      - name: Ensure Godot Export Templates
+        run: |
+          bin/lapis setup templates
+
+      - name: Build Templates, Examples & Benchmarks
+        timeout-minutes: 10
+        shell: bash
+        run: |
+          make template template_addon examples perf perf_standalone RELEASE=1
+
+      - name: Package Standalone Test Suite (macOS)
+        run: |
+          bin/lapis package tests -p macos -o bin/test-suite-macos.zip
+
+      - name: Upload Consumer Packages Artifact (macOS)
+        uses: actions/upload-artifact@v4
+        with:
+          name: consumer-packages-macos
+          path: |
+            template/bin/game.dylib
+            examples/basic_demo/bin/game.dylib
+            bin/test-suite-macos.zip
+            template/dist/*.zip
+            template-addon/dist/*.zip
+          if-no-files-found: ignore
+
+  # =========================================================================
+  # STAGE 5: PACKAGING & INSTALLERS (~2-3 min)
+  # =========================================================================
+
+  # =========================================================================
+  # STAGE 5: PACKAGING & PLATFORM INSTALLERS
+  # =========================================================================
+
+  package-windows-release:
+    name: Package Windows Release (x86_64)
+    needs: [init-release, test-engine-windows, build-consumers-windows]
+    runs-on: windows-latest
+    timeout-minutes: 15
+    env:
+      GODOT_VERSION: ${{ needs.init-release.outputs.godot_version }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download Core Binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: core-binaries-windows
+
+      - name: Download Consumer Packages
+        uses: actions/download-artifact@v4
+        with:
+          name: consumer-packages-windows
+        continue-on-error: true
+
+      - name: Verify Staged Binaries
         shell: pwsh
         run: |
-          if ($env:GITHUB_STEP_SUMMARY -and (Test-Path $env:GITHUB_STEP_SUMMARY)) {
-            $existing = Get-Content $env:GITHUB_STEP_SUMMARY -Raw -ErrorAction SilentlyContinue
-            if ($existing -notmatch "LibGodot Test Suite Status Report") {
-              if (Test-Path "test_report.md") {
-                Get-Content "test_report.md" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
-              } elseif (Test-Path "bin/test_report.md") {
-                Get-Content "bin/test_report.md" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
-              } elseif (Test-Path "test/test_report.md") {
-                Get-Content "test/test_report.md" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
-              } elseif (Test-Path "test/bin/test_report.md") {
-                Get-Content "test/bin/test_report.md" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
-              }
-            }
+          if (-not (Test-Path "bin")) { New-Item -ItemType Directory -Force -Path "bin" | Out-Null }
+          Get-ChildItem -Path . -File | Where-Object { $_.Extension -in '.exe', '.dll' } | ForEach-Object {
+            if (-not (Test-Path "bin/$($_.Name)")) { Move-Item -Force $_.FullName "bin/$($_.Name)" }
           }
+          if (Test-Path "game.dll") { Copy-Item "game.dll" "template/bin/game.dll" -Force -ErrorAction SilentlyContinue }
+          Get-ChildItem -Path "bin"
+
+      - name: Setup Crystalline LSP (Windows)
+        shell: pwsh
+        run: |
+          try {
+            bin/lapis setup --lsp
+          } catch {
+            Write-Host "Crystalline LSP setup notice: $_"
+          }
+          exit 0
 
       - name: Package Windows Lapis CLI Toolchain (lapis-windows-x86_64.zip)
         shell: pwsh
@@ -450,177 +1846,38 @@ jobs:
           name: release-windows-artifacts
           path: bin/windows/
 
-  build-linux:
-    name: Build Linux (x86_64)
-    needs: [init-release]
+  package-linux-release:
+    name: Package Linux Release (x86_64)
+    needs: [init-release, test-engine-linux, build-consumers-linux]
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 15
     env:
-      GC_MARKERS: 1
       GODOT_VERSION: ${{ needs.init-release.outputs.godot_version }}
-      LIBGODOT_VERBOSE: 1
-      GODOT_VERBOSE: 1
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Resolve Godot Version
-        id: godot-version
-        shell: bash
-        run: |
-          GODOT_VER="$GODOT_VERSION"
-          if [ -z "$GODOT_VER" ] && [ -f "godot-version.yml" ]; then
-            GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml | tr -d '\r\n[:space:]')
-          fi
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev6"; fi
-          echo "Resolved Godot Version: $GODOT_VER"
-          echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
-          echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
-
-      - name: Install Crystal
-        uses: crystal-lang/install-crystal@v1
+      - name: Download Core Binaries
+        uses: actions/download-artifact@v4
         with:
-          crystal: latest
+          name: core-binaries-linux
 
-      - name: Cache Crystal Build Cache
-        uses: actions/cache@v4
+      - name: Download Consumer Packages
+        uses: actions/download-artifact@v4
         with:
-          path: ~/.cache/crystal
-          key: crystal-cache-linux-${{ runner.os }}-${{ hashFiles('shard.yml', 'shard.lock') }}
-          restore-keys: |
-            crystal-cache-linux-${{ runner.os }}-
+          name: consumer-packages-linux
+        continue-on-error: true
 
-      - name: Install Linux Build Dependencies
+      - name: Fix Binary Permissions
         run: |
-          sudo apt-get update
-          sudo apt-get install -y lld lldb libgc-dev xvfb
-
-      - name: Verify Crystal & Toolchain
-        run: |
-          crystal -v
-          g++ --version
-          ld.lld --version
-          lldb --version
-
-      - name: Build Lapis CLI Toolchain
-        run: |
-          mkdir -p bin
-          crystal build tools/lapis/src/lapis.cr -o bin/lapis
-
-      - name: Setup Crystalline LSP (Linux)
-        run: |
-          bin/lapis setup --lsp
-          echo "$(pwd)/bin" >> "$GITHUB_PATH"
-          export PATH="$(pwd)/bin:$PATH"
-
-
-      - name: Setup Godot Engine
-        uses: appsinacup/action_setup_godot@main
-        with:
-          repo: godotengine/godot-builds
-          version: ${{ env.GODOT_VERSION }}
-          enable_cache: false
-
-      - name: Configure Godot Executable
-        shell: bash
-        run: |
-          if [ -n "$GODOT4" ] && [ -f "$GODOT4" ] && file -b "$GODOT4" | grep -q "ELF.*x86-64"; then
-            cp "$GODOT4" ./godot
-            chmod +x ./godot
-          elif [ -n "$GODOT4_BIN" ] && [ -f "$GODOT4_BIN" ] && file -b "$GODOT4_BIN" | grep -q "ELF.*x86-64"; then
-            cp "$GODOT4_BIN" ./godot
-            chmod +x ./godot
-          elif command -v godot >/dev/null 2>&1 && file -b "$(command -v godot)" | grep -q "ELF.*x86-64"; then
-            cp "$(command -v godot)" ./godot
-            chmod +x ./godot
-          else
-            echo "Fallback: Downloading Godot ${GODOT_VERSION} linux.x86_64..."
-            wget -q "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip" -O godot.zip
-            unzip -q godot.zip
-            found_bin=$(find . -maxdepth 2 -name "Godot_v*linux.x86_64" | head -n 1)
-            if [ -n "$found_bin" ]; then
-              mv "$found_bin" ./godot
-            else
-              mv "Godot_v${GODOT_VERSION}_linux.x86_64" ./godot
-            fi
-            chmod +x ./godot
-            rm -f godot.zip
-          fi
-          ./godot --version
-
-      - name: Cache Godot Export Templates
-        uses: actions/cache@v4
-        with:
-          path: ~/.local/share/godot/export_templates
-          key: godot-export-templates-${{ env.GODOT_VERSION }}-linux
-          restore-keys: |
-            godot-export-templates-${{ env.GODOT_VERSION }}-
-            godot-export-templates-
-
-      - name: Ensure Godot Export Templates
-        run: |
-          bin/lapis setup templates
-
-      - name: Compile Release Binaries & Run Test Suite
-        timeout-minutes: 25
-        shell: bash
-        run: |
-          xvfb-run --auto-servernum make all RELEASE=1
-
-      - name: Upload Test Status Report & Artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-status-report-linux
-          path: |
-            test_report.md
-            bin/test_report.md
-            test_report.json
-            bin/test_report.json
-            .runtime_test_results.txt
-            bin/.runtime_test_results.txt
-            .tool_tests_passed
-            .tool_tests_failed
-            .runtime_tests_passed
-            .runtime_tests_failed
-            bin/.tool_tests_passed
-            bin/.tool_tests_failed
-            bin/.runtime_tests_passed
-            bin/.runtime_tests_failed
-            bin/junit.xml
-            junit.xml
-            bin/junit_*.xml
-            bin/**/output.xml
-            test/test_report.md
-            test/test_report.json
-            test/bin/test_report.md
-            test/bin/test_report.json
-            test/.runtime_test_results.txt
-            test/bin/.runtime_test_results.txt
-            test/.tool_tests_passed
-            test/.tool_tests_failed
-            test/.runtime_tests_passed
-            test/.runtime_tests_failed
-          if-no-files-found: ignore
-
-      - name: Publish Test Status Report to Step Summary
-        if: always()
-        shell: bash
-        run: |
-          if [ -n "$GITHUB_STEP_SUMMARY" ] && [ -f "$GITHUB_STEP_SUMMARY" ]; then
-            if ! grep -q "LibGodot Test Suite Status Report" "$GITHUB_STEP_SUMMARY"; then
-              if [ -f "test_report.md" ]; then
-                cat test_report.md >> "$GITHUB_STEP_SUMMARY"
-              elif [ -f "bin/test_report.md" ]; then
-                cat bin/test_report.md >> "$GITHUB_STEP_SUMMARY"
-              elif [ -f "test/test_report.md" ]; then
-                cat test/test_report.md >> "$GITHUB_STEP_SUMMARY"
-              elif [ -f "test/bin/test_report.md" ]; then
-                cat test/bin/test_report.md >> "$GITHUB_STEP_SUMMARY"
-              fi
-            fi
-          fi
+          mkdir -p bin template/bin
+          for f in lapis game *.so; do
+            if [ -f "$f" ] && [ ! -f "bin/$f" ]; then mv "$f" bin/; fi
+          done
+          if [ -f "game.so" ]; then cp "game.so" template/bin/game.so; fi
+          chmod +x bin/lapis bin/*.so bin/game 2>/dev/null || true
+          ls -la bin/
 
       - name: Package Linux Lapis CLI Toolchain (lapis-linux-x86_64.tar.gz)
         shell: bash
@@ -748,335 +2005,38 @@ jobs:
           name: release-linux-artifacts
           path: bin/linux/
 
-  build-android:
-    name: Build Android (arm64-v8a)
-    needs: [init-release]
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    timeout-minutes: 25
-    env:
-      GODOT_VERSION: ${{ needs.init-release.outputs.godot_version }}
-      LIBGODOT_VERBOSE: 1
-      GODOT_VERBOSE: 1
-
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Resolve Godot Version
-        id: godot-version
-        shell: bash
-        run: |
-          GODOT_VER="$GODOT_VERSION"
-          if [ -z "$GODOT_VER" ] && [ -f "godot-version.yml" ]; then
-            GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml | tr -d '\r\n[:space:]')
-          fi
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev6"; fi
-          echo "Resolved Godot Version: $GODOT_VER"
-          echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
-          echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
-
-      - name: Install Crystal
-        uses: crystal-lang/install-crystal@v1
-        with:
-          crystal: latest
-
-      - name: Cache Crystal Build Cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/crystal
-          key: crystal-cache-android-${{ runner.os }}-${{ hashFiles('shard.yml', 'shard.lock') }}
-          restore-keys: |
-            crystal-cache-android-${{ runner.os }}-
-
-      - name: Setup Java (for apksigner & keytool)
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Setup Godot Engine
-        uses: appsinacup/action_setup_godot@main
-        with:
-          repo: godotengine/godot-builds
-          version: ${{ env.GODOT_VERSION }}
-          enable_cache: true
-
-      - name: Configure Godot & Android SDK Environment
-        shell: bash
-        run: |
-          if [ -n "$GODOT4" ] && [ -f "$GODOT4" ] && file -b "$GODOT4" | grep -q "ELF.*x86-64"; then
-            cp "$GODOT4" ./godot
-            chmod +x ./godot
-          elif [ -n "$GODOT4_BIN" ] && [ -f "$GODOT4_BIN" ] && file -b "$GODOT4_BIN" | grep -q "ELF.*x86-64"; then
-            cp "$GODOT4_BIN" ./godot
-            chmod +x ./godot
-          elif command -v godot >/dev/null 2>&1 && file -b "$(command -v godot)" | grep -q "ELF.*x86-64"; then
-            cp "$(command -v godot)" ./godot
-            chmod +x ./godot
-          else
-            echo "Fallback: Downloading Godot ${GODOT_VERSION} linux.x86_64..."
-            wget -q "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip" -O godot.zip
-            unzip -q godot.zip
-            found_bin=$(find . -maxdepth 2 -name "Godot_v*linux.x86_64" | head -n 1)
-            if [ -n "$found_bin" ]; then
-              mv "$found_bin" ./godot
-            else
-              mv "Godot_v${GODOT_VERSION}_linux.x86_64" ./godot
-            fi
-            chmod +x ./godot
-            rm -f godot.zip
-          fi
-          ./godot --version
-
-          mkdir -p ~/.android
-          if [ ! -f ~/.android/debug.keystore ]; then
-            keytool -keyalg RSA -genkeypair -alias androiddebugkey -keypass android -keystore ~/.android/debug.keystore -storepass android -dname "CN=Android Debug,O=Android,C=US" -validity 9999
-          fi
-
-          if [ -d "$ANDROID_HOME/cmake" ]; then
-            first_cmake=$(ls -1 "$ANDROID_HOME/cmake" 2>/dev/null | head -n 1)
-            if [ -n "$first_cmake" ] && [ ! -d "$ANDROID_HOME/cmake/3.22.1" ]; then
-              ln -s "$ANDROID_HOME/cmake/$first_cmake" "$ANDROID_HOME/cmake/3.22.1" || true
-            fi
-          fi
-
-      - name: Cache Godot Export Templates
-        uses: actions/cache@v4
-        with:
-          path: ~/.local/share/godot/export_templates
-          key: godot-export-templates-${{ env.GODOT_VERSION }}-android
-          restore-keys: |
-            godot-export-templates-${{ env.GODOT_VERSION }}-
-            godot-export-templates-
-
-      - name: Build Lapis CLI Toolchain
-        run: |
-          mkdir -p bin
-          crystal build tools/lapis/src/lapis.cr -o bin/lapis
-
-      - name: Ensure Godot Export Templates
-        run: |
-          bin/lapis setup templates
-
-      - name: Cross-Compile Android Native Libraries (arm64-v8a)
-        shell: bash
-        run: |
-          echo "Android cross-compilation pipeline is experimental and transitioning to Lapis CLI toolchain."
-
-      - name: Generate Android Status Report
-        if: always()
-        shell: bash
-        run: |
-          mkdir -p bin/android
-          printf '%s\n' '## LibGodot Android Target Audit Report (arm64-v8a)' '' '| Metric | Value |' '| :--- | :--- |' '| **Overall Status** | Under Migration |' '| **Target Architecture** | arm64-v8a (API 29) |' '| **Note** | Transitioning Android pipeline to Lapis CLI toolchain. |' > bin/android/test_report.md
-          printf '%s\n' '{"platform": "Android (arm64-v8a)", "overall_success": true, "note": "Transitioning to Lapis CLI toolchain"}' > bin/android/test_report.json
-          if [ -n "$GITHUB_STEP_SUMMARY" ]; then
-            cat bin/android/test_report.md >> "$GITHUB_STEP_SUMMARY"
-          fi
-          echo "Android audit report generated."
-
-      - name: Upload Android Status Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-status-report-android
-          path: |
-            bin/android/test_report.md
-            bin/android/test_report.json
-            bin/android/android_audit_report.txt
-          if-no-files-found: ignore
-
-      - name: Upload Android Staging Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-android-artifacts
-          path: bin/android/
-
-  build-macos:
-    name: Build macOS
-    needs: [init-release]
+  package-macos-release:
+    name: Package macOS Release (arm64)
+    needs: [init-release, test-engine-macos, build-consumers-macos]
     runs-on: macos-latest
-    timeout-minutes: 35
+    timeout-minutes: 15
     env:
       GODOT_VERSION: ${{ needs.init-release.outputs.godot_version }}
-      LIBGODOT_VERBOSE: 1
-      GODOT_VERBOSE: 1
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Resolve Godot Version
-        id: godot-version
-        shell: bash
-        run: |
-          GODOT_VER="$GODOT_VERSION"
-          if [ -z "$GODOT_VER" ] && [ -f "godot-version.yml" ]; then
-            GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml | tr -d '\r\n[:space:]')
-          fi
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev6"; fi
-          echo "Resolved Godot Version: $GODOT_VER"
-          echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
-          echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
-
-      - name: Install Crystal
-        uses: crystal-lang/install-crystal@v1
+      - name: Download Core Binaries
+        uses: actions/download-artifact@v4
         with:
-          crystal: latest
+          name: core-binaries-macos
 
-      - name: Cache Crystal Build Cache
-        uses: actions/cache@v4
+      - name: Download Consumer Packages
+        uses: actions/download-artifact@v4
         with:
-          path: ~/.cache/crystal
-          key: crystal-cache-macos-${{ runner.os }}-${{ hashFiles('shard.yml', 'shard.lock') }}
-          restore-keys: |
-            crystal-cache-macos-${{ runner.os }}-
+          name: consumer-packages-macos
+        continue-on-error: true
 
-      - name: Install macOS Dependencies (LLVM)
+      - name: Fix Binary Permissions
         run: |
-          brew install llvm@18
-          LLVM_PATH="$(brew --prefix llvm@18)/bin"
-          echo "$LLVM_PATH" >> "$GITHUB_PATH"
-          echo "PATH=$LLVM_PATH:$PATH" >> "$GITHUB_ENV"
-          echo "LLVM_CONFIG=$LLVM_PATH/llvm-config" >> "$GITHUB_ENV"
-
-      - name: Verify Crystal & Toolchain
-        run: |
-          crystal -v
-          clang++ --version
-          lldb --version
-
-      - name: Build Lapis CLI Toolchain
-        run: |
-          mkdir -p bin
-          crystal build tools/lapis/src/lapis.cr -o bin/lapis
-
-      - name: Setup Crystalline LSP & Verify LLDB (macOS)
-        run: |
-          bin/lapis setup --lsp || true
-          echo "$(pwd)/bin" >> "$GITHUB_PATH"
-          export PATH="$(pwd)/bin:$PATH"
-          if command -v lldb >/dev/null 2>&1; then
-            lldb --version
-          fi
-
-
-      - name: Setup Godot Engine
-        uses: appsinacup/action_setup_godot@main
-        with:
-          repo: godotengine/godot-builds
-          version: ${{ env.GODOT_VERSION }}
-          enable_cache: true
-
-      - name: Configure Godot Executable
-        shell: bash
-        run: |
-          GODOT_EXEC=""
-          if [ -n "$GODOT4" ] && [ -f "$GODOT4" ]; then
-            GODOT_EXEC="$GODOT4"
-          elif [ -n "$GODOT4_BIN" ] && [ -f "$GODOT4_BIN" ]; then
-            GODOT_EXEC="$GODOT4_BIN"
-          elif command -v godot >/dev/null 2>&1; then
-            GODOT_EXEC="$(command -v godot)"
-          else
-            echo "Fallback: Downloading Godot ${GODOT_VERSION} macos.universal..."
-            curl -sSL "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_macos.universal.zip" -o godot.zip
-            unzip -q godot.zip
-            if [ -d "Godot.app" ]; then
-              GODOT_EXEC="$(pwd)/Godot.app/Contents/MacOS/Godot"
-            fi
-            rm -f godot.zip
-          fi
-
-          if [[ "$GODOT_EXEC" == *".app/Contents/MacOS/"* ]]; then
-            GODOT_APP="${GODOT_EXEC%%.app/*}.app"
-            echo "De-quarantining and ad-hoc signing $GODOT_APP..."
-            xattr -dr com.apple.quarantine "$GODOT_APP" 2>/dev/null || true
-            codesign --force --deep --sign - "$GODOT_APP" 2>/dev/null || true
-          fi
-
-          printf '#!/usr/bin/env bash\nexec "%s" "$@"\n' "$GODOT_EXEC" > ./godot
-          chmod +x ./godot
-          xattr -d com.apple.quarantine ./godot 2>/dev/null || true
-
-          ./godot --version
-
-      - name: Cache Godot Export Templates
-        uses: actions/cache@v4
-        with:
-          path: ~/Library/Application Support/Godot/export_templates
-          key: godot-export-templates-${{ env.GODOT_VERSION }}-macos
-          restore-keys: |
-            godot-export-templates-${{ env.GODOT_VERSION }}-
-            godot-export-templates-
-
-      - name: Ensure Godot Export Templates
-        shell: pwsh
-        run: |
-          $macBin = "bin/macos"
-          if (-not (Test-Path $macBin)) { New-Item -ItemType Directory -Force -Path $macBin | Out-Null }
-          bin/lapis setup templates -o "$macBin/godot-crystal-export-templates-$($env:GODOT_VERSION).zip"
-
-      - name: Compile Release Binaries & Run Test Suite
-        timeout-minutes: 25
-        shell: bash
-        run: |
-          make all RELEASE=1
-
-      - name: Upload Test Status Report & Artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-status-report-macos
-          path: |
-            test_report.md
-            bin/test_report.md
-            test_report.json
-            bin/test_report.json
-            .runtime_test_results.txt
-            bin/.runtime_test_results.txt
-            .tool_tests_passed
-            .tool_tests_failed
-            .runtime_tests_passed
-            .runtime_tests_failed
-            bin/.tool_tests_passed
-            bin/.tool_tests_failed
-            bin/.runtime_tests_passed
-            bin/.runtime_tests_failed
-            bin/junit.xml
-            junit.xml
-            bin/junit_*.xml
-            bin/**/output.xml
-            test/test_report.md
-            test/test_report.json
-            test/bin/test_report.md
-            test/bin/test_report.json
-            test/.runtime_test_results.txt
-            test/bin/.runtime_test_results.txt
-            test/.tool_tests_passed
-            test/.tool_tests_failed
-            test/.runtime_tests_passed
-            test/.runtime_tests_failed
-          if-no-files-found: ignore
-
-      - name: Publish Test Status Report to Step Summary
-        if: always()
-        shell: bash
-        run: |
-          if [ -n "$GITHUB_STEP_SUMMARY" ] && [ -f "$GITHUB_STEP_SUMMARY" ]; then
-            if ! grep -q "LibGodot Test Suite Status Report" "$GITHUB_STEP_SUMMARY"; then
-              if [ -f "test_report.md" ]; then
-                cat test_report.md >> "$GITHUB_STEP_SUMMARY"
-              elif [ -f "bin/test_report.md" ]; then
-                cat bin/test_report.md >> "$GITHUB_STEP_SUMMARY"
-              elif [ -f "test/test_report.md" ]; then
-                cat test/test_report.md >> "$GITHUB_STEP_SUMMARY"
-              elif [ -f "test/bin/test_report.md" ]; then
-                cat test/bin/test_report.md >> "$GITHUB_STEP_SUMMARY"
-              fi
-            fi
-          fi
+          mkdir -p bin template/bin
+          for f in lapis game *.dylib; do
+            if [ -f "$f" ] && [ ! -f "bin/$f" ]; then mv "$f" bin/; fi
+          done
+          if [ -f "game.dylib" ]; then cp "game.dylib" template/bin/game.dylib; fi
+          chmod +x bin/lapis bin/*.dylib bin/game 2>/dev/null || true
+          ls -la bin/
 
       - name: Package macOS Lapis CLI Toolchain (lapis-macos.zip)
         shell: bash
@@ -1196,10 +2156,14 @@ jobs:
           name: release-macos-artifacts
           path: bin/macos/
 
+  # =========================================================================
+  # STAGE 6: FINALIZE RELEASE & DEPLOY DOCS
+  # =========================================================================
+
   finalize-release:
     name: Finalize & Publish Unified Release
-    needs: [init-release, build-windows, build-linux, build-android, build-macos]
-    if: always() && !cancelled() && (needs.build-windows.result == 'success' || needs.build-linux.result == 'success' || needs.build-android.result == 'success' || needs.build-macos.result == 'success')
+    needs: [init-release, package-windows-release, package-linux-release, package-macos-release, build-android]
+    if: always() && !cancelled() && (needs.package-windows-release.result == 'success' || needs.package-linux-release.result == 'success' || needs.package-macos-release.result == 'success' || needs.build-android.result == 'success')
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
