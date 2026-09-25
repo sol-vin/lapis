@@ -1,5 +1,5 @@
 @tool
-extends EditorPlugin
+extends CrystalIntegrationPlugin
 
 var _main_panel: Control = null
 
