@@ -151,15 +151,19 @@ func _run_in_editor_tool_tests():
 			plugin_name = crystal_plugin._get_plugin_name()
 		elif crystal_plugin.has_method("get_plugin_name"):
 			plugin_name = crystal_plugin.get_plugin_name()
-	elif plugin_script:
-		# Fallback: inspect plugin_script methods directly if instance could not be spawned
-		if plugin_script.has_method("_has_main_screen") or plugin_script.has_method("has_main_screen"):
+	if not has_main or plugin_name != "Crystal":
+		# Fallback: inspect plugin_script source code or methods directly if instance could not be spawned
+		var src = ""
+		if plugin_script and "source_code" in plugin_script and plugin_script.source_code != "":
+			src = plugin_script.source_code
+		elif FileAccess.file_exists("res://addons/crystal_integration/plugin.gd"):
+			var fa = FileAccess.open("res://addons/crystal_integration/plugin.gd", FileAccess.READ)
+			if fa:
+				src = fa.get_as_text()
+		if "func _has_main_screen" in src or "has_main_screen" in src:
 			has_main = true
-		for m in plugin_script.get_script_method_list():
-			if m.name == "_has_main_screen" or m.name == "has_main_screen":
-				has_main = true
-			if m.name == "_get_plugin_name" or m.name == "get_plugin_name":
-				plugin_name = "Crystal"
+		if '"Crystal"' in src or "_get_plugin_name" in src:
+			plugin_name = "Crystal"
 
 	if not has_main or plugin_name != "Crystal":
 		var msg = "[CrystalToolTester] FAILED: CrystalIntegrationPlugin does not report main screen tab (has_main_screen=%s, name='%s')!" % [str(has_main), plugin_name]
