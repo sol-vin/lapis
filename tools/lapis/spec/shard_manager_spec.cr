@@ -119,6 +119,37 @@ YAML
 
       FileUtils.rm_rf(temp_dir)
     end
+
+    it "auto-heals ambiguous dependency sources with shard.override.yml" do
+      temp_dir = Path.new(Dir.tempdir).join("lapis_test_shard_heal_#{Time.utc.to_unix_ms}")
+      FileUtils.mkdir_p(temp_dir)
+      shard_yml = temp_dir.join("shard.yml")
+      root_rel = Path.new(Lapis::Core::Env::ROOT_DIR).relative_to(temp_dir).to_s.gsub('\\', '/')
+
+      File.write(shard_yml, <<-YAML
+name: test_heal
+version: 0.1.0
+
+dependencies:
+  crshader:
+    github: sol-vin/crshader
+    branch: master
+  lapis:
+    path: #{root_rel}
+YAML
+      )
+
+      # Running shards install should trigger auto-healing and create shard.override.yml
+      res = Lapis::Commands::ShardManager.run_shards_install(temp_dir)
+      res.should be_true
+
+      override_yml = temp_dir.join("shard.override.yml")
+      File.exists?(override_yml).should be_true
+      File.read(override_yml).should contain("lapis:")
+      File.read(override_yml).should contain("path: #{root_rel}")
+
+      FileUtils.rm_rf(temp_dir)
+    end
   end
 
   describe "dual-mode install addon --shard" do

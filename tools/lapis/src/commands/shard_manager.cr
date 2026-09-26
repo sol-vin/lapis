@@ -131,10 +131,59 @@ YAML
           if res[:status].success?
             Core::Logger.success("Dependencies resolved successfully with 'shards install'.")
             return true
-          else
-            Core::Logger.warn("Notice: 'shards install' exited with #{res[:status].exit_code}: #{res[:error]}")
-            return false
           end
+
+          combined_output = (res[:error] + "\n" + res[:output]).strip
+
+          # Auto-healing: Handle ambiguous dependency sources (e.g. local path vs git URL)
+          if combined_output.includes?("has ambiguous sources")
+            if match = combined_output.match(/shard name \(([a-zA-Z0-9_-]+)\) has ambiguous sources/)
+              conflicted_shard = match[1]
+              shard_path = project_dir.join("shard.yml")
+              if File.exists?(shard_path)
+                shard_content = File.read(shard_path)
+                # Check if shard.yml has a local path for the conflicted shard
+                if path_match = shard_content.match(/^[ \t]*#{Regex.escape(conflicted_shard)}:[^\r\n]*\r?\n[ \t]+path:[ \t]*([^\r\n]+)/m)
+                  local_path = path_match[1].strip.gsub(/["']/, "")
+                  Core::Logger.info("Resolving ambiguous dependency source for '#{conflicted_shard}' via shard.override.yml...")
+
+                  override_path = project_dir.join("shard.override.yml")
+                  override_content = if File.exists?(override_path)
+                                       File.read(override_path)
+                                     else
+                                       "dependencies:\n"
+                                     end
+
+                  unless override_content.includes?("#{conflicted_shard}:")
+                    override_content = override_content.rstrip + "\n  #{conflicted_shard}:\n    path: #{local_path}\n"
+                    File.write(override_path, override_content)
+                  end
+
+                  # Ensure shard.override.yml is in .gitignore
+                  gitignore_path = project_dir.join(".gitignore")
+                  if File.exists?(gitignore_path)
+                    gi_content = File.read(gitignore_path)
+                    unless gi_content.includes?("shard.override.yml")
+                      File.write(gitignore_path, gi_content.rstrip + "\nshard.override.yml\n")
+                    end
+                  end
+
+                  # Retry shards install with the override in place
+                  retry_res = Core::ProcessRunner.capture(shards_bin, ["install"], chdir: project_dir.to_s)
+                  if retry_res[:status].success?
+                    Core::Logger.success("Dependencies resolved successfully with local override.")
+                    return true
+                  else
+                    combined_output = (retry_res[:error] + "\n" + retry_res[:output]).strip
+                  end
+                end
+              end
+            end
+          end
+
+          err_line = combined_output.lines.find { |l| l.strip.starts_with?("E:") || l.strip.starts_with?("Error") } || combined_output.lines.last? || "Unknown error"
+          Core::Logger.warn("Notice: 'shards install' exited with #{res[:status].exit_code}: #{err_line.strip}")
+          return false
         else
           Core::Logger.info("Tip: 'shards' executable not found in PATH. Run 'shards install' manually once installed.")
           true
@@ -220,13 +269,20 @@ YAML
           return 1
         end
 
+        shards_ok = true
         unless skip_shards
-          run_shards_install(target_project)
+          shards_ok = run_shards_install(target_project)
         end
 
-        puts "\n\e[32m✓ Shard '#{name}' installed into shard.yml!\e[0m"
-        puts "  In your Crystal code, use: \e[1;36mrequire \"#{name}\"\e[0m"
-        0
+        if shards_ok
+          puts "\n\e[32m✓ Shard '#{name}' installed into shard.yml!\e[0m"
+          puts "  In your Crystal code, use: \e[1;36mrequire \"#{name}\"\e[0m"
+          0
+        else
+          puts "\n\e[33m⚠ Shard '#{name}' added to shard.yml, but dependency resolution failed.\e[0m"
+          puts "  Run 'shards install' manually in #{target_project} to inspect errors."
+          1
+        end
       end
 
       # CLI entry point for `lapis uninstall shard`

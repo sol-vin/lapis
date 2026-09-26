@@ -67,6 +67,7 @@ HELP
           rel_root = Path.new(root).relative_to(dst_dir).to_s.gsub('\\', '/')
           rel_root = "./#{rel_root}" unless rel_root.starts_with?(".")
           dep_str = "  lapis:\n    path: #{rel_root}"
+          File.write(dst_dir.join("shard.override.yml"), "dependencies:\n  lapis:\n    path: #{rel_root}\n")
         else
           dep_str = "  lapis:\n    github: sol-vin/lapis\n    branch: master"
         end
@@ -476,6 +477,7 @@ TSCN
             rel_root = Path.new(root).relative_to(dest).to_s.gsub('\\', '/')
             rel_root = "./#{rel_root}" unless rel_root.starts_with?(".")
             c = c.gsub(/path:\s*[^\r\n]+/, "path: #{rel_root}")
+            File.write(dest.join("shard.override.yml"), "dependencies:\n  lapis:\n    path: #{rel_root}\n")
           else
             c = c.gsub(/path:\s*[^\r\n]+/, "github: sol-vin/lapis\n    branch: master")
           end
@@ -651,6 +653,7 @@ GDM
           dep_str = if local_dep || Core::Env.is_libgodot_repo?(root)
                       rel_root = Path.new(root).relative_to(addon_dir).to_s.gsub('\\', '/')
                       rel_root = "./#{rel_root}" unless rel_root.starts_with?(".")
+                      File.write(addon_dir.join("shard.override.yml"), "dependencies:\n  lapis:\n    path: #{rel_root}\n")
                       "  lapis:\n    path: #{rel_root}"
                     else
                       "  lapis:\n    github: sol-vin/lapis\n    branch: master"

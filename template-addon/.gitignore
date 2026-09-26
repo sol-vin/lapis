@@ -11,3 +11,4 @@ crash_dump*
 # Crystal dependencies
 lib/
 shard.lock
+shard.override.yml

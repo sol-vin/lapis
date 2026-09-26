@@ -6,3 +6,4 @@ bin/*
 # Crystal dependencies
 lib/
 shard.lock
+shard.override.yml
