@@ -122,6 +122,27 @@ describe "Lapis Platform-Specific Operations" do
         iscc = Lapis::Commands::Package.find_iscc
         (iscc.nil? || iscc.is_a?(String)).should be_true
       end
+
+      it "verifies ToolChecker finds Inno Setup and reports status" do
+        iscc = Lapis::Core::ToolChecker.find_inno_setup
+        status = Lapis::Core::ToolChecker.check_inno_setup
+        status.name.should eq("innosetup")
+        status.required.should be_false
+        if iscc
+          status.installed.should be_true
+          status.path.should eq(iscc)
+        end
+      end
+
+      it "verifies lapis_installer.iss includes Inno Setup prerequisite" do
+        iss_path = Lapis::Core::Env::ROOT_DIR.join("packaging/windows/lapis_installer.iss")
+        File.exists?(iss_path).should be_true
+        content = File.read(iss_path)
+        content.should contain("HasInnoSetup: Boolean;")
+        content.should contain("CheckInnoSetupInstalled")
+        content.should contain("Inno Setup Compiler")
+        content.should contain("innosetup")
+      end
     end
   {% elsif flag?(:linux) %}
     describe "Linux-Specific Features" do

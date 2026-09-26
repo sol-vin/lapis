@@ -21,6 +21,8 @@ module Lapis
     @status_badge : Label? = nil
     @test_status_label : Label? = nil
     @test_details : RichTextLabel? = nil
+    @benchmarks_tree : Tree? = nil
+    @benchmarks_status_label : Label? = nil
 
     def initialize(pointer : Void* = Pointer(Void).null)
       super(pointer)
@@ -41,6 +43,7 @@ module Lapis
       log_info("LibGodot Crystal Hub initialized.")
       refresh_addons_list
       refresh_spec_list
+      refresh_benchmarks_list
     end
 
     # =========================================================================
@@ -147,6 +150,7 @@ module Lapis
       create_build_tab(tabs)
       create_addons_tab(tabs)
       create_test_runner_tab(tabs)
+      create_benchmarks_tab(tabs)
       create_log_tab(tabs)
 
       root_vbox.call("add_child", tabs)
@@ -424,7 +428,77 @@ module Lapis
       tabs.call("add_child", vbox)
     end
 
-    # --- Tab 4: Crystal Log ---
+    # --- Tab 4: Benchmarks ---
+    def create_benchmarks_tab(tabs : Node) : Void
+      vbox = Godot.create(Godot::VBoxContainer)
+      return unless vbox
+      vbox.call("set_name", "Benchmarks")
+      vbox.call("add_theme_constant_override", "separation", 10)
+
+      ctrl_row = Godot.create(Godot::HBoxContainer)
+      if ctrl_row
+        ctrl_row.call("add_theme_constant_override", "separation", 10)
+
+        btn_run = Godot.create(Godot::Button)
+        if btn_run
+          btn_run.call("set_text", "Run Benchmarks")
+          btn_run.connect("pressed") { on_run_benchmarks }
+          ctrl_row.call("add_child", btn_run)
+        end
+
+        btn_html = Godot.create(Godot::Button)
+        if btn_html
+          btn_html.call("set_text", "Open HTML Report")
+          btn_html.connect("pressed") { on_open_benchmarks_html }
+          ctrl_row.call("add_child", btn_html)
+        end
+
+        btn_refresh = Godot.create(Godot::Button)
+        if btn_refresh
+          btn_refresh.call("set_text", "Refresh List")
+          btn_refresh.connect("pressed") { refresh_benchmarks_list }
+          ctrl_row.call("add_child", btn_refresh)
+        end
+
+        [btn_run, btn_html, btn_refresh].each do |btn|
+          next unless btn
+          btn.call("add_theme_color_override", "font_color", Color.new(1.0_f32, 1.0_f32, 1.0_f32, 1.0_f32))
+          btn.call("add_theme_color_override", "font_hover_color", Color.new(1.0_f32, 1.0_f32, 1.0_f32, 1.0_f32))
+          btn.call("add_theme_color_override", "font_pressed_color", Color.new(0.9_f32, 0.9_f32, 1.0_f32, 1.0_f32))
+        end
+
+        lbl_status = Godot.create(Godot::Label)
+        if lbl_status
+          lbl_status.call("set_text", "Ready to execute Crystal vs GDScript performance benchmarks.")
+          lbl_status.call("add_theme_color_override", "font_color", Color.new(1.0_f32, 1.0_f32, 1.0_f32, 1.0_f32))
+          @benchmarks_status_label = lbl_status
+          ctrl_row.call("add_child", lbl_status)
+        end
+
+        vbox.call("add_child", ctrl_row)
+      end
+
+      tree = Godot.create(Godot::Tree)
+      if tree
+        tree.call("set_h_size_flags", 3)
+        tree.call("set_v_size_flags", 3)
+        tree.call("set_columns", 5)
+        tree.call("set_column_title", 0, "Benchmark Case")
+        tree.call("set_column_title", 1, "Category")
+        tree.call("set_column_title", 2, "Crystal (Native)")
+        tree.call("set_column_title", 3, "GDScript")
+        tree.call("set_column_title", 4, "Speedup Ratio")
+        tree.call("set_column_titles_visible", true)
+        tree.call("add_theme_color_override", "font_color", Color.new(1.0_f32, 1.0_f32, 1.0_f32, 1.0_f32))
+        tree.call("add_theme_color_override", "title_button_color", Color.new(1.0_f32, 1.0_f32, 1.0_f32, 1.0_f32))
+        @benchmarks_tree = tree
+        vbox.call("add_child", tree)
+      end
+
+      tabs.call("add_child", vbox)
+    end
+
+    # --- Tab 5: Crystal Log ---
     def create_log_tab(tabs : Node) : Void
       vbox = Godot.create(Godot::VBoxContainer)
       return unless vbox
@@ -1154,6 +1228,183 @@ module Lapis
       {% else %}
         "-shared"
       {% end %}
+    end
+
+    # =========================================================================
+    # Benchmarks Operations
+    # =========================================================================
+
+    def refresh_benchmarks_list : Void
+      tree = @benchmarks_tree
+      return unless tree
+      tree.call("clear")
+
+      root = tree.call_obj("create_item")
+      return unless root
+      root.call("set_text", 0, "All Registered Benchmarks")
+      root.call("set_custom_color", 0, Color.new(1.0_f32, 1.0_f32, 1.0_f32, 1.0_f32))
+
+      custom_cases = ::Lapis::Benchmark.all
+      if !custom_cases.empty?
+        cust_group = tree.call_obj("create_item", root)
+        if cust_group
+          cust_group.call("set_text", 0, "Custom Project Benchmarks (#{custom_cases.size})")
+          cust_group.call("set_custom_color", 0, Color.new(0.4_f32, 0.9_f32, 1.0_f32, 1.0_f32))
+          custom_cases.each do |c|
+            item = tree.call_obj("create_item", cust_group)
+            next unless item
+            item.call("set_text", 0, c.name)
+            item.call("set_text", 1, c.category.display_name)
+            item.call("set_text", 2, "Ready")
+            item.call("set_text", 3, "-")
+            item.call("set_text", 4, "-")
+          end
+        end
+      end
+
+      builtin_names = [
+        {"Matmul", "Compute", "Dense 2D matrix multiplication (N=300, float64)"},
+        {"Primes", "Compute", "Sieve of Atkin + Prefix Trie search (Limit=500k)"},
+        {"Brainfuck", "Compute", "Brainfuck AST interpreter + dynamic tape"},
+        {"Base64", "Compute", "Base64 strict encode & decode loop"},
+        {"JSON", "Compute", "JSON parse & 3D coordinate aggregation"},
+        {"NBody", "Compute", "3D orbital dynamics physics integration"},
+        {"BinaryTrees", "Compute", "GC pressure & binary tree allocation"},
+        {"Mandelbrot", "Compute", "2D coordinate escape-time fractal"},
+        {"TransformMath", "Compute", "Transform3D translations & rotations"},
+        {"VectorMath2D", "Compute", "Vector2 lerp, dot, and normalization"},
+        {"NodeLifecycle", "EngineCore", "Node2D lifecycle operations (20k)"},
+        {"MaterialResources", "EngineCore", "StandardMaterial3D properties & refcounting"},
+        {"Signals", "EngineCore", "Signal connection & dynamic emission"},
+        {"PerlinNoise", "EngineCore", "FastNoiseLite 2D Perlin noise"},
+        {"SimplexNoise", "EngineCore", "FastNoiseLite 3D Simplex Smooth noise"},
+        {"CellularNoise", "EngineCore", "FastNoiseLite 2D Cellular Voronoi noise"},
+        {"SurfaceTool", "EngineCore", "SurfaceTool procedural mesh generation"},
+        {"AStar2D", "EngineCore", "AStar2D pathfinding on 100x100 grid"},
+        {"TreeTraversal", "EngineCore", "Scene tree recursive traversal"},
+        {"ImageProcessing", "EngineCore", "Image procedural pixel computation"},
+        {"TransformHierarchy", "EngineCore", "Node3D hierarchy transformations"},
+        {"NodeGroups", "EngineCore", "Node grouping & query operations"},
+        {"DictionaryOps", "EngineCore", "Godot Dictionary 50k insertions"},
+        {"ConfigFileOps", "EngineCore", "ConfigFile parsing & querying"},
+      ]
+
+      comp_group = tree.call_obj("create_item", root)
+      if comp_group
+        comp_group.call("set_text", 0, "Standard Compute Benchmarks")
+        comp_group.call("set_custom_color", 0, Color.new(0.0_f32, 0.82_f32, 1.0_f32, 1.0_f32))
+        builtin_names.select { |(_, cat, _)| cat == "Compute" }.each do |(b_name, b_cat, _)|
+          item = tree.call_obj("create_item", comp_group)
+          next unless item
+          item.call("set_text", 0, b_name)
+          item.call("set_text", 1, b_cat)
+          item.call("set_text", 2, "Ready")
+          item.call("set_text", 3, "-")
+          item.call("set_text", 4, "-")
+        end
+      end
+
+      eng_group = tree.call_obj("create_item", root)
+      if eng_group
+        eng_group.call("set_text", 0, "Engine Core Benchmarks")
+        eng_group.call("set_custom_color", 0, Color.new(1.0_f32, 0.6_f32, 0.0_f32, 1.0_f32))
+        builtin_names.select { |(_, cat, _)| cat == "EngineCore" }.each do |(b_name, b_cat, _)|
+          item = tree.call_obj("create_item", eng_group)
+          next unless item
+          item.call("set_text", 0, b_name)
+          item.call("set_text", 1, b_cat)
+          item.call("set_text", 2, "Ready")
+          item.call("set_text", 3, "-")
+          item.call("set_text", 4, "-")
+        end
+      end
+
+      total_count = custom_cases.size + builtin_names.size
+      @benchmarks_status_label.try &.call("set_text", "#{total_count} benchmarks ready. Click 'Run Benchmarks' to execute.")
+    end
+
+    def on_run_benchmarks : Void
+      log_info("Starting Lapis benchmark execution...")
+      @benchmarks_status_label.try &.call("set_text", "Executing benchmarks...")
+
+      lapis_exe = find_lapis_executable || "lapis"
+      output_io = IO::Memory.new
+      start_time = ::Time.instant
+      res = Process.run(lapis_exe, ["benchmarks", "run", "html", "-i", "2"], output: output_io, error: output_io)
+      elapsed = (::Time.instant - start_time).total_seconds.round(2)
+      out_str = output_io.to_s
+
+      if res.success?
+        log_success("Benchmark execution completed in #{elapsed}s!")
+        @benchmarks_status_label.try &.call("set_text", "Benchmarks complete! HTML and XML reports updated (#{elapsed}s).")
+        latest_xml = "benchmarks/reports/benchmarks_latest.xml"
+        if File.exists?(latest_xml)
+          populate_benchmark_results_from_xml(latest_xml)
+        end
+      else
+        log_error("Benchmark execution finished with exit code #{res.exit_code}.")
+        @benchmarks_status_label.try &.call("set_text", "Benchmark run failed. Check Crystal Log.")
+      end
+      append_log(out_str)
+    end
+
+    def populate_benchmark_results_from_xml(xml_path : String) : Void
+      tree = @benchmarks_tree
+      return unless tree && File.exists?(xml_path)
+
+      root = tree.call_obj("get_root")
+      return unless root
+
+      xml_text = File.read(xml_path)
+      xml_text.scan(/<case name="([^"]+)"[^>]*>.*?<crystal ms="([^"]+)".*?<gdscript ms="([^"]+)".*?<speedup ratio="([^"]+)"/m).each do |match|
+        c_name = match[1]
+        cr_ms = match[2]
+        gd_ms = match[3]
+        sp = match[4]
+
+        find_and_update_benchmark_tree_item(root, c_name, "#{cr_ms} ms", "#{gd_ms} ms", "#{sp}x")
+      end
+    end
+
+    def find_and_update_benchmark_tree_item(item : Node, name : String, cr_ms : String, gd_ms : String, sp : String) : Bool
+      item_name = item.call_str("get_text", 0).strip
+      if item_name == name
+        item.call("set_text", 2, cr_ms)
+        item.call("set_custom_color", 2, Color.new(0.0_f32, 0.82_f32, 1.0_f32, 1.0_f32))
+        item.call("set_text", 3, gd_ms)
+        item.call("set_custom_color", 3, Color.new(1.0_f32, 0.6_f32, 0.0_f32, 1.0_f32))
+        item.call("set_text", 4, sp)
+        item.call("set_custom_color", 4, Color.new(0.25_f32, 0.85_f32, 0.35_f32, 1.0_f32))
+        return true
+      end
+
+      child = item.call_obj("get_first_child")
+      while child && !child.pointer.null?
+        if find_and_update_benchmark_tree_item(child, name, cr_ms, gd_ms, sp)
+          return true
+        end
+        child = child.call_obj("get_next")
+      end
+      false
+    end
+
+    def on_open_benchmarks_html : Void
+      report_candidates = [
+        "benchmarks/reports/benchmark_report.html",
+        "benchmarks/reports/benchmarks.html",
+        "benchmarks/results/benchmark_report.html",
+      ]
+      found = report_candidates.find { |p| File.exists?(p) }
+      if found
+        full_path = File.expand_path(found)
+        if !Godot::OS.singleton_ptr.null?
+          os = Godot::OS.new(Godot::OS.singleton_ptr)
+          os.call("shell_open", "file:///#{full_path.gsub('\\', '/')}")
+          log_info("Opened benchmark report: #{full_path}")
+        end
+      else
+        log_error("Benchmark report HTML not found. Run benchmarks first.")
+      end
     end
   end
 end

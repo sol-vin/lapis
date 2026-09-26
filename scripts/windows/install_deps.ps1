@@ -7,11 +7,12 @@
 #   - GNU Make (make.exe)
 #   - Git (git.exe)
 #   - Crystalline LSP (crystalline.exe)
+#   - Inno Setup Compiler (iscc.exe)
 # =============================================================================
 
 [CmdletBinding()]
 param (
-    [string[]]$Tools = @("crystal", "lldb", "make", "git", "crystalline"),
+    [string[]]$Tools = @("crystal", "lldb", "make", "git", "crystalline", "innosetup"),
     [switch]$Silent,
     [switch]$Force
 )
@@ -117,6 +118,26 @@ function Find-Crystalline {
         "C:\Program Files\Lapis\bin\crystalline.exe"
     )
     return Test-ExecutableExists -CommandName "crystalline.exe" -ExtraPaths $candidates
+}
+
+function Find-InnoSetup {
+    $userProfile = $env:USERPROFILE
+    $localAppData = $env:LOCALAPPDATA
+    $candidates = @(
+        "C:\Program Files (x86)\Inno Setup 6\ISCC.exe",
+        "C:\Program Files\Inno Setup 6\ISCC.exe",
+        "C:\Program Files (x86)\Inno Setup 7\ISCC.exe",
+        "C:\Program Files\Inno Setup 7\ISCC.exe",
+        "$localAppData\Programs\Inno Setup 6\ISCC.exe",
+        "$localAppData\Programs\Inno Setup 7\ISCC.exe",
+        "$userProfile\scoop\apps\innosetup\current\ISCC.exe",
+        "C:\ProgramData\chocolatey\bin\iscc.exe"
+    )
+    $found = Test-ExecutableExists -CommandName "iscc.exe" -ExtraPaths $candidates
+    if (-not $found) {
+        $found = Test-ExecutableExists -CommandName "iscc" -ExtraPaths $candidates
+    }
+    return $found
 }
 
 # --- Installation Methods ---
@@ -349,6 +370,77 @@ foreach ($tool in $Tools) {
                 } else {
                     Write-LapisLog "ERROR" "Crystalline LSP installation could not be verified in PATH."
                     $results["crystalline"] = $false
+                }
+            }
+        }
+
+        "innosetup" {
+            $existing = Find-InnoSetup
+            if ($existing -and -not $Force) {
+                Write-LapisLog "SUCCESS" "Inno Setup Compiler is already installed at: $existing"
+                $results["innosetup"] = $true
+            } else {
+                Write-LapisLog "WARN" "Inno Setup Compiler not found. Initiating automated installation..."
+                $installed = $false
+
+                # 1. Check if installer executable was staged alongside this script (in {tmp} or stage dir)
+                $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path -ErrorAction SilentlyContinue
+                $bundledCandidates = @(
+                    (if ($scriptDir) { Join-Path $scriptDir "innosetup-installer.exe" } else { $null }),
+                    (if ($scriptDir) { Join-Path $scriptDir "innosetup-setup.exe" } else { $null }),
+                    (Join-Path $env:TEMP "innosetup-installer.exe")
+                )
+                foreach ($cand in $bundledCandidates) {
+                    if ($cand -and (Test-Path $cand)) {
+                        Write-LapisLog "INFO" "Running staged Inno Setup installer from $cand..."
+                        $proc = Start-Process -FilePath $cand -ArgumentList @("/VERYSILENT", "/NORESTART", "/SUPPRESSMSGBOXES") -Wait -PassThru
+                        $installed = ($proc.ExitCode -eq 0)
+                        if ($installed) { break }
+                    }
+                }
+
+                # 2. Try winget
+                if (-not $installed -and $hasWinget) {
+                    $installed = Install-WithWinget -PackageId "JRSoftware.InnoSetup" -DisplayName "Inno Setup Compiler"
+                }
+
+                # 3. Try scoop
+                if (-not $installed -and $hasScoop) {
+                    $installed = Install-WithScoop -PackageName "innosetup" -DisplayName "Inno Setup Compiler"
+                }
+
+                # 4. Fallback to direct official installer download
+                if (-not $installed) {
+                    Write-LapisLog "INFO" "Downloading official Inno Setup installer from jrsoftware.org..."
+                    $tmpExe = Join-Path $env:TEMP "innosetup-installer.exe"
+                    $url = "https://files.jrsoftware.org/is/6/innosetup-6.3.3.exe"
+                    try {
+                        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+                        Invoke-WebRequest -Uri $url -OutFile $tmpExe -UseBasicParsing
+                        $proc = Start-Process -FilePath $tmpExe -ArgumentList @("/VERYSILENT", "/NORESTART", "/SUPPRESSMSGBOXES") -Wait -PassThru
+                        $installed = ($proc.ExitCode -eq 0)
+                    } catch {
+                        Write-LapisLog "ERROR" "Failed to download/run Inno Setup installer: $_"
+                    } finally {
+                        Remove-Item $tmpExe -Force -ErrorAction SilentlyContinue
+                    }
+                }
+
+                Refresh-EnvironmentPath
+                $verified = Find-InnoSetup
+                if ($verified) {
+                    # Ensure directory containing ISCC.exe is in user's PATH so 'iscc' command works everywhere
+                    $isccDir = Split-Path -Parent $verified
+                    $userPath = [Environment]::GetEnvironmentVariable("Path", [EnvironmentVariableTarget]::User)
+                    if ($userPath -notmatch [regex]::Escape($isccDir)) {
+                        [Environment]::SetEnvironmentVariable("Path", "$userPath;$isccDir", [EnvironmentVariableTarget]::User)
+                    }
+                    Refresh-EnvironmentPath
+                    Write-LapisLog "SUCCESS" "Inno Setup Compiler successfully installed at: $verified"
+                    $results["innosetup"] = $true
+                } else {
+                    Write-LapisLog "ERROR" "Inno Setup Compiler installation could not be verified in PATH or standard directories."
+                    $results["innosetup"] = $false
                 }
             }
         }

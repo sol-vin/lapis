@@ -3,6 +3,7 @@ require "../core/logger"
 require "../core/baked_file_system"
 require "./deps"
 require "./sync"
+require "./scaffold"
 require "file_utils"
 require "option_parser"
 
@@ -13,14 +14,21 @@ module Lapis
         puts <<-HELP
 \e[35m=== Lapis: Project Initialization Tool ===\e[0m
 
-Usage: lapis init [options] [path]
+Usage:
+  lapis init [options] [path]
+  lapis init addon <name> [options]
 
-Initializes Crystal and Lapis integration into an existing Godot project,
-or creates a minimal Crystal Godot setup in the current directory.
+Subcommands:
+  addon <name>          Add a new GDExtension addon to the current Godot project
+                        (requires a project.godot file in root)
 
 Options:
   -p, --path=PATH       Target project directory (default: current working directory)
-  -n, --name=NAME       Custom project name for shard.yml
+  -n, --name=NAME       Custom project/addon name
+  -a, --author=NAME     Author name for addon shard.yml
+  -d, --desc=TEXT       Description for addon shard.yml
+  --no-git, --skip-git  Do not initialize git repository in new addon directory
+  --git                 Force git repository initialization in new addon directory
   -f, --force           Overwrite existing configuration files
   -l, --local           Use local relative path for lapis dependency in shard.yml
   -h, --help            Show this help screen
@@ -28,6 +36,8 @@ Options:
 Examples:
   lapis init
   lapis init -p my_existing_game
+  lapis init addon my_inventory
+  lapis init addon my_inventory --no-git
   lapis init --force
 HELP
       end
@@ -36,6 +46,11 @@ HELP
         if args.includes?("-h") || args.includes?("--help")
           print_help
           return 0
+        end
+
+        # Handle 'lapis init addon <name> [options]'
+        if !args.empty? && args[0] == "addon"
+          return run_addon_init(args[1..])
         end
 
         proj_path : String? = nil
@@ -187,6 +202,68 @@ CR
   3. Add new Crystal nodes in \e[1msrc/\e[0m and press \e[1mF5\e[0m in Godot to live-reload!
 NEXT
         0
+      end
+
+      def self.run_addon_init(args : Array(String)) : Int32
+        addon_name : String? = nil
+        proj_path : String? = nil
+        author : String? = nil
+        desc : String? = nil
+        force = false
+        local_dep = false
+        no_git = false
+        force_git = false
+
+        parser = OptionParser.new do |opts|
+          opts.banner = "Usage: lapis init addon <name> [options]"
+          opts.on("-p PATH", "--path=PATH", "Target Godot project directory") { |p| proj_path = p }
+          opts.on("-n NAME", "--name=NAME", "Addon name") { |n| addon_name = n }
+          opts.on("-a NAME", "--author=NAME", "Addon author name") { |a| author = a }
+          opts.on("-d TEXT", "--desc=TEXT", "Addon description") { |text| desc = text }
+          opts.on("--no-git", "--skip-git", "Do not initialize git repository in new addon directory") { no_git = true }
+          opts.on("--git", "Force git repository initialization in new addon directory") { force_git = true }
+          opts.on("-f", "--force", "Overwrite existing addon files") { force = true }
+          opts.on("-l", "--local", "Use local relative path for lapis shard dependency") { local_dep = true }
+          opts.on("-h", "--help", "Show help") { print_help; exit 0 }
+        end
+
+        remaining = [] of String
+        parser.unknown_args { |r| remaining = r }
+        parser.parse(args)
+
+        name = addon_name || remaining.first?
+        if name.nil? || name.empty?
+          Core::Logger.error("Addon name is required: lapis init addon <name>")
+          puts
+          print_help
+          return 1
+        end
+
+        curr = Path.new(Dir.current).expand
+        target_dir = if (pp = proj_path) && !pp.empty?
+                       Path.new(pp).expand
+                     else
+                       curr
+                     end
+
+        godot_proj = target_dir.join("project.godot")
+        unless File.exists?(godot_proj)
+          Core::Logger.error("No 'project.godot' found in #{target_dir}.")
+          Core::Logger.info("'lapis init addon' can only be run inside an existing Godot project.")
+          Core::Logger.info("To create a standalone addon project, run: lapis new addon #{name}")
+          return 1
+        end
+
+        Scaffold.scaffold_addon(
+          name,
+          target_dir.join("addons", name.underscore),
+          author: author,
+          desc: desc,
+          no_git: no_git,
+          force_git: force_git,
+          force: force,
+          local_dep: local_dep
+        )
       end
     end
   end

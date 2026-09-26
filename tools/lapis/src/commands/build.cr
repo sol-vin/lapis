@@ -56,6 +56,7 @@ module Lapis
         release : Bool = false,
         source_path : String? = nil,
         single_module : Bool? = nil,
+        without_benchmarks : Bool = false,
       ) : Int32
         root = Core::Env::ROOT_DIR
         FileUtils.mkdir_p(output_path.parent) unless Dir.exists?(output_path.parent)
@@ -77,6 +78,8 @@ module Lapis
         else
           cmd_args << "--debug"
         end
+
+        cmd_args << "-Dno_benchmarks" if without_benchmarks
 
         # Determine whether to use --single-module:
         # 1. If explicitly specified, respect that choice.
@@ -280,11 +283,14 @@ module Lapis
         source_path : String? = nil
         link_flags : String? = nil
         flags : String? = nil
+        without_benchmarks = false
 
         parser = OptionParser.new do |opts|
           opts.banner = "Usage: lapis build game [options]"
           opts.on("-p PATH", "--path=PATH", "Game project directory (default: current project)") { |v| proj_path = v }
           opts.on("-r", "--release", "Compile in release mode with optimizations (-O3)") { release = true }
+          opts.on("--without-benchmarks", "Exclude benchmark definitions from compiled binary") { without_benchmarks = true }
+          opts.on("--with-benchmarks", "Include benchmark definitions in compiled binary") { without_benchmarks = false }
           opts.on("-m", "--single-module", "Generate a single LLVM module") { single_module = true }
           opts.on("--no-single-module", "Disable single LLVM module generation") { single_module = false }
           opts.on("-s PATH", "--source-path=PATH", "Source path for CRYSTAL_PATH") { |v| source_path = v }
@@ -358,7 +364,8 @@ module Lapis
           flags: flags,
           release: release,
           source_path: src_dir,
-          single_module: single_module
+          single_module: single_module,
+          without_benchmarks: without_benchmarks
         )
 
         return code if code != 0
@@ -399,6 +406,8 @@ Subcommands:
 Options for game library build ('lapis build' or 'lapis build game'):
   -p, --path=PATH       Game project directory (default: current project)
   -r, --release         Compile in release mode with optimizations (-O3)
+      --without-benchmarks Exclude benchmark definitions from compiled binary
+      --with-benchmarks Include benchmark definitions in compiled binary
   -m, --single-module   Generate a single LLVM module (auto-enabled for shared libraries)
       --no-single-module Disable single LLVM module generation
   -s, --source-path=DIR Source path prepended to CRYSTAL_PATH
@@ -474,6 +483,7 @@ HELP
         release = false
         single_module : Bool? = nil
         source_path : String? = nil
+        without_benchmarks = false
 
         parser = OptionParser.new do |opts|
           opts.banner = "Usage: lapis build --entry <path> --output <path> [options]"
@@ -482,6 +492,8 @@ HELP
           opts.on("-l FLAGS", "--link-flags=FLAGS", "Linker flags") { |v| link_flags = v }
           opts.on("-f FLAGS", "--flags=FLAGS", "Extra Crystal compiler flags") { |v| flags = v }
           opts.on("-r", "--release", "Compile in release mode with optimizations") { release = true }
+          opts.on("--without-benchmarks", "Exclude benchmark definitions from compiled binary") { without_benchmarks = true }
+          opts.on("--with-benchmarks", "Include benchmark definitions in compiled binary") { without_benchmarks = false }
           opts.on("-m", "--single-module", "Generate a single LLVM module (auto-enabled for shared libraries)") { single_module = true }
           opts.on("--no-single-module", "Disable single LLVM module generation") { single_module = false }
           opts.on("-s PATH", "--source-path=PATH", "Source path for CRYSTAL_PATH") { |v| source_path = v }
@@ -505,7 +517,8 @@ HELP
           flags: flags,
           release: release,
           source_path: source_path,
-          single_module: single_module
+          single_module: single_module,
+          without_benchmarks: without_benchmarks
         )
       end
     end

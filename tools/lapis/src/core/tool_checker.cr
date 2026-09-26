@@ -402,8 +402,59 @@ module Lapis
         end
       end
 
+      def self.find_inno_setup : String?
+        if path = ProcessRunner.find_executable("iscc")
+          return path
+        end
+
+        {% if flag?(:windows) %}
+          user_profile = ENV["USERPROFILE"]? || ""
+          local_app_data = ENV["LOCALAPPDATA"]? || ""
+          candidates = [
+            "C:\\Program Files (x86)\\Inno Setup 6\\ISCC.exe",
+            "C:\\Program Files\\Inno Setup 6\\ISCC.exe",
+            "C:\\Program Files (x86)\\Inno Setup 7\\ISCC.exe",
+            "C:\\Program Files\\Inno Setup 7\\ISCC.exe",
+            "C:\\ProgramData\\chocolatey\\bin\\iscc.exe",
+            File.join(local_app_data, "Programs", "Inno Setup 6", "ISCC.exe"),
+            File.join(local_app_data, "Programs", "Inno Setup 7", "ISCC.exe"),
+            File.join(user_profile, "scoop", "apps", "innosetup", "current", "ISCC.exe"),
+          ]
+          candidates.each do |cand|
+            return cand if File.exists?(cand)
+          end
+        {% end %}
+        nil
+      end
+
+      def self.check_inno_setup : ToolStatus
+        if iscc = find_inno_setup
+          ToolStatus.new(
+            name: "innosetup",
+            installed: true,
+            version: "installed",
+            supported: true,
+            path: iscc,
+            message: "Inno Setup Compiler verified at #{iscc}.",
+            required: false
+          )
+        else
+          ToolStatus.new(
+            name: "innosetup",
+            installed: false,
+            version: nil,
+            supported: false,
+            path: nil,
+            message: "Inno Setup Compiler ('iscc') was not found. Install Inno Setup via Windows installer or 'winget install JRSoftware.InnoSetup' for game installer packaging.",
+            required: false
+          )
+        end
+      end
+
       def self.check_all : Array(ToolStatus)
-        [check_crystal, check_lldb, check_make, check_git, check_crystalline]
+        tools = [check_crystal, check_lldb, check_make, check_git, check_crystalline]
+        tools << check_inno_setup if Env.windows?
+        tools
       end
 
       # Validates tools and logs any errors or warnings. Returns true if all required tools pass (or all tools if strict: true).

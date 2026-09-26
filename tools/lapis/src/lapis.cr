@@ -19,12 +19,16 @@ require "./commands/install"
 require "./commands/doctor"
 require "./commands/init"
 require "./commands/ide"
+require "./commands/get"
+require "./commands/update"
+require "./commands/benchmarks"
 
 module Lapis
   ALL_COMMANDS = [
     "dirs", "deps", "sync", "build", "bind", "generate", "clean",
     "test", "spec", "editor", "run", "setup", "doctor", "init", "ide",
-    "scaffold", "new", "package", "docs", "version", "install", "uninstall", "completion",
+    "scaffold", "new", "package", "docs", "version", "install", "uninstall",
+    "get", "update", "completion", "benchmarks", "benchmark", "bench",
   ]
 
   def self.levenshtein_distance(str1 : String, str2 : String) : Int32
@@ -45,7 +49,8 @@ Register-ArgumentCompleter -Native -CommandName lapis -ScriptBlock {
     $commands = @(
         'dirs', 'deps', 'sync', 'build', 'bind', 'generate', 'clean',
         'test', 'editor', 'run', 'setup', 'doctor', 'init',
-        'scaffold', 'new', 'package', 'docs', 'version', 'install', 'uninstall', 'completion'
+        'scaffold', 'new', 'package', 'docs', 'version', 'install', 'uninstall',
+        'get', 'update', 'completion', 'benchmarks', 'benchmark', 'bench'
     )
     $commands | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object {
         [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
@@ -57,7 +62,7 @@ PS1
 # Bash completion script for Lapis CLI
 _lapis_completions() {
     local cur="${COMP_WORDS[COMP_CWORD]}"
-    local commands="dirs deps sync build bind generate clean test editor run setup doctor init scaffold new package docs version install uninstall completion"
+    local commands="dirs deps sync build bind generate clean test editor run setup doctor init scaffold new package docs version install uninstall get update completion benchmarks benchmark bench"
     COMPREPLY=( $(compgen -W "${commands}" -- "${cur}") )
 }
 complete -F _lapis_completions lapis
@@ -87,6 +92,9 @@ _lapis() {
         'version:Display Lapis toolchain version'
         'install:Install Lapis CLI globally'
         'uninstall:Uninstall Lapis CLI globally'
+        'get:Download Lapis source code or compiled release packages from GitHub'
+        'update:Update Lapis executable, Crystalline LSP, and Crystal compiler'
+        'benchmarks:Run benchmarks, export HTML reports, and track version progression'
         'completion:Generate shell autocompletion script'
     )
     _describe 'command' commands
@@ -122,6 +130,7 @@ Usage:
   editor                Launch Godot Editor with log monitoring, auto-quit, and LLDB attachment
   run                   Run Godot project standalone with log monitoring and LLDB attachment
   test                  Run unit specs, in-editor tool tests, and runtime test projects
+  benchmarks, bench     Run benchmarks, export HTML reports, and track version progression
   setup                 Download and configure targeted Godot engine binary
 
 \e[36mScaffolding & Distribution Commands:\e[0m
@@ -135,6 +144,8 @@ Usage:
   doctor                Run full toolchain & project diagnostic checkup
   install               Install Lapis CLI globally into system/user PATH
   uninstall             Uninstall Lapis CLI globally from computer
+  get                   Download Lapis source code or compiled release packages from GitHub
+  update                Update Lapis executable, Crystalline LSP daemon, and Crystal compiler
   completion            Generate shell autocompletion script (powershell, bash, zsh)
   version               Display Lapis toolchain version
 
@@ -198,6 +209,12 @@ HELP
       puts "Usage: lapis version\n\nShow Lapis toolchain version."
     when "install", "uninstall"
       Commands::Install.print_help
+    when "get"
+      Commands::Get.print_help
+    when "update"
+      Commands::Update.print_help
+    when "benchmarks", "benchmark", "bench"
+      Commands::Benchmarks.print_help
     when "completion"
       puts "Usage: lapis completion <powershell|bash|zsh>\n\nGenerates native shell autocompletion script."
     else
@@ -303,6 +320,12 @@ HELP
       Commands::Install.run(sub_args)
     when "uninstall"
       Commands::Install.run(["--uninstall"] + sub_args)
+    when "get"
+      Commands::Get.run(sub_args)
+    when "update"
+      Commands::Update.run(sub_args)
+    when "benchmarks", "benchmark", "bench"
+      Commands::Benchmarks.run(sub_args)
     when "completion"
       shell = sub_args.first? || (Core::Env.windows? ? "powershell" : "bash")
       generate_completion(shell)

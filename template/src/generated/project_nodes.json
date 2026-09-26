@@ -18,6 +18,25 @@
 				}
 			],
 			"signals": []
+		},
+		{
+			"constants": {},
+			"inherits": "SceneTree",
+			"language": "GDScript",
+			"methods": [
+				{
+					"args": [],
+					"flags": 1,
+					"name": "_init",
+					"return_class_name": "",
+					"return_type": 0,
+					"return_type_name": "Nil"
+				}
+			],
+			"name": "ExampleBench",
+			"path": "res://benchmarks/example_bench.gd",
+			"properties": [],
+			"signals": []
 		}
 	],
 	"plugin_classes": [

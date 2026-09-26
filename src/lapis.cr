@@ -19,6 +19,7 @@ require "./libgodot/generated/singletons"
 require "./libgodot/extensions"
 require "./libgodot/docs"
 require "./libgodot/testing"
+require "./libgodot/benchmarks"
 {% unless flag?(:release) %}
   require "./libgodot/debugger/agent"
 {% end %}

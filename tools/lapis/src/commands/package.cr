@@ -483,6 +483,17 @@ CONTROL
           end
         end
 
+        # 4b. Stage Inno Setup installer if available in scratch/ or bin/ (for offline installation)
+        inno_candidates = [
+          root.join("scratch/innosetup-installer.exe"),
+          root.join("scratch/innosetup-setup.exe"),
+          root.join("bin/innosetup-installer.exe"),
+        ]
+        if inno_exe = inno_candidates.find { |p| File.exists?(p) }
+          safe_copy(inno_exe, stage_dir.join("innosetup-installer.exe"))
+          Core::Logger.info("Staged Inno Setup installer (#{inno_exe}) for offline installer payload")
+        end
+
         # Stage docs and license
         ["README.md", "LICENSE"].each do |doc|
           doc_path = root.join(doc)
@@ -670,6 +681,7 @@ CONTROL
         force_compile : Bool = false,
         embed_pck : Bool = false,
         portable : Bool = false,
+        without_benchmarks : Bool = false,
       ) : Int32
         root = Core::Env::ROOT_DIR
         proj_dir = project_path.expand
@@ -767,7 +779,8 @@ CONTROL
             output_path: game_lib,
             link_flags: Core::Env.link_flags,
             release: release,
-            source_path: source_dir
+            source_path: source_dir,
+            without_benchmarks: without_benchmarks
           )
           return code if code != 0
         end
@@ -840,6 +853,209 @@ CONTROL
         0
       end
 
+      def self.detect_project_name(proj_dir : Path) : String
+        godot_proj = proj_dir.join("project.godot")
+        if File.exists?(godot_proj)
+          content = File.read(godot_proj)
+          if match = content.match(/config\/name\s*=\s*"([^"]+)"/)
+            return match[1].strip
+          end
+        end
+        shard_yml = proj_dir.join("shard.yml")
+        if File.exists?(shard_yml)
+          content = File.read(shard_yml)
+          if match = content.match(/^name:\s*(.+)$/m)
+            return match[1].strip.tr("_-", " ").split.map(&.capitalize).join
+          end
+        end
+        proj_dir.basename
+      end
+
+      def self.detect_project_version(proj_dir : Path) : String
+        shard_yml = proj_dir.join("shard.yml")
+        if File.exists?(shard_yml)
+          content = File.read(shard_yml)
+          if match = content.match(/^version:\s*(.+)$/m)
+            return match[1].strip
+          end
+        end
+        "1.0.0"
+      end
+
+      def self.package_project_installer(
+        proj_dir : Path,
+        name : String? = nil,
+        version : String? = nil,
+        release : Bool = true,
+        out_path : Path? = nil,
+        without_benchmarks : Bool = false,
+      ) : Int32
+        game_name = name || detect_project_name(proj_dir)
+        game_version = version || detect_project_version(proj_dir)
+        clean_name = game_name.gsub(/[^a-zA-Z0-9_\-]/, "_")
+
+        Core::Logger.step("PackageInstaller", "Packaging standalone installer for '#{game_name}' (v#{game_version})...")
+
+        # 1. Package the game into bin/
+        game_res = package_game(proj_dir, name: game_name, release: release, embed_pck: true, without_benchmarks: without_benchmarks)
+        return game_res if game_res != 0
+
+        bin_dir = proj_dir.join("bin")
+        dist_dir = proj_dir.join("dist")
+        FileUtils.mkdir_p(dist_dir) unless Dir.exists?(dist_dir)
+
+        if Core::Env.windows?
+          iscc = find_iscc
+          unless iscc
+            Core::Logger.warn("Inno Setup compiler ('iscc') was not found in PATH or standard directories.")
+            Core::Logger.info("Tip: Install Inno Setup via 'scoop install innosetup' or 'winget install JRSoftware.InnoSetup'.")
+            return 0
+          end
+
+          stage_dir = proj_dir.join("scratch/game_installer_stage")
+          FileUtils.rm_rf(stage_dir) if Dir.exists?(stage_dir)
+          FileUtils.mkdir_p(stage_dir)
+
+          Dir.each_child(bin_dir) do |item|
+            next if item.starts_with?("~") || item.ends_with?(".log") || item.ends_with?(".pdb") || item.ends_with?(".tmp")
+            src_p = bin_dir.join(item)
+            dst_p = stage_dir.join(item)
+            if File.file?(src_p)
+              safe_copy(src_p, dst_p)
+            elsif Dir.exists?(src_p)
+              FileUtils.cp_r(src_p.to_s, dst_p.to_s)
+            end
+          end
+
+          dest_exe = out_path || dist_dir.join("#{clean_name}-setup-windows-x86_64.exe")
+          out_dir = dest_exe.parent.to_s.gsub('/', '\\')
+          base_filename = dest_exe.basename(".exe")
+          iss_file = stage_dir.join("game_installer.iss")
+
+          main_exe_name = if File.exists?(stage_dir.join("#{game_name}.exe"))
+                            "#{game_name}.exe"
+                          else
+                            Dir.children(stage_dir).find { |f| f.ends_with?(".exe") } || "game.exe"
+                          end
+
+          iss_content = <<-ISS
+[Setup]
+AppId={{#{clean_name}-Game-Installer}}
+AppName=#{game_name}
+AppVersion=#{game_version}
+AppPublisher=#{game_name}
+DefaultDirName={autopf}\\#{game_name}
+DefaultGroupName=#{game_name}
+OutputDir=#{out_dir}
+OutputBaseFilename=#{base_filename}
+Compression=lzma2/ultra64
+SolidCompression=yes
+WizardStyle=modern
+
+[Tasks]
+Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+
+[Files]
+Source: "#{stage_dir.to_s.gsub('/', '\\')}\\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+
+[Icons]
+Name: "{group}\\#{game_name}"; Filename: "{app}\\#{main_exe_name}"
+Name: "{group}\\{cm:UninstallProgram,#{game_name}}"; Filename: "{uninstallexe}"
+Name: "{autodesktop}\\#{game_name}"; Filename: "{app}\\#{main_exe_name}"; Tasks: desktopicon
+
+[Run]
+Filename: "{app}\\#{main_exe_name}"; Description: "{cm:LaunchProgram,#{game_name}}"; Flags: nowait postinstall skipifsilent
+ISS
+          File.write(iss_file, iss_content)
+
+          Core::Logger.step("PackageInstaller", "Compiling Windows installer via Inno Setup...")
+          status = Core::ProcessRunner.run(iscc, ["/Q", iss_file.to_s.gsub('/', '\\')])
+          if status.success? && File.exists?(dest_exe)
+            Core::Logger.success("Successfully generated game installer: #{dest_exe} (#{File.size(dest_exe)} bytes)!")
+            FileUtils.rm_rf(stage_dir) if Dir.exists?(stage_dir)
+            return 0
+          else
+            Core::Logger.error("Failed to compile installer with Inno Setup.")
+            return 1
+          end
+        elsif Core::Env.linux?
+          dpkg_deb = Process.find_executable("dpkg-deb")
+          unless dpkg_deb
+            Core::Logger.warn("dpkg-deb not found on system. Debian package generation skipped.")
+            return 0
+          end
+
+          stage_dir = proj_dir.join("scratch/game_deb_stage")
+          FileUtils.rm_rf(stage_dir) if Dir.exists?(stage_dir)
+          FileUtils.mkdir_p(stage_dir.join("DEBIAN"))
+          game_install_dir = stage_dir.join("usr/games/#{clean_name.downcase}")
+          bin_install_dir = stage_dir.join("usr/bin")
+          desktop_dir = stage_dir.join("usr/share/applications")
+          FileUtils.mkdir_p(game_install_dir)
+          FileUtils.mkdir_p(bin_install_dir)
+          FileUtils.mkdir_p(desktop_dir)
+
+          Dir.each_child(bin_dir) do |item|
+            next if item.starts_with?("~") || item.ends_with?(".log")
+            src_p = bin_dir.join(item)
+            dst_p = game_install_dir.join(item)
+            if File.file?(src_p)
+              safe_copy(src_p, dst_p)
+            elsif Dir.exists?(src_p)
+              FileUtils.cp_r(src_p.to_s, dst_p.to_s)
+            end
+          end
+
+          main_bin_name = if File.exists?(game_install_dir.join(game_name))
+                            game_name
+                          else
+                            Dir.children(game_install_dir).find { |f| File.file?(game_install_dir.join(f)) && !f.ends_with?(".pck") && !f.ends_with?(".so") } || "game"
+                          end
+          File.chmod(game_install_dir.join(main_bin_name), 0o755)
+
+          launcher = bin_install_dir.join(clean_name.downcase)
+          File.write(launcher, "#!/bin/sh\nexec /usr/games/#{clean_name.downcase}/#{main_bin_name} \"$@\"\n")
+          File.chmod(launcher, 0o755)
+
+          desktop_file = desktop_dir.join("#{clean_name.downcase}.desktop")
+          desktop_entry = <<-DESKTOP
+[Desktop Entry]
+Name=#{game_name}
+Exec=#{clean_name.downcase}
+Type=Application
+Categories=Game;
+Terminal=false
+DESKTOP
+          File.write(desktop_file, desktop_entry)
+
+          control_file = stage_dir.join("DEBIAN/control")
+          control_content = <<-CONTROL
+Package: #{clean_name.downcase}
+Version: #{game_version}
+Section: games
+Priority: optional
+Architecture: amd64
+Maintainer: #{game_name} Developers
+Description: #{game_name} video game built with Godot Engine and Crystal.
+CONTROL
+          File.write(control_file, control_content)
+
+          dest_deb = out_path || dist_dir.join("#{clean_name.downcase}_#{game_version}_amd64.deb")
+          status = Core::ProcessRunner.run(dpkg_deb, ["--build", "--root-owner-group", stage_dir.to_s, dest_deb.to_s])
+          if status.success? && File.exists?(dest_deb)
+            Core::Logger.success("Successfully generated game Debian package: #{dest_deb} (#{File.size(dest_deb)} bytes)!")
+            FileUtils.rm_rf(stage_dir) if Dir.exists?(stage_dir)
+            return 0
+          else
+            Core::Logger.error("Failed to build deb package with dpkg-deb.")
+            return 1
+          end
+        else
+          Core::Logger.error("Target 'installer' is only supported on Windows (.exe) and Linux (.deb).")
+          return 1
+        end
+      end
+
       def self.package_release(
         output_dir : Path,
         release : Bool = true,
@@ -908,6 +1124,7 @@ CONTROL
 Usage: lapis package <target> [options]
 
 Targets:
+  installer             Package standalone game installer (.exe on Windows, .deb on Linux)
   game                  Package a playable standalone Godot game (PCK + runner + DLLs)
   template              Package the starter game template into template-project.zip
   template-addon        Package the addon starter template into template-addon-project.zip
@@ -969,6 +1186,7 @@ HELP
         skip_tests = false
         skip_perf = false
         skip_benchmarks = false
+        without_benchmarks = false
 
         parser = OptionParser.new do |opts|
           opts.banner = "Usage: lapis package #{target} [options]"
@@ -984,6 +1202,8 @@ HELP
           opts.on("--embed-pck", "Embed PCK data directly into the executable binary") { embed_pck = true }
           opts.on("--portable", "Package portable distribution with embedded PCK") { portable = true; embed_pck = true }
           opts.on("--bundle-binaries", "Include compiled binaries in archive") { bundle_binaries = true }
+          opts.on("--without-benchmarks", "Exclude benchmark definitions from game build") { without_benchmarks = true }
+          opts.on("--with-benchmarks", "Include benchmark definitions in game build") { without_benchmarks = false }
           opts.on("--skip-tests", "Skip tests in release") { skip_tests = true }
           opts.on("--skip-perf", "Skip perf in release") { skip_perf = true }
           opts.on("--skip-benchmarks", "Skip benchmarks in release") { skip_benchmarks = true }
@@ -1024,7 +1244,26 @@ HELP
           pkg_arch = arch_arg || "amd64"
           final_out = out_path || (td_path ? td_path.join("lapis_#{pkg_version}_#{pkg_arch}.deb") : nil)
           package_deb(root, final_out, version: pkg_version, arch: pkg_arch.to_s)
-        when "windows-installer", "windows_installer", "installer"
+        when "installer"
+          curr = Path.new((project_path || ".").to_s).expand
+          if File.exists?(curr.join("project.godot")) && curr != root
+            package_project_installer(curr, name: name, version: version_arg, release: release, out_path: out_path, without_benchmarks: without_benchmarks)
+          else
+            if Core::Env.windows?
+              pkg_version = version_arg || Lapis::VERSION
+              final_out = out_path || (td_path ? td_path.join("lapis-setup-windows-x86_64.exe") : nil)
+              package_windows_installer(root, final_out, version: pkg_version, release: release)
+            elsif Core::Env.linux?
+              pkg_version = version_arg || Lapis::VERSION
+              pkg_arch = arch_arg || "amd64"
+              final_out = out_path || (td_path ? td_path.join("lapis_#{pkg_version}_#{pkg_arch}.deb") : nil)
+              package_deb(root, final_out, version: pkg_version, arch: pkg_arch.to_s)
+            else
+              Core::Logger.error("Installer packaging is only supported on Windows (.exe) and Linux (.deb). Current platform: #{Core::Env.current_platform}")
+              1
+            end
+          end
+        when "windows-installer", "windows_installer"
           unless Core::Env.windows?
             Core::Logger.error("Target 'windows-installer' is only available on Windows. Current platform: #{Core::Env.current_platform}.")
             return 1
@@ -1047,7 +1286,7 @@ HELP
         when "game"
           proj_str = (pp = project_path) && !["windows", "linux", "macos", "android"].includes?(pp.downcase) ? pp : "."
           proj = Path.new(proj_str).expand
-          package_game(proj, name: name, release: release, target_dir: td_path, force_compile: force, embed_pck: embed_pck, portable: portable)
+          package_game(proj, name: name, release: release, target_dir: td_path, force_compile: force, embed_pck: embed_pck, portable: portable, without_benchmarks: without_benchmarks)
         when "release", "all"
           out_dir = td_path || out_path || root.join("bin/release_dist")
           package_release(out_dir, release: release, skip_tests: skip_tests, skip_perf: skip_perf, skip_benchmarks: skip_benchmarks)

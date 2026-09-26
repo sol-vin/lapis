@@ -50,6 +50,7 @@ Source: "{#SourceDir}\*.dll"; DestDir: "{app}\bin"; Flags: ignoreversion skipifs
 Source: "{#SourceDir}\README.md"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "{#SourceDir}\LICENSE"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "{#SourceDir}\install_deps.ps1"; DestDir: "{tmp}"; Flags: deleteafterinstall
+Source: "{#SourceDir}\innosetup-installer.exe"; DestDir: "{tmp}"; Flags: ignoreversion skipifsourcedoesntexist deleteafterinstall
 
 [Icons]
 Name: "{group}\Lapis Command Prompt"; Filename: "{cmd}"; Parameters: "/k ""{app}\bin\lapis.exe --help"""
@@ -63,6 +64,7 @@ var
   HasMake: Boolean;
   HasGit: Boolean;
   HasCrystalline: Boolean;
+  HasInnoSetup: Boolean;
 
 function IsCommandInPath(const Cmd: string): Boolean;
 var
@@ -137,6 +139,25 @@ begin
             FileExists(ExpandConstant('{localappdata}\Programs\Lapis\bin\crystalline.exe'));
 end;
 
+function CheckInnoSetupInstalled(): Boolean;
+var
+  UserProf: string;
+  LocalApp: string;
+begin
+  UserProf := GetEnv('USERPROFILE');
+  LocalApp := GetEnv('LOCALAPPDATA');
+  Result := IsCommandInPath('iscc.exe') or
+            IsCommandInPath('iscc') or
+            FileExists('C:\Program Files (x86)\Inno Setup 6\ISCC.exe') or
+            FileExists('C:\Program Files\Inno Setup 6\ISCC.exe') or
+            FileExists('C:\Program Files (x86)\Inno Setup 7\ISCC.exe') or
+            FileExists('C:\Program Files\Inno Setup 7\ISCC.exe') or
+            FileExists('C:\ProgramData\chocolatey\bin\iscc.exe') or
+            ((LocalApp <> '') and FileExists(LocalApp + '\Programs\Inno Setup 6\ISCC.exe')) or
+            ((LocalApp <> '') and FileExists(LocalApp + '\Programs\Inno Setup 7\ISCC.exe')) or
+            ((UserProf <> '') and FileExists(UserProf + '\scoop\apps\innosetup\current\ISCC.exe'));
+end;
+
 procedure InitializeWizard;
 var
   Desc: string;
@@ -146,6 +167,7 @@ begin
   HasMake := CheckMakeInstalled();
   HasGit := CheckGitInstalled();
   HasCrystalline := CheckCrystallineInstalled();
+  HasInnoSetup := CheckInnoSetupInstalled();
 
   PrereqPage := CreateInputOptionPage(
     wpSelectDir,
@@ -195,6 +217,14 @@ begin
     Desc := 'Install Crystalline LSP (Enables in-editor Crystal autocompletion & diagnostics)';
   PrereqPage.Add(Desc);
   PrereqPage.Values[4] := not HasCrystalline;
+
+  // Inno Setup Compiler
+  if HasInnoSetup then
+    Desc := 'Inno Setup Compiler (Found on system)'
+  else
+    Desc := 'Install Inno Setup Compiler (Required for packaging Windows game installers)';
+  PrereqPage.Add(Desc);
+  PrereqPage.Values[5] := not HasInnoSetup;
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
@@ -235,6 +265,11 @@ begin
     begin
       if Length(DepsToInstall) > 0 then DepsToInstall := DepsToInstall + ',';
       DepsToInstall := DepsToInstall + 'crystalline';
+    end;
+    if (not HasInnoSetup) and PrereqPage.Values[5] then
+    begin
+      if Length(DepsToInstall) > 0 then DepsToInstall := DepsToInstall + ',';
+      DepsToInstall := DepsToInstall + 'innosetup';
     end;
 
     if Length(DepsToInstall) > 0 then

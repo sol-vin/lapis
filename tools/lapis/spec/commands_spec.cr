@@ -50,25 +50,56 @@ describe "Lapis Subcommands" do
       end
     end
 
-    it "scaffolds a redistributable addon project with valid structure" do
-      LapisSpecHelper.with_temp_dir("scaffold_addon_test") do |dir|
+    it "scaffolds a standalone exportable addon project when no project.godot is present" do
+      LapisSpecHelper.with_temp_dir("scaffold_standalone_addon_test") do |dir|
         target_addon = dir.join("custom_inventory")
         res = LapisSpecHelper.run_lapis(
-          ["new", "addon", "custom_inventory", "-t", target_addon.to_s, "-a", "GameDev", "-d", "Item management plugin"]
+          ["new", "addon", "custom_inventory", "-t", target_addon.to_s, "-a", "GameDev", "-d", "Item management plugin", "--no-git"],
+          chdir: dir
         )
         res.success?.should be_true
 
         Dir.exists?(target_addon).should be_true
-        File.exists?(target_addon.join("custom_inventory.gdextension")).should be_true
+        File.exists?(target_addon.join("project.godot")).should be_true
+        File.exists?(target_addon.join("Makefile")).should be_true
         File.exists?(target_addon.join("shard.yml")).should be_true
+        File.exists?(target_addon.join("README.md")).should be_true
         File.exists?(target_addon.join("src/main.cr")).should be_true
         File.exists?(target_addon.join("spec/main_spec.cr")).should be_true
-        File.exists?(target_addon.join("spec/editor/editor_spec.cr")).should be_true
+        File.exists?(target_addon.join("addons/custom_inventory/custom_inventory.gdextension")).should be_true
+        File.exists?(target_addon.join("addons/custom_inventory/plugin.cfg")).should be_true
+        File.exists?(target_addon.join(".git")).should be_false # Verified --no-git
 
         shard = File.read(target_addon.join("shard.yml"))
         shard.should contain("name: custom_inventory")
         shard.should contain("GameDev")
-        shard.should contain("Item management plugin")
+      end
+    end
+
+    it "adds an addon into an existing Godot project under addons/<name> and honors --no-git" do
+      LapisSpecHelper.with_temp_dir("scaffold_in_project_addon_test") do |project_dir|
+        # 1. Create a dummy project.godot
+        File.write(project_dir.join("project.godot"), "; Engine configuration file\nconfig_version=5\n[application]\nconfig/name=\"MainGame\"\n")
+
+        res = LapisSpecHelper.run_lapis(
+          ["new", "addon", "my_dialogue", "--no-git", "-a", "StoryTeller", "-d", "Dialogue system"],
+          chdir: project_dir
+        )
+        res.success?.should be_true
+
+        addon_dir = project_dir.join("addons/my_dialogue")
+        Dir.exists?(addon_dir).should be_true
+        File.exists?(addon_dir.join("plugin.cfg")).should be_true
+        File.exists?(addon_dir.join("plugin.gd")).should be_true
+        File.exists?(addon_dir.join("my_dialogue.gdextension")).should be_true
+        File.exists?(addon_dir.join("shard.yml")).should be_true
+        File.exists?(addon_dir.join("src/main.cr")).should be_true
+        File.exists?(addon_dir.join("spec/main_spec.cr")).should be_true
+        File.exists?(addon_dir.join(".git")).should be_false # Verified --no-git
+
+        # Verify auto-registration in project.godot
+        p_godot = File.read(project_dir.join("project.godot"))
+        p_godot.should contain("res://addons/my_dialogue/plugin.cfg")
       end
     end
 
@@ -189,6 +220,93 @@ describe "Lapis Subcommands" do
     end
   end
 
+  describe "init addon" do
+    it "initializes an addon in an existing Godot project" do
+      LapisSpecHelper.with_temp_dir("init_addon_success_test") do |project_dir|
+        File.write(project_dir.join("project.godot"), "; Engine configuration file\nconfig_version=5\n[application]\nconfig/name=\"ExistingGame\"\n")
+
+        res = LapisSpecHelper.run_lapis(
+          ["init", "addon", "sound_engine", "-a", "AudioDev", "-d", "Dynamic audio system", "--no-git"],
+          chdir: project_dir
+        )
+        res.success?.should be_true
+
+        addon_dir = project_dir.join("addons/sound_engine")
+        Dir.exists?(addon_dir).should be_true
+        File.exists?(addon_dir.join("plugin.cfg")).should be_true
+        File.exists?(addon_dir.join("sound_engine.gdextension")).should be_true
+        File.exists?(addon_dir.join("src/main.cr")).should be_true
+        File.exists?(addon_dir.join("spec/main_spec.cr")).should be_true
+      end
+    end
+
+    it "refuses to initialize an addon if no project.godot is found" do
+      LapisSpecHelper.with_temp_dir("init_addon_fail_test") do |isolated_dir|
+        res = LapisSpecHelper.run_lapis(
+          ["init", "addon", "orphan_addon"],
+          chdir: isolated_dir
+        )
+        res.success?.should be_false
+        res.exit_code.should eq(1)
+        res.all_output.should contain("No 'project.godot' found")
+        res.all_output.should contain("lapis new addon orphan_addon")
+      end
+    end
+  end
+
+  describe "get release" do
+    it "resolves and lists release asset URLs for different platforms and targets" do
+      res_win_ex = LapisSpecHelper.run_lapis(["get", "release", "windows", "examples", "--list"])
+      res_win_ex.success?.should be_true
+      res_win_ex.output.should contain("examples-windows.zip")
+
+      res_win_bench = LapisSpecHelper.run_lapis(["get", "release", "windows", "benchmark", "--list"])
+      res_win_bench.success?.should be_true
+      res_win_bench.output.should contain("benchmarks-windows.zip")
+
+      res_win_perf = LapisSpecHelper.run_lapis(["get", "release", "windows", "performance", "--list"])
+      res_win_perf.success?.should be_true
+      res_win_perf.output.should contain("perf-windows.zip")
+
+      res_win_tests = LapisSpecHelper.run_lapis(["get", "release", "windows", "tests", "--list"])
+      res_win_tests.success?.should be_true
+      res_win_tests.output.should contain("test-suite-windows.zip")
+
+      res_win_cli = LapisSpecHelper.run_lapis(["get", "release", "windows", "--list"])
+      res_win_cli.success?.should be_true
+      res_win_cli.output.should contain("lapis-windows-x86_64.zip")
+
+      res_linux_cli = LapisSpecHelper.run_lapis(["get", "release", "linux", "--list"])
+      res_linux_cli.success?.should be_true
+      res_linux_cli.output.should contain("lapis-linux-x86_64.tar.gz")
+
+      res_mac_cli = LapisSpecHelper.run_lapis(["get", "release", "mac", "--list"])
+      res_mac_cli.success?.should be_true
+      res_mac_cli.output.should contain("lapis-macos.zip")
+
+      res_all = LapisSpecHelper.run_lapis(["get", "release", "windows", "all", "--list"])
+      res_all.success?.should be_true
+      res_all.output.should contain("examples-windows.zip")
+      res_all.output.should contain("benchmarks-windows.zip")
+      res_all.output.should contain("template-project.zip")
+    end
+  end
+
+  describe "update" do
+    it "checks for toolchain updates in dry-run mode via --check" do
+      res = LapisSpecHelper.run_lapis(["update", "--check"])
+      res.success?.should be_true
+      res.output.should contain("Checking for Lapis updates")
+      res.output.should contain("Checking Crystalline LSP status")
+    end
+
+    it "checks self update via 'lapis update self --check'" do
+      res = LapisSpecHelper.run_lapis(["update", "self", "--check"])
+      res.success?.should be_true
+      res.output.should contain("Checking for Lapis updates")
+    end
+  end
+
   describe "test" do
     it "resolves and runs tests scoped to a consumer project like template" do
       res = LapisSpecHelper.run_lapis(["test", "template", "--no-tui", "--skip-runtime-tests"])
@@ -198,4 +316,5 @@ describe "Lapis Subcommands" do
     end
   end
 end
+
 

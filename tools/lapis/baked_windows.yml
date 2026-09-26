@@ -20,6 +20,10 @@ files:
   - template/scripts/mygdnode.gd
   - template/spec/main_spec.cr
   - template/spec/editor/editor_spec.cr
+  - template/benchmarks/example_bench.cr
+  - template/benchmarks/example_bench.gd
+  - template/benchmarks/README.md
+  - template/.github/workflows/ci.yml
 
   # 3. Addon Files (addons/crystal_integration/)
   - addons/crystal_integration/crystal.gdextension
@@ -31,10 +35,15 @@ files:
   - template-addon/project.godot
   - template-addon/shard.yml
   - template-addon/Makefile
+  - template-addon/export_presets.cfg
+  - template-addon/godot-version.yml
   - template-addon/README.md
   - template-addon/src/main.cr
   - template-addon/spec/main_spec.cr
   - template-addon/spec/editor/editor_spec.cr
+  - template-addon/benchmarks/example_bench.cr
+  - template-addon/benchmarks/README.md
+  - template-addon/.github/workflows/ci.yml
   - template-addon/addons/crystal_addon/crystal_addon.gdextension
   - template-addon/addons/crystal_addon/plugin.cfg
   - template-addon/addons/crystal_addon/plugin.gd

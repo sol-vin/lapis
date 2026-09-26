@@ -221,14 +221,38 @@ describe "Lapis CLI" do
       res2.output.should contain("Project Initialization Tool")
     end
 
+    it "handles 'lapis help get' and 'lapis get --help'" do
+      res1 = LapisSpecHelper.run_lapis(["help", "get"])
+      res1.success?.should be_true
+      res1.output.should contain("Release & Source Code Downloader")
+
+      res2 = LapisSpecHelper.run_lapis(["get", "--help"])
+      res2.success?.should be_true
+      res2.output.should contain("Release & Source Code Downloader")
+    end
+
+    it "handles 'lapis help update' and 'lapis update --help'" do
+      res1 = LapisSpecHelper.run_lapis(["help", "update"])
+      res1.success?.should be_true
+      res1.output.should contain("Toolchain & Dependency Update Manager")
+
+      res2 = LapisSpecHelper.run_lapis(["update", "--help"])
+      res2.success?.should be_true
+      res2.output.should contain("Toolchain & Dependency Update Manager")
+    end
+
     it "generates shell completions via 'lapis completion'" do
       res_ps = LapisSpecHelper.run_lapis(["completion", "powershell"])
       res_ps.success?.should be_true
       res_ps.output.should contain("Register-ArgumentCompleter")
+      res_ps.output.should contain("'get'")
+      res_ps.output.should contain("'update'")
 
       res_bash = LapisSpecHelper.run_lapis(["completion", "bash"])
       res_bash.success?.should be_true
       res_bash.output.should contain("_lapis_completions")
+      res_bash.output.should contain("get")
+      res_bash.output.should contain("update")
     end
 
     it "suggests close match command on typo" do

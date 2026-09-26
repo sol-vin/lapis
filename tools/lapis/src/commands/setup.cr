@@ -24,6 +24,7 @@ Options:
   -f, --force           Force download even if godot executable exists
   --skip-dump           Skip dumping extension_api.json after setup
   --lsp                 Configure Crystalline Language Server (LSP) library via shards
+  --innosetup           Install Inno Setup Compiler [Windows only]
   -h, --help            Show this help screen
 
 Examples:
@@ -293,6 +294,7 @@ HELP
         skip_dump = false
         templates_mode = false
         lsp_mode = false
+        innosetup_mode = false
         zip_output : Path? = nil
 
         parser = OptionParser.new do |opts|
@@ -303,6 +305,7 @@ HELP
           opts.on("-f", "--force", "Force re-download") { force = true }
           opts.on("--skip-dump", "Skip dumping extension_api.json") { skip_dump = true }
           opts.on("--lsp", "Configure Crystalline LSP library via shards") { lsp_mode = true }
+          opts.on("--innosetup", "Install Inno Setup Compiler [Windows only]") { innosetup_mode = true }
           opts.on("-h", "--help", "Show help") { print_help; exit 0 }
         end
 
@@ -320,6 +323,22 @@ HELP
 
         if lsp_mode
           return setup_crystalline(root, force)
+        end
+
+        if innosetup_mode
+          unless Core::Env.windows?
+            Core::Logger.error("Inno Setup Compiler is only available on Windows. Current platform: #{Core::Env.current_platform}")
+            return 1
+          end
+          ps_script = root.join("scripts/windows/install_deps.ps1")
+          if File.exists?(ps_script)
+            Core::Logger.step("Setup", "Invoking Windows dependency installer for Inno Setup...")
+            status = Core::ProcessRunner.run("powershell.exe", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", ps_script.to_s, "-Tools", "innosetup"])
+            return status.exit_code
+          else
+            Core::Logger.error("Windows dependency installer script not found at #{ps_script}")
+            return 1
+          end
         end
 
         if templates_mode

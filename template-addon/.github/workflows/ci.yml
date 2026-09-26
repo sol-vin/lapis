@@ -1,4 +1,4 @@
-name: Game CI
+name: Addon CI
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
 
 jobs:
   test:
-    name: Run Crystal Specs & Game Verification
+    name: Run Crystal Specs & Addon Verification
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -17,7 +17,7 @@ jobs:
         os: [ubuntu-latest, windows-latest]
 
     steps:
-      - name: Checkout Game Repository
+      - name: Checkout Addon Repository
         uses: actions/checkout@v4
 
       - name: Install Crystal
@@ -50,7 +50,7 @@ jobs:
           version: 4.8-dev4
           enable_cache: true
 
-      - name: Build Game Project (Linux)
+      - name: Build Addon Project (Linux)
         if: runner.os == 'Linux'
         shell: bash
         run: |
@@ -60,7 +60,7 @@ jobs:
           fi
           make all
 
-      - name: Build Game Project (Windows)
+      - name: Build Addon Project (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
@@ -83,13 +83,13 @@ jobs:
         run: |
           ./godot.exe --headless --rendering-driver opengl3 --path . --quit
 
-      - name: Run Project Benchmarks (Linux)
+      - name: Run Addon Benchmarks (Linux)
         if: runner.os == 'Linux' && hashFiles('benchmarks/*.cr') != ''
         shell: bash
         run: |
           crystal run benchmarks/example_bench.cr -- 5000 || true
 
-      - name: Run Project Benchmarks (Windows)
+      - name: Run Addon Benchmarks (Windows)
         if: runner.os == 'Windows' && hashFiles('benchmarks/*.cr') != ''
         shell: pwsh
         run: |

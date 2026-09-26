@@ -2733,37 +2733,30 @@ jobs:
       - name: Build & Run Benchmark Suite
         shell: bash
         run: |
-          mkdir -p benchmarks/bin
-          echo "Building benchmark runner..."
-          crystal build --release -O3 benchmarks/runner.cr -o benchmarks/bin/runner
-          echo "Executing Crystal vs GDScript benchmarks..."
-          ./benchmarks/bin/runner -i 2 || ./benchmarks/bin/runner -i 1 || true
+          echo "Executing Crystal vs GDScript benchmarks via Lapis CLI..."
+          ./bin/lapis benchmarks run html -i 2 || ./bin/lapis benchmarks -i 1 || true
+
+      - name: Compare Benchmarks Against Previous Release
+        shell: bash
+        run: |
+          echo "Comparing current benchmark against previous baseline..."
+          ./bin/lapis benchmarks compare html || true
 
       - name: Stage Benchmarks for GitHub Pages
         shell: bash
         run: |
-          mkdir -p docs/benchmarks
-          if [ -f "benchmarks/results/benchmark_report.html" ]; then
-            echo "Copying benchmark report HTML to pages..."
+          mkdir -p docs/benchmarks/history
+          if [ -d "benchmarks/reports" ]; then
+            cp -r benchmarks/reports/* docs/benchmarks/ 2>/dev/null || true
+            cp benchmarks/reports/benchmarks_*.xml docs/benchmarks/history/ 2>/dev/null || true
+          fi
+          if [ -f "benchmarks/reports/benchmark_report.html" ]; then
+            cp "benchmarks/reports/benchmark_report.html" "docs/benchmarks.html"
+            cp "benchmarks/reports/benchmark_report.html" "docs/benchmarks/index.html"
+            cp "benchmarks/reports/benchmark_report.html" "docs/benchmark_report.html"
+          elif [ -f "benchmarks/results/benchmark_report.html" ]; then
             cp "benchmarks/results/benchmark_report.html" "docs/benchmarks.html"
             cp "benchmarks/results/benchmark_report.html" "docs/benchmarks/index.html"
-            cp "benchmarks/results/benchmark_report.html" "docs/benchmark_report.html"
-          fi
-          if [ -f "benchmarks/results/benchmark_chart.svg" ]; then
-            cp "benchmarks/results/benchmark_chart.svg" "docs/benchmarks/"
-            cp "benchmarks/results/benchmark_chart.svg" "docs/"
-          fi
-          if [ -f "benchmarks/results/benchmark_report.json" ]; then
-            cp "benchmarks/results/benchmark_report.json" "docs/benchmarks/"
-            cp "benchmarks/results/benchmark_report.json" "docs/"
-          fi
-          if [ -f "benchmarks/results/benchmark_report.csv" ]; then
-            cp "benchmarks/results/benchmark_report.csv" "docs/benchmarks/"
-            cp "benchmarks/results/benchmark_report.csv" "docs/"
-          fi
-          if [ -f "benchmarks/results/benchmark_report.md" ]; then
-            cp "benchmarks/results/benchmark_report.md" "docs/benchmarks/"
-            cp "benchmarks/results/benchmark_report.md" "docs/"
           fi
           echo "Staged pages files:"
           ls -la docs/

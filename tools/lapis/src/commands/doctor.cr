@@ -51,7 +51,7 @@ HELP
             "Crystal Compiler",
             :fail,
             "Crystal compiler not found in PATH",
-            "Install Crystal 1.20+ from https://crystal-lang.org/install/ or via Scoop/Homebrew."
+            "Install Crystal 1.20+ from https://crystal-lang.org/install/ or run 'lapis update crystal'."
           )
         end
 
@@ -152,7 +152,7 @@ HELP
             "Crystalline LSP",
             :warn,
             "Crystalline LSP not found (in-editor Crystal autocomplete & diagnostics disabled)",
-            "Download from GitHub releases (https://github.com/elbywan/crystalline/releases) or run 'lapis setup --lsp'."
+            "Run 'lapis update crystalline' or 'lapis setup --lsp' to configure Crystalline."
           )
         end
 
