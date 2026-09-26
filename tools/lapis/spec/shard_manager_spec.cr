@@ -121,7 +121,7 @@ YAML
     end
 
     it "auto-heals ambiguous dependency sources with shard.override.yml" do
-      temp_dir = Path.new(Dir.tempdir).join("lapis_test_shard_heal_#{Time.utc.to_unix_ms}")
+      temp_dir = Lapis::Core::Env::ROOT_DIR.join("scratch", "lapis_test_shard_heal_#{Time.utc.to_unix_ms}")
       FileUtils.mkdir_p(temp_dir)
       shard_yml = temp_dir.join("shard.yml")
       root_rel = Path.new(Lapis::Core::Env::ROOT_DIR).relative_to(temp_dir).to_s.gsub('\\', '/')
