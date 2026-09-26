@@ -34,6 +34,8 @@ required_assets = [
   "template-addon/shard.yml",
   "template-addon/src/main.cr",
   "template-addon/addons/crystal_addon/crystal_addon.gdextension",
+  "template/.github/workflows/release.yml",
+  "template-addon/.github/workflows/release.yml",
 ]
 
 required_assets.each do |req|

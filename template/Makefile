@@ -27,7 +27,7 @@ else
 endif
 
 ENTRY        ?= src/main.cr
-LAPIS        ?= $(if $(wildcard ../bin/lapis$(EXE_EXT)),../bin/lapis$(EXE_EXT),lapis$(EXE_EXT))
+LAPIS        ?= $(if $(wildcard ./bin/lapis$(EXE_EXT)),./bin/lapis$(EXE_EXT),$(if $(wildcard ../bin/lapis$(EXE_EXT)),../bin/lapis$(EXE_EXT),$(if $(wildcard ../../bin/lapis$(EXE_EXT)),../../bin/lapis$(EXE_EXT),lapis$(EXE_EXT))))
 
 BIN_DIR       = bin
 GAME_LIB      = $(BIN_DIR)/game.$(SO_EXT)

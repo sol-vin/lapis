@@ -1,4 +1,4 @@
-name: Release Game
+name: Release Addon
 
 on:
   push:
@@ -30,6 +30,7 @@ jobs:
       release_title: ${{ steps.meta.outputs.release_title }}
       godot_version: ${{ steps.meta.outputs.godot_version }}
       shard_version: ${{ steps.meta.outputs.shard_version }}
+      addon_name: ${{ steps.meta.outputs.addon_name }}
 
     steps:
       - name: Checkout Repository
@@ -50,11 +51,16 @@ jobs:
           echo "Resolved Godot Version: $GODOT_VER"
 
           SHARD_VER=""
+          ADDON_NAME=""
           if [ -f "shard.yml" ]; then
             SHARD_VER=$(sed -n 's/^version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' shard.yml | tr -d '\r\n[:space:]')
+            ADDON_NAME=$(sed -n 's/^name:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' shard.yml | tr -d '\r\n[:space:]')
           fi
           if [ -z "$SHARD_VER" ]; then SHARD_VER="0.1.0"; fi
+          if [ -z "$ADDON_NAME" ]; then ADDON_NAME="crystal_addon"; fi
+
           echo "shard_version=$SHARD_VER" >> "$GITHUB_OUTPUT"
+          echo "addon_name=$ADDON_NAME" >> "$GITHUB_OUTPUT"
 
           INPUT_TAG="${{ github.event.inputs.tag_name }}"
           REF_TYPE="${{ github.ref_type }}"
@@ -96,7 +102,7 @@ jobs:
           crystal spec
 
   build-release:
-    name: Build & Package Game (${{ matrix.platform }})
+    name: Build & Package Addon (${{ matrix.platform }})
     needs: [init-release, fast-specs]
     runs-on: ${{ matrix.os }}
     strategy:
@@ -177,8 +183,15 @@ jobs:
         shell: pwsh
         run: |
           $godotVer = "${{ needs.init-release.outputs.godot_version }}"
+          if (-not $godotVer) { $godotVer = "4.8-dev6" }
           $candidate = $env:GODOT4
           if ($candidate) { $candidate = $candidate -replace '^/([a-zA-Z])/', '$1:/' }
+          if ($candidate) {
+            $nonConsole = $candidate -replace '_console\.exe$', '.exe'
+            if (Test-Path $nonConsole) {
+              $candidate = $nonConsole
+            }
+          }
           if ($candidate -and (Test-Path $candidate)) {
             Copy-Item $candidate ./godot.exe -Force
           } else {
@@ -190,7 +203,7 @@ jobs:
               $zipUrl = "https://github.com/godotengine/godot-builds/releases/download/$godotVer/Godot_v${godotVer}_win64.exe.zip"
               Invoke-WebRequest -Uri $zipUrl -OutFile "godot.zip"
               Expand-Archive -Path "godot.zip" -DestinationPath "." -Force
-              $extractedExe = Get-ChildItem -Path "." -Filter "Godot_v*_win64.exe" | Select-Object -First 1
+              $extractedExe = Get-ChildItem -Path "." -Filter "Godot_v*_win64.exe" | Where-Object { $_.Name -notmatch "console" } | Select-Object -First 1
               if ($extractedExe) {
                 Move-Item $extractedExe.FullName "./godot.exe" -Force
               }
@@ -199,52 +212,76 @@ jobs:
           }
           ./godot.exe --version
 
-      - name: Build Game (Release Mode)
-        run: |
-          make all RELEASE=1
-
-      - name: Package Standalone Game (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $tag = "${{ needs.init-release.outputs.tag_name }}"
-          $pkgDir = "dist/game_release_windows"
-          if (Test-Path $pkgDir) { Remove-Item $pkgDir -Recurse -Force }
-          New-Item -ItemType Directory -Force -Path $pkgDir | Out-Null
-
-          Copy-Item "project.godot" "$pkgDir/" -Force
-          if (Test-Path "scenes") { Copy-Item "scenes" "$pkgDir/scenes" -Recurse -Force }
-          if (Test-Path "addons") { Copy-Item "addons" "$pkgDir/addons" -Recurse -Force }
-          if (Test-Path "bin") { Copy-Item "bin" "$pkgDir/bin" -Recurse -Force }
-
-          Get-ChildItem -Path $pkgDir -Include "*.pdb", "*.exp", "*.lib", "*.obj" -Recurse | Remove-Item -Force -ErrorAction SilentlyContinue
-
-          if (-not (Test-Path "dist")) { New-Item -ItemType Directory -Force -Path "dist" | Out-Null }
-          $archive = "dist/game-windows-x86_64-$tag.zip"
-          Compress-Archive -Path "$pkgDir/*" -DestinationPath $archive -Force
-
-      - name: Package Standalone Game (Linux)
+      - name: Ensure Lapis CLI & Runtime Libraries (Linux)
         if: runner.os == 'Linux'
         shell: bash
         run: |
-          TAG="${{ needs.init-release.outputs.tag_name }}"
-          PKG_DIR="dist/game_release_linux"
-          rm -rf "$PKG_DIR"
-          mkdir -p "$PKG_DIR"
+          mkdir -p bin
+          if command -v lapis >/dev/null 2>&1; then
+            echo "Lapis found on system PATH: $(command -v lapis)"
+          elif [ -f "bin/lapis" ]; then
+            echo "Lapis found in bin/lapis"
+          elif [ -f "../bin/lapis" ]; then
+            echo "Lapis found in parent directory"
+            cp ../bin/lapis bin/
+          else
+            echo "Downloading pre-compiled Lapis CLI for Linux..."
+            curl -sSL "https://github.com/sol-vin/lapis/releases/latest/download/lapis-linux-x86_64.tar.gz" -o lapis.tar.gz || wget -q "https://github.com/sol-vin/lapis/releases/latest/download/lapis-linux-x86_64.tar.gz" -O lapis.tar.gz
+            if [ -f "lapis.tar.gz" ] && [ -s "lapis.tar.gz" ]; then
+              tar -xzf lapis.tar.gz -C bin/
+              rm -f lapis.tar.gz
+              chmod +x bin/lapis 2>/dev/null || true
+            fi
+          fi
+          if [ -f "bin/lapis" ]; then
+            echo "$(pwd)/bin" >> "$GITHUB_PATH"
+          fi
+          if [ ! -f "bin/crystal_bridge.so" ] && [ ! -f "addons/*/*/crystal_bridge.so" ]; then
+            echo "Staging pre-compiled Linux GDExtension bridge..."
+            curl -sSL "https://github.com/sol-vin/lapis/releases/latest/download/godot-crystal-addon-linux-x86_64.zip" -o addon-linux.zip 2>/dev/null || true
+            if [ -f "addon-linux.zip" ] && [ -s "addon-linux.zip" ]; then
+              unzip -q -o addon-linux.zip
+              rm -f addon-linux.zip
+            fi
+          fi
 
-          cp project.godot "$PKG_DIR/"
-          [ -d scenes ] && cp -r scenes "$PKG_DIR/"
-          [ -d addons ] && cp -r addons "$PKG_DIR/"
-          [ -d bin ] && cp -r bin "$PKG_DIR/"
+      - name: Ensure Lapis CLI & Runtime Libraries (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path "bin" | Out-Null
+          if (Get-Command lapis.exe -ErrorAction SilentlyContinue) {
+            Write-Host "Lapis found on system PATH"
+          } elseif (Test-Path "bin/lapis.exe") {
+            Write-Host "Lapis found in bin/"
+          } elseif (Test-Path "../bin/lapis.exe") {
+            Write-Host "Lapis found in parent directory"
+            Copy-Item "../bin/lapis.exe" "bin/" -Force
+          } else {
+            Write-Host "Downloading pre-compiled Lapis CLI for Windows..."
+            $lapisZip = "https://github.com/sol-vin/lapis/releases/latest/download/lapis-windows-x86_64.zip"
+            try {
+              Invoke-WebRequest -Uri $lapisZip -OutFile "lapis.zip"
+              Expand-Archive -Path "lapis.zip" -DestinationPath "bin" -Force
+              Remove-Item "lapis.zip" -Force -ErrorAction SilentlyContinue
+            } catch {
+              Write-Host "Download skipped or failed: $_"
+            }
+          }
+          if (Test-Path "bin/lapis.exe") {
+            $binPath = (Get-Item "bin").FullName
+            Add-Content -Path $env:GITHUB_PATH -Value $binPath
+            ./bin/lapis.exe --version
+          }
 
-          mkdir -p dist
-          ARCHIVE="dist/game-linux-x86_64-$TAG.zip"
-          cd "$PKG_DIR" && zip -r "../../$ARCHIVE" ./* && cd ../..
+      - name: Build & Package Addon (Release Mode)
+        run: |
+          make package RELEASE=1
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: game-artifacts-${{ matrix.platform }}
+          name: addon-artifacts-${{ matrix.platform }}
           path: dist/*.zip
           if-no-files-found: error
 
@@ -259,14 +296,33 @@ jobs:
       - name: Download Build Artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: game-artifacts-*
+          pattern: addon-artifacts-*
           merge-multiple: true
           path: dist
 
-      - name: Generate Cryptographic Hashes
+      - name: Build Universal Addon Package & Checksums
         shell: bash
         run: |
+          ADDON_NAME="${{ needs.init-release.outputs.addon_name }}"
           cd dist
+          echo "Downloaded Artifacts:"
+          ls -la
+
+          # If both platform zips exist, merge them into universal <addon_name>.zip
+          WIN_ZIP="${ADDON_NAME}-windows.zip"
+          LINUX_ZIP="${ADDON_NAME}-linux.zip"
+          if [ -f "$WIN_ZIP" ] && [ -f "$LINUX_ZIP" ]; then
+            echo "Merging Windows and Linux libraries into universal ${ADDON_NAME}.zip..."
+            STAGE_DIR="universal_stage"
+            rm -rf "$STAGE_DIR"
+            mkdir -p "$STAGE_DIR"
+            unzip -q "$WIN_ZIP" -d "$STAGE_DIR"
+            unzip -q -o "$LINUX_ZIP" -d "$STAGE_DIR"
+            (cd "$STAGE_DIR" && zip -r "../${ADDON_NAME}.zip" ./*)
+            rm -rf "$STAGE_DIR"
+            echo "Created universal package: ${ADDON_NAME}.zip"
+          fi
+
           sha256sum *.zip > checksums.txt
           cat checksums.txt
 
@@ -274,13 +330,20 @@ jobs:
         shell: bash
         run: |
           TAG="${{ needs.init-release.outputs.tag_name }}"
+          ADDON_NAME="${{ needs.init-release.outputs.addon_name }}"
           GODOT_VER="${{ needs.init-release.outputs.godot_version }}"
           cat << 'EOF' > release_body.md
           ## Release Notes
 
-          ### 📦 Standalone Packages
-          - **`game-windows-x86_64-${TAG}.zip`**: Standalone playable game package for **Windows (x86_64)** with native runtime DLLs.
-          - **`game-linux-x86_64-${TAG}.zip`**: Standalone playable game package for **Linux (x86_64)** with native runtime shared libraries.
+          ### 🧩 Addon Packages
+          - **`${ADDON_NAME}.zip`**: Universal redistributable GDExtension addon package containing pre-compiled binaries for **Windows (x86_64)** and **Linux (x86_64)**. Extract directly into your Godot project's root folder (`addons/${ADDON_NAME}/`).
+          - **`${ADDON_NAME}-windows.zip`**: Windows (x86_64) specific package.
+          - **`${ADDON_NAME}-linux.zip`**: Linux (x86_64) specific package.
+
+          ### 🛠️ Quick Installation
+          1. Download `${ADDON_NAME}.zip` (or your platform-specific zip).
+          2. Extract the archive into your Godot project root.
+          3. Open **Project Settings -> Plugins** in Godot and enable **${ADDON_NAME}**.
 
           ### 🎮 Engine Compatibility
           - Compatible with **Godot Engine v${GODOT_VER}** and newer.
@@ -293,6 +356,7 @@ jobs:
           ```
           EOF
           sed -i "s/\${TAG}/$TAG/g" release_body.md
+          sed -i "s/\${ADDON_NAME}/$ADDON_NAME/g" release_body.md
           sed -i "s/\${GODOT_VER}/$GODOT_VER/g" release_body.md
 
       - name: Publish Release to GitHub

@@ -24,6 +24,7 @@ files:
   - template/benchmarks/example_bench.gd
   - template/benchmarks/README.md
   - template/.github/workflows/ci.yml
+  - template/.github/workflows/release.yml
 
   # 3. Addon Files (addons/crystal_integration/)
   - addons/crystal_integration/crystal.gdextension
@@ -45,6 +46,7 @@ files:
   - template-addon/benchmarks/example_bench.cr
   - template-addon/benchmarks/README.md
   - template-addon/.github/workflows/ci.yml
+  - template-addon/.github/workflows/release.yml
   - template-addon/addons/crystal_addon/crystal_addon.gdextension
   - template-addon/addons/crystal_addon/plugin.cfg
   - template-addon/addons/crystal_addon/plugin.gd
