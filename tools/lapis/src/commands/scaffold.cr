@@ -4,6 +4,7 @@ require "../core/baked_file_system"
 require "./deps"
 require "./setup"
 require "./install"
+require "../core/godot_finder"
 require "file_utils"
 require "option_parser"
 
@@ -69,7 +70,8 @@ HELP
           dep_str = "  lapis:\n    path: #{rel_root}"
           File.write(dst_dir.join("shard.override.yml"), "dependencies:\n  lapis:\n    path: #{rel_root}\n")
         else
-          dep_str = "  lapis:\n    github: sol-vin/lapis\n    branch: master"
+          ver = Core::GodotFinder.expected_version(dst_dir.to_s)
+          dep_str = "  lapis:\n    github: sol-vin/lapis\n    tag: #{ver}"
         end
 
         shard_content = <<-YAML
@@ -473,13 +475,17 @@ TSCN
           c = File.read(shard)
           c = c.gsub(/name:\s*[^\r\n]+/, "name: #{slug}")
           c = c.gsub(/authors:\s*\n\s*-\s*[^\r\n]+/, "authors:\n  - #{author}") if author
-          if local_dep || Core::Env.is_libgodot_repo?(root)
+          dest_expanded = dest.expand.to_s.gsub('\\', '/')
+          root_expanded = root.expand.to_s.gsub('\\', '/')
+          if local_dep || (Core::Env.is_libgodot_repo?(root) && (dest_expanded.starts_with?("#{root_expanded}/examples") || dest_expanded.starts_with?("#{root_expanded}/bin/test") || dest_expanded.starts_with?("#{root_expanded}/addons")))
             rel_root = Path.new(root).relative_to(dest).to_s.gsub('\\', '/')
             rel_root = "./#{rel_root}" unless rel_root.starts_with?(".")
             c = c.gsub(/path:\s*[^\r\n]+/, "path: #{rel_root}")
             File.write(dest.join("shard.override.yml"), "dependencies:\n  lapis:\n    path: #{rel_root}\n")
           else
-            c = c.gsub(/path:\s*[^\r\n]+/, "github: sol-vin/lapis\n    branch: master")
+            ver = Core::GodotFinder.expected_version(dest.to_s)
+            c = c.gsub(/path:\s*[^\r\n]+/, "github: sol-vin/lapis\n    tag: #{ver}")
+            c = c.gsub(/branch:\s*[^\r\n]+/, "tag: #{ver}")
           end
           File.write(shard, c)
         end
@@ -656,7 +662,8 @@ GDM
                       File.write(addon_dir.join("shard.override.yml"), "dependencies:\n  lapis:\n    path: #{rel_root}\n")
                       "  lapis:\n    path: #{rel_root}"
                     else
-                      "  lapis:\n    github: sol-vin/lapis\n    branch: master"
+                      ver = Core::GodotFinder.expected_version(addon_dir.to_s)
+                      "  lapis:\n    github: sol-vin/lapis\n    tag: #{ver}"
                     end
 
           File.write(addon_dir.join("shard.yml"), <<-YAML

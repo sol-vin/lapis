@@ -7,6 +7,8 @@ on:
       - main
     tags:
       - 'v*'
+      - '[0-9]*'
+      - '*.*'
   workflow_dispatch:
     inputs:
       tag_name:
@@ -34,6 +36,10 @@ jobs:
       tag_name: ${{ steps.meta.outputs.tag_name }}
       release_title: ${{ steps.meta.outputs.release_title }}
       godot_version: ${{ steps.meta.outputs.godot_version }}
+      is_prerelease: ${{ steps.meta.outputs.is_prerelease }}
+      make_latest: ${{ steps.meta.outputs.make_latest }}
+      series: ${{ steps.meta.outputs.series }}
+      release_type: ${{ steps.meta.outputs.release_type }}
 
     steps:
       - name: Checkout Repository
@@ -65,6 +71,24 @@ jobs:
 
           echo "tag_name=$TAG" >> "$GITHUB_OUTPUT"
           echo "release_title=$TITLE" >> "$GITHUB_OUTPUT"
+
+          CLEAN_TAG=$(echo "$TAG" | sed 's/^v//')
+          SERIES=$(echo "$CLEAN_TAG" | grep -oE '^[0-9]+\.[0-9]+' || echo "")
+          echo "series=$SERIES" >> "$GITHUB_OUTPUT"
+
+          if [ "$TAG" = "latest" ]; then
+            echo "is_prerelease=false" >> "$GITHUB_OUTPUT"
+            echo "make_latest=false" >> "$GITHUB_OUTPUT"
+            echo "release_type=latest" >> "$GITHUB_OUTPUT"
+          elif echo "$CLEAN_TAG" | grep -qiE '(dev|alpha|beta|rc)'; then
+            echo "is_prerelease=true" >> "$GITHUB_OUTPUT"
+            echo "make_latest=false" >> "$GITHUB_OUTPUT"
+            echo "release_type=dev" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_prerelease=false" >> "$GITHUB_OUTPUT"
+            echo "make_latest=true" >> "$GITHUB_OUTPUT"
+            echo "release_type=stable" >> "$GITHUB_OUTPUT"
+          fi
 
 
   # =========================================================================
@@ -2509,12 +2533,17 @@ jobs:
           (cd "$DIST_DIR" && sha256sum * > checksums.txt)
           cat "$DIST_DIR/checksums.txt"
 
-      - name: Clean Previous Release & Refresh Latest Tag
+      - name: Clean Previous Release & Manage Release Lifecycle
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="${{ needs.init-release.outputs.tag_name }}"
+          SERIES="${{ needs.init-release.outputs.series }}"
+          RELEASE_TYPE="${{ needs.init-release.outputs.release_type }}"
+
+          echo "Finalizing release for Tag: $TAG (Type: $RELEASE_TYPE, Series: $SERIES)"
+
           if [ "$TAG" = "latest" ]; then
             echo "Purging old 'latest' release and updating tag to advance publication date..."
             gh release delete latest --yes --cleanup-tag 2>/dev/null || true
@@ -2522,6 +2551,24 @@ jobs:
             git push origin :refs/tags/latest 2>/dev/null || true
             git tag latest "${{ github.sha }}"
             git push origin latest --force
+          elif [ -n "$SERIES" ]; then
+            echo "Evaluating previous ephemeral releases for series '$SERIES'..."
+            SERIES_ESCAPED=$(echo "$SERIES" | sed 's/\./\\./g')
+            DEV_REGEX="^v?${SERIES_ESCAPED}-(dev|alpha|beta|rc)"
+
+            OLD_DEV_RELEASES=$(gh release list --limit 100 --json tagName -q \
+              ".[] | select(.tagName != \"$TAG\" and (.tagName | test(\"$DEV_REGEX\"))) | .tagName" || true)
+
+            if [ -n "$OLD_DEV_RELEASES" ]; then
+              echo "Found preceding ephemeral release(s) for series $SERIES:"
+              echo "$OLD_DEV_RELEASES"
+              for old_tag in $OLD_DEV_RELEASES; do
+                echo "Pruning ephemeral release: $old_tag..."
+                gh release delete "$old_tag" --yes 2>/dev/null || true
+              done
+            else
+              echo "No preceding ephemeral dev releases found for series $SERIES."
+            fi
           fi
 
       - name: Generate Descriptive Release Notes
@@ -2631,8 +2678,8 @@ jobs:
           files: bin/release_dist/*
           generate_release_notes: false
           draft: false
-          prerelease: false
-          make_latest: true
+          prerelease: ${{ needs.init-release.outputs.is_prerelease == 'true' }}
+          make_latest: ${{ needs.init-release.outputs.make_latest == 'true' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

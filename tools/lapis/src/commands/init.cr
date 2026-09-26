@@ -4,6 +4,7 @@ require "../core/baked_file_system"
 require "./deps"
 require "./sync"
 require "./scaffold"
+require "../core/godot_finder"
 require "file_utils"
 require "option_parser"
 
@@ -111,7 +112,8 @@ GODOT
                       rel_root = "./#{rel_root}" unless rel_root.starts_with?(".")
                       "  lapis:\n    path: #{rel_root}"
                     else
-                      "  lapis:\n    github: sol-vin/lapis\n    branch: master"
+                      ver = Core::GodotFinder.expected_version(target_dir.to_s)
+                      "  lapis:\n    github: sol-vin/lapis\n    tag: #{ver}"
                     end
 
           shard_content = <<-YAML

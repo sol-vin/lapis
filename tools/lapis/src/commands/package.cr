@@ -113,7 +113,7 @@ module Lapis
         Core::Env.purge_foreign_binaries(template_dir)
         excludes = [
           ".godot", ".git", ".uid", "~", "crash_dump", "test_ext.log", "template_ext.log",
-          ".tmp", ".log", "shard.lock",
+          ".tmp", ".log", "shard.lock", "shard.override.yml",
           "template/", "test/", "performance/", "template-addon/",
         ]
         unless bundle_binaries
@@ -140,7 +140,7 @@ module Lapis
         Core::Logger.step("Package", "Packaging addon starter template...")
         Core::Env.purge_foreign_binaries(addon_dir)
         excludes = [
-          ".godot", ".git", ".uid", "~", "crash_dump", ".log", ".tmp", "shard.lock",
+          ".godot", ".git", ".uid", "~", "crash_dump", ".log", ".tmp", "shard.lock", "shard.override.yml",
           "template/", "test/", "performance/", "template-addon/",
         ]
         unless bundle_binaries
