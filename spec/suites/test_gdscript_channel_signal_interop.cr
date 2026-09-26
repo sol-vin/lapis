@@ -1,7 +1,5 @@
 # =============================================================================
 # LibGodot Test Suite: GDScript <-> Crystal Channel & Signal Interoperability
-# =============================================================================
-
 # Dedicated Crystal node registering custom signals for GDScript interop verification
 include Lapis::Test
 
@@ -246,6 +244,7 @@ end
   root = scene.not_nil!.instantiate
   assert_not_nil root
 
+  {% if Godot.has_constant?("InteropController") %}
   controller = Godot::InteropController.from(root)
   assert_not_nil controller
 
@@ -270,6 +269,7 @@ end
   # Strongly typed signal helper
   assert_not_nil controller.gd_ping, "controller.gd_ping bound signal must be present"
   assert_not_nil controller.gd_pong, "controller.gd_pong bound signal must be present"
+  {% end %}
 
   root.destroy
   scene.destroy

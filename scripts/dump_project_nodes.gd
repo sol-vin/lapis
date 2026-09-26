@@ -84,6 +84,25 @@ func _init():
 				continue
 			if script_path.contains("/spec/") or script_path.contains("/tests/") or script_path.contains("/fixtures/"):
 				continue
+			# Check if script declares an explicit class_name
+			var explicit_class_name = ""
+			var file = FileAccess.open(script_path, FileAccess.READ)
+			if file:
+				var content = file.get_as_text()
+				file.close()
+				var regex = RegEx.new()
+				if regex.compile("(?m)^class_name\\s+([A-Za-z0-9_]+)") == OK:
+					var m = regex.search(content)
+					if m:
+						explicit_class_name = m.get_string(1)
+
+			if not explicit_class_name.is_empty():
+				processed_script_paths[script_path] = true
+				var cls_info = inspect_gdscript(explicit_class_name, script_path, "")
+				if cls_info != null:
+					result["gdscript_classes"].append(cls_info)
+				continue
+
 			# In LibGodot engine repo, local scripts are internal test fixtures - only dump scripts declaring explicit class_name
 			if is_engine_repo:
 				continue
