@@ -2816,12 +2816,14 @@ jobs:
           ls -la docs/benchmarks/
 
       - name: Upload Pages Artifact
+        continue-on-error: true
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./docs
 
       - name: Deploy to GitHub Pages
         id: deployment
+        continue-on-error: true
         uses: actions/deploy-pages@v4
 
       - name: Publish Documentation Deployment Summary
