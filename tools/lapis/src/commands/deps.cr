@@ -41,11 +41,13 @@ Usage: lapis deps [options]
 
 Options:
   -t, --target-bin=DIR  Explicit target bin directory to synchronize dependencies to
+  --addon               Stage only GDExtension addon dependencies (crystal_bridge & CRT, excluding libgodot)
   -h, --help            Show this help screen
 
 Examples:
   lapis deps
   lapis deps -t custom/game/bin
+  lapis deps -t addons/my_addon/bin --addon
 HELP
       end
 
@@ -56,9 +58,11 @@ HELP
         end
 
         target_bin : String? = nil
+        addon_only = false
         OptionParser.parse(args) do |parser|
           parser.banner = "Usage: lapis deps [options]"
           parser.on("-t DIR", "--target-bin=DIR", "Explicit target bin directory") { |dir| target_bin = dir }
+          parser.on("--addon", "Stage only GDExtension addon dependencies (crystal_bridge & CRT, excluding libgodot)") { addon_only = true }
           parser.on("-h", "--help", "Show help") { print_help; exit 0 }
         end
 
@@ -90,21 +94,23 @@ HELP
             end
           end
 
-          # 2. Locate libgodot.dll
-          libgodot_src = candidate_dirs.compact_map { |d| d.join("libgodot.dll") if File.exists?(d.join("libgodot.dll")) }.first?
-          unless libgodot_src
-            godot_src_dll = root.join("godot-src/bin/godot.windows.template_debug.x86_64.dll")
-            libgodot_src = godot_src_dll if File.exists?(godot_src_dll)
-          end
-
-          if libgodot_src
-            if target_bin.nil? && is_repo
-              safe_copy(libgodot_src, root_bin.join("libgodot.dll"))
+          # 2. Locate libgodot.dll (skipped for GDExtension addons)
+          unless addon_only
+            libgodot_src = candidate_dirs.compact_map { |d| d.join("libgodot.dll") if File.exists?(d.join("libgodot.dll")) }.first?
+            unless libgodot_src
+              godot_src_dll = root.join("godot-src/bin/godot.windows.template_debug.x86_64.dll")
+              libgodot_src = godot_src_dll if File.exists?(godot_src_dll)
             end
 
-            bin_dirs.each do |d|
-              FileUtils.mkdir_p(d) unless Dir.exists?(d)
-              safe_copy(libgodot_src, d.join("libgodot.dll"))
+            if libgodot_src
+              if target_bin.nil? && is_repo
+                safe_copy(libgodot_src, root_bin.join("libgodot.dll"))
+              end
+
+              bin_dirs.each do |d|
+                FileUtils.mkdir_p(d) unless Dir.exists?(d)
+                safe_copy(libgodot_src, d.join("libgodot.dll"))
+              end
             end
           end
 
@@ -121,30 +127,34 @@ HELP
             end
           end
 
-          # 4. Also libgodot.lib if present
-          libgodot_lib = candidate_dirs.compact_map { |d| d.join("libgodot.lib") if File.exists?(d.join("libgodot.lib")) }.first?
-          if libgodot_lib
-            if target_bin.nil? && is_repo
-              safe_copy(libgodot_lib, root_bin.join("libgodot.lib"))
-            end
+          # 4. Also libgodot.lib if present (skipped for GDExtension addons)
+          unless addon_only
+            libgodot_lib = candidate_dirs.compact_map { |d| d.join("libgodot.lib") if File.exists?(d.join("libgodot.lib")) }.first?
+            if libgodot_lib
+              if target_bin.nil? && is_repo
+                safe_copy(libgodot_lib, root_bin.join("libgodot.lib"))
+              end
 
-            bin_dirs.each do |d|
-              FileUtils.mkdir_p(d) unless Dir.exists?(d)
-              safe_copy(libgodot_lib, d.join("libgodot.lib"))
+              bin_dirs.each do |d|
+                FileUtils.mkdir_p(d) unless Dir.exists?(d)
+                safe_copy(libgodot_lib, d.join("libgodot.lib"))
+              end
             end
           end
         else
           # Linux / macOS
-          lib_file = "libgodot.#{Core::Env.dll_ext}"
-          libgodot_src = candidate_dirs.compact_map { |d| d.join(lib_file) if File.exists?(d.join(lib_file)) }.first?
-          if libgodot_src
-            if target_bin.nil? && is_repo
-              safe_copy(libgodot_src, root_bin.join(lib_file))
-            end
+          unless addon_only
+            lib_file = "libgodot.#{Core::Env.dll_ext}"
+            libgodot_src = candidate_dirs.compact_map { |d| d.join(lib_file) if File.exists?(d.join(lib_file)) }.first?
+            if libgodot_src
+              if target_bin.nil? && is_repo
+                safe_copy(libgodot_src, root_bin.join(lib_file))
+              end
 
-            bin_dirs.each do |d|
-              FileUtils.mkdir_p(d) unless Dir.exists?(d)
-              safe_copy(libgodot_src, d.join(lib_file))
+              bin_dirs.each do |d|
+                FileUtils.mkdir_p(d) unless Dir.exists?(d)
+                safe_copy(libgodot_src, d.join(lib_file))
+              end
             end
           end
 

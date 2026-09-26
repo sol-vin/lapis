@@ -1,0 +1,15 @@
+name: crshader_demo
+version: 0.1.0
+authors:
+  - Developer <developer@example.com>
+license: MIT
+
+dependencies:
+  lapis:
+    path: ../../
+  crshader:
+    path: ../../bin/crshader
+
+targets:
+  game:
+    main: src/main.cr

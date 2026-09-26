@@ -203,34 +203,52 @@ module Lapis
           dest_bin = dest_addon.join("bin")
           FileUtils.mkdir_p(dest_bin)
 
-          # Bundle platform-specific lapis executable!
-          lapis_candidates = [
-            root.join("bin/lapis#{plat == "windows" ? ".exe" : ""}"),
-            base.join("bin/lapis#{plat == "windows" ? ".exe" : ""}"),
-          ]
-          if (exe = Process.executable_path)
-            lapis_candidates << Path.new(exe)
-          end
-          if lapis_found = lapis_candidates.find { |p| File.exists?(p) }
-            safe_copy(lapis_found, dest_bin.join("lapis#{plat == "windows" ? ".exe" : ""}"))
-            File.chmod(dest_bin.join("lapis"), 0o755) if plat != "windows" && File.exists?(dest_bin.join("lapis"))
+          # Bundle platform-specific lapis executable only for crystal_integration (editor toolchain)
+          if addon_name == "crystal_integration"
+            lapis_candidates = [
+              root.join("bin/lapis#{plat == "windows" ? ".exe" : ""}"),
+              base.join("bin/lapis#{plat == "windows" ? ".exe" : ""}"),
+            ]
+            if (exe = Process.executable_path)
+              lapis_candidates << Path.new(exe)
+            end
+            if lapis_found = lapis_candidates.find { |p| File.exists?(p) }
+              safe_copy(lapis_found, dest_bin.join("lapis#{plat == "windows" ? ".exe" : ""}"))
+              File.chmod(dest_bin.join("lapis"), 0o755) if plat != "windows" && File.exists?(dest_bin.join("lapis"))
+            end
           end
 
-          # Bundle platform-specific plugin and bridge libraries
+          # Bundle platform-specific plugin, game, and bridge libraries
+          # Invariant: GDExtension addons must NEVER bundle libgodot (engine host library)
           src_bins = [addon_dir.join("bin"), root.join("bin"), base.join("bin")]
           case plat
           when "windows"
-            ["crystal_bridge.dll", "game.dll", "plugin.dll", "#{addon_name}.dll", "gc.dll", "iconv-2.dll", "pcre2-8.dll", "libgodot.dll"].each do |lib_file|
+            win_libs = if addon_name == "crystal_integration"
+                         ["crystal_bridge.dll", "plugin.dll", "gc.dll", "iconv-2.dll", "pcre2-8.dll"]
+                       else
+                         ["crystal_bridge.dll", "game.dll", "#{addon_name}.dll", "gc.dll", "iconv-2.dll", "pcre2-8.dll"]
+                       end
+            win_libs.each do |lib_file|
               src = src_bins.compact_map { |b| b.join(lib_file) if File.exists?(b.join(lib_file)) }.first?
               safe_copy(src, dest_bin.join(lib_file)) if src
             end
           when "linux"
-            ["crystal_bridge.so", "game.so", "plugin.so", "#{addon_name}.so", "libgodot.so"].each do |lib_file|
+            nix_libs = if addon_name == "crystal_integration"
+                         ["crystal_bridge.so", "plugin.so"]
+                       else
+                         ["crystal_bridge.so", "game.so", "#{addon_name}.so"]
+                       end
+            nix_libs.each do |lib_file|
               src = src_bins.compact_map { |b| b.join(lib_file) if File.exists?(b.join(lib_file)) }.first?
               safe_copy(src, dest_bin.join(lib_file)) if src
             end
           when "macos"
-            ["crystal_bridge.dylib", "game.dylib", "plugin.dylib", "#{addon_name}.dylib", "libgodot.dylib"].each do |lib_file|
+            mac_libs = if addon_name == "crystal_integration"
+                         ["crystal_bridge.dylib", "plugin.dylib"]
+                       else
+                         ["crystal_bridge.dylib", "game.dylib", "#{addon_name}.dylib"]
+                       end
+            mac_libs.each do |lib_file|
               src = src_bins.compact_map { |b| b.join(lib_file) if File.exists?(b.join(lib_file)) }.first?
               safe_copy(src, dest_bin.join(lib_file)) if src
             end
@@ -241,6 +259,14 @@ module Lapis
               FileUtils.cp_r(android_arm.to_s, dest_bin.join("android").to_s)
             end
           end
+
+          # Defensively ensure no libgodot engine binaries ever slip into addon archives
+          [
+            dest_bin.join("libgodot.dll"),
+            dest_bin.join("libgodot.lib"),
+            dest_bin.join("libgodot.so"),
+            dest_bin.join("libgodot.dylib"),
+          ].each { |p| File.delete(p) if File.exists?(p) }
 
           Core::Env.purge_foreign_binaries(dest_bin)
           zip_directory(

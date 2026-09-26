@@ -207,7 +207,7 @@ module Lapis
 
           # 3. Parse JSON and generate wrapper classes
           Core::Logger.step("Bind:Project", "Generating typed Crystal wrappers -> #{out_dir}...")
-          data = JSON.parse(File.read(out_json))
+          data = ::JSON.parse(File.read(out_json))
 
           generated_files = [] of String
           parent_map = Hash(String, String?).new
@@ -234,7 +234,7 @@ module Lapis
           end
 
           # Combine both gdscript_classes and plugin_classes from GDExtensions
-          all_classes = [] of JSON::Any
+          all_classes = [] of ::JSON::Any
           if g_classes = data["gdscript_classes"]?.try(&.as_a)
             all_classes.concat(g_classes)
           end
@@ -339,7 +339,7 @@ module Lapis
                     ret_class = m["return_class_name"]?.try(&.as_s)
                     ret_c_type = resolve_crystal_return_type(ret_type_id, ret_class)
 
-                    args_entries = m["args"]?.try(&.as_a) || [] of JSON::Any
+                    args_entries = m["args"]?.try(&.as_a) || [] of ::JSON::Any
                     sig_parts = [] of String
                     call_arg_names = [] of String
 

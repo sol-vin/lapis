@@ -261,9 +261,16 @@ jobs:
         run: |
           shards install || true
           mkdir -p bin
+          GODOT_VER=""
+          if [ -f "godot-version.yml" ]; then
+            GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml | tr -d '\r\n[:space:]')
+          fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev6"; fi
+
           if [ ! -f "bin/lapis" ]; then
-            echo "Fetching standalone Lapis CLI and bridge for Linux..."
-            wget -q https://github.com/sol-vin/lapis/releases/latest/download/lapis-linux-x86_64.tar.gz -O lapis.tar.gz 2>/dev/null || true
+            echo "Fetching standalone Lapis CLI and bridge for Linux (target $GODOT_VER)..."
+            wget -q "https://github.com/sol-vin/lapis/releases/download/${GODOT_VER}/lapis-linux-x86_64.tar.gz" -O lapis.tar.gz 2>/dev/null || \
+            wget -q "https://github.com/sol-vin/lapis/releases/latest/download/lapis-linux-x86_64.tar.gz" -O lapis.tar.gz 2>/dev/null || true
             if [ -f "lapis.tar.gz" ] && [ -s "lapis.tar.gz" ]; then
               tar -xzf lapis.tar.gz -C bin/
               chmod +x bin/lapis
@@ -286,6 +293,16 @@ jobs:
             mkdir -p "addons/${ADDON_NAME}/bin"
             crystal build src/main.cr -o "addons/${ADDON_NAME}/bin/game.so" --link-flags "-shared" --release -Dlibgodot_addon
           )
+          ADDON_NAME=$(awk '/^name:/ {print $2}' shard.yml 2>/dev/null | tr -d ' "\r\n')
+          if [ -z "$ADDON_NAME" ]; then ADDON_NAME="crystal_addon"; fi
+          if [ -f "bin/crystal_bridge.so" ]; then
+            cp -f "bin/crystal_bridge.so" "addons/${ADDON_NAME}/bin/crystal_bridge.so"
+          elif [ -f "bin/addons/crystal_integration/bin/crystal_bridge.so" ]; then
+            cp -f "bin/addons/crystal_integration/bin/crystal_bridge.so" "addons/${ADDON_NAME}/bin/crystal_bridge.so"
+          fi
+          if [ -f "bin/lapis" ]; then
+            ./bin/lapis deps -t "addons/${ADDON_NAME}/bin" --addon
+          fi
 
       - name: Upload Core Binaries (Linux)
         uses: actions/upload-artifact@v4
@@ -319,9 +336,16 @@ jobs:
         run: |
           shards install || true
           mkdir -p bin
+          GODOT_VER=""
+          if [ -f "godot-version.yml" ]; then
+            GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml | tr -d '\r\n[:space:]')
+          fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev6"; fi
+
           if [ ! -f "bin/lapis" ]; then
-            echo "Fetching standalone Lapis CLI and bridge for macOS..."
-            wget -q https://github.com/sol-vin/lapis/releases/latest/download/lapis-macos.zip -O lapis.zip 2>/dev/null || true
+            echo "Fetching standalone Lapis CLI and bridge for macOS (target $GODOT_VER)..."
+            wget -q "https://github.com/sol-vin/lapis/releases/download/${GODOT_VER}/lapis-macos.zip" -O lapis.zip 2>/dev/null || \
+            wget -q "https://github.com/sol-vin/lapis/releases/latest/download/lapis-macos.zip" -O lapis.zip 2>/dev/null || true
             if [ -f "lapis.zip" ] && [ -s "lapis.zip" ]; then
               unzip -q lapis.zip -d bin/
               chmod +x bin/lapis
@@ -343,6 +367,16 @@ jobs:
             mkdir -p "addons/${ADDON_NAME}/bin"
             crystal build src/main.cr -o "addons/${ADDON_NAME}/bin/game.dylib" --link-flags "-dynamiclib" --release -Dlibgodot_addon
           )
+          ADDON_NAME=$(awk '/^name:/ {print $2}' shard.yml 2>/dev/null | tr -d ' "\r\n')
+          if [ -z "$ADDON_NAME" ]; then ADDON_NAME="crystal_addon"; fi
+          if [ -f "bin/crystal_bridge.dylib" ]; then
+            cp -f "bin/crystal_bridge.dylib" "addons/${ADDON_NAME}/bin/crystal_bridge.dylib"
+          elif [ -f "bin/addons/crystal_integration/bin/crystal_bridge.dylib" ]; then
+            cp -f "bin/addons/crystal_integration/bin/crystal_bridge.dylib" "addons/${ADDON_NAME}/bin/crystal_bridge.dylib"
+          fi
+          if [ -f "bin/lapis" ]; then
+            ./bin/lapis deps -t "addons/${ADDON_NAME}/bin" --addon
+          fi
 
       - name: Upload Core Binaries (macOS)
         uses: actions/upload-artifact@v4
@@ -399,14 +433,27 @@ jobs:
         run: |
           shards install
           if (-not (Test-Path "bin")) { New-Item -ItemType Directory -Path "bin" -Force }
+          $godotVer = "4.8-dev6"
+          if (Test-Path "godot-version.yml") {
+            $content = Get-Content "godot-version.yml" -Raw
+            if ($content -match 'version:\s*[''"]?([^''"\r\n]+)[''"]?') {
+              $godotVer = $matches[1].Trim()
+            }
+          }
           if (-not (Test-Path "bin/lapis.exe")) {
-            Write-Host "Fetching standalone Lapis CLI for Windows..."
+            Write-Host "Fetching standalone Lapis CLI for Windows (target $godotVer)..."
             try {
-              Invoke-WebRequest -Uri "https://github.com/sol-vin/lapis/releases/latest/download/lapis-windows-x86_64.zip" -OutFile "lapis.zip"
+              Invoke-WebRequest -Uri "https://github.com/sol-vin/lapis/releases/download/$godotVer/lapis-windows-x86_64.zip" -OutFile "lapis.zip"
               Expand-Archive -Path "lapis.zip" -DestinationPath "bin" -Force
               Remove-Item "lapis.zip" -Force
             } catch {
-              Write-Host "Lapis standalone download fallback: $_"
+              try {
+                Invoke-WebRequest -Uri "https://github.com/sol-vin/lapis/releases/latest/download/lapis-windows-x86_64.zip" -OutFile "lapis.zip"
+                Expand-Archive -Path "lapis.zip" -DestinationPath "bin" -Force
+                Remove-Item "lapis.zip" -Force
+              } catch {
+                Write-Host "Lapis standalone download fallback: $_"
+              }
             }
           }
           if (-not (Test-Path "bin/lapis.exe")) {
@@ -424,6 +471,22 @@ jobs:
         shell: pwsh
         run: |
           make build RELEASE=1
+          $addonName = "crystal_addon"
+          if (Test-Path "shard.yml") {
+            $content = Get-Content "shard.yml" -Raw
+            if ($content -match 'name:\s*[''"]?([^''"\r\n]+)[''"]?') {
+              $addonName = $matches[1].Trim()
+            }
+          }
+          # Ensure crystal_bridge and runtime deps are staged into addons/$addonName/bin
+          if (Test-Path "bin/crystal_bridge.dll") {
+            Copy-Item "bin/crystal_bridge.dll" "addons/$addonName/bin/crystal_bridge.dll" -Force
+          } elseif (Test-Path "bin/addons/crystal_integration/bin/crystal_bridge.dll") {
+            Copy-Item "bin/addons/crystal_integration/bin/crystal_bridge.dll" "addons/$addonName/bin/crystal_bridge.dll" -Force
+          }
+          if (Test-Path "bin/lapis.exe") {
+            ./bin/lapis.exe deps -t "addons/$addonName/bin" --addon
+          }
 
       - name: Upload Core Binaries (Windows)
         uses: actions/upload-artifact@v4

@@ -52,7 +52,7 @@ dirs:
 	@$(LAPIS) dirs
 
 deps: dirs
-	@$(LAPIS) deps -t $(ADDON_BIN_DIR)
+	@$(LAPIS) deps -t $(ADDON_BIN_DIR) --addon
 
 bridge: dirs
 	@$(LAPIS) sync

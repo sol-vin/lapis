@@ -141,6 +141,8 @@ jobs:
         shell: bash
         run: |
           mkdir -p bin
+          GODOT_VER="${{ steps.godot-meta.outputs.godot_version }}"
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev6"; fi
           if command -v lapis >/dev/null 2>&1; then
             echo "Lapis found on system PATH: $(command -v lapis)"
           elif [ -f "bin/lapis" ]; then
@@ -153,8 +155,9 @@ jobs:
               echo "Compiling Lapis CLI from shard lib/lapis..."
               crystal build lib/lapis/tools/lapis/src/lapis.cr -o bin/lapis --no-debug
             else
-              echo "Downloading pre-compiled Lapis CLI for Linux..."
-              curl -sSL "https://github.com/sol-vin/lapis/releases/latest/download/lapis-linux-x86_64.zip" -o lapis.zip || wget -q "https://github.com/sol-vin/lapis/releases/latest/download/lapis-linux-x86_64.zip" -O lapis.zip
+              echo "Downloading pre-compiled Lapis CLI for Linux (target $GODOT_VER)..."
+              curl -sSL "https://github.com/sol-vin/lapis/releases/download/${GODOT_VER}/lapis-linux-x86_64.zip" -o lapis.zip || \
+              curl -sSL "https://github.com/sol-vin/lapis/releases/latest/download/lapis-linux-x86_64.zip" -o lapis.zip || true
               if [ -f "lapis.zip" ] && [ -s "lapis.zip" ]; then
                 unzip -q -o lapis.zip -d bin/ 2>/dev/null || true
                 rm -f lapis.zip
@@ -166,8 +169,9 @@ jobs:
             echo "$(pwd)/bin" >> "$GITHUB_PATH"
           fi
           if [ ! -f "bin/crystal_bridge.so" ] && [ ! -f "addons/*/*/crystal_bridge.so" ]; then
-            echo "Staging pre-compiled Linux GDExtension bridge..."
-            curl -sSL "https://github.com/sol-vin/lapis/releases/latest/download/godot-crystal-addon-linux-x86_64.zip" -o addon-linux.zip 2>/dev/null || true
+            echo "Staging pre-compiled Linux GDExtension bridge (target $GODOT_VER)..."
+            curl -sSL "https://github.com/sol-vin/lapis/releases/download/${GODOT_VER}/godot-crystal-addon-linux-x86_64.zip" -o addon-linux.zip || \
+            curl -sSL "https://github.com/sol-vin/lapis/releases/latest/download/godot-crystal-addon-linux-x86_64.zip" -o addon-linux.zip || true
             if [ -f "addon-linux.zip" ] && [ -s "addon-linux.zip" ]; then
               unzip -q -o addon-linux.zip
               rm -f addon-linux.zip
@@ -179,6 +183,8 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path "bin" | Out-Null
+          $godotVer = "${{ steps.godot-meta.outputs.godot_version }}"
+          if (-not $godotVer) { $godotVer = "4.8-dev6" }
           if (Get-Command lapis.exe -ErrorAction SilentlyContinue) {
             Write-Host "Lapis found on system PATH"
           } elseif (Test-Path "bin/lapis.exe") {
@@ -190,20 +196,41 @@ jobs:
             Write-Host "Compiling Lapis CLI from shard lib/lapis..."
             crystal build lib/lapis/tools/lapis/src/lapis.cr -o bin/lapis.exe --no-debug
           } else {
-            Write-Host "Downloading pre-compiled Lapis CLI for Windows..."
-            $lapisZip = "https://github.com/sol-vin/lapis/releases/latest/download/lapis-windows-x86_64.zip"
+            Write-Host "Downloading pre-compiled Lapis CLI for Windows (target $godotVer)..."
             try {
-              Invoke-WebRequest -Uri $lapisZip -OutFile "lapis.zip"
+              Invoke-WebRequest -Uri "https://github.com/sol-vin/lapis/releases/download/$godotVer/lapis-windows-x86_64.zip" -OutFile "lapis.zip"
               Expand-Archive -Path "lapis.zip" -DestinationPath "bin" -Force
               Remove-Item "lapis.zip" -Force -ErrorAction SilentlyContinue
             } catch {
-              Write-Host "Download skipped or failed: $_"
+              try {
+                Invoke-WebRequest -Uri "https://github.com/sol-vin/lapis/releases/latest/download/lapis-windows-x86_64.zip" -OutFile "lapis.zip"
+                Expand-Archive -Path "lapis.zip" -DestinationPath "bin" -Force
+                Remove-Item "lapis.zip" -Force -ErrorAction SilentlyContinue
+              } catch {
+                Write-Host "Download skipped or failed: $_"
+              }
             }
           }
           if (Test-Path "bin/lapis.exe") {
             $binPath = (Get-Item "bin").FullName
             Add-Content -Path $env:GITHUB_PATH -Value $binPath
             ./bin/lapis.exe --version
+          }
+          if (-not (Test-Path "bin/crystal_bridge.dll") -and -not (Test-Path "addons/*/*/crystal_bridge.dll")) {
+            Write-Host "Staging pre-compiled Windows GDExtension bridge (target $godotVer)..."
+            try {
+              Invoke-WebRequest -Uri "https://github.com/sol-vin/lapis/releases/download/$godotVer/godot-crystal-addon-windows-x86_64.zip" -OutFile "addon-win.zip"
+              Expand-Archive -Path "addon-win.zip" -DestinationPath "." -Force
+              Remove-Item "addon-win.zip" -Force -ErrorAction SilentlyContinue
+            } catch {
+              try {
+                Invoke-WebRequest -Uri "https://github.com/sol-vin/lapis/releases/latest/download/godot-crystal-addon-windows-x86_64.zip" -OutFile "addon-win.zip"
+                Expand-Archive -Path "addon-win.zip" -DestinationPath "." -Force
+                Remove-Item "addon-win.zip" -Force -ErrorAction SilentlyContinue
+              } catch {
+                Write-Host "Addon bridge download skipped or failed: $_"
+              }
+            }
           }
 
       - name: Build Addon Project (Linux)

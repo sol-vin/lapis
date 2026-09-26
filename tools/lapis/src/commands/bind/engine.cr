@@ -224,10 +224,10 @@ module Lapis
 
         private def self.visit(
           name : String,
-          class_map : Hash(String, JSON::Any),
+          class_map : Hash(String, ::JSON::Any),
           inherits_map : Hash(String, String?),
           visited : Set(String),
-          sorted_classes : Array(JSON::Any),
+          sorted_classes : Array(::JSON::Any),
         ) : Void
           return if visited.includes?(name)
           visited.add(name)
@@ -243,7 +243,7 @@ module Lapis
 
         private def self.generate_class_code(
           io : IO,
-          c : JSON::Any,
+          c : ::JSON::Any,
           keywords : Hash(String, String),
           type_map : Hash(String, String),
           class_names : Set(String),
@@ -317,7 +317,7 @@ module Lapis
               method_prefix = is_static ? "def self." : "def "
 
               # Build argument list with default values
-              args = m["arguments"]?.try(&.as_a) || [] of JSON::Any
+              args = m["arguments"]?.try(&.as_a) || [] of ::JSON::Any
               arg_defs = [] of String
               arg_names = [] of String
               arg_is_enum = [] of Bool
@@ -596,7 +596,7 @@ module Lapis
               sig_name = sig["name"].as_s
               next if all_method_names.includes?(sig_name)
               clean_sig_name = sanitize_name(sig_name, keywords)
-              sig_args = sig["arguments"]?.try(&.as_a) || [] of JSON::Any
+              sig_args = sig["arguments"]?.try(&.as_a) || [] of ::JSON::Any
               sig_arg_types = sig_args.map do |a|
                 t_info = resolve_return_type(a["type"].as_s, name, type_map)
                 t_info[:crystal_type]
@@ -662,7 +662,7 @@ module Lapis
 
           Core::Logger.step("Bind:Engine", "Loading #{api_file}...")
           api_json = File.read(api_file)
-          api_data = JSON.parse(api_json)
+          api_data = ::JSON.parse(api_json)
 
           # Load overrides
           ov_file = overrides_path || [
@@ -759,7 +759,7 @@ module Lapis
             api_type == "extension" || api_type == "editor_extension"
           end
 
-          class_map = Hash(String, JSON::Any).new
+          class_map = Hash(String, ::JSON::Any).new
           inherits_map = Hash(String, String?).new
           classes.each do |c|
             name = c["name"].as_s
@@ -768,7 +768,7 @@ module Lapis
           end
 
           visited = Set(String).new
-          sorted_classes = Array(JSON::Any).new
+          sorted_classes = Array(::JSON::Any).new
 
           class_map.keys.each do |name|
             visit(name, class_map, inherits_map, visited, sorted_classes)

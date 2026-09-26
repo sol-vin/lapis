@@ -1,0 +1,26 @@
+# Animated 2D Water Distortion Shader
+# Authored in CrShader Crystal DSL for Godot 4
+shader_type :canvas_item
+
+render_mode :unshaded
+
+uniform wave_speed : Float32 = 1.8, hint: hint_range(0.1, 5.0)
+uniform wave_frequency : Float32 = 8.0, hint: hint_range(1.0, 30.0)
+uniform wave_amplitude : Float32 = 0.04, hint: hint_range(0.0, 0.2)
+uniform water_color : Color = Color.new(0.12, 0.52, 0.88, 0.9), hint: :source_color
+uniform foam_color : Color = Color.new(0.85, 0.95, 1.0, 1.0), hint: :source_color
+
+def fragment
+  uv = UV
+  wave_x = sin(uv.y * wave_frequency + TIME * wave_speed) * wave_amplitude
+  wave_y = cos(uv.x * wave_frequency * 0.7 + TIME * wave_speed * 1.2) * (wave_amplitude * 0.5)
+
+  distorted_uv = vec2(uv.x + wave_x, uv.y + wave_y)
+  foam_factor = clamp(sin((distorted_uv.y + TIME * wave_speed * 0.2) * 20.0) * 0.5 + 0.5, 0.0, 1.0)
+
+  base_col = water_color.rgb
+  foam_col = foam_color.rgb
+  final_rgb = mix(base_col, foam_col, foam_factor * 0.35)
+
+  COLOR = vec4(final_rgb, water_color.a)
+end

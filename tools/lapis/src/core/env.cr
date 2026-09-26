@@ -223,6 +223,8 @@ module Lapis
         dirs = [] of Path
         dirs << root.join("bin") if Dir.exists?(root.join("bin"))
         dirs << root.join("addons/crystal_integration/bin") if Dir.exists?(root.join("addons/crystal_integration/bin"))
+        dirs << root.join("lib/lapis/bin") if Dir.exists?(root.join("lib/lapis/bin"))
+        dirs << root.join("lib/lapis/addons/crystal_integration/bin") if Dir.exists?(root.join("lib/lapis/addons/crystal_integration/bin"))
 
         if (exe = Process.executable_path)
           exe_p = Path.new(exe)

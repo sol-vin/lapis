@@ -81,7 +81,7 @@ module Lapis
         # Check local file or archive extension (.zip, .tar.gz)
         if File.file?(spec) || spec.ends_with?(".zip") || spec.ends_with?(".tar.gz")
           return AddonSpec.new(raw, :local_file, path: spec)
-        elsif Dir.exists?(spec)
+        elsif Dir.exists?(spec) || spec.starts_with?("./") || spec.starts_with?("../") || spec.starts_with?("/") || spec.starts_with?("addons/") || spec.starts_with?("addons\\") || spec.ends_with?('/') || spec.includes?('\\')
           return AddonSpec.new(raw, :local_dir, path: spec)
         end
 
@@ -138,7 +138,7 @@ module Lapis
         resp_root = github_api_get("/repos/#{owner}/#{repo}/contents")
         if resp_root && resp_root.status_code == 200
           begin
-            entries = JSON.parse(resp_root.body).as_a
+            entries = ::JSON.parse(resp_root.body).as_a
             return entries.any? { |e| e["name"]?.try(&.as_s) == "addons" && e["type"]?.try(&.as_s) == "dir" }
           rescue
           end
@@ -164,8 +164,8 @@ module Lapis
         resp = github_api_get(path)
         return nil unless resp && resp.status_code == 200
 
-        body = JSON.parse(resp.body)
-        assets = body["assets"]?.try(&.as_a) || [] of JSON::Any
+        body = ::JSON.parse(resp.body)
+        assets = body["assets"]?.try(&.as_a) || [] of ::JSON::Any
         return nil if assets.empty?
 
         plat = platform.downcase
@@ -304,12 +304,22 @@ module Lapis
         bin_dir = addon_dir.join("bin")
         FileUtils.mkdir_p(bin_dir) unless Dir.exists?(bin_dir)
 
-        bridge_name = Core::Env.windows? ? "crystal_bridge.dll" : (Core::Env.macos? ? "crystal_bridge.dylib" : "crystal_bridge.so")
-        libgodot_name = Core::Env.windows? ? "libgodot.dll" : (Core::Env.macos? ? "libgodot.dylib" : "libgodot.so")
+        bridge_name = Core::Env.bridge_file
+        needed_files = [bridge_name]
+        if Core::Env.windows?
+          needed_files += ["gc.dll", "iconv-2.dll", "pcre2-8.dll"]
+        end
 
-        if !File.exists?(bin_dir.join(bridge_name)) || !File.exists?(bin_dir.join(libgodot_name))
+        # GDExtension addons must NEVER contain or link libgodot shared library.
+        # Defensively purge any erroneously copied libgodot binaries from addon bin directory.
+        libgodot_name = Core::Env.windows? ? "libgodot.dll" : (Core::Env.macos? ? "libgodot.dylib" : "libgodot.so")
+        libgodot_lib = "libgodot.lib"
+        FileUtils.rm_f(bin_dir.join(libgodot_name)) if File.exists?(bin_dir.join(libgodot_name))
+        FileUtils.rm_f(bin_dir.join(libgodot_lib)) if File.exists?(bin_dir.join(libgodot_lib))
+
+        if needed_files.any? { |f| !File.exists?(bin_dir.join(f)) }
           Core::Logger.step("Deps", "Staging GDExtension runtime dependencies into #{bin_dir}...")
-          Commands::Deps.run(["-t", bin_dir.to_s])
+          Commands::Deps.run(["-t", bin_dir.to_s, "--addon"])
         end
       end
 
@@ -401,7 +411,7 @@ module Lapis
           Core::Logger.info("Addon directory '#{target_addon_dir}' already exists. Use --force to overwrite.")
         end
 
-        temp_zip = project_dir.join("scratch", "addon_temp_#{Time.utc.to_unix_ms}.zip")
+        temp_zip = project_dir.join("scratch", "addon_temp_#{::Time.utc.to_unix_ms}.zip")
         FileUtils.mkdir_p(temp_zip.parent)
 
         begin
