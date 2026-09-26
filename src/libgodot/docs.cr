@@ -199,6 +199,11 @@ module Lapis
   #       <td>Bindings Generator</td>
   #       <td>extension_api.json parser, topological DAG resolution, zero-alloc stack ptrcalls</td>
   #     </tr>
+  #     <tr>
+  #       <td><code>X_ADDONS_AND_PLUGINS_GUIDE</code></td>
+  #       <td>Addons & Plugins</td>
+  #       <td>Multi-target execution (Editor, Standalone, Portable), pure Crystal test runner, isolation</td>
+  #     </tr>
   #   </tbody>
   # </table>
   module Docs
@@ -274,6 +279,7 @@ module Lapis
         "U_CODE_CLEANUP_AND_DRY_PATTERNS",
         "V_PERFORMANCE_AND_BENCHMARKS",
         "W_CPP_BRIDGE_ARCHITECTURE",
+        "X_ADDONS_AND_PLUGINS_GUIDE",
       ]
     end
 
@@ -317,6 +323,7 @@ require "./docs/generator"
 require "./docs/patterns"
 require "./docs/benchmarks"
 require "./docs/cpp_bridge"
+require "./docs/addons_and_plugins"
 
 alias Docs = ::Lapis::Docs
 

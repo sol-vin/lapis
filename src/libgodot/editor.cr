@@ -151,6 +151,7 @@ module Lapis
           self.class.setup_new_script_button
           self.class.setup_main_screen_panel
           self.class.setup_debugger_plugin
+          setup_code_completion
           self.class.link_scripts_in_edited_scene
           connect("scene_changed") do |_args|
             self.class.link_scripts_in_edited_scene
@@ -163,6 +164,11 @@ module Lapis
         # Automated verification check for Build Crystal button and live GDExtension reloading
         if ::ENV["LIBGODOT_TEST_BUILD_BUTTON"]? == "1"
           self.class.check_test_build_button_flow
+        end
+
+        # Automated in-editor @tool and Lapis::Test suite execution in pure Crystal
+        if ::ENV["GODOT_RUN_TOOL_TESTS"]? == "1" || ::ENV["CRYSTAL_TOOL_TEST"]? == "1" || ::ARGV.includes?("--run-tool-tests")
+          self.class.schedule_in_editor_tool_tests
         end
       end
 
@@ -544,6 +550,54 @@ module Lapis
 
     def get_crystal_plugin_icon : Texture2D?
       self.class.get_crystal_icon_texture
+    end
+
+    def setup_code_completion : Void
+      return if self.class.headless? || !self.class.has_editor_interface?
+      return if Godot::EditorInterface.singleton_ptr.null?
+      ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
+      script_ed = ed_iface.get_script_editor rescue nil
+      return unless script_ed && !script_ed.pointer.null?
+
+      script_ed.connect("editor_script_changed") do |_args|
+        configure_code_editor
+      end
+      configure_code_editor
+    rescue ex
+      Godot.print("[CrystalIntegrationPlugin] Note: script editor setup: #{ex.message}")
+    end
+
+    def configure_code_editor : Void
+      return if self.class.headless? || !self.class.has_editor_interface?
+      return if Godot::EditorInterface.singleton_ptr.null?
+      ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
+      script_ed = ed_iface.get_script_editor rescue nil
+      return unless script_ed && !script_ed.pointer.null?
+
+      curr_ed = script_ed.call_obj("get_current_editor") rescue nil
+      return unless curr_ed && !curr_ed.pointer.null?
+      base_ed = curr_ed.call_obj("get_base_editor") rescue nil
+      return unless base_ed && !base_ed.pointer.null?
+
+      if base_ed.get_class == "CodeEdit"
+        base_ed.call("set_code_completion_enabled", true) rescue nil
+        prefixes = base_ed.call_obj("get_code_completion_prefixes") rescue nil
+        if prefixes && !prefixes.pointer.null?
+          desired = [".", "::", "@", "<", "_", "$", ":"]
+          changed = false
+          desired.each do |p|
+            has_p = (prefixes.call_bool("has", p) rescue false)
+            unless has_p
+              prefixes.call("append", p) rescue nil
+              changed = true
+            end
+          end
+          if changed
+            base_ed.call("set_code_completion_prefixes", prefixes) rescue nil
+          end
+        end
+      end
+    rescue
     end
 
     def self._godot_has_virtual_method(method_name : String) : Bool
@@ -1139,6 +1193,294 @@ module Lapis
         end
       rescue
       end
+    end
+
+    # =========================================================================
+    # Pure-Crystal In-Editor @tool and Lapis::Test Runner
+    # =========================================================================
+
+    @@in_editor_tests_scheduled : Bool = false
+
+    # Disables type-safe line highlighting in EditorSettings to avoid engine asserts in headless editor mode
+    def self.apply_headless_editor_settings : Void
+      return if Godot::EditorInterface.singleton_ptr.null?
+      ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
+      settings = ed_iface.get_editor_settings rescue nil
+      return if settings.nil? || settings.pointer.null?
+
+      settings.call("set_setting", "text_editor/appearance/gutters/highlight_type_safe_lines", false) rescue nil
+      settings.call("set_setting", "text_editor/appearance/guidelines/highlight_type_safe_lines", false) rescue nil
+      settings.call("set_setting", "text_editor/behavior/indent/type", 1_i64) rescue nil
+      settings.call("set_setting", "text_editor/behavior/indent/size", 2_i64) rescue nil
+    end
+
+    # Schedules pure-Crystal in-editor test suite execution
+    def self.schedule_in_editor_tool_tests : Void
+      return if @@in_editor_tests_scheduled
+      @@in_editor_tests_scheduled = true
+
+      apply_headless_editor_settings
+
+      tree : Godot::SceneTree? = nil
+      if !Godot::EditorInterface.singleton_ptr.null?
+        ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
+        base_ctrl = ed_iface.get_base_control rescue nil
+        if base_ctrl && !base_ctrl.pointer.null? && (base_ctrl.call_bool("is_inside_tree") rescue false)
+          tree = base_ctrl.get_tree rescue nil
+        end
+      end
+      if tree.nil? || tree.pointer.null?
+        if inst = @@instance
+          tree = inst.get_tree rescue nil
+        end
+      end
+
+      if tree && !tree.pointer.null?
+        timer = tree.create_timer(0.2) rescue nil
+        if timer && !timer.pointer.null?
+          timer.connect("timeout") do |_args|
+            run_in_editor_tool_tests
+          end
+          return
+        end
+      end
+
+      spawn do
+        run_in_editor_tool_tests
+      end
+    end
+
+    def self.quit_editor(exit_code : Int64) : Void
+      if !Godot::EditorInterface.singleton_ptr.null?
+        ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
+        base_ctrl = ed_iface.get_base_control rescue nil
+        if base_ctrl && !base_ctrl.pointer.null?
+          tree = base_ctrl.get_tree rescue nil
+          if tree && !tree.pointer.null?
+            tree.call_deferred("quit", exit_code) rescue nil
+            return
+          end
+        end
+      end
+      if inst = @@instance
+        tree = inst.get_tree rescue nil
+        if tree && !tree.pointer.null?
+          tree.call_deferred("quit", exit_code) rescue nil
+          return
+        end
+      end
+    end
+
+    # Executes in-editor @tool tests, Lapis::Test::Registry suites, and dynamic ClassDB verification in 100% pure Crystal
+    def self.run_in_editor_tool_tests : Void
+      Godot.print("==================================================================")
+      Godot.print("[CrystalToolTester] 100% Pure Crystal In-Editor Test Runner Executing...")
+      Godot.print("==================================================================")
+
+      apply_headless_editor_settings
+
+      errors = 0
+      error_messages = Array(String).new
+
+      # 1. Tickle ToolTester2D if scene exists
+      if File.exists?("scenes/test_tool_2d.tscn")
+        Godot.print("[CrystalToolTester] Instantiating and executing ToolTester2D...")
+        begin
+          if !Godot::ResourceLoader.singleton_ptr.null?
+            rl = Godot::ResourceLoader.instance
+            res = rl.load("res://scenes/test_tool_2d.tscn")
+            if !res.pointer.null?
+              packed = Godot::PackedScene.new(res.pointer)
+              node_2d = packed.instantiate
+              if !node_2d.pointer.null?
+                tester_2d = node_2d.get_class == "ToolTester2D" ? node_2d : (node_2d.find_child("ToolTester2D", true, false) rescue nil)
+                if tester_2d && !tester_2d.pointer.null?
+                  tester_2d.call("run_tool_tests") rescue nil
+                  status_2d = tester_2d.get("test_status").to_s
+                  Godot.print("[CrystalToolTester] ToolTester2D status: #{status_2d}")
+                  if status_2d.includes?("Failed") || status_2d.includes?("Error")
+                    msg = "[CrystalToolTester] ToolTester2D failed: #{status_2d}"
+                    Godot.printerr(msg)
+                    error_messages << msg
+                    errors += 1
+                  else
+                    Godot.print("  [PASS] ToolTester2D executed successfully")
+                  end
+                else
+                  msg = "[CrystalToolTester] ToolTester2D node not found in test_tool_2d.tscn"
+                  Godot.printerr(msg)
+                  error_messages << msg
+                  errors += 1
+                end
+                node_2d.call("free") rescue nil
+              end
+            end
+          end
+        rescue ex
+          msg = "[CrystalToolTester] Exception running ToolTester2D: #{ex.message}"
+          Godot.printerr(msg)
+          error_messages << msg
+          errors += 1
+        end
+      end
+
+      # 2. Tickle ToolTester3D if scene exists
+      if File.exists?("scenes/test_tool_3d.tscn")
+        Godot.print("[CrystalToolTester] Instantiating and executing ToolTester3D...")
+        begin
+          if !Godot::ResourceLoader.singleton_ptr.null?
+            rl = Godot::ResourceLoader.instance
+            res = rl.load("res://scenes/test_tool_3d.tscn")
+            if !res.pointer.null?
+              packed = Godot::PackedScene.new(res.pointer)
+              node_3d = packed.instantiate
+              if !node_3d.pointer.null?
+                tester_3d = node_3d.get_class == "ToolTester3D" ? node_3d : (node_3d.find_child("ToolTester3D", true, false) rescue nil)
+                if tester_3d && !tester_3d.pointer.null?
+                  tester_3d.call("run_tool_tests") rescue nil
+                  status_3d = tester_3d.get("test_status").to_s
+                  Godot.print("[CrystalToolTester] ToolTester3D status: #{status_3d}")
+                  if status_3d.includes?("Failed") || status_3d.includes?("Error")
+                    msg = "[CrystalToolTester] ToolTester3D failed: #{status_3d}"
+                    Godot.printerr(msg)
+                    error_messages << msg
+                    errors += 1
+                  else
+                    Godot.print("  [PASS] ToolTester3D executed successfully")
+                  end
+                else
+                  msg = "[CrystalToolTester] ToolTester3D node not found in test_tool_3d.tscn"
+                  Godot.printerr(msg)
+                  error_messages << msg
+                  errors += 1
+                end
+                node_3d.call("free") rescue nil
+              end
+            end
+          end
+        rescue ex
+          msg = "[CrystalToolTester] Exception running ToolTester3D: #{ex.message}"
+          Godot.printerr(msg)
+          error_messages << msg
+          errors += 1
+        end
+      end
+
+      # 3. In-memory execution of Lapis::Test::Registry test suites (zero .tscn requirement)
+      tests = Lapis::Test::Registry.all_tests
+      if !tests.empty?
+        Godot.print("[CrystalToolTester] Executing #{tests.size} in-editor test(s) registered in Lapis::Test::Registry...")
+        dummy_ctx = Godot.create(Godot::Node)
+        begin
+          results = Lapis::Test::Registry.run_all(dummy_ctx)
+          results.each do |r|
+            if r.passed
+              Godot.print("  [PASS] [#{r.category}] #{r.name}")
+            else
+              msg = "[CrystalToolTester] [FAIL] [#{r.category}] #{r.name}: #{r.message}"
+              Godot.printerr(msg)
+              error_messages << msg
+              errors += 1
+            end
+          end
+        rescue ex
+          msg = "[CrystalToolTester] Exception running Lapis::Test::Registry suites: #{ex.message}"
+          Godot.printerr(msg)
+          error_messages << msg
+          errors += 1
+        ensure
+          dummy_ctx.destroy rescue nil
+        end
+      end
+
+      # 4. Dynamic ClassDB & Node Inspection
+      cdb_ptr = Bridge.get_singleton("ClassDB")
+      if !cdb_ptr.null?
+        cdb = Godot::ClassDB.new(cdb_ptr)
+
+        # Multi-addon editor plugin class verification
+        ["CrystalIntegrationPlugin", "DummyDialoguePlugin", "DummyInventoryPlugin", "DummyAudioPlugin"].each do |cls|
+          if cdb.class_exists(cls)
+            if cdb.is_parent_class(cls, "EditorPlugin")
+              Godot.print("  [PASS] #{cls} registered as EditorPlugin")
+            else
+              msg = "[CrystalToolTester] Class '#{cls}' does not inherit from EditorPlugin!"
+              Godot.printerr(msg)
+              error_messages << msg
+              errors += 1
+            end
+          end
+        end
+
+        # Custom addon editor plugin verification
+        if cdb.class_exists("CrystalAddonPlugin")
+          if cdb.is_parent_class("CrystalAddonPlugin", "EditorPlugin")
+            Godot.print("  [PASS] CrystalAddonPlugin registered as EditorPlugin")
+          else
+            msg = "[CrystalToolTester] Class 'CrystalAddonPlugin' does not inherit from EditorPlugin!"
+            Godot.printerr(msg)
+            error_messages << msg
+            errors += 1
+          end
+        end
+
+        # Custom addon Control node verification: dynamic instantiation and property check
+        if cdb.class_exists("CrystalAddonBanner")
+          if cdb.is_parent_class("CrystalAddonBanner", "Control")
+            Godot.print("  [PASS] CrystalAddonBanner registered as Control")
+          else
+            msg = "[CrystalToolTester] Class 'CrystalAddonBanner' does not inherit from Control!"
+            Godot.printerr(msg)
+            error_messages << msg
+            errors += 1
+          end
+
+          if banner_node = Godot.create("CrystalAddonBanner")
+            msg_prop = banner_node.call_str("get", "message") rescue ""
+            if msg_prop.includes?("Hello from Compiled Crystal Addon")
+              Godot.print("  [PASS] Dynamic CrystalAddonBanner default property verified: '#{msg_prop}'")
+            else
+              msg = "[CrystalToolTester] Dynamic CrystalAddonBanner message mismatch: got '#{msg_prop}'"
+              Godot.printerr(msg)
+              error_messages << msg
+              errors += 1
+            end
+            banner_node.destroy rescue nil
+          else
+            msg = "[CrystalToolTester] Failed to construct CrystalAddonBanner dynamically"
+            Godot.printerr(msg)
+            error_messages << msg
+            errors += 1
+          end
+        end
+      end
+
+      # 5. Result reporting and status marker generation
+      if errors > 0
+        fail_msg = "In-Editor Tests Failed: #{errors} error(s):\n" + error_messages.join("\n")
+        Godot.printerr("[CrystalToolTester] #{fail_msg}")
+        [".tool_tests_failed", "bin/.tool_tests_failed"].each do |f|
+          Godot::SystemIO.write_file(f, fail_msg) rescue nil
+        end
+        [".tool_tests_passed", "bin/.tool_tests_passed"].each do |f|
+          Godot::SystemIO.delete_file(f) rescue nil
+        end
+        quit_editor(1_i64)
+      else
+        pass_msg = "All In-Editor Tests Passed Cleanly!\n"
+        Godot.print("[CrystalToolTester] [PASS] ALL IN-EDITOR TESTS PASSED CLEANLY!")
+        [".tool_tests_passed", "bin/.tool_tests_passed"].each do |f|
+          Godot::SystemIO.write_file(f, pass_msg) rescue nil
+        end
+        [".tool_tests_failed", "bin/.tool_tests_failed"].each do |f|
+          Godot::SystemIO.delete_file(f) rescue nil
+        end
+        quit_editor(0_i64)
+      end
+    end
+
+    def run_in_editor_tool_tests : Void
+      self.class.run_in_editor_tool_tests
     end
 
     # Invoked by Godot editor before running project (F5 / F6)

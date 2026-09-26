@@ -127,6 +127,11 @@ inline uint64_t bridge_get_tick_count() {
  */
 inline HMODULE bridge_load_library(const char *path) {
 #ifdef _WIN32
+    char abs_path[MAX_PATH] = {0};
+    if (GetFullPathNameA(path, sizeof(abs_path), abs_path, NULL) > 0) {
+        HMODULE h = LoadLibraryExA(abs_path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
+        if (h) return h;
+    }
     HMODULE h = LoadLibraryExA(path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
     if (!h) h = LoadLibraryA(path);
     return h;

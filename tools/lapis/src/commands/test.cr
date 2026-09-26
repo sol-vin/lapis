@@ -187,6 +187,13 @@ HELP
         ].find { |s| File.exists?(s) }
         has_runtime_test_scene = !runtime_scene.nil? && !skip_runtime_tests
 
+        has_editor_plugins = false
+        if File.exists?(target_dir.join("project.godot"))
+          pg_content = File.read(target_dir.join("project.godot")) rescue ""
+          has_editor_plugins = pg_content.includes?("[editor_plugins]") && pg_content.includes?("enabled=")
+        end
+        has_tool_tests = (is_root_engine || has_editor_plugins) && !skip_tool_tests
+
         standalone_exe = test_bin_dir.join("tests#{Core::Env.exe_ext}")
         pck_file = test_bin_dir.join("tests.pck")
         if is_root_engine && (!File.exists?(standalone_exe) || !File.exists?(pck_file))
@@ -219,6 +226,9 @@ HELP
           # Consumer Project (template, template-addon, examples, or standalone game)
           if has_project_specs
             add_phase_item.call("[TEST:SPECS]", "Project Specifications (#{target_dir.basename})", "Spec")
+          end
+          if has_tool_tests
+            add_phase_item.call("[TEST:TOOL_NODES]", "Headless In-Editor Tests (#{target_dir.basename})", "Test")
           end
           if has_standalone && !skip_standalone
             add_phase_item.call("[TEST:STANDALONE]", "Standalone Test Runner (#{standalone_exe.basename})", "Test")
@@ -482,13 +492,13 @@ HELP
           # -----------------------------------------------------------------------
           # Phase 2: In-Editor Tool Tests (Headless)
           # -----------------------------------------------------------------------
-          if is_root_engine && !skip_tool_tests
+          if has_tool_tests
             if godot_exe
               phase_tag = "[TEST:TOOL_NODES]"
               if idx = phase_map[phase_tag]?
                 tui.try &.begin_phase(idx)
               end
-              Core::Logger.step("Test:Editor", "Running In-Editor Tool Tests (Headless Phase 2a/2b)...") unless tui
+              Core::Logger.step("Test:Editor", "Running In-Editor Tool Tests (Headless Phase 2: #{target_dir.basename})...") unless tui
               env = {
                 "CRYSTAL_TOOL_TEST"     => "1",
                 "GODOT_RUN_TOOL_TESTS"  => "1",
@@ -499,9 +509,9 @@ HELP
               step_start = Time.instant
               res = Core::ProcessRunner.run_with_capture(
                 godot_exe,
-                ["--headless", "--rendering-driver", "opengl3", "--audio-driver", "Dummy", "--editor", "--path", ".", "--quit-after", "10000"],
+                ["--headless", "--rendering-driver", "opengl3", "--audio-driver", "Dummy", "--editor", "--path", target_dir.to_s, "--quit-after", "10000"],
                 env: env,
-                chdir: root.to_s,
+                chdir: target_dir.to_s,
                 passthrough: tui.nil?,
                 on_line: tui ? ->(l : String) { tui.not_nil!.handle_stream_line(l) } : nil
               )
@@ -529,7 +539,7 @@ HELP
 
               step_summary.add_phase(
                 tag: phase_tag,
-                name: "Headless In-Editor @tool Tests (Phase 2a/2b)",
+                name: "Headless In-Editor Tests (#{target_dir.basename})",
                 category: "Test",
                 success: editor_success,
                 duration: step_dur,
