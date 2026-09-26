@@ -213,20 +213,58 @@ module Lapis
           parent_map = Hash(String, String?).new
           custom_class_names = Set(String).new
 
-          if gdscript_classes = data["gdscript_classes"]?.try(&.as_a)
-            gdscript_classes.each do |c|
-              if raw_name = c["name"]?.try(&.as_s)
-                clean = raw_name.gsub(/[^a-zA-Z0-9_]/, "")
-                custom_class_names << clean unless clean.empty?
+          # Scan project's own Crystal source files to exclude locally defined classes
+          local_crystal_classes = Set(String).new
+          Dir.glob(proj_dir.to_s.gsub('\\', '/') + "/**/*.cr").each do |cr_file|
+            next if cr_file.includes?("/generated/") || cr_file.includes?("\\generated\\") ||
+                    cr_file.includes?("/.godot/") || cr_file.includes?("\\.godot\\") ||
+                    cr_file.includes?("/addons/") || cr_file.includes?("\\addons\\") ||
+                    cr_file.includes?("/lib/") || cr_file.includes?("\\lib\\") ||
+                    cr_file.includes?("/scratch/") || cr_file.includes?("\\scratch\\") ||
+                    cr_file.includes?("/bin/") || cr_file.includes?("\\bin\\") ||
+                    cr_file.includes?("/godot-src/") || cr_file.includes?("\\godot-src\\")
+            begin
+              File.each_line(cr_file) do |line|
+                if line =~ /^\s*(?:node|class|struct)\s+([A-Za-z0-9_]+)/
+                  local_crystal_classes << $1
+                end
               end
+            rescue
             end
           end
 
-          if gdscript_classes = data["gdscript_classes"]?.try(&.as_a)
-            gdscript_classes.each do |c|
-              raw_name = c["name"]?.try(&.as_s) || ""
-              clean_class_name = raw_name.gsub(/[^a-zA-Z0-9_]/, "")
-              next if clean_class_name.empty?
+          # Combine both gdscript_classes and plugin_classes from GDExtensions
+          all_classes = [] of JSON::Any
+          if g_classes = data["gdscript_classes"]?.try(&.as_a)
+            all_classes.concat(g_classes)
+          end
+          if p_classes = data["plugin_classes"]?.try(&.as_a)
+            all_classes.concat(p_classes)
+          end
+
+          # Filter out locally defined classes, dummy test addons, and test runners
+          filtered_classes = all_classes.reject do |c|
+            raw_name = c["name"]?.try(&.as_s) || ""
+            clean = raw_name.gsub(/[^a-zA-Z0-9_]/, "")
+            clean.empty? ||
+              local_crystal_classes.includes?(clean) ||
+              clean.starts_with?("Dummy") ||
+              clean.starts_with?("TestRunner") ||
+              clean.starts_with?("ToolTester") ||
+              clean == "RunTesterPanel"
+          end
+
+          filtered_classes.each do |c|
+            if raw_name = c["name"]?.try(&.as_s)
+              clean = raw_name.gsub(/[^a-zA-Z0-9_]/, "")
+              custom_class_names << clean unless clean.empty?
+            end
+          end
+
+          filtered_classes.each do |c|
+            raw_name = c["name"]?.try(&.as_s) || ""
+            clean_class_name = raw_name.gsub(/[^a-zA-Z0-9_]/, "")
+            next if clean_class_name.empty?
 
               inherits_name = c["inherits"]?.try(&.as_s) || "Node"
               clean_inherits = inherits_name.gsub(/[^a-zA-Z0-9_]/, "")
@@ -365,7 +403,6 @@ module Lapis
                 end
               end
             end
-          end
 
           # 4. Manifest (all_project_nodes.cr)
           ordered_files = [] of String

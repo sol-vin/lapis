@@ -1,6 +1,8 @@
 require "../core/env"
 require "../core/logger"
 require "../core/process_runner"
+require "./install_addon"
+require "./shard_manager"
 require "file_utils"
 require "option_parser"
 require "json"
@@ -163,9 +165,21 @@ module Lapis
 
 Usage:
   lapis install [options]
+  lapis install addon <specifier> [options]
+  lapis install shard <specifier> [options]
   lapis uninstall [options]
+  lapis uninstall addon <name> [options]
+  lapis uninstall shard <name> [options]
 
-Options:
+Addon & Shard Installation:
+  lapis install addon github:owner/repo[@tag]   Install Godot addon into addons/
+  lapis install shard github:owner/repo[@branch] Install Crystal shard dependency into shard.yml
+  lapis install addon <specifier> --shard       Install both Godot addon and shard dependency
+  lapis install addon <specifier> --bind        Install compiled addon and auto-bind typed classes
+  lapis uninstall addon <name>                  Remove addon and unregister from project.godot
+  lapis uninstall shard <name>                  Remove dependency from shard.yml
+
+Global Toolchain Options:
   -d, --dir=DIR          Explicit destination directory for executable
   -p, --prefix=PREFIX    Install prefix (executable copied to PREFIX/bin)
   -u, --uninstall        Uninstall Lapis executable and remove global configuration
@@ -177,14 +191,37 @@ Defaults:
   Linux / macOS: /usr/local/bin (root) or ~/.local/bin (non-root)
 
 Examples:
-  lapis install                           # Install to default directory
-  lapis install -d ~/scoop/shims          # Install into custom directory
-  lapis install -p /usr/local             # Install into /usr/local/bin
+  lapis install                           # Install Lapis CLI globally
+  lapis install addon github:sol-vin/crshader
+  lapis install shard github:sol-vin/crshader
+  lapis install addon github:sol-vin/crshader --shard
   lapis install --uninstall               # Remove installed executable
 HELP
       end
 
       def self.run(args : Array(String)) : Int32
+        # Route shard subcommand (both install shard and uninstall shard)
+        if args.includes?("shard") || args.includes?("shards")
+          is_uninstall = args.includes?("uninstall") || args.includes?("-u") || args.includes?("--uninstall")
+          shard_args = args.reject { |a| a == "shard" || a == "shards" || a == "uninstall" || a == "-u" || a == "--uninstall" }
+          if is_uninstall
+            return ShardManager.uninstall(shard_args)
+          else
+            return ShardManager.install(shard_args)
+          end
+        end
+
+        # Route addon subcommand (both install addon and uninstall addon)
+        if args.includes?("addon")
+          is_uninstall = args.includes?("uninstall") || args.includes?("-u") || args.includes?("--uninstall")
+          addon_args = args.reject { |a| a == "addon" || a == "uninstall" || a == "-u" || a == "--uninstall" }
+          if is_uninstall
+            return InstallAddon.run(["--uninstall"] + addon_args)
+          else
+            return InstallAddon.run(addon_args)
+          end
+        end
+
         explicit_dir : String? = nil
         prefix : String? = nil
         uninstall : Bool = false

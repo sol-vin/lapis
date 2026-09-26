@@ -18,69 +18,8 @@
 				}
 			],
 			"signals": []
-		},
-		{
-			"constants": {},
-			"inherits": "SceneTree",
-			"language": "GDScript",
-			"methods": [
-				{
-					"args": [],
-					"flags": 1,
-					"name": "_init",
-					"return_class_name": "",
-					"return_type": 0,
-					"return_type_name": "Nil"
-				}
-			],
-			"name": "ExampleBench",
-			"path": "res://benchmarks/example_bench.gd",
-			"properties": [],
-			"signals": []
 		}
 	],
-	"plugin_classes": [
-		{
-			"constants": {},
-			"inherits": "Node3D",
-			"is_instantiable": true,
-			"methods": [],
-			"name": "MainNode",
-			"properties": [
-				{
-					"class_name": "String",
-					"hint": 18,
-					"hint_string": "",
-					"name": "say_text",
-					"type": 4,
-					"type_name": "String"
-				}
-			],
-			"signals": [
-				{
-					"args": [],
-					"name": "initialized"
-				}
-			]
-		},
-		{
-			"constants": {},
-			"inherits": "Node",
-			"is_instantiable": true,
-			"methods": [],
-			"name": "MyCrystalNode",
-			"properties": [
-				{
-					"class_name": "Int32",
-					"hint": 0,
-					"hint_string": "",
-					"name": "my_var",
-					"type": 2,
-					"type_name": "int"
-				}
-			],
-			"signals": []
-		}
-	],
+	"plugin_classes": [],
 	"project_name": "Crystal Godot Template"
 }

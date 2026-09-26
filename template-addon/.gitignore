@@ -1,0 +1,13 @@
+# Godot engine artifacts
+.godot/
+bin/*
+!bin/.gitkeep
+!bin/.gdignore
+addons/*/bin/*
+!addons/*/bin/.gdignore
+dist/
+crash_dump*
+
+# Crystal dependencies
+lib/
+shard.lock

@@ -220,17 +220,17 @@ module Lapis
           src_bins = [addon_dir.join("bin"), root.join("bin"), base.join("bin")]
           case plat
           when "windows"
-            ["crystal_bridge.dll", "plugin.dll", "gc.dll", "iconv-2.dll", "pcre2-8.dll", "libgodot.dll"].each do |lib_file|
+            ["crystal_bridge.dll", "game.dll", "plugin.dll", "#{addon_name}.dll", "gc.dll", "iconv-2.dll", "pcre2-8.dll", "libgodot.dll"].each do |lib_file|
               src = src_bins.compact_map { |b| b.join(lib_file) if File.exists?(b.join(lib_file)) }.first?
               safe_copy(src, dest_bin.join(lib_file)) if src
             end
           when "linux"
-            ["crystal_bridge.so", "plugin.so", "libgodot.so"].each do |lib_file|
+            ["crystal_bridge.so", "game.so", "plugin.so", "#{addon_name}.so", "libgodot.so"].each do |lib_file|
               src = src_bins.compact_map { |b| b.join(lib_file) if File.exists?(b.join(lib_file)) }.first?
               safe_copy(src, dest_bin.join(lib_file)) if src
             end
           when "macos"
-            ["crystal_bridge.dylib", "plugin.dylib", "libgodot.dylib"].each do |lib_file|
+            ["crystal_bridge.dylib", "game.dylib", "plugin.dylib", "#{addon_name}.dylib", "libgodot.dylib"].each do |lib_file|
               src = src_bins.compact_map { |b| b.join(lib_file) if File.exists?(b.join(lib_file)) }.first?
               safe_copy(src, dest_bin.join(lib_file)) if src
             end

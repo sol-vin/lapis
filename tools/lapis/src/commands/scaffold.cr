@@ -472,8 +472,12 @@ TSCN
           c = File.read(shard)
           c = c.gsub(/name:\s*[^\r\n]+/, "name: #{slug}")
           c = c.gsub(/authors:\s*\n\s*-\s*[^\r\n]+/, "authors:\n  - #{author}") if author
-          if !local_dep && !Core::Env.is_libgodot_repo?(root)
-            c = c.gsub(/path:\s*\.\.\/\.\./, "github: sol-vin/lapis\n    branch: master")
+          if local_dep || Core::Env.is_libgodot_repo?(root)
+            rel_root = Path.new(root).relative_to(dest).to_s.gsub('\\', '/')
+            rel_root = "./#{rel_root}" unless rel_root.starts_with?(".")
+            c = c.gsub(/path:\s*[^\r\n]+/, "path: #{rel_root}")
+          else
+            c = c.gsub(/path:\s*[^\r\n]+/, "github: sol-vin/lapis\n    branch: master")
           end
           File.write(shard, c)
         end
@@ -506,12 +510,14 @@ TSCN
           File.write(plugin_gd, c)
         end
 
-        # addons/<slug>/<slug>.gdextension
-        gdm = addon_dir.join("#{slug}.gdextension")
-        if File.exists?(gdm)
-          c = File.read(gdm)
-          c = c.gsub("crystal_addon", slug)
-          File.write(gdm, c)
+        # addons/<slug>/<slug>.gdextension and root <slug>.gdextension
+        [addon_dir.join("#{slug}.gdextension"), dest.join("#{slug}.gdextension")].each do |gdm|
+          if File.exists?(gdm)
+            c = File.read(gdm)
+            c = c.gsub("crystal_addon", slug)
+            c = c.gsub("crystal_godot_init", "crystal_library_init")
+            File.write(gdm, c)
+          end
         end
 
         # src/main.cr
@@ -555,6 +561,7 @@ TSCN
         force_git : Bool = false,
         force : Bool = false,
         local_dep : Bool = false,
+        pascal_name : String? = nil,
       ) : Int32
         root = Core::Env::ROOT_DIR
         curr = Path.new(Dir.current).expand
@@ -583,11 +590,11 @@ TSCN
           FileUtils.mkdir_p(addon_dir.join("src"))
           FileUtils.mkdir_p(addon_dir.join("bin"))
           FileUtils.mkdir_p(addon_dir.join("spec/editor"))
-          File.write(addon_dir.join("bin/.gdignore"), "") unless File.exists?(addon_dir.join("bin/.gdignore"))
+          File.write(addon_dir.join("bin/.gdignore"), "# Godot ignore file\n") unless File.exists?(addon_dir.join("bin/.gdignore"))
 
           slug = name.underscore
           title = name.split(/[-_]/).map(&.capitalize).join(" ")
-          pascal = name.camelcase
+          pascal = pascal_name || name.camelcase
 
           # 1. plugin.cfg
           File.write(addon_dir.join("plugin.cfg"), <<-CFG
@@ -611,19 +618,34 @@ GD
           # 3. .gdextension manifest
           File.write(addon_dir.join("#{slug}.gdextension"), <<-GDM
 [configuration]
-entry_symbol = "crystal_godot_init"
+entry_symbol = "crystal_library_init"
 compatibility_minimum = "4.1"
 reloadable = true
 
 [libraries]
-windows.debug.x86_64 = "res://addons/#{slug}/bin/#{slug}.dll"
-windows.release.x86_64 = "res://addons/#{slug}/bin/#{slug}.dll"
-linux.debug.x86_64 = "res://addons/#{slug}/bin/#{slug}.so"
-linux.release.x86_64 = "res://addons/#{slug}/bin/#{slug}.so"
-macos.debug = "res://addons/#{slug}/bin/#{slug}.dylib"
-macos.release = "res://addons/#{slug}/bin/#{slug}.dylib"
+windows.debug.x86_64 = "res://addons/#{slug}/bin/crystal_bridge.dll"
+windows.release.x86_64 = "res://addons/#{slug}/bin/crystal_bridge.dll"
+linux.debug.x86_64 = "res://addons/#{slug}/bin/crystal_bridge.so"
+linux.release.x86_64 = "res://addons/#{slug}/bin/crystal_bridge.so"
+macos.debug = "res://addons/#{slug}/bin/crystal_bridge.dylib"
+macos.release = "res://addons/#{slug}/bin/crystal_bridge.dylib"
+macos.debug.arm64 = "res://addons/#{slug}/bin/crystal_bridge.dylib"
+macos.release.arm64 = "res://addons/#{slug}/bin/crystal_bridge.dylib"
+macos.debug.x86_64 = "res://addons/#{slug}/bin/crystal_bridge.dylib"
+macos.release.x86_64 = "res://addons/#{slug}/bin/crystal_bridge.dylib"
+
+[dependencies]
+macos.debug = { "res://addons/#{slug}/bin/game.dylib": "" }
+macos.release = { "res://addons/#{slug}/bin/game.dylib": "" }
+macos.debug.arm64 = { "res://addons/#{slug}/bin/game.dylib": "" }
+macos.release.arm64 = { "res://addons/#{slug}/bin/game.dylib": "" }
+macos.debug.x86_64 = { "res://addons/#{slug}/bin/game.dylib": "" }
+macos.release.x86_64 = { "res://addons/#{slug}/bin/game.dylib": "" }
 GDM
           )
+
+          # Stage initial runtime dependencies
+          Deps.run(["-t", addon_dir.join("bin").to_s])
 
           # 4. shard.yml
           dep_str = if local_dep || Core::Env.is_libgodot_repo?(root)
@@ -828,13 +850,32 @@ CR
             FileUtils.mv(orig_gdm.to_s, new_gdm.to_s)
           end
 
+          # Ensure bin directories and .gdignore exist
+          addon_bin = new_addon.join("bin")
+          FileUtils.mkdir_p(addon_bin) unless Dir.exists?(addon_bin)
+          File.write(addon_bin.join(".gdignore"), "# Godot ignore file\n") unless File.exists?(addon_bin.join(".gdignore"))
+
+          root_bin = dest.join("bin")
+          FileUtils.mkdir_p(root_bin) unless Dir.exists?(root_bin)
+          File.write(root_bin.join(".gdignore"), "# Godot ignore file\n") unless File.exists?(root_bin.join(".gdignore"))
+
+          # Customize files in dest
+          customize_addon_project_files(dest, title, slug, pascal, author, desc, root, local_dep)
+
           # Also provide root .gdextension for root discovery and backwards compatibility
           if File.exists?(new_gdm)
             FileUtils.cp(new_gdm.to_s, dest.join("#{slug}.gdextension").to_s)
           end
 
-          # Customize files in dest
-          customize_addon_project_files(dest, title, slug, pascal, author, desc, root, local_dep)
+          # Stage runtime dependencies (bridge DLL, gc.dll, libgodot.dll) into addon bin and root bin
+          Deps.run(["-t", addon_bin.to_s])
+          Deps.run(["-t", root_bin.to_s])
+
+          # Resolve shards dependencies if shards executable is available
+          if shards_exe = Process.find_executable("shards")
+            Core::Logger.step("Shards", "Resolving dependencies for '#{slug}'...")
+            Core::ProcessRunner.run(shards_exe, ["install"], chdir: dest.to_s)
+          end
 
           # Git repository handling for standalone project
           if no_git
@@ -850,7 +891,7 @@ CR
           if dest != curr
             puts "  cd #{dest}"
           end
-          puts "  lapis build               # Compile addon library"
+          puts "  make                      # Build addon library and stage dependencies"
           puts "  lapis editor              # Launch standalone test runner in Godot Editor"
           puts "  make package RELEASE=1    # Package distributable dist/#{slug}.zip"
           puts
@@ -874,11 +915,13 @@ CR
         desc : String? = nil
         no_git : Bool = false
         force_git : Bool = false
+        pascal_name : String? = nil
 
         parser = OptionParser.new do |opts|
           opts.banner = "Usage: lapis scaffold #{kind} [name] [options]"
           opts.on("-t DIR", "--target=DIR", "Explicit target directory") { |d| target_path = d }
           opts.on("-n NAME", "--name=NAME", "Explicit project name") { |n| explicit_name = n }
+          opts.on("-c NAME", "--class=NAME", "Explicit PascalCase class name (e.g. CrShader)") { |c| pascal_name = c }
           opts.on("-f", "--force", "Overwrite existing files in non-empty target directory") { force = true }
           opts.on("-l", "--local", "Use local relative path for lapis dependency in shard.yml") { local_dep = true }
           opts.on("--skip-godot", "Skip automatic Godot engine download") { skip_godot = true }
@@ -926,7 +969,8 @@ CR
             no_git: no_git,
             force_git: force_git,
             force: force,
-            local_dep: local_dep
+            local_dep: local_dep,
+            pascal_name: pascal_name
           )
         else
           Core::Logger.error("Unknown scaffold type: '#{kind}'. Expected 'game', 'project', 'addon', or 'example'.")

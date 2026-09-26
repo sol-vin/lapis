@@ -31,6 +31,7 @@ files:
   - template-addon/shard.yml
   - template-addon/Makefile
   - template-addon/README.md
+  - template-addon/.gitignore
   - template-addon/src/main.cr
   - template-addon/spec/main_spec.cr
   - template-addon/spec/editor/editor_spec.cr

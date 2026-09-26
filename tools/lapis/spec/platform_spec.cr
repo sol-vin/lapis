@@ -135,7 +135,7 @@ describe "Lapis Platform-Specific Operations" do
       end
 
       it "verifies lapis_installer.iss includes Inno Setup prerequisite" do
-        iss_path = Lapis::Core::Env::ROOT_DIR.join("packaging/windows/lapis_installer.iss")
+        iss_path = LapisSpecHelper.repo_root.join("packaging/windows/lapis_installer.iss")
         File.exists?(iss_path).should be_true
         content = File.read(iss_path)
         content.should contain("HasInnoSetup: Boolean;")
