@@ -180,10 +180,15 @@ HELP
             next if dir == bin_dir
             FileUtils.mkdir_p(dir) unless Dir.exists?(dir)
 
-            # Purge foreign platform binaries (.so on Windows, .dll on Linux)
-            Core::Env.purge_foreign_binaries(dir)
+            dir_str = dir.to_s.gsub('\\', '/')
+            is_addon_bin = dir_str.includes?("/addons/") || dir_str.ends_with?("/addons")
+            files_to_sync = if is_addon_bin
+                              platform_files.reject { |f| f.starts_with?("libgodot") }
+                            else
+                              platform_files
+                            end
 
-            platform_files.each do |bin_name|
+            files_to_sync.each do |bin_name|
               src = if File.exists?(bin_dir.join(bin_name))
                       bin_dir.join(bin_name)
                     elsif File.exists?(root.join("addons/crystal_integration/bin").join(bin_name)) && root.join("addons/crystal_integration/bin") != dir
@@ -197,8 +202,14 @@ HELP
               end
             end
 
+            if is_addon_bin
+              ["libgodot.dll", "libgodot.lib", "libgodot.so", "libgodot.dylib"].each do |lg|
+                stray = dir.join(lg)
+                File.delete(stray) if File.exists?(stray)
+              end
+            end
+
             # plugin file is strictly synced to crystal_integration/bin and root bin
-            dir_str = dir.to_s.gsub('\\', '/')
             is_crystal_integration = dir_str.ends_with?("addons/crystal_integration/bin") || dir_str == root.join("bin").to_s.gsub('\\', '/')
             plugin_target = dir.join(Core::Env.plugin_file)
 

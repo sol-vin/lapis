@@ -374,22 +374,17 @@ module Lapis
         Deps.run(["-t", bin_dir.to_s])
         Sync.run(["-t", bin_dir.to_s, "--bins-only"])
 
-        # Sync game binary & PDB to all active addons/*/bin in the project
-        addons_dir = proj_dir.join("addons")
-        if Dir.exists?(addons_dir)
-          Dir.each_child(addons_dir) do |child|
-            a_bin = addons_dir.join(child, "bin")
-            if Dir.exists?(a_bin)
-              Commands::Deps.safe_copy(output_lib, a_bin.join(output_lib.basename))
-              if Core::Env.windows?
-                src_pdb = Path.new(output_lib.to_s.sub(/\.dll$/, ".pdb"))
-                dst_pdb = a_bin.join(output_lib.basename.to_s.sub(/\.dll$/, ".pdb"))
-                Commands::Deps.safe_copy(src_pdb, dst_pdb) if File.exists?(src_pdb)
-              end
-              # Stage bridge and runtime dependencies in addon bin
-              Deps.run(["-t", a_bin.to_s])
-            end
+        # Sync game binary & PDB to addons/crystal_integration/bin if present
+        ci_bin = proj_dir.join("addons/crystal_integration/bin")
+        if Dir.exists?(ci_bin)
+          Commands::Deps.safe_copy(output_lib, ci_bin.join(output_lib.basename))
+          if Core::Env.windows?
+            src_pdb = Path.new(output_lib.to_s.sub(/\.dll$/, ".pdb"))
+            dst_pdb = ci_bin.join(output_lib.basename.to_s.sub(/\.dll$/, ".pdb"))
+            Commands::Deps.safe_copy(src_pdb, dst_pdb) if File.exists?(src_pdb)
           end
+          # Stage bridge and runtime dependencies in crystal_integration bin
+          Deps.run(["-t", ci_bin.to_s, "--addon"])
         end
 
         Core::Logger.success("Game library compiled and synced: #{output_lib.basename}")

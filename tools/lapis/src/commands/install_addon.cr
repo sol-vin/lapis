@@ -162,6 +162,32 @@ module Lapis
                end
 
         resp = github_api_get(path)
+        # If /releases/latest returned 404 or empty (e.g. pre-releases only), fall back to checking all releases
+        if (resp.nil? || resp.status_code != 200) && (tag.nil? || tag.empty? || tag.downcase == "latest")
+          resp = github_api_get("/repos/#{owner}/#{repo}/releases")
+          if resp && resp.status_code == 200
+            begin
+              releases = ::JSON.parse(resp.body).as_a
+              if first_rel = releases.first?
+                assets = first_rel["assets"]?.try(&.as_a) || [] of ::JSON::Any
+                plat = platform.downcase
+                matched = assets.find do |a|
+                  name = a["name"]?.try(&.as_s.downcase) || ""
+                  name.includes?(plat) && (name.ends_with?(".zip") || name.ends_with?(".tar.gz"))
+                end
+                matched ||= assets.find do |a|
+                  name = a["name"]?.try(&.as_s.downcase) || ""
+                  name.ends_with?(".zip") && !name.includes?("linux") && !name.includes?("macos") && !name.includes?("windows")
+                end
+                if matched && (url = matched["browser_download_url"]?.try(&.as_s)) && (name = matched["name"]?.try(&.as_s))
+                  return {url, name}
+                end
+              end
+            rescue
+            end
+          end
+        end
+
         return nil unless resp && resp.status_code == 200
 
         body = ::JSON.parse(resp.body)
@@ -176,7 +202,7 @@ module Lapis
 
         matched ||= assets.find do |a|
           name = a["name"]?.try(&.as_s.downcase) || ""
-          name.ends_with?(".zip")
+          name.ends_with?(".zip") && !name.includes?("linux") && !name.includes?("macos") && !name.includes?("windows")
         end
 
         matched ||= assets.first?
@@ -442,31 +468,32 @@ module Lapis
 
             Core::Logger.step("Install:Addon", "Resolving addon '#{owner}/#{repo}'#{tag ? " (tag: #{tag})" : ""}...")
 
-            use_release = prefer_release
-            unless use_release || prefer_source
-              has_addons = repo_has_addons_dir?(owner, repo)
-              if !has_addons
-                Core::Logger.info("No 'addons/' directory found in #{owner}/#{repo} repository tree. Checking GitHub Releases...")
-                use_release = true
-              else
-                Core::Logger.info("Found 'addons/' directory in #{owner}/#{repo} repository tree.")
-              end
-            end
-
             download_url : String? = nil
             download_filename : String? = nil
 
-            if use_release
+            # GDExtension addons require compiled binary libraries (e.g. game.dll/so).
+            # Always query GitHub Releases first for precompiled binaries, unless --source is explicitly requested.
+            if !prefer_source
               if release_asset = find_release_asset_url(owner, repo, tag)
                 download_url, download_filename = release_asset
                 Core::Logger.step("Install:Addon", "Found release asset '#{download_filename}' from #{download_url}")
+              elsif prefer_release
+                Core::Logger.error("No suitable release asset found for #{owner}/#{repo} on platform #{Core::Env.current_platform}")
+                return 1
               else
-                Core::Logger.warn("No suitable release asset found for #{owner}/#{repo}. Falling back to repository source...")
-                use_release = false
+                Core::Logger.info("No pre-compiled release asset found for #{owner}/#{repo} (#{Core::Env.current_platform}). Checking repository source...")
               end
             end
 
-            unless use_release
+            # Fall back to downloading repository source tree if no release asset was found
+            if download_url.nil?
+              has_addons = repo_has_addons_dir?(owner, repo)
+              if has_addons
+                Core::Logger.info("Found 'addons/' directory in #{owner}/#{repo} repository tree.")
+              else
+                Core::Logger.warn("No 'addons/' directory found in #{owner}/#{repo} repository tree.")
+              end
+
               branch = tag || "master"
               download_url = "https://github.com/#{owner}/#{repo}/archive/refs/heads/#{branch}.zip"
               download_filename = "#{repo}-#{branch}.zip"
@@ -476,7 +503,7 @@ module Lapis
             Core::Logger.step("Install:Addon", "Downloading #{download_filename} from #{url}...")
             if !Get.download_file(url, temp_zip)
               # If master branch failed, try main
-              if !use_release && (tag.nil? || tag == "master")
+              if (tag.nil? || tag == "master") && url.includes?("/heads/master.zip")
                 alt_url = "https://github.com/#{owner}/#{repo}/archive/refs/heads/main.zip"
                 Core::Logger.info("Retrying with default branch 'main' -> #{alt_url}...")
                 if !Get.download_file(alt_url, temp_zip)
