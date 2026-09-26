@@ -37,7 +37,6 @@ files:
   - template-addon/shard.yml
   - template-addon/Makefile
   - template-addon/export_presets.cfg
-  - template-addon/godot-version.yml
   - template-addon/README.md
   - template-addon/.gitignore
   - template-addon/src/main.cr
