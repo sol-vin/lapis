@@ -104,19 +104,39 @@ module Lapis
                                end
 
         if (lf = effective_link_flags) && !lf.empty?
-          cmd_args << "--link-flags"
-          cmd_args << lf
+          cleaned_lf = lf.strip.sub(/^['"]+/, "").sub(/['"]+$/, "")
+          unless cleaned_lf.empty?
+            cmd_args << "--link-flags"
+            cmd_args << cleaned_lf
+          end
         end
 
+        has_addon_flag = false
         if (fl = flags) && !fl.empty?
           fl.split(' ').each do |f|
             next if f.empty?
-            if f == "--no-single-module"
+            cleaned = f.strip.sub(/^['"]+/, "").sub(/['"]+$/, "")
+            next if cleaned.empty?
+            if cleaned == "--no-single-module"
               cmd_args.delete("--single-module")
             else
-              cmd_args << f
+              has_addon_flag = true if cleaned == "-Dlibgodot_addon"
+              cmd_args << cleaned
             end
           end
+        end
+
+        # Auto-detect if compiling a third-party / redistributable addon binary:
+        # If output_path or entry_path resides within an addon folder (and NOT crystal_integration),
+        # automatically inject -Dlibgodot_addon to prevent compiling editor integration / language bindings into the addon DLL.
+        norm_out = output_path.to_s.gsub('\\', '/')
+        norm_entry = entry_path.to_s.gsub('\\', '/')
+        is_addon_target = (norm_out.includes?("/addons/") || norm_out.starts_with?("addons/") ||
+                           norm_entry.includes?("/addons/") || norm_entry.starts_with?("addons/")) &&
+                          !norm_out.includes?("crystal_integration") && !norm_entry.includes?("crystal_integration")
+
+        if is_addon_target && !has_addon_flag && !cmd_args.includes?("-Dlibgodot_addon")
+          cmd_args << "-Dlibgodot_addon"
         end
 
         env = {"CRYSTAL_PATH" => full_crystal_path}
@@ -327,6 +347,7 @@ module Lapis
         bin_dir = proj_dir.join("bin")
         FileUtils.mkdir_p(bin_dir) unless Dir.exists?(bin_dir)
         output_lib = bin_dir.join(Core::Env.game_file)
+        Sync.ensure_extension_list(proj_dir)
 
         # Resolve libgodot Crystal source path
         src_dir = if sp = source_path

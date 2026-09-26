@@ -132,6 +132,9 @@ HELP
           Core::Logger.warn("Notice: No project.godot found in #{target_dir}. Godot may open the Project Manager.")
         end
 
+        # Ensure GDExtension list is clean and primary crystal extension is at index 0
+        Sync.ensure_extension_list(target_dir)
+
         expected_ver = Core::GodotFinder.expected_version(target_dir.to_s)
         godot_exe = Core::GodotFinder.resolve(godot_path, target_dir.to_s, filter_version: !skip_version_check)
 

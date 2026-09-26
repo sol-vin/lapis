@@ -302,6 +302,21 @@ module Lapis
           end
         end
 
+        # Always maintain crystal_integration as the first extension entry
+        primary_ext = "res://addons/crystal_integration/crystal.gdextension"
+        if Dir.exists?(project_dir.join("addons", "crystal_integration"))
+          if existing_lines.includes?(primary_ext)
+            if existing_lines.first? != primary_ext
+              existing_lines.delete(primary_ext)
+              existing_lines.unshift(primary_ext)
+              updated = true
+            end
+          else
+            existing_lines.unshift(primary_ext)
+            updated = true
+          end
+        end
+
         if updated
           File.write(cfg_file, existing_lines.join("\n") + "\n")
         end

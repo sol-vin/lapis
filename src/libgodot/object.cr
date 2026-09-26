@@ -700,6 +700,49 @@ module Godot
       Bridge.is_instance_valid(id.to_u64)
     end
 
+    @@discovered_script_paths = Hash(String, String).new
+
+    # Discovers a .cr source file corresponding to a custom node/class
+    def self.find_script_path_for_class(target_cls : String) : String
+      return "" if target_cls.empty?
+      if cached = @@discovered_script_paths[target_cls]?
+        return cached
+      end
+
+      snake = target_cls.underscore
+      candidates = [
+        "src/#{snake}.cr",
+        "src/#{snake.sub(/_node$/, "")}.cr",
+        "src/#{snake.sub(/^my_/, "")}.cr",
+      ]
+      candidates.each do |c|
+        if File.exists?(c)
+          path = "res://#{c}"
+          @@discovered_script_paths[target_cls] = path
+          return path
+        end
+      end
+
+      # Scan src/**/*.cr for node/class definition matching target_cls
+      begin
+        if Dir.exists?("src")
+          Dir.glob("src/**/*.cr") do |file|
+            content = File.read(file) rescue ""
+            if content =~ /(?:node|class)\s+#{Regex.escape(target_cls)}\b/
+              norm = file.gsub('\\', '/')
+              path = "res://#{norm}"
+              @@discovered_script_paths[target_cls] = path
+              return path
+            end
+          end
+        end
+      rescue
+      end
+
+      @@discovered_script_paths[target_cls] = ""
+      ""
+    end
+
     # Automatically links this node's registered CrystalScript resource if running inside the Godot Editor
     def link_class_script : Void
       return unless Godot.editor_hint?
@@ -721,12 +764,35 @@ module Godot
         godot_cls = self.call_str("get_class") rescue ""
         entry = ClassRegistry.find(godot_cls) unless godot_cls.empty?
       end
-      return unless entry
-      return if entry.class_name.includes?("Script") || entry.class_name.includes?("Plugin")
-      path = entry.script_path
+
+      target_cls = if entry
+                     entry.class_name
+                   else
+                     godot_cls = self.call_str("get_class") rescue ""
+                     (!godot_cls.empty? && godot_cls != "Node" && godot_cls != "Object") ? godot_cls : c_name
+                   end
+      return if target_cls.empty? || target_cls.includes?("Script") || target_cls.includes?("Plugin") || target_cls == "Node" || target_cls == "Object"
+
+      path = entry.try(&.script_path) || ""
+      parent_name = entry.try(&.parent_name) || ""
+      is_tool = entry.try(&.is_tool) || false
+
+      if path.empty? || path == "res://" || path == "res:///"
+        path = Godot::Object.find_script_path_for_class(target_cls)
+      end
       return if path.empty? || path == "res://" || path == "res:///"
 
-      if script = ClassRegistry.get_or_load_script(path, entry.class_name, entry.parent_name, entry.is_tool)
+      if parent_name.empty?
+        cdb_ptr = Bridge.get_singleton("ClassDB")
+        if !cdb_ptr.null?
+          cdb = Godot::ClassDB.new(cdb_ptr)
+          parent_name = cdb.get_parent_class(target_cls) rescue "Node"
+        else
+          parent_name = "Node"
+        end
+      end
+
+      if script = ClassRegistry.get_or_load_script(path, target_cls, parent_name, is_tool)
         self.call("set_script", script)
       end
     rescue ex

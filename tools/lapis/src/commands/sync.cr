@@ -82,9 +82,10 @@ module Lapis
           end
         end
 
-        # Always ensure primary crystal extension if crystal_integration addon exists
+        # Always ensure primary crystal extension is at index 0 if crystal_integration addon exists
         primary_ext = "res://addons/crystal_integration/crystal.gdextension"
-        if Dir.exists?(addons_dir.join("crystal_integration")) && !existing_lines.includes?(primary_ext)
+        if Dir.exists?(addons_dir.join("crystal_integration"))
+          existing_lines.delete(primary_ext)
           existing_lines.unshift(primary_ext)
         end
 
@@ -160,6 +161,11 @@ HELP
             ensure_extension_list(root.join("template"))
             ensure_extension_list(root.join("template-addon"))
             ensure_extension_list(root.join("performance"))
+
+            curr = Path.new(Dir.current).expand
+            if (File.exists?(curr.join("project.godot")) || Dir.exists?(curr.join("addons"))) && curr != root
+              ensure_extension_list(curr)
+            end
 
             addon_targets.each do |dst|
               sync_addon_directory(src_addon, dst)

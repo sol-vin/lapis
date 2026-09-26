@@ -36,7 +36,7 @@ BRIDGE_SRC      = ../bin/crystal_bridge.$(SO_EXT)
 SOURCE_DIR      = $(if $(wildcard ../src),../src,lib)
 
 CRYSTAL_FLAGS   =
-ifeq ($(RELEASE), 1)
+ifeq ($(strip $(RELEASE)),1)
 	CRYSTAL_FLAGS += --release
 endif
 
@@ -71,7 +71,7 @@ bindings: project_bindings
 
 build: dirs deps bridge extension_list addons project_bindings
 	@echo [Addon] Compiling $(GAME_LIB) from $(ENTRY)...
-	@$(LAPIS) build -e $(ENTRY) -o $(GAME_LIB) -l '$(LINK_FLAGS)' $(if $(filter 1,$(RELEASE)),-r,) -s $(SOURCE_DIR) --flags '-Dlibgodot_addon'
+	@$(LAPIS) build -e $(ENTRY) -o $(GAME_LIB) -l '$(LINK_FLAGS)' $(if $(filter 1,$(RELEASE)),-r,) -s $(SOURCE_DIR) --flags "-Dlibgodot_addon"
 	@$(LAPIS) sync
 
 package package_addon package-addon: all
