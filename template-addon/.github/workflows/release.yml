@@ -864,6 +864,7 @@ jobs:
     needs: [init-release, finalize-release]
     if: always() && !cancelled() && needs.finalize-release.result == 'success'
     runs-on: ubuntu-latest
+    continue-on-error: true
     timeout-minutes: 15
     environment:
       name: github-pages
