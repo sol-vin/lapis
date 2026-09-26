@@ -301,7 +301,7 @@ jobs:
             cp -f "bin/addons/crystal_integration/bin/crystal_bridge.so" "addons/${ADDON_NAME}/bin/crystal_bridge.so"
           fi
           if [ -f "bin/lapis" ]; then
-            ./bin/lapis deps -t "addons/${ADDON_NAME}/bin" --addon
+            ./bin/lapis deps -t "addons/${ADDON_NAME}/bin" || true
           fi
 
       - name: Upload Core Binaries (Linux)
@@ -375,7 +375,7 @@ jobs:
             cp -f "bin/addons/crystal_integration/bin/crystal_bridge.dylib" "addons/${ADDON_NAME}/bin/crystal_bridge.dylib"
           fi
           if [ -f "bin/lapis" ]; then
-            ./bin/lapis deps -t "addons/${ADDON_NAME}/bin" --addon
+            ./bin/lapis deps -t "addons/${ADDON_NAME}/bin" || true
           fi
 
       - name: Upload Core Binaries (macOS)
@@ -485,7 +485,7 @@ jobs:
             Copy-Item "bin/addons/crystal_integration/bin/crystal_bridge.dll" "addons/$addonName/bin/crystal_bridge.dll" -Force
           }
           if (Test-Path "bin/lapis.exe") {
-            ./bin/lapis.exe deps -t "addons/$addonName/bin" --addon
+            ./bin/lapis.exe deps -t "addons/$addonName/bin"
           }
 
       - name: Upload Core Binaries (Windows)

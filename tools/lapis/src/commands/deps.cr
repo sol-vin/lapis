@@ -66,6 +66,10 @@ HELP
           parser.on("-h", "--help", "Show help") { print_help; exit 0 }
         end
 
+        if target_bin.try { |tb| tb.includes?("addons/") || tb.includes?("addons\\") }
+          addon_only = true
+        end
+
         root = Core::Env::ROOT_DIR
         bin_dirs = Core::Env.collect_target_bin_dirs(root, target_bin)
         candidate_dirs = Core::Env.candidate_runtime_dirs(root)
