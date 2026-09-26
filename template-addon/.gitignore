@@ -12,3 +12,4 @@ crash_dump*
 lib/
 shard.lock
 shard.override.yml
+docs/

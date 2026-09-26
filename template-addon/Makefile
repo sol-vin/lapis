@@ -40,7 +40,7 @@ ifeq ($(strip $(RELEASE)),1)
 	CRYSTAL_FLAGS += --release
 endif
 
-.PHONY: all build deps bridge extension_list addons project_bindings project-bindings bindings package package_addon package-addon export export_release export-release rebuild run editor run_editor run-editor test spec setup_dev setup-dev clean help
+.PHONY: all build deps bridge extension_list addons project_bindings project-bindings bindings package package_addon package-addon export export_release export-release rebuild run editor run_editor run-editor test spec docs setup_dev setup-dev clean help
 
 all: dirs deps bridge extension_list addons project_bindings build
 	@echo ===================================================================
@@ -107,6 +107,10 @@ test spec:
 	@echo [Addon] Running Crystal specifications...
 	@crystal spec
 
+docs:
+	@echo [Addon] Generating HTML API documentation...
+	@crystal docs $(if $(wildcard src/$(ADDON_NAME).cr),src/$(ADDON_NAME).cr,$(if $(wildcard src/main.cr),src/main.cr,)) --output docs
+
 help:
 	@echo ===================================================================
 	@echo   Lapis Addon Template - Build and Export Commands
@@ -117,6 +121,7 @@ help:
 	@echo   make package        Create redistributable zip in dist/
 	@echo   make export-release Build optimized release zip in dist/
 	@echo   make test           Run Crystal specifications (spec/ and spec/editor/)
+	@echo   make docs           Generate offline HTML API documentation in docs/
 	@echo   make editor         Launch Godot Editor with addon loaded
 	@echo   make run            Run local project with Godot
 	@echo   make setup-dev      Download and install Godot engine
