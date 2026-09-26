@@ -940,7 +940,15 @@ inline void generic_class_call_virtual_with_data(
                 if (p_args && p_args[0]) {
                     bridge_arg_to_string(p_args[0], path_buf, sizeof(path_buf));
                 }
-                if (!has_cr_extension(path_buf)) {
+                if (!has_cr_extension(path_buf) ||
+                    strstr(path_buf, "/spec/") != nullptr || strstr(path_buf, "\\spec\\") != nullptr ||
+                    strstr(path_buf, "/tools/") != nullptr || strstr(path_buf, "\\tools\\") != nullptr ||
+                    strstr(path_buf, "/lib/") != nullptr || strstr(path_buf, "\\lib\\") != nullptr ||
+                    strstr(path_buf, "/bin/") != nullptr || strstr(path_buf, "\\bin\\") != nullptr ||
+                    strstr(path_buf, "/docs/") != nullptr || strstr(path_buf, "\\docs\\") != nullptr ||
+                    strstr(path_buf, "/.agents/") != nullptr || strstr(path_buf, "\\.agents\\") != nullptr ||
+                    strstr(path_buf, "/graft/") != nullptr || strstr(path_buf, "\\graft\\") != nullptr ||
+                    strstr(path_buf, "/scratch/") != nullptr || strstr(path_buf, "\\scratch\\") != nullptr) {
                     bridge_ret_dictionary_empty(r_ret);
                     return;
                 }

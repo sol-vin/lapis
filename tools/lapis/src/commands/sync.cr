@@ -285,6 +285,19 @@ HELP
         # 4. Sync godot-version.yml across all consumer projects
         root_version_yml = root.join("godot-version.yml")
         if File.exists?(root_version_yml)
+          ver = Core::GodotFinder.expected_version(root.to_s)
+          # Synchronize tag in template shard specifications from godot-version.yml
+          ["template", "template-addon"].each do |t_dir|
+            ["shard.yml", "shard.release.yml"].each do |s_name|
+              s_file = root.join(t_dir, s_name)
+              if File.exists?(s_file)
+                content = File.read(s_file)
+                updated = content.gsub(/tag:\s*[^\r\n]+/, "tag: #{ver}")
+                File.write(s_file, updated) if updated != content
+              end
+            end
+          end
+
           consumer_projs = ["test", "template", "template-addon", "performance"]
           examples_dir = root.join("examples")
           if Dir.exists?(examples_dir)

@@ -64,7 +64,7 @@ HELP
         dest_expanded = dst_dir.expand.to_s.gsub('\\', '/')
         root_expanded = root.expand.to_s.gsub('\\', '/')
 
-        if local_dep || (Core::Env.is_libgodot_repo?(root) && (dest_expanded.starts_with?("#{root_expanded}/examples") || dest_expanded.starts_with?("#{root_expanded}/bin/test")))
+        if local_dep || (Core::Env.is_libgodot_repo?(root) && dest_expanded.starts_with?("#{root_expanded}/examples"))
           rel_root = Path.new(root).relative_to(dst_dir).to_s.gsub('\\', '/')
           rel_root = "./#{rel_root}" unless rel_root.starts_with?(".")
           dep_str = "  lapis:\n    path: #{rel_root}"
@@ -477,7 +477,7 @@ TSCN
           c = c.gsub(/authors:\s*\n\s*-\s*[^\r\n]+/, "authors:\n  - #{author}") if author
           dest_expanded = dest.expand.to_s.gsub('\\', '/')
           root_expanded = root.expand.to_s.gsub('\\', '/')
-          if local_dep || (Core::Env.is_libgodot_repo?(root) && (dest_expanded.starts_with?("#{root_expanded}/examples") || dest_expanded.starts_with?("#{root_expanded}/bin/test") || dest_expanded.starts_with?("#{root_expanded}/addons")))
+          if local_dep || (Core::Env.is_libgodot_repo?(root) && dest_expanded.starts_with?("#{root_expanded}/examples"))
             rel_root = Path.new(root).relative_to(dest).to_s.gsub('\\', '/')
             rel_root = "./#{rel_root}" unless rel_root.starts_with?(".")
             c = c.gsub(/path:\s*[^\r\n]+/, "path: #{rel_root}")
@@ -656,7 +656,7 @@ GDM
           Deps.run(["-t", addon_dir.join("bin").to_s])
 
           # 4. shard.yml
-          dep_str = if local_dep || Core::Env.is_libgodot_repo?(root)
+          dep_str = if local_dep
                       rel_root = Path.new(root).relative_to(addon_dir).to_s.gsub('\\', '/')
                       rel_root = "./#{rel_root}" unless rel_root.starts_with?(".")
                       File.write(addon_dir.join("shard.override.yml"), "dependencies:\n  lapis:\n    path: #{rel_root}\n")

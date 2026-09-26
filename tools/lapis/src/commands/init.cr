@@ -107,7 +107,7 @@ GODOT
         # 2. Setup shard.yml
         shard_yml = target_dir.join("shard.yml")
         if !File.exists?(shard_yml) || force
-          dep_str = if local_dep || Core::Env.is_libgodot_repo?(root)
+          dep_str = if local_dep
                       rel_root = Path.new(root).relative_to(target_dir).to_s.gsub('\\', '/')
                       rel_root = "./#{rel_root}" unless rel_root.starts_with?(".")
                       "  lapis:\n    path: #{rel_root}"

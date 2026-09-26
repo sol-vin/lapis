@@ -2694,7 +2694,7 @@ jobs:
   deploy-docs:
     name: Deploy Docs & Benchmarks to GitHub Pages
     needs: [init-release, finalize-release]
-    if: always() && !cancelled() && needs.finalize-release.result == 'success'
+    if: always() && !cancelled() && needs.finalize-release.result == 'success' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     concurrency:
