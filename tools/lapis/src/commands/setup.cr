@@ -47,7 +47,7 @@ HELP
           end
         end
 
-        "4.8-dev5"
+        Core::GodotFinder::EMBEDDED_GODOT_VERSION
       end
 
       def self.download_and_extract(url : String, dest_exe : Path) : Bool

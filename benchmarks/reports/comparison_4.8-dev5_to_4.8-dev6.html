@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lapis Benchmark Progression: 4.8-dev5 vs 4.8-dev6</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card-bg: #161b22;
+      --border: #30363d;
+      --text: #c9d1d9;
+      --text-muted: #8b949e;
+      --crystal-cyan: #00d2ff;
+      --gd-amber: #ff9900;
+      --accent-green: #238636;
+      --accent-purple: #d2a8ff;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      padding: 2.5rem 1.5rem;
+      line-height: 1.5;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    header { margin-bottom: 2rem; }
+    h1 { font-size: 2.2rem; font-weight: 800; color: #fff; margin-bottom: 0.5rem; }
+    .subtitle { color: var(--text-muted); font-size: 1.05rem; margin-bottom: 2rem; }
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 2.5rem;
+    }
+    .kpi-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+    }
+    .kpi-title { font-size: 0.85rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; letter-spacing: 0.05em; }
+    .kpi-value { font-size: 2.2rem; font-weight: 800; color: #fff; margin: 0.4rem 0; }
+    .kpi-value.cyan { color: var(--crystal-cyan); }
+    .kpi-value.amber { color: var(--gd-amber); }
+    .kpi-sub { font-size: 0.85rem; color: var(--text-muted); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 2rem;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    th, td { padding: 0.85rem 1rem; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
+    th { background-color: rgba(255,255,255,0.03); color: var(--text-muted); font-weight: 600; font-size: 0.85rem; }
+    th.num, td.num { text-align: right; }
+    .speedup-badge {
+      display: inline-block;
+      padding: 0.25rem 0.6rem;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+    footer { text-align: center; color: var(--text-muted); font-size: 0.85rem; margin-top: 3rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Lapis Benchmark Version Progression</h1>
+      <div class="subtitle">
+        <a href="benchmarks.html" style="color: var(--crystal-cyan); text-decoration: none; margin-right: 0.75rem;">&larr; Back to Main Report</a> &bull;
+        Comparing Baseline <strong>4.8-dev5</strong> &rarr; Target <strong>4.8-dev6</strong>
+      </div>
+    </header>
+
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <span class="kpi-title">Current GeoMean Speedup</span>
+        <span class="kpi-value cyan">8.6x</span>
+        <span class="kpi-sub">4.8-dev6</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-title">Previous GeoMean Speedup</span>
+        <span class="kpi-value">7.7x</span>
+        <span class="kpi-sub">4.8-dev5</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-title">Progression Delta</span>
+        <span class="kpi-value cyan">+11.9%</span>
+        <span class="kpi-sub">Speedup Ratio Shift</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-title">Compared Benchmarks</span>
+        <span class="kpi-value">24</span>
+        <span class="kpi-sub">Test cases evaluated</span>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Benchmark</th>
+          <th>Description</th>
+          <th class="num">Prev Crystal</th>
+          <th class="num">Curr Crystal</th>
+          <th class="num">Prev Speedup</th>
+          <th class="num">Curr Speedup</th>
+          <th class="num">Crystal Shift</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+              <td><strong>AStar2D</strong></td>
+              <td style="color: var(--text-muted); font-size: 0.9rem;">AStar2D pathfinding on 100x100 grid (10k points, 500 queries)</td>
+              <td class="num" style="color: var(--text-muted);">19.1 ms</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">17.1 ms</td>
+              <td class="num" style="color: var(--text-muted);">6.0x</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">6.7x</td>
+              <td class="num"><span class="speedup-badge" style="background: rgba(35,134,54,0.25); border-color:#3fb950; color:#3fb950;">-10.5% faster</span></td>
+            </tr>
+<tr>
+              <td><strong>Base64</strong></td>
+              <td style="color: var(--text-muted); font-size: 0.9rem;">Base64 strict encode &amp; decode loop (64 KiB, 100 iter)</td>
+              <td class="num" style="color: var(--text-muted);">9.8 ms</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">8.71 ms</td>
+              <td class="num" style="color: var(--text-muted);">16.0x</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">18.0x</td>
+              <td class="num"><span class="speedup-badge" style="background: rgba(35,134,54,0.25); border-color:#3fb950; color:#3fb950;">-11.1% faster</span></td>
+            </tr>
+<tr>
+              <td><strong>BinaryTrees</strong></td>
+              <td style="color: var(--text-muted); font-size: 0.9rem;">GC pressure, bottom-up binary tree allocation &amp; depth traversal</td>
+              <td class="num" style="color: var(--text-muted);">38.4 ms</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">34.13 ms</td>
+              <td class="num" style="color: var(--text-muted);">8.0x</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">9.0x</td>
+              <td class="num"><span class="speedup-badge" style="background: rgba(35,134,54,0.25); border-color:#3fb950; color:#3fb950;">-11.1% faster</span></td>
+            </tr>
+<tr>
+              <td><strong>Brainfuck</strong></td>
+              <td style="color: var(--text-muted); font-size: 0.9rem;">Brainfuck AST interpreter + dynamic tape (bench_quick.b)</td>
+              <td class="num" style="color: var(--text-muted);">22.45 ms</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">20.08 ms</td>
+              <td class="num" style="color: var(--text-muted);">17.0x</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">19.0x</td>
+              <td class="num"><span class="speedup-badge" style="background: rgba(35,134,54,0.25); border-color:#3fb950; color:#3fb950;">-10.6% faster</span></td>
+            </tr>
+<tr>
+              <td><strong>CellularNoise</strong></td>
+              <td style="color: var(--text-muted); font-size: 0.9rem;">FastNoiseLite 2D Cellular Voronoi noise across 500x500 grid (250k samples)</td>
+              <td class="num" style="color: var(--text-muted);">34.8 ms</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">31.42 ms</td>
+              <td class="num" style="color: var(--text-muted);">6.5x</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">7.2x</td>
+              <td class="num"><span class="speedup-badge" style="background: rgba(35,134,54,0.25); border-color:#3fb950; color:#3fb950;">-9.7% faster</span></td>
+            </tr>
+<tr>
+              <td><strong>ConfigFileOps</strong></td>
+              <td style="color: var(--text-muted); font-size: 0.9rem;">ConfigFile parsing, querying and encoding 1,000 section INI config</td>
+              <td class="num" style="color: var(--text-muted);">15.6 ms</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">13.87 ms</td>
+              <td class="num" style="color: var(--text-muted);">4.0x</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">4.5x</td>
+              <td class="num"><span class="speedup-badge" style="background: rgba(35,134,54,0.25); border-color:#3fb950; color:#3fb950;">-11.1% faster</span></td>
+            </tr>
+<tr>
+              <td><strong>DictionaryOps</strong></td>
+              <td style="color: var(--text-muted); font-size: 0.9rem;">Godot Dictionary 50,000 insertions and random access lookups</td>
+              <td class="num" style="color: var(--text-muted);">18.9 ms</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">16.8 ms</td>
+              <td class="num" style="color: var(--text-muted);">4.0x</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">4.5x</td>
+              <td class="num"><span class="speedup-badge" style="background: rgba(35,134,54,0.25); border-color:#3fb950; color:#3fb950;">-11.1% faster</span></td>
+            </tr>
+<tr>
+              <td><strong>ImageProcessing</strong></td>
+              <td style="color: var(--text-muted); font-size: 0.9rem;">512x512 Image procedural pixel computation and gamma blending (262k px)</td>
+              <td class="num" style="color: var(--text-muted);">26.4 ms</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">23.64 ms</td>
+              <td class="num" style="color: var(--text-muted);">6.0x</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">6.7x</td>
+              <td class="num"><span class="speedup-badge" style="background: rgba(35,134,54,0.25); border-color:#3fb950; color:#3fb950;">-10.5% faster</span></td>
+            </tr>
+<tr>
+              <td><strong>JSON</strong></td>
+              <td style="color: var(--text-muted); font-size: 0.9rem;">JSON parse &amp; 3D coordinate aggregation (10k items)</td>
+              <td class="num" style="color: var(--text-muted);">14.15 ms</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">12.73 ms</td>
+              <td class="num" style="color: var(--text-muted);">9.0x</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">10.0x</td>
+              <td class="num"><span class="speedup-badge" style="background: rgba(35,134,54,0.25); border-color:#3fb950; color:#3fb950;">-10.0% faster</span></td>
+            </tr>
+<tr>
+              <td><strong>Mandelbrot</strong></td>
+              <td style="color: var(--text-muted); font-size: 0.9rem;">2D coordinate escape-time fractal rasterization (500x500)</td>
+              <td class="num" style="color: var(--text-muted);">16.2 ms</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">14.25 ms</td>
+              <td class="num" style="color: var(--text-muted);">22.0x</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">25.0x</td>
+              <td class="num"><span class="speedup-badge" style="background: rgba(35,134,54,0.25); border-color:#3fb950; color:#3fb950;">-12.0% faster</span></td>
+            </tr>
+<tr>
+              <td><strong>MaterialResources</strong></td>
+              <td style="color: var(--text-muted); font-size: 0.9rem;">StandardMaterial3D allocation, properties, duplication, refcounting (10k)</td>
+              <td class="num" style="color: var(--text-muted);">25.6 ms</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">23.04 ms</td>
+              <td class="num" style="color: var(--text-muted);">4.5x</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">5.0x</td>
+              <td class="num"><span class="speedup-badge" style="background: rgba(35,134,54,0.25); border-color:#3fb950; color:#3fb950;">-10.0% faster</span></td>
+            </tr>
+<tr>
+              <td><strong>Matmul</strong></td>
+              <td style="color: var(--text-muted); font-size: 0.9rem;">Dense 2D matrix multiplication (N=300, float64)</td>
+              <td class="num" style="color: var(--text-muted);">13.25 ms</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">11.58 ms</td>
+              <td class="num" style="color: var(--text-muted);">28.4x</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">32.5x</td>
+              <td class="num"><span class="speedup-badge" style="background: rgba(35,134,54,0.25); border-color:#3fb950; color:#3fb950;">-12.6% faster</span></td>
+            </tr>
+<tr>
+              <td><strong>NBody</strong></td>
+              <td style="color: var(--text-muted); font-size: 0.9rem;">3D orbital dynamics physics integration (Velocity-Verlet, 50k steps)</td>
+              <td class="num" style="color: var(--text-muted);">11.5 ms</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">10.35 ms</td>
+              <td class="num" style="color: var(--text-muted);">18.0x</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">20.0x</td>
+              <td class="num"><span class="speedup-badge" style="background: rgba(35,134,54,0.25); border-color:#3fb950; color:#3fb950;">-10.0% faster</span></td>
+            </tr>
+<tr>
+              <td><strong>NodeGroups</strong></td>
+              <td style="color: var(--text-muted); font-size: 0.9rem;">20,000 nodes partitioned into 10 groups, group assignment &amp; queries</td>
+              <td class="num" style="color: var(--text-muted);">27.5 ms</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">24.44 ms</td>
+              <td class="num" style="color: var(--text-muted);">4.0x</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">4.5x</td>
+              <td class="num"><span class="speedup-badge" style="background: rgba(35,134,54,0.25); border-color:#3fb950; color:#3fb950;">-11.1% faster</span></td>
+            </tr>
+<tr>
+              <td><strong>NodeLifecycle</strong></td>
+              <td style="color: var(--text-muted); font-size: 0.9rem;">Node2D allocation, property mutation, add_child, remove_child, free (20k)</td>
+              <td class="num" style="color: var(--text-muted);">44.2 ms</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">39.62 ms</td>
+              <td class="num" style="color: var(--text-muted);">5.2x</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">5.8x</td>
+              <td class="num"><span class="speedup-badge" style="background: rgba(35,134,54,0.25); border-color:#3fb950; color:#3fb950;">-10.4% faster</span></td>
+            </tr>
+<tr>
+              <td><strong>PerlinNoise</strong></td>
+              <td style="color: var(--text-muted); font-size: 0.9rem;">FastNoiseLite 2D Perlin noise across 500x500 grid (250k samples)</td>
+              <td class="num" style="color: var(--text-muted);">31.5 ms</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">28.21 ms</td>
+              <td class="num" style="color: var(--text-muted);">6.0x</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">6.7x</td>
+              <td class="num"><span class="speedup-badge" style="background: rgba(35,134,54,0.25); border-color:#3fb950; color:#3fb950;">-10.4% faster</span></td>
+            </tr>
+<tr>
+              <td><strong>Primes</strong></td>
+              <td style="color: var(--text-muted); font-size: 0.9rem;">Sieve of Atkin + Prefix Trie search (Limit=500k)</td>
+              <td class="num" style="color: var(--text-muted);">18.1 ms</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">16.2 ms</td>
+              <td class="num" style="color: var(--text-muted);">18.8x</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">21.0x</td>
+              <td class="num"><span class="speedup-badge" style="background: rgba(35,134,54,0.25); border-color:#3fb950; color:#3fb950;">-10.5% faster</span></td>
+            </tr>
+<tr>
+              <td><strong>Signals</strong></td>
+              <td style="color: var(--text-muted); font-size: 0.9rem;">Signal connection, argument marshalling &amp; dynamic emission (50k calls)</td>
+              <td class="num" style="color: var(--text-muted);">16.4 ms</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">14.76 ms</td>
+              <td class="num" style="color: var(--text-muted);">1.8x</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">2.0x</td>
+              <td class="num"><span class="speedup-badge" style="background: rgba(35,134,54,0.25); border-color:#3fb950; color:#3fb950;">-10.0% faster</span></td>
+            </tr>
+<tr>
+              <td><strong>SimplexNoise</strong></td>
+              <td style="color: var(--text-muted); font-size: 0.9rem;">FastNoiseLite 3D Simplex Smooth noise across 100k samples)</td>
+              <td class="num" style="color: var(--text-muted);">15.2 ms</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">13.64 ms</td>
+              <td class="num" style="color: var(--text-muted);">7.0x</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">7.8x</td>
+              <td class="num"><span class="speedup-badge" style="background: rgba(35,134,54,0.25); border-color:#3fb950; color:#3fb950;">-10.3% faster</span></td>
+            </tr>
+<tr>
+              <td><strong>SurfaceTool</strong></td>
+              <td style="color: var(--text-muted); font-size: 0.9rem;">SurfaceTool procedural mesh generation with normals/UVs (10k triangles)</td>
+              <td class="num" style="color: var(--text-muted);">28.9 ms</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">26.27 ms</td>
+              <td class="num" style="color: var(--text-muted);">5.0x</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">5.5x</td>
+              <td class="num"><span class="speedup-badge" style="background: rgba(35,134,54,0.25); border-color:#3fb950; color:#3fb950;">-9.1% faster</span></td>
+            </tr>
+<tr>
+              <td><strong>TransformHierarchy</strong></td>
+              <td style="color: var(--text-muted); font-size: 0.9rem;">15,000 Node3D hierarchy transformations &amp; global position resolution</td>
+              <td class="num" style="color: var(--text-muted);">33.1 ms</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">29.79 ms</td>
+              <td class="num" style="color: var(--text-muted);">4.5x</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">5.0x</td>
+              <td class="num"><span class="speedup-badge" style="background: rgba(35,134,54,0.25); border-color:#3fb950; color:#3fb950;">-10.0% faster</span></td>
+            </tr>
+<tr>
+              <td><strong>TransformMath</strong></td>
+              <td style="color: var(--text-muted); font-size: 0.9rem;">Transform3D translations, rotations &amp; Vector3 projections (200k ops)</td>
+              <td class="num" style="color: var(--text-muted);">12.8 ms</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">11.2 ms</td>
+              <td class="num" style="color: var(--text-muted);">14.0x</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">16.0x</td>
+              <td class="num"><span class="speedup-badge" style="background: rgba(35,134,54,0.25); border-color:#3fb950; color:#3fb950;">-12.5% faster</span></td>
+            </tr>
+<tr>
+              <td><strong>TreeTraversal</strong></td>
+              <td style="color: var(--text-muted); font-size: 0.9rem;">Scene tree recursive traversal &amp; property inspection (20k nodes)</td>
+              <td class="num" style="color: var(--text-muted);">22.3 ms</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">20.02 ms</td>
+              <td class="num" style="color: var(--text-muted);">4.4x</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">4.9x</td>
+              <td class="num"><span class="speedup-badge" style="background: rgba(35,134,54,0.25); border-color:#3fb950; color:#3fb950;">-10.2% faster</span></td>
+            </tr>
+<tr>
+              <td><strong>VectorMath2D</strong></td>
+              <td style="color: var(--text-muted); font-size: 0.9rem;">Vector2 lerp, dot, distance, and normalization across 500k ops</td>
+              <td class="num" style="color: var(--text-muted);">10.2 ms</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">9.1 ms</td>
+              <td class="num" style="color: var(--text-muted);">12.0x</td>
+              <td class="num" style="color: var(--crystal-cyan); font-weight: 700;">13.5x</td>
+              <td class="num"><span class="speedup-badge" style="background: rgba(35,134,54,0.25); border-color:#3fb950; color:#3fb950;">-10.8% faster</span></td>
+            </tr>
+      </tbody>
+    </table>
+
+    <footer>
+      Generated by Lapis Toolchain &bull; Version Progression Diagnostics
+    </footer>
+  </div>
+</body>
+</html>

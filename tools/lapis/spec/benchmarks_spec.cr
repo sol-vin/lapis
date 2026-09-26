@@ -202,4 +202,67 @@ describe "Lapis Benchmarks & Installer Command Specifications" do
       version.should_not be_empty
     end
   end
+
+  it "generates tag comparison HTML with custom tags (e.g. 4.8-dev5 -> 4.8-dev6)" do
+    prev_metrics = [
+      Lapis::Commands::Benchmarks::BenchmarkMetric.new("Matmul", Lapis::Commands::Benchmarks::Category::Compute, 14.50, 185.0, 12.76, "Matrix mult"),
+    ]
+    curr_metrics = [
+      Lapis::Commands::Benchmarks::BenchmarkMetric.new("Matmul", Lapis::Commands::Benchmarks::Category::Compute, 12.34, 185.0, 15.0, "Matrix mult"),
+    ]
+
+    html = Lapis::Commands::Benchmarks::HtmlGenerator.generate_comparison_html(
+      curr_metrics,
+      prev_metrics,
+      "0.0.118",
+      "0.0.117",
+      curr_tag: "4.8-dev6",
+      prev_tag: "4.8-dev5"
+    )
+    html.should contain("Lapis Benchmark Progression: 4.8-dev5 vs 4.8-dev6")
+    html.should contain("Comparing Baseline <strong>4.8-dev5</strong> &rarr; Target <strong>4.8-dev6</strong>")
+    html.should contain("Back to Main Report")
+  end
+
+  it "renders HTML report with historical logs and progression banner" do
+    metrics = [
+      Lapis::Commands::Benchmarks::BenchmarkMetric.new("Matmul", Lapis::Commands::Benchmarks::Category::Compute, 12.34, 185.0, 15.0, "Matrix mult"),
+    ]
+    history = [
+      Lapis::Commands::Benchmarks::HtmlGenerator::HistoryEntry.new(
+        tag: "4.8-dev5",
+        version: "0.0.117",
+        godot_ver: "4.8-dev5",
+        filename: "report_4.8-dev5.html",
+        xml_filename: "benchmarks_4.8-dev5.xml",
+        speedup: 12.5
+      ),
+    ]
+    comparisons = [
+      Lapis::Commands::Benchmarks::HtmlGenerator::ComparisonEntry.new(
+        prev_tag: "4.8-dev5",
+        curr_tag: "4.8-dev6",
+        filename: "comparison_4.8-dev5_to_4.8-dev6.html"
+      ),
+    ]
+
+    html = Lapis::Commands::Benchmarks::HtmlGenerator.generate_report(
+      metrics,
+      "0.0.118",
+      "windows",
+      "4.8-dev6",
+      tag: "4.8-dev6",
+      history: history,
+      comparisons: comparisons,
+      prev_tag: "4.8-dev5",
+      prev_speedup: 12.5
+    )
+    html.should contain("4.8-dev6")
+    html.should contain("Release Progression:")
+    html.should contain("Tag <code>4.8-dev5</code> &rarr; <code>4.8-dev6</code>")
+    html.should contain("Historical Benchmark Releases &amp; Logs")
+    html.should contain("report_4.8-dev5.html")
+    html.should contain("benchmarks_4.8-dev5.xml")
+    html.should contain("comparison_4.8-dev5_to_4.8-dev6.html")
+  end
 end

@@ -167,7 +167,7 @@ HELP
         tui : TUI::Controller? = nil
         if use_tui
           platform_str = Core::Env.windows? ? "Windows x86_64" : (Core::Env.macos? ? "macOS arm64" : "Linux x86_64")
-          godot_ver = godot_exe ? (Core::GodotFinder.get_version(godot_exe) || "4.8-dev6") : "Not Found"
+          godot_ver = godot_exe ? (Core::GodotFinder.get_version(godot_exe) || Core::GodotFinder.expected_version(root.to_s)) : "Not Found"
           tui = TUI::Controller.new(proj_title, platform_str, godot_ver)
         end
 

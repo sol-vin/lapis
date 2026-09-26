@@ -85,7 +85,14 @@ end
 # end
 # ```
 module Godot
-  VERSION              = "0.1.0"
+  VERSION              = {{
+                           read_file("#{__DIR__}/../shard.yml")
+                             .split("\n")
+                             .find(&.strip.starts_with?("version:"))
+                             .split(":")[1]
+                             .gsub(/["'\r\n]/, "")
+                             .strip
+                         }}
   TARGET_GODOT_VERSION = {{
                            read_file("#{__DIR__}/../godot-version.yml").split("\n").find(&.includes?("version:")).split(":")[1].gsub(/["'\r\n]/, "").strip
                          }}
@@ -130,6 +137,10 @@ module Godot
     MIN_CRYSTAL_VERSION = {{ min_ver }}
     TARGET_CRYSTAL_VERSION = {{ target_ver }}
   {% end %}
+end
+
+module Lapis
+  VERSION = Godot::VERSION
 end
 
 # Core math and transform value-type aliases

@@ -34,7 +34,7 @@ module Lapis
         bridge_dir = root.join("src/bridge")
         if Dir.exists?(bridge_dir)
           ver_file = root.join("godot-version.yml")
-          target_ver = "4.8-dev6"
+          target_ver = Core::GodotFinder::EMBEDDED_GODOT_VERSION
           if File.exists?(ver_file) && (content = File.read(ver_file)) =~ /version:\s*["']?([^"'\r\n]+)["']?/
             target_ver = $1.strip
           end

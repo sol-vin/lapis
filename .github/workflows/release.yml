@@ -2694,7 +2694,7 @@ jobs:
   deploy-docs:
     name: Deploy Docs & Benchmarks to GitHub Pages
     needs: [init-release, finalize-release]
-    if: always() && !cancelled() && needs.finalize-release.result == 'success' && github.ref == 'refs/heads/master'
+    if: always() && !cancelled() && needs.finalize-release.result == 'success' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || github.ref_type == 'tag' || startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     timeout-minutes: 25
     concurrency:
@@ -2783,17 +2783,28 @@ jobs:
             sed -i 's/max-height: none;/max-height: 3000em;/g' docs/css/style.css
           fi
 
+      - name: Build Lapis CLI Tool
+        shell: bash
+        run: |
+          mkdir -p bin
+          crystal build --release -O3 tools/lapis/src/lapis.cr -o bin/lapis
+          chmod +x bin/lapis
+
       - name: Build & Run Benchmark Suite
         shell: bash
         run: |
           echo "Executing Crystal vs GDScript benchmarks via Lapis CLI..."
-          ./bin/lapis benchmarks run html -i 2 || ./bin/lapis benchmarks -i 1 || true
+          TAG_NAME="${{ needs.init-release.outputs.godot_version }}"
+          if [ -z "$TAG_NAME" ]; then TAG_NAME="${GITHUB_REF_NAME:-4.8-dev6}"; fi
+          ./bin/lapis benchmarks run html --tag "$TAG_NAME" -i 2 || ./bin/lapis benchmarks run html --tag "$TAG_NAME" -i 1 || true
 
       - name: Compare Benchmarks Against Previous Release
         shell: bash
         run: |
           echo "Comparing current benchmark against previous baseline..."
-          ./bin/lapis benchmarks compare html || true
+          TAG_NAME="${{ needs.init-release.outputs.godot_version }}"
+          if [ -z "$TAG_NAME" ]; then TAG_NAME="${GITHUB_REF_NAME:-4.8-dev6}"; fi
+          ./bin/lapis benchmarks compare html --tag "$TAG_NAME" || true
 
       - name: Stage Benchmarks for GitHub Pages
         shell: bash
@@ -2801,9 +2812,14 @@ jobs:
           mkdir -p docs/benchmarks/history
           if [ -d "benchmarks/reports" ]; then
             cp -r benchmarks/reports/* docs/benchmarks/ 2>/dev/null || true
-            cp benchmarks/reports/benchmarks_*.xml docs/benchmarks/history/ 2>/dev/null || true
+            cp benchmarks/reports/*.xml docs/benchmarks/history/ 2>/dev/null || true
+            cp benchmarks/reports/*.html docs/benchmarks/history/ 2>/dev/null || true
           fi
-          if [ -f "benchmarks/reports/benchmark_report.html" ]; then
+          if [ -f "benchmarks/reports/benchmarks.html" ]; then
+            cp "benchmarks/reports/benchmarks.html" "docs/benchmarks.html"
+            cp "benchmarks/reports/benchmarks.html" "docs/benchmarks/index.html"
+            cp "benchmarks/reports/benchmarks.html" "docs/benchmark_report.html"
+          elif [ -f "benchmarks/reports/benchmark_report.html" ]; then
             cp "benchmarks/reports/benchmark_report.html" "docs/benchmarks.html"
             cp "benchmarks/reports/benchmark_report.html" "docs/benchmarks/index.html"
             cp "benchmarks/reports/benchmark_report.html" "docs/benchmark_report.html"
@@ -2814,6 +2830,7 @@ jobs:
           echo "Staged pages files:"
           ls -la docs/
           ls -la docs/benchmarks/
+          ls -la docs/benchmarks/history/
 
       - name: Upload Pages Artifact
         continue-on-error: true

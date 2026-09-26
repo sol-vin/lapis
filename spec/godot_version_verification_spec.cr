@@ -8,6 +8,17 @@ require "../tools/lapis/src/core/env"
 puts "=== Running Godot Engine Version Verification Specifications ==="
 
 # -------------------------------------------------------------
+# Read single source of truth for target Godot version
+# -------------------------------------------------------------
+expected_target_ver = File.read(File.expand_path("../godot-version.yml", __DIR__))
+  .split("\n")
+  .find(&.includes?("version:"))
+  .not_nil!
+  .split(":")[1]
+  .gsub(/["'\r\n]/, "")
+  .strip
+
+# -------------------------------------------------------------
 # [Spec 1] Embedded Compile-Time Godot Version Macro
 # -------------------------------------------------------------
 puts "[Spec 1] Verifying compile-time EMBEDDED_GODOT_VERSION macro..."
@@ -15,8 +26,8 @@ embedded = Lapis::Core::GodotFinder::EMBEDDED_GODOT_VERSION
 if embedded.empty?
   abort "ERROR: EMBEDDED_GODOT_VERSION is empty!"
 end
-if embedded != "4.8-dev6"
-  abort "ERROR: EMBEDDED_GODOT_VERSION expected '4.8-dev6', got '#{embedded}'"
+if embedded != expected_target_ver
+  abort "ERROR: EMBEDDED_GODOT_VERSION expected '#{expected_target_ver}', got '#{embedded}'"
 end
 puts "  ✓ EMBEDDED_GODOT_VERSION is '#{embedded}'"
 
@@ -25,15 +36,15 @@ puts "  ✓ EMBEDDED_GODOT_VERSION is '#{embedded}'"
 # -------------------------------------------------------------
 puts "[Spec 2] Verifying GodotFinder.expected_version resolution..."
 root_expected = Lapis::Core::GodotFinder.expected_version
-if root_expected != "4.8-dev6"
-  abort "ERROR: Expected root version '4.8-dev6', got '#{root_expected}'"
+if root_expected != expected_target_ver
+  abort "ERROR: Expected root version '#{expected_target_ver}', got '#{root_expected}'"
 end
 
 test_expected = Lapis::Core::GodotFinder.expected_version(File.expand_path("../test", __DIR__))
-if test_expected != "4.8-dev6"
-  abort "ERROR: Expected test project version '4.8-dev6', got '#{test_expected}'"
+if test_expected != expected_target_ver
+  abort "ERROR: Expected test project version '#{expected_target_ver}', got '#{test_expected}'"
 end
-puts "  ✓ expected_version correctly resolves '4.8-dev6'"
+puts "  ✓ expected_version correctly resolves '#{expected_target_ver}'"
 
 # -------------------------------------------------------------
 # [Spec 3] Version Matching Logic (version_matches?)
@@ -83,10 +94,10 @@ if !File.exists?(header_path)
 end
 
 header_content = File.read(header_path)
-unless header_content.includes?("#define LIBGODOT_TARGET_VERSION \"4.8-dev6\"")
+unless header_content.includes?("#define LIBGODOT_TARGET_VERSION \"#{expected_target_ver}\"")
   abort "ERROR: Header does not contain correct LIBGODOT_TARGET_VERSION definition!\n#{header_content}"
 end
-puts "  ✓ src/bridge/godot_version.h contains target definition: '4.8-dev6'"
+puts "  ✓ src/bridge/godot_version.h contains target definition: '#{expected_target_ver}'"
 
 # -------------------------------------------------------------
 # [Spec 5] Real Engine Binary Verification (if present)
@@ -97,8 +108,8 @@ if godot_bin && File.exists?(godot_bin)
   detected_ver = Lapis::Core::GodotFinder.get_version(godot_bin)
   if detected_ver
     puts "  ✓ Detected active Godot engine: #{godot_bin} (version: #{detected_ver})"
-    unless Lapis::Core::GodotFinder.version_matches?(detected_ver, "4.8-dev6")
-      abort "ERROR: Local Godot binary #{godot_bin} (#{detected_ver}) does not match target '4.8-dev6'!"
+    unless Lapis::Core::GodotFinder.version_matches?(detected_ver, expected_target_ver)
+      abort "ERROR: Local Godot binary #{godot_bin} (#{detected_ver}) does not match target '#{expected_target_ver}'!"
     end
     puts "  ✓ Local Godot binary matches target version"
   else

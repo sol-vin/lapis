@@ -332,6 +332,68 @@ HELP
           end
         end
 
+        # 5. Sync src/bridge/godot_version.h
+        bridge_dir = root.join("src/bridge")
+        if Dir.exists?(bridge_dir)
+          target_ver = Core::GodotFinder.expected_version(root.to_s)
+          hdr = bridge_dir.join("godot_version.h")
+          hdr_content = <<-H
+// Auto-generated target Godot version for C++ GDExtension loader bridge
+#pragma once
+
+#ifndef LIBGODOT_TARGET_VERSION
+#define LIBGODOT_TARGET_VERSION "#{target_ver}"
+#endif
+
+H
+          if !File.exists?(hdr) || File.read(hdr) != hdr_content
+            File.write(hdr, hdr_content)
+            Core::Logger.debug("Updated #{hdr} to #{target_ver}")
+          end
+        end
+
+        # 6. Sync README.md badges and engine version requirement
+        readme_file = root.join("README.md")
+        if File.exists?(readme_file)
+          readme_content = File.read(readme_file)
+          updated_readme = readme_content
+
+          # Godot version & badge
+          godot_ver = Core::GodotFinder.expected_version(root.to_s)
+          escaped_godot = godot_ver.gsub("-", "--")
+          updated_readme = updated_readme.gsub(
+            /\[!\[Godot\]\(https:\/\/img\.shields\.io\/badge\/Godot-[^-\s)]+(?:--[^-\s)]+)?-blue\.svg([^)]*)\)\]\([^)]+\)/,
+            "[![Godot](https://img.shields.io/badge/Godot-#{escaped_godot}-blue.svg\\1)](https://godotengine.org)"
+          )
+
+          # Lapis version & badge
+          lapis_ver = Lapis::VERSION
+          lapis_badge = "[![Lapis](https://img.shields.io/badge/Lapis-#{lapis_ver}-blueviolet.svg?style=flat)](https://github.com/sol-vin/lapis/releases)"
+          if updated_readme =~ /\[!\[Lapis\]\(https:\/\/img\.shields\.io\/badge\/Lapis-[^-\s)]+-blueviolet\.svg[^)]*\)\]\([^)]+\)/
+            updated_readme = updated_readme.gsub(
+              /\[!\[Lapis\]\(https:\/\/img\.shields\.io\/badge\/Lapis-[^-\s)]+-blueviolet\.svg([^)]*)\)\]\([^)]+\)/,
+              "[![Lapis](https://img.shields.io/badge/Lapis-#{lapis_ver}-blueviolet.svg\\1)](https://github.com/sol-vin/lapis/releases)"
+            )
+          else
+            if updated_readme.includes?("[![Godot]")
+              updated_readme = updated_readme.sub("[![Godot]", "#{lapis_badge}\n[![Godot]")
+            elsif updated_readme.includes?("[![Crystal]")
+              updated_readme = updated_readme.sub("[![Crystal]", "#{lapis_badge}\n[![Crystal]")
+            end
+          end
+
+          # Godot Engine requirements text in README
+          updated_readme = updated_readme.gsub(
+            /-\s*\*\*Godot Engine\*\*:\s*4\.[0-9]+[^+]*\+?[^\n]*/,
+            "- **Godot Engine**: #{godot_ver}+ (Standard build, 64-bit)"
+          )
+
+          if updated_readme != readme_content
+            File.write(readme_file, updated_readme)
+            Core::Logger.info("Synchronized README.md version badges (Godot: #{godot_ver}, Lapis: #{lapis_ver})")
+          end
+        end
+
         0
       end
     end

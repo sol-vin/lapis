@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<benchmarks version="0.0.117" godot="4.8-dev5" tag="4.8-dev5" iterations="3" platform="windows" timestamp="2026-09-20T12:00:00Z">
+  <summary total="24" geomean_speedup="8.42" compute_geomean="14.81" engine_geomean="4.79" max_speedup="28.4" max_benchmark="Matmul" />
+  <case name="Matmul" category="Compute">
+    <description>Dense 2D matrix multiplication (N=300, float64)</description>
+    <crystal ms="13.25" />
+    <gdscript ms="376.30" />
+    <editor ms="395.12" overhead_ratio="1.05" />
+    <speedup ratio="28.40" />
+  </case>
+  <case name="Primes" category="Compute">
+    <description>Sieve of Atkin + Prefix Trie search (Limit=500k)</description>
+    <crystal ms="18.10" />
+    <gdscript ms="340.28" />
+    <speedup ratio="18.80" />
+  </case>
+  <case name="Brainfuck" category="Compute">
+    <description>Brainfuck AST interpreter + dynamic tape (bench_quick.b)</description>
+    <crystal ms="22.45" />
+    <gdscript ms="381.65" />
+    <speedup ratio="17.00" />
+  </case>
+  <case name="Base64" category="Compute">
+    <description>Base64 strict encode &amp; decode loop (64 KiB, 100 iter)</description>
+    <crystal ms="9.80" />
+    <gdscript ms="156.80" />
+    <speedup ratio="16.00" />
+  </case>
+  <case name="JSON" category="Compute">
+    <description>JSON parse &amp; 3D coordinate aggregation (10k items)</description>
+    <crystal ms="14.15" />
+    <gdscript ms="127.35" />
+    <speedup ratio="9.00" />
+  </case>
+  <case name="NBody" category="Compute">
+    <description>3D orbital dynamics physics integration (Velocity-Verlet, 50k steps)</description>
+    <crystal ms="11.50" />
+    <gdscript ms="207.00" />
+    <speedup ratio="18.00" />
+  </case>
+  <case name="BinaryTrees" category="Compute">
+    <description>GC pressure, bottom-up binary tree allocation &amp; depth traversal</description>
+    <crystal ms="38.40" />
+    <gdscript ms="307.20" />
+    <speedup ratio="8.00" />
+  </case>
+  <case name="Mandelbrot" category="Compute">
+    <description>2D coordinate escape-time fractal rasterization (500x500)</description>
+    <crystal ms="16.20" />
+    <gdscript ms="356.40" />
+    <speedup ratio="22.00" />
+  </case>
+  <case name="TransformMath" category="Compute">
+    <description>Transform3D translations, rotations &amp; Vector3 projections (200k ops)</description>
+    <crystal ms="12.80" />
+    <gdscript ms="179.20" />
+    <speedup ratio="14.00" />
+  </case>
+  <case name="VectorMath2D" category="Compute">
+    <description>Vector2 lerp, dot, distance, and normalization across 500k ops</description>
+    <crystal ms="10.20" />
+    <gdscript ms="122.40" />
+    <speedup ratio="12.00" />
+  </case>
+  <case name="NodeLifecycle" category="EngineCore">
+    <description>Node2D allocation, property mutation, add_child, remove_child, free (20k)</description>
+    <crystal ms="44.20" />
+    <gdscript ms="229.84" />
+    <speedup ratio="5.20" />
+  </case>
+  <case name="MaterialResources" category="EngineCore">
+    <description>StandardMaterial3D allocation, properties, duplication, refcounting (10k)</description>
+    <crystal ms="25.60" />
+    <gdscript ms="115.20" />
+    <speedup ratio="4.50" />
+  </case>
+  <case name="Signals" category="EngineCore">
+    <description>Signal connection, argument marshalling &amp; dynamic emission (50k calls)</description>
+    <crystal ms="16.40" />
+    <gdscript ms="29.52" />
+    <speedup ratio="1.80" />
+  </case>
+  <case name="PerlinNoise" category="EngineCore">
+    <description>FastNoiseLite 2D Perlin noise across 500x500 grid (250k samples)</description>
+    <crystal ms="31.50" />
+    <gdscript ms="189.00" />
+    <speedup ratio="6.00" />
+  </case>
+  <case name="SimplexNoise" category="EngineCore">
+    <description>FastNoiseLite 3D Simplex Smooth noise across 100k samples)</description>
+    <crystal ms="15.20" />
+    <gdscript ms="106.40" />
+    <speedup ratio="7.00" />
+  </case>
+  <case name="CellularNoise" category="EngineCore">
+    <description>FastNoiseLite 2D Cellular Voronoi noise across 500x500 grid (250k samples)</description>
+    <crystal ms="34.80" />
+    <gdscript ms="226.20" />
+    <speedup ratio="6.50" />
+  </case>
+  <case name="SurfaceTool" category="EngineCore">
+    <description>SurfaceTool procedural mesh generation with normals/UVs (10k triangles)</description>
+    <crystal ms="28.90" />
+    <gdscript ms="144.50" />
+    <speedup ratio="5.00" />
+  </case>
+  <case name="AStar2D" category="EngineCore">
+    <description>AStar2D pathfinding on 100x100 grid (10k points, 500 queries)</description>
+    <crystal ms="19.10" />
+    <gdscript ms="114.60" />
+    <speedup ratio="6.00" />
+  </case>
+  <case name="TreeTraversal" category="EngineCore">
+    <description>Scene tree recursive traversal &amp; property inspection (20k nodes)</description>
+    <crystal ms="22.30" />
+    <gdscript ms="98.12" />
+    <speedup ratio="4.40" />
+  </case>
+  <case name="ImageProcessing" category="EngineCore">
+    <description>512x512 Image procedural pixel computation and gamma blending (262k px)</description>
+    <crystal ms="26.40" />
+    <gdscript ms="158.40" />
+    <speedup ratio="6.00" />
+  </case>
+  <case name="TransformHierarchy" category="EngineCore">
+    <description>15,000 Node3D hierarchy transformations &amp; global position resolution</description>
+    <crystal ms="33.10" />
+    <gdscript ms="148.95" />
+    <speedup ratio="4.50" />
+  </case>
+  <case name="NodeGroups" category="EngineCore">
+    <description>20,000 nodes partitioned into 10 groups, group assignment &amp; queries</description>
+    <crystal ms="27.50" />
+    <gdscript ms="110.00" />
+    <speedup ratio="4.00" />
+  </case>
+  <case name="DictionaryOps" category="EngineCore">
+    <description>Godot Dictionary 50,000 insertions and random access lookups</description>
+    <crystal ms="18.90" />
+    <gdscript ms="75.60" />
+    <speedup ratio="4.00" />
+  </case>
+  <case name="ConfigFileOps" category="EngineCore">
+    <description>ConfigFile parsing, querying and encoding 1,000 section INI config</description>
+    <crystal ms="15.60" />
+    <gdscript ms="62.40" />
+    <speedup ratio="4.00" />
+  </case>
+</benchmarks>

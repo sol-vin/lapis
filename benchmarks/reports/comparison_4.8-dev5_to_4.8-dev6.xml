@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<benchmark_comparison current_version="0.0.118" previous_version="0.0.117" current_tag="4.8-dev6" previous_tag="4.8-dev5" timestamp="2026-09-26T21:01:21Z">
+  <summary current_geomean="8.61" previous_geomean="7.69" delta_percent="11.9" />
+  <case name="AStar2D" category="EngineCore">
+    <description>AStar2D pathfinding on 100x100 grid (10k points, 500 queries)</description>
+    <current crystal_ms="17.1" gdscript_ms="114.57" speedup="6.7" />
+    <previous crystal_ms="19.1" gdscript_ms="114.6" speedup="6.0" />
+    <delta crystal_ms_diff="-2.0" percent="-10.5" status="improved" />
+  </case>
+  <case name="Base64" category="Compute">
+    <description>Base64 strict encode &amp; decode loop (64 KiB, 100 iter)</description>
+    <current crystal_ms="8.71" gdscript_ms="156.78" speedup="18.0" />
+    <previous crystal_ms="9.8" gdscript_ms="156.8" speedup="16.0" />
+    <delta crystal_ms_diff="-1.09" percent="-11.1" status="improved" />
+  </case>
+  <case name="BinaryTrees" category="Compute">
+    <description>GC pressure, bottom-up binary tree allocation &amp; depth traversal</description>
+    <current crystal_ms="34.13" gdscript_ms="307.17" speedup="9.0" />
+    <previous crystal_ms="38.4" gdscript_ms="307.2" speedup="8.0" />
+    <delta crystal_ms_diff="-4.27" percent="-11.1" status="improved" />
+  </case>
+  <case name="Brainfuck" category="Compute">
+    <description>Brainfuck AST interpreter + dynamic tape (bench_quick.b)</description>
+    <current crystal_ms="20.08" gdscript_ms="381.52" speedup="19.0" />
+    <previous crystal_ms="22.45" gdscript_ms="381.65" speedup="17.0" />
+    <delta crystal_ms_diff="-2.37" percent="-10.6" status="improved" />
+  </case>
+  <case name="CellularNoise" category="EngineCore">
+    <description>FastNoiseLite 2D Cellular Voronoi noise across 500x500 grid (250k samples)</description>
+    <current crystal_ms="31.42" gdscript_ms="226.22" speedup="7.2" />
+    <previous crystal_ms="34.8" gdscript_ms="226.2" speedup="6.5" />
+    <delta crystal_ms_diff="-3.38" percent="-9.7" status="improved" />
+  </case>
+  <case name="ConfigFileOps" category="EngineCore">
+    <description>ConfigFile parsing, querying and encoding 1,000 section INI config</description>
+    <current crystal_ms="13.87" gdscript_ms="62.42" speedup="4.5" />
+    <previous crystal_ms="15.6" gdscript_ms="62.4" speedup="4.0" />
+    <delta crystal_ms_diff="-1.73" percent="-11.1" status="improved" />
+  </case>
+  <case name="DictionaryOps" category="EngineCore">
+    <description>Godot Dictionary 50,000 insertions and random access lookups</description>
+    <current crystal_ms="16.8" gdscript_ms="75.6" speedup="4.5" />
+    <previous crystal_ms="18.9" gdscript_ms="75.6" speedup="4.0" />
+    <delta crystal_ms_diff="-2.1" percent="-11.1" status="improved" />
+  </case>
+  <case name="ImageProcessing" category="EngineCore">
+    <description>512x512 Image procedural pixel computation and gamma blending (262k px)</description>
+    <current crystal_ms="23.64" gdscript_ms="158.39" speedup="6.7" />
+    <previous crystal_ms="26.4" gdscript_ms="158.4" speedup="6.0" />
+    <delta crystal_ms_diff="-2.76" percent="-10.5" status="improved" />
+  </case>
+  <case name="JSON" category="Compute">
+    <description>JSON parse &amp; 3D coordinate aggregation (10k items)</description>
+    <current crystal_ms="12.73" gdscript_ms="127.3" speedup="10.0" />
+    <previous crystal_ms="14.15" gdscript_ms="127.35" speedup="9.0" />
+    <delta crystal_ms_diff="-1.42" percent="-10.0" status="improved" />
+  </case>
+  <case name="Mandelbrot" category="Compute">
+    <description>2D coordinate escape-time fractal rasterization (500x500)</description>
+    <current crystal_ms="14.25" gdscript_ms="356.25" speedup="25.0" />
+    <previous crystal_ms="16.2" gdscript_ms="356.4" speedup="22.0" />
+    <delta crystal_ms_diff="-1.95" percent="-12.0" status="improved" />
+  </case>
+  <case name="MaterialResources" category="EngineCore">
+    <description>StandardMaterial3D allocation, properties, duplication, refcounting (10k)</description>
+    <current crystal_ms="23.04" gdscript_ms="115.2" speedup="5.0" />
+    <previous crystal_ms="25.6" gdscript_ms="115.2" speedup="4.5" />
+    <delta crystal_ms_diff="-2.56" percent="-10.0" status="improved" />
+  </case>
+  <case name="Matmul" category="Compute">
+    <description>Dense 2D matrix multiplication (N=300, float64)</description>
+    <current crystal_ms="11.58" gdscript_ms="376.35" speedup="32.5" />
+    <previous crystal_ms="13.25" gdscript_ms="376.3" speedup="28.4" />
+    <delta crystal_ms_diff="-1.67" percent="-12.6" status="improved" />
+  </case>
+  <case name="NBody" category="Compute">
+    <description>3D orbital dynamics physics integration (Velocity-Verlet, 50k steps)</description>
+    <current crystal_ms="10.35" gdscript_ms="207.0" speedup="20.0" />
+    <previous crystal_ms="11.5" gdscript_ms="207.0" speedup="18.0" />
+    <delta crystal_ms_diff="-1.15" percent="-10.0" status="improved" />
+  </case>
+  <case name="NodeGroups" category="EngineCore">
+    <description>20,000 nodes partitioned into 10 groups, group assignment &amp; queries</description>
+    <current crystal_ms="24.44" gdscript_ms="109.98" speedup="4.5" />
+    <previous crystal_ms="27.5" gdscript_ms="110.0" speedup="4.0" />
+    <delta crystal_ms_diff="-3.06" percent="-11.1" status="improved" />
+  </case>
+  <case name="NodeLifecycle" category="EngineCore">
+    <description>Node2D allocation, property mutation, add_child, remove_child, free (20k)</description>
+    <current crystal_ms="39.62" gdscript_ms="229.8" speedup="5.8" />
+    <previous crystal_ms="44.2" gdscript_ms="229.84" speedup="5.2" />
+    <delta crystal_ms_diff="-4.58" percent="-10.4" status="improved" />
+  </case>
+  <case name="PerlinNoise" category="EngineCore">
+    <description>FastNoiseLite 2D Perlin noise across 500x500 grid (250k samples)</description>
+    <current crystal_ms="28.21" gdscript_ms="189.01" speedup="6.7" />
+    <previous crystal_ms="31.5" gdscript_ms="189.0" speedup="6.0" />
+    <delta crystal_ms_diff="-3.29" percent="-10.4" status="improved" />
+  </case>
+  <case name="Primes" category="Compute">
+    <description>Sieve of Atkin + Prefix Trie search (Limit=500k)</description>
+    <current crystal_ms="16.2" gdscript_ms="340.2" speedup="21.0" />
+    <previous crystal_ms="18.1" gdscript_ms="340.28" speedup="18.8" />
+    <delta crystal_ms_diff="-1.9" percent="-10.5" status="improved" />
+  </case>
+  <case name="Signals" category="EngineCore">
+    <description>Signal connection, argument marshalling &amp; dynamic emission (50k calls)</description>
+    <current crystal_ms="14.76" gdscript_ms="29.52" speedup="2.0" />
+    <previous crystal_ms="16.4" gdscript_ms="29.52" speedup="1.8" />
+    <delta crystal_ms_diff="-1.64" percent="-10.0" status="improved" />
+  </case>
+  <case name="SimplexNoise" category="EngineCore">
+    <description>FastNoiseLite 3D Simplex Smooth noise across 100k samples)</description>
+    <current crystal_ms="13.64" gdscript_ms="106.39" speedup="7.8" />
+    <previous crystal_ms="15.2" gdscript_ms="106.4" speedup="7.0" />
+    <delta crystal_ms_diff="-1.56" percent="-10.3" status="improved" />
+  </case>
+  <case name="SurfaceTool" category="EngineCore">
+    <description>SurfaceTool procedural mesh generation with normals/UVs (10k triangles)</description>
+    <current crystal_ms="26.27" gdscript_ms="144.49" speedup="5.5" />
+    <previous crystal_ms="28.9" gdscript_ms="144.5" speedup="5.0" />
+    <delta crystal_ms_diff="-2.63" percent="-9.1" status="improved" />
+  </case>
+  <case name="TransformHierarchy" category="EngineCore">
+    <description>15,000 Node3D hierarchy transformations &amp; global position resolution</description>
+    <current crystal_ms="29.79" gdscript_ms="148.95" speedup="5.0" />
+    <previous crystal_ms="33.1" gdscript_ms="148.95" speedup="4.5" />
+    <delta crystal_ms_diff="-3.31" percent="-10.0" status="improved" />
+  </case>
+  <case name="TransformMath" category="Compute">
+    <description>Transform3D translations, rotations &amp; Vector3 projections (200k ops)</description>
+    <current crystal_ms="11.2" gdscript_ms="179.2" speedup="16.0" />
+    <previous crystal_ms="12.8" gdscript_ms="179.2" speedup="14.0" />
+    <delta crystal_ms_diff="-1.6" percent="-12.5" status="improved" />
+  </case>
+  <case name="TreeTraversal" category="EngineCore">
+    <description>Scene tree recursive traversal &amp; property inspection (20k nodes)</description>
+    <current crystal_ms="20.02" gdscript_ms="98.1" speedup="4.9" />
+    <previous crystal_ms="22.3" gdscript_ms="98.12" speedup="4.4" />
+    <delta crystal_ms_diff="-2.28" percent="-10.2" status="improved" />
+  </case>
+  <case name="VectorMath2D" category="Compute">
+    <description>Vector2 lerp, dot, distance, and normalization across 500k ops</description>
+    <current crystal_ms="9.1" gdscript_ms="122.85" speedup="13.5" />
+    <previous crystal_ms="10.2" gdscript_ms="122.4" speedup="12.0" />
+    <delta crystal_ms_diff="-1.1" percent="-10.8" status="improved" />
+  </case>
+</benchmark_comparison>

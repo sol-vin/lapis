@@ -1,7 +1,8 @@
 # Lapis for Crystal
 
 [![Crystal](https://img.shields.io/badge/Crystal-1.20+-black.svg?style=flat&logo=crystal)](https://crystal-lang.org)
-[![Godot](https://img.shields.io/badge/Godot-4.8--dev5-blue.svg?style=flat&logo=godotengine)](https://godotengine.org)
+[![Lapis](https://img.shields.io/badge/Lapis-0.0.118-blueviolet.svg?style=flat)](https://github.com/sol-vin/lapis/releases)
+[![Godot](https://img.shields.io/badge/Godot-4.8--dev6-blue.svg?style=flat&logo=godotengine)](https://godotengine.org)
 [![Docs](https://img.shields.io/badge/Docs-Online-blueviolet.svg?style=flat)](https://sol-vin.github.io/lapis/)
 [![Benchmarks](https://img.shields.io/badge/Benchmarks-Interactive%20Report-success.svg?style=flat)](https://sol-vin.github.io/lapis/benchmarks.html)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -62,7 +63,7 @@ graph TD
 
 ### Required Tooling
 - **Crystal Compiler**: 1.14+ (or preview builds)
-- **Godot Engine**: 4.3+ or 4.4+ (Standard build, 64-bit)
+- **Godot Engine**: 4.8-dev6+ (Standard build, 64-bit)
 - **C++ Compiler**: GCC (`g++`) or Clang (for compiling the GDExtension loader bridge)
 - **Make**: GNU Make
 - **Lapis Toolchain**: Bundled native CLI tool (`bin/lapis`) compiled automatically by `Makefile`

@@ -367,7 +367,7 @@ YAML
         elsif Core::BakedFileSystem.has_file?("godot-version.yml")
           Core::BakedFileSystem.extract_file("godot-version.yml", ex_dir.join("godot-version.yml"))
         else
-          File.write(ex_dir.join("godot-version.yml"), "version: \"4.8-dev6\"\n")
+          File.write(ex_dir.join("godot-version.yml"), "version: \"#{Core::GodotFinder::EMBEDDED_GODOT_VERSION}\"\n")
         end
 
         # src/main.cr
@@ -687,7 +687,7 @@ YAML
           elsif Core::BakedFileSystem.has_file?("godot-version.yml")
             Core::BakedFileSystem.extract_file("godot-version.yml", addon_dir.join("godot-version.yml"))
           else
-            File.write(addon_dir.join("godot-version.yml"), "version: \"4.8-dev6\"\n")
+            File.write(addon_dir.join("godot-version.yml"), "version: \"#{Core::GodotFinder::EMBEDDED_GODOT_VERSION}\"\n")
           end
 
           # 6. src/main.cr
