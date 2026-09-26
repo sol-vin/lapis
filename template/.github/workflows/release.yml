@@ -873,7 +873,14 @@ jobs:
         continue-on-error: true
         run: |
           shards install || true
-          crystal docs src/main.cr 2>/dev/null || crystal docs 2>/dev/null || true
+          PROJECT_NAME=$(awk '/^name:/ {print $2}' shard.yml 2>/dev/null | tr -d ' "\r\n')
+          if [ -f "src/${PROJECT_NAME}.cr" ]; then
+            crystal docs "src/${PROJECT_NAME}.cr" --output docs || crystal docs --output docs || true
+          elif [ -f "src/main.cr" ]; then
+            crystal docs src/main.cr --output docs || crystal docs --output docs || true
+          else
+            crystal docs --output docs || true
+          fi
           mkdir -p docs
           touch docs/.nojekyll
           if [ ! -f "docs/index.html" ]; then
