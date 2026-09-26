@@ -2,7 +2,7 @@
 # Addon Custom Benchmark Example (Crystal)
 # =============================================================================
 
-require "libgodot"
+require "lapis"
 
 count = (ARGV[0]? || "50000").to_i
 

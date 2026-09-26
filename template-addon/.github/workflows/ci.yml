@@ -1,8 +1,6 @@
 name: Addon CI
 
 on:
-  push:
-    branches: [master, main]
   pull_request:
     branches: [master, main]
   workflow_dispatch:
@@ -151,21 +149,20 @@ jobs:
             echo "Lapis found in parent directory"
             cp ../bin/lapis bin/
           else
-            echo "Downloading pre-compiled Lapis CLI for Linux..."
-            curl -sSL "https://github.com/sol-vin/lapis/releases/latest/download/lapis-linux-x86_64.tar.gz" -o lapis.tar.gz || wget -q "https://github.com/sol-vin/lapis/releases/latest/download/lapis-linux-x86_64.tar.gz" -O lapis.tar.gz
-            if [ -f "lapis.tar.gz" ] && [ -s "lapis.tar.gz" ]; then
-              tar -xzf lapis.tar.gz -C bin/
-              rm -f lapis.tar.gz
-              chmod +x bin/lapis 2>/dev/null || true
-            fi
-          fi
-          if [ ! -f "bin/lapis" ]; then
             if [ -d "lib/lapis" ] && [ -f "lib/lapis/tools/lapis/src/lapis.cr" ]; then
               echo "Compiling Lapis CLI from shard lib/lapis..."
-              crystal build lib/lapis/tools/lapis/src/lapis.cr -o bin/lapis
+              crystal build lib/lapis/tools/lapis/src/lapis.cr -o bin/lapis --no-debug
+            else
+              echo "Downloading pre-compiled Lapis CLI for Linux..."
+              curl -sSL "https://github.com/sol-vin/lapis/releases/latest/download/lapis-linux-x86_64.zip" -o lapis.zip || wget -q "https://github.com/sol-vin/lapis/releases/latest/download/lapis-linux-x86_64.zip" -O lapis.zip
+              if [ -f "lapis.zip" ] && [ -s "lapis.zip" ]; then
+                unzip -q -o lapis.zip -d bin/ 2>/dev/null || true
+                rm -f lapis.zip
+              fi
             fi
           fi
           if [ -f "bin/lapis" ]; then
+            chmod +x bin/lapis
             echo "$(pwd)/bin" >> "$GITHUB_PATH"
           fi
           if [ ! -f "bin/crystal_bridge.so" ] && [ ! -f "addons/*/*/crystal_bridge.so" ]; then
@@ -189,6 +186,9 @@ jobs:
           } elseif (Test-Path "../bin/lapis.exe") {
             Write-Host "Lapis found in parent directory"
             Copy-Item "../bin/lapis.exe" "bin/" -Force
+          } elseif (Test-Path "lib/lapis/tools/lapis/src/lapis.cr") {
+            Write-Host "Compiling Lapis CLI from shard lib/lapis..."
+            crystal build lib/lapis/tools/lapis/src/lapis.cr -o bin/lapis.exe --no-debug
           } else {
             Write-Host "Downloading pre-compiled Lapis CLI for Windows..."
             $lapisZip = "https://github.com/sol-vin/lapis/releases/latest/download/lapis-windows-x86_64.zip"
@@ -198,12 +198,6 @@ jobs:
               Remove-Item "lapis.zip" -Force -ErrorAction SilentlyContinue
             } catch {
               Write-Host "Download skipped or failed: $_"
-            }
-          }
-          if (-not (Test-Path "bin/lapis.exe")) {
-            if (Test-Path "lib/lapis/tools/lapis/src/lapis.cr") {
-              Write-Host "Compiling Lapis CLI from shard lib/lapis..."
-              crystal build lib/lapis/tools/lapis/src/lapis.cr -o bin/lapis.exe
             }
           }
           if (Test-Path "bin/lapis.exe") {

@@ -4,7 +4,7 @@
 # Custom benchmarks registered with Lapis::Benchmark execute in-editor,
 # in standalone runners, or can be stripped in release builds (-Dno_benchmarks).
 
-require "libgodot"
+require "lapis"
 
 count = (ARGV[0]? || "50000").to_i
 
