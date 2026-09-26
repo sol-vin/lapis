@@ -273,12 +273,13 @@ module Godot
       @@api
     end
 
+    class_property? init_done : Bool = false
     @@initialized : Bool = false
 
     def self.init(api : LibBridge::BridgeAPI*)
+      @@api = api
       return if @@initialized
       @@initialized = true
-      @@api = api
       debug "[CrystalBridge] Initializing Crystal runtime from game.dll..."
 
       # Cache CharacterBody3D Method Binds
@@ -1489,6 +1490,11 @@ end
 
 # C ABI Entry point called by crystal_bridge when game library is loaded
 fun crystal_godot_init(api : Godot::LibBridge::BridgeAPI*) : Void
+  if Godot::Bridge.init_done?
+    Godot::Bridge.init(api)
+    return
+  end
+  Godot::Bridge.init_done = true
   {% unless flag?(:win32) %}
     if !api.null? && !api.value.get_gc_signals.pointer.null?
       sus_sig = 0

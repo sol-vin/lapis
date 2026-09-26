@@ -764,20 +764,12 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
 #ifdef _WIN32
             HMODULE hExisting = GetModuleHandleA(candidate_path.c_str());
             if (!hExisting) hExisting = GetModuleHandleA(canonical_path);
-            if (!hExisting) {
-                const char *leaf = strrchr(canonical_path, '\\');
-                if (leaf) hExisting = GetModuleHandleA(leaf + 1);
-            }
             if (hExisting) {
                 hModule = hExisting;
             }
 #else
             void *hExisting = dlopen(canonical_path, RTLD_NOLOAD | RTLD_NOW);
             if (!hExisting) hExisting = dlopen(candidate_path.c_str(), RTLD_NOLOAD | RTLD_NOW);
-            if (!hExisting) {
-                const char *leaf = strrchr(canonical_path, '/');
-                if (leaf) hExisting = dlopen(leaf + 1, RTLD_NOLOAD | RTLD_NOW);
-            }
             if (hExisting) {
                 hModule = (HMODULE)hExisting;
             }
