@@ -56,6 +56,8 @@ jobs:
           make lapis bridge
 
       - name: Run Lapis CLI Specifications
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: pwsh
         run: |
           crystal spec tools/lapis/spec/
@@ -116,6 +118,8 @@ jobs:
           make lapis bridge
 
       - name: Run Lapis CLI Specifications
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           crystal spec tools/lapis/spec/
 
@@ -172,6 +176,8 @@ jobs:
           make lapis bridge
 
       - name: Run Lapis CLI Specifications
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           crystal spec tools/lapis/spec/
 

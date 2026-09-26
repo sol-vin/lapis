@@ -159,6 +159,12 @@ jobs:
               chmod +x bin/lapis 2>/dev/null || true
             fi
           fi
+          if [ ! -f "bin/lapis" ]; then
+            if [ -d "lib/lapis" ] && [ -f "lib/lapis/tools/lapis/src/lapis.cr" ]; then
+              echo "Compiling Lapis CLI from shard lib/lapis..."
+              crystal build lib/lapis/tools/lapis/src/lapis.cr -o bin/lapis
+            fi
+          fi
           if [ -f "bin/lapis" ]; then
             echo "$(pwd)/bin" >> "$GITHUB_PATH"
           fi
@@ -192,6 +198,12 @@ jobs:
               Remove-Item "lapis.zip" -Force -ErrorAction SilentlyContinue
             } catch {
               Write-Host "Download skipped or failed: $_"
+            }
+          }
+          if (-not (Test-Path "bin/lapis.exe")) {
+            if (Test-Path "lib/lapis/tools/lapis/src/lapis.cr") {
+              Write-Host "Compiling Lapis CLI from shard lib/lapis..."
+              crystal build lib/lapis/tools/lapis/src/lapis.cr -o bin/lapis.exe
             }
           }
           if (Test-Path "bin/lapis.exe") {

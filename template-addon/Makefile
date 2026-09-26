@@ -30,7 +30,7 @@ else
 endif
 
 ENTRY           ?= src/main.cr
-LAPIS           ?= $(if $(wildcard ./bin/lapis$(EXE_EXT)),./bin/lapis$(EXE_EXT),$(if $(wildcard ../bin/lapis$(EXE_EXT)),../bin/lapis$(EXE_EXT),$(if $(wildcard ../../bin/lapis$(EXE_EXT)),../../bin/lapis$(EXE_EXT),lapis$(EXE_EXT))))
+LAPIS           ?= $(if $(wildcard ./bin/lapis$(EXE_EXT)),./bin/lapis$(EXE_EXT),$(if $(wildcard ../bin/lapis$(EXE_EXT)),../bin/lapis$(EXE_EXT),$(if $(wildcard ../../bin/lapis$(EXE_EXT)),../../bin/lapis$(EXE_EXT),$(if $(wildcard ./lib/lapis/bin/lapis$(EXE_EXT)),./lib/lapis/bin/lapis$(EXE_EXT),lapis$(EXE_EXT)))))
 GAME_LIB        = $(ADDON_BIN_DIR)/game.$(SO_EXT)
 BRIDGE_SRC      = ../bin/crystal_bridge.$(SO_EXT)
 SOURCE_DIR      = $(if $(wildcard ../src),../src,lib)

@@ -60,8 +60,8 @@ jobs:
           SHARD_VER=""
           ADDON_NAME=""
           if [ -f "shard.yml" ]; then
-            SHARD_VER=$(sed -n 's/^version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' shard.yml | tr -d '\r\n[:space:]')
-            ADDON_NAME=$(sed -n 's/^name:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' shard.yml | tr -d '\r\n[:space:]')
+            SHARD_VER=$(awk '/^version:/ {print $2}' shard.yml 2>/dev/null | tr -d ' "\r\n')
+            ADDON_NAME=$(awk '/^name:/ {print $2}' shard.yml 2>/dev/null | tr -d ' "\r\n')
           fi
           if [ -z "$SHARD_VER" ]; then SHARD_VER="0.1.0"; fi
           if [ -z "$ADDON_NAME" ]; then ADDON_NAME="crystal_addon"; fi
@@ -259,6 +259,7 @@ jobs:
       - name: Ensure Lapis CLI & Bridge
         shell: bash
         run: |
+          shards install || true
           mkdir -p bin
           if [ ! -f "bin/lapis" ]; then
             echo "Fetching standalone Lapis CLI and bridge for Linux..."
@@ -267,7 +268,7 @@ jobs:
               tar -xzf lapis.tar.gz -C bin/
               chmod +x bin/lapis
             elif [ -f "lib/lapis/tools/lapis/src/lapis.cr" ]; then
-              crystal build lib/lapis/tools/lapis/src/lapis.cr -o bin/lapis --release
+              crystal build lib/lapis/tools/lapis/src/lapis.cr -o bin/lapis
             fi
           fi
           if [ -f "bin/lapis" ]; then
@@ -279,9 +280,9 @@ jobs:
       - name: Build Addon Library (Release)
         shell: bash
         run: |
-          shards install || true
           make build RELEASE=1 || (
-            ADDON_NAME=$(sed -n 's/^name:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' shard.yml | tr -d '\r\n[:space:]')
+            ADDON_NAME=$(awk '/^name:/ {print $2}' shard.yml 2>/dev/null | tr -d ' "\r\n')
+            if [ -z "$ADDON_NAME" ]; then ADDON_NAME="crystal_addon"; fi
             mkdir -p "addons/${ADDON_NAME}/bin"
             crystal build src/main.cr -o "addons/${ADDON_NAME}/bin/game.so" --link-flags "-shared" --release -Dlibgodot_addon
           )
@@ -316,6 +317,7 @@ jobs:
       - name: Ensure Lapis CLI & Bridge
         shell: bash
         run: |
+          shards install || true
           mkdir -p bin
           if [ ! -f "bin/lapis" ]; then
             echo "Fetching standalone Lapis CLI and bridge for macOS..."
@@ -324,7 +326,7 @@ jobs:
               unzip -q lapis.zip -d bin/
               chmod +x bin/lapis
             elif [ -f "lib/lapis/tools/lapis/src/lapis.cr" ]; then
-              crystal build lib/lapis/tools/lapis/src/lapis.cr -o bin/lapis --release
+              crystal build lib/lapis/tools/lapis/src/lapis.cr -o bin/lapis
             fi
           fi
           if [ -f "bin/lapis" ]; then
@@ -335,9 +337,9 @@ jobs:
       - name: Build Addon Library (Release)
         shell: bash
         run: |
-          shards install || true
           make build RELEASE=1 || (
-            ADDON_NAME=$(sed -n 's/^name:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' shard.yml | tr -d '\r\n[:space:]')
+            ADDON_NAME=$(awk '/^name:/ {print $2}' shard.yml 2>/dev/null | tr -d ' "\r\n')
+            if [ -z "$ADDON_NAME" ]; then ADDON_NAME="crystal_addon"; fi
             mkdir -p "addons/${ADDON_NAME}/bin"
             crystal build src/main.cr -o "addons/${ADDON_NAME}/bin/game.dylib" --link-flags "-dynamiclib" --release -Dlibgodot_addon
           )
@@ -395,6 +397,7 @@ jobs:
       - name: Ensure Lapis CLI & Bridge
         shell: pwsh
         run: |
+          shards install
           if (-not (Test-Path "bin")) { New-Item -ItemType Directory -Path "bin" -Force }
           if (-not (Test-Path "bin/lapis.exe")) {
             Write-Host "Fetching standalone Lapis CLI for Windows..."
@@ -406,6 +409,12 @@ jobs:
               Write-Host "Lapis standalone download fallback: $_"
             }
           }
+          if (-not (Test-Path "bin/lapis.exe")) {
+            if (Test-Path "lib/lapis/tools/lapis/src/lapis.cr") {
+              Write-Host "Compiling Lapis CLI from shard lib/lapis..."
+              crystal build lib/lapis/tools/lapis/src/lapis.cr -o bin/lapis.exe
+            }
+          }
           if (Test-Path "bin/lapis.exe") {
             $binPath = (Resolve-Path "bin").Path
             $binPath | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
@@ -414,7 +423,6 @@ jobs:
       - name: Build Addon Library (Release)
         shell: pwsh
         run: |
-          shards install
           make build RELEASE=1
 
       - name: Upload Core Binaries (Windows)
@@ -509,7 +517,8 @@ jobs:
       - name: Stage Distribution Deliverables
         run: |
           mkdir -p dist
-          ADDON_NAME=$(sed -n 's/^name:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' shard.yml | tr -d '\r\n[:space:]')
+          ADDON_NAME=$(awk '/^name:/ {print $2}' shard.yml 2>/dev/null | tr -d ' "\r\n')
+          if [ -z "$ADDON_NAME" ]; then ADDON_NAME="crystal_addon"; fi
           if [ -d "addons" ]; then
             zip -r "dist/${ADDON_NAME}-linux.zip" addons
           fi
@@ -534,7 +543,8 @@ jobs:
       - name: Stage Distribution Deliverables
         run: |
           mkdir -p dist
-          ADDON_NAME=$(sed -n 's/^name:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' shard.yml | tr -d '\r\n[:space:]')
+          ADDON_NAME=$(awk '/^name:/ {print $2}' shard.yml 2>/dev/null | tr -d ' "\r\n')
+          if [ -z "$ADDON_NAME" ]; then ADDON_NAME="crystal_addon"; fi
           if [ -d "addons" ]; then
             zip -r "dist/${ADDON_NAME}-macos.zip" addons
           fi
@@ -781,7 +791,8 @@ jobs:
 
           echo "Release Assets Staged:"
           ls -la "$DIST_DIR"
-          (cd "$DIST_DIR" && sha256sum * > checksums.txt 2>/dev/null || true)
+          (cd "$DIST_DIR" && ls -1 | grep -v '^checksums.txt$' | xargs -r sha256sum > checksums.txt 2>/dev/null || true)
+          find "$DIST_DIR" -type f -empty -delete
 
       - name: Clean Previous Release & Refresh Latest Tag
         shell: bash
