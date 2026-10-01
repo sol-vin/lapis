@@ -76,7 +76,4 @@ end
 
 require "./docs/a_getting_started/a_overview"
 require "./docs/a_getting_started/b_gameplay_systems"
-
-alias Docs = ::Game::Docs
-alias Godot::Docs = ::Game::Docs
 {% end %}

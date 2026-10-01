@@ -276,9 +276,7 @@ HELP
               type_str = it.is_dir ? "DIR" : "FILE"
               tbl.row([type_str, rel, tracker.format_bytes(it.size)])
             end
-            t_buf = Opal::UI::Buffer.new(80, Math.min(tracker.items.size, 10) + 4)
-            tbl.render(t_buf, 2, 0, 76, Math.min(tracker.items.size, 10) + 4)
-            puts t_buf.render_to_string
+            puts tbl.to_print_s(width: 80)
             if tracker.items.size > 10
               puts "    \e[2m... and #{tracker.items.size - 10} more items\e[0m"
             end

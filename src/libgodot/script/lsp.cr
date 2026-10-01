@@ -35,12 +35,12 @@ module Lapis
 {% else %}
   lib LibPosixPoll
     struct PollFD
-      fd : LibC::Int
-      events : LibC::Short
-      revents : LibC::Short
+      fd : Int32
+      events : Int16
+      revents : Int16
     end
 
-    fun poll(fds : PollFD*, nfds : LibC::SizeT, timeout : LibC::Int) : LibC::Int
+    fun lsp_poll = poll(fds : Void*, nfds : UInt64, timeout : Int32) : Int32
   end
 {% end %}
 
@@ -470,7 +470,7 @@ module Lapis
         pfd.fd = fd.to_i32
         pfd.events = 1_i16 # POLLIN
         pfd.revents = 0_i16
-        ret = LibPosixPoll.poll(pointerof(pfd), 1_u64, timeout_ms.to_i32)
+        ret = LibPosixPoll.lsp_poll(pointerof(pfd).as(Void*), 1_u64, timeout_ms.to_i32)
         ret > 0 && (pfd.revents & 1_i16) != 0
       {% end %}
     end

@@ -5,11 +5,11 @@ require "json"
 module Lapis
   module Core
     module Env
-      # Find project root by searching upwards for the main workspace root (containing src/libgodot.cr or tools/lapis),
-      # or fallback to first directory with shard.yml or Makefile.
+      # Find project root by searching upwards for the nearest Godot project or main workspace root,
+      # with fallbacks for standalone Crystal projects with shard.yml.
       def self.find_root : Path
         current = Path.new(Dir.current).expand
-        # 1. Search upwards for true repository / workspace root
+        # 1. Search upwards for true repository / workspace root (containing src/lapis.cr, src/libgodot.cr, or tools/lapis)
         cursor = current
         loop do
           if File.exists?(cursor.join("src/lapis.cr")) || File.exists?(cursor.join("src/libgodot.cr")) || Dir.exists?(cursor.join("tools/lapis"))
@@ -20,10 +20,10 @@ module Lapis
           cursor = parent
         end
 
-        # 2. If outside the main repo (e.g. standalone user project), search for shard.yml / Makefile
+        # 2. If outside the main repo (e.g. standalone user project), search for project.godot / shard.yml
         cursor = current
         loop do
-          if File.exists?(cursor.join("shard.yml")) && File.exists?(cursor.join("Makefile"))
+          if File.exists?(cursor.join("project.godot")) || File.exists?(cursor.join("shard.yml"))
             return cursor
           end
           parent = cursor.parent
@@ -33,6 +33,20 @@ module Lapis
 
         # Fallback to current working directory
         current
+      end
+
+      # Search upwards from start for the nearest enclosing Godot or Crystal project directory
+      def self.find_project_dir(start : Path = Path.new(Dir.current).expand) : Path?
+        cursor = start
+        loop do
+          if File.exists?(cursor.join("project.godot")) || (File.exists?(cursor.join("shard.yml")) && File.exists?(cursor.join("src/main.cr")))
+            return cursor
+          end
+          parent = cursor.parent
+          break if parent == cursor
+          cursor = parent
+        end
+        nil
       end
 
       def self.global_libgodot_path : Path?
@@ -218,6 +232,18 @@ module Lapis
 
       def self.is_standalone_project?(dir : Path = ROOT_DIR) : Bool
         File.exists?(dir.join("project.godot")) || (File.exists?(dir.join("shard.yml")) && File.exists?(dir.join("src/main.cr")))
+      end
+
+      def self.is_crystal_dir?(dir : Path = Path.new(Dir.current).expand) : Bool
+        File.exists?(dir.join("shard.yml")) || Dir.exists?(dir.join("src")) || is_libgodot_repo?(dir)
+      end
+
+      def self.is_lapis_project?(dir : Path = Path.new(Dir.current).expand) : Bool
+        (File.exists?(dir.join("project.godot")) && (File.exists?(dir.join("shard.yml")) || Dir.exists?(dir.join("src")) || Dir.exists?(dir.join("scenes")))) || is_libgodot_repo?(dir)
+      end
+
+      def self.has_benchmarks?(dir : Path = Path.new(Dir.current).expand) : Bool
+        Dir.exists?(dir.join("benchmarks"))
       end
 
       # Candidate directories to discover source runtime libraries and bridge DLLs

@@ -16,6 +16,7 @@ module Lapis
       enum Target
         Game
         Portable
+        Pck
         Addon
         {% if flag?(:windows) %}
           WindowsInstaller
@@ -32,6 +33,7 @@ module Lapis
         list = [
           {Target::Game, "Playable Game"},
           {Target::Portable, "Portable Executable"},
+          {Target::Pck, "Godot Pack (.pck)"},
           {Target::Addon, "GDExtension Addon"},
         ]
         {% if flag?(:windows) %}
@@ -77,10 +79,11 @@ module Lapis
         driver.raw_mode do
           driver.enter_alternate_screen
           driver.hide_cursor
+          diff_renderer = Opal::UI::DiffRenderer.new(driver)
           begin
             while @running
-              render(driver)
-              ev = driver.read_event
+              render(driver, diff_renderer)
+              ev = driver.poll_event(50)
               handle_input(ev) if ev
             end
           ensure
@@ -115,16 +118,13 @@ module Lapis
         buffer.put_string(2, y + 1, hints, fg: Opal::Color.cyan)
       end
 
-      private def render(driver : Opal::Terminal::Driver)
+      private def render(driver : Opal::Terminal::Driver, diff_renderer : Opal::UI::DiffRenderer)
         w, h = driver.size
-        width = Math.max(80, w)
-        height = Math.max(24, h)
+        width = Math.max(40, w)
+        height = Math.max(16, h)
         buffer = Opal::UI::Buffer.new(width, height)
         render_to_buffer(buffer, width, height)
-
-        driver.write(Opal::Terminal::Screen.move_to(1, 1))
-        driver.write(buffer.render_to_string(with_ansi: true))
-        driver.flush
+        diff_renderer.render(buffer)
       end
 
       private def render_form(buffer : Opal::UI::Buffer, width : Int32, height : Int32)
@@ -177,6 +177,8 @@ module Lapis
                       "Builds standalone game distribution archives with runtime dependencies."
                     when Target::Portable
                       "Produces a standalone single-file binary with the Godot PCK embedded into the executable."
+                    when Target::Pck
+                      "Generates standalone Godot package archive (.pck) with compiled assets and scripts."
                     when Target::Addon
                       "Packages clean crystal_integration GDExtension addon ZIP ready for Godot asset library."
                     when Target::Toolchain
@@ -224,7 +226,7 @@ module Lapis
         end
       end
 
-      private def handle_input(ev : Opal::Terminal::KeyEvent | Opal::Terminal::MouseEvent)
+      private def handle_input(ev : Opal::Terminal::KeyEvent | Opal::Terminal::MouseEvent | Opal::Terminal::ResizeEvent)
         return unless ev.is_a?(Opal::Terminal::KeyEvent)
 
         # Global command palette shortcut
@@ -292,6 +294,25 @@ module Lapis
       end
 
       private def start_package_build
+        if @target == Target::Game || @target == Target::Portable || @target == Target::Pck
+          curr_dir = Path.new(Dir.current)
+          children = Dir.children(curr_dir).reject { |c| c == ".git" || c == "bin" || c == ".tmp" }
+          if children.empty?
+            @building = false
+            @done = true
+            @build_logs << "ERROR: Cannot package empty directory '#{curr_dir}'!"
+            @build_logs << "Target directory contains no Godot project files or scripts."
+            return
+          end
+          unless Core::Env.is_lapis_project?(curr_dir)
+            @building = false
+            @done = true
+            @build_logs << "ERROR: Target directory '#{curr_dir}' is NOT a valid Lapis/Godot project!"
+            @build_logs << "Missing project.godot or Crystal source directory."
+            return
+          end
+        end
+
         @building = true
         @build_logs << "Initializing packaging for target #{@target}..."
         @build_logs << "Options: release=#{@release}, bundle_binaries=#{@bundle_binaries}, out=#{@output_path}"
@@ -300,6 +321,7 @@ module Lapis
           target_arg = case @target
                        when Target::Game            then "game"
                        when Target::Portable        then "portable"
+                       when Target::Pck             then "pck"
                        when Target::Addon           then "addon"
                        when Target::Toolchain       then "lapis"
                        when Target::Benchmarks      then "perf"

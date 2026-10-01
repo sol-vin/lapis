@@ -80,27 +80,27 @@ module Lapis
         #   </thead>
         #   <tbody>
         #     <tr>
-        #       <td>`--shadows`</td>
-        #       <td>`-s`</td>
-        #       <td>Prunes only stale Windows shadow DLLs (`*_loaded_*.dll/pdb`)</td>
+        #       <td><code>--shadows</code></td>
+        #       <td><code>-s</code></td>
+        #       <td>Prunes only stale Windows shadow DLLs (<code>*_loaded_*.dll/pdb</code>)</td>
         #     </tr>
         #     <tr>
-        #       <td>`--dry-run`</td>
-        #       <td>`-n`</td>
+        #       <td><code>--dry-run</code></td>
+        #       <td><code>-n</code></td>
         #       <td>Previews files and exact disk space to be freed without deleting</td>
         #     </tr>
         #     <tr>
-        #       <td>`--all`</td>
-        #       <td>`-a`</td>
+        #       <td><code>--all</code></td>
+        #       <td><code>-a</code></td>
         #       <td>Comprehensive clean including build caches and intermediate files</td>
         #     </tr>
         #     <tr>
-        #       <td>`--docs`</td>
+        #       <td><code>--docs</code></td>
         #       <td></td>
-        #       <td>Also removes generated `docs/` HTML manual</td>
+        #       <td>Also removes generated <code>docs/</code> HTML manual</td>
         #     </tr>
         #     <tr>
-        #       <td>`-p, --project=DIR`</td>
+        #       <td><code>-p, --project=DIR</code></td>
         #       <td></td>
         #       <td>Target specific project directory (default: current directory)</td>
         #     </tr>

@@ -30,13 +30,42 @@ sections:
       ```
 
       #### Options:
-      | Option | Shorthand | Description |
-      | :--- | :--- | :--- |
-      | `--shadows` | `-s` | Prunes only stale Windows shadow DLLs (`*_loaded_*.dll/pdb`) |
-      | `--dry-run` | `-n` | Previews files and exact disk space to be freed without deleting |
-      | `--all` | `-a` | Comprehensive clean including build caches and intermediate files |
-      | `--docs` | | Also removes generated `docs/` HTML manual |
-      | `-p, --project=DIR` | | Target specific project directory (default: current directory) |
+      <table>
+        <thead>
+          <tr>
+            <th>Option</th>
+            <th>Shorthand</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>--shadows</code></td>
+            <td><code>-s</code></td>
+            <td>Prunes only stale Windows shadow DLLs (<code>*_loaded_*.dll/pdb</code>)</td>
+          </tr>
+          <tr>
+            <td><code>--dry-run</code></td>
+            <td><code>-n</code></td>
+            <td>Previews files and exact disk space to be freed without deleting</td>
+          </tr>
+          <tr>
+            <td><code>--all</code></td>
+            <td><code>-a</code></td>
+            <td>Comprehensive clean including build caches and intermediate files</td>
+          </tr>
+          <tr>
+            <td><code>--docs</code></td>
+            <td></td>
+            <td>Also removes generated <code>docs/</code> HTML manual</td>
+          </tr>
+          <tr>
+            <td><code>-p, --project=DIR</code></td>
+            <td></td>
+            <td>Target specific project directory (default: current directory)</td>
+          </tr>
+        </tbody>
+      </table>
 
   - id: "topic_02_safety_guards"
     title: "Subproject & Git Protection Invariants"

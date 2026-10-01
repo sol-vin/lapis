@@ -315,6 +315,7 @@ This repository includes specialized Antigravity agent skills in `.agents/skills
 - **`crystal-execution-contexts`**: Multithreading and fiber orchestration patterns with Crystal Execution Contexts (`Concurrent`, `Parallel`, `Isolated`, dynamic work-stealing, and thread scaling).
 - **`libgodot-api-generator`**: Guide for dumping Godot extension API and updating Crystal class bindings.
 - **`libgodot-scaffold`**: Guide for scaffolding new showcase examples and GDExtension addons.
+- **`lapis-release-tagging`**: Single-commit-per-milestone squashing, linear release branch hygiene, Godot lifecycle stage tagging (`dev`, `alpha`, `beta`, `rc`, `stable`), and remote synchronization.
 
 <!-- graft:start -->
 ## Graft — repo context graph

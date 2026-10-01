@@ -23,6 +23,7 @@ module Lapis
       property current_ram_mb : Float64 = 0.0
       property peak_ram_mb : Float64 = 0.0
       property current_fps : Float64 = 60.0
+      property error_message : String? = nil
 
       # Rolling history for LineGraphs (last 30 samples)
       getter fps_history : Array(Float64) = [] of Float64
@@ -60,6 +61,7 @@ module Lapis
         driver.raw_mode do
           driver.enter_alternate_screen
           driver.hide_cursor
+          diff_renderer = Opal::UI::DiffRenderer.new(driver)
 
           last_tick = Time.instant
 
@@ -71,8 +73,8 @@ module Lapis
                 last_tick = now
               end
 
-              render(driver)
-              ev = driver.read_event
+              render(driver, diff_renderer)
+              ev = driver.poll_event(50)
               handle_input(ev) if ev
             end
           ensure
@@ -89,14 +91,24 @@ module Lapis
           @game_process = proc
           @pid = proc.pid
           @process_active = true
+          @error_message = nil
         else
-          # Fallback: check godot runner if standalone game.exe is absent
-          if godot = Core::GodotFinder.resolve(nil)
-            proc = Process.new(godot.to_s, ["--path", "."])
-            @game_process = proc
-            @pid = proc.pid
-            @process_active = true
+          # Fallback: only launch godot if project.godot actually exists in current directory or ROOT_DIR!
+          has_proj = File.exists?("project.godot") || File.exists?(Core::Env::ROOT_DIR.join("project.godot"))
+          if has_proj
+            proj_dir = File.exists?("project.godot") ? "." : Core::Env::ROOT_DIR.to_s
+            if godot = Core::GodotFinder.resolve(nil, proj_dir)
+              proc = Process.new(godot.to_s, ["--path", proj_dir])
+              @game_process = proc
+              @pid = proc.pid
+              @process_active = true
+              @error_message = nil
+            else
+              @error_message = "Godot engine executable not found on host!"
+              @process_active = false
+            end
           else
+            @error_message = "Cannot run: No Godot project found (missing project.godot or #{@target_binary})!"
             @process_active = false
           end
         end
@@ -135,11 +147,11 @@ module Lapis
         if proc = @game_process
           unless proc.terminated?
             begin
-              if Core::Env.windows?
+              {% if flag?(:windows) %}
                 Process.run("taskkill", ["/F", "/T", "/PID", proc.pid.to_s]) rescue nil
-              else
+              {% else %}
                 proc.signal(Signal::TERM) rescue proc.terminate
-              end
+              {% end %}
             rescue
             end
           end
@@ -150,7 +162,7 @@ module Lapis
       def render_to_buffer(buffer : Opal::UI::Buffer, width : Int32, height : Int32)
         # 1. Header Banner
         buffer.put_string(2, 1, ":: LAPIS RUNTIME PERFORMANCE MONITOR ::", fg: Opal::Color.bright_yellow, bold: true)
-        status_text = @process_active ? "[#] RUNNING (PID #{@pid})" : "[X] TERMINATED"
+        status_text = @process_active ? "[#] RUNNING (PID #{@pid})" : "[X] STOPPED"
         status_fg = @process_active ? Opal::Color.bright_green : Opal::Color.bright_red
         buffer.put_string(40, 1, "│ Status: #{status_text}", fg: status_fg, bold: true)
 
@@ -163,12 +175,17 @@ module Lapis
         buffer.put_string(2, 2, info_line, fg: Opal::Color.cyan)
         buffer.put_string(2, 3, "─" * (width - 4), fg: Opal::Color.bright_black)
 
-        # 2. Dual Rolling Line Graphs
-        half_w = (width - 6) // 2
-        graph_h = Math.min(height - 8, 14)
+        # 2. Dual Rolling Line Graphs or Error State
+        if err = @error_message
+          buffer.put_string(4, 6, "⚠️  #{err}", fg: Opal::Color.bright_red, bold: true)
+          buffer.put_string(4, 8, "Please navigate to a valid Godot/Lapis project or run 'lapis init' / 'lapis build'.", fg: Opal::Color.yellow)
+        else
+          half_w = (width - 6) // 2
+          graph_h = Math.min(height - 8, 14)
 
-        @fps_graph.render(buffer, 2, 4, half_w, graph_h)
-        @ram_graph.render(buffer, 4 + half_w, 4, half_w, graph_h)
+          @fps_graph.render(buffer, 2, 4, half_w, graph_h)
+          @ram_graph.render(buffer, 4 + half_w, 4, half_w, graph_h)
+        end
 
         # 3. Footer & Controls
         footer_y = height - 2
@@ -178,19 +195,16 @@ module Lapis
         buffer.put_string(2, footer_y, controls, fg: Opal::Color.bright_white)
       end
 
-      private def render(driver : Opal::Terminal::Driver)
+      private def render(driver : Opal::Terminal::Driver, diff_renderer : Opal::UI::DiffRenderer)
         w, h = driver.size
-        width = Math.max(80, w)
-        height = Math.max(24, h)
+        width = Math.max(40, w)
+        height = Math.max(16, h)
         buffer = Opal::UI::Buffer.new(width, height)
         render_to_buffer(buffer, width, height)
-
-        driver.write(Opal::Terminal::Screen.move_to(1, 1))
-        driver.write(buffer.render_to_string(with_ansi: true))
-        driver.flush
+        diff_renderer.render(buffer)
       end
 
-      private def handle_input(ev : Opal::Terminal::KeyEvent | Opal::Terminal::MouseEvent)
+      private def handle_input(ev : Opal::Terminal::KeyEvent | Opal::Terminal::MouseEvent | Opal::Terminal::ResizeEvent)
         return unless ev.is_a?(Opal::Terminal::KeyEvent)
 
         # Global command palette shortcut

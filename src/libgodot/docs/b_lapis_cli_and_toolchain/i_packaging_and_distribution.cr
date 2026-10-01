@@ -83,23 +83,23 @@ module Lapis
         #   </thead>
         #   <tbody>
         #     <tr>
-        #       <td>`--release`</td>
-        #       <td>`-r`</td>
+        #       <td><code>--release</code></td>
+        #       <td><code>-r</code></td>
         #       <td>Builds with release optimizations and strips debug symbols</td>
         #     </tr>
         #     <tr>
-        #       <td>`--embedded`</td>
+        #       <td><code>--embedded</code></td>
         #       <td></td>
         #       <td>Embeds game PCK data directly into the executable binary</td>
         #     </tr>
         #     <tr>
-        #       <td>`--output=DIR`</td>
-        #       <td>`-o`</td>
-        #       <td>Destination directory (default: `dist/`)</td>
+        #       <td><code>--output=DIR</code></td>
+        #       <td><code>-o</code></td>
+        #       <td>Destination directory (default: <code>dist/</code>)</td>
         #     </tr>
         #     <tr>
-        #       <td>`--force`</td>
-        #       <td>`-f`</td>
+        #       <td><code>--force</code></td>
+        #       <td><code>-f</code></td>
         #       <td>Overwrite existing distribution files</td>
         #     </tr>
         #   </tbody>

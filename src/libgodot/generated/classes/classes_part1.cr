@@ -5047,6 +5047,18 @@ module Godot
     ensure
       Bridge.free_string_name(sn_0)
     end
+    @@mb_add_theme_sound_override : Void* = Pointer(Void).null
+    def add_theme_sound_override(name : String, sound : AudioStream) : Void
+      godot_bind(@@mb_add_theme_sound_override, "Window", "add_theme_sound_override", 3407455952_i64)
+      sn_0 = Bridge.make_string_name(name)
+      arg_0 = sn_0
+      arg_ptr_1 = sound ? sound.pointer : Pointer(Void).null
+      arg_1 = pointerof(arg_ptr_1).as(Void*)
+      args = StaticArray[arg_0, arg_1]
+      godot_ptrcall_void(@@mb_add_theme_sound_override, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string_name(sn_0)
+    end
     @@mb_remove_theme_icon_override : Void* = Pointer(Void).null
     def remove_theme_icon_override(name : String) : Void
       godot_bind(@@mb_remove_theme_icon_override, "Window", "remove_theme_icon_override", 3304788590_i64)
@@ -5104,6 +5116,16 @@ module Godot
       arg_0 = sn_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_remove_theme_constant_override, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string_name(sn_0)
+    end
+    @@mb_remove_theme_sound_override : Void* = Pointer(Void).null
+    def remove_theme_sound_override(name : String) : Void
+      godot_bind(@@mb_remove_theme_sound_override, "Window", "remove_theme_sound_override", 3304788590_i64)
+      sn_0 = Bridge.make_string_name(name)
+      arg_0 = sn_0
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_remove_theme_sound_override, @pointer, args.to_unsafe.as(Void**))
     ensure
       Bridge.free_string_name(sn_0)
     end
@@ -5181,6 +5203,19 @@ module Godot
       arg_1 = sn_1
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_get_theme_constant, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string_name(sn_0)
+      Bridge.free_string_name(sn_1)
+    end
+    @@mb_get_theme_sound : Void* = Pointer(Void).null
+    def get_theme_sound(name : String, theme_type : String = "") : AudioStream
+      godot_bind(@@mb_get_theme_sound, "Window", "get_theme_sound", 1579966710_i64)
+      sn_0 = Bridge.make_string_name(name)
+      arg_0 = sn_0
+      sn_1 = Bridge.make_string_name(theme_type)
+      arg_1 = sn_1
+      args = StaticArray[arg_0, arg_1]
+      godot_ptrcall_obj(@@mb_get_theme_sound, @pointer, args.to_unsafe.as(Void**), AudioStream)
     ensure
       Bridge.free_string_name(sn_0)
       Bridge.free_string_name(sn_1)
@@ -5268,6 +5303,20 @@ module Godot
     # Predicate alias for `has_theme_constant_override`
     def has_theme_constant_override?(name : String) : Bool
       has_theme_constant_override(name)
+    end
+    @@mb_has_theme_sound_override : Void* = Pointer(Void).null
+    def has_theme_sound_override(name : String) : Bool
+      godot_bind(@@mb_has_theme_sound_override, "Window", "has_theme_sound_override", 2619796661_i64)
+      sn_0 = Bridge.make_string_name(name)
+      arg_0 = sn_0
+      args = StaticArray[arg_0]
+      godot_ptrcall_bool(@@mb_has_theme_sound_override, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string_name(sn_0)
+    end
+    # Predicate alias for `has_theme_sound_override`
+    def has_theme_sound_override?(name : String) : Bool
+      has_theme_sound_override(name)
     end
     @@mb_has_theme_icon : Void* = Pointer(Void).null
     def has_theme_icon(name : String, theme_type : String = "") : Bool
@@ -5370,6 +5419,23 @@ module Godot
     # Predicate alias for `has_theme_constant`
     def has_theme_constant?(name : String, theme_type : String = "") : Bool
       has_theme_constant(name, theme_type)
+    end
+    @@mb_has_theme_sound : Void* = Pointer(Void).null
+    def has_theme_sound(name : String, theme_type : String = "") : Bool
+      godot_bind(@@mb_has_theme_sound, "Window", "has_theme_sound", 866386512_i64)
+      sn_0 = Bridge.make_string_name(name)
+      arg_0 = sn_0
+      sn_1 = Bridge.make_string_name(theme_type)
+      arg_1 = sn_1
+      args = StaticArray[arg_0, arg_1]
+      godot_ptrcall_bool(@@mb_has_theme_sound, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string_name(sn_0)
+      Bridge.free_string_name(sn_1)
+    end
+    # Predicate alias for `has_theme_sound`
+    def has_theme_sound?(name : String, theme_type : String = "") : Bool
+      has_theme_sound(name, theme_type)
     end
     @@mb_get_theme_default_base_scale : Void* = Pointer(Void).null
     def get_theme_default_base_scale() : Float64
@@ -12694,6 +12760,8 @@ module Godot
       InterpolationCubic = 2_i64
       InterpolationLinearAngle = 3_i64
       InterpolationCubicAngle = 4_i64
+      InterpolationMakima = 5_i64
+      InterpolationMakimaAngle = 6_i64
     end
     enum UpdateMode : Int64
       UpdateContinuous = 0_i64
@@ -20384,6 +20452,18 @@ module Godot
     ensure
       Bridge.free_string_name(sn_0)
     end
+    @@mb_add_theme_sound_override : Void* = Pointer(Void).null
+    def add_theme_sound_override(name : String, audio : AudioStream) : Void
+      godot_bind(@@mb_add_theme_sound_override, "Control", "add_theme_sound_override", 3407455952_i64)
+      sn_0 = Bridge.make_string_name(name)
+      arg_0 = sn_0
+      arg_ptr_1 = audio ? audio.pointer : Pointer(Void).null
+      arg_1 = pointerof(arg_ptr_1).as(Void*)
+      args = StaticArray[arg_0, arg_1]
+      godot_ptrcall_void(@@mb_add_theme_sound_override, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string_name(sn_0)
+    end
     @@mb_remove_theme_icon_override : Void* = Pointer(Void).null
     def remove_theme_icon_override(name : String) : Void
       godot_bind(@@mb_remove_theme_icon_override, "Control", "remove_theme_icon_override", 3304788590_i64)
@@ -20441,6 +20521,16 @@ module Godot
       arg_0 = sn_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_remove_theme_constant_override, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string_name(sn_0)
+    end
+    @@mb_remove_theme_sound_override : Void* = Pointer(Void).null
+    def remove_theme_sound_override(name : String) : Void
+      godot_bind(@@mb_remove_theme_sound_override, "Control", "remove_theme_sound_override", 3304788590_i64)
+      sn_0 = Bridge.make_string_name(name)
+      arg_0 = sn_0
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_remove_theme_sound_override, @pointer, args.to_unsafe.as(Void**))
     ensure
       Bridge.free_string_name(sn_0)
     end
@@ -20518,6 +20608,19 @@ module Godot
       arg_1 = sn_1
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_get_theme_constant, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string_name(sn_0)
+      Bridge.free_string_name(sn_1)
+    end
+    @@mb_get_theme_sound : Void* = Pointer(Void).null
+    def get_theme_sound(name : String, theme_type : String = "") : AudioStream
+      godot_bind(@@mb_get_theme_sound, "Control", "get_theme_sound", 1579966710_i64)
+      sn_0 = Bridge.make_string_name(name)
+      arg_0 = sn_0
+      sn_1 = Bridge.make_string_name(theme_type)
+      arg_1 = sn_1
+      args = StaticArray[arg_0, arg_1]
+      godot_ptrcall_obj(@@mb_get_theme_sound, @pointer, args.to_unsafe.as(Void**), AudioStream)
     ensure
       Bridge.free_string_name(sn_0)
       Bridge.free_string_name(sn_1)
@@ -20605,6 +20708,20 @@ module Godot
     # Predicate alias for `has_theme_constant_override`
     def has_theme_constant_override?(name : String) : Bool
       has_theme_constant_override(name)
+    end
+    @@mb_has_theme_sound_override : Void* = Pointer(Void).null
+    def has_theme_sound_override(name : String) : Bool
+      godot_bind(@@mb_has_theme_sound_override, "Control", "has_theme_sound_override", 2619796661_i64)
+      sn_0 = Bridge.make_string_name(name)
+      arg_0 = sn_0
+      args = StaticArray[arg_0]
+      godot_ptrcall_bool(@@mb_has_theme_sound_override, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string_name(sn_0)
+    end
+    # Predicate alias for `has_theme_sound_override`
+    def has_theme_sound_override?(name : String) : Bool
+      has_theme_sound_override(name)
     end
     @@mb_has_theme_icon : Void* = Pointer(Void).null
     def has_theme_icon(name : String, theme_type : String = "") : Bool
@@ -20707,6 +20824,23 @@ module Godot
     # Predicate alias for `has_theme_constant`
     def has_theme_constant?(name : String, theme_type : String = "") : Bool
       has_theme_constant(name, theme_type)
+    end
+    @@mb_has_theme_sound : Void* = Pointer(Void).null
+    def has_theme_sound(name : String, theme_type : String = "") : Bool
+      godot_bind(@@mb_has_theme_sound, "Control", "has_theme_sound", 866386512_i64)
+      sn_0 = Bridge.make_string_name(name)
+      arg_0 = sn_0
+      sn_1 = Bridge.make_string_name(theme_type)
+      arg_1 = sn_1
+      args = StaticArray[arg_0, arg_1]
+      godot_ptrcall_bool(@@mb_has_theme_sound, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string_name(sn_0)
+      Bridge.free_string_name(sn_1)
+    end
+    # Predicate alias for `has_theme_sound`
+    def has_theme_sound?(name : String, theme_type : String = "") : Bool
+      has_theme_sound(name, theme_type)
     end
     @@mb_get_theme_default_base_scale : Void* = Pointer(Void).null
     def get_theme_default_base_scale() : Float64
@@ -38515,5 +38649,159 @@ module Godot
     end
     godot_signal frame_changed
     godot_signal format_changed
+  end
+  class CameraServer < Godot::Object
+    def initialize(pointer : Void* = Pointer(Void).null)
+      super(pointer)
+    end
+    enum FeedImage : Int64
+      FeedRgbaImage = 0_i64
+      FeedYcbcrImage = 0_i64
+      FeedYImage = 0_i64
+      FeedCbcrImage = 1_i64
+    end
+    @@mb_set_monitoring_feeds : Void* = Pointer(Void).null
+    def set_monitoring_feeds(is_monitoring_feeds : Bool) : Void
+      godot_bind(@@mb_set_monitoring_feeds, "CameraServer", "set_monitoring_feeds", 2586408642_i64)
+      val_0 = is_monitoring_feeds
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_monitoring_feeds, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_is_monitoring_feeds : Void* = Pointer(Void).null
+    def is_monitoring_feeds() : Bool
+      godot_bind(@@mb_is_monitoring_feeds, "CameraServer", "is_monitoring_feeds", 36873697_i64)
+      godot_ptrcall_bool(@@mb_is_monitoring_feeds, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_monitoring_feeds`
+    def is_monitoring_feeds?() : Bool
+      is_monitoring_feeds()
+    end
+    # Predicate alias for `is_monitoring_feeds`
+    def monitoring_feeds?() : Bool
+      is_monitoring_feeds()
+    end
+    @@mb_get_feed : Void* = Pointer(Void).null
+    def get_feed(index : Int64) : CameraFeed
+      godot_bind(@@mb_get_feed, "CameraServer", "get_feed", 361927068_i64)
+      val_0 = index.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_obj(@@mb_get_feed, @pointer, args.to_unsafe.as(Void**), CameraFeed)
+    end
+    @@mb_get_feed_count : Void* = Pointer(Void).null
+    def get_feed_count() : Int64
+      godot_bind(@@mb_get_feed_count, "CameraServer", "get_feed_count", 2455072627_i64)
+      godot_ptrcall_int(@@mb_get_feed_count, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_feeds : Void* = Pointer(Void).null
+    def feeds() : Pointer(Void)
+      godot_bind(@@mb_feeds, "CameraServer", "feeds", 2915620761_i64)
+      ret_ptr = Pointer(Void).null
+      godot_ptrcall(@@mb_feeds, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
+      ret_ptr
+    end
+    @@mb_add_feed : Void* = Pointer(Void).null
+    def add_feed(feed : CameraFeed) : Void
+      godot_bind(@@mb_add_feed, "CameraServer", "add_feed", 3204782488_i64)
+      arg_ptr_0 = feed ? feed.pointer : Pointer(Void).null
+      arg_0 = pointerof(arg_ptr_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_add_feed, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_remove_feed : Void* = Pointer(Void).null
+    def remove_feed(feed : CameraFeed) : Void
+      godot_bind(@@mb_remove_feed, "CameraServer", "remove_feed", 3204782488_i64)
+      arg_ptr_0 = feed ? feed.pointer : Pointer(Void).null
+      arg_0 = pointerof(arg_ptr_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_remove_feed, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Property `monitoring_feeds` getter
+    def monitoring_feeds
+      is_monitoring_feeds
+    end
+    # Property `monitoring_feeds` setter
+    def monitoring_feeds=(val)
+      set_monitoring_feeds(val)
+    end
+    godot_signal camera_feed_added, Int64
+    godot_signal camera_feed_removed, Int64
+    godot_signal camera_feeds_updated
+  end
+  class CameraTexture < Godot::Texture2D
+    def initialize(pointer : Void* = Pointer(Void).null)
+      super(pointer)
+    end
+    @@mb_set_camera_feed_id : Void* = Pointer(Void).null
+    def set_camera_feed_id(feed_id : Int64) : Void
+      godot_bind(@@mb_set_camera_feed_id, "CameraTexture", "set_camera_feed_id", 1286410249_i64)
+      val_0 = feed_id.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_camera_feed_id, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_camera_feed_id : Void* = Pointer(Void).null
+    def get_camera_feed_id() : Int64
+      godot_bind(@@mb_get_camera_feed_id, "CameraTexture", "get_camera_feed_id", 3905245786_i64)
+      godot_ptrcall_int(@@mb_get_camera_feed_id, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_set_which_feed : Void* = Pointer(Void).null
+    def set_which_feed(which_feed : Godot::CameraServer::FeedImage | Int) : Void
+      godot_bind(@@mb_set_which_feed, "CameraTexture", "set_which_feed", 1595299230_i64)
+      val_0 = which_feed.is_a?(Int) ? which_feed.to_i64 : which_feed.value.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_which_feed, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_which_feed : Void* = Pointer(Void).null
+    def get_which_feed() : Godot::CameraServer::FeedImage
+      godot_bind(@@mb_get_which_feed, "CameraTexture", "get_which_feed", 91039457_i64)
+      godot_ptrcall_enum(@@mb_get_which_feed, @pointer, Pointer(Pointer(Void)).null, Godot::CameraServer::FeedImage)
+    end
+    @@mb_set_camera_active : Void* = Pointer(Void).null
+    def set_camera_active(active : Bool) : Void
+      godot_bind(@@mb_set_camera_active, "CameraTexture", "set_camera_active", 2586408642_i64)
+      val_0 = active
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_camera_active, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_camera_active : Void* = Pointer(Void).null
+    def get_camera_active() : Bool
+      godot_bind(@@mb_get_camera_active, "CameraTexture", "get_camera_active", 36873697_i64)
+      godot_ptrcall_bool(@@mb_get_camera_active, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `get_camera_active`
+    def get_camera_active?() : Bool
+      get_camera_active()
+    end
+    # Property `camera_feed_id` getter
+    def camera_feed_id
+      get_camera_feed_id
+    end
+    # Property `camera_feed_id` setter
+    def camera_feed_id=(val : Int)
+      set_camera_feed_id(val.to_i64)
+    end
+    # Property `which_feed` getter
+    def which_feed
+      get_which_feed
+    end
+    # Property `which_feed` setter
+    def which_feed=(val : Int)
+      set_which_feed(val.to_i64)
+    end
+    # Property `camera_is_active` getter
+    def camera_is_active
+      get_camera_active
+    end
+    def camera_is_active?
+      camera_is_active
+    end
+    # Property `camera_is_active` setter
+    def camera_is_active=(val)
+      set_camera_active(val)
+    end
   end
 end

@@ -61,14 +61,22 @@ module Lapis
         nil
       end
 
-      # Tokenizes version strings (e.g. "4.8-dev6" -> ["4", "8", "dev6"])
+      # Tokenizes version strings (e.g. "4.8-dev7" -> ["4", "8", "dev7"])
       # and verifies that all expected components exist in the detected string.
+      # Supports all official Godot release stages: dev, alpha, beta, rc, and stable.
       def self.version_matches?(detected : String, expected : String) : Bool
         exp_tokens = expected.split(/[\.-]/).map(&.strip.downcase).reject(&.empty?)
         det_tokens = detected.split(/[\.-]/).map(&.strip.downcase).reject(&.empty?)
         return false if exp_tokens.empty?
 
-        exp_tokens.all? { |tok| det_tokens.includes?(tok) }
+        stages = ["dev", "alpha", "beta", "rc"]
+
+        exp_tokens.all? do |tok|
+          det_tokens.includes?(tok) ||
+            stages.any? do |stage|
+              tok.starts_with?(stage) && (det_tokens.includes?(stage) || det_tokens.includes?(tok))
+            end
+        end
       end
 
       # Validates a Godot binary against the expected version.

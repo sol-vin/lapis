@@ -594,7 +594,6 @@ require "./docs/j_modern_cli_and_tui/a_interactive_command_center"
 require "./docs/j_modern_cli_and_tui/b_tui_hub_and_specialized_views"
 
 alias Docs = ::Lapis::Docs
-alias Godot::Docs = ::Lapis::Docs
 
 module Godot
   alias Docs = ::Lapis::Docs

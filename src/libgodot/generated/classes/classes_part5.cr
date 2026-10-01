@@ -1,5 +1,773 @@
 # Generated classes part 5 (in topological order)
 module Godot
+  class RayCast2D < Godot::Node2D
+    def initialize(pointer : Void* = Pointer(Void).null)
+      super(pointer)
+    end
+    @@mb_set_enabled : Void* = Pointer(Void).null
+    def set_enabled(enabled : Bool) : Void
+      godot_bind(@@mb_set_enabled, "RayCast2D", "set_enabled", 2586408642_i64)
+      val_0 = enabled
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_enabled, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_is_enabled : Void* = Pointer(Void).null
+    def is_enabled() : Bool
+      godot_bind(@@mb_is_enabled, "RayCast2D", "is_enabled", 36873697_i64)
+      godot_ptrcall_bool(@@mb_is_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_enabled`
+    def is_enabled?() : Bool
+      is_enabled()
+    end
+    # Predicate alias for `is_enabled`
+    def enabled?() : Bool
+      is_enabled()
+    end
+    @@mb_set_target_position : Void* = Pointer(Void).null
+    def set_target_position(local_point : Vector2) : Void
+      godot_bind(@@mb_set_target_position, "RayCast2D", "set_target_position", 743155724_i64)
+      val_0 = local_point
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_target_position, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_target_position : Void* = Pointer(Void).null
+    def get_target_position() : Vector2
+      godot_bind(@@mb_get_target_position, "RayCast2D", "get_target_position", 3341600327_i64)
+      godot_ptrcall_val(@@mb_get_target_position, @pointer, Pointer(Pointer(Void)).null, Vector2)
+    end
+    @@mb_is_colliding : Void* = Pointer(Void).null
+    def is_colliding() : Bool
+      godot_bind(@@mb_is_colliding, "RayCast2D", "is_colliding", 36873697_i64)
+      godot_ptrcall_bool(@@mb_is_colliding, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_colliding`
+    def is_colliding?() : Bool
+      is_colliding()
+    end
+    # Predicate alias for `is_colliding`
+    def colliding?() : Bool
+      is_colliding()
+    end
+    # Predicate alias for `is_colliding`
+    def has_collider?() : Bool
+      is_colliding()
+    end
+    @@mb_force_raycast_update : Void* = Pointer(Void).null
+    def force_raycast_update() : Void
+      godot_bind(@@mb_force_raycast_update, "RayCast2D", "force_raycast_update", 3218959716_i64)
+      godot_ptrcall_void(@@mb_force_raycast_update, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_get_collider : Void* = Pointer(Void).null
+    def get_collider() : Godot::Object
+      godot_bind(@@mb_get_collider, "RayCast2D", "get_collider", 1981248198_i64)
+      godot_ptrcall_obj(@@mb_get_collider, @pointer, Pointer(Pointer(Void)).null, Godot::Object)
+    end
+    @@mb_get_collider_rid : Void* = Pointer(Void).null
+    def get_collider_rid() : Int64
+      godot_bind(@@mb_get_collider_rid, "RayCast2D", "get_collider_rid", 2944877500_i64)
+      godot_ptrcall_int(@@mb_get_collider_rid, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_get_collider_shape : Void* = Pointer(Void).null
+    def get_collider_shape() : Int64
+      godot_bind(@@mb_get_collider_shape, "RayCast2D", "get_collider_shape", 3905245786_i64)
+      godot_ptrcall_int(@@mb_get_collider_shape, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_get_collision_point : Void* = Pointer(Void).null
+    def get_collision_point() : Vector2
+      godot_bind(@@mb_get_collision_point, "RayCast2D", "get_collision_point", 3341600327_i64)
+      godot_ptrcall_val(@@mb_get_collision_point, @pointer, Pointer(Pointer(Void)).null, Vector2)
+    end
+    @@mb_get_collision_normal : Void* = Pointer(Void).null
+    def get_collision_normal() : Vector2
+      godot_bind(@@mb_get_collision_normal, "RayCast2D", "get_collision_normal", 3341600327_i64)
+      godot_ptrcall_val(@@mb_get_collision_normal, @pointer, Pointer(Pointer(Void)).null, Vector2)
+    end
+    @@mb_add_exception_rid : Void* = Pointer(Void).null
+    def add_exception_rid(rid : Int64) : Void
+      godot_bind(@@mb_add_exception_rid, "RayCast2D", "add_exception_rid", 2722037293_i64)
+      val_0 = rid
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_add_exception_rid, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_add_exception : Void* = Pointer(Void).null
+    def add_exception(node : CollisionObject2D) : Void
+      godot_bind(@@mb_add_exception, "RayCast2D", "add_exception", 3090941106_i64)
+      arg_ptr_0 = node ? node.pointer : Pointer(Void).null
+      arg_0 = pointerof(arg_ptr_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_add_exception, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_remove_exception_rid : Void* = Pointer(Void).null
+    def remove_exception_rid(rid : Int64) : Void
+      godot_bind(@@mb_remove_exception_rid, "RayCast2D", "remove_exception_rid", 2722037293_i64)
+      val_0 = rid
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_remove_exception_rid, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_remove_exception : Void* = Pointer(Void).null
+    def remove_exception(node : CollisionObject2D) : Void
+      godot_bind(@@mb_remove_exception, "RayCast2D", "remove_exception", 3090941106_i64)
+      arg_ptr_0 = node ? node.pointer : Pointer(Void).null
+      arg_0 = pointerof(arg_ptr_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_remove_exception, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_clear_exceptions : Void* = Pointer(Void).null
+    def clear_exceptions() : Void
+      godot_bind(@@mb_clear_exceptions, "RayCast2D", "clear_exceptions", 3218959716_i64)
+      godot_ptrcall_void(@@mb_clear_exceptions, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_set_collision_mask : Void* = Pointer(Void).null
+    def set_collision_mask(mask : Int64) : Void
+      godot_bind(@@mb_set_collision_mask, "RayCast2D", "set_collision_mask", 1286410249_i64)
+      val_0 = mask.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_collision_mask, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_collision_mask : Void* = Pointer(Void).null
+    def get_collision_mask() : Int64
+      godot_bind(@@mb_get_collision_mask, "RayCast2D", "get_collision_mask", 3905245786_i64)
+      godot_ptrcall_int(@@mb_get_collision_mask, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_set_collision_mask_value : Void* = Pointer(Void).null
+    def set_collision_mask_value(layer_number : Int64, value : Bool) : Void
+      godot_bind(@@mb_set_collision_mask_value, "RayCast2D", "set_collision_mask_value", 300928843_i64)
+      val_0 = layer_number.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      val_1 = value
+      arg_1 = pointerof(val_1).as(Void*)
+      args = StaticArray[arg_0, arg_1]
+      godot_ptrcall_void(@@mb_set_collision_mask_value, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_collision_mask_value : Void* = Pointer(Void).null
+    def get_collision_mask_value(layer_number : Int64) : Bool
+      godot_bind(@@mb_get_collision_mask_value, "RayCast2D", "get_collision_mask_value", 1116898809_i64)
+      val_0 = layer_number.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_bool(@@mb_get_collision_mask_value, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `get_collision_mask_value`
+    def get_collision_mask_value?(layer_number : Int64) : Bool
+      get_collision_mask_value(layer_number)
+    end
+    @@mb_set_exclude_parent_body : Void* = Pointer(Void).null
+    def set_exclude_parent_body(mask : Bool) : Void
+      godot_bind(@@mb_set_exclude_parent_body, "RayCast2D", "set_exclude_parent_body", 2586408642_i64)
+      val_0 = mask
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_exclude_parent_body, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_exclude_parent_body : Void* = Pointer(Void).null
+    def get_exclude_parent_body() : Bool
+      godot_bind(@@mb_get_exclude_parent_body, "RayCast2D", "get_exclude_parent_body", 36873697_i64)
+      godot_ptrcall_bool(@@mb_get_exclude_parent_body, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `get_exclude_parent_body`
+    def get_exclude_parent_body?() : Bool
+      get_exclude_parent_body()
+    end
+    @@mb_set_collide_with_areas : Void* = Pointer(Void).null
+    def set_collide_with_areas(enable : Bool) : Void
+      godot_bind(@@mb_set_collide_with_areas, "RayCast2D", "set_collide_with_areas", 2586408642_i64)
+      val_0 = enable
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_collide_with_areas, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_is_collide_with_areas_enabled : Void* = Pointer(Void).null
+    def is_collide_with_areas_enabled() : Bool
+      godot_bind(@@mb_is_collide_with_areas_enabled, "RayCast2D", "is_collide_with_areas_enabled", 36873697_i64)
+      godot_ptrcall_bool(@@mb_is_collide_with_areas_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_collide_with_areas_enabled`
+    def is_collide_with_areas_enabled?() : Bool
+      is_collide_with_areas_enabled()
+    end
+    # Predicate alias for `is_collide_with_areas_enabled`
+    def collide_with_areas_enabled?() : Bool
+      is_collide_with_areas_enabled()
+    end
+    @@mb_set_collide_with_bodies : Void* = Pointer(Void).null
+    def set_collide_with_bodies(enable : Bool) : Void
+      godot_bind(@@mb_set_collide_with_bodies, "RayCast2D", "set_collide_with_bodies", 2586408642_i64)
+      val_0 = enable
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_collide_with_bodies, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_is_collide_with_bodies_enabled : Void* = Pointer(Void).null
+    def is_collide_with_bodies_enabled() : Bool
+      godot_bind(@@mb_is_collide_with_bodies_enabled, "RayCast2D", "is_collide_with_bodies_enabled", 36873697_i64)
+      godot_ptrcall_bool(@@mb_is_collide_with_bodies_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_collide_with_bodies_enabled`
+    def is_collide_with_bodies_enabled?() : Bool
+      is_collide_with_bodies_enabled()
+    end
+    # Predicate alias for `is_collide_with_bodies_enabled`
+    def collide_with_bodies_enabled?() : Bool
+      is_collide_with_bodies_enabled()
+    end
+    @@mb_set_hit_from_inside : Void* = Pointer(Void).null
+    def set_hit_from_inside(enable : Bool) : Void
+      godot_bind(@@mb_set_hit_from_inside, "RayCast2D", "set_hit_from_inside", 2586408642_i64)
+      val_0 = enable
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_hit_from_inside, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_is_hit_from_inside_enabled : Void* = Pointer(Void).null
+    def is_hit_from_inside_enabled() : Bool
+      godot_bind(@@mb_is_hit_from_inside_enabled, "RayCast2D", "is_hit_from_inside_enabled", 36873697_i64)
+      godot_ptrcall_bool(@@mb_is_hit_from_inside_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_hit_from_inside_enabled`
+    def is_hit_from_inside_enabled?() : Bool
+      is_hit_from_inside_enabled()
+    end
+    # Predicate alias for `is_hit_from_inside_enabled`
+    def hit_from_inside_enabled?() : Bool
+      is_hit_from_inside_enabled()
+    end
+    # Property `enabled` getter
+    def enabled
+      is_enabled
+    end
+    # Property `enabled` setter
+    def enabled=(val)
+      set_enabled(val)
+    end
+    # Property `exclude_parent` getter
+    def exclude_parent
+      get_exclude_parent_body
+    end
+    def exclude_parent?
+      exclude_parent
+    end
+    # Property `exclude_parent` setter
+    def exclude_parent=(val)
+      set_exclude_parent_body(val)
+    end
+    # Property `target_position` getter
+    def target_position
+      get_target_position
+    end
+    # Property `target_position` setter
+    def target_position=(val)
+      set_target_position(val)
+    end
+    # Property `collision_mask` getter
+    def collision_mask
+      get_collision_mask
+    end
+    # Property `collision_mask` setter
+    def collision_mask=(val : Int)
+      set_collision_mask(val.to_i64)
+    end
+    # Property `hit_from_inside` getter
+    def hit_from_inside
+      is_hit_from_inside_enabled
+    end
+    def hit_from_inside?
+      hit_from_inside
+    end
+    # Property `hit_from_inside` setter
+    def hit_from_inside=(val)
+      set_hit_from_inside(val)
+    end
+    # Property `collide_with_areas` getter
+    def collide_with_areas
+      is_collide_with_areas_enabled
+    end
+    def collide_with_areas?
+      collide_with_areas
+    end
+    # Property `collide_with_areas` setter
+    def collide_with_areas=(val)
+      set_collide_with_areas(val)
+    end
+    # Property `collide_with_bodies` getter
+    def collide_with_bodies
+      is_collide_with_bodies_enabled
+    end
+    def collide_with_bodies?
+      collide_with_bodies
+    end
+    # Property `collide_with_bodies` setter
+    def collide_with_bodies=(val)
+      set_collide_with_bodies(val)
+    end
+  end
+  class RayCast3D < Godot::Node3D
+    def initialize(pointer : Void* = Pointer(Void).null)
+      super(pointer)
+    end
+    @@mb_set_enabled : Void* = Pointer(Void).null
+    def set_enabled(enabled : Bool) : Void
+      godot_bind(@@mb_set_enabled, "RayCast3D", "set_enabled", 2586408642_i64)
+      val_0 = enabled
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_enabled, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_is_enabled : Void* = Pointer(Void).null
+    def is_enabled() : Bool
+      godot_bind(@@mb_is_enabled, "RayCast3D", "is_enabled", 36873697_i64)
+      godot_ptrcall_bool(@@mb_is_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_enabled`
+    def is_enabled?() : Bool
+      is_enabled()
+    end
+    @@mb_set_target_position : Void* = Pointer(Void).null
+    def set_target_position(local_point : Vector3) : Void
+      godot_bind(@@mb_set_target_position, "RayCast3D", "set_target_position", 3460891852_i64)
+      val_0 = local_point
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_target_position, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_target_position : Void* = Pointer(Void).null
+    def get_target_position() : Vector3
+      godot_bind(@@mb_get_target_position, "RayCast3D", "get_target_position", 3360562783_i64)
+      godot_ptrcall_val(@@mb_get_target_position, @pointer, Pointer(Pointer(Void)).null, Vector3)
+    end
+    @@mb_is_colliding : Void* = Pointer(Void).null
+    def is_colliding() : Bool
+      godot_bind(@@mb_is_colliding, "RayCast3D", "is_colliding", 36873697_i64)
+      godot_ptrcall_bool(@@mb_is_colliding, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_colliding`
+    def is_colliding?() : Bool
+      is_colliding()
+    end
+    # Predicate alias for `is_colliding`
+    def has_collider?() : Bool
+      is_colliding()
+    end
+    @@mb_force_raycast_update : Void* = Pointer(Void).null
+    def force_raycast_update() : Void
+      godot_bind(@@mb_force_raycast_update, "RayCast3D", "force_raycast_update", 3218959716_i64)
+      godot_ptrcall_void(@@mb_force_raycast_update, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_get_collider : Void* = Pointer(Void).null
+    def get_collider() : Godot::Object
+      godot_bind(@@mb_get_collider, "RayCast3D", "get_collider", 1981248198_i64)
+      godot_ptrcall_obj(@@mb_get_collider, @pointer, Pointer(Pointer(Void)).null, Godot::Object)
+    end
+    @@mb_get_collider_rid : Void* = Pointer(Void).null
+    def get_collider_rid() : Int64
+      godot_bind(@@mb_get_collider_rid, "RayCast3D", "get_collider_rid", 2944877500_i64)
+      godot_ptrcall_int(@@mb_get_collider_rid, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_get_collider_shape : Void* = Pointer(Void).null
+    def get_collider_shape() : Int64
+      godot_bind(@@mb_get_collider_shape, "RayCast3D", "get_collider_shape", 3905245786_i64)
+      godot_ptrcall_int(@@mb_get_collider_shape, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_get_collision_point : Void* = Pointer(Void).null
+    def get_collision_point() : Vector3
+      godot_bind(@@mb_get_collision_point, "RayCast3D", "get_collision_point", 3360562783_i64)
+      godot_ptrcall_val(@@mb_get_collision_point, @pointer, Pointer(Pointer(Void)).null, Vector3)
+    end
+    @@mb_get_collision_normal : Void* = Pointer(Void).null
+    def get_collision_normal() : Vector3
+      godot_bind(@@mb_get_collision_normal, "RayCast3D", "get_collision_normal", 3360562783_i64)
+      godot_ptrcall_val(@@mb_get_collision_normal, @pointer, Pointer(Pointer(Void)).null, Vector3)
+    end
+    @@mb_get_collision_face_index : Void* = Pointer(Void).null
+    def get_collision_face_index() : Int64
+      godot_bind(@@mb_get_collision_face_index, "RayCast3D", "get_collision_face_index", 3905245786_i64)
+      godot_ptrcall_int(@@mb_get_collision_face_index, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_add_exception_rid : Void* = Pointer(Void).null
+    def add_exception_rid(rid : Int64) : Void
+      godot_bind(@@mb_add_exception_rid, "RayCast3D", "add_exception_rid", 2722037293_i64)
+      val_0 = rid
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_add_exception_rid, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_add_exception : Void* = Pointer(Void).null
+    def add_exception(node : CollisionObject3D) : Void
+      godot_bind(@@mb_add_exception, "RayCast3D", "add_exception", 1976431078_i64)
+      arg_ptr_0 = node ? node.pointer : Pointer(Void).null
+      arg_0 = pointerof(arg_ptr_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_add_exception, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_remove_exception_rid : Void* = Pointer(Void).null
+    def remove_exception_rid(rid : Int64) : Void
+      godot_bind(@@mb_remove_exception_rid, "RayCast3D", "remove_exception_rid", 2722037293_i64)
+      val_0 = rid
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_remove_exception_rid, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_remove_exception : Void* = Pointer(Void).null
+    def remove_exception(node : CollisionObject3D) : Void
+      godot_bind(@@mb_remove_exception, "RayCast3D", "remove_exception", 1976431078_i64)
+      arg_ptr_0 = node ? node.pointer : Pointer(Void).null
+      arg_0 = pointerof(arg_ptr_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_remove_exception, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_clear_exceptions : Void* = Pointer(Void).null
+    def clear_exceptions() : Void
+      godot_bind(@@mb_clear_exceptions, "RayCast3D", "clear_exceptions", 3218959716_i64)
+      godot_ptrcall_void(@@mb_clear_exceptions, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_set_collision_mask : Void* = Pointer(Void).null
+    def set_collision_mask(mask : Int64) : Void
+      godot_bind(@@mb_set_collision_mask, "RayCast3D", "set_collision_mask", 1286410249_i64)
+      val_0 = mask.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_collision_mask, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_collision_mask : Void* = Pointer(Void).null
+    def get_collision_mask() : Int64
+      godot_bind(@@mb_get_collision_mask, "RayCast3D", "get_collision_mask", 3905245786_i64)
+      godot_ptrcall_int(@@mb_get_collision_mask, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_set_collision_mask_value : Void* = Pointer(Void).null
+    def set_collision_mask_value(layer_number : Int64, value : Bool) : Void
+      godot_bind(@@mb_set_collision_mask_value, "RayCast3D", "set_collision_mask_value", 300928843_i64)
+      val_0 = layer_number.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      val_1 = value
+      arg_1 = pointerof(val_1).as(Void*)
+      args = StaticArray[arg_0, arg_1]
+      godot_ptrcall_void(@@mb_set_collision_mask_value, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_collision_mask_value : Void* = Pointer(Void).null
+    def get_collision_mask_value(layer_number : Int64) : Bool
+      godot_bind(@@mb_get_collision_mask_value, "RayCast3D", "get_collision_mask_value", 1116898809_i64)
+      val_0 = layer_number.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_bool(@@mb_get_collision_mask_value, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `get_collision_mask_value`
+    def get_collision_mask_value?(layer_number : Int64) : Bool
+      get_collision_mask_value(layer_number)
+    end
+    @@mb_set_exclude_parent_body : Void* = Pointer(Void).null
+    def set_exclude_parent_body(mask : Bool) : Void
+      godot_bind(@@mb_set_exclude_parent_body, "RayCast3D", "set_exclude_parent_body", 2586408642_i64)
+      val_0 = mask
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_exclude_parent_body, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_exclude_parent_body : Void* = Pointer(Void).null
+    def get_exclude_parent_body() : Bool
+      godot_bind(@@mb_get_exclude_parent_body, "RayCast3D", "get_exclude_parent_body", 36873697_i64)
+      godot_ptrcall_bool(@@mb_get_exclude_parent_body, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `get_exclude_parent_body`
+    def get_exclude_parent_body?() : Bool
+      get_exclude_parent_body()
+    end
+    @@mb_set_collide_with_areas : Void* = Pointer(Void).null
+    def set_collide_with_areas(enable : Bool) : Void
+      godot_bind(@@mb_set_collide_with_areas, "RayCast3D", "set_collide_with_areas", 2586408642_i64)
+      val_0 = enable
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_collide_with_areas, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_is_collide_with_areas_enabled : Void* = Pointer(Void).null
+    def is_collide_with_areas_enabled() : Bool
+      godot_bind(@@mb_is_collide_with_areas_enabled, "RayCast3D", "is_collide_with_areas_enabled", 36873697_i64)
+      godot_ptrcall_bool(@@mb_is_collide_with_areas_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_collide_with_areas_enabled`
+    def is_collide_with_areas_enabled?() : Bool
+      is_collide_with_areas_enabled()
+    end
+    # Predicate alias for `is_collide_with_areas_enabled`
+    def collide_with_areas_enabled?() : Bool
+      is_collide_with_areas_enabled()
+    end
+    @@mb_set_collide_with_bodies : Void* = Pointer(Void).null
+    def set_collide_with_bodies(enable : Bool) : Void
+      godot_bind(@@mb_set_collide_with_bodies, "RayCast3D", "set_collide_with_bodies", 2586408642_i64)
+      val_0 = enable
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_collide_with_bodies, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_is_collide_with_bodies_enabled : Void* = Pointer(Void).null
+    def is_collide_with_bodies_enabled() : Bool
+      godot_bind(@@mb_is_collide_with_bodies_enabled, "RayCast3D", "is_collide_with_bodies_enabled", 36873697_i64)
+      godot_ptrcall_bool(@@mb_is_collide_with_bodies_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_collide_with_bodies_enabled`
+    def is_collide_with_bodies_enabled?() : Bool
+      is_collide_with_bodies_enabled()
+    end
+    # Predicate alias for `is_collide_with_bodies_enabled`
+    def collide_with_bodies_enabled?() : Bool
+      is_collide_with_bodies_enabled()
+    end
+    @@mb_set_hit_from_inside : Void* = Pointer(Void).null
+    def set_hit_from_inside(enable : Bool) : Void
+      godot_bind(@@mb_set_hit_from_inside, "RayCast3D", "set_hit_from_inside", 2586408642_i64)
+      val_0 = enable
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_hit_from_inside, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_is_hit_from_inside_enabled : Void* = Pointer(Void).null
+    def is_hit_from_inside_enabled() : Bool
+      godot_bind(@@mb_is_hit_from_inside_enabled, "RayCast3D", "is_hit_from_inside_enabled", 36873697_i64)
+      godot_ptrcall_bool(@@mb_is_hit_from_inside_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_hit_from_inside_enabled`
+    def is_hit_from_inside_enabled?() : Bool
+      is_hit_from_inside_enabled()
+    end
+    # Predicate alias for `is_hit_from_inside_enabled`
+    def hit_from_inside_enabled?() : Bool
+      is_hit_from_inside_enabled()
+    end
+    @@mb_set_hit_back_faces : Void* = Pointer(Void).null
+    def set_hit_back_faces(enable : Bool) : Void
+      godot_bind(@@mb_set_hit_back_faces, "RayCast3D", "set_hit_back_faces", 2586408642_i64)
+      val_0 = enable
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_hit_back_faces, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_is_hit_back_faces_enabled : Void* = Pointer(Void).null
+    def is_hit_back_faces_enabled() : Bool
+      godot_bind(@@mb_is_hit_back_faces_enabled, "RayCast3D", "is_hit_back_faces_enabled", 36873697_i64)
+      godot_ptrcall_bool(@@mb_is_hit_back_faces_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_hit_back_faces_enabled`
+    def is_hit_back_faces_enabled?() : Bool
+      is_hit_back_faces_enabled()
+    end
+    # Predicate alias for `is_hit_back_faces_enabled`
+    def hit_back_faces_enabled?() : Bool
+      is_hit_back_faces_enabled()
+    end
+    @@mb_set_debug_shape_custom_color : Void* = Pointer(Void).null
+    def set_debug_shape_custom_color(debug_shape_custom_color : Color) : Void
+      godot_bind(@@mb_set_debug_shape_custom_color, "RayCast3D", "set_debug_shape_custom_color", 2920490490_i64)
+      val_0 = debug_shape_custom_color
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_debug_shape_custom_color, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_debug_shape_custom_color : Void* = Pointer(Void).null
+    def get_debug_shape_custom_color() : Color
+      godot_bind(@@mb_get_debug_shape_custom_color, "RayCast3D", "get_debug_shape_custom_color", 3444240500_i64)
+      godot_ptrcall_val(@@mb_get_debug_shape_custom_color, @pointer, Pointer(Pointer(Void)).null, Color)
+    end
+    @@mb_set_debug_shape_thickness : Void* = Pointer(Void).null
+    def set_debug_shape_thickness(debug_shape_thickness : Int64) : Void
+      godot_bind(@@mb_set_debug_shape_thickness, "RayCast3D", "set_debug_shape_thickness", 1286410249_i64)
+      val_0 = debug_shape_thickness.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_debug_shape_thickness, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_debug_shape_thickness : Void* = Pointer(Void).null
+    def get_debug_shape_thickness() : Int64
+      godot_bind(@@mb_get_debug_shape_thickness, "RayCast3D", "get_debug_shape_thickness", 3905245786_i64)
+      godot_ptrcall_int(@@mb_get_debug_shape_thickness, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Property `exclude_parent` getter
+    def exclude_parent
+      get_exclude_parent_body
+    end
+    def exclude_parent?
+      exclude_parent
+    end
+    # Property `exclude_parent` setter
+    def exclude_parent=(val)
+      set_exclude_parent_body(val)
+    end
+    # Property `collision_mask` getter
+    def collision_mask
+      get_collision_mask
+    end
+    # Property `collision_mask` setter
+    def collision_mask=(val : Int)
+      set_collision_mask(val.to_i64)
+    end
+    # Property `hit_from_inside` getter
+    def hit_from_inside
+      is_hit_from_inside_enabled
+    end
+    def hit_from_inside?
+      hit_from_inside
+    end
+    # Property `hit_from_inside` setter
+    def hit_from_inside=(val)
+      set_hit_from_inside(val)
+    end
+    # Property `hit_back_faces` getter
+    def hit_back_faces
+      is_hit_back_faces_enabled
+    end
+    def hit_back_faces?
+      hit_back_faces
+    end
+    # Property `hit_back_faces` setter
+    def hit_back_faces=(val)
+      set_hit_back_faces(val)
+    end
+    # Property `collide_with_areas` getter
+    def collide_with_areas
+      is_collide_with_areas_enabled
+    end
+    def collide_with_areas?
+      collide_with_areas
+    end
+    # Property `collide_with_areas` setter
+    def collide_with_areas=(val)
+      set_collide_with_areas(val)
+    end
+    # Property `collide_with_bodies` getter
+    def collide_with_bodies
+      is_collide_with_bodies_enabled
+    end
+    def collide_with_bodies?
+      collide_with_bodies
+    end
+    # Property `collide_with_bodies` setter
+    def collide_with_bodies=(val)
+      set_collide_with_bodies(val)
+    end
+    # Property `debug_shape_custom_color` getter
+    def debug_shape_custom_color
+      get_debug_shape_custom_color
+    end
+    # Property `debug_shape_custom_color` setter
+    def debug_shape_custom_color=(val)
+      set_debug_shape_custom_color(val)
+    end
+    # Property `debug_shape_thickness` getter
+    def debug_shape_thickness
+      get_debug_shape_thickness
+    end
+    # Property `debug_shape_thickness` setter
+    def debug_shape_thickness=(val : Int)
+      set_debug_shape_thickness(val.to_i64)
+    end
+  end
+  class RectangleShape2D < Godot::Shape2D
+    def initialize(pointer : Void* = Pointer(Void).null)
+      super(pointer)
+    end
+    @@mb_set_size : Void* = Pointer(Void).null
+    def set_size(size : Vector2) : Void
+      godot_bind(@@mb_set_size, "RectangleShape2D", "set_size", 743155724_i64)
+      val_0 = size
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_size, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_size : Void* = Pointer(Void).null
+    def get_size() : Vector2
+      godot_bind(@@mb_get_size, "RectangleShape2D", "get_size", 3341600327_i64)
+      godot_ptrcall_val(@@mb_get_size, @pointer, Pointer(Pointer(Void)).null, Vector2)
+    end
+    # Property `size` getter
+    def size
+      get_size
+    end
+    # Property `size` setter
+    def size=(val)
+      set_size(val)
+    end
+  end
+  class ReferenceRect < Godot::Control
+    def initialize(pointer : Void* = Pointer(Void).null)
+      super(pointer)
+    end
+    @@mb_get_border_color : Void* = Pointer(Void).null
+    def get_border_color() : Color
+      godot_bind(@@mb_get_border_color, "ReferenceRect", "get_border_color", 3444240500_i64)
+      godot_ptrcall_val(@@mb_get_border_color, @pointer, Pointer(Pointer(Void)).null, Color)
+    end
+    @@mb_set_border_color : Void* = Pointer(Void).null
+    def set_border_color(color : Color) : Void
+      godot_bind(@@mb_set_border_color, "ReferenceRect", "set_border_color", 2920490490_i64)
+      val_0 = color
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_border_color, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_border_width : Void* = Pointer(Void).null
+    def get_border_width() : Float64
+      godot_bind(@@mb_get_border_width, "ReferenceRect", "get_border_width", 1740695150_i64)
+      godot_ptrcall_float(@@mb_get_border_width, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_set_border_width : Void* = Pointer(Void).null
+    def set_border_width(width : Float64) : Void
+      godot_bind(@@mb_set_border_width, "ReferenceRect", "set_border_width", 373806689_i64)
+      val_0 = width.to_f64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_border_width, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_editor_only : Void* = Pointer(Void).null
+    def get_editor_only() : Bool
+      godot_bind(@@mb_get_editor_only, "ReferenceRect", "get_editor_only", 36873697_i64)
+      godot_ptrcall_bool(@@mb_get_editor_only, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `get_editor_only`
+    def get_editor_only?() : Bool
+      get_editor_only()
+    end
+    @@mb_set_editor_only : Void* = Pointer(Void).null
+    def set_editor_only(enabled : Bool) : Void
+      godot_bind(@@mb_set_editor_only, "ReferenceRect", "set_editor_only", 2586408642_i64)
+      val_0 = enabled
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_editor_only, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Property `border_color` getter
+    def border_color
+      get_border_color
+    end
+    # Property `border_color` setter
+    def border_color=(val)
+      set_border_color(val)
+    end
+    # Property `border_width` getter
+    def border_width
+      get_border_width
+    end
+    # Property `border_width` setter
+    def border_width=(val : Number)
+      set_border_width(val.to_f64)
+    end
+    # Property `editor_only` getter
+    def editor_only
+      get_editor_only
+    end
+    def editor_only?
+      editor_only
+    end
+    # Property `editor_only` setter
+    def editor_only=(val)
+      set_editor_only(val)
+    end
+  end
   class ReflectionProbe < Godot::VisualInstance3D
     def initialize(pointer : Void* = Pointer(Void).null)
       super(pointer)
@@ -14795,15 +15563,15 @@ module Godot
       godot_ptrcall_obj(@@mb_get_base_editor, @pointer, Pointer(Pointer(Void)).null, Control)
     end
     godot_signal name_changed
-    godot_signal search_in_files_requested, String
     godot_signal request_help, String
     godot_signal request_open_script_at_line, Godot::Object, Int64
     godot_signal go_to_help, String
-    godot_signal replace_in_files_requested, String
     godot_signal go_to_method, Godot::Object, String
     godot_signal request_save_history
     godot_signal request_save_previous_state, Pointer(Void)
     godot_signal edited_script_changed
+    godot_signal search_in_files_requested, String
+    godot_signal replace_in_files_requested, String
   end
   class ScriptExtension < Godot::Script
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -30126,6 +30894,11 @@ module Godot
       super(pointer)
     end
   end
+  class TextServerFallback < Godot::TextServerExtension
+    def initialize(pointer : Void* = Pointer(Void).null)
+      super(pointer)
+    end
+  end
   class TextServerManager < Godot::Object
     def initialize(pointer : Void* = Pointer(Void).null)
       super(pointer)
@@ -31112,7 +31885,8 @@ module Godot
       DataTypeFontSize = 3_i64
       DataTypeIcon = 4_i64
       DataTypeStylebox = 5_i64
-      DataTypeMax = 6_i64
+      DataTypeSound = 6_i64
+      DataTypeMax = 7_i64
     end
     @@mb_set_icon : Void* = Pointer(Void).null
     def set_icon(name : String, theme_type : String, texture : Texture2D) : Void
@@ -31672,6 +32446,99 @@ module Godot
       godot_ptrcall(@@mb_get_constant_type_list, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
       ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
+    @@mb_set_sound : Void* = Pointer(Void).null
+    def set_sound(name : String, theme_type : String, sound : AudioStream) : Void
+      godot_bind(@@mb_set_sound, "Theme", "set_sound", 2577918927_i64)
+      sn_0 = Bridge.make_string_name(name)
+      arg_0 = sn_0
+      sn_1 = Bridge.make_string_name(theme_type)
+      arg_1 = sn_1
+      arg_ptr_2 = sound ? sound.pointer : Pointer(Void).null
+      arg_2 = pointerof(arg_ptr_2).as(Void*)
+      args = StaticArray[arg_0, arg_1, arg_2]
+      godot_ptrcall_void(@@mb_set_sound, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string_name(sn_0)
+      Bridge.free_string_name(sn_1)
+    end
+    @@mb_get_sound : Void* = Pointer(Void).null
+    def get_sound(name : String, theme_type : String) : AudioStream
+      godot_bind(@@mb_get_sound, "Theme", "get_sound", 1175136407_i64)
+      sn_0 = Bridge.make_string_name(name)
+      arg_0 = sn_0
+      sn_1 = Bridge.make_string_name(theme_type)
+      arg_1 = sn_1
+      args = StaticArray[arg_0, arg_1]
+      godot_ptrcall_obj(@@mb_get_sound, @pointer, args.to_unsafe.as(Void**), AudioStream)
+    ensure
+      Bridge.free_string_name(sn_0)
+      Bridge.free_string_name(sn_1)
+    end
+    @@mb_has_sound : Void* = Pointer(Void).null
+    def has_sound(name : String, theme_type : String) : Bool
+      godot_bind(@@mb_has_sound, "Theme", "has_sound", 471820014_i64)
+      sn_0 = Bridge.make_string_name(name)
+      arg_0 = sn_0
+      sn_1 = Bridge.make_string_name(theme_type)
+      arg_1 = sn_1
+      args = StaticArray[arg_0, arg_1]
+      godot_ptrcall_bool(@@mb_has_sound, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string_name(sn_0)
+      Bridge.free_string_name(sn_1)
+    end
+    # Predicate alias for `has_sound`
+    def has_sound?(name : String, theme_type : String) : Bool
+      has_sound(name, theme_type)
+    end
+    @@mb_rename_sound : Void* = Pointer(Void).null
+    def rename_sound(old_name : String, name : String, theme_type : String) : Void
+      godot_bind(@@mb_rename_sound, "Theme", "rename_sound", 642128662_i64)
+      sn_0 = Bridge.make_string_name(old_name)
+      arg_0 = sn_0
+      sn_1 = Bridge.make_string_name(name)
+      arg_1 = sn_1
+      sn_2 = Bridge.make_string_name(theme_type)
+      arg_2 = sn_2
+      args = StaticArray[arg_0, arg_1, arg_2]
+      godot_ptrcall_void(@@mb_rename_sound, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string_name(sn_0)
+      Bridge.free_string_name(sn_1)
+      Bridge.free_string_name(sn_2)
+    end
+    @@mb_clear_sound : Void* = Pointer(Void).null
+    def clear_sound(name : String, theme_type : String) : Void
+      godot_bind(@@mb_clear_sound, "Theme", "clear_sound", 3740211285_i64)
+      sn_0 = Bridge.make_string_name(name)
+      arg_0 = sn_0
+      sn_1 = Bridge.make_string_name(theme_type)
+      arg_1 = sn_1
+      args = StaticArray[arg_0, arg_1]
+      godot_ptrcall_void(@@mb_clear_sound, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string_name(sn_0)
+      Bridge.free_string_name(sn_1)
+    end
+    @@mb_get_sound_list : Void* = Pointer(Void).null
+    def get_sound_list(theme_type : String) : Pointer(Void)
+      godot_bind(@@mb_get_sound_list, "Theme", "get_sound_list", 4291131558_i64)
+      str_0 = Bridge.make_string(theme_type)
+      arg_0 = str_0
+      args = StaticArray[arg_0]
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_sound_list, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+    ensure
+      Bridge.free_string(str_0)
+    end
+    @@mb_get_sound_type_list : Void* = Pointer(Void).null
+    def get_sound_type_list() : Pointer(Void)
+      godot_bind(@@mb_get_sound_type_list, "Theme", "get_sound_type_list", 1139954409_i64)
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_sound_type_list, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+    end
     @@mb_set_default_base_scale : Void* = Pointer(Void).null
     def set_default_base_scale(base_scale : Float64) : Void
       godot_bind(@@mb_set_default_base_scale, "Theme", "set_default_base_scale", 373806689_i64)
@@ -32073,6 +32940,19 @@ module Godot
       godot_bind(@@mb_get_fallback_stylebox, "ThemeDB", "get_fallback_stylebox", 496040854_i64)
       godot_ptrcall_obj(@@mb_get_fallback_stylebox, @pointer, Pointer(Pointer(Void)).null, StyleBox)
     end
+    @@mb_set_fallback_sound : Void* = Pointer(Void).null
+    def set_fallback_sound(audio : AudioStream) : Void
+      godot_bind(@@mb_set_fallback_sound, "ThemeDB", "set_fallback_sound", 2210767741_i64)
+      arg_ptr_0 = audio ? audio.pointer : Pointer(Void).null
+      arg_0 = pointerof(arg_ptr_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_fallback_sound, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_fallback_sound : Void* = Pointer(Void).null
+    def get_fallback_sound() : AudioStream
+      godot_bind(@@mb_get_fallback_sound, "ThemeDB", "get_fallback_sound", 1183832186_i64)
+      godot_ptrcall_obj(@@mb_get_fallback_sound, @pointer, Pointer(Pointer(Void)).null, AudioStream)
+    end
     # Property `fallback_base_scale` getter
     def fallback_base_scale
       get_fallback_base_scale
@@ -32112,6 +32992,14 @@ module Godot
     # Property `fallback_stylebox` setter
     def fallback_stylebox=(val)
       set_fallback_stylebox(val)
+    end
+    # Property `fallback_sound` getter
+    def fallback_sound
+      get_fallback_sound
+    end
+    # Property `fallback_sound` setter
+    def fallback_sound=(val)
+      set_fallback_sound(val)
     end
     godot_signal fallback_changed
   end
@@ -40550,436 +41438,6 @@ module Godot
     # Property `max_pending_connections` setter
     def max_pending_connections=(val : Int)
       set_max_pending_connections(val.to_i64)
-    end
-  end
-  class UDSServer < Godot::SocketServer
-    def initialize(pointer : Void* = Pointer(Void).null)
-      super(pointer)
-    end
-    @@mb_listen : Void* = Pointer(Void).null
-    def listen(path : String) : Godot::Error
-      godot_bind(@@mb_listen, "UDSServer", "listen", 166001499_i64)
-      str_0 = Bridge.make_string(path)
-      arg_0 = str_0
-      args = StaticArray[arg_0]
-      godot_ptrcall_enum(@@mb_listen, @pointer, args.to_unsafe.as(Void**), Godot::Error)
-    ensure
-      Bridge.free_string(str_0)
-    end
-    @@mb_take_connection : Void* = Pointer(Void).null
-    def take_connection() : StreamPeerUDS
-      godot_bind(@@mb_take_connection, "UDSServer", "take_connection", 1623851112_i64)
-      godot_ptrcall_obj(@@mb_take_connection, @pointer, Pointer(Pointer(Void)).null, StreamPeerUDS)
-    end
-  end
-  class UPNP < Godot::RefCounted
-    def initialize(pointer : Void* = Pointer(Void).null)
-      super(pointer)
-    end
-    enum UPNPResult : Int64
-      UpnpResultSuccess = 0_i64
-      UpnpResultNotAuthorized = 1_i64
-      UpnpResultPortMappingNotFound = 2_i64
-      UpnpResultInconsistentParameters = 3_i64
-      UpnpResultNoSuchEntryInArray = 4_i64
-      UpnpResultActionFailed = 5_i64
-      UpnpResultSrcIpWildcardNotPermitted = 6_i64
-      UpnpResultExtPortWildcardNotPermitted = 7_i64
-      UpnpResultIntPortWildcardNotPermitted = 8_i64
-      UpnpResultRemoteHostMustBeWildcard = 9_i64
-      UpnpResultExtPortMustBeWildcard = 10_i64
-      UpnpResultNoPortMapsAvailable = 11_i64
-      UpnpResultConflictWithOtherMechanism = 12_i64
-      UpnpResultConflictWithOtherMapping = 13_i64
-      UpnpResultSamePortValuesRequired = 14_i64
-      UpnpResultOnlyPermanentLeaseSupported = 15_i64
-      UpnpResultInvalidGateway = 16_i64
-      UpnpResultInvalidPort = 17_i64
-      UpnpResultInvalidProtocol = 18_i64
-      UpnpResultInvalidDuration = 19_i64
-      UpnpResultInvalidArgs = 20_i64
-      UpnpResultInvalidResponse = 21_i64
-      UpnpResultInvalidParam = 22_i64
-      UpnpResultHttpError = 23_i64
-      UpnpResultSocketError = 24_i64
-      UpnpResultMemAllocError = 25_i64
-      UpnpResultNoGateway = 26_i64
-      UpnpResultNoDevices = 27_i64
-      UpnpResultUnknownError = 28_i64
-    end
-    @@mb_get_device_count : Void* = Pointer(Void).null
-    def get_device_count() : Int64
-      godot_bind(@@mb_get_device_count, "UPNP", "get_device_count", 3905245786_i64)
-      godot_ptrcall_int(@@mb_get_device_count, @pointer, Pointer(Pointer(Void)).null)
-    end
-    @@mb_get_device : Void* = Pointer(Void).null
-    def get_device(index : Int64) : UPNPDevice
-      godot_bind(@@mb_get_device, "UPNP", "get_device", 2193290270_i64)
-      val_0 = index.to_i64
-      arg_0 = pointerof(val_0).as(Void*)
-      args = StaticArray[arg_0]
-      godot_ptrcall_obj(@@mb_get_device, @pointer, args.to_unsafe.as(Void**), UPNPDevice)
-    end
-    @@mb_add_device : Void* = Pointer(Void).null
-    def add_device(device : UPNPDevice) : Void
-      godot_bind(@@mb_add_device, "UPNP", "add_device", 986715920_i64)
-      arg_ptr_0 = device ? device.pointer : Pointer(Void).null
-      arg_0 = pointerof(arg_ptr_0).as(Void*)
-      args = StaticArray[arg_0]
-      godot_ptrcall_void(@@mb_add_device, @pointer, args.to_unsafe.as(Void**))
-    end
-    @@mb_set_device : Void* = Pointer(Void).null
-    def set_device(index : Int64, device : UPNPDevice) : Void
-      godot_bind(@@mb_set_device, "UPNP", "set_device", 3015133723_i64)
-      val_0 = index.to_i64
-      arg_0 = pointerof(val_0).as(Void*)
-      arg_ptr_1 = device ? device.pointer : Pointer(Void).null
-      arg_1 = pointerof(arg_ptr_1).as(Void*)
-      args = StaticArray[arg_0, arg_1]
-      godot_ptrcall_void(@@mb_set_device, @pointer, args.to_unsafe.as(Void**))
-    end
-    @@mb_remove_device : Void* = Pointer(Void).null
-    def remove_device(index : Int64) : Void
-      godot_bind(@@mb_remove_device, "UPNP", "remove_device", 1286410249_i64)
-      val_0 = index.to_i64
-      arg_0 = pointerof(val_0).as(Void*)
-      args = StaticArray[arg_0]
-      godot_ptrcall_void(@@mb_remove_device, @pointer, args.to_unsafe.as(Void**))
-    end
-    @@mb_clear_devices : Void* = Pointer(Void).null
-    def clear_devices() : Void
-      godot_bind(@@mb_clear_devices, "UPNP", "clear_devices", 3218959716_i64)
-      godot_ptrcall_void(@@mb_clear_devices, @pointer, Pointer(Pointer(Void)).null)
-    end
-    @@mb_get_gateway : Void* = Pointer(Void).null
-    def get_gateway() : UPNPDevice
-      godot_bind(@@mb_get_gateway, "UPNP", "get_gateway", 2276800779_i64)
-      godot_ptrcall_obj(@@mb_get_gateway, @pointer, Pointer(Pointer(Void)).null, UPNPDevice)
-    end
-    @@mb_discover : Void* = Pointer(Void).null
-    def discover(timeout : Int64 = 2000_i64, ttl : Int64 = 2_i64, device_filter : String = "InternetGatewayDevice") : Int64
-      godot_bind(@@mb_discover, "UPNP", "discover", 1575334765_i64)
-      val_0 = timeout.to_i64
-      arg_0 = pointerof(val_0).as(Void*)
-      val_1 = ttl.to_i64
-      arg_1 = pointerof(val_1).as(Void*)
-      str_2 = Bridge.make_string(device_filter)
-      arg_2 = str_2
-      args = StaticArray[arg_0, arg_1, arg_2]
-      godot_ptrcall_int(@@mb_discover, @pointer, args.to_unsafe.as(Void**))
-    ensure
-      Bridge.free_string(str_2)
-    end
-    @@mb_query_external_address : Void* = Pointer(Void).null
-    def query_external_address() : String
-      godot_bind(@@mb_query_external_address, "UPNP", "query_external_address", 201670096_i64)
-      godot_call_str("query_external_address")
-    end
-    @@mb_add_port_mapping : Void* = Pointer(Void).null
-    def add_port_mapping(port : Int64, port_internal : Int64 = 0_i64, desc : String = "", proto : String = "UDP", duration : Int64 = 0_i64) : Int64
-      godot_bind(@@mb_add_port_mapping, "UPNP", "add_port_mapping", 818314583_i64)
-      val_0 = port.to_i64
-      arg_0 = pointerof(val_0).as(Void*)
-      val_1 = port_internal.to_i64
-      arg_1 = pointerof(val_1).as(Void*)
-      str_2 = Bridge.make_string(desc)
-      arg_2 = str_2
-      str_3 = Bridge.make_string(proto)
-      arg_3 = str_3
-      val_4 = duration.to_i64
-      arg_4 = pointerof(val_4).as(Void*)
-      args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
-      godot_ptrcall_int(@@mb_add_port_mapping, @pointer, args.to_unsafe.as(Void**))
-    ensure
-      Bridge.free_string(str_2)
-      Bridge.free_string(str_3)
-    end
-    @@mb_delete_port_mapping : Void* = Pointer(Void).null
-    def delete_port_mapping(port : Int64, proto : String = "UDP") : Int64
-      godot_bind(@@mb_delete_port_mapping, "UPNP", "delete_port_mapping", 3444187325_i64)
-      val_0 = port.to_i64
-      arg_0 = pointerof(val_0).as(Void*)
-      str_1 = Bridge.make_string(proto)
-      arg_1 = str_1
-      args = StaticArray[arg_0, arg_1]
-      godot_ptrcall_int(@@mb_delete_port_mapping, @pointer, args.to_unsafe.as(Void**))
-    ensure
-      Bridge.free_string(str_1)
-    end
-    @@mb_set_discover_multicast_if : Void* = Pointer(Void).null
-    def set_discover_multicast_if(m_if : String) : Void
-      godot_bind(@@mb_set_discover_multicast_if, "UPNP", "set_discover_multicast_if", 83702148_i64)
-      str_0 = Bridge.make_string(m_if)
-      arg_0 = str_0
-      args = StaticArray[arg_0]
-      godot_ptrcall_void(@@mb_set_discover_multicast_if, @pointer, args.to_unsafe.as(Void**))
-    ensure
-      Bridge.free_string(str_0)
-    end
-    @@mb_get_discover_multicast_if : Void* = Pointer(Void).null
-    def get_discover_multicast_if() : String
-      godot_bind(@@mb_get_discover_multicast_if, "UPNP", "get_discover_multicast_if", 201670096_i64)
-      godot_call_str("get_discover_multicast_if")
-    end
-    @@mb_set_discover_local_port : Void* = Pointer(Void).null
-    def set_discover_local_port(port : Int64) : Void
-      godot_bind(@@mb_set_discover_local_port, "UPNP", "set_discover_local_port", 1286410249_i64)
-      val_0 = port.to_i64
-      arg_0 = pointerof(val_0).as(Void*)
-      args = StaticArray[arg_0]
-      godot_ptrcall_void(@@mb_set_discover_local_port, @pointer, args.to_unsafe.as(Void**))
-    end
-    @@mb_get_discover_local_port : Void* = Pointer(Void).null
-    def get_discover_local_port() : Int64
-      godot_bind(@@mb_get_discover_local_port, "UPNP", "get_discover_local_port", 3905245786_i64)
-      godot_ptrcall_int(@@mb_get_discover_local_port, @pointer, Pointer(Pointer(Void)).null)
-    end
-    @@mb_set_discover_ipv6 : Void* = Pointer(Void).null
-    def set_discover_ipv6(ipv6 : Bool) : Void
-      godot_bind(@@mb_set_discover_ipv6, "UPNP", "set_discover_ipv6", 2586408642_i64)
-      val_0 = ipv6
-      arg_0 = pointerof(val_0).as(Void*)
-      args = StaticArray[arg_0]
-      godot_ptrcall_void(@@mb_set_discover_ipv6, @pointer, args.to_unsafe.as(Void**))
-    end
-    @@mb_is_discover_ipv6 : Void* = Pointer(Void).null
-    def is_discover_ipv6() : Bool
-      godot_bind(@@mb_is_discover_ipv6, "UPNP", "is_discover_ipv6", 36873697_i64)
-      godot_ptrcall_bool(@@mb_is_discover_ipv6, @pointer, Pointer(Pointer(Void)).null)
-    end
-    # Predicate alias for `is_discover_ipv6`
-    def is_discover_ipv6?() : Bool
-      is_discover_ipv6()
-    end
-    # Predicate alias for `is_discover_ipv6`
-    def discover_ipv6?() : Bool
-      is_discover_ipv6()
-    end
-    # Property `discover_multicast_if` getter
-    def discover_multicast_if
-      get_discover_multicast_if
-    end
-    # Property `discover_multicast_if` setter
-    def discover_multicast_if=(val)
-      set_discover_multicast_if(val)
-    end
-    # Property `discover_local_port` getter
-    def discover_local_port
-      get_discover_local_port
-    end
-    # Property `discover_local_port` setter
-    def discover_local_port=(val : Int)
-      set_discover_local_port(val.to_i64)
-    end
-    # Property `discover_ipv6` getter
-    def discover_ipv6
-      is_discover_ipv6
-    end
-    # Property `discover_ipv6` setter
-    def discover_ipv6=(val)
-      set_discover_ipv6(val)
-    end
-  end
-  class UPNPDevice < Godot::RefCounted
-    def initialize(pointer : Void* = Pointer(Void).null)
-      super(pointer)
-    end
-    enum IGDStatus : Int64
-      IgdStatusOk = 0_i64
-      IgdStatusHttpError = 1_i64
-      IgdStatusHttpEmpty = 2_i64
-      IgdStatusNoUrls = 3_i64
-      IgdStatusNoIgd = 4_i64
-      IgdStatusDisconnected = 5_i64
-      IgdStatusUnknownDevice = 6_i64
-      IgdStatusInvalidControl = 7_i64
-      IgdStatusMallocError = 8_i64
-      IgdStatusUnknownError = 9_i64
-    end
-    @@mb_is_valid_gateway : Void* = Pointer(Void).null
-    def is_valid_gateway() : Bool
-      godot_bind(@@mb_is_valid_gateway, "UPNPDevice", "is_valid_gateway", 36873697_i64)
-      godot_ptrcall_bool(@@mb_is_valid_gateway, @pointer, Pointer(Pointer(Void)).null)
-    end
-    # Predicate alias for `is_valid_gateway`
-    def is_valid_gateway?() : Bool
-      is_valid_gateway()
-    end
-    # Predicate alias for `is_valid_gateway`
-    def valid_gateway?() : Bool
-      is_valid_gateway()
-    end
-    @@mb_query_external_address : Void* = Pointer(Void).null
-    def query_external_address() : String
-      godot_bind(@@mb_query_external_address, "UPNPDevice", "query_external_address", 201670096_i64)
-      godot_call_str("query_external_address")
-    end
-    @@mb_add_port_mapping : Void* = Pointer(Void).null
-    def add_port_mapping(port : Int64, port_internal : Int64 = 0_i64, desc : String = "", proto : String = "UDP", duration : Int64 = 0_i64) : Int64
-      godot_bind(@@mb_add_port_mapping, "UPNPDevice", "add_port_mapping", 818314583_i64)
-      val_0 = port.to_i64
-      arg_0 = pointerof(val_0).as(Void*)
-      val_1 = port_internal.to_i64
-      arg_1 = pointerof(val_1).as(Void*)
-      str_2 = Bridge.make_string(desc)
-      arg_2 = str_2
-      str_3 = Bridge.make_string(proto)
-      arg_3 = str_3
-      val_4 = duration.to_i64
-      arg_4 = pointerof(val_4).as(Void*)
-      args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
-      godot_ptrcall_int(@@mb_add_port_mapping, @pointer, args.to_unsafe.as(Void**))
-    ensure
-      Bridge.free_string(str_2)
-      Bridge.free_string(str_3)
-    end
-    @@mb_delete_port_mapping : Void* = Pointer(Void).null
-    def delete_port_mapping(port : Int64, proto : String = "UDP") : Int64
-      godot_bind(@@mb_delete_port_mapping, "UPNPDevice", "delete_port_mapping", 3444187325_i64)
-      val_0 = port.to_i64
-      arg_0 = pointerof(val_0).as(Void*)
-      str_1 = Bridge.make_string(proto)
-      arg_1 = str_1
-      args = StaticArray[arg_0, arg_1]
-      godot_ptrcall_int(@@mb_delete_port_mapping, @pointer, args.to_unsafe.as(Void**))
-    ensure
-      Bridge.free_string(str_1)
-    end
-    @@mb_set_description_url : Void* = Pointer(Void).null
-    def set_description_url(url : String) : Void
-      godot_bind(@@mb_set_description_url, "UPNPDevice", "set_description_url", 83702148_i64)
-      str_0 = Bridge.make_string(url)
-      arg_0 = str_0
-      args = StaticArray[arg_0]
-      godot_ptrcall_void(@@mb_set_description_url, @pointer, args.to_unsafe.as(Void**))
-    ensure
-      Bridge.free_string(str_0)
-    end
-    @@mb_get_description_url : Void* = Pointer(Void).null
-    def get_description_url() : String
-      godot_bind(@@mb_get_description_url, "UPNPDevice", "get_description_url", 201670096_i64)
-      godot_call_str("get_description_url")
-    end
-    @@mb_set_service_type : Void* = Pointer(Void).null
-    def set_service_type(get_type : String) : Void
-      godot_bind(@@mb_set_service_type, "UPNPDevice", "set_service_type", 83702148_i64)
-      str_0 = Bridge.make_string(get_type)
-      arg_0 = str_0
-      args = StaticArray[arg_0]
-      godot_ptrcall_void(@@mb_set_service_type, @pointer, args.to_unsafe.as(Void**))
-    ensure
-      Bridge.free_string(str_0)
-    end
-    @@mb_get_service_type : Void* = Pointer(Void).null
-    def get_service_type() : String
-      godot_bind(@@mb_get_service_type, "UPNPDevice", "get_service_type", 201670096_i64)
-      godot_call_str("get_service_type")
-    end
-    @@mb_set_igd_control_url : Void* = Pointer(Void).null
-    def set_igd_control_url(url : String) : Void
-      godot_bind(@@mb_set_igd_control_url, "UPNPDevice", "set_igd_control_url", 83702148_i64)
-      str_0 = Bridge.make_string(url)
-      arg_0 = str_0
-      args = StaticArray[arg_0]
-      godot_ptrcall_void(@@mb_set_igd_control_url, @pointer, args.to_unsafe.as(Void**))
-    ensure
-      Bridge.free_string(str_0)
-    end
-    @@mb_get_igd_control_url : Void* = Pointer(Void).null
-    def get_igd_control_url() : String
-      godot_bind(@@mb_get_igd_control_url, "UPNPDevice", "get_igd_control_url", 201670096_i64)
-      godot_call_str("get_igd_control_url")
-    end
-    @@mb_set_igd_service_type : Void* = Pointer(Void).null
-    def set_igd_service_type(get_type : String) : Void
-      godot_bind(@@mb_set_igd_service_type, "UPNPDevice", "set_igd_service_type", 83702148_i64)
-      str_0 = Bridge.make_string(get_type)
-      arg_0 = str_0
-      args = StaticArray[arg_0]
-      godot_ptrcall_void(@@mb_set_igd_service_type, @pointer, args.to_unsafe.as(Void**))
-    ensure
-      Bridge.free_string(str_0)
-    end
-    @@mb_get_igd_service_type : Void* = Pointer(Void).null
-    def get_igd_service_type() : String
-      godot_bind(@@mb_get_igd_service_type, "UPNPDevice", "get_igd_service_type", 201670096_i64)
-      godot_call_str("get_igd_service_type")
-    end
-    @@mb_set_igd_our_addr : Void* = Pointer(Void).null
-    def set_igd_our_addr(addr : String) : Void
-      godot_bind(@@mb_set_igd_our_addr, "UPNPDevice", "set_igd_our_addr", 83702148_i64)
-      str_0 = Bridge.make_string(addr)
-      arg_0 = str_0
-      args = StaticArray[arg_0]
-      godot_ptrcall_void(@@mb_set_igd_our_addr, @pointer, args.to_unsafe.as(Void**))
-    ensure
-      Bridge.free_string(str_0)
-    end
-    @@mb_get_igd_our_addr : Void* = Pointer(Void).null
-    def get_igd_our_addr() : String
-      godot_bind(@@mb_get_igd_our_addr, "UPNPDevice", "get_igd_our_addr", 201670096_i64)
-      godot_call_str("get_igd_our_addr")
-    end
-    @@mb_set_igd_status : Void* = Pointer(Void).null
-    def set_igd_status(status : IGDStatus | Int) : Void
-      godot_bind(@@mb_set_igd_status, "UPNPDevice", "set_igd_status", 519504122_i64)
-      val_0 = status.is_a?(Int) ? status.to_i64 : status.value.to_i64
-      arg_0 = pointerof(val_0).as(Void*)
-      args = StaticArray[arg_0]
-      godot_ptrcall_void(@@mb_set_igd_status, @pointer, args.to_unsafe.as(Void**))
-    end
-    @@mb_get_igd_status : Void* = Pointer(Void).null
-    def get_igd_status() : IGDStatus
-      godot_bind(@@mb_get_igd_status, "UPNPDevice", "get_igd_status", 180887011_i64)
-      godot_ptrcall_enum(@@mb_get_igd_status, @pointer, Pointer(Pointer(Void)).null, IGDStatus)
-    end
-    # Property `description_url` getter
-    def description_url
-      get_description_url
-    end
-    # Property `description_url` setter
-    def description_url=(val)
-      set_description_url(val)
-    end
-    # Property `service_type` getter
-    def service_type
-      get_service_type
-    end
-    # Property `service_type` setter
-    def service_type=(val)
-      set_service_type(val)
-    end
-    # Property `igd_control_url` getter
-    def igd_control_url
-      get_igd_control_url
-    end
-    # Property `igd_control_url` setter
-    def igd_control_url=(val)
-      set_igd_control_url(val)
-    end
-    # Property `igd_service_type` getter
-    def igd_service_type
-      get_igd_service_type
-    end
-    # Property `igd_service_type` setter
-    def igd_service_type=(val)
-      set_igd_service_type(val)
-    end
-    # Property `igd_our_addr` getter
-    def igd_our_addr
-      get_igd_our_addr
-    end
-    # Property `igd_our_addr` setter
-    def igd_our_addr=(val)
-      set_igd_our_addr(val)
-    end
-    # Property `igd_status` getter
-    def igd_status
-      get_igd_status
-    end
-    # Property `igd_status` setter
-    def igd_status=(val : Int)
-      set_igd_status(val.to_i64)
     end
   end
 end

@@ -139,10 +139,12 @@ module Lapis
         driver.raw_mode do
           driver.enter_alternate_screen
           driver.hide_cursor
+          diff_renderer = Opal::UI::DiffRenderer.new(driver)
           begin
             while @running
-              render(driver)
-              handle_input(driver)
+              render(driver, diff_renderer)
+              ev = driver.poll_event(50)
+              handle_input(ev, diff_renderer) if ev
             end
           ensure
             driver.show_cursor
@@ -429,16 +431,13 @@ module Lapis
         end
       end
 
-      private def render(driver : Opal::Terminal::Driver)
+      private def render(driver : Opal::Terminal::Driver, diff_renderer : Opal::UI::DiffRenderer)
         w, h = driver.size
-        width = Math.max(80, w)
-        height = Math.max(24, h)
+        width = Math.max(40, w)
+        height = Math.max(16, h)
         buffer = Opal::UI::Buffer.new(width, height)
         render_to_buffer(buffer, width, height)
-
-        driver.write(Opal::Terminal::Screen.move_to(1, 1))
-        driver.write(buffer.render_to_string(with_ansi: true))
-        driver.flush
+        diff_renderer.render(buffer)
       end
 
       private def render_file_picker(buffer : Opal::UI::Buffer, width : Int32, height : Int32)
@@ -545,8 +544,12 @@ module Lapis
         end
       end
 
-      private def handle_input(driver : Opal::Terminal::Driver)
-        ev = driver.read_event
+      private def handle_input(ev : Opal::Terminal::KeyEvent | Opal::Terminal::MouseEvent | Opal::Terminal::ResizeEvent, diff_renderer : Opal::UI::DiffRenderer)
+        if ev.is_a?(Opal::Terminal::ResizeEvent)
+          diff_renderer.invalidate!
+          return
+        end
+
         return unless ev.is_a?(Opal::Terminal::KeyEvent)
 
         # Global command palette shortcut

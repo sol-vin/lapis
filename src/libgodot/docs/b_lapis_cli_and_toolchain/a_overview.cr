@@ -77,23 +77,23 @@ module Lapis
         #   </thead>
         #   <tbody>
         #     <tr>
-        #       <td>`--help`</td>
-        #       <td>`-h`</td>
+        #       <td><code>--help</code></td>
+        #       <td><code>-h</code></td>
         #       <td>Prints detailed help and usage instructions for the current subcommand</td>
         #     </tr>
         #     <tr>
-        #       <td>`--version`</td>
-        #       <td>`-v`</td>
+        #       <td><code>--version</code></td>
+        #       <td><code>-v</code></td>
         #       <td>Displays the current Lapis toolchain release version and target Godot engine</td>
         #     </tr>
         #     <tr>
-        #       <td>`--verbose`</td>
+        #       <td><code>--verbose</code></td>
         #       <td></td>
         #       <td>Enables verbose debug logging, process commands, and timing metrics</td>
         #     </tr>
         #     <tr>
-        #       <td>`--quiet`</td>
-        #       <td>`-q`</td>
+        #       <td><code>--quiet</code></td>
+        #       <td><code>-q</code></td>
         #       <td>Suppresses non-essential terminal output for silent CI execution</td>
         #     </tr>
         #   </tbody>

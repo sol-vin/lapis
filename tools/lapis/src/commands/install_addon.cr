@@ -1301,9 +1301,7 @@ HELP
             ])
           end
 
-          t_buf = Opal::UI::Buffer.new(120, installed.size + 4)
-          tbl.render(t_buf, 2, 0, 116, installed.size + 4)
-          puts t_buf.render_to_string
+          puts tbl.to_print_s(width: 120)
           puts
           return 0
         end

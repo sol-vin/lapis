@@ -35,10 +35,17 @@ module Lapis
       getter file_dialog : Opal::UI::FileDialog
       getter metadata : Hash(String, String) = Hash(String, String).new
       getter metrics : Array(Commands::Benchmarks::BenchmarkMetric) = [] of Commands::Benchmarks::BenchmarkMetric
+      @diff_renderer : Opal::UI::DiffRenderer? = nil
+      @last_size : {Int32, Int32}? = nil
 
       def initialize(initial_xml : String? = nil)
-        reports_dir = Core::Env::ROOT_DIR.join("benchmarks/reports").to_s
-        reports_dir = "." unless Dir.exists?(reports_dir)
+        reports_dir = if Dir.exists?(Path.new("benchmarks/reports"))
+                        Path.new("benchmarks/reports").to_s
+                      elsif Dir.exists?(Core::Env::ROOT_DIR.join("benchmarks/reports")) && Core::Env.is_libgodot_repo?(Core::Env::ROOT_DIR)
+                        Core::Env::ROOT_DIR.join("benchmarks/reports").to_s
+                      else
+                        "."
+                      end
         @file_dialog = Opal::UI::FileDialog.new(initial_path: reports_dir, mode: :open_file)
 
         if xml = initial_xml
@@ -59,10 +66,23 @@ module Lapis
         driver.raw_mode do
           driver.enter_alternate_screen
           driver.hide_cursor
+          @diff_renderer = Opal::UI::DiffRenderer.new(driver)
           begin
+            render(driver)
             while @running
-              render(driver)
-              handle_input(driver)
+              ev = driver.poll_event(50)
+              if ev
+                if ev.is_a?(Opal::Terminal::ResizeEvent)
+                  @diff_renderer.try(&.invalidate!)
+                  render(driver)
+                else
+                  handle_input_event(ev)
+                  render(driver) if @running
+                end
+              elsif driver.size != @last_size
+                @diff_renderer.try(&.invalidate!)
+                render(driver)
+              end
             end
           ensure
             driver.show_cursor
@@ -73,8 +93,15 @@ module Lapis
 
       # Dynamically finds and loads the newest XML report in benchmarks/reports/
       def auto_discover_latest_report : Nil
-        reports_dir = Core::Env::ROOT_DIR.join("benchmarks/reports")
-        if Dir.exists?(reports_dir)
+        reports_dir = if Dir.exists?(Path.new("benchmarks/reports"))
+                        Path.new("benchmarks/reports")
+                      elsif Dir.exists?(Core::Env::ROOT_DIR.join("benchmarks/reports")) && Core::Env.is_libgodot_repo?(Core::Env::ROOT_DIR)
+                        Core::Env::ROOT_DIR.join("benchmarks/reports")
+                      else
+                        nil
+                      end
+
+        if reports_dir && Dir.exists?(reports_dir)
           # Check for benchmarks_latest.xml first
           latest_file = reports_dir.join("benchmarks_latest.xml")
           if File.exists?(latest_file)
@@ -91,18 +118,21 @@ module Lapis
           end
         end
 
-        # Fallback: synthesize metrics from catalog if no XML is found yet
-        fallback_from_catalog
+        fallback_empty_state
       end
 
       def load_xml_file(path : String) : Bool
         unless File.exists?(path)
           Core::Logger.error("Benchmark XML file does not exist: #{path}")
+          fallback_empty_state
           return false
         end
 
         content = File.read(path) rescue nil
-        return false unless content
+        unless content
+          fallback_empty_state
+          return false
+        end
 
         begin
           meta, loaded_metrics = Commands::Benchmarks::XmlHandler.parse_xml(content)
@@ -113,30 +143,20 @@ module Lapis
           true
         rescue ex
           Core::Logger.error("Failed to parse benchmark XML #{path}: #{ex.message}")
-          fallback_from_catalog
+          fallback_empty_state
           false
         end
       end
 
-      private def fallback_from_catalog
+      private def fallback_empty_state
         @metadata = {
-          "version"   => "0.0.1",
+          "version"   => Lapis::VERSION,
           "godot"     => "4.x",
           "platform"  => Core::Env.current_platform,
           "timestamp" => Time.utc.to_s,
         }
-        @current_xml_path = "(Built-in Benchmark Catalog - Press 'R' to Execute)"
-        @metrics = Commands::Benchmarks.builtin_benchmarks.map do |b|
-          Commands::Benchmarks::BenchmarkMetric.new(
-            name: b.name,
-            category: b.category,
-            crystal_ms: 10.0,
-            gdscript_ms: 100.0,
-            speedup: 10.0,
-            description: b.description,
-            group_name: b.group_name
-          )
-        end
+        @current_xml_path = "(No benchmark report loaded)"
+        @metrics = [] of Commands::Benchmarks::BenchmarkMetric
         @selected_idx = 0
       end
 
@@ -150,14 +170,14 @@ module Lapis
 
       private def render(driver : Opal::Terminal::Driver)
         w, h = driver.size
-        width = Math.max(80, w)
-        height = Math.max(24, h)
+        width = Math.max(40, w)
+        height = Math.max(15, h)
+        @last_size = {w, h}
         buffer = Opal::UI::Buffer.new(width, height)
         render_to_buffer(buffer, width, height)
 
-        driver.write(Opal::Terminal::Screen.move_to(1, 1))
-        driver.write(buffer.render_to_string(with_ansi: true))
-        driver.flush
+        dr = @diff_renderer ||= Opal::UI::DiffRenderer.new(driver)
+        dr.render(buffer)
       end
 
       private def render_file_picker(buffer : Opal::UI::Buffer, width : Int32, height : Int32)
@@ -170,6 +190,22 @@ module Lapis
         y = height - 2
         buffer.put_string(2, y, "─" * (width - 4), fg: Opal::Color.bright_black)
         buffer.put_string(2, y + 1, "Enter: Open Selected File │ Esc: Cancel File Selection", fg: Opal::Color.yellow)
+      end
+
+      private def render_empty_state(buffer : Opal::UI::Buffer, width : Int32, height : Int32)
+        box_w = Math.min(74, width - 8)
+        x = Math.max(2, (width - box_w) // 2)
+        y = Math.max(6, (height - 11) // 2)
+
+        buffer.put_string(x, y, "┌" + ("─" * (box_w - 2)) + "┐", fg: Opal::Color.yellow)
+        buffer.put_string(x + 2, y + 1, "[!] NO BENCHMARK RESULTS AVAILABLE", fg: Opal::Color.bright_yellow, bold: true)
+        buffer.put_string(x, y + 2, "├" + ("─" * (box_w - 2)) + "┤", fg: Opal::Color.yellow)
+        buffer.put_string(x + 2, y + 3, "No benchmark XML reports found in 'benchmarks/reports/'.", fg: Opal::Color.white)
+        buffer.put_string(x + 2, y + 5, "To view or generate benchmark results:", fg: Opal::Color.cyan, bold: true)
+        buffer.put_string(x + 4, y + 6, "- Press [ R ] to run benchmarks (in a project with 'benchmarks/')", fg: Opal::Color.bright_white)
+        buffer.put_string(x + 4, y + 7, "- Press [ F ] or [ O ] to open an existing benchmark XML report", fg: Opal::Color.bright_white)
+        buffer.put_string(x + 4, y + 8, "- Press [ Esc ] or [ Q ] to return to Lapis CLI Hub", fg: Opal::Color.bright_black)
+        buffer.put_string(x, y + 10, "└" + ("─" * (box_w - 2)) + "┘", fg: Opal::Color.yellow)
       end
 
       private def render_dashboard(buffer : Opal::UI::Buffer, width : Int32, height : Int32)
@@ -205,6 +241,15 @@ module Lapis
         end
 
         buffer.put_string(2, 4, "─" * (width - 4), fg: Opal::Color.bright_black)
+
+        if @metrics.empty?
+          render_empty_state(buffer, width, height)
+          footer_y = height - 2
+          buffer.put_string(2, footer_y - 1, "─" * (width - 4), fg: Opal::Color.bright_black)
+          controls = "F/O: Pick XML │ R: Run Benchmarks │ Esc/Q: Back to Hub"
+          buffer.put_string(2, footer_y, controls, fg: Opal::Color.bright_white)
+          return
+        end
 
         # 2. Main Tab Viewport
         case @active_tab
@@ -445,8 +490,7 @@ module Lapis
         end
       end
 
-      private def handle_input(driver : Opal::Terminal::Driver)
-        ev = driver.read_event
+      private def handle_input_event(ev : Opal::Terminal::Event)
         return unless ev.is_a?(Opal::Terminal::KeyEvent)
 
         # Global command palette shortcut
@@ -475,7 +519,8 @@ module Lapis
         when "up"
           @selected_idx = Math.max(0, @selected_idx - 1)
         when "down"
-          @selected_idx = Math.min(@metrics.size - 1, @selected_idx + 1)
+          max_idx = @metrics.empty? ? 0 : @metrics.size - 1
+          @selected_idx = Math.min(max_idx, @selected_idx + 1)
         else
           if ch = ev.char
             case ch
@@ -520,18 +565,43 @@ module Lapis
         end
       end
 
+      private def wait_for_return(prompt : String = "Press Enter to return to visualizer...")
+        puts "\n\e[33m#{prompt}\e[0m"
+        STDOUT.flush
+        begin
+          while byte = STDIN.read_byte
+            break if byte == 13 || byte == 10 || byte == 32 || byte == 27
+          end
+        rescue
+          STDIN.gets rescue nil
+        end
+      end
+
       private def execute_live_benchmark
+        root = Core::Env::ROOT_DIR
+        target_dir = Path.new(Dir.current).expand
+        has_benchmarks = Dir.exists?(target_dir.join("benchmarks")) || (Dir.exists?(root.join("benchmarks")) && Core::Env.is_libgodot_repo?(root))
+
         Opal::Terminal.default_driver.exit_alternate_screen
         puts Opal.style.bold.fg(:cyan).render("\n=== Executing Live Benchmark Suite (XML Generation) ===\n")
+
+        unless has_benchmarks
+          puts "\e[1;33mWarning: No 'benchmarks/' suite found in '#{target_dir}'.\e[0m"
+          puts "Cannot run benchmarks without a benchmarks directory."
+          wait_for_return
+          Opal::Terminal.default_driver.enter_alternate_screen
+          @diff_renderer.try(&.invalidate!)
+          return
+        end
 
         Commands::Benchmarks.run([] of String)
 
         puts "\n\e[33mReloading updated benchmark XML report...\e[0m"
         auto_discover_latest_report
-        puts "\e[32mSuccessfully updated metrics! Press Enter to return to visualizer...\e[0m"
-        STDIN.gets
+        wait_for_return("Successfully updated metrics! Press Enter to return to visualizer...")
 
         Opal::Terminal.default_driver.enter_alternate_screen
+        @diff_renderer.try(&.invalidate!)
       end
     end
   end

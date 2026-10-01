@@ -313,7 +313,7 @@ inline void unload_crystal_game_library() {
  * 3. Can be explicitly disabled via `LIBGODOT_NO_SHADOW=1` or `LIBGODOT_HOT_RELOAD=0`.
  */
 inline bool bridge_should_use_shadow_copy() {
-#if defined(__ANDROID__) || defined(ANDROID)
+#ifndef _WIN32
     return false;
 #else
     if (!is_editor_active()) {

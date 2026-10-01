@@ -1,5 +1,5 @@
 name: lapis
-version: 0.0.257
+version: 0.0.270
 crystal: ">= 1.20.0, <= 1.21.0"
 
 authors:
@@ -27,4 +27,7 @@ dependencies:
     branch: master
   opal:
     github: sol-vin/opal
+    branch: main
+  jasper:
+    github: sol-vin/jasper
     branch: main

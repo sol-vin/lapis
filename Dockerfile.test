@@ -26,7 +26,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN curl -fsSL https://crystal-lang.org/install.sh | bash
 
 # Download Godot headless Linux binary
-ARG GODOT_VERSION=4.8-dev6
+ARG GODOT_VERSION=4.8-dev7
 WORKDIR /opt/godot
 RUN wget -q https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip -O godot.zip \
     && unzip -q godot.zip \

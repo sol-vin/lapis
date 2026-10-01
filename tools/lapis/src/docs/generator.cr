@@ -19,7 +19,7 @@ module Lapis
         out_dir : Path = Path.new("src/libgodot/docs"),
         root_docs_file : Path = Path.new("src/libgodot/docs.cr")
       ) : Bool
-        is_lapis = root_docs_file.to_s.includes?("libgodot")
+        is_lapis = root_docs_file.to_s.tr("\\", "/").ends_with?("src/libgodot/docs.cr")
         ns = is_lapis ? "Lapis::Docs" : "Docs"
         config = Jasper::Config.new(
           namespace: ns,
@@ -28,7 +28,7 @@ module Lapis
           master_file: root_docs_file.to_s
         )
         if is_lapis
-          config.add_alias("Docs").add_alias("Godot::Docs")
+          config.add_alias("Docs")
         end
         Jasper::Generator.new(config).run
       end

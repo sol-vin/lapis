@@ -58,7 +58,12 @@ HELP
         end
 
         # Auto-detect target project when no path is explicitly provided:
-        # If current directory is not root and contains project.godot or shard.yml, use current directory!
+        # 1. Search upwards from curr for nearest enclosing project (outside workspace root)
+        if (nearest = Core::Env.find_project_dir(curr)) && nearest != root
+          return nearest
+        end
+
+        # 2. If current directory is not root and contains project.godot or shard.yml, use current directory!
         if curr != root && (File.exists?(curr.join("project.godot")) || File.exists?(curr.join("shard.yml")))
           return curr
         end
@@ -142,6 +147,13 @@ HELP
 
         root = Core::Env::ROOT_DIR
         target_dir = resolve_target_dir(proj_path, root)
+
+        unless Core::Env.is_crystal_dir?(target_dir) || File.exists?(target_dir.join("project.godot")) || Dir.exists?(target_dir.join("spec"))
+          Core::Logger.warn("Warning: Directory '#{target_dir}' is not a Crystal or Lapis project (missing shard.yml, project.godot, or spec/).")
+          Core::Logger.info("Tip: 'lapis test' must be run within a Crystal or Godot project containing tests.")
+          return 1
+        end
+
         is_root_engine = (target_dir == root) && Core::Env.is_libgodot_repo?(root)
         test_dir = target_dir
         test_bin_dir = target_dir.join("bin")
