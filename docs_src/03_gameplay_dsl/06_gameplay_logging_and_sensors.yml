@@ -1,0 +1,85 @@
+id: "F_GAMEPLAY_LOGGING_AND_SENSORS"
+parent_module: "Lapis::Docs::C_GAMEPLAY_AND_DECLARATIVE_DSL"
+title: "Gameplay Logging & Diagnostics DSL"
+summary: "Integrating structured logging, gameplay metrics, and tag filters within Godot nodes."
+overview: |
+  Comprehensive guide to instrumenting Crystal gameplay nodes with high-performance diagnostic logging,
+  custom gameplay domains, telemetry hooks, and zero-allocation release builds.
+related_sources:
+  - "**Logging Framework**: `src/libgodot/logging/`"
+  - "**Gameplay Node DSL**: `src/libgodot/macros.cr`"
+  - "**Specifications**: `spec/logging_spec.cr`"
+
+sections:
+  - id: "topic_00_gameplay_logging_patterns"
+    title: "Gameplay Logging Patterns"
+    summary: "Listing of common architectural patterns for game logging."
+    type: "Array(String)"
+    return_value:
+      - "Combat & Damage Telemetry: Tracking hit points, damage calculation, and weapon attacks"
+      - "AI State & Pathfinding: Logging behavior tree transitions and navigation milestones"
+      - "Inventory & Item Transactions: Recording item additions, drops, and crafting events"
+      - "Network & Multiplayer Replication: Logging RPC dispatches, state synchronization, and packet loss"
+
+  - id: "topic_01_node_logging"
+    title: "Logging Inside Custom Nodes"
+    summary: "Invoking Godot.log within node lifecycle methods and physics steps."
+    content: |
+      Within any custom `node` class, use `Godot.log` to record events:
+
+      ```crystal
+      require "libgodot"
+
+      node PlayerCharacter < CharacterBody2D do
+        @[Export]
+        property max_hp : Int32 = 100
+
+        property current_hp : Int32 = 100
+
+        signal died
+
+        def take_damage(amount : Int32, source : String) : Void
+          @current_hp = Math.max(0, @current_hp - amount)
+          Godot.log :combat, "Player took #{amount} damage from #{source} (HP: #{@current_hp}/#{@max_hp})"
+
+          if @current_hp == 0
+            Godot.log :combat, "Player perished!"
+            emit_died
+          end
+        end
+      end
+      ```
+
+  - id: "topic_02_gameplay_filters"
+    title: "Defining Domain-Specific Filters"
+    summary: "Grouping logs by game subsystem with custom colors and tags."
+    content: |
+      Declare your game's categories at the top of your system files:
+
+      ```crystal
+      define_log_filters do
+        filter :combat,    tag: "{combat}",    name_tag: "COMBAT",    color: "#ff5555"
+        filter :quest,     tag: "{quest}",     name_tag: "QUEST",     color: "#f1fa8c"
+        filter :ai,        tag: "{ai}",        name_tag: "AI",        color: "#50fa7b"
+        filter :dialogue,  tag: "{dialogue}",  name_tag: "DIALOGUE",  color: "#bd93f9"
+      end
+      ```
+
+      When messages are printed, Godot's output console displays them with clear colored prefixes:
+      ```text
+      [21:45:10.123] [COMBAT] {combat} Player took 25 damage from GoblinArcher (HP: 75/100)
+      [21:45:12.456] [QUEST] {quest} Objective completed: 'Clear the goblin camp'
+      ```
+
+  - id: "topic_03_performance_considerations"
+    title: "Performance Best Practices"
+    summary: "Ensuring high frame rates with compile-time elision and zero string allocation."
+    content: |
+      1. **Never string-interpolate in hot physics loops without log level guards**:
+         `Godot.log` macros automatically guard argument evaluation. If `:debug` or `:trace` is disabled at compile time, the entire statement and string interpolation is removed:
+         ```crystal
+         # Zero cost in release builds:
+         Godot.log :trace, "Raycast check at #{global_position} returned #{hit}"
+         ```
+      2. **Use Release Compilation for Shipping**:
+         In `--release` mode, lower severity logs are completely elided.

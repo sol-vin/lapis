@@ -1,0 +1,35 @@
+id: "B_CPP_BRIDGE_LOADER"
+parent_module: "Lapis::Docs::I_ARCHITECTURE_AND_EXTENSIONS"
+title: "Native C++ Loader Bridge Architecture"
+summary: "Flat C-ABI mapping, GDExtension function pointers, memory layouts, and crash guards."
+overview: |
+  Technical analysis of `src/bridge/crystal_bridge.cpp`, resolving Godot GDExtension interface
+  tables and bridging them across flat C-ABI boundaries into Crystal.
+related_sources:
+  - "**Bridge Source**: `src/bridge/crystal_bridge.cpp`"
+  - "**Module Loader**: `src/bridge/module_loader.hpp`"
+  - "**GDExtension API**: `src/bridge/gdextension_api.hpp`"
+
+sections:
+  - id: "topic_00_bridge_responsibilities"
+    title: "Bridge Responsibilities"
+    summary: "GC initialization, C-ABI flattening, ClassDB dispatch, and crash isolation."
+    type: "Array(String)"
+    return_value:
+      - "Boehm GC initialization (GC_init) before any Crystal code runs"
+      - "Flattens Godot's C++ virtual dispatches into direct C function pointers"
+      - "Tracks loaded modules and handles shadow DLL lifecycle"
+      - "Guards entry points against concurrent re-initialization"
+
+  - id: "topic_01_function_pointer_table"
+    title: "The BridgeAPI Function Pointer Table"
+    summary: "How Crystal receives direct Godot engine entry points."
+    content: |
+      During initialization, `crystal_bridge.cpp` populates a flat `BridgeAPI` structure containing direct function pointers to Godot engine entry points:
+      - `gd_classdb_register_extension_class`
+      - `gd_classdb_register_extension_class_method`
+      - `gd_classdb_register_extension_class_property`
+      - `gd_classdb_register_extension_class_signal`
+      - `gd_variant_get_ptr_utility_function`
+
+      When `crystal_godot_init(&g_bridge_api)` is called, Crystal stores these function pointers in `Godot::Bridge`, bypassing all C++ ABI name mangling and calling engine routines at raw C speed!

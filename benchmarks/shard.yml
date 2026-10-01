@@ -1,0 +1,6 @@
+name: lapis-benchmarks
+version: 0.1.0
+authors:
+  - Lapis Engine Contributors
+license: MIT
+crystal: ">= 1.10.0"

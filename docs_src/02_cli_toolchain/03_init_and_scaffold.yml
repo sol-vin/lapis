@@ -1,0 +1,71 @@
+id: "C_INIT_AND_SCAFFOLD"
+parent_module: "Lapis::Docs::B_LAPIS_CLI_AND_TOOLCHAIN"
+title: "Project Initialization & Scaffolding"
+summary: "Using lapis init, lapis new game, lapis new addon, and lapis new example."
+overview: |
+  Complete guide to scaffolding brand new Crystal Godot games, redistributable GDExtension addons,
+  or integrating Crystal into an existing GDScript project.
+related_sources:
+  - "**Init Implementation**: `tools/lapis/src/commands/init.cr`"
+  - "**Scaffold Implementation**: `tools/lapis/src/commands/scaffold.cr`"
+  - "**Templates**: `template/`, `template-addon/`"
+
+sections:
+  - id: "topic_00_scaffolding_targets"
+    title: "Available Scaffolding Modes"
+    summary: "Listing of project archetypes that can be generated."
+    type: "Array(String)"
+    return_value:
+      - "Standalone Game: lapis new game <name>"
+      - "GDExtension Addon: lapis new addon <name>"
+      - "Showcase Example: lapis new example <name>"
+      - "Existing Project Integration: lapis init"
+
+  - id: "topic_01_init_command"
+    title: "lapis init: Existing Project Integration"
+    summary: "Adding Crystal support to an existing Godot 4.x project without disrupting GDScript."
+    content: |
+      If you already have a Godot project and want to write high-performance nodes in Crystal:
+
+      ```bash
+      cd my_godot_project
+      lapis init
+      ```
+
+      #### What `lapis init` Does:
+      1. Generates `shard.yml` with dependencies on `libgodot`.
+      2. Creates `src/main.cr` with a sample node definition.
+      3. Stages `addons/crystal_integration` and configures `project.godot` to load it.
+      4. Staged runtime dependencies into `bin/`.
+      5. Configures `.gdignore` inside `lib/` and build directories to prevent Godot from scanning Crystal dependencies.
+
+  - id: "topic_02_new_game"
+    title: "lapis new game: Scaffolding a Game"
+    summary: "Generating a fresh, production-ready standalone game project."
+    content: |
+      To scaffold a new game project:
+
+      ```bash
+      lapis new game space_invaders [options]
+      ```
+
+      #### Options:
+      - `-d, --dir=PATH`: Custom destination directory (default: `./<name>`).
+      - `--author="Name <email>"`: Author metadata for `shard.yml`.
+      - `--desc="Description"`: Game description.
+      - `--skip-shards`: Skip initial `shards install`.
+
+  - id: "topic_03_new_addon"
+    title: "lapis new addon: Scaffolding an Addon"
+    summary: "Creating a redistributable GDExtension plugin for the Godot Asset Library."
+    content: |
+      To create a plugin or library intended for other Godot developers:
+
+      ```bash
+      lapis new addon dialogue_graph
+      ```
+
+      #### Addon Architecture:
+      - Generates `addons/<name>/plugin.cfg` and `plugin.gd`.
+      - Contains a custom `EditorPlugin` node.
+      - Sets up isolated packaging rules so your addon can be distributed as a standalone `.zip`.

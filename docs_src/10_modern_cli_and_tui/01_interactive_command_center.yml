@@ -1,0 +1,132 @@
+id: "A_INTERACTIVE_COMMAND_CENTER"
+parent_module: "Lapis::Docs::J_MODERN_CLI_AND_TUI"
+title: "Interactive Terminal Command Center & Differential TUI"
+summary: "High-density telemetry dashboard, split-pane layout, differential cell rendering, and keyboard shortcuts."
+overview: |
+  Comprehensive architectural and operational guide to Lapis's modern, double-buffered
+  terminal user interface built with the Opal shard.
+related_sources:
+  - "**CLI Runner**: `tools/lapis/src/commands/test.cr`"
+  - "**TUI Engine**: `tools/lapis/src/test_runner/tui.cr`"
+  - "**Diff Renderer**: `tools/lapis/lib/opal/src/ui/diff_renderer.cr`"
+
+sections:
+  - id: "topic_00_command_center_overview"
+    title: "Command Center Overview"
+    summary: "High-density telemetry dashboard, split-pane viewport, and real-time execution metrics."
+    content: |
+      #### Features
+
+      - Hero header displaying host OS, engine version, compiler version, active elapsed time, and heartbeat indicator.
+      - Split-pane layout: Left pane displays phased execution checklist; right pane displays rolling live logs.
+      - Real-time smooth progress bar with phase completion percentage and pass/fail counts.
+      - Automatic non-TTY fallback for CI/CD pipelines, background daemons, or when invoked with `--no-tui`.
+
+  - id: "topic_01_double_buffered_differential_rendering"
+    title: "Differential Cell Rendering"
+    summary: "Zero-flicker double-buffered ANSI rendering powered by Opal::UI::DiffRenderer."
+    content: |
+      #### Mechanics
+
+      1. The TUI allocates a virtual screen buffer representing terminal grid cells `(char, style)`.
+      2. Each update frame writes desired characters into the front buffer.
+      3. `Opal::UI::DiffRenderer` compares front buffer cells against back buffer cells.
+      4. Only modified cells emit ANSI cursor movement and color escape sequences to standard output.
+      5. Completely eliminates screen tearing, flicker, and terminal lag during high-frequency log emission.
+
+  - id: "topic_02_multi_view_tabs"
+    title: "Multi-View Viewport Tabs"
+    summary: "Tabbed navigation between Dashboard, Failures, Breakdown, and Live Telemetry."
+    content: |
+      <table>
+        <thead>
+          <tr>
+            <th>Tab Key</th>
+            <th>View Name</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>1</code></td>
+            <td><strong>Dashboard</strong></td>
+            <td>Primary split-pane view displaying checklist phases and rolling stdout.</td>
+          </tr>
+          <tr>
+            <td><code>2</code></td>
+            <td><strong>Failures</strong></td>
+            <td>Dedicated drill-down log view isolated strictly to failed test assertions.</td>
+          </tr>
+          <tr>
+            <td><code>3</code></td>
+            <td><strong>Breakdown</strong></td>
+            <td>Tabular summary of test categories, durations, and quantitative metrics.</td>
+          </tr>
+          <tr>
+            <td><code>4</code></td>
+            <td><strong>Telemetry</strong></td>
+            <td>Peak memory allocation, GC pause latency, and process thread counters.</td>
+          </tr>
+        </tbody>
+      </table>
+
+  - id: "topic_03_viewport_scrolling_and_search"
+    title: "Log Scrolling, Search & Clipboard Export"
+    summary: "Real-time follow mode, substring pattern filtering, and OSC 52 system clipboard export."
+    content: |
+      #### Log Navigation Features
+
+      - **Follow Mode (`f`)**: Automatically pins the viewport to the newest log entries. Pauses on manual scroll (`PageUp`/`PageDown`/`↑`/`↓`).
+      - **In-Log Search (`/`)**: Opens live prompt to highlight and cycle through matching log lines.
+      - **OSC 52 Clipboard Export (`c`)**: Copies selected log traces directly into the native OS system clipboard without external dependencies.
+
+  - id: "topic_04_command_palette_and_keybindings"
+    title: "Interactive Navigation & Keybindings"
+    summary: "Complete keyboard shortcuts reference for test inspection and modal navigation."
+    content: |
+      <table>
+        <thead>
+          <tr>
+            <th>Key</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>1</code> - <code>4</code></td>
+            <td>Switch active viewport tab (Dashboard, Failures, Breakdown, Telemetry).</td>
+          </tr>
+          <tr>
+            <td><code>↑</code> / <code>↓</code> or <code>j</code> / <code>k</code></td>
+            <td>Navigate between test phases in checklist pane.</td>
+          </tr>
+          <tr>
+            <td><code>PageUp</code> / <code>PageDown</code></td>
+            <td>Scroll active logs viewport.</td>
+          </tr>
+          <tr>
+            <td><code>f</code></td>
+            <td>Toggle live autoscroll follow mode on or off.</td>
+          </tr>
+          <tr>
+            <td><code>/</code></td>
+            <td>Open substring search input.</td>
+          </tr>
+          <tr>
+            <td><code>c</code></td>
+            <td>Copy visible logs to clipboard via OSC 52.</td>
+          </tr>
+          <tr>
+            <td><code>Enter</code> / <code>Space</code></td>
+            <td>Open focused phase detail modal for comprehensive log inspection.</td>
+          </tr>
+          <tr>
+            <td><code>?</code></td>
+            <td>Toggle interactive help overlay.</td>
+          </tr>
+          <tr>
+            <td><code>q</code> / <code>Ctrl+C</code></td>
+            <td>Exit test runner cleanly.</td>
+          </tr>
+        </tbody>
+      </table>

@@ -1,0 +1,31 @@
+id: "A_FIRST_CLASS_CRYSTAL_SCRIPTS"
+parent_module: "Lapis::Docs::F_SCRIPTING_AND_INTEROPERABILITY"
+title: "First-Class Crystal Scripts in Godot Editor"
+summary: "Writing .cr files directly inside Godot Script Editor with native syntax highlighting and Crystalline LSP."
+overview: |
+  Comprehensive guide to Lapis's first-class scripting engine, enabling developers to write,
+  attach, and edit `.cr` scripts inside the Godot Editor exactly like GDScript or C#.
+related_sources:
+  - "**Crystal Script**: `src/libgodot/script/crystal_script.cr`"
+  - "**Syntax Highlighter**: `src/libgodot/script/crystal_highlighter.cr`"
+  - "**Live Specs**: `spec/suites/test_script_first_class.cr`"
+
+sections:
+  - id: "topic_00_scripting_features"
+    title: "Scripting Capabilities"
+    summary: "Native ScriptLanguage integration, syntax highlighting, and live AST inspection."
+    type: "Array(String)"
+    return_value:
+      - "Full ScriptLanguage registration in Godot Engine"
+      - "Create .cr files from the standard Godot Attach Script dialog"
+      - "Pure Crystal syntax highlighter embedded in the Script Editor"
+      - "Crystalline LSP code completion proposals and documentation hover"
+
+  - id: "topic_01_attaching_scripts"
+    title: "Attaching .cr Scripts to Nodes"
+    summary: "Creating and attaching Crystal scripts via the Godot Editor UI."
+    content: |
+      1. In Godot's Scene dock, right click any node and select **Attach Script**.
+      2. In the Language dropdown, select **Crystal** (`.cr`).
+      3. Godot automatically creates the `.cr` file with proper node template and attaches it to the node.
+      4. Double-click the script to open it in Godot's built-in Script Editor!

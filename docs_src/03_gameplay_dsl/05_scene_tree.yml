@@ -1,0 +1,55 @@
+id: "E_SCENE_TREE_AND_LIFECYCLE"
+parent_module: "Lapis::Docs::C_GAMEPLAY_AND_DECLARATIVE_DSL"
+title: "Scene Tree Manipulation & Node Lifecycle"
+summary: "Creating nodes (Godot.create), hierarchy management, node ownership, and clean deletion."
+overview: |
+  Comprehensive guide to navigating the Godot SceneTree, instantiating nodes, understanding
+  native C++ memory ownership rules, and preventing memory leaks.
+related_sources:
+  - "**Scene Tree Extensions**: `src/libgodot/extensions/scene_tree.cr`"
+  - "**Live Specs**: `spec/suites/test_scene_tree.cr`"
+  - "**Ergonomic Node & Path Access**: `Lapis::Docs::C_GAMEPLAY_AND_DECLARATIVE_DSL::G_ERGONOMIC_NODE_ACCESS`"
+
+sections:
+  - id: "topic_00_ownership_rules"
+    title: "The Two Node Ownership Rules"
+    summary: "Tree-owned nodes (queue_free) vs standalone unparented nodes (manual .destroy)."
+    type: "Array(String)"
+    return_value:
+      - "Rule 1: Nodes added to the scene tree (add_child) are owned by Godot; call queue_free"
+      - "Rule 2: Standalone unparented nodes created via Godot.create are owned by Crystal; call .destroy"
+      - "Rule 3: RefCounted and Resource objects are managed atomically; never call .destroy"
+
+  - id: "topic_01_creating_nodes"
+    title: "Instantiating Nodes Programmatically"
+    summary: "Using Godot.create to allocate typed engine nodes and adding to the tree."
+    content: |
+      ```crystal
+      # 1. Create a typed node instance
+      bullet = Godot.create(Godot::Sprite2D)
+      bullet.texture = bullet_texture
+      bullet.position = position
+
+      # 2. Add to active scene tree (tree assumes ownership)
+      get_parent.not_nil!.add_child(bullet)
+
+      # 3. Queue deletion at end of frame
+      bullet.queue_free
+      ```
+
+  - id: "topic_02_changing_scenes"
+    title: "Changing Scenes & Tree Queries"
+    summary: "Accessing the active tree, changing scenes, and finding nodes by path."
+    content: |
+      ```crystal
+      # Access global SceneTree:
+      tree = get_tree
+
+      # Change to another scene file:
+      tree.change_scene_to_file("res://scenes/level_02.tscn")
+
+      # Finding child nodes ergonomically:
+      if hud = self[Godot::Control, "CanvasLayer/HUD"]?
+        hud.visible = true
+      end
+      ```

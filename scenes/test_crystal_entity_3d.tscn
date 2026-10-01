@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://test_crystal_entity_3d_scene"]
+
+[node name="DragonBoss" type="ComplexEntity3D"]
+attr_name = "Smaug"
+attr_max_hp = 8888.0
+attr_defense = 120
+attr_scale_vector = Vector3(3, 3, 3)
+attr_offset_grid = Vector3i(0, 10, 0)
+attr_theme_color = Color(0.9, 0.2, 0.1, 1)
+attr_phase = 2
+is_invulnerable = false
+
+[node name="TargetCamera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 12)
+
+[node name="HitboxArea" type="ComplexHitbox3D" parent="."]
+radius = 4.5
+damage_multiplier = 2.0
+hitbox_active = true

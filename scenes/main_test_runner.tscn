@@ -1,0 +1,160 @@
+[gd_scene format=3 uid="uid://q6biqhm5ndsh"]
+
+[node name="RunTesterPanel" type="RunTesterPanel" unique_id=1443439041]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=1222036561]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="MarginContainer" unique_id=390524543]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="HeaderBox" type="HBoxContainer" parent="MarginContainer/VBox" unique_id=1414548919]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/VBox/HeaderBox" unique_id=2101257634]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 22
+text = "LibGodot Crystal Bridge Test Runner"
+
+[node name="StatusBadge" type="Label" parent="MarginContainer/VBox/HeaderBox" unique_id=545800898]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "READY"
+
+[node name="FilterBox" type="HBoxContainer" parent="MarginContainer/VBox" unique_id=987123456]
+layout_mode = 2
+
+[node name="FilterLabel" type="Label" parent="MarginContainer/VBox/FilterBox" unique_id=987123457]
+layout_mode = 2
+text = "Filter: "
+
+[node name="FilterInput" type="LineEdit" parent="MarginContainer/VBox/FilterBox" unique_id=987123458]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Type name or pattern to filter tests (e.g. vector, gc, signal)..."
+clear_button_enabled = true
+
+[node name="ButtonBox" type="HFlowContainer" parent="MarginContainer/VBox" unique_id=955623120]
+layout_mode = 2
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 8
+
+[node name="BtnRunAll" type="Button" parent="MarginContainer/VBox/ButtonBox" unique_id=254821454]
+custom_minimum_size = Vector2(140, 36)
+layout_mode = 2
+text = "▶ Run All Tests"
+
+[node name="BtnRun2D" type="Button" parent="MarginContainer/VBox/ButtonBox" unique_id=1527845035]
+custom_minimum_size = Vector2(110, 36)
+layout_mode = 2
+text = "2D Suite"
+
+[node name="BtnRun3D" type="Button" parent="MarginContainer/VBox/ButtonBox" unique_id=1393727072]
+custom_minimum_size = Vector2(110, 36)
+layout_mode = 2
+text = "3D Suite"
+
+[node name="BtnRunCore" type="Button" parent="MarginContainer/VBox/ButtonBox" unique_id=143578582]
+custom_minimum_size = Vector2(110, 36)
+layout_mode = 2
+text = "Core"
+
+[node name="BtnRunProps" type="Button" parent="MarginContainer/VBox/ButtonBox" unique_id=1044987433]
+custom_minimum_size = Vector2(110, 36)
+layout_mode = 2
+text = "Properties"
+
+[node name="BtnRunNodes" type="Button" parent="MarginContainer/VBox/ButtonBox" unique_id=1673012023]
+custom_minimum_size = Vector2(110, 36)
+layout_mode = 2
+text = "Nodes"
+
+[node name="BtnRunGDScript" type="Button" parent="MarginContainer/VBox/ButtonBox" unique_id=9978715]
+custom_minimum_size = Vector2(110, 36)
+layout_mode = 2
+text = "GDScript"
+
+[node name="BtnRunMesh" type="Button" parent="MarginContainer/VBox/ButtonBox" unique_id=1959616024]
+custom_minimum_size = Vector2(110, 36)
+layout_mode = 2
+text = "3D Mesh"
+
+[node name="BtnRunPhysics" type="Button" parent="MarginContainer/VBox/ButtonBox" unique_id=602923527]
+custom_minimum_size = Vector2(110, 36)
+layout_mode = 2
+text = "Physics"
+
+[node name="BtnRunStress" type="Button" parent="MarginContainer/VBox/ButtonBox" unique_id=98907795]
+custom_minimum_size = Vector2(110, 36)
+layout_mode = 2
+text = "Stress"
+
+[node name="BtnRunUI" type="Button" parent="MarginContainer/VBox/ButtonBox" unique_id=1584793569]
+custom_minimum_size = Vector2(110, 36)
+layout_mode = 2
+text = "UI"
+
+[node name="BtnRunAudioAnim" type="Button" parent="MarginContainer/VBox/ButtonBox" unique_id=1134526104]
+custom_minimum_size = Vector2(110, 36)
+layout_mode = 2
+text = "Audio/Anim"
+
+[node name="BtnRunResources" type="Button" parent="MarginContainer/VBox/ButtonBox" unique_id=2138715358]
+custom_minimum_size = Vector2(110, 36)
+layout_mode = 2
+text = "Resources"
+
+[node name="BtnRunLifecycle" type="Button" parent="MarginContainer/VBox/ButtonBox" unique_id=1121149454]
+custom_minimum_size = Vector2(110, 36)
+layout_mode = 2
+text = "Lifecycle"
+
+[node name="BtnRunClassDB" type="Button" parent="MarginContainer/VBox/ButtonBox" unique_id=1142138766]
+custom_minimum_size = Vector2(110, 36)
+layout_mode = 2
+text = "ClassDB"
+
+[node name="StatsLabel" type="Label" parent="MarginContainer/VBox" unique_id=117576582]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Tests: 0 total | 0 passed | 0 failed"
+
+[node name="LogOutput" type="RichTextLabel" parent="MarginContainer/VBox" unique_id=18710109]
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+scroll_following = true
+
+[node name="ToolTester2D" type="ToolTester2D" parent="." unique_id=2039423567]
+test_status = "All 14/14 Tests Passed!"
+position = Vector2(120, 240)
+rotation = 1.5708
+scale = Vector2(2, 2)
+
+[node name="Child2D" type="Node2D" parent="ToolTester2D" unique_id=1050694285]
+
+[node name="Marker2D" type="Marker2D" parent="ToolTester2D/Child2D" unique_id=214838528]
+
+[node name="ToolTester3D" type="ToolTester3D" parent="." unique_id=147171970]
+test_status = "All 13/13 Tests Passed!"
+transform = Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 3, 10, 20, 30)
+
+[node name="Child3D" type="Node3D" parent="ToolTester3D" unique_id=1678775254]
+
+[node name="Marker3D" type="Marker3D" parent="ToolTester3D/Child3D" unique_id=1668253694]

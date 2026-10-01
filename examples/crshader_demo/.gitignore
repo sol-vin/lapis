@@ -1,0 +1,13 @@
+# Godot engine artifacts
+.godot/
+bin/*
+!bin/.gitkeep
+dist/
+export/
+crash_dump*
+
+# Crystal dependencies
+lib/
+shard.lock
+shard.override.yml
+/docs/

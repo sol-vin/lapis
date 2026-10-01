@@ -1,0 +1,119 @@
+module Godot
+  # ===========================================================================
+  # Resource & Scene Loading Helpers
+  # ===========================================================================
+  def self.load(path : String, type_hint : String = "", cache_mode : Int64 = 0_i64) : Resource
+    ptr = Bridge.resource_loader_load(path, type_hint, cache_mode)
+    Resource.new(ptr)
+  end
+
+  def self.load(path : String, type : T.class, type_hint : String = "", cache_mode : Int64 = 0_i64) : T forall T
+    res = load(path, type_hint, cache_mode)
+    if res.pointer.null?
+      raise NilAssertionError.new("Failed to load resource at '#{path}' as #{T}")
+    end
+    if res.is_a?(T)
+      return res
+    elsif alive = Bridge.find_alive_instance(res.pointer)
+      if typed = alive.as?(T)
+        return typed
+      end
+    end
+    if !res.pointer.null? && Bridge.object_is_class(res.pointer, T.name.split("::").last)
+      return T.new(res.pointer)
+    end
+    T.new(res.pointer)
+  end
+
+  # Named argument variant for `as:` (e.g. `Godot.load("res://...", as: PackedScene)`)
+  def self.load(path : String, *, as type : T.class, type_hint : String = "", cache_mode : Int64 = 0_i64) : T forall T
+    load(path, type, type_hint: type_hint, cache_mode: cache_mode)
+  end
+
+  def self.load_as(type : T.class, path : String, type_hint : String = "", cache_mode : Int64 = 0_i64) : T forall T
+    load(path, as: type, type_hint: type_hint, cache_mode: cache_mode)
+  end
+
+  def self.load_scene(path : String) : PackedScene
+    load(path, as: PackedScene)
+  end
+
+  def self.instantiate_scene(path : String, type : T.class) : T forall T
+    load_scene(path).instantiate_as(type)
+  end
+
+  class ResourceSaver
+    # Saves a resource to disk using dynamic reflection to ensure valid Ref<Resource> and string marshalling.
+    def save(resource : Resource, path : String = "", flags : SaverFlags | Int = 0) : Godot::Error
+      flag_val = flags.is_a?(Int) ? flags.to_i64 : flags.value.to_i64
+      err_code = call_i64("save", resource, path, flag_val)
+      godot_return_enum(Godot::Error, err_code)
+    end
+  end
+
+  class StandardMaterial3D < BaseMaterial3D
+    @local_albedo : Color = Color.new(1.0, 1.0, 1.0, 1.0)
+    @local_roughness : Float32 = 1.0_f32
+    @local_metallic : Float32 = 0.0_f32
+    @local_emission_enabled : Bool = false
+    @local_emission : Color = Color.new(0.0, 0.0, 0.0, 1.0)
+
+    def albedo_color : Color
+      @pointer.null? ? @local_albedo : get_albedo
+    end
+
+    def albedo_color=(c : Color)
+      @local_albedo = c
+      set_albedo(c) unless @pointer.null?
+    end
+
+    def roughness : Float32
+      @pointer.null? ? @local_roughness : get_roughness.to_f32
+    end
+
+    def roughness=(r : Number)
+      @local_roughness = r.to_f32
+      set_roughness(r.to_f64) unless @pointer.null?
+    end
+
+    def metallic : Float32
+      @pointer.null? ? @local_metallic : get_metallic.to_f32
+    end
+
+    def metallic=(m : Number)
+      @local_metallic = m.to_f32
+      set_metallic(m.to_f64) unless @pointer.null?
+    end
+
+    def emission_enabled? : Bool
+      @pointer.null? ? @local_emission_enabled : get_feature(BaseMaterial3D::Feature::FeatureEmission)
+    end
+
+    def emission_enabled=(e : Bool)
+      @local_emission_enabled = e
+      set_feature(BaseMaterial3D::Feature::FeatureEmission, e) unless @pointer.null?
+    end
+
+    def emission : Color
+      @pointer.null? ? @local_emission : get_emission
+    end
+
+    def emission=(c : Color)
+      @local_emission = c
+      set_emission(c) unless @pointer.null?
+    end
+
+    def duplicate(deep : Bool = false) : Resource
+      if @pointer.null?
+        clone = StandardMaterial3D.new
+        clone.albedo_color = @local_albedo
+        clone.roughness = @local_roughness
+        clone.metallic = @local_metallic
+        clone.emission_enabled = @local_emission_enabled
+        clone.emission = @local_emission
+        return clone
+      end
+      super(deep)
+    end
+  end
+end

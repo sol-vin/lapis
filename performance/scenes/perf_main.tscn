@@ -1,0 +1,7 @@
+[gd_scene format=3]
+
+[node name="PerfMain" type="PerfMainRunner"]
+
+[node name="StandardPerfHUD" type="PerfHUD" parent="."]
+
+[node name="InteractivePerfMenu" type="PerfMenu" parent="."]

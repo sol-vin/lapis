@@ -1,0 +1,72 @@
+id: "F_CLEAN_AND_MAINTENANCE"
+parent_module: "Lapis::Docs::B_LAPIS_CLI_AND_TOOLCHAIN"
+title: "Workspace Cleaning & Disk Reclamation"
+summary: "Using lapis clean, pruning shadow DLLs (--shadows), dry-runs, and directory safety."
+overview: |
+  Comprehensive guide to cleaning build artifacts and reclaiming disk space with `lapis clean`,
+  highlighting automated protections for nested git subprojects and runtime shared libraries.
+related_sources:
+  - "**Clean Implementation**: `tools/lapis/src/commands/clean.cr`"
+  - "**Live Spec**: `tools/lapis/spec/commands/clean_spec.cr`"
+
+sections:
+  - id: "topic_00_clean_modes"
+    title: "Clean Operational Modes"
+    summary: "Standard clean, shadow DLL pruning, full purge, and dry-run preview."
+    type: "Array(String)"
+    return_value:
+      - "Standard clean: lapis clean (removes compiled game/plugin binaries, keeps runtime DLLs)"
+      - "Shadow pruning: lapis clean --shadows (prunes only temporary *_loaded_* DLLs and PDBs)"
+      - "Dry-run preview: lapis clean --dry-run (computes files and bytes to reclaim without deleting)"
+      - "Full purge: lapis clean --all (removes intermediate build caches, shadow DLLs, and test remnants)"
+
+  - id: "topic_01_command_options"
+    title: "lapis clean: Options & Flags"
+    summary: "Command-line syntax and option reference."
+    content: |
+      #### Usage:
+      ```bash
+      lapis clean [options]
+      ```
+
+      #### Options:
+      | Option | Shorthand | Description |
+      | :--- | :--- | :--- |
+      | `--shadows` | `-s` | Prunes only stale Windows shadow DLLs (`*_loaded_*.dll/pdb`) |
+      | `--dry-run` | `-n` | Previews files and exact disk space to be freed without deleting |
+      | `--all` | `-a` | Comprehensive clean including build caches and intermediate files |
+      | `--docs` | | Also removes generated `docs/` HTML manual |
+      | `-p, --project=DIR` | | Target specific project directory (default: current directory) |
+
+  - id: "topic_02_safety_guards"
+    title: "Subproject & Git Protection Invariants"
+    summary: "How lapis clean protects checked-out repositories and critical runtime dependencies."
+    content: |
+      To prevent accidental data loss:
+      1. **Subproject Repository Protection**: `clean_bin_dir` inspects each folder inside `bin/` and skips any directory containing `.git` or `.gitkeep`. Even if you check out a repository inside `bin/` (e.g. `bin/crshader`), `lapis clean` will never delete it!
+      2. **Runtime DLL Preservation**: Core shared libraries (`gc.dll`, `pcre2-8.dll`, `iconv-2.dll`, `libgodot.dll`) are never deleted by standard clean.
+      3. **Documentation Protection**: The `docs/` folder is preserved by default and is only removed if `--docs` or `--all` is explicitly passed.
+
+  - id: "topic_03_expected_output"
+    title: "Sample Clean Outputs"
+    summary: "Terminal output during dry-run and shadow reclamation."
+    content: |
+      #### Running Shadow Pruning:
+      ```bash
+      lapis clean --shadows
+      ```
+      ```text
+      [Clean] Cleaning stale shadow DLLs (*_loaded_*) across workspace...
+      [Lapis] Shadow libraries cleaned successfully! Reclaimed 24.79 GB across 1727 file(s).
+      ```
+
+      #### Running Dry-Run:
+      ```bash
+      lapis clean --dry-run
+      ```
+      ```text
+      [Clean:DryRun] Scanning workspace for removable artifacts...
+        Candidate: bin/game.dll (28.45 MB)
+        Candidate: bin/plugin.dll (14.20 MB)
+      [Clean:DryRun] Dry run complete: 2 file(s) would be removed, reclaiming 42.65 MB.
+      ```

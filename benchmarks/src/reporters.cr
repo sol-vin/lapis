@@ -1,0 +1,7 @@
+require "./reporters/base"
+require "./reporters/console"
+require "./reporters/svg"
+require "./reporters/markdown"
+require "./reporters/html"
+require "./reporters/json"
+require "./reporters/csv"

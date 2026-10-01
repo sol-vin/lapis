@@ -1,0 +1,43 @@
+id: "B_GDSCRIPT_INTEROP"
+parent_module: "Lapis::Docs::F_SCRIPTING_AND_INTEROPERABILITY"
+title: "GDScript Interoperability & Project Bindings"
+summary: "Bidirectional calling between Crystal and GDScript, automated typed wrappers, and Variant marshaling."
+overview: |
+  Comprehensive guide to calling GDScript functions from Crystal, invoking Crystal methods
+  from GDScript, and generating strongly-typed wrappers for custom project nodes with `lapis bind`.
+related_sources:
+  - "**Project Bindings Generator**: `tools/lapis/src/commands/bind/project.cr`"
+  - "**Live Specs**: `spec/suites/test_gdscript_interop.cr`"
+
+sections:
+  - id: "topic_00_interop_modes"
+    title: "Interoperability Modalities"
+    summary: "Dynamic reflection calls vs compile-time strongly-typed project bindings."
+    type: "Array(String)"
+    return_value:
+      - "Dynamic calls: node.call(\"my_method\", *args) with Variant marshaling"
+      - "Strongly-typed project bindings: Generated Crystal classes for all project GDScript scripts"
+      - "Cross-language signals: Subscribing to GDScript signals in Crystal and vice versa"
+
+  - id: "topic_01_typed_project_bindings"
+    title: "Automated Typed Project Bindings (lapis bind)"
+    summary: "Generating strongly-typed Crystal wrappers for GDScript custom nodes."
+    content: |
+      When you run:
+      ```bash
+      lapis bind
+      ```
+      Lapis inspects all `.gd` scripts in your project and generates typed Crystal wrapper classes under `src/generated/project_nodes/`.
+
+      #### Calling GDScript from Crystal:
+      ```crystal
+      # Strongly typed GDScript interop:
+      inventory = get_node("Inventory").as(GDScript::InventorySystem)
+      inventory.add_item("potion_health", 5) # Type-checked at compile time!
+      ```
+
+      #### Calling Crystal from GDScript:
+      ```gdscript
+      var player = $Player # Crystal node registered in ClassDB
+      player.take_damage(25) # Calls Crystal def take_damage directly!
+      ```

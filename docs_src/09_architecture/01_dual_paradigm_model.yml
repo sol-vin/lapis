@@ -1,0 +1,44 @@
+id: "A_DUAL_PARADIGM_MODEL"
+parent_module: "Lapis::Docs::I_ARCHITECTURE_AND_EXTENSIONS"
+title: "The Dual-Paradigm Execution Model"
+summary: "Mode A (GDExtension In-Editor Tool) vs Mode B (Standalone LibGodot Host Executable)."
+overview: |
+  Comprehensive architectural deep dive into Lapis's dual execution paradigms, comparing
+  in-editor GDExtension dynamic loading with standalone LibGodot host execution.
+related_sources:
+  - "**Architecture Spec**: `AGENTS.md`"
+  - "**Bridge Source**: `src/bridge/crystal_bridge.cpp`"
+
+sections:
+  - id: "topic_00_paradigm_comparison"
+    title: "Comparative Architectural Matrix"
+    summary: "Host binary, loading mechanics, GC init, and primary use cases."
+    type: "Array(String)"
+    return_value:
+      - "Mode A: Host is godot.exe, dynamic DLL loading via GDExtension bridge"
+      - "Mode B: Host is game.exe, statically or dynamically linked LibGodot host"
+      - "Mode A features instant F5 hot reloading via shadow copies"
+      - "Mode B provides minimal memory footprint and zero GDExtension loader overhead"
+
+  - id: "topic_01_mode_a_mechanics"
+    title: "Mode A: GDExtension Dynamic Loading"
+    summary: "How Godot loads crystal_bridge.dll and bootstraps Crystal's runtime."
+    content: |
+      In Mode A (Development & Editor):
+      1. Godot boots and parses `addons/crystal_integration/crystal.gdextension`.
+      2. Godot calls `crystal_library_init` in `crystal_bridge.dll`.
+      3. The bridge initializes Boehm GC (`GC_init()`) and CRT hooks.
+      4. The bridge loads `bin/game.dll` (via shadow copy on Windows).
+      5. The bridge passes function pointers to `crystal_godot_init`.
+      6. Custom Crystal nodes register with Godot's `ClassDB`.
+
+  - id: "topic_02_mode_b_mechanics"
+    title: "Mode B: Standalone LibGodot Host"
+    summary: "Crystal executable hosting the Godot engine directly."
+    content: |
+      In Mode B (Production Shipping & Headless Runners):
+      1. The OS executes `bin/game.exe` (a native Crystal binary).
+      2. The Crystal CRT initializes Boehm GC natively.
+      3. The Crystal executable dynamically links `bin/libgodot.dll`.
+      4. Crystal invokes `libgodot_create_godot_instance` and drives the engine main loop.
+      5. Provides a self-contained, high-performance runtime for dedicated servers and production exports.

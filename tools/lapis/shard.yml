@@ -1,0 +1,27 @@
+name: lapis
+version: 0.0.149
+crystal: ">= 1.20.0, <= 1.21.0"
+
+
+authors:
+  - Ian
+
+description: |
+  Lapis: Unified Crystal Engine Toolchain for Godot (CLI executable)
+
+targets:
+  lapis:
+    main: src/lapis.cr
+
+license: MIT
+
+dependencies:
+  cradare2:
+    github: sol-vin/cradare2
+    branch: master
+  opal:
+    github: sol-vin/opal
+    branch: main
+  jasper:
+    github: sol-vin/jasper
+    branch: main

@@ -1,0 +1,607 @@
+require "./spec_helper"
+require "../src/commands/benchmarks"
+require "../src/commands/package"
+require "../../../src/libgodot/benchmarks"
+
+describe "Lapis Benchmarks & Installer Command Specifications" do
+  it "lists all 40 registered builtin benchmarks via builtin_benchmarks" do
+    benches = Lapis::Commands::Benchmarks.builtin_benchmarks
+    benches.size.should eq(40)
+    benches.map(&.name).should contain("Matmul")
+    benches.map(&.name).should contain("Primes")
+    benches.map(&.name).should contain("NodeLifecycle")
+    benches.map(&.name).should contain("Signals")
+    benches.map(&.name).should contain("ShaderCompilation")
+    benches.map(&.name).should contain("ShaderUniforms")
+    benches.map(&.name).should contain("VisualShader")
+    benches.map(&.name).should contain("CompileTimes")
+    benches.map(&.name).should contain("Interop_CrToGd_Int")
+    benches.map(&.name).should contain("Interop_GdToCr_Vector3")
+  end
+
+  it "discovers registered canonical comparison groups" do
+    groups = Lapis::Commands::Benchmarks.builtin_groups
+    groups.size.should be >= 6
+    groups.map(&.name).should contain("MatrixMultiplication")
+    groups.map(&.name).should contain("CompileTime")
+    groups.map(&.name).should contain("Shaders")
+    groups.map(&.name).should contain("InteropRoundTrip")
+    groups.map(&.name).should contain("ProceduralNoise")
+    groups.map(&.name).should contain("SceneGraph")
+  end
+
+  it "serializes and parses benchmark XML accurately without data loss" do
+    metrics = [
+      Lapis::Commands::Benchmarks::BenchmarkMetric.new(
+        name: "Matmul",
+        category: Lapis::Commands::Benchmarks::Category::Compute,
+        crystal_ms: 12.34,
+        gdscript_ms: 185.12,
+        speedup: 15.0,
+        description: "Dense 2D matrix multiplication",
+        editor_ms: 195.0,
+        editor_overhead_ratio: 1.05
+      ),
+      Lapis::Commands::Benchmarks::BenchmarkMetric.new(
+        name: "NodeLifecycle",
+        category: Lapis::Commands::Benchmarks::Category::EngineCore,
+        crystal_ms: 45.67,
+        gdscript_ms: 220.0,
+        speedup: 4.82,
+        description: "Node2D lifecycle operations",
+        editor_ms: nil,
+        editor_overhead_ratio: nil
+      ),
+    ]
+
+    xml = Lapis::Commands::Benchmarks::XmlHandler.generate_xml(
+      metrics: metrics,
+      version: "0.0.98",
+      godot_ver: "4.8-dev6",
+      iterations: 3,
+      platform: "windows"
+    )
+
+    xml.should contain("<?xml version=\"1.0\"")
+    xml.should contain("<benchmarks version=\"0.0.98\"")
+    xml.should contain("<case name=\"Matmul\" category=\"Compute\"")
+    xml.should contain("<crystal ms=\"12.34\" />")
+    xml.should contain("<gdscript ms=\"185.12\" />")
+    xml.should contain("<editor ms=\"195.0\" overhead_ratio=\"1.05\" />")
+    xml.should contain("<case name=\"NodeLifecycle\" category=\"EngineCore\"")
+
+    meta, parsed = Lapis::Commands::Benchmarks::XmlHandler.parse_xml(xml)
+    meta["version"].should eq("0.0.98")
+    meta["platform"].should eq("windows")
+    meta["godot"].should eq("4.8-dev6")
+    meta["iterations"].should eq("3")
+
+    parsed.size.should eq(2)
+    m1 = parsed[0]
+    m1.name.should eq("Matmul")
+    m1.category.should eq(Lapis::Commands::Benchmarks::Category::Compute)
+    m1.crystal_ms.should eq(12.34)
+    m1.gdscript_ms.should eq(185.12)
+    m1.editor_ms.should eq(195.0)
+    (m1.speedup >= 14.9 && m1.speedup <= 15.1).should be_true
+
+    m2 = parsed[1]
+    m2.name.should eq("NodeLifecycle")
+    m2.crystal_ms.should eq(45.67)
+    m2.editor_ms.should be_nil
+  end
+
+  it "generates XML comparison diff between current and previous versions" do
+    prev_metrics = [
+      Lapis::Commands::Benchmarks::BenchmarkMetric.new("Matmul", Lapis::Commands::Benchmarks::Category::Compute, 14.50, 185.0, 12.76, "desc"),
+      Lapis::Commands::Benchmarks::BenchmarkMetric.new("Primes", Lapis::Commands::Benchmarks::Category::Compute, 50.0, 200.0, 4.0, "desc"),
+    ]
+    curr_metrics = [
+      Lapis::Commands::Benchmarks::BenchmarkMetric.new("Matmul", Lapis::Commands::Benchmarks::Category::Compute, 12.34, 185.0, 15.0, "desc"),
+      Lapis::Commands::Benchmarks::BenchmarkMetric.new("Primes", Lapis::Commands::Benchmarks::Category::Compute, 45.0, 200.0, 4.44, "desc"),
+    ]
+
+    comp_xml = Lapis::Commands::Benchmarks::XmlHandler.generate_comparison_xml(curr_metrics, prev_metrics, "0.0.98", "0.0.97")
+    comp_xml.should contain("<benchmark_comparison current_version=\"0.0.98\" previous_version=\"0.0.97\"")
+    comp_xml.should contain("<summary")
+    comp_xml.should contain("<case name=\"Matmul\"")
+    comp_xml.should contain("status=\"improved\"")
+  end
+
+  it "generates interactive HTML comparison report" do
+    prev_metrics = [
+      Lapis::Commands::Benchmarks::BenchmarkMetric.new("Matmul", Lapis::Commands::Benchmarks::Category::Compute, 14.50, 185.0, 12.76, "Matrix mult"),
+    ]
+    curr_metrics = [
+      Lapis::Commands::Benchmarks::BenchmarkMetric.new("Matmul", Lapis::Commands::Benchmarks::Category::Compute, 12.34, 185.0, 15.0, "Matrix mult"),
+    ]
+
+    html = Lapis::Commands::Benchmarks::HtmlGenerator.generate_comparison_html(curr_metrics, prev_metrics, "0.0.98", "0.0.97")
+    html.should contain("<!DOCTYPE html>")
+    html.should contain("Lapis Benchmark Progression")
+    html.should contain("v0.0.97")
+    html.should contain("v0.0.98")
+    html.should contain("Matmul")
+    html.should contain("faster")
+  end
+
+  it "renders standalone HTML dashboard report from metrics" do
+    metrics = [
+      Lapis::Commands::Benchmarks::BenchmarkMetric.new("Matmul", Lapis::Commands::Benchmarks::Category::Compute, 12.34, 185.0, 15.0, "Matrix mult"),
+    ]
+
+    html = Lapis::Commands::Benchmarks::HtmlGenerator.generate_report(metrics, "0.0.98", "windows", "4.8")
+    html.should contain("<!DOCTYPE html>")
+    html.should contain("Lapis Benchmark Suite: Performance Report")
+    html.should contain("Geometric Mean Speedup")
+    html.should contain("Matmul")
+    html.should contain("<svg")
+  end
+
+  it "exports HTML report directly from XML via CLI command" do
+    scratch_dir = Path.new("scratch/spec_benchmarks").expand
+    FileUtils.mkdir_p(scratch_dir)
+
+    xml_file = scratch_dir.join("test_run.xml")
+    html_file = scratch_dir.join("test_run.html")
+
+    metrics = [
+      Lapis::Commands::Benchmarks::BenchmarkMetric.new("Matmul", Lapis::Commands::Benchmarks::Category::Compute, 12.34, 185.0, 15.0, "Matrix mult"),
+    ]
+    xml_data = Lapis::Commands::Benchmarks::XmlHandler.generate_xml(metrics, "0.0.98", "4.8", 3, "windows")
+    File.write(xml_file, xml_data)
+
+    code = Lapis::Commands::Benchmarks.run(["export", "html", "--from=#{xml_file}", "-o", html_file.to_s])
+    code.should eq(0)
+    File.exists?(html_file).should be_true
+    content = File.read(html_file)
+    content.should contain("Lapis Benchmark Suite")
+    content.should contain("Matmul")
+
+    FileUtils.rm_rf(scratch_dir)
+  end
+
+  it "compares two XML files via CLI compare and compare html commands" do
+    scratch_dir = Path.new("scratch/spec_compare").expand
+    FileUtils.mkdir_p(scratch_dir)
+
+    prev_xml = scratch_dir.join("prev.xml")
+    curr_xml = scratch_dir.join("curr.xml")
+    out_xml = scratch_dir.join("diff.xml")
+    out_html = scratch_dir.join("diff.html")
+
+    p_metrics = [Lapis::Commands::Benchmarks::BenchmarkMetric.new("Matmul", Lapis::Commands::Benchmarks::Category::Compute, 15.0, 180.0, 12.0, "desc")]
+    c_metrics = [Lapis::Commands::Benchmarks::BenchmarkMetric.new("Matmul", Lapis::Commands::Benchmarks::Category::Compute, 12.0, 180.0, 15.0, "desc")]
+
+    File.write(prev_xml, Lapis::Commands::Benchmarks::XmlHandler.generate_xml(p_metrics, "0.0.97", "4.8", 3, "windows"))
+    File.write(curr_xml, Lapis::Commands::Benchmarks::XmlHandler.generate_xml(c_metrics, "0.0.98", "4.8", 3, "windows"))
+
+    code_xml = Lapis::Commands::Benchmarks.run(["compare", "--current=#{curr_xml}", "--previous=#{prev_xml}", "-o", out_xml.to_s])
+    code_xml.should eq(0)
+    File.exists?(out_xml).should be_true
+    File.read(out_xml).should contain("<benchmark_comparison")
+
+    code_html = Lapis::Commands::Benchmarks.run(["compare", "html", "--current=#{curr_xml}", "--previous=#{prev_xml}", "-o", out_html.to_s])
+    code_html.should eq(0)
+    File.exists?(out_html).should be_true
+    File.read(out_html).should contain("Lapis Benchmark Progression")
+
+    FileUtils.rm_rf(scratch_dir)
+  end
+
+  it "registers and executes in-engine benchmarks using Lapis::Benchmark DSL" do
+    Lapis::Benchmark.clear
+    executed = 0
+
+    Lapis::Benchmark.register("MathTest", category: Lapis::Benchmark::Category::Compute, description: "Unit math check") do |iter|
+      executed += 1
+      x = 0
+      1000.times { x += 1 }
+    end
+
+    Lapis::Benchmark.all.size.should eq(1)
+    results = Lapis::Benchmark.run_all(iterations: 2)
+    results.size.should eq(1)
+    results.first.name.should eq("MathTest")
+    results.first.samples_ms.size.should eq(2)
+    executed.should eq(2)
+
+    Lapis::Benchmark.clear
+  end
+
+  it "detects project name and version in package helper" do
+    template_dir = Path.new("template").expand
+    if Dir.exists?(template_dir)
+      name = Lapis::Commands::Package.detect_project_name(template_dir)
+      name.should_not be_empty
+
+      version = Lapis::Commands::Package.detect_project_version(template_dir)
+      version.should_not be_empty
+    end
+  end
+
+  it "generates tag comparison HTML with custom tags (e.g. 4.8-dev5 -> 4.8-dev6)" do
+    prev_metrics = [
+      Lapis::Commands::Benchmarks::BenchmarkMetric.new("Matmul", Lapis::Commands::Benchmarks::Category::Compute, 14.50, 185.0, 12.76, "Matrix mult"),
+    ]
+    curr_metrics = [
+      Lapis::Commands::Benchmarks::BenchmarkMetric.new("Matmul", Lapis::Commands::Benchmarks::Category::Compute, 12.34, 185.0, 15.0, "Matrix mult"),
+    ]
+
+    html = Lapis::Commands::Benchmarks::HtmlGenerator.generate_comparison_html(
+      curr_metrics,
+      prev_metrics,
+      "0.0.118",
+      "0.0.117",
+      curr_tag: "4.8-dev6",
+      prev_tag: "4.8-dev5"
+    )
+    html.should contain("Lapis Benchmark Progression: 4.8-dev5 vs 4.8-dev6")
+    html.should contain("Comparing Baseline <strong>4.8-dev5</strong> &rarr; Target <strong>4.8-dev6</strong>")
+    html.should contain("Back to Main Report")
+  end
+
+  it "renders HTML report with historical logs and progression banner" do
+    metrics = [
+      Lapis::Commands::Benchmarks::BenchmarkMetric.new("Matmul", Lapis::Commands::Benchmarks::Category::Compute, 12.34, 185.0, 15.0, "Matrix mult"),
+    ]
+    history = [
+      Lapis::Commands::Benchmarks::HtmlGenerator::HistoryEntry.new(
+        tag: "4.8-dev5",
+        version: "0.0.117",
+        godot_ver: "4.8-dev5",
+        filename: "report_4.8-dev5.html",
+        xml_filename: "benchmarks_4.8-dev5.xml",
+        speedup: 12.5
+      ),
+    ]
+    comparisons = [
+      Lapis::Commands::Benchmarks::HtmlGenerator::ComparisonEntry.new(
+        prev_tag: "4.8-dev5",
+        curr_tag: "4.8-dev6",
+        filename: "comparison_4.8-dev5_to_4.8-dev6.html"
+      ),
+    ]
+
+    html = Lapis::Commands::Benchmarks::HtmlGenerator.generate_report(
+      metrics,
+      "0.0.118",
+      "windows",
+      "4.8-dev6",
+      tag: "4.8-dev6",
+      history: history,
+      comparisons: comparisons,
+      prev_tag: "4.8-dev5",
+      prev_speedup: 12.5
+    )
+    html.should contain("4.8-dev6")
+    html.should contain("Release Progression:")
+    html.should contain("Tag <code>4.8-dev5</code> &rarr; <code>4.8-dev6</code>")
+    html.should contain("Historical Benchmark Releases &amp; Logs")
+    html.should contain("report_4.8-dev5.html")
+    html.should contain("benchmarks_4.8-dev5.xml")
+    html.should contain("comparison_4.8-dev5_to_4.8-dev6.html")
+  end
+
+  it "generates native mode benchmark XML and single-bar SVG without GDScript" do
+    metrics = [
+      Lapis::Commands::Benchmarks::BenchmarkMetric.new(
+        name: "VectorMath",
+        category: Lapis::Commands::Benchmarks::Category::Compute,
+        crystal_ms: 5.25,
+        gdscript_ms: 0.0,
+        speedup: 1.0,
+        description: "Pure Crystal vector math",
+        editor_ms: nil,
+        editor_overhead_ratio: nil
+      ),
+      Lapis::Commands::Benchmarks::BenchmarkMetric.new(
+        name: "Transpiler",
+        category: Lapis::Commands::Benchmarks::Category::Compute,
+        crystal_ms: 10.50,
+        gdscript_ms: 0.0,
+        speedup: 1.0,
+        description: "Shader transpilation throughput",
+        editor_ms: nil,
+        editor_overhead_ratio: nil
+      ),
+    ]
+
+    xml = Lapis::Commands::Benchmarks::XmlHandler.generate_xml(
+      metrics: metrics,
+      version: "1.0.0",
+      godot_ver: "4.8",
+      iterations: 5,
+      platform: "windows",
+      native_mode: true
+    )
+
+    xml.should contain("mode=\"native\"")
+    xml.should contain("total_ms=\"15.75\"")
+    xml.should contain("avg_ms=\"7.88\"")
+    xml.should_not contain("<gdscript")
+
+    svg = Lapis::Commands::Benchmarks::SvgGenerator.generate_svg(metrics, title: "CRShader Performance Benchmarks", native_mode: true)
+    svg.should contain("<svg")
+    svg.should contain("CRShader Performance Benchmarks")
+    svg.should contain("Execution time in milliseconds")
+    svg.should contain("5.25 ms")
+    svg.should contain("10.5 ms")
+    svg.should_not contain("GDScript")
+
+    html = Lapis::Commands::Benchmarks::HtmlGenerator.generate_report(
+      metrics: metrics,
+      version: "1.0.0",
+      platform: "windows",
+      godot_ver: "4.8",
+      title: "CRShader Benchmark Suite: Performance Report",
+      project_name: "CRShader",
+      native_mode: true
+    )
+    html.should contain("CRShader Benchmark Suite")
+    html.should contain("Evaluated Benchmarks")
+    html.should contain("Fastest Case")
+    html.should contain("Average Latency")
+    html.should contain("Total Suite Latency")
+    html.should contain("Native Benchmark")
+    html.should_not contain("Geometric Mean Speedup")
+  end
+
+  it "computes latency-based progression in native mode comparisons" do
+    prev_metrics = [
+      Lapis::Commands::Benchmarks::BenchmarkMetric.new("VectorMath", Lapis::Commands::Benchmarks::Category::Compute, 10.0, 0.0, 1.0, "Vector ops"),
+    ]
+    curr_metrics = [
+      Lapis::Commands::Benchmarks::BenchmarkMetric.new("VectorMath", Lapis::Commands::Benchmarks::Category::Compute, 8.0, 0.0, 1.0, "Vector ops"),
+    ]
+
+    comp_xml = Lapis::Commands::Benchmarks::XmlHandler.generate_comparison_xml(
+      curr_metrics,
+      prev_metrics,
+      "1.1.0",
+      "1.0.0",
+      curr_tag: "v1.1.0",
+      prev_tag: "v1.0.0",
+      native_mode: true
+    )
+    comp_xml.should contain("mode=\"native\"")
+    comp_xml.should contain("current_total_ms=\"8.0\"")
+    comp_xml.should contain("previous_total_ms=\"10.0\"")
+    comp_xml.should contain("delta_percent=\"-20.0\"")
+
+    comp_html = Lapis::Commands::Benchmarks::HtmlGenerator.generate_comparison_html(
+      curr_metrics,
+      prev_metrics,
+      "1.1.0",
+      "1.0.0",
+      curr_tag: "v1.1.0",
+      prev_tag: "v1.0.0",
+      project_name: "CRShader",
+      native_mode: true
+    )
+    comp_html.should contain("CRShader Benchmark Progression: v1.0.0 vs v1.1.0")
+    comp_html.should contain("Latency Shift")
+    comp_html.should contain("20.0% faster")
+  end
+
+  it "renders multi-language comparison groups with interactive language filter pills" do
+    metrics = [
+      Lapis::Commands::Benchmarks::BenchmarkMetric.new(
+        name: "Matmul",
+        category: Lapis::Commands::Benchmarks::Category::Compute,
+        crystal_ms: 12.0,
+        gdscript_ms: 180.0,
+        speedup: 15.0,
+        description: "Dense 2D matrix multiplication",
+        cpp_ms: 10.5,
+        csharp_ms: 18.2,
+        rust_ms: 9.8,
+        group_name: "MatrixMultiplication"
+      ),
+      Lapis::Commands::Benchmarks::BenchmarkMetric.new(
+        name: "Primes",
+        category: Lapis::Commands::Benchmarks::Category::Compute,
+        crystal_ms: 30.0,
+        gdscript_ms: 450.0,
+        speedup: 15.0,
+        description: "Sieve of Atkin + Prefix Trie",
+        cpp_ms: 25.0,
+        csharp_ms: 42.0,
+        rust_ms: 22.0,
+        group_name: "PrimeSieve"
+      ),
+    ]
+
+    html = Lapis::Commands::Benchmarks::HtmlGenerator.generate_report(
+      metrics: metrics,
+      version: "0.1.0",
+      platform: "linux",
+      godot_ver: "4.8-dev6"
+    )
+
+    html.should contain("lang-filter-bar")
+    html.should contain("data-lang=\"all\"")
+    html.should contain("data-lang=\"crystal\"")
+    html.should contain("data-lang=\"cpp\"")
+    html.should contain("data-lang=\"rust\"")
+    html.should contain("data-lang=\"csharp\"")
+    html.should contain("data-lang=\"gdscript\"")
+    html.should contain("data-target-lang=\"crystal\"")
+    html.should contain("data-target-lang=\"cpp\"")
+    html.should contain("data-target-lang=\"rust\"")
+    html.should contain("data-target-lang=\"csharp\"")
+    html.should contain("data-target-lang=\"gdscript\"")
+    html.should contain("MatrixMultiplication")
+    html.should contain("PrimeSieve")
+  end
+
+  it "enforces feature gating for foreign language targets" do
+    native_target = Lapis::Benchmark::TargetSpec.new("Crystal", "test.cr", :crystal)
+    foreign_target = Lapis::Benchmark::TargetSpec.new("Rust", "test.rs", :rust, feature: :foreign_languages)
+
+    # Local run without foreign_languages feature
+    enabled = Set(Symbol).new
+    native_target.active?(enabled, is_ci: false).should be_true
+    foreign_target.active?(enabled, is_ci: false).should be_false
+
+    # CI run
+    foreign_target.active?(enabled, is_ci: true).should be_true
+
+    # Local run with --all-languages / enabled_features
+    enabled << :foreign_languages
+    foreign_target.active?(enabled, is_ci: false).should be_true
+  end
+
+  it "generates generic comparison group SVGs across all chart modes" do
+    items = [
+      Lapis::Commands::Benchmarks::BenchmarkMetric.new(
+        name: "Matmul",
+        category: Lapis::Commands::Benchmarks::Category::Compute,
+        crystal_ms: 10.0,
+        gdscript_ms: 250.0,
+        speedup: 25.0,
+        description: "Dense 2D matrix multiplication",
+        cpp_ms: 8.5,
+        csharp_ms: 12.0,
+        rust_ms: 7.8,
+        group_name: "MatrixMultiplication",
+        baseline_name: "Crystal",
+        group_kind: :runtime,
+        chart_types: [:bar, :speedup, :ratio, :log]
+      ),
+    ]
+
+    # Mode 1: Bar
+    svg_bar = Lapis::Commands::Benchmarks::SvgGenerator.generate_group_svg(
+      "MatrixMultiplication", items, :bar, baseline_name: "Crystal", kind: :runtime
+    )
+    svg_bar.should contain("<svg")
+    svg_bar.should contain("MatrixMultiplication")
+    svg_bar.should contain("Crystal")
+    svg_bar.should contain("C++")
+    svg_bar.should contain("Rust")
+
+    # Mode 2: Speedup
+    svg_speedup = Lapis::Commands::Benchmarks::SvgGenerator.generate_group_svg(
+      "MatrixMultiplication", items, :speedup, baseline_name: "Crystal", kind: :runtime
+    )
+    svg_speedup.should contain("Speedup vs Baseline")
+
+    # Mode 3: Ratio
+    svg_ratio = Lapis::Commands::Benchmarks::SvgGenerator.generate_group_svg(
+      "MatrixMultiplication", items, :ratio, baseline_name: "Crystal", kind: :runtime
+    )
+    svg_ratio.should contain("1.0x Baseline")
+
+    # Mode 4: Log scale
+    svg_log = Lapis::Commands::Benchmarks::SvgGenerator.generate_group_svg(
+      "MatrixMultiplication", items, :log, baseline_name: "Crystal", kind: :runtime
+    )
+    svg_log.should contain("Logarithmic Latency Scale")
+  end
+
+  it "generates compile-time group SVGs for debug vs release and binary sizes" do
+    comp_metrics = {
+      "cr_debug_ms"        => 3900.0,
+      "cr_release_ms"      => 3200.0,
+      "cr_debug_bytes"     => 900000.0,
+      "cr_release_bytes"   => 450000.0,
+      "cpp_debug_ms"       => 1400.0,
+      "cpp_release_ms"     => 1800.0,
+      "cpp_debug_bytes"    => 2900000.0,
+      "cpp_release_bytes"  => 2800000.0,
+      "cs_debug_ms"        => 4200.0,
+      "cs_release_ms"      => 2500.0,
+      "cs_debug_bytes"     => 150000.0,
+      "cs_release_bytes"   => 120000.0,
+      "rs_debug_ms"        => 400.0,
+      "rs_release_ms"      => 630.0,
+      "rs_debug_bytes"     => 210000.0,
+      "rs_release_bytes"   => 190000.0,
+    }
+
+    items = [
+      Lapis::Commands::Benchmarks::BenchmarkMetric.new(
+        name: "CompileTimes",
+        category: Lapis::Commands::Benchmarks::Category::Toolchain,
+        crystal_ms: 3200.0,
+        gdscript_ms: 0.0,
+        speedup: 1.0,
+        description: "Toolchain compilation benchmarks",
+        group_name: "CompileTime",
+        baseline_name: "Crystal",
+        custom_metrics: comp_metrics,
+        group_kind: :compile_time,
+        chart_types: [:debug_vs_release, :size, :bar, :speedup]
+      ),
+    ]
+
+    svg_dvr = Lapis::Commands::Benchmarks::SvgGenerator.generate_group_svg(
+      "CompileTime", items, :debug_vs_release, baseline_name: "Crystal", kind: :compile_time
+    )
+    svg_dvr.should contain("Compilation Time: Debug vs Release")
+    svg_dvr.should contain("Crystal")
+    svg_dvr.should contain("C++")
+
+    svg_sz = Lapis::Commands::Benchmarks::SvgGenerator.generate_group_svg(
+      "CompileTime", items, :size, baseline_name: "Crystal", kind: :compile_time
+    )
+    svg_sz.should contain("Output Binary Size: Debug vs Release")
+    svg_sz.should contain("KB")
+  end
+
+  it "renders HTML reports with interactive chart-view-selectors and containers" do
+    comp_metrics = {
+      "crystal_debug_compile_ms"   => 3938.0,
+      "crystal_release_compile_ms" => 3271.0,
+      "crystal_debug_size_kb"      => 914.0,
+      "crystal_release_size_kb"    => 473.0,
+    }
+
+    metrics = [
+      Lapis::Commands::Benchmarks::BenchmarkMetric.new(
+        name: "CompileTimes",
+        category: Lapis::Commands::Benchmarks::Category::Toolchain,
+        crystal_ms: 3271.0,
+        gdscript_ms: 0.0,
+        speedup: 1.0,
+        description: "Toolchain latency",
+        group_name: "CompileTime",
+        baseline_name: "Crystal",
+        custom_metrics: comp_metrics,
+        group_kind: :compile_time,
+        chart_types: [:debug_vs_release, :size]
+      ),
+      Lapis::Commands::Benchmarks::BenchmarkMetric.new(
+        name: "Matmul",
+        category: Lapis::Commands::Benchmarks::Category::Compute,
+        crystal_ms: 11.5,
+        gdscript_ms: 376.0,
+        speedup: 32.7,
+        description: "Dense 2D matrix multiplication",
+        cpp_ms: 9.2,
+        group_name: "MatrixMultiplication",
+        baseline_name: "Crystal",
+        group_kind: :runtime,
+        chart_types: [:bar, :speedup, :ratio, :log]
+      ),
+    ]
+
+    html = Lapis::Commands::Benchmarks::HtmlGenerator.generate_report(
+      metrics: metrics,
+      version: "1.0.0",
+      platform: "windows",
+      godot_ver: "4.8-dev6"
+    )
+
+    html.should contain("chart-view-selector")
+    html.should contain("group-charts-container")
+    html.should contain("group-chart-view")
+    html.should contain("data-view=\"debug_vs_release\"")
+    html.should contain("data-view=\"size\"")
+    html.should contain("data-view=\"bar\"")
+    html.should contain("data-view=\"speedup\"")
+    html.should contain("3271 ms") # Crystal release compile time fallback correctly rendered!
+    html.should contain("473.0 KB") # Crystal release size fallback correctly rendered!
+  end
+end

@@ -1,0 +1,97 @@
+# Configuration & overrides for LibGodot binding generator
+
+# Mapping of Godot argument/method names that collide with Crystal reserved words
+keywords:
+  class: godot_class
+  type: get_type
+  self: godot_self
+  end: end_val
+  alias: godot_alias
+  def: godot_def
+  nil: nil_val
+  "true": true_val
+  "false": false_val
+  in: in_val
+  out: out_val
+  select: select_val
+  begin: begin_val
+  case: case_val
+  when: when_val
+  for: for_val
+  while: while_val
+  until: until_val
+  yield: yield_val
+  return: return_val
+  break: break_val
+  next: next_val
+  redo: redo_val
+  retry: retry_val
+  rescue: rescue_val
+  ensure: ensure_val
+  include: include_val
+  extend: extend_val
+  abstract: abstract_val
+  private: private_val
+  protected: protected_val
+  with: with_val
+  super: super_val
+  as: as_val
+  typeof: typeof_val
+  pointerof: pointerof_val
+  sizeof: sizeof_val
+  instance_sizeof: instance_sizeof_val
+  offset_of: offset_of_val
+  offsetof: offsetof_val
+  alignof: alignof_val
+  enum: enum_val
+  struct: struct_val
+  union: union_val
+  lib: lib_val
+  fun: fun_val
+  module: module_val
+  macro: macro_val
+  initialize: godot_initialize
+  allocate: godot_allocate
+  object_id: godot_object_id
+
+# Primitive and core type mappings from Godot C-API to Crystal
+type_map:
+  void: Void
+  bool: Bool
+  int: Int64
+  float: Float64
+  String: String
+  StringName: String
+  NodePath: NodePath
+  RID: Int64
+  Callable: Pointer(Void)
+  Signal: Pointer(Void)
+  Dictionary: Pointer(Void)
+  Array: Pointer(Void)
+  PackedByteArray: Pointer(Void)
+  PackedInt32Array: Pointer(Void)
+  PackedInt64Array: Pointer(Void)
+  PackedFloat32Array: Pointer(Void)
+  PackedFloat64Array: Pointer(Void)
+  PackedStringArray: Pointer(Void)
+  PackedVector2Array: Pointer(Void)
+  PackedVector3Array: Pointer(Void)
+  PackedColorArray: Pointer(Void)
+  Variant: Pointer(Void)
+  Object: Godot::Object
+
+# Classes excluded from automatic generation (handled manually or internal)
+excluded_classes: []
+
+# Method renames for specific classes
+method_renames:
+  Object:
+    get_class: godot_class_name
+    to_string: to_godot_string
+  Node:
+    type: node_type
+
+# Additional custom predicate aliases for methods
+predicate_aliases:
+  is_colliding:
+    - has_collider

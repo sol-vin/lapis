@@ -1,0 +1,40 @@
+id: "B_CRASH_HANDLER_AND_WATCHPOINTS"
+parent_module: "Lapis::Docs::G_DEBUGGING_AND_DIAGNOSTICS"
+title: "Crash Diagnostics, Watchpoints & Memory Inspection"
+summary: "Debugging segmentation faults (0xC0000005), hardware watchpoints, and dead-pointer forensics."
+overview: |
+  Advanced diagnostic protocols for tracking down memory corruption, illegal writes,
+  stack overflows, and segmentation faults using radare2 hardware watchpoints, GDExtension crash forensics,
+  and Godot ObjectDB monotonic instance ID validation.
+related_sources:
+  - "**Crash Handler**: `src/libgodot/crash_handler.cr`"
+  - "**Crash Forensics**: `src/libgodot/debugger/plugin_forensics.cr`"
+  - "**Skill**: `cradare2-debugger`"
+
+sections:
+  - id: "topic_00_diagnostic_tools"
+    title: "Diagnostic Instruments"
+    summary: "Hardware watchpoints, automated crash forensics, and memory dumping."
+    type: "Array(String)"
+    return_value:
+      - "Automated crash forensics classifying memory faults across game, plugin, bridge, and engine"
+      - "Hardware data write watchpoints in radare2 (rw / drw commands)"
+      - "Godot ObjectDB dead-pointer detection preventing unhandled ACCESS_VIOLATION crashes"
+
+  - id: "topic_01_hardware_watchpoints"
+    title: "Catching Illegal Writes with Hardware Watchpoints in radare2"
+    summary: "Breaking execution at the exact CPU instruction performing memory corruption."
+    content: |
+      If a pointer or variable address is being corrupted mysteriously across frames:
+
+      1. In radare2, find the address of the target variable or memory location:
+         ```text
+         [0x...]> ?v &my_variable
+         0x0000021b3759c2f0
+         ```
+      2. Set a hardware write watchpoint on that memory location:
+         ```text
+         [0x...]> rw 0x0000021b3759c2f0
+         ```
+      3. Continue execution (`dc`).
+      4. As soon as any thread or machine instruction writes to that address, the CPU traps immediately and radare2 pauses at the exact offending machine instruction!

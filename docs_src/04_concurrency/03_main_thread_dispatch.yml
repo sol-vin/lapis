@@ -1,0 +1,42 @@
+id: "C_MAIN_THREAD_DISPATCH"
+parent_module: "Lapis::Docs::D_CONCURRENCY_AND_FIBERS"
+title: "Main Thread Queue & Thread-Safe Dispatch"
+summary: "Modifying scenes from workers via Godot.on_main_thread, call_deferred, and thread asserts."
+overview: |
+  Comprehensive guide to dispatching closures and methods from background OS worker threads
+  back onto the Godot Engine main thread.
+related_sources:
+  - "**Thread Safety Engine**: `src/libgodot/thread_safety.cr`"
+  - "**Macros**: `src/libgodot/macros.cr`"
+
+sections:
+  - id: "topic_00_dispatch_methods"
+    title: "Thread-Safe Notification Mechanisms"
+    summary: "Godot.on_main_thread closures vs Godot engine call_deferred."
+    type: "Array(String)"
+    return_value:
+      - "Godot.on_main_thread { ... }: Crystal closure queue flushed every frame in _process"
+      - "node.call_deferred(method, *args): Godot engine MessageQueue dispatch"
+      - "ThreadSafety.assert_main_thread!: Defensive guard against illegal background mutation"
+
+  - id: "topic_01_on_main_thread"
+    title: "Scheduling Work with Godot.on_main_thread"
+    summary: "Enqueueing Crystal closures from background workers to mutate nodes safely."
+    content: |
+      When a background worker thread needs to create nodes or update the SceneTree:
+
+      ```crystal
+      Thread.new do
+        heavy_procedural_texture = generate_terrain_noise
+
+        # Safely hand off to main thread:
+        Godot.on_main_thread do
+          sprite = Godot.create(Godot::Sprite2D)
+          sprite.texture = heavy_procedural_texture
+          add_child(sprite) # SAFE: Dispatched on the engine main thread!
+        end
+      end
+      ```
+
+      #### How It Works:
+      The queue is thread-safe and guarded by a `::Thread::Mutex`. On every frame during `_process` and `_physics_process`, `Godot::ThreadSafety.flush_main_thread_queue!` drains the queue and executes the closures on the main thread.

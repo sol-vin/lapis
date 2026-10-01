@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://test_area_3d_scene"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_1"]
+size = Vector3(2, 2, 2)
+
+[node name="TestArea3D" type="Area3D"]
+collision_layer = 5
+collision_mask = 5
+monitoring = true
+monitorable = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_1")
+
+[node name="SensorMarker3D" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 2, 3)

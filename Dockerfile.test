@@ -1,0 +1,43 @@
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV GC_MARKERS=1
+
+# Install base toolchain, radare2, and dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    git \
+    wget \
+    unzip \
+    libgc-dev \
+    libyaml-dev \
+    libpcre2-dev \
+    libevent-dev \
+    lld \
+    radare2 \
+    ca-certificates \
+    libgl1-mesa-dri \
+    libgl1-mesa-glx \
+    libasound2 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Crystal compiler
+RUN curl -fsSL https://crystal-lang.org/install.sh | bash
+
+# Download Godot headless Linux binary
+ARG GODOT_VERSION=4.8-dev6
+WORKDIR /opt/godot
+RUN wget -q https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip -O godot.zip \
+    && unzip -q godot.zip \
+    && (found_bin=$(find . -maxdepth 2 -name "Godot_v*linux.x86_64" | head -n 1); if [ -n "$found_bin" ]; then mv "$found_bin" /usr/local/bin/godot; else mv "Godot_v${GODOT_VERSION}_linux.x86_64" /usr/local/bin/godot; fi) \
+    && chmod +x /usr/local/bin/godot \
+    && rm godot.zip
+
+ENV GODOT4=/usr/local/bin/godot
+ENV GODOT=/usr/local/bin/godot
+
+WORKDIR /workspace
+
+# Default command runs full workspace build and test suite
+CMD ["make", "all"]

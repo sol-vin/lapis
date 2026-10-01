@@ -1,0 +1,132 @@
+id: "A_INSTALLATION"
+parent_module: "Lapis::Docs::A_GETTING_STARTED"
+title: "Installation & System Prerequisites"
+summary: "Complete step-by-step setup guide for Crystal, Godot, and Lapis CLI."
+overview: |
+  Comprehensive walkthrough of installing all required tools to build, develop,
+  and run Lapis games on Windows, Linux, and macOS.
+related_sources:
+  - "**Diagnostic Tool**: `tools/lapis/src/commands/doctor.cr`"
+  - "**Install Command**: `tools/lapis/src/commands/install.cr`"
+  - "**Engine Version Spec**: `godot-version.yml`"
+  - "**Related Submodule**: `Docs::A_GETTING_STARTED::B_COMPILATION`"
+
+sections:
+  - id: "topic_00_key_features"
+    title: "System Capabilities"
+    summary: "Returns core capabilities and supported platforms for Lapis."
+    type: "Array(String)"
+    return_value:
+      - "Full cross-platform support: Windows (x86_64), Linux (x86_64), macOS (arm64)"
+      - "Automated single-executable CLI toolchain (lapis) for all operations"
+      - "Zero-configuration GDExtension bridge with hot-reloading"
+      - "Comprehensive 11-point diagnostic environment checker (lapis doctor)"
+
+  - id: "topic_01_prerequisites"
+    title: "Prerequisites & Requirements"
+    summary: "Required compilers, runtimes, and engine versions before installing Lapis."
+    content: |
+      Before developing with Lapis, ensure the following core tools are installed on your workstation:
+
+      | Component | Recommended Version | Purpose | Download Source |
+      | :--- | :--- | :--- | :--- |
+      | **Crystal** | 1.20.0 to 1.21.0 | Primary compiled gameplay language | [crystal-lang.org/install](https://crystal-lang.org/install/) |
+      | **Godot Engine** | 4.8-dev6 | Target game engine executable | [godotengine.org](https://godotengine.org) |
+      | **C++ Compiler** | MinGW-w64 g++ 15+ (Win) / clang (macOS) | Compiles native GDExtension loader bridge | Scoop / MSYS2 / Xcode |
+      | **GNU Make** | 4.4+ | Workspace build & synchronization automation | Scoop / apt / brew |
+      | **Git** | 2.40+ | Version control & shard package resolution | [git-scm.com](https://git-scm.com) |
+      | **radare2** | 5.9.0+ | Native multi-threaded debugger & decompiler (pdc) | Scoop / winget / apt / brew |
+
+  - id: "topic_02_windows_installation"
+    title: "Windows Installation"
+    summary: "Step-by-step installation on Windows via installer, Scoop, or manual setup."
+    content: |
+      On Windows, Lapis provides multiple installation avenues for rapid onboarding:
+
+      #### Method 1: Official Windows Installer (Recommended)
+      Download and run `lapis-setup-windows-x86_64.exe` from the GitHub Releases page:
+      - Automatically stages `lapis.exe` into `%LOCALAPPDATA%\Programs\Lapis\bin`.
+      - Bundles the Crystalline LSP language server daemon and radare2 native debugger.
+      - Adds Lapis to the user `PATH` environment variable.
+      - Configures file associations and shell completions for PowerShell.
+
+      #### Method 2: Scoop Package Manager
+      If you use Scoop for Windows development tooling:
+      ```powershell
+      scoop install crystal radare2 make git
+      # Run lapis global installer
+      .\bin\lapis.exe install
+      ```
+
+      #### Method 3: Global Path Linking via Lapis CLI
+      If you compiled Lapis from source:
+      ```powershell
+      bin\lapis install --force
+      ```
+
+  - id: "topic_03_linux_and_macos"
+    title: "Linux & macOS Installation"
+    summary: "Installation procedures on Ubuntu/Debian, Fedora, Arch Linux, and macOS."
+    content: |
+      #### Linux (Debian / Ubuntu)
+      Install prerequisites via `apt`:
+      ```bash
+      sudo apt update
+      sudo apt install -y build-essential curl git libyaml-dev libpcre2-dev libevent-dev
+      ```
+      Install pre-built `.deb` package:
+      ```bash
+      sudo dpkg -i lapis-0.0.132-amd64.deb
+      ```
+
+      #### macOS (Apple Silicon / Intel)
+      Install prerequisites via Homebrew:
+      ```bash
+      brew install crystal make pcre2 bdw-gc libevent
+      ```
+      Install Lapis globally:
+      ```bash
+      ./bin/lapis install --prefix /usr/local
+      ```
+
+  - id: "topic_04_doctor_verification"
+    title: "Verifying with Lapis Doctor"
+    summary: "Running lapis doctor to validate all compilers, tools, and runtime dependencies."
+    content: |
+      After installation, run `lapis doctor` from any terminal to verify that your development environment is 100% operational:
+
+      ```bash
+      lapis doctor
+      ```
+
+      #### Expected Terminal Output:
+      ```text
+      [Doctor] Diagnosing Lapis development environment...
+      Diagnostic Results:
+        [✓] Crystal Compiler: Crystal 1.21.0 (2026-07-16)
+        [✓] Godot Engine: C:\Users\Dev\Documents\libgodot\godot.exe (v4.8.dev6.official.8898c2b3d)
+        [✓] C++ Bridge Compiler: g++ (g++ (GCC) 15.2.0)
+        [✓] Native Debugger (radare2): radare2 6.2.2 [native decompiler: pdc]
+        [✓] GNU Make: Found at C:\Users\Dev\scoop\shims\make.exe
+        [✓] Git Version Control: Found at C:\Program Files\Git\cmd\git.exe
+        [✓] Crystal Shards Manager: Found at C:\Users\Dev\scoop\apps\crystal\current\shards.exe
+        [✓] Crystalline LSP: C:\Users\Dev\AppData\Local\Programs\Lapis\bin\crystalline.exe (0.20.0)
+        [✓] Inno Setup Compiler: Found at C:\Users\Dev\AppData\Local\Programs\Inno Setup 6\ISCC.exe
+        [✓] Runtime Libraries: All 5 platform libraries verified in bin/
+        [✓] Project Configuration: Godot project (libgodot) is fully configured for Crystal!
+
+      [Lapis] Doctor diagnosis complete: 11/11 checks passed cleanly!
+      ```
+
+  - id: "topic_05_troubleshooting_faq"
+    title: "Installation Pitfalls & FAQ"
+    summary: "Solutions to common installation, environment, and path issues."
+    pitfalls:
+      - "Running with Crystal < 1.20.0 will cause compilation errors due to missing ExecutionContext APIs."
+      - "Missing g++ on Windows: ensure MinGW-w64 is in your system PATH (test with `g++ --version`)."
+      - "Godot binary mismatch: Lapis targets Godot 4.8-dev6; using 4.2 or 4.3 will trigger GDExtension ABI incompatibilities."
+    faqs:
+      - q: "Can I use MSVC instead of MinGW-w64 on Windows?"
+        a: "Yes. Set CXX=cl in your environment or Makefile, though g++ is the default tested bridge compiler."
+      - q: "Where does lapis install place the executable?"
+        a: "On Windows: %LOCALAPPDATA%\\Programs\\Lapis\\bin. On Linux/macOS: /usr/local/bin or ~/.local/bin."

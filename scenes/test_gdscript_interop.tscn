@@ -1,0 +1,12 @@
+[gd_scene load_steps=2 format=3 uid="uid://test_gdscript_interop_scene"]
+
+[ext_resource type="Script" path="res://scripts/interop_controller.gd" id="1_interop"]
+
+[node name="InteropRoot" type="Node"]
+script = ExtResource("1_interop")
+
+[node name="StaticChild" type="Node2D" parent="."]
+position = Vector2(100, 200)
+
+[node name="StaticMarker" type="Marker2D" parent="StaticChild"]
+position = Vector2(15, 25)

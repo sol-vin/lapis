@@ -1,0 +1,69 @@
+id: "D_LOW_LATENCY_INPUT"
+parent_module: "Lapis::Docs::C_GAMEPLAY_AND_DECLARATIVE_DSL"
+title: "Low-Latency Input & Controls"
+summary: "Sub-frame mouse look, zero-allocation input queries, unhandled input, and input maps."
+overview: |
+  Comprehensive guide to authoring ultra-responsive controls, FPS camera look,
+  sub-frame motion sampling, and zero-allocation input polling.
+related_sources:
+  - "**Input Guide**: `src/libgodot/extensions/input.cr`"
+  - "**Live Specs**: `spec/suites/test_input.cr`"
+
+sections:
+  - id: "topic_00_input_methods"
+    title: "Input Processing Paradigms"
+    summary: "Event-driven (_unhandled_input) vs frame polling (Input singleton)."
+    type: "Array(String)"
+    return_value:
+      - "Event-driven: _unhandled_input(event : InputEvent) for discrete actions & mouse motion"
+      - "Polling: Input.action_pressed? and Input.action_just_pressed? for responsive movement"
+      - "Axis queries: Input.vector and Input.axis for 2D/3D direction"
+      - "Sub-frame mouse look with event accumulation disabled"
+
+  - id: "topic_01_polling_input"
+    title: "Continuous Input Polling"
+    summary: "Reading keyboard, mouse, and gamepad analog axes without heap allocations."
+    content: |
+      Inside `_physics_process(delta)`:
+
+      ```crystal
+      def _physics_process(delta : Float64) : Void
+        # 1. 2D Movement vector with automatic deadzone normalization
+        move_vector = Input.vector("move_left", "move_right", "move_up", "move_down")
+
+        # 2. Discrete action checks
+        if Input.action_just_pressed?("jump") && on_floor?
+          cur_vel = velocity
+          cur_vel.y = -500.0_f32
+          self.velocity = cur_vel
+        end
+
+        # 3. Continuous firing
+        if Input.action_pressed?("attack")
+          fire_weapon!
+        end
+      end
+      ```
+
+  - id: "topic_02_mouse_look"
+    title: "Sub-Frame FPS Mouse Look"
+    summary: "Smooth 3D first-person camera rotation with InputEventMouseMotion."
+    content: |
+      To achieve competitive-grade, zero-stutter camera look:
+
+      ```crystal
+      def _ready : Void
+        # Lock and hide mouse cursor for FPS look:
+        Input.mouse_mode = Input::MouseMode::Captured
+
+        # Disable mouse accumulation for sub-frame raw precision:
+        Input.use_accumulated_input = false
+      end
+
+      def _unhandled_input(event : InputEvent) : Void
+        if motion = event.as?(InputEventMouseMotion)
+          rotate_y(-motion.relative.x * sensitivity)
+          camera.rotate_x(-motion.relative.y * sensitivity)
+        end
+      end
+      ```

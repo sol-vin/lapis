@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://test_mesh_3d_scene"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1"]
+albedo_color = Color(0.2, 0.6, 1, 1)
+metallic = 0.5
+roughness = 0.25
+
+[sub_resource type="BoxMesh" id="BoxMesh_1"]
+material = SubResource("StandardMaterial3D_1")
+size = Vector3(4, 2, 6)
+
+[node name="TestMeshRoot3D" type="Node3D"]
+
+[node name="BoxMeshInstance" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_1")
+
+[node name="AnchorMarker3D" type="Marker3D" parent="BoxMeshInstance"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)

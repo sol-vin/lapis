@@ -1,0 +1,46 @@
+id: B_CUSTOM_NODES
+title: "Custom Nodes & Inspector Properties"
+summary: "Exporting custom Control and Node classes to Godot's ClassDB with typed signals and properties."
+track: "01_getting_started"
+root_module: "MyAddon::Docs"
+overview: |
+  Custom nodes authored in Crystal are fully registered in Godot's `ClassDB`. They appear in the
+  Create New Node dialog, expose typed properties in the Godot Inspector, and emit signals that
+  can be wired to other nodes or GDScript handlers.
+related_sources:
+  - "src/main.cr"
+sections:
+  - id: topic_01_control_nodes
+    title: "Creating Custom Control Nodes"
+    summary: "Declaring custom UI widgets with exported properties."
+    content: |
+      The template provides an example custom banner node (`CrystalAddonBanner < Control`):
+
+      - `@[Export] property message : String`: Text displayed in the banner.
+      - `@[Export] property text_color : Color`: Tint color configured via Godot's color picker.
+      - `@[Export(range: 0.5..3.0)] property banner_scale : Float32`: Scale slider in the Inspector.
+      - `signal banner_clicked(message : String)`: Emitted when the banner receives click events.
+    examples:
+      - |
+        ```crystal
+        node CrystalAddonBanner < Control do
+          @[Export]
+          property message : String = "Hello from Compiled Crystal Addon!"
+
+          @[Export]
+          property text_color : Color = Color.new(0.3_f32, 0.9_f32, 1.0_f32, 1.0_f32)
+
+          signal banner_clicked(message : String)
+
+          def trigger_click : Void
+            emit_banner_clicked(@message)
+          end
+        end
+        ```
+
+  - id: topic_02_exporting_and_packaging
+    title: "Packaging the Redistributable Addon"
+    summary: "Creating release archives for distribution on the Godot Asset Library or GitHub."
+    content: |
+      Use the `make package RELEASE=1` target to compile optimized binaries for your platform
+      and bundle the addon into a redistributable zip archive in `dist/`.

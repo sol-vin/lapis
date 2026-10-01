@@ -1,0 +1,75 @@
+id: "M_ADDON_STORE_AND_SECURITY"
+parent_module: "Lapis::Docs::B_LAPIS_CLI_AND_TOOLCHAIN"
+title: "Addon Store & Security Auditing"
+summary: "Installing, vendoring, updating, and security auditing GDExtension addons."
+overview: |
+  Comprehensive guide to managing community and third-party GDExtension addons in Lapis,
+  including automated security checks, Git version pinning, vendoring, and project synchronization.
+related_sources:
+  - "**Addon CLI Command**: `tools/lapis/src/commands/install_addon.cr`"
+  - "**Shard Manager**: `tools/lapis/src/commands/shard_manager.cr`"
+  - "**Specifications**: `tools/lapis/spec/install_addon_spec.cr`"
+
+sections:
+  - id: "topic_00_addon_capabilities"
+    title: "Addon Management Capabilities"
+    summary: "Listing of features provided by lapis addon and lapis install-addon."
+    type: "Array(String)"
+    return_value:
+      - "Git URL Installation: Clone and install directly from GitHub, GitLab, or Git hosts"
+      - "Automated Security Audit: Blocks dangerous shell scripts, binaries, and path traversal"
+      - "Atomic Registration: Updates shard.yml and enables plugin in project.godot"
+      - "Vendoring Support: Freezes addon source code locally for self-contained repositories"
+      - "Clean Uninstallation: Removes files and disables plugins without leaving dangling references"
+
+  - id: "topic_01_installing_from_git"
+    title: "Installing Addons from Git"
+    summary: "Cloning and installing community addons with branch and tag pinning."
+    content: |
+      To install an addon directly from a Git repository:
+
+      ```bash
+      # Install latest version
+      lapis addon install https://github.com/sol-vin/lapis_dialogue.git
+
+      # Pin to a specific release branch or tag
+      lapis addon install https://github.com/sol-vin/lapis_inventory.git --branch=v2.1.0
+
+      # Install from a local folder during development
+      lapis addon install ../my_local_addon
+      ```
+
+  - id: "topic_02_security_auditing"
+    title: "Automated Security & Integrity Auditing"
+    summary: "How Lapis protects projects from untrusted third-party addon code."
+    content: |
+      Before copying files into `addons/`, Lapis conducts an automated security audit:
+
+      - **Path Traversal Protection**: Ensures no archive or git symlink escapes outside the target addon folder.
+      - **Script Verification**: Scans for unauthorized executables, obfuscated binaries, or rogue post-install shell scripts.
+      - **ClassDB Conflict Detection**: Checks if custom node names clash with existing engine classes or installed addons.
+
+  - id: "topic_03_dependency_and_plugin_sync"
+    title: "Dependency & Plugin Synchronization"
+    summary: "Automatic synchronization with shard.yml and project.godot."
+    content: |
+      When an addon is installed or removed, Lapis synchronizes two primary manifests:
+
+      1. **`project.godot`**: Automatically appends the plugin path to `editor_plugins/enabled`:
+         ```ini
+         [editor_plugins]
+         enabled=["res://addons/lapis_dialogue/plugin.cfg"]
+         ```
+      2. **`shard.yml`**: Tracks the addon version or git dependency under `addons:` and runs `shards install`.
+
+  - id: "topic_04_vendoring_and_offline_builds"
+    title: "Vendoring Addons for Offline Builds"
+    summary: "Freezing addon source code directly in the repository."
+    content: |
+      For enterprise game projects or offline air-gapped CI environments:
+
+      ```bash
+      lapis addon install https://github.com/sol-vin/lapis_dialogue.git --vendor
+      ```
+
+      The `--vendor` flag extracts the complete source code directly into `addons/` and `src/` without depending on external Git repositories at compile time.

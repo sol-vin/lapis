@@ -1,0 +1,157 @@
+name: Multi-Language Benchmarks Suite
+
+on:
+  workflow_dispatch:
+    inputs:
+      iterations:
+        description: 'Number of measurement iterations'
+        required: false
+        default: '3'
+      filter:
+        description: 'Benchmark name or group filter'
+        required: false
+        default: ''
+      deploy_pages:
+        description: 'Deploy generated benchmark report to GitHub Pages'
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: benchmarks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  multi-language-benchmarks:
+    name: Multi-Language Benchmarks (Crystal, GDScript, C++, C#, Rust)
+    runs-on: windows-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Crystal
+        uses: crystal-lang/install-crystal@v1
+        with:
+          crystal: 1.21.0
+
+      - name: Install Shards Dependencies
+        run: shards install --skip-postinstall
+
+      - name: Setup .NET 8 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Setup Rust Toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Verify Multi-Language Toolchains
+        run: |
+          crystal -v
+          g++ --version
+          dotnet --version
+          rustc --version
+
+      - name: Setup Godot Engine
+        shell: powershell
+        run: |
+          if (-not (Test-Path "godot.exe")) {
+            Write-Host "Downloading Godot 4.8-dev6..."
+            Invoke-WebRequest -Uri "https://github.com/godotengine/godot-builds/releases/download/4.8-dev6/Godot_v4.8-dev6_win64.exe.zip" -OutFile "godot.zip"
+            Expand-Archive -Path "godot.zip" -DestinationPath "." -Force
+            $exe = Get-ChildItem -Filter "Godot*.exe" | Select-Object -First 1
+            if ($exe) {
+              Copy-Item $exe.FullName "godot.exe"
+            }
+          }
+
+      - name: Build Lapis CLI Toolchain
+        run: |
+          crystal build tools/lapis/src/lapis.cr -o bin/lapis.exe --release
+
+      - name: Run Multi-Language Benchmarks Suite
+        shell: powershell
+        env:
+          CI: "true"
+        run: |
+          $iter = "${{ github.event.inputs.iterations }}"
+          if ([string]::IsNullOrWhiteSpace($iter)) { $iter = "3" }
+          $filt = "${{ github.event.inputs.filter }}"
+          $filtArg = ""
+          if (-not [string]::IsNullOrWhiteSpace($filt)) { $filtArg = "-f $filt" }
+
+          bin\lapis.exe benchmarks run html --all-languages --ci -i $iter $filtArg
+
+      - name: Stage Benchmarks for GitHub Pages Artifact
+        shell: powershell
+        run: |
+          New-Item -ItemType Directory -Force -Path "docs/benchmarks/history" | Out-Null
+          if (Test-Path "benchmarks/reports") {
+            Copy-Item -Path "benchmarks/reports/*" -Destination "docs/benchmarks/" -Recurse -Force -ErrorAction SilentlyContinue
+          }
+          if (Test-Path "benchmarks/reports/benchmarks.html") {
+            Copy-Item -Path "benchmarks/reports/benchmarks.html" -Destination "docs/benchmarks.html" -Force
+            Copy-Item -Path "benchmarks/reports/benchmarks.html" -Destination "docs/benchmarks/index.html" -Force
+            Copy-Item -Path "benchmarks/reports/benchmarks.html" -Destination "docs/benchmark_report.html" -Force
+          } elseif (Test-Path "benchmarks/reports/benchmark_report.html") {
+            Copy-Item -Path "benchmarks/reports/benchmark_report.html" -Destination "docs/benchmarks.html" -Force
+            Copy-Item -Path "benchmarks/reports/benchmark_report.html" -Destination "docs/benchmarks/index.html" -Force
+            Copy-Item -Path "benchmarks/reports/benchmark_report.html" -Destination "docs/benchmark_report.html" -Force
+          }
+          New-Item -ItemType File -Force -Path "docs/.nojekyll" | Out-Null
+
+      - name: Upload Benchmark Reports Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-reports
+          path: |
+            docs/benchmarks.html
+            docs/benchmark_report.html
+            docs/benchmarks/
+            benchmarks/reports/
+
+  deploy-benchmarks-pages:
+    name: Deploy Benchmarks to GitHub Pages
+    needs: multi-language-benchmarks
+    if: github.event.inputs.deploy_pages == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Download Benchmark Reports Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: benchmark-reports
+          path: ./docs
+
+      - name: Ensure Staged Layout
+        run: |
+          mkdir -p ./docs/benchmarks
+          if [ -f "./docs/benchmarks.html" ] && [ ! -f "./docs/benchmarks/index.html" ]; then
+            cp "./docs/benchmarks.html" "./docs/benchmarks/index.html"
+          fi
+          touch ./docs/.nojekyll
+          echo "Files staged for GitHub Pages deployment:"
+          ls -la ./docs
+
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./docs
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,35 @@
+[gd_scene format=3 uid="uid://dm0yptst38f2"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
+sky_top_color = Color(0.384314, 0.454902, 0.54902, 1)
+sky_horizon_color = Color(0.647059, 0.654902, 0.670588, 1)
+
+[sub_resource type="Sky" id="Sky_env"]
+sky_material = SubResource("ProceduralSkyMaterial_sky")
+
+[sub_resource type="Environment" id="Environment_main"]
+background_mode = 2
+sky = SubResource("Sky_env")
+ambient_light_source = 3
+ambient_light_color = Color(0.8, 0.85, 0.9, 1)
+
+[sub_resource type="GDScript" id="GDScript_t1357"]
+script/source = "extends Node3D
+
+func imma_print():
+	print(\"PRINT ME DADDY\")
+"
+
+[node name="Main" type="DemoScene" unique_id=1902271732]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1487499284]
+environment = SubResource("Environment_main")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1913846143]
+transform = Transform3D(0.866025, -0.25, 0.433013, 0, 0.866025, 0.5, -0.5, -0.433013, 0.75, 0, 12, 0)
+shadow_enabled = true
+
+[node name="RunMe" type="Node3D" parent="." unique_id=149394515]
+script = SubResource("GDScript_t1357")
+
+[node name="ModifierNode" type="ModifierNode" parent="." unique_id=1803010055]

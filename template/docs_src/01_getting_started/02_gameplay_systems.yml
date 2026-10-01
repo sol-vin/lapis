@@ -1,0 +1,52 @@
+id: B_GAMEPLAY_SYSTEMS
+title: "Gameplay Systems & Player Controller"
+summary: "How player input, physics movement, health tracking, and HUD signals are structured."
+track: "01_getting_started"
+root_module: "Game::Docs"
+overview: |
+  The starter game includes a working 3D player character (`PlayerController < CharacterBody3D`)
+  and a corresponding 2D interface HUD (`GameHUD < Control`) demonstrating signal connections,
+  smooth physics movement, and inspector properties.
+related_sources:
+  - "src/player_controller.cr"
+  - "src/game_hud.cr"
+sections:
+  - id: topic_01_player_movement
+    title: "Player Physics & Movement"
+    summary: "Handling velocity, jumping, gravity, and WASD input in _physics_process."
+    content: |
+      `PlayerController` extends Godot's `CharacterBody3D`:
+
+      - Reads standard input actions: `ui_left`, `ui_right`, `ui_up`, `ui_down`, and `ui_accept`.
+      - Applies gravity when `!is_on_floor`.
+      - Updates `velocity` and dispatches `move_and_slide`.
+      - Tracks hit points and emits the `health_changed(current : Int32, max_hp : Int32)` signal.
+    examples:
+      - |
+        ```crystal
+        node PlayerController < CharacterBody3D do
+          @[Export(range: 1.0_f32..20.0_f32, step: 0.5_f32)]
+          property speed : Float32 = 5.0_f32
+
+          signal health_changed(current : Int32, max_health : Int32)
+
+          def _physics_process(delta : Float64) : Void
+            # Movement and physics logic
+          end
+        end
+        ```
+
+  - id: topic_02_hud_and_signals
+    title: "GameHUD UI & Signal Handling"
+    summary: "UpdatingProgressBar health meters and text labels in response to gameplay signals."
+    content: |
+      The `GameHUD` node extends `Control` and listens for signals emitted by the player:
+
+      ```crystal
+      node GameHUD < Control do
+        def update_health(current : Int32, max_hp : Int32) : Void
+          percentage = (current.to_f32 / max_hp.to_f32) * 100.0_f32
+          Godot.print("[HUD] Player health updated: #{percentage.round}%")
+        end
+      end
+      ```

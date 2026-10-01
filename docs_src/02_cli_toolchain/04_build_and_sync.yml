@@ -1,0 +1,64 @@
+id: "D_BUILD_AND_SYNC"
+parent_module: "Lapis::Docs::B_LAPIS_CLI_AND_TOOLCHAIN"
+title: "Build & Synchronization Commands"
+summary: "Compiling game libraries, plugins, standalone executables, and syncing multi-target projects."
+overview: |
+  Comprehensive reference for `lapis build` and `lapis sync`, covering compilation modes,
+  flags, optimizations, and multi-consumer binary orchestration.
+related_sources:
+  - "**Build Command**: `tools/lapis/src/commands/build.cr`"
+  - "**Sync Command**: `tools/lapis/src/commands/sync.cr`"
+  - "**Live Spec**: `tools/lapis/spec/commands/build_spec.cr`"
+
+sections:
+  - id: "topic_00_build_targets"
+    title: "Supported Build Targets"
+    summary: "Listing of compilable artifacts: game, plugin, standalone, and templates."
+    type: "Array(String)"
+    return_value:
+      - "game: Primary game shared library (bin/game.dll/so/dylib)"
+      - "plugin: Editor integration plugin (bin/plugin.dll/so/dylib)"
+      - "standalone: Self-contained LibGodot host executable (bin/game.exe)"
+      - "examples: All showcase projects under examples/"
+      - "template: Starter template project"
+
+  - id: "topic_01_build_command"
+    title: "lapis build: Compilation Modes & Flags"
+    summary: "Command syntax, compilation flags, release optimizations, and single-module options."
+    content: |
+      #### Usage:
+      ```bash
+      lapis build [target] [options]
+      ```
+
+      #### Common Options:
+      | Option | Shorthand | Description |
+      | :--- | :--- | :--- |
+      | `--release` | `-r` | Compiles with `--release -O3` optimizations and strips debug symbols |
+      | `--single-module` | `-m` | Compiles via a single LLVM module for maximum cross-module optimization |
+      | `--clean` | `-c` | Removes previous build artifacts before compiling |
+      | `--threads=N` | | Sets the number of parallel Crystal compilation threads |
+      | `--error-trace` | | Prints full exception backtraces on compilation errors |
+
+      #### Examples:
+      ```bash
+      lapis build game                # Fast incremental debug build of game.dll
+      lapis build game -r             # Production release build
+      lapis build standalone -r -m    # Optimized single-module standalone executable
+      ```
+
+  - id: "topic_02_sync_command"
+    title: "lapis sync: Multi-Target Synchronization"
+    summary: "Ensuring all consumer projects share identical binary deliverables and manifests."
+    content: |
+      In a monorepo or multi-project workspace, different projects (e.g. `examples/basic_demo`, `template/`, `performance/`) require runtime shared libraries and manifests:
+
+      ```bash
+      lapis sync [options]
+      ```
+
+      #### What `lapis sync` Performs:
+      1. Verifies `bin/crystal_bridge.dll` and copies to consumer `bin/` directories.
+      2. Validates runtime dependencies (`gc.dll`, `pcre2-8.dll`, `iconv-2.dll`, `libgodot.dll`).
+      3. Synchronizes GDExtension manifests (`crystal.gdextension`).
+      4. Enforces `.gdignore` placement inside `lib/` and output directories.

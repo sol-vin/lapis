@@ -1,0 +1,24 @@
+[configuration]
+entry_symbol = "crystal_library_init"
+compatibility_minimum = "4.1"
+reloadable = true
+
+[libraries]
+windows.debug.x86_64 = "res://addons/crystal_addon/bin/crystal_bridge.dll"
+windows.release.x86_64 = "res://addons/crystal_addon/bin/crystal_bridge.dll"
+linux.debug.x86_64 = "res://addons/crystal_addon/bin/crystal_bridge.so"
+linux.release.x86_64 = "res://addons/crystal_addon/bin/crystal_bridge.so"
+macos.debug = "res://addons/crystal_addon/bin/crystal_bridge.dylib"
+macos.release = "res://addons/crystal_addon/bin/crystal_bridge.dylib"
+macos.debug.arm64 = "res://addons/crystal_addon/bin/crystal_bridge.dylib"
+macos.release.arm64 = "res://addons/crystal_addon/bin/crystal_bridge.dylib"
+macos.debug.x86_64 = "res://addons/crystal_addon/bin/crystal_bridge.dylib"
+macos.release.x86_64 = "res://addons/crystal_addon/bin/crystal_bridge.dylib"
+
+[dependencies]
+macos.debug = { "res://addons/crystal_addon/bin/game.dylib": "" }
+macos.release = { "res://addons/crystal_addon/bin/game.dylib": "" }
+macos.debug.arm64 = { "res://addons/crystal_addon/bin/game.dylib": "" }
+macos.release.arm64 = { "res://addons/crystal_addon/bin/game.dylib": "" }
+macos.debug.x86_64 = { "res://addons/crystal_addon/bin/game.dylib": "" }
+macos.release.x86_64 = { "res://addons/crystal_addon/bin/game.dylib": "" }

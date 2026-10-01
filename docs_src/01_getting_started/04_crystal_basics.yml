@@ -1,0 +1,118 @@
+id: "D_CRYSTAL_BASICS_FOR_GODOT"
+parent_module: "Lapis::Docs::A_GETTING_STARTED"
+title: "Crystal Syntax Guide for Game Developers"
+summary: "Essential Crystal syntax, static typing, nil-safety, blocks, and official style guides."
+overview: |
+  A fast-paced primer on the Crystal programming language specifically tailored for
+  developers coming from GDScript, Python, C#, or C++.
+related_sources:
+  - "**Official Reference**: [crystal-lang.org/reference](https://crystal-lang.org/reference/)"
+  - "**Standard Library API**: [crystal-lang.org/api](https://crystal-lang.org/api/)"
+  - "**Style Guide**: [crystal-lang.org/reference/conventions/coding_style.html](https://crystal-lang.org/reference/conventions/coding_style.html)"
+
+sections:
+  - id: "topic_00_crystal_strengths"
+    title: "Why Crystal for Game Development?"
+    summary: "Key strengths: C-like execution speed, Ruby-like elegance, and compile-time safety."
+    type: "Array(String)"
+    return_value:
+      - "Bare-metal performance: Compiles to native machine code via LLVM with zero VM overhead"
+      - "Guaranteed compile-time nil safety: No unexpected null reference crashes at runtime"
+      - "Elegant syntax: Clean, expressive syntax with powerful compile-time metaprogramming macros"
+      - "Fibers & CSP channels: Built-in lightweight concurrency apparatus"
+
+  - id: "topic_01_types_and_nil_safety"
+    title: "Static Types & Nil Safety"
+    summary: "How Crystal combines static typing with type inference and compile-time nil checks."
+    content: |
+      In GDScript or Python, variables can hold `null` at any time, leading to dreaded `Invalid get index on base Nil` errors.
+      In Crystal, non-nil types can **never** be nil:
+
+      ```crystal
+      # 1. Non-nilable string - compiler guarantees it is always a String
+      name : String = "Hero"
+
+      # 2. Nilable string - explicit union with Nil
+      target : String? = nil
+
+      # 3. Compile-time check required before accessing nilable values:
+      if target
+        Godot.print("Attacking target: #{target.upcase}") # Compiler knows target is not nil here!
+      else
+        Godot.print("No target selected")
+      end
+
+      # 4. Force unwrap (raises NilAssertionError if nil):
+      safe_target = target.not_nil!
+      ```
+
+  - id: "topic_02_properties_and_accessors"
+    title: "Properties & Accessors"
+    summary: "Crystal's property, getter, and setter macros vs GDScript variables."
+    content: |
+      In Crystal, instance variables are prefixed with `@` and private by default.
+      Crystal provides concise macros to generate getters and setters:
+
+      ```crystal
+      class Weapon
+        # Generates @name : String with getter and setter:
+        property name : String
+
+        # Generates @damage : Int32 with getter only (read-only):
+        getter damage : Int32
+
+        # Generates @secret_code with setter only (write-only):
+        setter secret_code : String
+
+        def initialize(@name : String, @damage : Int32)
+          @secret_code = "1234"
+        end
+      end
+
+      sword = Weapon.new("Excalibur", 50)
+      sword.name = "Excalibur +1" # OK: setter exists
+      puts sword.damage           # OK: getter exists
+      # sword.damage = 100        # Compile error: undefined method 'damage='
+      ```
+
+  - id: "topic_03_blocks_and_closures"
+    title: "Blocks, Yields & Closures"
+    summary: "Functional iterators and code blocks in Crystal vs GDScript lambdas."
+    content: |
+      Blocks are one of Crystal's most powerful features for game systems:
+
+      ```crystal
+      # Iterating over arrays with each:
+      enemies = ["Goblin", "Orc", "Dragon"]
+      enemies.each do |enemy|
+        Godot.print("Spawned #{enemy}")
+      end
+
+      # Transforming collections with map:
+      powers = [10, 20, 30]
+      boosted = powers.map { |p| p * 2 } # => [20, 40, 60]
+
+      # Filtering with select:
+      alive_enemies = enemies.select { |e| e != "Goblin" }
+
+      # Custom methods that take blocks:
+      def with_speed_boost(factor : Float32, &block)
+        original_speed = @speed
+        @speed *= factor
+        yield # Runs the caller's code block
+        @speed = original_speed
+      end
+      ```
+
+  - id: "topic_04_official_resources"
+    title: "Official References & Coding Standards"
+    summary: "Links to the official Crystal manual, standard library documentation, and style guides."
+    content: |
+      To deepen your Crystal expertise, reference the authoritative documentation:
+
+      | Resource | Link | Description |
+      | :--- | :--- | :--- |
+      | **Crystal Reference Manual** | [crystal-lang.org/reference](https://crystal-lang.org/reference/) | Full language specification and macro syntax |
+      | **Standard Library API** | [crystal-lang.org/api](https://crystal-lang.org/api/) | Built-in classes (Array, Hash, Math, Time, IO) |
+      | **Crystal Style Guide** | [Coding Style Guide](https://crystal-lang.org/reference/conventions/coding_style.html) | Formatting, naming conventions, and best practices |
+      | **Crystal Forum & Community** | [forum.crystal-lang.org](https://forum.crystal-lang.org/) | Questions, community libraries, and ecosystem |

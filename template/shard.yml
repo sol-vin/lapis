@@ -1,0 +1,16 @@
+name: godot_crystal_template
+version: 0.1.0
+authors:
+  - Developer <developer@example.com>
+license: MIT
+
+dependencies:
+  lapis:
+    path: lib/lapis
+
+# Addons installed via 'lapis install addon <spec>' will be tracked here.
+addons: {}
+
+targets:
+  game:
+    main: src/main.cr

@@ -1,0 +1,65 @@
+id: "I_PACKAGING_AND_DISTRIBUTION"
+parent_module: "Lapis::Docs::B_LAPIS_CLI_AND_TOOLCHAIN"
+title: "Packaging & Release Distribution"
+summary: "Exporting playable standalone games, zip archives, Windows installers, and Debian packages."
+overview: |
+  Comprehensive guide to exporting and packaging your finished game or redistributable addon
+  with `lapis package`.
+related_sources:
+  - "**Package Command**: `tools/lapis/src/commands/package.cr`"
+  - "**Installer Script**: `rsrc/installer/lapis_installer.iss`"
+  - "**Live Spec**: `tools/lapis/spec/commands/package_spec.cr`"
+
+sections:
+  - id: "topic_00_package_formats"
+    title: "Distribution Formats"
+    summary: "Supported export targets: game, addon, installer, deb, and full release."
+    type: "Array(String)"
+    return_value:
+      - "Playable Game: lapis package game (self-contained executable + embedded PCK)"
+      - "Addon Zip: lapis package addon (clean redistributable archive for AssetLib)"
+      - "Windows Installer: lapis package installer (Inno Setup executable)"
+      - "Debian Package: lapis package deb (.deb for Ubuntu/Debian)"
+      - "Release Distribution: lapis package release (full distribution archives + SHA256)"
+
+  - id: "topic_01_package_game"
+    title: "lapis package game: Standalone Export"
+    summary: "Bundling a playable game executable for Windows, Linux, or macOS."
+    content: |
+      To package your game into a single playable bundle:
+
+      ```bash
+      lapis package game [options]
+      ```
+
+      #### Options:
+      | Option | Shorthand | Description |
+      | :--- | :--- | :--- |
+      | `--release` | `-r` | Builds with release optimizations and strips debug symbols |
+      | `--embedded` | | Embeds game PCK data directly into the executable binary |
+      | `--output=DIR` | `-o` | Destination directory (default: `dist/`) |
+      | `--force` | `-f` | Overwrite existing distribution files |
+
+  - id: "topic_02_windows_installer"
+    title: "lapis package installer: Windows Setup"
+    summary: "Compiling an Inno Setup installer executable with Crystalline and desktop shortcuts."
+    content: |
+      If you are distributing tooling or a complete development suite on Windows:
+
+      ```bash
+      lapis package installer
+      ```
+
+      Compiles `lapis-setup-windows-x86_64.exe` using Inno Setup (`ISCC.exe`), bundling the `lapis` executable, Crystalline LSP, runtime dependencies (`gc.dll`, `pcre2-8.dll`, `iconv-2.dll`), and configuring user `PATH`.
+
+  - id: "topic_03_debian_package"
+    title: "lapis package deb: Linux Distribution"
+    summary: "Generating a signed, standard .deb package for Debian, Ubuntu, and Mint."
+    content: |
+      On Linux, generate a standard `.deb` archive:
+
+      ```bash
+      lapis package deb
+      ```
+
+      Stages the binary into `/usr/bin/lapis`, configures man pages, and sets up package control metadata in `bin/release_dist/`.

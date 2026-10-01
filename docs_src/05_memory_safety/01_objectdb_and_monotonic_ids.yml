@@ -1,0 +1,33 @@
+id: "A_OBJECTDB_AND_MONOTONIC_IDS"
+parent_module: "Lapis::Docs::E_MEMORY_SAFETY_AND_ENGINE_INTERNALS"
+title: "Godot ObjectDB & Monotonic Instance IDs"
+summary: "Mapping native C++ heap pointers to 64-bit monotonic instance IDs to prevent pointer reuse."
+overview: |
+  Technical analysis of Godot's ObjectDB internal architecture, monotonic 64-bit instance IDs,
+  and how Lapis prevents heap address aliasing across recycled C++ allocations.
+related_sources:
+  - "**Object Implementation**: `src/libgodot/object.cr`"
+  - "**Bridge Safety**: `src/bridge/crystal_bridge.cpp`"
+
+sections:
+  - id: "topic_00_core_concepts"
+    title: "ObjectDB Invariants"
+    summary: "Monotonic 64-bit IDs, instance lookup, and pointer validity."
+    type: "Array(String)"
+    return_value:
+      - "Every Godot Object is assigned a strictly increasing 64-bit integer ID"
+      - "Instance IDs never collide across deleted and newly allocated objects"
+      - "Native address validation via gd_util_is_instance_id_valid"
+
+  - id: "topic_01_pointer_aliasing_hazard"
+    title: "The Recycled Pointer Hazard"
+    summary: "Why storing raw C++ pointers causes silent memory corruption."
+    content: |
+      In native C and C++, the operating system allocator frequently reuses freed memory addresses:
+      1. Node `A` is allocated at pointer address `0x1000`.
+      2. Node `A` is freed (`queue_free`).
+      3. A new Node `B` is allocated and assigned the recycled address `0x1000`.
+      4. If a Crystal wrapper only tracks `0x1000`, calling a method on `A` inadvertently mutates `B`!
+
+      #### Lapis Solution:
+      Every `Godot::Object` stores its monotonic `@instance_id` (e.g. `9223372041468510447`). When `A` is freed, its instance ID is permanently retired by Godot. Querying `ObjectDB.get_instance(@instance_id)` safely returns null!

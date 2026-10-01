@@ -1,0 +1,61 @@
+id: "B_DEAD_POINTER_PROTECTION"
+parent_module: "Lapis::Docs::E_MEMORY_SAFETY_AND_ENGINE_INTERNALS"
+title: "Dead-Pointer Protection & Access Violation Defense"
+summary: "Defensive inspection (#alive?, #destroyed?, #check_alive!) and DisposedObjectError."
+overview: |
+  Comprehensive guide to Lapis's active dead-pointer protection mechanism, preventing
+  segmentation faults (`ACCESS_VIOLATION / 0xC0000005`) when nodes are freed by GDScript or the engine.
+related_sources:
+  - "**Object Implementation**: `src/libgodot/object.cr`"
+  - "**Live Specs**: `spec/suites/test_safety.cr`"
+
+sections:
+  - id: "topic_00_defense_primitives"
+    title: "Dead-Pointer Defense Primitives"
+    summary: "Methods available on every Godot::Object wrapper for defensive lifetime inspection."
+    type: "Array(String)"
+    return_value:
+      - "object.alive? : Returns true if native C++ engine object is still valid"
+      - "object.destroyed? : Returns true if node was freed in GDScript or Godot"
+      - "object.check_alive! : Raises Godot::DisposedObjectError if freed"
+
+  - id: "topic_01_the_segfault_problem"
+    title: "The Dead-Pointer Hazard"
+    summary: "How standard bindings crash without stack traces and how Lapis defends against it."
+    content: |
+      If an entity (e.g. an enemy) is deleted in GDScript via `queue_free()`, standard C bindings retain a dangling raw pointer. Dereferencing this pointer triggers an immediate unrecoverable crash:
+      `ACCESS_VIOLATION (0xC0000005)`
+
+      In Lapis, every virtual dispatch and reflection call invokes `#check_alive!`:
+      ```crystal
+      def check_alive! : Void
+        return if @pointer.null?
+        unless Bridge.is_instance_id_valid(@instance_id)
+          @pointer = Pointer(Void).null
+          raise Godot::DisposedObjectError.new("Cannot access disposed Godot object")
+        end
+      end
+      ```
+
+      Instead of crashing the game, you get a clean, catchable Crystal exception with full stack trace!
+
+  - id: "topic_02_defensive_coding_patterns"
+    title: "Defensive Coding Patterns"
+    summary: "Checking #alive? when holding references to transient entities."
+    content: |
+      ```crystal
+      node Tower < Node2D do
+        @target : Enemy? = nil
+
+        def _physics_process(delta : Float64) : Void
+          # Check alive before firing:
+          if enemy = @target
+            if enemy.alive?
+              fire_at(enemy.global_position)
+            else
+              @target = nil # Clear stale reference
+            end
+          end
+        end
+      end
+      ```

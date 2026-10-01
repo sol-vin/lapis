@@ -1,0 +1,39 @@
+id: "D_GODOT_VERSION_UPGRADE"
+parent_module: "Lapis::Docs::I_ARCHITECTURE_AND_EXTENSIONS"
+title: "Godot Engine Version Upgrade Guide"
+summary: "Upgrading target Godot versions, dumping extension_api.json, and regenerating Crystal class bindings."
+overview: |
+  Step-by-step engineering runbook for upgrading Lapis to target a new Godot engine release,
+  dumping API schemas, and updating the Crystal binding generator.
+related_sources:
+  - "**Engine Version Spec**: `godot-version.yml`"
+  - "**Binding Generator**: `src/libgodot/generator/`"
+  - "**Setup Command**: `tools/lapis/src/commands/setup.cr`"
+
+sections:
+  - id: "topic_00_upgrade_steps"
+    title: "The Upgrade Workflow"
+    summary: "Sequential steps to upgrade the targeted Godot engine version across Lapis."
+    type: "Array(String)"
+    return_value:
+      - "1. Update godot-version.yml with target version string and download URLs"
+      - "2. Run lapis setup engine to acquire the new engine binary"
+      - "3. Dump extension_api.json via godot.exe --dump-extension-api"
+      - "4. Regenerate Crystal class bindings via make generate"
+      - "5. Run make all to recompile bridge, test suites, and examples"
+
+  - id: "topic_01_dumping_api"
+    title: "Dumping Godot Extension API"
+    summary: "Extracting the JSON machine-readable API definition from Godot."
+    content: |
+      ```bash
+      # 1. Update version in godot-version.yml
+      # 2. Acquire new engine binary:
+      lapis setup engine
+
+      # 3. Dump fresh extension API:
+      ./godot.exe --dump-extension-api
+
+      # 4. Regenerate Crystal bindings:
+      make generate
+      ```

@@ -1,0 +1,47 @@
+id: "A_RADARE2_NATIVE_DEBUGGING"
+parent_module: "Lapis::Docs::G_DEBUGGING_AND_DIAGNOSTICS"
+title: "Native radare2 Debugging, Decompilation & Gutter Breakpoints"
+summary: "Attaching radare2 to Godot processes, native pseudo-C decompilation (pdc), disassembly, and multiplayer lockstep."
+overview: |
+  Comprehensive guide to debugging Crystal game code running inside Godot using the radare2
+  native debugger and cradare2 engine, setting line-level breakpoints, decompiling functions on the fly,
+  and coordinating multiplayer sessions in lockstep.
+related_sources:
+  - "**Debugger Driver**: `src/libgodot/debugger/radare_driver.cr`"
+  - "**Decompiler**: `src/libgodot/debugger/decompiler.cr`"
+  - "**Crash Forensics**: `src/libgodot/debugger/plugin_forensics.cr`"
+  - "**Live Specs**: `spec/radare_driver_spec.cr`"
+
+sections:
+  - id: "topic_00_debugging_features"
+    title: "Debugger & Decompiler Capabilities"
+    summary: "In-editor gutter breakpoints, native pseudo-C decompilation (pdc), disassembly (pdf), and PDB/DWARF symbol resolution."
+    type: "Array(String)"
+    return_value:
+      - "Set gutter breakpoints directly inside .cr files in Godot Editor or IDEs"
+      - "Zero-dependency native pseudo-C decompilation (pdc) and side-by-side assembly (pdca)"
+      - "Full symbol resolution for Crystal functions, Godot C-API, and C++ loader bridge"
+      - "Multiplayer cooperative lockstep pause/resume across Server and Client instances"
+      - "Automated dead-pointer detection via Godot ObjectDB 64-bit instance ID tracking"
+
+  - id: "topic_01_launching_under_radare2"
+    title: "Launching Game or Editor under radare2"
+    summary: "Running lapis run -d or lapis editor -d from command line or IDE."
+    content: |
+      #### Method 1: Command Line (Lapis CLI)
+      ```bash
+      # Run standalone game under radare2:
+      lapis run --debug
+
+      # Launch Godot Editor under radare2:
+      lapis editor --debug
+
+      # Decompile functions or classes into pseudo-C:
+      lapis decompile bin/game.dll "Player#_physics_process"
+      ```
+
+      #### Method 2: Godot In-Editor Debugger
+      1. Launch Godot Editor (`lapis editor`).
+      2. The **Crystal (radare2)** panel appears automatically in the bottom debugger dock.
+      3. Set breakpoints in the Godot Script Editor gutter.
+      4. Press **F5** to run the project. When a breakpoint is hit, the 3-pane debugger interface displays call stacks, registers, and real-time decompiled pseudo-C!

@@ -1,0 +1,30 @@
+id: "C_BOEHM_GC_VS_REFCOUNTING"
+parent_module: "Lapis::Docs::E_MEMORY_SAFETY_AND_ENGINE_INTERNALS"
+title: "Boehm GC vs Godot Reference Counting"
+summary: "Bridging Crystal's garbage collector and Godot's atomic reference counter."
+overview: |
+  In-depth architectural comparison between Crystal's Boehm-Demers-Weiser Garbage Collector
+  and Godot's native reference-counting system (`RefCounted`, `Resource`).
+related_sources:
+  - "**Object Implementation**: `src/libgodot/object.cr`"
+  - "**Bridge GC Hook**: `src/bridge/gc_hook.hpp`"
+
+sections:
+  - id: "topic_00_memory_paradigms"
+    title: "The Two Memory Models"
+    summary: "Crystal heap objects vs Godot native reference-counted instances."
+    type: "Array(String)"
+    return_value:
+      - "Crystal Objects: Managed by Boehm GC (GC.collect)"
+      - "Godot Nodes: Managed by SceneTree ownership (queue_free)"
+      - "Godot Resources: Managed by atomic reference counters (reference/unreference)"
+
+  - id: "topic_01_refcounted_rules"
+    title: "RefCounted & Resource Lifecycle Rules"
+    summary: "Never call manual .destroy on RefCounted or Resource instances."
+    content: |
+      #### Rule 1: Never Call .destroy on RefCounted Resources
+      `RefCounted` and `Resource` instances (e.g. `Texture2D`, `Shader`, `AudioStream`) are freed automatically when their reference count drops to 0. Calling manual `.destroy` destroys native C++ state prematurely, crashing Godot when the counter decrements.
+
+      #### Rule 2: Standalone Nodes Must Be Explicitly Freed
+      Nodes created via `Godot.create(Godot::Node2D)` that are **never** added to the scene tree via `add_child` are not owned by Godot. To prevent C++ memory leaks, you must explicitly call `node.destroy` when done with them.

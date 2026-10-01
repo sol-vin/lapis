@@ -1,0 +1,16 @@
+[configuration]
+entry_symbol = "crystal_library_init"
+compatibility_minimum = "4.1"
+reloadable = true
+
+[libraries]
+windows.debug.x86_64 = "res://addons/dummy_audio/bin/crystal_bridge.dll"
+windows.release.x86_64 = "res://addons/dummy_audio/bin/crystal_bridge.dll"
+linux.debug.x86_64 = "res://addons/dummy_audio/bin/crystal_bridge.so"
+linux.release.x86_64 = "res://addons/dummy_audio/bin/crystal_bridge.so"
+macos.debug = "res://addons/dummy_audio/bin/crystal_bridge.dylib"
+macos.release = "res://addons/dummy_audio/bin/crystal_bridge.dylib"
+macos.debug.arm64 = "res://addons/dummy_audio/bin/crystal_bridge.dylib"
+macos.release.arm64 = "res://addons/dummy_audio/bin/crystal_bridge.dylib"
+macos.debug.x86_64 = "res://addons/dummy_audio/bin/crystal_bridge.dylib"
+macos.release.x86_64 = "res://addons/dummy_audio/bin/crystal_bridge.dylib"

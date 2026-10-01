@@ -1,0 +1,3 @@
+[gd_scene format=3 uid="uid://c5q3x9y8z1m2"]
+
+[node name="Main" type="MultiplayerDemo"]

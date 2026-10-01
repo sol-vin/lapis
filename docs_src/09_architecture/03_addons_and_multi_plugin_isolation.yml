@@ -1,0 +1,59 @@
+id: "C_ADDONS_AND_MULTI_PLUGIN_ISOLATION"
+parent_module: "Lapis::Docs::I_ARCHITECTURE_AND_EXTENSIONS"
+title: "GDExtension Addons & Multi-Plugin Isolation"
+summary: "ClassDB namespace isolation, inter-addon dependencies, and compilation topologies across Crystal addons."
+overview: |
+  Comprehensive guide to authoring, loading, isolating, and depending on multiple Crystal GDExtension addons
+  simultaneously within a single Godot Editor session without ClassDB collisions or symbol overduplication.
+related_sources:
+  - "**Dummy Addons**: `addons/dummy_audio/`, `addons/dummy_dialogue/`, `addons/dummy_inventory/`"
+  - "**Dependency Addon Suite**: `addons/dummy_base_dep/`, `addons/dummy_dep_combat/`, `addons/dummy_dep_storage/`, `addons/dummy_dep_quest/`, `addons/dummy_dep_weather/`"
+  - "**Official Plugin**: `addons/crystal_integration/`"
+
+sections:
+  - id: "topic_00_isolation_invariants"
+    title: "Multi-Addon Isolation Invariants"
+    summary: "Independent shared libraries, separate ClassDB registration, and packaging rules."
+    type: "Array(String)"
+    return_value:
+      - "Each addon compiles its own isolated DLL into addons/<name>/bin/<name>.dll"
+      - "Separate crystal.gdextension manifests per addon"
+      - "ClassDB names must be uniquely qualified across all extensions and engine types"
+      - "Test dummy addons are strictly isolated and never bundled in production releases"
+
+  - id: "topic_01_multi_addon_testing"
+    title: "Testing Multi-Addon Isolation"
+    summary: "How Lapis tests concurrent loading of multiple independent Crystal addons."
+    content: |
+      In `addons/`, Lapis maintains multiple test addons (`dummy_audio`, `dummy_dialogue`, `dummy_inventory`):
+      1. Each addon declares its own `EditorPlugin` and custom nodes.
+      2. When Godot boots, all GDExtensions (including `crystal_integration`) load simultaneously.
+      3. Lapis validates that `crystal_bridge.dll` cleanly loads each module, passes distinct `BridgeAPI` pointers, and registers all nodes into `ClassDB` without symbol collisions.
+      4. Release packaging scripts (`package addon`, `package deb`, `package windows-installer`) strictly bundle only `crystal_integration`.
+
+  - id: "topic_02_addon_dependencies"
+    title: "Inter-Addon Dependencies & Topological Compilation"
+    summary: "How a single base addon serves as a shared dependency for multiple consumer plugins."
+    content: |
+      Lapis supports using one Crystal addon as a shared dependency for multiple plugins:
+      1. **Manifest Declarations**: In each consumer plugin's `plugin.cfg`, declare `dependencies=["base_addon"]`.
+      2. **Topological Build Ordering**: The Lapis build toolchain (`lapis build addons`) performs a topological sort on addon dependency graphs, ensuring base dependency addons compile before consumer plugins.
+      3. **Extension Load Ordering**: In `.godot/extension_list.cfg`, dependencies are topologically ordered so the engine loads prerequisite extensions before consumer extensions.
+      4. **Separation of Reusable Library Code vs ClassDB Entities**:
+         - Reusable interfaces (mixins `gmodule`, utilities `module`, constants) reside in `src/<addon>.cr`.
+         - Concrete ClassDB entities reside in `src/entities.cr` or `src/main.cr` and are registered in ClassDB exclusively by the base addon.
+         - Consumer plugins require `src/<addon>.cr` for compile-time code reuse without duplicate ClassDB registrations.
+
+  - id: "topic_03_engine_cross_extension_inheritance"
+    title: "Engine Limitation: Cross-Extension ClassDB Inheritance"
+    summary: "Godot 4 engine invariant forbidding cross-GDExtension ClassDB inheritance."
+    content: |
+      In Godot Engine 4.x (`core/extension/gdextension.cpp:461`), cross-extension ClassDB inheritance is explicitly unimplemented:
+      `ClassDB::get_api_type(parent_class_name) == ClassDB::API_EXTENSION -> ERR_PRINT("Unimplemented yet")`.
+      
+      - **Fully Compiled Multi-DLL Mode**: Plugin nodes must inherit from native Godot engine classes (`Node2D`, `Node3D`, `Resource`, `RefCounted`, etc.) and consume the base dependency via:
+        1. Shared Crystal mixins (`include BaseMixin`) for common properties, methods, and signals.
+        2. Pure Crystal utilities (`BaseUtils`).
+        3. Scene tree composition and reflection dispatch on base entity instances.
+        4. Shared custom resources (`BaseConfig < Resource`).
+      - **Unified Source Code Mode**: When all addons are compiled together into a single library (`game.dll` or `game.exe`), all classes belong to the same GDExtension library, allowing direct subclassing (`node SubEntity < BaseEntity`) without error.

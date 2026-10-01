@@ -1,0 +1,7 @@
+[gd_scene format=3 uid="uid://test_stress_1000_scene"]
+
+[node name="StressArena" type="Node3D"]
+
+[node name="SpawnOrigin2D" type="Node2D" parent="."]
+
+[node name="SpawnOrigin3D" type="Node3D" parent="."]

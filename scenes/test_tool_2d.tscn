@@ -1,0 +1,7 @@
+[gd_scene format=3 uid="uid://test_tool_2d_scene"]
+
+[node name="ToolTester2D" type="ToolTester2D"]
+
+[node name="Child2D" type="Node2D" parent="."]
+
+[node name="Marker2D" type="Marker2D" parent="Child2D"]

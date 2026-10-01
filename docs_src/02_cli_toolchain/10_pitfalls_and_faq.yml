@@ -1,0 +1,83 @@
+id: "J_COMMON_PITFALLS_AND_FAQ"
+parent_module: "Lapis::Docs::B_LAPIS_CLI_AND_TOOLCHAIN"
+title: "Common CLI Pitfalls & Frequently Asked Questions"
+summary: "Solutions to common command-line errors, file locking, path resolution, and developer FAQ."
+overview: |
+  Comprehensive troubleshooting guide and FAQ addressing common errors encountered
+  during installation, build orchestration, runtime execution, and debugging.
+related_sources:
+  - "**Clean Command**: `tools/lapis/src/commands/clean.cr`"
+  - "**Build Command**: `tools/lapis/src/commands/build.cr`"
+
+sections:
+  - id: "topic_00_troubleshooting_categories"
+    title: "Common Failure Categories"
+    summary: "Overview of file locks, missing dependencies, version mismatches, and path issues."
+    type: "Array(String)"
+    return_value:
+      - "Windows Error 32: File sharing violation (DLL locked by open Godot process)"
+      - "Missing Runtime DLLs: Access violation 0xC0000135 on game startup"
+      - "Compilation Slowness: Using multi-module vs single-module tradeoffs"
+      - "EditorPlugin Not Found: Plugin disabled in project.godot"
+
+  - id: "topic_01_win32_error_32"
+    title: "Error 32: File Sharing Violation"
+    summary: "Why Windows locks DLLs and how shadow loading and lapis clean --shadows resolve it."
+    content: |
+      #### Symptom:
+      ```text
+      Error: Cannot write to file 'bin/game.dll': Access is denied (Windows Error 32)
+      ```
+
+      #### Root Cause:
+      On Windows, any DLL currently loaded via `LoadLibraryA` cannot be deleted or overwritten by the compiler. If `godot.exe` or `game.exe` is still running, the file is locked.
+
+      #### Solution:
+      1. Ensure you run via the loader bridge with shadow loading enabled (default in development).
+      2. If a crashed Godot process left a stray file lock, run:
+         ```bash
+         lapis clean --shadows
+         ```
+      3. If an orphaned Godot process is hanging in Task Manager, terminate it:
+         ```powershell
+         Stop-Process -Name godot -Force
+         ```
+
+  - id: "topic_02_missing_dlls"
+    title: "Missing Runtime DLLs (0xC0000135)"
+    summary: "Resolving STATUS_DLL_NOT_FOUND when launching standalone games or editor."
+    content: |
+      #### Symptom:
+      The game executable exits immediately without a window, or Windows shows error `0xC0000135`.
+
+      #### Root Cause:
+      `game.exe` cannot locate `gc.dll`, `pcre2-8.dll`, or `libgodot.dll` in the same directory or system `PATH`.
+
+      #### Solution:
+      Run:
+      ```bash
+      lapis deps
+      ```
+      This validates and copies all required platform DLLs into your project `bin/` directory.
+
+  - id: "topic_03_compilation_times"
+    title: "Optimizing Compilation Times"
+    summary: "Fast incremental debug builds vs release optimization trade-offs."
+    content: |
+      During active development:
+      - **DO NOT** pass `--release` on every build. `--release` invokes LLVM optimization passes (`-O3`), which can increase build times by 5x to 10x.
+      - Use standard `lapis build game` (incremental compilation).
+      - Only pass `--release` when benchmarking (`lapis bench`) or packaging for distribution (`lapis package game --release`).
+
+  - id: "topic_04_general_faq"
+    title: "Frequently Asked Questions (FAQ)"
+    summary: "Common questions about Crystal, Godot, performance, and tooling."
+    faqs:
+      - q: "Can I use GDScript and Crystal together in the same project?"
+        a: "Yes! Lapis provides bidirectional interoperability. Crystal nodes are registered in ClassDB and can be instantiated, called, and connected to signals from GDScript, and vice versa."
+      - q: "Does Lapis require Godot source compilation?"
+        a: "No. Lapis uses the official precompiled Godot Engine binary via GDExtension and LibGodot dynamic linking."
+      - q: "How fast is Crystal compared to GDScript in Godot?"
+        a: "In mathematical transforms, node lifecycle churn, and physics calculations, Crystal is typically 20x to 100x faster than GDScript, matching C++ speed with expressive Ruby-like syntax."
+      - q: "What happens if a node is deleted in GDScript while Crystal holds a reference?"
+        a: "Lapis features dead-pointer protection. Crystal wrappers track Godot ObjectDB instance IDs and automatically raise Godot::DisposedObjectError rather than crashing with a segmentation fault."

@@ -1,0 +1,25 @@
+[configuration]
+entry_symbol = "crystal_library_init"
+compatibility_minimum = "4.1"
+reloadable = true
+
+[libraries]
+linux.debug.x86_64 = "res://addons/crystal_integration/bin/crystal_bridge.so"
+linux.release.x86_64 = "res://addons/crystal_integration/bin/crystal_bridge.so"
+windows.debug.x86_64 = "res://addons/crystal_integration/bin/crystal_bridge.dll"
+windows.release.x86_64 = "res://addons/crystal_integration/bin/crystal_bridge.dll"
+macos.debug = "res://addons/crystal_integration/bin/crystal_bridge.dylib"
+macos.release = "res://addons/crystal_integration/bin/crystal_bridge.dylib"
+macos.debug.arm64 = "res://addons/crystal_integration/bin/crystal_bridge.dylib"
+macos.release.arm64 = "res://addons/crystal_integration/bin/crystal_bridge.dylib"
+macos.debug.x86_64 = "res://addons/crystal_integration/bin/crystal_bridge.dylib"
+macos.release.x86_64 = "res://addons/crystal_integration/bin/crystal_bridge.dylib"
+android.debug.arm64 = "res://addons/crystal_integration/bin/android/arm64-v8a/libcrystal_bridge.so"
+android.release.arm64 = "res://addons/crystal_integration/bin/android/arm64-v8a/libcrystal_bridge.so"
+
+[dependencies]
+windows.debug.x86_64 = { "res://addons/crystal_integration/bin/gc.dll": "", "res://addons/crystal_integration/bin/pcre2-8.dll": "", "res://addons/crystal_integration/bin/iconv-2.dll": "" }
+windows.release.x86_64 = { "res://addons/crystal_integration/bin/gc.dll": "", "res://addons/crystal_integration/bin/pcre2-8.dll": "", "res://addons/crystal_integration/bin/iconv-2.dll": "" }
+android.debug.arm64 = { "res://addons/crystal_integration/bin/android/arm64-v8a/libgame.so": "" }
+android.release.arm64 = { "res://addons/crystal_integration/bin/android/arm64-v8a/libgame.so": "" }
+

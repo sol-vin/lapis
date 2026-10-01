@@ -1,0 +1,73 @@
+id: "A_OVERVIEW"
+parent_module: "Lapis::Docs::B_LAPIS_CLI_AND_TOOLCHAIN"
+title: "CLI Architecture & Global Options"
+summary: "Anatomy of the unified lapis executable, global flags, and shell autocompletion."
+overview: |
+  The `lapis` CLI is a single, zero-dependency native executable that manages the entire lifecycle
+  of Crystal game development in Godot.
+related_sources:
+  - "**Main Entry**: `tools/lapis/src/lapis.cr`"
+  - "**Environment Discovery**: `tools/lapis/src/core/env.cr`"
+  - "**Related Submodule**: `Docs::B_LAPIS_CLI_AND_TOOLCHAIN::B_DOCTOR`"
+
+sections:
+  - id: "topic_00_core_commands"
+    title: "Primary Command Categories"
+    summary: "Listing of build, testing, scaffolding, and distribution command groups."
+    type: "Array(String)"
+    return_value:
+      - "Build & Sync: build, bind, clean, sync, deps, dirs"
+      - "Testing & Development: doctor, test, editor, run, benchmarks, setup"
+      - "Scaffolding & Packages: new/scaffold, init, upgrade, addon, shard, ide, package, docs"
+      - "System & Maintenance: install, uninstall, update, completion, version"
+
+  - id: "topic_01_global_flags"
+    title: "Global Command-Line Flags"
+    summary: "Flags accepted by all subcommands across the lapis CLI."
+    content: |
+      The `lapis` executable recognizes the following global flags across all subcommands:
+
+      | Flag | Shorthand | Description |
+      | :--- | :--- | :--- |
+      | `--help` | `-h` | Prints detailed help and usage instructions for the current subcommand |
+      | `--version` | `-v` | Displays the current Lapis toolchain release version and target Godot engine |
+      | `--verbose` | | Enables verbose debug logging, process commands, and timing metrics |
+      | `--quiet` | `-q` | Suppresses non-essential terminal output for silent CI execution |
+
+  - id: "topic_02_shell_completion"
+    title: "Dynamic Shell Autocompletion"
+    summary: "Generating autocompletion scripts for PowerShell, Bash, and Zsh."
+    content: |
+      Lapis features a dynamic completion engine driven by `COMMAND_DESCRIPTIONS`:
+
+      #### PowerShell Setup:
+      ```powershell
+      lapis completion powershell | Out-String | Invoke-Expression
+      # Or add permanently to your PowerShell $PROFILE:
+      Add-Content $PROFILE 'lapis completion powershell | Out-String | Invoke-Expression'
+      ```
+
+      #### Bash Setup:
+      ```bash
+      eval "$(lapis completion bash)"
+      # Or add permanently to ~/.bashrc:
+      echo 'eval "$(lapis completion bash)"' >> ~/.bashrc
+      ```
+
+      #### Zsh Setup:
+      ```zsh
+      eval "$(lapis completion zsh)"
+      # Or add permanently to ~/.zshrc:
+      echo 'eval "$(lapis completion zsh)"' >> ~/.zshrc
+      ```
+
+  - id: "topic_03_typo_correction"
+    title: "Fuzzy Typo Auto-Correction"
+    summary: "How Lapis detects misspelled commands and suggests corrections."
+    content: |
+      If you mistype a command (e.g. `lapis bild` instead of `lapis build`), Lapis computes the Levenshtein distance against known commands and provides helpful suggestions:
+
+      ```text
+      [Lapis:ERROR] Unknown command: 'bild'
+        Did you mean 'build'?
+      ```

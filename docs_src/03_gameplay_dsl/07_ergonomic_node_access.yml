@@ -1,0 +1,263 @@
+id: "G_ERGONOMIC_NODE_ACCESS"
+parent_module: "Lapis::Docs::C_GAMEPLAY_AND_DECLARATIVE_DSL"
+title: "Ergonomic Node & Path Access"
+summary: "Type-safe node retrieval, subscript indexers ([]), operator overloads (/ and %), path prefixes ($ and %), and bare macros (n! and u!)."
+overview: |
+  Comprehensive guide to ergonomic node retrieval in Lapis for Crystal, providing statically
+  type-safe, zero-cost alternatives to GDScript's $Node and %UniqueNode syntax.
+related_sources:
+  - "**Object & Node Core**: `src/libgodot/object.cr`"
+  - "**Node Extensions**: `src/libgodot/extensions/node.cr`"
+  - "**Macro DSL**: `src/libgodot/macros.cr`"
+  - "**Live Specs**: `spec/suites/test_node_hierarchy.cr`"
+  - "**Ergonomics Specs**: `spec/ergonomics_spec.cr`"
+
+sections:
+  - id: "topic_00_syntax_matrix"
+    title: "Syntax Ergonomics Comparison Matrix"
+    summary: "Side-by-side comparison of GDScript syntax vs Lapis ergonomic Crystal alternatives"
+    content: |
+      <table>
+        <thead>
+          <tr>
+            <th>Intent</th>
+            <th>GDScript Syntax</th>
+            <th>Verbose Method</th>
+            <th>Lapis Ergonomic Syntax</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Child Node by Class</strong></td>
+            <td><code>$Sprite2D</code> (untyped)</td>
+            <td><code>get_node_as("Sprite2D", Sprite2D)</code></td>
+            <td><code>self[Sprite2D]</code> or <code>n!(Sprite2D)</code> (typed!)</td>
+          </tr>
+          <tr>
+            <td><strong>Child Node by Path (Typed)</strong></td>
+            <td><code>$Visuals/Sprite2D as Sprite2D</code></td>
+            <td><code>get_node_as("Visuals/Sprite2D", Sprite2D)</code></td>
+            <td><code>self["Visuals/Sprite2D", Sprite2D]</code> or <code>n!("Visuals/Sprite2D", Sprite2D)</code></td>
+          </tr>
+          <tr>
+            <td><strong>Child Node by Path (Untyped)</strong></td>
+            <td><code>$"Visuals/Sprite2D"</code></td>
+            <td><code>self["Visuals/Sprite2D"]</code></td>
+            <td><code>self["Visuals/Sprite2D"]</code> or <code>self / "Visuals/Sprite2D"</code></td>
+          </tr>
+          <tr>
+            <td><strong>Path Prefix Handling ($, %, $%)</strong></td>
+            <td><code>$"Entities/Player"</code>, <code>%"HealthBar"</code></td>
+            <td><code>get_node("Entities/Player")</code></td>
+            <td><code>self["$Entities/Player", Player]</code> or <code>self["%HealthBar", ProgressBar]</code></td>
+          </tr>
+          <tr>
+            <td><strong>Scene Unique Node (Typed)</strong></td>
+            <td><code>%HealthBar as ProgressBar</code></td>
+            <td><code>get_node_as("%HealthBar", ProgressBar)</code></td>
+            <td><code>self["%HealthBar", ProgressBar]</code>, <code>self % ProgressBar</code>, <code>unique_as("HealthBar", ProgressBar)</code>, or <code>u!("HealthBar", ProgressBar)</code></td>
+          </tr>
+          <tr>
+            <td><strong>Scene Unique Node (Untyped)</strong></td>
+            <td><code>%HealthBar</code></td>
+            <td><code>get_node("%HealthBar")</code></td>
+            <td><code>self["%HealthBar"]</code>, <code>self % "HealthBar"</code>, or <code>u!("HealthBar")</code></td>
+          </tr>
+          <tr>
+            <td><strong>Safe / Optional Node (Typed)</strong></td>
+            <td><code>get_node_or_null("Path") as Sprite2D</code></td>
+            <td><code>get_node_as?("Path", Sprite2D)</code></td>
+            <td><code>self[Sprite2D]?</code>, <code>self["path", Sprite2D]?</code>, <code>unique_as?("HealthBar", ProgressBar)</code>, or <code>n?(Sprite2D)</code></td>
+          </tr>
+          <tr>
+            <td><strong>Self-Reference Operator</strong></td>
+            <td><code>$</code> or <code>self</code></td>
+            <td><code>self</code></td>
+            <td><code>self["$"]</code> or <code>self["$."]</code> (returns <code>self</code> directly)</td>
+          </tr>
+          <tr>
+            <td><strong>Class Property Declaration</strong></td>
+            <td><code>@onready var cam = $Camera3D</code></td>
+            <td><code>onready cam, Camera3D</code></td>
+            <td><code>onready cam, Camera3D</code> (lazy-cached)</td>
+          </tr>
+          <tr>
+            <td><strong>Unary Tilde (Typed Cast)</strong></td>
+            <td><code>$Visuals/Player as Player</code></td>
+            <td><code>get_node_as("Visuals/Player", Player)</code></td>
+            <td><code>(~"$Visuals/Player").as(Player)</code> or <code>(~"%Player").as(Player)</code></td>
+          </tr>
+          <tr>
+            <td><strong>Unary Tilde (Direct Node)</strong></td>
+            <td><code>$"Visuals/Player"</code></td>
+            <td><code>get_node("Visuals/Player")</code></td>
+            <td><code>~"$Visuals/Player"</code> or <code>~"%Player"</code></td>
+          </tr>
+          <tr>
+            <td><strong>Unary Tilde on Class</strong></td>
+            <td><code>$Player as Player</code></td>
+            <td><code>get_node_as("Player", Player)</code></td>
+            <td><code>~Player</code> (typed!)</td>
+          </tr>
+          <tr>
+            <td><strong>Multi-Segment Child Traversal</strong></td>
+            <td><code>$Items/MyItem/Item3</code></td>
+            <td><code>get_node("Items/MyItem/Item3")</code></td>
+            <td><code>self / "Items/MyItem/Item3"</code></td>
+          </tr>
+          <tr>
+            <td><strong>Scene-Unique Subpath Navigation</strong></td>
+            <td><code>%Items/Item22/Mesh</code></td>
+            <td><code>get_node("%Items").get_node("Item22/Mesh")</code></td>
+            <td><code>self % "Items/Item22/Mesh"</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+  - id: "topic_01_typed_indexers"
+    title: "Type-Inferred Subscript Indexers"
+    summary: "Using self[Type] and self[\"path\", Type] for compile-time type-safe node lookups"
+    content: |
+      ```crystal
+      # 1. Type-inferred lookup (matches class name):
+      sprite = self[Godot::Sprite2D]
+      # Equivalent to: get_node_as("Sprite2D", Godot::Sprite2D)
+
+      # 2. Path + Type lookup:
+      weapon = self["Visuals/WeaponMount", Godot::Marker2D]
+
+      # 3. Path prefix lookups with $ and %:
+      player = self["$Entities/Player", Player]
+      bar = self["%HealthBar", Godot::ProgressBar]
+
+      # 4. Safe optional lookup (returns nil instead of raising):
+      if maybe_camera = self[Godot::Camera3D]?
+        maybe_camera.make_current
+      end
+
+      if maybe_marker = self["Visuals/WeaponMount", Godot::Marker2D]?
+        maybe_marker.position = Godot::Vector2.new(10.0_f32, 0.0_f32)
+      end
+      ```
+
+  - id: "topic_02_path_and_unique_operators"
+    title: "Path Traversal and Scene Unique Operators"
+    summary: "Intuitive path navigation with / and scene unique node retrieval with %"
+    content: |
+      ```crystal
+      # Path traversal with / (left-associative or multi-segment string):
+      player_marker = self / "Entities" / "Player" / "Marker2D"
+      deep_item = self / "Items/MyItem/Item3"
+      dollar_item = self / "$Items/MyItem/Item3" # leading $ safely ignored
+
+      # Typed path traversal:
+      hud_label = (self / "HUD")[Godot::Label]
+
+      # Scene Unique Node with % (mirrors GDScript %):
+      health_bar = self % "HealthBar"
+      typed_bar = self % Godot::ProgressBar
+
+      # Scene-Unique subpath navigation (%UniqueRoot/child/subchild):
+      mesh = self % "Items/Item22/Mesh" # resolves %Items first, then "Item22/Mesh"
+      ```
+
+  - id: "topic_03_bare_macros"
+    title: "Bare Retrieval Macros in Methods"
+    summary: "Calling n! and u! directly inside methods without prefixing self."
+    content: |
+      ```crystal
+      node PlayerController < CharacterBody2D do
+        def _ready : Void
+          # Bare typed node retrieval (GDScript $ analog):
+          sprite = n!(Godot::Sprite2D)
+          gun = n!("Visuals/GunMount", Godot::Marker2D)
+
+          # Bare scene unique node retrieval (GDScript % analog):
+          health = u!(Godot::ProgressBar)
+          hud = u!("PlayerHUD")
+          typed_hud = u!("PlayerHUD", CanvasLayer)
+
+          # Safe variants returning nil if missing:
+          optional_cam = n?(Godot::Camera2D)
+          optional_gun = n?("Visuals/GunMount", Godot::Marker2D)
+        end
+      end
+      ```
+
+  - id: "topic_04_prefixes_and_nodepath"
+    title: "Path Prefixes ($, %, $%) and NodePath Support"
+    summary: "Native support for GDScript $ and % prefixes, self-referencing $, and NodePath objects"
+    content: |
+      ```crystal
+      # Standard GDScript prefix notation:
+      player = self["$Player"]               # leading $ safely stripped
+      player_typed = self["$Player", Player] # leading $ with typed cast
+      hp = self["%HealthBar"]                # scene unique node %
+      hp_typed = self["%HealthBar", ProgressBar]
+
+      # Self-referencing notation ($ or $.):
+      same_node = self["$"]                  # returns self directly
+      same_node_safe = self["$"]?            # returns self directly
+      same_node_dot = self["$."]             # returns self directly
+
+      # Full NodePath struct support:
+      np = node_path!("Visuals/Sprite2D")
+      child = self[np]
+      child_typed = self[np, Godot::Sprite2D]
+      ```
+
+  - id: "topic_05_safe_lookups_and_error_handling"
+    title: "Type Safety, KeyError, and Safe Lookups"
+    summary: "Guaranteed compile-time and runtime type safety with NodeNotFoundError and TypeCastError"
+    content: |
+      ```crystal
+      # 1. Raising on missing nodes:
+      # self["Missing"] raises Godot::NodeNotFoundError (inherits from KeyError)
+      begin
+        cam = self["MissingCamera"]
+      rescue ex : Godot::NodeNotFoundError
+        Godot.print("Camera node missing from scene: #{ex.message}")
+      end
+
+      # 2. Safe lookups returning nil instead of raising:
+      if maybe_cam = self["Camera3D"]?
+        # Found
+      end
+
+      # 3. Type-safe casting with TypeCastError:
+      # self["Sprite2D", Godot::Camera3D] raises TypeCastError if node is not a Camera3D
+      # self["Sprite2D", Godot::Camera3D]? returns nil on type mismatch
+      if sprite = self["Visuals/PlayerSprite", Godot::Sprite2D]?
+        sprite.visible = true
+      end
+
+      # 4. Scene unique type-safe helpers:
+      hp = unique_as("HealthBar", Godot::ProgressBar)
+      maybe_hp = unique_as?("NonExistent", Godot::ProgressBar) # returns nil
+      ```
+
+  - id: "topic_06_tilde_and_node_context"
+    title: "Unary Tilde Operator and NodeContext Scoping"
+    summary: "Using ~(\"$Path\").as(Type), ~(\"%Path\").as(Type), and ~Type with zero allocation overhead"
+    content: |
+      ```crystal
+      # Enter active NodeContext scope:
+      self.with_context do
+        # 1. Direct Node retrieval via ~("$Path"):
+        camera = ~"$Camera3D"
+
+        # 2. Typed cast via (~"$Path").as(Type):
+        player = (~"$Entities/Player").as(Player)
+
+        # 3. Scene-unique typed cast via (~"%Name").as(Type):
+        health_bar = (~"%HealthBar").as(ProgressBar)
+
+        # 4. Two-tier resolution via ~Type (name first, then child search; raises Godot::NodeNotFoundError if missing):
+        hero = ~Player
+
+        # 5. Nilable two-tier resolution via ~Type? (returns nil if missing, get_node_or_null parity):
+        if optional_sprite = ~Godot::Sprite2D?
+          optional_sprite.visible = true
+        end
+      end
+      ```

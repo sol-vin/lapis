@@ -1,0 +1,33 @@
+[gd_scene format=3 uid="uid://cofcndr2uxf3e"]
+
+[ext_resource type="Script" path="res://src/main.cr" id="1_main"]
+[ext_resource type="Script" path="res://src/player_controller.cr" id="2_player"]
+[ext_resource type="Script" path="res://src/game_hud.cr" id="3_hud"]
+[ext_resource type="Script" path="res://src/my_node.cr" id="4_mynode"]
+[ext_resource type="Script" path="res://scripts/mygdnode.gd" id="5_gdnode"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_1"]
+
+[node name="MainNode" type="MainNode" unique_id=1913652511]
+script = ExtResource("1_main")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1664467660]
+mesh = SubResource("BoxMesh_1")
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=1921738378]
+transform = Transform3D(1, 0, 0, 0, 0.866025, 0.5, 0, -0.5, 0.866025, 0, 2, 4)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=958358363]
+transform = Transform3D(0.866025, -0.25, 0.433013, 0, 0.866025, 0.5, -0.5, -0.433013, 0.75, 0, 5, 0)
+
+[node name="Player" type="PlayerController" parent="." unique_id=542132317]
+script = ExtResource("2_player")
+
+[node name="HUD" type="GameHUD" parent="." unique_id=542132318]
+script = ExtResource("3_hud")
+
+[node name="MyCrystalNode" type="MyCrystalNode" parent="." unique_id=769559760]
+script = ExtResource("4_mynode")
+
+[node name="MyGDNode" type="Node" parent="." unique_id=1762949384]
+script = ExtResource("5_gdnode")

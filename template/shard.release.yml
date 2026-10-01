@@ -1,0 +1,13 @@
+name: godot_crystal_template
+version: 0.1.0
+authors:
+  - Developer <developer@example.com>
+license: MIT
+
+dependencies:
+  lapis:
+    path: lib/lapis
+
+targets:
+  game:
+    main: src/main.cr

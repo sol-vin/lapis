@@ -1,0 +1,70 @@
+id: "B_DOCTOR"
+parent_module: "Lapis::Docs::B_LAPIS_CLI_AND_TOOLCHAIN"
+title: "Doctor Diagnostic Checker"
+summary: "Comprehensive environment audit checking compilers, runtimes, debuggers, and projects."
+overview: |
+  `lapis doctor` audits your system configuration and validates every dependency required
+  for high-performance Crystal game development in Godot.
+related_sources:
+  - "**Command Implementation**: `tools/lapis/src/commands/doctor.cr`"
+  - "**Environment Evaluator**: `tools/lapis/src/core/env.cr`"
+  - "**Live Spec**: `tools/lapis/spec/commands/doctor_spec.cr`"
+
+sections:
+  - id: "topic_00_diagnostic_checks"
+    title: "The 11 Diagnostic Checks"
+    summary: "Listing of all 11 system and project components validated by doctor."
+    type: "Array(String)"
+    return_value:
+      - "1. Crystal Compiler: Version >= 1.20.0"
+      - "2. Godot Engine Executable: Target version 4.8-dev6"
+      - "3. C++ Bridge Compiler: MinGW-w64 g++, MSVC cl, or clang"
+      - "4. Native Debugger: radare2 executable"
+      - "5. Build System: GNU Make >= 4.4"
+      - "6. Version Control: Git executable"
+      - "7. Crystal Shards: Package manager"
+      - "8. Language Server: Crystalline LSP daemon"
+      - "9. Windows Packaging: Inno Setup compiler (ISCC.exe on Windows)"
+      - "10. Runtime Libraries: gc.dll, pcre2-8.dll, iconv-2.dll, libgodot.dll"
+      - "11. Project Configuration: project.godot GDExtension integration"
+
+  - id: "topic_01_running_doctor"
+    title: "Command Usage & Options"
+    summary: "How to run doctor and interpret diagnostic markers."
+    content: |
+      Run doctor at any time from your project root:
+
+      ```bash
+      lapis doctor
+      ```
+
+      #### Options:
+      - `-p, --project=DIR`: Target specific project directory (default: current directory).
+      - `-q, --quiet`: Only print if errors or warnings are detected.
+      - `--verbose`: Show full executable paths, compiler flags, and exact versions.
+
+  - id: "topic_02_interpreting_results"
+    title: "Interpreting Diagnostic Output"
+    summary: "Understanding check markers [✓], [!], and [✗]."
+    content: |
+      | Marker | Status | Meaning | Action Required |
+      | :--- | :--- | :--- | :--- |
+      | `[✓]` | **Passed** | Component verified and operational | None |
+      | `[!]` | **Warning** | Optional component missing or outdated | Install for enhanced features (e.g. Inno Setup) |
+      | `[✗]` | **Failure** | Required component missing or broken | Must be resolved before building games |
+
+  - id: "topic_03_troubleshooting_failures"
+    title: "Resolving Doctor Failures"
+    summary: "Step-by-step instructions for fixing common doctor diagnostic failures."
+    content: |
+      #### 1. Failure: Missing C++ Bridge Compiler
+      - **Cause**: `g++` is not present in your system `PATH`.
+      - **Solution**: Install MinGW-w64 via Scoop (`scoop install gcc`) or MSYS2, then verify with `g++ --version`.
+
+      #### 2. Failure: Missing Native Debugger (radare2)
+      - **Cause**: radare2 is missing from PATH.
+      - **Solution**: Install radare2 (`scoop install radare2` or `winget install radare2.radare2`).
+
+      #### 3. Warning: Inno Setup Compiler Missing
+      - **Cause**: `ISCC.exe` not found.
+      - **Note**: Only required if building the Windows standalone installer (`lapis package installer`). Standard game exports (`lapis package game`) do not require Inno Setup.

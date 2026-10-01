@@ -1,0 +1,13 @@
+name: crystal_godot_demo
+version: 0.1.0
+authors:
+  - Developer <developer@example.com>
+license: MIT
+
+dependencies:
+  lapis:
+    path: ../../
+
+targets:
+  game:
+    main: src/main.cr

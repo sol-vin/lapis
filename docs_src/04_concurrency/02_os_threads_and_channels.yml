@@ -1,0 +1,61 @@
+id: "B_OS_THREADS_AND_CHANNELS"
+parent_module: "Lapis::Docs::D_CONCURRENCY_AND_FIBERS"
+title: "OS Threads & Actor Channels"
+summary: "Offloading intensive computing with Thread.new and buffered Godot::Channel(T)."
+overview: |
+  Comprehensive guide to multi-core parallel computation, procedural generation, pathfinding,
+  and thread-safe communication using the Actor Pattern with `Godot::Channel(T)`.
+related_sources:
+  - "**Channel Implementation**: `src/libgodot/channel.cr`"
+  - "**Live Specs**: `spec/suites/test_concurrency_stress.cr`"
+
+sections:
+  - id: "topic_00_threading_invariants"
+    title: "Thread Safety Rules"
+    summary: "SceneTree modification thread affinity, buffered channels, and Crystal 1.20+ rules."
+    type: "Array(String)"
+    return_value:
+      - "Rule 1: NEVER mutate the SceneTree (add_child, queue_free) from a background thread"
+      - "Rule 2: Always use buffered channels across OS threads (capacity >= 1)"
+      - "Rule 3: Crystal collections (Hash, Array) must be protected with ::Thread::Mutex"
+
+  - id: "topic_01_actor_pattern"
+    title: "The Actor Pattern with Channels"
+    summary: "Spawning background threads and communicating via immutable message channels."
+    content: |
+      ```crystal
+      struct PathResult
+        getter path : Array(Vector2)
+        def initialize(@path : Array(Vector2)); end
+      end
+
+      node NavigationManager < Node do
+        @channel = Godot::Channel(PathResult).new(capacity: 100)
+
+        def request_path(start_pos : Vector2, end_pos : Vector2) : Void
+          Thread.new do
+            # Compute path on background thread:
+            computed = compute_heavy_astar(start_pos, end_pos)
+            @channel.send(PathResult.new(computed))
+          end
+        end
+
+        def _process(delta : Float64) : Void
+          # Drain channel non-blockingly on main thread:
+          while result = @channel.receive?
+            apply_path_to_player(result.path)
+          end
+        end
+      end
+      ```
+
+  - id: "topic_02_crystal_120_context_safety"
+    title: "Crystal 1.20+ Execution Context Safety"
+    summary: "Why unbuffered channels suspend and raise NilAssertionError on raw OS threads."
+    content: |
+      #### The Hazard in Crystal 1.20+:
+      In Crystal 1.20+, unbuffered channels (`Channel(T).new`) suspend the calling fiber when no receiver is ready. On raw OS threads (`Thread.new`), `Fiber#execution_context` is `nil`, so suspending raises:
+      `NilAssertionError: Fiber#execution_context cannot be nil`
+
+      #### The Solution:
+      `Godot::Channel(T)` enforces `capacity >= 1`. Senders deposit messages into the ring buffer without suspending the calling thread!

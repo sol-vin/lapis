@@ -1,0 +1,58 @@
+id: A_OVERVIEW
+title: "Starter Game Architecture & Overview"
+summary: "Overview of your standalone Lapis game architecture, node hierarchy, and scene organization."
+track: "01_getting_started"
+root_module: "Game::Docs"
+overview: |
+  Welcome to your new Lapis game project! This template demonstrates a complete, standalone
+  Crystal game powered by Godot 4. It includes 3D player movement physics, UI HUD signal bindings,
+  custom gameplay nodes, automated specs, and performance benchmarks.
+related_sources:
+  - "src/main.cr"
+  - "src/player_controller.cr"
+  - "src/game_hud.cr"
+sections:
+  - id: topic_01_game_architecture
+    title: "Game Architecture & Main Scene"
+    summary: "The root scene controller and scene lifecycle in Lapis."
+    content: |
+      The entry point for gameplay is defined in `src/main.cr` via `MainNode < Node3D`.
+      When Godot loads `scenes/main.tscn`:
+
+      1. `MainNode#_ready` executes, printing welcome diagnostics to the console.
+      2. It dynamically locates child nodes (`Player` and `HUD`).
+      3. It connects the `PlayerController#health_changed` signal to `GameHUD#update_health`.
+      4. It emits the `initialized` signal to notify any listening subsystems.
+    examples:
+      - |
+        ```crystal
+        # Inside src/main.cr:
+        node MainNode < Node3D do
+          signal initialized
+
+          onready? player, PlayerController, "Player"
+          onready? hud, GameHUD, "HUD"
+
+          def _ready : Void
+            Godot.print("Starting Lapis Starter Game...")
+            if (p = player) && (h = hud)
+              p.health_changed.connect do |curr, max_hp|
+                h.update_health(curr, max_hp)
+              end
+            end
+            emit(initialized)
+          end
+        end
+        ```
+
+  - id: topic_02_directory_layout
+    title: "Project Directory Structure"
+    summary: "Understanding the role of each directory in your Lapis game."
+    content: |
+      - `src/`: Crystal gameplay code (`main.cr`, nodes, components).
+      - `scenes/`: Godot `.tscn` scene files.
+      - `scripts/`: Optional GDScript fixtures or interop nodes.
+      - `spec/`: Automated Crystal unit specs and in-editor test suites.
+      - `benchmarks/`: Performance benchmarks measuring Crystal execution speeds.
+      - `docs_src/`: YAML documentation files compiled into HTML API docs via `make docs`.
+      - `bin/`: Compiled DLLs and standalone game executables.

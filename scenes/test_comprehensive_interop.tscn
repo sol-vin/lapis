@@ -1,0 +1,14 @@
+[gd_scene load_steps=2 format=3 uid="uid://test_comprehensive_interop_scene"]
+
+[ext_resource type="Script" path="res://scripts/comprehensive_interop_node.gd" id="1_comp"]
+
+[node name="ComprehensiveRoot" type="Node2D"]
+script = ExtResource("1_comp")
+position = Vector2(50, 50)
+int_prop = 42
+float_prop = 3.14159
+string_prop = "LibGodot AutoBind"
+bool_prop = true
+
+[node name="ChildMarker" type="Marker2D" parent="."]
+position = Vector2(20, 30)

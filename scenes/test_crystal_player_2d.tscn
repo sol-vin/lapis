@@ -1,0 +1,29 @@
+[gd_scene format=3 uid="uid://test_crystal_player_2d_scene"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hero"]
+size = Vector2(32, 64)
+
+[node name="HeroPlayer" type="ComplexPlayer2D"]
+character_name = "Arthas"
+health = 250.0
+mana = 120.0
+level = 25
+experience = 75000
+is_alive = true
+velocity_vector = Vector2(200, -100)
+grid_coordinates = Vector2i(14, 28)
+aura_color = Color(0.1, 0.9, 0.3, 1)
+character_class = 3
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_hero")
+
+[node name="EquippedWeapon" type="ComplexWeapon2D" parent="."]
+weapon_title = "Frostmourne"
+attack_power = 99.5
+durability = 100
+elemental_type = 2
+glow_tint = Color(0.2, 0.7, 1, 1)
+
+[node name="SpawnAnchor" type="Marker2D" parent="."]
+position = Vector2(0, -32)

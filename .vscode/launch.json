@@ -1,0 +1,26 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run Godot Game",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "bin/lapis run",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Open Godot Editor",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "bin/lapis editor",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Debug Godot Game (radare2)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "bin/lapis run --debug",
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}

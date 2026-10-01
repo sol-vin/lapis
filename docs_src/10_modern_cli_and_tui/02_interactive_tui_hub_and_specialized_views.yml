@@ -1,0 +1,129 @@
+id: "B_TUI_HUB_AND_SPECIALIZED_VIEWS"
+parent_module: "Lapis::Docs::J_MODERN_CLI_AND_TUI"
+title: "Interactive TUI Hub & Domain Workspaces"
+summary: "Operational guide to lapis cli hub, folder-picker new/editor wizards, context-aware package forms, r2 crash forensics, and benchmark analytics."
+overview: |
+  Comprehensive guide to the next-generation Lapis terminal user interface suite, including
+  the central navigation hub, interactive command palette, persistent editor supervisor,
+  context-aware packaging configurator, and dynamic radare2 crash forensics debugger.
+related_sources:
+  - "**CLI Hub**: `tools/lapis/src/tui/hub.cr`"
+  - "**Editor Launcher**: `tools/lapis/src/tui/editor_launcher.cr`"
+  - "**Package Form**: `tools/lapis/src/tui/package_form.cr`"
+  - "**Crash Forensics**: `tools/lapis/src/tui/debugger_view.cr`"
+  - "**Benchmark Visualizer**: `tools/lapis/src/tui/bench_viewer.cr`"
+  - "**Performance Monitor**: `tools/lapis/src/tui/run_monitor.cr`"
+
+sections:
+  - id: "topic_00_interactive_cli_hub_and_palette"
+    title: "Interactive Navigation Hub & Command Palette"
+    summary: "Unified terminal navigation dashboard featuring live telemetry and floating command palette."
+    content: |
+      #### Architectural Invariants
+
+      - The central terminal interface launched via `lapis cli` serves as a master dashboard for all developer workflows.
+      - Includes a persistent top header card showing host OS, architecture, Crystal compiler version, and Godot engine paths.
+      - A global command palette shortcut (<code>~</code>, <code>`</code>, or <code>Ctrl+P</code>) is registered across all subviews to allow instantaneous switching between tools without restarting the CLI.
+      - Built using double-buffered Opal virtual screen rendering with differential ANSI updates for silky smooth interaction.
+
+  - id: "topic_01_project_scaffolding_and_folder_dialog"
+    title: "Project Scaffolding Wizard & Directory Selection"
+    summary: "Interactive project generator with directory browser dialog for custom workspace paths."
+    content: |
+      #### Mechanics & Directory Browsing
+
+      - Accessible via `lapis new` (when in an interactive TTY) or through the hub menu.
+      - Integrates <code>Opal::UI::FileDialog</code> in <code>:open_dir</code> mode to let developers visually browse the filesystem and select destination directories.
+      - Configures project name, author name, target template (2D Starter, 3D Starter, or GDExtension Addon), and initializes Git repositories.
+      - Prevents scaffolding collisions by verifying directory vacancy and checking for existing <code>project.godot</code> files.
+
+  - id: "topic_02_persistent_editor_supervisor"
+    title: "Persistent Editor Supervisor & Real-Time Log Tailing"
+    summary: "Long-running Godot editor supervisor that monitors process status and streams engine stdout/stderr."
+    content: |
+      #### Process Lifecycle & Log Streaming
+
+      - Launched via `lapis editor` or through the TUI hub.
+      - When executed in a directory without <code>project.godot</code>, prompts the user with an interactive directory picker instead of failing.
+      - Spawns the Godot editor asynchronously and keeps the TUI alive in the terminal.
+      - Uses non-blocking background fibers to continuously pump both <code>stdout</code> and <code>stderr</code> into a high-performance circular log buffer with scroll locking and keyword highlighting.
+      - Supports on-the-fly hot reloading (<code>R</code> key) and graceful process termination (<code>K</code> key).
+
+  - id: "topic_03_context_aware_packaging_form"
+    title: "Context-Aware Packaging & Export Form"
+    summary: "Multi-target export configurator with platform-specific compile-time macro filtering."
+    content: |
+      #### Target Invariants & Platform Awareness
+
+      - Configures export targets including Playable Games, Portable Executables with embedded PCK footers, GDExtension Addon archives, and redistributable installers.
+      - Strictly macro-flags platform targets to ensure context-aware choices:
+      <table>
+        <thead>
+          <tr>
+            <th>Platform</th>
+            <th>Macro Guard</th>
+            <th>Available Specialized Target</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Windows</strong></td>
+            <td><code>flag?(:windows)</code></td>
+            <td>Windows Installer (<code>.exe</code> via NSIS / InnoSetup)</td>
+          </tr>
+          <tr>
+            <td><strong>Linux</strong></td>
+            <td><code>flag?(:linux)</code></td>
+            <td>Debian Binary Package (<code>.deb</code> with desktop launcher)</td>
+          </tr>
+          <tr>
+            <td><strong>macOS</strong></td>
+            <td><code>flag?(:darwin)</code></td>
+            <td>macOS Application Bundle Archive (<code>.app / .zip</code>)</td>
+          </tr>
+          <tr>
+            <td><strong>All Platforms</strong></td>
+            <td>Standard</td>
+            <td>Playable Game, Portable Binary, Addon, Toolchain, Benchmarks</td>
+          </tr>
+        </tbody>
+      </table>
+
+  - id: "topic_04_radare2_crash_forensics_view"
+    title: "Radare2 Native Crash Forensics & Decompilation"
+    summary: "Deep binary analysis workspace querying live r2 pipelines for real disassembly and decompilation."
+    content: |
+      #### Zero-Cheating Policy & Dynamic Queries
+
+      - Automatically activates when a game or editor process crashes with access violation (<code>0xC0000005</code>) or abnormal signals.
+      - Strictly prohibits mock data, fake disassembly lines, or hardcoded registers.
+      - Dynamically queries <code>cradare2</code> for:
+        1. <strong>Disassembly View</strong>: Real machine instructions fetched via <code>pdf</code>.
+        2. <strong>Decompiler View</strong>: Pseudo-C decompilation extracted via <code>pdc</code>.
+        3. <strong>CPU Registers</strong>: Live CPU register states parsed via <code>drj</code>.
+        4. <strong>Memory Inspection</strong>: Raw binary byte visualization powered by <code>Opal::UI::HexViewer</code>.
+        5. <strong>Demangled Call Stack</strong>: Crystal method backtraces retrieved via <code>client.crystal.demangled_backtrace</code>.
+
+  - id: "topic_05_dynamic_benchmark_visualizer"
+    title: "Dynamic Benchmark Visualizer & Performance Analytics"
+    summary: "Multi-dimensional performance analysis tool powered by Opal charts and live XML metrics parsing."
+    content: |
+      #### Analytics & Charting
+
+      - Parses real XML benchmark reports generated in <code>benchmarks/reports/*.xml</code> via <code>Commands::Benchmarks::XmlHandler</code>.
+      - Features an interactive file dialog to select past benchmark runs or triggers live benchmark execution directly from the TUI.
+      - Visualizes comparative metrics using rich Opal charts:
+        - <code>Opal::UI::BarChart</code>: Crystal vs GDScript execution latency comparisons with speedup ratios.
+        - <code>Opal::UI::PieChart</code>: Memory and processing category distribution.
+        - <code>Opal::UI::LineGraph</code>: Historical trend across multiple successive benchmark runs.
+
+  - id: "topic_06_runtime_performance_monitor"
+    title: "Runtime Performance Monitor & Process Telemetry"
+    summary: "Real-time rolling FPS and RAM LineGraphs with graceful Ctrl+K process termination."
+    content: |
+      #### Telemetry Monitoring
+
+      - Launched via `lapis run --monitor` or `lapis bench --monitor`.
+      - Renders dual rolling line graphs showing frame rate (FPS) and memory allocation (MB) over the last 30 samples.
+      - Displays PID, uptime counter, peak RAM consumption, and current operational status.
+      - Provides instantaneous, graceful process termination via <code>Ctrl+K</code> or <code>K</code>, eliminating orphaned processes.

@@ -1,0 +1,76 @@
+id: "E_TEST_AND_BENCHMARKS"
+parent_module: "Lapis::Docs::B_LAPIS_CLI_AND_TOOLCHAIN"
+title: "Testing Framework & Benchmark Suite"
+summary: "Running the unified multi-phase test runner, interactive ANSI TUI, and performance benchmarks."
+overview: |
+  Comprehensive guide to running tests and benchmarks with `lapis test` and `lapis bench`,
+  including TUI controls, CI mode, memory leak verification, and SVG chart generation.
+related_sources:
+  - "**Test Command**: `tools/lapis/src/commands/test.cr`"
+  - "**Benchmarks Command**: `tools/lapis/src/commands/benchmarks.cr`"
+  - "**TUI Dashboard**: `tools/lapis/src/tui/app.cr`"
+
+sections:
+  - id: "topic_00_testing_phases"
+    title: "Multi-Tier Testing Architecture"
+    summary: "The four distinct test execution phases orchestrated by lapis test."
+    type: "Array(String)"
+    return_value:
+      - "Phase 1: Crystal specifications (unit specs in spec/ and tools/lapis/spec/)"
+      - "Phase 2: Headless in-editor @tool tests (ToolTester2D, ToolTester3D)"
+      - "Phase 3: Standalone runtime host suites (40+ suites in spec/suites/)"
+      - "Phase 4: Quantitative zero memory leak verification via assert_no_leak"
+
+  - id: "topic_01_test_runner_usage"
+    title: "lapis test: Options & Flags"
+    summary: "Command syntax, filtering by phase, CI non-TTY mode, and TUI toggles."
+    content: |
+      #### Usage:
+      ```bash
+      lapis test [options]
+      ```
+
+      #### Options:
+      | Option | Description |
+      | :--- | :--- |
+      | `--tui` | Force interactive ANSI double-buffered TUI dashboard |
+      | `--no-tui` | Force clean linear streaming output (standard for CI environments) |
+      | `--skip-specs` | Skip Phase 1 unit specs |
+      | `--skip-editor` | Skip Phase 2 headless in-editor tests |
+      | `--skip-runtime` | Skip Phase 3 runtime test suites |
+      | `-f, --filter=PATTERN` | Run only test cases matching regex pattern |
+
+  - id: "topic_02_interactive_tui"
+    title: "Interactive TUI Navigation"
+    summary: "Keyboard controls for the real-time test runner dashboard."
+    content: |
+      When running on an interactive terminal, `lapis test` launches a split-pane double-buffered dashboard:
+
+      | Key | Action |
+      | :--- | :--- |
+      | `↑` / `k` | Navigate to previous test phase |
+      | `↓` / `j` | Navigate to next test phase |
+      | `Enter` / `Space` | Open drill-down log inspection modal for selected phase |
+      | `Esc` / `q` | Close inspection modal or exit runner |
+      | `?` | Toggle help overlay |
+
+  - id: "topic_03_performance_benchmarks"
+    title: "lapis bench: Performance Profiling"
+    summary: "Executing Crystal vs GDScript benchmarks and exporting interactive reports."
+    content: |
+      Run the performance benchmark harness:
+
+      ```bash
+      lapis bench [options]
+      ```
+
+      #### Benchmark Categories:
+      - Node Churn: 100,000 node creation, hierarchy reparenting, and destruction.
+      - Mathematical Operations: Intensive Vector3, Basis, and Quaternion transforms.
+      - Concurrency & Channels: WorkerThreadPool vs Godot::Channel throughput.
+      - Signal Churn: High-frequency signal emission and dispatch.
+
+      #### Exporting Visual Reports:
+      ```bash
+      lapis bench --export-html=report.html --export-svg=chart.svg
+      ```

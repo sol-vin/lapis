@@ -1,0 +1,157 @@
+require "file_utils"
+require "./models"
+
+module Benchmarks
+  class Executor
+    def self.resolve_godot(base_dir : String? = nil) : String
+      env_godot = ENV["GODOT_BIN"]? || ENV["GODOT"]?
+      return File.expand_path(env_godot) if env_godot && File.file?(env_godot)
+
+      candidates = [] of String
+      if base_dir
+        {% if flag?(:windows) %}
+          candidates << File.join(base_dir, "godot.exe")
+          candidates << File.join(base_dir, "../godot.exe")
+          candidates << File.join(base_dir, "../../godot.exe")
+        {% else %}
+          candidates << File.join(base_dir, "godot")
+          candidates << File.join(base_dir, "../godot")
+          candidates << File.join(base_dir, "../../godot")
+        {% end %}
+      end
+
+      {% if flag?(:windows) %}
+        candidates.concat(["./godot.exe", "godot.exe", "../godot.exe", "../../godot.exe"])
+      {% else %}
+        candidates.concat(["./godot", "godot", "../godot", "../../godot"])
+      {% end %}
+
+      candidates.each do |c|
+        return File.expand_path(c) if File.file?(c)
+        return c if Process.find_executable(c)
+      end
+      {% if flag?(:windows) %} "godot.exe" {% else %} "godot" {% end %}
+    end
+
+    def self.compile_crystal(bench : BenchmarkCase, base_dir : String, release : Bool = true) : Bool
+      bin_name = {% if flag?(:windows) %} "#{bench.crystal_bin}.exe" {% else %} bench.crystal_bin {% end %}
+      out_path = File.join(base_dir, bin_name)
+      src_path = File.join(base_dir, bench.crystal_src)
+      bin_dir = File.dirname(out_path)
+      FileUtils.mkdir_p(bin_dir) unless Dir.exists?(bin_dir)
+
+      needs_build = !File.exists?(out_path) || (File.info(src_path).modification_time > File.info(out_path).modification_time)
+      return true unless needs_build
+
+      cmd = "crystal"
+      flags = ["build", src_path, "-o", out_path]
+      flags << "--release" if release
+      flags << "-O3" if release
+
+      puts "  [Compile] crystal #{flags.join(" ")}"
+      status = Process.run(cmd, flags)
+      status.success? && File.exists?(out_path)
+    end
+
+    def self.run_process_and_extract_ms(cmd : String, args : Array(String), cwd : String) : Float64?
+      stdout = IO::Memory.new
+      stderr = IO::Memory.new
+      status = Process.run(cmd, args, chdir: cwd, output: stdout, error: stderr)
+      out_str = stdout.to_s + "\n" + stderr.to_s
+      if match = out_str.match(/ELAPSED_MS:\s*([0-9.]+)/)
+        return match[1].to_f
+      end
+      nil
+    end
+
+    def self.measure(iterations : Int32, &block : -> Float64?) : Tuple(Array(Float64), Float64, Float64, Float64)
+      samples = [] of Float64
+      iterations.times do
+        if ms = yield
+          samples << ms
+        end
+      end
+
+      if samples.empty?
+        return { [] of Float64, 0.0, 0.0, 0.0 }
+      end
+
+      sorted = samples.sort
+      median = sorted[sorted.size // 2]
+      min = sorted.first
+      max = sorted.last
+      { samples, median, min, max }
+    end
+
+    def self.run_case(
+      bench : BenchmarkCase,
+      iterations : Int32,
+      base_dir : String,
+      godot_exe : String,
+      release : Bool = true,
+      env_mode : String = "standalone"
+    ) : BenchmarkResult?
+      puts "\n--> Running Benchmark: \e[1;36m#{bench.name}\e[0m [#{bench.category.display_name}] (\e[2m#{bench.description}\e[0m)"
+
+      unless compile_crystal(bench, base_dir, release: release)
+        puts "  \e[31m[Error] Failed to compile #{bench.crystal_src}\e[0m"
+        return nil
+      end
+
+      bin_ext = {% if flag?(:windows) %} ".exe" {% else %} "" {% end %}
+      cr_bin_path = File.join(base_dir, "#{bench.crystal_bin}#{bin_ext}")
+
+      print "  Benchmarking Crystal... "
+      cr_samples, cr_median, cr_min, cr_max = measure(iterations) do
+        run_process_and_extract_ms(cr_bin_path, bench.args, base_dir)
+      end
+      puts "\e[1;32m%6.2f ms\e[0m (median of %d)" % [cr_median, cr_samples.size]
+
+      print "  Benchmarking GDScript... "
+      gd_script_path = File.join(base_dir, bench.gdscript_src)
+      gd_args = ["--headless", "--rendering-driver", "opengl3", "--audio-driver", "Dummy", "--script", gd_script_path, "--"] + bench.args
+      gd_samples, gd_median, gd_min, gd_max = measure(iterations) do
+        run_process_and_extract_ms(godot_exe, gd_args, base_dir)
+      end
+      speedup = (cr_median > 0) ? (gd_median / cr_median) : 1.0
+      speedup_badge = speedup >= 1.0 ? "\e[1;32m%5.1fx faster\e[0m" % speedup : "\e[1;33m%5.1fx slower\e[0m" % (1.0 / speedup)
+      puts "\e[1;33m%6.2f ms\e[0m (median of %d) -> %s" % [gd_median, gd_samples.size, speedup_badge]
+
+      ed_samples = [] of Float64
+      ed_median = 0.0
+      ed_overhead_ratio : Float64? = nil
+
+      if env_mode == "all" || env_mode == "editor"
+        print "  Benchmarking In-Editor... "
+        ed_args = ["--headless", "--rendering-driver", "opengl3", "--audio-driver", "Dummy", "--editor", "--path", base_dir, "--script", gd_script_path, "--"] + bench.args
+        ed_samples, ed_median, _ed_min, _ed_max = measure(iterations) do
+          run_process_and_extract_ms(godot_exe, ed_args, base_dir)
+        end
+        if ed_median > 0 && gd_median > 0
+          ed_overhead_ratio = ed_median / gd_median
+          overhead_pct = ((ed_median - gd_median) / gd_median) * 100.0
+          badge = overhead_pct >= 0 ? "+%.1f%% editor overhead" % overhead_pct : "%.1f%% editor speedup" % overhead_pct
+          puts "\e[1;35m%6.2f ms\e[0m (median of %d) -> %s" % [ed_median, ed_samples.size, badge]
+        else
+          puts "\e[1;35m%6.2f ms\e[0m (median of %d)" % [ed_median, ed_samples.size]
+        end
+      end
+
+      BenchmarkResult.new(
+        benchmark: bench,
+        crystal_samples: cr_samples,
+        gdscript_samples: gd_samples,
+        crystal_ms: cr_median,
+        gdscript_ms: gd_median,
+        crystal_min_ms: cr_min,
+        crystal_max_ms: cr_max,
+        gdscript_min_ms: gd_min,
+        gdscript_max_ms: gd_max,
+        speedup: speedup,
+        editor_samples: ed_samples,
+        editor_ms: (ed_median > 0 ? ed_median : nil),
+        editor_overhead_ratio: ed_overhead_ratio
+      )
+    end
+  end
+end

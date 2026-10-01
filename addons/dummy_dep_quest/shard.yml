@@ -1,0 +1,10 @@
+name: dummy_dep_quest
+version: 0.1.0
+authors:
+  - Lapis Test Suite <test@example.com>
+license: MIT
+dependencies:
+  lapis:
+    path: ../../src
+  dummy_base_dep:
+    path: ../dummy_base_dep

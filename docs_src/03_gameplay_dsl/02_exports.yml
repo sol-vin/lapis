@@ -1,0 +1,88 @@
+id: "B_EXPORTS_AND_INSPECTOR"
+parent_module: "Lapis::Docs::C_GAMEPLAY_AND_DECLARATIVE_DSL"
+title: "Export System & Inspector Integration"
+summary: "Exposing properties, ranges, enums, file pickers, and tool buttons to the Godot Inspector."
+overview: |
+  Comprehensive guide to exposing Crystal properties to the Godot Editor Inspector using
+  the `@Export` annotation family.
+related_sources:
+  - "**Export Macros**: `src/libgodot/macros/export.cr`"
+  - "**Live Specs**: `spec/suites/test_exports.cr`"
+
+sections:
+  - id: "topic_00_export_types"
+    title: "Supported Export Annotations"
+    summary: "Listing of ranges, enums, flags, files, directories, and buttons."
+    type: "Array(String)"
+    return_value:
+      - "@[Export]: Standard property export for numbers, strings, colors, vectors"
+      - "@[Export(range: min..max, step: n)]: Number slider or range constraint"
+      - "@[Export(enum: Type)]: Dropdown enum selector"
+      - "@[Export(flags: Type)]: Bitmask flag checkbox list"
+      - "@[ExportFile] / @[ExportDir]: Interactive file and directory pickers"
+      - "@[ExportToolButton]: Interactive clickable button in editor inspector"
+
+  - id: "topic_01_numeric_ranges"
+    title: "Numeric Ranges & Sliders"
+    summary: "Configuring slider ranges, increments, and easing curves."
+    content: |
+      ```crystal
+      node PlayerStats < Node do
+        # Integer range slider from 1 to 100 with step 1
+        @[Export(range: 1..100, step: 1)]
+        property health : Int32 = 100
+
+        # Float slider from 0.0 to 10.0 with step 0.1
+        @[Export(range: 0.0_f32..10.0_f32, step: 0.1_f32)]
+        property move_multiplier : Float32 = 1.0_f32
+
+        # Exponential easing curve slider for audio/visual ramps
+        @[ExportExpEasing]
+        property falloff : Float32 = 0.5_f32
+      end
+      ```
+
+  - id: "topic_02_enums_and_flags"
+    title: "Enums & Bitmask Flags"
+    summary: "Exposing dropdown menus and multi-select checkboxes."
+    content: |
+      ```crystal
+      enum WeaponType
+        Sword
+        Bow
+        Staff
+      end
+
+      @[Flags]
+      enum CollisionLayers
+        World  = 1
+        Player = 2
+        Enemy  = 4
+      end
+
+      node CombatEntity < Node do
+        # Renders as a clean dropdown in Godot Inspector
+        @[ExportEnum]
+        property weapon : WeaponType = WeaponType::Sword
+
+        # Renders as multi-select bitmask flags
+        @[ExportFlags]
+        property collision_mask : CollisionLayers = CollisionLayers::World | CollisionLayers::Player
+      end
+      ```
+
+  - id: "topic_03_file_and_asset_pickers"
+    title: "File & Directory Pickers"
+    summary: "Exposing resource path selectors with filter extensions."
+    content: |
+      ```crystal
+      node SoundPlayer < AudioStreamPlayer do
+        # File selector filtered to audio formats
+        @[ExportFile(filter: "*.wav,*.ogg,*.mp3")]
+        property audio_file : String = ""
+
+        # Directory selector
+        @[ExportDir]
+        property asset_directory : String = "res://assets"
+      end
+      ```

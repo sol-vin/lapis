@@ -1,0 +1,98 @@
+id: "L_COMPILE_FLAGS_AND_OPTIMIZATION"
+parent_module: "Lapis::Docs::B_LAPIS_CLI_AND_TOOLCHAIN"
+title: "Compile-Time Flags & Optimization"
+summary: "Stripping unused subsystems for lean binaries and enabling opt-in low-overhead diagnostics."
+overview: |
+  Comprehensive guide to compile-time configuration flags across Lapis, covering binary size optimization,
+  thread-safety check elision, and opt-in diagnostic instrumentation for memory leaks, signals, and dispatches.
+related_sources:
+  - "**Build Command**: `tools/lapis/src/commands/build.cr`"
+  - "**Diagnostics Implementation**: `src/libgodot/diagnostics.cr`"
+  - "**Specifications**: `spec/compile_flags_spec.cr`"
+
+sections:
+  - id: "topic_00_optimization_flags"
+    title: "Compile-Time Flag Matrix"
+    summary: "Listing of binary stripping and diagnostic compiler switches."
+    type: "Array(String)"
+    return_value:
+      - "--strip-docs (-Dno_doc): Strips doc comments and EditorHelp XML strings"
+      - "--no-thread-safety (-Dno_thread_safety): Bypasses main-thread runtime guards"
+      - "--no-testing (-Dno_testing): Excludes test suites from consumer deliverables"
+      - "--no-crash-handler (-Dno_crash_handler): Disables Windows VEH handler for clean radare2 execution"
+      - "--leak-tracker (-Dleak_tracker): Tracks object allocations, call sites, and surviving instances"
+      - "--profile-dispatches (-Dprofile_dispatches): Records nanosecond virtual method dispatch latency"
+      - "--trace-dead-pointers (-Dtrace_dead_pointers): Maintains deallocation callstacks for DisposedObjectError"
+      - "--trace-signals (-Dtrace_signals): Intercepts and logs scene tree signal emissions"
+
+  - id: "topic_01_stripping_lean_binaries"
+    title: "Producing Ultra-Lean Production Binaries"
+    summary: "Stripping docstrings, XML help registries, and test scaffolding."
+    content: |
+      During release compilation, binary size can be minimized by stripping metadata unnecessary for runtime gameplay:
+
+      ```bash
+      # Strip docs, XML help, and test scaffolding
+      lapis build --release --strip-docs --no-testing
+      ```
+
+      - **`--strip-docs` (`-Dno_doc`)**: Strips out hundreds of kilobytes of extracted doc comments and XML help structures from `src/libgodot/macros.cr` and `src/libgodot/doc_macro.cr`. Automatically enabled in `--release`.
+      - **`--no-testing` (`-Dno_testing`)**: Omit test runners and benchmark harnesses from consumer games.
+
+  - id: "topic_02_thread_safety_bypass"
+    title: "High-Throughput Thread-Safety Bypass"
+    summary: "Eliminating main-thread assertions for maximum scene graph dispatch speed."
+    content: |
+      By default, LibGodot guards scene tree mutations (`add_child`, `remove_child`) with `Godot::ThreadSafety.assert_main_thread!`.
+      For battle-tested, single-threaded game loops, these checks can be completely elided at compile time:
+
+      ```bash
+      lapis build --release --no-thread-safety
+      ```
+
+      When compiled with `--no-thread-safety` (or `-Dfast_dispatch`), `assert_main_thread!` becomes a zero-cost compiler no-op, eliminating thread ID queries and branch predictions on hot loops.
+
+  - id: "topic_03_diagnostic_instrumentation"
+    title: "Opt-In Diagnostic Instrumentation"
+    summary: "Enabling memory leak tracking, method dispatch profiling, and dead-pointer callstacks."
+    content: |
+      When debugging complex engine interactions, Lapis provides low-overhead diagnostic modules:
+
+      #### Memory Leak Tracking:
+      ```bash
+      lapis build --leak-tracker
+      ```
+      Logs every object allocation with source file and line. At shutdown, inspect surviving objects:
+      ```crystal
+      {% if flag?(:leak_tracker) %}
+        Godot::Diagnostics::LeakTracker.dump_active_objects
+      {% end %}
+      ```
+
+      #### Virtual Method Dispatch Latency Profiling:
+      ```bash
+      lapis build --profile-dispatches
+      ```
+      Captures invocation count, average nanoseconds, minimum, and maximum latency for all virtual calls into Crystal.
+
+      #### Dead-Pointer Destruction Callstack History:
+      ```bash
+      lapis build --trace-dead-pointers
+      ```
+      Maintains a ring buffer of deallocated instances so any subsequent `DisposedObjectError` pinpoints where the node was freed.
+
+  - id: "topic_04_cli_integration"
+    title: "CLI Switches & Environment Variables"
+    summary: "Invoking flags via lapis CLI options or environment variables."
+    content: |
+      All optimization and diagnostic flags can be specified through CLI switches or environment variables:
+
+      | Switch | Environment Variable | Crystal Flag |
+      | :--- | :--- | :--- |
+      | `--strip-docs` | `STRIP_DOCS=1` | `-Dno_doc` |
+      | `--no-thread-safety` | `NO_THREAD_SAFETY=1` | `-Dno_thread_safety` |
+      | `--leak-tracker` | `LEAK_TRACKER=1` | `-Dleak_tracker` |
+      | `--profile-dispatches` | `PROFILE_DISPATCHES=1` | `-Dprofile_dispatches` |
+      | `--trace-dead-pointers`| `TRACE_DEAD_POINTERS=1`| `-Dtrace_dead_pointers`|
+      | `--trace-signals` | `TRACE_SIGNALS=1` | `-Dtrace_signals` |
+      | `--no-crash-handler` | `NO_CRASH_HANDLER=1` | `-Dno_crash_handler` |

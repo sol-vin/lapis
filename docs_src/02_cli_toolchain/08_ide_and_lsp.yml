@@ -1,0 +1,56 @@
+id: "H_IDE_AND_LSP"
+parent_module: "Lapis::Docs::B_LAPIS_CLI_AND_TOOLCHAIN"
+title: "IDE Integration & Language Server (LSP)"
+summary: "Configuring VS Code, Cursor, Zed, and Neovim with Crystalline LSP and radare2 debugging."
+overview: |
+  Comprehensive guide to configuring modern code editors with rich Crystal syntax highlighting,
+  hover documentation, auto-completion, and native radare2 debugging with `lapis ide`.
+related_sources:
+  - "**IDE Setup**: `tools/lapis/src/commands/ide.cr`"
+  - "**LSP Integration**: `src/libgodot/script/crystal_language.cr`"
+  - "**Live Spec**: `spec/suites/test_ide_lsp.cr`"
+
+sections:
+  - id: "topic_00_supported_editors"
+    title: "Supported Code Editors"
+    summary: "One-click setup for VS Code, Cursor, Zed, and Neovim."
+    type: "Array(String)"
+    return_value:
+      - "Visual Studio Code (.vscode/settings.json, launch.json, tasks.json)"
+      - "Cursor (AI-assisted editor with VS Code compatibility)"
+      - "Zed (.zed/settings.json with native Crystalline LSP)"
+      - "Neovim (nvim-lspconfig configuration with stdio framing)"
+
+  - id: "topic_01_ide_setup_command"
+    title: "lapis ide: Automated Configuration"
+    summary: "Generating optimal editor settings and debug launch profiles with a single command."
+    content: |
+      Run `lapis ide` in your project root:
+
+      ```bash
+      lapis ide [editor] [options]
+      ```
+
+      #### Supported Editor Arguments:
+      - `lapis ide vscode`: Configures VS Code / Cursor.
+      - `lapis ide zed`: Configures Zed editor.
+      - `lapis ide neovim`: Generates Lua snippet for `nvim-lspconfig`.
+      - `lapis ide --all`: Configures all supported IDEs simultaneously.
+
+      #### What is Configured Automatically:
+      1. Sets Crystalline executable path in editor settings.
+      2. Configures debug profiles in `.vscode/launch.json`:
+         - `Run Godot Game`
+         - `Open Godot Editor`
+         - `Debug Godot Game (radare2)`
+      3. Adds build tasks in `.vscode/tasks.json` (`lapis build game`, `lapis run`).
+
+  - id: "topic_02_crystalline_capabilities"
+    title: "Crystalline LSP Capabilities"
+    summary: "Contextual autocomplete, hover tooltips, go-to-definition, and inline diagnostics."
+    content: |
+      With Crystalline LSP enabled:
+      - **Contextual Autocomplete**: Autocomplete proposals for Godot engine classes (`Node2D`, `CharacterBody3D`), methods, and custom Crystal nodes.
+      - **Hover Documentation**: Hovering over any Godot method displays the official Godot engine docstring and Crystal type signature.
+      - **Go to Definition**: Jump directly from a method call to its definition in Crystal or engine bindings.
+      - **Inline Compiler Diagnostics**: Red squiggly lines appear under syntax errors and type mismatches in real-time as you type.

@@ -1,0 +1,102 @@
+[gd_scene format=3 uid="uid://c8r3sh4d3rd3m0"]
+
+[ext_resource type="Shader" path="res://shaders/water.gdshader" id="1_water"]
+[ext_resource type="Shader" path="res://shaders/plasma.gdshader" id="2_plasma"]
+[ext_resource type="Texture2D" path="res://icon.svg" id="3_icon"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_water"]
+shader = ExtResource("1_water")
+shader_parameter/wave_speed = 1.8
+shader_parameter/wave_frequency = 8.0
+shader_parameter/wave_amplitude = 0.04
+shader_parameter/water_color = Color(0.12, 0.52, 0.88, 0.9)
+shader_parameter/foam_color = Color(0.85, 0.95, 1.0, 1.0)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_plasma"]
+render_priority = 0
+shader = ExtResource("2_plasma")
+shader_parameter/plasma_speed = 1.5
+shader_parameter/plasma_scale = 3.0
+shader_parameter/plasma_color_a = Color(0.9, 0.2, 0.5, 1.0)
+shader_parameter/plasma_color_b = Color(0.1, 0.7, 0.9, 1.0)
+shader_parameter/roughness_val = 0.25
+shader_parameter/metallic_val = 0.6
+shader_parameter/albedo = Color(1, 1, 1, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_plasma"]
+material = SubResource("ShaderMaterial_plasma")
+radius = 1.0
+height = 2.0
+radial_segments = 64
+rings = 32
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
+sky_top_color = Color(0.15, 0.25, 0.45, 1)
+sky_horizon_color = Color(0.55, 0.65, 0.75, 1)
+
+[sub_resource type="Sky" id="Sky_main"]
+sky_material = SubResource("ProceduralSkyMaterial_sky")
+
+[sub_resource type="Environment" id="Environment_main"]
+background_mode = 2
+sky = SubResource("Sky_main")
+ambient_light_source = 3
+ambient_light_color = Color(0.6, 0.7, 0.85, 1)
+
+[node name="Main" type="CrShaderDemoScene"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_main")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 0, 6, 0)
+shadow_enabled = true
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 0, 0.8, 3.2)
+current = true
+
+[node name="PlasmaMesh" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_plasma")
+
+[node name="WaterSprite" type="Sprite2D" parent="."]
+material = SubResource("ShaderMaterial_water")
+position = Vector2(180, 520)
+scale = Vector2(2.5, 2.5)
+texture = ExtResource("3_icon")
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="Margin" type="MarginContainer" parent="UI"]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 110.0
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="Panel" type="PanelContainer" parent="UI/Margin"]
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="UI/Margin/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TitleLabel" type="Label" parent="UI/Margin/Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.88, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "🔮 CrShader Live Showcase Demo"
+
+[node name="DescLabel" type="Label" parent="UI/Margin/Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 14
+text = "2D Water (CanvasItem) and 3D Plasma (Spatial) authored in Crystal DSL and transpiled to Godot 4 shaders."
+
+[node name="FPSLabel" type="Label" parent="UI/Margin/Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 1, 0.5, 1)
+theme_override_font_sizes/font_size = 13
+text = "Performance: 60 FPS"

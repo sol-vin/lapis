@@ -1,0 +1,43 @@
+id: "C_DOC_COMMENTS_AND_F1_HELP"
+parent_module: "Lapis::Docs::F_SCRIPTING_AND_INTEROPERABILITY"
+title: "Doc Comments & Godot In-Editor F1 Help"
+summary: "Compile-time doc comment harvesting, DocData XML synthesis, and Godot offline documentation."
+overview: |
+  Comprehensive guide to how Lapis automatically harvests regular Crystal `# comments` above
+  classes, properties, signals, and methods at compile-time and injects them into Godot's F1 Help.
+related_sources:
+  - "**Editor Doc Engine**: `src/bridge/editor_doc.hpp`"
+  - "**Live Specs**: `spec/suites/test_editor_signals.cr`"
+
+sections:
+  - id: "topic_00_harvesting_features"
+    title: "Documentation Harvesting Invariants"
+    summary: "Automatic zero-overhead doc extraction into Godot's native DocData XML engine."
+    type: "Array(String)"
+    return_value:
+      - "Zero manual XML authoring: Write regular Crystal # comments above definitions"
+      - "Class, property, method, and signal descriptions are extracted at compile-time"
+      - "Injected into Godot's EditorHelp XML database on bridge initialization"
+      - "Full offline F1 Help and hover Inspector tooltips in Godot Editor"
+
+  - id: "topic_01_authoring_syntax"
+    title: "Doc Comment Authoring Syntax"
+    summary: "Formatting comments for optimal rendering in both Crystal Docs and Godot EditorHelp."
+    content: |
+      ```crystal
+      # Player character with physics movement, health tracking, and abilities.
+      node Player < CharacterBody3D do
+        # Movement speed in meters per second.
+        @[Export]
+        property speed : Float32 = 7.0_f32
+
+        # Emitted when player health drops to zero.
+        signal died
+
+        # Applies raw physical impulse to character body.
+        def apply_impulse(force : Vector3) : Void
+        end
+      end
+      ```
+
+      When compiled into `game.dll`, `crystal_bridge.dll` extracts these docstrings and registers them with Godot's `EditorHelp`. Pressing **F1** inside the Godot Editor and searching for `Player` will display this exact manual!

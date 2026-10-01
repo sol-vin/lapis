@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3 uid="uid://test_gdscript_inheritance_scene"]
+
+[ext_resource type="Script" path="res://scripts/gdscript_inherits_crystal.gd" id="1_entity"]
+
+[node name="InheritedEntityRoot" type="CharacterBody2D"]
+script = ExtResource("1_entity")
+gdscript_bonus = 15

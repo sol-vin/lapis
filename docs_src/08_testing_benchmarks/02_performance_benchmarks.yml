@@ -1,0 +1,35 @@
+id: "B_PERFORMANCE_BENCHMARKS"
+parent_module: "Lapis::Docs::H_TESTING_AND_BENCHMARKS"
+title: "Performance Profiling & Benchmark Reports"
+summary: "Running Crystal vs GDScript benchmarks, SVG chart generation, and CI tracking."
+overview: |
+  Comprehensive guide to the automated Crystal vs GDScript benchmark harness, comparative
+  speedup metrics, and publishing interactive HTML/SVG performance reports.
+related_sources:
+  - "**Benchmark Runner**: `tools/lapis/src/commands/benchmarks.cr`"
+  - "**Benchmarks Project**: `performance/`"
+
+sections:
+  - id: "topic_00_benchmark_domains"
+    title: "Benchmark Stress Domains"
+    summary: "Node churn, mathematical transforms, signal routing, and worker concurrency."
+    type: "Array(String)"
+    return_value:
+      - "Node Churn Stress: 100,000 nodes spawned, reparented, and freed"
+      - "Mathematical Transforms: 1,000,000 Vector3, Basis, and Quaternion operations"
+      - "Signal Churn: High-frequency signal emission and fan-out"
+      - "Multithreaded Worker: Parallel background computation and channel throughput"
+
+  - id: "topic_01_running_benchmarks"
+    title: "Running the Benchmark Suite"
+    summary: "Executing make benchmarks or lapis bench."
+    content: |
+      ```bash
+      lapis bench [options]
+      ```
+
+      #### Options:
+      - `--iterations=N`: Number of test repetitions for statistical variance reduction.
+      - `--export-html=PATH`: Path to write interactive dark-mode HTML report.
+      - `--export-svg=PATH`: Path to write visual comparison bar chart SVG.
+      - `--diff=FILE`: Compare current execution metrics against historical baseline XML.

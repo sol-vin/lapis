@@ -1,0 +1,12 @@
+[gd_scene format=3 uid="uid://test_crystal_inventory_ui_scene"]
+
+[node name="InventoryPanel" type="ComplexInventoryUI"]
+title = "Royal Vault"
+capacity = 128
+gold = 500000
+background_tint = Color(0.08, 0.08, 0.12, 0.95)
+view_bounds = Rect2(20, 20, 500, 700)
+is_visible_panel = true
+
+[node name="TitleLabel" type="Label" parent="."]
+text = "Vault Inventory"

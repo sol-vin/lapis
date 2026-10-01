@@ -1,0 +1,73 @@
+id: "G_ADDON_AND_SHARD_MANAGEMENT"
+parent_module: "Lapis::Docs::B_LAPIS_CLI_AND_TOOLCHAIN"
+title: "Addon & Shard Dependency Management"
+summary: "Installing GDExtension addons and managing Crystal shards with lapis addon and lapis shard."
+overview: |
+  Comprehensive guide to adding, updating, and removing community GDExtension addons
+  and Crystal shard packages in your Godot project.
+related_sources:
+  - "**Addon Installer**: `tools/lapis/src/commands/install_addon.cr`"
+  - "**Shard Manager**: `tools/lapis/src/commands/shard_manager.cr`"
+  - "**Live Specs**: `spec/lapis_install_addon_spec.cr`"
+
+sections:
+  - id: "topic_00_package_types"
+    title: "The Two Dependency Types"
+    summary: "Godot GDExtension Addons (in addons/) vs Crystal Shards (in shard.yml)."
+    type: "Array(String)"
+    return_value:
+      - "GDExtension Addons: Binary plugins loaded by Godot Engine (managed via lapis addon)"
+      - "Crystal Shards: Compiled language libraries & dependencies (managed via lapis shard)"
+
+  - id: "topic_01_addon_installation"
+    title: "lapis addon: Installing GDExtensions"
+    summary: "Installing precompiled addons or compiling from GitHub repositories."
+    content: |
+      To install a GDExtension addon into your Godot project:
+
+      ```bash
+      # Install from GitHub repository:
+      lapis addon install github:owner/repo
+
+      # Install specific release tag:
+      lapis addon install github:owner/repo@v1.2.0
+
+      # Install from local archive:
+      lapis addon install path/to/addon.zip
+      ```
+
+      #### What Happens Automatically:
+      1. Downloads and extracts the addon into `addons/<name>`.
+      2. Validates GDExtension manifests (`<name>.gdextension`).
+      3. Stages required runtime libraries (`gc.dll`, `pcre2-8.dll`, `iconv-2.dll`).
+      4. Registers and enables the plugin in `project.godot`.
+      5. Tracks the addon in `shard.yml` under `addons:`.
+
+  - id: "topic_02_addon_uninstallation"
+    title: "lapis addon uninstall: Clean Removal"
+    summary: "Disabling and removing an addon cleanly from project configuration."
+    content: |
+      To remove an installed addon:
+
+      ```bash
+      lapis addon uninstall <name>
+      ```
+
+      Lapis cleanly disables the plugin in `project.godot`, removes the directory from `addons/`, and untracks it from `shard.yml`.
+
+  - id: "topic_03_shard_management"
+    title: "lapis shard: Managing Crystal Dependencies"
+    summary: "Adding, updating, and removing Crystal shard dependencies."
+    content: |
+      To manage standard Crystal packages in `shard.yml`:
+
+      ```bash
+      # Add a GitHub dependency:
+      lapis shard add github:crystal-community/compress
+
+      # Add with version constraint:
+      lapis shard add crystal-community/compress@~>1.0.0
+
+      # Remove a dependency:
+      lapis shard remove compress
+      ```

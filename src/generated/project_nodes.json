@@ -1,0 +1,1533 @@
+{
+	"gdscript_classes": [
+		{
+			"constants": {},
+			"inherits": "Node2D",
+			"language": "GDScript",
+			"methods": [
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "a",
+							"type": 2,
+							"type_name": "int"
+						},
+						{
+							"class_name": "",
+							"name": "b",
+							"type": 2,
+							"type_name": "int"
+						},
+						{
+							"class_name": "",
+							"name": "multiplier",
+							"type": 3,
+							"type_name": "float"
+						}
+					],
+					"flags": 1,
+					"name": "compute_scaled_sum",
+					"return_class_name": "",
+					"return_type": 2,
+					"return_type_name": "int"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "a",
+							"type": 3,
+							"type_name": "float"
+						},
+						{
+							"class_name": "",
+							"name": "b",
+							"type": 3,
+							"type_name": "float"
+						}
+					],
+					"flags": 1,
+					"name": "calculate_hypotenuse",
+					"return_class_name": "",
+					"return_type": 3,
+					"return_type_name": "float"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "prefix",
+							"type": 4,
+							"type_name": "String"
+						},
+						{
+							"class_name": "",
+							"name": "id",
+							"type": 2,
+							"type_name": "int"
+						},
+						{
+							"class_name": "",
+							"name": "status",
+							"type": 4,
+							"type_name": "String"
+						}
+					],
+					"flags": 1,
+					"name": "format_complex_message",
+					"return_class_name": "",
+					"return_type": 4,
+					"return_type_name": "String"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "flag_a",
+							"type": 1,
+							"type_name": "bool"
+						},
+						{
+							"class_name": "",
+							"name": "flag_b",
+							"type": 1,
+							"type_name": "bool"
+						}
+					],
+					"flags": 1,
+					"name": "validate_conditions",
+					"return_class_name": "",
+					"return_type": 1,
+					"return_type_name": "bool"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "point",
+							"type": 5,
+							"type_name": "Vector2"
+						}
+					],
+					"flags": 1,
+					"name": "distance_to_point",
+					"return_class_name": "",
+					"return_type": 3,
+					"return_type_name": "float"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "v1",
+							"type": 9,
+							"type_name": "Vector3"
+						},
+						{
+							"class_name": "",
+							"name": "v2",
+							"type": 9,
+							"type_name": "Vector3"
+						}
+					],
+					"flags": 1,
+					"name": "compute_dot3",
+					"return_class_name": "",
+					"return_type": 3,
+					"return_type_name": "float"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "c",
+							"type": 20,
+							"type_name": "Color"
+						}
+					],
+					"flags": 1,
+					"name": "color_brightness",
+					"return_class_name": "",
+					"return_type": 3,
+					"return_type_name": "float"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "node_name",
+							"type": 4,
+							"type_name": "String"
+						}
+					],
+					"flags": 1,
+					"name": "duplicate_child_node",
+					"return_class_name": "Node",
+					"return_type": 24,
+					"return_type_name": "Object"
+				},
+				{
+					"args": [
+						{
+							"class_name": "Node",
+							"name": "target",
+							"type": 24,
+							"type_name": "Object"
+						}
+					],
+					"flags": 1,
+					"name": "inspect_incoming_node",
+					"return_class_name": "",
+					"return_type": 4,
+					"return_type_name": "String"
+				},
+				{
+					"args": [],
+					"flags": 1,
+					"name": "perform_state_reset",
+					"return_class_name": "",
+					"return_type": 0,
+					"return_type_name": "Nil"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "record_id",
+							"type": 2,
+							"type_name": "int"
+						},
+						{
+							"class_name": "",
+							"name": "label",
+							"type": 4,
+							"type_name": "String"
+						},
+						{
+							"class_name": "",
+							"name": "score",
+							"type": 3,
+							"type_name": "float"
+						}
+					],
+					"flags": 1,
+					"name": "trigger_data_processed",
+					"return_class_name": "",
+					"return_type": 0,
+					"return_type_name": "Nil"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "old_state",
+							"type": 4,
+							"type_name": "String"
+						},
+						{
+							"class_name": "",
+							"name": "new_state",
+							"type": 4,
+							"type_name": "String"
+						}
+					],
+					"flags": 1,
+					"name": "trigger_state_transitioned",
+					"return_class_name": "",
+					"return_type": 0,
+					"return_type_name": "Nil"
+				}
+			],
+			"name": "ComprehensiveInteropNode",
+			"path": "res://scripts/comprehensive_interop_node.gd",
+			"properties": [
+				{
+					"class_name": "",
+					"hint": 0,
+					"hint_string": "",
+					"name": "int_prop",
+					"type": 2,
+					"type_name": "int"
+				},
+				{
+					"class_name": "",
+					"hint": 0,
+					"hint_string": "",
+					"name": "float_prop",
+					"type": 3,
+					"type_name": "float"
+				},
+				{
+					"class_name": "",
+					"hint": 0,
+					"hint_string": "",
+					"name": "string_prop",
+					"type": 4,
+					"type_name": "String"
+				},
+				{
+					"class_name": "",
+					"hint": 0,
+					"hint_string": "",
+					"name": "bool_prop",
+					"type": 1,
+					"type_name": "bool"
+				},
+				{
+					"class_name": "",
+					"hint": 0,
+					"hint_string": "",
+					"name": "internal_reset_count",
+					"type": 2,
+					"type_name": "int"
+				},
+				{
+					"class_name": "",
+					"hint": 0,
+					"hint_string": "",
+					"name": "last_transition_old",
+					"type": 4,
+					"type_name": "String"
+				},
+				{
+					"class_name": "",
+					"hint": 0,
+					"hint_string": "",
+					"name": "last_transition_new",
+					"type": 4,
+					"type_name": "String"
+				}
+			],
+			"signals": [
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "record_id",
+							"type": 2,
+							"type_name": "int"
+						},
+						{
+							"class_name": "",
+							"name": "label",
+							"type": 4,
+							"type_name": "String"
+						},
+						{
+							"class_name": "",
+							"name": "score",
+							"type": 3,
+							"type_name": "float"
+						}
+					],
+					"name": "data_processed"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "old_state",
+							"type": 4,
+							"type_name": "String"
+						},
+						{
+							"class_name": "",
+							"name": "new_state",
+							"type": 4,
+							"type_name": "String"
+						}
+					],
+					"name": "state_transitioned"
+				}
+			]
+		},
+		{
+			"constants": {},
+			"inherits": "CharacterBody2D",
+			"language": "GDScript",
+			"methods": [
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "raw_input",
+							"type": 2,
+							"type_name": "int"
+						}
+					],
+					"flags": 1,
+					"name": "compute_damage",
+					"return_class_name": "",
+					"return_type": 2,
+					"return_type_name": "int"
+				},
+				{
+					"args": [],
+					"flags": 1,
+					"name": "get_effective_speed",
+					"return_class_name": "",
+					"return_type": 3,
+					"return_type_name": "float"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "act",
+							"type": 4,
+							"type_name": "String"
+						}
+					],
+					"flags": 1,
+					"name": "trigger_entity_action",
+					"return_class_name": "",
+					"return_type": 4,
+					"return_type_name": "String"
+				}
+			],
+			"name": "GdscriptInheritsCrystal",
+			"path": "res://scripts/gdscript_inherits_crystal.gd",
+			"properties": [
+				{
+					"class_name": "",
+					"hint": 0,
+					"hint_string": "",
+					"name": "gdscript_bonus",
+					"type": 2,
+					"type_name": "int"
+				}
+			],
+			"signals": []
+		},
+		{
+			"constants": {},
+			"inherits": "Node",
+			"language": "GDScript",
+			"methods": [
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "a",
+							"type": 2,
+							"type_name": "int"
+						},
+						{
+							"class_name": "",
+							"name": "b",
+							"type": 2,
+							"type_name": "int"
+						}
+					],
+					"flags": 1,
+					"name": "add_numbers",
+					"return_class_name": "",
+					"return_type": 2,
+					"return_type_name": "int"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "p1",
+							"type": 5,
+							"type_name": "Vector2"
+						},
+						{
+							"class_name": "",
+							"name": "p2",
+							"type": 5,
+							"type_name": "Vector2"
+						}
+					],
+					"flags": 1,
+					"name": "compute_distance",
+					"return_class_name": "",
+					"return_type": 3,
+					"return_type_name": "float"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "name",
+							"type": 4,
+							"type_name": "String"
+						}
+					],
+					"flags": 1,
+					"name": "format_greeting",
+					"return_class_name": "",
+					"return_type": 4,
+					"return_type_name": "String"
+				},
+				{
+					"args": [
+						{
+							"class_name": "Node",
+							"name": "node",
+							"type": 24,
+							"type_name": "Object"
+						},
+						{
+							"class_name": "",
+							"name": "expected_name",
+							"type": 4,
+							"type_name": "String"
+						}
+					],
+					"flags": 1,
+					"name": "is_node_valid_and_named",
+					"return_class_name": "",
+					"return_type": 1,
+					"return_type_name": "bool"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "node_name",
+							"type": 4,
+							"type_name": "String"
+						}
+					],
+					"flags": 1,
+					"name": "spawn_node_for_crystal",
+					"return_class_name": "Node",
+					"return_type": 24,
+					"return_type_name": "Object"
+				},
+				{
+					"args": [
+						{
+							"class_name": "Node",
+							"name": "node",
+							"type": 24,
+							"type_name": "Object"
+						}
+					],
+					"flags": 1,
+					"name": "inspect_crystal_node",
+					"return_class_name": "",
+					"return_type": 4,
+					"return_type_name": "String"
+				},
+				{
+					"args": [
+						{
+							"class_name": "Node",
+							"name": "child",
+							"type": 24,
+							"type_name": "Object"
+						},
+						{
+							"class_name": "Node",
+							"name": "new_parent",
+							"type": 24,
+							"type_name": "Object"
+						}
+					],
+					"flags": 1,
+					"name": "reparent_node_from_crystal",
+					"return_class_name": "",
+					"return_type": 1,
+					"return_type_name": "bool"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "amount",
+							"type": 2,
+							"type_name": "int"
+						}
+					],
+					"flags": 1,
+					"name": "increment_counter",
+					"return_class_name": "",
+					"return_type": 2,
+					"return_type_name": "int"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "val",
+							"type": 2,
+							"type_name": "int"
+						}
+					],
+					"flags": 1,
+					"name": "fire_gd_ping",
+					"return_class_name": "",
+					"return_type": 0,
+					"return_type_name": "Nil"
+				},
+				{
+					"args": [],
+					"flags": 1,
+					"name": "run_await_sequence",
+					"return_class_name": "",
+					"return_type": 4,
+					"return_type_name": "String"
+				},
+				{
+					"args": [
+						{
+							"class_name": "Node",
+							"name": "target",
+							"type": 24,
+							"type_name": "Object"
+						}
+					],
+					"flags": 1,
+					"name": "destroy_node_from_gdscript",
+					"return_class_name": "",
+					"return_type": 1,
+					"return_type_name": "bool"
+				},
+				{
+					"args": [
+						{
+							"class_name": "Node",
+							"name": "target",
+							"type": 24,
+							"type_name": "Object"
+						}
+					],
+					"flags": 1,
+					"name": "queue_free_node_from_gdscript",
+					"return_class_name": "",
+					"return_type": 1,
+					"return_type_name": "bool"
+				},
+				{
+					"args": [
+						{
+							"class_name": "Resource",
+							"name": "res",
+							"type": 24,
+							"type_name": "Object"
+						}
+					],
+					"flags": 1,
+					"name": "inspect_resource_power",
+					"return_class_name": "",
+					"return_type": 2,
+					"return_type_name": "int"
+				},
+				{
+					"args": [
+						{
+							"class_name": "Resource",
+							"name": "res",
+							"type": 24,
+							"type_name": "Object"
+						}
+					],
+					"flags": 1,
+					"name": "inspect_resource_name",
+					"return_class_name": "",
+					"return_type": 4,
+					"return_type_name": "String"
+				},
+				{
+					"args": [
+						{
+							"class_name": "Resource",
+							"name": "res",
+							"type": 24,
+							"type_name": "Object"
+						},
+						{
+							"class_name": "",
+							"name": "new_power",
+							"type": 2,
+							"type_name": "int"
+						}
+					],
+					"flags": 1,
+					"name": "modify_resource_power",
+					"return_class_name": "",
+					"return_type": 1,
+					"return_type_name": "bool"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "path",
+							"type": 4,
+							"type_name": "String"
+						}
+					],
+					"flags": 1,
+					"name": "load_resource_from_disk_and_get_power",
+					"return_class_name": "",
+					"return_type": 2,
+					"return_type_name": "int"
+				},
+				{
+					"args": [
+						{
+							"class_name": "Node",
+							"name": "node",
+							"type": 24,
+							"type_name": "Object"
+						},
+						{
+							"class_name": "",
+							"name": "prop_name",
+							"type": 4,
+							"type_name": "String"
+						}
+					],
+					"flags": 1,
+					"name": "inspect_enum_property",
+					"return_class_name": "",
+					"return_type": 2,
+					"return_type_name": "int"
+				},
+				{
+					"args": [
+						{
+							"class_name": "Node",
+							"name": "node",
+							"type": 24,
+							"type_name": "Object"
+						},
+						{
+							"class_name": "",
+							"name": "prop_name",
+							"type": 4,
+							"type_name": "String"
+						},
+						{
+							"class_name": "",
+							"name": "val",
+							"type": 2,
+							"type_name": "int"
+						}
+					],
+					"flags": 1,
+					"name": "set_enum_property",
+					"return_class_name": "",
+					"return_type": 1,
+					"return_type_name": "bool"
+				},
+				{
+					"args": [
+						{
+							"class_name": "Node",
+							"name": "node",
+							"type": 24,
+							"type_name": "Object"
+						},
+						{
+							"class_name": "",
+							"name": "prop_name",
+							"type": 4,
+							"type_name": "String"
+						}
+					],
+					"flags": 1,
+					"name": "get_enum_property_hint_string",
+					"return_class_name": "",
+					"return_type": 4,
+					"return_type_name": "String"
+				},
+				{
+					"args": [
+						{
+							"class_name": "Node",
+							"name": "node",
+							"type": 24,
+							"type_name": "Object"
+						},
+						{
+							"class_name": "",
+							"name": "prop_name",
+							"type": 4,
+							"type_name": "String"
+						}
+					],
+					"flags": 1,
+					"name": "get_enum_property_hint",
+					"return_class_name": "",
+					"return_type": 2,
+					"return_type_name": "int"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "class_name_str",
+							"type": 4,
+							"type_name": "String"
+						},
+						{
+							"class_name": "",
+							"name": "const_name",
+							"type": 4,
+							"type_name": "String"
+						}
+					],
+					"flags": 1,
+					"name": "query_classdb_enum_constant",
+					"return_class_name": "",
+					"return_type": 2,
+					"return_type_name": "int"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "capacity",
+							"type": 2,
+							"type_name": "int"
+						}
+					],
+					"flags": 1,
+					"name": "create_channel",
+					"return_class_name": "RefCounted",
+					"return_type": 24,
+					"return_type_name": "Object"
+				},
+				{
+					"args": [
+						{
+							"class_name": "RefCounted",
+							"name": "ch",
+							"type": 24,
+							"type_name": "Object"
+						},
+						{
+							"class_name": "",
+							"name": "data",
+							"type": 4,
+							"type_name": "String"
+						}
+					],
+					"flags": 1,
+					"name": "send_to_channel",
+					"return_class_name": "",
+					"return_type": 1,
+					"return_type_name": "bool"
+				},
+				{
+					"args": [
+						{
+							"class_name": "RefCounted",
+							"name": "ch",
+							"type": 24,
+							"type_name": "Object"
+						},
+						{
+							"class_name": "",
+							"name": "data",
+							"type": 4,
+							"type_name": "String"
+						}
+					],
+					"flags": 1,
+					"name": "try_send_to_channel",
+					"return_class_name": "",
+					"return_type": 1,
+					"return_type_name": "bool"
+				},
+				{
+					"args": [
+						{
+							"class_name": "RefCounted",
+							"name": "ch",
+							"type": 24,
+							"type_name": "Object"
+						}
+					],
+					"flags": 1,
+					"name": "receive_from_channel",
+					"return_class_name": "",
+					"return_type": 4,
+					"return_type_name": "String"
+				},
+				{
+					"args": [
+						{
+							"class_name": "RefCounted",
+							"name": "ch",
+							"type": 24,
+							"type_name": "Object"
+						}
+					],
+					"flags": 1,
+					"name": "try_receive_from_channel",
+					"return_class_name": "",
+					"return_type": 4,
+					"return_type_name": "String"
+				},
+				{
+					"args": [
+						{
+							"class_name": "RefCounted",
+							"name": "ch",
+							"type": 24,
+							"type_name": "Object"
+						}
+					],
+					"flags": 1,
+					"name": "get_channel_size",
+					"return_class_name": "",
+					"return_type": 2,
+					"return_type_name": "int"
+				},
+				{
+					"args": [
+						{
+							"class_name": "RefCounted",
+							"name": "ch",
+							"type": 24,
+							"type_name": "Object"
+						}
+					],
+					"flags": 1,
+					"name": "is_channel_empty",
+					"return_class_name": "",
+					"return_type": 1,
+					"return_type_name": "bool"
+				},
+				{
+					"args": [
+						{
+							"class_name": "RefCounted",
+							"name": "ch",
+							"type": 24,
+							"type_name": "Object"
+						}
+					],
+					"flags": 1,
+					"name": "is_channel_full",
+					"return_class_name": "",
+					"return_type": 1,
+					"return_type_name": "bool"
+				},
+				{
+					"args": [
+						{
+							"class_name": "RefCounted",
+							"name": "ch",
+							"type": 24,
+							"type_name": "Object"
+						}
+					],
+					"flags": 1,
+					"name": "is_channel_closed",
+					"return_class_name": "",
+					"return_type": 1,
+					"return_type_name": "bool"
+				},
+				{
+					"args": [
+						{
+							"class_name": "RefCounted",
+							"name": "ch",
+							"type": 24,
+							"type_name": "Object"
+						}
+					],
+					"flags": 1,
+					"name": "close_channel",
+					"return_class_name": "",
+					"return_type": 0,
+					"return_type_name": "Nil"
+				},
+				{
+					"args": [
+						{
+							"class_name": "RefCounted",
+							"name": "ch",
+							"type": 24,
+							"type_name": "Object"
+						}
+					],
+					"flags": 1,
+					"name": "connect_channel_received",
+					"return_class_name": "",
+					"return_type": 1,
+					"return_type_name": "bool"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "val",
+							"type": 4,
+							"type_name": "String"
+						}
+					],
+					"flags": 1,
+					"name": "_on_channel_received",
+					"return_class_name": "",
+					"return_type": 0,
+					"return_type_name": "Nil"
+				},
+				{
+					"args": [
+						{
+							"class_name": "Node",
+							"name": "crystal_node",
+							"type": 24,
+							"type_name": "Object"
+						}
+					],
+					"flags": 1,
+					"name": "connect_crystal_signals",
+					"return_class_name": "",
+					"return_type": 1,
+					"return_type_name": "bool"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "msg",
+							"type": 4,
+							"type_name": "String"
+						}
+					],
+					"flags": 1,
+					"name": "_on_crystal_event",
+					"return_class_name": "",
+					"return_type": 0,
+					"return_type_name": "Nil"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "current",
+							"type": 2,
+							"type_name": "int"
+						},
+						{
+							"class_name": "",
+							"name": "max_val",
+							"type": 2,
+							"type_name": "int"
+						}
+					],
+					"flags": 1,
+					"name": "_on_health_changed",
+					"return_class_name": "",
+					"return_type": 0,
+					"return_type_name": "Nil"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "text",
+							"type": 4,
+							"type_name": "String"
+						}
+					],
+					"flags": 1,
+					"name": "_on_data_transferred",
+					"return_class_name": "",
+					"return_type": 0,
+					"return_type_name": "Nil"
+				},
+				{
+					"args": [
+						{
+							"class_name": "Node",
+							"name": "crystal_node",
+							"type": 24,
+							"type_name": "Object"
+						},
+						{
+							"class_name": "",
+							"name": "signal_name",
+							"type": 4,
+							"type_name": "String"
+						},
+						{
+							"class_name": "",
+							"name": "arg",
+							"type": 4,
+							"type_name": "String"
+						}
+					],
+					"flags": 1,
+					"name": "emit_crystal_node_signal",
+					"return_class_name": "",
+					"return_type": 0,
+					"return_type_name": "Nil"
+				},
+				{
+					"args": [
+						{
+							"class_name": "Node",
+							"name": "node",
+							"type": 24,
+							"type_name": "Object"
+						},
+						{
+							"class_name": "",
+							"name": "prop_name",
+							"type": 4,
+							"type_name": "String"
+						}
+					],
+					"flags": 1,
+					"name": "find_property_in_list",
+					"return_class_name": "",
+					"return_type": 27,
+					"return_type_name": "Dictionary"
+				},
+				{
+					"args": [
+						{
+							"class_name": "Node",
+							"name": "node",
+							"type": 24,
+							"type_name": "Object"
+						},
+						{
+							"class_name": "",
+							"name": "prop_name",
+							"type": 4,
+							"type_name": "String"
+						}
+					],
+					"flags": 1,
+					"name": "inspect_property_val",
+					"return_class_name": "",
+					"return_type": 0,
+					"return_type_name": "Nil"
+				},
+				{
+					"args": [
+						{
+							"class_name": "Node",
+							"name": "node",
+							"type": 24,
+							"type_name": "Object"
+						},
+						{
+							"class_name": "",
+							"name": "prop_name",
+							"type": 4,
+							"type_name": "String"
+						},
+						{
+							"class_name": "",
+							"name": "val",
+							"type": 0,
+							"type_name": "Nil"
+						}
+					],
+					"flags": 1,
+					"name": "set_property_val",
+					"return_class_name": "",
+					"return_type": 1,
+					"return_type_name": "bool"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "scene_path",
+							"type": 4,
+							"type_name": "String"
+						}
+					],
+					"flags": 1,
+					"name": "load_and_inspect_crystal_scene",
+					"return_class_name": "",
+					"return_type": 27,
+					"return_type_name": "Dictionary"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "scene_path",
+							"type": 4,
+							"type_name": "String"
+						}
+					],
+					"flags": 1,
+					"name": "verify_crystal_scene_properties",
+					"return_class_name": "",
+					"return_type": 1,
+					"return_type_name": "bool"
+				},
+				{
+					"args": [
+						{
+							"class_name": "RefCounted",
+							"name": "ch1",
+							"type": 24,
+							"type_name": "Object"
+						},
+						{
+							"class_name": "RefCounted",
+							"name": "ch2",
+							"type": 24,
+							"type_name": "Object"
+						}
+					],
+					"flags": 1,
+					"name": "select_channel_from_pair",
+					"return_class_name": "RefCounted",
+					"return_type": 24,
+					"return_type_name": "Object"
+				},
+				{
+					"args": [
+						{
+							"class_name": "RefCounted",
+							"name": "ch1",
+							"type": 24,
+							"type_name": "Object"
+						},
+						{
+							"class_name": "RefCounted",
+							"name": "ch2",
+							"type": 24,
+							"type_name": "Object"
+						}
+					],
+					"flags": 1,
+					"name": "setup_channel_pair_listener",
+					"return_class_name": "",
+					"return_type": 0,
+					"return_type_name": "Nil"
+				},
+				{
+					"args": [
+						{
+							"class_name": "Node",
+							"name": "node",
+							"type": 24,
+							"type_name": "Object"
+						}
+					],
+					"flags": 1,
+					"name": "get_crystal_node_count",
+					"return_class_name": "",
+					"return_type": 2,
+					"return_type_name": "int"
+				},
+				{
+					"args": [
+						{
+							"class_name": "Node",
+							"name": "node",
+							"type": 24,
+							"type_name": "Object"
+						},
+						{
+							"class_name": "",
+							"name": "val",
+							"type": 2,
+							"type_name": "int"
+						}
+					],
+					"flags": 1,
+					"name": "set_crystal_node_count",
+					"return_class_name": "",
+					"return_type": 1,
+					"return_type_name": "bool"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "channels",
+							"type": 28,
+							"type_name": "Array"
+						}
+					],
+					"flags": 1,
+					"name": "select_channel_nonblocking",
+					"return_class_name": "",
+					"return_type": 28,
+					"return_type_name": "Array"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "channels",
+							"type": 28,
+							"type_name": "Array"
+						},
+						{
+							"class_name": "",
+							"name": "timeout_sec",
+							"type": 3,
+							"type_name": "float"
+						}
+					],
+					"flags": 1,
+					"name": "await_channel_select",
+					"return_class_name": "",
+					"return_type": 28,
+					"return_type_name": "Array"
+				},
+				{
+					"args": [
+						{
+							"class_name": "RefCounted",
+							"name": "ch",
+							"type": 24,
+							"type_name": "Object"
+						},
+						{
+							"class_name": "",
+							"name": "count",
+							"type": 2,
+							"type_name": "int"
+						},
+						{
+							"class_name": "",
+							"name": "prefix",
+							"type": 4,
+							"type_name": "String"
+						}
+					],
+					"flags": 1,
+					"name": "start_worker_thread_channel_producer",
+					"return_class_name": "",
+					"return_type": 2,
+					"return_type_name": "int"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "task_id",
+							"type": 2,
+							"type_name": "int"
+						}
+					],
+					"flags": 1,
+					"name": "is_worker_task_completed",
+					"return_class_name": "",
+					"return_type": 1,
+					"return_type_name": "bool"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "task_id",
+							"type": 2,
+							"type_name": "int"
+						}
+					],
+					"flags": 1,
+					"name": "wait_for_worker_task",
+					"return_class_name": "",
+					"return_type": 0,
+					"return_type_name": "Nil"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "dict",
+							"type": 27,
+							"type_name": "Dictionary"
+						}
+					],
+					"flags": 1,
+					"name": "mutate_dictionary",
+					"return_class_name": "",
+					"return_type": 27,
+					"return_type_name": "Dictionary"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "arr",
+							"type": 28,
+							"type_name": "Array"
+						}
+					],
+					"flags": 1,
+					"name": "mutate_array",
+					"return_class_name": "",
+					"return_type": 28,
+					"return_type_name": "Array"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "cb",
+							"type": 25,
+							"type_name": "Callable"
+						},
+						{
+							"class_name": "",
+							"name": "arg",
+							"type": 4,
+							"type_name": "String"
+						}
+					],
+					"flags": 1,
+					"name": "invoke_callable",
+					"return_class_name": "",
+					"return_type": 0,
+					"return_type_name": "Nil"
+				},
+				{
+					"args": [
+						{
+							"class_name": "RefCounted",
+							"name": "ch",
+							"type": 24,
+							"type_name": "Object"
+						}
+					],
+					"flags": 1,
+					"name": "drain_channel_async",
+					"return_class_name": "",
+					"return_type": 28,
+					"return_type_name": "Array"
+				}
+			],
+			"name": "InteropController",
+			"path": "res://scripts/interop_controller.gd",
+			"properties": [
+				{
+					"class_name": "",
+					"hint": 0,
+					"hint_string": "",
+					"name": "counter",
+					"type": 2,
+					"type_name": "int"
+				},
+				{
+					"class_name": "",
+					"hint": 0,
+					"hint_string": "",
+					"name": "received_node_name",
+					"type": 4,
+					"type_name": "String"
+				},
+				{
+					"class_name": "",
+					"hint": 0,
+					"hint_string": "",
+					"name": "channel_received_count",
+					"type": 2,
+					"type_name": "int"
+				},
+				{
+					"class_name": "",
+					"hint": 0,
+					"hint_string": "",
+					"name": "last_channel_received_val",
+					"type": 4,
+					"type_name": "String"
+				},
+				{
+					"class_name": "",
+					"hint": 0,
+					"hint_string": "",
+					"name": "last_crystal_signal_name",
+					"type": 4,
+					"type_name": "String"
+				},
+				{
+					"class_name": "",
+					"hint": 0,
+					"hint_string": "",
+					"name": "last_crystal_signal_data",
+					"type": 4,
+					"type_name": "String"
+				},
+				{
+					"class_name": "",
+					"hint": 0,
+					"hint_string": "",
+					"name": "signal_call_count",
+					"type": 2,
+					"type_name": "int"
+				},
+				{
+					"class_name": "",
+					"hint": 0,
+					"hint_string": "",
+					"name": "last_selected_channel_value",
+					"type": 4,
+					"type_name": "String"
+				},
+				{
+					"class_name": "",
+					"hint": 0,
+					"hint_string": "",
+					"name": "last_channel_pair_val",
+					"type": 4,
+					"type_name": "String"
+				},
+				{
+					"class_name": "",
+					"hint": 0,
+					"hint_string": "",
+					"name": "last_channel_pair_id",
+					"type": 2,
+					"type_name": "int"
+				}
+			],
+			"signals": [
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "val",
+							"type": 2,
+							"type_name": "int"
+						}
+					],
+					"name": "gd_ping"
+				},
+				{
+					"args": [
+						{
+							"class_name": "",
+							"name": "msg",
+							"type": 4,
+							"type_name": "String"
+						}
+					],
+					"name": "gd_pong"
+				},
+				{
+					"args": [
+						{
+							"class_name": "RefCounted",
+							"name": "ch",
+							"type": 24,
+							"type_name": "Object"
+						},
+						{
+							"class_name": "",
+							"name": "val",
+							"type": 4,
+							"type_name": "String"
+						}
+					],
+					"name": "channel_select_completed"
+				}
+			]
+		}
+	],
+	"plugin_classes": [],
+	"project_name": "LibGodot Test Suite"
+}
