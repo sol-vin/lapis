@@ -1,4 +1,5 @@
 require "./types"
+require "./macros/annotations"
 
 module Godot
   # Returns true if the code is currently executing inside the Godot Editor
@@ -602,6 +603,175 @@ module Godot
       else
         @instance_id = 0_u64
       end
+    end
+
+    macro inherited
+      {% if @type.annotation(::GodotClass) %}
+        {% unless @type.class.methods.map(&.name.stringify).includes?("godot_class_name") %}
+          def self.godot_class_name : String
+            {{ @type.name.stringify.split("::").last }}
+          end
+
+          def self.godot_parent_class_name : String
+            {{ @type.superclass ? @type.superclass.name.stringify.split("::").last : "Object" }}
+          end
+
+          def self._godot_has_virtual_method(method_name : String) : Bool
+            norm = method_name.starts_with?('_') ? method_name : "_#{method_name}"
+            \{% for m in @type.methods %}
+              \{% if m.name.stringify.starts_with?("_") %}
+                return true if norm == \{{ m.name.stringify }}
+              \{% end %}
+            \{% end %}
+            super
+          end
+
+          def _godot_call_virtual(method_name : String, delta : Float64) : Void
+            case method_name
+            when "_enter_tree"
+              _enter_tree if responds_to?(:_enter_tree)
+            when "_exit_tree"
+              _exit_tree if responds_to?(:_exit_tree)
+            when "_ready"
+              _ready if responds_to?(:_ready)
+            when "_process"
+              ::Godot::ThreadSafety.flush_main_thread_queue!
+              _process(delta) if responds_to?(:_process)
+            when "_physics_process"
+              ::Godot::ThreadSafety.flush_main_thread_queue!
+              _physics_process(delta) if responds_to?(:_physics_process)
+            else
+              super
+            end
+          end
+
+          def _godot_set_property(prop_name : String, val_ptr : Void*) : Void
+            \{% for ivar in @type.instance_vars %}
+              \{% if ivar.annotation(::Export) %}
+                if prop_name == \{{ ivar.name.stringify }}
+                  \{% ivar_type = ivar.type.stringify.gsub(/^(::)?Godot::/, "") %}
+                  \{% if ivar_type == "Float32" %}
+                    self.\{{ ivar.name.id }} = val_ptr.as(Float64*).value.to_f32
+                  \{% elsif ivar_type == "Float64" %}
+                    self.\{{ ivar.name.id }} = val_ptr.as(Float64*).value
+                  \{% elsif ivar_type == "Int32" %}
+                    self.\{{ ivar.name.id }} = val_ptr.as(Int64*).value.to_i32
+                  \{% elsif ivar_type == "Int64" %}
+                    self.\{{ ivar.name.id }} = val_ptr.as(Int64*).value
+                  \{% elsif ivar_type == "Bool" %}
+                    self.\{{ ivar.name.id }} = val_ptr.as(UInt8*).value != 0_u8
+                  \{% elsif ivar_type == "String" %}
+                    c_str = val_ptr.as(Pointer(UInt8)*).value
+                    self.\{{ ivar.name.id }} = c_str.null? ? "" : String.new(c_str)
+                  \{% elsif ivar_type == "Vector2" %}
+                    self.\{{ ivar.name.id }} = val_ptr.as(::Godot::Vector2*).value
+                  \{% elsif ivar_type == "Vector3" %}
+                    self.\{{ ivar.name.id }} = val_ptr.as(::Godot::Vector3*).value
+                  \{% elsif ivar_type == "Color" %}
+                    self.\{{ ivar.name.id }} = val_ptr.as(::Godot::Color*).value
+                  \{% end %}
+                  return
+                end
+              \{% end %}
+            \{% end %}
+            super
+          end
+
+          def _godot_get_property(prop_name : String, ret_ptr : Void*) : Void
+            \{% for ivar in @type.instance_vars %}
+              \{% if ivar.annotation(::Export) %}
+                if prop_name == \{{ ivar.name.stringify }}
+                  \{% ivar_type = ivar.type.stringify.gsub(/^(::)?Godot::/, "") %}
+                  \{% if ivar_type == "Float32" || ivar_type == "Float64" %}
+                    ret_ptr.as(Float64*).value = self.\{{ ivar.name.id }}.to_f64
+                  \{% elsif ivar_type == "Int32" || ivar_type == "Int64" %}
+                    ret_ptr.as(Int64*).value = self.\{{ ivar.name.id }}.to_i64
+                  \{% elsif ivar_type == "Bool" %}
+                    ret_ptr.as(UInt8*).value = self.\{{ ivar.name.id }} ? 1_u8 : 0_u8
+                  \{% elsif ivar_type == "String" %}
+                    ret_ptr.as(Pointer(UInt8)*).value = self.\{{ ivar.name.id }}.to_unsafe
+                  \{% elsif ivar_type == "Vector2" %}
+                    ret_ptr.as(::Godot::Vector2*).value = self.\{{ ivar.name.id }}
+                  \{% elsif ivar_type == "Vector3" %}
+                    ret_ptr.as(::Godot::Vector3*).value = self.\{{ ivar.name.id }}
+                  \{% elsif ivar_type == "Color" %}
+                    ret_ptr.as(::Godot::Color*).value = self.\{{ ivar.name.id }}
+                  \{% end %}
+                  return
+                end
+              \{% end %}
+            \{% end %}
+            super
+          end
+
+          def self._godot_auto_register_class : Void
+            props = ::Array(::Godot::PropertyInfo).new
+            \{% for ivar in @type.instance_vars %}
+              \{% if ivar.annotation(::Export) %}
+                \{% ivar_type = ivar.type.stringify.gsub(/^(::)?Godot::/, "") %}
+                \{%
+                  vtype = 0
+                  if ivar_type == "Bool"
+                    vtype = 1
+                  elsif ivar_type == "Int32" || ivar_type == "Int64"
+                    vtype = 2
+                  elsif ivar_type == "Float32" || ivar_type == "Float64"
+                    vtype = 3
+                  elsif ivar_type == "String"
+                    vtype = 4
+                  elsif ivar_type == "Vector2"
+                    vtype = 5
+                  elsif ivar_type == "Vector3"
+                    vtype = 9
+                  elsif ivar_type == "Color"
+                    vtype = 20
+                  end
+                %}
+                props << ::Godot::PropertyInfo.new(
+                  \{{ ivar.name.stringify }},
+                  \{{ ivar_type }},
+                  \{{ vtype }},
+                  0_u32,
+                  "",
+                  6_u32
+                )
+              \{% end %}
+            \{% end %}
+
+            is_tool_class = \{{ @type.annotation(::Tool) != nil }}
+            base_name = \{{ @type.superclass ? @type.superclass.name.stringify.split("::").last : "Object" }}
+
+            ::Godot::ClassRegistry.register(
+              ::Godot::ClassRegistry::Entry.new(
+                \{{ @type.name.stringify.split("::").last }},
+                base_name,
+                ->(godot_ptr : Void*) {
+                  inst = \{{@type}}.new
+                  inst.pointer = godot_ptr
+                  inst.as(::Godot::Object)
+                },
+                is_tool_class,
+                _godot_has_virtual_method("_ready"),
+                _godot_has_virtual_method("_process"),
+                _godot_has_virtual_method("_physics_process"),
+                _godot_has_virtual_method("_enter_tree"),
+                _godot_has_virtual_method("_exit_tree"),
+                _godot_has_virtual_method("_input"),
+                _godot_has_virtual_method("_unhandled_input"),
+                _godot_has_virtual_method("_unhandled_key_input"),
+                _godot_has_virtual_method("_shortcut_input"),
+                _godot_has_virtual_method("_gui_input"),
+                props,
+                ::Array(::Godot::SignalInfo).new,
+                "",
+                false,
+                ([] of NamedTuple(name: String, rpc_mode: Int32, transfer_mode: Int32, call_local: Bool, channel: Int32)),
+                has_virtual_proc: ->(m : String) { _godot_has_virtual_method(m) }
+              )
+            )
+          end
+        {% end %}
+      {% end %}
     end
 
     # Idiomatic Crystal pointer conversion

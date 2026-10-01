@@ -719,7 +719,7 @@ module Lapis
         ret.as(UInt8*).value = (t == "CrystalScript" || t == "Crystal") ? 1_u8 : 0_u8
       when "_get_global_class_name"
         path = Bridge.arg_to_string(args[0])
-        clean_path = path.sub(/^res:\/\//, "").lstrip('/')
+        clean_path = path.sub(/^res:\/\//, "").lstrip('/').gsub('\\', '/')
         if !clean_path.downcase.ends_with?(".cr") ||
            clean_path.starts_with?("src/") ||
            clean_path.starts_with?("addons/") ||

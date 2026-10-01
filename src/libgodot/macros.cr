@@ -159,6 +159,27 @@ module Godot
     {% end %}
 
     def self.register(entry : Entry)
+      if existing = find(entry.class_name)
+        existing.properties.concat(entry.properties)
+        existing.signals.concat(entry.signals)
+        existing.constants.concat(entry.constants)
+        existing.rpc_methods.concat(entry.rpc_methods)
+        existing.is_tool ||= entry.is_tool
+        existing.has_ready ||= entry.has_ready
+        existing.has_process ||= entry.has_process
+        existing.has_physics_process ||= entry.has_physics_process
+        existing.has_enter_tree ||= entry.has_enter_tree
+        existing.has_exit_tree ||= entry.has_exit_tree
+        existing.has_input ||= entry.has_input
+        existing.has_unhandled_input ||= entry.has_unhandled_input
+        existing.has_unhandled_key_input ||= entry.has_unhandled_key_input
+        existing.has_shortcut_input ||= entry.has_shortcut_input
+        existing.has_gui_input ||= entry.has_gui_input
+        if existing.script_path.empty? && !entry.script_path.empty?
+          existing.script_path = entry.script_path
+        end
+        return
+      end
       if parent = find(entry.parent_name)
         entry.is_tool ||= parent.is_tool
         entry.has_ready ||= parent.has_ready
@@ -218,9 +239,15 @@ macro node2d(decl, &block)
       {{block.body}}
     end
   {% else %}
-    node {{decl}} < Godot::Node2D do
-      {{block.body}}
-    end
+    {% if decl.resolve? %}
+      node {{decl}} do
+        {{block.body}}
+      end
+    {% else %}
+      node {{decl}} < Godot::Node2D do
+        {{block.body}}
+      end
+    {% end %}
   {% end %}
 end
 
@@ -236,9 +263,15 @@ macro node3d(decl, &block)
       {{block.body}}
     end
   {% else %}
-    node {{decl}} < Godot::Node3D do
-      {{block.body}}
-    end
+    {% if decl.resolve? %}
+      node {{decl}} do
+        {{block.body}}
+      end
+    {% else %}
+      node {{decl}} < Godot::Node3D do
+        {{block.body}}
+      end
+    {% end %}
   {% end %}
 end
 
@@ -266,6 +299,7 @@ macro node(decl, &block)
     {% parent_name = "Godot::Node".id %}
     {% base_godot_name = "Node" %}
   {% end %}
+  {% is_reopen = class_name.resolve? != nil %}
 
   {%
     has_ready = false
@@ -918,7 +952,7 @@ macro node(decl, &block)
   %}
 
   @[GodotClass]
-  class {{class_name}} < {{parent_name}}
+  class {{class_name}} {% unless is_reopen %} < {{parent_name}} {% end %}
     def self.godot_class_name : String
       "{{class_name}}"
     end
@@ -942,7 +976,11 @@ macro node(decl, &block)
         {% end %}
       {% end %}
       else
-        super
+        {% if is_reopen %}
+          previous_def
+        {% else %}
+          super
+        {% end %}
       end
     end
 
@@ -1062,7 +1100,11 @@ macro node(decl, &block)
           ::Godot::ThreadSafety.flush_main_thread_queue!
           _physics_process(delta) if responds_to?(:_physics_process)
         else
-          super
+          {% if is_reopen %}
+            previous_def
+          {% else %}
+            super
+          {% end %}
         end
       end
     end
@@ -1102,7 +1144,11 @@ macro node(decl, &block)
           end
         {% end %}
         else
-          super
+          {% if is_reopen %}
+            previous_def
+          {% else %}
+            super
+          {% end %}
         end
       end
     end
@@ -1118,7 +1164,11 @@ macro node(decl, &block)
           Pointer(Void).null
         {% end %}
         else
-          super
+          {% if is_reopen %}
+            previous_def
+          {% else %}
+            super
+          {% end %}
         end
       end
     end
@@ -1165,7 +1215,11 @@ macro node(decl, &block)
         {% end %}
       {% end %}
       else
-        super
+        {% if is_reopen %}
+          previous_def
+        {% else %}
+          super
+        {% end %}
       end
     end
 
@@ -1205,7 +1259,11 @@ macro node(decl, &block)
         {% end %}
       {% end %}
       else
-        super
+        {% if is_reopen %}
+          previous_def
+        {% else %}
+          super
+        {% end %}
       end
     end
 
@@ -1222,7 +1280,11 @@ macro node(decl, &block)
         {% end %}
       {% end %}
       else
-        super
+        {% if is_reopen %}
+          previous_def
+        {% else %}
+          super
+        {% end %}
       end
     end
 
@@ -1998,9 +2060,15 @@ macro resource(decl, &block)
       {{yield}}
     end
   {% else %}
-    node {{decl}} < Resource do
-      {{yield}}
-    end
+    {% if decl.resolve? %}
+      node {{decl}} do
+        {{yield}}
+      end
+    {% else %}
+      node {{decl}} < Resource do
+        {{yield}}
+      end
+    {% end %}
   {% end %}
 end
 
@@ -2027,9 +2095,15 @@ macro gdclass(decl, &block)
       {{yield}}
     end
   {% else %}
-    node {{decl}} < RefCounted do
-      {{yield}}
-    end
+    {% if decl.resolve? %}
+      node {{decl}} do
+        {{yield}}
+      end
+    {% else %}
+      node {{decl}} < RefCounted do
+        {{yield}}
+      end
+    {% end %}
   {% end %}
 end
 
@@ -2568,4 +2642,15 @@ macro godot_module(decl)
   gmodule {{decl}} do
   end
 end
+
+macro finished
+  {% for klass in ::Godot::Object.all_subclasses %}
+    {% if klass.annotation(::GodotClass) %}
+      {% if klass.class.methods.map(&.name.stringify).includes?("_godot_auto_register_class") %}
+        {{klass}}._godot_auto_register_class
+      {% end %}
+    {% end %}
+  {% end %}
+end
+
 

@@ -87,6 +87,39 @@ node TypedSignalTestEmitterNode < Godot::Node do
   signal transform_updated(pos : Godot::Vector2, tint : Godot::Color)
 end
 
+# Primary definition of ContextAwareMonkeypatchTestNode
+node ContextAwareMonkeypatchTestNode < Godot::Node do
+  @[Export]
+  property first_prop : Int32 = 10
+end
+
+# Reopening 1: extending with second_prop and signal
+node ContextAwareMonkeypatchTestNode do
+  @[Export]
+  property second_prop : Float32 = 20.5_f32
+
+  signal reopened_signal(val : Int32)
+end
+
+# Reopening 2: extending with third_prop
+node ContextAwareMonkeypatchTestNode do
+  @[Export]
+  property third_prop : String = "DefaultValue"
+end
+
+# Traditional class using @[GodotClass] without macro wrappers
+@[GodotClass]
+class TraditionalGodotPlayer < Godot::Node2D
+  @[Export]
+  property jump_velocity : Float32 = 400.0_f32
+
+  @[Export]
+  property character_name : String = "Adventurer"
+
+  def _ready : Void
+  end
+end
+
 @[Flags]
 enum DslTestSkills
   Melee   = 1
@@ -964,6 +997,49 @@ end
     container.remove_child(target)
     target.destroy
     container.destroy
+  end
+
+  test "Context-aware node reopening aggregates properties and signals in ClassRegistry" do
+    entry = Godot::ClassRegistry.find("ContextAwareMonkeypatchTestNode")
+    assert_not_nil entry, "Expected ContextAwareMonkeypatchTestNode to be registered in ClassRegistry"
+    e = entry.not_nil!
+
+    prop_names = e.properties.map(&.name)
+    assert_true prop_names.includes?("first_prop"), "Expected first_prop from initial definition"
+    assert_true prop_names.includes?("second_prop"), "Expected second_prop from reopened definition"
+    assert_true prop_names.includes?("third_prop"), "Expected third_prop from second reopened definition"
+
+    sig_names = e.signals.map(&.name)
+    assert_true sig_names.includes?("reopened_signal"), "Expected reopened_signal to be registered"
+
+    # Instantiate node and verify multi-block dispatch
+    inst = ContextAwareMonkeypatchTestNode.new
+    inst.first_prop = 42
+    inst.second_prop = 88.5_f32
+    inst.third_prop = "ReopenedSuccessfully"
+    assert_eq inst.first_prop, 42
+    assert_approx_eq inst.second_prop, 88.5_f32
+    assert_eq inst.third_prop, "ReopenedSuccessfully"
+  end
+
+  test "Traditional @[GodotClass] syntax auto-registers class into ClassRegistry" do
+    entry = Godot::ClassRegistry.find("TraditionalGodotPlayer")
+    assert_not_nil entry, "Expected TraditionalGodotPlayer to be registered in ClassRegistry"
+    e = entry.not_nil!
+
+    assert_eq e.class_name, "TraditionalGodotPlayer"
+    assert_eq e.parent_name, "Node2D"
+    assert_true e.has_ready, "Expected has_ready to be true from _ready method"
+
+    prop_names = e.properties.map(&.name)
+    assert_true prop_names.includes?("jump_velocity"), "Expected jump_velocity in exported properties"
+    assert_true prop_names.includes?("character_name"), "Expected character_name in exported properties"
+
+    player = TraditionalGodotPlayer.new
+    player.jump_velocity = 550.0_f32
+    player.character_name = "Sir Lapis"
+    assert_approx_eq player.jump_velocity, 550.0_f32
+    assert_eq player.character_name, "Sir Lapis"
   end
 
 end

@@ -479,6 +479,8 @@ require "../spec/suites/test_cameras_viewports_canvas"
 # Physics, Collision & Raycasting
 require "../spec/suites/test_physics_shapes"
 require "../spec/suites/test_physics_simulation_raycast"
+require "../spec/suites/test_physics_multiframe_pit_settling"
+require "../spec/suites/test_physics_cube_stack_stability"
 
 # Audio, Animation & Tweens
 require "../spec/suites/test_audio_animation"
