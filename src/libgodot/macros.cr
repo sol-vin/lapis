@@ -160,10 +160,18 @@ module Godot
 
     def self.register(entry : Entry)
       if existing = find(entry.class_name)
-        existing.properties.concat(entry.properties)
-        existing.signals.concat(entry.signals)
-        existing.constants.concat(entry.constants)
-        existing.rpc_methods.concat(entry.rpc_methods)
+        entry.properties.each do |p|
+          existing.properties << p unless existing.properties.any? { |ep| ep.name == p.name }
+        end
+        entry.signals.each do |s|
+          existing.signals << s unless existing.signals.any? { |es| es.name == s.name }
+        end
+        entry.constants.each do |c|
+          existing.constants << c unless existing.constants.any? { |ec| ec.name == c.name }
+        end
+        entry.rpc_methods.each do |r|
+          existing.rpc_methods << r unless existing.rpc_methods.any? { |er| er[:name] == r[:name] }
+        end
         existing.is_tool ||= entry.is_tool
         existing.has_ready ||= entry.has_ready
         existing.has_process ||= entry.has_process

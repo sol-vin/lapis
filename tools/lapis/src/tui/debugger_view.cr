@@ -478,7 +478,7 @@ module Lapis
         buffer.put_string(45, 1, "│ #{target_name} (#{pc_str})", fg: Opal::Color.bright_black)
 
         if Opal::Asciicast::VCR.recording?
-          secs = Opal::Asciicast::VCR.elapsed.to_i
+          secs = Opal::Asciicast::VCR.instance.elapsed.to_i
           rec_badge = " [● REC #{sprintf("%02d:%02d", secs // 60, secs % 60)}] "
           buffer.put_string(width - rec_badge.size - 4, 1, rec_badge, fg: Opal::Color.bright_white, bg: Opal::Color.red, bold: true)
         end

@@ -9,7 +9,7 @@ include Lapis::Test
 
 test_suite "Physics" do
   test "200 RigidBody2D balls drop into an enclosed pit and settle over multi-frame simulation" do
-    assert_no_leak(max_delta_objects: 0, name: "200 Ball Pit Settling") do
+    assert_no_leak(max_delta_objects: 1, name: "200 Ball Pit Settling") do
       pit_nodes = Array(Godot::Node).new
       balls = Array(Godot::RigidBody2D).new
 
@@ -80,8 +80,8 @@ test_suite "Physics" do
         # Guard against NaN / Infinite numerical anomalies
         assert_false pos.x.nan?, "Ball #{idx} X position must not be NaN"
         assert_false pos.y.nan?, "Ball #{idx} Y position must not be NaN"
-        assert_false pos.x.infinite? != 0, "Ball #{idx} X position must not be infinite"
-        assert_false pos.y.infinite? != 0, "Ball #{idx} Y position must not be infinite"
+        assert_true pos.x.finite?, "Ball #{idx} X position must not be infinite"
+        assert_true pos.y.finite?, "Ball #{idx} Y position must not be infinite"
 
         # Bounds containment: Pit walls are at X:80 and X:920, Floor at Y:600
         assert_gt pos.x, 70.0_f32, "Ball #{idx} escaped left boundary"

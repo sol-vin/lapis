@@ -1,6 +1,16 @@
 require "opal"
 require "opal/asciicast"
 
+class Opal::Asciicast::VCR
+  def self.elapsed : Float64
+    instance.elapsed
+  end
+
+  def self.frame_count : Int32
+    instance.frame_count
+  end
+end
+
 module Lapis
   module TUI
     enum PhaseStatus

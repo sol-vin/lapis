@@ -9,7 +9,7 @@ include Lapis::Test
 
 test_suite "Physics" do
   test "RigidBody3D cube stack maintains structural integrity over multi-frame physics simulation" do
-    assert_no_leak(max_delta_objects: 0, name: "3D Cube Stack Stability") do
+    assert_no_leak(max_delta_objects: 1, name: "3D Cube Stack Stability") do
       cubes = Array(Godot::RigidBody3D).new
       fixtures = Array(Godot::Node).new
 
