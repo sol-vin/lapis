@@ -5,11 +5,13 @@ require "./canvas"
 require "./views/header_view"
 require "./views/phases_view"
 require "./views/log_view"
+require "./views/failures_view"
+require "./views/breakdown_view"
+require "./views/telemetry_view"
+require "./views/benchmarks_view"
 require "./views/detail_modal"
-require "./views/theme_modal"
 require "./views/file_modal"
 require "./views/footer_view"
-require "./views/benchmarks_view"
 
 module Lapis
   module TUI
@@ -41,9 +43,6 @@ module Lapis
         # Render Opal UI interactive elements directly onto buffer if modal active
         render_opal_modals(opal_buffer, state, theme_rect, file_rect)
 
-        # Apply Text Shader FX post-processing if enabled
-        apply_shader_fx(opal_buffer, state)
-
         # Feed frame into Asciicast ScreenRecorder if recording is active
         if state.recording? && (rec = state.recorder)
           rec.capture_frame(opal_buffer)
@@ -58,14 +57,9 @@ module Lapis
         w = Math.max(40, width - 1)
         h = Math.max(12, height - 1)
         canvas, theme_rect, file_rect = build_canvas_with_overlays(state, w, h)
-        if state.current_view == ViewMode::ColorStudio || state.current_view == ViewMode::FileExplorer
+        if state.current_view == ViewMode::FileExplorer
           opal_buffer = canvas.to_opal_buffer
           render_opal_modals(opal_buffer, state, theme_rect, file_rect)
-          apply_shader_fx(opal_buffer, state) if state.shader_fx != ShaderFxMode::None
-          return opal_buffer.render_to_string
-        elsif state.shader_fx != ShaderFxMode::None
-          opal_buffer = canvas.to_opal_buffer
-          apply_shader_fx(opal_buffer, state)
           return opal_buffer.render_to_string
         end
         canvas.render_to_string
@@ -121,8 +115,6 @@ module Lapis
         # 4. Modals (rendered on top with backdrop if active)
         if state.current_view == ViewMode::PhaseDetail
           Views::DetailModal.draw(canvas, state, w, h)
-        elsif state.current_view == ViewMode::ColorStudio
-          theme_rect = Views::ThemeModal.draw(canvas, state, w, h)
         elsif state.current_view == ViewMode::FileExplorer
           file_rect = Views::FileModal.draw(canvas, state, w, h)
         elsif state.current_view == ViewMode::Help
@@ -138,57 +130,11 @@ module Lapis
         theme_rect : {Int32, Int32, Int32, Int32},
         file_rect : {Int32, Int32, Int32, Int32}
       ) : Nil
-        if state.current_view == ViewMode::ColorStudio
-          tx, ty, tw, th = theme_rect
-          if tw > 0 && th > 0
-            if state.use_3d_color_picker
-              state.color_picker_3d.render(buffer, tx, ty, tw, th)
-            else
-              state.color_picker.render(buffer, tx, ty, tw, th)
-            end
-          end
-        elsif state.current_view == ViewMode::FileExplorer
+        if state.current_view == ViewMode::FileExplorer
           fx, fy, fw, fh = file_rect
           if fw > 0 && fh > 0
             state.file_dialog.render(buffer, fx, fy, fw, fh)
           end
-        end
-      end
-
-      private def apply_shader_fx(buffer : Opal::UI::Buffer, state : TestRunState) : Nil
-        mode = state.shader_fx
-        return if mode == ShaderFxMode::None
-
-        time = state.elapsed_seconds
-        frame = @frame_count.to_u64
-
-        case mode
-        when ShaderFxMode::Crt
-          pass = Opal::Shader::CrtPass.new(intensity: 0.22, scanline_gap: 2, flicker: true)
-          buffer.apply_shader(pass, time, frame)
-        when ShaderFxMode::Matrix
-          pass = Opal::Shader::MatrixPass.new(
-            speed: 1.2,
-            density: 0.15,
-            lead_color: state.accent_color,
-            trail_color: :green,
-            preserve_text: true
-          )
-          buffer.apply_shader(pass, time, frame)
-        when ShaderFxMode::Glitch
-          pass = Opal::Shader::GlitchPass.new(intensity: 0.25, slice_height: 3, chromatic_shift: true)
-          buffer.apply_shader(pass, time, frame)
-        when ShaderFxMode::Plasma
-          pass = Opal::Shader::PlasmaPass.new(scale: 0.25, speed: 1.6, shade_bg: false)
-          buffer.apply_shader(pass, time, frame)
-        when ShaderFxMode::Fire
-          pass = Opal::Shader::FirePass.new(speed: 1.0)
-          buffer.apply_shader(pass, time, frame)
-        when ShaderFxMode::Vignette
-          pass = Opal::Shader::VignettePass.new(radius: 0.82, falloff: 0.45)
-          buffer.apply_shader(pass, time, frame)
-        else
-          # None
         end
       end
 
@@ -222,18 +168,16 @@ module Lapis
         canvas.draw_text(box_x + 5, box_y + 7, "\e[1;97m/\e[0m                Interactive text filter & search across logs / phases", max_w: box_w - 8)
         canvas.draw_text(box_x + 5, box_y + 8, "\e[1;97mf\e[0m                Toggle live auto-scroll follow mode (on / off)", max_w: box_w - 8)
 
-        canvas.draw_text(box_x + 3, box_y + 10, "\e[1;96m[#] Opal Interactive Studio Additions:\e[0m", max_w: box_w - 6)
-        canvas.draw_text(box_x + 5, box_y + 11, "\e[1;97mt / p\e[0m            Theme Studio (2D TrueColor RGB sliders & 3D rotatable color cubes)", max_w: box_w - 8)
-        canvas.draw_text(box_x + 5, box_y + 12, "\e[1;97mo / e\e[0m            File Explorer (interactive directory browser & artifact preview)", max_w: box_w - 8)
-        canvas.draw_text(box_x + 5, box_y + 13, "\e[1;97mx\e[0m                Cycle Text Shaders (CRT scanlines, Matrix rain, Glitch, Plasma, Heat)", max_w: box_w - 8)
+        canvas.draw_text(box_x + 3, box_y + 10, "\e[1;96mTools & Explorer:\e[0m", max_w: box_w - 6)
+        canvas.draw_text(box_x + 5, box_y + 11, "\e[1;97mo / e\e[0m            File Explorer (interactive directory browser & artifact preview)", max_w: box_w - 8)
+        canvas.draw_text(box_x + 5, box_y + 12, "\e[1;97mEnter / Space\e[0m    Inspect selected phase in modal dialog", max_w: box_w - 8)
 
-        canvas.draw_text(box_x + 3, box_y + 15, "\e[1;96mActions & Screencasts:\e[0m", max_w: box_w - 6)
-        canvas.draw_text(box_x + 5, box_y + 16, "\e[1;97mEnter / Space\e[0m    Inspect selected phase in modal dialog", max_w: box_w - 8)
-        canvas.draw_text(box_x + 5, box_y + 17, "\e[1;97mCtrl+R\e[0m           Record asciicast screencast (.cast tape file)", max_w: box_w - 8)
-        canvas.draw_text(box_x + 5, box_y + 18, "\e[1;97mCtrl+S\e[0m           VCR Screenshot (ANSI + HTML saved to disk & clipboard)", max_w: box_w - 8)
-        canvas.draw_text(box_x + 5, box_y + 19, "\e[1;97mc\e[0m                Copy error excerpt or log to clipboard via OSC 52", max_w: box_w - 8)
-        canvas.draw_text(box_x + 5, box_y + 20, "\e[1;97mq\e[0m                Abort active test run / Exit dashboard", max_w: box_w - 8)
-        canvas.draw_text(box_x + 5, box_y + 21, "\e[1;97m? / Esc\e[0m          Toggle help overlay / Close active modal", max_w: box_w - 8)
+        canvas.draw_text(box_x + 3, box_y + 14, "\e[1;96mActions, Recording & Clipboard:\e[0m", max_w: box_w - 6)
+        canvas.draw_text(box_x + 5, box_y + 15, "\e[1;97mCtrl+R\e[0m           Record asciicast screencast (.cast tape file)", max_w: box_w - 8)
+        canvas.draw_text(box_x + 5, box_y + 16, "\e[1;97mCtrl+S\e[0m           VCR Screenshot (ANSI + HTML saved to disk & clipboard)", max_w: box_w - 8)
+        canvas.draw_text(box_x + 5, box_y + 17, "\e[1;97mc\e[0m                Copy error excerpt or log to clipboard via OSC 52", max_w: box_w - 8)
+        canvas.draw_text(box_x + 5, box_y + 18, "\e[1;97mq\e[0m                Abort active test run / Exit dashboard", max_w: box_w - 8)
+        canvas.draw_text(box_x + 5, box_y + 19, "\e[1;97m? / Esc\e[0m          Toggle help overlay / Close active modal", max_w: box_w - 8)
       end
     end
   end

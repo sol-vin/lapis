@@ -7,10 +7,15 @@ require "option_parser"
 module Lapis
   module Commands
     module Sync
-      def self.safe_copy(src : Path | String, dst : Path | String) : Bool
+      def self.safe_copy(src : Path | String, dst : Path | String, dry_run : Bool = false) : Bool
         return false unless File.exists?(src)
         return false if Core::Env.is_foreign_binary?(src)
         return true if File.expand_path(src.to_s) == File.expand_path(dst.to_s)
+
+        if dry_run
+          Core::Logger.info("[Dry Run] Would sync #{src} -> #{dst}")
+          return true
+        end
 
         begin
           dst_path = dst.to_s
@@ -35,9 +40,9 @@ module Lapis
       end
 
       # Sync addons directory tree recursively, preserving structure
-      def self.sync_addon_directory(src_addon : Path, dst_addon : Path)
+      def self.sync_addon_directory(src_addon : Path, dst_addon : Path, dry_run : Bool = false)
         return unless Dir.exists?(src_addon)
-        FileUtils.mkdir_p(dst_addon) unless Dir.exists?(dst_addon)
+        FileUtils.mkdir_p(dst_addon) unless dry_run || Dir.exists?(dst_addon)
 
         pattern = src_addon.to_s.gsub('\\', '/') + "/**/*"
         Dir.glob(pattern).each do |file|
@@ -48,7 +53,7 @@ module Lapis
           next if rel_str == "bin" || rel_str.starts_with?("bin/")
 
           dst_file = dst_addon.join(rel)
-          safe_copy(file, dst_file)
+          safe_copy(file, dst_file, dry_run: dry_run)
         end
       end
 
@@ -186,12 +191,14 @@ Usage: lapis sync [options]
 
 Options:
   -t, --target-bin=DIR  Explicit target bin directory to synchronize to
+  -n, --dry-run         Preview synchronization actions without modifying files
   --addons-only         Sync only GDExtension addons and manifests
   --bins-only           Sync only compiled binaries and runtime libraries
   -h, --help            Show this help screen
 
 Examples:
   lapis sync
+  lapis sync --dry-run
   lapis sync --addons-only
   lapis sync --bins-only
   lapis sync -t custom/game/bin
@@ -207,11 +214,13 @@ HELP
         target_bin : String? = nil
         addons_only = false
         bins_only = false
+        dry_run = false
 
         OptionParser.parse(args) do |parser|
           parser.banner = "Usage: lapis sync [options]"
           parser.on("-t DIR", "--target-bin=DIR", "Explicit target bin directory") { |dir| target_bin = dir }
           parser.on("--target=DIR", "Explicit target bin directory") { |dir| target_bin = dir }
+          parser.on("-n", "--dry-run", "Preview synchronization actions without modifying files") { dry_run = true }
           parser.on("--addons-only", "Sync only addons and manifests") { addons_only = true }
           parser.on("--bins-only", "Sync only compiled binaries and runtime DLLs") { bins_only = true }
           parser.on("-h", "--help", "Show help") { print_help; exit 0 }
@@ -253,7 +262,7 @@ HELP
             end
 
             addon_targets.each do |dst|
-              sync_addon_directory(src_addon, dst)
+              sync_addon_directory(src_addon, dst, dry_run: dry_run)
             end
             Core::Logger.step("Sync", "Addons and manifests synchronized across #{addon_targets.size} targets")
           end
@@ -264,12 +273,12 @@ HELP
           platform_files = Core::Env.platform_bin_files.dup
 
           # Purge foreign binaries from root bin directory
-          Core::Env.purge_foreign_binaries(bin_dir)
+          Core::Env.purge_foreign_binaries(bin_dir) unless dry_run
 
           synced_count = 0
           target_dirs.each do |dir|
             next if dir == bin_dir
-            FileUtils.mkdir_p(dir) unless Dir.exists?(dir)
+            FileUtils.mkdir_p(dir) unless dry_run || Dir.exists?(dir)
 
             dir_str = dir.to_s.gsub('\\', '/')
             is_addon_bin = dir_str.includes?("/addons/") || dir_str.ends_with?("/addons")
@@ -288,7 +297,7 @@ HELP
                       nil
                     end
 
-              if src && safe_copy(src, dir.join(bin_name))
+              if src && safe_copy(src, dir.join(bin_name), dry_run: dry_run)
                 synced_count += 1
               end
             end
@@ -296,7 +305,7 @@ HELP
             if is_addon_bin
               ["libgodot.dll", "libgodot.lib", "libgodot.so", "libgodot.dylib"].each do |lg|
                 stray = dir.join(lg)
-                File.delete(stray) if File.exists?(stray)
+                File.delete(stray) if !dry_run && File.exists?(stray)
               end
             end
 
@@ -306,12 +315,12 @@ HELP
 
             if is_crystal_integration
               src_plugin = bin_dir.join(Core::Env.plugin_file)
-              safe_copy(src_plugin, plugin_target)
+              safe_copy(src_plugin, plugin_target, dry_run: dry_run)
             else
               # Purge any stray plugin binaries from non-crystal_integration addon directories
               ["plugin.dll", "plugin.so", "plugin.dylib"].each do |p_lib|
                 stray = dir.join(p_lib)
-                File.delete(stray) if File.exists?(stray)
+                File.delete(stray) if !dry_run && File.exists?(stray)
               end
             end
 
@@ -323,7 +332,7 @@ HELP
 
                 if item.ends_with?(".cr") || item.ends_with?(".cr.uid") || item.starts_with?("~")
                   begin
-                    File.delete(full_path)
+                    File.delete(full_path) unless dry_run
                     Core::Logger.debug("Purged temporary file: #{full_path}")
                   rescue
                   end
@@ -347,14 +356,14 @@ HELP
             src_game = proj_dir.join("bin", game_file)
             if File.exists?(src_game)
               dst_game = proj_dir.join("addons/crystal_integration/bin", game_file)
-              safe_copy(src_game, dst_game)
+              safe_copy(src_game, dst_game, dry_run: dry_run)
               dst_bin_game = proj_dir.join("bin/addons/crystal_integration/bin", game_file)
-              safe_copy(src_game, dst_bin_game)
+              safe_copy(src_game, dst_bin_game, dry_run: dry_run)
               if Core::Env.windows?
                 src_pdb = proj_dir.join("bin", "game.pdb")
                 if File.exists?(src_pdb)
-                  safe_copy(src_pdb, proj_dir.join("addons/crystal_integration/bin", "game.pdb"))
-                  safe_copy(src_pdb, proj_dir.join("bin/addons/crystal_integration/bin", "game.pdb"))
+                  safe_copy(src_pdb, proj_dir.join("addons/crystal_integration/bin", "game.pdb"), dry_run: dry_run)
+                  safe_copy(src_pdb, proj_dir.join("bin/addons/crystal_integration/bin", "game.pdb"), dry_run: dry_run)
                 end
               end
             end
@@ -374,22 +383,22 @@ HELP
           proj_dir = root.join(proj)
           next unless Dir.exists?(proj_dir)
           root_gd = proj_dir.join(".gdignore")
-          File.write(root_gd, "") if (proj == "benchmarks" || proj == "godot-src") && !File.exists?(root_gd)
+          File.write(root_gd, "") if !dry_run && (proj == "benchmarks" || proj == "godot-src") && !File.exists?(root_gd)
           bin_gd = proj_dir.join("bin/.gdignore")
-          File.write(bin_gd, "") if Dir.exists?(proj_dir.join("bin")) && !File.exists?(bin_gd)
+          File.write(bin_gd, "") if !dry_run && Dir.exists?(proj_dir.join("bin")) && !File.exists?(bin_gd)
 
           if File.exists?(proj_dir.join("shard.yml")) && !Dir.exists?(proj_dir.join("lib/lapis")) && proj != "."
             if Core::BakedFileSystem.files_with_prefix("src").size > 0
               Core::Logger.step("Sync", "Extracting embedded Lapis engine library into #{proj}/lib/lapis...")
-              Core::BakedFileSystem.extract_engine_lib(proj_dir.join("lib/lapis"))
+              Core::BakedFileSystem.extract_engine_lib(proj_dir.join("lib/lapis")) unless dry_run
             elsif shards_exe = Core::ProcessRunner.find_executable("shards")
-              Core::ProcessRunner.run(shards_exe, ["install"], chdir: proj_dir.to_s)
+              Core::ProcessRunner.run(shards_exe, ["install"], chdir: proj_dir.to_s) unless dry_run
             end
           end
 
           lib_gd = proj_dir.join("lib/.gdignore")
           if Dir.exists?(proj_dir.join("lib")) && !File.exists?(lib_gd)
-            File.write(lib_gd, "")
+            File.write(lib_gd, "") unless dry_run
           end
         end
 
@@ -405,7 +414,7 @@ HELP
                 content = File.read(s_file)
                 if content.includes?("github: sol-vin/lapis")
                   updated = content.gsub(/tag:\s*[^\r\n]+/, "tag: #{ver}")
-                  File.write(s_file, updated) if updated != content
+                  File.write(s_file, updated) if !dry_run && updated != content
                 end
               end
             end
@@ -424,7 +433,7 @@ HELP
             proj_dir = root.join(proj)
             next unless Dir.exists?(proj_dir)
             dst_yml = proj_dir.join("godot-version.yml")
-            safe_copy(root_version_yml, dst_yml)
+            safe_copy(root_version_yml, dst_yml, dry_run: dry_run)
           end
         end
 
@@ -442,7 +451,7 @@ HELP
 #endif
 
 H
-          if !File.exists?(hdr) || File.read(hdr) != hdr_content
+          if !dry_run && (!File.exists?(hdr) || File.read(hdr) != hdr_content)
             File.write(hdr, hdr_content)
             Core::Logger.debug("Updated #{hdr} to #{target_ver}")
           end
@@ -484,7 +493,7 @@ H
             "- **Godot Engine**: #{godot_ver}+ (Standard build, 64-bit)"
           )
 
-          if updated_readme != readme_content
+          if !dry_run && updated_readme != readme_content
             File.write(readme_file, updated_readme)
             Core::Logger.info("Synchronized README.md version badges (Godot: #{godot_ver}, Lapis: #{lapis_ver})")
           end

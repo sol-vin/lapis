@@ -33,7 +33,7 @@ module Lapis
 Usage: lapis clean [options]
 
 Options:
-  -d, --dry-run         Preview files and space to be reclaimed without deleting
+  -d, -n, --dry-run     Preview files and space to be reclaimed without deleting
   -s, --shadows         Only purge stale Windows shadow DLLs (*_loaded_*.dll/pdb)
   --docs                Also purge generated HTML documentation in docs/
   --all                 Purge build artifacts, shadow DLLs, docs/, .godot/ and .crystal/ caches
@@ -152,7 +152,7 @@ HELP
           return 0
         end
 
-        dry_run = args.includes?("-d") || args.includes?("--dry-run")
+        dry_run = args.includes?("-d") || args.includes?("-n") || args.includes?("--dry-run")
         purge_all = args.includes?("--all")
         shadows_only = args.includes?("-s") || args.includes?("--shadows")
         clean_docs = purge_all || args.includes?("--docs")

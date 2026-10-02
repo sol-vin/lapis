@@ -108,12 +108,13 @@ module Lapis
         # Footer
         y = height - 2
         buffer.put_string(2, y, "─" * (width - 4), fg: Opal::Color.bright_black)
+        rec_label = Opal::Asciicast::VCR.recording? ? "Ctrl+R: Stop Rec" : "Ctrl+R: Rec"
         hints = if @building
                   "Building distribution... Please wait"
                 elsif @done
                   "Enter: Finish & Return │ Esc: Exit"
                 else
-                  "Tab / ↑↓: Navigate Fields │ Space: Toggle Option │ Enter: Start Build │ Esc: Back"
+                  "Tab / ↑↓: Navigate │ Space: Toggle │ Enter: Start Build │ #{rec_label} │ Ctrl+S: Shot │ Esc: Back"
                 end
         buffer.put_string(2, y + 1, hints, fg: Opal::Color.cyan)
       end
@@ -236,6 +237,25 @@ module Lapis
         # Global command palette shortcut
         if ev.char == '~' || ev.char == '`' || ev.matches?("ctrl+p")
           @running = false
+          return
+        end
+
+        # Screencast Recording Toggle: Ctrl+R
+        if ev.matches?("ctrl+r")
+          if Opal::Asciicast::VCR.recording?
+            Opal::Asciicast::VCR.stop
+            timestamp = Time.local.to_s("%Y%m%d_%H%M%S")
+            saved_path = "recordings/package_session_#{timestamp}.cast"
+            Opal::Asciicast::VCR.save(saved_path)
+            @build_logs << "[TUI] Recording saved to #{saved_path}"
+          else
+            timestamp = Time.local.to_s("%Y%m%d_%H%M%S")
+            out_path = "recordings/package_session_#{timestamp}.cast"
+            w, h = driver.size
+            Opal::Asciicast::VCR.record(out_path, width: Math.max(40, w), height: Math.max(16, h), title: "Lapis Packaging Center")
+            @build_logs << "[TUI] Recording started to #{out_path} (Ctrl+R to stop)"
+          end
+          diff_renderer.invalidate!
           return
         end
 

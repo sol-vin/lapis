@@ -191,7 +191,8 @@ module Lapis
         footer_y = height - 2
         buffer.put_string(2, footer_y - 1, "─" * (width - 4), fg: Opal::Color.bright_black)
 
-        controls = "Ctrl+K: Gracefully Kill Process │ R: Relaunch │ Ctrl+S: Shot │ Esc/Q: Back to Hub"
+        rec_label = Opal::Asciicast::VCR.recording? ? "Ctrl+R: Stop Rec" : "Ctrl+R: Rec"
+        controls = "Ctrl+K: Gracefully Kill Process │ R: Relaunch │ #{rec_label} │ Ctrl+S: Shot │ Esc/Q: Back"
         buffer.put_string(2, footer_y, controls, fg: Opal::Color.bright_white)
       end
 
@@ -214,6 +215,23 @@ module Lapis
         # Global command palette shortcut
         if ev.char == '~' || ev.char == '`' || ev.matches?("ctrl+p")
           @running = false
+          return
+        end
+
+        # Screencast Recording Toggle: Ctrl+R
+        if ev.matches?("ctrl+r")
+          if Opal::Asciicast::VCR.recording?
+            Opal::Asciicast::VCR.stop
+            timestamp = Time.local.to_s("%Y%m%d_%H%M%S")
+            saved_path = "recordings/run_session_#{timestamp}.cast"
+            Opal::Asciicast::VCR.save(saved_path)
+          else
+            timestamp = Time.local.to_s("%Y%m%d_%H%M%S")
+            out_path = "recordings/run_session_#{timestamp}.cast"
+            w, h = driver.size
+            Opal::Asciicast::VCR.record(out_path, width: Math.max(40, w), height: Math.max(16, h), title: "Lapis Process Monitor")
+          end
+          diff_renderer.invalidate!
           return
         end
 

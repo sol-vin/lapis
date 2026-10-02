@@ -86,7 +86,7 @@ module Lapis
         #     </tr>
         #     <tr>
         #       <td><code>--dry-run</code></td>
-        #       <td><code>-n</code></td>
+        #       <td><code>-d</code>, <code>-n</code></td>
         #       <td>Previews files and exact disk space to be freed without deleting</td>
         #     </tr>
         #     <tr>

@@ -25,8 +25,8 @@ Options:
   --skip-specs          Skip all Crystal spec unit tests
   --skip-engine-specs   Skip engine & bindings specifications (root engine only)
   --skip-cli-specs      Skip Lapis toolchain & CLI specifications (root engine only)
-  --skip-tool-tests     Skip in-editor @tool tests (root engine only)
-  --skip-runtime-tests  Skip Godot runtime test project
+  --skip-tool-tests     Skip in-editor @tool tests (alias: --skip-editor)
+  --skip-runtime-tests  Skip Godot runtime test project (alias: --skip-runtime)
   --skip-standalone     Skip standalone compiled test executable
   -f, --filter=PATTERN  Run only runtime tests matching PATTERN
   -c, --category=NAME   Run only runtime tests in category NAME
@@ -128,8 +128,8 @@ HELP
           opts.on("--skip-engine-specs", "Skip engine & bindings specifications") { skip_engine_specs = true }
           opts.on("--skip-cli-specs", "Skip Lapis toolchain & CLI specifications") { skip_cli_specs = true }
           opts.on("--skip-external-specs", "Skip external ecosystem compatibility specifications") { skip_external_specs = true }
-          opts.on("--skip-tool-tests", "Skip in-editor @tool tests") { skip_tool_tests = true }
-          opts.on("--skip-runtime-tests", "Skip Godot runtime test project") { skip_runtime_tests = true }
+          opts.on("--skip-tool-tests", "--skip-editor", "Skip in-editor @tool tests") { skip_tool_tests = true }
+          opts.on("--skip-runtime-tests", "--skip-runtime", "Skip Godot runtime test project") { skip_runtime_tests = true }
           opts.on("--skip-standalone", "Skip standalone test executable") { skip_standalone = true }
           opts.on("-f PATTERN", "--filter=PATTERN", "Run only tests matching PATTERN") { |p| filter_pattern = p }
           opts.on("-c NAME", "--category=NAME", "Run only tests in category NAME") { |c| category_filter = c }

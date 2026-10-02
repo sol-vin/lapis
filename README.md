@@ -1,7 +1,7 @@
 # Lapis for Crystal
 
 [![Crystal](https://img.shields.io/badge/Crystal-1.20+-black.svg?style=flat&logo=crystal)](https://crystal-lang.org)
-[![Lapis](https://img.shields.io/badge/Lapis-0.0.5-blueviolet.svg?style=flat)](https://github.com/sol-vin/lapis/releases)
+[![Lapis](https://img.shields.io/badge/Lapis-0.0.6-blueviolet.svg?style=flat)](https://github.com/sol-vin/lapis/releases)
 [![Godot](https://img.shields.io/badge/Godot-4.8--dev7-blue.svg?style=flat&logo=godotengine)](https://godotengine.org)
 [![Docs](https://img.shields.io/badge/Docs-Online-blueviolet.svg?style=flat)](https://sol-vin.github.io/lapis/)
 [![Benchmarks](https://img.shields.io/badge/Benchmarks-Interactive%20Report-success.svg?style=flat)](https://sol-vin.github.io/lapis/benchmarks.html)

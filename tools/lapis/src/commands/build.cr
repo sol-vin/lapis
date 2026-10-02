@@ -551,7 +551,7 @@ Usage:
 
 Subcommands:
   game                  Build game library for current or specified project (default)
-  addons                Build all test/dummy addons in test/addons/
+  addons                Build all test/dummy addons in addons/
   examples              Build all showcase examples in examples/
 
 Options for game library build ('lapis build' or 'lapis build game'):

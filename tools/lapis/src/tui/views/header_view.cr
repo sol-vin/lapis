@@ -112,11 +112,6 @@ module Lapis
             break if tab_x >= x + w - 30
           end
 
-          # Active Shader FX pill if enabled
-          if state.shader_fx != ShaderFxMode::None
-            fx_pill = "\e[1;97;48;5;55m [*] FX: #{state.shader_fx.display_name} \e[0m"
-            canvas.draw_text(tab_x + 1, y + 3, fx_pill)
-          end
 
           # Follow / Search status indicator on right of tab bar
           status_tag = if state.searching

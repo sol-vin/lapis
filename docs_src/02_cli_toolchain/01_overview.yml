@@ -17,8 +17,8 @@ sections:
     type: "Array(String)"
     return_value:
       - "Build & Sync: build, bind, clean, sync, deps, dirs"
-      - "Testing & Development: doctor, test, editor, run, benchmarks, setup"
-      - "Scaffolding & Packages: new/scaffold, init, upgrade, addon, shard, ide, package, docs"
+      - "Testing & Diagnostics: doctor, test, spec, editor, run, benchmarks, setup, decompile, analyze, log"
+      - "Scaffolding & Templates: new/scaffold, init, upgrade, addon, shard, ide, template, export-templates, explore, package, docs"
       - "System & Maintenance: install, uninstall, update, completion, version"
 
   - id: "topic_01_global_flags"
@@ -61,7 +61,7 @@ sections:
 
   - id: "topic_02_shell_completion"
     title: "Dynamic Shell Autocompletion"
-    summary: "Generating autocompletion scripts for PowerShell, Bash, and Zsh."
+    summary: "Generating autocompletion scripts for PowerShell, Bash, Zsh, and Fish."
     content: |
       Lapis features a dynamic completion engine driven by `COMMAND_DESCRIPTIONS`:
 
@@ -84,6 +84,13 @@ sections:
       eval "$(lapis completion zsh)"
       # Or add permanently to ~/.zshrc:
       echo 'eval "$(lapis completion zsh)"' >> ~/.zshrc
+      ```
+
+      #### Fish Setup:
+      ```fish
+      lapis completion fish | source
+      # Or add permanently to ~/.config/fish/completions/lapis.fish:
+      lapis completion fish > ~/.config/fish/completions/lapis.fish
       ```
 
   - id: "topic_03_typo_correction"

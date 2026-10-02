@@ -92,11 +92,11 @@ module Lapis
         #       <td>Skip Phase 1 unit specs</td>
         #     </tr>
         #     <tr>
-        #       <td><code>--skip-editor</code></td>
+        #       <td><code>--skip-editor</code>, <code>--skip-tool-tests</code></td>
         #       <td>Skip Phase 2 headless in-editor tests</td>
         #     </tr>
         #     <tr>
-        #       <td><code>--skip-runtime</code></td>
+        #       <td><code>--skip-runtime</code>, <code>--skip-runtime-tests</code></td>
         #       <td>Skip Phase 3 runtime test suites</td>
         #     </tr>
         #     <tr>
@@ -131,6 +131,14 @@ module Lapis
         #     <tr>
         #       <td><code>Enter</code> / <code>Space</code></td>
         #       <td>Open drill-down log inspection modal for selected phase</td>
+        #     </tr>
+        #     <tr>
+        #       <td><code>Ctrl+S</code></td>
+        #       <td>Capture VCR screenshot (.ansi & .html) and copy to clipboard</td>
+        #     </tr>
+        #     <tr>
+        #       <td><code>Ctrl+R</code></td>
+        #       <td>Toggle asciicast (.cast) screencast session recording</td>
         #     </tr>
         #     <tr>
         #       <td><code>Esc</code> / <code>q</code></td>

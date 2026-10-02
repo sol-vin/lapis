@@ -246,7 +246,8 @@ module Lapis
           render_empty_state(buffer, width, height)
           footer_y = height - 2
           buffer.put_string(2, footer_y - 1, "─" * (width - 4), fg: Opal::Color.bright_black)
-          controls = "F/O: Pick XML │ R: Run Benchmarks │ Esc/Q: Back to Hub"
+          rec_label = Opal::Asciicast::VCR.recording? ? "Ctrl+R: Stop Rec" : "Ctrl+R: Rec"
+          controls = "F/O: Pick XML │ R: Run │ #{rec_label} │ Ctrl+S: Shot │ Esc/Q: Back"
           buffer.put_string(2, footer_y, controls, fg: Opal::Color.bright_white)
           return
         end
@@ -268,7 +269,8 @@ module Lapis
         # 3. Footer Controls
         footer_y = height - 2
         buffer.put_string(2, footer_y - 1, "─" * (width - 4), fg: Opal::Color.bright_black)
-        controls = "Tab: Switch Tab │ 1-5: Jump │ C: Chart Mode (#{@chart_mode.to_s.upcase}) │ ↑/↓: Select │ F: Pick XML │ R: Run │ Esc/Q: Back"
+        rec_label = Opal::Asciicast::VCR.recording? ? "Ctrl+R: Stop Rec" : "Ctrl+R: Rec"
+        controls = "Tab: Switch │ 1-5: Jump │ C: Mode (#{@chart_mode.to_s.upcase}) │ ↑/↓: Sel │ F: XML │ R: Run │ #{rec_label} │ Ctrl+S: Shot │ Esc/Q: Back"
         buffer.put_string(2, footer_y, controls, fg: Opal::Color.bright_white)
       end
 
@@ -496,6 +498,23 @@ module Lapis
         # Global command palette shortcut
         if ev.char == '~' || ev.char == '`' || ev.matches?("ctrl+p")
           @running = false
+          return
+        end
+
+        # Screencast Recording Toggle: Ctrl+R
+        if ev.matches?("ctrl+r")
+          if Opal::Asciicast::VCR.recording?
+            Opal::Asciicast::VCR.stop
+            timestamp = Time.local.to_s("%Y%m%d_%H%M%S")
+            saved_path = "recordings/bench_session_#{timestamp}.cast"
+            Opal::Asciicast::VCR.save(saved_path)
+          else
+            timestamp = Time.local.to_s("%Y%m%d_%H%M%S")
+            out_path = "recordings/bench_session_#{timestamp}.cast"
+            w, h = driver.size
+            Opal::Asciicast::VCR.record(out_path, width: Math.max(40, w), height: Math.max(15, h), title: "Lapis Benchmark Visualizer")
+          end
+          @diff_renderer.try(&.invalidate!)
           return
         end
 

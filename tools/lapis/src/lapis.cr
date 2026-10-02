@@ -58,7 +58,7 @@ module Lapis
     "init"        => "Initialize Crystal integration in an existing Godot project",
     "upgrade"     => "Upgrade an existing Godot project to latest Lapis engine",
     "addon"       => "Install, uninstall, or manage Godot GDExtension addons",
-    "shard"       => "Manage Crystal shard dependencies in Godot project",
+    "shard"       => "Manage Crystal shard dependencies in Godot project (list, install, uninstall, prune)",
     "ide"         => "Configure VS Code, Cursor, Zed, or Neovim with Crystalline LSP",
     "scaffold"    => "Scaffold a new game, addon, or example",
     "new"         => "Alias for scaffold",
@@ -255,12 +255,38 @@ module Lapis
         cmd.description COMMAND_DESCRIPTIONS["shard"]
         cmd.run do |ctx|
           sub_args = ctx.raw_args
-          is_uninstall = sub_args.includes?("uninstall") || sub_args.includes?("remove") || sub_args.includes?("-u")
-          shard_args = sub_args.reject { |a| a == "install" || a == "add" || a == "uninstall" || a == "remove" || a == "-u" }
-          if is_uninstall
-            Commands::ShardManager.uninstall(shard_args)
+          if sub_args.empty? || sub_args.includes?("-h") || sub_args.includes?("--help")
+            Commands::ShardManager.print_help
+            next 0
+          end
+
+          subcmd = sub_args.first
+          remaining = sub_args[1..]
+
+          case subcmd
+          when "list", "ls"
+            Commands::ShardManager.list(remaining)
+          when "install", "add"
+            Commands::ShardManager.install(remaining)
+          when "uninstall", "remove", "-u"
+            Commands::ShardManager.uninstall(remaining)
+          when "prune"
+            proj = Path.new(Dir.current).expand
+            Commands::ShardManager.run_shards_prune(proj) ? 0 : 1
           else
-            Commands::ShardManager.install(shard_args)
+            valid_subcmds = ["list", "ls", "install", "add", "uninstall", "remove", "prune"]
+            if subcmd.starts_with?("-")
+              Commands::ShardManager.print_help
+              0
+            else
+              Core::Logger.error("Unknown shard subcommand: '#{subcmd}'")
+              if suggestion = Opal::Input::Fuzzy.suggest(subcmd, valid_subcmds)
+                puts "  \e[33mDid you mean 'lapis shard #{suggestion}'?\e[0m\n"
+              end
+              puts
+              Commands::ShardManager.print_help
+              1
+            end
           end
         end
       end
@@ -354,7 +380,12 @@ module Lapis
         cmd.category "Installation & System Commands"
         cmd.description COMMAND_DESCRIPTIONS["completion"]
         cmd.run do |ctx|
-          shell = ctx.raw_args.first? || (Core::Env.windows? ? "powershell" : "bash")
+          first = ctx.raw_args.first?
+          if first == "-h" || first == "--help"
+            puts "Usage: lapis completion <powershell|bash|zsh|fish>\n\nGenerates native shell autocompletion script."
+            next 0
+          end
+          shell = first || (Core::Env.windows? ? "powershell" : "bash")
           Lapis.generate_completion(shell)
         end
       end
@@ -542,7 +573,7 @@ HELP
     when "log", "logs"
       Commands::Log.print_help
     when "completion"
-      puts "Usage: lapis completion <powershell|bash|zsh>\n\nGenerates native shell autocompletion script."
+      puts "Usage: lapis completion <powershell|bash|zsh|fish>\n\nGenerates native shell autocompletion script."
     else
       Core::Logger.error("Unknown command for help: '#{subcommand}'")
       if suggestion = suggest_command(subcommand)
@@ -653,6 +684,12 @@ HELP
       else
         print_help
       end
+      return 0
+    end
+
+    # Handle completion help flags
+    if args[0] == "completion" && (args.includes?("-h") || args.includes?("--help"))
+      puts "Usage: lapis completion <powershell|bash|zsh|fish>\n\nGenerates native shell autocompletion script."
       return 0
     end
 

@@ -382,9 +382,9 @@ HELP
         end
 
         cols = begin
-          [Opal::Terminal.default_driver.size[0] - 2, 80].max
+          [Opal::Terminal.default_driver.size[0] - 2, 110].max
         rescue
-          100
+          110
         end
 
         puts tbl.to_print_s(width: cols)

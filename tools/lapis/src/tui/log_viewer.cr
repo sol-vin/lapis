@@ -213,7 +213,8 @@ module Lapis
           prompt = "Search regex: /#{@search_query}█"
           buffer.put_string(2, footer_y, prompt, fg: Opal::Color.yellow, bold: true)
         else
-          info = "Tab/Shift+Tab: Channel │ 1-5: Level (#{@level_filter}) │ f: #{follow_badge} │ /: Search │ Ctrl+S: Shot │ Esc/Q: Back"
+          rec_label = Opal::Asciicast::VCR.recording? ? "Ctrl+R: Stop Rec" : "Ctrl+R: Rec"
+          info = "Tab: Chan │ 1-5: Lvl (#{@level_filter}) │ f: #{follow_badge} │ /: Search │ #{rec_label} │ Ctrl+S: Shot │ Esc: Back"
           buffer.put_string(2, footer_y, info, fg: Opal::Color.cyan)
           buffer.put_string(width - 20, footer_y, "#{fl.size} lines", fg: Opal::Color.bright_black)
         end
@@ -248,6 +249,23 @@ module Lapis
         # Global command palette shortcut
         if ev.char == '~' || ev.char == '`' || ev.matches?("ctrl+p")
           @running = false
+          return
+        end
+
+        # Screencast Recording Toggle: Ctrl+R
+        if ev.matches?("ctrl+r")
+          if Opal::Asciicast::VCR.recording?
+            Opal::Asciicast::VCR.stop
+            timestamp = Time.local.to_s("%Y%m%d_%H%M%S")
+            saved_path = "recordings/log_session_#{timestamp}.cast"
+            Opal::Asciicast::VCR.save(saved_path)
+          else
+            timestamp = Time.local.to_s("%Y%m%d_%H%M%S")
+            out_path = "recordings/log_session_#{timestamp}.cast"
+            w, h = driver.size
+            Opal::Asciicast::VCR.record(out_path, width: Math.max(40, w), height: Math.max(16, h), title: "Lapis Log Viewer")
+          end
+          diff_renderer.invalidate!
           return
         end
 

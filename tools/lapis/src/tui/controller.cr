@@ -42,9 +42,6 @@ module Lapis
         # Background rendering loop (10 FPS)
         spawn do
           while @running
-            if @state.current_view == ViewMode::ColorStudio && @state.use_3d_color_picker
-              @state.color_picker_3d.tick(0.1)
-            end
             render_frame
             sleep 0.1.seconds
           end
@@ -209,45 +206,7 @@ module Lapis
           return
         end
 
-        # 2. Color Studio (Opal ColorPicker & ColorPicker3D) Key Handling
-        if @state.current_view == ViewMode::ColorStudio
-          case event.key
-          when Terminal::Key::Escape
-            @state.current_view = ViewMode::Dashboard
-            return
-          when Terminal::Key::Tab
-            @state.use_3d_color_picker = !@state.use_3d_color_picker
-            @state.sync_active_color
-            return
-          when Terminal::Key::Enter
-            @state.sync_active_color
-            @state.current_view = ViewMode::Dashboard
-            @state.toasts.add("Theme Applied", "Accent color set to #{@state.accent_color.to_hex}", :success, 2500_i64)
-            return
-          when Terminal::Key::Char
-            if event.char == '1'
-              @state.use_3d_color_picker = false
-              @state.sync_active_color
-              return
-            elsif event.char == '2'
-              @state.use_3d_color_picker = true
-              @state.sync_active_color
-              return
-            end
-          end
-
-          opal_ev = event.to_opal_key_event
-          if @state.use_3d_color_picker
-            @state.color_picker_3d.handle_key(opal_ev)
-            @state.accent_color = @state.color_picker_3d.selected_color
-          else
-            @state.color_picker.handle_key(opal_ev)
-            @state.accent_color = @state.color_picker.color
-          end
-          return
-        end
-
-        # 3. File Explorer (Opal FileDialog) Key Handling
+        # 2. File Explorer (Opal FileDialog) Key Handling
         if @state.current_view == ViewMode::FileExplorer
           case event.key
           when Terminal::Key::Escape
@@ -364,8 +323,6 @@ module Lapis
           when '3' then @state.active_tab = TabMode::Breakdown
           when '4' then @state.active_tab = TabMode::Telemetry
           when '5' then @state.active_tab = TabMode::Benchmarks
-          when 't', 'T', 'p', 'P'
-            @state.toggle_color_studio
           when 'o', 'O'
             @state.toggle_file_explorer
           when 'e', 'E'
@@ -378,9 +335,6 @@ module Lapis
             else
               @state.toggle_file_explorer
             end
-          when 'x', 'X'
-            fx = @state.next_shader_fx
-            @state.toasts.add("Shader FX", fx.display_name, :info, 2000_i64)
           when 'k', 'K'
             case @state.active_tab
             when TabMode::Breakdown
