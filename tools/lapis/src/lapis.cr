@@ -70,12 +70,10 @@ module Lapis
     "update"      => "Update Lapis executable, Crystalline LSP, and Crystal compiler",
     "benchmarks"  => "Run benchmarks, export HTML reports, and track progression",
     "bench"       => "Alias for benchmarks",
-    "color"       => "Launch interactive 2D/3D TrueColor palette studio (Opal)",
     "explore"     => "Launch interactive terminal file dialog & project explorer (Opal)",
     "template"         => "Manage global project templates (save, list, remove, clean, export, import)",
     "templates"        => "Alias for template",
     "export-templates" => "Inspect, explain, install, and verify Godot & Crystal export templates",
-    "shaders"          => "Launch real-time terminal text shader FX playground (Opal)",
     "completion"       => "Generate shell autocompletion script",
     "version"          => "Display Lapis toolchain version",
   }
@@ -220,32 +218,6 @@ module Lapis
         cmd.run { |ctx| Commands::Setup.run(ctx.raw_args) }
       end
 
-      cli.command :color do |cmd|
-        cmd.category "Testing & Development Commands"
-        cmd.description COMMAND_DESCRIPTIONS["color"]
-        cmd.flag :spatial, "--3d", description: "Launch in 3D spatial color picker mode"
-        cmd.option :shape, "--shape=SHAPE", description: "3D shape: cube, sphere, circle, square"
-        cmd.run do |ctx|
-          if ctx.flag?(:spatial)
-            shape_str = ctx[:shape]?.try(&.to_s.downcase)
-            shape = case shape_str
-                    when "sphere" then Opal::UI::ColorPickerShape::Sphere3D
-                    when "circle" then Opal::UI::ColorPickerShape::Circle2D
-                    when "square" then Opal::UI::ColorPickerShape::Square2D
-                    else               Opal::UI::ColorPickerShape::Cube3D
-                    end
-            if chosen = Opal.pick_color_3d(initial_shape: shape)
-              puts "Selected Color: \e[1;97m#{chosen.to_hex}\e[0m (RGB: #{chosen.to_rgb})"
-            end
-          else
-            if chosen = Opal.pick_color(Opal::Color.hex("#89B4FA"))
-              puts "Selected Color: \e[1;97m#{chosen.to_hex}\e[0m (RGB: #{chosen.to_rgb})"
-            end
-          end
-          0
-        end
-      end
-
       cli.command :explore do |cmd|
         cmd.category "Testing & Development Commands"
         cmd.description COMMAND_DESCRIPTIONS["explore"]
@@ -256,17 +228,6 @@ module Lapis
             puts "Selected: \e[1;96m#{chosen}\e[0m"
           end
           0
-        end
-      end
-
-      cli.command :shaders do |cmd|
-        cmd.category "Testing & Development Commands"
-        cmd.description COMMAND_DESCRIPTIONS["shaders"]
-        cmd.alias_name "fx"
-        cmd.run do |_ctx|
-          puts Opal.style.bold.fg(:cyan).render("✨ Opal Text Shader Playground")
-          puts "Launching TUI test runner with active CRT scanlines shader..."
-          Commands::Test.run(["--tui"])
         end
       end
 
@@ -446,9 +407,7 @@ Usage:
   run                   Run Godot project standalone with log monitoring and radare2 attachment
   test                  Run unit specs, in-editor tool tests, and runtime test projects
   spec                  Run Crystal unit specs
-  color                 Launch interactive 2D/3D TrueColor palette studio (Opal)
   explore, files        Launch interactive terminal file dialog & project explorer (Opal)
-  shaders, fx           Launch real-time terminal text shader FX playground (Opal)
   benchmarks, bench     Run benchmarks, export HTML reports, and track version progression
   setup                 Download and configure targeted Godot engine binary
 
@@ -524,12 +483,8 @@ HELP
       Commands::Test.run(["--help"])
     when "spec"
       Commands::Spec.run(["--help"])
-    when "color"
-      puts "Usage: lapis color [options]\n\nLaunch interactive 2D/3D TrueColor palette studio (Opal).\n\nOptions:\n  --3d                 Launch in 3D spatial color picker mode\n  --shape=SHAPE        3D shape: cube, sphere, circle, square"
     when "explore", "files", "browse"
       puts "Usage: lapis explore [DIR]\n\nLaunch interactive terminal file dialog & project explorer (Opal)."
-    when "shaders", "fx"
-      puts "Usage: lapis shaders\n\nLaunch real-time terminal text shader FX playground (Opal)."
     when "editor", "run"
       Commands::Editor.run(["--help"])
     when "decompile"
@@ -608,9 +563,7 @@ HELP
     palette_options = [
       "[#] build       - Compile Crystal game library and GDExtension loader bridge",
       "[T] test        - Run Crystal specs, in-editor tool tests, and Godot runtime suites",
-      "[C] color       - Interactive 2D/3D TrueColor palette picker & studio",
       "[F] explore     - Interactive terminal file dialog & project explorer",
-      "[~] shaders     - Real-time terminal text shaders & post-processing playground",
       "[?] doctor      - Diagnose developer environment, toolchain prerequisites, and compilers",
       "[E] editor      - Open project in Godot Editor with automatic shadow DLL reloading",
       "[+] scaffold    - Interactive scaffolding wizard for new games and redistributable addons",
@@ -633,14 +586,9 @@ HELP
     case cmd_name
     when "build"       then Commands::Build.run([] of String)
     when "test"        then Commands::Test.run(["--tui"])
-    when "color"
-      Opal.pick_color(Opal::Color.hex("#89B4FA"))
-      0
     when "explore"
       Opal.file_dialog(initial_path: ".")
       0
-    when "shaders"
-      Commands::Test.run(["--tui"])
     when "doctor"      then Commands::Doctor.run([] of String)
     when "editor"      then Commands::Editor.run([] of String)
     when "scaffold"    then Commands::Scaffold.run([] of String)

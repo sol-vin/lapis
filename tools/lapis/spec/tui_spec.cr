@@ -462,19 +462,10 @@ describe Lapis::TUI do
       res.output.should contain("--no-tui")
     end
 
-    it "displays help screens for new Opal subcommands: color, explore, shaders" do
-      color_res = LapisSpecHelper.run_lapis(["color", "--help"])
-      color_res.exit_code.should eq(0)
-      color_res.output.should contain("lapis color")
-      color_res.output.should contain("--3d")
-
+    it "displays help screens for new Opal subcommand: explore" do
       explore_res = LapisSpecHelper.run_lapis(["explore", "--help"])
       explore_res.exit_code.should eq(0)
       explore_res.output.should contain("lapis explore")
-
-      shaders_res = LapisSpecHelper.run_lapis(["shaders", "--help"])
-      shaders_res.exit_code.should eq(0)
-      shaders_res.output.should contain("lapis shaders")
     end
   end
 end
