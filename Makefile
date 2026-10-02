@@ -124,6 +124,10 @@ install: $(LAPIS)
 uninstall: $(LAPIS)
 	@$(LAPIS) install --uninstall $(if $(INSTALL_DIR),--dir "$(INSTALL_DIR)",) $(if $(PREFIX),--prefix "$(PREFIX)",)
 
+# Run Carbon version bump and multi-target file synchronization
+bump_version bump-version bump:
+	@sh .githooks/pre-commit
+
 # Default target: compile lapis, bridge, plugin, test project, standalone runner, examples, template, template_addon, perf, sync DLLs, run test suite, and Windows installer
 all: lapis dirs deps bridge plugin addons dummy_addons test_project test_standalone examples template template_addon perf perf_standalone sync $(if $(filter 1,$(SKIP_TESTS)),,test) $(if $(filter windows,$(PLATFORM)),$(if $(filter 1,$(SKIP_INSTALLER)),,package_installer),)
 	@echo ===================================================================

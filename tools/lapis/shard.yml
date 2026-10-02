@@ -25,3 +25,6 @@ dependencies:
   jasper:
     github: sol-vin/jasper
     branch: main
+  carbon:
+    github: sol-vin/carbon
+    branch: main

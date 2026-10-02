@@ -76,7 +76,7 @@ module Lapis
                   @diff_renderer.try(&.invalidate!)
                   render(driver)
                 else
-                  handle_input_event(ev)
+                  handle_input_event(ev, driver)
                   render(driver) if @running
                 end
               elsif driver.size != @last_size
@@ -490,12 +490,26 @@ module Lapis
         end
       end
 
-      private def handle_input_event(ev : Opal::Terminal::Event)
+      private def handle_input_event(ev : Opal::Terminal::Event, driver : Opal::Terminal::Driver)
         return unless ev.is_a?(Opal::Terminal::KeyEvent)
 
         # Global command palette shortcut
         if ev.char == '~' || ev.char == '`' || ev.matches?("ctrl+p")
           @running = false
+          return
+        end
+
+        # VCR Screenshot: Ctrl+S
+        if ev.matches?("ctrl+s")
+          timestamp = Time.local.to_s("%Y%m%d_%H%M%S")
+          shot_path = "recordings/screenshot_bench_#{timestamp}.ansi"
+          html_path = "recordings/screenshot_bench_#{timestamp}.html"
+          w, h = driver.size
+          buffer = Opal::UI::Buffer.new(Math.max(40, w), Math.max(15, h))
+          render_to_buffer(buffer, buffer.width, buffer.height)
+          Opal::Asciicast::VCR.screenshot(path: shot_path, format: :ansi, buffer: buffer, copy_to_clipboard: true)
+          Opal::Asciicast::VCR.screenshot(path: html_path, format: :html, buffer: buffer)
+          @diff_renderer.try(&.invalidate!)
           return
         end
 

@@ -6,6 +6,7 @@
 # =============================================================================
 
 require "opal"
+require "opal/asciicast"
 require "../core/env"
 require "../core/logger"
 require "../core/godot_finder"
@@ -106,7 +107,7 @@ module Lapis
             while @running
               render(driver, diff_renderer)
               ev = driver.poll_event(50)
-              handle_input(ev, diff_renderer) if ev
+              handle_input(ev, driver, diff_renderer) if ev
             end
           ensure
             driver.show_cursor
@@ -191,6 +192,7 @@ module Lapis
         height = Math.max(16, h)
         buffer = Opal::UI::Buffer.new(width, height)
         render_to_buffer(buffer, width, height)
+        Opal::Asciicast::VCR.capture(buffer) if Opal::Asciicast::VCR.recording?
         diff_renderer.render(buffer)
       end
 
@@ -216,6 +218,12 @@ module Lapis
         bridge_str = bridge_compiled ? "[OK] Bridge Ready" : "[!] Bridge Missing"
         bridge_fg = bridge_compiled ? Opal::Color.green : Opal::Color.yellow
         buffer.put_string(2, 3, bridge_str, fg: bridge_fg, bold: true)
+
+        if Opal::Asciicast::VCR.recording?
+          secs = Opal::Asciicast::VCR.elapsed.to_i
+          rec_badge = " [● REC #{sprintf("%02d:%02d", secs // 60, secs % 60)}] "
+          buffer.put_string(width - rec_badge.size - 4, 3, rec_badge, fg: Opal::Color.bright_white, bg: Opal::Color.red, bold: true)
+        end
 
         buffer.put_string(2, 4, "─" * (width - 4), fg: Opal::Color.bright_black)
       end
@@ -274,18 +282,53 @@ module Lapis
         if msg = @status_message
           buffer.put_string(2, y + 1, "⚠️  #{msg}", fg: Opal::Color.bright_red, bold: true)
         else
-          hints = "↑/↓: Navigate │ Enter: Select │ Shift+~ / ~: Command Palette │ Q: Quit"
+          rec_label = Opal::Asciicast::VCR.recording? ? "Ctrl+R: Stop Rec" : "Ctrl+R: Rec"
+          hints = "↑/↓: Nav │ Enter: Select │ #{rec_label} │ Ctrl+S: Shot │ Shift+~ / ~: Palette │ Q: Quit"
           buffer.put_string(2, y + 1, hints, fg: Opal::Color.cyan)
         end
       end
 
-      private def handle_input(ev : Opal::Terminal::KeyEvent | Opal::Terminal::MouseEvent | Opal::Terminal::ResizeEvent, diff_renderer : Opal::UI::DiffRenderer)
+      private def handle_input(ev : Opal::Terminal::KeyEvent | Opal::Terminal::MouseEvent | Opal::Terminal::ResizeEvent, driver : Opal::Terminal::Driver, diff_renderer : Opal::UI::DiffRenderer)
         if ev.is_a?(Opal::Terminal::ResizeEvent)
           diff_renderer.invalidate!
           return
         end
 
         return unless ev.is_a?(Opal::Terminal::KeyEvent)
+
+        # Screencast Recording Toggle: Ctrl+R
+        if ev.matches?("ctrl+r")
+          if Opal::Asciicast::VCR.recording?
+            Opal::Asciicast::VCR.stop
+            timestamp = Time.local.to_s("%Y%m%d_%H%M%S")
+            saved_path = "recordings/hub_session_#{timestamp}.cast"
+            Opal::Asciicast::VCR.save(saved_path)
+            set_status("Recording saved to #{saved_path}")
+          else
+            timestamp = Time.local.to_s("%Y%m%d_%H%M%S")
+            out_path = "recordings/hub_session_#{timestamp}.cast"
+            w, h = driver.size
+            Opal::Asciicast::VCR.record(out_path, width: Math.max(40, w), height: Math.max(16, h), title: "Lapis Terminal Hub")
+            set_status("Recording started to #{out_path} (Ctrl+R to stop)")
+          end
+          diff_renderer.invalidate!
+          return
+        end
+
+        # VCR Screenshot: Ctrl+S
+        if ev.matches?("ctrl+s")
+          timestamp = Time.local.to_s("%Y%m%d_%H%M%S")
+          shot_path = "recordings/screenshot_hub_#{timestamp}.ansi"
+          html_path = "recordings/screenshot_hub_#{timestamp}.html"
+          w, h = driver.size
+          buffer = Opal::UI::Buffer.new(Math.max(40, w), Math.max(16, h))
+          render_to_buffer(buffer, buffer.width, buffer.height)
+          Opal::Asciicast::VCR.screenshot(path: shot_path, format: :ansi, buffer: buffer, copy_to_clipboard: true)
+          Opal::Asciicast::VCR.screenshot(path: html_path, format: :html, buffer: buffer)
+          set_status("VCR Screenshot saved to #{shot_path} (Copied to Clipboard)!")
+          diff_renderer.invalidate!
+          return
+        end
 
         # Global command palette toggle: Shift+~ or ~ or ` or Ctrl+P
         if ev.char == '~' || ev.char == '`' || ev.matches?("ctrl+p")

@@ -15,13 +15,24 @@ module Lapis
   module TUI
     class Renderer
       property frame_count : Int32 = 0
+      getter last_buffer : Opal::UI::Buffer? = nil
       @diff_renderer : Opal::UI::DiffRenderer = Opal::UI::DiffRenderer.new
+      @last_w : Int32 = 0
+      @last_h : Int32 = 0
 
       def render(state : TestRunState) : Nil
         size = Terminal.size
         # Reserve 1 column and 1 row margin to prevent terminal auto-wrap and scrolling on Windows Console
         w = Math.max(40, size[:cols] - 1)
         h = Math.max(12, size[:rows] - 1)
+
+        # Handle terminal resize: invalidate diff renderer cache to prevent ghosting
+        if @last_w != w || @last_h != h
+          @diff_renderer.invalidate!
+          @last_w = w
+          @last_h = h
+        end
+
         canvas, theme_rect, file_rect = build_canvas_with_overlays(state, w, h)
 
         # Double-buffered differential render to terminal driver
@@ -33,6 +44,12 @@ module Lapis
         # Apply Text Shader FX post-processing if enabled
         apply_shader_fx(opal_buffer, state)
 
+        # Feed frame into Asciicast ScreenRecorder if recording is active
+        if state.recording? && (rec = state.recorder)
+          rec.capture_frame(opal_buffer)
+        end
+
+        @last_buffer = opal_buffer
         @diff_renderer.render(opal_buffer)
         @frame_count += 1
       end
@@ -177,7 +194,7 @@ module Lapis
 
       private def draw_help_modal(canvas : Canvas, state : TestRunState, width : Int32, height : Int32)
         box_w = Math.min(width - 4, 82)
-        box_h = Math.min(height - 4, 21)
+        box_h = Math.min(height - 4, 24)
         box_x = (width - box_w) // 2
         box_y = (height - box_h) // 2
 
@@ -210,11 +227,13 @@ module Lapis
         canvas.draw_text(box_x + 5, box_y + 12, "\e[1;97mo / e\e[0m            File Explorer (interactive directory browser & artifact preview)", max_w: box_w - 8)
         canvas.draw_text(box_x + 5, box_y + 13, "\e[1;97mx\e[0m                Cycle Text Shaders (CRT scanlines, Matrix rain, Glitch, Plasma, Heat)", max_w: box_w - 8)
 
-        canvas.draw_text(box_x + 3, box_y + 15, "\e[1;96mActions:\e[0m", max_w: box_w - 6)
+        canvas.draw_text(box_x + 3, box_y + 15, "\e[1;96mActions & Screencasts:\e[0m", max_w: box_w - 6)
         canvas.draw_text(box_x + 5, box_y + 16, "\e[1;97mEnter / Space\e[0m    Inspect selected phase in modal dialog", max_w: box_w - 8)
-        canvas.draw_text(box_x + 5, box_y + 17, "\e[1;97mc\e[0m                Copy error excerpt or log to clipboard via OSC 52", max_w: box_w - 8)
-        canvas.draw_text(box_x + 5, box_y + 18, "\e[1;97mq\e[0m                Abort active test run / Exit dashboard", max_w: box_w - 8)
-        canvas.draw_text(box_x + 5, box_y + 19, "\e[1;97m? / Esc\e[0m          Toggle help overlay / Close active modal", max_w: box_w - 8)
+        canvas.draw_text(box_x + 5, box_y + 17, "\e[1;97mCtrl+R\e[0m           Record asciicast screencast (.cast tape file)", max_w: box_w - 8)
+        canvas.draw_text(box_x + 5, box_y + 18, "\e[1;97mCtrl+S\e[0m           VCR Screenshot (ANSI + HTML saved to disk & clipboard)", max_w: box_w - 8)
+        canvas.draw_text(box_x + 5, box_y + 19, "\e[1;97mc\e[0m                Copy error excerpt or log to clipboard via OSC 52", max_w: box_w - 8)
+        canvas.draw_text(box_x + 5, box_y + 20, "\e[1;97mq\e[0m                Abort active test run / Exit dashboard", max_w: box_w - 8)
+        canvas.draw_text(box_x + 5, box_y + 21, "\e[1;97m? / Esc\e[0m          Toggle help overlay / Close active modal", max_w: box_w - 8)
       end
     end
   end

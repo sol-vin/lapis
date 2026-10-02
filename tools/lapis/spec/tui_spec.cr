@@ -414,6 +414,43 @@ describe Lapis::TUI do
       opal_char = ev_char.to_opal_key_event
       opal_char.name.should eq("w")
       opal_char.char.should eq('w')
+
+      # Ctrl+R for asciicast recording toggle
+      ev_ctrl_r = Lapis::TUI::Terminal::KeyEvent.new(Lapis::TUI::Terminal::Key::Char, 'r', ctrl: true)
+      opal_ctrl_r = ev_ctrl_r.to_opal_key_event
+      opal_ctrl_r.name.should eq("r")
+      opal_ctrl_r.ctrl?.should be_true
+      opal_ctrl_r.matches?("ctrl+r").should be_true
+
+      # Ctrl+S for VCR screenshot
+      ev_ctrl_s = Lapis::TUI::Terminal::KeyEvent.new(Lapis::TUI::Terminal::Key::Char, 's', ctrl: true)
+      opal_ctrl_s = ev_ctrl_s.to_opal_key_event
+      opal_ctrl_s.name.should eq("s")
+      opal_ctrl_s.ctrl?.should be_true
+      opal_ctrl_s.matches?("ctrl+s").should be_true
+    end
+
+    it "captures VCR screenshot in ANSI and HTML formats with clipboard copy" do
+      state = Lapis::TUI::TestRunState.new
+      renderer = Lapis::TUI::Renderer.new
+      canvas, _, _ = renderer.build_canvas_with_overlays(state, 80, 24)
+      buffer = canvas.to_opal_buffer
+
+      Dir.mkdir_p("recordings")
+      ansi_file = "recordings/test_vcr_screenshot.ansi"
+      html_file = "recordings/test_vcr_screenshot.html"
+
+      ansi_out = Opal::Asciicast::VCR.screenshot(path: ansi_file, format: :ansi, buffer: buffer, copy_to_clipboard: true)
+      html_out = Opal::Asciicast::VCR.screenshot(path: html_file, format: :html, buffer: buffer)
+
+      File.exists?(ansi_file).should be_true
+      File.exists?(html_file).should be_true
+      ansi_out.should contain("LAPIS")
+      html_out.should contain("<pre")
+
+      # Cleanup test files
+      File.delete(ansi_file) rescue nil
+      File.delete(html_file) rescue nil
     end
   end
 

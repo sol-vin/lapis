@@ -75,7 +75,7 @@ module Lapis
 
               render(driver, diff_renderer)
               ev = driver.poll_event(50)
-              handle_input(ev) if ev
+              handle_input(ev, driver, diff_renderer) if ev
             end
           ensure
             driver.show_cursor
@@ -191,7 +191,7 @@ module Lapis
         footer_y = height - 2
         buffer.put_string(2, footer_y - 1, "─" * (width - 4), fg: Opal::Color.bright_black)
 
-        controls = "Ctrl+K: Gracefully Kill Process │ R: Relaunch │ Esc/Q: Back to Hub"
+        controls = "Ctrl+K: Gracefully Kill Process │ R: Relaunch │ Ctrl+S: Shot │ Esc/Q: Back to Hub"
         buffer.put_string(2, footer_y, controls, fg: Opal::Color.bright_white)
       end
 
@@ -204,12 +204,30 @@ module Lapis
         diff_renderer.render(buffer)
       end
 
-      private def handle_input(ev : Opal::Terminal::KeyEvent | Opal::Terminal::MouseEvent | Opal::Terminal::ResizeEvent)
+      private def handle_input(
+        ev : Opal::Terminal::KeyEvent | Opal::Terminal::MouseEvent | Opal::Terminal::ResizeEvent,
+        driver : Opal::Terminal::Driver,
+        diff_renderer : Opal::UI::DiffRenderer
+      )
         return unless ev.is_a?(Opal::Terminal::KeyEvent)
 
         # Global command palette shortcut
         if ev.char == '~' || ev.char == '`' || ev.matches?("ctrl+p")
           @running = false
+          return
+        end
+
+        # VCR Screenshot: Ctrl+S
+        if ev.matches?("ctrl+s")
+          timestamp = Time.local.to_s("%Y%m%d_%H%M%S")
+          shot_path = "recordings/screenshot_run_#{timestamp}.ansi"
+          html_path = "recordings/screenshot_run_#{timestamp}.html"
+          w, h = driver.size
+          buffer = Opal::UI::Buffer.new(Math.max(40, w), Math.max(16, h))
+          render_to_buffer(buffer, buffer.width, buffer.height)
+          Opal::Asciicast::VCR.screenshot(path: shot_path, format: :ansi, buffer: buffer, copy_to_clipboard: true)
+          Opal::Asciicast::VCR.screenshot(path: html_path, format: :html, buffer: buffer)
+          diff_renderer.invalidate!
           return
         end
 

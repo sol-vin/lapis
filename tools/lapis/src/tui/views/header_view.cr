@@ -47,6 +47,14 @@ module Lapis
           chip_x = Math.max(x + 20, x + w - status_plain_len - 2)
           canvas.draw_text(chip_x, y + 1, status_chip, max_w: status_plain_len + 2)
 
+          # Recording badge right-aligned before status chip
+          if state.recording?
+            rec_badge = "\e[1;97;48;5;196m ● REC #{state.recording_elapsed_str} \e[0m"
+            rec_len = 8 + state.recording_elapsed_str.size
+            rec_x = Math.max(x + 10, chip_x - rec_len - 2)
+            canvas.draw_text(rec_x, y + 1, rec_badge, max_w: rec_len + 2)
+          end
+
           # 3. Progress bar row (row y + 2)
           ratio = state.progress_ratio
           percent = (ratio * 100).to_i

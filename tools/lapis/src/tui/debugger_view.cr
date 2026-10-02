@@ -7,6 +7,7 @@
 # =============================================================================
 
 require "opal"
+require "opal/asciicast"
 require "json"
 require "cradare2"
 require "../core/env"
@@ -144,7 +145,7 @@ module Lapis
             while @running
               render(driver, diff_renderer)
               ev = driver.poll_event(50)
-              handle_input(ev, diff_renderer) if ev
+              handle_input(ev, driver, diff_renderer) if ev
             end
           ensure
             driver.show_cursor
@@ -154,6 +155,10 @@ module Lapis
       end
 
       private def resolve_target_file : String?
+        if @target_binary.starts_with?("pid:") || @target_binary.to_i?
+          return @target_binary
+        end
+
         # Check explicit path
         if File.exists?(@target_binary)
           return @target_binary
@@ -198,7 +203,7 @@ module Lapis
         @status_message = "Analyzing #{File.basename(target_file)} with radare2..."
 
         begin
-          Cradare2.open(target_file) do |r2|
+          analyze_runner = ->(r2 : Cradare2::Client) {
             # 1. Analyze symbols & functions
             r2.cmd("aaa") rescue nil
 
@@ -331,6 +336,15 @@ module Lapis
 
             # 7. Extract real binary section metrics and top functions for Tab 7
             extract_binary_metrics(r2)
+          }
+
+          if @target_binary.starts_with?("pid:")
+            pid = @target_binary.sub("pid:", "").to_i
+            Cradare2.attach(pid, &analyze_runner)
+          elsif pid = @target_binary.to_i?
+            Cradare2.attach(pid, &analyze_runner)
+          else
+            Cradare2.open(target_file, &analyze_runner)
           end
         rescue ex
           @status_message = "Radare2 analysis warning: #{ex.message}"
@@ -437,6 +451,7 @@ module Lapis
         height = Math.max(16, h)
         buffer = Opal::UI::Buffer.new(width, height)
         render_to_buffer(buffer, width, height)
+        Opal::Asciicast::VCR.capture(buffer) if Opal::Asciicast::VCR.recording?
         diff_renderer.render(buffer)
       end
 
@@ -461,6 +476,12 @@ module Lapis
         target_name = Path.new(@target_binary).basename
         pc_str = @fault_pc > 0 ? "Fault PC: 0x#{@fault_pc.to_s(16)}" : "Entry Target: entry0"
         buffer.put_string(45, 1, "│ #{target_name} (#{pc_str})", fg: Opal::Color.bright_black)
+
+        if Opal::Asciicast::VCR.recording?
+          secs = Opal::Asciicast::VCR.elapsed.to_i
+          rec_badge = " [● REC #{sprintf("%02d:%02d", secs // 60, secs % 60)}] "
+          buffer.put_string(width - rec_badge.size - 4, 1, rec_badge, fg: Opal::Color.bright_white, bg: Opal::Color.red, bold: true)
+        end
 
         if @crash_mode && !@crash_reason.empty?
           buffer.put_string(2, 2, "#{context_badge} │ CRASH: #{@crash_reason}", fg: Opal::Color.bright_yellow, bold: true)
@@ -499,7 +520,8 @@ module Lapis
         # Footer
         footer_y = height - 2
         buffer.put_string(2, footer_y - 1, "─" * (width - 4), fg: Opal::Color.bright_black)
-        controls = "Tab: Switch View │ 1-7: Direct Tab │ ↑/↓: Scroll │ F/O: Pick Binary │ R: Re-analyze │ Esc/Q: Back to Hub"
+        rec_label = Opal::Asciicast::VCR.recording? ? "Ctrl+R: Stop Rec" : "Ctrl+R: Rec"
+        controls = "Tab: Switch │ 1-7: Tab │ ↑/↓: Scroll │ #{rec_label} │ Ctrl+S: Shot │ F: File │ R: Re-analyze │ Q: Back"
         buffer.put_string(2, footer_y, controls, fg: Opal::Color.bright_white)
       end
 
@@ -544,13 +566,47 @@ module Lapis
         end
       end
 
-      private def handle_input(ev : Opal::Terminal::KeyEvent | Opal::Terminal::MouseEvent | Opal::Terminal::ResizeEvent, diff_renderer : Opal::UI::DiffRenderer)
+      private def handle_input(ev : Opal::Terminal::KeyEvent | Opal::Terminal::MouseEvent | Opal::Terminal::ResizeEvent, driver : Opal::Terminal::Driver, diff_renderer : Opal::UI::DiffRenderer)
         if ev.is_a?(Opal::Terminal::ResizeEvent)
           diff_renderer.invalidate!
           return
         end
 
         return unless ev.is_a?(Opal::Terminal::KeyEvent)
+
+        # Screencast Recording Toggle: Ctrl+R
+        if ev.matches?("ctrl+r")
+          if Opal::Asciicast::VCR.recording?
+            Opal::Asciicast::VCR.stop
+            timestamp = Time.local.to_s("%Y%m%d_%H%M%S")
+            saved_path = "recordings/debug_session_#{timestamp}.cast"
+            Opal::Asciicast::VCR.save(saved_path)
+            @status_message = "Recording saved to #{saved_path}"
+          else
+            timestamp = Time.local.to_s("%Y%m%d_%H%M%S")
+            out_path = "recordings/debug_session_#{timestamp}.cast"
+            w, h = driver.size
+            Opal::Asciicast::VCR.record(out_path, width: Math.max(40, w), height: Math.max(16, h), title: "Lapis Native Debugger")
+            @status_message = "Recording started to #{out_path} (Ctrl+R to stop)"
+          end
+          diff_renderer.invalidate!
+          return
+        end
+
+        # VCR Screenshot: Ctrl+S
+        if ev.matches?("ctrl+s")
+          timestamp = Time.local.to_s("%Y%m%d_%H%M%S")
+          shot_path = "recordings/screenshot_debug_#{timestamp}.ansi"
+          html_path = "recordings/screenshot_debug_#{timestamp}.html"
+          w, h = driver.size
+          buffer = Opal::UI::Buffer.new(Math.max(40, w), Math.max(16, h))
+          render_to_buffer(buffer, buffer.width, buffer.height)
+          Opal::Asciicast::VCR.screenshot(path: shot_path, format: :ansi, buffer: buffer, copy_to_clipboard: true)
+          Opal::Asciicast::VCR.screenshot(path: html_path, format: :html, buffer: buffer)
+          @status_message = "VCR Screenshot saved to #{shot_path} (Copied to Clipboard)!"
+          diff_renderer.invalidate!
+          return
+        end
 
         # Global command palette shortcut
         if ev.char == '~' || ev.char == '`' || ev.matches?("ctrl+p")

@@ -1,4 +1,5 @@
 require "opal"
+require "opal/asciicast"
 
 module Lapis
   module TUI
@@ -123,6 +124,61 @@ module Lapis
       property use_3d_color_picker : Bool = false
       property file_dialog : Opal::UI::FileDialog = Opal::UI::FileDialog.new(initial_path: ".")
       property shader_fx : ShaderFxMode = ShaderFxMode::None
+
+      # Screencast Recording State (Opal Asciicast ScreenRecorder)
+      property recording : Bool = false
+      property recorder : Opal::Asciicast::ScreenRecorder? = nil
+      property recording_start_time : Time::Instant? = nil
+      property recording_path : String = ""
+
+      def recording? : Bool
+        @recording && !@recorder.nil?
+      end
+
+      def recording_elapsed_seconds : Float64
+        if start = @recording_start_time
+          (Time.instant - start).total_seconds
+        else
+          0.0_f64
+        end
+      end
+
+      def recording_elapsed_str : String
+        secs = recording_elapsed_seconds.to_i
+        m = secs // 60
+        s = secs % 60
+        sprintf("%02d:%02d", m, s)
+      end
+
+      def start_recording(target_path : String? = nil, width : Int32 = 120, height : Int32 = 36) : String
+        timestamp = Time.local.to_s("%Y%m%d_%H%M%S")
+        out_path = target_path || "recordings/lapis_session_#{timestamp}.cast"
+        dir = File.dirname(out_path)
+        Dir.mkdir_p(dir) unless dir.empty? || Dir.exists?(dir)
+
+        rec = Opal::Asciicast::ScreenRecorder.new(
+          output_path: out_path,
+          width: width,
+          height: height,
+          title: @title
+        )
+        rec.start
+        @recorder = rec
+        @recording = true
+        @recording_path = out_path
+        @recording_start_time = Time.instant
+        out_path
+      end
+
+      def stop_recording : String
+        return @recording_path unless @recording && (rec = @recorder)
+        rec.stop
+        saved_path = @recording_path
+        @recording = false
+        @recorder = nil
+        @recording_start_time = nil
+        saved_path
+      end
 
       def initialize(
         @title : String = "Lapis Test Suite Runner",

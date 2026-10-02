@@ -62,6 +62,11 @@ module Lapis
       end
 
       def stop(final_success : Bool) : Nil
+        if @state.recording?
+          saved_path = @state.stop_recording
+          puts "[TUI Screencast] Saved recording to #{saved_path}"
+        end
+
         @state.overall_status = if @aborted
                                   OverallStatus::Aborted
                                 elsif final_success
@@ -321,6 +326,34 @@ module Lapis
             if event.char == 'c'
               @aborted = true
               @running = false
+              return
+            elsif event.char == 'r'
+              if @state.recording?
+                saved_path = @state.stop_recording
+                @state.toasts.add("Recording Stopped", "Saved to #{saved_path}", :info, 3500_i64)
+              else
+                out_path = @state.start_recording
+                @state.toasts.add("Recording Started", "Recording to #{out_path} (Ctrl+R to stop)", :success, 3500_i64)
+              end
+              return
+            elsif event.char == 's'
+              timestamp = Time.local.to_s("%Y%m%d_%H%M%S")
+              shot_path = "recordings/screenshot_#{timestamp}.ansi"
+              html_path = "recordings/screenshot_#{timestamp}.html"
+              buf = @renderer.last_buffer
+              unless buf
+                size = Terminal.size
+                w = Math.max(40, size[:cols] - 1)
+                h = Math.max(12, size[:rows] - 1)
+                canvas, _, _ = @renderer.build_canvas_with_overlays(@state, w, h)
+                buf = canvas.to_opal_buffer
+              end
+              if buf
+                Opal::Asciicast::VCR.screenshot(path: shot_path, format: :ansi, buffer: buf, copy_to_clipboard: true)
+                Opal::Asciicast::VCR.screenshot(path: html_path, format: :html, buffer: buf)
+                @state.toasts.add("Screenshot Saved", "#{shot_path} (Copied to Clipboard)", :success, 3500_i64)
+              end
+              return
             end
             return
           end

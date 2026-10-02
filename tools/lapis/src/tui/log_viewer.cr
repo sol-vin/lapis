@@ -67,7 +67,7 @@ module Lapis
               check_file_updates if @auto_follow
               render(driver, diff_renderer)
               ev = driver.poll_event(50)
-              handle_input(ev, diff_renderer) if ev
+              handle_input(ev, driver, diff_renderer) if ev
             end
           ensure
             driver.show_cursor
@@ -213,7 +213,7 @@ module Lapis
           prompt = "Search regex: /#{@search_query}█"
           buffer.put_string(2, footer_y, prompt, fg: Opal::Color.yellow, bold: true)
         else
-          info = "Tab/Shift+Tab: Channel │ 1-5: Level (#{@level_filter}) │ f: #{follow_badge} │ /: Search │ Esc/Q: Back"
+          info = "Tab/Shift+Tab: Channel │ 1-5: Level (#{@level_filter}) │ f: #{follow_badge} │ /: Search │ Ctrl+S: Shot │ Esc/Q: Back"
           buffer.put_string(2, footer_y, info, fg: Opal::Color.cyan)
           buffer.put_string(width - 20, footer_y, "#{fl.size} lines", fg: Opal::Color.bright_black)
         end
@@ -228,7 +228,11 @@ module Lapis
         diff_renderer.render(buffer)
       end
 
-      private def handle_input(ev : Opal::Terminal::KeyEvent | Opal::Terminal::MouseEvent | Opal::Terminal::ResizeEvent, diff_renderer : Opal::UI::DiffRenderer)
+      private def handle_input(
+        ev : Opal::Terminal::KeyEvent | Opal::Terminal::MouseEvent | Opal::Terminal::ResizeEvent,
+        driver : Opal::Terminal::Driver,
+        diff_renderer : Opal::UI::DiffRenderer
+      )
         if ev.is_a?(Opal::Terminal::ResizeEvent)
           diff_renderer.invalidate!
           return
@@ -244,6 +248,20 @@ module Lapis
         # Global command palette shortcut
         if ev.char == '~' || ev.char == '`' || ev.matches?("ctrl+p")
           @running = false
+          return
+        end
+
+        # VCR Screenshot: Ctrl+S
+        if ev.matches?("ctrl+s")
+          timestamp = Time.local.to_s("%Y%m%d_%H%M%S")
+          shot_path = "recordings/screenshot_log_#{timestamp}.ansi"
+          html_path = "recordings/screenshot_log_#{timestamp}.html"
+          w, h = driver.size
+          buffer = Opal::UI::Buffer.new(Math.max(40, w), Math.max(16, h))
+          render_to_buffer(buffer, buffer.width, buffer.height)
+          Opal::Asciicast::VCR.screenshot(path: shot_path, format: :ansi, buffer: buffer, copy_to_clipboard: true)
+          Opal::Asciicast::VCR.screenshot(path: html_path, format: :html, buffer: buffer)
+          diff_renderer.invalidate!
           return
         end
 
