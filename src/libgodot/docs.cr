@@ -545,6 +545,7 @@ module Lapis
   end
 end
 
+{% if read_file?("#{__DIR__}/docs/a_getting_started/a_installation.cr") %}
 require "./docs/a_getting_started/a_installation"
 require "./docs/a_getting_started/b_compilation"
 require "./docs/a_getting_started/c_quick_start_tutorial"
@@ -592,6 +593,7 @@ require "./docs/i_architecture_and_extensions/c_addons_and_multi_plugin_isolatio
 require "./docs/i_architecture_and_extensions/d_godot_version_upgrade"
 require "./docs/j_modern_cli_and_tui/a_interactive_command_center"
 require "./docs/j_modern_cli_and_tui/b_tui_hub_and_specialized_views"
+{% end %}
 
 alias Docs = ::Lapis::Docs
 
