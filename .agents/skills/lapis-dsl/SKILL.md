@@ -54,7 +54,7 @@ gmodule DamageableMixin do
 
   def take_damage(amount : Int32) : Void
     mitigated = Math.max(1, amount - @armor_rating)
-    emit_damaged(mitigated, 100)
+    damaged.emit(mitigated, 100)
   end
 end
 ```
@@ -143,7 +143,7 @@ end
 
 ---
 
-## 4. Signals & Event Dispatch
+## 4. Signals, Event Dispatch & Piping
 
 ```crystal
 node Character < CharacterBody2D do
@@ -156,21 +156,38 @@ node Character < CharacterBody2D do
 
   def apply_damage(amount : Int32) : Void
     @health -= amount
-    # Synthesized type-safe emitter helper
-    emit_health_changed(@health, 100)
+    # First-class type-safe emitter
+    health_changed.emit(@health, 100)
 
     if @health <= 0
-      emit_defeated
+      defeated.emit
     end
   end
 
   def _ready : Void
-    # Connect signals dynamically
-    defeated.connect(self, "on_character_defeated")
-  end
+    # 1. First-class block connection:
+    defeated.connect { Godot.print("Character perished!") }
 
-  def on_character_defeated : Void
-    Godot.print("Character has perished!")
+    # 2. Operator << syntax sugar:
+    defeated << ->{ Godot.print("Defeated via proc!") }
+
+    # 3. Compound operators += and -= with procs or subscriptions:
+    handler = ->{ Godot.print("Handled!") }
+    defeated += handler
+    defeated -= handler
+
+    # 4. Expressive 'on' macro with typed downcasting:
+    on health_changed do |curr, max|
+      Godot.print("HP: #{curr}/#{max}")
+    end
+
+    # 5. One-shot listeners:
+    defeated.once { Godot.print("Fired only once") }
+
+    # 6. Signal Piping:
+    # Strict pipe (>): Compile-time verified signature matching
+    # Loose pipe (>>): Positional arity trimming and type downcasting
+    # start_btn.pressed >> self.game_started
   end
 end
 ```
@@ -320,3 +337,127 @@ node StorageChest < Node2D do
   # ...
 end
 ```
+
+---
+
+## 11. Scene Pipeline & Fluent Instantiation
+
+```crystal
+# 1. Preload and instantiate typed node:
+hero = "res://scenes/hero.tscn" > Hero
+
+# 2. Dynamic uncached loading:
+stage = "res://levels/level_01.tscn" >> StageLevel
+
+# 3. Add child with inline configuration returning concrete static type:
+boss = parent.add_child(BossEnemy) do |b|
+  b.health = 5000
+  b.boss_title = "Dread Overlord"
+end
+
+# 4. Fluent configuration blocks:
+sword = ItemSword.new.build do |s|
+  s.damage = 50
+  s.rarity = :rare
+end
+```
+
+---
+
+## 12. Type-Safe Tweens & Easing
+
+```crystal
+# 1. Quick single-property animation (target omitted):
+tween_to(:position, :y, 150.0, duration: 0.5.seconds)
+tween_to(:alpha, 0.0, duration: 0.3.seconds)
+
+# 2. Expressive builder block:
+tween do |t|
+  t.animate :scale, to: Vector2.new(1.5_f32, 1.5_f32), duration: 0.2.seconds
+  t.delay 0.1.seconds
+  t.animate :position, :y, to: 0.0, duration: 0.3.seconds
+end
+
+# 3. Compile-time validated dot-navigation macro:
+tween(player.position.y, to: 100.0, in: 0.4.seconds)
+```
+
+---
+
+## 13. Pattern Matching Macro (`match`)
+
+```crystal
+match entity do
+  is Player do |p|
+    "Player with HP: #{p.health}"
+  end
+  is Enemy, if: entity.boss? do |boss|
+    "Boss Enemy!"
+  end
+  is Int32 do |num|
+    "Number: #{num}"
+  end
+  default do
+    "Unknown entity"
+  end
+end
+```
+
+---
+
+## 14. Scene Tree Glob Queries & Spatial Navigation
+
+```crystal
+# Glob search across scene hierarchy:
+enemies = get_nodes("Enemies/*", Enemy)
+all_loot = get_nodes("**/ItemChest", ItemChest)
+
+# Hierarchy navigation:
+room = ancestor(DungeonRoom)
+prev_item = previous_sibling?(InventorySlot)
+next_item = next_sibling?(InventorySlot)
+
+# Relative spatial helpers:
+dist = distance_to(player)
+dir = direction_to(player)
+angle = angle_to_point(player)
+```
+
+---
+
+## 15. Timers & Lifecycle Sugar
+
+```crystal
+# Scoped recurring timer (auto-cancels if node is destroyed):
+every(0.5.seconds) do |handle|
+  fire_homing_missile
+end
+
+# Scoped one-shot delay:
+after(2.0.seconds) do
+  respawn_player
+end
+
+# Cooperative fiber condition gates:
+await_until(character.on_floor?, timeout_sec: 5.0)
+await_while(tween.is_running)
+```
+
+---
+
+## 16. Compile-Time Context-Aware Audio Macro (`play_sound`)
+
+```crystal
+# 1. In Node2D: Automatically emits AudioStreamPlayer2D at global_position
+play_sound "res://audio/laser.wav", pitch_scale: 1.2
+
+# 2. In Node3D: Automatically emits AudioStreamPlayer3D at global_position
+play_sound "res://audio/explosion.wav" do
+  max_distance = 250.0_f32
+end
+
+# 3. In Control: Automatically emits non-spatial AudioStreamPlayer
+play_sound "res://audio/ui_click.wav", volume_db: -3.0
+# Sound survives on scene root even if the calling node is freed immediately!
+```
+

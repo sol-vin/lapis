@@ -108,7 +108,7 @@ This skill is the authoritative conversion guide and Rosetta Stone for translati
     <tr>
       <td><code>signal health_changed(curr, max)</code></td>
       <td><code>signal health_changed(current : Int32, max_health : Int32)</code></td>
-      <td>Synthesizes type-safe <code>emit_health_changed(curr, max)</code> method.</td>
+      <td>First-class signal accessors: <code>health_changed.emit(curr, max)</code>, <code>connect</code>, and piping (<code>&gt;</code>, <code>&gt;&gt;</code>).</td>
     </tr>
     <tr>
       <td><code>func _ready():</code></td>
@@ -137,8 +137,8 @@ This skill is the authoritative conversion guide and Rosetta Stone for translati
     </tr>
     <tr>
       <td><code>match val:</code><br><code>&nbsp;&nbsp;1: foo()</code><br><code>&nbsp;&nbsp;_: bar()</code></td>
-      <td><code>case val</code><br><code>when 1 then foo</code><br><code>else bar</code><br><code>end</code></td>
-      <td>Exhaustive pattern matching supported by Crystal compiler.</td>
+      <td><code>match val do</code><br><code>&nbsp;&nbsp;is 1 do foo end</code><br><code>&nbsp;&nbsp;default do bar end</code><br><code>end</code></td>
+      <td>First-class pattern matching macro supporting downcasting, variant unboxing, guards, and destructuring.</td>
     </tr>
     <tr>
       <td><code>queue_free()</code></td>
@@ -240,10 +240,10 @@ node HealthComponent < Node do
 
   def take_damage(amount : Int32) : Void
     @current_health -= amount
-    # Type-safe auto-generated emitter methods
-    emit_damaged(amount, @current_health)
+    # First-class signal emission
+    damaged.emit(amount, @current_health)
     if @current_health <= 0
-      emit_died
+      died.emit
     end
   end
 end

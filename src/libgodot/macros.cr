@@ -313,6 +313,80 @@ macro instantiate_child(path, under = nil, as type = Godot::Node, **kwargs, &blo
   %inst
 end
 
+# Context-aware one-shot audio playback macro:
+# - Inspects `@type` at compile-time:
+#   * `@type <= Godot::Node2D` -> emits AudioStreamPlayer2D with global_position
+#   * `@type <= Godot::Node3D` -> emits AudioStreamPlayer3D with global_position
+#   * Otherwise -> emits non-spatial AudioStreamPlayer
+# - If explicit `at:` coordinate is passed (Vector2 or Vector3), spatializes appropriately
+# - Automatically preloads or loads the AudioStream
+# - Sets kwargs properties (e.g. pitch_scale: 1.2, volume_db: -5.0, bus: "SFX")
+# - Executes inline configuration block (e.g. do pitch_scale = 1.2 end)
+# - Attaches to active scene root (`current_scene || root`) so audio survives caller deletion!
+# - Connects finished.once { queue_free } for automatic memory cleanup
+# - Returns the strongly-typed audio player
+macro play_sound(stream, at = nil, under = nil, **kwargs, &block)
+  %s_val = {{stream}}
+  %stream = %s_val.is_a?(String) ? (::Godot::PreloadCache.get_or_load(%s_val, ::Godot::AudioStream)) : %s_val.as(::Godot::AudioStream)
+
+  {% if at %}
+    %at_pos = {{at}}
+    %player = if %at_pos.is_a?(::Godot::Vector3)
+                %p3d = ::Godot.create(::Godot::AudioStreamPlayer3D)
+                %p3d.global_position = %at_pos
+                %p3d
+              elsif %at_pos.is_a?(::Godot::Vector2)
+                %p2d = ::Godot.create(::Godot::AudioStreamPlayer2D)
+                %p2d.global_position = %at_pos
+                %p2d
+              else
+                ::Godot.create(::Godot::AudioStreamPlayer)
+              end
+  {% elsif @type <= Godot::Node2D %}
+    %player = ::Godot.create(::Godot::AudioStreamPlayer2D)
+    %player.global_position = self.global_position
+  {% elsif @type <= Godot::Node3D %}
+    %player = ::Godot.create(::Godot::AudioStreamPlayer3D)
+    %player.global_position = self.global_position
+  {% else %}
+    %player = ::Godot.create(::Godot::AudioStreamPlayer)
+  {% end %}
+
+  %player.stream = %stream
+  {% for k, v in kwargs %}
+    %player.{{k}} = {{v}}
+  {% end %}
+
+  {% if block && !block.body.is_a?(Nop) %}
+    {% stmts = block.body.is_a?(Expressions) ? block.body.expressions : [block.body] %}
+    {% for s in stmts %}
+      {% if s.is_a?(Assign) %}
+        %player.{{s.target}} = {{s.value}}
+      {% elsif s.is_a?(Call) %}
+        %player.{{s.name}}({{s.args.splat}})
+      {% end %}
+    {% end %}
+  {% end %}
+
+  %host = {% if under %}
+            {{under}}
+          {% else %}
+            (if %tree = ::Godot.get_tree?
+               %tree.current_scene || %tree.root
+             else
+               self.topmost_parent
+             end)
+          {% end %}
+  %host.add_child(%player)
+
+  %player.finished.once do
+    %player.queue_free
+  end
+
+  %player.play
+  %player
+end
+
 # Expressive convenience macro for 2D scene nodes defaulting to Godot::Node2D
 macro node2d(decl)
   node2d {{decl}} do

@@ -546,5 +546,109 @@ module Godot
     def spawn_node(type : T.class) : T forall T
       spawn_child(type)
     end
+
+    # Context-aware one-shot audio playback helper on Node
+    def play_sound(
+      stream_or_path : AudioStream | String,
+      at : Vector2 | Vector3 | Nil = nil,
+      pitch_scale : Float64 = 1.0,
+      volume_db : Float64 = 0.0,
+      bus : String = "Master",
+      &block : Node -> Void
+    ) : Node?
+      return nil if @pointer.null?
+      stream = stream_or_path.is_a?(String) ? (::Godot::PreloadCache.get_or_load(stream_or_path, AudioStream)) : stream_or_path
+      player = if at.is_a?(Vector3) || (at.nil? && self.is_a?(Node3D))
+                 p3d = ::Godot.create(AudioStreamPlayer3D)
+                 p3d.global_position = at.as?(Vector3) || (self.as?(Node3D).try(&.global_position) || Vector3.zero)
+                 p3d.as(Node)
+               elsif at.is_a?(Vector2) || (at.nil? && self.is_a?(Node2D))
+                 p2d = ::Godot.create(AudioStreamPlayer2D)
+                 p2d.global_position = at.as?(Vector2) || (self.as?(Node2D).try(&.global_position) || Vector2.zero)
+                 p2d.as(Node)
+               else
+                 ::Godot.create(AudioStreamPlayer).as(Node)
+               end
+      player.call("set_stream", stream)
+      player.call("set_pitch_scale", pitch_scale.to_f32)
+      player.call("set_volume_db", volume_db.to_f32)
+      player.call("set_bus", bus)
+      yield player
+      host = if tree = ::Godot.get_tree?
+               tree.current_scene || tree.root
+             else
+               topmost_parent
+             end
+      host.add_child(player)
+      player.signal("finished").once { player.queue_free }
+      player.call("play")
+      player
+    end
+
+    def play_sound(
+      stream_or_path : AudioStream | String,
+      at : Vector2 | Vector3 | Nil = nil,
+      pitch_scale : Float64 = 1.0,
+      volume_db : Float64 = 0.0,
+      bus : String = "Master"
+    ) : Node?
+      play_sound(stream_or_path, at, pitch_scale, volume_db, bus) { |_| }
+    end
+  end
+
+  # ===========================================================================
+  # CanvasItem Visual & Opacity Ergonomics
+  # ===========================================================================
+  class CanvasItem < Node
+    @local_modulate : Color = Color.new(1.0_f32, 1.0_f32, 1.0_f32, 1.0_f32)
+
+    def set_modulate(modulate : Color) : Void
+      @local_modulate = modulate
+      return if @pointer.null?
+      previous_def(modulate)
+    end
+
+    def get_modulate : Color
+      return @local_modulate if @pointer.null?
+      previous_def
+    end
+
+    # Direct access to modulate alpha component (0.0 .. 1.0)
+    def alpha : Float32
+      get_modulate.a
+    end
+
+    # Sets modulate alpha component while preserving RGB components
+    def alpha=(val : Number) : Void
+      m = get_modulate
+      set_modulate(Color.new(m.r, m.g, m.b, val.to_f32))
+    end
+
+    # Tweens alpha to target value over specified duration
+    def fade_to(target_alpha : Number, duration : Float64 | ::Time::Span = 0.3) : Tween?
+      return nil if @pointer.null?
+      tween_to("modulate:a", target_alpha.to_f32, duration)
+    end
+
+    # Tweens alpha to 1.0 (fully visible)
+    def fade_in(duration : Float64 | ::Time::Span = 0.3) : Tween?
+      fade_to(1.0_f32, duration)
+    end
+
+    # Tweens alpha to 0.0 (fully transparent)
+    def fade_out(duration : Float64 | ::Time::Span = 0.3) : Tween?
+      fade_to(0.0_f32, duration)
+    end
+
+    # Temporarily flashes CanvasItem with flash_color for duration, then restores original color
+    def flash(flash_color : Color = Color::WHITE, duration : Float64 | ::Time::Span = 0.1) : Nil
+      return if @pointer.null?
+      prev_color = get_modulate
+      set_modulate(flash_color)
+      dur_sec = duration.is_a?(::Time::Span) ? duration.total_seconds : duration.to_f64
+      ::Godot.after(dur_sec) do
+        set_modulate(prev_color) if alive?
+      end
+    end
   end
 end

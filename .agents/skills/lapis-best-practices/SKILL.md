@@ -31,8 +31,8 @@ module Damageable
   def take_damage(amount : Int32) : Void
     return if current_health <= 0
     @current_health = Math.max(0, @current_health - amount)
-    emit_health_changed(@current_health, @max_health)
-    emit_died if @current_health == 0
+    health_changed.emit(@current_health, @max_health)
+    died.emit if @current_health == 0
   end
 end
 

@@ -651,6 +651,77 @@ module Godot
       connected?
     end
 
+    # Strict pipe (>): Dispatches to target signal passing raw arguments
+    def >(target_signal : BoundSignal) : SignalSubscription
+      pipe_to(target_signal, strict: true)
+    end
+
+    # Loose / adaptive pipe (>>): Dispatches with arity trimming and type downcasting
+    def >>(target_signal : BoundSignal) : SignalSubscription
+      pipe_to(target_signal, strict: false)
+    end
+
+    # Loose pipe (>>) to a strongly-typed TypedSignal(*U) with automatic downcasting & arity adaptation
+    def >>(target_signal : TypedSignal(*U)) : SignalSubscription forall U
+      target_obj = target_signal.target
+      connect do |args|
+        return unless target_obj.alive?
+        {% begin %}
+          {% target_size = U.size %}
+          {% if target_size == 0 %}
+            target_signal.emit
+          {% else %}
+            if args.size >= {{ target_size }}
+              {% for i in 0...target_size %}
+                %matched_{{i}} = false
+                %val_{{i}} = nil
+                %raw_{{i}} = args[{{i}}].raw
+                if %raw_{{i}}.is_a?({{ U[i] }})
+                  %val_{{i}} = %raw_{{i}}
+                  %matched_{{i}} = true
+                {% if U[i] < Godot::Node %}
+                  elsif %n_{{i}} = %raw_{{i}}.as?(::Godot::Node)
+                    if %casted_{{i}} = ::Godot::Node.cast_to?(%n_{{i}}, {{ U[i] }})
+                      %val_{{i}} = %casted_{{i}}
+                      %matched_{{i}} = true
+                    end
+                {% end %}
+                {% if U[i] <= Int32 || U[i] <= Int64 %}
+                  elsif %raw_{{i}}.is_a?(Int)
+                    %val_{{i}} = {{ U[i] }}.new(%raw_{{i}})
+                    %matched_{{i}} = true
+                {% elsif U[i] <= Float32 || U[i] <= Float64 %}
+                  elsif %raw_{{i}}.is_a?(Number)
+                    %val_{{i}} = {{ U[i] }}.new(%raw_{{i}})
+                    %matched_{{i}} = true
+                {% end %}
+                end
+              {% end %}
+
+              if {% for i in 0...target_size %}%matched_{{i}} && {% end %} true
+                target_signal.emit(
+                  {% for i in 0...target_size %}
+                    %val_{{i}}.as({{ U[i] }}),
+                  {% end %}
+                )
+              end
+            end
+          {% end %}
+        {% end %}
+      end
+    end
+
+    # Pipes this signal to target signal
+    def pipe_to(target_signal : BoundSignal, strict : Bool = false) : SignalSubscription
+      target_obj = target_signal.target
+      target_name = target_signal.name
+      connect do |args|
+        if target_obj.alive?
+          target_obj.emit_signal(target_name, *args.map(&.raw))
+        end
+      end
+    end
+
     def to_s(io : IO) : Void
       io << "#<Godot::BoundSignal @" << @name << " on " << @target.class.name << " (id: " << target_id << ")>"
     end
@@ -818,6 +889,106 @@ module Godot
     def emit(*args : *T) : self
       @target.emit_signal(@name, *args)
       self
+    end
+
+    # Strict pipe (>): Exact signature match required at compile-time!
+    def >(target_signal : TypedSignal(*T)) : SignalSubscription
+      {% begin %}
+        {% if T.size == 0 %}
+          connect do
+            target_signal.emit
+          end
+        {% else %}
+          connect do |{% for i in 0...T.size %}arg{{i}},{% end %}|
+            target_signal.emit({% for i in 0...T.size %}arg{{i}},{% end %})
+          end
+        {% end %}
+      {% end %}
+    end
+
+    # Loose / adaptive pipe (>>): Accepts ANY TypedSignal(*U)!
+    # - Automatically trims excess trailing arguments (e.g. 3 args -> 2 args or 0 args)
+    # - Automatically filters and downcasts (e.g. Node -> Enemy)
+    # - Automatically converts numeric types
+    def >>(target_signal : TypedSignal(*U)) : SignalSubscription forall U
+      {% begin %}
+        {% target_size = U.size %}
+        {% if T.size < target_size %}
+          {% raise "Cannot loosely pipe signal with #{T.size} arguments to signal requiring #{target_size} arguments (#{T} to #{U})" %}
+        {% else %}
+          {% if T.size == 0 %}
+            connect do
+              target_signal.emit
+            end
+          {% else %}
+            connect do |{% for i in 0...T.size %}arg{{i}},{% end %}|
+              {% if target_size == 0 %}
+                target_signal.emit
+              {% else %}
+                {% for i in 0...target_size %}
+                  %matched_{{i}} = false
+                  %val_{{i}} = nil
+                  %raw_{{i}} = arg{{i}}
+                  if %raw_{{i}}.is_a?({{ U[i] }})
+                    %val_{{i}} = %raw_{{i}}
+                    %matched_{{i}} = true
+                  {% if U[i] < Godot::Node %}
+                    elsif %n_{{i}} = %raw_{{i}}.as?(::Godot::Node)
+                      if %casted_{{i}} = ::Godot::Node.cast_to?(%n_{{i}}, {{ U[i] }})
+                        %val_{{i}} = %casted_{{i}}
+                        %matched_{{i}} = true
+                      end
+                  {% end %}
+                  {% if U[i] <= Int32 || U[i] <= Int64 %}
+                    elsif %raw_{{i}}.is_a?(Int)
+                      %val_{{i}} = {{ U[i] }}.new(%raw_{{i}})
+                      %matched_{{i}} = true
+                  {% elsif U[i] <= Float32 || U[i] <= Float64 %}
+                    elsif %raw_{{i}}.is_a?(Number)
+                      %val_{{i}} = {{ U[i] }}.new(%raw_{{i}})
+                      %matched_{{i}} = true
+                  {% end %}
+                  end
+                {% end %}
+
+                if {% for i in 0...target_size %}%matched_{{i}} && {% end %} true
+                  target_signal.emit(
+                    {% for i in 0...target_size %}
+                      %val_{{i}}.as({{ U[i] }}),
+                    {% end %}
+                  )
+                end
+              {% end %}
+            end
+          {% end %}
+        {% end %}
+      {% end %}
+    end
+
+    # Loose pipe (>>) to a dynamic BoundSignal:
+    def >>(target_signal : BoundSignal) : SignalSubscription
+      target_obj = target_signal.target
+      target_name = target_signal.name
+      {% begin %}
+        {% if T.size == 0 %}
+          connect do
+            if target_obj.alive?
+              target_obj.emit_signal(target_name)
+            end
+          end
+        {% else %}
+          connect do |{% for i in 0...T.size %}arg{{i}},{% end %}|
+            if target_obj.alive?
+              target_obj.emit_signal(target_name, {% for i in 0...T.size %}arg{{i}},{% end %})
+            end
+          end
+        {% end %}
+      {% end %}
+    end
+
+    # Strict pipe_to alias
+    def pipe_to(target_signal : TypedSignal(*T)) : SignalSubscription
+      self > target_signal
     end
 
     # Cooperatively awaits this typed signal returning unboxed values or tuple
@@ -2308,8 +2479,13 @@ module Godot
       end
     end
 
+    @has_explicit_global_pos : Bool = false
+
     def position=(v : Vector2)
       @position = v
+      if @pointer.null? && !@has_explicit_global_pos
+        @global_position = v
+      end
       if !@pointer.null?
         set_position(v)
       end
@@ -2325,6 +2501,7 @@ module Godot
 
     def global_position=(v : Vector2)
       @global_position = v
+      @has_explicit_global_pos = true
       if !@pointer.null?
         set_global_position(v)
       end
@@ -2524,8 +2701,13 @@ module Godot
       end
     end
 
+    @has_explicit_global_pos : Bool = false
+
     def position=(v : Vector3)
       @position = v
+      if @pointer.null? && !@has_explicit_global_pos
+        @global_position = v
+      end
       if !@pointer.null?
         set_position(v)
       end
@@ -2541,6 +2723,7 @@ module Godot
 
     def global_position=(v : Vector3)
       @global_position = v
+      @has_explicit_global_pos = true
       if !@pointer.null?
         set_global_position(v)
       end
