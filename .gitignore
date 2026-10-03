@@ -98,6 +98,7 @@ cc_wrapper.sh
 **/cc_wrapper.sh
 
 test_report.*
+/reports/
 junit*.xml
 **/junit*.xml
 android_audit_report.txt

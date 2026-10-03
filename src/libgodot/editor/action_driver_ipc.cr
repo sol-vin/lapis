@@ -128,6 +128,38 @@ module Lapis
         when "save_scene"
           @driver.save_scene
           {"status" => "ok", "message" => "Saved current scene"}.to_json
+        when "open_script"
+          path = data["path"]?.try(&.as_s?) || ""
+          line = data["line"]?.try(&.as_i?) || 1
+          col = data["col"]?.try(&.as_i?) || 0
+          if @driver.open_script(path, line, col)
+            {"status" => "ok", "message" => "Opened script '#{path}' at #{line}:#{col}"}.to_json
+          else
+            {"status" => "error", "message" => "Failed to open script '#{path}'"}.to_json
+          end
+        when "current_script"
+          curr = @driver.get_current_script_path
+          {"status" => "ok", "path" => curr}.to_json
+        when "open_scripts"
+          scripts = @driver.get_open_script_paths
+          {"status" => "ok", "scripts" => scripts}.to_json
+        when "switch_main_screen"
+          screen = data["screen"]?.try(&.as_s?) || ""
+          @driver.switch_to_main_screen(screen)
+          {"status" => "ok", "message" => "Switched to main screen '#{screen}'"}.to_json
+        when "find"
+          selector = data["selector"]?.try(&.as_s?) || ""
+          if ctrl = @driver.find_control(selector) || @driver.find_button(selector)
+            {
+              "status"  => "ok",
+              "found"   => true,
+              "name"    => ctrl.name,
+              "class"   => ctrl.get_class,
+              "visible" => (ctrl.is_visible rescue true),
+            }.to_json
+          else
+            {"status" => "ok", "found" => false, "selector" => selector}.to_json
+          end
         when "trigger_build"
           @driver.trigger_crystal_build
           {"status" => "ok", "message" => "Triggered Crystal build"}.to_json

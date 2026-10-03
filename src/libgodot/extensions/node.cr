@@ -6,7 +6,7 @@ module Godot
     alias Node = Godot::Node
     getter local_groups : Set(String) = Set(String).new
     @local_children : Array(Node)?
-    @@standalone_parents = Hash(UInt64, Node).new
+    STANDALONE_PARENTS = Hash(UInt64, Node).new
 
     # Idiomatic child count getter
     def child_count : Int32
@@ -34,7 +34,7 @@ module Godot
     def add_child(node : Node, force_readable_name : Bool = false, internal : InternalMode | Int = 0) : Void
       Godot::ThreadSafety.assert_main_thread!("add_child", "Node", self, node)
       children << node
-      @@standalone_parents[node.object_id] = self if @pointer.null?
+      STANDALONE_PARENTS[node.object_id] = self if @pointer.null?
       return if @pointer.null?
       previous_def(node, force_readable_name, internal)
     end
@@ -50,7 +50,7 @@ module Godot
     def remove_child(node : Node) : Void
       Godot::ThreadSafety.assert_main_thread!("remove_child", "Node", self, node)
       children.delete(node)
-      @@standalone_parents.delete(node.object_id) if @pointer.null?
+      STANDALONE_PARENTS.delete(node.object_id) if @pointer.null?
       return if @pointer.null?
       previous_def(node)
     end
@@ -70,7 +70,7 @@ module Godot
     def reparent(new_parent : Node, keep_global_transform : Bool = true) : Void
       Godot::ThreadSafety.assert_main_thread!("reparent", "Node", self, new_parent)
       if @pointer.null?
-        if lp = @@standalone_parents[object_id]?
+        if lp = STANDALONE_PARENTS[object_id]?
           lp.remove_child(self)
         end
         new_parent.add_child(self)
@@ -82,10 +82,10 @@ module Godot
     # Safely destroys this node, unregistering parent references in standalone mode.
     def destroy : Void
       if @pointer.null?
-        @@standalone_parents.delete(object_id)
+        STANDALONE_PARENTS.delete(object_id)
         if loc_kids = @local_children
           loc_kids.each do |c|
-            @@standalone_parents.delete(c.object_id)
+            STANDALONE_PARENTS.delete(c.object_id)
           end
         end
       end
@@ -147,9 +147,19 @@ module Godot
       end
     end
 
+    # Returns the parent Node. Falls back to local standalone parents map when running without engine host.
+    def get_parent : Node
+      if @pointer.null?
+        if standalone_p = STANDALONE_PARENTS[object_id]?
+          return standalone_p
+        end
+      end
+      previous_def
+    end
+
     # Returns the parent Node, or nil if orphan
     def get_parent? : Node?
-      return @@standalone_parents[object_id]? if @pointer.null?
+      return STANDALONE_PARENTS[object_id]? if @pointer.null?
       return nil unless alive?
       p = get_parent
       p.pointer.null? ? nil : p

@@ -25,6 +25,9 @@ Commands:
   select-tab <tab_name>       Switch an active TabBar / TabContainer
   open-scene <path>           Open a scene in Godot Editor
   save-scene                  Save current edited scene
+  open-script <path> [ln] [c] Open a script in ScriptEditor at line/column
+  screen <name>               Switch Godot Editor main screen (2D, 3D, Script, Crystal)
+  find <selector>             Inspect whether a control exists in the editor UI
   build                       Trigger Crystal build button in editor
   screenshot [path]           Capture full editor viewport screenshot
   crop <selector> [path]      Capture isolated screenshot of a single UI element
@@ -142,6 +145,56 @@ HELP
           else
             1
           end
+        when "open-script"
+          path = sub_args[0]? || ""
+          line = sub_args[1]?.try(&.to_i?) || 1
+          col = sub_args[2]?.try(&.to_i?) || 0
+          req = {
+            "action" => JSON::Any.new("open_script"),
+            "path"   => JSON::Any.new(path),
+            "line"   => JSON::Any.new(line.to_i64),
+            "col"    => JSON::Any.new(col.to_i64),
+          }
+          if res = send_ipc(req, host, port)
+            if res["status"]?.try(&.as_s?) == "ok"
+              puts "\e[32m[Success]\e[0m #{res["message"]? || "Opened script"}"
+              0
+            else
+              puts "\e[31m[Error]\e[0m #{res["message"]? || "Failed to open script"}"
+              1
+            end
+          else
+            1
+          end
+        when "screen"
+          screen_name = sub_args[0]? || "Crystal"
+          req = {
+            "action" => JSON::Any.new("switch_main_screen"),
+            "screen" => JSON::Any.new(screen_name),
+          }
+          if res = send_ipc(req, host, port)
+            puts "\e[32m[Success]\e[0m #{res["message"]? || "Switched main screen to #{screen_name}"}"
+            0
+          else
+            1
+          end
+        when "find"
+          selector = sub_args[0]? || "Build"
+          req = {
+            "action"   => JSON::Any.new("find"),
+            "selector" => JSON::Any.new(selector),
+          }
+          if res = send_ipc(req, host, port)
+            if res["found"]?.try(&.as_bool?)
+              puts "\e[32m[Found]\e[0m #{res["class"]?} '#{res["name"]?}' (visible: #{res["visible"]?})"
+              0
+            else
+              puts "\e[33m[Not Found]\e[0m Control '#{selector}' does not exist in editor DOM"
+              1
+            end
+          else
+            1
+          end
         when "build"
           req = {"action" => JSON::Any.new("trigger_build")}
           if res = send_ipc(req, host, port)
@@ -234,7 +287,7 @@ HELP
           action = tokens[0]
           case action
           when "help"
-            puts "Commands: click <target>, type <target> <text>, select-tab <tab>, screenshot, crop <target>, vision, dom, exit"
+            puts "Commands: click <target>, type <target> <text>, select-tab <tab>, open-script <path>, screen <name>, find <target>, screenshot, crop <target>, vision, dom, exit"
           when "click"
             target = tokens[1]? || "Build"
             run(["click", target])
@@ -245,6 +298,15 @@ HELP
           when "select-tab"
             tab = tokens[1]? || "Crystal"
             run(["select-tab", tab])
+          when "open-script"
+            path = tokens[1]? || ""
+            run(["open-script", path])
+          when "screen"
+            screen_name = tokens[1]? || "Crystal"
+            run(["screen", screen_name])
+          when "find"
+            target = tokens[1]? || "Build"
+            run(["find", target])
           when "screenshot"
             run(["screenshot"])
           when "crop"

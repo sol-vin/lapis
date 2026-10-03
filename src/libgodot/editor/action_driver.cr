@@ -295,9 +295,129 @@ module Lapis
         end
       end
 
+      # Opens a script in the editor's ScriptEditor and jumps to the line/column
+      def open_script(path : String, line : Int32 = 1, col : Int32 = 0) : Bool
+        return false if Godot::EditorInterface.singleton_ptr.null?
+        ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
+        res_path = if path.starts_with?("res://")
+                     path
+                   elsif path.starts_with?("./")
+                     "res://#{path[2..-1]}"
+                   elsif path.starts_with?("/") || path.includes?(":")
+                     proj_dir = Dir.current.gsub('\\', '/')
+                     norm_path = path.gsub('\\', '/')
+                     if norm_path.starts_with?(proj_dir)
+                       rel = norm_path.sub(proj_dir, "").lchop("/")
+                       "res://#{rel}"
+                     else
+                       path
+                     end
+                   else
+                     "res://#{path}"
+                   end
+
+        log_action("Open script '#{res_path}' at line #{line}:#{col}")
+        return false if Godot::ResourceLoader.singleton_ptr.null?
+        rl = Godot::ResourceLoader.instance
+        res = rl.load(res_path)
+        return false if res.pointer.null?
+
+        if res.is_a?(Godot::Script) || (Godot::Bridge.object_is_class(res.pointer, "Script") rescue false)
+          script = res.is_a?(Godot::Script) ? res.as(Godot::Script) : Godot::Script.new(res.pointer)
+          ed_iface.edit_script(script, line.to_i64, col.to_i64, true)
+          true
+        else
+          ed_iface.edit_resource(res)
+          true
+        end
+      rescue ex
+        log_action("Failed to open script '#{path}': #{ex.message}")
+        false
+      end
+
+      # Returns the resource path of the currently active script in ScriptEditor, or nil
+      def get_current_script_path : String?
+        return nil if Godot::EditorInterface.singleton_ptr.null?
+        ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
+        script_ed = ed_iface.get_script_editor rescue nil
+        return nil unless script_ed && !script_ed.pointer.null?
+        curr = script_ed.call_obj("get_current_script") rescue nil
+        return nil unless curr && !curr.pointer.null?
+        path = curr.call_str("get_path") rescue ""
+        path = curr.call_str("get_resource_path") if path.empty?
+        path.empty? ? nil : path
+      end
+
+      # Returns resource paths of all currently open scripts in ScriptEditor
+      def get_open_script_paths : Array(String)
+        paths = Array(String).new
+        return paths if Godot::EditorInterface.singleton_ptr.null?
+        ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
+        script_ed = ed_iface.get_script_editor rescue nil
+        return paths unless script_ed && !script_ed.pointer.null?
+
+        if curr = script_ed.call_obj("get_current_script")
+          if !curr.pointer.null?
+            p = curr.call_str("get_path") rescue ""
+            paths << p unless p.empty?
+          end
+        end
+
+        open_editors = script_ed.call("get_open_script_editors") rescue nil
+        if open_editors.is_a?(Array(Godot::Variant))
+          open_editors.each do |ed_var|
+            ed_obj = ed_var.as_object rescue nil
+            next unless ed_obj && !ed_obj.pointer.null?
+            scr = ed_obj.call_obj("get_current_script") rescue nil
+            next unless scr && !scr.pointer.null?
+            p = scr.call_str("get_path") rescue ""
+            paths << p unless p.empty? || paths.includes?(p)
+          end
+        end
+        paths
+      end
+
+      # Locates the "Build Crystal" toolbar button
+      def find_crystal_build_button : Godot::Button?
+        find_button("BuildCrystalToolbarButton") || find_button("Build") || find_button("Build Crystal")
+      end
+
+      # Checks whether the "Build Crystal" button exists in the editor UI
+      def has_crystal_build_button? : Bool
+        !find_crystal_build_button.nil?
+      end
+
+      # Locates the "CrystalPanel" main screen hub control
+      def find_crystal_panel : Godot::Control?
+        find_dock("CrystalPanel") || find_control("CrystalPanel")
+      end
+
+      # Checks whether the "CrystalPanel" main screen tab exists in the editor UI
+      def has_crystal_panel? : Bool
+        !find_crystal_panel.nil?
+      end
+
+      # Clicks the "Build Crystal" toolbar button
+      def click_crystal_build_button : Bool
+        if btn = find_crystal_build_button
+          click(btn)
+          true
+        else
+          false
+        end
+      end
+
+      # Switches the active main screen tab to Crystal
+      def open_crystal_main_screen : Bool
+        switch_to_main_screen("Crystal")
+        true
+      rescue
+        false
+      end
+
       # Triggers the "Build Crystal" compile button
       def trigger_crystal_build : Void
-        btn = find_button("Build") || find_button("Build Crystal")
+        btn = find_crystal_build_button
         if btn
           log_action("Triggering Crystal build button")
           click(btn)
