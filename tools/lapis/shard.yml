@@ -28,3 +28,6 @@ dependencies:
   carbon:
     github: sol-vin/carbon
     branch: main
+  bakelite:
+    github: sol-vin/bakelite
+    branch: main
