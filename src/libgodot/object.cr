@@ -1659,13 +1659,13 @@ module Godot
 
     # Fluent inline configuration block yielding self and returning self
     def build(&block : self -> Void) : self
-      yield self
+      with self yield self
       self
     end
 
     # Fluent configuration block alias
     def configure(&block : self -> Void) : self
-      yield self
+      with self yield self
       self
     end
 
