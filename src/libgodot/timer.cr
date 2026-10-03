@@ -13,14 +13,23 @@ module Godot
     getter tick_count : Int64 = 0_i64
     getter interval_sec : Float64
     getter node : Godot::Node?
+    @timer : Godot::Timer? = nil
+    @scene_tree_timer : Godot::SceneTreeTimer? = nil
 
-    def initialize(@interval_sec : Float64, @node : Godot::Node? = nil)
+    def initialize(@interval_sec : Float64, @node : Godot::Node? = nil, @timer : Godot::Timer? = nil, @scene_tree_timer : Godot::SceneTreeTimer? = nil)
     end
 
     # Cancels the timer immediately. No further callbacks will fire.
     def cancel : Void
+      return if @cancelled
       @running = false
       @cancelled = true
+      if t = @timer
+        if t.active?
+          t.stop rescue nil
+          t.queue_free rescue nil
+        end
+      end
     end
 
     # Alias for cancel
@@ -31,11 +40,17 @@ module Godot
     # Temporarily pauses tick accumulation
     def pause : Void
       @paused = true
+      if t = @timer
+        t.paused = true if t.active? rescue nil
+      end
     end
 
     # Resumes tick accumulation
     def resume : Void
       @paused = false
+      if t = @timer
+        t.paused = false if t.active? rescue nil
+      end
     end
 
     # Resets elapsed time and tick counter
@@ -48,7 +63,7 @@ module Godot
     def advance(delta : Float64) : Bool
       return false unless @running && !@paused
       if n = @node
-        if !n.alive?
+        if !n.active?
           cancel
           return false
         end
@@ -68,12 +83,44 @@ module Godot
   # If `node` is provided, automatically cancels when the node is destroyed.
   def self.every(interval : ::Time::Span | Number, node : Godot::Node? = nil, &block : TimerHandle -> Void) : TimerHandle
     interval_sec = interval.is_a?(::Time::Span) ? interval.total_seconds : interval.to_f64
+
+    if (tree = Godot.get_tree?) && (!node || !node.pointer.null?)
+      timer = Godot.create(Timer)
+      timer.wait_time = interval_sec
+      timer.one_shot = false
+      handle = TimerHandle.new(interval_sec, node, timer: timer)
+      timer.timeout.connect do
+        if handle.cancelled?
+          timer.stop rescue nil
+          timer.queue_free rescue nil
+          next
+        end
+        if n = node
+          unless n.active?
+            handle.cancel
+            next
+          end
+        end
+        next if handle.paused?
+        block.call(handle)
+      end
+      if n = node
+        n.add_child(timer)
+      elsif scene = tree.current_scene
+        scene.add_child(timer)
+      else
+        tree.root.add_child(timer)
+      end
+      timer.start
+      return handle
+    end
+
     handle = TimerHandle.new(interval_sec, node)
     spawn do
       last_tick = ::Time.instant
       while handle.running?
         if n = node
-          unless n.alive?
+          unless n.active?
             handle.cancel
             break
           end
@@ -84,7 +131,7 @@ module Godot
         last_tick = now
         if handle.advance(dt)
           begin
-            block.call(handle)
+            block.call(handle) unless handle.cancelled?
           rescue ex
             Godot.printerr("[TimerHandle] Unhandled exception in timer block: #{ex.message}")
             handle.cancel
@@ -105,12 +152,27 @@ module Godot
   # If `node` is provided, automatically cancels if the node is destroyed before expiry.
   def self.after(delay : ::Time::Span | Number, node : Godot::Node? = nil, &block : TimerHandle -> Void) : TimerHandle
     delay_sec = delay.is_a?(::Time::Span) ? delay.total_seconds : delay.to_f64
+
+    if (tree = Godot.get_tree?) && (!node || !node.pointer.null?)
+      st_timer = tree.create_timer(delay_sec)
+      handle = TimerHandle.new(delay_sec, node, scene_tree_timer: st_timer)
+      st_timer.timeout.connect do
+        next if handle.cancelled? || handle.paused?
+        if n = node
+          next unless n.active?
+        end
+        handle.cancel
+        block.call(handle)
+      end
+      return handle
+    end
+
     handle = TimerHandle.new(delay_sec, node)
     spawn do
       start_time = ::Time.instant
       while handle.running?
         if n = node
-          unless n.alive?
+          unless n.active?
             handle.cancel
             break
           end
@@ -118,7 +180,7 @@ module Godot
         Fiber.yield
         if !handle.paused? && (::Time.instant - start_time).total_seconds >= delay_sec
           begin
-            block.call(handle)
+            block.call(handle) unless handle.cancelled?
           rescue ex
             Godot.printerr("[TimerHandle] Unhandled exception in after block: #{ex.message}")
           ensure

@@ -182,6 +182,11 @@ module Lapis
   #       <td><strong>GDScript to Crystal Migration Cheatsheet</strong></td>
   #       <td>Exhaustive side-by-side cheatsheet mapping GDScript syntax to Crystal for Lapis.</td>
   #     </tr>
+  #     <tr>
+  #       <td><code>K_GAMEPLAY_ERGONOMICS</code></td>
+  #       <td><strong>Next-Generation Gameplay Ergonomics & Engine Usability</strong></td>
+  #       <td>High-velocity gameplay APIs: direct tree instantiations, typed collections, signals, space raycasts, and lifecycle timers.</td>
+  #     </tr>
   #   </tbody>
   # </table>
   #
@@ -426,6 +431,7 @@ module Lapis
     # - `C_GAMEPLAY_AND_DECLARATIVE_DSL::H_MODULES_AND_MIXINS`: **Modular Node Mixins (gmodule)** &mdash; Authoring reusable gameplay traits, interfaces, and component mixins with export properties, signals, and lifecycle hooks.
     # - `C_GAMEPLAY_AND_DECLARATIVE_DSL::I_MULTIPLAYER_AND_NETWORKING`: **Multiplayer and Networking** &mdash; High-performance multiplayer networking, declarative @[RPC] annotations, synchronization DSL, and Wireshark-style network testing harness.
     # - `C_GAMEPLAY_AND_DECLARATIVE_DSL::J_GDSCRIPT_TO_CRYSTAL_CHEATSHEET`: **GDScript to Crystal Migration Cheatsheet** &mdash; Exhaustive side-by-side cheatsheet mapping GDScript syntax to Crystal for Lapis.
+    # - `C_GAMEPLAY_AND_DECLARATIVE_DSL::K_GAMEPLAY_ERGONOMICS`: **Next-Generation Gameplay Ergonomics & Engine Usability** &mdash; High-velocity gameplay APIs: direct tree instantiations, typed collections, signals, space raycasts, and lifecycle timers.
     #
     # ##### 4. Concurrency and fibers (`D_CONCURRENCY_AND_FIBERS`)
     # - `D_CONCURRENCY_AND_FIBERS::A_FIBERS_AND_COOPERATIVE_AWAIT`: **Fibers & Cooperative Signal Awaiting** &mdash; Single-threaded scene loop orchestration, Fiber.yield, and non-blocking timers.
@@ -499,6 +505,7 @@ module Lapis
     # - `C_GAMEPLAY_AND_DECLARATIVE_DSL::H_MODULES_AND_MIXINS`: **Modular Node Mixins (gmodule)** &mdash; Authoring reusable gameplay traits, interfaces, and component mixins with export properties, signals, and lifecycle hooks.
     # - `C_GAMEPLAY_AND_DECLARATIVE_DSL::I_MULTIPLAYER_AND_NETWORKING`: **Multiplayer and Networking** &mdash; High-performance multiplayer networking, declarative @[RPC] annotations, synchronization DSL, and Wireshark-style network testing harness.
     # - `C_GAMEPLAY_AND_DECLARATIVE_DSL::J_GDSCRIPT_TO_CRYSTAL_CHEATSHEET`: **GDScript to Crystal Migration Cheatsheet** &mdash; Exhaustive side-by-side cheatsheet mapping GDScript syntax to Crystal for Lapis.
+    # - `C_GAMEPLAY_AND_DECLARATIVE_DSL::K_GAMEPLAY_ERGONOMICS`: **Next-Generation Gameplay Ergonomics & Engine Usability** &mdash; High-velocity gameplay APIs: direct tree instantiations, typed collections, signals, space raycasts, and lifecycle timers.
     #
     # ##### `D_CONCURRENCY_AND_FIBERS`
     # - `D_CONCURRENCY_AND_FIBERS::A_FIBERS_AND_COOPERATIVE_AWAIT`: **Fibers & Cooperative Signal Awaiting** &mdash; Single-threaded scene loop orchestration, Fiber.yield, and non-blocking timers.
@@ -573,6 +580,7 @@ require "./docs/c_gameplay_and_declarative_dsl/g_ergonomic_node_access"
 require "./docs/c_gameplay_and_declarative_dsl/h_modules_and_mixins"
 require "./docs/c_gameplay_and_declarative_dsl/i_multiplayer_and_networking"
 require "./docs/c_gameplay_and_declarative_dsl/j_gdscript_to_crystal_cheatsheet"
+require "./docs/c_gameplay_and_declarative_dsl/k_gameplay_ergonomics"
 require "./docs/d_concurrency_and_fibers/a_fibers_and_cooperative_await"
 require "./docs/d_concurrency_and_fibers/b_os_threads_and_channels"
 require "./docs/d_concurrency_and_fibers/c_main_thread_dispatch"

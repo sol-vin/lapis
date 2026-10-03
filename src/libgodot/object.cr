@@ -357,7 +357,12 @@ module Godot
     end
   end
 
+  # Wildcard type filter for signal connections and type queries
+  alias Any = VariantValue
+
+
   # Represents a signal bound to a specific Godot object instance.
+
   # Enables first-class signal handling, inspection, connection, emission, and non-blocking `await`.
   #
   # Examples:
@@ -434,6 +439,120 @@ module Godot
       end
     end
 
+    # Connects with 1 positional type filter
+    def connect(type0 : T0.class, flags : ConnectFlags = ConnectFlags::None, &block : T0 -> Void) : SignalSubscription forall T0
+      @target.connect(@name, flags) do |args|
+        if args.size >= 1
+          raw = args[0].raw
+          {% if T0 == Godot::Any %}
+            block.call(raw)
+          {% else %}
+            if raw_node = raw.as?(Godot::Node)
+              if casted = Godot::Node.cast_to?(raw_node, T0)
+                block.call(casted)
+              end
+            elsif raw.is_a?(T0)
+              block.call(raw)
+            end
+          {% end %}
+        end
+      end
+    end
+
+    # Connects with 2 positional type filters
+    def connect(type0 : T0.class, type1 : T1.class, flags : ConnectFlags = ConnectFlags::None, &block : (T0, T1) -> Void) : SignalSubscription forall T0, T1
+      @target.connect(@name, flags) do |args|
+        if args.size >= 2
+          c0 : T0? = nil
+          raw0 = args[0].raw
+          {% if T0 == Godot::Any %}
+            c0 = raw0
+          {% else %}
+            if raw0.is_a?(Godot::Node)
+              c0 = Godot::Node.cast_to?(raw0, T0)
+            elsif raw0.is_a?(T0)
+              c0 = raw0
+            end
+          {% end %}
+
+          c1 : T1? = nil
+          raw1 = args[1].raw
+          {% if T1 == Godot::Any %}
+            c1 = raw1
+          {% else %}
+            if raw1.is_a?(Godot::Node)
+              c1 = Godot::Node.cast_to?(raw1, T1)
+            elsif raw1.is_a?(T1)
+              c1 = raw1
+            end
+          {% end %}
+
+          if (t0 = c0) && (t1 = c1)
+            block.call(t0, t1)
+          end
+        end
+      end
+    end
+
+    # One-shot listener with 1 positional type filter
+    def once(type0 : T0.class, &block : T0 -> Void) : SignalSubscription forall T0
+      connect(type0, flags: ConnectFlags::OneShot, &block)
+    end
+
+    # One-shot listener with 2 positional type filters
+    def once(type0 : T0.class, type1 : T1.class, &block : (T0, T1) -> Void) : SignalSubscription forall T0, T1
+      connect(type0, type1, flags: ConnectFlags::OneShot, &block)
+    end
+
+    # Operator `+` for 1-argument typed Proc (supports `sig += ->(player : Player) { ... }`)
+    def +(proc : Proc(T, R)) : self forall T, R
+      sub = @target.connect(@name) do |args|
+        if args.size >= 1
+          raw = args[0].raw
+          if raw_node = raw.as?(Godot::Node)
+            if casted = Godot::Node.cast_to?(raw_node, T)
+              proc.call(casted)
+            end
+          elsif raw.is_a?(T)
+            proc.call(raw)
+          end
+        end
+      end
+      sub.proc_pointer = proc.pointer
+      sub.proc_closure_data = proc.closure_data
+      self
+    end
+
+    # Operator `+` for 2-argument typed Proc (supports `sig += ->(player : Player, sword : Sword) { ... }`)
+    def +(proc : Proc(T0, T1, R)) : self forall T0, T1, R
+      sub = @target.connect(@name) do |args|
+        if args.size >= 2
+          c0 : T0? = nil
+          raw0 = args[0].raw
+          if raw0.is_a?(Godot::Node)
+            c0 = Godot::Node.cast_to?(raw0, T0)
+          elsif raw0.is_a?(T0)
+            c0 = raw0
+          end
+
+          c1 : T1? = nil
+          raw1 = args[1].raw
+          if raw1.is_a?(Godot::Node)
+            c1 = Godot::Node.cast_to?(raw1, T1)
+          elsif raw1.is_a?(T1)
+            c1 = raw1
+          end
+
+          if (t0 = c0) && (t1 = c1)
+            proc.call(t0, t1)
+          end
+        end
+      end
+      sub.proc_pointer = proc.pointer
+      sub.proc_closure_data = proc.closure_data
+      self
+    end
+
     # Operator `+` syntactic sugar for `connect` with a Proc (supports `sig += ->handler`)
     def +(proc : Proc(::Array(Variant), R)) : self forall R
       sub = self << proc
@@ -488,6 +607,12 @@ module Godot
       @target.disconnect(@name)
     end
 
+    # Disconnects all active subscriptions for this signal on the target (alias)
+    def disconnect_all : Void
+      disconnect
+    end
+
+
     # Emits this signal on the target object
     def emit(*args) : Void
       @target.emit_signal(@name, *args)
@@ -526,9 +651,9 @@ module Godot
             cb.call(
               {% for i in 0...T.size %}
                 (if (arg = args[{{i}}]?)
-                  arg.as_t(T[{{i}}])
+                  arg.as_t({{ T[i] }})
                 else
-                  Variant.default_for(T[{{i}}])
+                  Variant.default_for({{ T[i] }})
                 end),
               {% end %}
             )
@@ -574,7 +699,56 @@ module Godot
       end
     end
 
-    # Operator `+` syntactic sugar for type-safe connect with a Proc (supports `sig += ->handler`)
+    # Operator `+` for 1-argument typed Proc (supports exact types and downcasting)
+    def +(proc : Proc(U0, R)) : self forall U0, R
+      sub = @target.connect(@name) do |args|
+        if args.size >= 1
+          raw = args[0].raw
+          if raw_node = raw.as?(Godot::Node)
+            if casted = Godot::Node.cast_to?(raw_node, U0)
+              proc.call(casted)
+            end
+          elsif raw.is_a?(U0)
+            proc.call(raw)
+          end
+        end
+      end
+      sub.proc_pointer = proc.pointer
+      sub.proc_closure_data = proc.closure_data
+      self
+    end
+
+    # Operator `+` for 2-argument typed Proc (supports exact types and downcasting)
+    def +(proc : Proc(U0, U1, R)) : self forall U0, U1, R
+      sub = @target.connect(@name) do |args|
+        if args.size >= 2
+          c0 : U0? = nil
+          raw0 = args[0].raw
+          if raw0.is_a?(Godot::Node)
+            c0 = Godot::Node.cast_to?(raw0, U0)
+          elsif raw0.is_a?(U0)
+            c0 = raw0
+          end
+
+          c1 : U1? = nil
+          raw1 = args[1].raw
+          if raw1.is_a?(Godot::Node)
+            c1 = Godot::Node.cast_to?(raw1, U1)
+          elsif raw1.is_a?(U1)
+            c1 = raw1
+          end
+
+          if (t0 = c0) && (t1 = c1)
+            proc.call(t0, t1)
+          end
+        end
+      end
+      sub.proc_pointer = proc.pointer
+      sub.proc_closure_data = proc.closure_data
+      self
+    end
+
+    # Operator `+` syntactic sugar for type-safe connect with exact Proc (fallback for 3+ args)
     def +(proc : Proc(*T, R)) : self forall R
       sub = self << proc
       sub.proc_pointer = proc.pointer
@@ -629,17 +803,17 @@ module Godot
           nil
         {% elsif T.size == 1 %}
           if (arg = args[0]?)
-            arg.as_t(T[0])
+            arg.as_t({{ T[0] }})
           else
-            Variant.default_for(T[0])
+            Variant.default_for({{ T[0] }})
           end
         {% else %}
           {
             {% for i in 0...T.size %}
               (if (arg = args[{{i}}]?)
-                arg.as_t(T[{{i}}])
+                arg.as_t({{ T[i] }})
               else
-                Variant.default_for(T[{{i}}])
+                Variant.default_for({{ T[i] }})
               end),
             {% end %}
           }
@@ -3400,3 +3574,5 @@ end
 def preload(path : String) : Godot::Resource
   Godot.preload(path)
 end
+
+alias Any = Godot::Any

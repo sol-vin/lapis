@@ -547,4 +547,5 @@ require "../spec/suites/test_multiplayer"
 require "../spec/suites/test_hierarchy_ergonomics"
 require "../spec/suites/test_multiframe_orchestration"
 require "../spec/suites/test_plugin_dependencies_dag"
+require "../spec/suites/test_gameplay_ergonomics"
 

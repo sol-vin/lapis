@@ -11,6 +11,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+#### Next-Generation Gameplay Usability & Ergonomics
+- **Direct Tree Instantiation (`add_child(Class, &block)`, `add_sibling`)**:
+  - `Node#add_child(NodeClass, &block)`: instantiates, configures, and adds child nodes in a single call without separate `.new` or boilerplate.
+  - `Node#add_child(PackedScene, as: Type, &block)` and `Node#add_child(path, as: Type, &block)`: loads/instantiates packed scenes directly into child hierarchies with typed downcasting.
+  - `Node#add_sibling(NodeClass, &block)` and scene overloads: seamlessly mounts sibling nodes under the current node's parent with configuration block and headless standalone fallback.
+- **Frictionless Godot Dictionary**:
+  - `Dictionary.new(**kwargs)`: initializes Godot dictionaries directly from keyword arguments (`Godot::Dictionary.new(health: 100, speed: 7.5_f32, hero: "Lapis")`).
+  - Transparent Symbol key indexing and assignment (`dict[:score] = 500`, `dict[:score]`, `dict.has(:score)`).
+  - Generic typed getters with defaults: `dict.get(key, as: Type, default: val)` and nilable safe `dict.get?(key, as: Type)`.
+  - Nested dictionary drilling: `dict.dig?(:stats, :attack, :base, as: Int32)`.
+  - Seamless conversions: `Hash#to_godot` / `Hash#to_godot_dictionary` and `Array#to_godot`.
+- **GodotArray Utilities**:
+  - `GodotArray#filter_as(Type)`: downcasts and filters array elements into a concrete `Array(T)`.
+  - Bounds-safe utilities: `first?`, `last?`, `sample`, and negative indexing (`arr[-1]`).
+- **Positional Type-Filtered Signals & Proc Dispatch**:
+  - `on` macro (`on player.equipped, Player, Sword do |p, s| ... end`): declarative signal binding with positional type filtering, automatic downcasting, and wildcard `Any` support.
+  - Signal compound assignment (`+=` and `-=`): connects and disconnects typed proc literals (`sig += ->(p : Player, s : Sword) { ... }`, `sig -= handler`).
+  - Mass disconnection: `sig.disconnect_all` clearing all active subscribers safely.
+- **Direct Space Physics Structures & Queries**:
+  - `struct PhysicsHit2D` and `struct PhysicsHit3D`: typed physics raycast hit results with safe downcasting via `collider_as(Type)`.
+  - `Node2D#raycast_to(target)` and `Node3D#raycast_to(target)`: direct one-line physics space queries without manual query parameter setup.
+- **Lifecycle-Safe Cancellable Timers**:
+  - `Godot::TimerHandle`: comprehensive timer controller with `cancel`, `pause`, `resume`, `reset`, `advance`, `running?`, and `paused?`.
+  - `Godot.after`, `Godot.every`, `Node#after`, `Node#every`: returns a `TimerHandle` and tracks `node.active?` lifecycle to prevent execution on deallocated nodes.
+- **Resource & ConfigFile Ergonomics**:
+  - `Resource.load(path, as: Type)` and `resource.save!(path)` with `ResourceSaveError`.
+  - `ConfigFile#get(section, key, as: Type, default)` and `ConfigFile#get?(section, key, as: Type)`.
+- **SceneTree Scene Operations**:
+  - `SceneTree#change_scene!(path | scene)`, `reload_scene!`, and `current_scene_as(Type)` with `SceneChangeError`.
+- **Optional Standalone Modules**:
+  - `require "lapis/math"`: `Number#approach`, `Number#degrees`, `Number#radians`, and randomized directional vectors (`Vector2.random_dir`, `Vector2.random_in_circle`, `Vector3.random_dir`, `Vector3.random_in_sphere`).
+  - `require "lapis/fsm"`: zero-allocation compile-time state machine macro DSL (`fsm :name, initial: :state do state ... end`).
+- Comprehensive unit specs in `spec/gameplay_ergonomics_spec.cr` (23 examples), `spec/optional_modules_spec.cr` (6 examples), and engine test runner suite in `spec/suites/test_gameplay_ergonomics.cr`.
+
 #### Signal Compound Operators (`+=` and `-=`)
 - **C#-Style Compound Assignment for Signals (`+=` and `-=`)**:
   - `node.signal_name += ->handler`: connects a typed proc (`Proc(*T, R)`), 0-argument proc (`Proc(R)`), or method pointer (`->listener.on_event`) to the signal using C#-style compound addition sugar.

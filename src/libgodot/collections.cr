@@ -13,6 +13,14 @@ module Godot
       @store = ::Hash(Variant, Variant).new
     end
 
+    def initialize(**kwargs)
+      @store = ::Hash(Variant, Variant).new
+      kwargs.each do |k, v|
+        val = v.is_a?(Variant) ? v : Variant.new(v)
+        @store[Variant.new(k.to_s)] = val
+      end
+    end
+
     def initialize(initial_hash : ::Hash(K, V)) forall K, V
       @store = ::Hash(Variant, Variant).new
       initial_hash.each do |k, v|
@@ -38,6 +46,10 @@ module Godot
       @store[Variant.new(key)]
     end
 
+    def [](key : Symbol) : Variant
+      @store[Variant.new(key.to_s)]
+    end
+
     # Retrieves value by key, or returns nil if missing
     def []?(key : Variant) : Variant?
       @store[key]?
@@ -45,6 +57,10 @@ module Godot
 
     def []?(key : String) : Variant?
       @store[Variant.new(key)]?
+    end
+
+    def []?(key : Symbol) : Variant?
+      @store[Variant.new(key.to_s)]?
     end
 
     # Sets or updates a key-value pair
@@ -56,15 +72,106 @@ module Godot
       @store[Variant.new(key)] = value
     end
 
-    def []=(key : String, value : String) : String
-      @store[Variant.new(key)] = Variant.new(value)
+    def []=(key : Symbol, value : Variant) : Variant
+      @store[Variant.new(key.to_s)] = value
+    end
+
+    def []=(key : String | Symbol | Variant, value)
+      v_key = key.is_a?(Variant) ? key : Variant.new(key.to_s)
+      v_val = value.is_a?(Variant) ? value : Variant.new(value)
+      @store[v_key] = v_val
       value
     end
 
-    def []=(key : Variant, value : String) : String
-      @store[key] = Variant.new(value)
-      value
+    # Generic typed getter with default value
+    def get(key : String | Symbol | Variant, as type : T.class, default : T) : T forall T
+      v_key = key.is_a?(Variant) ? key : Variant.new(key.to_s)
+      if v = @store[v_key]?
+        if raw = v.raw
+          {% if T == Int32 %}
+            return raw.is_a?(Number) ? raw.to_i32 : default
+          {% elsif T == Int64 %}
+            return raw.is_a?(Number) ? raw.to_i64 : default
+          {% elsif T == Float32 %}
+            return raw.is_a?(Number) ? raw.to_f32 : default
+          {% elsif T == Float64 %}
+            return raw.is_a?(Number) ? raw.to_f64 : default
+          {% elsif T == String %}
+            return raw.to_s
+          {% elsif T == Bool %}
+            return raw.is_a?(Bool) ? raw : default
+          {% else %}
+            return raw.as?(T) || default
+          {% end %}
+        end
+      end
+      default
     end
+
+    # Generic safe typed getter returning nil on missing or type mismatch
+    def get?(key : String | Symbol | Variant, as type : T.class) : T? forall T
+      v_key = key.is_a?(Variant) ? key : Variant.new(key.to_s)
+      if v = @store[v_key]?
+        if raw = v.raw
+          {% if T == Int32 %}
+            return raw.is_a?(Number) ? raw.to_i32 : nil
+          {% elsif T == Int64 %}
+            return raw.is_a?(Number) ? raw.to_i64 : nil
+          {% elsif T == Float32 %}
+            return raw.is_a?(Number) ? raw.to_f32 : nil
+          {% elsif T == Float64 %}
+            return raw.is_a?(Number) ? raw.to_f64 : nil
+          {% elsif T == String %}
+            return raw.to_s
+          {% elsif T == Bool %}
+            return raw.is_a?(Bool) ? raw : nil
+          {% else %}
+            return raw.as?(T)
+          {% end %}
+        end
+      end
+      nil
+    end
+
+    # Digs through nested Dictionaries by keys, returning typed value or nil
+    def dig?(first : String | Symbol | Variant, *rest, as type : T.class) : T? forall T
+      v_first = first.is_a?(Variant) ? first : Variant.new(first.to_s)
+      curr : Variant? = @store[v_first]?
+      rest.each do |k|
+        return nil unless curr
+        if raw = curr.raw
+          if d = raw.as?(Dictionary)
+            v_k = k.is_a?(Variant) ? k : Variant.new(k.to_s)
+            curr = d[v_k]?
+          else
+            return nil
+          end
+        else
+          return nil
+        end
+      end
+      if c = curr
+        if raw = c.raw
+          {% if T == Int32 %}
+            return raw.is_a?(Number) ? raw.to_i32 : nil
+          {% elsif T == Int64 %}
+            return raw.is_a?(Number) ? raw.to_i64 : nil
+          {% elsif T == Float32 %}
+            return raw.is_a?(Number) ? raw.to_f32 : nil
+          {% elsif T == Float64 %}
+            return raw.is_a?(Number) ? raw.to_f64 : nil
+          {% elsif T == String %}
+            return raw.to_s
+          {% elsif T == Bool %}
+            return raw.is_a?(Bool) ? raw : nil
+          {% else %}
+            return raw.as?(T)
+          {% end %}
+        end
+      end
+      nil
+    end
+
 
     def has(key : Variant) : Bool
       @store.has_key?(key)
@@ -72,6 +179,10 @@ module Godot
 
     def has(key : String) : Bool
       @store.has_key?(Variant.new(key))
+    end
+
+    def has(key : Symbol) : Bool
+      @store.has_key?(Variant.new(key.to_s))
     end
 
     def has_key?(key : Variant) : Bool
@@ -82,12 +193,20 @@ module Godot
       @store.has_key?(Variant.new(key))
     end
 
+    def has_key?(key : Symbol) : Bool
+      @store.has_key?(Variant.new(key.to_s))
+    end
+
     def erase(key : Variant) : Void
       @store.delete(key)
     end
 
     def erase(key : String) : Void
       @store.delete(Variant.new(key))
+    end
+
+    def erase(key : Symbol) : Void
+      @store.delete(Variant.new(key.to_s))
     end
 
     def size : Int64
@@ -117,6 +236,11 @@ module Godot
     def delete(key : String) : Variant?
       @store.delete(Variant.new(key))
     end
+
+    def delete(key : Symbol) : Variant?
+      @store.delete(Variant.new(key.to_s))
+    end
+
 
     def clear : Void
       @store.clear
@@ -234,6 +358,32 @@ module Godot
       @store.each(&block)
     end
 
+    def filter_as(type : U.class) : ::Array(U) forall U
+      res = ::Array(U).new
+      @store.each do |item|
+        if item.is_a?(U)
+          res << item
+        elsif item.is_a?(Godot::Node) && (typed = Godot::Node.cast_to?(item, U))
+          res << typed
+        elsif item.is_a?(Godot::Object) && (typed = Godot::Node.cast_to?(item, U))
+          res << typed
+        end
+      end
+      res
+    end
+
+    def first? : T?
+      @store.first?
+    end
+
+    def last? : T?
+      @store.last?
+    end
+
+    def sample : T?
+      @store.empty? ? nil : @store.sample
+    end
+
     def to_a : ::Array(T)
       @store.dup
     end
@@ -251,6 +401,7 @@ module Godot
       io << "]"
     end
   end
+
 
   alias GArray = GodotArray
 
@@ -356,10 +507,23 @@ class Hash(K, V)
   def to_godot_dict : Godot::Dictionary
     Godot::Dictionary.from(self)
   end
+
+  def to_godot : Godot::Dictionary
+    Godot::Dictionary.from(self)
+  end
+
+  def to_godot_dictionary : Godot::Dictionary
+    Godot::Dictionary.from(self)
+  end
 end
 
 class Array(T)
   def to_godot_array : Godot::GodotArray(T)
     Godot::GodotArray(T).from(self)
   end
+
+  def to_godot : Godot::GodotArray(T)
+    Godot::GodotArray(T).from(self)
+  end
 end
+

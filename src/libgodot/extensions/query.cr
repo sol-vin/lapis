@@ -155,22 +155,26 @@ module Godot
   class Node
     # Attempts to downcast or wrap this node as type T. Returns nil if node does not inherit from T.
     def self.cast_to?(node : Node, type : T.class) : T? forall T
-      return nil unless node.active?
-      if node.is_a?(T)
-        return node
-      end
-      if !node.pointer.null?
-        if alive = Bridge.find_alive_instance(node.pointer)
-          if typed = alive.as?(T)
-            return typed
+      {% if T <= Godot::Node %}
+        return nil unless node.active?
+        if node.is_a?(T)
+          return node
+        end
+        if !node.pointer.null?
+          if alive = Bridge.find_alive_instance(node.pointer)
+            if typed = alive.as?(T)
+              return typed
+            end
+          end
+          class_name = T.name.split("::").last
+          if Bridge.object_is_class(node.pointer, class_name)
+            return T.new(node.pointer)
           end
         end
-        class_name = T.name.split("::").last
-        if Bridge.object_is_class(node.pointer, class_name)
-          return T.new(node.pointer)
-        end
-      end
-      nil
+        nil
+      {% else %}
+        nil
+      {% end %}
     end
 
     # Returns all nodes matching the glob pattern as Array(Node).

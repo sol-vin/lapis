@@ -39,6 +39,71 @@ module Godot
       previous_def(node, force_readable_name, internal)
     end
 
+    # Overload: Adds an existing child node, configures it in block, and returns it.
+    def add_child(node : Node, force_readable_name : Bool = false, internal : InternalMode | Int = 0, &block : Node -> Void) : Node
+      add_child(node, force_readable_name, internal)
+      yield node
+      node
+    end
+
+    # Overload: Instantiates a Node of class T, configures it in block, adds it as child, and returns it.
+    def add_child(type : T.class, force_readable_name : Bool = false, internal : InternalMode | Int = 0, &block : T -> Void) : T forall T
+      node = ::Godot.create(type)
+      yield node
+      add_child(node.as(Node), force_readable_name, internal)
+      node
+    end
+
+    # Overload: Instantiates a Node of class T, adds it as child, and returns it.
+    def add_child(type : T.class, force_readable_name : Bool = false, internal : InternalMode | Int = 0) : T forall T
+      node = ::Godot.create(type)
+      add_child(node.as(Node), force_readable_name, internal)
+      node
+    end
+
+    # Overload: Instantiates a PackedScene as type T, configures it in block, adds it as child, and returns it.
+    def add_child(scene : PackedScene, *, as type : T.class, force_readable_name : Bool = false, internal : InternalMode | Int = 0, &block : T -> Void) : T forall T
+      node = scene.instantiate_as(type)
+      yield node
+      add_child(node.as(Node), force_readable_name, internal)
+      node
+    end
+
+    # Overload: Instantiates a PackedScene as type T, adds it as child, and returns it.
+    def add_child(scene : PackedScene, *, as type : T.class, force_readable_name : Bool = false, internal : InternalMode | Int = 0) : T forall T
+      node = scene.instantiate_as(type)
+      add_child(node.as(Node), force_readable_name, internal)
+      node
+    end
+
+    # Overload: Instantiates a PackedScene as Node, configures it in block, adds it as child, and returns it.
+    def add_child(scene : PackedScene, force_readable_name : Bool = false, internal : InternalMode | Int = 0, &block : Node -> Void) : Node
+      node = scene.instantiate
+      yield node
+      add_child(node, force_readable_name, internal)
+      node
+    end
+
+    # Overload: Instantiates a PackedScene as Node, adds it as child, and returns it.
+    def add_child(scene : PackedScene, force_readable_name : Bool = false, internal : InternalMode | Int = 0) : Node
+      node = scene.instantiate
+      add_child(node, force_readable_name, internal)
+      node
+    end
+
+    # Overload: Loads scene at path, instantiates as type T, configures in block, adds as child, and returns it.
+    def add_child(scene_path : String, *, as type : T.class, force_readable_name : Bool = false, internal : InternalMode | Int = 0, &block : T -> Void) : T forall T
+      scene = ::Godot.load_scene(scene_path)
+      add_child(scene, as: type, force_readable_name: force_readable_name, internal: internal, &block)
+    end
+
+    # Overload: Loads scene at path, instantiates as type T, adds as child, and returns it.
+    def add_child(scene_path : String, *, as type : T.class, force_readable_name : Bool = false, internal : InternalMode | Int = 0) : T forall T
+      scene = ::Godot.load_scene(scene_path)
+      add_child(scene, as: type, force_readable_name: force_readable_name, internal: internal)
+    end
+
+
     # Explicit cross-thread helper that safely defers addition via Godot's MessageQueue
     def defer_add_child(node : Node, force_readable_name : Bool = false, internal : InternalMode | Int = 0) : Void
       internal_val = internal.is_a?(Int) ? internal.to_i64 : internal.value.to_i64
@@ -105,13 +170,81 @@ module Godot
       previous_def(node, keep_groups)
     end
 
-    # Adds a sibling node to the parent of this node.
-    # Enforces thread-safety: off-thread calls raise ThreadAffinityError when attached to SceneTree.
     def add_sibling(sibling : Node, force_readable_name : Bool = false) : Void
       Godot::ThreadSafety.assert_main_thread!("add_sibling", "Node", self, sibling)
-      return if @pointer.null?
+      if @pointer.null?
+        if p = get_parent?
+          p.add_child(sibling)
+        end
+        return
+      end
       previous_def(sibling, force_readable_name)
     end
+
+    # Overload: Adds an existing sibling node, configures it in block, and returns it.
+    def add_sibling(sibling : Node, force_readable_name : Bool = false, &block : Node -> Void) : Node
+      add_sibling(sibling, force_readable_name)
+      yield sibling
+      sibling
+    end
+
+    # Overload: Instantiates a Node of class T, configures it in block, adds it as sibling, and returns it.
+    def add_sibling(type : T.class, force_readable_name : Bool = false, &block : T -> Void) : T forall T
+      node = ::Godot.create(type)
+      yield node
+      add_sibling(node.as(Node), force_readable_name)
+      node
+    end
+
+    # Overload: Instantiates a Node of class T, adds it as sibling, and returns it.
+    def add_sibling(type : T.class, force_readable_name : Bool = false) : T forall T
+      node = ::Godot.create(type)
+      add_sibling(node.as(Node), force_readable_name)
+      node
+    end
+
+    # Overload: Instantiates a PackedScene as type T, configures it in block, adds it as sibling, and returns it.
+    def add_sibling(scene : PackedScene, *, as type : T.class, force_readable_name : Bool = false, &block : T -> Void) : T forall T
+      node = scene.instantiate_as(type)
+      yield node
+      add_sibling(node.as(Node), force_readable_name)
+      node
+    end
+
+    # Overload: Instantiates a PackedScene as type T, adds it as sibling, and returns it.
+    def add_sibling(scene : PackedScene, *, as type : T.class, force_readable_name : Bool = false) : T forall T
+      node = scene.instantiate_as(type)
+      add_sibling(node.as(Node), force_readable_name)
+      node
+    end
+
+    # Overload: Instantiates a PackedScene as Node, configures it in block, adds it as sibling, and returns it.
+    def add_sibling(scene : PackedScene, force_readable_name : Bool = false, &block : Node -> Void) : Node
+      node = scene.instantiate
+      yield node
+      add_sibling(node, force_readable_name)
+      node
+    end
+
+    # Overload: Instantiates a PackedScene as Node, adds it as sibling, and returns it.
+    def add_sibling(scene : PackedScene, force_readable_name : Bool = false) : Node
+      node = scene.instantiate
+      add_sibling(node, force_readable_name)
+      node
+    end
+
+    # Overload: Loads scene at path, instantiates as type T, configures in block, adds as sibling, and returns it.
+    def add_sibling(scene_path : String, *, as type : T.class, force_readable_name : Bool = false, &block : T -> Void) : T forall T
+      scene = ::Godot.load_scene(scene_path)
+      add_sibling(scene, as: type, force_readable_name: force_readable_name, &block)
+    end
+
+    # Overload: Loads scene at path, instantiates as type T, adds as sibling, and returns it.
+    def add_sibling(scene_path : String, *, as type : T.class, force_readable_name : Bool = false) : T forall T
+      scene = ::Godot.load_scene(scene_path)
+      add_sibling(scene, as: type, force_readable_name: force_readable_name)
+    end
+
 
     # Moves child node to a new index in the parent's child list.
     # Enforces thread-safety: off-thread calls raise ThreadAffinityError when attached to SceneTree.
@@ -240,6 +373,15 @@ module Godot
       else
         nil
       end
+    end
+
+    # Returns the number of child nodes belonging to this node.
+    # Falls back to local standalone children list when unparented/headless.
+    def get_child_count(include_internal : Bool = false) : Int64
+      if @pointer.null?
+        return (@local_children.try(&.size) || 0).to_i64
+      end
+      previous_def(include_internal)
     end
 
     # Returns an Array containing all child nodes belonging to this node.

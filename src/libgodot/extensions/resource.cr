@@ -92,6 +92,31 @@ module Godot
     end
   end
 
+  # Exception raised when a Resource fails to save to disk
+  class ResourceSaveError < Exception
+  end
+
+  class Resource < RefCounted
+    # Loads a resource directly from path, typed as the receiving Resource subclass:
+    # `scene = PackedScene.load("res://scenes/player.tscn")`
+    # `config = CustomConfig.load("res://data/config.tres")`
+    def self.load(path : String, type_hint : String = "", cache_mode : Int64 = 0_i64) : self
+      ::Godot.load(path, as: self, type_hint: type_hint, cache_mode: cache_mode)
+    end
+
+    # Saves this resource to disk, raising ResourceSaveError if saving fails
+    def save!(path : String = "", flags : ResourceSaver::SaverFlags | Int = 0) : Nil
+      return if @pointer.null?
+      saver = ::Godot::ResourceSaver.new(::Godot::ResourceSaver.singleton_ptr) rescue nil
+      if saver && !saver.pointer.null?
+        err = saver.save(self, path, flags)
+        if err != Godot::Error::Ok
+          raise ResourceSaveError.new("Failed to save resource to '#{path}': Error #{err}")
+        end
+      end
+    end
+  end
+
   class StandardMaterial3D < BaseMaterial3D
     @local_albedo : Color = Color.new(1.0, 1.0, 1.0, 1.0)
     @local_roughness : Float32 = 1.0_f32

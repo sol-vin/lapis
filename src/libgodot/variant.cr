@@ -4,7 +4,10 @@ module Godot
   class Object
   end
 
-  alias VariantValue = Nil | Bool | Int64 | Float64 | String | Vector2 | Vector2i | Rect2 | Rect2i | Vector3 | Vector3i | Vector4 | Vector4i | Color | Transform2D | Transform3D | Basis | Quaternion | Plane | AABB | Godot::Object
+  class Dictionary
+  end
+
+  alias VariantValue = Nil | Bool | Int64 | Float64 | String | Vector2 | Vector2i | Rect2 | Rect2i | Vector3 | Vector3i | Vector4 | Vector4i | Color | Transform2D | Transform3D | Basis | Quaternion | Plane | AABB | Godot::Object | Godot::Dictionary
 
   # Represents a dynamically typed Godot Variant value in Crystal with zero-allocation
   # unboxing for primitive and engine math types.
@@ -12,6 +15,10 @@ module Godot
     getter raw : VariantValue
 
     def initialize(@raw : VariantValue = nil)
+    end
+
+    def self.new(val : Variant) : Variant
+      val
     end
 
     def self.new(val : Int32)

@@ -114,11 +114,28 @@ end
 #
 # Supports:
 # 1. First-class signal: `on button.pressed { do_something }`
-# 2. Target and signal string: `on enemy, "died" { |bounty| add_score(bounty) }`
-macro on(sig_or_target, name = nil, &block)
-  {% if name %}
-    {{sig_or_target}}.connect({{name}}) {{block}}
+# 2. Positional type filter: `on body_entered, Player { |p| p.collect }`
+# 3. Multi-argument type filters: `on item_equipped, Player, Sword { |p, s| ... }`
+# 4. Any wildcard filter: `on damage_received, Player, Any { |p, info| ... }`
+# 5. One-shot execution: `on boss.died, Player, once: true { |p| ... }`
+# 6. Target and signal string: `on enemy, "died" { |bounty| add_score(bounty) }`
+macro on(sig_or_target, *args, once = false, &block)
+  {% if once %}
+    {% if args.size > 0 && (args[0].is_a?(StringLiteral) || args[0].is_a?(SymbolLiteral)) %}
+      ::Godot::BoundSignal.new({{sig_or_target}}, ({{args[0]}}).to_s).once({% if args.size > 1 %}{{args[1..-1].splat}}{% end %}) {{block}}
+    {% elsif args.size > 0 %}
+      {{sig_or_target}}.once({{args.splat}}) {{block}}
+    {% else %}
+      {{sig_or_target}}.once {{block}}
+    {% end %}
   {% else %}
-    {{sig_or_target}}.connect {{block}}
+    {% if args.size > 0 && (args[0].is_a?(StringLiteral) || args[0].is_a?(SymbolLiteral)) %}
+      ::Godot::BoundSignal.new({{sig_or_target}}, ({{args[0]}}).to_s).connect({% if args.size > 1 %}{{args[1..-1].splat}}{% end %}) {{block}}
+    {% elsif args.size > 0 %}
+      {{sig_or_target}}.connect({{args.splat}}) {{block}}
+    {% else %}
+      {{sig_or_target}}.connect {{block}}
+    {% end %}
   {% end %}
 end
+
