@@ -16,7 +16,6 @@ volumes:
       - godot-version.yml
     exclude:
       - src/main.cr
-      - src/libgodot/docs/**
       - "**/*.uid"
       - "**/*.import"
       - "**/*.log"
