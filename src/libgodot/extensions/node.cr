@@ -128,6 +128,13 @@ module Godot
       previous_def(group, persistent)
     end
 
+    # Removes this node from the specified group
+    def remove_from_group(group : String) : Void
+      @local_groups.delete(group)
+      return if @pointer.null?
+      previous_def(group)
+    end
+
     # Returns true if this node belongs to the given node group.
     def in_group?(group_name : String) : Bool
       return true if @local_groups.includes?(group_name)

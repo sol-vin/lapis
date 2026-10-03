@@ -112,6 +112,8 @@ module Godot
     getter? completed : Bool = false
     getter args : ::Array(Variant) = ::Array(Variant).new
     getter callback : Proc(::Array(Variant), Void)?
+    property proc_pointer : Void* = Pointer(Void).null
+    property proc_closure_data : Void* = Pointer(Void).null
 
     def initialize(
       @target_id : UInt64,
@@ -432,6 +434,48 @@ module Godot
       end
     end
 
+    # Operator `+` syntactic sugar for `connect` with a Proc (supports `sig += ->handler`)
+    def +(proc : Proc(::Array(Variant), R)) : self forall R
+      sub = self << proc
+      sub.proc_pointer = proc.pointer
+      sub.proc_closure_data = proc.closure_data
+      self
+    end
+
+    # Operator `+` syntactic sugar for `connect` with a 0-argument Proc (supports `sig += ->handler`)
+    def +(proc : Proc(R)) : self forall R
+      sub = self << proc
+      sub.proc_pointer = proc.pointer
+      sub.proc_closure_data = proc.closure_data
+      self
+    end
+
+    # Operator `+` syntactic sugar accepting a SignalSubscription directly
+    def +(sub : SignalSubscription) : self
+      self
+    end
+
+    # Operator `-` syntactic sugar for disconnecting a Proc (supports `sig -= ->handler`)
+    def -(proc : Proc) : self
+      tid = target_id
+      sname = @name
+      key = {tid, sname}
+      sub_to_unsub = nil
+      Godot.signal_subs_mutex.synchronize do
+        if list = Godot.signal_subs[key]?
+          sub_to_unsub = list.reverse.find { |s| s.proc_pointer == proc.pointer && s.proc_closure_data == proc.closure_data && s.active? }
+        end
+      end
+      sub_to_unsub.try(&.unsubscribe)
+      self
+    end
+
+    # Operator `-` syntactic sugar for disconnecting a SignalSubscription (supports `sig -= sub`)
+    def -(sub : SignalSubscription) : self
+      sub.unsubscribe
+      self
+    end
+
     # Connects this signal to a method call on a target object by symbol name
     def connect(listener_target : Godot::Object, method_name : Symbol, flags : ConnectFlags = ConnectFlags::None) : SignalSubscription
       @target.connect(@name, flags) do |_args|
@@ -510,9 +554,17 @@ module Godot
 
     # Operator `<<` syntactic sugar for type-safe connect with a Proc
     def <<(proc : Proc(*T, R)) : SignalSubscription forall R
-      connect do |*args|
-        proc.call(*args)
-      end
+      {% begin %}
+        {% if T.size == 0 %}
+          connect do
+            proc.call
+          end
+        {% else %}
+          connect do |{% for i in 0...T.size %}arg{{i}},{% end %}|
+            proc.call({% for i in 0...T.size %}arg{{i}},{% end %})
+          end
+        {% end %}
+      {% end %}
     end
 
     # Operator `<<` syntactic sugar for 0-argument Proc
@@ -520,6 +572,48 @@ module Godot
       connect do
         proc.call
       end
+    end
+
+    # Operator `+` syntactic sugar for type-safe connect with a Proc (supports `sig += ->handler`)
+    def +(proc : Proc(*T, R)) : self forall R
+      sub = self << proc
+      sub.proc_pointer = proc.pointer
+      sub.proc_closure_data = proc.closure_data
+      self
+    end
+
+    # Operator `+` syntactic sugar for 0-argument Proc (supports `sig += ->handler`)
+    def +(proc : Proc(R)) : self forall R
+      sub = self << proc
+      sub.proc_pointer = proc.pointer
+      sub.proc_closure_data = proc.closure_data
+      self
+    end
+
+    # Operator `+` syntactic sugar accepting a SignalSubscription directly
+    def +(sub : SignalSubscription) : self
+      self
+    end
+
+    # Operator `-` syntactic sugar for disconnecting a Proc (supports `sig -= ->handler`)
+    def -(proc : Proc) : self
+      tid = target_id
+      sname = @name
+      key = {tid, sname}
+      sub_to_unsub = nil
+      Godot.signal_subs_mutex.synchronize do
+        if list = Godot.signal_subs[key]?
+          sub_to_unsub = list.reverse.find { |s| s.proc_pointer == proc.pointer && s.proc_closure_data == proc.closure_data && s.active? }
+        end
+      end
+      sub_to_unsub.try(&.unsubscribe)
+      self
+    end
+
+    # Operator `-` syntactic sugar for disconnecting a SignalSubscription (supports `sig -= sub`)
+    def -(sub : SignalSubscription) : self
+      sub.unsubscribe
+      self
     end
 
     # Emits this typed signal with compile-time type safety matching the signal declaration
@@ -1141,6 +1235,14 @@ module Godot
       Pointer(Void).null
     end
 
+    # Dynamically sets a property value on this object.
+    def set(property : String | Symbol, value : T) : Void forall T
+      check_alive!
+      if !@pointer.null?
+        call("set", property.to_s, value)
+      end
+    end
+
     # Calls the named method and returns an Object/Node (or nil if null)
     def call_obj(method : String, *args) : Node?
       check_alive!
@@ -1561,8 +1663,19 @@ module Godot
     end
 
     # Retrieves a child or sibling node by NodePath string, or returns nil if not found.
-    # Transparently supports leading '$', scene-unique '%' prefixes, and '%UniqueRoot/sub/path' traversal.
+    # Transparently supports leading '$', scene-unique '%' prefixes, '%UniqueRoot/sub/path', and wildcard patterns.
     def get_node?(path : String) : Node?
+      if path.includes?('*')
+        if self.is_a?(Node)
+          return self.as(Node).first_node?(path)
+        elsif !@pointer.null?
+          node_wrapper = Node.new(@pointer)
+          return node_wrapper.first_node?(path)
+        else
+          return nil
+        end
+      end
+
       is_unique, root_name, subpath = Node.decompose_node_path(path)
       if is_unique
         # 1. Resolve unique root node
@@ -1793,6 +1906,50 @@ module Godot
     # Safe flexible type-first overload: self[Sprite2D, "Visuals/Sprite2D"]?
     def []?(type : T.class, path : String | NodePath) : T? forall T
       get_node_as?(path, type)
+    end
+
+    # Returns all nodes matching the glob pattern (supports '*' and '**').
+    def get_nodes(pattern : String, case_sensitive : Bool = true) : ::Array(Node)
+      if self.is_a?(Node)
+        self.as(Node).get_nodes(pattern, case_sensitive)
+      elsif !@pointer.null?
+        Node.new(@pointer).get_nodes(pattern, case_sensitive)
+      else
+        ::Array(Node).new
+      end
+    end
+
+    # Returns all nodes matching the glob pattern filtered and cast to Array(T).
+    def get_nodes(pattern : String, type : T.class, case_sensitive : Bool = true) : ::Array(T) forall T
+      if self.is_a?(Node)
+        self.as(Node).get_nodes(pattern, type, case_sensitive)
+      elsif !@pointer.null?
+        Node.new(@pointer).get_nodes(pattern, type, case_sensitive)
+      else
+        ::Array(T).new
+      end
+    end
+
+    # Returns the first node matching the glob pattern, or nil if not found.
+    def first_node?(pattern : String, case_sensitive : Bool = true) : Node?
+      if self.is_a?(Node)
+        self.as(Node).first_node?(pattern, case_sensitive)
+      elsif !@pointer.null?
+        Node.new(@pointer).first_node?(pattern, case_sensitive)
+      else
+        nil
+      end
+    end
+
+    # Returns the first node matching the glob pattern cast to type T, or nil if not found.
+    def first_node?(pattern : String, type : T.class, case_sensitive : Bool = true) : T? forall T
+      if self.is_a?(Node)
+        self.as(Node).first_node?(pattern, type, case_sensitive)
+      elsif !@pointer.null?
+        Node.new(@pointer).first_node?(pattern, type, case_sensitive)
+      else
+        nil
+      end
     end
 
     # Path traversal operator: node / "Camera3D" or node / node_path!("Camera3D")

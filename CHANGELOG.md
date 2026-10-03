@@ -11,6 +11,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+#### Signal Compound Operators (`+=` and `-=`)
+- **C#-Style Compound Assignment for Signals (`+=` and `-=`)**:
+  - `node.signal_name += ->handler`: connects a typed proc (`Proc(*T, R)`), 0-argument proc (`Proc(R)`), or method pointer (`->listener.on_event`) to the signal using C#-style compound addition sugar.
+  - `node.signal_name -= ->handler`: disconnects the matching subscriber by proc and closure environment identity.
+  - `node.signal_name -= subscription`: disconnects an active `SignalSubscription` instance via subtraction operator.
+  - Synthesized identity setter `def <signal>=(val : BoundSignal)` across `macro signal` and `macro godot_signal` allowing Crystal's AST lowerer (`p.sig = p.sig + handler`) to work seamlessly on node properties.
+  - Thread-safe and dead-pointer safe: subscriptions track 64-bit ObjectDB instance IDs and self-prune when targets are destroyed, avoiding the delegate memory leaks prevalent in C#.
+  - Comprehensive unit test suite in `spec/signal_operators_spec.cr` (12 examples) and engine runner test in `spec/suites/test_callable_signals_advanced.cr`.
+
+#### Scene Tree Glob Queries & Ergonomic Traversal (`get_nodes`, `*`, `**`)
+- **Wildcard & Recursive Globstar Query Engine (`Node#get_nodes`)**:
+  - `Node#get_nodes(pattern)` (`src/libgodot/extensions/query.cr`): queries scene tree hierarchies with single-tier wildcard `*` (e.g. `Enemy*`, `*Mesh`, `WorldNodes/*/Mesh`) and recursive globstars `**` (e.g. `Enemies/**/Hitbox`, `Spawns/**`).
+  - `Node#get_nodes(pattern, Type)`: typed query returning `Array(T)` filtered and safely downcasted to type `T` (e.g. `self.get_nodes("NodePath/SomeDir/*/Mesh", MeshInstance3D)`).
+  - Streaming iteration: `Node#each_node(pattern, [type], &block)` and `Node#each_descendant([type], &block)` traversing scene subtrees without intermediate allocations.
+  - First-match lookups: `Node#first_node?(pattern, [type])` and `Node#first_node(pattern, [type])` raising `NodeNotFoundError` on missing targets.
+  - Wildcard subscript routing: `self["Enemies/*/Hitbox"]?` and `self["Enemies/*/Hitbox", Area2D]?` transparently forward wildcard patterns through `first_node?`.
+- **Hierarchy & Family Traversal**:
+  - Upward ancestry: `ancestor?(type)`, `ancestor(type)`, `ancestor?(pattern, [type])`, `ancestors([type])`, `topmost_parent`, and `scene_root`.
+  - Sibling navigation: `siblings([type])`, `previous_sibling?([type])`, and `next_sibling?([type])`.
+  - Child bounds: `first_child?([type])` and `last_child?([type])`.
+- **Typed Group Helpers**:
+  - `Node#nodes_in_group(group, [type])`, `Node#first_node_in_group?(group, [type])`, and `Node#first_node_in_group(group, [type])`.
+  - `Godot.get_nodes_in_group(group, [type])` and `Godot.first_node_in_group?(group, [type])`.
+  - Multi-group query: `Node#in_group?(*groups)` returning true if node matches any of the specified groups.
+- **Batch Collection Operations on `Array(T)` (`src/libgodot/extensions/node_collection.cr`)**:
+  - Node lifecycle: `queue_free_all`, `destroy_all`, and `reparent_all(new_parent, keep_global_transform)`.
+  - Broadcast messaging & property assignment: `call_all(method, *args)` and `set_all(prop, value)`.
+  - Batch visibility: `show_all` and `hide_all` across CanvasItem 2D and Node3D spatial elements.
+  - Batch groups: `add_to_group_all(group)` and `remove_from_group_all(group)`.
+  - Filtering and downcasting: `filter_as(Type)` returning a typed `Array(U)` of matching elements.
+- Comprehensive test suite in `spec/node_query_and_ergonomics_spec.cr` (17 examples) and engine runner test in `spec/suites/test_hierarchy_ergonomics.cr`.
+
 #### Gameplay Usability Macros & Ergonomic DSL
 - **Fluent Instantiation & Property Assignment (`create`, `build`, `.new`)**:
   - `create` and `build` macros (`src/libgodot/macros.cr`): instantiate Godot engine nodes and custom Crystal classes with keyword arguments (`create Sprite2D, position: Vector2.new(10, 20)`) and block property assignments (`create Sprite2D do position = Vector2.new(10, 20); add_to_group("sprites") end`).

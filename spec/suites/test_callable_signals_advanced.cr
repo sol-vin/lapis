@@ -227,4 +227,35 @@ end
 
     node.destroy
   end
+
+  test "Compound assignment operators += and -= connect and disconnect procs cleanly" do
+    node = Godot.create(AdvancedSignalTargetNode)
+    fired_count = 0
+    last_val = 0.0_f64
+
+    handler = ->(val : Float64) do
+      fired_count += 1
+      last_val = val
+    end
+
+    # Connect with +=
+    node.numeric_alert += handler
+    assert_true node.numeric_alert.connected?
+    assert_eq node.numeric_alert.connection_count, 1
+
+    node.fire_numeric(12.34_f64)
+    assert_eq fired_count, 1
+    assert_eq last_val, 12.34_f64
+
+    # Disconnect with -=
+    node.numeric_alert -= handler
+    assert_false node.numeric_alert.connected?
+    assert_eq node.numeric_alert.connection_count, 0
+
+    node.fire_numeric(56.78_f64)
+    assert_eq fired_count, 1
+    assert_eq last_val, 12.34_f64
+
+    node.destroy
+  end
 end

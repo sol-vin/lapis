@@ -51,6 +51,11 @@ macro signal(name_or_decl, *extra_types)
     end
   {% end %}
 
+  # Identity setter enabling compound operator sugar (`node.{{sig_name.id}} += ->handler`, `node.{{sig_name.id}} -= ->handler`)
+  def {{sig_name.id}}=(val : ::Godot::BoundSignal) : ::Godot::BoundSignal
+    val
+  end
+
   # Type-safe emission helper
   def emit_{{sig_name.id}}({{emit_args.splat}}) : Void
     emit_signal("{{sig_name.id}}"{% if emit_pass_args.size > 0 %}, {{emit_pass_args.splat}}{% end %})
