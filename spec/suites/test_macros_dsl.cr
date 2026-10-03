@@ -40,7 +40,7 @@ node EnumDslTestNode < Godot::Node do
 
   def advance_role(next_val : Int32) : Int32
     @role = DslTestRole.from_value?(next_val.to_i64) || @role
-    emit_role_changed(@role.to_i64.to_i32)
+    role_changed.emit(@role.to_i64.to_i32)
     @role.to_i64.to_i32
   end
 end
@@ -243,7 +243,7 @@ node ComprehensiveGroupingTestNode < Godot::Node do
 end
 
 test_suite "MacrosDSL" do
-  test "Type-safe signal listeners with converted arguments (on_<signal>)" do
+  test "Type-safe signal listeners with converted arguments (signal.connect)" do
   target = PropertyTestTarget.new
   received_code = 0
   received_label = ""
@@ -251,16 +251,16 @@ test_suite "MacrosDSL" do
   listener_invoked = false
 
   # Type-safe listener auto-converts Array(String) into Int32, String, Float64
-  target.on_multi_arg_event do |code, label, ratio|
+  target.multi_arg_event.connect do |code, label, ratio|
     received_code = code
     received_label = label
     received_ratio = ratio
     listener_invoked = true
   end
 
-  target.emit_multi_arg_event(404, "Not Found", 3.14)
+  target.multi_arg_event.emit(404, "Not Found", 3.14)
 
-  assert_true listener_invoked, "on_multi_arg_event callback should be invoked"
+  assert_true listener_invoked, "multi_arg_event callback should be invoked"
   assert_eq received_code, 404
   assert_eq received_label, "Not Found"
   assert_true (received_ratio - 3.14).abs < 0.001
@@ -268,33 +268,33 @@ test_suite "MacrosDSL" do
   target.disconnect("multi_arg_event")
 end
 
-  test "Parameterless type-safe signal listeners (on_<signal>)" do
+  test "Parameterless type-safe signal listeners (signal.connect)" do
   target = GroupDslTestNode.new
   called = false
 
-  target.on_battle_started do
+  target.battle_started.connect do
     called = true
   end
 
-  target.emit_battle_started
-  assert_true called, "on_battle_started should trigger with zero-argument block"
+  target.battle_started.emit
+  assert_true called, "battle_started should trigger with zero-argument block"
   target.disconnect("battle_started")
 end
 
-  test "One-shot type-safe signal listener (on_<signal>_once)" do
+  test "One-shot type-safe signal listener (signal.once)" do
   target = PropertyTestTarget.new
   invocation_count = 0
 
-  target.on_test_event_fired_once do |_val|
+  target.test_event_fired.once do |_val|
     invocation_count += 1
   end
 
   # Emit multiple times
-  target.emit_test_event_fired(1)
-  target.emit_test_event_fired(2)
-  target.emit_test_event_fired(3)
+  target.test_event_fired.emit(1)
+  target.test_event_fired.emit(2)
+  target.test_event_fired.emit(3)
 
-  assert_eq invocation_count, 1, "on_<signal>_once should trigger exactly once"
+  assert_eq invocation_count, 1, "once should trigger exactly once"
 end
 
   test "BoundSignal#connect_one_shot automatically disconnects" do
@@ -318,7 +318,7 @@ end
   assert_false listener.method_called_by_symbol
 
   emitter.battle_started.connect(listener, :trigger_method)
-  emitter.emit_battle_started
+  emitter.battle_started.emit
 
   assert_true listener.method_called_by_symbol, "Signal connected via method symbol should invoke method on target"
   emitter.disconnect("battle_started")
@@ -761,8 +761,8 @@ end
   sub_ping = node.status_ping.connect do
     ping_count += 1
   end
-  node.emit_status_ping
-  node.emit_status_ping
+  node.status_ping.emit
+  node.status_ping.emit
   assert_eq ping_count, 2, "Zero-arg TypedSignal connect should fire on each emit"
   sub_ping.unsubscribe
 
@@ -775,7 +775,7 @@ end
     recv_bonus = bonus
     recv_title = title
   end
-  node.emit_level_scored(100, 2.5_f32, "Stage Complete")
+  node.level_scored.emit(100, 2.5_f32, "Stage Complete")
   assert_eq recv_score, 100, "Primitive Int32 should be automatically unboxed"
   assert_approx_eq recv_bonus, 2.5_f32, 0.001, "Primitive Float32 should be automatically unboxed"
   assert_eq recv_title, "Stage Complete", "String argument should be unboxed"
@@ -788,7 +788,7 @@ end
     recv_pos = pos
     recv_tint = tint
   end
-  node.emit_transform_updated(Godot::Vector2.new(42.0_f32, 84.0_f32), Godot::Color.new(0.2_f32, 0.4_f32, 0.6_f32, 1.0_f32))
+  node.transform_updated.emit(Godot::Vector2.new(42.0_f32, 84.0_f32), Godot::Color.new(0.2_f32, 0.4_f32, 0.6_f32, 1.0_f32))
   assert_approx_eq recv_pos.x, 42.0_f32, 0.001, "Vector2.x should match emitted value"
   assert_approx_eq recv_pos.y, 84.0_f32, 0.001, "Vector2.y should match emitted value"
   assert_approx_eq recv_tint.r, 0.2_f32, 0.001, "Color.r should match emitted value"
@@ -809,9 +809,9 @@ end
   node.status_ping.connect(flags: Godot::ConnectFlags::OneShot) do
     one_shot_count += 1
   end
-  node.emit_status_ping
-  node.emit_status_ping
-  node.emit_status_ping
+  node.status_ping.emit
+  node.status_ping.emit
+  node.status_ping.emit
   assert_eq one_shot_count, 1, "OneShot connection should fire exactly once and auto-unsubscribe"
 
   # Bitwise flags composition test
@@ -824,8 +824,8 @@ end
   node.single_score.connect(flags: combo_flags) do |val|
     combo_count += val
   end
-  node.emit_single_score(50)
-  node.emit_single_score(50)
+  node.single_score.emit(50)
+  node.single_score.emit(50)
   assert_eq combo_count, 50, "Combined flags with OneShot should fire only once"
 
   # Verify Deferred flag bitwise configuration and connection
@@ -850,7 +850,7 @@ end
     nil_res = res.nil? ? "was_nil" : "was_not_nil"
   end
   3.times { Fiber.yield }
-  node.emit_status_ping
+  node.status_ping.emit
   5.times { Fiber.yield }
   assert_eq nil_res, "was_nil", "Zero-arg await should return nil"
 
@@ -860,7 +860,7 @@ end
     single_res = node.single_score.await
   end
   3.times { Fiber.yield }
-  node.emit_single_score(999)
+  node.single_score.emit(999)
   5.times { Fiber.yield }
   assert_eq single_res, 999, "Single-arg await should return unboxed T directly"
 
@@ -875,7 +875,7 @@ end
     scored_title = title
   end
   3.times { Fiber.yield }
-  node.emit_level_scored(555, 3.25_f32, "Victory")
+  node.level_scored.emit(555, 3.25_f32, "Victory")
   5.times { Fiber.yield }
   assert_eq scored_score, 555, "Tuple return should correctly unbox first element (Int32)"
   assert_approx_eq scored_bonus, 3.25_f32, 0.001, "Tuple return should correctly unbox second element (Float32)"

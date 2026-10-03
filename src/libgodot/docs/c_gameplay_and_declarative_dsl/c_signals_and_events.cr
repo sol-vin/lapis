@@ -49,20 +49,19 @@ module Lapis
       # ### Related Guides & Source References
       # - **Signal Macros**: `src/libgodot/macros/signals.cr`
       # - **Live Specs**: `spec/suites/test_signals.cr`
-      #
-      module C_SIGNALS_AND_EVENTS
+            module C_SIGNALS_AND_EVENTS
         # **Signal Capabilities**: Type-safe signal emission, reflection, and cooperative fiber suspension.
         #
         # #### Key Topics & Information
         #
         # - Declarative syntax: signal name(arg1 : Type1, arg2 : Type2)
-        # - Synthesized type-safe emission helpers: emit_name(arg1, arg2)
+        # - First-class signal accessors: node.signal_name.emit(arg1, arg2), emit(signal_name, ...), and signal.disconnect_all
         # - First-class signal awaiting: await(node.signal_name, timeout_sec: 5.0)
         # - Full ClassDB reflection for Godot connections dialog and GDScript interop
         #
         def self.topic_00_signal_features : Nil; end
 
-        # **Declaring & Emitting Signals**: Declaring signals and calling generated type-safe emit methods.
+        # **Declaring & Emitting Signals**: Declaring signals and calling first-class emit methods.
         #
         # Declare signals using the `signal` macro inside any `node`:
         #
@@ -80,11 +79,13 @@ module Lapis
         #   def take_damage(amount : Int32) : Void
         #     @current_hp = (@current_hp - amount).clamp(0, @max_hp)
         #
-        #     # Call ergonomic emit helper (or synthesized emit_<name>):
-        #     emit(health_changed, @current_hp, @max_hp)
+        #     # Call first-class emit directly on the signal accessor:
+        #     health_changed.emit(@current_hp, @max_hp)
+        #     # or use the emit macro:
+        #     # emit(health_changed, @current_hp, @max_hp)
         #
         #     if @current_hp <= 0
-        #       emit(died)
+        #       died.emit
         #     end
         #   end
         # end
@@ -101,10 +102,14 @@ module Lapis
         #   Godot.print("Player has perished!")
         # end
         #
-        # # Typed signal callbacks receive arguments:
-        # player.health_changed.connect do |args|
-        #   Godot.print("Health updated: #{args[0]} / #{args[1]}")
+        # # Typed signal callbacks receive unboxed arguments directly:
+        # player.health_changed.connect do |current, max_hp|
+        #   Godot.print("Health updated: #{current} / #{max_hp}")
         # end
+        #
+        # # Disconnecting all subscriptions cleanly:
+        # player.health_changed.disconnect_all
+        # player.disconnect_all
         # ```
         #
         # #### Connecting in GDScript:

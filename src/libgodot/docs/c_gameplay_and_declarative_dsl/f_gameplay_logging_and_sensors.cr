@@ -84,7 +84,7 @@ module Lapis
         #
         #     if @current_hp == 0
         #       Godot.log :combat, "Player perished!"
-        #       emit_died
+        #       died.emit
         #     end
         #   end
         # end

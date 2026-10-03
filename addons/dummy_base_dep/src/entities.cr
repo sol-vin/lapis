@@ -39,11 +39,11 @@ node DummyBaseEntity < Node2D do
 
   def set_active(active : Bool) : Void
     @is_base_active = active
-    emit_state_toggled(active)
+    state_toggled.emit(active)
   end
 
   def trigger_event(name : String, code : Int32) : Void
-    emit_base_event(name, code)
+    base_event.emit(name, code)
   end
 end
 
@@ -60,7 +60,7 @@ node DummyBaseConfig < Resource do
 
   def reload_config : Void
     @config_version += 1
-    emit_config_reloaded
+    config_reloaded.emit
   end
 end
 

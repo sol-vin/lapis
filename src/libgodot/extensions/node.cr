@@ -29,23 +29,6 @@ module Godot
       set_name(val)
     end
 
-    # Adds a child node. Falls back to local children array when running standalone.
-    # Enforces thread-safety: off-thread calls raise ThreadAffinityError when attached to SceneTree.
-    def add_child(node : Node, force_readable_name : Bool = false, internal : InternalMode | Int = 0) : Void
-      Godot::ThreadSafety.assert_main_thread!("add_child", "Node", self, node)
-      children << node
-      STANDALONE_PARENTS[node.object_id] = self if @pointer.null?
-      return if @pointer.null?
-      previous_def(node, force_readable_name, internal)
-    end
-
-    # Overload: Adds an existing child node, configures it in block, and returns it.
-    def add_child(node : Node, force_readable_name : Bool = false, internal : InternalMode | Int = 0, &block : Node -> Void) : Node
-      add_child(node, force_readable_name, internal)
-      yield node
-      node
-    end
-
     # Overload: Instantiates a Node of class T, configures it in block, adds it as child, and returns it.
     def add_child(type : T.class, force_readable_name : Bool = false, internal : InternalMode | Int = 0, &block : T -> Void) : T forall T
       node = ::Godot.create(type)
@@ -58,6 +41,25 @@ module Godot
     def add_child(type : T.class, force_readable_name : Bool = false, internal : InternalMode | Int = 0) : T forall T
       node = ::Godot.create(type)
       add_child(node.as(Node), force_readable_name, internal)
+      node
+    end
+
+    # Adds a child node. Falls back to local children array when running standalone.
+    # Enforces thread-safety: off-thread calls raise ThreadAffinityError when attached to SceneTree.
+    # Returns concrete instance type T for seamless chaining and assignment.
+    def add_child(node : T, force_readable_name : Bool = false, internal : InternalMode | Int = 0) : T forall T
+      Godot::ThreadSafety.assert_main_thread!("add_child", "Node", self, node)
+      children << node.as(Node)
+      STANDALONE_PARENTS[node.object_id] = self if @pointer.null?
+      return node if @pointer.null?
+      engine_add_child(node.as(Node), force_readable_name, internal)
+      node
+    end
+
+    # Overload: Adds an existing child node, configures it in block, and returns concrete instance type T.
+    def add_child(node : T, force_readable_name : Bool = false, internal : InternalMode | Int = 0, &block : T -> Void) : T forall T
+      yield node
+      add_child(node, force_readable_name, internal)
       node
     end
 
@@ -170,24 +172,6 @@ module Godot
       previous_def(node, keep_groups)
     end
 
-    def add_sibling(sibling : Node, force_readable_name : Bool = false) : Void
-      Godot::ThreadSafety.assert_main_thread!("add_sibling", "Node", self, sibling)
-      if @pointer.null?
-        if p = get_parent?
-          p.add_child(sibling)
-        end
-        return
-      end
-      previous_def(sibling, force_readable_name)
-    end
-
-    # Overload: Adds an existing sibling node, configures it in block, and returns it.
-    def add_sibling(sibling : Node, force_readable_name : Bool = false, &block : Node -> Void) : Node
-      add_sibling(sibling, force_readable_name)
-      yield sibling
-      sibling
-    end
-
     # Overload: Instantiates a Node of class T, configures it in block, adds it as sibling, and returns it.
     def add_sibling(type : T.class, force_readable_name : Bool = false, &block : T -> Void) : T forall T
       node = ::Godot.create(type)
@@ -201,6 +185,25 @@ module Godot
       node = ::Godot.create(type)
       add_sibling(node.as(Node), force_readable_name)
       node
+    end
+
+    def add_sibling(sibling : T, force_readable_name : Bool = false) : T forall T
+      Godot::ThreadSafety.assert_main_thread!("add_sibling", "Node", self, sibling)
+      if @pointer.null?
+        if p = get_parent?
+          p.add_child(sibling.as(Node))
+        end
+        return sibling
+      end
+      engine_add_sibling(sibling.as(Node), force_readable_name)
+      sibling
+    end
+
+    # Overload: Adds an existing sibling node, configures it in block, and returns concrete type T.
+    def add_sibling(sibling : T, force_readable_name : Bool = false, &block : T -> Void) : T forall T
+      add_sibling(sibling, force_readable_name)
+      yield sibling
+      sibling
     end
 
     # Overload: Instantiates a PackedScene as type T, configures it in block, adds it as sibling, and returns it.

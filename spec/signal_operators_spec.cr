@@ -99,7 +99,7 @@ describe "Signal Compound Operators (+= and -=)" do
       player.died.connected?.should be_false
 
       # Emit again directly
-      player.emit_died
+      player.died.emit
       died_count.should eq(1)
     end
 
@@ -247,13 +247,13 @@ describe "Signal Compound Operators (+= and -=)" do
       sig += handler
       sig.connected?.should be_true
 
-      player.emit_died
+      player.died.emit
       died_calls.should eq(1)
 
       sig -= handler
       sig.connected?.should be_false
 
-      player.emit_died
+      player.died.emit
       died_calls.should eq(1)
     end
   end

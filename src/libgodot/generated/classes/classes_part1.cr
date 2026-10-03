@@ -1583,7 +1583,7 @@ module Godot
       self.class.get_orphan_node_ids()
     end
     @@mb_add_sibling : Void* = Pointer(Void).null
-    def add_sibling(sibling : Node, force_readable_name : Bool = false) : Void
+    def engine_add_sibling(sibling : Node, force_readable_name : Bool = false) : Void
       godot_bind(@@mb_add_sibling, "Node", "add_sibling", 2570952461_i64)
       arg_ptr_0 = sibling ? sibling.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -1608,7 +1608,7 @@ module Godot
       godot_call_str("get_name")
     end
     @@mb_add_child : Void* = Pointer(Void).null
-    def add_child(node : Node, force_readable_name : Bool = false, internal : InternalMode | Int = 0) : Void
+    def engine_add_child(node : Node, force_readable_name : Bool = false, internal : InternalMode | Int = 0) : Void
       godot_bind(@@mb_add_child, "Node", "add_child", 3863233950_i64)
       arg_ptr_0 = node ? node.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)

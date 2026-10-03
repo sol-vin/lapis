@@ -69,6 +69,21 @@ module Lapis
       #       <td><code>.topic_09_optional_modules</code></td>
       #       <td>Modular gameplay helpers via require 'lapis/math' and require 'lapis/fsm'.</td>
       #     </tr>
+      #     <tr>
+      #       <td><strong>Scene Pipeline & Builders</strong></td>
+      #       <td><code>.topic_10_scene_pipeline_and_builders</code></td>
+      #       <td>Pipeline operator (>), static type retention on add_child, and Object#build.</td>
+      #     </tr>
+      #     <tr>
+      #       <td><strong>Type-Safe Tweening & Animations</strong></td>
+      #       <td><code>.topic_11_tween_ergonomics</code></td>
+      #       <td>Compile-time type-checked tween macro, multi-symbol paths, and Time::Span duration.</td>
+      #     </tr>
+      #     <tr>
+      #       <td><strong>Pattern Matching (match)</strong></td>
+      #       <td><code>.topic_12_pattern_matching</code></td>
+      #       <td>Expression-oriented pattern matching with downcasting, Variant unboxing, and destructuring.</td>
+      #     </tr>
       #   </tbody>
       # </table>
       module K_GAMEPLAY_ERGONOMICS
@@ -247,6 +262,92 @@ module Lapis
         # end
         # ```
         def self.topic_09_optional_modules : Nil; end
+
+        # **Scene Pipeline & Builders**: Pipeline operator (>), static type retention on add_child, and Object#build.
+        #
+        # ```crystal
+        # # 1. Pipeline operator (>) on scene path or PackedScene:
+        # enemy = add_child("res://scenes/enemy.tscn" > Enemy)
+        # typeof(enemy) # => Enemy (concrete static type preserved!)
+        #
+        # # 2. Inline configuration via add_child block:
+        # boss = add_child("res://scenes/boss.tscn" > Boss) do |b|
+        #   b.position = Vector2.new(500, 200)
+        #   b.phase = 2
+        # end
+        #
+        # # 3. Fluent configuration via Object#build and Object#configure:
+        # player = ("res://scenes/player.tscn" > Player).build do |p|
+        #   p.speed = 12.0_f32
+        # end
+        # add_child(player)
+        # ```
+        def self.topic_10_scene_pipeline_and_builders : Nil; end
+
+        # **Type-Safe Tweening & Animations**: Compile-time type-checked tween macro, multi-symbol paths, and Time::Span.
+        #
+        # ```crystal
+        # # 1. Pure compile-time type-checked macro (catches typos like boss.positiom.y at compile time!):
+        # tween(boss.position.y, to: 150.0, in: 0.4.seconds)
+        #
+        # # 2. Multi-symbol property path (zero string allocations):
+        # boss.tween_to(:position, :y, 150.0, 0.4.seconds)
+        #
+        # # 3. Target-omitted tween_to on target instance:
+        # boss.tween_to("position:y", 150.0, 0.4.seconds)
+        #
+        # # 4. Fluent multi-step Tween builder:
+        # boss.animate do
+        #   step :position, :x, to: 200.0, in: 0.5.seconds, ease: :out, trans: :quad
+        #   step :modulate, :a, to: 0.0, in: 0.2.seconds
+        #   delay 0.1.seconds
+        #   callback { Godot.print("Animation completed!") }
+        # end
+        # ```
+        def self.topic_11_tween_ergonomics : Nil; end
+
+        # **Pattern Matching (match)**: Expression-oriented pattern matching with downcasting, unboxing, and destructuring.
+        #
+        # ```crystal
+        # # 1. Polymorphic class downcasting with pattern guards:
+        # greeting = match entity do
+        #   is Player, if: p.is_boss do |p|
+        #     "Defeat the champion #{p.name}!"
+        #   end
+        #   is Player do |p|
+        #     "Welcome, #{p.name}!"
+        #   end
+        #   is Enemy do |e|
+        #     "Encountered #{e.class.name}"
+        #   end
+        #   default do
+        #     "Unknown entity"
+        #   end
+        # end
+        #
+        # # 2. Array rest pattern matching:
+        # action = match tokens do
+        #   is ["teleport", x, y] do |_, tx, ty|
+        #     "Teleporting to #{tx}, #{ty}"
+        #   end
+        #   is [first, .., last] do |f, l|
+        #     "Sequence from #{f} to #{l}"
+        #   end
+        #   is rest(cmd, _, _, arg) do |c, a|
+        #     "Command #{c} with arg #{a}"
+        #   end
+        #   default { "Invalid command" }
+        # end
+        #
+        # # 3. Partial dictionary matching:
+        # match packet do
+        #   is dict(type: "chat", user: u, msg: m) do |_, user, text|
+        #     Godot.print("#{user}: #{text}")
+        #   end
+        #   default { }
+        # end
+        # ```
+        def self.topic_12_pattern_matching : Nil; end
       end
     end
   end

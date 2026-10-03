@@ -139,7 +139,7 @@ describe "Lapis Usability Macros & Ergonomic DSL" do
         received = amount
       end
 
-      emitter.emit_scored(123)
+      emitter.scored.emit(123)
       received.should eq(123)
     end
 
@@ -150,7 +150,7 @@ describe "Lapis Usability Macros & Ergonomic DSL" do
         called = true
       end
 
-      emitter.emit_finished
+      emitter.finished.emit
       called.should be_true
     end
   end
@@ -162,11 +162,18 @@ describe "Lapis Usability Macros & Ergonomic DSL" do
       node.responds_to?(:every).should be_true
     end
 
-    it "provides Node#tween, Node#tween_to, and Node#punch_scale" do
+    it "provides Node#tween and Node#tween_to without punch_scale" do
       node = Godot.create(Godot::Node2D)
       node.responds_to?(:tween).should be_true
       node.responds_to?(:tween_to).should be_true
-      node.responds_to?(:punch_scale).should be_true
+      node.responds_to?(:punch_scale).should be_false
+    end
+
+    it "supports tween_to with target omitted, symbols, and Time::Span" do
+      node = Godot.create(Godot::Node2D)
+      node.tween_to("position:y", 150.0, 0.4.seconds)
+      node.tween_to(:position, :y, 150.0, 0.4.seconds)
+      node.tween_to(:scale, Godot::Vector2.new(1.2_f32, 1.2_f32), 0.2.seconds)
     end
   end
 end

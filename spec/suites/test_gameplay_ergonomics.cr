@@ -112,12 +112,12 @@ test_suite "GameplayErgonomics" do
     end
 
     # Mismatch emission
-    player.emit_equipped(player, enemy)
+    player.equipped.emit(player, enemy)
     assert_nil received_player
     assert_nil received_sword
 
     # Matching emission
-    player.emit_equipped(player, sword)
+    player.equipped.emit(player, sword)
     assert_eq received_player, player
     assert_eq received_sword, sword
 
@@ -130,7 +130,7 @@ test_suite "GameplayErgonomics" do
       matched_raw = raw
     end
 
-    player.emit_hit(player, 42)
+    player.hit.emit(player, 42)
     assert_eq matched_player, player
     assert_eq matched_raw, 42_i64
 
@@ -141,22 +141,22 @@ test_suite "GameplayErgonomics" do
     }
 
     player.equipped += handler
-    player.emit_equipped(player, sword)
+    player.equipped.emit(player, sword)
     assert_eq handled_count, 1
 
     player.equipped -= handler
-    player.emit_equipped(player, sword)
+    player.equipped.emit(player, sword)
     assert_eq handled_count, 1
 
     # Disconnect all
     count = 0
     player.hit.connect { count += 1 }
     player.hit.connect { count += 1 }
-    player.emit_hit(player, 1)
+    player.hit.emit(player, 1)
     assert_eq count, 2
 
     player.hit.disconnect_all
-    player.emit_hit(player, 1)
+    player.hit.emit(player, 1)
     assert_eq count, 2
   end
 

@@ -198,7 +198,7 @@ module Lapis
           self.call("add_user_signal", "ready_in_editor") rescue nil
         end
 
-        emit_ready_in_editor
+        ready_in_editor.emit
       end
     end
 

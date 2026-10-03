@@ -19,7 +19,7 @@ node DialogueBox < Control do
   # Advances the dialogue box to display the specified line of text
   def advance_line(new_text : String) : Void
     @dialogue_text = new_text
-    emit_line_finished(@speaker_name)
+    line_finished.emit(@speaker_name)
   end
 end
 
@@ -42,7 +42,7 @@ node DummyDialoguePlugin < EditorPlugin do
   # Validates syntax and narrative branching for a dialogue script file
   def validate_dialogue_file(file_path : String) : Bool
     is_valid = !file_path.empty?
-    emit_dialogue_validated(file_path, is_valid)
+    dialogue_validated.emit(file_path, is_valid)
     Godot.print("[DummyDialoguePlugin] Validated dialogue file '#{file_path}': #{is_valid}")
     is_valid
   end

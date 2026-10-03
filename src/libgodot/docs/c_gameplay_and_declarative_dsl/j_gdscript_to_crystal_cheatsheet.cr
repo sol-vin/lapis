@@ -148,7 +148,7 @@ module Lapis
         #     <tr>
         #       <td><code>signal health_changed(curr, max)</code></td>
         #       <td><code>signal health_changed(current : Int32, max : Int32)</code></td>
-        #       <td>Synthesizes type-safe emit_health_changed method.</td>
+        #       <td>First-class typed signal accessor with type-safe emit, connect, and disconnect_all.</td>
         #     </tr>
         #     <tr>
         #       <td><code>await get_tree().create_timer(1.0).timeout</code></td>

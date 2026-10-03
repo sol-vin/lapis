@@ -1,6 +1,7 @@
 require "./macros/annotations"
 require "./macros/node_refs"
 require "./macros/signals"
+require "./macros/match"
 
 module Godot
   struct PropertyInfo

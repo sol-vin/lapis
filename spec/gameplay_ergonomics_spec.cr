@@ -142,12 +142,12 @@ describe "Next-Generation Gameplay Ergonomics" do
       end
 
       # Emit with non-matching types (ErgoEnemy instead of ErgoSword)
-      player.emit_equipped(player, enemy)
+      player.equipped.emit(player, enemy)
       received_player.should be_nil
       received_sword.should be_nil
 
       # Emit with matching types
-      player.emit_equipped(player, sword)
+      player.equipped.emit(player, sword)
       received_player.should eq(player)
       received_sword.should eq(sword)
     end
@@ -162,7 +162,7 @@ describe "Next-Generation Gameplay Ergonomics" do
         matched_raw = raw
       end
 
-      player.emit_hit(player, 42)
+      player.hit.emit(player, 42)
       matched_player.should eq(player)
       matched_raw.should eq(42_i64)
     end
@@ -177,11 +177,11 @@ describe "Next-Generation Gameplay Ergonomics" do
       }
 
       player.equipped += handler
-      player.emit_equipped(player, sword)
+      player.equipped.emit(player, sword)
       handled_count.should eq(1)
 
       player.equipped -= handler
-      player.emit_equipped(player, sword)
+      player.equipped.emit(player, sword)
       handled_count.should eq(1)
     end
 
@@ -194,22 +194,22 @@ describe "Next-Generation Gameplay Ergonomics" do
       }
 
       player.hit += hit_proc
-      player.emit_hit(player, 50)
+      player.hit.emit(player, 50)
       hit_count.should eq(1)
 
       player.hit -= hit_proc
-      player.emit_hit(player, 50)
+      player.hit.emit(player, 50)
       hit_count.should eq(1)
 
       zero_count = 0
       zero_proc = -> { zero_count += 10 }
 
       player.hit += zero_proc
-      player.emit_hit(player, 25)
+      player.hit.emit(player, 25)
       zero_count.should eq(10)
 
       player.hit -= zero_proc
-      player.emit_hit(player, 25)
+      player.hit.emit(player, 25)
       zero_count.should eq(10)
     end
 
@@ -223,26 +223,35 @@ describe "Next-Generation Gameplay Ergonomics" do
       }
 
       bound += on_hit_var
-      player.emit_hit(player, 100)
+      player.hit.emit(player, 100)
       fire_count.should eq(1)
 
       bound -= on_hit_var
-      player.emit_hit(player, 100)
+      player.hit.emit(player, 100)
       fire_count.should eq(1)
     end
 
-    it "disconnects all signal handlers with disconnect_all" do
+    it "disconnects all signal handlers with disconnect_all and clear" do
       player = ErgoPlayer.new
       count = 0
       player.hit.connect { count += 1 }
       player.hit.connect { count += 1 }
 
-      player.emit_hit(player, 10)
+      player.hit.emit(player, 10)
       count.should eq(2)
 
-      player.hit.disconnect_all
-      player.emit_hit(player, 10)
+      player.hit.clear
+      player.hit.emit(player, 10)
       count.should eq(2)
+
+      # Test object-level disconnect_all
+      player.hit.connect { count += 1 }
+      player.hit.emit(player, 10)
+      count.should eq(3)
+
+      player.disconnect_all
+      player.hit.emit(player, 10)
+      count.should eq(3)
     end
   end
 

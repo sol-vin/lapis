@@ -14,9 +14,9 @@ node EditorSignalTargetNode < Godot::Node do
   property label : String = "SignalTarget"
 
   def trigger_all : Void
-    emit_action_triggered
-    emit_score_updated(100, 1.5_f32)
-    emit_player_tagged("Hero", true)
+    action_triggered.emit
+    score_updated.emit(100, 1.5_f32)
+    player_tagged.emit("Hero", true)
   end
 end
 

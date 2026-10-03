@@ -515,6 +515,10 @@ module Godot
             end
           elsif raw.is_a?(T)
             proc.call(raw)
+          elsif raw.is_a?(Int) && (num = raw.to_i32.as?(T) || raw.to_i64.as?(T))
+            proc.call(num)
+          elsif raw.is_a?(Float) && (flt = raw.to_f32.as?(T) || raw.to_f64.as?(T))
+            proc.call(flt)
           end
         end
       end
@@ -533,6 +537,10 @@ module Godot
             c0 = Godot::Node.cast_to?(raw0, T0)
           elsif raw0.is_a?(T0)
             c0 = raw0
+          elsif raw0.is_a?(Int)
+            c0 = raw0.to_i32.as?(T0) || raw0.to_i64.as?(T0)
+          elsif raw0.is_a?(Float)
+            c0 = raw0.to_f32.as?(T0) || raw0.to_f64.as?(T0)
           end
 
           c1 : T1? = nil
@@ -541,6 +549,10 @@ module Godot
             c1 = Godot::Node.cast_to?(raw1, T1)
           elsif raw1.is_a?(T1)
             c1 = raw1
+          elsif raw1.is_a?(Int)
+            c1 = raw1.to_i32.as?(T1) || raw1.to_i64.as?(T1)
+          elsif raw1.is_a?(Float)
+            c1 = raw1.to_f32.as?(T1) || raw1.to_f64.as?(T1)
           end
 
           if (t0 = c0) && (t1 = c1)
@@ -603,19 +615,25 @@ module Godot
     end
 
     # Disconnects all active subscriptions for this signal on the target
-    def disconnect : Void
+    def disconnect : self
       @target.disconnect(@name)
+      self
     end
 
     # Disconnects all active subscriptions for this signal on the target (alias)
-    def disconnect_all : Void
+    def disconnect_all : self
       disconnect
     end
 
+    # Fluent alias for disconnect_all
+    def clear : self
+      disconnect_all
+    end
 
     # Emits this signal on the target object
-    def emit(*args) : Void
+    def emit(*args) : self
       @target.emit_signal(@name, *args)
+      self
     end
 
     # Returns the count of active subscriptions for this signal
@@ -699,6 +717,8 @@ module Godot
       end
     end
 
+
+
     # Operator `+` for 1-argument typed Proc (supports exact types and downcasting)
     def +(proc : Proc(U0, R)) : self forall U0, R
       sub = @target.connect(@name) do |args|
@@ -710,6 +730,10 @@ module Godot
             end
           elsif raw.is_a?(U0)
             proc.call(raw)
+          elsif raw.is_a?(Int) && (num = raw.to_i32.as?(U0) || raw.to_i64.as?(U0))
+            proc.call(num)
+          elsif raw.is_a?(Float) && (flt = raw.to_f32.as?(U0) || raw.to_f64.as?(U0))
+            proc.call(flt)
           end
         end
       end
@@ -728,6 +752,10 @@ module Godot
             c0 = Godot::Node.cast_to?(raw0, U0)
           elsif raw0.is_a?(U0)
             c0 = raw0
+          elsif raw0.is_a?(Int)
+            c0 = raw0.to_i32.as?(U0) || raw0.to_i64.as?(U0)
+          elsif raw0.is_a?(Float)
+            c0 = raw0.to_f32.as?(U0) || raw0.to_f64.as?(U0)
           end
 
           c1 : U1? = nil
@@ -736,6 +764,10 @@ module Godot
             c1 = Godot::Node.cast_to?(raw1, U1)
           elsif raw1.is_a?(U1)
             c1 = raw1
+          elsif raw1.is_a?(Int)
+            c1 = raw1.to_i32.as?(U1) || raw1.to_i64.as?(U1)
+          elsif raw1.is_a?(Float)
+            c1 = raw1.to_f32.as?(U1) || raw1.to_f64.as?(U1)
           end
 
           if (t0 = c0) && (t1 = c1)
@@ -743,14 +775,6 @@ module Godot
           end
         end
       end
-      sub.proc_pointer = proc.pointer
-      sub.proc_closure_data = proc.closure_data
-      self
-    end
-
-    # Operator `+` syntactic sugar for type-safe connect with exact Proc (fallback for 3+ args)
-    def +(proc : Proc(*T, R)) : self forall R
-      sub = self << proc
       sub.proc_pointer = proc.pointer
       sub.proc_closure_data = proc.closure_data
       self
@@ -791,8 +815,9 @@ module Godot
     end
 
     # Emits this typed signal with compile-time type safety matching the signal declaration
-    def emit(*args : *T) : Void
+    def emit(*args : *T) : self
       @target.emit_signal(@name, *args)
+      self
     end
 
     # Cooperatively awaits this typed signal returning unboxed values or tuple
@@ -1461,6 +1486,18 @@ module Godot
       Bridge.object_call_ret_string(@pointer, method, *args)
     end
 
+    # Fluent inline configuration block yielding self and returning self
+    def build(&block : self -> Void) : self
+      yield self
+      self
+    end
+
+    # Fluent configuration block alias
+    def configure(&block : self -> Void) : self
+      yield self
+      self
+    end
+
     # Connects a callback proc to the named signal.
     def connect(signal_name : String, flags : ::Godot::ConnectFlags = ::Godot::ConnectFlags::None, callback : Proc(::Array(Variant), Void)? = nil) : SignalSubscription
       check_alive!
@@ -1505,6 +1542,49 @@ module Godot
       if !@pointer.null? && @instance_id > 0
         Bridge.object_disconnect_signal(@pointer, signal_name)
       end
+    end
+
+    # Disconnects all subscriptions for the specified signal (Symbol overload)
+    def disconnect(signal_name : Symbol) : Void
+      disconnect(signal_name.to_s)
+    end
+
+    # Disconnects all subscriptions for the specified signal, returning self
+    def disconnect_all(signal_name : String | Symbol) : self
+      disconnect(signal_name.to_s)
+      self
+    end
+
+    # Disconnects all subscriptions across ALL signals on this object, returning self
+    def disconnect_all : self
+      tid = signal_target_id
+      keys_to_delete = [] of Tuple(UInt64, String)
+      Godot.signal_subs_mutex.synchronize do
+        Godot.signal_subs.each_key do |k|
+          keys_to_delete << k if k[0] == tid
+        end
+        keys_to_delete.each do |k|
+          Godot.signal_subs.delete(k)
+        end
+      end
+      if !@pointer.null? && @instance_id > 0
+        keys_to_delete.each do |k|
+          Bridge.object_disconnect_signal(@pointer, k[1])
+        end
+      end
+      self
+    end
+
+    # Emits the named signal with arguments, returning self
+    def emit(signal_name : String | Symbol, *args) : self
+      emit_signal(signal_name.to_s, *args)
+      self
+    end
+
+    # Emits a bound or typed signal with arguments, returning self
+    def emit(signal : BoundSignal, *args) : self
+      signal.emit(*args)
+      self
     end
 
     # Returns true if this object or its registered class defines the given signal.

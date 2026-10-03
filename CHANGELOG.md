@@ -11,6 +11,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+#### Next-Gen Scene Pipeline, Tweening & Pattern Matching
+- **Scene Pipeline Operator (`>`) & Fluent Mounting**:
+  - `"res://scenes/enemy.tscn" > Enemy` and `packed_scene > Enemy`: instantiates and downcasts packed scenes directly to concrete wrapper type `T`.
+  - `Node#add_child(node : T) : T forall T`: preserves concrete static type of added child nodes instead of returning `Void`, enabling `enemy = add_child("res://scenes/enemy.tscn" > Enemy)`.
+  - Inline block configuration for child mounting: `add_child(scene > Enemy) do |e| ... end`.
+  - Fluent configuration via `Object#build(&block)` and `Object#configure(&block)`.
+  - Sibling pipeline parity: `add_sibling(scene > Enemy)` and `add_sibling(node : T) : T forall T`.
+- **Type-Safe Tween Ergonomics & Animations**:
+  - `macro tween(property_expr, to: value, in: duration)`: pure compile-time type-checked tweening catching typos (e.g. `boss.positiom.y`) at compile time with zero string allocations.
+  - Multi-symbol property paths: `boss.tween_to(:position, :y, 150.0, 0.4.seconds)` and builder `animate :position, :y, to: ...`.
+  - Target-omitted `tween_to`: `boss.tween_to("position:y", 150.0, 0.4.seconds)`.
+  - Full `Time::Span` duration support across `tween_to`, `animate`, `delay`, and `Tween#tween_property`.
+- **Expression-Oriented Pattern Matching (`match`)**:
+  - `macro match(target, &block)`: multi-paradigm pattern matching DSL supporting:
+    - Polymorphic class downcasting: `is Player do |p| ... end`
+    - Variant unboxing: `is Int64 do |i| ... end`, `is String do |s| ... end`, `is Vector2 do |v| ... end`
+    - Pattern guards: `is Player, if: p.health < 20 do |p| ... end`
+    - Tuple destructuring: `is :jump, true do ... end`
+    - Array Rest patterns: `is [first, .., last] do |f, l| ... end` and `is rest(head, _, _, tail) do |h, t| ... end`
+    - Partial Dictionary patterns: `is dict(type: "chat", user: u, msg: m) do |_, u, m| ... end`
+    - Wildcard patterns: `is _ do ... end` and `default do ... end`
+- **Signal Cleanup & First-Class Emission**:
+  - Added `TypedSignal#emit(*args : *T)` and `BoundSignal#emit(*args)` for first-class emission on signal accessors.
+  - Added `disconnect_all` and `clear` on `TypedSignal`, `BoundSignal`, and `Godot::Object`.
+
+### Removed
+- **Synthesized Signal Helper Methods**:
+  - Purged synthesized `emit_<signal_name>`, `on_<signal_name>`, and `on_<signal_name>_once` from `macro signal` to prevent namespace pollution and method collisions. Replaced with first-class `node.signal_name.emit(...)`, `node.signal_name.connect { ... }`, and `node.signal_name.once { ... }`.
+- **`Node#punch_scale`**:
+  - Removed `Node#punch_scale` in favor of declarative `tween` and `animate` builders.
+
 #### Next-Generation Gameplay Usability & Ergonomics
 - **Direct Tree Instantiation (`add_child(Class, &block)`, `add_sibling`)**:
   - `Node#add_child(NodeClass, &block)`: instantiates, configures, and adds child nodes in a single call without separate `.new` or boilerplate.
