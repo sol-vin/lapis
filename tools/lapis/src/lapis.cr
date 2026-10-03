@@ -32,6 +32,7 @@ require "./commands/decompile"
 require "./commands/analyze"
 require "./commands/template"
 require "./commands/export_templates"
+require "./commands/driver"
 require "./commands/cli"
 require "./tui/hub"
 
@@ -39,6 +40,7 @@ module Lapis
   # Canonical registry of all subcommands with concise descriptions.
   COMMAND_DESCRIPTIONS = {
     "cli"         => "Launch interactive TUI terminal command hub and dashboard",
+    "driver"      => "In-Editor Action Driver controller, interactive REPL & AI vision",
     "dirs"        => "Ensure project and binary output directories exist",
     "deps"        => "Verify and copy Crystal runtime dependencies & libgodot DLLs",
     "sync"        => "Synchronize binaries, addons, and manifests across all targets",
@@ -170,6 +172,13 @@ module Lapis
         cmd.description COMMAND_DESCRIPTIONS["cli"]
         cmd.alias_name "hub", "ui"
         cmd.run { |ctx| Commands::Cli.run(ctx.raw_args) }
+      end
+
+      cli.command :driver do |cmd|
+        cmd.category "Testing & Development Commands"
+        cmd.description COMMAND_DESCRIPTIONS["driver"]
+        cmd.alias_name "action-driver", "action"
+        cmd.run { |ctx| Commands::Driver.run(ctx.raw_args) }
       end
 
       cli.command :doctor do |cmd|
@@ -572,6 +581,8 @@ HELP
       Commands::Benchmarks.print_help
     when "log", "logs"
       Commands::Log.print_help
+    when "driver", "action-driver", "action"
+      Commands::Driver.print_help
     when "completion"
       puts "Usage: lapis completion <powershell|bash|zsh|fish>\n\nGenerates native shell autocompletion script."
     else

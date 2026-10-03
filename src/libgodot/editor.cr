@@ -6,6 +6,10 @@
 require "file_utils"
 require "./script"
 require "./editor_script_creation"
+require "./editor/action_driver"
+require "./editor/action_driver_vision"
+require "./editor/action_driver_ipc"
+require "./editor/state_preserver"
 
 module Lapis
   include Godot
@@ -147,6 +151,10 @@ module Lapis
             ed_settings.unreference rescue nil if ed_settings
           end
         end
+
+        # Start Action Driver IPC and restore preserved state across hot reloads
+        Lapis::Editor::DriverServer.start_if_enabled
+        Lapis::Editor::StatePreserver.restore_edited_scene
 
         unless self.class.headless?
           self.class.ensure_highlighter_registered
@@ -2055,6 +2063,7 @@ module Lapis
       end
 
       ensure_project_bindings
+      Lapis::Editor::StatePreserver.snapshot_edited_scene
 
       out_dll = {% if flag?(:windows) %}
                   "bin/game.dll"

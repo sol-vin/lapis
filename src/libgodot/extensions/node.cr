@@ -228,7 +228,9 @@ module Godot
     # Returns an Array containing all child nodes belonging to this node.
     def get_children(include_internal : Bool = false) : ::Array(Node)
       check_alive!
-      return ::Array(Node).new if @pointer.null?
+      if @pointer.null?
+        return @local_children ||= ::Array(Node).new
+      end
       count = get_child_count(include_internal)
       return ::Array(Node).new if count <= 0
       children = ::Array(Node).new(count.to_i32)

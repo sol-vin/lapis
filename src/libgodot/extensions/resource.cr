@@ -42,6 +42,47 @@ module Godot
     load_scene(path).instantiate_as(type)
   end
 
+  # In-memory thread-safe cache for preloaded resources
+  module PreloadCache
+    @@cache = Hash(String, Resource).new
+    @@mutex = ::Thread::Mutex.new
+
+    def self.get_or_load(path : String, type : T.class) : T forall T
+      @@mutex.synchronize do
+        if res = @@cache[path]?
+          if res.alive?
+            if res.is_a?(T)
+              return res
+            elsif alive = Bridge.find_alive_instance(res.pointer)
+              if typed = alive.as?(T)
+                return typed
+              end
+            end
+            if !res.pointer.null? && Bridge.object_is_class(res.pointer, T.name.split("::").last)
+              return T.new(res.pointer)
+            end
+          end
+        end
+
+        loaded = ::Godot.load(path, as: T)
+        @@cache[path] = loaded.as(Resource)
+        loaded
+      end
+    end
+
+    def self.clear : Void
+      @@mutex.synchronize { @@cache.clear }
+    end
+
+    def self.has?(path : String) : Bool
+      @@mutex.synchronize { @@cache.has_key?(path) }
+    end
+  end
+
+  def self.preload(path : String, as type : T.class) : T forall T
+    PreloadCache.get_or_load(path, type)
+  end
+
   class ResourceSaver
     # Saves a resource to disk using dynamic reflection to ensure valid Ref<Resource> and string marshalling.
     def save(resource : Resource, path : String = "", flags : SaverFlags | Int = 0) : Godot::Error
@@ -115,5 +156,32 @@ module Godot
       end
       super(deep)
     end
+  end
+end
+
+# Ergonomic Preload (>) and Dynamic Load (>>) Operators
+class String
+  # Preload Operator (>): Cached retrieval from PreloadCache.
+  # If T < Godot::Node, preloads PackedScene, instantiates it, and returns typed Node T.
+  # If T < Godot::Resource, preloads and returns cached Resource T.
+  def >(type : T.class) : T forall T
+    {% if T < Godot::Node %}
+      scene = ::Godot::PreloadCache.get_or_load(self, ::Godot::PackedScene)
+      scene.instantiate_as(T)
+    {% else %}
+      ::Godot::PreloadCache.get_or_load(self, T)
+    {% end %}
+  end
+
+  # Dynamic Load Operator (>>): Dynamic runtime loading without caching.
+  # If T < Godot::Node, loads PackedScene dynamically, instantiates it, and returns typed Node T.
+  # If T < Godot::Resource, dynamically loads and returns Resource T.
+  def >>(type : T.class) : T forall T
+    {% if T < Godot::Node %}
+      scene = ::Godot.load_scene(self)
+      scene.instantiate_as(T)
+    {% else %}
+      ::Godot.load(self, as: T)
+    {% end %}
   end
 end

@@ -18,6 +18,7 @@ require "./debugger_view"
 require "./log_viewer"
 require "./bench_viewer"
 require "./run_monitor"
+require "./driver_view"
 require "../commands/test"
 require "../commands/doctor"
 require "../commands/sync"
@@ -37,6 +38,7 @@ module Lapis
       MENU_ITEMS = [
         {"[+]", "New Project / Addon Wizard", "Scaffold games, addons, and examples with folder picker", "N"},
         {"[#]", "Launch Godot Editor", "Persistent launcher with process monitoring & log watching", "E"},
+        {"[A]", "Action Driver Controller", "Interactive editor automation REPL, DOM tree & AI visual capturer", "A"},
         {"[B]", "Packaging & Export Center", "Configure multi-target builds with live build logs", "P"},
         {"[D]", "Radare2 Native Debugger", "Registers, disassembly, source mapping & hex memory inspection", "D"},
         {"[L]", "Diagnostic Log Viewer", "Real-time log tailing, channel filters & regex search", "L"},
@@ -363,8 +365,11 @@ module Lapis
                 launch_editor
                 diff_renderer.invalidate!
               end
+            when 'a', 'A'
+              launch_driver_view
+              diff_renderer.invalidate!
             when 'p', 'P'
-              if reason = item_disabled_reason(2)
+              if reason = item_disabled_reason(3)
                 set_status("Cannot package: #{reason}!")
               else
                 launch_package_form
@@ -453,19 +458,24 @@ module Lapis
         case @selected_index
         when 0  then launch_new_wizard
         when 1  then launch_editor
-        when 2  then launch_package_form
-        when 3  then launch_debugger
-        when 4  then launch_log_viewer
-        when 5  then launch_bench_viewer
-        when 6  then launch_run_monitor
-        when 7  then launch_test_runner
-        when 8  then run_command("doctor")
-        when 9  then run_command("sync")
-        when 10 then run_command("clean")
-        when 11 then run_command("docs")
-        when 12 then @running = false
+        when 2  then launch_driver_view
+        when 3  then launch_package_form
+        when 4  then launch_debugger
+        when 5  then launch_log_viewer
+        when 6  then launch_bench_viewer
+        when 7  then launch_run_monitor
+        when 8  then launch_test_runner
+        when 9  then run_command("doctor")
+        when 10 then run_command("sync")
+        when 11 then run_command("clean")
+        when 12 then run_command("docs")
+        when 13 then @running = false
         end
         diff_renderer.invalidate!
+      end
+
+      def launch_driver_view : Nil
+        DriverView.run
       end
 
       def launch_new_wizard : Nil

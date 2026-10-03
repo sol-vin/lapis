@@ -21,6 +21,7 @@ require "./libgodot/generated/classes/all_classes"
 require "./libgodot/generated/singletons"
 require "./libgodot/thread_safety"
 require "./libgodot/extensions"
+require "./libgodot/timer"
 require "./libgodot/docs"
 require "./libgodot/multiplayer/harness"
 {% if flag?(:testing) || flag?(:editor) || (!flag?(:release) && !flag?(:no_testing)) %}

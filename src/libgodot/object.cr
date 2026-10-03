@@ -814,6 +814,15 @@ module Godot
       Bridge.is_instance_valid(@instance_id)
     end
 
+    # Returns true if the object is active and not destroyed (works in both engine and standalone unit specs)
+    def active? : Bool
+      if !@pointer.null? && @instance_id > 0
+        alive?
+      else
+        !@destroyed
+      end
+    end
+
     def is_valid? : Bool
       alive?
     end
