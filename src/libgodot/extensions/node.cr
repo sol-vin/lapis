@@ -359,5 +359,40 @@ module Godot
     def safe_queue_free : Void
       queue_free if alive?
     end
+
+    # Spawns a child node of type T, configures it in a block, and attaches it to this node
+    def spawn_child(type : T.class, &block : T ->) : T forall T
+      inst = ::Godot.create(type)
+      with inst yield inst
+      add_child(inst)
+      inst
+    end
+
+    # Spawns a child node of type T and attaches it to this node
+    def spawn_child(type : T.class) : T forall T
+      inst = ::Godot.create(type)
+      add_child(inst)
+      inst
+    end
+
+    # Idiomatic alias for spawn_child
+    def create_child(type : T.class, &block : T ->) : T forall T
+      spawn_child(type, &block)
+    end
+
+    # Idiomatic alias for spawn_child
+    def create_child(type : T.class) : T forall T
+      spawn_child(type)
+    end
+
+    # Idiomatic alias for spawn_child
+    def spawn_node(type : T.class, &block : T ->) : T forall T
+      spawn_child(type, &block)
+    end
+
+    # Idiomatic alias for spawn_child
+    def spawn_node(type : T.class) : T forall T
+      spawn_child(type)
+    end
   end
 end

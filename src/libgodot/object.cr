@@ -70,6 +70,13 @@ module Godot
     res
   end
 
+  # Constructs a new native Godot engine object, wraps it in T, and configures it in a block
+  def self.create(type : T.class, &block : T ->) : T forall T
+    inst = create(type)
+    with inst yield inst
+    inst
+  end
+
   # Raised when an operation is attempted on a Godot Object that has been deleted or freed.
   class DisposedObjectError < Exception
     getter instance_id : UInt64
@@ -603,6 +610,31 @@ module Godot
       else
         @instance_id = 0_u64
       end
+    end
+
+    # Configures this existing object in-place using with-yield semantics
+    def configure(& : self ->) : self
+      with self yield self
+      self
+    end
+
+    # Instantiates a new native Godot object and configures it in a block
+    def self.new(&block : self ->) : self
+      inst = ::Godot.create(self)
+      with inst yield inst
+      inst
+    end
+
+    # Class-level constructor returning a new native Godot instance
+    def self.create : self
+      ::Godot.create(self)
+    end
+
+    # Class-level constructor configuring a new native Godot instance in a block
+    def self.create(&block : self ->) : self
+      inst = ::Godot.create(self)
+      with inst yield inst
+      inst
     end
 
     macro inherited

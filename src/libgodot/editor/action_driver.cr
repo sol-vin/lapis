@@ -377,6 +377,24 @@ module Lapis
         paths
       end
 
+      # Returns the active CodeEdit control inside ScriptEditor if available
+      def get_active_code_edit : Godot::Control?
+        return nil if Godot::EditorInterface.singleton_ptr.null?
+        ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
+        script_ed = ed_iface.get_script_editor rescue nil
+        return nil unless script_ed && !script_ed.pointer.null?
+
+        curr_editor = script_ed.call_obj("get_current_editor") rescue nil
+        if curr_editor && !curr_editor.pointer.null?
+          ce = curr_editor.call_obj("get_base_editor") rescue nil
+          if ce && !ce.pointer.null?
+            return Godot::Control.new(ce.pointer)
+          end
+        end
+
+        find_control_where(script_ed) { |c| c.get_class == "CodeEdit" || c.get_class == "TextEdit" }
+      end
+
       # Locates the "Build Crystal" toolbar button
       def find_crystal_build_button : Godot::Button?
         find_button("BuildCrystalToolbarButton") || find_button("Build") || find_button("Build Crystal")

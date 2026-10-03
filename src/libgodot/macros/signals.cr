@@ -104,3 +104,16 @@ macro emit(signal_expr, *args)
     {{signal_expr}}.emit({{args.splat}})
   {% end %}
 end
+
+# Expressive signal connection macro
+#
+# Supports:
+# 1. First-class signal: `on button.pressed { do_something }`
+# 2. Target and signal string: `on enemy, "died" { |bounty| add_score(bounty) }`
+macro on(sig_or_target, name = nil, &block)
+  {% if name %}
+    {{sig_or_target}}.connect({{name}}) {{block}}
+  {% else %}
+    {{sig_or_target}}.connect {{block}}
+  {% end %}
+end

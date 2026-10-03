@@ -1537,6 +1537,33 @@ module Lapis
         Godot.print("[ActionDriverTest] Note: Vision capture: #{ex.message}")
       end
 
+      # 5. Verify Script Editor CodeEdit resolution
+      Godot.print("[ActionDriverTest] 5. Verifying Script Editor CodeEdit Resolution...")
+      if ce = driver.get_active_code_edit
+        Godot.print("[ActionDriverTest] SUCCESS: Located active #{ce.get_class} editor control: '#{ce.name}'!")
+      else
+        Godot.print("[ActionDriverTest] Note: CodeEdit not directly resolved via get_current_editor (may be normal in headless)")
+      end
+
+      # 6. Verify Built-in Templates
+      Godot.print("[ActionDriverTest] 6. Verifying Built-in Script Templates...")
+      templates = CrystalLanguage.get_built_in_templates("Node")
+      if templates.size >= 4
+        Godot.print("[ActionDriverTest] SUCCESS: Verified #{templates.size} built-in script templates for Node!")
+      else
+        test_failures << "Built-in templates returned only #{templates.size} items"
+      end
+
+      # 7. Verify Static Syntax Validation
+      Godot.print("[ActionDriverTest] 7. Verifying Syntax Validator...")
+      bad_code = "node BadNode < Node do\n  def broken : Void\nend"
+      val_res = CrystalValidator.validate(bad_code)
+      if !val_res.valid? && val_res.errors.size >= 1
+        Godot.print("[ActionDriverTest] SUCCESS: Validator correctly identified syntax error (line #{val_res.errors.first.line}: #{val_res.errors.first.message})!")
+      else
+        test_failures << "Validator failed to flag syntax error in bad script"
+      end
+
       # Check final outcome
       if test_failures.empty?
         Godot.print("==================================================================")

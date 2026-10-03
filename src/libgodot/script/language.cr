@@ -489,11 +489,64 @@ module Lapis
           Bridge.ret_ref(ret, Pointer(Void).null)
         end
       when "_get_built_in_templates"
-        Bridge.ret_array_empty(ret)
+        begin
+          base_class = (!args.null? && !args[0].null?) ? (Bridge.arg_to_string(args[0]) rescue "") : ""
+          templates = CrystalLanguage.get_built_in_templates(base_class)
+          Bridge.ret_script_templates(ret, templates)
+        rescue ex
+          Godot.printerr("[CrystalLanguage._get_built_in_templates] Exception: #{ex.message}")
+          Bridge.ret_array_empty(ret)
+        end
       when "_is_using_templates"
         ret.as(UInt8*).value = 1_u8
       when "_validate"
-        Bridge.ret_dictionary_validate(ret, true)
+        begin
+          script_code = (!args.null? && !args[0].null?) ? (Bridge.arg_to_string(args[0]) rescue "") : ""
+          script_path = (!args.null? && !args[1].null?) ? (Bridge.arg_to_string(args[1]) rescue "") : ""
+
+          # 1. Fast static syntax analysis (< 1ms)
+          val_res = CrystalValidator.validate(script_code, script_path)
+
+          # 2. Check Crystalline LSP diagnostics if syntax is clean
+          all_errors = val_res.errors.dup
+          all_warnings = val_res.warnings.dup
+
+          if CrystalLSP.instance.running?
+            CrystalLSP.instance.sync_document(script_path, script_code)
+            if lsp_diags = CrystalLSP.instance.get_diagnostics(script_path)
+              lsp_diags.each do |diag|
+                if diag.severity == 1
+                  all_errors << diag unless all_errors.any? { |e| e.line == diag.line }
+                else
+                  all_warnings << diag unless all_warnings.any? { |w| w.line == diag.line }
+                end
+              end
+            end
+          end
+
+          is_valid = all_errors.empty?
+
+          c_errors = all_errors.map do |err|
+            Bridge::BridgeValidationError.new(
+              err.line,
+              err.column,
+              err.message.to_unsafe
+            )
+          end
+
+          c_warnings = all_warnings.map do |warn|
+            Bridge::BridgeValidationWarning.new(
+              warn.line,
+              0,
+              warn.message.to_unsafe
+            )
+          end
+
+          Bridge.ret_dictionary_validate_ex(ret, is_valid, c_errors, c_warnings)
+        rescue ex
+          Godot.printerr("[CrystalLanguage._validate] Exception: #{ex.message}")
+          Bridge.ret_dictionary_validate(ret, true)
+        end
       when "_validate_path"
         Bridge.ret_string(ret, "")
       when "_create_script"
@@ -513,7 +566,7 @@ module Lapis
       when "_supports_builtin_mode"
         ret.as(UInt8*).value = 0_u8
       when "_supports_documentation"
-        ret.as(UInt8*).value = 0_u8
+        ret.as(UInt8*).value = 1_u8
       when "_can_inherit_from_file"
         ret.as(UInt8*).value = 0_u8
       when "_find_function"
@@ -628,8 +681,22 @@ module Lapis
             return
           end
 
-          # 1. Query Crystalline LSP definition if running
-          target = CrystalLSP.instance.request_definition(code, path, 1, 0, timeout_ms: 150)
+          # Determine exact line and column where symbol appears in code
+          caret_line = 1
+          caret_col = 0
+          code.split('\n').each_with_index do |l, idx|
+            if c_idx = l.index(symbol)
+              caret_line = idx + 1
+              caret_col = c_idx
+              break
+            end
+          end
+
+          # 1. Query Crystalline LSP definition and hover documentation if running
+          target = CrystalLSP.instance.request_definition(code, path, caret_line, caret_col, timeout_ms: 150)
+          hover_doc = CrystalLSP.instance.request_hover(code, path, caret_line, caret_col, timeout_ms: 80)
+          doc_text = hover_doc || (target ? "Defined in #{target[0]}:#{target[1]}" : "")
+
           if target
             target_path, target_line = target
             Bridge.ret_dictionary_lookup_code_ex(
@@ -638,7 +705,7 @@ module Lapis
               0_i64, # LookupResultScriptLocation
               "",
               symbol,
-              "Defined in #{target_path}:#{target_line}",
+              doc_text,
               target_path,
               target_line.to_i64
             )
@@ -656,13 +723,14 @@ module Lapis
           end
 
           if target_line > 0
+            desc = doc_text.empty? ? "Defined at line #{target_line}" : doc_text
             Bridge.ret_dictionary_lookup_code_ex(
               ret,
               0_i64, # OK
               0_i64, # LookupResultScriptLocation
               "",
               symbol,
-              "Defined at line #{target_line}",
+              desc,
               path,
               target_line.to_i64
             )
@@ -860,6 +928,78 @@ module Lapis
       rescue
         {"", "", ""}
       end
+    end
+
+    def self.get_built_in_templates(base_class : String = "") : Array(Bridge::BridgeScriptTemplate)
+      templates = [] of Bridge::BridgeScriptTemplate
+
+      # 1. Standard Node Template
+      t_std = "require \"lapis\"\n\n# _CLASS_ node\nnode _CLASS_ < _BASE_ do\n  def _ready : Void\n    Godot.print(\"_CLASS_ initialized\")\n  end\n\n  def _process(delta : Float64) : Void\n  end\nend\n"
+      templates << Bridge::BridgeScriptTemplate.new(
+        "Node".to_unsafe,
+        "Standard Node".to_unsafe,
+        "Base node with _ready and _process lifecycle callbacks".to_unsafe,
+        t_std.to_unsafe,
+        1_i64
+      )
+
+      # 2. Physics Movement 2D Template
+      if base_class.empty? || base_class == "Node" || base_class == "Node2D" || base_class == "CharacterBody2D" || base_class.includes?("2D")
+        t_2d = "require \"lapis\"\n\n# _CLASS_ 2D character controller\nnode _CLASS_ < CharacterBody2D do\n  @[Export]\n  property speed : Float32 = 300.0_f32\n\n  @[Export]\n  property jump_velocity : Float32 = -400.0_f32\n\n  def _physics_process(delta : Float64) : Void\n    unless is_on_floor\n      vel = velocity\n      vel.y += 980.0_f32 * delta.to_f32\n      self.velocity = vel\n    end\n\n    if Godot::Input.is_action_just_pressed(\"ui_accept\") && is_on_floor\n      vel = velocity\n      vel.y = jump_velocity\n      self.velocity = vel\n    end\n\n    direction = Godot::Input.get_axis(\"ui_left\", \"ui_right\")\n    vel = velocity\n    if direction != 0.0_f32\n      vel.x = direction * speed\n    else\n      vel.x = Math.step(vel.x, 0.0_f32, speed * delta.to_f32)\n    end\n    self.velocity = vel\n\n    move_and_slide\n  end\nend\n"
+        templates << Bridge::BridgeScriptTemplate.new(
+          "CharacterBody2D".to_unsafe,
+          "Physics Movement (2D)".to_unsafe,
+          "2D platformer movement controller with gravity and jump".to_unsafe,
+          t_2d.to_unsafe,
+          2_i64
+        )
+      end
+
+      # 3. Physics Movement 3D Template
+      if base_class.empty? || base_class == "Node" || base_class == "Node3D" || base_class == "CharacterBody3D" || base_class.includes?("3D")
+        t_3d = "require \"lapis\"\n\n# _CLASS_ 3D character controller\nnode _CLASS_ < CharacterBody3D do\n  @[Export]\n  property speed : Float32 = 5.0_f32\n\n  @[Export]\n  property jump_velocity : Float32 = 4.5_f32\n\n  def _physics_process(delta : Float64) : Void\n    unless is_on_floor\n      vel = velocity\n      vel.y -= 9.8_f32 * delta.to_f32\n      self.velocity = vel\n    end\n\n    if Godot::Input.is_action_just_pressed(\"ui_accept\") && is_on_floor\n      vel = velocity\n      vel.y = jump_velocity\n      self.velocity = vel\n    end\n\n    input_dir = Godot::Input.get_vector(\"ui_left\", \"ui_right\", \"ui_up\", \"ui_down\")\n    direction = (transform.basis * Vector3.new(input_dir.x, 0.0_f32, input_dir.y)).normalized\n    vel = velocity\n    if direction.length_squared > 0.001_f32\n      vel.x = direction.x * speed\n      vel.z = direction.z * speed\n    else\n      vel.x = Math.step(vel.x, 0.0_f32, speed * delta.to_f32)\n      vel.z = Math.step(vel.z, 0.0_f32, speed * delta.to_f32)\n    end\n    self.velocity = vel\n\n    move_and_slide\n  end\nend\n"
+        templates << Bridge::BridgeScriptTemplate.new(
+          "CharacterBody3D".to_unsafe,
+          "Physics Movement (3D)".to_unsafe,
+          "3D movement controller with directional input, gravity, and jump".to_unsafe,
+          t_3d.to_unsafe,
+          3_i64
+        )
+      end
+
+      # 4. In-Editor Tool Script Template
+      t_tool = "require \"lapis\"\n\n# _CLASS_ in-editor tool script\n@[Tool]\nnode _CLASS_ < _BASE_ do\n  @[Export]\n  property active : Bool = true\n\n  @[ExportToolButton(\"Execute Action\")]\n  def execute_action : Void\n    Godot.print(\"[_CLASS_] Action executed in editor!\")\n  end\n\n  def _ready : Void\n    if Godot::Engine.is_editor_hint\n      Godot.print(\"[_CLASS_] Running in editor\")\n    end\n  end\nend\n"
+      templates << Bridge::BridgeScriptTemplate.new(
+        "Node".to_unsafe,
+        "Tool Script (@[Tool])".to_unsafe,
+        "In-editor tool script with inspector buttons and @[Tool] execution".to_unsafe,
+        t_tool.to_unsafe,
+        4_i64
+      )
+
+      # 5. Custom Resource Template
+      if base_class.empty? || base_class == "Resource" || base_class == "RefCounted"
+        t_res = "require \"lapis\"\n\n# _CLASS_ custom resource data model\nclass _CLASS_ < Godot::Resource\n  @[Export]\n  property title : String = \"Default Item\"\n\n  @[Export]\n  property value : Int32 = 100\nend\n"
+        templates << Bridge::BridgeScriptTemplate.new(
+          "Resource".to_unsafe,
+          "Custom Resource".to_unsafe,
+          "Custom Godot::Resource data asset with exported properties".to_unsafe,
+          t_res.to_unsafe,
+          5_i64
+        )
+      end
+
+      # 6. Empty Class Template
+      t_empty = "require \"lapis\"\n\n# _CLASS_ node\nnode _CLASS_ < _BASE_ do\nend\n"
+      templates << Bridge::BridgeScriptTemplate.new(
+        "Node".to_unsafe,
+        "Empty Class".to_unsafe,
+        "Empty class declaration inheriting from base node".to_unsafe,
+        t_empty.to_unsafe,
+        6_i64
+      )
+
+      templates
     end
   end
 end

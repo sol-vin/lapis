@@ -11,6 +11,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+#### Gameplay Usability Macros & Ergonomic DSL
+- **Fluent Instantiation & Property Assignment (`create`, `build`, `.new`)**:
+  - `create` and `build` macros (`src/libgodot/macros.cr`): instantiate Godot engine nodes and custom Crystal classes with keyword arguments (`create Sprite2D, position: Vector2.new(10, 20)`) and block property assignments (`create Sprite2D do position = Vector2.new(10, 20); add_to_group("sprites") end`).
+  - Class-level `SomeClass.create { ... }` and `SomeClass.build { ... }` macros on all `node` classes.
+  - Block-enabled `Godot::Object.new(&block)` with `with self yield self` and `Object#configure(&block)` for fluent in-place configuration.
+- **Entity Spawning & Scene Tree Attachment (`spawn_node`, `spawn_child`, `create_child`)**:
+  - `spawn_node`, `spawn_child`, and `create_child` top-level macros supporting `under:` parameter (`spawn_node Bullet, under: self, position: pos`).
+  - `Node#spawn_child` and `Node#create_child` instance methods for clean child node spawning and mounting.
+- **Declarative Signal Connection Sugar (`on`)**:
+  - `on` macro (`src/libgodot/macros/signals.cr`): connect blocks directly to first-class typed signals (`on button.pressed { do_something }`) or target/name pairs (`on enemy, "died" { |bounty| add_score(bounty) }`).
+- **Scene Instantiation Sugar (`instantiate`, `instantiate_child`)**:
+  - `instantiate` and `instantiate_child` macros: preloads, instantiates as typed wrapper, configures properties, and optionally attaches to scene tree in a single call.
+- **Fluent Tween & Juice Animation DSL (`tween`, `tween_to`, `punch_scale`)**:
+  - `Godot::TweenBuilder` and `Node#tween` (`src/libgodot/extensions/tween.cr`): block-based tween construction with automatic Variant wrapping and type-safe transition/easing enums.
+  - `Node#tween_to` for single-property tweening and `Node#punch_scale` for instant juice/rebound animations.
+- **Non-Blocking Timer Extensions (`after`, `every`)**:
+  - `Godot.after` and `Node#after` (`src/libgodot/extensions/timer.cr`) using SceneTreeTimer non-blockingly without thread stalls.
+  - `Godot.every` and `Node#every` for clean recurring interval execution.
+
+#### In-Editor Experience & LSP Diagnostics Integration
+- **Real-Time Static Syntax Validator (`src/libgodot/script/validator.cr`)**:
+  - Sub-millisecond static analyzer (`Lapis::CrystalValidator`) detecting unclosed blocks (`def`, `class`, `module`, `do`, `begin`, `case`), unmatched delimiters, unclosed strings, and modifier clauses.
+  - Integrated into Godot `ScriptLanguageExtension::_validate` via native C++ bridge `ret_dictionary_validate_ex` for live red error and yellow warning squiggles in the Godot script editor gutter.
+- **Crystalline LSP Diagnostics & Hover Tooltips (`src/libgodot/script/lsp.cr`)**:
+  - Asynchronous JSON-RPC notification pump consuming `textDocument/publishDiagnostics` from Crystalline.
+  - `request_hover` and `_lookup_code` integration displaying docstrings and type signatures on F1 / hover in the editor.
+- **Built-In Script Templates in "Attach Script" Dialog (`src/libgodot/script/language.cr`)**:
+  - Implemented `_get_built_in_templates` providing 6 starter templates: Standard Node, 2D Physics Movement, 3D Physics Movement, Tool Script (`@[Tool]`), Custom Resource, and Empty Class.
+
 #### In-Editor Action Driver ("Selenium for Godot Editor")
 - **`Lapis::Editor::ActionDriver` (`src/libgodot/editor/action_driver.cr`)**:
   - Implemented comprehensive automation framework for driving Godot editor controls, viewport nodes, and UI trees.

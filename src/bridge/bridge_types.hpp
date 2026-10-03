@@ -50,6 +50,35 @@ struct BridgeCompletionOption {
     int64_t location;         /** Code completion location index */
 };
 
+/**
+ * Script error entry passed to Godot's ScriptLanguageExtension::_validate
+ */
+struct BridgeValidationError {
+    int32_t line;             /** 1-based line number */
+    int32_t column;           /** 1-based column number */
+    const char *message;      /** Error message description */
+};
+
+/**
+ * Script warning entry passed to Godot's ScriptLanguageExtension::_validate
+ */
+struct BridgeValidationWarning {
+    int32_t line;             /** 1-based line number */
+    int32_t code;             /** Warning code */
+    const char *message;      /** Warning message description */
+};
+
+/**
+ * Script template descriptor passed to Godot's ScriptLanguageExtension::_get_built_in_templates
+ */
+struct BridgeScriptTemplate {
+    const char *inherit;
+    const char *name;
+    const char *description;
+    const char *content;
+    int64_t id;
+};
+
 using CrystalSignalCallbackFn = void (*)(uint64_t target_id, const char *signal_name, const VariantArg *args, int arg_count);
 using CrystalDeinitCallbackFn = void (*)();
 using CrystalCleanupCallbackFn = void (*)();
@@ -317,11 +346,13 @@ struct BridgeAPI {
     int (*arg_to_string)(const void *arg, char *out, int max_len);
     int (*arg_to_string_name)(const void *arg, char *out, int max_len);
     void (*ret_dictionary_validate)(void *r_ret, uint8_t valid);
+    void (*ret_dictionary_validate_ex)(void *r_ret, uint8_t valid, const struct BridgeValidationError *errors, int error_count, const struct BridgeValidationWarning *warnings, int warning_count);
     void (*ret_dictionary_complete_code)(void *r_ret);
     void (*ret_dictionary_lookup_code)(void *r_ret);
     void (*ret_dictionary_complete_code_ex)(void *r_ret, int64_t result, uint8_t force, const char *call_hint, const struct BridgeCompletionOption *options, int option_count);
     void (*ret_dictionary_lookup_code_ex)(void *r_ret, int64_t result, int64_t type, const char *class_name, const char *class_member, const char *description, const char *script_path, int64_t location);
     void (*ret_dictionary_global_class)(void *r_ret, const char *class_name, const char *base_type, const char *icon_path);
+    void (*ret_script_templates)(void *r_ret, const struct BridgeScriptTemplate *templates, int count);
     void* (*placeholder_script_instance_create)(void *p_language, void *p_script, const void *p_owner_arg);
     int (*text_edit_get_line)(void *text_edit, int64_t line, char *out_buf, int max_len);
     void (*object_connect_signal)(GDExtensionObjectPtr instance, const char *signal_name, uint32_t flags);

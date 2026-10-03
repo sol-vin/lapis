@@ -235,6 +235,83 @@ macro ensure_lapis
   {% end %}
 end
 
+# Instantiates a Godot object or custom node and configures its properties and methods in a block or kwargs.
+#
+# Supports:
+# 1. Keyword properties: `create Sprite2D, position: Vector2.new(10, 20), centered: true`
+# 2. Block property setters: `create Sprite2D do position = Vector2.new(10, 20); centered = true end`
+# 3. Method dispatches: `create Sprite2D do add_to_group("sprites"); rotate(0.5) end`
+# 4. Mixed kwargs and block: `create Sprite2D, centered: true do position = Vector2.new(10, 20) end`
+macro create(type, **kwargs, &block)
+  %inst = ::Godot.create({{type}})
+  {% for k, v in kwargs %}
+    %inst.{{k}} = {{v}}
+  {% end %}
+  {% if block && !block.body.is_a?(Nop) %}
+    {% stmts = block.body.is_a?(Expressions) ? block.body.expressions : [block.body] %}
+    {% for s in stmts %}
+      {% if s.is_a?(Assign) %}
+        %inst.{{s.target}} = {{s.value}}
+      {% elsif s.is_a?(Call) %}
+        %inst.{{s.name}}({{s.args.splat}})
+      {% end %}
+    {% end %}
+  {% end %}
+  %inst
+end
+
+# Idiomatic alias for `create`
+macro build(type, **kwargs, &block)
+  create({{type}}, {{kwargs.double_splat}}) {{block}}
+end
+
+# Instantiates a node, configures it, and attaches it as a child to the specified parent
+# (defaults to `self` if inside a Node method, or current scene / root).
+macro spawn_node(type, under = nil, **kwargs, &block)
+  %parent = {% if under %}{{under}}{% else %}self{% end %}
+  %inst = create({{type}}, {{kwargs.double_splat}}) {{block}}
+  %parent.add_child(%inst)
+  %inst
+end
+
+# Contextual alias for `spawn_node`
+macro spawn_child(type, under = nil, **kwargs, &block)
+  spawn_node({{type}}, under: {{under}}, {{kwargs.double_splat}}) {{block}}
+end
+
+# Declarative alias for `spawn_node`
+macro create_child(type, under = nil, **kwargs, &block)
+  spawn_node({{type}}, under: {{under}}, {{kwargs.double_splat}}) {{block}}
+end
+
+# Loads a PackedScene (.tscn) and instantiates it as wrapper type T with configuration
+macro instantiate(path, as type = Godot::Node, **kwargs, &block)
+  %scene = ::Godot.load({{path}}).as(::Godot::PackedScene)
+  %inst = %scene.instantiate_as({{type}})
+  {% for k, v in kwargs %}
+    %inst.{{k}} = {{v}}
+  {% end %}
+  {% if block && !block.body.is_a?(Nop) %}
+    {% stmts = block.body.is_a?(Expressions) ? block.body.expressions : [block.body] %}
+    {% for s in stmts %}
+      {% if s.is_a?(Assign) %}
+        %inst.{{s.target}} = {{s.value}}
+      {% elsif s.is_a?(Call) %}
+        %inst.{{s.name}}({{s.args.splat}})
+      {% end %}
+    {% end %}
+  {% end %}
+  %inst
+end
+
+# Loads a PackedScene (.tscn), instantiates it as wrapper type T, and attaches it as a child to the parent
+macro instantiate_child(path, under = nil, as type = Godot::Node, **kwargs, &block)
+  %parent = {% if under %}{{under}}{% else %}self{% end %}
+  %inst = instantiate({{path}}, as: {{type}}, {{kwargs.double_splat}}) {{block}}
+  %parent.add_child(%inst)
+  %inst
+end
+
 # Expressive convenience macro for 2D scene nodes defaulting to Godot::Node2D
 macro node2d(decl)
   node2d {{decl}} do
@@ -967,6 +1044,20 @@ macro node(decl, &block)
 
     def self.godot_parent_class_name : String
       {{base_godot_name}}
+    end
+
+    macro create(**kwargs, &block)
+      ::create(\{{@type}}, \{{kwargs.double_splat}}) \{{block}}
+    end
+
+    macro build(**kwargs, &block)
+      ::create(\{{@type}}, \{{kwargs.double_splat}}) \{{block}}
+    end
+
+    def self.new(&block : self ->) : self
+      inst = ::Godot.create(self)
+      with inst yield inst
+      inst
     end
 
     def self._godot_has_virtual_method(method_name : String) : Bool

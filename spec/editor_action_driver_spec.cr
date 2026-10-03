@@ -187,4 +187,13 @@ describe Lapis::Editor::ActionDriver do
       server.running?.should be_false
     end
   end
+
+  it "resolves active CodeEdit control or handles its absence safely" do
+    base = Godot.create(Godot::Control)
+    driver = Lapis::Editor::ActionDriver.new(base)
+
+    # In standalone test without editor interface, returns nil safely without throwing
+    driver.get_active_code_edit.should be_nil
+    base.destroy
+  end
 end
