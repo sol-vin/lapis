@@ -21,7 +21,7 @@ gmodule DummyBaseMixin do
   signal mixin_triggered(tag : String)
 
   def trigger_mixin : String
-    emit_mixin_triggered(@shared_tag)
+    mixin_triggered.emit(@shared_tag)
     "mixin_ok:#{@shared_tag}"
   end
 end

@@ -1,13 +1,12 @@
 name: Test Suite
 
 on:
-  push:
+  pull_request:
     branches:
       - master
       - main
       - '[0-9]*'
-  pull_request:
-    branches: [master, main]
+      - '[0-9]*.[0-9]*-*'
   workflow_dispatch:
 
 permissions:
@@ -286,6 +285,7 @@ jobs:
             crystal-cache-windows-${{ runner.os }}-
 
       - name: Setup Godot Engine
+        continue-on-error: true
         uses: appsinacup/action_setup_godot@main
         with:
           repo: godotengine/godot-builds
@@ -327,8 +327,13 @@ jobs:
 
           if (-not (Test-Path ./godot.exe) -or ((Get-Item ./godot.exe).Length -lt 1000000)) {
             Write-Host "Fallback: Downloading Godot $env:GODOT_VERSION win64..."
-            $zipUrl = "https://github.com/godotengine/godot-builds/releases/download/$($env:GODOT_VERSION)/Godot_v$($env:GODOT_VERSION)_win64.exe.zip"
-            Invoke-WebRequest -Uri $zipUrl -OutFile "godot.zip"
+            $zipUrl = "https://github.com/sol-vin/lapis/releases/download/$($env:GODOT_VERSION)/Godot_v$($env:GODOT_VERSION)_win64.exe.zip"
+            try {
+              Invoke-WebRequest -Uri $zipUrl -OutFile "godot.zip"
+            } catch {
+              $zipUrl = "https://github.com/godotengine/godot-builds/releases/download/$($env:GODOT_VERSION)/Godot_v$($env:GODOT_VERSION)_win64.exe.zip"
+              Invoke-WebRequest -Uri $zipUrl -OutFile "godot.zip"
+            }
             Expand-Archive -Path "godot.zip" -DestinationPath "godot_temp" -Force
             $foundExe = (Get-ChildItem -Path "godot_temp" -Filter "*.exe" -Recurse | Where-Object { $_.Name -notlike "*_console*" -and $_.Name -notlike "*.console*" } | Select-Object -First 1).FullName
             if (-not $foundExe) {
@@ -399,8 +404,8 @@ jobs:
         id: godot-version
         shell: bash
         run: |
-          GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml | tr -d '\r\n[:space:]')
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev6"; fi
+          GODOT_VER=$(grep 'version:' godot-version.yml | cut -d: -f2 | tr -d ' "\r\n\t')
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev7"; fi
           echo "Resolved Godot Version: $GODOT_VER"
           echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
@@ -429,6 +434,7 @@ jobs:
           sudo apt-get install -y lld radare2 libgc-dev xvfb
 
       - name: Setup Godot Engine
+        continue-on-error: true
         uses: appsinacup/action_setup_godot@main
         with:
           repo: godotengine/godot-builds
@@ -438,28 +444,39 @@ jobs:
       - name: Configure Godot Executable
         shell: bash
         run: |
-          if [ -n "$GODOT4" ] && [ -f "$GODOT4" ] && file -b "$GODOT4" | grep -q "ELF.*x86-64"; then
-            cp "$GODOT4" ./godot
-            chmod +x ./godot
-          elif [ -n "$GODOT4_BIN" ] && [ -f "$GODOT4_BIN" ] && file -b "$GODOT4_BIN" | grep -q "ELF.*x86-64"; then
-            cp "$GODOT4_BIN" ./godot
-            chmod +x ./godot
-          elif command -v godot >/dev/null 2>&1 && file -b "$(command -v godot)" | grep -q "ELF.*x86-64"; then
-            cp "$(command -v godot)" ./godot
-            chmod +x ./godot
+          check_godot() {
+            local exe="$1"
+            if [ -n "$exe" ] && [ -f "$exe" ]; then
+              local ver="$("$exe" --version 2>/dev/null || true)"
+              if (echo "$ver" | grep -q "${GODOT_VERSION}" || echo "$ver" | grep -q "4\.8\.dev7") && ! echo "$ver" | grep -qi "mono"; then
+                echo "$exe"
+                return 0
+              fi
+            fi
+            return 1
+          }
+
+          if CANDIDATE=$(check_godot "$GODOT4"); then
+            cp "$CANDIDATE" ./godot
+          elif CANDIDATE=$(check_godot "$GODOT4_BIN"); then
+            cp "$CANDIDATE" ./godot
+          elif CANDIDATE=$(check_godot "$(command -v godot 2>/dev/null)"); then
+            cp "$CANDIDATE" ./godot
           else
             echo "Fallback: Downloading Godot ${GODOT_VERSION} linux.x86_64..."
-            wget -q "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip" -O godot.zip
+            if ! wget -q "https://github.com/sol-vin/lapis/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip" -O godot.zip; then
+              wget -q "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip" -O godot.zip
+            fi
             unzip -q godot.zip
-            found_bin=$(find . -maxdepth 2 -name "Godot_v*linux.x86_64" | head -n 1)
+            found_bin=$(find . -maxdepth 2 -name "Godot_v*linux.x86_64*" -o -name "godot.linuxbsd.*" | head -n 1)
             if [ -n "$found_bin" ]; then
               mv "$found_bin" ./godot
             else
               mv "Godot_v${GODOT_VERSION}_linux.x86_64" ./godot
             fi
-            chmod +x ./godot
             rm -f godot.zip
           fi
+          chmod +x ./godot
           ./godot --version
 
       - name: Install Shards Dependencies
@@ -515,8 +532,8 @@ jobs:
         id: godot-version
         shell: bash
         run: |
-          GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml | tr -d '\r\n[:space:]')
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev6"; fi
+          GODOT_VER=$(grep 'version:' godot-version.yml | cut -d: -f2 | tr -d ' "\r\n\t')
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev7"; fi
           echo "Resolved Godot Version: $GODOT_VER"
           echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
@@ -539,30 +556,59 @@ jobs:
           brew install bdw-gc
 
       - name: Setup Godot Engine
+        continue-on-error: true
         uses: appsinacup/action_setup_godot@main
         with:
           repo: godotengine/godot-builds
           version: ${{ env.GODOT_VERSION }}
-          enable_cache: true
+          enable_cache: false
 
       - name: Configure Godot Executable
         shell: bash
         run: |
           GODOT_EXEC=""
-          if [ -n "$GODOT4" ] && [ -f "$GODOT4" ]; then
-            GODOT_EXEC="$GODOT4"
-          elif [ -n "$GODOT4_BIN" ] && [ -f "$GODOT4_BIN" ]; then
-            GODOT_EXEC="$GODOT4_BIN"
-          elif command -v godot >/dev/null 2>&1; then
-            GODOT_EXEC="$(command -v godot)"
-          else
+          check_godot() {
+            local exe="$1"
+            if [ -n "$exe" ] && [ -f "$exe" ]; then
+              local ver="$("$exe" --version 2>/dev/null || true)"
+              if echo "$ver" | grep -q "${GODOT_VERSION}" || echo "$ver" | grep -q "4\.8\.dev7"; then
+                echo "$exe"
+                return 0
+              fi
+            fi
+            return 1
+          }
+
+          if CANDIDATE=$(check_godot "$GODOT4"); then
+            GODOT_EXEC="$CANDIDATE"
+          elif CANDIDATE=$(check_godot "$GODOT4_BIN"); then
+            GODOT_EXEC="$CANDIDATE"
+          elif CANDIDATE=$(check_godot "$(command -v godot 2>/dev/null)"); then
+            GODOT_EXEC="$CANDIDATE"
+          fi
+
+          if [ -z "$GODOT_EXEC" ]; then
             echo "Fallback: Downloading Godot ${GODOT_VERSION} macos.universal..."
-            curl -sSL "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_macos.universal.zip" -o godot.zip
+            if ! curl -sSL "https://github.com/sol-vin/lapis/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_macos.universal.zip" -o godot.zip; then
+              curl -sSL "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_macos.universal.zip" -o godot.zip
+            fi
             unzip -q godot.zip
             if [ -d "Godot.app" ]; then
               GODOT_EXEC="$(pwd)/Godot.app/Contents/MacOS/Godot"
+            elif [ -f "Godot_v${GODOT_VERSION}_macos.universal" ]; then
+              GODOT_EXEC="$(pwd)/Godot_v${GODOT_VERSION}_macos.universal"
+            elif [ -f "godot.macos.editor.universal" ]; then
+              GODOT_EXEC="$(pwd)/godot.macos.editor.universal"
+            else
+              GODOT_EXEC=$(find . -maxdepth 4 -type f \( -name "Godot" -o -name "*macos*" \) ! -name "*.zip" | head -n 1)
             fi
             rm -f godot.zip
+          fi
+
+          if [ -n "$GODOT_EXEC" ]; then
+            chmod +x "$GODOT_EXEC" 2>/dev/null || true
+            xattr -d com.apple.quarantine "$GODOT_EXEC" 2>/dev/null || true
+            codesign --force --sign - "$GODOT_EXEC" 2>/dev/null || true
           fi
 
           if [[ "$GODOT_EXEC" == *".app/Contents/MacOS/"* ]]; then
@@ -685,6 +731,7 @@ jobs:
           exit 0
 
       - name: Setup Godot Engine
+        continue-on-error: true
         uses: appsinacup/action_setup_godot@main
         with:
           repo: godotengine/godot-builds
@@ -715,8 +762,13 @@ jobs:
           }
 
           if (-not (Test-Path ./godot.exe) -or ((Get-Item ./godot.exe).Length -lt 1000000)) {
-            $zipUrl = "https://github.com/godotengine/godot-builds/releases/download/$($env:GODOT_VERSION)/Godot_v$($env:GODOT_VERSION)_win64.exe.zip"
-            Invoke-WebRequest -Uri $zipUrl -OutFile "godot.zip"
+            $zipUrl = "https://github.com/sol-vin/lapis/releases/download/$($env:GODOT_VERSION)/Godot_v$($env:GODOT_VERSION)_win64.exe.zip"
+            try {
+              Invoke-WebRequest -Uri $zipUrl -OutFile "godot.zip"
+            } catch {
+              $zipUrl = "https://github.com/godotengine/godot-builds/releases/download/$($env:GODOT_VERSION)/Godot_v$($env:GODOT_VERSION)_win64.exe.zip"
+              Invoke-WebRequest -Uri $zipUrl -OutFile "godot.zip"
+            }
             Expand-Archive -Path "godot.zip" -DestinationPath "godot_temp" -Force
             $foundExe = (Get-ChildItem -Path "godot_temp" -Filter "*.exe" -Recurse | Where-Object { $_.Name -notlike "*_console*" } | Select-Object -First 1).FullName
             Copy-Item $foundExe ./godot.exe -Force
@@ -853,8 +905,8 @@ jobs:
         id: godot-version
         shell: bash
         run: |
-          GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml | tr -d '\r\n[:space:]')
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev6"; fi
+          GODOT_VER=$(grep 'version:' godot-version.yml | cut -d: -f2 | tr -d ' "\r\n\t')
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev7"; fi
           echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
 
@@ -888,6 +940,7 @@ jobs:
           export PATH="$(pwd)/bin:$PATH"
 
       - name: Setup Godot Engine
+        continue-on-error: true
         uses: appsinacup/action_setup_godot@main
         with:
           repo: godotengine/godot-builds
@@ -897,20 +950,40 @@ jobs:
       - name: Configure Godot Executable
         shell: bash
         run: |
-          if [ -n "$GODOT4" ] && [ -f "$GODOT4" ]; then
-            cp "$GODOT4" ./godot
-          elif [ -n "$GODOT4_BIN" ] && [ -f "$GODOT4_BIN" ]; then
-            cp "$GODOT4_BIN" ./godot
-          elif command -v godot >/dev/null 2>&1; then
-            cp "$(command -v godot)" ./godot
+          check_godot() {
+            local exe="$1"
+            if [ -n "$exe" ] && [ -f "$exe" ]; then
+              local ver="$("$exe" --version 2>/dev/null || true)"
+              if (echo "$ver" | grep -q "${GODOT_VERSION}" || echo "$ver" | grep -q "4\.8\.dev7") && ! echo "$ver" | grep -qi "mono"; then
+                echo "$exe"
+                return 0
+              fi
+            fi
+            return 1
+          }
+
+          if CANDIDATE=$(check_godot "$GODOT4"); then
+            cp "$CANDIDATE" ./godot
+          elif CANDIDATE=$(check_godot "$GODOT4_BIN"); then
+            cp "$CANDIDATE" ./godot
+          elif CANDIDATE=$(check_godot "$(command -v godot 2>/dev/null)"); then
+            cp "$CANDIDATE" ./godot
           else
-            wget -q "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip" -O godot.zip
+            echo "Fallback: Downloading Godot ${GODOT_VERSION} linux.x86_64..."
+            if ! wget -q "https://github.com/sol-vin/lapis/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip" -O godot.zip; then
+              wget -q "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip" -O godot.zip
+            fi
             unzip -q godot.zip
-            found_bin=$(find . -maxdepth 2 -name "Godot_v*linux.x86_64" | head -n 1)
-            mv "$found_bin" ./godot
+            found_bin=$(find . -maxdepth 2 -name "Godot_v*linux.x86_64*" -o -name "godot.linuxbsd.*" | head -n 1)
+            if [ -n "$found_bin" ]; then
+              mv "$found_bin" ./godot
+            else
+              mv "Godot_v${GODOT_VERSION}_linux.x86_64" ./godot
+            fi
             rm -f godot.zip
           fi
           chmod +x ./godot
+          ./godot --version
 
       - name: Compile Dummy Test Addons
         run: |
@@ -1039,8 +1112,8 @@ jobs:
         id: godot-version
         shell: bash
         run: |
-          GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml | tr -d '\r\n[:space:]')
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev6"; fi
+          GODOT_VER=$(grep 'version:' godot-version.yml | cut -d: -f2 | tr -d ' "\r\n\t')
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev7"; fi
           echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
 
@@ -1068,33 +1141,64 @@ jobs:
           export PATH="$(pwd)/bin:$PATH"
 
       - name: Setup Godot Engine
+        continue-on-error: true
         uses: appsinacup/action_setup_godot@main
         with:
           repo: godotengine/godot-builds
           version: ${{ env.GODOT_VERSION }}
-          enable_cache: true
+          enable_cache: false
 
       - name: Configure Godot Executable
         shell: bash
         run: |
           GODOT_EXEC=""
-          if [ -n "$GODOT4" ] && [ -f "$GODOT4" ]; then
-            GODOT_EXEC="$GODOT4"
-          elif [ -n "$GODOT4_BIN" ] && [ -f "$GODOT4_BIN" ]; then
-            GODOT_EXEC="$GODOT4_BIN"
-          elif command -v godot >/dev/null 2>&1; then
-            GODOT_EXEC="$(command -v godot)"
-          else
-            curl -sSL "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_macos.universal.zip" -o godot.zip
+          check_godot() {
+            local exe="$1"
+            if [ -n "$exe" ] && [ -f "$exe" ]; then
+              local ver="$("$exe" --version 2>/dev/null || true)"
+              if echo "$ver" | grep -q "${GODOT_VERSION}" || echo "$ver" | grep -q "4\.8\.dev7"; then
+                echo "$exe"
+                return 0
+              fi
+            fi
+            return 1
+          }
+
+          if CANDIDATE=$(check_godot "$GODOT4"); then
+            GODOT_EXEC="$CANDIDATE"
+          elif CANDIDATE=$(check_godot "$GODOT4_BIN"); then
+            GODOT_EXEC="$CANDIDATE"
+          elif CANDIDATE=$(check_godot "$(command -v godot 2>/dev/null)"); then
+            GODOT_EXEC="$CANDIDATE"
+          fi
+
+          if [ -z "$GODOT_EXEC" ]; then
+            echo "Fallback: Downloading Godot ${GODOT_VERSION} macos.universal..."
+            if ! curl -sSL "https://github.com/sol-vin/lapis/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_macos.universal.zip" -o godot.zip; then
+              curl -sSL "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_macos.universal.zip" -o godot.zip
+            fi
             unzip -q godot.zip
             if [ -d "Godot.app" ]; then
               GODOT_EXEC="$(pwd)/Godot.app/Contents/MacOS/Godot"
+            elif [ -f "Godot_v${GODOT_VERSION}_macos.universal" ]; then
+              GODOT_EXEC="$(pwd)/Godot_v${GODOT_VERSION}_macos.universal"
+            elif [ -f "godot.macos.editor.universal" ]; then
+              GODOT_EXEC="$(pwd)/godot.macos.editor.universal"
+            else
+              GODOT_EXEC=$(find . -maxdepth 4 -type f \( -name "Godot" -o -name "*macos*" \) ! -name "*.zip" | head -n 1)
             fi
             rm -f godot.zip
           fi
 
+          if [ -n "$GODOT_EXEC" ]; then
+            chmod +x "$GODOT_EXEC" 2>/dev/null || true
+            xattr -d com.apple.quarantine "$GODOT_EXEC" 2>/dev/null || true
+            codesign --force --sign - "$GODOT_EXEC" 2>/dev/null || true
+          fi
+
           if [[ "$GODOT_EXEC" == *".app/Contents/MacOS/"* ]]; then
             GODOT_APP="${GODOT_EXEC%%.app/*}.app"
+            echo "De-quarantining and ad-hoc signing $GODOT_APP..."
             xattr -dr com.apple.quarantine "$GODOT_APP" 2>/dev/null || true
             codesign --force --deep --sign - "$GODOT_APP" 2>/dev/null || true
           fi
@@ -1254,6 +1358,7 @@ jobs:
             crystal-cache-windows-${{ runner.os }}-
 
       - name: Setup Godot Engine
+        continue-on-error: true
         uses: appsinacup/action_setup_godot@main
         with:
           repo: godotengine/godot-builds
@@ -1284,8 +1389,13 @@ jobs:
           }
 
           if (-not (Test-Path ./godot.exe) -or ((Get-Item ./godot.exe).Length -lt 1000000)) {
-            $zipUrl = "https://github.com/godotengine/godot-builds/releases/download/$($env:GODOT_VERSION)/Godot_v$($env:GODOT_VERSION)_win64.exe.zip"
-            Invoke-WebRequest -Uri $zipUrl -OutFile "godot.zip"
+            $zipUrl = "https://github.com/sol-vin/lapis/releases/download/$($env:GODOT_VERSION)/Godot_v$($env:GODOT_VERSION)_win64.exe.zip"
+            try {
+              Invoke-WebRequest -Uri $zipUrl -OutFile "godot.zip"
+            } catch {
+              $zipUrl = "https://github.com/godotengine/godot-builds/releases/download/$($env:GODOT_VERSION)/Godot_v$($env:GODOT_VERSION)_win64.exe.zip"
+              Invoke-WebRequest -Uri $zipUrl -OutFile "godot.zip"
+            }
             Expand-Archive -Path "godot.zip" -DestinationPath "godot_temp" -Force
             $foundExe = (Get-ChildItem -Path "godot_temp" -Filter "*.exe" -Recurse | Where-Object { $_.Name -notlike "*_console*" } | Select-Object -First 1).FullName
             Copy-Item $foundExe ./godot.exe -Force
@@ -1355,8 +1465,8 @@ jobs:
         id: godot-version
         shell: bash
         run: |
-          GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml | tr -d '\r\n[:space:]')
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev6"; fi
+          GODOT_VER=$(grep 'version:' godot-version.yml | cut -d: -f2 | tr -d ' "\r\n\t')
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev7"; fi
           echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
 
@@ -1384,6 +1494,7 @@ jobs:
           sudo apt-get install -y lld radare2 libgc-dev xvfb
 
       - name: Setup Godot Engine
+        continue-on-error: true
         uses: appsinacup/action_setup_godot@main
         with:
           repo: godotengine/godot-builds
@@ -1393,20 +1504,40 @@ jobs:
       - name: Configure Godot Executable
         shell: bash
         run: |
-          if [ -n "$GODOT4" ] && [ -f "$GODOT4" ]; then
-            cp "$GODOT4" ./godot
-          elif [ -n "$GODOT4_BIN" ] && [ -f "$GODOT4_BIN" ]; then
-            cp "$GODOT4_BIN" ./godot
-          elif command -v godot >/dev/null 2>&1; then
-            cp "$(command -v godot)" ./godot
+          check_godot() {
+            local exe="$1"
+            if [ -n "$exe" ] && [ -f "$exe" ]; then
+              local ver="$("$exe" --version 2>/dev/null || true)"
+              if (echo "$ver" | grep -q "${GODOT_VERSION}" || echo "$ver" | grep -q "4\.8\.dev7") && ! echo "$ver" | grep -qi "mono"; then
+                echo "$exe"
+                return 0
+              fi
+            fi
+            return 1
+          }
+
+          if CANDIDATE=$(check_godot "$GODOT4"); then
+            cp "$CANDIDATE" ./godot
+          elif CANDIDATE=$(check_godot "$GODOT4_BIN"); then
+            cp "$CANDIDATE" ./godot
+          elif CANDIDATE=$(check_godot "$(command -v godot 2>/dev/null)"); then
+            cp "$CANDIDATE" ./godot
           else
-            wget -q "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip" -O godot.zip
+            echo "Fallback: Downloading Godot ${GODOT_VERSION} linux.x86_64..."
+            if ! wget -q "https://github.com/sol-vin/lapis/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip" -O godot.zip; then
+              wget -q "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip" -O godot.zip
+            fi
             unzip -q godot.zip
-            found_bin=$(find . -maxdepth 2 -name "Godot_v*linux.x86_64" | head -n 1)
-            mv "$found_bin" ./godot
+            found_bin=$(find . -maxdepth 2 -name "Godot_v*linux.x86_64*" -o -name "godot.linuxbsd.*" | head -n 1)
+            if [ -n "$found_bin" ]; then
+              mv "$found_bin" ./godot
+            else
+              mv "Godot_v${GODOT_VERSION}_linux.x86_64" ./godot
+            fi
             rm -f godot.zip
           fi
           chmod +x ./godot
+          ./godot --version
 
       - name: Cache Godot Export Templates
         uses: actions/cache@v4
@@ -1471,8 +1602,8 @@ jobs:
         id: godot-version
         shell: bash
         run: |
-          GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml | tr -d '\r\n[:space:]')
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev6"; fi
+          GODOT_VER=$(grep 'version:' godot-version.yml | cut -d: -f2 | tr -d ' "\r\n\t')
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev7"; fi
           echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
 
@@ -1494,33 +1625,64 @@ jobs:
           brew install bdw-gc
 
       - name: Setup Godot Engine
+        continue-on-error: true
         uses: appsinacup/action_setup_godot@main
         with:
           repo: godotengine/godot-builds
           version: ${{ env.GODOT_VERSION }}
-          enable_cache: true
+          enable_cache: false
 
       - name: Configure Godot Executable
         shell: bash
         run: |
           GODOT_EXEC=""
-          if [ -n "$GODOT4" ] && [ -f "$GODOT4" ]; then
-            GODOT_EXEC="$GODOT4"
-          elif [ -n "$GODOT4_BIN" ] && [ -f "$GODOT4_BIN" ]; then
-            GODOT_EXEC="$GODOT4_BIN"
-          elif command -v godot >/dev/null 2>&1; then
-            GODOT_EXEC="$(command -v godot)"
-          else
-            curl -sSL "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_macos.universal.zip" -o godot.zip
+          check_godot() {
+            local exe="$1"
+            if [ -n "$exe" ] && [ -f "$exe" ]; then
+              local ver="$("$exe" --version 2>/dev/null || true)"
+              if echo "$ver" | grep -q "${GODOT_VERSION}" || echo "$ver" | grep -q "4\.8\.dev7"; then
+                echo "$exe"
+                return 0
+              fi
+            fi
+            return 1
+          }
+
+          if CANDIDATE=$(check_godot "$GODOT4"); then
+            GODOT_EXEC="$CANDIDATE"
+          elif CANDIDATE=$(check_godot "$GODOT4_BIN"); then
+            GODOT_EXEC="$CANDIDATE"
+          elif CANDIDATE=$(check_godot "$(command -v godot 2>/dev/null)"); then
+            GODOT_EXEC="$CANDIDATE"
+          fi
+
+          if [ -z "$GODOT_EXEC" ]; then
+            echo "Fallback: Downloading Godot ${GODOT_VERSION} macos.universal..."
+            if ! curl -sSL "https://github.com/sol-vin/lapis/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_macos.universal.zip" -o godot.zip; then
+              curl -sSL "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_macos.universal.zip" -o godot.zip
+            fi
             unzip -q godot.zip
             if [ -d "Godot.app" ]; then
               GODOT_EXEC="$(pwd)/Godot.app/Contents/MacOS/Godot"
+            elif [ -f "Godot_v${GODOT_VERSION}_macos.universal" ]; then
+              GODOT_EXEC="$(pwd)/Godot_v${GODOT_VERSION}_macos.universal"
+            elif [ -f "godot.macos.editor.universal" ]; then
+              GODOT_EXEC="$(pwd)/godot.macos.editor.universal"
+            else
+              GODOT_EXEC=$(find . -maxdepth 4 -type f \( -name "Godot" -o -name "*macos*" \) ! -name "*.zip" | head -n 1)
             fi
             rm -f godot.zip
           fi
 
+          if [ -n "$GODOT_EXEC" ]; then
+            chmod +x "$GODOT_EXEC" 2>/dev/null || true
+            xattr -d com.apple.quarantine "$GODOT_EXEC" 2>/dev/null || true
+            codesign --force --sign - "$GODOT_EXEC" 2>/dev/null || true
+          fi
+
           if [[ "$GODOT_EXEC" == *".app/Contents/MacOS/"* ]]; then
             GODOT_APP="${GODOT_EXEC%%.app/*}.app"
+            echo "De-quarantining and ad-hoc signing $GODOT_APP..."
             xattr -dr com.apple.quarantine "$GODOT_APP" 2>/dev/null || true
             codesign --force --deep --sign - "$GODOT_APP" 2>/dev/null || true
           fi
@@ -1745,8 +1907,8 @@ jobs:
         id: godot-version
         shell: bash
         run: |
-          GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml | tr -d '\r\n[:space:]')
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev6"; fi
+          GODOT_VER=$(grep 'version:' godot-version.yml | cut -d: -f2 | tr -d ' "\r\n\t')
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev7"; fi
           echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
 
@@ -1775,6 +1937,7 @@ jobs:
           java-version: '17'
 
       - name: Setup Godot Engine
+        continue-on-error: true
         uses: appsinacup/action_setup_godot@main
         with:
           repo: godotengine/godot-builds
@@ -1791,9 +1954,11 @@ jobs:
           elif command -v godot >/dev/null 2>&1; then
             cp "$(command -v godot)" ./godot
           else
-            wget -q "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip" -O godot.zip
+            if ! wget -q "https://github.com/sol-vin/lapis/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip" -O godot.zip; then
+              wget -q "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip" -O godot.zip
+            fi
             unzip -q godot.zip
-            found_bin=$(find . -maxdepth 2 -name "Godot_v*linux.x86_64" | head -n 1)
+            found_bin=$(find . -maxdepth 2 -name "Godot_v*linux.x86_64*" -o -name "godot.linuxbsd.*" | head -n 1)
             mv "$found_bin" ./godot
             rm -f godot.zip
           fi

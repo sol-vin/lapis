@@ -84,6 +84,12 @@ Runs the full interactive test project in Godot:
   - `test_lifecycle_destruction.cr`: SceneTree reparenting, `queue_free`, `.destroy`.
   - `test_classdb_coverage.cr`: Reflection lookups and method dispatch.
   - `test_concurrency.cr`: Cooperative fibers, channels, mutexes, thread safety.
+  - `test_tween_dsl.cr`: 16-pillar multi-frame deterministic tween stepping and pipeline test suite.
+  - `test_signal_safety_multiframe.cr`: 7-pillar signal disconnection, dead emitter/receiver auto-pruning, and frame boundary test suite.
+  - `test_destruction_and_threads_multiframe.cr`: 7-pillar queue_free frame boundary, 50-node cascade destruction, and concurrent worker thread test suite.
+  - `test_dsl_edge_cases_and_leaks.cr`: 11-pillar comprehensive DSL syntax, match guards, and leak gate suite.
+  - `test_dsl_helpers_and_onready.cr`: 6-pillar ancestor operator (`<<`), fluent `group(:name)` DSL, `load`/`preload` inference, and onready customization suite.
+  - `test_editor_plugins_comprehensive.cr`: 8-pillar Crystal editor plugins ClassDB registration, main screen protocol, debugger session, and highlighter engine suite.
 - Command executed internally:
   ```bash
   godot.exe --headless --path . --quit-after 250

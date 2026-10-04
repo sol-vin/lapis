@@ -299,6 +299,25 @@ module Godot
     LEFT  = Vector2.new(-1.0_f32, 0.0_f32)
     RIGHT = Vector2.new(1.0_f32, 0.0_f32)
     INF   = Vector2.new(Float32::INFINITY, Float32::INFINITY)
+
+    # Creates a unit vector pointing at the specified angle (in radians)
+    def self.from_angle(angle : Number) : Vector2
+      rad = angle.to_f64
+      Vector2.new(Math.cos(rad).to_f32, Math.sin(rad).to_f32)
+    end
+
+    # Returns a random normalized 2D direction vector
+    def self.random_direction : Vector2
+      angle = ::Random.rand * Math::PI * 2.0
+      from_angle(angle)
+    end
+
+    # Returns a random Vector2 with x in rx and y in ry
+    def self.random(rx = 0.0..1.0, ry = 0.0..1.0) : Vector2
+      val_x = rx.is_a?(::Range) ? ::Random.rand(rx.begin.to_f64..rx.end.to_f64).to_f32 : ::Random.rand(rx.to_f64).to_f32
+      val_y = ry.is_a?(::Range) ? ::Random.rand(ry.begin.to_f64..ry.end.to_f64).to_f32 : ::Random.rand(ry.to_f64).to_f32
+      Vector2.new(val_x, val_y)
+    end
   end
 
   # 2-element structure that can be used to represent 2D grid coordinates or discrete positions with 32-bit integers.

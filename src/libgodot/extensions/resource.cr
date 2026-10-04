@@ -42,12 +42,78 @@ module Godot
     load_scene(path).instantiate_as(type)
   end
 
+  # In-memory thread-safe cache for preloaded resources
+  module PreloadCache
+    @@cache = Hash(String, Resource).new
+    @@mutex = ::Thread::Mutex.new
+
+    def self.get_or_load(path : String, type : T.class) : T forall T
+      @@mutex.synchronize do
+        if res = @@cache[path]?
+          if res.alive?
+            if res.is_a?(T)
+              return res
+            elsif alive = Bridge.find_alive_instance(res.pointer)
+              if typed = alive.as?(T)
+                return typed
+              end
+            end
+            if !res.pointer.null? && Bridge.object_is_class(res.pointer, T.name.split("::").last)
+              return T.new(res.pointer)
+            end
+          end
+        end
+
+        loaded = ::Godot.load(path, as: T)
+        @@cache[path] = loaded.as(Resource)
+        loaded
+      end
+    end
+
+    def self.clear : Void
+      @@mutex.synchronize { @@cache.clear }
+    end
+
+    def self.has?(path : String) : Bool
+      @@mutex.synchronize { @@cache.has_key?(path) }
+    end
+  end
+
+  def self.preload(path : String, as type : T.class) : T forall T
+    PreloadCache.get_or_load(path, type)
+  end
+
   class ResourceSaver
     # Saves a resource to disk using dynamic reflection to ensure valid Ref<Resource> and string marshalling.
     def save(resource : Resource, path : String = "", flags : SaverFlags | Int = 0) : Godot::Error
       flag_val = flags.is_a?(Int) ? flags.to_i64 : flags.value.to_i64
       err_code = call_i64("save", resource, path, flag_val)
       godot_return_enum(Godot::Error, err_code)
+    end
+  end
+
+  # Exception raised when a Resource fails to save to disk
+  class ResourceSaveError < Exception
+  end
+
+  class Resource < RefCounted
+    # Loads a resource directly from path, typed as the receiving Resource subclass:
+    # `scene = PackedScene.load("res://scenes/player.tscn")`
+    # `config = CustomConfig.load("res://data/config.tres")`
+    def self.load(path : String, type_hint : String = "", cache_mode : Int64 = 0_i64) : self
+      ::Godot.load(path, as: self, type_hint: type_hint, cache_mode: cache_mode)
+    end
+
+    # Saves this resource to disk, raising ResourceSaveError if saving fails
+    def save!(path : String = "", flags : ResourceSaver::SaverFlags | Int = 0) : Nil
+      return if @pointer.null?
+      saver = ::Godot::ResourceSaver.new(::Godot::ResourceSaver.singleton_ptr) rescue nil
+      if saver && !saver.pointer.null?
+        err = saver.save(self, path, flags)
+        if err != Godot::Error::Ok
+          raise ResourceSaveError.new("Failed to save resource to '#{path}': Error #{err}")
+        end
+      end
     end
   end
 
@@ -116,4 +182,104 @@ module Godot
       super(deep)
     end
   end
+end
+
+# Ergonomic Preload (>) and Dynamic Load (>>) Operators
+class String
+  # Preload Operator (>): Cached retrieval from PreloadCache.
+  # If T < Godot::Node, preloads PackedScene, instantiates it, and returns typed Node T.
+  # If T < Godot::Resource, preloads and returns cached Resource T.
+  def >(type : T.class) : T forall T
+    {% if T < Godot::Node %}
+      scene = ::Godot::PreloadCache.get_or_load(self, ::Godot::PackedScene)
+      scene.instantiate_as(T)
+    {% else %}
+      ::Godot::PreloadCache.get_or_load(self, T)
+    {% end %}
+  end
+
+  # Dynamic Load Operator (>>): Dynamic runtime loading without caching.
+  # If T < Godot::Node, loads PackedScene dynamically, instantiates it, and returns typed Node T.
+  # If T < Godot::Resource, dynamically loads and returns Resource T.
+  def >>(type : T.class) : T forall T
+    {% if T < Godot::Node %}
+      scene = ::Godot.load_scene(self)
+      scene.instantiate_as(T)
+    {% else %}
+      ::Godot.load(self, as: T)
+    {% end %}
+  end
+end
+
+# Loads a resource dynamically from the Godot virtual filesystem with compile-time type inference.
+#
+# Supported extensions:
+# - `.tscn`, `.scn` -> `Godot::PackedScene`
+# - `.png`, `.svg`, `.webp` -> `Godot::Texture2D`
+# - `.wav`, `.ogg`, `.mp3` -> `Godot::AudioStream`
+# - Other / `.tres` -> `Godot::Resource`
+#
+# Can be explicitly overridden via `as: Type`.
+#
+# ### Examples:
+# ```crystal
+# scene = load("res://levels/level_1.tscn")      # -> PackedScene
+# level = load("res://levels/level_1.tscn") > Level # -> Level
+# tex   = load("res://icon.png")                # -> Texture2D
+# data  = load("res://data.dat", as: CustomData) # -> CustomData
+# ```
+macro load(path, as type = nil)
+  {% if type %}
+    ::Godot.load_as({{type}}, {{path}})
+  {% else %}
+    {%
+      p_str = path.id.stringify
+      if p_str.ends_with?(".tscn") || p_str.ends_with?(".scn")
+        target_type = "::Godot::PackedScene"
+      elsif p_str.ends_with?(".png") || p_str.ends_with?(".svg") || p_str.ends_with?(".webp")
+        target_type = "::Godot::Texture2D"
+      elsif p_str.ends_with?(".wav") || p_str.ends_with?(".ogg") || p_str.ends_with?(".mp3")
+        target_type = "::Godot::AudioStream"
+      else
+        target_type = "::Godot::Resource"
+      end
+    %}
+    ::Godot.load_as({{target_type.id}}, {{path}})
+  {% end %}
+end
+
+# Preloads and caches a resource from the Godot virtual filesystem with compile-time type inference.
+#
+# Supported extensions:
+# - `.tscn`, `.scn` -> `Godot::PackedScene`
+# - `.png`, `.svg`, `.webp` -> `Godot::Texture2D`
+# - `.wav`, `.ogg`, `.mp3` -> `Godot::AudioStream`
+# - Other / `.tres` -> `Godot::Resource`
+#
+# Can be explicitly overridden via `as: Type`.
+#
+# ### Examples:
+# ```crystal
+# const PLAYER_SCENE = preload("res://player.tscn") # -> PackedScene
+# const ICON         = preload("res://icon.svg")    # -> Texture2D
+# const JUMP_SFX     = preload("res://jump.wav")    # -> AudioStream
+# ```
+macro preload(path, as type = nil)
+  {% if type %}
+    ::Godot::PreloadCache.get_or_load({{path}}, {{type}})
+  {% else %}
+    {%
+      p_str = path.id.stringify
+      if p_str.ends_with?(".tscn") || p_str.ends_with?(".scn")
+        target_type = "::Godot::PackedScene"
+      elsif p_str.ends_with?(".png") || p_str.ends_with?(".svg") || p_str.ends_with?(".webp")
+        target_type = "::Godot::Texture2D"
+      elsif p_str.ends_with?(".wav") || p_str.ends_with?(".ogg") || p_str.ends_with?(".mp3")
+        target_type = "::Godot::AudioStream"
+      else
+        target_type = "::Godot::Resource"
+      end
+    %}
+    ::Godot::PreloadCache.get_or_load({{path}}, {{target_type.id}})
+  {% end %}
 end

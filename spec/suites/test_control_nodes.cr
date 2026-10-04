@@ -185,4 +185,28 @@ end
   il.destroy
 end
 
+  test "Theme and Control UI audio event items and override queries" do
+  ctrl = Godot.create(Godot::Control)
+  theme = Godot.create(Godot::Theme)
+
+  # Check theme sound queries
+  assert_false theme.has_sound("click", "Button")
+  sound_list = theme.get_sound_list("Button")
+  assert_not_nil sound_list
+
+  # Check Control theme sound override methods
+  assert_false ctrl.has_theme_sound_override("hover")
+  assert_false ctrl.has_theme_sound("hover", "Button")
+
+  ctrl.destroy
+  theme.destroy
+end
+
+  test "FoldableContainer title bar control query APIs" do
+  container = Godot.create(Godot::FoldableContainer)
+  count = container.get_title_bar_control_count
+  assert_true count >= 0_i64
+  container.destroy
+end
+
 end

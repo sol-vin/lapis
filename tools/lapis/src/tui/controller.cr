@@ -42,9 +42,6 @@ module Lapis
         # Background rendering loop (10 FPS)
         spawn do
           while @running
-            if @state.current_view == ViewMode::ColorStudio && @state.use_3d_color_picker
-              @state.color_picker_3d.tick(0.1)
-            end
             render_frame
             sleep 0.1.seconds
           end
@@ -62,6 +59,11 @@ module Lapis
       end
 
       def stop(final_success : Bool) : Nil
+        if @state.recording?
+          saved_path = @state.stop_recording
+          puts "[TUI Screencast] Saved recording to #{saved_path}"
+        end
+
         @state.overall_status = if @aborted
                                   OverallStatus::Aborted
                                 elsif final_success
@@ -204,45 +206,7 @@ module Lapis
           return
         end
 
-        # 2. Color Studio (Opal ColorPicker & ColorPicker3D) Key Handling
-        if @state.current_view == ViewMode::ColorStudio
-          case event.key
-          when Terminal::Key::Escape
-            @state.current_view = ViewMode::Dashboard
-            return
-          when Terminal::Key::Tab
-            @state.use_3d_color_picker = !@state.use_3d_color_picker
-            @state.sync_active_color
-            return
-          when Terminal::Key::Enter
-            @state.sync_active_color
-            @state.current_view = ViewMode::Dashboard
-            @state.toasts.add("Theme Applied", "Accent color set to #{@state.accent_color.to_hex}", :success, 2500_i64)
-            return
-          when Terminal::Key::Char
-            if event.char == '1'
-              @state.use_3d_color_picker = false
-              @state.sync_active_color
-              return
-            elsif event.char == '2'
-              @state.use_3d_color_picker = true
-              @state.sync_active_color
-              return
-            end
-          end
-
-          opal_ev = event.to_opal_key_event
-          if @state.use_3d_color_picker
-            @state.color_picker_3d.handle_key(opal_ev)
-            @state.accent_color = @state.color_picker_3d.selected_color
-          else
-            @state.color_picker.handle_key(opal_ev)
-            @state.accent_color = @state.color_picker.color
-          end
-          return
-        end
-
-        # 3. File Explorer (Opal FileDialog) Key Handling
+        # 2. File Explorer (Opal FileDialog) Key Handling
         if @state.current_view == ViewMode::FileExplorer
           case event.key
           when Terminal::Key::Escape
@@ -321,6 +285,34 @@ module Lapis
             if event.char == 'c'
               @aborted = true
               @running = false
+              return
+            elsif event.char == 'r'
+              if @state.recording?
+                saved_path = @state.stop_recording
+                @state.toasts.add("Recording Stopped", "Saved to #{saved_path}", :info, 3500_i64)
+              else
+                out_path = @state.start_recording
+                @state.toasts.add("Recording Started", "Recording to #{out_path} (Ctrl+R to stop)", :success, 3500_i64)
+              end
+              return
+            elsif event.char == 's'
+              timestamp = Time.local.to_s("%Y%m%d_%H%M%S")
+              shot_path = "recordings/screenshot_#{timestamp}.ansi"
+              html_path = "recordings/screenshot_#{timestamp}.html"
+              buf = @renderer.last_buffer
+              unless buf
+                size = Terminal.size
+                w = Math.max(40, size[:cols] - 1)
+                h = Math.max(12, size[:rows] - 1)
+                canvas, _, _ = @renderer.build_canvas_with_overlays(@state, w, h)
+                buf = canvas.to_opal_buffer
+              end
+              if buf
+                Opal::Asciicast::VCR.screenshot(path: shot_path, format: :ansi, buffer: buf, copy_to_clipboard: true)
+                Opal::Asciicast::VCR.screenshot(path: html_path, format: :html, buffer: buf)
+                @state.toasts.add("Screenshot Saved", "#{shot_path} (Copied to Clipboard)", :success, 3500_i64)
+              end
+              return
             end
             return
           end
@@ -331,8 +323,6 @@ module Lapis
           when '3' then @state.active_tab = TabMode::Breakdown
           when '4' then @state.active_tab = TabMode::Telemetry
           when '5' then @state.active_tab = TabMode::Benchmarks
-          when 't', 'T', 'p', 'P'
-            @state.toggle_color_studio
           when 'o', 'O'
             @state.toggle_file_explorer
           when 'e', 'E'
@@ -345,9 +335,6 @@ module Lapis
             else
               @state.toggle_file_explorer
             end
-          when 'x', 'X'
-            fx = @state.next_shader_fx
-            @state.toasts.add("Shader FX", fx.display_name, :info, 2000_i64)
           when 'k', 'K'
             case @state.active_tab
             when TabMode::Breakdown

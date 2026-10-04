@@ -1636,6 +1636,116 @@ inline void bridge_ret_dictionary_complete_code_ex(
     }
 }
 
+inline void bridge_ret_dictionary_validate_ex(
+    void *r_ret,
+    uint8_t valid,
+    const BridgeValidationError *errors,
+    int error_count,
+    const BridgeValidationWarning *warnings,
+    int warning_count
+) {
+    if (!r_ret) return;
+    uint8_t v_bool = valid;
+    dict_set_variant(r_ret, "valid", GDEXTENSION_VARIANT_TYPE_BOOL, &v_bool);
+
+    // Initialize an empty Array for "errors"
+    alignas(void*) char arr_errors[24] = {};
+    if (!gd_array_constructor && gd_variant_get_ptr_constructor) {
+        gd_array_constructor = gd_variant_get_ptr_constructor(GDEXTENSION_VARIANT_TYPE_ARRAY, 0);
+    }
+    if (gd_array_constructor) {
+        gd_array_constructor(arr_errors, nullptr);
+    }
+
+    if (!gd_array_push_back && gd_variant_get_ptr_builtin_method) {
+        void *sn_pb = make_string_name("push_back");
+        gd_array_push_back = gd_variant_get_ptr_builtin_method(GDEXTENSION_VARIANT_TYPE_ARRAY, sn_pb, 3316032543ULL);
+        free_string_name(sn_pb);
+    }
+
+    if (gd_array_push_back && errors && error_count > 0) {
+        for (int i = 0; i < error_count; i++) {
+            alignas(void*) char err_dict[24] = {};
+            if (!gd_dictionary_constructor && gd_variant_get_ptr_constructor) {
+                gd_dictionary_constructor = gd_variant_get_ptr_constructor(GDEXTENSION_VARIANT_TYPE_DICTIONARY, 0);
+            }
+            if (gd_dictionary_constructor) {
+                gd_dictionary_constructor(err_dict, nullptr);
+            }
+
+            int64_t line = errors[i].line;
+            dict_set_variant(err_dict, "line", GDEXTENSION_VARIANT_TYPE_INT, &line);
+            int64_t column = errors[i].column;
+            dict_set_variant(err_dict, "column", GDEXTENSION_VARIANT_TYPE_INT, &column);
+            const char *msg = errors[i].message ? errors[i].message : "";
+            dict_set_variant(err_dict, "message", GDEXTENSION_VARIANT_TYPE_STRING, &msg);
+
+            alignas(void*) char var_err_dict[24] = {};
+            bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_DICTIONARY, var_err_dict, err_dict);
+
+            const GDExtensionConstTypePtr pb_args[1] = { var_err_dict };
+            alignas(void*) uint8_t pb_ret = 0;
+            gd_array_push_back(arr_errors, pb_args, &pb_ret, 1);
+
+            if (gd_variant_destroy) {
+                gd_variant_destroy(var_err_dict);
+            }
+            if (!gd_dict_destructor && gd_variant_get_ptr_destructor) {
+                gd_dict_destructor = gd_variant_get_ptr_destructor(GDEXTENSION_VARIANT_TYPE_DICTIONARY);
+            }
+            if (gd_dict_destructor) {
+                gd_dict_destructor(err_dict);
+            }
+        }
+    }
+    dict_set_variant(r_ret, "errors", GDEXTENSION_VARIANT_TYPE_ARRAY, arr_errors);
+
+    if (!gd_array_destructor && gd_variant_get_ptr_destructor) {
+        gd_array_destructor = gd_variant_get_ptr_destructor(GDEXTENSION_VARIANT_TYPE_ARRAY);
+    }
+    if (gd_array_destructor) {
+        gd_array_destructor(arr_errors);
+    }
+
+    // Initialize an empty Array for "warnings"
+    alignas(void*) char arr_warnings[24] = {};
+    if (gd_array_constructor) {
+        gd_array_constructor(arr_warnings, nullptr);
+    }
+    if (gd_array_push_back && warnings && warning_count > 0) {
+        for (int i = 0; i < warning_count; i++) {
+            alignas(void*) char warn_dict[24] = {};
+            if (gd_dictionary_constructor) {
+                gd_dictionary_constructor(warn_dict, nullptr);
+            }
+            int64_t line = warnings[i].line;
+            dict_set_variant(warn_dict, "line", GDEXTENSION_VARIANT_TYPE_INT, &line);
+            int64_t code = warnings[i].code;
+            dict_set_variant(warn_dict, "code", GDEXTENSION_VARIANT_TYPE_INT, &code);
+            const char *msg = warnings[i].message ? warnings[i].message : "";
+            dict_set_variant(warn_dict, "message", GDEXTENSION_VARIANT_TYPE_STRING, &msg);
+
+            alignas(void*) char var_warn_dict[24] = {};
+            bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_DICTIONARY, var_warn_dict, warn_dict);
+
+            const GDExtensionConstTypePtr pb_args[1] = { var_warn_dict };
+            alignas(void*) uint8_t pb_ret = 0;
+            gd_array_push_back(arr_warnings, pb_args, &pb_ret, 1);
+
+            if (gd_variant_destroy) {
+                gd_variant_destroy(var_warn_dict);
+            }
+            if (gd_dict_destructor) {
+                gd_dict_destructor(warn_dict);
+            }
+        }
+    }
+    dict_set_variant(r_ret, "warnings", GDEXTENSION_VARIANT_TYPE_ARRAY, arr_warnings);
+    if (gd_array_destructor) {
+        gd_array_destructor(arr_warnings);
+    }
+}
+
 inline void bridge_ret_dictionary_lookup_code(void *r_ret) {
     if (!r_ret) return;
     int64_t v_res = 2; // ERR_UNAVAILABLE
@@ -1679,6 +1789,62 @@ inline void bridge_ret_dictionary_global_class(void *r_ret, const char *class_na
     dict_set_variant(r_ret, "base_type", GDEXTENSION_VARIANT_TYPE_STRING, &b_type);
     const char *i_path = icon_path ? icon_path : "";
     dict_set_variant(r_ret, "icon_path", GDEXTENSION_VARIANT_TYPE_STRING, &i_path);
+}
+
+inline void bridge_ret_script_templates(void *r_ret, const BridgeScriptTemplate *templates, int count) {
+    if (!r_ret || !templates || count <= 0) return;
+
+    if (!gd_array_push_back && gd_variant_get_ptr_builtin_method) {
+        void *sn_pb = make_string_name("push_back");
+        gd_array_push_back = gd_variant_get_ptr_builtin_method(GDEXTENSION_VARIANT_TYPE_ARRAY, sn_pb, 3316032543ULL);
+        free_string_name(sn_pb);
+    }
+    if (!gd_array_push_back) return;
+
+    for (int i = 0; i < count; i++) {
+        alignas(void*) char t_dict[24] = {};
+        if (!gd_dictionary_constructor && gd_variant_get_ptr_constructor) {
+            gd_dictionary_constructor = gd_variant_get_ptr_constructor(GDEXTENSION_VARIANT_TYPE_DICTIONARY, 0);
+        }
+        if (gd_dictionary_constructor) {
+            gd_dictionary_constructor(t_dict, nullptr);
+        }
+
+        const char *inherit = templates[i].inherit ? templates[i].inherit : "";
+        dict_set_variant(t_dict, "inherit", GDEXTENSION_VARIANT_TYPE_STRING, &inherit);
+
+        const char *name = templates[i].name ? templates[i].name : "";
+        dict_set_variant(t_dict, "name", GDEXTENSION_VARIANT_TYPE_STRING, &name);
+
+        const char *desc = templates[i].description ? templates[i].description : "";
+        dict_set_variant(t_dict, "description", GDEXTENSION_VARIANT_TYPE_STRING, &desc);
+
+        const char *content = templates[i].content ? templates[i].content : "";
+        dict_set_variant(t_dict, "content", GDEXTENSION_VARIANT_TYPE_STRING, &content);
+
+        int64_t id = templates[i].id;
+        dict_set_variant(t_dict, "id", GDEXTENSION_VARIANT_TYPE_INT, &id);
+
+        int64_t origin = 0; // TEMPLATE_ORIGIN_BUILTIN
+        dict_set_variant(t_dict, "origin", GDEXTENSION_VARIANT_TYPE_INT, &origin);
+
+        alignas(void*) char var_t_dict[24] = {};
+        bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_DICTIONARY, var_t_dict, t_dict);
+
+        const GDExtensionConstTypePtr pb_args[1] = { var_t_dict };
+        alignas(void*) uint8_t pb_ret = 0;
+        gd_array_push_back(r_ret, pb_args, &pb_ret, 1);
+
+        if (gd_variant_destroy) {
+            gd_variant_destroy(var_t_dict);
+        }
+        if (!gd_dict_destructor && gd_variant_get_ptr_destructor) {
+            gd_dict_destructor = gd_variant_get_ptr_destructor(GDEXTENSION_VARIANT_TYPE_DICTIONARY);
+        }
+        if (gd_dict_destructor) {
+            gd_dict_destructor(t_dict);
+        }
+    }
 }
 
 inline void bridge_ret_signal_list(void *r_ret, const struct CrystalSignalDesc *signals, int signal_count) {

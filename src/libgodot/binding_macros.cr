@@ -190,6 +190,11 @@ end
 
 # Synthesizes a first-class typed signal accessor and direct emission helper
 macro godot_signal(name, *types)
+  # Identity setter enabling compound operator sugar (`node.{{name.id}} += ->handler`, `node.{{name.id}} -= ->handler`)
+  def {{name.id}}=(val : ::Godot::BoundSignal) : ::Godot::BoundSignal
+    val
+  end
+
   {% if types.empty? %}
     def {{name.id}} : ::Godot::TypedSignal()
       ::Godot::TypedSignal().new(self, {{name.stringify}})

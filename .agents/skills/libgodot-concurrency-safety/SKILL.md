@@ -12,7 +12,7 @@ This skill provides patterns and architectural rules for working safely with con
 
 ---
 
-## The 5 Inviolable Concurrency Rules
+## The 7 Inviolable Concurrency Rules
 
 ### 1. SceneTree is Strictly Single-Threaded
 **Never mutate the SceneTree from a background thread or un-yielded fiber.**
@@ -68,8 +68,14 @@ Thread.new do
   hud_node.call_deferred("update_score", result) # Routes through Godot MessageQueue!
 end
 ```
+*Dead Target Safety*: If `hud_node` is destroyed on the main thread before the queued message is dispatched, Godot's internal `MessageQueue` safely drops the message without crashing Crystal.
 
-### 6. Awaiting Signals and Timers (`await`)
+### 6. Concurrent Signal Emissions & Dead-Target Auto-Pruning
+Background OS threads (`Thread.new`) can safely emit signals into `Godot.notify_signal`:
+- Signal subscription tables are protected by `signal_subs_mutex` (`::Thread::Mutex`).
+- When a living or dead receiver is connected, `SignalSubscription` checks `receiver.active?` and silently auto-prunes dead targets without throwing exceptions or risking race conditions.
+
+### 7. Awaiting Signals and Timers (`await`)
 Inside cooperative gameplay fibers (`spawn do ... end`), use `await` instead of blocking sleeps:
 ```crystal
 spawn do

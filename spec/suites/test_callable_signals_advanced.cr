@@ -10,11 +10,11 @@ node AdvancedSignalTargetNode < Godot::Node do
   signal numeric_alert(value : Float64)
 
   def fire_action(code : Int32, tag : String) : Void
-    emit_action_triggered(code, tag)
+    action_triggered.emit(code, tag)
   end
 
   def fire_numeric(value : Float64) : Void
-    emit_numeric_alert(value)
+    numeric_alert.emit(value)
   end
 end
 
@@ -24,7 +24,7 @@ test_suite "CallableAdv" do
   fire_count = 0
   last_code = 0
 
-  node.on_action_triggered_once do |code, _tag|
+  on node.action_triggered, once: true do |code, _tag|
     fire_count += 1
     last_code = code
   end
@@ -47,10 +47,10 @@ end
   fire_count = 0
 
   sub = nil.as(Godot::SignalSubscription?)
-  sub = node.on_numeric_alert do |val|
+  sub = (on node.numeric_alert do |val|
     fire_count += 1
     sub.not_nil!.unsubscribe
-  end
+  end)
 
   # First emission: fires and self-unsubscribes
   node.fire_numeric(3.14159)
@@ -68,13 +68,13 @@ end
   count_a = 0
   count_b = 0
 
-  sub_a = node.on_action_triggered do |_code, _tag|
+  sub_a = (on node.action_triggered do |_code, _tag|
     count_a += 1
-  end
+  end)
 
-  sub_b = node.on_action_triggered do |_code, _tag|
+  sub_b = (on node.action_triggered do |_code, _tag|
     count_b += 1
-  end
+  end)
 
   # Both fire on emission 1
   node.fire_action(1, "Emit1")
@@ -97,7 +97,7 @@ end
     node = Godot.create(AdvancedSignalTargetNode)
     count = 0
 
-    node.on_action_triggered do |_code, _tag|
+    on node.action_triggered do |_code, _tag|
       count += 1
     end
 
@@ -141,11 +141,11 @@ end
     end
     assert_eq sig.connection_count, 3
 
-    # 4. Test 0-arg node-level `on_action_triggered` helper
+    # 4. Test 0-arg `on` helper
     node_on_fired = 0
-    sub_node = node.on_action_triggered do
+    sub_node = (on node.action_triggered do
       node_on_fired += 1
-    end
+    end)
     assert_eq sig.connection_count, 4
 
     # First emission
@@ -224,6 +224,37 @@ end
     # Second emission does not fire
     node.fire_action(2, "Combo2")
     assert_eq combo_fired, 1
+
+    node.destroy
+  end
+
+  test "Compound assignment operators += and -= connect and disconnect procs cleanly" do
+    node = Godot.create(AdvancedSignalTargetNode)
+    fired_count = 0
+    last_val = 0.0_f64
+
+    handler = ->(val : Float64) do
+      fired_count += 1
+      last_val = val
+    end
+
+    # Connect with +=
+    node.numeric_alert += handler
+    assert_true node.numeric_alert.connected?
+    assert_eq node.numeric_alert.connection_count, 1
+
+    node.fire_numeric(12.34_f64)
+    assert_eq fired_count, 1
+    assert_eq last_val, 12.34_f64
+
+    # Disconnect with -=
+    node.numeric_alert -= handler
+    assert_false node.numeric_alert.connected?
+    assert_eq node.numeric_alert.connection_count, 0
+
+    node.fire_numeric(56.78_f64)
+    assert_eq fired_count, 1
+    assert_eq last_val, 12.34_f64
 
     node.destroy
   end

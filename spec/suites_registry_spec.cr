@@ -13,7 +13,10 @@ describe "Lapis::Test::Registry Test Suites" do
       "Resources", "Lifecycle", "DeadPointerSafety", "Concurrency",
       "CallableAdv", "ClassDB", "MacrosDSL", "MultiAddon", "DepAddonsCompiled", "GDScript", "ColdBoot",
       "Noise", "Navigation", "ImageBuffer", "ConfigFile", "EditorSignals", "Multiplayer",
-      "HierarchyErgonomics", "MultiFrameOrchestration", "PluginDependenciesDAG"
+      "HierarchyErgonomics", "MultiFrameOrchestration", "PluginDependenciesDAG",
+      "GameplayErgonomics", "SlidesShowcase", "DslEdgeCasesAndLeaks", "TweenDsl",
+      "SignalSafetyMultiFrame", "DestructionAndThreadsMultiFrame",
+      "DslHelpersAndOnReady", "EditorPluginsComprehensive"
     ]
 
     expected_categories.each do |cat|

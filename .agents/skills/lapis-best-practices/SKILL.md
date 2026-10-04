@@ -31,8 +31,8 @@ module Damageable
   def take_damage(amount : Int32) : Void
     return if current_health <= 0
     @current_health = Math.max(0, @current_health - amount)
-    emit_health_changed(@current_health, @max_health)
-    emit_died if @current_health == 0
+    health_changed.emit(@current_health, @max_health)
+    died.emit if @current_health == 0
   end
 end
 
@@ -265,3 +265,61 @@ end
 - Use `:reliable` for state transitions, actions, and inventory changes.
 - Use `:unreliable_ordered` for frequent position and velocity updates.
 - Verify `is_multiplayer_authority` before processing server-authoritative logic.
+
+---
+
+## 7. Zero-Allocation Streaming Traversal (`each_node`)
+
+Avoid collecting large `Array(Node)` buffers in hot gameplay loops. Use streaming iteration with receiver scoping:
+
+```crystal
+# 1. Receiver-scoped iteration (implicit `self` dispatch):
+each_node("Enemies/*", Enemy) do
+  alert!
+  take_damage(25)
+end
+
+# 2. Block-pass shorthand for single method calls:
+each_node("Enemies/*", Enemy, &.alert!)
+
+# 3. Deep descendant search without intermediate array allocations:
+each_descendant(Light3D) do
+  light_energy = 0.0_f32
+end
+```
+
+---
+
+## 8. Dead-Pointer Safe Physics Raycasts
+
+Never store or dereference raw collider pointers across frames. Always inspect colliders using the dead-pointer safe `.as?(Type)` pattern:
+
+```crystal
+if hit = raycast_to(target_pos)
+  # hit.collider dynamically verifies #alive?, returning nil if destroyed:
+  if enemy = hit.collider.as?(Enemy)
+    enemy.take_damage(25)
+  end
+end
+```
+
+---
+
+## 9. Quantitative Zero-Leak Verification (`assert_no_leak`)
+
+In Lapis test suites, mathematically verify zero native or GC memory leaks using Godot's `Performance` monitors:
+
+```crystal
+Lapis::Test.assert_no_leak(max_delta_objects: 0) do
+  # Perform repeated gameplay operations (e.g. 500 spawn & despawn cycles)
+  500.times do
+    node = Godot.create(Node2D)
+    node.destroy
+  end
+end
+
+# Verify no orphaned nodes were left in the engine tree:
+Lapis::Test.assert_no_new_orphans do
+  # Scene manipulation logic
+end
+```

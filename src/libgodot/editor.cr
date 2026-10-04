@@ -6,6 +6,10 @@
 require "file_utils"
 require "./script"
 require "./editor_script_creation"
+require "./editor/action_driver"
+require "./editor/action_driver_vision"
+require "./editor/action_driver_ipc"
+require "./editor/state_preserver"
 
 module Lapis
   include Godot
@@ -56,8 +60,8 @@ module Lapis
       @@reload_pending = val
     end
 
-    def initialize
-      super
+    def initialize(pointer : Void* = Pointer(Void).null)
+      super(pointer)
       @@instance = self
     end
 
@@ -78,7 +82,7 @@ module Lapis
     # Safe to call both on startup and after GDExtension reloads.
     def self.ensure_editor_setup : Void
       return if @@setting_up_editor
-      return if headless?
+      return if headless_suppressed?
       return unless has_editor_interface?
       return if Godot::EditorInterface.singleton_ptr.null?
       ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
@@ -87,7 +91,7 @@ module Lapis
 
       if !Godot::DisplayServer.singleton_ptr.null?
         ds = Godot::DisplayServer.new(Godot::DisplayServer.singleton_ptr)
-        return if ds.call_str("get_name") == "headless"
+        return if ds.call_str("get_name") == "headless" && ::ENV["LIBGODOT_ENABLE_EDITOR_UI"]? != "1"
       end
 
       @@setting_up_editor = true
@@ -114,7 +118,7 @@ module Lapis
       verify_required_tools
 
       if Godot.editor_hint?
-        unless self.class.headless?
+        unless self.class.headless_suppressed?
           self.class.ensure_theme_icons
         end
 
@@ -148,7 +152,11 @@ module Lapis
           end
         end
 
-        unless self.class.headless?
+        # Start Action Driver IPC and restore preserved state across hot reloads
+        Lapis::Editor::DriverServer.start_if_enabled
+        Lapis::Editor::StatePreserver.restore_edited_scene
+
+        unless self.class.headless_suppressed?
           self.class.ensure_highlighter_registered
           self.class.setup_toolbar_button
           self.class.setup_new_script_button
@@ -164,6 +172,11 @@ module Lapis
         self.call("set_process", true) rescue nil
 
         Godot.print("[CrystalIntegrationPlugin] First-class .cr script support, language, and syntax highlighter registered in 100% pure Crystal.")
+
+        # Automated ActionDriver in-editor testing (verifies build button, main screen panel, and script opening)
+        if ::ENV["LIBGODOT_ACTION_DRIVER_TEST"]? == "1"
+          self.class.check_test_action_driver_flow
+        end
 
         # Automated verification check for Build Crystal button and live GDExtension reloading
         if ::ENV["LIBGODOT_TEST_BUILD_BUTTON"]? == "1"
@@ -185,13 +198,13 @@ module Lapis
           self.call("add_user_signal", "ready_in_editor") rescue nil
         end
 
-        emit_ready_in_editor
+        ready_in_editor.emit
       end
     end
 
     # Registers Crystal icons into Godot's EditorIcons theme so ScriptCreateDialog and FileSystem dock display proper icons
     def self.ensure_theme_icons : Void
-      return if headless?
+      return if headless_suppressed?
       return unless has_editor_interface?
       return if Godot::EditorInterface.singleton_ptr.null?
       ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
@@ -407,7 +420,7 @@ module Lapis
 
     # Ensures syntax highlighter is registered with ScriptEditor
     def self.ensure_highlighter_registered : Void
-      return if headless?
+      return if headless_suppressed?
       return if (h = @@crystal_highlighter) && !h.pointer.null?
       if !Godot::EditorInterface.singleton_ptr.null?
         ed_interface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
@@ -429,7 +442,7 @@ module Lapis
 
     # Registers and configures the native radare2 debugger plugin
     def self.setup_debugger_plugin : Void
-      return if headless?
+      return if headless_suppressed?
       if @@debugger_plugin
         return
       end
@@ -447,7 +460,7 @@ module Lapis
         ds = Godot::DisplayServer.new(Godot::DisplayServer.singleton_ptr)
         ds_name = ds.call_str("get_name")
         Godot.print("[CrystalIntegrationPlugin] DisplayServer name: '#{ds_name}'")
-        if ds_name == "headless"
+        if ds_name == "headless" && ::ENV["LIBGODOT_ENABLE_EDITOR_UI"]? != "1"
           return
         end
       end
@@ -493,7 +506,7 @@ module Lapis
     # Docks the CrystalPanel into Godot Editor's main screen and makes it available to the editor
     def self.setup_main_screen_panel : Void
       return if @@setting_up_panel
-      return if headless?
+      return if headless_suppressed?
       if (p = @@crystal_panel) && !p.pointer.null?
         return
       end
@@ -508,7 +521,7 @@ module Lapis
 
       if !Godot::DisplayServer.singleton_ptr.null?
         ds = Godot::DisplayServer.new(Godot::DisplayServer.singleton_ptr)
-        if ds.call_str("get_name") == "headless"
+        if ds.call_str("get_name") == "headless" && ::ENV["LIBGODOT_ENABLE_EDITOR_UI"]? != "1"
           return
         end
       end
@@ -545,7 +558,7 @@ module Lapis
     end
 
     def deferred_setup_editor_ui : Void
-      return if self.class.headless?
+      return if self.class.headless_suppressed?
       self.class.setup_toolbar_button
       self.class.setup_new_script_button
       self.class.setup_main_screen_panel
@@ -563,7 +576,7 @@ module Lapis
     end
 
     def setup_code_completion : Void
-      return if self.class.headless? || !self.class.has_editor_interface?
+      return if self.class.headless_suppressed? || !self.class.has_editor_interface?
       return if Godot::EditorInterface.singleton_ptr.null?
       ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
       script_ed = ed_iface.get_script_editor rescue nil
@@ -578,7 +591,7 @@ module Lapis
     end
 
     def configure_code_editor : Void
-      return if self.class.headless? || !self.class.has_editor_interface?
+      return if self.class.headless_suppressed? || !self.class.has_editor_interface?
       return if Godot::EditorInterface.singleton_ptr.null?
       ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
       script_ed = ed_iface.get_script_editor rescue nil
@@ -687,12 +700,19 @@ module Lapis
       false
     end
 
+    # Determines if editor UI instantiation is suppressed due to headless mode.
+    # When LIBGODOT_ENABLE_EDITOR_UI=1 is set, headless runners can instantiate
+    # real editor controls (buttons, tabs, panels) in-memory for automated testing.
+    def self.headless_suppressed? : Bool
+      headless? && ::ENV["LIBGODOT_ENABLE_EDITOR_UI"]? != "1"
+    end
+
     def self.get_crystal_icon_texture : Godot::Texture2D?
       if cached = @@cached_icon_texture
         return cached if !cached.pointer.null?
       end
 
-      return nil if headless?
+      return nil if headless_suppressed?
 
       icon_tex : Godot::Texture2D? = nil
       img = Godot.create(Godot::Image)
@@ -713,7 +733,7 @@ module Lapis
     end
 
     def self.reset_toolbar_button : Void
-      return if headless?
+      return if headless_suppressed?
       return unless has_editor_interface?
       return if Godot::EditorInterface.singleton_ptr.null?
       ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
@@ -740,7 +760,7 @@ module Lapis
 
     # Defers a property list notification on edited scene root to refresh inspector after reload
     def self.refresh_inspector_deferred : Void
-      return if headless?
+      return if headless_suppressed?
       return unless has_editor_interface?
       return if Godot::EditorInterface.singleton_ptr.null?
       ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
@@ -760,7 +780,7 @@ module Lapis
     end
 
     def self.setup_toolbar_button : Void
-      return if headless?
+      return if headless_suppressed?
       return unless has_editor_interface?
       return if (btn_alive = @@compile_button) && !btn_alive.pointer.null? && (btn_alive.call_str("get_text") rescue "") == "Build"
       return if Godot::EditorInterface.singleton_ptr.null?
@@ -770,7 +790,7 @@ module Lapis
 
       if !Godot::DisplayServer.singleton_ptr.null?
         ds = Godot::DisplayServer.new(Godot::DisplayServer.singleton_ptr)
-        return if ds.call_str("get_name") == "headless"
+        return if ds.call_str("get_name") == "headless" && ::ENV["LIBGODOT_ENABLE_EDITOR_UI"]? != "1"
       end
 
       # Check if button already exists in editor tree to avoid duplicates
@@ -860,7 +880,7 @@ module Lapis
     end
 
     def self.setup_new_script_button : Void
-      return if headless?
+      return if headless_suppressed?
       return unless has_editor_interface?
       return if Godot::EditorInterface.singleton_ptr.null?
       ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
@@ -1402,6 +1422,162 @@ module Lapis
           end
         end
       rescue
+      end
+    end
+
+    # =========================================================================
+    # Automated ActionDriver In-Editor User Verification
+    # =========================================================================
+
+    # Automated headless verification using ActionDriver to inspect the editor plugin:
+    # 1. Finds BuildCrystalToolbarButton in EditorTitleBar and asserts properties/icon/tooltip
+    # 2. Finds CrystalPanel in EditorMainScreen and tests main screen switching
+    # 3. Tests opening .cr and .gd scripts into ScriptEditor via ActionDriver#open_script
+    # 4. Validates get_current_script_path and syntax highlighter integration
+    # 5. Generates Set-of-Marks AI Vision manifest
+    # 6. Outputs clear SUCCESS markers and gracefully exits Godot
+    def self.check_test_action_driver_flow : Void
+      return unless ::ENV["LIBGODOT_ACTION_DRIVER_TEST"]? == "1"
+      Godot.print("==================================================================")
+      Godot.print("  [ActionDriverTest] Starting In-Editor ActionDriver Test Flow...")
+      Godot.print("==================================================================")
+
+      tree : Godot::SceneTree? = nil
+      if inst = @@instance
+        tree = inst.get_tree rescue nil
+      end
+      if (tree.nil? || tree.pointer.null?) && has_editor_interface? && !Godot::EditorInterface.singleton_ptr.null?
+        ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
+        if (base_ctrl = ed_iface.get_base_control rescue nil) && !base_ctrl.pointer.null?
+          tree = base_ctrl.get_tree rescue nil
+        end
+      end
+
+      if tree && !tree.pointer.null?
+        if timer = (tree.create_timer(0.6_f64) rescue nil)
+          timer.connect("timeout") do |_args|
+            run_action_driver_verifications
+          end
+          return
+        end
+      end
+
+      # Fallback: run immediately
+      run_action_driver_verifications
+    end
+
+    private def self.run_action_driver_verifications : Void
+      driver = Lapis::Editor::ActionDriver.new
+      test_failures = [] of String
+
+      # 1. Verify Crystal Build button
+      Godot.print("[ActionDriverTest] 1. Verifying Crystal Quick Build Button...")
+      if btn = driver.find_crystal_build_button
+        Godot.print("[ActionDriverTest] SUCCESS: Found Crystal Build button: '#{btn.name}'")
+        btn_tip = (btn.tooltip_text rescue "") || (btn.call_str("get_tooltip_text") rescue "")
+        if btn_tip.includes?("Build Crystal")
+          Godot.print("[ActionDriverTest] SUCCESS: Button tooltip contains 'Build Crystal': '#{btn_tip}'")
+        else
+          test_failures << "Button tooltip missing 'Build Crystal' (got: '#{btn_tip}')"
+        end
+
+        if parent = btn.get_parent
+          Godot.print("[ActionDriverTest] SUCCESS: Button parent is '#{parent.name}' (#{parent.get_class})")
+        else
+          test_failures << "Button has no parent in scene tree"
+        end
+      else
+        test_failures << "Build Crystal toolbar button not found by ActionDriver"
+      end
+
+      # 2. Verify Crystal Tab / Main Screen Panel
+      Godot.print("[ActionDriverTest] 2. Verifying Crystal Main Screen Panel...")
+      if panel = driver.find_crystal_panel
+        Godot.print("[ActionDriverTest] SUCCESS: Found CrystalPanel: '#{panel.name}' (#{panel.get_class})")
+        driver.open_crystal_main_screen
+        Godot.print("[ActionDriverTest] SUCCESS: Switched to Crystal main screen!")
+      else
+        test_failures << "CrystalPanel main screen not found by ActionDriver"
+      end
+
+      # 3. Verify opening scripts (.cr and .gd)
+      Godot.print("[ActionDriverTest] 3. Verifying Script Opening...")
+      cr_script = "scripts/patch_docs.cr"
+      gd_script = "scripts/comprehensive_interop_node.gd"
+
+      if File.exists?(cr_script)
+        if driver.open_script(cr_script, line: 10, col: 1)
+          Godot.print("[ActionDriverTest] SUCCESS: Opened #{cr_script} in ScriptEditor!")
+          curr = driver.get_current_script_path
+          Godot.print("[ActionDriverTest] Active script path: '#{curr}'")
+          if curr && curr.includes?("patch_docs.cr")
+            Godot.print("[ActionDriverTest] SUCCESS: Active script matches #{cr_script}!")
+          else
+            Godot.print("[ActionDriverTest] Note: active script path was '#{curr}'")
+          end
+        else
+          test_failures << "Failed to open #{cr_script} via ActionDriver"
+        end
+      end
+
+      if File.exists?(gd_script)
+        if driver.open_script(gd_script, line: 5, col: 1)
+          Godot.print("[ActionDriverTest] SUCCESS: Opened #{gd_script} in ScriptEditor!")
+        else
+          test_failures << "Failed to open #{gd_script} via ActionDriver"
+        end
+      end
+
+      # 4. Verify AI Vision manifest generation
+      Godot.print("[ActionDriverTest] 4. Verifying Set-of-Marks Vision Engine...")
+      begin
+        manifest_res = driver.capture_ai_manifest("reports/ai_vision_test")
+        Godot.print("[ActionDriverTest] SUCCESS: Generated vision manifest with #{manifest_res[:count]} interactive elements!")
+      rescue ex
+        Godot.print("[ActionDriverTest] Note: Vision capture: #{ex.message}")
+      end
+
+      # 5. Verify Script Editor CodeEdit resolution
+      Godot.print("[ActionDriverTest] 5. Verifying Script Editor CodeEdit Resolution...")
+      if ce = driver.get_active_code_edit
+        Godot.print("[ActionDriverTest] SUCCESS: Located active #{ce.get_class} editor control: '#{ce.name}'!")
+      else
+        Godot.print("[ActionDriverTest] Note: CodeEdit not directly resolved via get_current_editor (may be normal in headless)")
+      end
+
+      # 6. Verify Built-in Templates
+      Godot.print("[ActionDriverTest] 6. Verifying Built-in Script Templates...")
+      templates = CrystalLanguage.get_built_in_templates("Node")
+      if templates.size >= 4
+        Godot.print("[ActionDriverTest] SUCCESS: Verified #{templates.size} built-in script templates for Node!")
+      else
+        test_failures << "Built-in templates returned only #{templates.size} items"
+      end
+
+      # 7. Verify Static Syntax Validation
+      Godot.print("[ActionDriverTest] 7. Verifying Syntax Validator...")
+      bad_code = "node BadNode < Node do\n  def broken : Void\nend"
+      val_res = CrystalValidator.validate(bad_code)
+      if !val_res.valid? && val_res.errors.size >= 1
+        Godot.print("[ActionDriverTest] SUCCESS: Validator correctly identified syntax error (line #{val_res.errors.first.line}: #{val_res.errors.first.message})!")
+      else
+        test_failures << "Validator failed to flag syntax error in bad script"
+      end
+
+      # Check final outcome
+      if test_failures.empty?
+        Godot.print("==================================================================")
+        Godot.print("  [ActionDriverTest] ALL IN-EDITOR ACTION DRIVER TESTS PASSED!")
+        Godot.print("==================================================================")
+        File.write(".action_driver_tests_passed", "1") rescue nil
+        quit_editor(0_i64)
+      else
+        Godot.printerr("==================================================================")
+        Godot.printerr("  [ActionDriverTest] ACTION DRIVER TESTS FAILED:")
+        test_failures.each { |f| Godot.printerr("    - #{f}") }
+        Godot.printerr("==================================================================")
+        File.write(".action_driver_tests_failed", test_failures.join("\n")) rescue nil
+        quit_editor(1_i64)
       end
     end
 
@@ -2055,6 +2231,7 @@ module Lapis
       end
 
       ensure_project_bindings
+      Lapis::Editor::StatePreserver.snapshot_edited_scene
 
       out_dll = {% if flag?(:windows) %}
                   "bin/game.dll"

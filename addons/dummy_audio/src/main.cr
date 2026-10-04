@@ -23,7 +23,7 @@ node AudioStreamPlayerCrystal < Node do
   # Starts streaming audio playback on the configured bus
   def play_stream : Void
     @is_playing = true
-    emit_playback_started(@bus_name)
+    playback_started.emit(@bus_name)
   end
 
   # Stops the active audio stream playback
@@ -56,7 +56,7 @@ node DummyAudioPlugin < EditorPlugin do
   # Stops any actively playing editor audio preview stream
   def stop_all_previews : Void
     @preview_playing = false
-    emit_preview_stopped(@preview_bus)
+    preview_stopped.emit(@preview_bus)
     Godot.print("[DummyAudioPlugin] Stopped all editor audio previews")
   end
 

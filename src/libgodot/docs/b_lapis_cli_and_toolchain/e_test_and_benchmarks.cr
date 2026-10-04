@@ -80,27 +80,27 @@ module Lapis
         #   </thead>
         #   <tbody>
         #     <tr>
-        #       <td>`--tui`</td>
+        #       <td><code>--tui</code></td>
         #       <td>Force interactive ANSI double-buffered TUI dashboard</td>
         #     </tr>
         #     <tr>
-        #       <td>`--no-tui`</td>
+        #       <td><code>--no-tui</code></td>
         #       <td>Force clean linear streaming output (standard for CI environments)</td>
         #     </tr>
         #     <tr>
-        #       <td>`--skip-specs`</td>
+        #       <td><code>--skip-specs</code></td>
         #       <td>Skip Phase 1 unit specs</td>
         #     </tr>
         #     <tr>
-        #       <td>`--skip-editor`</td>
+        #       <td><code>--skip-editor</code>, <code>--skip-tool-tests</code></td>
         #       <td>Skip Phase 2 headless in-editor tests</td>
         #     </tr>
         #     <tr>
-        #       <td>`--skip-runtime`</td>
+        #       <td><code>--skip-runtime</code>, <code>--skip-runtime-tests</code></td>
         #       <td>Skip Phase 3 runtime test suites</td>
         #     </tr>
         #     <tr>
-        #       <td>`-f, --filter=PATTERN`</td>
+        #       <td><code>-f, --filter=PATTERN</code></td>
         #       <td>Run only test cases matching regex pattern</td>
         #     </tr>
         #   </tbody>
@@ -121,23 +121,31 @@ module Lapis
         #   </thead>
         #   <tbody>
         #     <tr>
-        #       <td>`↑` / `k`</td>
+        #       <td><code>↑</code> / <code>k</code></td>
         #       <td>Navigate to previous test phase</td>
         #     </tr>
         #     <tr>
-        #       <td>`↓` / `j`</td>
+        #       <td><code>↓</code> / <code>j</code></td>
         #       <td>Navigate to next test phase</td>
         #     </tr>
         #     <tr>
-        #       <td>`Enter` / `Space`</td>
+        #       <td><code>Enter</code> / <code>Space</code></td>
         #       <td>Open drill-down log inspection modal for selected phase</td>
         #     </tr>
         #     <tr>
-        #       <td>`Esc` / `q`</td>
+        #       <td><code>Ctrl+S</code></td>
+        #       <td>Capture VCR screenshot (.ansi & .html) and copy to clipboard</td>
+        #     </tr>
+        #     <tr>
+        #       <td><code>Ctrl+R</code></td>
+        #       <td>Toggle asciicast (.cast) screencast session recording</td>
+        #     </tr>
+        #     <tr>
+        #       <td><code>Esc</code> / <code>q</code></td>
         #       <td>Close inspection modal or exit runner</td>
         #     </tr>
         #     <tr>
-        #       <td>`?`</td>
+        #       <td><code>?</code></td>
         #       <td>Toggle help overlay</td>
         #     </tr>
         #   </tbody>
@@ -161,7 +169,9 @@ module Lapis
         #
         # #### Exporting Visual Reports:
         # ```bash
-        # lapis bench --export-html=report.html --export-svg=chart.svg
+        # lapis bench run html
+        # # Or configure formats and output path directly:
+        # lapis bench --format=console,html,xml,svg -o reports/
         # ```
         #
         def self.topic_03_performance_benchmarks : Nil; end

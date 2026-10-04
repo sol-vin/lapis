@@ -26,12 +26,12 @@ node DummyStorageEntity < Node2D do
 
   def deposit_item(item_id : String, quantity : Int32) : Bool
     if @used_slots + quantity > @max_slots
-      emit_inventory_full
+      inventory_full.emit
       return false
     end
 
     @used_slots += quantity
-    emit_item_deposited(item_id, quantity)
+    item_deposited.emit(item_id, quantity)
     true
   end
 
@@ -54,7 +54,7 @@ node DummyStoragePlugin < EditorPlugin do
   signal storage_system_ready
 
   def _enter_tree : Void
-    emit_storage_system_ready
+    storage_system_ready.emit
     Godot.print("[DummyStoragePlugin] Initialized successfully in editor!")
   end
 

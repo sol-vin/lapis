@@ -112,8 +112,8 @@ describe "Lapis::TUI Views & Modal Specifications" do
       rendered.should contain("Process Status")
       rendered.should contain("Log Stream")
       rendered.should contain("STOPPED")
-      rendered.should contain("Recompile & Reload")
-      rendered.should contain("Kill Editor")
+      rendered.should contain("Build & Hot Reload")
+      rendered.should contain("Graceful Kill")
 
       assert_no_emojis(rendered, "EditorLauncher")
     end
@@ -206,15 +206,33 @@ describe "Lapis::TUI Views & Modal Specifications" do
       bench = Lapis::TUI::BenchViewer.new
       buffer = Opal::UI::Buffer.new(110, 30)
 
+      # 1. When empty/no metrics, renders empty state notice
+      bench.metrics.clear
       bench.choosing_file = false
       bench.render_to_buffer(buffer, 110, 30)
-      rendered = buffer.render_to_string(with_ansi: false)
+      rendered1 = buffer.render_to_string(with_ansi: false)
+      rendered1.should contain("BENCHMARK SUITE VISUALIZER")
+      rendered1.should contain("NO BENCHMARK RESULTS AVAILABLE")
+      assert_no_emojis(rendered1, "BenchViewer empty state")
 
-      rendered.should contain("BENCHMARK SUITE VISUALIZER")
-      rendered.should contain("Multi-Language Bar")
-      rendered.should contain("Top Speedups")
-      rendered.should contain("Category Donut")
-      assert_no_emojis(rendered, "BenchViewer dashboard")
+      # 2. When metrics populated, renders full visualization panels
+      bench.metrics << Lapis::Commands::Benchmarks::BenchmarkMetric.new(
+        name: "AStar2D",
+        category: Lapis::Commands::Benchmarks::Category::EngineCore,
+        crystal_ms: 1.0,
+        gdscript_ms: 10.0,
+        speedup: 10.0,
+        description: "AStar2D Pathfinding"
+      )
+      buffer.clear
+      bench.render_to_buffer(buffer, 110, 30)
+      rendered2 = buffer.render_to_string(with_ansi: false)
+
+      rendered2.should contain("BENCHMARK SUITE VISUALIZER")
+      rendered2.should contain("Multi-Language Bar")
+      rendered2.should contain("Top Speedups")
+      rendered2.should contain("Category Donut")
+      assert_no_emojis(rendered2, "BenchViewer dashboard")
     end
   end
 
@@ -255,7 +273,7 @@ describe "Lapis::TUI Views & Modal Specifications" do
       rendered.should contain("Target: bin/game.exe")
       rendered.should contain("FPS:")
       rendered.should contain("RAM:")
-      rendered.should contain("TERMINATED")
+      rendered.should contain("STOPPED")
       rendered.should contain("Gracefully Kill Process")
 
       assert_no_emojis(rendered, "RunMonitor")

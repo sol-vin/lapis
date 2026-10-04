@@ -220,7 +220,41 @@ end
 
 ---
 
-## 8. Common Metaprogramming Pitfalls
+## 8. Macro AST Unwrapping for Unary Tilde & Expressions
+
+When building ergonomic syntax sugar macros like `onready`, inspecting the Crystal macro AST allows unwrapping expressions at compile time to optimize runtime dispatch:
+
+```crystal
+# Unwrapping unary ~ from expressions like: onready sprite = ~"Sprite2D"
+{% if stmt.value.is_a?(Call) && stmt.value.name.stringify == "~" %}
+  {% inner_arg = stmt.value.receiver || (stmt.value.args.size > 0 ? stmt.value.args[0] : nil) %}
+  {% if inner_arg.is_a?(StringLiteral) %}
+    # Extracted raw literal path: "Sprite2D"
+    found = get_node_as({{inner_arg}}, {{v_type}})
+  {% end %}
+{% end %}
+```
+
+---
+
+## 9. Typed Lambda Flow-Typing in Macro Patterns (`match`)
+
+In Crystal, local variables cannot easily change type within an arbitrary lexical scope without a union or `if var.is_a?(Type)` branch. To enable implicit narrowing (e.g. `match i do is Int64 do i * 2 end end`), wrap the branch execution in an immediately-invoked typed proc:
+
+```crystal
+# Synthesize an immediately-invoked typed proc with target variable shadow-binding:
+%result = (->({{ target }} : {{ pattern_type }}) {
+  {{ branch_body }}
+}).call(%cast_value)
+```
+This guarantees:
+1. `{{ target }}` is strictly flow-typed as `pattern_type` inside the branch.
+2. Zero heap allocations when inlined by LLVM.
+3. Crystal's type inferrer permits calling methods on `{{ target }}` without manual casts or explicit block arguments.
+
+---
+
+## 10. Common Metaprogramming Pitfalls
 
 1. **Macro Expansion Recursion**: Never define a macro that calls itself with identical argument patterns without an AST structural base case.
 2. **Missing `check_alive!`**: When generating C-callable wrappers, ALWAYS call `instance.check_alive!` before invoking the underlying Crystal method. If the Godot node was freed via GDScript, accessing it without this check causes an immediate, unrecoverable `0xC0000005` access violation.

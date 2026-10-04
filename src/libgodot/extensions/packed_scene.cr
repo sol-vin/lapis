@@ -28,5 +28,10 @@ module Godot
     def instantiate(as type : T.class, edit_state : Int64 = 0_i64) : T forall T
       instantiate_as(type, edit_state)
     end
+
+    # Pipeline operator (>): Instantiates the scene directly typed as T
+    def >(type : T.class) : T forall T
+      instantiate_as(type)
+    end
   end
 end

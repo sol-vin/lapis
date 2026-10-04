@@ -238,7 +238,9 @@ end
 ### Macro Directives:
 - **`node ClassName < ParentNode do ... end`**: Declares a Godot class registered in `ClassDB`.
 - **`@[Export]` annotations**: Full support for ranges (`@[ExportRange]`), enums (`@[ExportEnum]`), file pickers (`@[ExportFile]`, `@[ExportDir]`), bitmasks (`@[ExportFlags]`), easing curves (`@[ExportExpEasing]`), and buttons (`@[ExportToolButton]`).
-- **`signal name(arg : Type)`**: Automatically registers signal with `ClassDB` and synthesizes type-safe helper `emit_<name>(...)`.
+- **`signal name(arg : Type)`**: Automatically registers signal with `ClassDB` and provides first-class signal accessor `signal.emit(...)`, `signal.connect`, and compound operators (`+=`, `-=`, `>>`, `>`).
+- **Scene Pipeline (`>`) & Tween Ergonomics**: Direct typed instantiation (`"res://..." > Type`), fluent `.build`/`.configure`, and compile-time `tween(node.prop, to: val)`.
+- **Pattern Matching (`match`)**: Polymorphic downcasting, Variant unboxing, and destructuring via `match val do is Type do ... end`.
 - **`@[Tool]`**: Marks the class to execute inside the Godot Editor in real time.
 - **`@[RPC]`**: Configures multiplayer network replication mode, transfer mode, and channels.
 - **Automated Doc Comment Harvesting**:
@@ -315,6 +317,7 @@ This repository includes specialized Antigravity agent skills in `.agents/skills
 - **`crystal-execution-contexts`**: Multithreading and fiber orchestration patterns with Crystal Execution Contexts (`Concurrent`, `Parallel`, `Isolated`, dynamic work-stealing, and thread scaling).
 - **`libgodot-api-generator`**: Guide for dumping Godot extension API and updating Crystal class bindings.
 - **`libgodot-scaffold`**: Guide for scaffolding new showcase examples and GDExtension addons.
+- **`lapis-release-tagging`**: Single-commit-per-milestone squashing, linear release branch hygiene, Godot lifecycle stage tagging (`dev`, `alpha`, `beta`, `rc`, `stable`), and remote synchronization.
 
 <!-- graft:start -->
 ## Graft — repo context graph

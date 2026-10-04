@@ -21,7 +21,7 @@ Usage: lapis editor [options] [path]
        lapis run [options] [path]
 
 Options:
-  -p, --path=PATH            Godot project path (default: current project or test)
+  -p, --path=PATH            Godot project path (default: current directory or workspace root)
   -r, --run                  Run standalone project directly instead of opening editor
   --monitor                  Run with real-time TUI performance charts (FPS & RAM)
   -q, --quit-after=SEC       Auto-quit after N seconds
@@ -37,10 +37,10 @@ Examples:
   lapis editor
   lapis editor my_game
   lapis editor -p template
-  lapis editor -p test --quit-after 10
-  lapis editor -p test --debug
+  lapis editor -p template --quit-after 10
+  lapis editor --debug
   lapis run
-  lapis run -p test
+  lapis run -p template
 HELP
       end
 
@@ -68,7 +68,12 @@ HELP
         end
 
         # Auto-detect target project when no path is explicitly provided:
-        # 1. Current working directory if it contains project.godot
+        # 1. Search upwards from current directory for nearest enclosing project.godot
+        if (nearest = Core::Env.find_project_dir(curr)) && nearest != root
+          return nearest
+        end
+
+        # 2. Current working directory if it contains project.godot
         if File.exists?(curr.join("project.godot"))
           return curr
         end

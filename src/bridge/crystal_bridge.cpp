@@ -173,7 +173,7 @@ deinitialize_crystal_module(void *p_userdata,
       // Unregister classes registered under this library.
       // During reload, Godot unregisters from ClassDB and marks them reloading in extension_classes.
       // During final shutdown, Godot unregisters from ClassDB and erases them from extension_classes.
-      if (gd_classdb_unregister_extension_class) {
+      if (s_is_reloading && gd_classdb_unregister_extension_class) {
         for (int i = (int)g_registered_class_order.size() - 1; i >= 0; i--) {
           const std::string &cname = g_registered_class_order[i];
           auto pcd_it = g_persistent_class_descs.find(cname);
@@ -272,6 +272,10 @@ static inline bool bridge_version_matches(const char *expected,
     bool found = false;
     for (const auto &act : act_tokens) {
       if (exp == act) {
+        found = true;
+        break;
+      }
+      if (exp.rfind("dev", 0) == 0 && (act == "dev" || act == exp)) {
         found = true;
         break;
       }

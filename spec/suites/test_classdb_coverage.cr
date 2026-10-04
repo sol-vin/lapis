@@ -235,4 +235,25 @@ end
   end
 end
 
+  test "ClassDB.is_class_exposed and 4.8-dev7 non-allocating result classes exposure" do
+    cdb_ptr = Godot::Bridge.get_singleton("ClassDB")
+    if !cdb_ptr.null?
+      class_db = Godot::ClassDB.new(cdb_ptr)
+      assert_true class_db.is_class_exposed("Node")
+      assert_true class_db.is_class_exposed("PhysicsCastMotionResult3D")
+      assert_true class_db.is_class_exposed("PhysicsIntersectRayResult3D")
+      assert_true class_db.is_class_exposed("PhysicsCollideShapeResult3D")
+      assert_true class_db.is_class_exposed("PhysicsGetRestInfoResult3D")
+      assert_true class_db.is_class_exposed("PhysicsIntersectPointResult3D")
+      assert_true class_db.is_class_exposed("PhysicsIntersectShapeResult3D")
+      assert_true class_db.is_class_exposed("PhysicsCastMotionResult2D")
+      assert_true class_db.is_class_exposed("PhysicsIntersectRayResult2D")
+      assert_true class_db.is_class_exposed("PhysicsCollideShapeResult2D")
+      assert_true class_db.is_class_exposed("PhysicsGetRestInfoResult2D")
+      assert_true class_db.is_class_exposed("PhysicsIntersectPointResult2D")
+      assert_true class_db.is_class_exposed("PhysicsIntersectShapeResult2D")
+      assert_true (class_db.is_class_exposed("TextServerManager") || class_db.is_class_exposed("TextServerExtension") || class_db.is_class_exposed("TextServerFallback"))
+    end
+  end
+
 end

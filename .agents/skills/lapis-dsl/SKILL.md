@@ -54,39 +54,42 @@ gmodule DamageableMixin do
 
   def take_damage(amount : Int32) : Void
     mitigated = Math.max(1, amount - @armor_rating)
-    emit_damaged(mitigated, 100)
+    damaged.emit(mitigated, 100)
   end
 end
 ```
 
 ---
 
-## 2. Resolving Scene Nodes with Unary `~`
+## 2. Resolving Scene Nodes with Unary `~` & `onready` Properties
 
-The unary `~` operator in Lapis provides idiomatic, high-performance replacements for Godot's `$` and `%` operators:
+The unary prefix `~` operator in Lapis provides idiomatic, high-performance replacements for Godot's `$` and `%` operators, resolving against the active thread-local `Godot::NodeContext.current` automatically scoped around all engine callbacks:
 
 ```crystal
-def _ready : Void
-  # 1. Typed lookup of first child matching class
-  sprite = ~AnimatedSprite2D
+node Player < CharacterBody2D do
+  # 1. Eager onready property initialized during _ready with dead-pointer safety:
+  onready sprite : Sprite2D = ~"Sprite2D"
+  onready health_bar : ProgressBar = ~"%HealthBar"
+  onready anim = ~"AnimationPlayer".as(AnimationPlayer)
 
-  # 2. String relative path child resolution
-  hitbox = ~"HitboxArea/CollisionShape2D"
+  # 2. Lazy-cached node property (resolved on first access with dead-pointer safety):
+  onready camera, Camera2D, "Pivot/Camera2D"
+  onready? particle_fx, CPUParticles2D
 
-  # 3. Tree navigation (parents / siblings)
-  camera = ~"../MainCamera"
+  def _ready : Void
+    # 3. Direct unary ~ lookups inside methods:
+    s = ~"Sprite2D"                      # Child relative path
+    hp = ~"%HealthBar"                   # Scene Unique Node (% prefix)
+    cam = ~"Pivot/Camera2D"              # Deep relative path
+    parent_mgr = ~"../GameManager"       # Parent / sibling navigation
 
-  # 4. Scene unique node identifier (% prefix)
-  health_bar = ~"%HealthBar"
+    # 4. Typed lookup of first child matching class (get_node_or_null parity):
+    if light = ~PointLight2D?
+      light.energy = 1.5_f32
+    end
 
-  # 5. Explicit downcasting to custom user node class
-  target = ~"TargetNode".as(Enemy)
-  bar = ~"%HealthBar".as(ProgressBar)
-
-  # 6. Nilable lookup (returns nil if child absent)
-  optional_light = ~PointLight2D?
-  if light = optional_light
-    light.energy = 1.5_f32
+    # 5. Direct cast:
+    target = ~"TargetNode".as(Enemy)
   end
 end
 ```
@@ -143,7 +146,7 @@ end
 
 ---
 
-## 4. Signals & Event Dispatch
+## 4. Signals, Event Dispatch & Piping
 
 ```crystal
 node Character < CharacterBody2D do
@@ -156,21 +159,43 @@ node Character < CharacterBody2D do
 
   def apply_damage(amount : Int32) : Void
     @health -= amount
-    # Synthesized type-safe emitter helper
-    emit_health_changed(@health, 100)
+    # First-class type-safe emitter
+    health_changed.emit(@health, 100)
 
     if @health <= 0
-      emit_defeated
+      defeated.emit
     end
   end
 
   def _ready : Void
-    # Connect signals dynamically
-    defeated.connect(self, "on_character_defeated")
-  end
+    # 1. First-class block connection:
+    defeated.connect { Godot.print("Character perished!") }
 
-  def on_character_defeated : Void
-    Godot.print("Character has perished!")
+    # 2. Operator << syntax sugar:
+    defeated << ->{ Godot.print("Defeated via proc!") }
+
+    # 3. Compound operators += and -= with procs or subscriptions:
+    handler = ->{ Godot.print("Handled!") }
+    defeated += handler
+    defeated -= handler
+
+    # 4. Expressive 'on' macro with typed downcasting:
+    on health_changed do |curr, max|
+      Godot.print("HP: #{curr}/#{max}")
+    end
+
+    # 5. One-shot listeners:
+    defeated.once { Godot.print("Fired only once") }
+
+    # 6. Receiver Lifetime Tracking & Auto-Pruning:
+    # Pass listener as receiver; when either emitter or receiver is destroyed,
+    # the connection automatically self-prunes without manual _exit_tree boilerplate:
+    defeated.connect(hud) { |args| hud.on_character_defeated }
+
+    # 7. Signal Piping:
+    # Strict pipe (>): Compile-time verified signature matching
+    # Loose pipe (>>): Positional arity trimming and type downcasting
+    # start_btn.pressed >> self.game_started
   end
 end
 ```
@@ -320,3 +345,381 @@ node StorageChest < Node2D do
   # ...
 end
 ```
+
+---
+
+## 11. Scene Pipeline & Fluent Instantiation
+
+```crystal
+# 1. Preload and instantiate typed node:
+hero = "res://scenes/hero.tscn" > Hero
+
+# 2. Dynamic uncached loading:
+stage = "res://levels/level_01.tscn" >> StageLevel
+
+# 3. Add child with inline configuration returning concrete static type:
+boss = parent.add_child(BossEnemy) do |b|
+  b.health = 5000
+  b.boss_title = "Dread Overlord"
+end
+
+# 4. PackedScene typed pipeline:
+scene = Godot.load_as(Godot::PackedScene, "res://scenes/companion.tscn")
+companion = scene > Companion
+
+# 5. Fluent configuration blocks:
+sword = ItemSword.new.build do |s|
+  s.damage = 50
+  s.rarity = :rare
+end
+```
+
+---
+
+## 12. Type-Safe Tweens & Animation Pipeline
+
+```crystal
+# 1. Fluent Chain & Parallel Pipeline DSL:
+tw = tween(hero) do
+  animate(:position, from: Vector2.ZERO, to: target_pos, in: 0.4.seconds)
+    .trans(:cubic).ease(:out)
+    .chain.animate(:modulate, from: Color::RED, to: Color::BLUE, in: 0.3.seconds)
+    .parallel.animate(:scale, to: Vector2.new(1.2, 1.2), in: 0.3.seconds)
+    .chain.animate(:alpha, to: 0.0, in: 0.25.seconds)
+end
+
+await(tw.finished)
+Godot.print("Hero entrance completed!")
+
+# 2. Deterministic multi-frame test stepping:
+tw.pause
+tw.custom_step(0.1) # Advances tween timeline deterministically by delta
+
+# 3. Quick single-property animation (target omitted):
+tween_to(:position, :y, 150.0, duration: 0.5.seconds)
+tween_to(:alpha, 0.0, duration: 0.3.seconds)
+
+# 4. Expressive builder block:
+tween do
+  animate :scale, to: Vector2.new(1.5_f32, 1.5_f32), duration: 0.2.seconds
+  delay 0.1.seconds
+  animate :position, :y, to: 0.0, duration: 0.3.seconds
+end
+
+# 5. Compile-time validated dot-navigation macro:
+tween(player.position.y, to: 100.0, in: 0.4.seconds)
+```
+
+---
+
+## 13. Pattern Matching Macro (`match`)
+
+Expression-oriented pattern matching with dead-pointer checking, Variant unboxing, receiver scoping, and implicit variable narrowing:
+
+```crystal
+# 1. Polymorphic node downcasting with receiver scoping:
+match collider do
+  is Player, if: p.health < 20 do |p|
+    p.take_damage(100)
+  end
+  is Enemy do
+    apply_knockback(transform.basis.z * 15.0_f32) # Receiver scoped to Enemy!
+  end
+  is WorldBoundary do
+    bounce_projectile!
+  end
+end
+
+# 2. Implicit variable narrowing (variable is typed as the branch type inside the block):
+value_text = match i do
+  is Int64          do "Integer: #{i * 2}" end
+  is String         do "Text: #{i.upcase}" end
+  is Godot::Vector2 do "Vector: (#{i.x}, #{i.y})" end
+  default           do "Unsupported Variant" end
+end
+
+# 2. Polymorphic node downcasting with dead-pointer validation:
+status = match hit.collider do
+  is Player do |p| "Player with HP: #{p.health}" end
+  is Enemy, if: p.boss? do |b| "Boss: #{b.name}" end
+  default do "Obstacle" end
+end
+
+# 3. Tuple destructuring:
+match {state, on_floor?} do
+  is :jump, false do apply_air_control end
+  is :jump, true  do land! end
+end
+```
+
+---
+
+## 14. Scene Tree Glob Queries, Receiver Scoping & Metadata
+
+```crystal
+# 1. Streaming traversal with receiver scoping (with node yield node):
+# Receiver-scoped dispatch (calls alert! and take_damage on each enemy directly):
+each_node("Enemies/*", Enemy) do
+  alert!
+  take_damage(25)
+end
+
+# Block-pass shorthand:
+each_node("Enemies/*", Enemy, &.alert!)
+
+# Deep subtree streaming:
+each_descendant(Light3D) do
+  light_energy = 0.0_f32
+end
+
+# 2. Glob search returning Array:
+enemies = get_nodes("Enemies/*", Enemy)
+all_loot = get_nodes("**/ItemChest", ItemChest)
+
+# 3. Group inspection with String & Symbol interchangeability:
+if enemy.in_group?(:bosses, :elites)
+  trigger_boss_music
+end
+
+# 4. Metadata CRUD:
+node.set_meta(:enemy_tier, 3)
+node.set_meta("spawner_id", "wave_01")
+tier = node.get_meta_i64(:enemy_tier)
+id = node.get_meta_str("spawner_id")
+node.remove_meta(:temporary_buff)
+
+# 5. Hierarchy navigation:
+room = ancestor(DungeonRoom)
+prev_item = previous_sibling?(InventorySlot)
+next_item = next_sibling?(InventorySlot)
+```
+
+---
+
+## 15. Physics Raycasting & Dead-Pointer Safe Hits
+
+Perform direct 2D or 3D raycasts without manual physics query parameter boilerplate:
+
+```crystal
+# 2D Raycast from global_position:
+if hit = raycast_to(target_pos)
+  # hit.collider dynamically verifies #alive? to prevent dead-pointer crashes:
+  if enemy = hit.collider.as?(Enemy)
+    enemy.take_damage(25)
+  end
+end
+
+# 3D Directional Raycast:
+if hit = raycast(Vector3.forward, distance: 20.0)
+  point = hit.point
+  normal = hit.normal
+end
+```
+
+---
+
+## 15. Timers & Lifecycle Sugar
+
+```crystal
+# Scoped recurring timer (auto-cancels if node is destroyed):
+every(0.5.seconds) do |handle|
+  fire_homing_missile
+end
+
+# Scoped one-shot delay:
+after(2.0.seconds) do
+  respawn_player
+end
+
+# Cooperative fiber condition gates:
+await_until(character.on_floor?, timeout_sec: 5.0)
+await_while(tween.is_running)
+```
+
+---
+
+## 16. Compile-Time Context-Aware Audio Macro (`play_sound`)
+
+```crystal
+# 1. In Node2D: Automatically emits AudioStreamPlayer2D at global_position
+play_sound "res://audio/laser.wav", pitch_scale: 1.2
+
+# 2. In Node3D: Automatically emits AudioStreamPlayer3D at global_position
+play_sound "res://audio/explosion.wav" do
+  max_distance = 250.0_f32
+end
+
+# 3. In Control: Automatically emits non-spatial AudioStreamPlayer
+play_sound "res://audio/ui_click.wav", volume_db: -3.0
+# Sound survives on scene root even if the calling node is freed immediately!
+```
+
+---
+
+## 17. Upward Ancestor Search (`<<`)
+
+Symmetrical with the typed scene pipeline (`scene > Type`), `<<` searches upward in the scene hierarchy for an ancestor:
+
+```crystal
+# 1. Strict ancestor search (returns Player; raises Godot::NodeNotFoundError if missing):
+player = hitbox << Player
+player.take_damage(10)
+
+# 2. Safe / Nilable ancestor search (returns Player?; returns nil if missing):
+if boss = hitbox << Boss?
+  boss.take_damage(100)
+end
+
+# 3. Programmatic method parity:
+parent = hitbox.find_ancestor_as!(ParentNode) # -> ParentNode
+opt    = hitbox.find_ancestor_as(ShieldNode)  # -> ShieldNode?
+```
+
+---
+
+## 18. Fluent `group(:name)` DSL
+
+Zero-allocation stack struct (`struct GroupQuery`) providing clean, chainable group queries:
+
+```crystal
+# 1. Iterate with typed receiver:
+group(:enemies).each(as: Enemy) do |enemy|
+  enemy.take_damage(50)
+end
+
+# 2. Collect as typed or untyped array:
+enemies = group(:enemies).to_a(as: Enemy) # -> Array(Enemy)
+nodes   = group(:lights).to_a             # -> Array(Godot::Node)
+
+# 3. Fetch first member:
+boss = group(:boss).first(as: Boss)       # -> Boss?
+lead = group(:squad).first                # -> Godot::Node?
+must_have = group(:player).first!(as: Player) # -> Player (raises if missing)
+
+# 4. Broadcast / call_group:
+group(:enemies).call("alert", player.global_position)
+group(:enemies).call(:stun, 2.5)
+
+# 5. Metrics and predicates:
+if group(:enemies).empty?
+  Godot.print("All enemies cleared!")
+end
+count = group(:loot).size
+has_loot = group(:loot).any?
+```
+
+---
+
+## 19. Asset Loading Macros (`load` & `preload`) with Type Inference
+
+Infer return types from file extensions at compile time and pair seamlessly with the typed scene pipeline:
+
+```crystal
+# 1. Cached asset preloading (PreloadCache):
+const ICON         = preload("res://icon.svg")       # -> Texture2D
+const PLAYER_SCENE = preload("res://player.tscn")   # -> PackedScene
+const JUMP_SFX     = preload("res://sfx/jump.wav")   # -> AudioStream
+const THEME_RES    = preload("res://ui_theme.tres")  # -> Resource
+
+# 2. Dynamic runtime loading (ResourceLoader):
+level_scene = load("res://scenes/level_2.tscn")      # -> PackedScene
+level = load("res://scenes/level_2.tscn") > Level    # Typed scene pipeline!
+hud_tex = load("res://art/hud.png")                  # -> Texture2D
+
+# 3. Explicit type override if desired:
+custom_res = load("res://data/levels.dat", as: CustomLevelData)
+```
+
+---
+
+## 20. Customizable `onready` Getters & Setters
+
+Developers can intercept assignments, attach signal listeners, clamp values, or perform custom caching simply by defining standard methods in the node body:
+
+```crystal
+node Player < CharacterBody2D do
+  onready health_bar : ProgressBar = "%HealthBar"
+
+  # Custom setter: intercept assignments to health_bar
+  def health_bar=(bar : ProgressBar?) : Void
+    @health_bar = bar
+    if b = bar
+      b.min_value = 0.0
+      b.max_value = @max_health.to_f64
+    end
+  end
+
+  # Custom getter: add logging or lazy configuration
+  def health_bar : ProgressBar?
+    @health_bar
+  end
+end
+```
+
+---
+
+## 21. Main Thread Execution (`Godot.on_main_thread`)
+
+Dispatches a block safely to the Godot Main Thread from background OS threads or cooperative fibers:
+
+```crystal
+# Safe main-thread execution:
+Godot.on_main_thread do
+  get_tree.current_scene.add_child(spawned_enemy)
+end
+
+# Top-level convenience helper:
+on_main_thread do
+  hud.update_score(100)
+end
+```
+
+---
+
+## 22. Authoritative DSL Anti-Patterns & No-Nos Catalog
+
+To maintain a lean, high-signal, zero-bloat codebase, the following patterns are strictly prohibited:
+
+<table>
+  <thead>
+    <tr>
+      <th align="left">Prohibited Pattern</th>
+      <th align="left">Proposed Syntax (Rejected)</th>
+      <th align="left">Why It Is Prohibited</th>
+      <th align="left">Proper Lapis Alternative</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Node Input Delegation</strong></td>
+      <td><code>node.input_axis</code>, <code>node.input_vector</code></td>
+      <td>Pollutes the method table of all 400+ <code>Node</code> classes with input logic that belongs strictly to input polling.</td>
+      <td><code>Input.axis(...)</code>, <code>Input.vector(...)</code> on <code>Godot::Input</code>.</td>
+    </tr>
+    <tr>
+      <td><strong>Single-Object <code>if_alive</code></strong></td>
+      <td><code>node.if_alive { |n| ... }</code></td>
+      <td>Syntactic bloat. Adds closure allocation and cognitive overhead over a standard 1-line check.</td>
+      <td><code>if node.alive? ... end</code> (idiomatic Crystal).</td>
+    </tr>
+    <tr>
+      <td><strong>Global <code>deferred</code> Macro</strong></td>
+      <td><code>deferred { ... }</code></td>
+      <td>Redundant bloat. Obscures whether dispatch goes through <code>MessageQueue</code> or <code>ThreadSafety</code>.</td>
+      <td><code>node.call_deferred(...)</code> or <code>Godot.on_main_thread { ... }</code>.</td>
+    </tr>
+    <tr>
+      <td><strong>Multi-Object <code>guard_alive</code></strong></td>
+      <td><code>guard_alive(a, b) { ... }</code></td>
+      <td>Unnecessary magic macro. Standard boolean expressions are faster, clearer, and require zero AST expansion.</td>
+      <td><code>if a.alive? && b.alive? ... end</code>.</td>
+    </tr>
+    <tr>
+      <td><strong>Procedural Group Macros</strong></td>
+      <td><code>nodes_in_group(...)</code>, <code>each_in_group(...)</code></td>
+      <td>Procedural function soup. Lacks fluent chaining and ergonomics.</td>
+      <td>Fluent <code>group(:name).each</code>, <code>group(:name).to_a</code> struct.</td>
+    </tr>
+  </tbody>
+</table>
+

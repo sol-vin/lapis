@@ -116,6 +116,20 @@ module Godot
       end
     end
 
+    # Creates a Color from a hex string (e.g. "#ff0000" or "ff0000")
+    def self.hex(hex_str : String) : Color
+      from_html(hex_str)
+    end
+
+    # Generates a random RGB Color with alpha = 1.0 (or random alpha if include_alpha: true)
+    def self.random(include_alpha : Bool = false) : Color
+      r = ::Random.rand.to_f32
+      g = ::Random.rand.to_f32
+      b = ::Random.rand.to_f32
+      a = include_alpha ? ::Random.rand.to_f32 : 1.0_f32
+      Color.new(r, g, b, a)
+    end
+
     def self.from_hsv(h : Number, s : Number, v : Number, a : Number = 1.0) : Color
       hue = (h.to_f32 * 6.0_f32) % 6.0_f32
       sat = s.to_f32.clamp(0.0_f32, 1.0_f32)

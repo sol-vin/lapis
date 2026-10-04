@@ -89,11 +89,36 @@ sections:
     content: |
       Every Lapis target directory requires the following shared libraries alongside `crystal_bridge.dll` and `game.dll`:
 
-      | Shared Library | Purpose | Source |
-      | :--- | :--- | :--- |
-      | `gc.dll` | Boehm-Demers-Weiser Garbage Collector | Crystal distribution (`bin/`) |
-      | `pcre2-8.dll` | Perl-Compatible Regular Expressions v2 | Crystal distribution (`bin/`) |
-      | `iconv-2.dll` | Character encoding conversion library | Crystal distribution (`bin/`) |
-      | `libgodot.dll` | Standalone Godot engine core dynamic library | Workspace `bin/` |
+      <table>
+        <thead>
+          <tr>
+            <th>Shared Library</th>
+            <th>Purpose</th>
+            <th>Source</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>gc.dll</code></td>
+            <td>Boehm-Demers-Weiser Garbage Collector</td>
+            <td>Crystal distribution (<code>bin/</code>)</td>
+          </tr>
+          <tr>
+            <td><code>pcre2-8.dll</code></td>
+            <td>Perl-Compatible Regular Expressions v2</td>
+            <td>Crystal distribution (<code>bin/</code>)</td>
+          </tr>
+          <tr>
+            <td><code>iconv-2.dll</code></td>
+            <td>Character encoding conversion library</td>
+            <td>Crystal distribution (<code>bin/</code>)</td>
+          </tr>
+          <tr>
+            <td><code>libgodot.dll</code></td>
+            <td>Standalone Godot engine core dynamic library</td>
+            <td>Workspace <code>bin/</code></td>
+          </tr>
+        </tbody>
+      </table>
 
       Run `make deps` or `lapis deps` at any time to verify and stage these libraries automatically.

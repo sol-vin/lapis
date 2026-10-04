@@ -4,7 +4,10 @@ module Godot
   class Object
   end
 
-  alias VariantValue = Nil | Bool | Int64 | Float64 | String | Vector2 | Vector2i | Rect2 | Rect2i | Vector3 | Vector3i | Vector4 | Vector4i | Color | Transform2D | Transform3D | Basis | Quaternion | Plane | AABB | Godot::Object
+  class Dictionary
+  end
+
+  alias VariantValue = Nil | Bool | Int64 | Float64 | String | Vector2 | Vector2i | Rect2 | Rect2i | Vector3 | Vector3i | Vector4 | Vector4i | Color | Transform2D | Transform3D | Basis | Quaternion | Plane | AABB | Godot::Object | Godot::Dictionary
 
   # Represents a dynamically typed Godot Variant value in Crystal with zero-allocation
   # unboxing for primitive and engine math types.
@@ -12,6 +15,10 @@ module Godot
     getter raw : VariantValue
 
     def initialize(@raw : VariantValue = nil)
+    end
+
+    def self.new(val : Variant) : Variant
+      val
     end
 
     def self.new(val : Int32)
@@ -131,12 +138,20 @@ module Godot
       end
     end
 
+    def as_vector2 : Vector2
+      as_v2
+    end
+
     def as_v2i : Vector2i
       case v = @raw
       when Vector2i then v
       when Vector2  then Vector2i.new(v.x.to_i32, v.y.to_i32)
       else               Vector2i.new
       end
+    end
+
+    def as_vector2i : Vector2i
+      as_v2i
     end
 
     def as_rect2 : Rect2
@@ -155,12 +170,20 @@ module Godot
       end
     end
 
+    def as_vector3 : Vector3
+      as_v3
+    end
+
     def as_v3i : Vector3i
       case v = @raw
       when Vector3i then v
       when Vector3  then Vector3i.new(v.x.to_i32, v.y.to_i32, v.z.to_i32)
       else               Vector3i.new
       end
+    end
+
+    def as_vector3i : Vector3i
+      as_v3i
     end
 
     def as_v4 : Vector4

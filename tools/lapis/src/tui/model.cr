@@ -1,4 +1,15 @@
 require "opal"
+require "opal/asciicast"
+
+class Opal::Asciicast::VCR
+  def self.elapsed : Float64
+    instance.elapsed
+  end
+
+  def self.frame_count : Int32
+    instance.frame_count
+  end
+end
 
 module Lapis
   module TUI
@@ -22,30 +33,7 @@ module Lapis
       Dashboard
       PhaseDetail
       Help
-      ColorStudio
       FileExplorer
-    end
-
-    enum ShaderFxMode
-      None
-      Crt
-      Matrix
-      Glitch
-      Plasma
-      Fire
-      Vignette
-
-      def display_name : String
-        case self
-        when Crt      then "CRT Scanlines"
-        when Matrix   then "Matrix Rain"
-        when Glitch   then "Glitch FX"
-        when Plasma   then "Plasma Waves"
-        when Fire     then "Heat FX"
-        when Vignette then "Vignette"
-        else               "Off"
-        end
-      end
     end
 
     enum TabMode
@@ -115,14 +103,65 @@ module Lapis
       property log_scroll_offset : Int32 = 0
       property detail_scroll_offset : Int32 = 0
 
-      # Interactive Opal UI additions (Color Picker, 3D Spatial Picker, File Dialog, Shaders)
+      # Interactive Opal UI additions (File Dialog, Accent Colors)
       property accent_color : Opal::Color = Opal::Color.hex("#CBA6F7")
       property border_color : Opal::Color = Opal::Color.hex("#89B4FA")
-      property color_picker : Opal::UI::ColorPicker = Opal::UI::ColorPicker.new(initial_color: Opal::Color.hex("#CBA6F7"))
-      property color_picker_3d : Opal::UI::ColorPicker3D = Opal::UI::ColorPicker3D.new(initial_color: Opal::Color.hex("#CBA6F7"))
-      property use_3d_color_picker : Bool = false
       property file_dialog : Opal::UI::FileDialog = Opal::UI::FileDialog.new(initial_path: ".")
-      property shader_fx : ShaderFxMode = ShaderFxMode::None
+
+      # Screencast Recording State (Opal Asciicast ScreenRecorder)
+      property recording : Bool = false
+      property recorder : Opal::Asciicast::ScreenRecorder? = nil
+      property recording_start_time : Time::Instant? = nil
+      property recording_path : String = ""
+
+      def recording? : Bool
+        @recording && !@recorder.nil?
+      end
+
+      def recording_elapsed_seconds : Float64
+        if start = @recording_start_time
+          (Time.instant - start).total_seconds
+        else
+          0.0_f64
+        end
+      end
+
+      def recording_elapsed_str : String
+        secs = recording_elapsed_seconds.to_i
+        m = secs // 60
+        s = secs % 60
+        sprintf("%02d:%02d", m, s)
+      end
+
+      def start_recording(target_path : String? = nil, width : Int32 = 120, height : Int32 = 36) : String
+        timestamp = Time.local.to_s("%Y%m%d_%H%M%S")
+        out_path = target_path || "recordings/lapis_session_#{timestamp}.cast"
+        dir = File.dirname(out_path)
+        Dir.mkdir_p(dir) unless dir.empty? || Dir.exists?(dir)
+
+        rec = Opal::Asciicast::ScreenRecorder.new(
+          output_path: out_path,
+          width: width,
+          height: height,
+          title: @title
+        )
+        rec.start
+        @recorder = rec
+        @recording = true
+        @recording_path = out_path
+        @recording_start_time = Time.instant
+        out_path
+      end
+
+      def stop_recording : String
+        return @recording_path unless @recording && (rec = @recorder)
+        rec.stop
+        saved_path = @recording_path
+        @recording = false
+        @recorder = nil
+        @recording_start_time = nil
+        saved_path
+      end
 
       def initialize(
         @title : String = "Lapis Test Suite Runner",
@@ -213,27 +252,8 @@ module Lapis
         @phases.select { |p| p.status == PhaseStatus::Failed }
       end
 
-      def next_shader_fx : ShaderFxMode
-        idx = (@shader_fx.to_i + 1) % 7
-        @shader_fx = ShaderFxMode.new(idx)
-      end
-
-      def toggle_color_studio : Nil
-        @current_view = (@current_view == ViewMode::ColorStudio) ? ViewMode::Dashboard : ViewMode::ColorStudio
-      end
-
       def toggle_file_explorer : Nil
         @current_view = (@current_view == ViewMode::FileExplorer) ? ViewMode::Dashboard : ViewMode::FileExplorer
-      end
-
-      def sync_active_color : Nil
-        if @use_3d_color_picker
-          @accent_color = @color_picker_3d.selected_color
-          @color_picker.color = @accent_color
-        else
-          @accent_color = @color_picker.color
-          @color_picker_3d.selected_color = @accent_color
-        end
       end
     end
   end

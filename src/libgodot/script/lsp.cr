@@ -35,12 +35,12 @@ module Lapis
 {% else %}
   lib LibPosixPoll
     struct PollFD
-      fd : LibC::Int
-      events : LibC::Short
-      revents : LibC::Short
+      fd : Int32
+      events : Int16
+      revents : Int16
     end
 
-    fun poll(fds : PollFD*, nfds : LibC::SizeT, timeout : LibC::Int) : LibC::Int
+    fun lsp_poll = poll(fds : Void*, nfds : UInt64, timeout : Int32) : Int32
   end
 {% end %}
 
@@ -57,6 +57,7 @@ module Lapis
     @next_id : Int32 = 1
     @mutex : ::Thread::Mutex = ::Thread::Mutex.new
     @open_docs : Hash(String, Int32) = Hash(String, Int32).new
+    @diagnostics_by_uri : Hash(String, Array(ScriptDiagnostic)) = Hash(String, Array(ScriptDiagnostic)).new
     @workspace_root : String = ""
 
     def self.instance : CrystalLSP
@@ -358,6 +359,117 @@ module Lapis
       end
     end
 
+    # Requests hover documentation from Crystalline LSP with timeout
+    def request_hover(code : String, path : String, line : Int32, column : Int32, timeout_ms : Int32 = 100) : String?
+      unless running?
+        ensure_started_async
+        return nil
+      end
+
+      @mutex.synchronize do
+        return nil unless running?
+        begin
+          sync_document(path, code)
+          req_id = @next_id
+          @next_id += 1
+
+          req = {
+            jsonrpc: "2.0",
+            id:      req_id,
+            method:  "textDocument/hover",
+            params:  {
+              textDocument: {
+                uri: to_uri(normalize_path(path)),
+              },
+              position: {
+                line:      Math.max(0, line - 1),
+                character: Math.max(0, column),
+              },
+            },
+          }.to_json
+
+          write_message(req)
+          raw_res = read_message_for_id(req_id, timeout_ms)
+          return nil unless raw_res
+
+          parsed = ::JSON.parse(raw_res)
+          result = parsed["result"]?
+          return nil unless result
+
+          contents = result["contents"]?
+          return nil unless contents
+
+          if contents.as_s?
+            contents.as_s
+          elsif val = contents["value"]?.try(&.as_s)
+            val
+          elsif arr = contents.as_a?
+            arr.compact_map { |item| item.as_s? || item["value"]?.try(&.as_s) }.reject(&.empty?).join("\n\n")
+          else
+            nil
+          end
+        rescue
+          nil
+        end
+      end
+    end
+
+    # Returns latest LSP compiler diagnostics for document if available
+    def get_diagnostics(path : String) : Array(ScriptDiagnostic)?
+      pump_notifications(5)
+      @mutex.synchronize do
+        if @diagnostics_by_uri.has_key?(path)
+          return @diagnostics_by_uri[path]
+        end
+        norm = normalize_path(path)
+        uri = to_uri(norm)
+        @diagnostics_by_uri[uri]? || @diagnostics_by_uri[norm]?
+      end
+    end
+
+    # Drains any pending asynchronous JSON-RPC notifications from Crystalline without blocking
+    def pump_notifications(timeout_ms : Int32 = 10) : Void
+      return unless running?
+      @mutex.synchronize do
+        return unless running?
+        while wait_for_data(timeout_ms)
+          msg = read_message(timeout_ms)
+          break unless msg
+          begin
+            parsed = ::JSON.parse(msg)
+            if method = parsed["method"]?.try(&.as_s)
+              handle_notification(method, parsed["params"]?)
+            end
+          rescue
+          end
+        end
+      end
+    end
+
+    # Internal handler for LSP notifications (such as textDocument/publishDiagnostics)
+    def handle_notification(method : String, params : ::JSON::Any?) : Void
+      return unless params
+      case method
+      when "textDocument/publishDiagnostics"
+        uri = params["uri"]?.try(&.as_s)
+        diags = params["diagnostics"]?.try(&.as_a)
+        return unless uri && diags
+
+        list = [] of ScriptDiagnostic
+        diags.each do |d|
+          msg = d["message"]?.try(&.as_s) || "Diagnostic"
+          sev = d["severity"]?.try(&.as_i) || 1
+          line = (d["range"]?.try(&.["start"]?.try(&.["line"]?.try(&.as_i))) || 0) + 1
+          col = (d["range"]?.try(&.["start"]?.try(&.["character"]?.try(&.as_i))) || 0) + 1
+          list << ScriptDiagnostic.new(line, col, msg, sev)
+        end
+
+        norm_path = uri_to_path(uri)
+        @diagnostics_by_uri[uri] = list
+        @diagnostics_by_uri[norm_path] = list
+      end
+    end
+
     # Gracefully stops the Crystalline process
     def stop : Void
       @mutex.synchronize do
@@ -379,6 +491,7 @@ module Lapis
         @process = nil
         @is_running = false
         @open_docs.clear
+        @diagnostics_by_uri.clear
       end
     end
 
@@ -433,6 +546,8 @@ module Lapis
             parsed = ::JSON.parse(msg)
             if parsed["id"]? && parsed["id"].as_i? == target_id
               return msg
+            elsif method = parsed["method"]?.try(&.as_s)
+              handle_notification(method, parsed["params"]?)
             end
           rescue
           end
@@ -470,7 +585,7 @@ module Lapis
         pfd.fd = fd.to_i32
         pfd.events = 1_i16 # POLLIN
         pfd.revents = 0_i16
-        ret = LibPosixPoll.poll(pointerof(pfd), 1_u64, timeout_ms.to_i32)
+        ret = LibPosixPoll.lsp_poll(pointerof(pfd).as(Void*), 1_u64, timeout_ms.to_i32)
         ret > 0 && (pfd.revents & 1_i16) != 0
       {% end %}
     end

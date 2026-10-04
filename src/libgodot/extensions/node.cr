@@ -6,7 +6,7 @@ module Godot
     alias Node = Godot::Node
     getter local_groups : Set(String) = Set(String).new
     @local_children : Array(Node)?
-    @@standalone_parents = Hash(UInt64, Node).new
+    STANDALONE_PARENTS = Hash(UInt64, Node).new
 
     # Idiomatic child count getter
     def child_count : Int32
@@ -29,15 +29,82 @@ module Godot
       set_name(val)
     end
 
+    # Overload: Instantiates a Node of class T, configures it in block, adds it as child, and returns it.
+    def add_child(type : T.class, force_readable_name : Bool = false, internal : InternalMode | Int = 0, &block : T -> Void) : T forall T
+      node = ::Godot.create(type)
+      with node yield node
+      add_child(node.as(Node), force_readable_name, internal)
+      node
+    end
+
+    # Overload: Instantiates a Node of class T, adds it as child, and returns it.
+    def add_child(type : T.class, force_readable_name : Bool = false, internal : InternalMode | Int = 0) : T forall T
+      node = ::Godot.create(type)
+      add_child(node.as(Node), force_readable_name, internal)
+      node
+    end
+
     # Adds a child node. Falls back to local children array when running standalone.
     # Enforces thread-safety: off-thread calls raise ThreadAffinityError when attached to SceneTree.
-    def add_child(node : Node, force_readable_name : Bool = false, internal : InternalMode | Int = 0) : Void
+    # Returns concrete instance type T for seamless chaining and assignment.
+    def add_child(node : T, force_readable_name : Bool = false, internal : InternalMode | Int = 0) : T forall T
       Godot::ThreadSafety.assert_main_thread!("add_child", "Node", self, node)
-      children << node
-      @@standalone_parents[node.object_id] = self if @pointer.null?
-      return if @pointer.null?
-      previous_def(node, force_readable_name, internal)
+      children << node.as(Node)
+      STANDALONE_PARENTS[node.object_id] = self if @pointer.null?
+      return node if @pointer.null?
+      engine_add_child(node.as(Node), force_readable_name, internal)
+      node
     end
+
+    # Overload: Adds an existing child node, configures it in block, and returns concrete instance type T.
+    def add_child(node : T, force_readable_name : Bool = false, internal : InternalMode | Int = 0, &block : T -> Void) : T forall T
+      with node yield node
+      add_child(node, force_readable_name, internal)
+      node
+    end
+
+    # Overload: Instantiates a PackedScene as type T, configures it in block, adds it as child, and returns it.
+    def add_child(scene : PackedScene, *, as type : T.class, force_readable_name : Bool = false, internal : InternalMode | Int = 0, &block : T -> Void) : T forall T
+      node = scene.instantiate_as(type)
+      with node yield node
+      add_child(node.as(Node), force_readable_name, internal)
+      node
+    end
+
+    # Overload: Instantiates a PackedScene as type T, adds it as child, and returns it.
+    def add_child(scene : PackedScene, *, as type : T.class, force_readable_name : Bool = false, internal : InternalMode | Int = 0) : T forall T
+      node = scene.instantiate_as(type)
+      add_child(node.as(Node), force_readable_name, internal)
+      node
+    end
+
+    # Overload: Instantiates a PackedScene as Node, configures it in block, adds it as child, and returns it.
+    def add_child(scene : PackedScene, force_readable_name : Bool = false, internal : InternalMode | Int = 0, &block : Node -> Void) : Node
+      node = scene.instantiate
+      with node yield node
+      add_child(node, force_readable_name, internal)
+      node
+    end
+
+    # Overload: Instantiates a PackedScene as Node, adds it as child, and returns it.
+    def add_child(scene : PackedScene, force_readable_name : Bool = false, internal : InternalMode | Int = 0) : Node
+      node = scene.instantiate
+      add_child(node, force_readable_name, internal)
+      node
+    end
+
+    # Overload: Loads scene at path, instantiates as type T, configures in block, adds as child, and returns it.
+    def add_child(scene_path : String, *, as type : T.class, force_readable_name : Bool = false, internal : InternalMode | Int = 0, &block : T -> Void) : T forall T
+      scene = ::Godot.load_scene(scene_path)
+      add_child(scene, as: type, force_readable_name: force_readable_name, internal: internal, &block)
+    end
+
+    # Overload: Loads scene at path, instantiates as type T, adds as child, and returns it.
+    def add_child(scene_path : String, *, as type : T.class, force_readable_name : Bool = false, internal : InternalMode | Int = 0) : T forall T
+      scene = ::Godot.load_scene(scene_path)
+      add_child(scene, as: type, force_readable_name: force_readable_name, internal: internal)
+    end
+
 
     # Explicit cross-thread helper that safely defers addition via Godot's MessageQueue
     def defer_add_child(node : Node, force_readable_name : Bool = false, internal : InternalMode | Int = 0) : Void
@@ -50,7 +117,7 @@ module Godot
     def remove_child(node : Node) : Void
       Godot::ThreadSafety.assert_main_thread!("remove_child", "Node", self, node)
       children.delete(node)
-      @@standalone_parents.delete(node.object_id) if @pointer.null?
+      STANDALONE_PARENTS.delete(node.object_id) if @pointer.null?
       return if @pointer.null?
       previous_def(node)
     end
@@ -70,7 +137,7 @@ module Godot
     def reparent(new_parent : Node, keep_global_transform : Bool = true) : Void
       Godot::ThreadSafety.assert_main_thread!("reparent", "Node", self, new_parent)
       if @pointer.null?
-        if lp = @@standalone_parents[object_id]?
+        if lp = STANDALONE_PARENTS[object_id]?
           lp.remove_child(self)
         end
         new_parent.add_child(self)
@@ -82,10 +149,10 @@ module Godot
     # Safely destroys this node, unregistering parent references in standalone mode.
     def destroy : Void
       if @pointer.null?
-        @@standalone_parents.delete(object_id)
+        STANDALONE_PARENTS.delete(object_id)
         if loc_kids = @local_children
           loc_kids.each do |c|
-            @@standalone_parents.delete(c.object_id)
+            STANDALONE_PARENTS.delete(c.object_id)
           end
         end
       end
@@ -105,13 +172,82 @@ module Godot
       previous_def(node, keep_groups)
     end
 
-    # Adds a sibling node to the parent of this node.
-    # Enforces thread-safety: off-thread calls raise ThreadAffinityError when attached to SceneTree.
-    def add_sibling(sibling : Node, force_readable_name : Bool = false) : Void
-      Godot::ThreadSafety.assert_main_thread!("add_sibling", "Node", self, sibling)
-      return if @pointer.null?
-      previous_def(sibling, force_readable_name)
+    # Overload: Instantiates a Node of class T, configures it in block, adds it as sibling, and returns it.
+    def add_sibling(type : T.class, force_readable_name : Bool = false, &block : T -> Void) : T forall T
+      node = ::Godot.create(type)
+      with node yield node
+      add_sibling(node.as(Node), force_readable_name)
+      node
     end
+
+    # Overload: Instantiates a Node of class T, adds it as sibling, and returns it.
+    def add_sibling(type : T.class, force_readable_name : Bool = false) : T forall T
+      node = ::Godot.create(type)
+      add_sibling(node.as(Node), force_readable_name)
+      node
+    end
+
+    def add_sibling(sibling : T, force_readable_name : Bool = false) : T forall T
+      Godot::ThreadSafety.assert_main_thread!("add_sibling", "Node", self, sibling)
+      if @pointer.null?
+        if p = get_parent?
+          p.add_child(sibling.as(Node))
+        end
+        return sibling
+      end
+      engine_add_sibling(sibling.as(Node), force_readable_name)
+      sibling
+    end
+
+    # Overload: Adds an existing sibling node, configures it in block, and returns concrete type T.
+    def add_sibling(sibling : T, force_readable_name : Bool = false, &block : T -> Void) : T forall T
+      add_sibling(sibling, force_readable_name)
+      with sibling yield sibling
+      sibling
+    end
+
+    # Overload: Instantiates a PackedScene as type T, configures it in block, adds it as sibling, and returns it.
+    def add_sibling(scene : PackedScene, *, as type : T.class, force_readable_name : Bool = false, &block : T -> Void) : T forall T
+      node = scene.instantiate_as(type)
+      with node yield node
+      add_sibling(node.as(Node), force_readable_name)
+      node
+    end
+
+    # Overload: Instantiates a PackedScene as type T, adds it as sibling, and returns it.
+    def add_sibling(scene : PackedScene, *, as type : T.class, force_readable_name : Bool = false) : T forall T
+      node = scene.instantiate_as(type)
+      add_sibling(node.as(Node), force_readable_name)
+      node
+    end
+
+    # Overload: Instantiates a PackedScene as Node, configures it in block, adds it as sibling, and returns it.
+    def add_sibling(scene : PackedScene, force_readable_name : Bool = false, &block : Node -> Void) : Node
+      node = scene.instantiate
+      with node yield node
+      add_sibling(node, force_readable_name)
+      node
+    end
+
+    # Overload: Instantiates a PackedScene as Node, adds it as sibling, and returns it.
+    def add_sibling(scene : PackedScene, force_readable_name : Bool = false) : Node
+      node = scene.instantiate
+      add_sibling(node, force_readable_name)
+      node
+    end
+
+    # Overload: Loads scene at path, instantiates as type T, configures in block, adds as sibling, and returns it.
+    def add_sibling(scene_path : String, *, as type : T.class, force_readable_name : Bool = false, &block : T -> Void) : T forall T
+      scene = ::Godot.load_scene(scene_path)
+      add_sibling(scene, as: type, force_readable_name: force_readable_name, &block)
+    end
+
+    # Overload: Loads scene at path, instantiates as type T, adds as sibling, and returns it.
+    def add_sibling(scene_path : String, *, as type : T.class, force_readable_name : Bool = false) : T forall T
+      scene = ::Godot.load_scene(scene_path)
+      add_sibling(scene, as: type, force_readable_name: force_readable_name)
+    end
+
 
     # Moves child node to a new index in the parent's child list.
     # Enforces thread-safety: off-thread calls raise ThreadAffinityError when attached to SceneTree.
@@ -128,11 +264,28 @@ module Godot
       previous_def(group, persistent)
     end
 
+    # Removes this node from the specified group
+    def remove_from_group(group : String) : Void
+      @local_groups.delete(group)
+      return if @pointer.null?
+      previous_def(group)
+    end
+
     # Returns true if this node belongs to the given node group.
     def in_group?(group_name : String) : Bool
       return true if @local_groups.includes?(group_name)
       return false unless alive?
       is_in_group(group_name)
+    end
+
+    # Returns true if this node belongs to the given node group specified as a Symbol.
+    def in_group?(group_name : Symbol) : Bool
+      in_group?(group_name.to_s)
+    end
+
+    # Returns true if this node belongs to the given node group specified as String or Symbol.
+    def in_group?(group_name : String | Symbol) : Bool
+      in_group?(group_name.to_s)
     end
 
     # Returns the parent node cast to T, or nil if parent is not of type T or is null
@@ -147,9 +300,19 @@ module Godot
       end
     end
 
+    # Returns the parent Node. Falls back to local standalone parents map when running without engine host.
+    def get_parent : Node
+      if @pointer.null?
+        if standalone_p = STANDALONE_PARENTS[object_id]?
+          return standalone_p
+        end
+      end
+      previous_def
+    end
+
     # Returns the parent Node, or nil if orphan
     def get_parent? : Node?
-      return @@standalone_parents[object_id]? if @pointer.null?
+      return STANDALONE_PARENTS[object_id]? if @pointer.null?
       return nil unless alive?
       p = get_parent
       p.pointer.null? ? nil : p
@@ -225,10 +388,21 @@ module Godot
       end
     end
 
+    # Returns the number of child nodes belonging to this node.
+    # Falls back to local standalone children list when unparented/headless.
+    def get_child_count(include_internal : Bool = false) : Int64
+      if @pointer.null?
+        return (@local_children.try(&.size) || 0).to_i64
+      end
+      previous_def(include_internal)
+    end
+
     # Returns an Array containing all child nodes belonging to this node.
     def get_children(include_internal : Bool = false) : ::Array(Node)
       check_alive!
-      return ::Array(Node).new if @pointer.null?
+      if @pointer.null?
+        return @local_children ||= ::Array(Node).new
+      end
       count = get_child_count(include_internal)
       return ::Array(Node).new if count <= 0
       children = ::Array(Node).new(count.to_i32)
@@ -346,6 +520,145 @@ module Godot
     # Safe queue free that checks alive? before dispatching
     def safe_queue_free : Void
       queue_free if alive?
+    end
+
+    # Spawns a child node of type T, configures it in a block, and attaches it to this node
+    def spawn_child(type : T.class, &block : T ->) : T forall T
+      inst = ::Godot.create(type)
+      with inst yield inst
+      add_child(inst)
+      inst
+    end
+
+    # Spawns a child node of type T and attaches it to this node
+    def spawn_child(type : T.class) : T forall T
+      inst = ::Godot.create(type)
+      add_child(inst)
+      inst
+    end
+
+    # Idiomatic alias for spawn_child
+    def create_child(type : T.class, &block : T ->) : T forall T
+      spawn_child(type, &block)
+    end
+
+    # Idiomatic alias for spawn_child
+    def create_child(type : T.class) : T forall T
+      spawn_child(type)
+    end
+
+    # Idiomatic alias for spawn_child
+    def spawn_node(type : T.class, &block : T ->) : T forall T
+      spawn_child(type, &block)
+    end
+
+    # Idiomatic alias for spawn_child
+    def spawn_node(type : T.class) : T forall T
+      spawn_child(type)
+    end
+
+    # Context-aware one-shot audio playback helper on Node
+    def play_sound(
+      stream_or_path : AudioStream | String,
+      at : Vector2 | Vector3 | Nil = nil,
+      pitch_scale : Float64 = 1.0,
+      volume_db : Float64 = 0.0,
+      bus : String = "Master",
+      &block : Node -> Void
+    ) : Node?
+      return nil if @pointer.null?
+      stream = stream_or_path.is_a?(String) ? (::Godot::PreloadCache.get_or_load(stream_or_path, AudioStream)) : stream_or_path
+      player = if at.is_a?(Vector3) || (at.nil? && self.is_a?(Node3D))
+                 p3d = ::Godot.create(AudioStreamPlayer3D)
+                 p3d.global_position = at.as?(Vector3) || (self.as?(Node3D).try(&.global_position) || Vector3.zero)
+                 p3d.as(Node)
+               elsif at.is_a?(Vector2) || (at.nil? && self.is_a?(Node2D))
+                 p2d = ::Godot.create(AudioStreamPlayer2D)
+                 p2d.global_position = at.as?(Vector2) || (self.as?(Node2D).try(&.global_position) || Vector2.zero)
+                 p2d.as(Node)
+               else
+                 ::Godot.create(AudioStreamPlayer).as(Node)
+               end
+      player.call("set_stream", stream)
+      player.call("set_pitch_scale", pitch_scale.to_f32)
+      player.call("set_volume_db", volume_db.to_f32)
+      player.call("set_bus", bus)
+      yield player
+      host = if tree = ::Godot.get_tree?
+               tree.current_scene || tree.root
+             else
+               topmost_parent
+             end
+      host.add_child(player)
+      player.signal("finished").once { player.queue_free }
+      player.call("play")
+      player
+    end
+
+    def play_sound(
+      stream_or_path : AudioStream | String,
+      at : Vector2 | Vector3 | Nil = nil,
+      pitch_scale : Float64 = 1.0,
+      volume_db : Float64 = 0.0,
+      bus : String = "Master"
+    ) : Node?
+      play_sound(stream_or_path, at, pitch_scale, volume_db, bus) { |_| }
+    end
+  end
+
+  # ===========================================================================
+  # CanvasItem Visual & Opacity Ergonomics
+  # ===========================================================================
+  class CanvasItem < Node
+    @local_modulate : Color = Color.new(1.0_f32, 1.0_f32, 1.0_f32, 1.0_f32)
+
+    def set_modulate(modulate : Color) : Void
+      @local_modulate = modulate
+      return if @pointer.null?
+      previous_def(modulate)
+    end
+
+    def get_modulate : Color
+      return @local_modulate if @pointer.null?
+      previous_def
+    end
+
+    # Direct access to modulate alpha component (0.0 .. 1.0)
+    def alpha : Float32
+      get_modulate.a
+    end
+
+    # Sets modulate alpha component while preserving RGB components
+    def alpha=(val : Number) : Void
+      m = get_modulate
+      set_modulate(Color.new(m.r, m.g, m.b, val.to_f32))
+    end
+
+    # Tweens alpha to target value over specified duration
+    def fade_to(target_alpha : Number, duration : Float64 | ::Time::Span = 0.3) : Tween?
+      return nil if @pointer.null?
+      tween_to("modulate:a", target_alpha.to_f32, duration)
+    end
+
+    # Tweens alpha to 1.0 (fully visible)
+    def fade_in(duration : Float64 | ::Time::Span = 0.3) : Tween?
+      fade_to(1.0_f32, duration)
+    end
+
+    # Tweens alpha to 0.0 (fully transparent)
+    def fade_out(duration : Float64 | ::Time::Span = 0.3) : Tween?
+      fade_to(0.0_f32, duration)
+    end
+
+    # Temporarily flashes CanvasItem with flash_color for duration, then restores original color
+    def flash(flash_color : Color = Color::WHITE, duration : Float64 | ::Time::Span = 0.1) : Nil
+      return if @pointer.null?
+      prev_color = get_modulate
+      set_modulate(flash_color)
+      dur_sec = duration.is_a?(::Time::Span) ? duration.total_seconds : duration.to_f64
+      ::Godot.after(dur_sec) do
+        set_modulate(prev_color) if alive?
+      end
     end
   end
 end

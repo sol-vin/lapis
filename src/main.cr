@@ -479,11 +479,14 @@ require "../spec/suites/test_cameras_viewports_canvas"
 # Physics, Collision & Raycasting
 require "../spec/suites/test_physics_shapes"
 require "../spec/suites/test_physics_simulation_raycast"
+require "../spec/suites/test_physics_multiframe_pit_settling"
+require "../spec/suites/test_physics_cube_stack_stability"
 
 # Audio, Animation & Tweens
 require "../spec/suites/test_audio_animation"
 require "../spec/suites/test_audio_system_servers"
 require "../spec/suites/test_tweens_animation"
+require "../spec/suites/test_tween_dsl"
 
 # Resources, Scenes & Persistence
 require "../spec/suites/test_resources_utilities"
@@ -545,4 +548,10 @@ require "../spec/suites/test_multiplayer"
 require "../spec/suites/test_hierarchy_ergonomics"
 require "../spec/suites/test_multiframe_orchestration"
 require "../spec/suites/test_plugin_dependencies_dag"
-
+require "../spec/suites/test_gameplay_ergonomics"
+require "../spec/suites/test_slides_showcase"
+require "../spec/suites/test_dsl_edge_cases_and_leaks"
+require "../spec/suites/test_signal_safety_multiframe"
+require "../spec/suites/test_destruction_and_threads_multiframe"
+require "../spec/suites/test_dsl_helpers_and_onready"
+require "../spec/suites/test_editor_plugins_comprehensive"

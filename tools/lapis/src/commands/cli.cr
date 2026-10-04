@@ -12,6 +12,7 @@ require "../tui/debugger_view"
 require "../tui/log_viewer"
 require "../tui/bench_viewer"
 require "../tui/run_monitor"
+require "../tui/driver_view"
 require "option_parser"
 
 module Lapis
@@ -26,6 +27,7 @@ Usage: lapis cli [options]
 Options:
   --new, -n             Launch interactive New Project / Addon Scaffolding Wizard
   --editor, -e          Launch persistent Godot Editor Launcher & Log Watcher
+  --driver, -a          Launch Action Driver Controller & DOM Inspector
   --package, -p         Launch multi-target Packaging & Export Form
   --debug, -d           Launch Radare2 Native Debugger & Crash Forensics View
   --log, -l             Launch Diagnostic Log Viewer with real-time tailing
@@ -52,6 +54,7 @@ HELP
           opts.banner = "Usage: lapis cli [options]"
           opts.on("-n", "--new", "Launch New Project / Addon Wizard") { launch_mode = :new }
           opts.on("-e", "--editor", "Launch Persistent Editor Launcher") { launch_mode = :editor }
+          opts.on("-a", "--driver", "Launch Action Driver Controller") { launch_mode = :driver }
           opts.on("-p", "--package", "Launch Packaging Form") { launch_mode = :package }
           opts.on("-d", "--debug", "Launch Radare2 Debugger View") { launch_mode = :debug }
           opts.on("-l", "--log", "Launch Diagnostic Log Viewer") { launch_mode = :log }
@@ -69,6 +72,9 @@ HELP
           0
         when :editor
           TUI::EditorLauncher.run
+          0
+        when :driver
+          TUI::DriverView.run
           0
         when :package
           TUI::PackageForm.run

@@ -941,6 +941,7 @@ inline void generic_class_call_virtual_with_data(
                     bridge_arg_to_string(p_args[0], path_buf, sizeof(path_buf));
                 }
                 if (!has_cr_extension(path_buf) ||
+                    strstr(path_buf, "/src/") != nullptr || strstr(path_buf, "\\src\\") != nullptr ||
                     strstr(path_buf, "/spec/") != nullptr || strstr(path_buf, "\\spec\\") != nullptr ||
                     strstr(path_buf, "/tools/") != nullptr || strstr(path_buf, "\\tools\\") != nullptr ||
                     strstr(path_buf, "/lib/") != nullptr || strstr(path_buf, "\\lib\\") != nullptr ||

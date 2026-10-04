@@ -324,6 +324,26 @@ module Godot
     MODEL_TOP    = Vector3.new(0.0_f32, 1.0_f32, 0.0_f32)
     MODEL_BOTTOM = Vector3.new(0.0_f32, -1.0_f32, 0.0_f32)
     INF          = Vector3.new(Float32::INFINITY, Float32::INFINITY, Float32::INFINITY)
+
+    # Returns a random normalized 3D direction vector uniformly on the unit sphere
+    def self.random_direction : Vector3
+      z = (::Random.rand * 2.0 - 1.0).to_f32
+      phi = (::Random.rand * Math::PI * 2.0).to_f32
+      radius = Math.sqrt(Math.max(0.0_f32, 1.0_f32 - z * z))
+      Vector3.new(radius * Math.cos(phi).to_f32, radius * Math.sin(phi).to_f32, z)
+    end
+
+    # Returns a random Vector3 with components in ranges rx, ry, rz
+    def self.random(
+      rx = 0.0..1.0,
+      ry = 0.0..1.0,
+      rz = 0.0..1.0
+    ) : Vector3
+      val_x = rx.is_a?(::Range) ? ::Random.rand(rx.begin.to_f64..rx.end.to_f64).to_f32 : ::Random.rand(rx.to_f64).to_f32
+      val_y = ry.is_a?(::Range) ? ::Random.rand(ry.begin.to_f64..ry.end.to_f64).to_f32 : ::Random.rand(ry.to_f64).to_f32
+      val_z = rz.is_a?(::Range) ? ::Random.rand(rz.begin.to_f64..rz.end.to_f64).to_f32 : ::Random.rand(rz.to_f64).to_f32
+      Vector3.new(val_x, val_y, val_z)
+    end
   end
 
   # 3-element structure that can be used to represent 3D grid coordinates or discrete voxels with 32-bit integers.

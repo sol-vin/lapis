@@ -307,4 +307,68 @@ test_suite "HierarchyErgonomics" do
       end
     end
   end
+
+  test "get_nodes wildcard and globstar scene traversal with batch operations" do
+    root = Godot.create(Godot::Node2D)
+    root.name = "ArenaRoot"
+
+    spawn_container = Godot.create(Godot::Node2D)
+    spawn_container.name = "Spawns"
+    root.add_child(spawn_container)
+
+    s1 = Godot.create(Godot::Node2D)
+    s1.name = "Spawner_Alpha"
+    spawn_container.add_child(s1)
+
+    s2 = Godot.create(Godot::Node2D)
+    s2.name = "Spawner_Beta"
+    spawn_container.add_child(s2)
+
+    m1 = Godot.create(Godot::Marker2D)
+    m1.name = "TargetMarker"
+    s1.add_child(m1)
+
+    # 1. Single wildcard matching direct children
+    spawners = spawn_container.get_nodes("Spawner_*")
+    assert_eq spawners.size, 2
+    assert_true spawners.all? { |s| s.name.starts_with?("Spawner_") }
+
+    # 2. Mid-path wildcard matching
+    markers = root.get_nodes("Spawns/*/TargetMarker")
+    assert_eq markers.size, 1
+    assert_eq markers.first.name, "TargetMarker"
+
+    # 3. Recursive globstar matching
+    all_descendants = root.get_nodes("**")
+    assert_eq all_descendants.size, 4
+
+    # 4. Typed query
+    typed_markers = root.get_nodes("Spawns/**/TargetMarker", Godot::Marker2D)
+    assert_eq typed_markers.size, 1
+    assert_true typed_markers.first.is_a?(Godot::Marker2D)
+
+    # 5. Ancestry and sibling navigation
+    assert_eq m1.ancestor(Godot::Node2D).name, "Spawner_Alpha"
+    assert_eq s2.previous_sibling?.not_nil!.name, "Spawner_Alpha"
+    assert_eq s1.next_sibling?.not_nil!.name, "Spawner_Beta"
+    assert_eq s1.siblings.size, 1
+    assert_eq s1.siblings.first.name, "Spawner_Beta"
+
+    # 6. Streaming operations via each_node
+    root.each_node("Spawns/*", Godot::Node2D) do
+      add_to_group("active_spawners")
+    end
+    assert_true s1.in_group?(:active_spawners)
+    assert_true s2.in_group?(:active_spawners)
+
+    root.each_node("Spawns/*", Godot::CanvasItem, &.hide)
+    assert_false s1.visible
+    assert_false s2.visible
+
+    root.each_node("Spawns/*", Godot::CanvasItem, &.show)
+    assert_true s1.visible
+    assert_true s2.visible
+
+    root.destroy
+  end
 end

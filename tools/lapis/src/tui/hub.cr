@@ -6,6 +6,7 @@
 # =============================================================================
 
 require "opal"
+require "opal/asciicast"
 require "../core/env"
 require "../core/logger"
 require "../core/godot_finder"
@@ -17,6 +18,7 @@ require "./debugger_view"
 require "./log_viewer"
 require "./bench_viewer"
 require "./run_monitor"
+require "./driver_view"
 require "../commands/test"
 require "../commands/doctor"
 require "../commands/sync"
@@ -31,11 +33,12 @@ module Lapis
       property? palette_open : Bool = false
       getter palette : Opal::UI::CommandPalette
       getter status_message : String? = nil
-      getter status_time : Time? = nil
+      getter status_time : Time::Instant? = nil
 
       MENU_ITEMS = [
         {"[+]", "New Project / Addon Wizard", "Scaffold games, addons, and examples with folder picker", "N"},
         {"[#]", "Launch Godot Editor", "Persistent launcher with process monitoring & log watching", "E"},
+        {"[A]", "Action Driver Controller", "Interactive editor automation REPL, DOM tree & AI visual capturer", "A"},
         {"[B]", "Packaging & Export Center", "Configure multi-target builds with live build logs", "P"},
         {"[D]", "Radare2 Native Debugger", "Registers, disassembly, source mapping & hex memory inspection", "D"},
         {"[L]", "Diagnostic Log Viewer", "Real-time log tailing, channel filters & regex search", "L"},
@@ -58,6 +61,42 @@ module Lapis
         new.run
       end
 
+      def item_disabled_reason(idx : Int32) : String?
+        root = Core::Env::ROOT_DIR
+        curr = Path.new(Dir.current).expand
+        in_project = File.exists?(curr.join("project.godot"))
+        godot_exe = Core::GodotFinder.resolve(nil)
+        bridge_compiled = File.exists?(root.join("bin/#{Core::Env.bridge_file}")) || File.exists?(curr.join("bin/#{Core::Env.bridge_file}"))
+        r2_installed = !Core::ToolChecker.find_radare2.nil?
+        has_benchmarks = Core::Env.has_benchmarks?(curr) || Core::Env.has_benchmarks?(root)
+
+        case idx
+        when 1 # Launch Godot Editor
+          return "Godot engine missing" unless godot_exe
+          return "crystal_bridge DLL missing" unless bridge_compiled
+        when 2 # Packaging & Export Center
+          return "Not a Lapis project" unless in_project || Core::Env.is_lapis_project?(curr)
+          return "crystal_bridge DLL missing" unless bridge_compiled
+        when 3 # Radare2 Native Debugger
+          return "radare2 not installed" unless r2_installed
+        when 5 # Benchmark Visualizer
+          return "No benchmarks in project" unless has_benchmarks
+        when 6 # Run Game (Performance Monitor)
+          return "Not a Lapis project" unless in_project
+          return "Godot engine missing" unless godot_exe
+          return "crystal_bridge DLL missing" unless bridge_compiled
+        when 7 # Test Suites Dashboard
+          return "crystal_bridge DLL missing" unless bridge_compiled
+        end
+
+        nil
+      end
+
+      def set_status(msg : String)
+        @status_message = msg
+        @status_time = Time.instant
+      end
+
       def run : Int32
         return 0 unless STDOUT.tty?
 
@@ -65,10 +104,12 @@ module Lapis
         driver.raw_mode do
           driver.enter_alternate_screen
           driver.hide_cursor
+          diff_renderer = Opal::UI::DiffRenderer.new(driver)
           begin
             while @running
-              render(driver)
-              handle_input(driver)
+              render(driver, diff_renderer)
+              ev = driver.poll_event(50)
+              handle_input(ev, driver, diff_renderer) if ev
             end
           ensure
             driver.show_cursor
@@ -81,13 +122,49 @@ module Lapis
 
       private def setup_palette_commands
         @palette.add("hub:new", "New Project / Addon", "Scaffold", "N") { launch_new_wizard }
-        @palette.add("hub:editor", "Launch Godot Editor", "Engine", "E") { launch_editor }
-        @palette.add("hub:package", "Package & Export", "Build", "P") { launch_package_form }
-        @palette.add("hub:debug", "Radare2 Native Debugger", "Debug", "D") { launch_debugger }
+        @palette.add("hub:editor", "Launch Godot Editor", "Engine", "E") do
+          if reason = item_disabled_reason(1)
+            set_status("Cannot launch editor: #{reason}!")
+          else
+            launch_editor
+          end
+        end
+        @palette.add("hub:package", "Package & Export", "Build", "P") do
+          if reason = item_disabled_reason(2)
+            set_status("Cannot package: #{reason}!")
+          else
+            launch_package_form
+          end
+        end
+        @palette.add("hub:debug", "Radare2 Native Debugger", "Debug", "D") do
+          if reason = item_disabled_reason(3)
+            set_status("Cannot launch debugger: #{reason}!")
+          else
+            launch_debugger
+          end
+        end
         @palette.add("hub:log", "Diagnostic Log Viewer", "Logs", "L") { launch_log_viewer }
-        @palette.add("hub:bench", "Benchmark Visualizer", "Bench", "B") { launch_bench_viewer }
-        @palette.add("hub:run", "Run Game (Performance Monitor)", "Engine", "R") { launch_run_monitor }
-        @palette.add("hub:test", "Run Test Suites", "Test", "T") { launch_test_runner }
+        @palette.add("hub:bench", "Benchmark Visualizer", "Bench", "B") do
+          if reason = item_disabled_reason(5)
+            set_status("Cannot open benchmarks: #{reason}!")
+          else
+            launch_bench_viewer
+          end
+        end
+        @palette.add("hub:run", "Run Game (Performance Monitor)", "Engine", "R") do
+          if reason = item_disabled_reason(6)
+            set_status("Cannot run game: #{reason}!")
+          else
+            launch_run_monitor
+          end
+        end
+        @palette.add("hub:test", "Run Test Suites", "Test", "T") do
+          if reason = item_disabled_reason(7)
+            set_status("Cannot run tests: #{reason}!")
+          else
+            launch_test_runner
+          end
+        end
         @palette.add("hub:doctor", "Toolchain Doctor", "System", "O") { run_command("doctor") }
         @palette.add("hub:sync", "Synchronize Targets", "Build", "S") { run_command("sync") }
         @palette.add("hub:clean", "Clean Build Artifacts", "Build", "C") { run_command("clean") }
@@ -111,16 +188,14 @@ module Lapis
         end
       end
 
-      private def render(driver : Opal::Terminal::Driver)
+      private def render(driver : Opal::Terminal::Driver, diff_renderer : Opal::UI::DiffRenderer)
         w, h = driver.size
-        width = Math.max(80, w)
-        height = Math.max(24, h)
+        width = Math.max(40, w)
+        height = Math.max(16, h)
         buffer = Opal::UI::Buffer.new(width, height)
         render_to_buffer(buffer, width, height)
-
-        driver.write(Opal::Terminal::Screen.move_to(1, 1))
-        driver.write(buffer.render_to_string(with_ansi: true))
-        driver.flush
+        Opal::Asciicast::VCR.capture(buffer) if Opal::Asciicast::VCR.recording?
+        diff_renderer.render(buffer)
       end
 
       private def render_header(buffer : Opal::UI::Buffer, width : Int32)
@@ -134,7 +209,7 @@ module Lapis
         git_branch = Core::ProcessRunner.capture("git", ["branch", "--show-current"])[:output].strip rescue "main"
         git_branch = "main" if git_branch.empty?
 
-        bridge_compiled = File.exists?(root.join("bin/crystal_bridge.dll"))
+        bridge_compiled = File.exists?(root.join("bin/#{Core::Env.bridge_file}")) || File.exists?(curr.join("bin/#{Core::Env.bridge_file}"))
 
         buffer.put_string(2, 1, ":: LAPIS CLI TERMINAL HUB ::", fg: Opal::Color.bright_magenta, bold: true)
         buffer.put_string(32, 1, "v#{VERSION} │ Pure Crystal Engine Toolchain", fg: Opal::Color.bright_black)
@@ -145,6 +220,12 @@ module Lapis
         bridge_str = bridge_compiled ? "[OK] Bridge Ready" : "[!] Bridge Missing"
         bridge_fg = bridge_compiled ? Opal::Color.green : Opal::Color.yellow
         buffer.put_string(2, 3, bridge_str, fg: bridge_fg, bold: true)
+
+        if Opal::Asciicast::VCR.recording?
+          secs = Opal::Asciicast::VCR.instance.elapsed.to_i
+          rec_badge = " [● REC #{sprintf("%02d:%02d", secs // 60, secs % 60)}] "
+          buffer.put_string(width - rec_badge.size - 4, 3, rec_badge, fg: Opal::Color.bright_white, bg: Opal::Color.red, bold: true)
+        end
 
         buffer.put_string(2, 4, "─" * (width - 4), fg: Opal::Color.bright_black)
       end
@@ -157,19 +238,32 @@ module Lapis
           break if idx >= max_items
           y = start_y + idx
           selected = (idx == @selected_index)
+          disabled_reason = item_disabled_reason(idx)
 
           icon, title, desc, key = item
           prefix = selected ? " ► " : "   "
-          fg = selected ? Opal::Color.bright_white : Opal::Color.white
-          bg = selected ? Opal::Color.hex("#2A2B3D") : Opal::Color.none
 
-          # Highlight shortcut key in brackets
+          fg = if disabled_reason
+                 selected ? Opal::Color.bright_black : Opal::Color.hex("#666677")
+               elsif selected
+                 Opal::Color.bright_white
+               else
+                 Opal::Color.white
+               end
+
+          bg = if selected
+                 disabled_reason ? Opal::Color.hex("#1A1B24") : Opal::Color.hex("#2A2B3D")
+               else
+                 Opal::Color.none
+               end
+
           key_badge = "[ #{key} ]"
+          display_title = disabled_reason ? "#{title} (Disabled: #{disabled_reason})" : title
 
-          buffer.put_string(2, y, "#{prefix}#{icon} #{key_badge} #{title}", fg: fg, bg: bg, bold: selected)
+          buffer.put_string(2, y, "#{prefix}#{icon} #{key_badge} #{display_title}", fg: fg, bg: bg, bold: selected && !disabled_reason)
 
-          desc_x = 48
-          if width > 90
+          desc_x = 58
+          if width > 100 && disabled_reason.nil?
             buffer.put_string(desc_x, y, desc, fg: Opal::Color.bright_black, bg: bg)
           end
         end
@@ -180,16 +274,63 @@ module Lapis
         buffer.put_string(2, y, "─" * (width - 4), fg: Opal::Color.bright_black)
 
         if msg = @status_message
-          buffer.put_string(2, y + 1, "ℹ #{msg}", fg: Opal::Color.yellow, bold: true)
+          if st = @status_time
+            if (Time.instant - st).total_seconds > 4.0
+              @status_message = nil
+            end
+          end
+        end
+
+        if msg = @status_message
+          buffer.put_string(2, y + 1, "⚠️  #{msg}", fg: Opal::Color.bright_red, bold: true)
         else
-          hints = "↑/↓: Navigate │ Enter: Select │ Shift+~ / ~: Command Palette │ Q: Quit"
+          rec_label = Opal::Asciicast::VCR.recording? ? "Ctrl+R: Stop Rec" : "Ctrl+R: Rec"
+          hints = "↑/↓: Nav │ Enter: Select │ #{rec_label} │ Ctrl+S: Shot │ Shift+~ / ~: Palette │ Q: Quit"
           buffer.put_string(2, y + 1, hints, fg: Opal::Color.cyan)
         end
       end
 
-      private def handle_input(driver : Opal::Terminal::Driver)
-        ev = driver.read_event
+      private def handle_input(ev : Opal::Terminal::KeyEvent | Opal::Terminal::MouseEvent | Opal::Terminal::ResizeEvent, driver : Opal::Terminal::Driver, diff_renderer : Opal::UI::DiffRenderer)
+        if ev.is_a?(Opal::Terminal::ResizeEvent)
+          diff_renderer.invalidate!
+          return
+        end
+
         return unless ev.is_a?(Opal::Terminal::KeyEvent)
+
+        # Screencast Recording Toggle: Ctrl+R
+        if ev.matches?("ctrl+r")
+          if Opal::Asciicast::VCR.recording?
+            Opal::Asciicast::VCR.stop
+            timestamp = Time.local.to_s("%Y%m%d_%H%M%S")
+            saved_path = "recordings/hub_session_#{timestamp}.cast"
+            Opal::Asciicast::VCR.save(saved_path)
+            set_status("Recording saved to #{saved_path}")
+          else
+            timestamp = Time.local.to_s("%Y%m%d_%H%M%S")
+            out_path = "recordings/hub_session_#{timestamp}.cast"
+            w, h = driver.size
+            Opal::Asciicast::VCR.record(out_path, width: Math.max(40, w), height: Math.max(16, h), title: "Lapis Terminal Hub")
+            set_status("Recording started to #{out_path} (Ctrl+R to stop)")
+          end
+          diff_renderer.invalidate!
+          return
+        end
+
+        # VCR Screenshot: Ctrl+S
+        if ev.matches?("ctrl+s")
+          timestamp = Time.local.to_s("%Y%m%d_%H%M%S")
+          shot_path = "recordings/screenshot_hub_#{timestamp}.ansi"
+          html_path = "recordings/screenshot_hub_#{timestamp}.html"
+          w, h = driver.size
+          buffer = Opal::UI::Buffer.new(Math.max(40, w), Math.max(16, h))
+          render_to_buffer(buffer, buffer.width, buffer.height)
+          Opal::Asciicast::VCR.screenshot(path: shot_path, format: :ansi, buffer: buffer, copy_to_clipboard: true)
+          Opal::Asciicast::VCR.screenshot(path: html_path, format: :html, buffer: buffer)
+          set_status("VCR Screenshot saved to #{shot_path} (Copied to Clipboard)!")
+          diff_renderer.invalidate!
+          return
+        end
 
         # Global command palette toggle: Shift+~ or ~ or ` or Ctrl+P
         if ev.char == '~' || ev.char == '`' || ev.matches?("ctrl+p")
@@ -208,7 +349,7 @@ module Lapis
         when "down"
           @selected_index = Math.min(MENU_ITEMS.size - 1, @selected_index + 1)
         when "enter"
-          execute_selected_item
+          execute_selected_item(diff_renderer)
         else
           if ch = ev.char
             case ch
@@ -216,28 +357,67 @@ module Lapis
               @running = false
             when 'n', 'N'
               launch_new_wizard
+              diff_renderer.invalidate!
             when 'e', 'E'
-              launch_editor
+              if reason = item_disabled_reason(1)
+                set_status("Cannot launch Godot Editor: #{reason}!")
+              else
+                launch_editor
+                diff_renderer.invalidate!
+              end
+            when 'a', 'A'
+              launch_driver_view
+              diff_renderer.invalidate!
             when 'p', 'P'
-              launch_package_form
+              if reason = item_disabled_reason(3)
+                set_status("Cannot package: #{reason}!")
+              else
+                launch_package_form
+                diff_renderer.invalidate!
+              end
             when 'd', 'D'
-              launch_debugger
+              if reason = item_disabled_reason(3)
+                set_status("Cannot launch debugger: #{reason}!")
+              else
+                launch_debugger
+                diff_renderer.invalidate!
+              end
             when 'l', 'L'
               launch_log_viewer
+              diff_renderer.invalidate!
             when 'b', 'B'
-              launch_bench_viewer
+              if reason = item_disabled_reason(5)
+                set_status("Cannot open benchmarks: #{reason}!")
+              else
+                launch_bench_viewer
+                diff_renderer.invalidate!
+              end
             when 'r', 'R'
-              launch_run_monitor
+              if reason = item_disabled_reason(6)
+                set_status("Cannot run game: #{reason}!")
+              else
+                launch_run_monitor
+                diff_renderer.invalidate!
+              end
             when 't', 'T'
-              launch_test_runner
+              if reason = item_disabled_reason(7)
+                set_status("Cannot run tests: #{reason}!")
+              else
+                launch_test_runner
+                diff_renderer.invalidate!
+              end
             when 'o', 'O'
               run_command("doctor")
+              diff_renderer.invalidate!
             when 's', 'S'
               run_command("sync")
+              diff_renderer.invalidate!
             when 'c', 'C'
               run_command("clean")
+              diff_renderer.invalidate!
             when 'm', 'M'
               run_command("docs")
+              diff_renderer.invalidate!
             when '?'
               @palette_open = true
             end
@@ -269,22 +449,33 @@ module Lapis
         end
       end
 
-      private def execute_selected_item
+      private def execute_selected_item(diff_renderer : Opal::UI::DiffRenderer)
+        if reason = item_disabled_reason(@selected_index)
+          set_status("Cannot run selected item: #{reason}!")
+          return
+        end
+
         case @selected_index
         when 0  then launch_new_wizard
         when 1  then launch_editor
-        when 2  then launch_package_form
-        when 3  then launch_debugger
-        when 4  then launch_log_viewer
-        when 5  then launch_bench_viewer
-        when 6  then launch_run_monitor
-        when 7  then launch_test_runner
-        when 8  then run_command("doctor")
-        when 9  then run_command("sync")
-        when 10 then run_command("clean")
-        when 11 then run_command("docs")
-        when 12 then @running = false
+        when 2  then launch_driver_view
+        when 3  then launch_package_form
+        when 4  then launch_debugger
+        when 5  then launch_log_viewer
+        when 6  then launch_bench_viewer
+        when 7  then launch_run_monitor
+        when 8  then launch_test_runner
+        when 9  then run_command("doctor")
+        when 10 then run_command("sync")
+        when 11 then run_command("clean")
+        when 12 then run_command("docs")
+        when 13 then @running = false
         end
+        diff_renderer.invalidate!
+      end
+
+      def launch_driver_view : Nil
+        DriverView.run
       end
 
       def launch_new_wizard : Nil
@@ -316,10 +507,16 @@ module Lapis
       end
 
       def launch_test_runner : Nil
+        if reason = item_disabled_reason(7)
+          set_status("Cannot run tests: #{reason}!")
+          return
+        end
+
         driver = Opal::Terminal.default_driver
         driver.exit_alternate_screen
         driver.show_cursor
         Commands::Test.run(["--tui"])
+        wait_for_return
         driver.enter_alternate_screen
         driver.hide_cursor
       end
@@ -335,10 +532,17 @@ module Lapis
         when "clean"  then Commands::Clean.run([] of String)
         when "docs"   then Commands::Docs.run([] of String)
         end
-        puts "\n\e[33mPress Enter to return to Lapis CLI Hub...\e[0m"
-        STDIN.gets
+        wait_for_return
         driver.enter_alternate_screen
         driver.hide_cursor
+      end
+
+      private def wait_for_return
+        puts "\n\e[33mPress Enter or Space to return to Lapis CLI Hub...\e[0m"
+        loop do
+          b = STDIN.read_byte
+          break if b.nil? || b == 13 || b == 10 || b == 32 || b == 27
+        end
       end
     end
   end

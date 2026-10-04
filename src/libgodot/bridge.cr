@@ -90,6 +90,26 @@ module Godot
       location : Int64
     end
 
+    struct BridgeValidationError
+      line : Int32
+      column : Int32
+      message : LibC::Char*
+    end
+
+    struct BridgeValidationWarning
+      line : Int32
+      code : Int32
+      message : LibC::Char*
+    end
+
+    struct BridgeScriptTemplate
+      inherit : LibC::Char*
+      name : LibC::Char*
+      description : LibC::Char*
+      content : LibC::Char*
+      id : Int64
+    end
+
     struct BridgeAPI
       register_class : (CrystalClassDesc* -> Int32)
       get_method_bind : (LibC::Char*, LibC::Char*, Int64 -> Void*)
@@ -141,11 +161,13 @@ module Godot
       arg_to_string : (Void*, LibC::Char*, Int32 -> Int32)
       arg_to_string_name : (Void*, LibC::Char*, Int32 -> Int32)
       ret_dictionary_validate : (Void*, UInt8 -> Void)
+      ret_dictionary_validate_ex : (Void*, UInt8, BridgeValidationError*, Int32, BridgeValidationWarning*, Int32 -> Void)
       ret_dictionary_complete_code : (Void* -> Void)
       ret_dictionary_lookup_code : (Void* -> Void)
       ret_dictionary_complete_code_ex : (Void*, Int64, UInt8, LibC::Char*, BridgeCompletionOption*, Int32 -> Void)
       ret_dictionary_lookup_code_ex : (Void*, Int64, Int64, LibC::Char*, LibC::Char*, LibC::Char*, LibC::Char*, Int64 -> Void)
       ret_dictionary_global_class : (Void*, LibC::Char*, LibC::Char*, LibC::Char* -> Void)
+      ret_script_templates : (Void*, BridgeScriptTemplate*, Int32 -> Void)
       placeholder_script_instance_create : (Void*, Void*, Void* -> Void*)
       text_edit_get_line : (Void*, Int64, LibC::Char*, Int32 -> Int32)
       object_connect_signal : (Void*, LibC::Char*, UInt32 -> Void)
@@ -201,8 +223,40 @@ module Godot
     end
   end
 
+  struct LibBridge::BridgeValidationError
+    def initialize(
+      @line : Int32,
+      @column : Int32,
+      @message : LibC::Char*
+    )
+    end
+  end
+
+  struct LibBridge::BridgeValidationWarning
+    def initialize(
+      @line : Int32,
+      @code : Int32,
+      @message : LibC::Char*
+    )
+    end
+  end
+
+  struct LibBridge::BridgeScriptTemplate
+    def initialize(
+      @inherit : LibC::Char*,
+      @name : LibC::Char*,
+      @description : LibC::Char*,
+      @content : LibC::Char*,
+      @id : Int64
+    )
+    end
+  end
+
   module Bridge
     alias BridgeCompletionOption = LibBridge::BridgeCompletionOption
+    alias BridgeValidationError = LibBridge::BridgeValidationError
+    alias BridgeValidationWarning = LibBridge::BridgeValidationWarning
+    alias BridgeScriptTemplate = LibBridge::BridgeScriptTemplate
 
     @@api : LibBridge::BridgeAPI* = Pointer(LibBridge::BridgeAPI).null
 
@@ -1314,6 +1368,25 @@ module Godot
       @@api.value.ret_dictionary_validate.call(ret, valid ? 1_u8 : 0_u8)
     end
 
+    def self.ret_dictionary_validate_ex(
+      ret : Void*,
+      valid : Bool,
+      errors : Slice(BridgeValidationError) | Array(BridgeValidationError) = [] of BridgeValidationError,
+      warnings : Slice(BridgeValidationWarning) | Array(BridgeValidationWarning) = [] of BridgeValidationWarning
+    ) : Void
+      return if ret.null? || @@api.null? || @@api.value.ret_dictionary_validate_ex.pointer.null?
+      err_ptr = errors.empty? ? Pointer(BridgeValidationError).null : errors.to_unsafe
+      warn_ptr = warnings.empty? ? Pointer(BridgeValidationWarning).null : warnings.to_unsafe
+      @@api.value.ret_dictionary_validate_ex.call(
+        ret,
+        valid ? 1_u8 : 0_u8,
+        err_ptr,
+        errors.size.to_i32,
+        warn_ptr,
+        warnings.size.to_i32
+      )
+    end
+
     def self.ret_dictionary_complete_code(ret : Void*) : Void
       return if ret.null? || @@api.null? || @@api.value.ret_dictionary_complete_code.pointer.null?
       @@api.value.ret_dictionary_complete_code.call(ret)
@@ -1369,6 +1442,12 @@ module Godot
     def self.ret_dictionary_global_class(ret : Void*, class_name : String, base_type : String = "Node", icon_path : String = "") : Void
       return if ret.null? || @@api.null? || @@api.value.ret_dictionary_global_class.pointer.null?
       @@api.value.ret_dictionary_global_class.call(ret, class_name.to_unsafe, base_type.to_unsafe, icon_path.to_unsafe)
+    end
+
+    def self.ret_script_templates(ret : Void*, templates : Slice(BridgeScriptTemplate) | Array(BridgeScriptTemplate)) : Void
+      return if ret.null? || @@api.null? || @@api.value.ret_script_templates.pointer.null?
+      tmpl_ptr = templates.empty? ? Pointer(BridgeScriptTemplate).null : templates.to_unsafe
+      @@api.value.ret_script_templates.call(ret, tmpl_ptr, templates.size.to_i32)
     end
 
     def self.placeholder_script_instance_create(language : Void*, script : Void*, owner : Void*) : Void*

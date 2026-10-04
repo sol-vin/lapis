@@ -1,4 +1,5 @@
 require "./types"
+require "./macros/annotations"
 
 module Godot
   # Returns true if the code is currently executing inside the Godot Editor
@@ -69,6 +70,13 @@ module Godot
     res
   end
 
+  # Constructs a new native Godot engine object, wraps it in T, and configures it in a block
+  def self.create(type : T.class, &block : T ->) : T forall T
+    inst = create(type)
+    with inst yield inst
+    inst
+  end
+
   # Raised when an operation is attempted on a Godot Object that has been deleted or freed.
   class DisposedObjectError < Exception
     getter instance_id : UInt64
@@ -104,16 +112,30 @@ module Godot
     getter? completed : Bool = false
     getter args : ::Array(Variant) = ::Array(Variant).new
     getter callback : Proc(::Array(Variant), Void)?
+    property proc_pointer : Void* = Pointer(Void).null
+    property proc_closure_data : Void* = Pointer(Void).null
+    getter receiver : Godot::Object? = nil
+    getter receiver_id : UInt64? = nil
 
     def initialize(
       @target_id : UInt64,
       @signal_name : String,
       @flags : ConnectFlags = ConnectFlags::None,
       @callback : Proc(::Array(Variant), Void)? = nil,
+      @receiver : Godot::Object? = nil,
     )
+      if recv = @receiver
+        @receiver_id = recv.signal_target_id
+      end
     end
 
     def trigger(signal_args : ::Array(Variant)) : Void
+      if recv = @receiver
+        unless recv.active?
+          unsubscribe
+          return
+        end
+      end
       @completed = true
       @args = signal_args
       if cb = @callback
@@ -151,6 +173,9 @@ module Godot
     # Returns true if this subscription is still active and listening
     def active? : Bool
       return false if @unsubscribed
+      if recv = @receiver
+        return false unless recv.active?
+      end
       if @flags.includes?(ConnectFlags::OneShot)
         !@completed
       else
@@ -173,8 +198,9 @@ module Godot
     signal_name : String,
     flags : ConnectFlags = ConnectFlags::None,
     callback : Proc(::Array(Variant), Void)? = nil,
+    receiver : Godot::Object? = nil,
   ) : SignalSubscription
-    sub = SignalSubscription.new(target_id, signal_name, flags, callback)
+    sub = SignalSubscription.new(target_id, signal_name, flags, callback, receiver)
     key = {target_id, signal_name}
     signal_subs_mutex.synchronize do
       list = signal_subs[key] ||= ::Array(SignalSubscription).new
@@ -194,11 +220,14 @@ module Godot
     end
   end
 
-  # Cleans up all signal subscriptions associated with a target instance ID
+  # Cleans up all signal subscriptions associated with a target instance ID (as emitter or receiver)
   def self.clear_signal_subscriptions(target_id : UInt64) : Void
     return if target_id == 0
     signal_subs_mutex.synchronize do
-      signal_subs.reject! { |(tid, _), _| tid == target_id }
+      signal_subs.each_value do |list|
+        list.reject! { |sub| sub.receiver_id == target_id }
+      end
+      signal_subs.reject! { |(tid, _), list| tid == target_id || list.empty? }
     end
   end
 
@@ -229,7 +258,7 @@ module Godot
     begin
       while !sub.completed?
         # Dead-pointer validation: fail fast if target was destroyed
-        if !target.alive?
+        if !target.active?
           raise DisposedObjectError.new(target_id, "Target object was destroyed while awaiting signal '#{signal_name}'")
         end
         if timeout = timeout_sec
@@ -347,7 +376,12 @@ module Godot
     end
   end
 
+  # Wildcard type filter for signal connections and type queries
+  alias Any = VariantValue
+
+
   # Represents a signal bound to a specific Godot object instance.
+
   # Enables first-class signal handling, inspection, connection, emission, and non-blocking `await`.
   #
   # Examples:
@@ -374,6 +408,11 @@ module Godot
       @target.alive?
     end
 
+    # Returns true if the bound object is active and not destroyed
+    def active? : Bool
+      @target.active?
+    end
+
     # Cooperatively awaits this signal without blocking the engine main loop.
     # Returns the emitted arguments as an Array(Variant).
     def await(timeout_sec : Float64? = nil) : ::Array(Variant)
@@ -386,13 +425,18 @@ module Godot
     end
 
     # Connects a callback proc to this signal
-    def connect(flags : ConnectFlags = ConnectFlags::None, callback : Proc(::Array(Variant), Void)? = nil) : SignalSubscription
-      @target.connect(@name, flags, callback)
+    def connect(flags : ConnectFlags = ConnectFlags::None, callback : Proc(::Array(Variant), Void)? = nil, receiver : Godot::Object? = nil) : SignalSubscription
+      @target.connect(@name, flags, callback, receiver)
     end
 
     # Connects a callback block to this signal (supports 1-arg `|args|` and 0-arg blocks)
-    def connect(flags : ConnectFlags = ConnectFlags::None, &block : ::Array(Variant) -> Void) : SignalSubscription
-      @target.connect(@name, flags, &block)
+    def connect(flags : ConnectFlags = ConnectFlags::None, receiver : Godot::Object? = nil, &block : ::Array(Variant) -> Void) : SignalSubscription
+      @target.connect(@name, flags, receiver, &block)
+    end
+
+    # Connects a callback block to this signal with explicit receiver tracking as first positional argument
+    def connect(receiver : Godot::Object, flags : ConnectFlags = ConnectFlags::None, &block : ::Array(Variant) -> Void) : SignalSubscription
+      @target.connect(@name, flags, receiver, &block)
     end
 
     # Backwards-compatibility helper redirecting to ConnectFlags::OneShot
@@ -424,21 +468,203 @@ module Godot
       end
     end
 
+    # Connects with 1 positional type filter
+    def connect(type0 : T0.class, flags : ConnectFlags = ConnectFlags::None, &block : T0 -> Void) : SignalSubscription forall T0
+      @target.connect(@name, flags) do |args|
+        if args.size >= 1
+          raw = args[0].raw
+          {% if T0 == Godot::Any %}
+            block.call(raw)
+          {% else %}
+            if raw_node = raw.as?(Godot::Node)
+              if casted = Godot::Node.cast_to?(raw_node, T0)
+                block.call(casted)
+              end
+            elsif raw.is_a?(T0)
+              block.call(raw)
+            end
+          {% end %}
+        end
+      end
+    end
+
+    # Connects with 2 positional type filters
+    def connect(type0 : T0.class, type1 : T1.class, flags : ConnectFlags = ConnectFlags::None, &block : (T0, T1) -> Void) : SignalSubscription forall T0, T1
+      @target.connect(@name, flags) do |args|
+        if args.size >= 2
+          c0 : T0? = nil
+          raw0 = args[0].raw
+          {% if T0 == Godot::Any %}
+            c0 = raw0
+          {% else %}
+            if raw0.is_a?(Godot::Node)
+              c0 = Godot::Node.cast_to?(raw0, T0)
+            elsif raw0.is_a?(T0)
+              c0 = raw0
+            end
+          {% end %}
+
+          c1 : T1? = nil
+          raw1 = args[1].raw
+          {% if T1 == Godot::Any %}
+            c1 = raw1
+          {% else %}
+            if raw1.is_a?(Godot::Node)
+              c1 = Godot::Node.cast_to?(raw1, T1)
+            elsif raw1.is_a?(T1)
+              c1 = raw1
+            end
+          {% end %}
+
+          if (t0 = c0) && (t1 = c1)
+            block.call(t0, t1)
+          end
+        end
+      end
+    end
+
+    # One-shot listener with 1 positional type filter
+    def once(type0 : T0.class, &block : T0 -> Void) : SignalSubscription forall T0
+      connect(type0, flags: ConnectFlags::OneShot, &block)
+    end
+
+    # One-shot listener with 2 positional type filters
+    def once(type0 : T0.class, type1 : T1.class, &block : (T0, T1) -> Void) : SignalSubscription forall T0, T1
+      connect(type0, type1, flags: ConnectFlags::OneShot, &block)
+    end
+
+    # Operator `+` for 1-argument typed Proc (supports `sig += ->(player : Player) { ... }`)
+    def +(proc : Proc(T, R)) : self forall T, R
+      sub = @target.connect(@name) do |args|
+        if args.size >= 1
+          raw = args[0].raw
+          if raw_node = raw.as?(Godot::Node)
+            if casted = Godot::Node.cast_to?(raw_node, T)
+              proc.call(casted)
+            end
+          elsif raw.is_a?(T)
+            proc.call(raw)
+          elsif raw.is_a?(Int) && (num = raw.to_i32.as?(T) || raw.to_i64.as?(T))
+            proc.call(num)
+          elsif raw.is_a?(Float) && (flt = raw.to_f32.as?(T) || raw.to_f64.as?(T))
+            proc.call(flt)
+          end
+        end
+      end
+      sub.proc_pointer = proc.pointer
+      sub.proc_closure_data = proc.closure_data
+      self
+    end
+
+    # Operator `+` for 2-argument typed Proc (supports `sig += ->(player : Player, sword : Sword) { ... }`)
+    def +(proc : Proc(T0, T1, R)) : self forall T0, T1, R
+      sub = @target.connect(@name) do |args|
+        if args.size >= 2
+          c0 : T0? = nil
+          raw0 = args[0].raw
+          if raw0.is_a?(Godot::Node)
+            c0 = Godot::Node.cast_to?(raw0, T0)
+          elsif raw0.is_a?(T0)
+            c0 = raw0
+          elsif raw0.is_a?(Int)
+            c0 = raw0.to_i32.as?(T0) || raw0.to_i64.as?(T0)
+          elsif raw0.is_a?(Float)
+            c0 = raw0.to_f32.as?(T0) || raw0.to_f64.as?(T0)
+          end
+
+          c1 : T1? = nil
+          raw1 = args[1].raw
+          if raw1.is_a?(Godot::Node)
+            c1 = Godot::Node.cast_to?(raw1, T1)
+          elsif raw1.is_a?(T1)
+            c1 = raw1
+          elsif raw1.is_a?(Int)
+            c1 = raw1.to_i32.as?(T1) || raw1.to_i64.as?(T1)
+          elsif raw1.is_a?(Float)
+            c1 = raw1.to_f32.as?(T1) || raw1.to_f64.as?(T1)
+          end
+
+          if (t0 = c0) && (t1 = c1)
+            proc.call(t0, t1)
+          end
+        end
+      end
+      sub.proc_pointer = proc.pointer
+      sub.proc_closure_data = proc.closure_data
+      self
+    end
+
+    # Operator `+` syntactic sugar for `connect` with a Proc (supports `sig += ->handler`)
+    def +(proc : Proc(::Array(Variant), R)) : self forall R
+      sub = self << proc
+      sub.proc_pointer = proc.pointer
+      sub.proc_closure_data = proc.closure_data
+      self
+    end
+
+    # Operator `+` syntactic sugar for `connect` with a 0-argument Proc (supports `sig += ->handler`)
+    def +(proc : Proc(R)) : self forall R
+      sub = self << proc
+      sub.proc_pointer = proc.pointer
+      sub.proc_closure_data = proc.closure_data
+      self
+    end
+
+    # Operator `+` syntactic sugar accepting a SignalSubscription directly
+    def +(sub : SignalSubscription) : self
+      self
+    end
+
+    # Operator `-` syntactic sugar for disconnecting a Proc (supports `sig -= ->handler`)
+    def -(proc : Proc) : self
+      tid = target_id
+      sname = @name
+      key = {tid, sname}
+      sub_to_unsub = nil
+      Godot.signal_subs_mutex.synchronize do
+        if list = Godot.signal_subs[key]?
+          sub_to_unsub = list.reverse.find { |s| s.proc_pointer == proc.pointer && s.proc_closure_data == proc.closure_data && s.active? }
+        end
+      end
+      sub_to_unsub.try(&.unsubscribe)
+      self
+    end
+
+    # Operator `-` syntactic sugar for disconnecting a SignalSubscription (supports `sig -= sub`)
+    def -(sub : SignalSubscription) : self
+      sub.unsubscribe
+      self
+    end
+
     # Connects this signal to a method call on a target object by symbol name
     def connect(listener_target : Godot::Object, method_name : Symbol, flags : ConnectFlags = ConnectFlags::None) : SignalSubscription
-      @target.connect(@name, flags) do |_args|
-        listener_target.call(method_name.to_s)
+      @target.connect(@name, flags, receiver: listener_target) do |args|
+        if listener_target.active?
+          listener_target.call(method_name.to_s, args)
+        end
       end
     end
 
     # Disconnects all active subscriptions for this signal on the target
-    def disconnect : Void
+    def disconnect : self
       @target.disconnect(@name)
+      self
+    end
+
+    # Disconnects all active subscriptions for this signal on the target (alias)
+    def disconnect_all : self
+      disconnect
+    end
+
+    # Fluent alias for disconnect_all
+    def clear : self
+      disconnect_all
     end
 
     # Emits this signal on the target object
-    def emit(*args) : Void
+    def emit(*args) : self
       @target.emit_signal(@name, *args)
+      self
     end
 
     # Returns the count of active subscriptions for this signal
@@ -456,6 +682,77 @@ module Godot
       connected?
     end
 
+    # Strict pipe (>): Dispatches to target signal passing raw arguments
+    def >(target_signal : BoundSignal) : SignalSubscription
+      pipe_to(target_signal, strict: true)
+    end
+
+    # Loose / adaptive pipe (>>): Dispatches with arity trimming and type downcasting
+    def >>(target_signal : BoundSignal) : SignalSubscription
+      pipe_to(target_signal, strict: false)
+    end
+
+    # Loose pipe (>>) to a strongly-typed TypedSignal(*U) with automatic downcasting & arity adaptation
+    def >>(target_signal : TypedSignal(*U)) : SignalSubscription forall U
+      target_obj = target_signal.target
+      connect(receiver: target_obj) do |args|
+        next unless target_obj.active?
+        {% begin %}
+          {% target_size = U.size %}
+          {% if target_size == 0 %}
+            target_signal.emit
+          {% else %}
+            if args.size >= {{ target_size }}
+              {% for i in 0...target_size %}
+                %matched_{{i}} = false
+                %val_{{i}} = nil
+                %raw_{{i}} = args[{{i}}].raw
+                if %raw_{{i}}.is_a?({{ U[i] }})
+                  %val_{{i}} = %raw_{{i}}
+                  %matched_{{i}} = true
+                {% if U[i] < Godot::Node %}
+                  elsif %n_{{i}} = %raw_{{i}}.as?(::Godot::Node)
+                    if %casted_{{i}} = ::Godot::Node.cast_to?(%n_{{i}}, {{ U[i] }})
+                      %val_{{i}} = %casted_{{i}}
+                      %matched_{{i}} = true
+                    end
+                {% end %}
+                {% if U[i] <= Int32 || U[i] <= Int64 %}
+                  elsif %raw_{{i}}.is_a?(Int)
+                    %val_{{i}} = {{ U[i] }}.new(%raw_{{i}})
+                    %matched_{{i}} = true
+                {% elsif U[i] <= Float32 || U[i] <= Float64 %}
+                  elsif %raw_{{i}}.is_a?(Number)
+                    %val_{{i}} = {{ U[i] }}.new(%raw_{{i}})
+                    %matched_{{i}} = true
+                {% end %}
+                end
+              {% end %}
+
+              if {% for i in 0...target_size %}%matched_{{i}} && {% end %} true
+                target_signal.emit(
+                  {% for i in 0...target_size %}
+                    %val_{{i}}.as({{ U[i] }}),
+                  {% end %}
+                )
+              end
+            end
+          {% end %}
+        {% end %}
+      end
+    end
+
+    # Pipes this signal to target signal
+    def pipe_to(target_signal : BoundSignal, strict : Bool = false) : SignalSubscription
+      target_obj = target_signal.target
+      target_name = target_signal.name
+      connect(receiver: target_obj) do |args|
+        if target_obj.active?
+          target_obj.emit_signal(target_name, *args.map(&.raw))
+        end
+      end
+    end
+
     def to_s(io : IO) : Void
       io << "#<Godot::BoundSignal @" << @name << " on " << @target.class.name << " (id: " << target_id << ")>"
     end
@@ -464,9 +761,9 @@ module Godot
   # Strongly-typed signal binding offering compile-time type safety for signal connections and await.
   class TypedSignal(*T) < BoundSignal
     # Type-safe connect with automatic unboxing into block parameters
-    def connect(flags : ConnectFlags = ConnectFlags::None, &block : *T -> Void) : SignalSubscription
+    def connect(flags : ConnectFlags = ConnectFlags::None, receiver : Godot::Object? = nil, &block : *T -> Void) : SignalSubscription
       cb = block
-      @target.connect(@name, flags) do |args|
+      @target.connect(@name, flags, receiver: receiver) do |args|
         {% begin %}
           {% if T.size == 0 %}
             cb.call
@@ -474,15 +771,20 @@ module Godot
             cb.call(
               {% for i in 0...T.size %}
                 (if (arg = args[{{i}}]?)
-                  arg.as_t(T[{{i}}])
+                  arg.as_t({{ T[i] }})
                 else
-                  Variant.default_for(T[{{i}}])
+                  Variant.default_for({{ T[i] }})
                 end),
               {% end %}
             )
           {% end %}
         {% end %}
       end
+    end
+
+    # Overload allowing receiver as first positional argument: `sig.connect(receiver) { |args| ... }`
+    def connect(receiver : Godot::Object, flags : ConnectFlags = ConnectFlags::None, &block : *T -> Void) : SignalSubscription
+      connect(flags: flags, receiver: receiver, &block)
     end
 
     # Backwards-compatibility helper redirecting to ConnectFlags::OneShot
@@ -502,9 +804,17 @@ module Godot
 
     # Operator `<<` syntactic sugar for type-safe connect with a Proc
     def <<(proc : Proc(*T, R)) : SignalSubscription forall R
-      connect do |*args|
-        proc.call(*args)
-      end
+      {% begin %}
+        {% if T.size == 0 %}
+          connect do
+            proc.call
+          end
+        {% else %}
+          connect do |{% for i in 0...T.size %}arg{{i}},{% end %}|
+            proc.call({% for i in 0...T.size %}arg{{i}},{% end %})
+          end
+        {% end %}
+      {% end %}
     end
 
     # Operator `<<` syntactic sugar for 0-argument Proc
@@ -514,9 +824,225 @@ module Godot
       end
     end
 
+
+
+    # Operator `+` syntactic sugar for `connect` with a Proc accepting raw Variant array
+    def +(proc : Proc(::Array(Variant), R)) : self forall R
+      sub = @target.connect(@name) do |args|
+        proc.call(args)
+      end
+      sub.proc_pointer = proc.pointer
+      sub.proc_closure_data = proc.closure_data
+      self
+    end
+
+    # Operator `+` for 1-argument typed Proc (supports exact types and downcasting)
+    def +(proc : Proc(U0, R)) : self forall U0, R
+      sub = @target.connect(@name) do |args|
+        if args.size >= 1
+          raw = args[0].raw
+          if raw_node = raw.as?(Godot::Node)
+            if casted = Godot::Node.cast_to?(raw_node, U0)
+              proc.call(casted)
+            end
+          elsif raw.is_a?(U0)
+            proc.call(raw)
+          elsif raw.is_a?(Int) && (num = raw.to_i32.as?(U0) || raw.to_i64.as?(U0))
+            proc.call(num)
+          elsif raw.is_a?(Float) && (flt = raw.to_f32.as?(U0) || raw.to_f64.as?(U0))
+            proc.call(flt)
+          end
+        end
+      end
+      sub.proc_pointer = proc.pointer
+      sub.proc_closure_data = proc.closure_data
+      self
+    end
+
+    # Operator `+` for 2-argument typed Proc (supports exact types and downcasting)
+    def +(proc : Proc(U0, U1, R)) : self forall U0, U1, R
+      sub = @target.connect(@name) do |args|
+        if args.size >= 2
+          c0 : U0? = nil
+          raw0 = args[0].raw
+          if raw0.is_a?(Godot::Node)
+            c0 = Godot::Node.cast_to?(raw0, U0)
+          elsif raw0.is_a?(U0)
+            c0 = raw0
+          elsif raw0.is_a?(Int)
+            c0 = raw0.to_i32.as?(U0) || raw0.to_i64.as?(U0)
+          elsif raw0.is_a?(Float)
+            c0 = raw0.to_f32.as?(U0) || raw0.to_f64.as?(U0)
+          end
+
+          c1 : U1? = nil
+          raw1 = args[1].raw
+          if raw1.is_a?(Godot::Node)
+            c1 = Godot::Node.cast_to?(raw1, U1)
+          elsif raw1.is_a?(U1)
+            c1 = raw1
+          elsif raw1.is_a?(Int)
+            c1 = raw1.to_i32.as?(U1) || raw1.to_i64.as?(U1)
+          elsif raw1.is_a?(Float)
+            c1 = raw1.to_f32.as?(U1) || raw1.to_f64.as?(U1)
+          end
+
+          if (t0 = c0) && (t1 = c1)
+            proc.call(t0, t1)
+          end
+        end
+      end
+      sub.proc_pointer = proc.pointer
+      sub.proc_closure_data = proc.closure_data
+      self
+    end
+
+    # Operator `+` syntactic sugar for 0-argument Proc (supports `sig += ->handler`)
+    def +(proc : Proc(R)) : self forall R
+      sub = self << proc
+      sub.proc_pointer = proc.pointer
+      sub.proc_closure_data = proc.closure_data
+      self
+    end
+
+    # Operator `+` syntactic sugar accepting a SignalSubscription directly
+    def +(sub : SignalSubscription) : self
+      self
+    end
+
+    # Operator `-` syntactic sugar for disconnecting a Proc (supports `sig -= ->handler`)
+    def -(proc : Proc) : self
+      tid = target_id
+      sname = @name
+      key = {tid, sname}
+      sub_to_unsub = nil
+      Godot.signal_subs_mutex.synchronize do
+        if list = Godot.signal_subs[key]?
+          sub_to_unsub = list.reverse.find { |s| s.proc_pointer == proc.pointer && s.proc_closure_data == proc.closure_data && s.active? }
+        end
+      end
+      sub_to_unsub.try(&.unsubscribe)
+      self
+    end
+
+    # Operator `-` syntactic sugar for disconnecting a SignalSubscription (supports `sig -= sub`)
+    def -(sub : SignalSubscription) : self
+      sub.unsubscribe
+      self
+    end
+
     # Emits this typed signal with compile-time type safety matching the signal declaration
-    def emit(*args : *T) : Void
+    def emit(*args : *T) : self
       @target.emit_signal(@name, *args)
+      self
+    end
+
+    # Strict pipe (>): Exact signature match required at compile-time!
+    def >(target_signal : TypedSignal(*T)) : SignalSubscription
+      target_obj = target_signal.target
+      {% begin %}
+        {% if T.size == 0 %}
+          connect(receiver: target_obj) do
+            if target_obj.active?
+              target_signal.emit
+            end
+          end
+        {% else %}
+          connect(receiver: target_obj) do |{% for i in 0...T.size %}arg{{i}},{% end %}|
+            if target_obj.active?
+              target_signal.emit({% for i in 0...T.size %}arg{{i}},{% end %})
+            end
+          end
+        {% end %}
+      {% end %}
+    end
+
+    # Loose / adaptive pipe (>>): Accepts ANY TypedSignal(*U)!
+    # - Automatically trims excess trailing arguments (e.g. 3 args -> 2 args or 0 args)
+    # - Automatically filters and downcasts (e.g. Node -> Enemy)
+    # - Automatically converts numeric types
+    def >>(target_signal : TypedSignal(*U)) : SignalSubscription forall U
+      target_obj = target_signal.target
+      {% begin %}
+        {% target_size = U.size %}
+        {% if T.size < target_size %}
+          {% raise "Cannot loosely pipe signal with #{T.size} arguments to signal requiring #{target_size} arguments (#{T} to #{U})" %}
+        {% else %}
+          {% if T.size == 0 %}
+            connect(receiver: target_obj) do
+              next unless target_obj.active?
+              target_signal.emit
+            end
+          {% else %}
+            connect(receiver: target_obj) do |{% for i in 0...T.size %}arg{{i}},{% end %}|
+              next unless target_obj.active?
+              {% if target_size == 0 %}
+                target_signal.emit
+              {% else %}
+                {% for i in 0...target_size %}
+                  %matched_{{i}} = false
+                  %val_{{i}} = nil
+                  %raw_{{i}} = arg{{i}}
+                  if %raw_{{i}}.is_a?({{ U[i] }})
+                    %val_{{i}} = %raw_{{i}}
+                    %matched_{{i}} = true
+                  {% if U[i] < Godot::Node %}
+                    elsif %n_{{i}} = %raw_{{i}}.as?(::Godot::Node)
+                      if %casted_{{i}} = ::Godot::Node.cast_to?(%n_{{i}}, {{ U[i] }})
+                        %val_{{i}} = %casted_{{i}}
+                        %matched_{{i}} = true
+                      end
+                  {% end %}
+                  {% if U[i] <= Int32 || U[i] <= Int64 %}
+                    elsif %raw_{{i}}.is_a?(Int)
+                      %val_{{i}} = {{ U[i] }}.new(%raw_{{i}})
+                      %matched_{{i}} = true
+                  {% elsif U[i] <= Float32 || U[i] <= Float64 %}
+                    elsif %raw_{{i}}.is_a?(Number)
+                      %val_{{i}} = {{ U[i] }}.new(%raw_{{i}})
+                      %matched_{{i}} = true
+                  {% end %}
+                  end
+                {% end %}
+
+                if {% for i in 0...target_size %}%matched_{{i}} && {% end %} true
+                  target_signal.emit(
+                    {% for i in 0...target_size %}
+                      %val_{{i}}.as({{ U[i] }}),
+                    {% end %}
+                  )
+                end
+              {% end %}
+            end
+          {% end %}
+        {% end %}
+      {% end %}
+    end
+
+    # Loose pipe (>>) to a dynamic BoundSignal:
+    def >>(target_signal : BoundSignal) : SignalSubscription
+      target_obj = target_signal.target
+      target_name = target_signal.name
+      {% begin %}
+        {% if T.size == 0 %}
+          connect(receiver: target_obj) do
+            if target_obj.active?
+              target_obj.emit_signal(target_name)
+            end
+          end
+        {% else %}
+          connect(receiver: target_obj) do |{% for i in 0...T.size %}arg{{i}},{% end %}|
+            if target_obj.active?
+              target_obj.emit_signal(target_name, {% for i in 0...T.size %}arg{{i}},{% end %})
+            end
+          end
+        {% end %}
+      {% end %}
+    end
+
+    # Strict pipe_to alias
+    def pipe_to(target_signal : TypedSignal(*T)) : SignalSubscription
+      self > target_signal
     end
 
     # Cooperatively awaits this typed signal returning unboxed values or tuple
@@ -527,17 +1053,17 @@ module Godot
           nil
         {% elsif T.size == 1 %}
           if (arg = args[0]?)
-            arg.as_t(T[0])
+            arg.as_t({{ T[0] }})
           else
-            Variant.default_for(T[0])
+            Variant.default_for({{ T[0] }})
           end
         {% else %}
           {
             {% for i in 0...T.size %}
               (if (arg = args[{{i}}]?)
-                arg.as_t(T[{{i}}])
+                arg.as_t({{ T[i] }})
               else
-                Variant.default_for(T[{{i}}])
+                Variant.default_for({{ T[i] }})
               end),
             {% end %}
           }
@@ -604,6 +1130,200 @@ module Godot
       end
     end
 
+    # Configures this existing object in-place using with-yield semantics
+    def configure(& : self ->) : self
+      with self yield self
+      self
+    end
+
+    # Instantiates a new native Godot object and configures it in a block
+    def self.new(&block : self ->) : self
+      inst = ::Godot.create(self)
+      with inst yield inst
+      inst
+    end
+
+    # Class-level constructor returning a new native Godot instance
+    def self.create : self
+      ::Godot.create(self)
+    end
+
+    # Class-level constructor configuring a new native Godot instance in a block
+    def self.create(&block : self ->) : self
+      inst = ::Godot.create(self)
+      with inst yield inst
+      inst
+    end
+
+    macro inherited
+      {% if @type.annotation(::GodotClass) %}
+        {% unless @type.class.methods.map(&.name.stringify).includes?("godot_class_name") %}
+          def self.godot_class_name : String
+            {{ @type.name.stringify.split("::").last }}
+          end
+
+          def self.godot_parent_class_name : String
+            {{ @type.superclass ? @type.superclass.name.stringify.split("::").last : "Object" }}
+          end
+
+          def self._godot_has_virtual_method(method_name : String) : Bool
+            norm = method_name.starts_with?('_') ? method_name : "_#{method_name}"
+            \{% for m in @type.methods %}
+              \{% if m.name.stringify.starts_with?("_") %}
+                return true if norm == \{{ m.name.stringify }}
+              \{% end %}
+            \{% end %}
+            super
+          end
+
+          def _godot_call_virtual(method_name : String, delta : Float64) : Void
+            case method_name
+            when "_enter_tree"
+              _enter_tree if responds_to?(:_enter_tree)
+            when "_exit_tree"
+              _exit_tree if responds_to?(:_exit_tree)
+            when "_ready"
+              _ready if responds_to?(:_ready)
+            when "_process"
+              ::Godot::ThreadSafety.flush_main_thread_queue!
+              _process(delta) if responds_to?(:_process)
+            when "_physics_process"
+              ::Godot::ThreadSafety.flush_main_thread_queue!
+              _physics_process(delta) if responds_to?(:_physics_process)
+            else
+              super
+            end
+          end
+
+          def _godot_set_property(prop_name : String, val_ptr : Void*) : Void
+            \{% for ivar in @type.instance_vars %}
+              \{% if ivar.annotation(::Export) %}
+                if prop_name == \{{ ivar.name.stringify }}
+                  \{% ivar_type = ivar.type.stringify.gsub(/^(::)?Godot::/, "") %}
+                  \{% if ivar_type == "Float32" %}
+                    self.\{{ ivar.name.id }} = val_ptr.as(Float64*).value.to_f32
+                  \{% elsif ivar_type == "Float64" %}
+                    self.\{{ ivar.name.id }} = val_ptr.as(Float64*).value
+                  \{% elsif ivar_type == "Int32" %}
+                    self.\{{ ivar.name.id }} = val_ptr.as(Int64*).value.to_i32
+                  \{% elsif ivar_type == "Int64" %}
+                    self.\{{ ivar.name.id }} = val_ptr.as(Int64*).value
+                  \{% elsif ivar_type == "Bool" %}
+                    self.\{{ ivar.name.id }} = val_ptr.as(UInt8*).value != 0_u8
+                  \{% elsif ivar_type == "String" %}
+                    c_str = val_ptr.as(Pointer(UInt8)*).value
+                    self.\{{ ivar.name.id }} = c_str.null? ? "" : String.new(c_str)
+                  \{% elsif ivar_type == "Vector2" %}
+                    self.\{{ ivar.name.id }} = val_ptr.as(::Godot::Vector2*).value
+                  \{% elsif ivar_type == "Vector3" %}
+                    self.\{{ ivar.name.id }} = val_ptr.as(::Godot::Vector3*).value
+                  \{% elsif ivar_type == "Color" %}
+                    self.\{{ ivar.name.id }} = val_ptr.as(::Godot::Color*).value
+                  \{% end %}
+                  return
+                end
+              \{% end %}
+            \{% end %}
+            super
+          end
+
+          def _godot_get_property(prop_name : String, ret_ptr : Void*) : Void
+            \{% for ivar in @type.instance_vars %}
+              \{% if ivar.annotation(::Export) %}
+                if prop_name == \{{ ivar.name.stringify }}
+                  \{% ivar_type = ivar.type.stringify.gsub(/^(::)?Godot::/, "") %}
+                  \{% if ivar_type == "Float32" || ivar_type == "Float64" %}
+                    ret_ptr.as(Float64*).value = self.\{{ ivar.name.id }}.to_f64
+                  \{% elsif ivar_type == "Int32" || ivar_type == "Int64" %}
+                    ret_ptr.as(Int64*).value = self.\{{ ivar.name.id }}.to_i64
+                  \{% elsif ivar_type == "Bool" %}
+                    ret_ptr.as(UInt8*).value = self.\{{ ivar.name.id }} ? 1_u8 : 0_u8
+                  \{% elsif ivar_type == "String" %}
+                    ret_ptr.as(Pointer(UInt8)*).value = self.\{{ ivar.name.id }}.to_unsafe
+                  \{% elsif ivar_type == "Vector2" %}
+                    ret_ptr.as(::Godot::Vector2*).value = self.\{{ ivar.name.id }}
+                  \{% elsif ivar_type == "Vector3" %}
+                    ret_ptr.as(::Godot::Vector3*).value = self.\{{ ivar.name.id }}
+                  \{% elsif ivar_type == "Color" %}
+                    ret_ptr.as(::Godot::Color*).value = self.\{{ ivar.name.id }}
+                  \{% end %}
+                  return
+                end
+              \{% end %}
+            \{% end %}
+            super
+          end
+
+          def self._godot_auto_register_class : Void
+            props = ::Array(::Godot::PropertyInfo).new
+            \{% for ivar in @type.instance_vars %}
+              \{% if ivar.annotation(::Export) %}
+                \{% ivar_type = ivar.type.stringify.gsub(/^(::)?Godot::/, "") %}
+                \{%
+                  vtype = 0
+                  if ivar_type == "Bool"
+                    vtype = 1
+                  elsif ivar_type == "Int32" || ivar_type == "Int64"
+                    vtype = 2
+                  elsif ivar_type == "Float32" || ivar_type == "Float64"
+                    vtype = 3
+                  elsif ivar_type == "String"
+                    vtype = 4
+                  elsif ivar_type == "Vector2"
+                    vtype = 5
+                  elsif ivar_type == "Vector3"
+                    vtype = 9
+                  elsif ivar_type == "Color"
+                    vtype = 20
+                  end
+                %}
+                props << ::Godot::PropertyInfo.new(
+                  \{{ ivar.name.stringify }},
+                  \{{ ivar_type }},
+                  \{{ vtype }},
+                  0_u32,
+                  "",
+                  6_u32
+                )
+              \{% end %}
+            \{% end %}
+
+            is_tool_class = \{{ @type.annotation(::Tool) != nil }}
+            base_name = \{{ @type.superclass ? @type.superclass.name.stringify.split("::").last : "Object" }}
+
+            ::Godot::ClassRegistry.register(
+              ::Godot::ClassRegistry::Entry.new(
+                \{{ @type.name.stringify.split("::").last }},
+                base_name,
+                ->(godot_ptr : Void*) {
+                  inst = \{{@type}}.new
+                  inst.pointer = godot_ptr
+                  inst.as(::Godot::Object)
+                },
+                is_tool_class,
+                _godot_has_virtual_method("_ready"),
+                _godot_has_virtual_method("_process"),
+                _godot_has_virtual_method("_physics_process"),
+                _godot_has_virtual_method("_enter_tree"),
+                _godot_has_virtual_method("_exit_tree"),
+                _godot_has_virtual_method("_input"),
+                _godot_has_virtual_method("_unhandled_input"),
+                _godot_has_virtual_method("_unhandled_key_input"),
+                _godot_has_virtual_method("_shortcut_input"),
+                _godot_has_virtual_method("_gui_input"),
+                props,
+                ::Array(::Godot::SignalInfo).new,
+                "",
+                false,
+                ([] of NamedTuple(name: String, rpc_mode: Int32, transfer_mode: Int32, call_local: Bool, channel: Int32)),
+                has_virtual_proc: ->(m : String) { _godot_has_virtual_method(m) }
+              )
+            )
+          end
+        {% end %}
+      {% end %}
+    end
+
     # Idiomatic Crystal pointer conversion
     def to_unsafe : Void*
       @pointer
@@ -642,6 +1362,15 @@ module Godot
     def alive? : Bool
       return false if @destroyed || @pointer.null? || @instance_id == 0_u64
       Bridge.is_instance_valid(@instance_id)
+    end
+
+    # Returns true if the object is active and not destroyed (works in both engine and standalone unit specs)
+    def active? : Bool
+      if !@pointer.null? && @instance_id > 0
+        alive?
+      else
+        !@destroyed
+      end
     end
 
     def is_valid? : Bool
@@ -930,6 +1659,108 @@ module Godot
       Pointer(Void).null
     end
 
+    # Calls the named method on the object with an array of Variants.
+    def call(method : String, args : ::Array(Variant)) : Void*
+      check_alive!
+      case args.size
+      when 0
+        call(method)
+      when 1
+        call(method, args[0].raw)
+      when 2
+        call(method, args[0].raw, args[1].raw)
+      when 3
+        call(method, args[0].raw, args[1].raw, args[2].raw)
+      when 4
+        call(method, args[0].raw, args[1].raw, args[2].raw, args[3].raw)
+      else
+        call(method, args[0].raw, args[1].raw, args[2].raw, args[3].raw, args[4].raw)
+      end
+    end
+
+    # Dynamically sets a property value on this object.
+    def set(property : String | Symbol, value : T) : Void forall T
+      check_alive!
+      if !@pointer.null?
+        call("set", property.to_s, value)
+      end
+    end
+
+    # Sets arbitrary metadata on this object with automatic Variant conversion.
+    #
+    # Supports both `String` and `Symbol` keys.
+    #
+    # ### Example:
+    # ```crystal
+    # node.set_meta(:enemy_tier, 3)
+    # node.set_meta("spawner_id", "wave_01")
+    # ```
+    def set_meta(key : String | Symbol, value : String | Int32 | Int64 | Float32 | Float64 | Bool | Symbol) : Void
+      check_alive!
+      if !@pointer.null?
+        call("set_meta", key.to_s, value)
+      end
+    end
+
+    # Retrieves string metadata stored on this object.
+    #
+    # ### Example:
+    # ```crystal
+    # id = node.get_meta_str(:spawner_id)
+    # ```
+    def get_meta_str(key : String | Symbol) : String
+      check_alive!
+      call_str("get_meta", key.to_s)
+    end
+
+    # Retrieves integer metadata stored on this object as an `Int64`.
+    #
+    # ### Example:
+    # ```crystal
+    # tier = node.get_meta_i64(:enemy_tier)
+    # ```
+    def get_meta_i64(key : String | Symbol) : Int64
+      check_alive!
+      call_i64("get_meta", key.to_s)
+    end
+
+    # Retrieves floating-point metadata stored on this object as a `Float64`.
+    #
+    # ### Example:
+    # ```crystal
+    # multiplier = node.get_meta_f64(:difficulty_multiplier)
+    # ```
+    def get_meta_f64(key : String | Symbol) : Float64
+      check_alive!
+      call_f64("get_meta", key.to_s)
+    end
+
+    # Returns `true` if this object has metadata stored under `key`.
+    #
+    # ### Example:
+    # ```crystal
+    # if node.has_meta(:quest_target)
+    #   highlight_target(node)
+    # end
+    # ```
+    def has_meta(key : String | Symbol) : Bool
+      check_alive!
+      call_bool("has_meta", key.to_s)
+    end
+
+    # Removes the metadata entry under `key` from this object.
+    #
+    # ### Example:
+    # ```crystal
+    # node.remove_meta(:temporary_status)
+    # ```
+    def remove_meta(key : String | Symbol) : Void
+      check_alive!
+      if !@pointer.null?
+        call("remove_meta", key.to_s)
+      end
+    end
+
     # Calls the named method and returns an Object/Node (or nil if null)
     def call_obj(method : String, *args) : Node?
       check_alive!
@@ -974,10 +1805,22 @@ module Godot
       Bridge.object_call_ret_string(@pointer, method, *args)
     end
 
+    # Fluent inline configuration block yielding self and returning self
+    def build(&block : self -> Void) : self
+      with self yield self
+      self
+    end
+
+    # Fluent configuration block alias
+    def configure(&block : self -> Void) : self
+      with self yield self
+      self
+    end
+
     # Connects a callback proc to the named signal.
-    def connect(signal_name : String, flags : ::Godot::ConnectFlags = ::Godot::ConnectFlags::None, callback : Proc(::Array(Variant), Void)? = nil) : SignalSubscription
+    def connect(signal_name : String, flags : ::Godot::ConnectFlags = ::Godot::ConnectFlags::None, callback : Proc(::Array(Variant), Void)? = nil, receiver : Godot::Object? = nil) : SignalSubscription
       check_alive!
-      sub = Godot.subscribe_signal(signal_target_id, signal_name, flags, callback)
+      sub = Godot.subscribe_signal(signal_target_id, signal_name, flags, callback, receiver)
       if !@pointer.null? && @instance_id > 0
         Bridge.object_connect_signal(@pointer, signal_name, flags.value)
       end
@@ -985,9 +1828,9 @@ module Godot
     end
 
     # Connects a callback block accepting Array(Variant) to the named signal.
-    def connect(signal_name : String, flags : ::Godot::ConnectFlags = ::Godot::ConnectFlags::None, &block : ::Array(Variant) -> Void) : SignalSubscription
+    def connect(signal_name : String, flags : ::Godot::ConnectFlags = ::Godot::ConnectFlags::None, receiver : Godot::Object? = nil, &block : ::Array(Variant) -> Void) : SignalSubscription
       check_alive!
-      sub = Godot.subscribe_signal(signal_target_id, signal_name, flags, block)
+      sub = Godot.subscribe_signal(signal_target_id, signal_name, flags, block, receiver)
       if !@pointer.null? && @instance_id > 0
         Bridge.object_connect_signal(@pointer, signal_name, flags.value)
       end
@@ -1018,6 +1861,49 @@ module Godot
       if !@pointer.null? && @instance_id > 0
         Bridge.object_disconnect_signal(@pointer, signal_name)
       end
+    end
+
+    # Disconnects all subscriptions for the specified signal (Symbol overload)
+    def disconnect(signal_name : Symbol) : Void
+      disconnect(signal_name.to_s)
+    end
+
+    # Disconnects all subscriptions for the specified signal, returning self
+    def disconnect_all(signal_name : String | Symbol) : self
+      disconnect(signal_name.to_s)
+      self
+    end
+
+    # Disconnects all subscriptions across ALL signals on this object, returning self
+    def disconnect_all : self
+      tid = signal_target_id
+      keys_to_delete = [] of Tuple(UInt64, String)
+      Godot.signal_subs_mutex.synchronize do
+        Godot.signal_subs.each_key do |k|
+          keys_to_delete << k if k[0] == tid
+        end
+        keys_to_delete.each do |k|
+          Godot.signal_subs.delete(k)
+        end
+      end
+      if !@pointer.null? && @instance_id > 0
+        keys_to_delete.each do |k|
+          Bridge.object_disconnect_signal(@pointer, k[1])
+        end
+      end
+      self
+    end
+
+    # Emits the named signal with arguments, returning self
+    def emit(signal_name : String | Symbol, *args) : self
+      emit_signal(signal_name.to_s, *args)
+      self
+    end
+
+    # Emits a bound or typed signal with arguments, returning self
+    def emit(signal : BoundSignal, *args) : self
+      signal.emit(*args)
+      self
     end
 
     # Returns true if this object or its registered class defines the given signal.
@@ -1350,8 +2236,19 @@ module Godot
     end
 
     # Retrieves a child or sibling node by NodePath string, or returns nil if not found.
-    # Transparently supports leading '$', scene-unique '%' prefixes, and '%UniqueRoot/sub/path' traversal.
+    # Transparently supports leading '$', scene-unique '%' prefixes, '%UniqueRoot/sub/path', and wildcard patterns.
     def get_node?(path : String) : Node?
+      if path.includes?('*')
+        if self.is_a?(Node)
+          return self.as(Node).first_node?(path)
+        elsif !@pointer.null?
+          node_wrapper = Node.new(@pointer)
+          return node_wrapper.first_node?(path)
+        else
+          return nil
+        end
+      end
+
       is_unique, root_name, subpath = Node.decompose_node_path(path)
       if is_unique
         # 1. Resolve unique root node
@@ -1584,6 +2481,50 @@ module Godot
       get_node_as?(path, type)
     end
 
+    # Returns all nodes matching the glob pattern (supports '*' and '**').
+    def get_nodes(pattern : String, case_sensitive : Bool = true) : ::Array(Node)
+      if self.is_a?(Node)
+        self.as(Node).get_nodes(pattern, case_sensitive)
+      elsif !@pointer.null?
+        Node.new(@pointer).get_nodes(pattern, case_sensitive)
+      else
+        ::Array(Node).new
+      end
+    end
+
+    # Returns all nodes matching the glob pattern filtered and cast to Array(T).
+    def get_nodes(pattern : String, type : T.class, case_sensitive : Bool = true) : ::Array(T) forall T
+      if self.is_a?(Node)
+        self.as(Node).get_nodes(pattern, type, case_sensitive)
+      elsif !@pointer.null?
+        Node.new(@pointer).get_nodes(pattern, type, case_sensitive)
+      else
+        ::Array(T).new
+      end
+    end
+
+    # Returns the first node matching the glob pattern, or nil if not found.
+    def first_node?(pattern : String, case_sensitive : Bool = true) : Node?
+      if self.is_a?(Node)
+        self.as(Node).first_node?(pattern, case_sensitive)
+      elsif !@pointer.null?
+        Node.new(@pointer).first_node?(pattern, case_sensitive)
+      else
+        nil
+      end
+    end
+
+    # Returns the first node matching the glob pattern cast to type T, or nil if not found.
+    def first_node?(pattern : String, type : T.class, case_sensitive : Bool = true) : T? forall T
+      if self.is_a?(Node)
+        self.as(Node).first_node?(pattern, type, case_sensitive)
+      elsif !@pointer.null?
+        Node.new(@pointer).first_node?(pattern, type, case_sensitive)
+      else
+        nil
+      end
+    end
+
     # Path traversal operator: node / "Camera3D" or node / node_path!("Camera3D")
     def /(path : String | NodePath) : Node
       get_node(path.to_s)
@@ -1686,8 +2627,13 @@ module Godot
       end
     end
 
+    @has_explicit_global_pos : Bool = false
+
     def position=(v : Vector2)
       @position = v
+      if @pointer.null? && !@has_explicit_global_pos
+        @global_position = v
+      end
       if !@pointer.null?
         set_position(v)
       end
@@ -1703,6 +2649,7 @@ module Godot
 
     def global_position=(v : Vector2)
       @global_position = v
+      @has_explicit_global_pos = true
       if !@pointer.null?
         set_global_position(v)
       end
@@ -1902,8 +2849,13 @@ module Godot
       end
     end
 
+    @has_explicit_global_pos : Bool = false
+
     def position=(v : Vector3)
       @position = v
+      if @pointer.null? && !@has_explicit_global_pos
+        @global_position = v
+      end
       if !@pointer.null?
         set_position(v)
       end
@@ -1919,6 +2871,7 @@ module Godot
 
     def global_position=(v : Vector3)
       @global_position = v
+      @has_explicit_global_pos = true
       if !@pointer.null?
         set_global_position(v)
       end
@@ -3032,3 +3985,5 @@ end
 def preload(path : String) : Godot::Resource
   Godot.preload(path)
 end
+
+alias Any = Godot::Any
