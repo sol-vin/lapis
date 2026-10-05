@@ -1,5 +1,5 @@
 name: lapis
-version: 0.0.149
+version: 0.0.255
 crystal: ">= 1.20.0, <= 1.21.0"
 
 
@@ -24,4 +24,10 @@ dependencies:
     branch: main
   jasper:
     github: sol-vin/jasper
+    branch: main
+  carbon:
+    github: sol-vin/carbon
+    branch: main
+  bakelite:
+    github: sol-vin/bakelite
     branch: main

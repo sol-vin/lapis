@@ -736,16 +736,187 @@ CONTROL
         embed_pck : Bool = false,
         portable : Bool = false,
         without_benchmarks : Bool = false,
+        debug_diagnostics : Bool = false,
       ) : Int32
         root = Core::Env::ROOT_DIR
         proj_dir = project_path.expand
+
+        unless Dir.exists?(proj_dir)
+          Core::Logger.error("Packaging Error: Target project directory does not exist: '#{proj_dir}'")
+          return 1
+        end
+
+        children = Dir.children(proj_dir).reject { |c| c == ".git" || c == "bin" || c == ".tmp" }
+        if children.empty?
+          Core::Logger.error("Packaging Error: Cannot package empty directory '#{proj_dir}'! Target directory contains no project files.")
+          return 1
+        end
+
+        unless Core::Env.is_lapis_project?(proj_dir)
+          Core::Logger.error("Packaging Error: Target directory '#{proj_dir}' is NOT a valid Lapis/Godot project! Missing project.godot or Crystal sources.")
+          return 1
+        end
+
         game_name = name || proj_dir.basename
         bin_dir = proj_dir.join("bin")
         FileUtils.mkdir_p(bin_dir) unless Dir.exists?(bin_dir)
 
-        Core::Logger.step("PackageGame", "Packaging playable Godot game '#{game_name}' in #{proj_dir}...")
+        if debug_diagnostics
+          release = false
+          Core::Logger.step("PackageGame", "Packaging game '#{game_name}' in DEBUG mode with automated crash forensics...")
+        else
+          Core::Logger.step("PackageGame", "Packaging playable Godot game '#{game_name}' in #{proj_dir}...")
+        end
 
         # 1. Ensure .gdignore
+        gdignore = bin_dir.join(".gdignore")
+        File.write(gdignore, "") unless File.exists?(gdignore)
+
+        if debug_diagnostics
+          crash_rep_dir = bin_dir.join("crash_reports")
+          FileUtils.mkdir_p(crash_rep_dir) unless Dir.exists?(crash_rep_dir)
+          File.write(crash_rep_dir.join(".gdignore"), "") unless File.exists?(crash_rep_dir.join(".gdignore"))
+
+          # Stage radare2 into bin/r2 if available
+          r2_stage = bin_dir.join("r2")
+          radare2_candidates = [] of Path
+          {% if flag?(:windows) %}
+            user_profile = ENV["USERPROFILE"]? || ""
+            if !user_profile.empty?
+              radare2_candidates << Path.new(user_profile, "scoop", "shims", "radare2.exe")
+              radare2_candidates << Path.new(user_profile, "scoop", "apps", "radare2", "current", "bin", "radare2.exe")
+            end
+            radare2_candidates << Path.new("C:", "ProgramData", "chocolatey", "bin", "radare2.exe")
+            radare2_candidates << Path.new("C:", "radare2", "bin", "radare2.exe")
+          {% end %}
+          if found_r2 = Process.find_executable("radare2")
+            radare2_candidates << Path.new(found_r2)
+          end
+          if r2_exe = radare2_candidates.find { |p| File.exists?(p) }
+            FileUtils.mkdir_p(r2_stage) unless Dir.exists?(r2_stage)
+            safe_copy(r2_exe, r2_stage.join("radare2.exe"))
+            companion_r2 = r2_exe.parent.join("r2#{Core::Env.exe_ext}")
+            safe_copy(companion_r2, r2_stage.join("r2.exe")) if File.exists?(companion_r2)
+            Core::Logger.info("Staged portable radare2 debugger into #{r2_stage.basename}")
+          end
+
+          # Generate Windows run_debug.bat
+          run_debug_bat = bin_dir.join("run_debug.bat")
+          bat_content = <<-BAT
+          @echo off
+          setlocal enabledelayedexpansion
+          echo ===================================================================
+          echo   Lapis Diagnostic Playtest Launcher
+          echo ===================================================================
+          echo Launching with automated crash diagnostics...
+          set GAME_DIR=%~dp0
+          set GAME_EXE=%GAME_DIR%#{game_name}.exe
+          if not exist "!GAME_EXE!" set GAME_EXE=%GAME_DIR%#{game_name}.console.exe
+          if not exist "!GAME_EXE!" set GAME_EXE=%GAME_DIR%game.exe
+
+          if exist "%GAME_DIR%r2\\radare2.exe" (
+            set R2_BIN=%GAME_DIR%r2\\radare2.exe
+          ) else (
+            where radare2 >nul 2>&1
+            if %errorlevel% equ 0 set R2_BIN=radare2
+          )
+
+          if not exist "%GAME_DIR%crash_reports" mkdir "%GAME_DIR%crash_reports"
+
+          "!GAME_EXE!" %*
+          set EXIT_CODE=%errorlevel%
+
+          if %EXIT_CODE% neq 0 (
+            echo.
+            echo ===================================================================
+            echo   CRITICAL: Application terminated unexpectedly (Exit Code: %EXIT_CODE%)!
+            echo   Collecting automated crash forensics dump...
+            echo ===================================================================
+            for /f "tokens=2 delims==" %%I in ('wmic os get localdatetime /value 2^>nul') do set LDT=%%I
+            set TS=!LDT:~0,4!-!LDT:~4,2!-!LDT:~6,2!_!LDT:~8,2!-!LDT:~10,2!-!LDT:~12,2!
+            if "!TS!"=="" set TS=%date:~10,4%-%date:~4,2%-%date:~7,2%_%time:~0,2%-%time:~3,2%
+            set REPORT_DIR=%GAME_DIR%crash_reports\\report_!TS!
+            mkdir "!REPORT_DIR!" 2>nul
+            echo Exit Code: %EXIT_CODE% > "!REPORT_DIR!\\crash_summary.txt"
+            echo Timestamp: !TS! >> "!REPORT_DIR!\\crash_summary.txt"
+            echo Executable: !GAME_EXE! >> "!REPORT_DIR!\\crash_summary.txt"
+            echo Arguments: %* >> "!REPORT_DIR!\\crash_summary.txt"
+            
+            if exist "%GAME_DIR%godot.log" copy /y "%GAME_DIR%godot.log" "!REPORT_DIR!\\" >nul 2>&1
+            if exist "%APPDATA%\\Godot\\app_userdata" (
+              xcopy /s /y /q "%APPDATA%\\Godot\\app_userdata\\*.log" "!REPORT_DIR!\\" >nul 2>&1
+            )
+            
+            if defined R2_BIN (
+              if exist "%GAME_DIR%game.dll" (
+                echo Analyzing game.dll symbols and crash vectors via radare2...
+                "!R2_BIN!" -q -c "aaa; afl; ie; il" "%GAME_DIR%game.dll" > "!REPORT_DIR!\\r2_binary_analysis.txt" 2>&1
+              )
+            )
+            
+            set ZIP_PATH=%GAME_DIR%crash_reports\\crash_report_!TS!.zip
+            powershell -NoProfile -Command "Compress-Archive -Path '!REPORT_DIR!\\*' -DestinationPath '!ZIP_PATH!' -Force" >nul 2>&1
+            
+            echo.
+            echo ===================================================================
+            echo   [Lapis Crash Diagnostics]
+            echo   Automated crash report generated:
+            echo     !ZIP_PATH!
+            echo.
+            echo   Please send this zip file to the developer so they can fix it!
+            echo ===================================================================
+            echo.
+            pause
+          )
+          BAT
+          File.write(run_debug_bat, bat_content)
+
+          # Generate POSIX run_debug.sh
+          run_debug_sh = bin_dir.join("run_debug.sh")
+          sh_content = <<-SH
+          #!/usr/bin/env bash
+          SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+          GAME_EXE="${SCRIPT_DIR}/#{game_name}"
+          [ ! -f "$GAME_EXE" ] && GAME_EXE="${SCRIPT_DIR}/game"
+
+          echo "==================================================================="
+          echo "  Lapis Diagnostic Playtest Launcher"
+          echo "==================================================================="
+
+          mkdir -p "${SCRIPT_DIR}/crash_reports"
+          "$GAME_EXE" "$@"
+          EXIT_CODE=$?
+
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo ""
+            echo "==================================================================="
+            echo "  CRITICAL: Application terminated unexpectedly (Exit Code: ${EXIT_CODE})!"
+            echo "  Collecting automated crash forensics dump..."
+            echo "==================================================================="
+            TS=$(date +"%Y-%m-%d_%H-%M-%S")
+            REPORT_DIR="${SCRIPT_DIR}/crash_reports/report_${TS}"
+            mkdir -p "$REPORT_DIR"
+            echo "Exit Code: ${EXIT_CODE}" > "${REPORT_DIR}/crash_summary.txt"
+            echo "Timestamp: ${TS}" >> "${REPORT_DIR}/crash_summary.txt"
+            echo "Executable: ${GAME_EXE}" >> "${REPORT_DIR}/crash_summary.txt"
+            
+            [ -f "${SCRIPT_DIR}/godot.log" ] && cp "${SCRIPT_DIR}/godot.log" "${REPORT_DIR}/"
+            
+            ZIP_PATH="${SCRIPT_DIR}/crash_reports/crash_report_${TS}.tar.gz"
+            tar -czf "$ZIP_PATH" -C "$REPORT_DIR" . 2>/dev/null
+            
+            echo ""
+            echo "==================================================================="
+            echo "  [Lapis Crash Diagnostics]"
+            echo "  Automated crash report generated:"
+            echo "    ${ZIP_PATH}"
+            echo ""
+            echo "  Please send this archive to the developer!"
+            echo "==================================================================="
+          fi
+          SH
+          File.write(run_debug_sh, sh_content)
+        end
         gdignore = bin_dir.join(".gdignore")
         File.write(gdignore, "") unless File.exists?(gdignore)
 
@@ -898,6 +1069,14 @@ CONTROL
           Core::Logger.success("Portable package created: #{portable_archive}!")
         end
 
+        if debug_diagnostics
+          plat = Core::Env.windows? ? "windows" : (Core::Env.macos? ? "macos" : "linux")
+          debug_archive = (td = target_dir) ? td.join("#{game_name}-debug-#{plat}.zip") : bin_dir.join("#{game_name}-debug-#{plat}.zip")
+          Core::Logger.step("PackageGame", "Creating standalone debug distribution with diagnostic crash monitor: #{debug_archive.basename}...")
+          zip_directory(bin_dir, debug_archive, strip_prefix: bin_dir, exclude_patterns: [".gdignore", ".log", "~", ".tmp", ".zip"])
+          Core::Logger.success("Debug diagnostic package created: #{debug_archive}!")
+        end
+
         # 7. Copy to target_dir if requested
         if (td = target_dir)
           dest_game = td.basename == game_name ? td : td.join(game_name)
@@ -911,8 +1090,97 @@ CONTROL
           end
         end
 
+        # 8. Check validity of export: whine and cry if no executable exists!
+        exe_found = if Core::Env.windows?
+                      Dir.children(bin_dir).any? { |f| f.ends_with?(".exe") }
+                    else
+                      Dir.children(bin_dir).any? { |f| (f == game_name || f == "game" || f.ends_with?(".bin") || f.ends_with?(".x86_64") || f.ends_with?(".arm64")) && File.file?(bin_dir.join(f)) }
+                    end
+
+        unless exe_found
+          Core::Logger.error("PACKAGE VALIDITY CHECK FAILED: No executable binary found in export staging directory '#{bin_dir}'! The exported game package is incomplete and cannot be executed.")
+          return 1
+        end
+
+        if portable && (pa = portable_archive) && File.exists?(pa)
+          zip_has_exe = false
+          File.open(pa.to_s, "r") do |f|
+            Compress::Zip::Reader.open(f) do |zip|
+              zip.each_entry do |entry|
+                if Core::Env.windows? ? entry.filename.ends_with?(".exe") : (entry.filename == game_name || entry.filename == "game" || entry.filename.ends_with?(".x86_64") || entry.filename.ends_with?(".arm64"))
+                  zip_has_exe = true
+                  break
+                end
+              end
+            end
+          end rescue false
+
+          unless zip_has_exe
+            Core::Logger.error("PACKAGE VALIDITY CHECK FAILED: Portable zip archive '#{pa.basename}' does not contain an executable binary! Aborting package export.")
+            return 1
+          end
+        end
+
         Core::Logger.success("Playable game '#{game_name}' packaged successfully!")
         0
+      end
+
+      def self.package_pck(
+        project_path : Path,
+        name : String? = nil,
+        output_path : Path? = nil,
+      ) : Int32
+        proj_dir = project_path.expand
+        unless Dir.exists?(proj_dir)
+          Core::Logger.error("PCK Packaging Error: Target directory does not exist: '#{proj_dir}'")
+          return 1
+        end
+
+        children = Dir.children(proj_dir).reject { |c| c == ".git" || c == "bin" || c == ".tmp" }
+        if children.empty?
+          Core::Logger.error("PCK Packaging Error: Cannot package empty directory '#{proj_dir}'!")
+          return 1
+        end
+
+        unless Core::Env.is_lapis_project?(proj_dir)
+          Core::Logger.error("PCK Packaging Error: Directory '#{proj_dir}' is not a valid Godot/Lapis project (missing project.godot).")
+          return 1
+        end
+
+        godot_exe = Core::GodotFinder.resolve(nil, proj_dir.to_s)
+        unless godot_exe
+          Core::Logger.error("PCK Packaging Error: Godot engine executable not found on host!")
+          return 1
+        end
+
+        game_name = name || detect_project_name(proj_dir)
+        bin_dir = proj_dir.join("bin")
+        FileUtils.mkdir_p(bin_dir) unless Dir.exists?(bin_dir)
+
+        dest_pck = output_path || bin_dir.join("#{game_name}.pck")
+        FileUtils.mkdir_p(dest_pck.parent) unless Dir.exists?(dest_pck.parent)
+
+        preset = if Core::Env.windows?
+                   "Windows Desktop"
+                 elsif Core::Env.macos?
+                   "macOS"
+                 else
+                   "Linux"
+                 end
+
+        Core::Logger.step("PackagePCK", "Generating standalone Godot PCK pack for '#{game_name}' -> #{dest_pck.basename}...")
+        status = Core::ProcessRunner.run(
+          godot_exe,
+          ["--headless", "--path", proj_dir.expand.to_s, "--export-pack", preset, dest_pck.expand.to_s.gsub('\\', '/')]
+        )
+
+        if status.success? && File.exists?(dest_pck) && File.size(dest_pck) > 0
+          Core::Logger.success("Successfully generated Godot PCK: #{dest_pck} (#{File.size(dest_pck)} bytes)!")
+          0
+        else
+          Core::Logger.error("PCK Generation Failed! Godot could not produce export pack '#{dest_pck}'. Ensure export presets exist or run 'lapis export-templates'.")
+          1
+        end
       end
 
       def self.detect_project_name(proj_dir : Path) : String
@@ -1188,6 +1456,7 @@ Usage: lapis package <target> [options]
 Targets:
   installer             Package standalone game installer (.exe on Windows, .deb on Linux)
   game                  Package a playable standalone Godot game (PCK + runner + DLLs)
+  pck                   Export standalone Godot pack file (.pck)
   template              Package the starter game template into template-project.zip
   template-addon        Package the addon starter template into template-addon-project.zip
   addon                 Package the official crystal_integration addon into godot-crystal-addon.zip
@@ -1265,6 +1534,7 @@ HELP
         skip_perf = false
         skip_benchmarks = false
         without_benchmarks = false
+        debug_diagnostics = false
 
         parser = OptionParser.new do |opts|
           opts.banner = "Usage: lapis package #{target} [options]"
@@ -1277,6 +1547,9 @@ HELP
           opts.on("-a ARCH", "--arch=ARCH", "Package architecture (amd64, arm64)") { |a| arch_arg = a }
           opts.on("-r", "--release", "Compile/package with optimizations") { release = true }
           opts.on("-f", "--force", "Force compilation") { force = true }
+          opts.on("--debug", "Package game with diagnostic crash reporter and portable radare2 harness") { debug_diagnostics = true }
+          opts.on("--diagnostics", "Alias for --debug") { debug_diagnostics = true }
+          opts.on("--pck", "Package project into a standalone Godot PCK (.pck)") { target = "pck" }
           opts.on("--embed-pck", "Embed PCK data directly into the executable binary") { embed_pck = true }
           opts.on("--portable", "Package portable distribution with embedded PCK") { portable = true; embed_pck = true }
           opts.on("--bundle-binaries", "Include compiled binaries in archive") { bundle_binaries = true }
@@ -1364,7 +1637,16 @@ HELP
         when "game"
           proj_str = (pp = project_path) && !["windows", "linux", "macos", "android"].includes?(pp.downcase) ? pp : "."
           proj = Path.new(proj_str).expand
-          package_game(proj, name: name, release: release, target_dir: td_path, force_compile: force, embed_pck: embed_pck, portable: portable, without_benchmarks: without_benchmarks)
+          package_game(proj, name: name, release: release, target_dir: td_path, force_compile: force, embed_pck: embed_pck, portable: portable, without_benchmarks: without_benchmarks, debug_diagnostics: debug_diagnostics)
+        when "debug"
+          proj_str = (pp = project_path) && !["windows", "linux", "macos", "android"].includes?(pp.downcase) ? pp : "."
+          proj = Path.new(proj_str).expand
+          package_game(proj, name: name, release: false, target_dir: td_path, force_compile: force, embed_pck: embed_pck, portable: portable, without_benchmarks: without_benchmarks, debug_diagnostics: true)
+        when "pck"
+          proj_str = (pp = project_path) && !["windows", "linux", "macos", "android"].includes?(pp.downcase) ? pp : "."
+          proj = Path.new(proj_str).expand
+          final_out = out_path || (td_path ? td_path.join("#{name || proj.basename}.pck") : nil)
+          package_pck(proj, name: name, output_path: final_out)
         when "portable"
           proj_str = (pp = project_path) && !["windows", "linux", "macos", "android"].includes?(pp.downcase) ? pp : "."
           proj = Path.new(proj_str).expand

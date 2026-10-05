@@ -50,6 +50,15 @@ describe Lapis::Test::EditorDriver do
     res.passed?.should be_true, "Fresh editor open test failed (exit #{res.exit_code}):\n#{res.output}"
   end
 
+  it "executes headless in-editor ActionDriver tests via EditorDriver" do
+    godot = Lapis::Test::EditorDriver.resolve_godot
+    next unless godot && File.exists?(godot)
+    next unless File.exists?("bin/crystal_bridge.#{ext}") && File.exists?("bin/game.#{ext}")
+
+    res = Lapis::Test::EditorDriver.run_editor_action_driver_tests(project: ".", quit_frames: 400)
+    res.passed?.should be_true, "In-editor ActionDriver tests failed (exit #{res.exit_code}):\n#{res.output}"
+  end
+
   it "scaffolds a fresh standalone project correctly" do
     temp_dir = File.join(Dir.tempdir, "lapis_spec_proj_#{Time.utc.to_unix_ms}")
     begin

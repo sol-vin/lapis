@@ -1,6 +1,7 @@
 require "./macros/annotations"
 require "./macros/node_refs"
 require "./macros/signals"
+require "./macros/match"
 
 module Godot
   struct PropertyInfo
@@ -159,6 +160,35 @@ module Godot
     {% end %}
 
     def self.register(entry : Entry)
+      if existing = find(entry.class_name)
+        entry.properties.each do |p|
+          existing.properties << p unless existing.properties.any? { |ep| ep.name == p.name }
+        end
+        entry.signals.each do |s|
+          existing.signals << s unless existing.signals.any? { |es| es.name == s.name }
+        end
+        entry.constants.each do |c|
+          existing.constants << c unless existing.constants.any? { |ec| ec.name == c.name }
+        end
+        entry.rpc_methods.each do |r|
+          existing.rpc_methods << r unless existing.rpc_methods.any? { |er| er[:name] == r[:name] }
+        end
+        existing.is_tool ||= entry.is_tool
+        existing.has_ready ||= entry.has_ready
+        existing.has_process ||= entry.has_process
+        existing.has_physics_process ||= entry.has_physics_process
+        existing.has_enter_tree ||= entry.has_enter_tree
+        existing.has_exit_tree ||= entry.has_exit_tree
+        existing.has_input ||= entry.has_input
+        existing.has_unhandled_input ||= entry.has_unhandled_input
+        existing.has_unhandled_key_input ||= entry.has_unhandled_key_input
+        existing.has_shortcut_input ||= entry.has_shortcut_input
+        existing.has_gui_input ||= entry.has_gui_input
+        if existing.script_path.empty? && !entry.script_path.empty?
+          existing.script_path = entry.script_path
+        end
+        return
+      end
       if parent = find(entry.parent_name)
         entry.is_tool ||= parent.is_tool
         entry.has_ready ||= parent.has_ready
@@ -206,6 +236,157 @@ macro ensure_lapis
   {% end %}
 end
 
+# Instantiates a Godot object or custom node and configures its properties and methods in a block or kwargs.
+#
+# Supports:
+# 1. Keyword properties: `create Sprite2D, position: Vector2.new(10, 20), centered: true`
+# 2. Block property setters: `create Sprite2D do position = Vector2.new(10, 20); centered = true end`
+# 3. Method dispatches: `create Sprite2D do add_to_group("sprites"); rotate(0.5) end`
+# 4. Mixed kwargs and block: `create Sprite2D, centered: true do position = Vector2.new(10, 20) end`
+macro create(type, **kwargs, &block)
+  %inst = ::Godot.create({{type}})
+  {% for k, v in kwargs %}
+    %inst.{{k}} = {{v}}
+  {% end %}
+  {% if block && !block.body.is_a?(Nop) %}
+    {% stmts = block.body.is_a?(Expressions) ? block.body.expressions : [block.body] %}
+    {% for s in stmts %}
+      {% if s.is_a?(Assign) %}
+        %inst.{{s.target}} = {{s.value}}
+      {% elsif s.is_a?(Call) %}
+        %inst.{{s.name}}({{s.args.splat}})
+      {% end %}
+    {% end %}
+  {% end %}
+  %inst
+end
+
+# Idiomatic alias for `create`
+macro build(type, **kwargs, &block)
+  create({{type}}, {{kwargs.double_splat}}) {{block}}
+end
+
+# Instantiates a node, configures it, and attaches it as a child to the specified parent
+# (defaults to `self` if inside a Node method, or current scene / root).
+macro spawn_node(type, under = nil, **kwargs, &block)
+  %parent = {% if under %}{{under}}{% else %}self{% end %}
+  %inst = create({{type}}, {{kwargs.double_splat}}) {{block}}
+  %parent.add_child(%inst)
+  %inst
+end
+
+# Contextual alias for `spawn_node`
+macro spawn_child(type, under = nil, **kwargs, &block)
+  spawn_node({{type}}, under: {{under}}, {{kwargs.double_splat}}) {{block}}
+end
+
+# Declarative alias for `spawn_node`
+macro create_child(type, under = nil, **kwargs, &block)
+  spawn_node({{type}}, under: {{under}}, {{kwargs.double_splat}}) {{block}}
+end
+
+# Loads a PackedScene (.tscn) and instantiates it as wrapper type T with configuration
+macro instantiate(path, as type = Godot::Node, **kwargs, &block)
+  %scene = ::Godot.load({{path}}).as(::Godot::PackedScene)
+  %inst = %scene.instantiate_as({{type}})
+  {% for k, v in kwargs %}
+    %inst.{{k}} = {{v}}
+  {% end %}
+  {% if block && !block.body.is_a?(Nop) %}
+    {% stmts = block.body.is_a?(Expressions) ? block.body.expressions : [block.body] %}
+    {% for s in stmts %}
+      {% if s.is_a?(Assign) %}
+        %inst.{{s.target}} = {{s.value}}
+      {% elsif s.is_a?(Call) %}
+        %inst.{{s.name}}({{s.args.splat}})
+      {% end %}
+    {% end %}
+  {% end %}
+  %inst
+end
+
+# Loads a PackedScene (.tscn), instantiates it as wrapper type T, and attaches it as a child to the parent
+macro instantiate_child(path, under = nil, as type = Godot::Node, **kwargs, &block)
+  %parent = {% if under %}{{under}}{% else %}self{% end %}
+  %inst = instantiate({{path}}, as: {{type}}, {{kwargs.double_splat}}) {{block}}
+  %parent.add_child(%inst)
+  %inst
+end
+
+# Context-aware one-shot audio playback macro:
+# - Inspects `@type` at compile-time:
+#   * `@type <= Godot::Node2D` -> emits AudioStreamPlayer2D with global_position
+#   * `@type <= Godot::Node3D` -> emits AudioStreamPlayer3D with global_position
+#   * Otherwise -> emits non-spatial AudioStreamPlayer
+# - If explicit `at:` coordinate is passed (Vector2 or Vector3), spatializes appropriately
+# - Automatically preloads or loads the AudioStream
+# - Sets kwargs properties (e.g. pitch_scale: 1.2, volume_db: -5.0, bus: "SFX")
+# - Executes inline configuration block (e.g. do pitch_scale = 1.2 end)
+# - Attaches to active scene root (`current_scene || root`) so audio survives caller deletion!
+# - Connects finished.once { queue_free } for automatic memory cleanup
+# - Returns the strongly-typed audio player
+macro play_sound(stream, at = nil, under = nil, **kwargs, &block)
+  %s_val = {{stream}}
+  %stream = %s_val.is_a?(String) ? (::Godot::PreloadCache.get_or_load(%s_val, ::Godot::AudioStream)) : %s_val.as(::Godot::AudioStream)
+
+  {% if at %}
+    %at_pos = {{at}}
+    %player = if %at_pos.is_a?(::Godot::Vector3)
+                %p3d = ::Godot.create(::Godot::AudioStreamPlayer3D)
+                %p3d.global_position = %at_pos
+                %p3d
+              elsif %at_pos.is_a?(::Godot::Vector2)
+                %p2d = ::Godot.create(::Godot::AudioStreamPlayer2D)
+                %p2d.global_position = %at_pos
+                %p2d
+              else
+                ::Godot.create(::Godot::AudioStreamPlayer)
+              end
+  {% elsif @type <= Godot::Node2D %}
+    %player = ::Godot.create(::Godot::AudioStreamPlayer2D)
+    %player.global_position = self.global_position
+  {% elsif @type <= Godot::Node3D %}
+    %player = ::Godot.create(::Godot::AudioStreamPlayer3D)
+    %player.global_position = self.global_position
+  {% else %}
+    %player = ::Godot.create(::Godot::AudioStreamPlayer)
+  {% end %}
+
+  %player.stream = %stream
+  {% for k, v in kwargs %}
+    %player.{{k}} = {{v}}
+  {% end %}
+
+  {% if block && !block.body.is_a?(Nop) %}
+    {% stmts = block.body.is_a?(Expressions) ? block.body.expressions : [block.body] %}
+    {% for s in stmts %}
+      {% if s.is_a?(Assign) %}
+        %player.{{s.target}} = {{s.value}}
+      {% elsif s.is_a?(Call) %}
+        %player.{{s.name}}({{s.args.splat}})
+      {% end %}
+    {% end %}
+  {% end %}
+
+  %host = {% if under %}
+            {{under}}
+          {% else %}
+            (if %tree = ::Godot.get_tree?
+               %tree.current_scene || %tree.root
+             else
+               self.topmost_parent
+             end)
+          {% end %}
+  %host.add_child(%player)
+
+  %player.finished.once do
+    %player.queue_free
+  end
+
+  %player.play
+  %player
+end
+
 # Expressive convenience macro for 2D scene nodes defaulting to Godot::Node2D
 macro node2d(decl)
   node2d {{decl}} do
@@ -218,9 +399,15 @@ macro node2d(decl, &block)
       {{block.body}}
     end
   {% else %}
-    node {{decl}} < Godot::Node2D do
-      {{block.body}}
-    end
+    {% if decl.resolve? %}
+      node {{decl}} do
+        {{block.body}}
+      end
+    {% else %}
+      node {{decl}} < Godot::Node2D do
+        {{block.body}}
+      end
+    {% end %}
   {% end %}
 end
 
@@ -236,9 +423,15 @@ macro node3d(decl, &block)
       {{block.body}}
     end
   {% else %}
-    node {{decl}} < Godot::Node3D do
-      {{block.body}}
-    end
+    {% if decl.resolve? %}
+      node {{decl}} do
+        {{block.body}}
+      end
+    {% else %}
+      node {{decl}} < Godot::Node3D do
+        {{block.body}}
+      end
+    {% end %}
   {% end %}
 end
 
@@ -266,6 +459,7 @@ macro node(decl, &block)
     {% parent_name = "Godot::Node".id %}
     {% base_godot_name = "Node" %}
   {% end %}
+  {% is_reopen = class_name.resolve? != nil %}
 
   {%
     has_ready = false
@@ -644,28 +838,94 @@ macro node(decl, &block)
       {% is_unique_call = (stmt.name.stringify == "unique_node_ref" || stmt.name.stringify == "unique_node") %}
       {% if stmt.args.size == 1 %}
         {% o_decl = stmt.args[0] %}
-        {% if o_decl.is_a?(TypeDeclaration) %}
-          {% o_name = o_decl.var.stringify %}
-          {% o_path = o_decl.value ? (o_decl.value.is_a?(StringLiteral) ? o_decl.value : o_decl.value.id.stringify) : (is_unique_call ? "%#{o_name.camelcase}" : o_name) %}
-          {% if is_unique_call && !o_path.starts_with?('%') %}
-            {% o_path = "%" + o_path %}
-          {% end %}
-          {% o_t = o_decl.type %}
-          {% if o_t.is_a?(Union) %}
-            {% actual_o_t = o_t.types.reject { |sub_t| sub_t.stringify == "Nil" || sub_t.stringify == "::Nil" }[0] %}
-          {% else %}
-            {% actual_o_t = o_t %}
-          {% end %}
-          {% onready_props << {o_decl.var, actual_o_t, o_path} %}
-        {% end %}
+        {%
+          o_var = nil
+          o_type = nil
+          raw_val = nil
+
+          if o_decl.is_a?(TypeDeclaration)
+            o_var = o_decl.var
+            o_type = o_decl.type
+            raw_val = o_decl.value
+          elsif o_decl.is_a?(Assign)
+            o_var = o_decl.target
+            raw_val = o_decl.value
+            if raw_val.is_a?(Cast)
+              o_type = raw_val.to
+            elsif raw_val.is_a?(Call) && raw_val.name.stringify == "~"
+              operand = raw_val.receiver.is_a?(Nop) || !raw_val.receiver ? raw_val.args[0] : raw_val.receiver
+              if operand.is_a?(Cast)
+                o_type = operand.to
+              end
+            end
+          end
+
+          extracted_path = nil
+          curr = raw_val
+          if curr.is_a?(Cast)
+            curr = curr.obj
+            if curr.is_a?(Expressions) && curr.expressions.size == 1
+              curr = curr.expressions[0]
+            end
+          end
+          if curr.is_a?(Call) && curr.name.stringify == "~"
+            operand = curr.receiver.is_a?(Nop) || !curr.receiver ? curr.args[0] : curr.receiver
+            if operand.is_a?(Cast)
+              extracted_path = operand.obj
+            elsif operand.is_a?(Expressions) && operand.expressions.size == 1
+              extracted_path = operand.expressions[0]
+            else
+              extracted_path = operand
+            end
+          elsif curr.is_a?(Call) && curr.name.stringify == "as"
+            extracted_path = curr.receiver
+          else
+            extracted_path = curr
+          end
+
+          actual_o_t = nil
+          if o_type
+            if o_type.is_a?(Union)
+              actual_o_t = o_type.types.reject { |sub_t| sub_t.stringify == "Nil" || sub_t.stringify == "::Nil" }[0]
+            else
+              actual_o_t = o_type
+            end
+          else
+            actual_o_t = "Godot::Node".id
+          end
+
+          if o_var
+            o_name = o_var.stringify
+            o_path = extracted_path ? (extracted_path.is_a?(StringLiteral) ? extracted_path : extracted_path.id.stringify) : (is_unique_call ? "%#{o_name.camelcase}" : o_name)
+            if is_unique_call && !o_path.starts_with?('%')
+              o_path = "%" + o_path
+            end
+            onready_props << {o_var, actual_o_t, o_path}
+          end
+        %}
       {% elsif stmt.args.size >= 2 %}
-        {% o_var = stmt.args[0] %}
-        {% o_type = stmt.args[1] %}
-        {% if stmt.args.size >= 3 %}
-          {% raw_p = stmt.args[2] %}
+        {% if stmt.args[0].is_a?(TypeDeclaration) %}
+          {% t_decl = stmt.args[0] %}
+          {% o_var = t_decl.var %}
+          {% raw_t = t_decl.type %}
+          {% if raw_t && raw_t.is_a?(Union) %}
+            {% o_type = raw_t.types.reject { |sub_t| sub_t.stringify == "Nil" || sub_t.stringify == "::Nil" }[0] %}
+          {% elsif raw_t %}
+            {% o_type = raw_t %}
+          {% else %}
+            {% o_type = "Godot::Node".id %}
+          {% end %}
+          {% raw_p = stmt.args[1] %}
           {% o_path = raw_p.is_a?(StringLiteral) ? raw_p : raw_p.id.stringify %}
         {% else %}
-          {% o_path = is_unique_call ? "%#{o_var.id.stringify.camelcase}" : o_var.id.stringify.camelcase %}
+          {% o_var = stmt.args[0] %}
+          {% o_type = stmt.args[1] %}
+          {% if stmt.args.size >= 3 %}
+            {% raw_p = stmt.args[2] %}
+            {% o_path = raw_p.is_a?(StringLiteral) ? raw_p : raw_p.id.stringify %}
+          {% else %}
+            {% o_path = is_unique_call ? "%#{o_var.id.stringify.camelcase}" : o_var.id.stringify.camelcase %}
+          {% end %}
         {% end %}
         {% if is_unique_call && !o_path.starts_with?('%') %}
           {% o_path = "%" + o_path %}
@@ -918,13 +1178,27 @@ macro node(decl, &block)
   %}
 
   @[GodotClass]
-  class {{class_name}} < {{parent_name}}
+  class {{class_name}} {% unless is_reopen %} < {{parent_name}} {% end %}
     def self.godot_class_name : String
       "{{class_name}}"
     end
 
     def self.godot_parent_class_name : String
       {{base_godot_name}}
+    end
+
+    macro create(**kwargs, &block)
+      ::create(\{{@type}}, \{{kwargs.double_splat}}) \{{block}}
+    end
+
+    macro build(**kwargs, &block)
+      ::create(\{{@type}}, \{{kwargs.double_splat}}) \{{block}}
+    end
+
+    def self.new(&block : self ->) : self
+      inst = ::Godot.create(self)
+      with inst yield inst
+      inst
     end
 
     def self._godot_has_virtual_method(method_name : String) : Bool
@@ -942,7 +1216,11 @@ macro node(decl, &block)
         {% end %}
       {% end %}
       else
-        super
+        {% if is_reopen %}
+          previous_def
+        {% else %}
+          super
+        {% end %}
       end
     end
 
@@ -1006,7 +1284,7 @@ macro node(decl, &block)
     {{ yield }}
 
     {% if onready_props.size > 0 %}
-      private def _godot_init_onready_properties : Void
+      def _godot_init_onready_properties : Void
         {% for item in onready_props %}
           {% v_name = item[0] %}
           {% v_type = item[1] %}
@@ -1062,7 +1340,11 @@ macro node(decl, &block)
           ::Godot::ThreadSafety.flush_main_thread_queue!
           _physics_process(delta) if responds_to?(:_physics_process)
         else
-          super
+          {% if is_reopen %}
+            previous_def
+          {% else %}
+            super
+          {% end %}
         end
       end
     end
@@ -1102,7 +1384,11 @@ macro node(decl, &block)
           end
         {% end %}
         else
-          super
+          {% if is_reopen %}
+            previous_def
+          {% else %}
+            super
+          {% end %}
         end
       end
     end
@@ -1118,7 +1404,11 @@ macro node(decl, &block)
           Pointer(Void).null
         {% end %}
         else
-          super
+          {% if is_reopen %}
+            previous_def
+          {% else %}
+            super
+          {% end %}
         end
       end
     end
@@ -1165,7 +1455,11 @@ macro node(decl, &block)
         {% end %}
       {% end %}
       else
-        super
+        {% if is_reopen %}
+          previous_def
+        {% else %}
+          super
+        {% end %}
       end
     end
 
@@ -1205,7 +1499,11 @@ macro node(decl, &block)
         {% end %}
       {% end %}
       else
-        super
+        {% if is_reopen %}
+          previous_def
+        {% else %}
+          super
+        {% end %}
       end
     end
 
@@ -1222,7 +1520,11 @@ macro node(decl, &block)
         {% end %}
       {% end %}
       else
-        super
+        {% if is_reopen %}
+          previous_def
+        {% else %}
+          super
+        {% end %}
       end
     end
 
@@ -1995,12 +2297,92 @@ end
 macro resource(decl, &block)
   {% if decl.is_a?(Call) && decl.name == "<" %}
     node {{decl}} do
-      {{yield}}
+      {{block.body}}
     end
   {% else %}
-    node {{decl}} < Resource do
-      {{yield}}
+    {% if decl.resolve? %}
+      node {{decl}} do
+        {{block.body}}
+      end
+    {% else %}
+      node {{decl}} < Resource do
+        {{block.body}}
+      end
+    {% end %}
+  {% end %}
+end
+
+# Declares a custom Resource strategy card.
+#
+# Custom Resources inheriting from Godot::Resource act as pluggable strategy objects
+# and data containers (e.g. inventory items, ability cards, weapon stats).
+#
+# ### Example:
+# ```crystal
+# resource_card WeaponCard < Resource do
+#   @[Export]
+#   property damage : Int32 = 50
+#   @[Export]
+#   property cooldown : Float32 = 1.0_f32
+#
+#   def use(target : CharacterBody2D) : Void
+#     # strategy implementation
+#   end
+# end
+# ```
+macro resource_card(decl)
+  resource_card {{decl}} do
+  end
+end
+
+macro resource_card(decl, &block)
+  {% if decl.is_a?(Call) && decl.name == "<" %}
+    node {{decl}} do
+      {{block.body}}
+
+      # Creates an independent deep clone of this resource card
+      def clone_card : self
+        dup_res = self.duplicate(true)
+        if alive = ::Godot::Bridge.find_alive_instance(dup_res.pointer)
+          if typed = alive.as?(self)
+            return typed
+          end
+        end
+        self.class.new(dup_res.pointer)
+      end
     end
+  {% else %}
+    {% if decl.resolve? %}
+      node {{decl}} do
+        {{block.body}}
+
+        # Creates an independent deep clone of this resource card
+        def clone_card : self
+          dup_res = self.duplicate(true)
+          if alive = ::Godot::Bridge.find_alive_instance(dup_res.pointer)
+            if typed = alive.as?(self)
+              return typed
+            end
+          end
+          self.class.new(dup_res.pointer)
+        end
+      end
+    {% else %}
+      node {{decl}} < Godot::Resource do
+        {{block.body}}
+
+        # Creates an independent deep clone of this resource card
+        def clone_card : self
+          dup_res = self.duplicate(true)
+          if alive = ::Godot::Bridge.find_alive_instance(dup_res.pointer)
+            if typed = alive.as?(self)
+              return typed
+            end
+          end
+          self.class.new(dup_res.pointer)
+        end
+      end
+    {% end %}
   {% end %}
 end
 
@@ -2027,9 +2409,15 @@ macro gdclass(decl, &block)
       {{yield}}
     end
   {% else %}
-    node {{decl}} < RefCounted do
-      {{yield}}
-    end
+    {% if decl.resolve? %}
+      node {{decl}} do
+        {{yield}}
+      end
+    {% else %}
+      node {{decl}} < RefCounted do
+        {{yield}}
+      end
+    {% end %}
   {% end %}
 end
 
@@ -2568,4 +2956,15 @@ macro godot_module(decl)
   gmodule {{decl}} do
   end
 end
+
+macro finished
+  {% for klass in ::Godot::Object.all_subclasses %}
+    {% if klass.annotation(::GodotClass) %}
+      {% if klass.class.methods.map(&.name.stringify).includes?("_godot_auto_register_class") %}
+        {{klass}}._godot_auto_register_class
+      {% end %}
+    {% end %}
+  {% end %}
+end
+
 

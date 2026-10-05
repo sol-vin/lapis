@@ -1,136 +1,55 @@
+require "bakelite"
 require "file_utils"
 require "path"
 
 module Lapis
   module Core
     module BakedFileSystem
-      record BakedFile,
-        path : String,
-        content : String,
-        size : Int32
+      include ::Bakelite::FS
 
-      macro bake_manifest(manifest_path, repo_root)
-        {% begin %}
-          {%
-            expanded = run("./expand_manifest.cr", manifest_path, repo_root)
-            lines = expanded.split("\n")
-          %}
-          BAKED_FILES = {
-            {% for line in lines %}
-              {%
-                trimmed = line.strip
-              %}
-              {% if trimmed.starts_with?("- ") %}
-                {%
-                  fpath = trimmed.gsub(/^- /, "").strip
-                  full_path = "#{repo_root.id}/#{fpath.id}"
-                  file_content = read_file(full_path)
-                  file_size = file_content.size
-                %}
-                {{ fpath }} => BakedFile.new({{ fpath }}, {{ file_content }}, {{ file_size }}),
-              {% end %}
-            {% end %}
-          }
-        {% end %}
-      end
+      # Transparent alias to Bakelite::Item for backward compatibility
+      alias BakedFile = ::Bakelite::Item
 
-      # Bake the platform-specific files manifest at compile time
+      # Bake the platform-specific files manifest at compile time via Bakelite
       {% if flag?(:windows) %}
-        bake_manifest("#{__DIR__}/../../baked_windows.yml", "#{__DIR__}/../../../../")
+        bake_manifest "#{__DIR__}/../../baked_windows.yml", base_dir: "#{__DIR__}/../../../../"
       {% elsif flag?(:darwin) %}
-        bake_manifest("#{__DIR__}/../../baked_macos.yml", "#{__DIR__}/../../../../")
+        bake_manifest "#{__DIR__}/../../baked_macos.yml", base_dir: "#{__DIR__}/../../../../"
       {% else %}
-        bake_manifest("#{__DIR__}/../../baked_linux.yml", "#{__DIR__}/../../../../")
+        bake_manifest "#{__DIR__}/../../baked_linux.yml", base_dir: "#{__DIR__}/../../../../"
       {% end %}
-
-      # Retrieves a baked file by its virtual relative path. Raises KeyError if not found.
-      def self.get(path : String) : BakedFile
-        normalized = normalize_path(path)
-        BAKED_FILES[normalized]? || raise KeyError.new("Baked file '#{path}' (normalized: '#{normalized}') not found in BakedFileSystem!")
-      end
-
-      # Retrieves a baked file by its virtual relative path, returning nil if not found.
-      def self.get?(path : String) : BakedFile?
-        normalized = normalize_path(path)
-        BAKED_FILES[normalized]?
-      end
-
-      # Checks if a virtual path exists in the baked file system.
-      def self.has_file?(path : String) : Bool
-        normalized = normalize_path(path)
-        BAKED_FILES.has_key?(normalized)
-      end
-
-      # Returns an array of all virtual file paths embedded in the binary.
-      def self.files : Array(String)
-        BAKED_FILES.keys
-      end
 
       # Returns an array of all virtual paths starting with the given prefix.
       def self.files_with_prefix(prefix : String) : Array(String)
-        norm_prefix = normalize_path(prefix)
+        norm_prefix = ::Bakelite::Volume.normalize_path(prefix)
         norm_prefix = "#{norm_prefix}/" unless norm_prefix.empty? || norm_prefix.ends_with?('/')
         files.select { |f| f.starts_with?(norm_prefix) }
       end
 
       # Extracts a single baked file to disk.
-      def self.extract_file(virtual_path : String, target_path : Path | String) : Bool
-        if file = get?(virtual_path)
-          dest = Path.new(target_path)
-          FileUtils.mkdir_p(dest.parent)
-          File.write(dest, file.content)
-          true
+      def self.extract_file(virtual_path : String, target_path : Path | String, overwrite : Bool = true) : Bool
+        if item = get?(virtual_path)
+          item.extract(target_path, overwrite)
         else
           false
         end
       end
 
-      # Extracts all files matching a virtual prefix into destination_dir.
-      # The prefix is stripped from the output relative path.
-      # Returns the number of files extracted.
-      def self.extract_folder(prefix : String, destination_dir : Path | String) : Int32
-        dest_root = Path.new(destination_dir)
-        norm_prefix = normalize_path(prefix)
-        norm_prefix = "#{norm_prefix}/" unless norm_prefix.empty? || norm_prefix.ends_with?('/')
-
-        matched = files.select { |f| f.starts_with?(norm_prefix) }
-        matched.each do |vpath|
-          file = get(vpath)
-          rel_subpath = vpath[norm_prefix.size..-1]
-          target_path = dest_root.join(rel_subpath)
-          FileUtils.mkdir_p(target_path.parent)
-          File.write(target_path, file.content)
-        end
-
-        matched.size
-      end
-
-      # Extracts the embedded Lapis engine library (src/, shard.yml, godot-version.yml, and .gdignore)
-      # into the target directory (e.g. project/lib/lapis).
-      def self.extract_engine_lib(target_lapis_dir : Path | String) : Bool
+      # Extracts the lean embedded Lapis engine library into target directory (lib/lapis).
+      # Uses the isolated :engine volume exclusively, guaranteeing zero non-code bloat.
+      def self.extract_engine_lib(target_lapis_dir : Path | String, overwrite : Bool = true) : Bool
         dest_lapis = Path.new(target_lapis_dir)
-        return false unless files_with_prefix("src").size > 0
+        engine_vol = fs.volume?(:engine)
+        return false unless engine_vol && !engine_vol.empty?
 
-        target_src = dest_lapis.join("src")
-        extract_folder("src", target_src)
+        # Extract only genuine engine source files directly from :engine volume
+        extract_volume(:engine, dest_lapis, overwrite: overwrite)
 
-        if has_file?("shard.yml")
-          extract_file("shard.yml", dest_lapis.join("shard.yml"))
-        end
-
-        if has_file?("godot-version.yml")
-          extract_file("godot-version.yml", dest_lapis.join("godot-version.yml"))
-        end
-
+        # Ensure .gdignore is present at both lib/ and lib/lapis/
         FileUtils.mkdir_p(dest_lapis.parent) unless Dir.exists?(dest_lapis.parent)
         File.write(dest_lapis.parent.join(".gdignore"), "") unless File.exists?(dest_lapis.parent.join(".gdignore"))
         File.write(dest_lapis.join(".gdignore"), "") unless File.exists?(dest_lapis.join(".gdignore"))
         true
-      end
-
-      # Normalizes directory separators to forward slashes
-      private def self.normalize_path(path : String) : String
-        path.gsub('\\', '/').strip('/')
       end
     end
   end

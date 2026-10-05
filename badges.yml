@@ -1,0 +1,56 @@
+settings:
+  target_file: "README.md"
+  tag: "carbon:badges"
+  style: "flat"
+  layout: "block"
+
+badges:
+  - type: custom
+    label: "Crystal"
+    message: "1.20+"
+    color: "black"
+    logo: "crystal"
+    url: "https://crystal-lang.org"
+
+  - type: version
+    label: "Lapis"
+    color: "blueviolet"
+
+  - type: custom
+    label: "Godot"
+    message: "4.8-dev7"
+    color: "blue"
+    logo: "godotengine"
+    url: "https://godotengine.org"
+
+  - type: ci
+    label: "Tests"
+    workflow: "test.yml"
+
+  - type: ci
+    label: "Release"
+    workflow: "release.yml"
+
+  - type: custom
+    label: "Docs"
+    message: "Online"
+    color: "blueviolet"
+    url: "https://sol-vin.github.io/lapis/"
+
+  - type: custom
+    label: "Benchmarks"
+    message: "Interactive Report"
+    color: "success"
+    url: "https://sol-vin.github.io/lapis/benchmarks.html"
+
+  - type: custom
+    label: "Slides"
+    message: "Interactive Tour"
+    color: "blueviolet"
+    url: "https://sol-vin.github.io/lapis_slides/"
+
+  - type: custom
+    label: "License"
+    message: "MIT"
+    color: "green"
+    url: "LICENSE"

@@ -75,6 +75,82 @@ module Godot
       return if @pointer.null?
       previous_def
     end
+
+    # Changes running scene to file at specified path, raising SceneChangeError on failure
+    def change_scene!(path : String) : Nil
+      return if @pointer.null?
+      err = change_scene_to_file(path)
+      if err != Godot::Error::Ok
+        raise SceneChangeError.new("Failed to change scene to '#{path}': Error #{err}")
+      end
+    end
+
+    # Changes running scene to specified PackedScene, raising SceneChangeError on failure
+    def change_scene!(scene : PackedScene) : Nil
+      return if @pointer.null?
+      err = change_scene_to_packed(scene)
+      if err != Godot::Error::Ok
+        raise SceneChangeError.new("Failed to change scene to packed scene: Error #{err}")
+      end
+    end
+
+    # Reloads currently running scene, raising SceneChangeError on failure
+    def reload_scene! : Nil
+      return if @pointer.null?
+      err = reload_current_scene
+      if err != Godot::Error::Ok
+        raise SceneChangeError.new("Failed to reload current scene: Error #{err}")
+      end
+    end
+
+    # Returns the current scene cast to wrapper type T, or nil if not present or type mismatch
+    def current_scene_as(type : T.class) : T? forall T
+      return nil if @pointer.null?
+      cs = current_scene
+      return nil if cs.nil? || cs.pointer.null?
+      if cs.is_a?(T)
+        cs
+      elsif typed = Godot::Node.cast_to?(cs, T)
+        typed
+      else
+        nil
+      end
+    end
+
+    # Returns a fluent GroupQuery for the specified node group.
+    def group(name : String | Symbol) : GroupQuery
+      GroupQuery.new(name)
+    end
+  end
+
+  # Exception raised when a scene change or reload operation fails
+  class SceneChangeError < Exception
+  end
+
+  class Node
+    # Changes running scene via the active SceneTree
+    def change_scene!(path : String) : Nil
+      return if @pointer.null?
+      get_tree.change_scene!(path)
+    end
+
+    # Changes running scene to PackedScene via the active SceneTree
+    def change_scene!(scene : PackedScene) : Nil
+      return if @pointer.null?
+      get_tree.change_scene!(scene)
+    end
+
+    # Reloads running scene via the active SceneTree
+    def reload_scene! : Nil
+      return if @pointer.null?
+      get_tree.reload_scene!
+    end
+
+    # Returns the current running scene cast to wrapper type T
+    def current_scene_as(type : T.class) : T? forall T
+      return nil if @pointer.null?
+      get_tree.current_scene_as(T)
+    end
   end
 
   # ===========================================================================

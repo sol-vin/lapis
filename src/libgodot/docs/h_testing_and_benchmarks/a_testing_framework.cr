@@ -38,6 +38,11 @@ module Lapis
       #       <td><code>.topic_02_zero_leak_verification</code></td>
       #       <td>Using Godot's Performance monitors and Boehm GC to mathematically prove zero memory leaks.</td>
       #     </tr>
+      #     <tr>
+      #       <td><strong>Multi-Frame Physics Simulation & Stability Testing</strong></td>
+      #       <td><code>.topic_03_multiframe_physics_stability_testing</code></td>
+      #       <td>Simulating physical settling over dozens of frames and quantitatively asserting numeric and structural stability.</td>
+      #     </tr>
       #   </tbody>
       # </table>
       #
@@ -53,6 +58,7 @@ module Lapis
         # - Declarative syntax: test_suite "Name" do ... test "Case" do ... end end
         # - Lifecycle fixtures: before_each and after_each setup hooks
         # - Quantitative zero memory leak verification via assert_no_leak
+        # - Multi-frame physics simulation and numerical stability testing
         # - Dual execution: Run headlessly in CI or interactively in Godot Editor Test Runner Dock
         #
         def self.topic_00_test_capabilities : Nil; end
@@ -103,6 +109,45 @@ module Lapis
         # 5. Mathematically asserts that final object count exactly equals initial object count!
         #
         def self.topic_02_zero_leak_verification : Nil; end
+
+        # **Multi-Frame Physics Simulation & Stability Testing**: Simulating physical settling over dozens of frames and quantitatively asserting numeric and structural stability.
+        #
+        # Unit tests that inspect nodes at a single instant cannot catch physics jitter, tunneling, divergent numerical explosions (NaN / Inf coordinates), or memory leaks across continuous engine ticks.
+        #
+        # Lapis provides multi-frame simulation testing using `skip_frames(N)` and `skip_physics_frames(N)` to run authentic physics over real virtual time:
+        #
+        # #### 1. 2D Pit Settling (200 Rigid Bodies):
+        # In `spec/suites/test_physics_multiframe_pit_settling.cr`, an enclosed containment pit (static floor and walls) is spawned alongside 200 `RigidBody2D` circle balls. The test yields 180 frames (`skip_frames(180)`) for balls to fall, bounce, and pack into a stable resting pile:
+        #
+        # ```crystal
+        # test "200 RigidBody2D balls drop into an enclosed pit and settle" do
+        #   assert_no_leak(name: "200 Ball Pit Settling") do
+        #     # 1. Spawn static floor and containment walls
+        #     # 2. Spawn 200 RigidBody2D balls in falling grid
+        #     # 3. Simulate multi-frame physics
+        #     skip_frames(180)
+        #
+        #     # 4. Assert boundary containment and numerical sanity
+        #     balls.each do |ball|
+        #       pos = ball.get_position
+        #       assert_false pos.x.nan?, "Ball coordinate must not be NaN"
+        #       assert_gt pos.x, 70.0_f32, "Ball escaped left pit wall"
+        #       assert_lt pos.x, 930.0_f32, "Ball escaped right pit wall"
+        #       assert_lt pos.y, 650.0_f32, "Ball fell through floor"
+        #     end
+        #
+        #     # 5. Destroy all bodies and verify zero ObjectDB leaks
+        #   end
+        # end
+        # ```
+        #
+        # #### 2. 3D Cube Stack Stability:
+        # In `spec/suites/test_physics_cube_stack_stability.cr`, a vertical tower of 10 `RigidBody3D` boxes is spawned on a static ground plane. After stepping physics frames:
+        # - Validates that the tower compresses and settles without violent explosion or toppling into outer space.
+        # - Asserts that all coordinates remain finite and within reasonable horizontal drift bounds (`pos.x.abs < 15.0`).
+        # - Confirms that destroying the bodies returns Godot's ObjectDB count to baseline with zero orphan nodes.
+        #
+        def self.topic_03_multiframe_physics_stability_testing : Nil; end
       end
     end
   end

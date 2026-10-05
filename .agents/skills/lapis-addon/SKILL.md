@@ -7,7 +7,47 @@ description: >-
 
 # Lapis Addon Management & Distribution Runbook
 
-Lapis provides an integrated addon manager that handles the full lifecycle of Godot GDExtension addons written in Crystal, from scaffolding and development to git-based installation, `project.godot` registration, and release packaging.
+This skill outlines how to manage the full lifecycle of Godot GDExtension addons written in Crystal, from scaffolding and development to git-based installation, `project.godot` registration, and release packaging.
+
+---
+
+## Table of Contents
+<table>
+  <thead>
+    <tr>
+      <th align="left">Section</th>
+      <th align="left">Description</th>
+      <th align="center">Lines</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><a href="#1-quick-command-reference"><strong>1. Quick Command Reference</strong></a></td>
+      <td># Scaffold a new addon project</td>
+      <td align="center"><code>L54–L80</code></td>
+    </tr>
+    <tr>
+      <td><a href="#2-scaffolding-a-new-addon"><strong>2. Scaffolding a New Addon</strong></a></td>
+      <td>To create a new redistributable addon:</td>
+      <td align="center"><code>L81–L139</code></td>
+    </tr>
+    <tr>
+      <td><a href="#3-installing-addons-into-a-game"><strong>3. Installing Addons into a Game</strong></a></td>
+      <td>When you run lapis addon install <source>, Lapis performs an atomic, multi-step installation:</td>
+      <td align="center"><code>L140–L161</code></td>
+    </tr>
+    <tr>
+      <td><a href="#4-multi-addon-isolation-classdb-rules"><strong>4. Multi-Addon Isolation & ClassDB Rules</strong></a></td>
+      <td>To prevent ClassDB naming collisions and ensure clean coexistence:</td>
+      <td align="center"><code>L162–L170</code></td>
+    </tr>
+    <tr>
+      <td><a href="#5-packaging-addons-for-distribution"><strong>5. Packaging Addons for Distribution</strong></a></td>
+      <td>When distributing your addon to the Godot Asset Library or GitHub Releases:</td>
+      <td align="center"><code>L171–L189</code></td>
+    </tr>
+  </tbody>
+</table>
 
 ---
 
@@ -61,6 +101,40 @@ combat_system/
 └── project.godot                 # Test project harness for live in-editor testing
 ```
 
+### 2.1. Plugin Configuration (`plugin.cfg`)
+```ini
+[plugin]
+
+name="CombatSystem"
+description="Tactical turn-based combat framework for Lapis"
+author="Studio Name"
+version="1.0.0"
+script="combat_system_plugin.gd"
+```
+
+### 2.2. GDExtension Manifest (`combat_system.gdextension`)
+```ini
+[configuration]
+
+entry_symbol="combat_system_init"
+compatibility_minimum="4.1"
+
+[libraries]
+
+windows.debug.x86_64="bin/combat_system.dll"
+windows.release.x86_64="bin/combat_system.dll"
+linux.debug.x86_64="bin/libcombat_system.so"
+linux.release.x86_64="bin/libcombat_system.so"
+macos.debug="bin/libcombat_system.dylib"
+macos.release="bin/libcombat_system.dylib"
+
+[dependencies]
+
+windows.debug.x86_64={
+    "bin/gc.dll": ""
+}
+```
+
 ---
 
 ## 3. Installing Addons into a Game
@@ -85,12 +159,12 @@ lapis addon install https://github.com/sol-vin/lapis_inventory.git --vendor
 
 ---
 
-## 4. Multi-Addon Isolation Rules
+## 4. Multi-Addon Isolation & ClassDB Rules
 
 To prevent ClassDB naming collisions and ensure clean coexistence:
 1. **Never Share Class Names Across Addons**: Always prefix custom nodes with an addon namespace (e.g. `CombatPlayer`, `CombatWeapon` instead of generic `Player`).
 2. **Distinct GDExtension Entry Points**: Each addon must specify its own unique entry symbol in its `.gdextension` manifest (e.g. `combat_system_init`).
-3. **Dummy Addons in Core Workspace**: Test addons in the main Lapis repository (`dummy_audio`, `dummy_dialogue`, `dummy_inventory`) exist solely to verify ClassDB isolation in test suites. They are NEVER bundled into shipped releases.
+3. **Dummy Addons in Core Workspace**: Test addons in the main Lapis repository (`dummy_audio`, `dummy_dialogue`, `dummy_inventory`, `test_runner`) exist solely to verify ClassDB isolation in test suites. They are NEVER bundled into shipped releases.
 
 ---
 

@@ -450,6 +450,58 @@ module Lapis
         end
       end
 
+      # Runs Godot in headless editor mode with LIBGODOT_ENABLE_EDITOR_UI=1 and LIBGODOT_ACTION_DRIVER_TEST=1
+      # to execute automated user-level plugin UI and ActionDriver tests
+      def self.run_editor_action_driver_tests(project : String = ".", godot_path : String? = nil, quit_frames : Int32 = 600) : DriverResult
+        exe = resolve_godot(godot_path)
+        return DriverResult.new(success: false, output: "Godot executable not found", exit_code: -1) unless exe
+
+        [".action_driver_tests_passed", "bin/.action_driver_tests_passed", ".action_driver_tests_failed", "bin/.action_driver_tests_failed"].each do |m|
+          p = File.join(project, m)
+          File.delete(p) if File.exists?(p)
+        end
+
+        env = {
+          "LIBGODOT_ENABLE_EDITOR_UI"   => "1",
+          "LIBGODOT_ACTION_DRIVER_TEST" => "1",
+          "GODOT_HEADLESS"              => "1",
+        }
+        args = ["--headless", "--audio-driver", "Dummy", "--rendering-driver", "opengl3", "--editor", "--path", project, "--quit-after", quit_frames.to_s]
+        out_file = File.tempfile("action_driver_stdout")
+        err_file = File.tempfile("action_driver_stderr")
+        begin
+          proc = Process.new(exe, args, env: env, output: out_file, error: err_file)
+          status, _timed_out = wait_process(proc, 60.0)
+          out_file.rewind
+          err_file.rewind
+          out_str = out_file.gets_to_end + "\n" + err_file.gets_to_end
+
+          passed_marker = [File.join(project, ".action_driver_tests_passed"), File.join(project, "bin/.action_driver_tests_passed")].any? { |f| File.exists?(f) }
+          failed_marker = [File.join(project, ".action_driver_tests_failed"), File.join(project, "bin/.action_driver_tests_failed")].any? { |f| File.exists?(f) }
+
+          success = (status.normal_exit? && status.exit_code == 0 || passed_marker) &&
+                    !failed_marker &&
+                    out_str.includes?("ALL IN-EDITOR ACTION DRIVER TESTS PASSED!")
+          code = status.normal_exit? ? status.exit_code : -1
+          DriverResult.new(
+            success: success,
+            output: out_str,
+            exit_code: code,
+            passed_count: success ? 1 : 0,
+            total_count: 1
+          )
+        rescue ex
+          DriverResult.new(
+            success: false,
+            output: "Failed to run editor action driver tests: #{ex.message}",
+            exit_code: -1
+          )
+        ensure
+          out_file.delete rescue nil
+          err_file.delete rescue nil
+        end
+      end
+
       # Runs Godot in headless editor mode on a clean or specified project to verify first-boot plugin loading and clean shutdown
       def self.run_fresh_editor_test(project : String = ".", godot_path : String? = nil, quit_frames : Int32 = 120) : DriverResult
         exe = resolve_godot(godot_path)

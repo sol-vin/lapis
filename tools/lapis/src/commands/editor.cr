@@ -21,7 +21,7 @@ Usage: lapis editor [options] [path]
        lapis run [options] [path]
 
 Options:
-  -p, --path=PATH            Godot project path (default: current project or test)
+  -p, --path=PATH            Godot project path (default: current directory or workspace root)
   -r, --run                  Run standalone project directly instead of opening editor
   --monitor                  Run with real-time TUI performance charts (FPS & RAM)
   -q, --quit-after=SEC       Auto-quit after N seconds
@@ -37,10 +37,10 @@ Examples:
   lapis editor
   lapis editor my_game
   lapis editor -p template
-  lapis editor -p test --quit-after 10
-  lapis editor -p test --debug
+  lapis editor -p template --quit-after 10
+  lapis editor --debug
   lapis run
-  lapis run -p test
+  lapis run -p template
 HELP
       end
 
@@ -68,7 +68,12 @@ HELP
         end
 
         # Auto-detect target project when no path is explicitly provided:
-        # 1. Current working directory if it contains project.godot
+        # 1. Search upwards from current directory for nearest enclosing project.godot
+        if (nearest = Core::Env.find_project_dir(curr)) && nearest != root
+          return nearest
+        end
+
+        # 2. Current working directory if it contains project.godot
         if File.exists?(curr.join("project.godot"))
           return curr
         end
@@ -248,9 +253,10 @@ HELP
                    Core::ProcessRunner.run(godot_exe, godot_args, env: child_env, chdir: target_dir.to_s, tee_file: godot_log)
                  end
 
-        if (!status.success? || debug_mode) && STDOUT.tty? && (status.exit_code == 0xC0000005 || status.exit_code == 3221225477_u32.to_i32 || status.signal_exit? || debug_mode)
-          Core::Logger.error("Detected abnormal process exit (0x#{status.exit_code.to_s(16)}). Swapping to Radare2 Crash Forensics View...")
-          TUI::DebuggerView.auto_swap_on_crash(target_dir.join("bin/game.dll").to_s, 0x00007ff624328b40_u64, "Process terminated with exit code 0x#{status.exit_code.to_s(16)}")
+        raw_code = status.normal_exit? ? status.exit_code : -1
+        if (!status.success? || debug_mode) && STDOUT.tty? && (raw_code == 0xC0000005 || raw_code == 3221225477_u32.to_i32 || status.signal_exit? || debug_mode)
+          Core::Logger.error("Detected abnormal process exit (0x#{raw_code.to_s(16)}). Swapping to Radare2 Crash Forensics View...")
+          TUI::DebuggerView.auto_swap_on_crash(target_dir.join("bin/game.dll").to_s, 0x00007ff624328b40_u64, "Process terminated with exit code 0x#{raw_code.to_s(16)}")
         end
 
         status.normal_exit? ? status.exit_code : 0

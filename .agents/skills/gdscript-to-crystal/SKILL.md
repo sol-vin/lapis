@@ -9,6 +9,31 @@ This skill is the authoritative conversion guide and Rosetta Stone for translati
 
 ---
 
+## Table of Contents
+<table>
+  <thead>
+    <tr>
+      <th align="left">Section</th>
+      <th align="left">Description</th>
+      <th align="center">Lines</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><a href="#1-quick-syntax-comparison-matrix"><strong>1. Quick Syntax Comparison Matrix</strong></a></td>
+      <td><table></td>
+      <td align="center"><code>L37–L202</code></td>
+    </tr>
+    <tr>
+      <td><a href="#2-core-architectural-idiomatic-patterns"><strong>2. Core Architectural & Idiomatic Patterns</strong></a></td>
+      <td>### 1.</td>
+      <td align="center"><code>L203–L316</code></td>
+    </tr>
+  </tbody>
+</table>
+
+---
+
 ## 1. Quick Syntax Comparison Matrix
 
 <table>
@@ -102,13 +127,23 @@ This skill is the authoritative conversion guide and Rosetta Stone for translati
     </tr>
     <tr>
       <td><code>@onready var sprite = $Sprite2D</code></td>
-      <td><code>getter(sprite) { ~Sprite2D }</code></td>
-      <td>Lazy memoized getter resolving child node on first access.</td>
+      <td><code>onready sprite : Sprite2D = ~"Sprite2D"</code><br>or <code>onready sprite, Sprite2D</code></td>
+      <td>Eager onready property initialized during _ready or lazy-cached accessor with dead-pointer safety.</td>
+    </tr>
+    <tr>
+      <td><code>for enemy in get_nodes_in_group("enemies"):<br>&nbsp;&nbsp;enemy.alert()</code></td>
+      <td><code>each_node("Enemies/*", Enemy, &.alert!)</code><br>or <code>each_node("Enemies/*", Enemy) do alert! end</code></td>
+      <td>Streaming iteration with receiver scoping and block-pass shorthand.</td>
+    </tr>
+    <tr>
+      <td><code>if hit and hit.collider is Enemy:<br>&nbsp;&nbsp;hit.collider.take_damage(25)</code></td>
+      <td><code>if enemy = hit.collider.as?(Enemy)<br>&nbsp;&nbsp;enemy.take_damage(25)<br>end</code></td>
+      <td>Dead-pointer safe collider lookup with standard Crystal as?(Type) downcasting.</td>
     </tr>
     <tr>
       <td><code>signal health_changed(curr, max)</code></td>
       <td><code>signal health_changed(current : Int32, max_health : Int32)</code></td>
-      <td>Synthesizes type-safe <code>emit_health_changed(curr, max)</code> method.</td>
+      <td>First-class signal accessors: <code>health_changed.emit(curr, max)</code>, <code>connect</code>, and piping (<code>&gt;</code>, <code>&gt;&gt;</code>).</td>
     </tr>
     <tr>
       <td><code>func _ready():</code></td>
@@ -137,8 +172,8 @@ This skill is the authoritative conversion guide and Rosetta Stone for translati
     </tr>
     <tr>
       <td><code>match val:</code><br><code>&nbsp;&nbsp;1: foo()</code><br><code>&nbsp;&nbsp;_: bar()</code></td>
-      <td><code>case val</code><br><code>when 1 then foo</code><br><code>else bar</code><br><code>end</code></td>
-      <td>Exhaustive pattern matching supported by Crystal compiler.</td>
+      <td><code>match val do</code><br><code>&nbsp;&nbsp;is 1 do foo end</code><br><code>&nbsp;&nbsp;default do bar end</code><br><code>end</code></td>
+      <td>First-class pattern matching macro supporting downcasting, variant unboxing, guards, and destructuring.</td>
     </tr>
     <tr>
       <td><code>queue_free()</code></td>
@@ -240,10 +275,10 @@ node HealthComponent < Node do
 
   def take_damage(amount : Int32) : Void
     @current_health -= amount
-    # Type-safe auto-generated emitter methods
-    emit_damaged(amount, @current_health)
+    # First-class signal emission
+    damaged.emit(amount, @current_health)
     if @current_health <= 0
-      emit_died
+      died.emit
     end
   end
 end

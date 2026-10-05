@@ -58,6 +58,10 @@ libgodot/
    - New examples must be scaffolded using `make new-example NAME=<name> [DIR=<path>]` (or `bin/lapis scaffold example <name>`).
    - New addons must be scaffolded using `make new-addon NAME=<name> [DIR=<path>] [AUTHOR="..."] [DESC="..."]` (or `bin/lapis scaffold addon <name>`).
    - All examples are compiled via `make examples`.
+5. **Git Branching & Master Branch Protection Invariant**:
+   - **NEVER Push to `master` Without Explicit Major Release Instruction**: The repository default branch (`master`) is strictly reserved for ceremonializing major stable releases.
+   - For all development milestones (`X.Y-devN`), alphas (`X.Y-alphaN`), betas (`X.Y-betaN`), and release candidates (`X.Y-rcN`), agents must **ONLY** push to the specific milestone branch (e.g. `git push origin 4.8-dev7`).
+   - Under no circumstances should `master` or floating release tags (`latest`) be pushed, fast-forwarded, or force-updated during intermediate milestone work or branch squashes unless the user explicitly and verbatim commands a major stable release.
 
 ---
 
@@ -238,7 +242,9 @@ end
 ### Macro Directives:
 - **`node ClassName < ParentNode do ... end`**: Declares a Godot class registered in `ClassDB`.
 - **`@[Export]` annotations**: Full support for ranges (`@[ExportRange]`), enums (`@[ExportEnum]`), file pickers (`@[ExportFile]`, `@[ExportDir]`), bitmasks (`@[ExportFlags]`), easing curves (`@[ExportExpEasing]`), and buttons (`@[ExportToolButton]`).
-- **`signal name(arg : Type)`**: Automatically registers signal with `ClassDB` and synthesizes type-safe helper `emit_<name>(...)`.
+- **`signal name(arg : Type)`**: Automatically registers signal with `ClassDB` and provides first-class signal accessor `signal.emit(...)`, `signal.connect`, and compound operators (`+=`, `-=`, `>>`, `>`).
+- **Scene Pipeline (`>`) & Tween Ergonomics**: Direct typed instantiation (`"res://..." > Type`), fluent `.build`/`.configure`, and compile-time `tween(node.prop, to: val)`.
+- **Pattern Matching (`match`)**: Polymorphic downcasting, Variant unboxing, and destructuring via `match val do is Type do ... end`.
 - **`@[Tool]`**: Marks the class to execute inside the Godot Editor in real time.
 - **`@[RPC]`**: Configures multiplayer network replication mode, transfer mode, and channels.
 - **Automated Doc Comment Harvesting**:
@@ -302,19 +308,42 @@ Whenever debugging segmentation faults (`0xC0000005`), dead pointers, memory cor
 
 ---
 
-## 9. Agent Custom Skills
+## 9. Agent Custom Skills & Table of Contents Invariant
 
-This repository includes specialized Antigravity agent skills in `.agents/skills/`:
-- **`libgodot-docs-authoring`**: Runbook for authoring, organizing, and maintaining the `Lapis::Docs` documentation hierarchy, method doc comments, HTML tables, and `make docs` verification.
-- **`cradare2-debugger`**: Runbook for native debugging, decompilation (`pdc`/`pdf`), crash forensics, and multiplayer lockstep synchronization.
-- **`libgodot-build-and-sync`**: Runbook for building the complete toolchain, release builds, and multi-consumer DLL synchronization.
-- **`libgodot-packaging`**: Runbook for building installers (Windows installer, Debian package), official addon archives, standalone game exports, and release distributions.
-- **`libgodot-benchmarks`**: Runbook for compiling, running, profiling, and charting the Crystal vs GDScript performance benchmark suite.
-- **`libgodot-test-runner`**: Runbook for executing specs, headless in-editor tests, and runtime test suites.
-- **`libgodot-concurrency-safety`**: Safety patterns for fibers, background OS threads, actor channels, and dead-pointer prevention.
-- **`crystal-execution-contexts`**: Multithreading and fiber orchestration patterns with Crystal Execution Contexts (`Concurrent`, `Parallel`, `Isolated`, dynamic work-stealing, and thread scaling).
-- **`libgodot-api-generator`**: Guide for dumping Godot extension API and updating Crystal class bindings.
-- **`libgodot-scaffold`**: Guide for scaffolding new showcase examples and GDExtension addons.
+This repository includes 27 specialized Antigravity agent skills in `.agents/skills/`.
+**Table of Contents Invariant**: Every skill file (`SKILL.md`) **MUST** maintain an exact, line-numbered HTML Table of Contents (`L<start>–L<end>`) at the top of the file so AI agents can index and jump directly to relevant sections using `view_file`.
+- Run `make skills-toc` (or `crystal run tools/update_skill_tocs.cr`) to automatically synchronize all ToCs.
+- Run `make check-skills-toc` (or `crystal run tools/update_skill_tocs.cr -- --check`) to verify that all line numbers match.
+
+### Available Skills Index:
+1. **`cradare2-debugger`**: Native debugger, decompiler, crash forensics, and multiplayer lockstep debugging engine using cradare2 and radare2.
+2. **`crystal-design-patterns`**: The complete 23 Gang of Four (GoF) design patterns adapted to modern, idiomatic Crystal.
+3. **`crystal-execution-contexts`**: Crystal's multithreading and fiber orchestration model using Execution Contexts (`Fiber::ExecutionContext`).
+4. **`gdscript-to-crystal`**: Syntax cheatsheet, line-by-line idioms, memory rules, and direct code translations from GDScript to Crystal.
+5. **`godot-design-patterns`**: Architectural and game design patterns tailored specifically for Godot 4.
+6. **`lapis-addon`**: Manage, scaffold, install, audit, and package redistributable Godot GDExtension addons.
+7. **`lapis-best-practices`**: Design patterns, architectural best practices, and performance guidelines for Lapis games.
+8. **`lapis-cli`**: Master operational runbook and cheatsheet for the Lapis CLI toolchain.
+9. **`lapis-doctor-diagnostics`**: 14 core diagnostic categories, toolchain auditing, and runtime library integrity verification.
+10. **`lapis-dsl`**: Complete specification and authoring guide for the Lapis gameplay and engine DSL in Crystal.
+11. **`lapis-dsl-authoring`**: Metaprogramming and macro authoring manual for extending the Lapis DSL and generating GDExtension bindings.
+12. **`lapis-game-design-patterns`**: User-end gameplay architecture patterns for developers building production games in Lapis.
+13. **`lapis-ide-lsp`**: Configure IDE environments (VS Code, Cursor, Zed, Neovim) and Crystalline Language Server (LSP).
+14. **`lapis-logging-telemetry`**: Diagnostic game logging, custom log filters, BBCode console output, and telemetry streaming.
+15. **`lapis-optimization-flags`**: Compile-time flags, binary stripping, and opt-in diagnostic instrumentation in Lapis games.
+16. **`lapis-project-workflow`**: Project lifecycle management using Lapis CLI: init, scaffolding, shard management, cleaning, and sync.
+17. **`lapis-release-tagging`**: Git release maintenance, master branch protection, single-commit-per-milestone squashing, and Godot version tagging.
+18. **`lapis-templates`**: Manage, author, and scaffold modular game templates using Lapis CLI.
+19. **`lapis-upgrade`**: Upgrade Godot engine binaries, cradare2/radare2 debugger toolchain, Opal terminal toolkit, and Lapis framework.
+20. **`libgodot-api-generator`**: Dump Godot engine GDExtension API and generate typed Crystal classes, enums, singletons, and method bindings.
+21. **`libgodot-benchmarks`**: Build, run, profile, and package the Crystal vs GDScript performance benchmarks suite.
+22. **`libgodot-build-and-sync`**: Build, compile, hot-reload, and synchronize the entire LibGodot toolchain across all consumers.
+23. **`libgodot-concurrency-safety`**: Rules, patterns, and invariants for concurrency, threading, fibers, channels, and dead-pointer protection.
+24. **`libgodot-docs-authoring`**: Author, update, and organize technical documentation under `Lapis::Docs`.
+25. **`libgodot-packaging`**: Packaging, installers, and release distribution for Lapis and Godot games/addons.
+26. **`libgodot-test-runner`**: Execute the multi-tier test suite: Crystal specs, headless in-editor tool tests, and runtime test projects.
+27. **`mermaid-expert`**: Visual diagramming guide for flowcharts, SceneTree hierarchies, sequence diagrams, state machines, ERDs, and styling palettes.
+
 
 <!-- graft:start -->
 ## Graft — repo context graph

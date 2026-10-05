@@ -36,7 +36,7 @@ module Lapis
       #     <tr>
       #       <td><strong>Dynamic Shell Autocompletion</strong></td>
       #       <td><code>.topic_02_shell_completion</code></td>
-      #       <td>Generating autocompletion scripts for PowerShell, Bash, and Zsh.</td>
+      #       <td>Generating autocompletion scripts for PowerShell, Bash, Zsh, and Fish.</td>
       #     </tr>
       #     <tr>
       #       <td><strong>Fuzzy Typo Auto-Correction</strong></td>
@@ -57,8 +57,8 @@ module Lapis
         # #### Key Topics & Information
         #
         # - Build & Sync: build, bind, clean, sync, deps, dirs
-        # - Testing & Development: doctor, test, editor, run, benchmarks, setup
-        # - Scaffolding & Packages: new/scaffold, init, upgrade, addon, shard, ide, package, docs
+        # - Testing & Diagnostics: doctor, test, spec, editor, run, benchmarks, setup, decompile, analyze, log
+        # - Scaffolding & Templates: new/scaffold, init, upgrade, addon, shard, ide, template, export-templates, explore, package, docs
         # - System & Maintenance: install, uninstall, update, completion, version
         #
         def self.topic_00_core_commands : Nil; end
@@ -77,23 +77,23 @@ module Lapis
         #   </thead>
         #   <tbody>
         #     <tr>
-        #       <td>`--help`</td>
-        #       <td>`-h`</td>
+        #       <td><code>--help</code></td>
+        #       <td><code>-h</code></td>
         #       <td>Prints detailed help and usage instructions for the current subcommand</td>
         #     </tr>
         #     <tr>
-        #       <td>`--version`</td>
-        #       <td>`-v`</td>
+        #       <td><code>--version</code></td>
+        #       <td><code>-v</code></td>
         #       <td>Displays the current Lapis toolchain release version and target Godot engine</td>
         #     </tr>
         #     <tr>
-        #       <td>`--verbose`</td>
+        #       <td><code>--verbose</code></td>
         #       <td></td>
         #       <td>Enables verbose debug logging, process commands, and timing metrics</td>
         #     </tr>
         #     <tr>
-        #       <td>`--quiet`</td>
-        #       <td>`-q`</td>
+        #       <td><code>--quiet</code></td>
+        #       <td><code>-q</code></td>
         #       <td>Suppresses non-essential terminal output for silent CI execution</td>
         #     </tr>
         #   </tbody>
@@ -101,7 +101,7 @@ module Lapis
         #
         def self.topic_01_global_flags : Nil; end
 
-        # **Dynamic Shell Autocompletion**: Generating autocompletion scripts for PowerShell, Bash, and Zsh.
+        # **Dynamic Shell Autocompletion**: Generating autocompletion scripts for PowerShell, Bash, Zsh, and Fish.
         #
         # Lapis features a dynamic completion engine driven by `COMMAND_DESCRIPTIONS`:
         #
@@ -124,6 +124,13 @@ module Lapis
         # eval "$(lapis completion zsh)"
         # # Or add permanently to ~/.zshrc:
         # echo 'eval "$(lapis completion zsh)"' >> ~/.zshrc
+        # ```
+        #
+        # #### Fish Setup:
+        # ```fish
+        # lapis completion fish | source
+        # # Or add permanently to ~/.config/fish/completions/lapis.fish:
+        # lapis completion fish > ~/.config/fish/completions/lapis.fish
         # ```
         #
         def self.topic_02_shell_completion : Nil; end

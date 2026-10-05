@@ -227,8 +227,9 @@ module Lapis
           end
           0
         else
-          Core::Logger.error("Build failed with exit code #{status.exit_code} after #{elapsed.round(2)}s")
-          status.exit_code
+          code = status.normal_exit? ? status.exit_code : -1
+          Core::Logger.error("Build failed with exit code #{code} after #{elapsed.round(2)}s")
+          code
         end
       end
 
@@ -445,6 +446,8 @@ module Lapis
 
         proj_dir = if (pp = proj_path) && !pp.empty?
                      Path.new(pp).expand
+                   elsif (nearest = Core::Env.find_project_dir(curr)) && File.exists?(nearest.join("src/main.cr"))
+                     nearest
                    elsif File.exists?(curr.join("project.godot")) || File.exists?(curr.join("src/main.cr"))
                      curr
                    elsif File.exists?(root.join("project.godot")) || File.exists?(root.join("src/main.cr"))
@@ -549,7 +552,7 @@ Usage:
 
 Subcommands:
   game                  Build game library for current or specified project (default)
-  addons                Build all test/dummy addons in test/addons/
+  addons                Build all test/dummy addons in addons/
   examples              Build all showcase examples in examples/
 
 Options for game library build ('lapis build' or 'lapis build game'):
@@ -622,13 +625,21 @@ HELP
         if !has_entry_arg && !has_output_arg
           curr = Path.new(Dir.current).expand
           root = Core::Env::ROOT_DIR
-          if File.exists?(curr.join("project.godot")) && File.exists?(curr.join("src/main.cr"))
+          nearest = Core::Env.find_project_dir(curr)
+          if nearest && File.exists?(nearest.join("project.godot")) && File.exists?(nearest.join("src/main.cr"))
             return build_game(args)
-          elsif File.exists?(root.join("project.godot")) && File.exists?(root.join("src/main.cr"))
+          elsif File.exists?(curr.join("project.godot")) && File.exists?(curr.join("src/main.cr"))
             return build_game(args)
-          elsif args.empty?
-            print_help
-            return 0
+          elsif (curr == root) && File.exists?(root.join("project.godot")) && File.exists?(root.join("src/main.cr"))
+            return build_game(args)
+          else
+            unless Core::Env.is_crystal_dir?(curr)
+              Core::Logger.warn("Warning: Current directory '#{curr}' is not a Crystal/Lapis project (missing shard.yml or src/).")
+            end
+            if args.empty?
+              print_help
+              return 0
+            end
           end
         end
 

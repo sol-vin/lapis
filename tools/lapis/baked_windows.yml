@@ -1,32 +1,93 @@
-# Lapis Baked Files Manifest for Windows
-# Strictly lists all static assets embedded into the Windows lapis CLI binary at compile time.
+# Lapis Multi-Volume Baked Files Manifest for Windows
+# Embedded into the Windows lapis CLI binary at compile time via Bakelite.
 
-files:
-  # 1. Authoritative Engine Configuration
-  - godot-version.yml
-  - shard.yml
+volumes:
+  engine:
+    mount: ""
+    default_chunk_size: 65536
+    default_compression: deflate
+    auto_threshold: 16384
+    files:
+      - src/libgodot.cr
+      - src/lapis.cr
+      - src/libgodot/**/*.cr
+      - src/bridge/**/*
+      - shard.yml
+      - godot-version.yml
+    exclude:
+      - src/main.cr
+      - src/libgodot/docs/**
+      - "**/*.uid"
+      - "**/*.import"
+      - "**/*.log"
+      - "**/*.dll"
+      - "**/*.pdb"
+      - "**/*.exe"
 
-  # 2. Starter Game Template (template/)
-  - template/**/*
-  - template/.gitignore
-  - template/.github/**/*
-  - template/.githooks/**/*
+  template:
+    mount: "template"
+    files:
+      - template/**/*
+      - template/.gitignore
+      - template/.github/**/*
+      - template/.githooks/**/*
+    exclude:
+      - "**/*.uid"
+      - "**/*.import"
+      - "**/*.log"
+      - "**/*.dll"
+      - "**/*.pdb"
+      - "**/*.exe"
+      - "**/*.so"
+      - "**/*.dylib"
+      - "**/*.lib"
+      - "**/*.a"
+      - "**/bin/**"
+      - "**/lib/**"
+      - "**/.godot/**"
 
-  # 3. Addon Files (addons/crystal_integration/)
-  - addons/crystal_integration/**/*
+  addon_template:
+    mount: "template-addon"
+    files:
+      - template-addon/**/*
+      - template-addon/.gitignore
+      - template-addon/.github/**/*
+      - template-addon/.githooks/**/*
+    exclude:
+      - "**/*.uid"
+      - "**/*.import"
+      - "**/*.log"
+      - "**/*.dll"
+      - "**/*.pdb"
+      - "**/*.exe"
+      - "**/*.so"
+      - "**/*.dylib"
+      - "**/*.lib"
+      - "**/*.a"
+      - "**/bin/**"
+      - "**/lib/**"
+      - "**/.godot/**"
 
-  # 4. Starter Addon Template (template-addon/)
-  - template-addon/**/*
-  - template-addon/.gitignore
-  - template-addon/.github/**/*
-  - template-addon/.githooks/**/*
+  addon:
+    mount: "addons/crystal_integration"
+    files:
+      - addons/crystal_integration/**/*
+    exclude:
+      - "**/*.uid"
+      - "**/*.import"
+      - "**/*.log"
+      - "**/*.dll"
+      - "**/*.pdb"
+      - "**/*.exe"
+      - "**/*.so"
+      - "**/*.dylib"
+      - "**/*.lib"
+      - "**/*.a"
+      - "**/bin/**"
+      - "**/.godot/**"
 
-  # 5. Core Library Source (baked for offline / zero-dependency extraction)
-  - src/libgodot.cr
-  - src/lapis.cr
-  - src/libgodot/**/*.cr
-  - src/bridge/**/*
-
-  # 6. Windows Platform Assets
-  - scripts/windows/install_deps.ps1
-  - packaging/windows/lapis_installer.iss
+  platform:
+    mount: ""
+    files:
+      - scripts/windows/install_deps.ps1
+      - packaging/windows/lapis_installer.iss

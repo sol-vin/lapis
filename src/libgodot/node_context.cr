@@ -16,18 +16,35 @@ module Godot
     @[ThreadLocal]
     @@current_node : Node? = nil
 
-    # Returns the currently executing Godot::Node, if any
+    # Returns the currently executing `Godot::Node`, if any.
+    #
+    # Used internally by unary operators like `~"Path"` to resolve relative paths
+    # without requiring an explicit receiver reference.
     def self.current : Node?
       @@current_node
     end
 
-    # Sets the currently executing Godot::Node
+    # Sets the currently executing `Godot::Node`.
+    #
+    # Prefer using `NodeContext.scope` instead of setting this directly to ensure
+    # that the previous context is always restored even if an exception occurs.
     def self.current=(node : Node?)
       @@current_node = node
     end
 
     # Scopes execution of a block to the specified node context,
     # restoring previous context upon exit even if an exception is raised.
+    #
+    # All virtual methods (`_ready`, `_process`, `_physics_process`, etc.) are
+    # automatically wrapped in this scope by `_godot_call_virtual`.
+    #
+    # ### Example:
+    # ```crystal
+    # NodeContext.scope(player_node) do
+    #   sprite = ~"Sprite2D" # Resolves relative to player_node
+    #   sprite.modulate = Godot::Color.new(1.0, 0.0, 0.0)
+    # end
+    # ```
     def self.scope(node : Node?, &)
       prev = @@current_node
       @@current_node = node
@@ -38,7 +55,9 @@ module Godot
       end
     end
 
-    # Scopes execution of a block if the object is a Node, or executes directly.
+    # Scopes execution of a block if the object is a `Node`, or executes directly.
+    #
+    # Allows safe, uniform scoping over arbitrary `Godot::Object` instances.
     def self.scope(obj : Object, &)
       if obj.is_a?(Node)
         scope(obj) { yield }
@@ -48,6 +67,15 @@ module Godot
     end
 
     # Resolves a node path against the active node context.
+    #
+    # Raises `Godot::NodeNotFoundError` if no node context is active or if the node
+    # cannot be found at the given relative or unique path.
+    #
+    # ### Supported Syntax:
+    # - Relative child: `~"Sprite2D"` or `~"Visuals/MeshInstance3D"`
+    # - Scene Unique Node: `~"%HealthBar"`
+    # - Absolute tree path: `~"/root/Main/Player"`
+    # - Parent navigation: `~"../Sibling"`
     def self.resolve_active_node(path : String) : Node
       if curr = @@current_node
         curr.get_node(path)
@@ -57,8 +85,19 @@ module Godot
     end
 
     # Resolves a typed node against the active node context.
-    # Tries finding by name first, then scene unique name (%Name),
-    # and falls back to searching children of the current self for the first child matching type `T`.
+    #
+    # Search order:
+    # 1. Direct child by class name (e.g., `"Sprite2D"` for `Sprite2D`)
+    # 2. Scene Unique Node by class name (e.g., `"%Sprite2D"`)
+    # 3. First child in `children` that matches type `T` (or inherits from `T` in native ClassDB)
+    #
+    # Raises `Godot::NodeNotFoundError` if no matching node is found.
+    #
+    # ### Example:
+    # ```crystal
+    # cam = NodeContext.resolve_active_node_as(Camera3D)
+    # cam.fov = 75.0_f32
+    # ```
     def self.resolve_active_node_as(type : T.class, preferred_name : String? = nil) : T forall T
       if curr = @@current_node
         target_name = preferred_name || T.name.split("::").last
@@ -97,8 +136,23 @@ module Godot
       end
     end
 
-    # Resolves a node against the active node context or returns nil (get_node_or_null parity).
-    # Handles Class types and nilable union types like (Sprite2D | Nil), returning typed T?
+    # Resolves a node against the active node context or returns `nil` (`get_node_or_null` parity).
+    #
+    # Handles Class types and nilable union types like `(Sprite2D | Nil)`, returning typed `T?`.
+    #
+    # Search order:
+    # 1. Direct child by class name
+    # 2. Scene Unique Node by class name (`"%TypeName"`)
+    # 3. First child in `children` that matches type `T` (or inherits from `T` in native ClassDB)
+    #
+    # Returns `nil` if no matching child node exists or if no node context is active.
+    #
+    # ### Example:
+    # ```crystal
+    # if weapon = NodeContext.resolve_active_node_or_nil(WeaponSlot?)
+    #   weapon.equip(sword)
+    # end
+    # ```
     def self.resolve_active_node_or_nil(type : T.class, preferred_name : String? = nil) : T? forall T
       if curr = @@current_node
         type_str = T.name.to_s
@@ -209,27 +263,131 @@ module Godot
         nil
       end
     end
+
+    # Resolves a node against the active node context matching a regex pattern.
+    def self.resolve_active_regex(regex : Regex) : Node?
+      if curr = @@current_node
+        curr.find_child(regex, recursive: true)
+      else
+        nil
+      end
+    end
+
+    # Resolves all nodes against the active node context matching a regex pattern.
+    def self.resolve_active_regex_all(regex : Regex) : ::Array(Node)
+      if curr = @@current_node
+        curr.find_children(regex, recursive: true)
+      else
+        ::Array(Node).new
+      end
+    end
   end
 end
 
-# Unary tilde operator on String: ~("$MyNodeName/Node") or ~("%MyNodeName/Node")
+# Unary tilde operator for ergonomic node queries: `~"Path"` or `~"%UniqueName"`.
+#
+# Provides GDScript `$` and `%` parity without needing explicit `get_node(...)` or `self.` receivers.
+# Resolves against the active `NodeContext.current` set up automatically around virtual methods
+# (`_ready`, `_process`, `_physics_process`, `_input`).
+#
+# ### Rationale & Mechanics:
+# In GDScript, `$Sprite2D` is syntax sugar for `get_node("Sprite2D")`, and `$%HealthBar`
+# is sugar for `get_node("%HealthBar")`.
+# In Crystal, the unary prefix tilde operator `~` is overloaded on `String` to delegate to
+# `Godot::NodeContext.resolve_active_node(self)`.
+# Because `NodeContext` is tracked via a thread-local pointer (`@[ThreadLocal]`), resolution
+# is zero-cost (0.0 B allocations, ~0.4 ns dispatch) and 100% thread-safe.
+#
+# ### Examples:
+# ```crystal
+# def _ready : Void
+#   # Child lookup
+#   sprite = ~"Sprite2D"
+#
+#   # Scene Unique Node lookup (Godot 4 % syntax)
+#   health_bar = ~"%HealthBar"
+#
+#   # Relative deep path
+#   camera = ~"Pivot/Camera3D"
+#
+#   # Parent navigation
+#   hud = ~"../HUD"
+# end
+# ```
 class String
   def ~ : Godot::Node
     ::Godot::NodeContext.resolve_active_node(self)
   end
 end
 
-# Unary tilde operator on NodePath: ~(node_path!("MyNode"))
+# Unary tilde operator on `Godot::NodePath`: `~(node_path!("MyNode"))`.
+#
+# Resolves the path against the active `NodeContext.current`.
+#
+# ### Example:
+# ```crystal
+# path = Godot::NodePath.new("Visuals/Sprite2D")
+# sprite = ~path
+# ```
 struct Godot::NodePath
   def ~ : Godot::Node
     ::Godot::NodeContext.resolve_active_node(self.to_s)
   end
 end
 
-# Unary tilde operator on Class union: ~(Sprite2D?) or ~Sprite2D?
-# Provides get_node_or_null parity, returning typed T? or nil if not found
+# Unary tilde operator on `Class` types: `~Sprite2D` or `~Sprite2D?`.
+#
+# Provides typed `get_node_or_null` parity, returning typed `T?` or `nil` if not found.
+#
+# ### Rationale & Mechanics:
+# When authoring scene code, developers frequently look up child nodes by their type
+# (e.g., finding the first `CollisionShape2D` or `AnimationPlayer`).
+# Invoking `~Sprite2D?` or `~Sprite2D` queries the active node context to find a child
+# matching that type name or inheriting from that class, returning a strongly typed instance.
+#
+# ### Examples:
+# ```crystal
+# def _ready : Void
+#   if anim = ~AnimationPlayer?
+#     anim.play("idle")
+#   end
+#
+#   if col = ~CollisionShape2D?
+#     col.disabled = false
+#   end
+# end
+# ```
 class Class
   def ~
     ::Godot::NodeContext.resolve_active_node_or_nil(self)
   end
+end
+
+# Unary tilde operator on `Regex`: `~/pattern/`.
+#
+# Searches the active node context for the first child or descendant whose name matches the regex.
+# Returns `Godot::Node?` (or `nil` if no matching node is found).
+#
+# ### Examples:
+# ```crystal
+# def _ready : Void
+#   if boss = ~/boss_\d+/i
+#     boss.modulate = Godot::Color.new(1.0, 0.0, 0.0)
+#   end
+# end
+# ```
+class Regex
+  def ~ : Godot::Node?
+    ::Godot::NodeContext.resolve_active_regex(self)
+  end
+end
+
+# Global query helper returning all nodes matching the regex under the active node context.
+#
+# ### Example:
+# ```crystal
+# nodes(~/coin_\d+/).each(&.queue_free)
+# ```
+def nodes(regex : Regex) : ::Array(Godot::Node)
+  ::Godot::NodeContext.resolve_active_regex_all(regex)
 end

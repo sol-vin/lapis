@@ -61,11 +61,13 @@ module Lapis
         driver.raw_mode do
           driver.enter_alternate_screen
           driver.hide_cursor
+          diff_renderer = Opal::UI::DiffRenderer.new(driver)
           begin
             while @running
               check_file_updates if @auto_follow
-              render(driver)
-              handle_input(driver)
+              render(driver, diff_renderer)
+              ev = driver.poll_event(50)
+              handle_input(ev, driver, diff_renderer) if ev
             end
           ensure
             driver.show_cursor
@@ -211,26 +213,32 @@ module Lapis
           prompt = "Search regex: /#{@search_query}█"
           buffer.put_string(2, footer_y, prompt, fg: Opal::Color.yellow, bold: true)
         else
-          info = "Tab/Shift+Tab: Channel │ 1-5: Level (#{@level_filter}) │ f: #{follow_badge} │ /: Search │ Esc/Q: Back"
+          rec_label = Opal::Asciicast::VCR.recording? ? "Ctrl+R: Stop Rec" : "Ctrl+R: Rec"
+          info = "Tab: Chan │ 1-5: Lvl (#{@level_filter}) │ f: #{follow_badge} │ /: Search │ #{rec_label} │ Ctrl+S: Shot │ Esc: Back"
           buffer.put_string(2, footer_y, info, fg: Opal::Color.cyan)
           buffer.put_string(width - 20, footer_y, "#{fl.size} lines", fg: Opal::Color.bright_black)
         end
       end
 
-      private def render(driver : Opal::Terminal::Driver)
+      private def render(driver : Opal::Terminal::Driver, diff_renderer : Opal::UI::DiffRenderer)
         w, h = driver.size
-        width = Math.max(80, w)
-        height = Math.max(24, h)
+        width = Math.max(40, w)
+        height = Math.max(16, h)
         buffer = Opal::UI::Buffer.new(width, height)
         render_to_buffer(buffer, width, height)
-
-        driver.write(Opal::Terminal::Screen.move_to(1, 1))
-        driver.write(buffer.render_to_string(with_ansi: true))
-        driver.flush
+        diff_renderer.render(buffer)
       end
 
-      private def handle_input(driver : Opal::Terminal::Driver)
-        ev = driver.read_event
+      private def handle_input(
+        ev : Opal::Terminal::KeyEvent | Opal::Terminal::MouseEvent | Opal::Terminal::ResizeEvent,
+        driver : Opal::Terminal::Driver,
+        diff_renderer : Opal::UI::DiffRenderer
+      )
+        if ev.is_a?(Opal::Terminal::ResizeEvent)
+          diff_renderer.invalidate!
+          return
+        end
+
         return unless ev.is_a?(Opal::Terminal::KeyEvent)
 
         if @search_mode
@@ -241,6 +249,37 @@ module Lapis
         # Global command palette shortcut
         if ev.char == '~' || ev.char == '`' || ev.matches?("ctrl+p")
           @running = false
+          return
+        end
+
+        # Screencast Recording Toggle: Ctrl+R
+        if ev.matches?("ctrl+r")
+          if Opal::Asciicast::VCR.recording?
+            Opal::Asciicast::VCR.stop
+            timestamp = Time.local.to_s("%Y%m%d_%H%M%S")
+            saved_path = "recordings/log_session_#{timestamp}.cast"
+            Opal::Asciicast::VCR.save(saved_path)
+          else
+            timestamp = Time.local.to_s("%Y%m%d_%H%M%S")
+            out_path = "recordings/log_session_#{timestamp}.cast"
+            w, h = driver.size
+            Opal::Asciicast::VCR.record(out_path, width: Math.max(40, w), height: Math.max(16, h), title: "Lapis Log Viewer")
+          end
+          diff_renderer.invalidate!
+          return
+        end
+
+        # VCR Screenshot: Ctrl+S
+        if ev.matches?("ctrl+s")
+          timestamp = Time.local.to_s("%Y%m%d_%H%M%S")
+          shot_path = "recordings/screenshot_log_#{timestamp}.ansi"
+          html_path = "recordings/screenshot_log_#{timestamp}.html"
+          w, h = driver.size
+          buffer = Opal::UI::Buffer.new(Math.max(40, w), Math.max(16, h))
+          render_to_buffer(buffer, buffer.width, buffer.height)
+          Opal::Asciicast::VCR.screenshot(path: shot_path, format: :ansi, buffer: buffer, copy_to_clipboard: true)
+          Opal::Asciicast::VCR.screenshot(path: html_path, format: :html, buffer: buffer)
+          diff_renderer.invalidate!
           return
         end
 

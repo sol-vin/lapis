@@ -59,6 +59,11 @@ module Lapis
       #       <td><code>.topic_06_runtime_performance_monitor</code></td>
       #       <td>Real-time rolling FPS and RAM LineGraphs with graceful Ctrl+K process termination.</td>
       #     </tr>
+      #     <tr>
+      #       <td><strong>VCR Screenshots & Asciicast Session Recording</strong></td>
+      #       <td><code>.topic_07_tui_recording_and_vcr_screenshots</code></td>
+      #       <td>Capturing instant ANSI/HTML terminal snapshots and recording .cast screencast sessions.</td>
+      #     </tr>
       #   </tbody>
       # </table>
       #
@@ -183,6 +188,36 @@ module Lapis
         # - Provides instantaneous, graceful process termination via <code>Ctrl+K</code> or <code>K</code>, eliminating orphaned processes.
         #
         def self.topic_06_runtime_performance_monitor : Nil; end
+
+        # **VCR Screenshots & Asciicast Session Recording**: Capturing instant ANSI/HTML terminal snapshots and recording .cast screencast sessions.
+        #
+        # #### Universal Session Capture Keys
+        #
+        # All specialized TUI workspaces (Navigation Hub, Editor Supervisor, Packaging Center, Performance Monitor, Log Viewer, Benchmark Visualizer) implement unified capture shortcuts:
+        #
+        # <table>
+        #   <thead>
+        #     <tr>
+        #       <th>Shortcut</th>
+        #       <th>Feature</th>
+        #       <th>Output Formats & Destination</th>
+        #     </tr>
+        #   </thead>
+        #   <tbody>
+        #     <tr>
+        #       <td><code>Ctrl+S</code></td>
+        #       <td><strong>VCR Instant Screenshot</strong></td>
+        #       <td>Saves timestamped <code>recordings/screenshot_*.ansi</code> and standalone styled <code>recordings/screenshot_*.html</code>. Also copies clean ANSI buffer directly to the OS clipboard for instant sharing.</td>
+        #     </tr>
+        #     <tr>
+        #       <td><code>Ctrl+R</code></td>
+        #       <td><strong>Asciicast Screencast Toggle</strong></td>
+        #       <td>Starts/stops high-fidelity asciicast v2 session recordings saved to <code>recordings/*_session_*.cast</code>, fully playable via <code>asciinema play</code> or embeddable in web documentation.</td>
+        #     </tr>
+        #   </tbody>
+        # </table>
+        #
+        def self.topic_07_tui_recording_and_vcr_screenshots : Nil; end
       end
     end
   end

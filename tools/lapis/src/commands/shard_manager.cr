@@ -759,13 +759,152 @@ YAML
         0
       end
 
+      # Structure representing an existing dependency parsed from shard.yml
+      struct ShardDepInfo
+        property name : String
+        property source_type : String
+        property source : String
+        property version_req : String
+        property installed : Bool
+
+        def initialize(@name, @source_type, @source, @version_req, @installed)
+        end
+      end
+
+      # Parses dependencies declared in shard.yml
+      def self.read_dependencies(shard_path : Path) : Array(ShardDepInfo)
+        result = [] of ShardDepInfo
+        return result unless File.exists?(shard_path)
+
+        content = File.read(shard_path)
+        parsed = YAML.parse(content) rescue nil
+        return result unless parsed
+
+        proj_dir = shard_path.parent
+        lib_dir = proj_dir.join("lib")
+
+        if deps_node = parsed["dependencies"]?
+          if deps_map = deps_node.as_h?
+            deps_map.each do |k_node, v_node|
+              name = k_node.as_s? || k_node.to_s
+              installed = Dir.exists?(lib_dir.join(name))
+
+              source_type = "unknown"
+              source = "-"
+              version_req = "*"
+
+              if v_hash = v_node.as_h?
+                if gh = v_hash["github"]?.try(&.as_s?)
+                  source_type = "github"
+                  source = gh
+                elsif gl = v_hash["gitlab"]?.try(&.as_s?)
+                  source_type = "gitlab"
+                  source = gl
+                elsif git = v_hash["git"]?.try(&.as_s?)
+                  source_type = "git"
+                  source = git
+                elsif path = v_hash["path"]?.try(&.as_s?)
+                  source_type = "path"
+                  source = path
+                end
+
+                if ver = v_hash["version"]?.try(&.as_s?)
+                  version_req = ver
+                elsif br = v_hash["branch"]?.try(&.as_s?)
+                  version_req = "branch: #{br}"
+                elsif tag = v_hash["tag"]?.try(&.as_s?)
+                  version_req = "tag: #{tag}"
+                elsif commit = v_hash["commit"]?.try(&.as_s?)
+                  version_req = "commit: #{commit[0...7]}"
+                end
+              elsif v_str = v_node.as_s?
+                version_req = v_str
+              end
+
+              result << ShardDepInfo.new(name, source_type, source, version_req, installed)
+            end
+          end
+        end
+
+        result
+      end
+
+      # CLI entry point for `lapis shard list`
+      def self.list(args : Array(String)) : Int32
+        project_dir_arg : String? = nil
+        parser = OptionParser.new do |opts|
+          opts.banner = "Usage: lapis shard list [options]"
+          opts.on("-p DIR", "--project=DIR", "Target project directory (default: .)") { |d| project_dir_arg = d }
+          opts.on("-h", "--help", "Show help screen") { puts opts; exit 0 }
+        end
+        parser.parse(args)
+
+        target_project = if (p = project_dir_arg) && !p.empty?
+                           Path.new(p).expand
+                         else
+                           Path.new(Dir.current).expand
+                         end
+
+        shard_path = target_project.join("shard.yml")
+        unless File.exists?(shard_path)
+          Core::Logger.error("No shard.yml found in #{target_project}")
+          return 1
+        end
+
+        deps = read_dependencies(shard_path)
+        if deps.empty?
+          Core::Logger.info("No shard dependencies declared in #{shard_path}")
+          return 0
+        end
+
+        puts
+        puts Opal.style.bold.fg(:cyan).render("  📦 Crystal Shard Dependencies (#{target_project.basename}):")
+        puts
+
+        tbl = Opal::UI::Table.new(
+          headers: ["Dependency", "Source Type", "Source / Repository", "Version / Branch", "Status"],
+          header_fg: :cyan
+        )
+
+        deps.each do |dep|
+          status_str = dep.installed ? Opal.style.fg(:green).render("Installed (lib/)") : Opal.style.fg(:yellow).render("Missing (run 'shards install')")
+          tbl.row([
+            Opal.style.bold.render(dep.name),
+            dep.source_type,
+            dep.source,
+            dep.version_req,
+            status_str
+          ])
+        end
+
+        cols = begin
+          [Opal::Terminal.default_driver.size[0] - 2, 80].max
+        rescue
+          100
+        end
+
+        puts tbl.to_print_s(width: cols)
+        puts
+        0
+      end
+
       def self.print_help
         puts <<-HELP
 \e[35m=== Lapis: Shard Dependency Manager ===\e[0m
 
 Usage:
+  lapis shard list [options]
+  lapis shard install <specifier> [options]
+  lapis shard uninstall <name> [options]
+  lapis shard prune [options]
   lapis install shard <specifier> [options]
   lapis uninstall shard <name> [options]
+
+Subcommands:
+  list, ls                        List declared dependencies and installation status
+  install, add <specifier>        Add and install a dependency
+  uninstall, remove <name>        Remove a dependency and prune lib/
+  prune                           Prune unused dependencies from lib/
 
 Specifiers:
   github:owner/repo[@branch|tag]  Install from GitHub repository
@@ -782,10 +921,11 @@ Options:
   -h, --help                      Show this help screen
 
 Examples:
-  lapis install shard github:sol-vin/crshader
-  lapis install shard sol-vin/crshader@v0.1.0
-  lapis install shard ../../bin/crshader
-  lapis uninstall shard crshader
+  lapis shard list
+  lapis shard install github:sol-vin/carbon
+  lapis shard install sol-vin/crshader@v0.1.0
+  lapis shard uninstall crshader
+  lapis shard prune
 HELP
       end
     end

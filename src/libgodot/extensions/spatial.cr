@@ -38,6 +38,36 @@ module Godot
     def look_at_pos(target : Vector2) : Void
       look_at(target)
     end
+
+    # Returns distance from this node's global_position to another node's global_position
+    def distance_to(other : Node2D) : Float32
+      global_position.distance_to(other.global_position)
+    end
+
+    # Returns distance from this node's global_position to a 2D point
+    def distance_to(point : Vector2) : Float32
+      global_position.distance_to(point)
+    end
+
+    # Returns normalized direction vector from this node to another node
+    def direction_to(other : Node2D) : Vector2
+      global_position.direction_to(other.global_position)
+    end
+
+    # Returns normalized direction vector from this node to a 2D point
+    def direction_to(point : Vector2) : Vector2
+      global_position.direction_to(point)
+    end
+
+    # Returns angle in radians from this node to another node
+    def angle_to_point(other : Node2D) : Float32
+      global_position.angle_to_point(other.global_position)
+    end
+
+    # Returns angle in radians from this node to a 2D point
+    def angle_to_point(point : Vector2) : Float32
+      global_position.angle_to_point(point)
+    end
   end
 
   # ===========================================================================
@@ -94,6 +124,26 @@ module Godot
 
     def look_at_pos(target : Vector3, up : Vector3 = Vector3::UP) : Void
       look_at(target, up)
+    end
+
+    # Returns distance from this node's global_position to another node's global_position
+    def distance_to(other : Node3D) : Float32
+      global_position.distance_to(other.global_position)
+    end
+
+    # Returns distance from this node's global_position to a 3D point
+    def distance_to(point : Vector3) : Float32
+      global_position.distance_to(point)
+    end
+
+    # Returns normalized direction vector from this node to another node
+    def direction_to(other : Node3D) : Vector3
+      global_position.direction_to(other.global_position)
+    end
+
+    # Returns normalized direction vector from this node to a 3D point
+    def direction_to(point : Vector3) : Vector3
+      global_position.direction_to(point)
     end
   end
 

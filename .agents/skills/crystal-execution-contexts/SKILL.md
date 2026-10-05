@@ -13,6 +13,56 @@ This skill provides an authoritative guide to Crystal's multithreading and fiber
 
 ---
 
+## Table of Contents
+<table>
+  <thead>
+    <tr>
+      <th align="left">Section</th>
+      <th align="left">Description</th>
+      <th align="center">Lines</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><a href="#1-quick-reference-execution-context-types"><strong>1. Quick Reference: Execution Context Types</strong></a></td>
+      <td>Execution contexts decouple fibers from fixed OS threads, allowing custom orchestration across one to many...</td>
+      <td align="center"><code>L66–L78</code></td>
+    </tr>
+    <tr>
+      <td><a href="#2-fast-setup-configuration"><strong>2. Fast Setup & Configuration</strong></a></td>
+      <td>### Resizing the Default Context</td>
+      <td align="center"><code>L79–L119</code></td>
+    </tr>
+    <tr>
+      <td><a href="#3-the-3-major-breaking-changes-gotchas"><strong>3. The 3 Major Breaking Changes & Gotchas</strong></a></td>
+      <td>### 1.</td>
+      <td align="center"><code>L120–L143</code></td>
+    </tr>
+    <tr>
+      <td><a href="#4-compilation-flags"><strong>4. Compilation Flags</strong></a></td>
+      <td>| Flag | Purpose |</td>
+      <td align="center"><code>L144–L154</code></td>
+    </tr>
+    <tr>
+      <td><a href="#5-libgodot-game-engine-concurrency-invariants"><strong>5. LibGodot & Game Engine Concurrency Invariants</strong></a></td>
+      <td>When working with LibGodot, adhere strictly to these execution context rules:</td>
+      <td align="center"><code>L155–L172</code></td>
+    </tr>
+    <tr>
+      <td><a href="#6-auto-scaling-microbenchmarks-slow-parallelism"><strong>6. Auto-Scaling & Microbenchmarks ("Slow-Parallelism")</strong></a></td>
+      <td>- The execution context thread pool scales worker threads every ~100 ms.</td>
+      <td align="center"><code>L173–L180</code></td>
+    </tr>
+    <tr>
+      <td><a href="#7-reference-documents-examples"><strong>7. Reference Documents & Examples</strong></a></td>
+      <td>- Architecture Deep-Dive: references/execution_contexts_reference.md</td>
+      <td align="center"><code>L181–L188</code></td>
+    </tr>
+  </tbody>
+</table>
+
+---
+
 ## 1. Quick Reference: Execution Context Types
 
 Execution contexts decouple fibers from fixed OS threads, allowing custom orchestration across one to many threads.

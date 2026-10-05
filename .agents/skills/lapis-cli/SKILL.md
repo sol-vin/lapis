@@ -9,6 +9,41 @@ The `lapis` executable is the single, unified native CLI toolchain for developin
 
 ---
 
+## Table of Contents
+<table>
+  <thead>
+    <tr>
+      <th align="left">Section</th>
+      <th align="left">Description</th>
+      <th align="center">Lines</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><a href="#1-quick-reference-command-matrix"><strong>1. Quick Reference: Command Matrix</strong></a></td>
+      <td><table></td>
+      <td align="center"><code>L47–L177</code></td>
+    </tr>
+    <tr>
+      <td><a href="#2-global-command-line-flags"><strong>2. Global Command-Line Flags</strong></a></td>
+      <td>These flags can be supplied to any lapis subcommand:</td>
+      <td align="center"><code>L178–L188</code></td>
+    </tr>
+    <tr>
+      <td><a href="#3-environment-variables-reference"><strong>3. Environment Variables Reference</strong></a></td>
+      <td><table></td>
+      <td align="center"><code>L189–L259</code></td>
+    </tr>
+    <tr>
+      <td><a href="#4-key-workflows-amp-specialized-subcommands"><strong>4. Key Workflows &amp; Specialized Subcommands</strong></a></td>
+      <td>### 4.1.</td>
+      <td align="center"><code>L260–L339</code></td>
+    </tr>
+  </tbody>
+</table>
+
+---
+
 ## 1. Quick Reference: Command Matrix
 
 <table>
@@ -288,3 +323,16 @@ lapis editor
 
 # In editor: edit scenes and .cr files, press F5 to recompile game.dll hot-reloaded!
 ```
+
+### 4.7. Export Debug Packaging (`lapis package --debug`)
+Package standalone game with portable radare2, debug symbols, and automated crash dump generation:
+```powershell
+# Build and package game in debug mode with portable radare2 bundled
+lapis package --debug
+
+# Or target game explicitly with diagnostic supervisor harness
+lapis package game --diagnostics
+```
+- Bundles portable `r2.exe` into `bin/r2/`
+- Generates `run_debug.bat` / `run_debug.sh` supervisor harness
+- Automatically captures backtrace, register states, dead-pointer instance ID verification, and decompiled crash site into `crash_reports/crash_report_<timestamp>.zip` upon unhandled crash

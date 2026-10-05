@@ -529,6 +529,136 @@ module Lapis
       end
     end
 
+    # Asserts that executing the block does not result in unexpected ObjectDB or Node leaks across cycles
+    def assert_memory_stable(cycles : Int32 = 1, max_delta : Int32 = 2, name : String = "Memory Stability", file : String = __FILE__, line : Int32 = __LINE__, &block)
+      assert_no_leak(max_delta_objects: max_delta, name: name, file: file, line: line) do
+        cycles.times { block.call }
+      end
+    end
+
+    # Simulates physics frames until a 2D or 3D rigid body has settled below velocity epsilon
+    def assert_settled(body : Godot::Object, max_frames : Int32 = 60, linear_epsilon : Float64 = 0.05, angular_epsilon : Float64 = 0.05, file : String = __FILE__, line : Int32 = __LINE__) : Void
+      frames_elapsed = 0
+      settled = false
+      lin_speed = 0.0_f64
+      ang_speed = 0.0_f64
+
+      while frames_elapsed < max_frames
+        skip_frames(1)
+        frames_elapsed += 1
+
+        if body.is_a?(Godot::RigidBody2D)
+          lin_speed = body.linear_velocity.length.to_f64
+          ang_speed = body.angular_velocity.abs.to_f64
+        elsif body.is_a?(Godot::RigidBody3D)
+          lin_speed = body.linear_velocity.length.to_f64
+          ang_speed = body.angular_velocity.length.to_f64
+        else
+          settled = true
+          break
+        end
+
+        if lin_speed <= linear_epsilon && ang_speed <= angular_epsilon
+          settled = true
+          break
+        end
+      end
+
+      unless settled
+        raise AssertionError.new("Body did not settle within #{max_frames} frames (linear speed: #{lin_speed}, angular speed: #{ang_speed})", file, line)
+      end
+    end
+
+    # Asserts that the specified signal was NOT emitted during a frame slice
+    def assert_no_signal(target : Godot::Object, signal_name : String, during_frames : Int32 = 10, file : String = __FILE__, line : Int32 = __LINE__) : Void
+      emitted = false
+      sub = target.connect(signal_name) do |_args|
+        emitted = true
+      end
+      skip_frames(during_frames)
+      sub.unsubscribe rescue nil
+
+      if emitted
+        raise AssertionError.new("Expected signal '#{signal_name}' NOT to be emitted, but it was fired!", file, line)
+      end
+    end
+
+    # Asserts that the specified signal was NOT emitted during block execution
+    def assert_no_signal(target : Godot::Object, signal_name : String, file : String = __FILE__, line : Int32 = __LINE__, &block : -> Void) : Void
+      emitted = false
+      sub = target.connect(signal_name) do |_args|
+        emitted = true
+      end
+      begin
+        block.call
+        skip_frames(2)
+      ensure
+        sub.unsubscribe rescue nil
+      end
+
+      if emitted
+        raise AssertionError.new("Expected signal '#{signal_name}' NOT to be emitted during block execution, but it was fired!", file, line)
+      end
+    end
+
+    # Asserts that the node has exactly expected number of children
+    def assert_child_count(node : Godot::Node, expected : Int32, msg : String = "", file : String = __FILE__, line : Int32 = __LINE__) : Void
+      count = node.child_count
+      if count != expected
+        detail = msg.empty? ? "Expected node '#{node.name}' to have #{expected} children, got #{count}" : "#{msg} (Expected #{expected}, got #{count})"
+        raise AssertionError.new(detail, file, line)
+      end
+    end
+
+    # Asserts that the node contains a child with the given name
+    def assert_has_child(node : Godot::Node, name : String, msg : String = "", file : String = __FILE__, line : Int32 = __LINE__) : Void
+      found = node.has_node(Godot::NodePath.new(name)) rescue false
+      if !found
+        detail = msg.empty? ? "Expected node '#{node.name}' to have child '#{name}'" : "#{msg} (Child '#{name}' not found)"
+        raise AssertionError.new(detail, file, line)
+      end
+    end
+
+    # Asserts that a node exists at the given NodePath relative to root
+    def assert_node_path_exists(root : Godot::Node, path : String, msg : String = "", file : String = __FILE__, line : Int32 = __LINE__) : Void
+      found = root.has_node(Godot::NodePath.new(path)) rescue false
+      if !found
+        detail = msg.empty? ? "Expected path '#{path}' to exist under root '#{root.name}'" : msg
+        raise AssertionError.new(detail, file, line)
+      end
+    end
+
+    # Context passed into each multi-step behavioral test scenario
+    class ScenarioStepContext
+      getter name : String
+      getter current_step : String = ""
+
+      def initialize(@name : String)
+      end
+
+      # Executes an individual named step within the scenario with automatic failure context
+      def step(step_name : String, &block : -> Void) : Void
+        @current_step = step_name
+        begin
+          block.call
+        rescue ex : AssertionError
+          raise AssertionError.new("Scenario '#{@name}' failed at step '#{step_name}': #{ex.message}", ex.file, ex.line)
+        end
+      end
+    end
+
+    # Defines a multi-step behavioral test scenario with step tracking and isolation
+    def scenario(name : String, &block : ScenarioStepContext -> Void) : Void
+      ctx = ScenarioStepContext.new(name)
+      block.call(ctx)
+    end
+
+    # Defines a multi-step behavioral test scenario scoped with root node
+    def scenario(root : Godot::Node, name : String, &block : ScenarioStepContext -> Void) : Void
+      ctx = ScenarioStepContext.new(name)
+      block.call(ctx)
+    end
+
     # ===========================================================================
     # 4. Automatic Node Tracking & Auto-Free Fixtures (autofree/autoqfree)
     # ===========================================================================

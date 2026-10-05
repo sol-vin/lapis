@@ -9,6 +9,71 @@ This skill is the engineering guide for authoring Crystal macros, expanding the 
 
 ---
 
+## Table of Contents
+<table>
+  <thead>
+    <tr>
+      <th align="left">Section</th>
+      <th align="left">Description</th>
+      <th align="center">Lines</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><a href="#1-architectural-overview"><strong>1. Architectural Overview</strong></a></td>
+      <td>The Lapis DSL sits at the boundary between two worlds:</td>
+      <td align="center"><code>L77–L104</code></td>
+    </tr>
+    <tr>
+      <td><a href="#2-macro-ast-manipulation-inspection"><strong>2. Macro AST Manipulation & Inspection</strong></a></td>
+      <td>### AST Directives</td>
+      <td align="center"><code>L105–L127</code></td>
+    </tr>
+    <tr>
+      <td><a href="#3-the-macro-finished-pattern"><strong>3. The `macro finished` Pattern</strong></a></td>
+      <td>In Crystal, subclasses can define methods, properties, and include mixins throughout the body of the class.</td>
+      <td align="center"><code>L128–L151</code></td>
+    </tr>
+    <tr>
+      <td><a href="#4-synthesizing-c-api-wrappers-function-pointers"><strong>4. Synthesizing C-API Wrappers & Function Pointers</strong></a></td>
+      <td>Godot's GDExtension invokes Crystal methods through raw C function pointers conforming to GDExtensionClassM...</td>
+      <td align="center"><code>L152–L193</code></td>
+    </tr>
+    <tr>
+      <td><a href="#5-argument-unpacking-rules-gdextensionconsttypeptr"><strong>5. Argument Unpacking Rules (`GDExtensionConstTypePtr`)</strong></a></td>
+      <td><table></td>
+      <td align="center"><code>L194–L244</code></td>
+    </tr>
+    <tr>
+      <td><a href="#6-authoring-new-convenience-node-macros"><strong>6. Authoring New Convenience Node Macros</strong></a></td>
+      <td>When authoring new DSL macros (e.g.</td>
+      <td align="center"><code>L245–L272</code></td>
+    </tr>
+    <tr>
+      <td><a href="#7-the-ensurelapis-dependency-loader-macro"><strong>7. The `ensure_lapis` Dependency Loader Macro</strong></a></td>
+      <td>When writing redistributable addons or multi-addon test fixtures, use ensure_lapis to conditionally load la...</td>
+      <td align="center"><code>L273–L287</code></td>
+    </tr>
+    <tr>
+      <td><a href="#8-macro-ast-unwrapping-for-unary-tilde-expressions"><strong>8. Macro AST Unwrapping for Unary Tilde & Expressions</strong></a></td>
+      <td>When building ergonomic syntax sugar macros like onready, inspecting the Crystal macro AST allows unwrappin...</td>
+      <td align="center"><code>L288–L304</code></td>
+    </tr>
+    <tr>
+      <td><a href="#9-typed-lambda-flow-typing-in-macro-patterns-match"><strong>9. Typed Lambda Flow-Typing in Macro Patterns (`match`)</strong></a></td>
+      <td>In Crystal, local variables cannot easily change type within an arbitrary lexical scope without a union or if var.is_a?(Type) branch.</td>
+      <td align="center"><code>L305–L321</code></td>
+    </tr>
+    <tr>
+      <td><a href="#10-common-metaprogramming-pitfalls"><strong>10. Common Metaprogramming Pitfalls</strong></a></td>
+      <td>1.</td>
+      <td align="center"><code>L322–L328</code></td>
+    </tr>
+  </tbody>
+</table>
+
+---
+
 ## 1. Architectural Overview
 
 The Lapis DSL sits at the boundary between two worlds:
@@ -220,7 +285,41 @@ end
 
 ---
 
-## 8. Common Metaprogramming Pitfalls
+## 8. Macro AST Unwrapping for Unary Tilde & Expressions
+
+When building ergonomic syntax sugar macros like `onready`, inspecting the Crystal macro AST allows unwrapping expressions at compile time to optimize runtime dispatch:
+
+```crystal
+# Unwrapping unary ~ from expressions like: onready sprite = ~"Sprite2D"
+{% if stmt.value.is_a?(Call) && stmt.value.name.stringify == "~" %}
+  {% inner_arg = stmt.value.receiver || (stmt.value.args.size > 0 ? stmt.value.args[0] : nil) %}
+  {% if inner_arg.is_a?(StringLiteral) %}
+    # Extracted raw literal path: "Sprite2D"
+    found = get_node_as({{inner_arg}}, {{v_type}})
+  {% end %}
+{% end %}
+```
+
+---
+
+## 9. Typed Lambda Flow-Typing in Macro Patterns (`match`)
+
+In Crystal, local variables cannot easily change type within an arbitrary lexical scope without a union or `if var.is_a?(Type)` branch. To enable implicit narrowing (e.g. `match i do is Int64 do i * 2 end end`), wrap the branch execution in an immediately-invoked typed proc:
+
+```crystal
+# Synthesize an immediately-invoked typed proc with target variable shadow-binding:
+%result = (->({{ target }} : {{ pattern_type }}) {
+  {{ branch_body }}
+}).call(%cast_value)
+```
+This guarantees:
+1. `{{ target }}` is strictly flow-typed as `pattern_type` inside the branch.
+2. Zero heap allocations when inlined by LLVM.
+3. Crystal's type inferrer permits calling methods on `{{ target }}` without manual casts or explicit block arguments.
+
+---
+
+## 10. Common Metaprogramming Pitfalls
 
 1. **Macro Expansion Recursion**: Never define a macro that calls itself with identical argument patterns without an AST structural base case.
 2. **Missing `check_alive!`**: When generating C-callable wrappers, ALWAYS call `instance.check_alive!` before invoking the underlying Crystal method. If the Godot node was freed via GDScript, accessing it without this check causes an immediate, unrecoverable `0xC0000005` access violation.

@@ -27,10 +27,10 @@ node DummyWeatherEntity < Node2D do
   def transition_weather(new_type : String, new_temp : Float64) : Void
     @weather_type = new_type
     @temperature = new_temp
-    emit_weather_changed(new_type, new_temp)
+    weather_changed.emit(new_type, new_temp)
 
     if new_type.includes?("Storm") || new_temp > 40.0 || new_temp < -10.0
-      emit_storm_alert(3)
+      storm_alert.emit(3)
     end
   end
 
@@ -49,7 +49,7 @@ node DummyWeatherPlugin < EditorPlugin do
   signal weather_system_ready
 
   def _enter_tree : Void
-    emit_weather_system_ready
+    weather_system_ready.emit
     Godot.print("[DummyWeatherPlugin] Initialized successfully in editor!")
   end
 

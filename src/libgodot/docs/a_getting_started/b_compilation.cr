@@ -144,24 +144,24 @@ module Lapis
         #   </thead>
         #   <tbody>
         #     <tr>
-        #       <td>`gc.dll`</td>
+        #       <td><code>gc.dll</code></td>
         #       <td>Boehm-Demers-Weiser Garbage Collector</td>
-        #       <td>Crystal distribution (`bin/`)</td>
+        #       <td>Crystal distribution (<code>bin/</code>)</td>
         #     </tr>
         #     <tr>
-        #       <td>`pcre2-8.dll`</td>
+        #       <td><code>pcre2-8.dll</code></td>
         #       <td>Perl-Compatible Regular Expressions v2</td>
-        #       <td>Crystal distribution (`bin/`)</td>
+        #       <td>Crystal distribution (<code>bin/</code>)</td>
         #     </tr>
         #     <tr>
-        #       <td>`iconv-2.dll`</td>
+        #       <td><code>iconv-2.dll</code></td>
         #       <td>Character encoding conversion library</td>
-        #       <td>Crystal distribution (`bin/`)</td>
+        #       <td>Crystal distribution (<code>bin/</code>)</td>
         #     </tr>
         #     <tr>
-        #       <td>`libgodot.dll`</td>
+        #       <td><code>libgodot.dll</code></td>
         #       <td>Standalone Godot engine core dynamic library</td>
-        #       <td>Workspace `bin/`</td>
+        #       <td>Workspace <code>bin/</code></td>
         #     </tr>
         #   </tbody>
         # </table>

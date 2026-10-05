@@ -148,4 +148,101 @@ puts "[Spec 5] Verifying platform-specific asset isolation..."
   puts "  ✓ Non-Windows binary verified clean of Windows scripts and installers"
 {% end %}
 
+# -------------------------------------------------------------
+# [Spec 6] Lean Engine Library Extraction & Bloat Exclusion
+# -------------------------------------------------------------
+puts "[Spec 6] Verifying lean engine library extraction (extract_engine_lib)..."
+temp_lib_dir = Path.new(Dir.tempdir).join("lapis_engine_lib_test_#{Time.utc.to_unix}")
+begin
+  success = Lapis::Core::BakedFileSystem.extract_engine_lib(temp_lib_dir)
+  unless success
+    abort "ERROR: extract_engine_lib returned false!"
+  end
+
+  # Required compiler files must exist
+  [
+    "shard.yml",
+    "godot-version.yml",
+    ".gdignore",
+    "src/libgodot.cr",
+    "src/lapis.cr",
+    "src/libgodot/types.cr",
+    "src/libgodot/variant.cr",
+    "src/libgodot/binding_macros.cr",
+    "src/libgodot/generated/classes/classes_part1.cr",
+    "src/bridge/crystal_bridge.cpp",
+  ].each do |required_file|
+    unless File.exists?(temp_lib_dir.join(required_file))
+      abort "ERROR: Required engine library file '#{required_file}' missing from extracted lib at #{temp_lib_dir.join(required_file)}!"
+    end
+  end
+
+  # Non-code bloat must NEVER be extracted into lib/lapis
+  if File.exists?(temp_lib_dir.join("src/main.cr"))
+    abort "ERROR: Root test runner 'src/main.cr' leaked into extracted lib/lapis!"
+  end
+
+  if Dir.exists?(temp_lib_dir.join("src/libgodot/docs"))
+    abort "ERROR: Jasper documentation directory 'src/libgodot/docs' leaked into extracted lib/lapis!"
+  end
+
+  puts "  ✓ Lean engine library extracted with zero non-code bloat (no src/main.cr, no docs/**)"
+ensure
+  FileUtils.rm_rf(temp_lib_dir) if Dir.exists?(temp_lib_dir)
+end
+
+# -------------------------------------------------------------
+# [Spec 7] Bakelite Item Metadata & CRC32 Checksums
+# -------------------------------------------------------------
+puts "[Spec 7] Verifying Bakelite item metadata and CRC32 checksums..."
+engine_file = Lapis::Core::BakedFileSystem.get("src/libgodot.cr")
+if engine_file.crc32 == 0_u32
+  abort "ERROR: CRC32 checksum for 'src/libgodot.cr' is zero!"
+end
+if engine_file.crc32_hex.size != 8
+  abort "ERROR: Hex CRC32 checksum invalid format: #{engine_file.crc32_hex}!"
+end
+unless engine_file.mime_type.includes?("crystal") || engine_file.mime_type.includes?("text")
+  abort "ERROR: Expected text MIME type, got #{engine_file.mime_type}!"
+end
+puts "  ✓ Item metadata verified (CRC32: 0x#{engine_file.crc32_hex}, MIME: #{engine_file.mime_type})"
+
+# -------------------------------------------------------------
+# [Spec 8] Streamed Chunk Decompression (Bakelite::FileIO)
+# -------------------------------------------------------------
+puts "[Spec 8] Verifying streaming IO decompression (Bakelite::FileIO)..."
+Lapis::Core::BakedFileSystem.open("src/libgodot/binding_macros.cr") do |io|
+  buf = Bytes.new(64)
+  read_bytes = io.read(buf)
+  if read_bytes <= 0
+    abort "ERROR: Streaming IO read 0 bytes from 'src/libgodot/binding_macros.cr'!"
+  end
+  str = String.new(buf[0, read_bytes])
+  unless str.includes?("macro") || str.includes?("module") || str.includes?("#")
+    abort "ERROR: Streamed content does not contain expected code tokens!"
+  end
+end
+puts "  ✓ Streaming chunk decompression verified via Bakelite::FileIO"
+
+# -------------------------------------------------------------
+# [Spec 9] Volume Routing & Isolation
+# -------------------------------------------------------------
+puts "[Spec 9] Verifying Bakelite volume routing and isolation..."
+unless Lapis::Core::BakedFileSystem.fs.volume?(:engine)
+  abort "ERROR: Volume ':engine' not found in Bakelite registry!"
+end
+unless Lapis::Core::BakedFileSystem.fs.volume?(:template)
+  abort "ERROR: Volume ':template' not found in Bakelite registry!"
+end
+unless Lapis::Core::BakedFileSystem.fs.volume?(:addon)
+  abort "ERROR: Volume ':addon' not found in Bakelite registry!"
+end
+
+engine_vol = Lapis::Core::BakedFileSystem.fs.volume(:engine)
+if engine_vol.empty?
+  abort "ERROR: Volume ':engine' is empty!"
+end
+puts "  ✓ Volume isolation verified: :engine (#{engine_vol.size} files), :template, :addon mounted"
+
 puts "\n>>> All BakedFileSystem Specifications Passed! <<<"
+

@@ -142,39 +142,39 @@ module Lapis
         #   </thead>
         #   <tbody>
         #     <tr>
-        #       <td>`--strip-docs`</td>
-        #       <td>`STRIP_DOCS=1`</td>
-        #       <td>`-Dno_doc`</td>
+        #       <td><code>--strip-docs</code></td>
+        #       <td><code>STRIP_DOCS=1</code></td>
+        #       <td><code>-Dno_doc</code></td>
         #     </tr>
         #     <tr>
-        #       <td>`--no-thread-safety`</td>
-        #       <td>`NO_THREAD_SAFETY=1`</td>
-        #       <td>`-Dno_thread_safety`</td>
+        #       <td><code>--no-thread-safety</code></td>
+        #       <td><code>NO_THREAD_SAFETY=1</code></td>
+        #       <td><code>-Dno_thread_safety</code></td>
         #     </tr>
         #     <tr>
-        #       <td>`--leak-tracker`</td>
-        #       <td>`LEAK_TRACKER=1`</td>
-        #       <td>`-Dleak_tracker`</td>
+        #       <td><code>--leak-tracker</code></td>
+        #       <td><code>LEAK_TRACKER=1</code></td>
+        #       <td><code>-Dleak_tracker</code></td>
         #     </tr>
         #     <tr>
-        #       <td>`--profile-dispatches`</td>
-        #       <td>`PROFILE_DISPATCHES=1`</td>
-        #       <td>`-Dprofile_dispatches`</td>
+        #       <td><code>--profile-dispatches</code></td>
+        #       <td><code>PROFILE_DISPATCHES=1</code></td>
+        #       <td><code>-Dprofile_dispatches</code></td>
         #     </tr>
         #     <tr>
-        #       <td>`--trace-dead-pointers`</td>
-        #       <td>`TRACE_DEAD_POINTERS=1`</td>
-        #       <td>`-Dtrace_dead_pointers`</td>
+        #       <td><code>--trace-dead-pointers</code></td>
+        #       <td><code>TRACE_DEAD_POINTERS=1</code></td>
+        #       <td><code>-Dtrace_dead_pointers</code></td>
         #     </tr>
         #     <tr>
-        #       <td>`--trace-signals`</td>
-        #       <td>`TRACE_SIGNALS=1`</td>
-        #       <td>`-Dtrace_signals`</td>
+        #       <td><code>--trace-signals</code></td>
+        #       <td><code>TRACE_SIGNALS=1</code></td>
+        #       <td><code>-Dtrace_signals</code></td>
         #     </tr>
         #     <tr>
-        #       <td>`--no-crash-handler`</td>
-        #       <td>`NO_CRASH_HANDLER=1`</td>
-        #       <td>`-Dno_crash_handler`</td>
+        #       <td><code>--no-crash-handler</code></td>
+        #       <td><code>NO_CRASH_HANDLER=1</code></td>
+        #       <td><code>-Dno_crash_handler</code></td>
         #     </tr>
         #   </tbody>
         # </table>

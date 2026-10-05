@@ -165,6 +165,14 @@ module Godot
     ZERO = Vector4.new(0.0_f32, 0.0_f32, 0.0_f32, 0.0_f32)
     ONE  = Vector4.new(1.0_f32, 1.0_f32, 1.0_f32, 1.0_f32)
     INF  = Vector4.new(Float32::INFINITY, Float32::INFINITY, Float32::INFINITY, Float32::INFINITY)
+
+    def self.zero : Vector4
+      ZERO
+    end
+
+    def self.one : Vector4
+      ONE
+    end
   end
 
   # 4-element integer vector structure.
@@ -266,5 +274,13 @@ module Godot
 
     ZERO = Vector4i.new(0, 0, 0, 0)
     ONE  = Vector4i.new(1, 1, 1, 1)
+
+    def self.zero : Vector4i
+      ZERO
+    end
+
+    def self.one : Vector4i
+      ONE
+    end
   end
 end

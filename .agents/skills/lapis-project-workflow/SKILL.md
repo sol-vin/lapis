@@ -11,6 +11,46 @@ This skill outlines how to use the Lapis CLI to manage projects from initial cre
 
 ---
 
+## Table of Contents
+<table>
+  <thead>
+    <tr>
+      <th align="left">Section</th>
+      <th align="left">Description</th>
+      <th align="center">Lines</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><a href="#1-project-initialization-lapis-init"><strong>1. Project Initialization (`lapis init`)</strong></a></td>
+      <td>Initialize a brand-new Lapis game in a fresh or existing folder:</td>
+      <td align="center"><code>L54–L80</code></td>
+    </tr>
+    <tr>
+      <td><a href="#2-scaffolding-showcase-examples-addons-lapis-scaffold-lapis-new"><strong>2. Scaffolding Showcase Examples & Addons (`lapis scaffold` / `lapis new`)</strong></a></td>
+      <td># Scaffold a new standalone game template</td>
+      <td align="center"><code>L81–L95</code></td>
+    </tr>
+    <tr>
+      <td><a href="#3-shard-dependency-management-lapis-shard"><strong>3. Shard & Dependency Management (`lapis shard`)</strong></a></td>
+      <td>Lapis wraps Crystal's shards tool with Godot-specific intelligence:</td>
+      <td align="center"><code>L96–L117</code></td>
+    </tr>
+    <tr>
+      <td><a href="#4-workspace-cleaning-disk-reclamation-lapis-clean"><strong>4. Workspace Cleaning & Disk Reclamation (`lapis clean`)</strong></a></td>
+      <td>During iterative development, compiler caches, shadow DLLs, and temporary object files accumulate.</td>
+      <td align="center"><code>L118–L140</code></td>
+    </tr>
+    <tr>
+      <td><a href="#5-directory-synchronization-lapis-sync"><strong>5. Directory Synchronization (`lapis sync`)</strong></a></td>
+      <td>In multi-project workspaces (such as the core Lapis repository, or projects with multiple example sub-games):</td>
+      <td align="center"><code>L141–L160</code></td>
+    </tr>
+  </tbody>
+</table>
+
+---
+
 ## 1. Project Initialization (`lapis init`)
 
 Initialize a brand-new Lapis game in a fresh or existing folder:

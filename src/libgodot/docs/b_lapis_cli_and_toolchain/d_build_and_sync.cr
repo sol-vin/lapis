@@ -77,27 +77,27 @@ module Lapis
         #   </thead>
         #   <tbody>
         #     <tr>
-        #       <td>`--release`</td>
-        #       <td>`-r`</td>
-        #       <td>Compiles with `--release -O3` optimizations and strips debug symbols</td>
+        #       <td><code>--release</code></td>
+        #       <td><code>-r</code></td>
+        #       <td>Compiles with <code>--release -O3</code> optimizations and strips debug symbols</td>
         #     </tr>
         #     <tr>
-        #       <td>`--single-module`</td>
-        #       <td>`-m`</td>
+        #       <td><code>--single-module</code></td>
+        #       <td><code>-m</code></td>
         #       <td>Compiles via a single LLVM module for maximum cross-module optimization</td>
         #     </tr>
         #     <tr>
-        #       <td>`--clean`</td>
-        #       <td>`-c`</td>
+        #       <td><code>--clean</code></td>
+        #       <td><code>-c</code></td>
         #       <td>Removes previous build artifacts before compiling</td>
         #     </tr>
         #     <tr>
-        #       <td>`--threads=N`</td>
+        #       <td><code>--threads=N</code></td>
         #       <td></td>
         #       <td>Sets the number of parallel Crystal compilation threads</td>
         #     </tr>
         #     <tr>
-        #       <td>`--error-trace`</td>
+        #       <td><code>--error-trace</code></td>
         #       <td></td>
         #       <td>Prints full exception backtraces on compilation errors</td>
         #     </tr>

@@ -318,50 +318,6 @@ describe Lapis::TUI do
       toast.level.should eq(:success)
     end
 
-    it "handles ColorStudio theme modal state and color synchronization" do
-      state = Lapis::TUI::TestRunState.new
-      state.current_view.should eq(Lapis::TUI::ViewMode::Dashboard)
-      state.toggle_color_studio
-      state.current_view.should eq(Lapis::TUI::ViewMode::ColorStudio)
-
-      # 2D Color picker defaults
-      state.color_picker.should be_a(Opal::UI::ColorPicker)
-      state.color_picker_3d.should be_a(Opal::UI::ColorPicker3D)
-      state.use_3d_color_picker.should be_false
-
-      # Change color in 2D picker
-      state.color_picker.color = Opal::Color.hex("#FF5555")
-      state.sync_active_color
-      state.accent_color.to_hex.should eq("#FF5555")
-      state.color_picker_3d.selected_color.to_hex.should eq("#FF5555")
-
-      # Switch to 3D picker
-      state.use_3d_color_picker = true
-      state.color_picker_3d.selected_color = Opal::Color.hex("#50FA7B")
-      state.sync_active_color
-      state.accent_color.to_hex.should eq("#50FA7B")
-      state.color_picker.color.to_hex.should eq("#50FA7B")
-
-      state.toggle_color_studio
-      state.current_view.should eq(Lapis::TUI::ViewMode::Dashboard)
-    end
-
-    it "renders ThemeModal in ColorStudio view mode without crashing" do
-      state = Lapis::TUI::TestRunState.new
-      state.current_view = Lapis::TUI::ViewMode::ColorStudio
-      renderer = Lapis::TUI::Renderer.new
-
-      rendered_2d = renderer.render_to_string(state, 80, 24)
-      rendered_2d.includes?("THEME & COLOR STUDIO").should be_true
-      rendered_2d.includes?("2D TRUECOLOR STUDIO").should be_true
-
-      # Test 3D spatial mode rendering
-      state.use_3d_color_picker = true
-      rendered_3d = renderer.render_to_string(state, 80, 24)
-      rendered_3d.includes?("THEME & COLOR STUDIO").should be_true
-      rendered_3d.includes?("3D SPATIAL").should be_true
-    end
-
     it "handles FileExplorer view mode and directory browsing state" do
       state = Lapis::TUI::TestRunState.new
       state.current_view.should eq(Lapis::TUI::ViewMode::Dashboard)
@@ -377,23 +333,6 @@ describe Lapis::TUI do
 
       state.toggle_file_explorer
       state.current_view.should eq(Lapis::TUI::ViewMode::Dashboard)
-    end
-
-    it "cycles through all 7 ShaderFxMode options and applies text shader post-processing" do
-      state = Lapis::TUI::TestRunState.new
-      state.shader_fx.should eq(Lapis::TUI::ShaderFxMode::None)
-      state.shader_fx.display_name.should eq("Off")
-
-      # Cycle through modes
-      Lapis::TUI::ShaderFxMode.values.each do |expected_mode|
-        state.shader_fx.should eq(expected_mode)
-        renderer = Lapis::TUI::Renderer.new
-        out = renderer.render_to_string(state, 80, 24)
-        out.should be_a(String)
-        state.next_shader_fx
-      end
-      # Wrapped back to None
-      state.shader_fx.should eq(Lapis::TUI::ShaderFxMode::None)
     end
 
     it "converts Terminal::KeyEvent to Opal::Terminal::KeyEvent accurately" do
@@ -414,6 +353,43 @@ describe Lapis::TUI do
       opal_char = ev_char.to_opal_key_event
       opal_char.name.should eq("w")
       opal_char.char.should eq('w')
+
+      # Ctrl+R for asciicast recording toggle
+      ev_ctrl_r = Lapis::TUI::Terminal::KeyEvent.new(Lapis::TUI::Terminal::Key::Char, 'r', ctrl: true)
+      opal_ctrl_r = ev_ctrl_r.to_opal_key_event
+      opal_ctrl_r.name.should eq("r")
+      opal_ctrl_r.ctrl?.should be_true
+      opal_ctrl_r.matches?("ctrl+r").should be_true
+
+      # Ctrl+S for VCR screenshot
+      ev_ctrl_s = Lapis::TUI::Terminal::KeyEvent.new(Lapis::TUI::Terminal::Key::Char, 's', ctrl: true)
+      opal_ctrl_s = ev_ctrl_s.to_opal_key_event
+      opal_ctrl_s.name.should eq("s")
+      opal_ctrl_s.ctrl?.should be_true
+      opal_ctrl_s.matches?("ctrl+s").should be_true
+    end
+
+    it "captures VCR screenshot in ANSI and HTML formats with clipboard copy" do
+      state = Lapis::TUI::TestRunState.new
+      renderer = Lapis::TUI::Renderer.new
+      canvas, _, _ = renderer.build_canvas_with_overlays(state, 80, 24)
+      buffer = canvas.to_opal_buffer
+
+      Dir.mkdir_p("recordings")
+      ansi_file = "recordings/test_vcr_screenshot.ansi"
+      html_file = "recordings/test_vcr_screenshot.html"
+
+      ansi_out = Opal::Asciicast::VCR.screenshot(path: ansi_file, format: :ansi, buffer: buffer, copy_to_clipboard: true)
+      html_out = Opal::Asciicast::VCR.screenshot(path: html_file, format: :html, buffer: buffer)
+
+      File.exists?(ansi_file).should be_true
+      File.exists?(html_file).should be_true
+      ansi_out.should contain("LAPIS")
+      html_out.should contain("<pre")
+
+      # Cleanup test files
+      File.delete(ansi_file) rescue nil
+      File.delete(html_file) rescue nil
     end
   end
 
@@ -425,19 +401,10 @@ describe Lapis::TUI do
       res.output.should contain("--no-tui")
     end
 
-    it "displays help screens for new Opal subcommands: color, explore, shaders" do
-      color_res = LapisSpecHelper.run_lapis(["color", "--help"])
-      color_res.exit_code.should eq(0)
-      color_res.output.should contain("lapis color")
-      color_res.output.should contain("--3d")
-
+    it "displays help screens for new Opal subcommand: explore" do
       explore_res = LapisSpecHelper.run_lapis(["explore", "--help"])
       explore_res.exit_code.should eq(0)
       explore_res.output.should contain("lapis explore")
-
-      shaders_res = LapisSpecHelper.run_lapis(["shaders", "--help"])
-      shaders_res.exit_code.should eq(0)
-      shaders_res.output.should contain("lapis shaders")
     end
   end
 end
