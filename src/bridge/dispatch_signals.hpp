@@ -1401,7 +1401,7 @@ inline void bridge_ensure_directory_for_file(const char *file_path) {
 }
 
 inline void bridge_highlighter_add_span(void *r_color_map, int64_t col, float r, float g, float b, float a) {
-    if (!r_color_map) return;
+    if (!r_color_map || col < 0) return;
     if (!gd_dict_keyed_setter && gd_variant_get_ptr_keyed_setter) {
         gd_dict_keyed_setter = gd_variant_get_ptr_keyed_setter(GDEXTENSION_VARIANT_TYPE_DICTIONARY);
     }
@@ -1990,7 +1990,7 @@ inline void bridge_ret_property_list(void *r_ret, const struct CrystalPropertyDe
 }
 
 inline int bridge_text_edit_get_line(void *text_edit, int64_t line, char *out_buf, int max_len) {
-    if (!text_edit || !out_buf || max_len <= 0) return 0;
+    if (!text_edit || !out_buf || max_len <= 0 || line < 0) return 0;
     out_buf[0] = '\0';
     if (!bridge_is_object_valid((GDExtensionObjectPtr)text_edit)) return 0;
     if (!mb_text_edit_get_line && gd_classdb_get_method_bind) {

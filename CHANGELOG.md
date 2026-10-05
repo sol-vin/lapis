@@ -5,6 +5,29 @@ All notable changes to the Lapis for Crystal framework are documented in this fi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.258] - 2026-10-05
+
+### Fixed
+
+#### GDExtension ClassDB Registration & Reload Lifecycle
+- **Clean ClassDB Reload Re-registration**:
+  - Resolved `Attempt to register extension class signal 'ready_in_editor' for unexisting class 'CrystalIntegrationPlugin'` and resultant `0xC0000005` access violations during in-editor GDExtension reloads.
+  - Reset `PersistentClassDesc#is_registered_in_classdb`, `registered_library`, and registered name sets on reload so classes are completely registered with the new extension library handle via `gd_classdb_register_extension_class6`.
+  - Cleared `g_classes_registered_in_current_cycle` on module deinitialization.
+
+#### Syntax Highlighter & Script Editor Dead-Pointer Protection
+- **Safe Highlighter Lifecycle**:
+  - Cleanly unregisters `CrystalLanguage`, `ResourceFormatLoaderCrystal`, `ResourceFormatSaverCrystal`, and `CrystalHighlighter` from engine singletons (`Engine`, `ResourceLoader`, `ResourceSaver`, `ScriptEditor`) prior to triggering GDExtension live reload.
+  - Re-registers language, loaders, and syntax highlighter once reload has settled in `reset_toolbar_button`.
+  - Added robust dead-pointer guards (`!h.pointer.null? && h.alive? && Bridge.is_object_valid(h.pointer)`) in `ensure_highlighter_registered` and `apply_highlighter_if_needed`, preventing `0xC0000005` crashes when opening `.cr` scripts after an in-editor build.
+  - Added negative line and column bounds checks and exception handling in `CrystalHighlighter#_godot_call_virtual_with_data`, `bridge_text_edit_get_line`, and `bridge_highlighter_add_span`.
+
+#### Engine Shutdown Safety
+- **Clean Headless & Editor Teardown**:
+  - Ensured all extension classes and singletons cleanly deregister from ClassDB on exit, preventing memory access violations upon editor and headless shutdown.
+
+---
+
 ## [0.0.257] - 2026-10-05
 
 ### Fixed

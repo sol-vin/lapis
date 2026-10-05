@@ -176,9 +176,6 @@ deinitialize_crystal_module(void *p_userdata,
       if (gd_classdb_unregister_extension_class) {
         for (int i = (int)g_registered_class_order.size() - 1; i >= 0; i--) {
           const std::string &cname = g_registered_class_order[i];
-          if (s_is_reloading && is_core_bridge_class(cname.c_str())) {
-            continue; // Preserve core bridge subsystems (CrystalLanguage, loaders/savers, plugins) across reloads
-          }
           auto pcd_it = g_persistent_class_descs.find(cname);
           if (pcd_it != g_persistent_class_descs.end() && pcd_it->second && pcd_it->second->is_registered_in_classdb) {
             PersistentClassDesc *pcd = pcd_it->second;
@@ -188,10 +185,14 @@ deinitialize_crystal_module(void *p_userdata,
               free_string_name(sn);
               pcd->is_registered_in_classdb = false;
               pcd->registered_library = nullptr;
+              pcd->registered_property_names.clear();
+              pcd->registered_signal_names.clear();
+              pcd->registered_constant_names.clear();
             }
           }
         }
       }
+      g_classes_registered_in_current_cycle.clear();
     }
 
     // --- Segment 4: Active Extension Counter & Final Cleanup ---
@@ -212,9 +213,13 @@ deinitialize_crystal_module(void *p_userdata,
             free_string_name(sn);
             pcd->is_registered_in_classdb = false;
             pcd->registered_library = nullptr;
+            pcd->registered_property_names.clear();
+            pcd->registered_signal_names.clear();
+            pcd->registered_constant_names.clear();
           }
         }
       }
+      g_classes_registered_in_current_cycle.clear();
 
       for (auto &pair : g_library_deinit_callbacks) {
         for (auto fn : pair.second) {

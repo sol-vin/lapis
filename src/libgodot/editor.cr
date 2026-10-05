@@ -421,15 +421,22 @@ module Lapis
     # Ensures syntax highlighter is registered with ScriptEditor
     def self.ensure_highlighter_registered : Void
       return if headless_suppressed?
-      return if (h = @@crystal_highlighter) && !h.pointer.null?
+      if (h = @@crystal_highlighter)
+        if !h.pointer.null? && h.alive? && Bridge.is_object_valid(h.pointer)
+          return
+        else
+          @@crystal_highlighter = nil
+        end
+      end
       if !Godot::EditorInterface.singleton_ptr.null?
         ed_interface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
-        script_editor = ed_interface.get_script_editor
-        if !script_editor.pointer.null?
+        script_editor = ed_interface.get_script_editor rescue nil
+        if script_editor && !script_editor.pointer.null?
           if highlighter = Godot.create(Godot::CrystalHighlighter)
             @@crystal_highlighter = highlighter
             script_editor.register_syntax_highlighter(highlighter) rescue nil
             apply_highlighter_if_needed
+            script_editor.disconnect("editor_script_changed") rescue nil
             script_editor.connect("editor_script_changed") do |_args|
               apply_highlighter_if_needed
             end
@@ -756,6 +763,12 @@ module Lapis
         end
         Godot.log_debug("Editor", "[CrystalIntegrationPlugin] Restored Build button to 'Build' state.")
       end
+
+      # Ensure CrystalLanguage, ResourceFormatLoader/Saver, and CrystalHighlighter are registered after reload
+      Godot::CrystalLanguage.ensure_registered rescue nil
+      Godot::ResourceFormatLoaderCrystal.ensure_registered rescue nil
+      Godot::ResourceFormatSaverCrystal.ensure_registered rescue nil
+      ensure_highlighter_registered rescue nil
 
       # Rescan filesystem and update ClassDB references in editor once extension reload has settled
       if (res_fs = ed_iface.get_resource_filesystem rescue nil) && !res_fs.pointer.null?
@@ -1209,6 +1222,26 @@ module Lapis
         end
         # Clear inspector selection before extension reload
         ed_iface.call("inspect_object", nil) rescue nil
+      end
+
+      # Unregister language, loaders, and savers before reloading extension
+      Godot::CrystalLanguage.unregister rescue nil
+      Godot::ResourceFormatLoaderCrystal.unregister rescue nil
+      Godot::ResourceFormatSaverCrystal.unregister rescue nil
+
+      # Unregister syntax highlighter before reloading extension
+      if (highlighter = @@crystal_highlighter) && !highlighter.pointer.null?
+        if has_editor_interface? && !Godot::EditorInterface.singleton_ptr.null?
+          ed_interface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
+          script_editor = ed_interface.get_script_editor rescue nil
+          if script_editor && !script_editor.pointer.null?
+            script_editor.disconnect("editor_script_changed") rescue nil
+            if highlighter.alive? && Bridge.is_object_valid(highlighter.pointer)
+              script_editor.unregister_syntax_highlighter(highlighter) rescue nil
+            end
+          end
+        end
+        @@crystal_highlighter = nil
       end
 
       Godot::Bridge.set_reloading(true)
@@ -2464,27 +2497,27 @@ module Lapis
       return if Godot::EditorInterface.singleton_ptr.null?
       ensure_highlighter_registered
       hl = @@crystal_highlighter
-      return unless hl && !hl.pointer.null?
+      return unless hl && !hl.pointer.null? && hl.alive? && Bridge.is_object_valid(hl.pointer)
 
       ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
-      se = ed_iface.get_script_editor
-      return if se.pointer.null?
+      se = ed_iface.get_script_editor rescue nil
+      return if se.nil? || se.pointer.null?
 
-      curr_script = se.get_current_script
+      curr_script = se.get_current_script rescue nil
       if curr_script && !curr_script.pointer.null?
-        path = curr_script.call_str("get_path")
-        path = curr_script.call_str("get_resource_path") if path.empty?
-        cls = curr_script.call_str("get_class")
+        path = curr_script.call_str("get_path") rescue ""
+        path = (curr_script.call_str("get_resource_path") rescue "") if path.empty?
+        cls = curr_script.call_str("get_class") rescue ""
         is_cr = path.ends_with?(".cr") || cls == "CrystalScript"
         if is_cr
-          curr_ed = se.call_obj("get_current_editor")
+          curr_ed = se.call_obj("get_current_editor") rescue nil
           if curr_ed && !curr_ed.pointer.null?
             curr_ed.call("add_syntax_highlighter", hl) rescue nil
-            base_ed = curr_ed.call_obj("get_base_editor")
+            base_ed = curr_ed.call_obj("get_base_editor") rescue nil
             if base_ed && !base_ed.pointer.null?
               existing_hl = base_ed.call_obj("get_syntax_highlighter") rescue nil
               if existing_hl.nil? || existing_hl.pointer.null?
-                tab_hl = hl.call_obj("_create")
+                tab_hl = (hl.call_obj("_create") rescue nil)
                 actual_hl = (tab_hl && !tab_hl.pointer.null?) ? tab_hl : hl
                 base_ed.call("set_syntax_highlighter", actual_hl) rescue nil
                 base_ed.call("queue_redraw") rescue nil
