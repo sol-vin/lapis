@@ -173,15 +173,15 @@ deinitialize_crystal_module(void *p_userdata,
       // Unregister classes registered under this library.
       // During reload, Godot unregisters from ClassDB and marks them reloading in extension_classes.
       // During final shutdown, Godot unregisters from ClassDB and erases them from extension_classes.
-      if (s_is_reloading && gd_classdb_unregister_extension_class) {
+      if (gd_classdb_unregister_extension_class) {
         for (int i = (int)g_registered_class_order.size() - 1; i >= 0; i--) {
           const std::string &cname = g_registered_class_order[i];
           auto pcd_it = g_persistent_class_descs.find(cname);
           if (pcd_it != g_persistent_class_descs.end() && pcd_it->second && pcd_it->second->is_registered_in_classdb) {
             PersistentClassDesc *pcd = pcd_it->second;
-            if (pcd->registered_library == lib) {
+            if (pcd->registered_library == lib || lib == g_library || !pcd->registered_library) {
               void *sn = make_string_name(cname.c_str());
-              gd_classdb_unregister_extension_class(lib, sn);
+              gd_classdb_unregister_extension_class(lib ? lib : g_library, sn);
               free_string_name(sn);
               pcd->is_registered_in_classdb = false;
               pcd->registered_library = nullptr;
@@ -195,6 +195,23 @@ deinitialize_crystal_module(void *p_userdata,
     g_active_extension_count--;
     if (g_active_extension_count <= 0 && !s_is_reloading) {
       g_active_extension_count = 0;
+
+      // Final pass: ensure all registered extension classes are unregistered from ClassDB
+      // before the backing game DLL is unloaded to prevent 0xC0000005 in ClassDB::cleanup().
+      if (gd_classdb_unregister_extension_class) {
+        for (int i = (int)g_registered_class_order.size() - 1; i >= 0; i--) {
+          const std::string &cname = g_registered_class_order[i];
+          auto pcd_it = g_persistent_class_descs.find(cname);
+          if (pcd_it != g_persistent_class_descs.end() && pcd_it->second && pcd_it->second->is_registered_in_classdb) {
+            PersistentClassDesc *pcd = pcd_it->second;
+            void *sn = make_string_name(cname.c_str());
+            gd_classdb_unregister_extension_class(g_library, sn);
+            free_string_name(sn);
+            pcd->is_registered_in_classdb = false;
+            pcd->registered_library = nullptr;
+          }
+        }
+      }
 
       for (auto &pair : g_library_deinit_callbacks) {
         for (auto fn : pair.second) {

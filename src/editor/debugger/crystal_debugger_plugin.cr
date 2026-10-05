@@ -100,7 +100,7 @@ module Godot
         if !script_ptr.null?
           script = Godot::Script.new(script_ptr)
           path = script.call_str("get_path") rescue ""
-          Godot.print("[CrystalDebuggerPlugin] Navigated to script: #{path}:#{line}")
+          Godot.log_debug("Debugger", "[CrystalDebuggerPlugin] Navigated to script: #{path}:#{line}")
         end
       end
     end
@@ -136,7 +136,7 @@ module Godot
       end rescue nil
 
       @sessions[session_id] = controller
-      Godot.print("[CrystalDebuggerPlugin] Initialized radare2 Debugger Session #{session_id}")
+      Godot.log_debug("Debugger", "[CrystalDebuggerPlugin] Initialized radare2 Debugger Session #{session_id}")
       controller
     end
 
@@ -286,13 +286,13 @@ module Godot
         @sessions.each_value do |ctrl|
           ctrl.set_breakpoint(clean_path, target_line)
         end
-        Godot.print("[CrystalDebuggerPlugin] Breakpoint set: #{File.basename(clean_path)}:#{target_line}")
+        Godot.log_trace("Debugger", "[CrystalDebuggerPlugin] Breakpoint set: #{File.basename(clean_path)}:#{target_line}")
       else
         lines.delete(target_line)
         @sessions.each_value do |ctrl|
           ctrl.remove_breakpoint(clean_path, target_line)
         end
-        Godot.print("[CrystalDebuggerPlugin] Breakpoint cleared: #{File.basename(clean_path)}:#{target_line}")
+        Godot.log_trace("Debugger", "[CrystalDebuggerPlugin] Breakpoint cleared: #{File.basename(clean_path)}:#{target_line}")
       end
     end
 
@@ -306,7 +306,7 @@ module Godot
         end
       end
       @active_breakpoints.clear
-      Godot.print("[CrystalDebuggerPlugin] All native breakpoints cleared.")
+      Godot.log_debug("Debugger", "[CrystalDebuggerPlugin] All native breakpoints cleared.")
     end
 
     @poll_counter : Int32 = 0
@@ -406,7 +406,7 @@ module Godot
             @sessions.each_value do |ctrl|
               ctrl.set_breakpoint(path, line)
             end
-            Godot.print("[CrystalDebuggerPlugin] Synced editor breakpoint: #{File.basename(path)}:#{line}")
+            Godot.log_trace("Debugger", "[CrystalDebuggerPlugin] Synced editor breakpoint: #{File.basename(path)}:#{line}")
           end
         end
       end
@@ -420,7 +420,7 @@ module Godot
           @sessions.each_value do |ctrl|
             ctrl.remove_breakpoint(path, line)
           end
-          Godot.print("[CrystalDebuggerPlugin] Cleared editor breakpoint: #{File.basename(path)}:#{line}")
+          Godot.log_trace("Debugger", "[CrystalDebuggerPlugin] Cleared editor breakpoint: #{File.basename(path)}:#{line}")
         end
       end
     end

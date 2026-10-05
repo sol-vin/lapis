@@ -1420,7 +1420,44 @@ macro node(decl, &block)
         {% if item[0] == :prop %}
           {% arg = item[1] %}
           {% var_name = arg.is_a?(Assign) ? arg.target : arg.var %}
-          {% var_type = arg.is_a?(Assign) ? "Callable" : (arg.type ? arg.type.stringify.gsub(/^(::)?Godot::/, "") : "Callable") %}
+          {%
+            if arg.is_a?(Assign)
+              val = arg.value
+              if val.is_a?(NumberLiteral)
+                k = val.kind.stringify
+                if k == ":f32" || k == "f32"
+                  var_type = "Float32"
+                elsif k.includes?("f") || val.stringify.includes?(".")
+                  var_type = "Float64"
+                elsif k.includes?("i64") || k.includes?("u64")
+                  var_type = "Int64"
+                else
+                  var_type = "Int32"
+                end
+              elsif val.is_a?(StringLiteral)
+                var_type = "String"
+              elsif val.is_a?(BoolLiteral)
+                var_type = "Bool"
+              elsif val.is_a?(Call)
+                rec = val.receiver ? val.receiver.stringify.gsub(/^(::)?Godot::/, "") : val.name.stringify.gsub(/^(::)?Godot::/, "")
+                if ["Vector2", "Vector2i", "Vector3", "Vector3i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis"].includes?(rec)
+                  var_type = rec
+                else
+                  var_type = "Callable"
+                end
+              elsif val.is_a?(Path)
+                var_type = val.stringify.gsub(/^(::)?Godot::/, "")
+              elsif val.is_a?(ProcPointer) || val.is_a?(ProcLiteral)
+                var_type = "Callable"
+              else
+                var_type = "Variant"
+              end
+            elsif arg.type
+              var_type = arg.type.stringify.gsub(/^(::)?Godot::/, "")
+            else
+              var_type = "Callable"
+            end
+          %}
           when "{{var_name.id}}"
             {% if var_type == "Float32" %}
               self.{{var_name.id}} = val_ptr.as(Float64*).value.to_f32
@@ -1469,7 +1506,44 @@ macro node(decl, &block)
         {% if item[0] == :prop %}
           {% arg = item[1] %}
           {% var_name = arg.is_a?(Assign) ? arg.target : arg.var %}
-          {% var_type = arg.is_a?(Assign) ? "Callable" : (arg.type ? arg.type.stringify.gsub(/^(::)?Godot::/, "") : "Callable") %}
+          {%
+            if arg.is_a?(Assign)
+              val = arg.value
+              if val.is_a?(NumberLiteral)
+                k = val.kind.stringify
+                if k == ":f32" || k == "f32"
+                  var_type = "Float32"
+                elsif k.includes?("f") || val.stringify.includes?(".")
+                  var_type = "Float64"
+                elsif k.includes?("i64") || k.includes?("u64")
+                  var_type = "Int64"
+                else
+                  var_type = "Int32"
+                end
+              elsif val.is_a?(StringLiteral)
+                var_type = "String"
+              elsif val.is_a?(BoolLiteral)
+                var_type = "Bool"
+              elsif val.is_a?(Call)
+                rec = val.receiver ? val.receiver.stringify.gsub(/^(::)?Godot::/, "") : val.name.stringify.gsub(/^(::)?Godot::/, "")
+                if ["Vector2", "Vector2i", "Vector3", "Vector3i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis"].includes?(rec)
+                  var_type = rec
+                else
+                  var_type = "Callable"
+                end
+              elsif val.is_a?(Path)
+                var_type = val.stringify.gsub(/^(::)?Godot::/, "")
+              elsif val.is_a?(ProcPointer) || val.is_a?(ProcLiteral)
+                var_type = "Callable"
+              else
+                var_type = "Variant"
+              end
+            elsif arg.type
+              var_type = arg.type.stringify.gsub(/^(::)?Godot::/, "")
+            else
+              var_type = "Callable"
+            end
+          %}
           when "{{var_name.id}}"
             {% if var_type == "Float32" || var_type == "Float64" %}
               ret_ptr.as(Float64*).value = self.{{var_name.id}}.to_f64
@@ -1613,7 +1687,44 @@ macro node(decl, &block)
       {% arg = item[1] %}
       {% anno = item[2] %}
       {% var_name = arg.is_a?(Assign) ? arg.target : arg.var %}
-      {% var_type = arg.is_a?(Assign) ? "Callable" : (arg.type ? arg.type.stringify.gsub(/^(::)?Godot::/, "") : "Callable") %}
+      {%
+        if arg.is_a?(Assign)
+          val = arg.value
+          if val.is_a?(NumberLiteral)
+            k = val.kind.stringify
+            if k == ":f32" || k == "f32"
+              var_type = "Float32"
+            elsif k.includes?("f") || val.stringify.includes?(".")
+              var_type = "Float64"
+            elsif k.includes?("i64") || k.includes?("u64")
+              var_type = "Int64"
+            else
+              var_type = "Int32"
+            end
+          elsif val.is_a?(StringLiteral)
+            var_type = "String"
+          elsif val.is_a?(BoolLiteral)
+            var_type = "Bool"
+          elsif val.is_a?(Call)
+            rec = val.receiver ? val.receiver.stringify.gsub(/^(::)?Godot::/, "") : val.name.stringify.gsub(/^(::)?Godot::/, "")
+            if ["Vector2", "Vector2i", "Vector3", "Vector3i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis"].includes?(rec)
+              var_type = rec
+            else
+              var_type = "Callable"
+            end
+          elsif val.is_a?(Path)
+            var_type = val.stringify.gsub(/^(::)?Godot::/, "")
+          elsif val.is_a?(ProcPointer) || val.is_a?(ProcLiteral)
+            var_type = "Callable"
+          else
+            var_type = "Variant"
+          end
+        elsif arg.type
+          var_type = arg.type.stringify.gsub(/^(::)?Godot::/, "")
+        else
+          var_type = "Callable"
+        end
+      %}
       {%
         vtype = 0
         hint = 0
@@ -2131,7 +2242,44 @@ macro node(decl, &block)
         {% arg = item[1] %}
         {% p_doc = item[3] %}
         {% var_name = arg.is_a?(Assign) ? arg.target : arg.var %}
-        {% var_type = arg.is_a?(Assign) ? "Callable" : (arg.type ? arg.type.stringify.gsub(/^(::)?Godot::/, "") : "Callable") %}
+        {%
+          if arg.is_a?(Assign)
+            val = arg.value
+            if val.is_a?(NumberLiteral)
+              k = val.kind.stringify
+              if k == ":f32" || k == "f32"
+                var_type = "Float32"
+              elsif k.includes?("f") || val.stringify.includes?(".")
+                var_type = "Float64"
+              elsif k.includes?("i64") || k.includes?("u64")
+                var_type = "Int64"
+              else
+                var_type = "Int32"
+              end
+            elsif val.is_a?(StringLiteral)
+              var_type = "String"
+            elsif val.is_a?(BoolLiteral)
+              var_type = "Bool"
+            elsif val.is_a?(Call)
+              rec = val.receiver ? val.receiver.stringify.gsub(/^(::)?Godot::/, "") : val.name.stringify.gsub(/^(::)?Godot::/, "")
+              if ["Vector2", "Vector2i", "Vector3", "Vector3i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis"].includes?(rec)
+                var_type = rec
+              else
+                var_type = "Callable"
+              end
+            elsif val.is_a?(Path)
+              var_type = val.stringify.gsub(/^(::)?Godot::/, "")
+            elsif val.is_a?(ProcPointer) || val.is_a?(ProcLiteral)
+              var_type = "Callable"
+            else
+              var_type = "Variant"
+            end
+          elsif arg.type
+            var_type = arg.type.stringify.gsub(/^(::)?Godot::/, "")
+          else
+            var_type = "Callable"
+          end
+        %}
         {%
           gtype = "Variant"
           if var_type == "Float32" || var_type == "Float64"
@@ -2605,7 +2753,44 @@ macro gmodule(decl, &block)
           {% arg = item[1] %}
           {% anno = item[2] %}
           {% var_name = arg.is_a?(Assign) ? arg.target : arg.var %}
-          {% var_type = arg.is_a?(Assign) ? "Callable" : (arg.type ? arg.type.stringify.gsub(/^(::)?Godot::/, "") : "Callable") %}
+          {%
+            if arg.is_a?(Assign)
+              val = arg.value
+              if val.is_a?(NumberLiteral)
+                k = val.kind.stringify
+                if k == ":f32" || k == "f32"
+                  var_type = "Float32"
+                elsif k.includes?("f") || val.stringify.includes?(".")
+                  var_type = "Float64"
+                elsif k.includes?("i64") || k.includes?("u64")
+                  var_type = "Int64"
+                else
+                  var_type = "Int32"
+                end
+              elsif val.is_a?(StringLiteral)
+                var_type = "String"
+              elsif val.is_a?(BoolLiteral)
+                var_type = "Bool"
+              elsif val.is_a?(Call)
+                rec = val.receiver ? val.receiver.stringify.gsub(/^(::)?Godot::/, "") : val.name.stringify.gsub(/^(::)?Godot::/, "")
+                if ["Vector2", "Vector2i", "Vector3", "Vector3i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis"].includes?(rec)
+                  var_type = rec
+                else
+                  var_type = "Callable"
+                end
+              elsif val.is_a?(Path)
+                var_type = val.stringify.gsub(/^(::)?Godot::/, "")
+              elsif val.is_a?(ProcPointer) || val.is_a?(ProcLiteral)
+                var_type = "Callable"
+              else
+                var_type = "Variant"
+              end
+            elsif arg.type
+              var_type = arg.type.stringify.gsub(/^(::)?Godot::/, "")
+            else
+              var_type = "Callable"
+            end
+          %}
           {%
             vtype = 0
             hint = 0
@@ -2846,7 +3031,44 @@ macro gmodule(decl, &block)
         {% if item[0] == :prop %}
           {% arg = item[1] %}
           {% var_name = arg.is_a?(Assign) ? arg.target : arg.var %}
-          {% var_type = arg.is_a?(Assign) ? "Callable" : (arg.type ? arg.type.stringify.gsub(/^(::)?Godot::/, "") : "Callable") %}
+          {%
+            if arg.is_a?(Assign)
+              val = arg.value
+              if val.is_a?(NumberLiteral)
+                k = val.kind.stringify
+                if k == ":f32" || k == "f32"
+                  var_type = "Float32"
+                elsif k.includes?("f") || val.stringify.includes?(".")
+                  var_type = "Float64"
+                elsif k.includes?("i64") || k.includes?("u64")
+                  var_type = "Int64"
+                else
+                  var_type = "Int32"
+                end
+              elsif val.is_a?(StringLiteral)
+                var_type = "String"
+              elsif val.is_a?(BoolLiteral)
+                var_type = "Bool"
+              elsif val.is_a?(Call)
+                rec = val.receiver ? val.receiver.stringify.gsub(/^(::)?Godot::/, "") : val.name.stringify.gsub(/^(::)?Godot::/, "")
+                if ["Vector2", "Vector2i", "Vector3", "Vector3i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis"].includes?(rec)
+                  var_type = rec
+                else
+                  var_type = "Callable"
+                end
+              elsif val.is_a?(Path)
+                var_type = val.stringify.gsub(/^(::)?Godot::/, "")
+              elsif val.is_a?(ProcPointer) || val.is_a?(ProcLiteral)
+                var_type = "Callable"
+              else
+                var_type = "Variant"
+              end
+            elsif arg.type
+              var_type = arg.type.stringify.gsub(/^(::)?Godot::/, "")
+            else
+              var_type = "Callable"
+            end
+          %}
           when "{{var_name.id}}"
             {% if var_type == "Float32" %}
               self.{{var_name.id}} = val_ptr.as(Float64*).value.to_f32
@@ -2891,7 +3113,44 @@ macro gmodule(decl, &block)
         {% if item[0] == :prop %}
           {% arg = item[1] %}
           {% var_name = arg.is_a?(Assign) ? arg.target : arg.var %}
-          {% var_type = arg.is_a?(Assign) ? "Callable" : (arg.type ? arg.type.stringify.gsub(/^(::)?Godot::/, "") : "Callable") %}
+          {%
+            if arg.is_a?(Assign)
+              val = arg.value
+              if val.is_a?(NumberLiteral)
+                k = val.kind.stringify
+                if k == ":f32" || k == "f32"
+                  var_type = "Float32"
+                elsif k.includes?("f") || val.stringify.includes?(".")
+                  var_type = "Float64"
+                elsif k.includes?("i64") || k.includes?("u64")
+                  var_type = "Int64"
+                else
+                  var_type = "Int32"
+                end
+              elsif val.is_a?(StringLiteral)
+                var_type = "String"
+              elsif val.is_a?(BoolLiteral)
+                var_type = "Bool"
+              elsif val.is_a?(Call)
+                rec = val.receiver ? val.receiver.stringify.gsub(/^(::)?Godot::/, "") : val.name.stringify.gsub(/^(::)?Godot::/, "")
+                if ["Vector2", "Vector2i", "Vector3", "Vector3i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis"].includes?(rec)
+                  var_type = rec
+                else
+                  var_type = "Callable"
+                end
+              elsif val.is_a?(Path)
+                var_type = val.stringify.gsub(/^(::)?Godot::/, "")
+              elsif val.is_a?(ProcPointer) || val.is_a?(ProcLiteral)
+                var_type = "Callable"
+              else
+                var_type = "Variant"
+              end
+            elsif arg.type
+              var_type = arg.type.stringify.gsub(/^(::)?Godot::/, "")
+            else
+              var_type = "Callable"
+            end
+          %}
           when "{{var_name.id}}"
             {% if var_type == "Float32" || var_type == "Float64" %}
               ret_ptr.as(Float64*).value = self.{{var_name.id}}.to_f64

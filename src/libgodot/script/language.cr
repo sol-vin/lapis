@@ -664,7 +664,7 @@ module Lapis
             )
           end
 
-          Godot.print("[CrystalLanguage._complete_code] Returning #{c_options.size} items to Godot (force=#{force_popup})")
+          Godot.log_trace("Language", "[CrystalLanguage._complete_code] Returning #{c_options.size} items to Godot (force=#{force_popup})")
           Bridge.ret_dictionary_complete_code_ex(ret, 0_i64, force_popup, "", c_options)
         rescue ex
           Godot.printerr("[CrystalLanguage._complete_code] Exception: #{ex.message}")

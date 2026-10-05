@@ -42,7 +42,7 @@ module Lapis
           server = ::TCPServer.new("127.0.0.1", @port)
           @server = server
           @running = true
-          Godot.print("[DriverServer] Action Driver IPC listening on 127.0.0.1:#{@port}")
+          Godot.log_debug("DriverServer", "[DriverServer] Action Driver IPC listening on 127.0.0.1:#{@port}")
 
           spawn do
             while @running
@@ -58,7 +58,7 @@ module Lapis
             end
           end
         rescue ex
-          Godot.print("[DriverServer] Notice: could not bind IPC socket on port #{@port}: #{ex.message}")
+          Godot.log_debug("DriverServer", "[DriverServer] Notice: could not bind IPC socket on port #{@port}: #{ex.message}")
         end
       end
 

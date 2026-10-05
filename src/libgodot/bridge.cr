@@ -384,10 +384,10 @@ module Godot
       # Callbacks for C host
       create_fn = ->(desc : LibBridge::CrystalClassDesc*, godot_obj : Void*) : Void* {
         class_name = String.new(desc.value.name)
-        Godot.print("[create_fn] ENTERED: class_name='#{class_name}', godot_obj=#{godot_obj}")
+        Godot.log_internal("Bridge", "[create_fn] ENTERED: class_name='#{class_name}', godot_obj=#{godot_obj}")
         if entry = Godot::ClassRegistry.find(class_name)
           inst = entry.create_proc.call(godot_obj)
-          Godot.print("[create_fn] inst=#{inst.class.name} (#{inst}) for class_name='#{class_name}'")
+          Godot.log_internal("Bridge", "[create_fn] inst=#{inst.class.name} (#{inst}) for class_name='#{class_name}'")
           inst.pointer = godot_obj
           boxed = Box(Godot::Object).box(inst)
           @@alive_mutex.synchronize do
@@ -396,7 +396,7 @@ module Godot
           end
           return boxed
         end
-        Godot.print("[create_fn] FAILED: class '#{class_name}' not found in ClassRegistry!")
+        Godot.printerr("[create_fn] FAILED: class '#{class_name}' not found in ClassRegistry!")
         Pointer(Void).null
       }
 
@@ -663,10 +663,10 @@ module Godot
     # Early-registers an engine component if it is defined in the current compilation unit
     macro early_register_component(class_name)
       {% if @top_level.has_constant?("Godot") && @top_level.constant("Godot").has_constant?(class_name) %}
-        Godot.print("[early_register_component] Registering {{class_name.id}}...")
+        Godot.log_internal("Bridge", "[early_register_component] Registering {{class_name.id}}...")
         Godot::{{class_name.id}}.ensure_registered
       {% else %}
-        Godot.print("[early_register_component] {{class_name.id}} NOT FOUND in Godot constant!")
+        Godot.log_internal("Bridge", "[early_register_component] {{class_name.id}} NOT FOUND in Godot constant!")
       {% end %}
     end
 

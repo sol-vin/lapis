@@ -171,7 +171,7 @@ module Lapis
             write_message(initialized_ntf)
             @is_running = true
             @next_id = 2
-            Godot.print("[CrystalLSP] Crystalline background language server started successfully.")
+            Godot.log_debug("LSP", "[CrystalLSP] Crystalline background language server started successfully.")
             return true
           else
             stop_internal
@@ -180,7 +180,7 @@ module Lapis
         rescue ex
           stop_internal
           # Fail silently and safely without crashing Godot
-          Godot.print("[CrystalLSP] Notice: Crystalline not started (#{ex.message}). Continuing with built-in editor intelligence.")
+          Godot.log_debug("LSP", "[CrystalLSP] Notice: Crystalline not started (#{ex.message}). Continuing with built-in editor intelligence.")
           return false
         end
       end

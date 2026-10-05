@@ -1113,7 +1113,7 @@ inline void generic_class_call_virtual_with_data(
 
                     char log_msg[256];
                     snprintf(log_msg, sizeof(log_msg), "[ResourceFormatLoaderCrystal] Successfully loaded %s (%zu bytes)", target_path, code.size());
-                    godot_log_print(log_msg);
+                    godot_log_verbose(log_msg);
 
                     bridge_ret_variant_object(r_ret, script_obj);
                     return;
@@ -1262,7 +1262,7 @@ inline void generic_class_call_virtual_with_data(
                 if (write_ok) {
                     char log_msg[512];
                     snprintf(log_msg, sizeof(log_msg), "[ResourceFormatSaverCrystal] Successfully saved %s (%zu bytes) -> %s", path_buf, code.size(), fs_path.c_str());
-                    godot_log_print(log_msg);
+                    godot_log_verbose(log_msg);
                     if (r_ret) {
                         memset(r_ret, 0, 8); // OK (0)
                         *(int32_t*)r_ret = 0; // OK (0)

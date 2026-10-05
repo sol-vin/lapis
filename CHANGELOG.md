@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.0.256] - 2026-10-04
+
+### Added
+
+#### ClassDB & FileSystem Automatic Reload
+- **Centralized GDExtension Reload Helper**:
+  - Extracted `CrystalIntegrationPlugin.trigger_extension_reload` to handle safe teardown, reloading, and restoring inspected scene nodes.
+  - Automatically triggers `EditorFileSystem#scan` and `EditorFileSystem#scan_sources` to immediately refresh Godot's `CreateDialog` and ClassDB registry so newly authored Crystal nodes show up without restarting the editor.
+  - Connected reload and filesystem rescanning to both the "Build" toolbar button and pre-run `_build` (F5 / Play / F6).
+- **External DLL Build Watchdog**:
+  - Added `check_external_game_dll_update` watchdog in `CrystalIntegrationPlugin#_process(delta)` to detect external builds of `bin/game.dll` (e.g., via CLI `lapis build` or `make all`) and reload GDExtension automatically.
+
+### Fixed
+
+#### Export Property Type Inference
+- **Inferred Property Export Types**:
+  - Fixed bug where `@[Export] property my_var = 123` or `@[Export] property my_string = "Hello World!"` without explicit type annotations defaulted to `Callable` in the Inspector.
+  - Implemented compile-time AST inspection in `node` and `gmodule` macros to accurately resolve `Int32`, `Int64`, `Float32`, `Float64`, `String`, `Bool`, and array/collection types from literals.
+
+#### Engine Console Log Cleanup & Structured Log Routing
+- **Silenced Startup & Bridge Spam**:
+  - Re-routed noisy bridge instantiation logs (`[create_fn] ENTERED...`, `[create_fn] inst=...`), early component registrations, and syntax loader/saver notices from `Godot.print` to `Godot.log_internal` and `godot_log_verbose`.
+  - Re-routed debugger breakpoint syncs and session lifecycle traces to `Godot.log_trace` and `Godot.log_debug`.
+  - Preserved the prominent welcome banner in Godot console output while moving diagnostic tool verification, DisplayServer details, and button placement notices to debug levels.
+
+#### Engine Shutdown Safety & Crash Prevention
+- **Extension ClassDB Deregistration on Shutdown**:
+  - Fixed `0xC0000005` (Access Violation) crash on Godot editor exit caused by Godot's ClassDB holding dead virtual function pointers into unmapped `game.dll` memory.
+  - Unregisters all GDExtension classes from Godot's ClassDB on both reload and final engine termination before unloading the DLL.
+- **Arithmetic Overflow Fix in Editor Command**:
+  - Fixed `Unhandled Error: Arithmetic overflow` in `lapis editor` by converting Windows process exit code `3221225477` (`0xC0000005`) using safe conversion `raw_code.to_u32!`.
+
+---
+
 ## [0.0.255] - 2026-10-04
 
 ### Added

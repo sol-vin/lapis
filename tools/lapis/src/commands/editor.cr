@@ -254,9 +254,10 @@ HELP
                  end
 
         raw_code = status.normal_exit? ? status.exit_code : -1
-        if (!status.success? || debug_mode) && STDOUT.tty? && (raw_code == 0xC0000005 || raw_code == 3221225477_u32.to_i32 || status.signal_exit? || debug_mode)
-          Core::Logger.error("Detected abnormal process exit (0x#{raw_code.to_s(16)}). Swapping to Radare2 Crash Forensics View...")
-          TUI::DebuggerView.auto_swap_on_crash(target_dir.join("bin/game.dll").to_s, 0x00007ff624328b40_u64, "Process terminated with exit code 0x#{raw_code.to_s(16)}")
+        u32_code = raw_code.to_u32!
+        if (!status.success? || debug_mode) && STDOUT.tty? && (u32_code == 0xC0000005_u32 || status.signal_exit? || debug_mode)
+          Core::Logger.error("Detected abnormal process exit (0x#{u32_code.to_s(16).upcase}). Swapping to Radare2 Crash Forensics View...")
+          TUI::DebuggerView.auto_swap_on_crash(target_dir.join("bin/game.dll").to_s, 0x00007ff624328b40_u64, "Process terminated with exit code 0x#{u32_code.to_s(16).upcase}")
         end
 
         status.normal_exit? ? status.exit_code : 0
