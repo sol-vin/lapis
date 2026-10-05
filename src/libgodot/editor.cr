@@ -756,6 +756,13 @@ module Lapis
         end
         Godot.log_debug("Editor", "[CrystalIntegrationPlugin] Restored Build button to 'Build' state.")
       end
+
+      # Rescan filesystem and update ClassDB references in editor once extension reload has settled
+      if (res_fs = ed_iface.get_resource_filesystem rescue nil) && !res_fs.pointer.null?
+        res_fs.call_deferred("scan") rescue nil
+        res_fs.call_deferred("scan_sources") rescue nil
+      end
+      refresh_inspector_deferred
     end
 
     # Defers a property list notification on edited scene root to refresh inspector after reload
@@ -798,12 +805,14 @@ module Lapis
       if existing && !existing.pointer.null?
         btn = Godot::Button.new(existing.pointer)
         @@compile_button = btn
-        @@building = false
-        @@reload_pending = false
-        @@reload_watchdog = 0.0_f64
-        Godot::Bridge.set_reloading(false)
-        btn.call("set_disabled", false) rescue nil
-        btn.call("set_text", "Build") rescue nil
+        unless @@building || @@reload_pending || Godot::Bridge.reloading?
+          @@building = false
+          @@reload_pending = false
+          @@reload_watchdog = 0.0_f64
+          Godot::Bridge.set_reloading(false)
+          btn.call("set_disabled", false) rescue nil
+          btn.call("set_text", "Build") rescue nil
+        end
         Godot.clear_signal_subscriptions(btn.signal_target_id)
         btn.connect("pressed", flags: ::Godot::ConnectFlags::Deferred) do |_args|
           on_compile_button_pressed
@@ -869,8 +878,10 @@ module Lapis
       end
 
       @@compile_button = btn
-      @@building = false
-      @@reload_pending = false
+      unless @@building || @@reload_pending || Godot::Bridge.reloading?
+        @@building = false
+        @@reload_pending = false
+      end
     rescue ex
       Godot.printerr("[CrystalIntegrationPlugin] Warning: could not setup toolbar button: #{ex.message}")
     end
@@ -1204,15 +1215,8 @@ module Lapis
       gd_ext_mgr.call_deferred("reload_extension", ext_path)
       Godot.log_debug("Editor", "[CrystalIntegrationPlugin] Scheduled deferred GDExtension reload.")
 
-      # Rescan filesystem and update ClassDB references in editor so new Crystal nodes appear immediately
-      if has_editor_interface? && !Godot::EditorInterface.singleton_ptr.null?
-        ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
-        if (res_fs = ed_iface.get_resource_filesystem rescue nil) && !res_fs.pointer.null?
-          res_fs.call_deferred("scan") rescue nil
-          res_fs.call_deferred("scan_sources") rescue nil
-        end
-        refresh_inspector_deferred
-      end
+      # Filesystem rescan and inspector refresh are deferred to reset_toolbar_button
+      # to ensure the background scanner only runs after GDExtension reload has fully completed.
 
       # Defer restoring inspector selection to reflect updated exports
       if sel_path = saved_node_path
@@ -1259,7 +1263,7 @@ module Lapis
 
     # Handles toolbar compile button press to trigger manual Crystal rebuild
     def self.on_compile_button_pressed : Void
-      if @@building || @@reload_pending
+      if @@building || @@reload_pending || Godot::Bridge.reloading?
         Godot.print("[CrystalIntegrationPlugin] Build or reload already in progress, skipping duplicate request.")
         return
       end
@@ -1943,7 +1947,7 @@ module Lapis
 
     # Invoked by Godot editor before running project (F5 / F6)
     def _build : Bool
-      if @@building || @@reload_pending
+      if @@building || @@reload_pending || Godot::Bridge.reloading?
         Godot.print("[CrystalIntegrationPlugin] Build or reload already in progress, skipping F5 build.")
         return true
       end

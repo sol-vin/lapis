@@ -5,6 +5,22 @@ All notable changes to the Lapis for Crystal framework are documented in this fi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.257] - 2026-10-05
+
+### Fixed
+
+#### ScriptLanguageExtension & Live Reload Stability
+- **Preserved Core Subsystems During Extension Reload**:
+  - Maintained ClassDB registration for core bridge subsystems (`CrystalLanguage`, `CrystalScript`, `ResourceFormatLoaderCrystal`, `ResourceFormatSaverCrystal`, `CrystalIntegrationPlugin`, `CrystalDebuggerPlugin`) across live reload cycles.
+  - Eliminated crashes where Godot's `ScriptServer` held references to unmapped virtual method tables (`ScriptLanguageExtension::_handles_global_class_type` and `_thread_exit`).
+  - Updated `do_classdb_register` to update method table pointers in-place for existing ClassDB entries without triggering duplicate registration aborts.
+- **Enhanced Global Class Type Matching**:
+  - Made `_handles_global_class_type` case-insensitive via `bridge_strcasecmp` and expanded recognized type strings to handle `"CrystalScript"`, `"Crystal"`, and `"Script"`.
+- **Deferred Filesystem Rescanning Post-Reload**:
+  - Rescheduled `EditorFileSystem#scan` and `EditorFileSystem#scan_sources` from the immediate reload trigger frame to `reset_toolbar_button` after the reload watchdog has settled.
+  - Prevents worker thread race conditions when scanning `.cr` files while the game DLL is unmapped.
+  - Added `Godot::Bridge.reloading?` guards to `on_compile_button_pressed` and `_build` to prevent concurrent duplicate build or reload requests.
+
 ---
 
 ## [0.0.256] - 2026-10-04

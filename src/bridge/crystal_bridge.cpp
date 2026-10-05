@@ -176,6 +176,9 @@ deinitialize_crystal_module(void *p_userdata,
       if (gd_classdb_unregister_extension_class) {
         for (int i = (int)g_registered_class_order.size() - 1; i >= 0; i--) {
           const std::string &cname = g_registered_class_order[i];
+          if (s_is_reloading && is_core_bridge_class(cname.c_str())) {
+            continue; // Preserve core bridge subsystems (CrystalLanguage, loaders/savers, plugins) across reloads
+          }
           auto pcd_it = g_persistent_class_descs.find(cname);
           if (pcd_it != g_persistent_class_descs.end() && pcd_it->second && pcd_it->second->is_registered_in_classdb) {
             PersistentClassDesc *pcd = pcd_it->second;

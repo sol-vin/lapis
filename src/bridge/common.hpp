@@ -222,3 +222,12 @@ inline bool bridge_file_exists(const char *path) {
     return access(path, F_OK) == 0;
 #endif
 }
+
+inline int bridge_strcasecmp(const char *s1, const char *s2) {
+    if (!s1 || !s2) return (s1 == s2) ? 0 : (s1 ? 1 : -1);
+#ifdef _WIN32
+    return _stricmp(s1, s2);
+#else
+    return strcasecmp(s1, s2);
+#endif
+}

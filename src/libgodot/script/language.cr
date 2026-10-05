@@ -784,7 +784,9 @@ module Lapis
         Bridge.ret_string(ret, auto_indent_code(code, from_line, to_line))
       when "_handles_global_class_type"
         t = Bridge.arg_to_string(args[0])
-        ret.as(UInt8*).value = (t == "CrystalScript" || t == "Crystal") ? 1_u8 : 0_u8
+        ret.as(UInt8*).value = (t.compare("CrystalScript", case_insensitive: true) == 0 ||
+                                t.compare("Crystal", case_insensitive: true) == 0 ||
+                                t.compare("Script", case_insensitive: true) == 0) ? 1_u8 : 0_u8
       when "_get_global_class_name"
         path = Bridge.arg_to_string(args[0])
         clean_path = path.sub(/^res:\/\//, "").lstrip('/').gsub('\\', '/')

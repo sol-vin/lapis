@@ -928,7 +928,9 @@ inline void generic_class_call_virtual_with_data(
                 if (p_args && p_args[0]) {
                     char type_buf[128] = {0};
                     bridge_arg_to_string(p_args[0], type_buf, sizeof(type_buf));
-                    if (strcmp(type_buf, "CrystalScript") == 0 || strcmp(type_buf, "Crystal") == 0) {
+                    if (bridge_strcasecmp(type_buf, "CrystalScript") == 0 ||
+                        bridge_strcasecmp(type_buf, "Crystal") == 0 ||
+                        bridge_strcasecmp(type_buf, "Script") == 0) {
                         handles = true;
                     }
                 }

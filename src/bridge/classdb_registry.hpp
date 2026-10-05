@@ -30,6 +30,15 @@ inline bool is_editor_system_class(const char *name) {
             strcmp(name, "CrystalRadareSessionTab") == 0);
 }
 
+inline bool is_core_bridge_class(const char *name) {
+    if (!name) return false;
+    return (is_editor_system_class(name) ||
+            strcmp(name, "CrystalLanguage") == 0 ||
+            strcmp(name, "CrystalScript") == 0 ||
+            strcmp(name, "ResourceFormatLoaderCrystal") == 0 ||
+            strcmp(name, "ResourceFormatSaverCrystal") == 0);
+}
+
 inline bool is_editor_class(const CrystalClassDesc *desc) {
     if (!desc) return false;
     if (desc->name && is_editor_system_class(desc->name)) return true;
@@ -186,7 +195,7 @@ inline void do_classdb_register(CrystalClassDesc *desc) {
     cinfo.class_userdata = pcd ? (void*)&pcd->desc : (void*)desc;
 
     // --- Segment 3: Native Engine ClassDB Registration ---
-    if (!pcd || !pcd->is_registered_in_classdb || s_is_reloading) {
+    if (!pcd || !pcd->is_registered_in_classdb) {
         gd_classdb_register_extension_class6(g_library, class_sn, parent_sn, &cinfo);
         if (pcd) {
             pcd->is_registered_in_classdb = true;
