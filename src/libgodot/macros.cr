@@ -1442,8 +1442,10 @@ macro node(decl, &block)
                 rec = val.receiver ? val.receiver.stringify.gsub(/^(::)?Godot::/, "") : val.name.stringify.gsub(/^(::)?Godot::/, "")
                 if ["Vector2", "Vector2i", "Vector3", "Vector3i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis"].includes?(rec)
                   var_type = rec
-                else
+                elsif ["Proc", "proc", "lambda", "Callable"].includes?(rec)
                   var_type = "Callable"
+                else
+                  var_type = "Variant"
                 end
               elsif val.is_a?(Path)
                 var_type = val.stringify.gsub(/^(::)?Godot::/, "")
@@ -1455,7 +1457,7 @@ macro node(decl, &block)
             elsif arg.type
               var_type = arg.type.stringify.gsub(/^(::)?Godot::/, "")
             else
-              var_type = "Callable"
+              var_type = "Variant"
             end
           %}
           when "{{var_name.id}}"
@@ -1528,8 +1530,10 @@ macro node(decl, &block)
                 rec = val.receiver ? val.receiver.stringify.gsub(/^(::)?Godot::/, "") : val.name.stringify.gsub(/^(::)?Godot::/, "")
                 if ["Vector2", "Vector2i", "Vector3", "Vector3i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis"].includes?(rec)
                   var_type = rec
-                else
+                elsif ["Proc", "proc", "lambda", "Callable"].includes?(rec)
                   var_type = "Callable"
+                else
+                  var_type = "Variant"
                 end
               elsif val.is_a?(Path)
                 var_type = val.stringify.gsub(/^(::)?Godot::/, "")
@@ -1541,7 +1545,7 @@ macro node(decl, &block)
             elsif arg.type
               var_type = arg.type.stringify.gsub(/^(::)?Godot::/, "")
             else
-              var_type = "Callable"
+              var_type = "Variant"
             end
           %}
           when "{{var_name.id}}"
@@ -1709,8 +1713,10 @@ macro node(decl, &block)
             rec = val.receiver ? val.receiver.stringify.gsub(/^(::)?Godot::/, "") : val.name.stringify.gsub(/^(::)?Godot::/, "")
             if ["Vector2", "Vector2i", "Vector3", "Vector3i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis"].includes?(rec)
               var_type = rec
-            else
+            elsif ["Proc", "proc", "lambda", "Callable"].includes?(rec)
               var_type = "Callable"
+            else
+              var_type = "Variant"
             end
           elsif val.is_a?(Path)
             var_type = val.stringify.gsub(/^(::)?Godot::/, "")
@@ -1722,7 +1728,7 @@ macro node(decl, &block)
         elsif arg.type
           var_type = arg.type.stringify.gsub(/^(::)?Godot::/, "")
         else
-          var_type = "Callable"
+          var_type = "Variant"
         end
       %}
       {%
@@ -2264,8 +2270,10 @@ macro node(decl, &block)
               rec = val.receiver ? val.receiver.stringify.gsub(/^(::)?Godot::/, "") : val.name.stringify.gsub(/^(::)?Godot::/, "")
               if ["Vector2", "Vector2i", "Vector3", "Vector3i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis"].includes?(rec)
                 var_type = rec
-              else
+              elsif ["Proc", "proc", "lambda", "Callable"].includes?(rec)
                 var_type = "Callable"
+              else
+                var_type = "Variant"
               end
             elsif val.is_a?(Path)
               var_type = val.stringify.gsub(/^(::)?Godot::/, "")
@@ -2277,7 +2285,7 @@ macro node(decl, &block)
           elsif arg.type
             var_type = arg.type.stringify.gsub(/^(::)?Godot::/, "")
           else
-            var_type = "Callable"
+            var_type = "Variant"
           end
         %}
         {%
@@ -2775,8 +2783,10 @@ macro gmodule(decl, &block)
                 rec = val.receiver ? val.receiver.stringify.gsub(/^(::)?Godot::/, "") : val.name.stringify.gsub(/^(::)?Godot::/, "")
                 if ["Vector2", "Vector2i", "Vector3", "Vector3i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis"].includes?(rec)
                   var_type = rec
-                else
+                elsif ["Proc", "proc", "lambda", "Callable"].includes?(rec)
                   var_type = "Callable"
+                else
+                  var_type = "Variant"
                 end
               elsif val.is_a?(Path)
                 var_type = val.stringify.gsub(/^(::)?Godot::/, "")
@@ -2788,7 +2798,7 @@ macro gmodule(decl, &block)
             elsif arg.type
               var_type = arg.type.stringify.gsub(/^(::)?Godot::/, "")
             else
-              var_type = "Callable"
+              var_type = "Variant"
             end
           %}
           {%
@@ -3053,8 +3063,10 @@ macro gmodule(decl, &block)
                 rec = val.receiver ? val.receiver.stringify.gsub(/^(::)?Godot::/, "") : val.name.stringify.gsub(/^(::)?Godot::/, "")
                 if ["Vector2", "Vector2i", "Vector3", "Vector3i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis"].includes?(rec)
                   var_type = rec
-                else
+                elsif ["Proc", "proc", "lambda", "Callable"].includes?(rec)
                   var_type = "Callable"
+                else
+                  var_type = "Variant"
                 end
               elsif val.is_a?(Path)
                 var_type = val.stringify.gsub(/^(::)?Godot::/, "")
@@ -3066,7 +3078,7 @@ macro gmodule(decl, &block)
             elsif arg.type
               var_type = arg.type.stringify.gsub(/^(::)?Godot::/, "")
             else
-              var_type = "Callable"
+              var_type = "Variant"
             end
           %}
           when "{{var_name.id}}"
@@ -3135,8 +3147,10 @@ macro gmodule(decl, &block)
                 rec = val.receiver ? val.receiver.stringify.gsub(/^(::)?Godot::/, "") : val.name.stringify.gsub(/^(::)?Godot::/, "")
                 if ["Vector2", "Vector2i", "Vector3", "Vector3i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis"].includes?(rec)
                   var_type = rec
-                else
+                elsif ["Proc", "proc", "lambda", "Callable"].includes?(rec)
                   var_type = "Callable"
+                else
+                  var_type = "Variant"
                 end
               elsif val.is_a?(Path)
                 var_type = val.stringify.gsub(/^(::)?Godot::/, "")
@@ -3148,7 +3162,7 @@ macro gmodule(decl, &block)
             elsif arg.type
               var_type = arg.type.stringify.gsub(/^(::)?Godot::/, "")
             else
-              var_type = "Callable"
+              var_type = "Variant"
             end
           %}
           when "{{var_name.id}}"

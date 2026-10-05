@@ -383,6 +383,7 @@ struct BridgeAPI {
     void (*ret_signal_list)(void *r_ret, const struct CrystalSignalDesc *signals, int signal_count);
     void (*ret_property_list)(void *r_ret, const struct CrystalPropertyDesc *props, int prop_count);
     uint8_t (*is_object_valid)(GDExtensionObjectPtr obj);
+    GDExtensionObjectPtr (*editor_get_selected_node)(GDExtensionObjectPtr ed_iface);
 };
 
 struct BridgeGCFunctions {

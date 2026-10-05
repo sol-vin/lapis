@@ -198,6 +198,7 @@ module Godot
       ret_signal_list : (Void*, CrystalSignalDesc*, Int32 -> Void)
       ret_property_list : (Void*, CrystalPropertyDesc*, Int32 -> Void)
       is_object_valid : (Void* -> UInt8)
+      editor_get_selected_node : (Void* -> Void*)
     end
 
     struct BridgeGCFunctions
@@ -1646,6 +1647,11 @@ module Godot
     def self.is_object_valid(obj : Void*) : Bool
       return false if obj.null? || @@api.null? || @@api.value.is_object_valid.pointer.null?
       @@api.value.is_object_valid.call(obj) != 0_u8
+    end
+
+    def self.editor_get_selected_node(ed_iface : Void*) : Void*
+      return Pointer(Void).null if ed_iface.null? || @@api.null? || @@api.value.editor_get_selected_node.pointer.null?
+      @@api.value.editor_get_selected_node.call(ed_iface)
     end
   end
 end

@@ -327,6 +327,15 @@ inline void bridge_variant_from_type(int variant_type, void *variant, const void
         return;
     }
 
+    // --- Segment 2b: Callable Safety Guard ---
+    if (variant_type == GDEXTENSION_VARIANT_TYPE_CALLABLE) {
+        const uint64_t *words = (const uint64_t*)src;
+        if (!words || (words[0] == 0 && words[1] == 0)) {
+            memset(variant, 0, 24);
+            return;
+        }
+    }
+
     // --- Segment 3: Generic Type-to-Variant Constructor Dispatch ---
     if (gd_get_variant_from_type_constructor && variant && src) {
         GDExtensionVariantFromTypeConstructorFunc conv = gd_get_variant_from_type_constructor((GDExtensionVariantType)variant_type);
@@ -2676,5 +2685,63 @@ inline void create_tool_button_callable(GenericExtensionInstance *inst, const ch
     if (gd_callable_destroy) {
         gd_callable_destroy(callable_buf);
     }
+}
+
+inline GDExtensionObjectPtr bridge_editor_get_selected_node(GDExtensionObjectPtr ed_iface) {
+    if (!ed_iface || !gd_classdb_get_method_bind || !gd_object_method_bind_call) return nullptr;
+    if (!gd_array_operator_index) return nullptr;
+
+    static GDExtensionMethodBindPtr mb_get_sel = nullptr;
+    if (!mb_get_sel) {
+        mb_get_sel = bridge_get_method_bind("EditorInterface", "get_selection", 2690272531ULL);
+    }
+    if (!mb_get_sel) return nullptr;
+
+    alignas(void*) char var_sel[24] = {0};
+    bridge_call_method_vararg_ret(mb_get_sel, ed_iface, "get_selection", nullptr, 0, var_sel);
+    GDExtensionObjectPtr sel_obj = bridge_object_from_variant(var_sel);
+    if (gd_variant_destroy) gd_variant_destroy(var_sel);
+    if (!sel_obj) return nullptr;
+
+    static GDExtensionMethodBindPtr mb_get_nodes = nullptr;
+    if (!mb_get_nodes) {
+        mb_get_nodes = bridge_get_method_bind("EditorSelection", "get_selected_nodes", 2915620761ULL);
+    }
+    if (!mb_get_nodes) return nullptr;
+
+    alignas(void*) char arr[8] = {};
+    if (gd_object_method_bind_ptrcall) {
+        gd_object_method_bind_ptrcall(mb_get_nodes, sel_obj, nullptr, arr);
+    }
+
+    static GDExtensionPtrBuiltInMethod gd_array_size_method = nullptr;
+    if (!gd_array_size_method && gd_variant_get_ptr_builtin_method) {
+        void *sn_size = make_string_name("size");
+        gd_array_size_method = gd_variant_get_ptr_builtin_method(GDEXTENSION_VARIANT_TYPE_ARRAY, sn_size, 3173160232ULL);
+        free_string_name(sn_size);
+    }
+
+    int64_t arr_size = 0;
+    if (gd_array_size_method) {
+        gd_array_size_method(arr, nullptr, &arr_size, 0);
+    }
+
+    GDExtensionObjectPtr res_node = nullptr;
+    if (arr_size > 0) {
+        GDExtensionVariantPtr var_item = gd_array_operator_index(arr, 0);
+        if (var_item) {
+            res_node = bridge_object_from_variant(var_item);
+        }
+    }
+
+    static GDExtensionPtrDestructor gd_arr_destr = nullptr;
+    if (!gd_arr_destr && gd_variant_get_ptr_destructor) {
+        gd_arr_destr = gd_variant_get_ptr_destructor(GDEXTENSION_VARIANT_TYPE_ARRAY);
+    }
+    if (gd_arr_destr) {
+        gd_arr_destr(arr);
+    }
+
+    return res_node;
 }
 

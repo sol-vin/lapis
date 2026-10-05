@@ -504,6 +504,8 @@ crystal_library_init(GDExtensionInterfaceGetProcAddress p_get_proc_address,
           "string_to_utf8_chars");
   gd_get_library_path = (GDExtensionInterfaceGetLibraryPath)p_get_proc_address(
       "get_library_path");
+  gd_array_operator_index =
+      (GDExtensionInterfaceArrayOperatorIndex)p_get_proc_address("array_operator_index");
 
   GDExtensionInterfaceVariantGetPtrInternalGetter get_internal =
       (GDExtensionInterfaceVariantGetPtrInternalGetter)p_get_proc_address(

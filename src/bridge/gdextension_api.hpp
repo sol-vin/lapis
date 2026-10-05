@@ -113,6 +113,9 @@ static GDExtensionPtrConstructor gd_variant_nil_constructor = nullptr;
 static GDExtensionPtrKeyedSetter gd_dict_keyed_setter = nullptr;
 static GDExtensionMethodBindPtr mb_text_edit_get_line = nullptr;
 
+typedef GDExtensionVariantPtr (*GDExtensionInterfaceArrayOperatorIndex)(GDExtensionTypePtr p_self, GDExtensionInt p_index);
+static GDExtensionInterfaceArrayOperatorIndex gd_array_operator_index = nullptr;
+
 // ==============================================================================
 // Godot Engine Diagnostic & Console Logging Helpers
 // ==============================================================================

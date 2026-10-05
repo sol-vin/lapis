@@ -119,7 +119,8 @@ static BridgeAPI g_bridge_api = {
     bridge_is_verbose,
     bridge_ret_signal_list,
     bridge_ret_property_list,
-    bridge_is_object_valid
+    bridge_is_object_valid,
+    bridge_editor_get_selected_node
 };
 
 // ==============================================================================
@@ -183,5 +184,9 @@ extern "C" {
     /** Returns hot reload status flag */
     GDE_EXPORT inline int crystal_bridge_is_reloading() {
         return bridge_is_reloading();
+    }
+    /** Retrieves selected Node from EditorInterface */
+    GDE_EXPORT inline GDExtensionObjectPtr crystal_editor_get_selected_node(GDExtensionObjectPtr ed_iface) {
+        return bridge_editor_get_selected_node(ed_iface);
     }
 }

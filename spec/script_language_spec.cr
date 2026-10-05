@@ -172,4 +172,98 @@ describe "Crystal Script Language & LSP Intelligence (Ring 1 Specs)" do
       diags.not_nil!.first.message.should contain("undefined local variable")
     end
   end
+
+  describe "CrystalScript AST Metadata Parsing & Type Inference" do
+    it "correctly infers types for untyped exported properties with default values" do
+      script = Lapis::CrystalScript.new
+      code = <<-CRYSTAL
+      require "lapis"
+
+      node MyCrystalNode < Node do
+        @[Export]
+        property my_var = 123
+
+        @[Export]
+        property my_string = "Hello World!"
+
+        @[Export]
+        property is_active = true
+
+        @[Export]
+        property speed = 15.5
+
+        @[Export]
+        property pos = Vector2.new(10.0, 20.0)
+
+        @[Export]
+        property explicit_var : Int64 = 999
+
+        def _ready : Void
+          Godot.print("ready")
+        end
+      end
+      CRYSTAL
+
+      script.set_source_code(code)
+      props = script.properties
+      props.size.should eq(6)
+
+      p_var = props.find { |p| p.name == "my_var" }.not_nil!
+      p_var.type_name.should eq("Int32")
+      p_var.variant_type.should eq(2) # INT
+
+      p_str = props.find { |p| p.name == "my_string" }.not_nil!
+      p_str.type_name.should eq("String")
+      p_str.variant_type.should eq(4) # STRING
+
+      p_bool = props.find { |p| p.name == "is_active" }.not_nil!
+      p_bool.type_name.should eq("Bool")
+      p_bool.variant_type.should eq(1) # BOOL
+
+      p_float = props.find { |p| p.name == "speed" }.not_nil!
+      p_float.type_name.should eq("Float64")
+      p_float.variant_type.should eq(3) # FLOAT
+
+      p_vec = props.find { |p| p.name == "pos" }.not_nil!
+      p_vec.type_name.should eq("Vector2")
+      p_vec.variant_type.should eq(5) # VECTOR2
+
+      p_exp = props.find { |p| p.name == "explicit_var" }.not_nil!
+      p_exp.type_name.should eq("Int64")
+      p_exp.variant_type.should eq(2) # INT
+    end
+
+    it "accurately maps Godot 4 GDExtension variant enum values without drift" do
+      script = Lapis::CrystalScript.new
+      script.variant_type_from_string("Nil").should eq(0)
+      script.variant_type_from_string("Bool").should eq(1)
+      script.variant_type_from_string("Int32").should eq(2)
+      script.variant_type_from_string("Float64").should eq(3)
+      script.variant_type_from_string("String").should eq(4)
+      script.variant_type_from_string("Vector2").should eq(5)
+      script.variant_type_from_string("Vector2i").should eq(6)
+      script.variant_type_from_string("Rect2").should eq(7)
+      script.variant_type_from_string("Rect2i").should eq(8)
+      script.variant_type_from_string("Vector3").should eq(9)
+      script.variant_type_from_string("Vector3i").should eq(10)
+      script.variant_type_from_string("Transform2D").should eq(11)
+      script.variant_type_from_string("Vector4").should eq(12)
+      script.variant_type_from_string("Vector4i").should eq(13)
+      script.variant_type_from_string("Plane").should eq(14)
+      script.variant_type_from_string("Quaternion").should eq(15)
+      script.variant_type_from_string("AABB").should eq(16)
+      script.variant_type_from_string("Basis").should eq(17)
+      script.variant_type_from_string("Transform3D").should eq(18)
+      script.variant_type_from_string("Projection").should eq(19)
+      script.variant_type_from_string("Color").should eq(20)
+      script.variant_type_from_string("StringName").should eq(21)
+      script.variant_type_from_string("NodePath").should eq(22)
+      script.variant_type_from_string("RID").should eq(23)
+      script.variant_type_from_string("Object").should eq(24)
+      script.variant_type_from_string("Callable").should eq(25)
+      script.variant_type_from_string("Signal").should eq(26)
+      script.variant_type_from_string("Dictionary").should eq(27)
+      script.variant_type_from_string("Array").should eq(28)
+    end
+  end
 end
