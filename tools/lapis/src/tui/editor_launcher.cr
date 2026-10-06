@@ -15,6 +15,12 @@ require "../commands/editor"
 
 module Lapis
   module TUI
+    {% if flag?(:windows) %}
+      lib ::LibC
+        fun FlushConsoleInputBuffer(hConsoleInput : HANDLE) : Int32
+      end
+    {% end %}
+
     class EditorLauncher
       getter project_path : String
       getter? running : Bool = true
@@ -55,9 +61,21 @@ module Lapis
         return unless STDOUT.tty?
 
         driver = Opal::Terminal.default_driver
-        driver.flush_input
-        driver.raw_mode do
+        if driver.responds_to?(:flush_input)
           driver.flush_input
+        else
+          {% if flag?(:windows) %}
+            LibC.FlushConsoleInputBuffer(LibC.GetStdHandle(LibC::STD_INPUT_HANDLE))
+          {% end %}
+        end
+        driver.raw_mode do
+          if driver.responds_to?(:flush_input)
+            driver.flush_input
+          else
+            {% if flag?(:windows) %}
+              LibC.FlushConsoleInputBuffer(LibC.GetStdHandle(LibC::STD_INPUT_HANDLE))
+            {% end %}
+          end
           driver.enter_alternate_screen
           driver.hide_cursor
           diff_renderer = Opal::UI::DiffRenderer.new(driver)
