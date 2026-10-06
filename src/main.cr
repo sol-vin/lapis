@@ -569,3 +569,5 @@ require "../spec/suites/test_concurrency_actor_channel"
 require "../spec/suites/test_resource_card_lifecycle"
 require "../spec/suites/test_physics_spatial_exhaustive"
 require "../spec/suites/test_scene_pipeline_and_regex"
+require "../spec/suites/test_autoload_singleton"
+

@@ -19,7 +19,8 @@ describe "Lapis::Test::Registry Test Suites" do
       "DslHelpersAndOnReady", "EditorPluginsComprehensive",
       "FSM", "SignalBus", "Pool", "Ergonomics",
       "HSM", "SignalBusAdv", "NodePoolStress", "CombatScenario",
-      "ActorChannel", "ResourceCard", "SpatialPhysics", "ScenePipelineRegex"
+      "ActorChannel", "ResourceCard", "SpatialPhysics", "ScenePipelineRegex",
+      "Autoload"
     ]
 
     expected_categories.each do |cat|

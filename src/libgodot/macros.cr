@@ -67,6 +67,11 @@ module Godot
       property rpc_methods : ::Array(NamedTuple(name: String, rpc_mode: Int32, transfer_mode: Int32, call_local: Bool, channel: Int32))
       property has_virtual_proc : (String -> Bool)? = nil
       property script_path : String = ""
+      property is_autoload : Bool = false
+      property autoload_name : String = ""
+      property autoload_singleton : Bool = true
+      property autoload_mount_tree : Bool = true
+      property set_autoload_proc : (Object? -> Void)? = nil
 
       def has_virtual_method?(name : String) : Bool
         if proc = @has_virtual_proc
@@ -98,6 +103,11 @@ module Godot
         @has_virtual_proc : (String -> Bool)? = nil,
         @constants : ::Array(ConstantInfo) = [] of ConstantInfo,
         @script_path : String = "",
+        @is_autoload : Bool = false,
+        @autoload_name : String = "",
+        @autoload_singleton : Bool = true,
+        @autoload_mount_tree : Bool = true,
+        @set_autoload_proc : (Object? -> Void)? = nil,
       )
       end
     end
@@ -186,6 +196,17 @@ module Godot
         existing.has_gui_input ||= entry.has_gui_input
         if existing.script_path.empty? && !entry.script_path.empty?
           existing.script_path = entry.script_path
+        end
+        if entry.is_autoload
+          existing.is_autoload = true
+          existing.autoload_singleton = entry.autoload_singleton
+          existing.autoload_mount_tree = entry.autoload_mount_tree
+          if !entry.autoload_name.empty?
+            existing.autoload_name = entry.autoload_name
+          end
+          if !entry.set_autoload_proc.nil?
+            existing.set_autoload_proc = entry.set_autoload_proc
+          end
         end
         return
       end
@@ -477,6 +498,10 @@ macro node(decl, &block)
     is_tool_class = (base_godot_name == "EditorPlugin" || parent_name.stringify.includes?("EditorPlugin"))
     is_abstract_class = false
     is_static_unload = false
+    is_autoload_class = false
+    autoload_name = ""
+    autoload_singleton = true
+    autoload_mount_tree = true
     class_icon_path = ""
     script_path_override = ""
     src_file = if !block.is_a?(Nop) && block.filename
@@ -679,6 +704,19 @@ macro node(decl, &block)
           {% is_static_unload = true %}
         {% elsif s_stripped.starts_with?("@[ScriptPath(") %}
           {% script_path_override = s_stripped.gsub(/^@\[ScriptPath\(\"/, "").gsub(/\"\)\].*/, "") %}
+        {% elsif s_stripped.starts_with?("@[Autoload") %}
+          {% is_autoload_class = true %}
+          {% if s_stripped.includes?("name:") %}
+            {% autoload_name = s_stripped.gsub(/.*name:\s*\"/, "").gsub(/\".*/, "") %}
+          {% elsif s_stripped.includes?("(\"") %}
+            {% autoload_name = s_stripped.gsub(/^@\[Autoload\(\"/, "").gsub(/\"\).*/, "") %}
+          {% end %}
+          {% if s_stripped.includes?("singleton: false") %}
+            {% autoload_singleton = false %}
+          {% end %}
+          {% if s_stripped.includes?("mount_tree: false") || s_stripped.includes?("scene_tree: false") %}
+            {% autoload_mount_tree = false %}
+          {% end %}
         {% elsif !s_stripped.starts_with?("@") && !s_stripped.empty? %}
           {% comment_accum = "" %}
           {% class_icon_path = "" %}
@@ -686,6 +724,10 @@ macro node(decl, &block)
           {% is_abstract_class = false %}
           {% is_tool_class = false %}
           {% is_static_unload = false %}
+          {% is_autoload_class = false %}
+          {% autoload_name = "" %}
+          {% autoload_singleton = true %}
+          {% autoload_mount_tree = true %}
         {% end %}
       {% elsif in_target_node %}
         {% if s_stripped.starts_with?("property ") %}
@@ -749,6 +791,22 @@ macro node(decl, &block)
           {% is_abstract_class = true %}
         {% elsif anno_name == "StaticUnload" %}
           {% is_static_unload = true %}
+        {% elsif anno_name == "Autoload" %}
+          {% is_autoload_class = true %}
+          {% if stmt.named_args %}
+            {% for na in stmt.named_args %}
+              {% if na.name.stringify == "name" %}
+                {% autoload_name = na.value.is_a?(StringLiteral) ? na.value : na.value.id.stringify %}
+              {% elsif na.name.stringify == "singleton" %}
+                {% autoload_singleton = na.value %}
+              {% elsif na.name.stringify == "mount_tree" || na.name.stringify == "scene_tree" %}
+                {% autoload_mount_tree = na.value %}
+              {% end %}
+            {% end %}
+          {% end %}
+          {% if stmt.args.size > 0 %}
+            {% autoload_name = stmt.args[0].is_a?(StringLiteral) ? stmt.args[0] : stmt.args[0].id.stringify %}
+          {% end %}
         {% elsif anno_name == "ScriptPath" %}
           {% script_path_override = stmt.args[0].stringify %}
         {% elsif anno_name == "ExportCategory" %}
@@ -799,6 +857,24 @@ macro node(decl, &block)
       {% is_abstract_class = true %}
     {% elsif stmt.is_a?(Call) && stmt.name.stringify == "static_unload" %}
       {% is_static_unload = true %}
+    {% elsif stmt.is_a?(Call) && (stmt.name.stringify == "autoload" || stmt.name.stringify == "autoload_node") %}
+      {% is_autoload_class = true %}
+      {% if stmt.args.size > 0 %}
+        {% if stmt.args[0].is_a?(StringLiteral) %}
+          {% autoload_name = stmt.args[0] %}
+        {% end %}
+      {% end %}
+      {% if stmt.named_args %}
+        {% for na in stmt.named_args %}
+          {% if na.name.stringify == "name" %}
+            {% autoload_name = na.value.is_a?(StringLiteral) ? na.value : na.value.id.stringify %}
+          {% elsif na.name.stringify == "singleton" %}
+            {% autoload_singleton = na.value %}
+          {% elsif na.name.stringify == "mount_tree" || na.name.stringify == "scene_tree" %}
+            {% autoload_mount_tree = na.value %}
+          {% end %}
+        {% end %}
+      {% end %}
     {% elsif stmt.is_a?(Call) && stmt.name.stringify == "export_category" %}
       {% cat_name = stmt.args[0].is_a?(StringLiteral) ? stmt.args[0] : stmt.args[0].id.stringify %}
       {% props << {:category, cat_name, ""} %}
@@ -1175,6 +1251,9 @@ macro node(decl, &block)
         proc_tb_names << tb[0].stringify
       end
     end
+    if autoload_name.empty?
+      autoload_name = class_name.stringify.split("::").last
+    end
   %}
 
   @[GodotClass]
@@ -1200,6 +1279,26 @@ macro node(decl, &block)
       with inst yield inst
       inst
     end
+
+    {% if is_autoload_class %}
+      @@autoload_instance : {{class_name}}? = nil
+
+      # Returns the active Autoload singleton instance of this node.
+      # Raises if the node has not been instantiated or initialized yet.
+      def self.instance : {{class_name}}
+        @@autoload_instance || raise "Autoload {{class_name}} has not been instantiated or initialized yet."
+      end
+
+      # Returns the active Autoload singleton instance of this node, or nil if not initialized.
+      def self.instance? : {{class_name}}?
+        @@autoload_instance
+      end
+
+      # Internal hook used by AutoloadManager to bind or unbind the instance.
+      def self._godot_set_autoload_instance(inst : ::Godot::Object?) : Void
+        @@autoload_instance = inst.as?({{class_name}})
+      end
+    {% end %}
 
     def self._godot_has_virtual_method(method_name : String) : Bool
       norm = method_name.starts_with?('_') ? method_name : "_#{method_name}"
@@ -1279,6 +1378,13 @@ macro node(decl, &block)
         \{% end %}
       end
     {% end %}
+
+    # DSL directives for in-body autoload configuration
+    macro autoload(*args, **kwargs)
+    end
+
+    macro autoload_node(*args, **kwargs)
+    end
 
     # Macro block containing fields, signals, and methods
     {{ yield }}
@@ -2222,7 +2328,12 @@ macro node(decl, &block)
       {% end %}
       has_virtual_proc: ->(m : String) { {{class_name}}._godot_has_virtual_method(m) },
       constants: constants_{{class_name}},
-      script_path: script_path_{{class_name}}
+      script_path: script_path_{{class_name}},
+      is_autoload: {{is_autoload_class}},
+      autoload_name: {{autoload_name}},
+      autoload_singleton: {{autoload_singleton}},
+      autoload_mount_tree: {{autoload_mount_tree}},
+      set_autoload_proc: {% if is_autoload_class %} ->(obj : ::Godot::Object?) { {{class_name}}._godot_set_autoload_instance(obj) } {% else %} nil {% end %}
     )
   )
 

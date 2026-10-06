@@ -420,6 +420,13 @@ module Godot
                  end
           if inst && inst.alive?
             m = String.new(method_name)
+            if (m == "_ready" || m == "_enter_tree")
+              {% if @top_level.has_constant?("Godot") && @top_level.constant("Godot").has_constant?("AutoloadManager") %}
+                unless Godot::AutoloadManager.mounted?
+                  Godot::AutoloadManager.mount_to_tree rescue nil
+                end
+              {% end %}
+            end
             {% unless flag?(:release) %}
               if (m == "_ready" || m == "_enter_tree") && !Godot::Debugger::Agent.initialized?
                 Godot::Debugger::Agent.initialize_agent rescue nil
@@ -659,6 +666,11 @@ module Godot
       early_register_component("CrystalLanguage")
       early_register_component("ResourceFormatLoaderCrystal")
       early_register_component("ResourceFormatSaverCrystal")
+
+      # Initialize and register all @[Autoload] singletons with Godot Engine
+      {% if @top_level.has_constant?("Godot") && @top_level.constant("Godot").has_constant?("AutoloadManager") %}
+        Godot::AutoloadManager.setup_autoloads rescue nil
+      {% end %}
     end
 
     # Early-registers an engine component if it is defined in the current compilation unit
@@ -704,6 +716,9 @@ module Godot
 
       Godot.debug("[Bridge.deinit] Cleaning up script cache...")
       ClassRegistry.cleanup rescue nil
+      {% if @top_level.has_constant?("Godot") && @top_level.constant("Godot").has_constant?("AutoloadManager") %}
+        Godot::AutoloadManager.teardown_autoloads rescue nil
+      {% end %}
       unregister_component("ResourceFormatLoaderCrystal", "loader")
       unregister_component("ResourceFormatSaverCrystal", "saver")
       unregister_component("CrystalLanguage", "language")

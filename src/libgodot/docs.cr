@@ -317,6 +317,11 @@ module Lapis
   #       <td><strong>Performance Profiling & Benchmark Reports</strong></td>
   #       <td>Running Crystal vs GDScript benchmarks, SVG chart generation, and CI tracking.</td>
   #     </tr>
+  #     <tr>
+  #       <td><code>C_TESTING_ARCHITECTURE</code></td>
+  #       <td><strong>Exhaustive Multi-Tier Test Suite Inventory & Phase Guide</strong></td>
+  #       <td>Comprehensive directory of all 6 test phases, 84 modular runtime suites, 70 engine specs, 19 CLI specs, in-editor tool runners, and zero-leak invariants.</td>
+  #     </tr>
   #   </tbody>
   # </table>
   #
@@ -450,6 +455,7 @@ module Lapis
     # ##### 8. Testing and benchmarks (`H_TESTING_AND_BENCHMARKS`)
     # - `H_TESTING_AND_BENCHMARKS::A_TESTING_FRAMEWORK`: **Unified Testing Framework & Leak Verification** &mdash; Writing test suites, assertions, frame-stepping, and zero memory leak validation (assert_no_leak).
     # - `H_TESTING_AND_BENCHMARKS::B_PERFORMANCE_BENCHMARKS`: **Performance Profiling & Benchmark Reports** &mdash; Running Crystal vs GDScript benchmarks, SVG chart generation, and CI tracking.
+    # - `H_TESTING_AND_BENCHMARKS::C_TESTING_ARCHITECTURE`: **Exhaustive Multi-Tier Test Suite Inventory & Phase Guide** &mdash; Comprehensive directory of all 6 test phases, 84 modular runtime suites, 70 engine specs, 19 CLI specs, in-editor tool runners, and zero-leak invariants.
     #
     # ##### 9. Architecture and extensions (`I_ARCHITECTURE_AND_EXTENSIONS`)
     # - `I_ARCHITECTURE_AND_EXTENSIONS::A_DUAL_PARADIGM_MODEL`: **The Dual-Paradigm Execution Model** &mdash; Mode A (GDExtension In-Editor Tool) vs Mode B (Standalone LibGodot Host Executable).
@@ -523,6 +529,7 @@ module Lapis
     # ##### `H_TESTING_AND_BENCHMARKS`
     # - `H_TESTING_AND_BENCHMARKS::A_TESTING_FRAMEWORK`: **Unified Testing Framework & Leak Verification** &mdash; Writing test suites, assertions, frame-stepping, and zero memory leak validation (assert_no_leak).
     # - `H_TESTING_AND_BENCHMARKS::B_PERFORMANCE_BENCHMARKS`: **Performance Profiling & Benchmark Reports** &mdash; Running Crystal vs GDScript benchmarks, SVG chart generation, and CI tracking.
+    # - `H_TESTING_AND_BENCHMARKS::C_TESTING_ARCHITECTURE`: **Exhaustive Multi-Tier Test Suite Inventory & Phase Guide** &mdash; Comprehensive directory of all 6 test phases, 84 modular runtime suites, 70 engine specs, 19 CLI specs, in-editor tool runners, and zero-leak invariants.
     #
     # ##### `I_ARCHITECTURE_AND_EXTENSIONS`
     # - `I_ARCHITECTURE_AND_EXTENSIONS::A_DUAL_PARADIGM_MODEL`: **The Dual-Paradigm Execution Model** &mdash; Mode A (GDExtension In-Editor Tool) vs Mode B (Standalone LibGodot Host Executable).
@@ -545,7 +552,6 @@ module Lapis
   end
 end
 
-{% if read_file?("#{__DIR__}/docs/a_getting_started/a_installation.cr") %}
 require "./docs/a_getting_started/a_installation"
 require "./docs/a_getting_started/b_compilation"
 require "./docs/a_getting_started/c_quick_start_tutorial"
@@ -587,13 +593,13 @@ require "./docs/g_debugging_and_diagnostics/b_crash_handler_and_watchpoints"
 require "./docs/g_debugging_and_diagnostics/c_leak_and_dispatch_diagnostics"
 require "./docs/h_testing_and_benchmarks/a_testing_framework"
 require "./docs/h_testing_and_benchmarks/b_performance_benchmarks"
+require "./docs/h_testing_and_benchmarks/c_testing_architecture"
 require "./docs/i_architecture_and_extensions/a_dual_paradigm_model"
 require "./docs/i_architecture_and_extensions/b_cpp_bridge_loader"
 require "./docs/i_architecture_and_extensions/c_addons_and_multi_plugin_isolation"
 require "./docs/i_architecture_and_extensions/d_godot_version_upgrade"
 require "./docs/j_modern_cli_and_tui/a_interactive_command_center"
 require "./docs/j_modern_cli_and_tui/b_tui_hub_and_specialized_views"
-{% end %}
 
 alias Docs = ::Lapis::Docs
 

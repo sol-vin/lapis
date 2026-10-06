@@ -23,6 +23,7 @@ sections:
       - "Automatic ClassDB engine registration"
       - "Virtual method overrides: _ready, _process, _physics_process, _enter_tree, _exit_tree"
       - "In-editor live execution via @[Tool] annotation"
+      - "Declarative Autoload node singletons via @[Autoload] and typed .instance accessors"
 
   - id: "topic_01_node_declaration"
     title: "Node Declaration Syntax"
@@ -282,4 +283,57 @@ sections:
       ```
 
       Running `crystal spec spec/domain/` executes hundreds of unit tests in **30 milliseconds (0.03s)**, without booting Godot, creating OS windows, or waiting for scene tree initialization!
+
+  - id: "topic_08_autoload_node_singletons"
+    title: "Autoload Nodes & Engine Singletons (@[Autoload])"
+    summary: "Declaring persistent autoload nodes automatically registered as engine singletons and mounted to the SceneTree root."
+    content: |
+      In Godot, Autoloads are persistent nodes loaded automatically at startup, accessible globally across scenes, and optionally registered as engine singletons in `Engine.has_singleton`.
+
+      Lapis provides first-class declarative support for Autoload nodes via the `@[Autoload]` annotation or in-body `autoload` macro directive:
+
+      ```crystal
+      @[Autoload]
+      node GameManager < Node do
+        property score : Int32 = 0
+        property current_level : String = "world_1"
+
+        def add_score(points : Int32) : Void
+          @score += points
+        end
+      end
+      ```
+
+      #### Automatic Lifecycle & SceneTree Mounting:
+      1. **Automatic Lifecycle**: When the GDExtension library initializes or the SceneTree boots, `AutoloadManager` instantiates every registered Autoload node.
+      2. **SceneTree Root Attachment**: Autoloads are mounted under the root viewport (`/root/GameManager`) so they participate in engine process loops, physics, and input events.
+      3. **Engine Singleton Registration**: The instance is registered in Godot's native `Engine` singleton registry (`Engine.get_singleton("GameManager")`), making it accessible from both Crystal and GDScript.
+      4. **Type-Safe Accessors**: The macro generates typed class-level accessors:
+         ```crystal
+         # Non-nil typed accessor (raises if not initialized)
+         GameManager.instance.add_score(100)
+
+         # Nilable typed accessor
+         if gm = GameManager.instance?
+           Godot.print("Score: #{gm.score}")
+         end
+
+         # Generic engine lookup
+         node = Godot.autoload(GameManager)
+         ```
+
+      #### Customizing Autoload Registration:
+      You can customize the singleton name, disable engine singleton registration, or disable SceneTree mounting:
+
+      ```crystal
+      # Custom name and tree-only (no Engine.register_singleton)
+      @[Autoload(name: "AudioService", singleton: false)]
+      node CustomAudioManager < AudioStreamPlayer do
+      end
+
+      # Or using in-body directive:
+      node InventoryManager < Node do
+        autoload name: "Inventory", singleton: true, mount_tree: true
+      end
+      ```
 

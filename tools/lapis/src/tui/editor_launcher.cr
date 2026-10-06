@@ -9,7 +9,9 @@ require "opal"
 require "../core/env"
 require "../core/godot_finder"
 require "../core/process_runner"
+require "../core/tool_checker"
 require "../commands/build"
+require "../commands/editor"
 
 module Lapis
   module TUI
@@ -30,16 +32,18 @@ module Lapis
       property peak_ram_mb : Float64 = 0.0
       property toast_message : String? = nil
       property toast_time : Time::Instant? = nil
+      @tailed_files = Set(String).new
 
       def initialize(path : String? = nil)
-        curr = path ? File.expand_path(path) : File.expand_path(".")
-        if File.exists?(File.join(curr, "project.godot"))
-          @project_path = curr
-          @file_dialog = Opal::UI::FileDialog.new(initial_path: curr, mode: :open_dir)
+        target = Commands::Editor.resolve_target_dir(path, Core::Env::ROOT_DIR).to_s
+        if File.exists?(File.join(target, "project.godot"))
+          @project_path = target
+          @picking_folder = false
+          @file_dialog = Opal::UI::FileDialog.new(initial_path: target, mode: :open_dir)
         else
-          @project_path = curr
+          @project_path = target
           @picking_folder = true
-          @file_dialog = Opal::UI::FileDialog.new(initial_path: curr, mode: :open_dir)
+          @file_dialog = Opal::UI::FileDialog.new(initial_path: target, mode: :open_dir)
         end
       end
 
@@ -51,7 +55,9 @@ module Lapis
         return unless STDOUT.tty?
 
         driver = Opal::Terminal.default_driver
+        driver.flush_input
         driver.raw_mode do
+          driver.flush_input
           driver.enter_alternate_screen
           driver.hide_cursor
           diff_renderer = Opal::UI::DiffRenderer.new(driver)
@@ -128,7 +134,97 @@ module Lapis
         end
       end
 
+      private def find_running_editor_pid : Int64?
+        {% if flag?(:windows) %}
+          output = IO::Memory.new
+          status = Process.run("tasklist", ["/FI", "IMAGENAME eq godot*", "/FO", "CSV", "/NH"], output: output) rescue nil
+          return nil unless status && status.success?
+          output.to_s.each_line do |line|
+            parts = line.strip.split(",")
+            if parts.size >= 2
+              name = parts[0].gsub("\"", "").strip
+              pid_str = parts[1].gsub("\"", "").strip
+              if (name.downcase.includes?("godot") || name.downcase.includes?("editor")) && (pid = pid_str.to_i64?)
+                return pid
+              end
+            end
+          end
+        {% else %}
+          output = IO::Memory.new
+          status = Process.run("pgrep", ["-f", "godot.*editor"], output: output) rescue nil
+          if status && status.success?
+            if pid = output.to_s.lines.first?.try(&.strip.to_i64?)
+              return pid
+            end
+          end
+        {% end %}
+        nil
+      end
+
+      private def get_process_ram_mb(pid : Int64) : Float64?
+        {% if flag?(:windows) %}
+          output = IO::Memory.new
+          status = Process.run("tasklist", ["/FI", "PID eq #{pid}", "/FO", "CSV", "/NH"], output: output) rescue nil
+          if status && status.success?
+            line = output.to_s.lines.first?
+            if line && !line.includes?("No tasks are running")
+              parts = line.split(",")
+              if parts.size >= 5
+                mem_str = parts[4].gsub("\"", "").gsub("K", "").gsub(",", "").gsub(" ", "").strip
+                if kb = mem_str.to_f64?
+                  return kb / 1024.0
+                end
+              end
+            end
+          end
+        {% else %}
+          output = IO::Memory.new
+          status = Process.run("ps", ["-p", pid.to_s, "-o", "rss="], output: output) rescue nil
+          if status && status.success?
+            if kb = output.to_s.strip.to_f64?
+              return kb / 1024.0
+            end
+          end
+        {% end %}
+        nil
+      end
+
+      private def tail_editor_logs
+        log_files = [
+          File.join(@project_path, "log", "editor.log"),
+          File.join(@project_path, "log", "editor-crystal.log"),
+        ]
+        log_files.each do |file_path|
+          next if @tailed_files.includes?(file_path)
+          next unless File.exists?(file_path)
+          @tailed_files << file_path
+          spawn do
+            File.open(file_path, "r") do |f|
+              f.seek(0, IO::Seek::End)
+              while @running
+                if line = f.gets
+                  @logs << line.chomp
+                  @logs.shift if @logs.size > @max_logs
+                else
+                  sleep 0.1.seconds
+                end
+              end
+            end
+          rescue
+          end
+        end
+      end
+
       private def spawn_editor_and_watch_logs
+        if existing_pid = find_running_editor_pid
+          @editor_pid = existing_pid
+          @editor_alive = true
+          @start_time = Time.instant
+          @logs << "Attached to running Godot Editor (PID: #{existing_pid})"
+          tail_editor_logs
+          return
+        end
+
         godot_exe = Core::GodotFinder.resolve(nil, @project_path)
         unless godot_exe
           @logs << "Error: Godot engine executable not found on host!"
@@ -138,10 +234,22 @@ module Lapis
         @logs << "Starting Godot Editor for '#{File.basename(@project_path)}'..."
         @start_time = Time.instant
 
+        log_dir = File.join(@project_path, "log")
+        Dir.mkdir_p(log_dir) rescue nil
+        editor_log_file = File.join(log_dir, "editor.log")
+        crystal_log_file = File.join(log_dir, "editor-crystal.log")
+        child_env = {
+          "LAPIS_LOG_FILE"   => crystal_log_file,
+          "LAPIS_LOG_CONTEXT" => "editor",
+          "LAPIS_LOG_LEVEL"  => (ENV["LAPIS_LOG_LEVEL"]? || "trace"),
+          "LAPIS_BRIDGE_LOG" => File.join(log_dir, "bridge.log"),
+        }
+
         # Launch Godot editor process asynchronously
         process = Process.new(
           godot_exe,
           ["--editor", "--path", @project_path],
+          env: child_env,
           output: Process::Redirect::Pipe,
           error: Process::Redirect::Pipe,
           chdir: @project_path
@@ -150,6 +258,7 @@ module Lapis
         @editor_pid = process.pid.to_i64
         @editor_alive = true
         @logs << "Godot Editor spawned successfully (PID: #{@editor_pid})"
+        tail_editor_logs
 
         # Background fiber to pump stdout logs
         spawn do
@@ -174,8 +283,16 @@ module Lapis
         # Background fiber to await termination
         spawn do
           status = process.wait
-          @editor_alive = false
-          @logs << "Godot Editor process terminated with exit code #{status.exit_code}."
+          sleep 0.5.seconds
+          if existing_pid = find_running_editor_pid
+            @editor_pid = existing_pid
+            @editor_alive = true
+            @logs << "Connected to existing Godot Editor (PID: #{existing_pid})"
+            tail_editor_logs
+          else
+            @editor_alive = false
+            @logs << "Godot Editor process terminated with exit code #{status.exit_code}."
+          end
         end
       end
 
@@ -185,12 +302,37 @@ module Lapis
           now = Time.instant
           if (now - last_tick).total_seconds >= 0.5
             if @editor_alive
-              sec = (now - (@start_time || now)).total_seconds
-              sim_ram = (185.0 + (rand * 24.0) + (sec * 0.05)).clamp(120.0, 4096.0)
-              @current_ram_mb = sim_ram
-              @peak_ram_mb = Math.max(@peak_ram_mb, sim_ram)
+              if pid = @editor_pid
+                if real_ram = get_process_ram_mb(pid)
+                  @current_ram_mb = real_ram
+                  @peak_ram_mb = Math.max(@peak_ram_mb, real_ram)
+                else
+                  if new_pid = find_running_editor_pid
+                    @editor_pid = new_pid
+                    if real_ram = get_process_ram_mb(new_pid)
+                      @current_ram_mb = real_ram
+                      @peak_ram_mb = Math.max(@peak_ram_mb, real_ram)
+                    end
+                  else
+                    @editor_alive = false
+                    @current_ram_mb = 0.0
+                  end
+                end
+              else
+                sec = (now - (@start_time || now)).total_seconds
+                sim_ram = (185.0 + (rand * 24.0) + (sec * 0.05)).clamp(120.0, 4096.0)
+                @current_ram_mb = sim_ram
+                @peak_ram_mb = Math.max(@peak_ram_mb, sim_ram)
+              end
             else
-              @current_ram_mb = 0.0
+              if new_pid = find_running_editor_pid
+                @editor_pid = new_pid
+                @editor_alive = true
+                @logs << "Detected active Godot Editor (PID: #{new_pid})"
+                tail_editor_logs
+              else
+                @current_ram_mb = 0.0
+              end
             end
             last_tick = now
           end

@@ -451,9 +451,13 @@ HELP
 #endif
 
 H
-          if !dry_run && (!File.exists?(hdr) || File.read(hdr) != hdr_content)
-            File.write(hdr, hdr_content)
-            Core::Logger.debug("Updated #{hdr} to #{target_ver}")
+          if !dry_run && (!File.exists?(hdr) || File.read(hdr).gsub("\r\n", "\n") != hdr_content.gsub("\r\n", "\n"))
+            begin
+              File.write(hdr, hdr_content)
+              Core::Logger.debug("Updated #{hdr} to #{target_ver}")
+            rescue ex
+              Core::Logger.debug("Skipped writing #{hdr} (file locked): #{ex.message}")
+            end
           end
         end
 
@@ -494,8 +498,12 @@ H
           )
 
           if !dry_run && updated_readme != readme_content
-            File.write(readme_file, updated_readme)
-            Core::Logger.info("Synchronized README.md version badges (Godot: #{godot_ver}, Lapis: #{lapis_ver})")
+            begin
+              File.write(readme_file, updated_readme)
+              Core::Logger.info("Synchronized README.md version badges (Godot: #{godot_ver}, Lapis: #{lapis_ver})")
+            rescue ex
+              Core::Logger.debug("Skipped updating README.md (file locked): #{ex.message}")
+            end
           end
         end
 
