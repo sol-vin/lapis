@@ -30,7 +30,20 @@ module Lapis
         if is_lapis
           config.add_alias("Docs")
         end
-        Jasper::Generator.new(config).run
+        res = Jasper::Generator.new(config).run
+        if is_lapis && File.exists?(root_docs_file)
+          content = File.read(root_docs_file)
+          first_req = "require \"./docs/"
+          if content.includes?(first_req) && !content.includes?("read_file?(\"\#{__DIR__}/docs/")
+            start_idx = content.index(first_req).not_nil!
+            last_req_idx = content.rindex(first_req).not_nil!
+            end_idx = content.index("\n", last_req_idx) || (content.size - 1)
+            sub = content[start_idx..end_idx]
+            wrapped = "{% if read_file?(\"\#{__DIR__}/docs/a_getting_started/a_installation.cr\") %}\n#{sub}\n{% end %}"
+            File.write(root_docs_file, content.sub(sub, wrapped))
+          end
+        end
+        res
       end
 
       def generate(root_docs_file : Path) : Bool
