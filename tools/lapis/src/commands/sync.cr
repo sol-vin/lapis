@@ -387,10 +387,21 @@ HELP
           bin_gd = proj_dir.join("bin/.gdignore")
           File.write(bin_gd, "") if !dry_run && Dir.exists?(proj_dir.join("bin")) && !File.exists?(bin_gd)
 
-          if File.exists?(proj_dir.join("shard.yml")) && !Dir.exists?(proj_dir.join("lib/lapis")) && proj != "."
-            if Core::BakedFileSystem.files_with_prefix("src").size > 0
+          if File.exists?(proj_dir.join("shard.yml")) && proj != "."
+            if Dir.exists?(root.join("src"))
+              dest_lapis = proj_dir.join("lib/lapis")
+              FileUtils.mkdir_p(dest_lapis.join("src")) unless dry_run
+              FileUtils.cp_r(root.join("src").to_s, dest_lapis.to_s) unless dry_run
+              if File.exists?(root.join("shard.yml"))
+                FileUtils.cp(root.join("shard.yml").to_s, dest_lapis.join("shard.yml").to_s) unless dry_run
+              end
+              if File.exists?(root.join("godot-version.yml"))
+                FileUtils.cp(root.join("godot-version.yml").to_s, dest_lapis.join("godot-version.yml").to_s) unless dry_run
+              end
+              File.write(dest_lapis.join(".gdignore"), "") if !dry_run && !File.exists?(dest_lapis.join(".gdignore"))
+            elsif Core::BakedFileSystem.files_with_prefix("src").size > 0
               Core::Logger.step("Sync", "Extracting embedded Lapis engine library into #{proj}/lib/lapis...")
-              Core::BakedFileSystem.extract_engine_lib(proj_dir.join("lib/lapis")) unless dry_run
+              Core::BakedFileSystem.extract_engine_lib(proj_dir.join("lib/lapis"), overwrite: true) unless dry_run
             elsif shards_exe = Core::ProcessRunner.find_executable("shards")
               Core::ProcessRunner.run(shards_exe, ["install"], chdir: proj_dir.to_s) unless dry_run
             end

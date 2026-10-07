@@ -23,7 +23,7 @@ module Lapis
     {% if T < Godot::Object %}
       if target.is_a?(Godot::Object)
         return nil unless target.active?
-        return target.as?(T)
+        return target.as_a?(T)
       end
     {% end %}
 
@@ -36,7 +36,7 @@ module Lapis
       {% elsif T < Godot::Object %}
         if raw = target.raw.as?(Godot::Object)
           return nil unless raw.alive?
-          return raw.as?(T)
+          return raw.as_a?(T)
         end
       {% else %}
         raw = target.raw

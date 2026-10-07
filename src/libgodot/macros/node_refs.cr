@@ -29,41 +29,6 @@
 #   onready anim : AnimationPlayer = "AnimationPlayer"
 # end
 # ```
-macro onready(decl)
-  {% if decl.is_a?(Assign) %}
-    property {{decl.target}}? = nil
-  {% elsif decl.is_a?(TypeDeclaration) %}
-    property {{decl.var}} : {{decl.type}}? = nil
-  {% end %}
-end
-
-# Declares a `node_ref` property initialized from the scene tree during `_ready`.
-#
-# Alias to `onready(decl)`.
-#
-# ### Example:
-# ```crystal
-# node Player < CharacterBody3D do
-#   node_ref camera : Camera3D = "Camera3D"
-# end
-# ```
-macro node_ref(decl)
-  onready({{decl}})
-end
-
-# Declares a `unique_node_ref` property initialized from the scene tree during `_ready`.
-#
-# Alias to `onready(decl)`.
-#
-# ### Example:
-# ```crystal
-# node UI < Control do
-#   unique_node_ref score_label : Label = "%ScoreLabel"
-# end
-# ```
-macro unique_node_ref(decl)
-  onready({{decl}})
-end
 
 # Creates a compile-time verified Godot::NodePath
 macro node_path!(path)
@@ -94,11 +59,32 @@ end
 # ```
 # Internal generator synthesizing dead-pointer safe, lazy-cached node property accessors.
 macro __define_node_ref_property(name_or_decl, type = nil, path = nil, is_unique = false, is_nilable = false)
+  {%
+    explicit_nilable = is_nilable
+    type_hint = nil
+    if name_or_decl.is_a?(TypeDeclaration)
+      type_hint = name_or_decl.type
+    elsif type
+      type_hint = type
+    end
+
+    if type_hint
+      if type_hint.is_a?(Union)
+        if type_hint.types.any? { |sub_t| sub_t.stringify == "Nil" || sub_t.stringify == "::Nil" }
+          explicit_nilable = true
+        end
+      elsif type_hint.stringify.ends_with?("?") || type_hint.stringify == "Nil" || type_hint.stringify == "::Nil"
+        explicit_nilable = true
+      end
+    end
+  %}
   {% if name_or_decl.is_a?(TypeDeclaration) %}
     {% v_name = name_or_decl.var %}
     {% raw_t = name_or_decl.type %}
     {% if raw_t && raw_t.is_a?(Union) %}
       {% v_type = raw_t.types.reject { |sub_t| sub_t.stringify == "Nil" || sub_t.stringify == "::Nil" }[0] %}
+    {% elsif raw_t && raw_t.stringify.ends_with?("?") %}
+      {% v_type = raw_t.stringify[0...-1].id %}
     {% elsif raw_t %}
       {% v_type = raw_t %}
     {% else %}
@@ -142,16 +128,38 @@ macro __define_node_ref_property(name_or_decl, type = nil, path = nil, is_unique
       {% raw_val = raw_val.receiver %}
     {% end %}
     {% v_type = v_type || (type ? type : "::Godot::Node".id) %}
+    {% if v_type.is_a?(Union) %}
+      {% v_type = v_type.types.reject { |sub_t| sub_t.stringify == "Nil" || sub_t.stringify == "::Nil" }[0] %}
+    {% elsif v_type.stringify.ends_with?("?") %}
+      {% v_type = v_type.stringify[0...-1].id %}
+    {% end %}
     {% v_path = raw_val ? (raw_val.is_a?(StringLiteral) ? raw_val : raw_val.id.stringify) : (path ? (path.is_a?(StringLiteral) ? path : path.id.stringify) : nil) %}
   {% else %}
     {% v_name = name_or_decl %}
-    {% v_type = type ? type : "::Godot::Node".id %}
+    {% if type && type.is_a?(Union) %}
+      {% v_type = type.types.reject { |sub_t| sub_t.stringify == "Nil" || sub_t.stringify == "::Nil" }[0] %}
+    {% elsif type && type.stringify.ends_with?("?") %}
+      {% v_type = type.stringify[0...-1].id %}
+    {% elsif type %}
+      {% v_type = type %}
+    {% else %}
+      {% v_type = "::Godot::Node".id %}
+    {% end %}
     {% v_path = path ? (path.is_a?(StringLiteral) ? path : path.id.stringify) : nil %}
+  {% end %}
+
+  {% if !v_type.stringify.includes?("::") && Godot.has_constant?(v_type.stringify) %}
+    {% v_type = "::Godot::#{v_type}".id %}
+  {% end %}
+
+  {% if !v_path %}
+    {% t_simple = v_type.stringify.split("::").last %}
+    {% v_path = (t_simple != "Node" && !t_simple.empty?) ? t_simple : v_name.id.stringify.camelcase %}
   {% end %}
 
   @{{v_name.id}} : {{v_type.id}}? = nil
 
-  {% if is_nilable %}
+  {% if explicit_nilable %}
     def {{v_name.id}} : {{v_type.id}}?
       if (cached = @{{v_name.id}})
         if cached.alive?
@@ -161,18 +169,10 @@ macro __define_node_ref_property(name_or_decl, type = nil, path = nil, is_unique
         end
       end
       {% if is_unique %}
-        {% if v_path %}
-          u_name = ({{v_path}}).to_s.starts_with?('%') ? ({{v_path}}).to_s : "%#{{{v_path}}}"
-          found = get_node_as?(u_name, {{v_type.id}})
-        {% else %}
-          found = get_node_as?("%" + {{v_name.id.stringify.camelcase}}, {{v_type.id}})
-        {% end %}
+        u_name = ({{v_path}}).to_s.starts_with?('%') ? ({{v_path}}).to_s : "%#{{{v_path}}}"
+        found = get_node_as?(u_name, {{v_type.id}})
       {% else %}
-        {% if v_path %}
-          found = get_node_as?({{v_path}}, {{v_type.id}})
-        {% else %}
-          found = get_node_as?({{v_name.id.stringify.camelcase}}, {{v_type.id}})
-        {% end %}
+        found = get_node_as?({{v_path}}, {{v_type.id}})
       {% end %}
       @{{v_name.id}} = found
       found
@@ -184,18 +184,10 @@ macro __define_node_ref_property(name_or_decl, type = nil, path = nil, is_unique
         return cached
       end
       {% if is_unique %}
-        {% if v_path %}
-          u_name = ({{v_path}}).to_s.starts_with?('%') ? ({{v_path}}).to_s : "%#{{{v_path}}}"
-          found = get_node_as(u_name, {{v_type.id}})
-        {% else %}
-          found = get_node_as("%" + {{v_name.id.stringify.camelcase}}, {{v_type.id}})
-        {% end %}
+        u_name = ({{v_path}}).to_s.starts_with?('%') ? ({{v_path}}).to_s : "%#{{{v_path}}}"
+        found = get_node_as(u_name, {{v_type.id}})
       {% else %}
-        {% if v_path %}
-          found = get_node_as({{v_path}}, {{v_type.id}})
-        {% else %}
-          found = get_node_as({{v_name.id.stringify.camelcase}}, {{v_type.id}})
-        {% end %}
+        found = get_node_as({{v_path}}, {{v_type.id}})
       {% end %}
       @{{v_name.id}} = found
       found

@@ -5,6 +5,44 @@ All notable changes to the Lapis for Crystal framework are documented in this fi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.266] - 2026-10-06
+
+### Added
+
+#### Starter Template 3D Visual Showcase
+- **Redesigned Starter Scene**:
+  - Transformed the starter template (`template/scenes/main.tscn`, `template/src/main.cr`) into a focused 3D visual showcase featuring an orbiting `Camera3D` revolving around a textured 3D `MeshInstance3D` cube and a billboarded particle system (`GPUParticles3D`) with Lapis branding.
+  - Added configurable exported camera properties: `orbit_speed`, `orbit_radius`, `orbit_height`, and `orbit_enabled`.
+  - Implemented dynamic real-time particle color cycling using intermediary HSV color structures.
+  - Replaced legacy boilerplate nodes (`PlayerController`, `GameHUD`, `MyCrystalNode`, `MyGDNode`) with modern typed `onready` property references.
+  - Updated template test specifications (`template/spec/main_spec.cr` and `template/spec/editor/editor_spec.cr`) for `MainNode` properties and custom `initialized` signal.
+
+#### Advanced Color Space Manipulation & HSV Representation
+- **Intermediary HSV Color Struct**:
+  - Implemented `Godot::Color::HSV` mutable representation struct with `h`, `s`, `v`, `a` components, `to_color`/`to_rgb` conversions, and immutable with-builder helpers (`with_h`, `with_s`, `with_v`, `with_a`).
+  - Added `Godot::Color#hsv`, `to_hsv`, `to_hsva`, and mutable property accessors (`h`, `s`, `v`, `h=`, `s=`, `v=`).
+  - Added fluent non-mutating color modifier helpers: `with_h`, `with_s`, `with_v`, `with_hsv`, `with_alpha`, and `luminance` (ITU-R BT.709 relative luminance).
+  - Shipped comprehensive color conversion and manipulation library in `src/lapis/color.cr` supporting HSL, CMYK, XYZ, Lab, Oklab, Oklch, color harmonies, gradients, palettes, and WCAG contrast calculations.
+
+#### Object Downcasting & Typed Re-Wrapping
+- **Typed Casting Ergonomics**:
+  - Added `Godot::Object#as_a(T)` / `as_a?(T)` and aliases (`cast_to`, `cast_to?`, `as_t`, `as_t?`) allowing type-safe re-wrapping or polymorphic downcasting of native Godot engine objects and refcounted instances.
+  - Updated `Lapis.match_cast` to leverage `as_a?` for polymorphic downcasting of Godot objects.
+
+### Fixed
+
+#### Onready Property AST Expansion & Sync Automation
+- **Enhanced `onready` DSL Resolution**:
+  - Added automatic child node path resolution from type class names when explicit path strings are omitted (e.g. `onready camera : Camera3D` automatically targets `"Camera3D"`).
+  - Supported typed non-nilable and nilable (`Type?`) property accessors, ensuring non-nilable accessors return pure `T` with dead-pointer safety.
+  - Auto-prefixed `::Godot::` namespace for engine built-in classes.
+  - Removed legacy macro collision in `node_refs.cr`.
+- **Consumer Engine Library Sync**:
+  - Added `src/lapis/**/*.cr` to baked engine manifests across Windows, Linux, and macOS.
+  - Updated `lapis sync` to automatically synchronize live workspace `src/` directly into consumer project dependencies (`template/lib/lapis`, `template-addon/lib/lapis`) or extract with overwrite from `BakedFileSystem`.
+
+---
+
 ## [0.0.258] - 2026-10-05
 
 ### Fixed

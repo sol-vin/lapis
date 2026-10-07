@@ -35,33 +35,14 @@ test_suite "Nodes" do
     end
   end
 
-  test "PlayerController is registered with CharacterBody3D parent, signals, and exports" do
-    entry = Godot::ClassRegistry.find("PlayerController")
-    assert_not_nil entry, "Expected PlayerController to be registered in ClassRegistry"
-    assert_eq entry.not_nil!.parent_name, "CharacterBody3D"
+  test "MainNode exports orbit properties" do
+    entry = Godot::ClassRegistry.find("MainNode")
+    assert_not_nil entry, "Expected MainNode to be registered in ClassRegistry"
     props = entry.not_nil!.properties.map(&.name)
-    assert_includes props, "speed"
-    assert_includes props, "max_health"
-    assert_includes props, "current_health"
-    sigs = entry.not_nil!.signals.map(&.name)
-    assert_includes sigs, "health_changed"
-    assert_includes sigs, "player_moved"
-  end
-
-  test "GameHUD is registered with Control parent and title property" do
-    entry = Godot::ClassRegistry.find("GameHUD")
-    assert_not_nil entry, "Expected GameHUD to be registered in ClassRegistry"
-    assert_eq entry.not_nil!.parent_name, "Control"
-    props = entry.not_nil!.properties.map(&.name)
-    assert_includes props, "title"
-  end
-
-  test "MyCrystalNode property defaults" do
-    entry = Godot::ClassRegistry.find("MyCrystalNode")
-    assert_not_nil entry, "Expected MyCrystalNode to be registered in ClassRegistry"
-    props = entry.not_nil!.properties.map(&.name)
-    assert_includes props, "my_var"
-    assert_includes props, "greeting"
+    assert_includes props, "orbit_speed"
+    assert_includes props, "orbit_radius"
+    assert_includes props, "orbit_height"
+    assert_includes props, "orbit_enabled"
   end
 end
 

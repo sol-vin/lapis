@@ -1,17 +1,34 @@
 [gd_scene format=3 uid="uid://cofcndr2uxf3e"]
 
-[ext_resource type="Script" path="res://src/main.cr" id="1_main"]
-[ext_resource type="Script" path="res://src/player_controller.cr" id="2_player"]
-[ext_resource type="Script" path="res://src/game_hud.cr" id="3_hud"]
-[ext_resource type="Script" path="res://src/my_node.cr" id="4_mynode"]
-[ext_resource type="Script" path="res://scripts/mygdnode.gd" id="5_gdnode"]
+[ext_resource type="Script" uid="uid://dphvveoe3munb" path="res://src/main.cr" id="1_main"]
+[ext_resource type="Texture2D" uid="uid://dosvrqckrvlht" path="res://logo.png" id="2_0wfyh"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sugp2"]
+albedo_texture = ExtResource("2_0wfyh")
+uv1_scale = Vector3(2.005, 2.005, 2.005)
+uv1_triplanar = true
+texture_filter = 0
 
 [sub_resource type="BoxMesh" id="BoxMesh_1"]
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_0wfyh"]
+spread = 52.347
+radial_velocity_min = 4.9999776
+radial_velocity_max = 9.999977
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_8gx7p"]
+albedo_texture = ExtResource("2_0wfyh")
+billboard_mode = 3
+
+[sub_resource type="QuadMesh" id="QuadMesh_sugp2"]
+material = SubResource("StandardMaterial3D_8gx7p")
+size = Vector2(0.25, 0.25)
 
 [node name="MainNode" type="MainNode" unique_id=1913652511]
 script = ExtResource("1_main")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1664467660]
+material_override = SubResource("StandardMaterial3D_sugp2")
 mesh = SubResource("BoxMesh_1")
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=1921738378]
@@ -20,14 +37,8 @@ transform = Transform3D(1, 0, 0, 0, 0.866025, 0.5, 0, -0.5, 0.866025, 0, 2, 4)
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=958358363]
 transform = Transform3D(0.866025, -0.25, 0.433013, 0, 0.866025, 0.5, -0.5, -0.433013, 0.75, 0, 5, 0)
 
-[node name="Player" type="PlayerController" parent="." unique_id=542132317]
-script = ExtResource("2_player")
-
-[node name="HUD" type="GameHUD" parent="." unique_id=542132318]
-script = ExtResource("3_hud")
-
-[node name="MyCrystalNode" type="MyCrystalNode" parent="." unique_id=769559760]
-script = ExtResource("4_mynode")
-
-[node name="MyGDNode" type="Node" parent="." unique_id=1762949384]
-script = ExtResource("5_gdnode")
+[node name="GPUParticles3D" type="GPUParticles3D" parent="." unique_id=1199817196]
+explosiveness = 0.2
+randomness = 0.2
+process_material = SubResource("ParticleProcessMaterial_0wfyh")
+draw_pass_1 = SubResource("QuadMesh_sugp2")

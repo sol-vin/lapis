@@ -271,6 +271,46 @@ module Godot
       super(deep)
     end
   end
+
+  class Mesh < Resource
+    # Returns the material for the given surface index, downcast to target type T.
+    def surface_get_material(surf_idx : Int, as type : T.class) : T forall T
+      surface_get_material(surf_idx.to_i64).as_a(T)
+    end
+
+    # Returns the material for the given surface index, downcast to target type T (or nil if invalid/incompatible).
+    def surface_get_material?(surf_idx : Int, as type : T.class) : T? forall T
+      surface_get_material(surf_idx.to_i64).as_a?(T)
+    end
+
+    def surface_get_material(surf_idx : Int, type : T.class) : T forall T
+      surface_get_material(surf_idx.to_i64).as_a(T)
+    end
+
+    def surface_get_material?(surf_idx : Int, type : T.class) : T? forall T
+      surface_get_material(surf_idx.to_i64).as_a?(T)
+    end
+  end
+
+  class PrimitiveMesh < Mesh
+    # Returns the material of this primitive mesh, downcast to target type T.
+    def material(as type : T.class) : T forall T
+      get_material.as_a(T)
+    end
+
+    # Returns the material of this primitive mesh, downcast to target type T (or nil if invalid/incompatible).
+    def material?(as type : T.class) : T? forall T
+      get_material.as_a?(T)
+    end
+
+    def material(type : T.class) : T forall T
+      get_material.as_a(T)
+    end
+
+    def material?(type : T.class) : T? forall T
+      get_material.as_a?(T)
+    end
+  end
 end
 
 # Ergonomic Preload (>) and Dynamic Load (>>) Operators

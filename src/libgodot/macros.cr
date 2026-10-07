@@ -969,10 +969,18 @@ macro node(decl, &block)
           else
             actual_o_t = "Godot::Node".id
           end
+          if actual_o_t.stringify.ends_with?("?")
+            actual_o_t = actual_o_t.stringify[0...-1].id
+          end
+          if !actual_o_t.stringify.includes?("::") && Godot.has_constant?(actual_o_t.stringify)
+            actual_o_t = "::Godot::#{actual_o_t}".id
+          end
 
           if o_var
             o_name = o_var.stringify
-            o_path = extracted_path ? (extracted_path.is_a?(StringLiteral) ? extracted_path : extracted_path.id.stringify) : (is_unique_call ? "%#{o_name.camelcase}" : o_name)
+            actual_class_name = actual_o_t.stringify.split("::").last
+            fallback_target = (actual_class_name != "Node" && !actual_class_name.empty?) ? actual_class_name : o_name.camelcase
+            o_path = extracted_path ? (extracted_path.is_a?(StringLiteral) ? extracted_path : extracted_path.id.stringify) : (is_unique_call ? "%#{fallback_target}" : fallback_target)
             if is_unique_call && !o_path.starts_with?('%')
               o_path = "%" + o_path
             end
@@ -1000,12 +1008,26 @@ macro node(decl, &block)
             {% raw_p = stmt.args[2] %}
             {% o_path = raw_p.is_a?(StringLiteral) ? raw_p : raw_p.id.stringify %}
           {% else %}
-            {% o_path = is_unique_call ? "%#{o_var.id.stringify.camelcase}" : o_var.id.stringify.camelcase %}
+            {%
+              type_class_name = o_type.stringify.split("::").last
+              fallback_target = (type_class_name != "Node" && !type_class_name.empty?) ? type_class_name : o_var.id.stringify.camelcase
+              o_path = is_unique_call ? "%#{fallback_target}" : fallback_target
+            %}
           {% end %}
         {% end %}
         {% if is_unique_call && !o_path.starts_with?('%') %}
           {% o_path = "%" + o_path %}
         {% end %}
+        {%
+          if o_type.is_a?(Union)
+            o_type = o_type.types.reject { |sub_t| sub_t.stringify == "Nil" || sub_t.stringify == "::Nil" }[0]
+          elsif o_type.stringify.ends_with?("?")
+            o_type = o_type.stringify[0...-1].id
+          end
+          if !o_type.stringify.includes?("::") && Godot.has_constant?(o_type.stringify)
+            o_type = "::Godot::#{o_type}".id
+          end
+        %}
         {% onready_props << {o_var, o_type, o_path} %}
       {% end %}
     {% elsif stmt.is_a?(StringLiteral) && class_doc.empty? %}

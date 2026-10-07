@@ -1,25 +1,5 @@
 {
-	"gdscript_classes": [
-		{
-			"constants": {},
-			"inherits": "Node",
-			"language": "GDScript",
-			"methods": [],
-			"name": "MyGDNode",
-			"path": "res://scripts/mygdnode.gd",
-			"properties": [
-				{
-					"class_name": "",
-					"hint": 0,
-					"hint_string": "",
-					"name": "my_var",
-					"type": 2,
-					"type_name": "int"
-				}
-			],
-			"signals": []
-		}
-	],
+	"gdscript_classes": [],
 	"plugin_classes": [],
 	"project_name": "Crystal Godot Template"
 }

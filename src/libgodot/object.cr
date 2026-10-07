@@ -1382,6 +1382,75 @@ module Godot
       alive? ? self : nil
     end
 
+    # Re-wraps or downcasts this Godot object pointer to the requested Godot wrapper class T,
+    # verifying that the underlying native object inherits from T. Returns nil if invalid or incompatible.
+    def as_a?(type : T.class) : T? forall T
+      {% if T <= Godot::Object %}
+        return nil unless active?
+        if self.is_a?(T)
+          return self
+        end
+        if !@pointer.null?
+          if alive = Bridge.find_alive_instance(@pointer)
+            if typed = alive.as?(T)
+              return typed
+            end
+          end
+          class_name = {{ T.name.stringify.split("::").last }}
+          if Bridge.object_is_class(@pointer, class_name)
+            res = T.new(@pointer)
+            if res.is_a?(RefCounted) && res.get_reference_count == 0
+              res.init_ref
+            end
+            return res
+          end
+        end
+        nil
+      {% else %}
+        nil
+      {% end %}
+    end
+
+    # Re-wraps or downcasts this Godot object pointer to the requested Godot wrapper class T,
+    # raising TypeCastError if incompatible.
+    def as_a(type : T.class) : T forall T
+      if casted = as_a?(type)
+        casted
+      else
+        raise TypeCastError.new("Cannot cast Godot object #{self.class.name} to #{T}")
+      end
+    end
+
+    # Shorthand alias for as_a?(T)
+    def cast_to?(type : T.class) : T? forall T
+      as_a?(type)
+    end
+
+    # Shorthand alias for as_a(T)
+    def cast_to(type : T.class) : T forall T
+      as_a(type)
+    end
+
+    # Shorthand alias matching Variant#as_t(T)
+    def as_t(type : T.class) : T forall T
+      as_a(type)
+    end
+
+    # Shorthand alias for as_t?(T)
+    def as_t?(type : T.class) : T? forall T
+      as_a?(type)
+    end
+
+    # Class-level casting helper
+    def self.cast_to?(obj : Object, type : T.class) : T? forall T
+      obj.as_a?(type)
+    end
+
+    # Class-level casting helper raising TypeCastError
+    def self.cast_to(obj : Object, type : T.class) : T forall T
+      obj.as_a(type)
+    end
+
     def destroyed? : Bool
       @destroyed || !alive?
     end
