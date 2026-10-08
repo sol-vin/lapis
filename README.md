@@ -6,7 +6,7 @@
 
 <!-- carbon:badges -->
 [![Crystal](https://img.shields.io/badge/Crystal-1.20+-black.svg?logo=crystal)](https://crystal-lang.org)
-[![Lapis](https://img.shields.io/badge/Lapis-0.0.277-blueviolet.svg)](https://github.com/sol-vin/lapis/releases)
+[![Lapis](https://img.shields.io/badge/Lapis-0.0.278-blueviolet.svg)](https://github.com/sol-vin/lapis/releases)
 [![Godot](https://img.shields.io/badge/Godot-4.8--dev7-blue.svg?logo=godotengine)](https://godotengine.org)
 [![Tests](https://github.com/sol-vin/lapis/actions/workflows/test.yml/badge.svg)](https://github.com/sol-vin/lapis/actions/workflows/test.yml)
 [![Release](https://github.com/sol-vin/lapis/actions/workflows/release.yml/badge.svg)](https://github.com/sol-vin/lapis/actions/workflows/release.yml)
@@ -273,13 +273,16 @@ node Player < CharacterBody3D do
     end
   end
 
-  # Type-safe tween orchestration with dotted sub-property animation
+  # Statement-based tween orchestration with auto call-peeling and typed identifiers
   private def flash_hit_marker : Void
     tween(self) do
-      animate(visual_mesh.scale, to: Vector3.new(1.15_f32, 1.15_f32, 1.15_f32), duration: 0.08.seconds)
-        .trans(:back).ease(:out)
-      animate(visual_mesh.scale, to: Vector3.new(1.0_f32, 1.0_f32, 1.0_f32), duration: 0.12.seconds)
-        .trans(:cubic).ease(:in)
+      animate(visual_mesh.scale, to: Vector3.new(1.15_f32, 1.15_f32, 1.15_f32), in: 0.08.seconds)
+      trans(Trans.Back)
+      ease(Ease.Out)
+      chain()
+      animate(visual_mesh.scale, to: Vector3.new(1.0_f32, 1.0_f32, 1.0_f32), in: 0.12.seconds)
+      trans(Trans.Cubic)
+      ease(Ease.In)
     end
   end
 
@@ -321,6 +324,7 @@ all_enemies = self * "Enemies/*"                    # Array(Node)
 all_lights  = self * "**/Light*"                    # Recursive globstar
 all_areas   = self * {"HitBoxes/*", Area3D}         # Typed: Array(Area3D)
 regex_boxes = self * /^HitBox_\d+$/                 # Regex: Array(Node)
+hitbox      = self["Enemies/*/Hitbox", Area2D]?     # Nilable: returns nil if empty!
 
 # 5. Zero-Allocation Streaming Iteration:
 each_node("Enemies/*", Enemy) do |enemy|
@@ -339,27 +343,24 @@ alive_count = group(:enemies).size
 
 ### Type-Safe Tween Orchestration
 
-The `tween` macro verifies properties and methods at compile time, rejecting typos before the engine launches:
+The `tween` macro peels apart block statements into a fluent pipeline, strictly verifying typed property identifiers at compile time:
 
 ```crystal
-# Chain sequential and parallel animations with full easing curves
-tween(character) do
-  # Dotted sub-property animation with compile-time type validation
-  animate(modulate.a, to: 0.0_f32, duration: 0.4.seconds)
-    .trans(:cubic)
-    .ease(:out)
-
-  # Parallel step executed concurrently with preceding animation
-  parallel
-    .animate(position.y, to: 100.0_f32, duration: 0.4.seconds)
-    .trans(:bounce)
-    .ease(:out)
-
-  # Chain next step after parallel group completes
-  chain
-    .animate(scale, to: Vector2.new(1.0, 1.0), duration: 0.2.seconds)
-    .delay(0.1.seconds)
+# Statement-based tween pipeline with auto call-peeling, easing curves, and typed identifiers
+tw = tween(hero) do
+  animate(position, to: Vector2.new(120, 80), in: 4.seconds)
+  chain()
+  animate(modulate, from: Color::RED, to: Color::BLUE, in: 0.3.seconds)
+  parallel()
+  ease(Ease.Out)
+  trans(Trans.Cubic)
+  animate(scale, to: Vector2.new(1.2, 1.2), in: 0.3.seconds)
+  chain()
+  animate(modulate.a, to: 0.0, in: 0.25.seconds)
 end
+
+# Non-blocking cooperative await on the tween's completion
+await(tw.finished)
 ```
 
 ---
@@ -568,6 +569,7 @@ Embedding a garbage-collected language (Crystal Boehm GC) inside a native C++ en
 3. **Graceful `DisposedObjectError`**: If an object is freed, Lapis marks the pointer null and raises `Godot::DisposedObjectError` instead of crashing.
 4. **Defensive Inspection**: Check `node.alive?` or `node.destroyed?` before interacting with transient entities.
 5. **Main-Thread SceneTree Affinity**: Scene graph mutations (`add_child`, `remove_child`, `queue_free`) enforce main-thread execution (`assert_main_thread!`) with automatic thread-safe deferral (`call_deferred` / `Godot.on_main_thread`).
+6. **Dead-Pointer Armor (`try?` & `if_alive`)**: Safely invoke methods on nilable or transient objects with `@heal_sfx.try?(&.play)` or `@target.try?(&.take_damage(spell.power))`. `try?` automatically queries Godot's ObjectDB monotonic ID table and returns `nil` safely if the object was freed or `nil`, eliminating C#'s `.NET ?.` `ObjectDisposedException` trap.
 
 ---
 
