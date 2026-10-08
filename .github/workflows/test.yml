@@ -18,6 +18,9 @@ concurrency:
   group: test-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  NODE_OPTIONS: "--dns-result-order=ipv4first"
+
 jobs:
   # =========================================================================
   # STAGE 1: FAST SPECS & TOOLCHAIN VALIDATION (pure Crystal, ~2-3 min)
@@ -808,6 +811,7 @@ jobs:
       - name: Upload JUnit XML Artifacts (Windows)
         uses: actions/upload-artifact@v4
         if: always()
+        continue-on-error: true
         with:
           name: junit-test-results-windows
           path: |
@@ -821,6 +825,7 @@ jobs:
 
       - name: Upload Test Status Report (Windows)
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: test-status-report-windows
@@ -847,6 +852,7 @@ jobs:
 
       - name: Upload Runner Diagnostic Logs (Windows)
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: runner-logs-windows
@@ -1017,6 +1023,7 @@ jobs:
       - name: Upload JUnit XML Artifacts (Linux)
         uses: actions/upload-artifact@v4
         if: always()
+        continue-on-error: true
         with:
           name: junit-test-results-linux
           path: |
@@ -1028,6 +1035,7 @@ jobs:
 
       - name: Upload Test Status Report (Linux)
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: test-status-report-linux
@@ -1052,6 +1060,7 @@ jobs:
 
       - name: Upload Runner Diagnostic Logs (Linux)
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: runner-logs-linux
@@ -1239,6 +1248,7 @@ jobs:
       - name: Upload JUnit XML Artifacts (macOS)
         uses: actions/upload-artifact@v4
         if: always()
+        continue-on-error: true
         with:
           name: junit-test-results-macos
           path: |
@@ -1250,6 +1260,7 @@ jobs:
 
       - name: Upload Test Status Report (macOS)
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: test-status-report-macos
@@ -1274,6 +1285,7 @@ jobs:
 
       - name: Upload Runner Diagnostic Logs (macOS)
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: runner-logs-macos
