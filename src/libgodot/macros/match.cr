@@ -169,11 +169,18 @@ end
 # end
 # ```
 macro match(target, &block)
-  %target = {{ target }}
-  %matched = false
-  %result = nil
+  {% if block.is_a?(Nop) %}
+    {% if @top_level.has_constant?(:Spec) && Spec.has_constant?(:MatchExpectation) %}
+      Spec::MatchExpectation.new({{ target }})
+    {% else %}
+      {% raise "match macro requires a block with patterns (e.g. 'match target do is ... end')" %}
+    {% end %}
+  {% else %}
+    %target = {{ target }}
+    %matched = false
+    %result = nil
 
-  {% exps = block.body.is_a?(Expressions) ? block.body.expressions : [block.body] %}
+    {% exps = block.body.is_a?(Expressions) ? block.body.expressions : [block.body] %}
 
   {% for exp in exps %}
     {% if exp.is_a?(Call) && (exp.name == "is" || exp.name == "default") %}
@@ -449,4 +456,5 @@ macro match(target, &block)
   {% end %}
 
   %result
+  {% end %}
 end
