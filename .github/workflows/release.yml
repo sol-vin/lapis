@@ -1524,7 +1524,7 @@ jobs:
     name: Build Consumers & Templates (Windows)
     needs: [build-core-windows]
     runs-on: windows-latest
-    timeout-minutes: 12
+    timeout-minutes: 20
     env:
       RELEASE: 1
       LIBGODOT_VERBOSE: 1
@@ -1633,7 +1633,7 @@ jobs:
           bin/lapis setup templates
 
       - name: Build Templates, Examples & Benchmarks
-        timeout-minutes: 10
+        timeout-minutes: 15
         shell: pwsh
         run: |
           make template template_addon examples perf perf_standalone RELEASE=1
@@ -1658,7 +1658,7 @@ jobs:
     name: Build Consumers & Templates (Linux)
     needs: [build-core-linux]
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 20
     env:
       RELEASE: 1
       LIBGODOT_VERBOSE: 1
@@ -1773,7 +1773,7 @@ jobs:
           bin/lapis setup templates
 
       - name: Build Templates, Examples & Benchmarks
-        timeout-minutes: 10
+        timeout-minutes: 15
         shell: bash
         run: |
           xvfb-run --auto-servernum make template template_addon examples perf perf_standalone RELEASE=1
@@ -1798,7 +1798,7 @@ jobs:
     name: Build Consumers & Templates (macOS)
     needs: [build-core-macos]
     runs-on: macos-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     env:
       RELEASE: 1
       LIBGODOT_VERBOSE: 1
@@ -1930,7 +1930,7 @@ jobs:
           bin/lapis setup templates
 
       - name: Build Templates, Examples & Benchmarks
-        timeout-minutes: 10
+        timeout-minutes: 25
         shell: bash
         run: |
           make template template_addon examples perf perf_standalone RELEASE=1
