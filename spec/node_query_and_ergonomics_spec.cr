@@ -164,6 +164,49 @@ describe "Scene Tree Glob Queries & Ergonomics" do
       root["Target*"]?.not_nil!.name.should eq("TargetAlpha")
       root["Missing*"]?.should be_nil
     end
+
+    it "returns nil for self['Enemies/*/Hitbox', Area2D]? when result array would have been empty" do
+      root = Godot::Node.new; root.name = "Root"
+      enemies = Godot::Node.new; enemies.name = "Enemies"; root.add_child(enemies)
+
+      # 1. No children matching path -> returns nil
+      hitbox = root["Enemies/*/Hitbox", Godot::Area2D]?
+      hitbox.should be_nil
+
+      # 2. Matching node path exists, but NONE are Area2D -> returns nil (not a false-positive untyped first node)
+      e1 = Godot::Node.new; e1.name = "Goblin"; enemies.add_child(e1)
+      h1 = Godot::Node.new; h1.name = "Hitbox"; e1.add_child(h1)
+
+      hitbox2 = root["Enemies/*/Hitbox", Godot::Area2D]?
+      hitbox2.should be_nil
+
+      # 3. Add an Area2D hitbox under a second enemy -> successfully resolves typed match
+      e2 = Godot::Node.new; e2.name = "Orc"; enemies.add_child(e2)
+      h2 = Godot::Area2D.new; h2.name = "Hitbox"; e2.add_child(h2)
+
+      found = root["Enemies/*/Hitbox", Godot::Area2D]?
+      found.should_not be_nil
+      found.should eq(h2)
+      found.should be_a(Godot::Area2D)
+
+      # 4. Non-nilable variant returns h2 or raises NodeNotFoundError when empty
+      root["Enemies/*/Hitbox", Godot::Area2D].should eq(h2)
+      expect_raises(Godot::NodeNotFoundError) do
+        root["Missing/*/Hitbox", Godot::Area2D]
+      end
+
+      # 5. Type-first syntax self[Area2D, path]?
+      root[Godot::Area2D, "Enemies/*/Hitbox"]?.should eq(h2)
+      root[Godot::Area2D, "NonExistent/*"]?.should be_nil
+
+      # 6. Array(T) overloads returning nil if empty or Array if matched
+      root["Enemies/*/Hitbox", Array(Godot::Area2D)]?.should eq([h2])
+      root["NonExistent/*", Array(Godot::Area2D)]?.should be_nil
+      root["Enemies/*/Hitbox", Array(Godot::Area2D)].should eq([h2])
+
+      # 7. Leading $ notation works cleanly
+      root["$Enemies/*/Hitbox", Godot::Area2D]?.should eq(h2)
+    end
   end
 
   describe "Family & Hierarchy Navigation" do

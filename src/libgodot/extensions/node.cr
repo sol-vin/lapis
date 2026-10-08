@@ -638,5 +638,15 @@ module Godot
       return @local_modulate if @pointer.null?
       previous_def
     end
+
+    def alpha : Float32
+      get_modulate.a
+    end
+
+    def alpha=(val : Number) : Void
+      m = get_modulate
+      m.a = val.to_f32
+      set_modulate(m)
+    end
   end
 end

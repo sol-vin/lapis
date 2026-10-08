@@ -11,9 +11,11 @@ module Godot
 
       start_node = origin
 
-      if clean_pattern == "." || clean_pattern == "./"
+      if clean_pattern == "$" || clean_pattern == "$." || clean_pattern == "." || clean_pattern == "./"
         return [origin] of Node
       end
+
+      clean_pattern = clean_pattern.lchop("$") if clean_pattern.starts_with?("$")
 
       # Absolute path starting with /
       if clean_pattern.starts_with?("/")
@@ -204,7 +206,7 @@ module Godot
   class Node
     # Attempts to downcast or wrap this node as type T. Returns nil if node does not inherit from T.
     def self.cast_to?(node : Node, type : T.class) : T? forall T
-      {% if T <= Godot::Node %}
+      {% if T <= Godot::Object %}
         return nil unless node.active?
         if node.is_a?(T)
           return node

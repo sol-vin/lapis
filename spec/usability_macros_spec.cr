@@ -178,5 +178,17 @@ describe "Lapis Usability Macros & Ergonomic DSL" do
       end
       t2.should be_a(Godot::Tween)
     end
+
+    it "supports automatic statement peeling with chain(), parallel(), and ease(Ease.Out)" do
+      node = UsabilityTestNode.new
+      tw = tween(node) do
+        animate(speed, to: 120.0_f32, in: 4.seconds)
+        chain()
+        animate(score, from: 120, to: 400, in: 10.seconds)
+        parallel()
+        ease(Ease.Out)
+      end
+      tw.should be_a(Godot::Tween)
+    end
   end
 end

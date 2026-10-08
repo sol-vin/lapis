@@ -284,7 +284,7 @@ module Lapis
         # ```
         def self.topic_10_scene_pipeline_and_builders : Nil; end
 
-        # **Type-Safe Tweening & Animations**: Compile-time type-checked tween macro, multi-symbol paths, and Time::Span.
+        # **Type-Safe Tweening & Animations**: Compile-time type-checked tween macro, automatic statement peeling, and Ease/Trans enums.
         #
         # ```crystal
         # # 1. Pure compile-time type-checked macro (catches typos like boss.positiom.y at compile time!):
@@ -293,11 +293,15 @@ module Lapis
         # # 2. Implicit self dot-syntax tweening:
         # tween(position.y, to: 150.0, in: 0.4.seconds)
         #
-        # # 3. Fluent multi-step Tween pipeline:
-        # tween(boss) do
-        #   animate(position, to: Vector2.new(200.0, 100.0), in: 0.5.seconds).ease(:out).trans(:quad)
-        #     .chain.animate(modulate.a, to: 0.0, in: 0.2.seconds)
-        #     .parallel.animate(scale, to: Vector2.one * 1.5, in: 0.2.seconds)
+        # # 3. Statement-based tween block with automatic peeling, chaining, and type-safe enums:
+        # tween(hero) do
+        #   animate(position, to: Vector2.new(200.0, 100.0), in: 0.5.seconds)
+        #   chain()
+        #   animate(modulate.a, to: 0.0, in: 0.2.seconds)
+        #   parallel()
+        #   animate(scale, to: Vector2.one * 1.5, in: 0.2.seconds)
+        #   ease(Ease.Out)
+        #   trans(Trans.Quad)
         # end
         # ```
         def self.topic_11_tween_ergonomics : Nil; end

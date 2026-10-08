@@ -369,6 +369,12 @@ test_suite "HierarchyErgonomics" do
     assert_true s1.visible
     assert_true s2.visible
 
+    # 7. Wildcard indexer query returning nil when result array would have been empty
+    assert_true root["Spawns/*/TargetMarker", Godot::Marker2D]?.is_a?(Godot::Marker2D)
+    assert_nil root["Spawns/*/NonExistent", Godot::Marker2D]?
+    assert_nil root["Spawns/*/TargetMarker", Godot::Sprite2D]?
+    assert_nil root["Spawns/*/TargetMarker", Array(Godot::Sprite2D)]?
+
     root.destroy
   end
 end

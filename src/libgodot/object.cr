@@ -2515,10 +2515,10 @@ module Godot
     # Retrieves a child or sibling node by NodePath string, or returns nil if not found.
     # Transparently supports leading '$', scene-unique '%' prefixes, '%UniqueRoot/sub/path', and wildcard patterns.
     def get_node?(path : String) : Node?
-      if path.includes?('*')
+      if path.includes?('*') || path.includes?('?')
         if self.is_a?(Node)
           return self.as(Node).first_node?(path)
-        elsif !@pointer.null?
+        elsif !@pointer.null? && Bridge.object_is_class(@pointer, "Node")
           node_wrapper = Node.new(@pointer)
           return node_wrapper.first_node?(path)
         else
@@ -2653,6 +2653,10 @@ module Godot
     # Returns the node cast to `T`, or produces an error if the node does not exist or cannot be cast.
     def get_node_as(path : String | NodePath, type : T.class) : T forall T
       p = path.to_s
+      if p.includes?('*') || p.includes?('?')
+        return first_node(p, type)
+      end
+
       node = get_node(p)
       if !@pointer.null? && node.pointer.null?
         raise NodeNotFoundError.new("Node not found: '#{p}' (relative to '#{self.name}').")
@@ -2676,6 +2680,10 @@ module Godot
     # Retrieves a child node cast to the specified Crystal class type `T`, or nil if not found or type mismatch.
     def get_node_as?(path : String | NodePath, type : T.class) : T? forall T
       p = path.to_s
+      if p.includes?('*') || p.includes?('?')
+        return first_node?(p, type)
+      end
+
       if node = get_node?(p)
         return nil if !@pointer.null? && node.pointer.null?
         if node.is_a?(T)
@@ -2756,6 +2764,31 @@ module Godot
     # Safe flexible type-first overload: self[Sprite2D, "Visuals/Sprite2D"]?
     def []?(type : T.class, path : String | NodePath) : T? forall T
       get_node_as?(path, type)
+    end
+
+    # Multi-node typed glob query returning Array(T)
+    def [](path : String | NodePath, type : ::Array(T).class) : ::Array(T) forall T
+      p = path.to_s
+      get_nodes(p, T)
+    end
+
+    # Safe multi-node typed glob query returning nil if the result array would have been empty
+    def []?(path : String | NodePath, type : ::Array(T).class) : ::Array(T)? forall T
+      p = path.to_s
+      nodes = get_nodes(p, T)
+      nodes.empty? ? nil : nodes
+    end
+
+    # Flexible type-first overloads for Array(T)
+    def [](type : ::Array(T).class, path : String | NodePath) : ::Array(T) forall T
+      p = path.to_s
+      get_nodes(p, T)
+    end
+
+    def []?(type : ::Array(T).class, path : String | NodePath) : ::Array(T)? forall T
+      p = path.to_s
+      nodes = get_nodes(p, T)
+      nodes.empty? ? nil : nodes
     end
 
     # Returns all nodes matching the glob pattern (supports '*' and '**').
@@ -2846,6 +2879,28 @@ module Godot
         Node.new(@pointer).first_node?(pattern, type, case_sensitive)
       else
         nil
+      end
+    end
+
+    # Returns the first node matching the glob pattern, raising NodeNotFoundError if not found.
+    def first_node(pattern : String, case_sensitive : Bool = true) : Node
+      if self.is_a?(Node)
+        self.as(Node).first_node(pattern, case_sensitive)
+      elsif !@pointer.null? && Bridge.object_is_class(@pointer, "Node")
+        Node.new(@pointer).first_node(pattern, case_sensitive)
+      else
+        raise NodeNotFoundError.new("No node found matching pattern '#{pattern}' (relative to '#{self.name}').")
+      end
+    end
+
+    # Returns the first node matching the glob pattern cast to type T, raising NodeNotFoundError if not found.
+    def first_node(pattern : String, type : T.class, case_sensitive : Bool = true) : T forall T
+      if self.is_a?(Node)
+        self.as(Node).first_node(pattern, type, case_sensitive)
+      elsif !@pointer.null? && Bridge.object_is_class(@pointer, "Node")
+        Node.new(@pointer).first_node(pattern, type, case_sensitive)
+      else
+        raise NodeNotFoundError.new("No node of type #{T.name} found matching pattern '#{pattern}' (relative to '#{self.name}').")
       end
     end
 

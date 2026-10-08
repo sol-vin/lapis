@@ -5,6 +5,38 @@
 require "time"
 
 module Godot
+  # Type-safe easing curve enum
+  enum Ease : Int64
+    In = 0_i64
+    Out = 1_i64
+    InOut = 2_i64
+    OutIn = 3_i64
+
+    def to_ease_type : Tween::EaseType
+      Tween::EaseType.new(value)
+    end
+  end
+
+  # Type-safe transition curve enum
+  enum Trans : Int64
+    Linear = 0_i64
+    Sine = 1_i64
+    Quint = 2_i64
+    Quart = 3_i64
+    Quad = 4_i64
+    Expo = 5_i64
+    Elastic = 6_i64
+    Cubic = 7_i64
+    Circ = 8_i64
+    Bounce = 9_i64
+    Back = 10_i64
+    Spring = 11_i64
+
+    def to_trans_type : Tween::TransitionType
+      Tween::TransitionType.new(value)
+    end
+  end
+
   # Expressive step wrapper around Godot::PropertyTweener supporting fluent chaining
   class PropertyTweenerStep
     getter tweener : PropertyTweener
@@ -35,7 +67,7 @@ module Godot
     end
 
     # Configures the transition curve type (e.g. :cubic, :elastic, :linear)
-    def trans(type : Tween::TransitionType | Symbol | Int) : self
+    def trans(type : Tween::TransitionType | Trans | Symbol | Int) : self
       parsed = Tween.parse_trans(type)
       ret = @tweener.set_trans(parsed)
       ret.unreference
@@ -43,7 +75,7 @@ module Godot
     end
 
     # Configures the easing curve type (e.g. :in, :out, :in_out)
-    def ease(type : Tween::EaseType | Symbol | Int) : self
+    def ease(type : Tween::EaseType | Ease | Symbol | Int) : self
       parsed = Tween.parse_ease(type)
       ret = @tweener.set_ease(parsed)
       ret.unreference
@@ -68,6 +100,26 @@ module Godot
       @builder.parallel
     end
 
+    def loops(count : Int = 0) : TweenBuilder
+      @builder.loops(count)
+    end
+
+    def speed_scale(scale : Float64) : TweenBuilder
+      @builder.speed_scale(scale)
+    end
+
+    def pause : TweenBuilder
+      @builder.pause
+    end
+
+    def play : TweenBuilder
+      @builder.play
+    end
+
+    def kill : TweenBuilder
+      @builder.kill
+    end
+
     # Chains another animation step directly on target
     def animate(
       target : Object,
@@ -76,10 +128,10 @@ module Godot
       duration : Float64 | ::Time::Span = 0.2,
       in in_duration : (Float64 | ::Time::Span)? = nil,
       from from_val : (Variant | Object | Int32 | Int64 | Float32 | Float64 | Bool | String | Vector2 | Vector3 | Vector4 | Color)? = nil,
-      trans : Tween::TransitionType | Symbol | Int = :linear,
-      ease : Tween::EaseType | Symbol | Int = :in_out
+      trans : Tween::TransitionType | Trans | Symbol | Int = :linear,
+      ease : Tween::EaseType | Ease | Symbol | Int = :in_out
     ) : PropertyTweenerStep
-      @builder.chain.animate(target, prop, to: val, duration: duration, in: in_duration, from: from_val, trans: trans, ease: ease)
+      @builder.animate(target, prop, to: val, duration: duration, in: in_duration, from: from_val, trans: trans, ease: ease)
     end
 
     # Chains another animation on owner node directly
@@ -89,10 +141,10 @@ module Godot
       duration : Float64 | ::Time::Span = 0.2,
       in in_duration : (Float64 | ::Time::Span)? = nil,
       from from_val : (Variant | Object | Int32 | Int64 | Float32 | Float64 | Bool | String | Vector2 | Vector3 | Vector4 | Color)? = nil,
-      trans : Tween::TransitionType | Symbol | Int = :linear,
-      ease : Tween::EaseType | Symbol | Int = :in_out
+      trans : Tween::TransitionType | Trans | Symbol | Int = :linear,
+      ease : Tween::EaseType | Ease | Symbol | Int = :in_out
     ) : PropertyTweenerStep
-      @builder.chain.animate(prop, to: val, duration: duration, in: in_duration, from: from_val, trans: trans, ease: ease)
+      @builder.animate(prop, to: val, duration: duration, in: in_duration, from: from_val, trans: trans, ease: ease)
     end
 
     # Chains sub-property animation on owner node directly
@@ -103,10 +155,10 @@ module Godot
       duration : Float64 | ::Time::Span = 0.2,
       in in_duration : (Float64 | ::Time::Span)? = nil,
       from from_val : (Variant | Object | Int32 | Int64 | Float32 | Float64 | Bool | String | Vector2 | Vector3 | Vector4 | Color)? = nil,
-      trans : Tween::TransitionType | Symbol | Int = :linear,
-      ease : Tween::EaseType | Symbol | Int = :in_out
+      trans : Tween::TransitionType | Trans | Symbol | Int = :linear,
+      ease : Tween::EaseType | Ease | Symbol | Int = :in_out
     ) : PropertyTweenerStep
-      @builder.chain.animate(prop, sub_prop, to: val, duration: duration, in: in_duration, from: from_val, trans: trans, ease: ease)
+      @builder.animate(prop, sub_prop, to: val, duration: duration, in: in_duration, from: from_val, trans: trans, ease: ease)
     end
 
     # Chains an interval delay step
@@ -138,6 +190,26 @@ module Godot
       @builder.parallel
     end
 
+    def loops(count : Int = 0) : TweenBuilder
+      @builder.loops(count)
+    end
+
+    def speed_scale(scale : Float64) : TweenBuilder
+      @builder.speed_scale(scale)
+    end
+
+    def pause : TweenBuilder
+      @builder.pause
+    end
+
+    def play : TweenBuilder
+      @builder.play
+    end
+
+    def kill : TweenBuilder
+      @builder.kill
+    end
+
     def animate(
       target : Object,
       prop : String | NodePath | Symbol,
@@ -145,10 +217,10 @@ module Godot
       duration : Float64 | ::Time::Span = 0.2,
       in in_duration : (Float64 | ::Time::Span)? = nil,
       from from_val : (Variant | Object | Int32 | Int64 | Float32 | Float64 | Bool | String | Vector2 | Vector3 | Vector4 | Color)? = nil,
-      trans : Tween::TransitionType | Symbol | Int = :linear,
-      ease : Tween::EaseType | Symbol | Int = :in_out
+      trans : Tween::TransitionType | Trans | Symbol | Int = :linear,
+      ease : Tween::EaseType | Ease | Symbol | Int = :in_out
     ) : PropertyTweenerStep
-      @builder.chain.animate(target, prop, to: val, duration: duration, in: in_duration, from: from_val, trans: trans, ease: ease)
+      @builder.animate(target, prop, to: val, duration: duration, in: in_duration, from: from_val, trans: trans, ease: ease)
     end
 
     def animate(
@@ -157,10 +229,10 @@ module Godot
       duration : Float64 | ::Time::Span = 0.2,
       in in_duration : (Float64 | ::Time::Span)? = nil,
       from from_val : (Variant | Object | Int32 | Int64 | Float32 | Float64 | Bool | String | Vector2 | Vector3 | Vector4 | Color)? = nil,
-      trans : Tween::TransitionType | Symbol | Int = :linear,
-      ease : Tween::EaseType | Symbol | Int = :in_out
+      trans : Tween::TransitionType | Trans | Symbol | Int = :linear,
+      ease : Tween::EaseType | Ease | Symbol | Int = :in_out
     ) : PropertyTweenerStep
-      @builder.chain.animate(prop, to: val, duration: duration, in: in_duration, from: from_val, trans: trans, ease: ease)
+      @builder.animate(prop, to: val, duration: duration, in: in_duration, from: from_val, trans: trans, ease: ease)
     end
 
     def animate(
@@ -170,10 +242,10 @@ module Godot
       duration : Float64 | ::Time::Span = 0.2,
       in in_duration : (Float64 | ::Time::Span)? = nil,
       from from_val : (Variant | Object | Int32 | Int64 | Float32 | Float64 | Bool | String | Vector2 | Vector3 | Vector4 | Color)? = nil,
-      trans : Tween::TransitionType | Symbol | Int = :linear,
-      ease : Tween::EaseType | Symbol | Int = :in_out
+      trans : Tween::TransitionType | Trans | Symbol | Int = :linear,
+      ease : Tween::EaseType | Ease | Symbol | Int = :in_out
     ) : PropertyTweenerStep
-      @builder.chain.animate(prop, sub_prop, to: val, duration: duration, in: in_duration, from: from_val, trans: trans, ease: ease)
+      @builder.animate(prop, sub_prop, to: val, duration: duration, in: in_duration, from: from_val, trans: trans, ease: ease)
     end
 
     def raw_tweener : IntervalTweener
@@ -253,6 +325,22 @@ module Godot
       self
     end
 
+    # Sets default transition type on the tween
+    def trans(type : Tween::TransitionType | Trans | Symbol | Int) : self
+      parsed = Tween.parse_trans(type)
+      ret = @tween.set_trans(parsed)
+      ret.unreference
+      self
+    end
+
+    # Sets default easing curve type on the tween
+    def ease(type : Tween::EaseType | Ease | Symbol | Int) : self
+      parsed = Tween.parse_ease(type)
+      ret = @tween.set_ease(parsed)
+      ret.unreference
+      self
+    end
+
     # Delays the tween execution by the specified duration in seconds or ::Time::Span
     def delay(duration : Float64 | ::Time::Span) : IntervalTweenerStep
       dur_sec = duration.is_a?(::Time::Span) ? duration.total_seconds : duration.to_f64
@@ -274,8 +362,8 @@ module Godot
       duration : Float64 | ::Time::Span = 0.2,
       in in_duration : (Float64 | ::Time::Span)? = nil,
       from from_val : (Variant | Object | Int32 | Int64 | Float32 | Float64 | Bool | String | Vector2 | Vector3 | Vector4 | Color)? = nil,
-      trans : Tween::TransitionType | Symbol | Int = :linear,
-      ease : Tween::EaseType | Symbol | Int = :in_out
+      trans : Tween::TransitionType | Trans | Symbol | Int = :linear,
+      ease : Tween::EaseType | Ease | Symbol | Int = :in_out
     ) : PropertyTweenerStep
       dur_val = in_duration || duration
       dur_sec = dur_val.is_a?(::Time::Span) ? dur_val.total_seconds : dur_val.to_f64
@@ -307,8 +395,8 @@ module Godot
       duration : Float64 | ::Time::Span = 0.2,
       in in_duration : (Float64 | ::Time::Span)? = nil,
       from from_val : (Variant | Object | Int32 | Int64 | Float32 | Float64 | Bool | String | Vector2 | Vector3 | Vector4 | Color)? = nil,
-      trans : Tween::TransitionType | Symbol | Int = :linear,
-      ease : Tween::EaseType | Symbol | Int = :in_out
+      trans : Tween::TransitionType | Trans | Symbol | Int = :linear,
+      ease : Tween::EaseType | Ease | Symbol | Int = :in_out
     ) : PropertyTweenerStep
       target = @owner || raise "TweenBuilder has no target owner node to animate"
       animate(target, prop, to: val, duration: duration, in: in_duration, from: from_val, trans: trans, ease: ease)
@@ -322,8 +410,8 @@ module Godot
       duration : Float64 | ::Time::Span = 0.2,
       in in_duration : (Float64 | ::Time::Span)? = nil,
       from from_val : (Variant | Object | Int32 | Int64 | Float32 | Float64 | Bool | String | Vector2 | Vector3 | Vector4 | Color)? = nil,
-      trans : Tween::TransitionType | Symbol | Int = :linear,
-      ease : Tween::EaseType | Symbol | Int = :in_out
+      trans : Tween::TransitionType | Trans | Symbol | Int = :linear,
+      ease : Tween::EaseType | Ease | Symbol | Int = :in_out
     ) : PropertyTweenerStep
       animate("#{prop}:#{sub_prop}", to: val, duration: duration, in: in_duration, from: from_val, trans: trans, ease: ease)
     end
@@ -336,21 +424,23 @@ module Godot
       call_obj_as(PropertyTweener, "from", raw_val) || self
     end
 
-    def set_trans(trans : Symbol) : PropertyTweener
+    def set_trans(trans : Trans | Symbol | Int) : PropertyTweener
       set_trans(Tween.parse_trans(trans))
     end
 
-    def set_ease(ease : Symbol) : PropertyTweener
+    def set_ease(ease : Ease | Symbol | Int) : PropertyTweener
       set_ease(Tween.parse_ease(ease))
     end
   end
 
   class Tween < Godot::RefCounted
     # Converts transition type symbol or integer into Godot::Tween::TransitionType
-    def self.parse_trans(val : TransitionType | Symbol | Int) : TransitionType
+    def self.parse_trans(val : TransitionType | Trans | Symbol | Int) : TransitionType
       case val
       when TransitionType
         val
+      when Trans
+        val.to_trans_type
       when Symbol
         case val
         when :linear  then TransitionType::TransLinear
@@ -376,10 +466,12 @@ module Godot
     end
 
     # Converts ease type symbol or integer into Godot::Tween::EaseType
-    def self.parse_ease(val : EaseType | Symbol | Int) : EaseType
+    def self.parse_ease(val : EaseType | Ease | Symbol | Int) : EaseType
       case val
       when EaseType
         val
+      when Ease
+        val.to_ease_type
       when Symbol
         case val
         when :in             then EaseType::EaseIn
@@ -410,6 +502,9 @@ module Godot
   end
 end
 
+alias Ease = Godot::Ease
+alias Trans = Godot::Trans
+
 class Godot::Node
   # Builds a tween using an expressive builder DSL
   def tween(&) : Godot::Tween
@@ -422,140 +517,153 @@ end
 
 # :nodoc:
 macro __rewrite_val(val)
-  {% if val.is_a?(Call) && val.receiver && val.args.size == 0 && (val.name.stringify =~ /^[A-Z][A-Z0-9_]*$/) %}
+  {% if val.is_a?(Call) && val.receiver && val.args.size == 0 && (val.name.stringify =~ /^[A-Z][a-zA-Z0-9_]*$/) %}
     {{ val.receiver }}::{{ val.name.id }}
   {% else %}
     {{ val }}
   {% end %}
 end
 
-# :nodoc:
-macro __transform_tween_statement(target, stmt, builder_var)
-  {% if stmt.is_a?(Assign) %}
-    {{ stmt }}
-  {% else %}
-    {%
-      calls = [] of ASTNode
-      curr = stmt
-      if curr.is_a?(Expressions)
-        curr = curr.expressions.last
-      end
-    %}
-
-    {% for i in 0...32 %}
-      {% if curr && curr.is_a?(Call) %}
-        {% calls.unshift(curr) %}
-        {% if curr.receiver %}
-          {%
-            rec = curr.receiver
-            if rec.is_a?(Expressions)
-              rec = rec.expressions.last
-            end
-            if rec.is_a?(Call)
-              curr = rec
-            else
-              calls.unshift(rec)
-              curr = nil
-            end
-          %}
-        {% else %}
-          {% curr = nil %}
-        {% end %}
-      {% else %}
-        {% curr = nil %}
-      {% end %}
-    {% end %}
-
-    {% first_node = calls.first %}
-    {% if !first_node.is_a?(Call) || first_node.receiver %}
-      {{ stmt }}
-    {% else %}
-      # Compile-time type safety check for any animate call
-      if false
-        {% for call in calls %}
-          {% if call.is_a?(Call) && call.name.stringify == "animate" %}
-            {%
-              prop_arg = call.args[0]
-              to_val = nil
-              from_val = nil
-            %}
-            {% if call.named_args && !call.named_args.is_a?(Nop) %}
-              {% for narg in call.named_args %}
-                {% if narg.name.stringify == "to" %}
-                  {% to_val = narg.value %}
-                {% elsif narg.name.stringify == "from" %}
-                  {% from_val = narg.value %}
-                {% end %}
-              {% end %}
-            {% end %}
-
-            {% if prop_arg.is_a?(Call) && prop_arg.receiver %}
-              # Dotted sub-property: e.g. modulate.a or position.x
-              %_tc_sub = {{ target }}.{{ prop_arg.receiver.name }}.{{ prop_arg.name }}
-              {% if to_val %}
-                {{ target }}.{{ prop_arg.receiver.name }}.{{ prop_arg.name }} = (__rewrite_val({{ to_val }}))
-              {% end %}
-              {% if from_val %}
-                {{ target }}.{{ prop_arg.receiver.name }}.{{ prop_arg.name }} = (__rewrite_val({{ from_val }}))
-              {% end %}
-            {% elsif prop_arg.is_a?(Call) || prop_arg.is_a?(Var) %}
-              {% prop_name = prop_arg.name.stringify %}
-              %_tc_prop = {{ target }}.{{ prop_arg.name }}
-              {% if to_val %}
-                {{ target }}.{{ prop_arg.name }} = (__rewrite_val({{ to_val }}))
-              {% end %}
-              {% if from_val %}
-                {{ target }}.{{ prop_arg.name }} = (__rewrite_val({{ from_val }}))
-              {% end %}
-            {% end %}
-          {% end %}
-        {% end %}
-      end
-
-      # Reconstruct the call pipeline
-      %pipeline = {{ builder_var }}
-      {% for call in calls %}
-        {% if call.is_a?(Call) %}
-          {% cname = call.name.stringify %}
-          {% if cname == "animate" %}
-            {%
-              prop_arg = call.args[0]
-              prop_val = nil
-              if prop_arg.is_a?(Call) && prop_arg.receiver
-                # Dotted property: modulate.a -> "modulate:a"
-                prop_val = "#{prop_arg.receiver.name}:#{prop_arg.name}"
-              elsif prop_arg.is_a?(SymbolLiteral)
-                prop_val = prop_arg
-              elsif prop_arg.is_a?(StringLiteral)
-                prop_val = prop_arg.value
-              elsif prop_arg.is_a?(Call) || prop_arg.is_a?(Var)
-                prop_val = prop_arg.name.stringify
-              else
-                prop_val = prop_arg.stringify
-              end
-            %}
-            %pipeline = %pipeline.animate({{ prop_val }}{% for arg, idx in call.args %}{% if idx > 0 %}, __rewrite_val({{ arg }}){% end %}{% end %}{% if call.named_args && !call.named_args.is_a?(Nop) %}{% for narg in call.named_args %}, {{ narg.name }}: __rewrite_val({{ narg.value }}){% end %}{% end %})
-          {% elsif call.args.size > 0 || (call.named_args && !call.named_args.is_a?(Nop) && call.named_args.size > 0) %}
-            %pipeline = %pipeline.{{ call.name }}({% for arg, idx in call.args %}{% if idx > 0 %}, {% end %}__rewrite_val({{ arg }}){% end %}{% if call.named_args && !call.named_args.is_a?(Nop) %}{% for narg, idx in call.named_args %}{% if call.args.size > 0 || idx > 0 %}, {% end %}{{ narg.name }}: __rewrite_val({{ narg.value }}){% end %}{% end %})
-          {% else %}
-            %pipeline = %pipeline.{{ call.name }}
-          {% end %}
-        {% end %}
-      {% end %}
-    {% end %}
-  {% end %}
-end
-
 # Block-based tween DSL targeting specified node with compile-time type verification (e.g. tween(player) do animate(...) end)
 macro tween(target, &block)
   %raw_tween = {{ target }}.create_tween
-  %builder = Godot::TweenBuilder.new(%raw_tween, {{ target }})
-  {% if block.body.is_a?(Expressions) %}
-    {% for expr in block.body.expressions %}
-      __transform_tween_statement({{ target }}, {{ expr }}, %builder)
+  %pipeline = Godot::TweenBuilder.new(%raw_tween, {{ target }})
+  {%
+    exprs = block.body.is_a?(Expressions) ? block.body.expressions : [block.body]
+  %}
+  {% for expr in exprs %}
+    {% if expr.is_a?(Assign) %}
+      {{ expr }}
+    {% else %}
+      {%
+        calls = [] of ASTNode
+        curr = expr
+        if curr.is_a?(Expressions)
+          curr = curr.expressions.last
+        end
+      %}
+      {% for i in 0...32 %}
+        {% if curr && curr.is_a?(Call) %}
+          {% calls.unshift(curr) %}
+          {% if curr.receiver %}
+            {%
+              rec = curr.receiver
+              if rec.is_a?(Expressions)
+                rec = rec.expressions.last
+              end
+              if rec.is_a?(Call)
+                curr = rec
+              else
+                calls.unshift(rec)
+                curr = nil
+              end
+            %}
+          {% else %}
+            {% curr = nil %}
+          {% end %}
+        {% else %}
+          {% curr = nil %}
+        {% end %}
+      {% end %}
+
+      {% first_node = calls.first %}
+      {% if !first_node.is_a?(Call) || first_node.receiver %}
+        {{ expr }}
+      {% else %}
+        {% for call in calls %}
+          {% if call.is_a?(Call) %}
+            {% cname = call.name.stringify %}
+            {% if cname == "animate" %}
+              {%
+                has_named_to = false
+                to_val = nil
+                from_val = nil
+                if call.named_args && !call.named_args.is_a?(Nop)
+                  call.named_args.each do |narg|
+                    if narg.name.stringify == "to"
+                      has_named_to = true
+                      to_val = narg.value
+                    elsif narg.name.stringify == "from"
+                      from_val = narg.value
+                    end
+                  end
+                end
+
+                if has_named_to
+                  if call.args.size >= 2
+                    anim_target = call.args[0]
+                    prop_arg = call.args[1]
+                    arg_offset = 2
+                  else
+                    anim_target = target
+                    prop_arg = call.args[0]
+                    arg_offset = 1
+                  end
+                else
+                  if call.args.size >= 4
+                    anim_target = call.args[0]
+                    prop_arg = call.args[1]
+                    arg_offset = 2
+                  else
+                    anim_target = target
+                    prop_arg = call.args[0]
+                    arg_offset = 1
+                    if to_val.nil? && call.args.size >= 2
+                      to_val = call.args[1]
+                    end
+                  end
+                end
+
+                if prop_arg.is_a?(SymbolLiteral)
+                  raise "Tween property '#{prop_arg}' must be an identifier (e.g. animate(#{prop_arg.value}, ...)), not a symbol, for compile-time type safety."
+                elsif prop_arg.is_a?(StringLiteral)
+                  raise "Tween property \"#{prop_arg.value}\" must be an identifier (e.g. animate(#{prop_arg.value.id}, ...)), not a string, for compile-time type safety."
+                end
+
+                if prop_arg.is_a?(Call) && prop_arg.receiver
+                  prop_str = "#{prop_arg.receiver.name}:#{prop_arg.name}"
+                else
+                  p_name = prop_arg.name.stringify
+                  if p_name == "alpha"
+                    prop_str = "modulate:a"
+                  else
+                    prop_str = p_name
+                  end
+                end
+              %}
+              if false
+                {% if prop_arg.is_a?(Call) && prop_arg.receiver %}
+                  %_tc_sub = {{ anim_target }}.{{ prop_arg.receiver.name }}.{{ prop_arg.name }}
+                  {% if to_val %}
+                    typeof({{ anim_target }}.{{ prop_arg.receiver.name }}.{{ prop_arg.name }}).cast(__rewrite_val({{ to_val }}))
+                  {% end %}
+                  {% if from_val %}
+                    typeof({{ anim_target }}.{{ prop_arg.receiver.name }}.{{ prop_arg.name }}).cast(__rewrite_val({{ from_val }}))
+                  {% end %}
+                {% else %}
+                  %_tc_prop = {{ anim_target }}.{{ prop_arg.name }}
+                  {% if to_val %}
+                    {{ anim_target }}.{{ prop_arg.name }} = (__rewrite_val({{ to_val }}))
+                  {% end %}
+                  {% if from_val %}
+                    {{ anim_target }}.{{ prop_arg.name }} = (__rewrite_val({{ from_val }}))
+                  {% end %}
+                {% end %}
+              end
+              {% if anim_target != target %}
+                %pipeline = %pipeline.animate({{ anim_target }}, {{ prop_str }}{% for arg, idx in call.args %}{% if idx >= arg_offset %}, __rewrite_val({{ arg }}){% end %}{% end %}{% if call.named_args && !call.named_args.is_a?(Nop) %}{% for narg in call.named_args %}, {{ narg.name }}: __rewrite_val({{ narg.value }}){% end %}{% end %})
+              {% else %}
+                %pipeline = %pipeline.animate({{ prop_str }}{% for arg, idx in call.args %}{% if idx >= arg_offset %}, __rewrite_val({{ arg }}){% end %}{% end %}{% if call.named_args && !call.named_args.is_a?(Nop) %}{% for narg in call.named_args %}, {{ narg.name }}: __rewrite_val({{ narg.value }}){% end %}{% end %})
+              {% end %}
+            {% elsif call.args.size > 0 || (call.named_args && !call.named_args.is_a?(Nop) && call.named_args.size > 0) %}
+              %pipeline = %pipeline.{{ call.name }}({% for arg, idx in call.args %}{% if idx > 0 %}, {% end %}__rewrite_val({{ arg }}){% end %}{% if call.named_args && !call.named_args.is_a?(Nop) %}{% for narg, idx in call.named_args %}{% if call.args.size > 0 || idx > 0 %}, {% end %}{{ narg.name }}: __rewrite_val({{ narg.value }}){% end %}{% end %})
+            {% else %}
+              %pipeline = %pipeline.{{ call.name }}
+            {% end %}
+          {% end %}
+        {% end %}
+      {% end %}
     {% end %}
-  {% else %}
-    __transform_tween_statement({{ target }}, {{ block.body }}, %builder)
   {% end %}
   %raw_tween
 end

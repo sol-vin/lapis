@@ -16,7 +16,7 @@ test_suite "TweenDsl" do
 
     # 1. Macro tween(target) do ... end
     tw = tween(probe) do
-      animate(:position, to: Godot::Vector2.new(100.0_f32, 200.0_f32), duration: 0.2)
+      animate(position, to: Godot::Vector2.new(100.0_f32, 200.0_f32), duration: 0.2)
     end
 
     assert_not_nil tw
@@ -40,16 +40,20 @@ test_suite "TweenDsl" do
     probe.destroy
   end
 
-  test "Pillar 2: fluent chaining with .chain.animate and .parallel.animate" do
+  test "Pillar 2: statement peeling and automatic chaining with chain() and parallel()" do
     probe = Godot.create(TweenProbeNode)
     root.call("add_child", probe)
 
     tw = tween(probe) do
-      animate(:position, from: Godot::Vector2::ZERO, to: Godot::Vector2.new(50.0_f32, 50.0_f32), in: 0.3.seconds)
-        .trans(:cubic).ease(:out)
-        .chain.animate(modulate, from: Godot::Color.new(1.0_f32, 0.0_f32, 0.0_f32, 1.0_f32), to: Godot::Color.new(0.0_f32, 0.0_f32, 1.0_f32, 1.0_f32), in: 0.2.seconds)
-        .parallel.animate(scale, to: Godot::Vector2.new(1.5_f32, 1.5_f32), in: 0.2.seconds)
-        .chain.animate(modulate.a, to: 0.5_f32, in: 0.1.seconds)
+      animate(position, from: Godot::Vector2::ZERO, to: Godot::Vector2.new(50.0_f32, 50.0_f32), in: 0.3.seconds)
+      trans(Trans.Cubic)
+      ease(Ease.Out)
+      chain()
+      animate(modulate, from: Godot::Color.new(1.0_f32, 0.0_f32, 0.0_f32, 1.0_f32), to: Godot::Color.new(0.0_f32, 0.0_f32, 1.0_f32, 1.0_f32), in: 0.2.seconds)
+      parallel()
+      animate(scale, to: Godot::Vector2.new(1.5_f32, 1.5_f32), in: 0.2.seconds)
+      chain()
+      animate(modulate.a, to: 0.5_f32, in: 0.1.seconds)
     end
 
     assert_not_nil tw
@@ -85,14 +89,36 @@ test_suite "TweenDsl" do
     probe.destroy
   end
 
+  test "Pillar 2c: user requested tween syntax with automatic statement peeling and method chaining" do
+    hero = Godot.create(TweenProbeNode)
+    root.call("add_child", hero)
+
+    tw = tween(hero) do
+      animate(speed, to: 120.0_f32, in: 4.seconds)
+      chain()
+      animate(health, from: 120, to: 400, in: 10.seconds)
+      parallel()
+      ease(Ease.Out)
+    end
+
+    assert_not_nil tw
+    assert_true tw.is_valid
+    assert_true tw.is_running
+    assert_true tw.has_tweeners
+
+    tw.kill
+    root.call("remove_child", hero)
+    hero.destroy
+  end
+
   test "Pillar 3: starting value and relative steps (.from, .from_current, .as_relative)" do
     probe = Godot.create(TweenProbeNode)
     root.call("add_child", probe)
 
     tw = tween(probe) do
-      animate(:position, to: Godot::Vector2.new(20.0_f32, 0.0_f32), duration: 0.1)
+      animate(position, to: Godot::Vector2.new(20.0_f32, 0.0_f32), duration: 0.1)
         .from_current
-        .chain.animate(:position, to: Godot::Vector2.new(10.0_f32, 10.0_f32), duration: 0.1)
+        .chain.animate(position, to: Godot::Vector2.new(10.0_f32, 10.0_f32), duration: 0.1)
         .as_relative
     end
 
@@ -128,6 +154,10 @@ test_suite "TweenDsl" do
     # Direct enum pass-through
     assert_eq Godot::Tween.parse_trans(Godot::Tween::TransitionType::TransCubic), Godot::Tween::TransitionType::TransCubic
     assert_eq Godot::Tween.parse_ease(Godot::Tween::EaseType::EaseOut), Godot::Tween::EaseType::EaseOut
+
+    # Type-safe Trans and Ease enums
+    assert_eq Godot::Tween.parse_trans(Trans::Cubic), Godot::Tween::TransitionType::TransCubic
+    assert_eq Godot::Tween.parse_ease(Ease::Out), Godot::Tween::EaseType::EaseOut
   end
 
   test "Pillar 5: alpha syntactic sugar mapping to modulate:a on CanvasItem" do
@@ -135,7 +165,7 @@ test_suite "TweenDsl" do
     root.call("add_child", probe)
 
     tw = tween(probe) do
-      animate(:alpha, to: 0.0_f32, in: 0.25.seconds)
+      animate(alpha, to: 0.0_f32, in: 0.25.seconds)
     end
 
     assert_not_nil tw
@@ -152,7 +182,7 @@ test_suite "TweenDsl" do
 
     tw = tween(probe) do
       delay(0.1.seconds)
-        .chain.animate(:position, to: Godot::Vector2.new(10.0_f32, 10.0_f32), duration: 0.2)
+        .chain.animate(position, to: Godot::Vector2.new(10.0_f32, 10.0_f32), duration: 0.2)
         .delay(0.05.seconds)
       loops(2)
       speed_scale(1.5)
@@ -175,10 +205,10 @@ test_suite "TweenDsl" do
         root.call("add_child", probe)
 
         tw = tween(probe) do
-          animate(:position, from: Godot::Vector2.new(0.0_f32, 0.0_f32), to: Godot::Vector2.new(10.0_f32, 20.0_f32), in: 0.1.seconds)
-            .trans(:cubic).ease(:out)
-            .chain.animate(:scale, to: Godot::Vector2.new(1.1_f32, 1.1_f32), in: 0.05.seconds)
-            .parallel.animate(:alpha, to: 0.8_f32, in: 0.05.seconds)
+          animate(position, from: Godot::Vector2.new(0.0_f32, 0.0_f32), to: Godot::Vector2.new(10.0_f32, 20.0_f32), in: 0.1.seconds)
+            .trans(Trans.Cubic).ease(Ease.Out)
+            .chain.animate(scale, to: Godot::Vector2.new(1.1_f32, 1.1_f32), in: 0.05.seconds)
+            .parallel.animate(alpha, to: 0.8_f32, in: 0.05.seconds)
         end
 
         assert_true tw.is_valid
@@ -200,7 +230,7 @@ test_suite "TweenDsl" do
     probe.set_position(Godot::Vector2.new(0.0_f32, 0.0_f32))
 
     tw = tween(probe) do
-      animate(:position, from: Godot::Vector2.new(0.0_f32, 0.0_f32), to: Godot::Vector2.new(100.0_f32, 200.0_f32), duration: 1.0)
+      animate(position, from: Godot::Vector2.new(0.0_f32, 0.0_f32), to: Godot::Vector2.new(100.0_f32, 200.0_f32), duration: 1.0)
         .trans(:linear).ease(:in)
     end
     tw.pause
@@ -245,9 +275,9 @@ test_suite "TweenDsl" do
     probe.set_position(Godot::Vector2.new(0.0_f32, 0.0_f32))
 
     tw = tween(probe) do
-      animate(:position, from: Godot::Vector2.new(0.0_f32, 0.0_f32), to: Godot::Vector2.new(50.0_f32, 0.0_f32), duration: 0.5)
+      animate(position, from: Godot::Vector2.new(0.0_f32, 0.0_f32), to: Godot::Vector2.new(50.0_f32, 0.0_f32), duration: 0.5)
         .trans(:linear).ease(:in)
-        .chain.animate(:position, to: Godot::Vector2.new(50.0_f32, 50.0_f32), duration: 0.5)
+        .chain.animate(position, to: Godot::Vector2.new(50.0_f32, 50.0_f32), duration: 0.5)
         .trans(:linear).ease(:in)
     end
     tw.pause
@@ -282,9 +312,9 @@ test_suite "TweenDsl" do
     probe.set_scale(Godot::Vector2.new(1.0_f32, 1.0_f32))
 
     tw = tween(probe) do
-      animate(:position, from: Godot::Vector2.new(0.0_f32, 0.0_f32), to: Godot::Vector2.new(100.0_f32, 100.0_f32), duration: 0.5)
+      animate(position, from: Godot::Vector2.new(0.0_f32, 0.0_f32), to: Godot::Vector2.new(100.0_f32, 100.0_f32), duration: 0.5)
         .trans(:linear).ease(:in)
-        .parallel.animate(:scale, from: Godot::Vector2.new(1.0_f32, 1.0_f32), to: Godot::Vector2.new(3.0_f32, 3.0_f32), duration: 0.5)
+        .parallel.animate(scale, from: Godot::Vector2.new(1.0_f32, 1.0_f32), to: Godot::Vector2.new(3.0_f32, 3.0_f32), duration: 0.5)
         .trans(:linear).ease(:in)
     end
     tw.pause
@@ -315,7 +345,7 @@ test_suite "TweenDsl" do
 
     tw = tween(probe) do
       delay(0.2.seconds)
-        .chain.animate(:position, from: Godot::Vector2.new(0.0_f32, 0.0_f32), to: Godot::Vector2.new(60.0_f32, 60.0_f32), duration: 0.2)
+        .chain.animate(position, from: Godot::Vector2.new(0.0_f32, 0.0_f32), to: Godot::Vector2.new(60.0_f32, 60.0_f32), duration: 0.2)
         .trans(:linear).ease(:in)
     end
     tw.pause
@@ -353,14 +383,14 @@ test_suite "TweenDsl" do
     probe_cub.set_position(Godot::Vector2.new(0.0_f32, 0.0_f32))
 
     tw_lin = tween(probe_lin) do
-      animate(:position, from: Godot::Vector2.new(0.0_f32, 0.0_f32), to: Godot::Vector2.new(100.0_f32, 0.0_f32), duration: 1.0)
-        .trans(:linear).ease(:in)
+      animate(position, from: Godot::Vector2.new(0.0_f32, 0.0_f32), to: Godot::Vector2.new(100.0_f32, 0.0_f32), duration: 1.0)
+        .trans(Trans.Linear).ease(Ease.In)
     end
     tw_lin.pause
 
     tw_cub = tween(probe_cub) do
-      animate(:position, from: Godot::Vector2.new(0.0_f32, 0.0_f32), to: Godot::Vector2.new(100.0_f32, 0.0_f32), duration: 1.0)
-        .trans(:cubic).ease(:in)
+      animate(position, from: Godot::Vector2.new(0.0_f32, 0.0_f32), to: Godot::Vector2.new(100.0_f32, 0.0_f32), duration: 1.0)
+        .trans(Trans.Cubic).ease(Ease.In)
     end
     tw_cub.pause
 
@@ -392,8 +422,8 @@ test_suite "TweenDsl" do
     finished_count = 0
 
     tw = tween(probe) do
-      animate(:position, to: Godot::Vector2.new(10.0_f32, 10.0_f32), duration: 0.2)
-        .chain.animate(:position, to: Godot::Vector2.new(20.0_f32, 20.0_f32), duration: 0.2)
+      animate(position, to: Godot::Vector2.new(10.0_f32, 10.0_f32), duration: 0.2)
+        .chain.animate(position, to: Godot::Vector2.new(20.0_f32, 20.0_f32), duration: 0.2)
     end
     tw.pause
 
@@ -435,8 +465,8 @@ test_suite "TweenDsl" do
     probe.set_position(Godot::Vector2.new(0.0_f32, 0.0_f32))
 
     tw = tween(probe) do
-      animate(:position, from: Godot::Vector2.new(0.0_f32, 0.0_f32), to: Godot::Vector2.new(100.0_f32, 100.0_f32), duration: 1.0)
-        .trans(:linear).ease(:in)
+      animate(position, from: Godot::Vector2.new(0.0_f32, 0.0_f32), to: Godot::Vector2.new(100.0_f32, 100.0_f32), duration: 1.0)
+        .trans(Trans.Linear).ease(Ease.In)
     end
     tw.pause
 
@@ -464,7 +494,7 @@ test_suite "TweenDsl" do
     probe.set_position(Godot::Vector2.new(0.0_f32, 0.0_f32))
 
     tw = tween(probe) do
-      animate(:position, from: Godot::Vector2.new(0.0_f32, 0.0_f32), to: Godot::Vector2.new(100.0_f32, 100.0_f32), duration: 1.0)
+      animate(position, from: Godot::Vector2.new(0.0_f32, 0.0_f32), to: Godot::Vector2.new(100.0_f32, 100.0_f32), duration: 1.0)
     end
     tw.pause
 
@@ -493,9 +523,9 @@ test_suite "TweenDsl" do
         probe.set_position(Godot::Vector2.new(0.0_f32, 0.0_f32))
 
         tw = tween(probe) do
-          animate(:position, from: Godot::Vector2.new(0.0_f32, 0.0_f32), to: Godot::Vector2.new(20.0_f32, 40.0_f32), duration: 0.2)
-            .trans(:cubic).ease(:out)
-            .chain.animate(:scale, to: Godot::Vector2.new(1.2_f32, 1.2_f32), duration: 0.1)
+          animate(position, from: Godot::Vector2.new(0.0_f32, 0.0_f32), to: Godot::Vector2.new(20.0_f32, 40.0_f32), duration: 0.2)
+            .trans(Trans.Cubic).ease(Ease.Out)
+            .chain.animate(scale, to: Godot::Vector2.new(1.2_f32, 1.2_f32), duration: 0.1)
         end
         tw.pause
 

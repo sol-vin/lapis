@@ -111,7 +111,7 @@ test_suite "AnimationMultiFrame" do
       root.add_child(receiver)
 
       tw = tween(target) do
-        animate(:position, to: Godot::Vector2.new(200.0_f32, 100.0_f32), duration: 0.2)
+        animate(position, to: Godot::Vector2.new(200.0_f32, 100.0_f32), duration: 0.2)
       end
       tw.pause
 
