@@ -187,10 +187,10 @@ module Lapis
           dest_addon = stage_dir.join("addons/#{addon_name}")
           FileUtils.mkdir_p(dest_addon)
 
-          # Copy base addon files
+          # Copy base addon files (excluding source code, specs, and temporary files)
           if Dir.exists?(addon_dir)
             Dir.each_child(addon_dir) do |child|
-              next if child == "bin" || child.starts_with?(".") || child.ends_with?(".log")
+              next if child == "bin" || child == "src" || child == "spec" || child.starts_with?(".") || child.ends_with?(".log") || child.ends_with?(".cr")
               src_child = addon_dir.join(child)
               if File.file?(src_child)
                 safe_copy(src_child, dest_addon.join(child))
@@ -273,7 +273,7 @@ module Lapis
             dest_addon,
             zip_file,
             strip_prefix: stage_dir,
-            exclude_patterns: [".godot", "~", "_loaded_", ".log"]
+            exclude_patterns: [".godot", "~", "_loaded_", ".log", "/src/", "/spec/", ".cr"]
           )
           FileUtils.rm_rf(stage_dir) if Dir.exists?(stage_dir)
         else
@@ -281,7 +281,7 @@ module Lapis
             addon_dir,
             zip_file,
             strip_prefix: base,
-            exclude_patterns: [".godot", "~", "_loaded_", ".log"]
+            exclude_patterns: [".godot", "~", "_loaded_", ".log", "/src/", "/spec/", ".cr"]
           )
         end
         0

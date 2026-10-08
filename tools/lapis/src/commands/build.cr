@@ -464,9 +464,36 @@ module Lapis
           return 1
         end
 
-        bin_dir = proj_dir.join("bin")
+        # Check if this is an addon project (targets: addon: in shard.yml)
+        is_addon_project = false
+        addon_subfolder : Path? = nil
+        if File.exists?(proj_dir.join("shard.yml"))
+          shard_txt = File.read(proj_dir.join("shard.yml")) rescue ""
+          if shard_txt =~ /targets:\s*\n\s*addon:/
+            is_addon_project = true
+            if Dir.exists?(proj_dir.join("addons"))
+              Dir.children(proj_dir.join("addons")).each do |child|
+                next if child == "crystal_integration"
+                if File.exists?(proj_dir.join("addons", child, "plugin.cfg"))
+                  addon_subfolder = proj_dir.join("addons", child)
+                  break
+                end
+              end
+            end
+          end
+        end
+
+        bin_dir = if asf = addon_subfolder
+                    asf.join("bin")
+                  else
+                    proj_dir.join("bin")
+                  end
         FileUtils.mkdir_p(bin_dir) unless Dir.exists?(bin_dir)
         output_lib = bin_dir.join(Core::Env.game_file)
+
+        if is_addon_project && (flags.nil? || !flags.not_nil!.includes?("-Dlibgodot_addon"))
+          flags = flags ? "#{flags} -Dlibgodot_addon" : "-Dlibgodot_addon"
+        end
         Sync.ensure_extension_list(proj_dir)
 
         # Resolve libgodot Crystal source path
@@ -535,6 +562,19 @@ module Lapis
           end
           # Stage bridge and runtime dependencies in crystal_integration bin
           Deps.run(["-t", ci_bin.to_s, "--addon"])
+        end
+
+        # If building a standalone addon project, also sync the compiled library and dependencies to root bin/
+        if is_addon_project && Dir.exists?(proj_dir.join("bin")) && proj_dir.join("bin") != bin_dir
+          root_bin = proj_dir.join("bin")
+          Commands::Deps.safe_copy(output_lib, root_bin.join(output_lib.basename))
+          if Core::Env.windows?
+            src_pdb = Path.new(output_lib.to_s.sub(/\.dll$/, ".pdb"))
+            dst_pdb = root_bin.join(output_lib.basename.to_s.sub(/\.dll$/, ".pdb"))
+            Commands::Deps.safe_copy(src_pdb, dst_pdb) if File.exists?(src_pdb)
+          end
+          Deps.run(["-t", root_bin.to_s])
+          Sync.run(["-t", root_bin.to_s, "--bins-only"])
         end
 
         Core::Logger.success("Game library compiled and synced: #{output_lib.basename}")

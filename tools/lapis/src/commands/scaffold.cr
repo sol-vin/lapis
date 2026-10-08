@@ -612,7 +612,8 @@ TSCN
           # Mode A: In-Project Addon
           # Adds the addon to the current Godot project under addons/<name>/
           # -------------------------------------------------------------------------
-          addon_dir = target_dir || project_root.join("addons", name.underscore)
+          slug = name.tr("-", "_").underscore
+          addon_dir = target_dir || project_root.join("addons", slug)
 
           if Dir.exists?(addon_dir)
             entries = Dir.children(addon_dir).reject { |c| c.starts_with?(".") }
@@ -630,9 +631,8 @@ TSCN
           FileUtils.mkdir_p(addon_dir.join("spec/editor"))
           File.write(addon_dir.join("bin/.gdignore"), "# Godot ignore file\n") unless File.exists?(addon_dir.join("bin/.gdignore"))
 
-          slug = name.underscore
-          title = name.split(/[-_]/).map(&.capitalize).join(" ")
-          pascal = pascal_name || name.camelcase
+          title = slug.split('_').map(&.capitalize).join(" ")
+          pascal = pascal_name || slug.camelcase
 
           # 1. plugin.cfg
           File.write(addon_dir.join("plugin.cfg"), <<-CFG
@@ -743,8 +743,17 @@ end
 # Custom scene node exported by #{title}
 @[Tool]
 node #{pascal}Node < Node do
+  @[Export]
+  property message : String = "#{title} Ready"
+
+  signal triggered(text : String)
+
   def _ready : Void
-    Godot.print("#{pascal}Node ready!")
+    Godot.print("[#{pascal}Node] ready! Message: \#{@message}")
+  end
+
+  def trigger : Void
+    triggered.emit(@message)
   end
 end
 CR
@@ -768,6 +777,15 @@ describe #{pascal}Node do
     entry.should_not be_nil
     entry.not_nil!.is_tool.should be_true
   end
+
+  it "declares exported property and signal" do
+    entry = Godot::ClassRegistry.find("#{pascal}Node")
+    entry.should_not be_nil
+    props = entry.not_nil!.properties.map(&.name)
+    props.should contain("message")
+    sigs = entry.not_nil!.signals.map(&.name)
+    sigs.should contain("triggered")
+  end
 end
 CR
           )
@@ -784,6 +802,15 @@ test_suite "Nodes" do
     entry = Godot::ClassRegistry.find("#{pascal}Node")
     assert_not_nil entry, "Expected #{pascal}Node to be registered"
     assert_eq entry.not_nil!.parent_name, "Node"
+  end
+
+  test "#{pascal}Node exported properties and signals" do
+    entry = Godot::ClassRegistry.find("#{pascal}Node")
+    assert_not_nil entry
+    props = entry.not_nil!.properties.map(&.name)
+    assert_includes props, "message"
+    sigs = entry.not_nil!.signals.map(&.name)
+    assert_includes sigs, "triggered"
   end
 end
 
@@ -835,9 +862,9 @@ CR
                    curr
                  end
 
-          slug = name.underscore
-          title = name.split(/[-_]/).map(&.capitalize).join(" ")
-          pascal = name.camelcase
+          slug = name.tr("-", "_").underscore
+          title = slug.split('_').map(&.capitalize).join(" ")
+          pascal = pascal_name || slug.camelcase
 
           template_addon_dir = root.join("template-addon")
           use_baked = Core::BakedFileSystem.files_with_prefix("template-addon").size > 0
