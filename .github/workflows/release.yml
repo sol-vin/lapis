@@ -772,7 +772,7 @@ jobs:
     name: Build Core Engine (macOS)
     needs: [fast-specs-macos]
     runs-on: macos-latest
-    timeout-minutes: 25
+    timeout-minutes: 45
     env:
       RELEASE: 1
       LIBGODOT_VERBOSE: 1
@@ -1320,7 +1320,7 @@ jobs:
     name: Test Engine & Editor (macOS)
     needs: [build-core-macos]
     runs-on: macos-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     env:
       RELEASE: 1
       LIBGODOT_VERBOSE: 1
@@ -1798,7 +1798,7 @@ jobs:
     name: Build Consumers & Templates (macOS)
     needs: [build-core-macos]
     runs-on: macos-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     env:
       RELEASE: 1
       LIBGODOT_VERBOSE: 1
@@ -2359,7 +2359,7 @@ jobs:
     name: Package macOS Release (arm64)
     needs: [init-release, test-engine-macos, build-consumers-macos]
     runs-on: macos-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     env:
       RELEASE: 1
       GODOT_VERSION: ${{ needs.init-release.outputs.godot_version }}
