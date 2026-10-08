@@ -1590,6 +1590,18 @@ module Godot
       alive? ? self : nil
     end
 
+    # Safe nil-coalescing check: returns self if alive in Godot's ObjectDB, otherwise nil.
+    def try? : self?
+      alive? ? self : nil
+    end
+
+    # Evaluates the given block with self if this object is alive and valid in Godot's ObjectDB.
+    # Returns nil if this object has been destroyed or freed, preventing dead pointer crashes.
+    def try?(&block)
+      return nil unless alive?
+      yield self
+    end
+
     # Re-wraps or downcasts this Godot object pointer to the requested Godot wrapper class T,
     # verifying that the underlying native object inherits from T. Returns nil if invalid or incompatible.
     def as_a?(type : T.class) : T? forall T

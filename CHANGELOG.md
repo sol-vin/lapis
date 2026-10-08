@@ -5,6 +5,29 @@ All notable changes to the Lapis for Crystal framework are documented in this fi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.276] - 2026-10-08
+
+### Added
+
+#### Dead-Pointer Safe `try?` and `if_alive` Invocations
+- **Dead-Pointer Protected Calls**:
+  - Implemented `Godot::Object#try? : self?` and `Godot::Object#try?(&block)` providing dead-pointer armor that verifies engine instance survival in Godot's ObjectDB (`alive?`) before dispatching blocks or returning references.
+  - Returns `nil` safely if an object has been destroyed or freed via GDScript or engine calls, preventing `Godot::DisposedObjectError` or native segmentation faults.
+  - Added `Object#try?`, `Nil#try?`, and `Nil#if_alive` primitive extensions allowing idiomatic calls like `@heal_sfx.try?(&.play)` on nilable union types (`Godot::AudioStreamPlayer?`).
+
+#### Statement-Based Tween Pipeline with Auto Call-Peeling
+- **Declarative Tween DSL**:
+  - Transformed macro `tween(target) do ... end` to peel apart statement blocks, automatically compiling sequential calls (`animate`, `chain()`, `parallel()`, `ease`, `trans`) into fluent tween pipelines.
+  - Enforced compile-time checked property identifiers instead of symbols/strings (e.g., `animate(position, to: 120, in: 4.seconds)`).
+  - Added `Godot::Ease` (`Ease.In`, `Ease.Out`, `Ease.InOut`) and `Godot::Trans` (`Trans.Linear`, `Trans.Cubic`, `Trans.Bounce`, etc.) enum aliases for ergonomic tween easing.
+  - Added `CanvasItem#alpha` alias for direct modulation alpha tweening.
+
+#### Nilable Wildcard Node Queries
+- **Safe Wildcard Result Filtering**:
+  - Enhanced subscript queries `self[path, Type]?` and `self[path, Array(Type)]?` to return `nil` instead of empty arrays when wildcard queries match zero nodes, making queries like `hitbox = self["Enemies/*/Hitbox", Area2D]?` cleanly checkable with `try?` or `if`.
+
+---
+
 ## [0.0.266] - 2026-10-06
 
 ### Added

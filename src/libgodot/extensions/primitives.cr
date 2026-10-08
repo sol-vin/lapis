@@ -42,3 +42,33 @@ struct Int
     to_i64 == other.value
   end
 end
+
+class Object
+  # Evaluates the given block with self, returning the block's value.
+  def try?(&block)
+    yield self
+  end
+
+  # Returns self.
+  def try?
+    self
+  end
+end
+
+struct Nil
+  # Returns nil without yielding to the block.
+  def try?(&block)
+    nil
+  end
+
+  # Returns nil.
+  def try?
+    nil
+  end
+
+  # Returns nil.
+  def if_alive : Nil
+    nil
+  end
+end
+
