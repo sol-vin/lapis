@@ -15,20 +15,36 @@ module Godot
     private DELTA      = 6.0_f32 / 29.0_f32
     private DELTA_CUBE = DELTA * DELTA * DELTA
 
-    private def self._srgb_to_linear(c : Float32) : Float32
+    def self._srgb_to_linear(c : Float32) : Float32
       c <= 0.04045_f32 ? c / 12.92_f32 : ((c + 0.055_f32) / 1.055_f32) ** 2.4_f32
     end
 
-    private def self._linear_to_srgb(c : Float32) : Float32
+    private def _srgb_to_linear(c : Float32) : Float32
+      Color._srgb_to_linear(c)
+    end
+
+    def self._linear_to_srgb(c : Float32) : Float32
       c <= 0.0031308_f32 ? c * 12.92_f32 : 1.055_f32 * (c ** (1.0_f32 / 2.4_f32)) - 0.055_f32
     end
 
-    private def self._f_lab(t : Float32) : Float32
+    private def _linear_to_srgb(c : Float32) : Float32
+      Color._linear_to_srgb(c)
+    end
+
+    def self._f_lab(t : Float32) : Float32
       t > DELTA_CUBE ? (t ** (1.0_f32 / 3.0_f32)) : (t / (3.0_f32 * DELTA * DELTA) + 4.0_f32 / 29.0_f32)
     end
 
-    private def self._f_lab_inv(t : Float32) : Float32
+    private def _f_lab(t : Float32) : Float32
+      Color._f_lab(t)
+    end
+
+    def self._f_lab_inv(t : Float32) : Float32
       t > DELTA ? (t ** 3.0_f32) : 3.0_f32 * DELTA * DELTA * (t - 4.0_f32 / 29.0_f32)
+    end
+
+    private def _f_lab_inv(t : Float32) : Float32
+      Color._f_lab_inv(t)
     end
 
     # =========================================================================
@@ -848,6 +864,37 @@ module Godot
       blend_alpha = @a * inv_w + other.a * w
       Color.from_oklab(blend_l, blend_a, blend_b, blend_alpha)
     end
+
+    # =========================================================================
+    # WCAG 2.1 Contrast & Accessibility Calculations
+    # =========================================================================
+
+    # Calculates the WCAG 2.1 contrast ratio between this color and another color (range 1.0 to 21.0).
+    def contrast_ratio(other : Color) : Float32
+      lum1 = luminance
+      lum2 = other.luminance
+      l_max = Math.max(lum1, lum2)
+      l_min = Math.min(lum1, lum2)
+      (l_max + 0.05_f32) / (l_min + 0.05_f32)
+    end
+
+    # Checks whether this color has sufficient contrast with another color under WCAG AA standards.
+    def meets_wcag_aa?(other : Color, large_text : Bool = false) : Bool
+      contrast_ratio(other) >= (large_text ? 3.0_f32 : 4.5_f32)
+    end
+
+    # Checks whether this color has sufficient contrast with another color under WCAG AAA standards.
+    def meets_wcag_aaa?(other : Color, large_text : Bool = false) : Bool
+      contrast_ratio(other) >= (large_text ? 4.5_f32 : 7.0_f32)
+    end
+
+    # Returns either pure Black or pure White depending on which provides greater contrast against this color.
+    def accessible_text_color : Color
+      black = Color.new(0.0_f32, 0.0_f32, 0.0_f32, 1.0_f32)
+      white = Color.new(1.0_f32, 1.0_f32, 1.0_f32, 1.0_f32)
+      contrast_ratio(black) >= contrast_ratio(white) ? black : white
+    end
   end
 end
+
 

@@ -29,6 +29,20 @@ node DynamicPropertyTargetNode < Godot::Node do
   property defense_power : Float32 = 20.0_f32
 end
 
+node InferredExportProbeNode < Godot::Node do
+  @[Export]
+  property inferred_int = 100
+
+  @[Export]
+  property inferred_float = 2.5_f32
+
+  @[Export]
+  property inferred_str = "Lapis"
+
+  @[Export]
+  property inferred_bool = true
+end
+
 test_suite "DynamicProps" do
   test "ClassDB registers typed property hints and valid hint strings for custom properties" do
   entry = Godot::ClassRegistry.find("DynamicPropertyTargetNode")
@@ -110,5 +124,36 @@ end
 
   node.destroy
 end
+
+  test "Compile-time AST export property type inference from literals" do
+    entry = Godot::ClassRegistry.find("InferredExportProbeNode")
+    assert_not_nil entry
+
+    props = entry.not_nil!.properties
+
+    p_int = props.find { |p| p.name == "inferred_int" }
+    assert_not_nil p_int
+    assert_eq p_int.not_nil!.type_name, "Int32"
+    assert_false p_int.not_nil!.type_name == "Callable"
+
+    p_flt = props.find { |p| p.name == "inferred_float" }
+    assert_not_nil p_flt
+    assert_eq p_flt.not_nil!.type_name, "Float32"
+
+    p_str = props.find { |p| p.name == "inferred_str" }
+    assert_not_nil p_str
+    assert_eq p_str.not_nil!.type_name, "String"
+
+    p_bool = props.find { |p| p.name == "inferred_bool" }
+    assert_not_nil p_bool
+    assert_eq p_bool.not_nil!.type_name, "Bool"
+
+    node = Godot.create(InferredExportProbeNode)
+    assert_eq node.inferred_int, 100
+    assert_approx_eq node.inferred_float, 2.5_f32, 0.01
+    assert_eq node.inferred_str, "Lapis"
+    assert_true node.inferred_bool
+    node.destroy
+  end
 
 end

@@ -64,6 +64,17 @@ node OnReadySyntaxVariantsNode < Godot::Node2D do
   onready eq_syntax : Godot::Marker2D = "%EqPointD"
 end
 
+# Test node for onready path omission and namespace inference:
+# - onready var : Type (omitted path targets Type name)
+# - onready var : UnprefixedType (auto-prefixes Godot::)
+# - onready var : Type? (nilable safety)
+node OnReadyOmittedPathProbeNode < Godot::Node2D do
+  onready marker : Godot::Marker2D
+  onready sprite : Sprite2D
+  onready maybe_camera : Godot::Camera2D?
+  onready missing_child : Godot::Camera3D
+end
+
 test_suite "DslHelpersAndOnReady" do
   test "Pillar 1: upward ancestor search via << operator and find_ancestor_as" do
     root_node = Godot.create(AncestorRoot)
@@ -274,6 +285,48 @@ test_suite "DslHelpersAndOnReady" do
     point_c.destroy
     label.destroy
     point_d.destroy
+    probe.destroy
+  end
+
+  test "Pillar 3c: onready path omission, auto-namespace resolution, and nilable safety" do
+    probe = Godot.create(OnReadyOmittedPathProbeNode)
+
+    # 1. Add child matching Type name "Marker2D"
+    marker = Godot.create(Godot::Marker2D)
+    marker.name = "Marker2D"
+    probe.add_child(marker)
+
+    # 2. Add child matching unprefixed Type name "Sprite2D"
+    sprite = Godot.create(Godot::Sprite2D)
+    sprite.name = "Sprite2D"
+    probe.add_child(sprite)
+
+    # Initialize onready properties
+    if probe.responds_to?(:_godot_init_onready_properties)
+      probe._godot_init_onready_properties
+    end
+
+    # 3. Path omission correctly resolves by class name
+    assert_not_nil probe.marker
+    assert_eq probe.marker.name, "Marker2D"
+
+    # 4. Unprefixed engine type auto-prefixes Godot:: and resolves correctly
+    assert_not_nil probe.sprite
+    assert_eq probe.sprite.name, "Sprite2D"
+
+    # 5. Nilable property returns nil when child node is absent
+    assert_nil probe.maybe_camera
+
+    # 6. Non-nilable property raises NodeNotFoundError when child node is absent
+    assert_raises(Godot::NodeNotFoundError) do
+      _ = probe.missing_child
+    end
+
+    # Cleanup
+    probe.remove_child(marker)
+    probe.remove_child(sprite)
+    marker.destroy
+    sprite.destroy
     probe.destroy
   end
 

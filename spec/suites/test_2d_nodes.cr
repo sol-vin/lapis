@@ -27,6 +27,12 @@ test_suite "2D" do
   sprite.set_frame(5_i64)
   assert_eq sprite.get_frame, 5_i64
 
+  # CanvasItem alpha alias and modulate synchronization
+  assert_eq sprite.alpha, 1.0_f32
+  sprite.alpha = 0.45_f32
+  assert_true (sprite.alpha - 0.45_f32).abs < 0.01_f32
+  assert_true (sprite.get_modulate.a - 0.45_f32).abs < 0.01_f32
+
   sprite.destroy
   assert_true sprite.destroyed?
 end

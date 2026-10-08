@@ -579,3 +579,6 @@ require "../spec/suites/test_animation_multiframe"
 require "../spec/suites/test_particles_and_audio_multiframe"
 require "../spec/suites/test_tilemap_multiframe"
 require "../spec/suites/test_rigidbody_multiframe"
+require "../spec/suites/test_color_spaces_and_harmonies"
+require "../spec/suites/test_object_casting"
+

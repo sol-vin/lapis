@@ -54,6 +54,8 @@ test_suite "TweenDsl" do
       animate(scale, to: Godot::Vector2.new(1.5_f32, 1.5_f32), in: 0.2.seconds)
       chain()
       animate(modulate.a, to: 0.5_f32, in: 0.1.seconds)
+      chain()
+      animate(alpha, to: 0.25_f32, in: 0.1.seconds)
     end
 
     assert_not_nil tw
