@@ -1315,6 +1315,13 @@ module Godot
       @@api.value.is_instance_valid.call(id) != 0_u8
     end
 
+    def self.register_alive_instance_by_ptr(godot_obj : Void*, inst : Godot::Object) : Void
+      return if godot_obj.null?
+      @@alive_mutex.synchronize do
+        @@alive_instances_by_ptr[godot_obj] = inst
+      end
+    end
+
     def self.unregister_alive_instance_by_ptr(godot_obj : Void*) : Void
       return if godot_obj.null?
       @@alive_mutex.synchronize do

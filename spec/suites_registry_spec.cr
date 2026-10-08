@@ -20,7 +20,8 @@ describe "Lapis::Test::Registry Test Suites" do
       "FSM", "SignalBus", "Pool", "Ergonomics",
       "HSM", "SignalBusAdv", "NodePoolStress", "CombatScenario",
       "ActorChannel", "ResourceCard", "SpatialPhysics", "ScenePipelineRegex",
-      "Autoload"
+      "Autoload", "SignalPiping", "Nodes2DMultiFrame", "Nodes3DMultiFrame", "ControlMultiFrame",
+      "RayCastMultiFrame", "AnimationMultiFrame", "ParticlesAndAudioMultiFrame", "TileMapMultiFrame", "RigidBodyMultiFrame"
     ]
 
     expected_categories.each do |cat|
@@ -31,7 +32,7 @@ describe "Lapis::Test::Registry Test Suites" do
 
   it "contains test cases with valid source locations" do
     tests = Lapis::Test::Registry.all_tests
-    tests.size.should be >= 80
+    tests.size.should be >= 88
 
     tests.first.category.should_not be_empty
     tests.first.name.should_not be_empty

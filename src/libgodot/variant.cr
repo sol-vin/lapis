@@ -280,7 +280,11 @@ module Godot
         as_aabb
       {% elsif T <= Godot::Object %}
         if obj = as_obj
-          obj.as(T)
+          if casted = obj.as_a?(T)
+            casted
+          else
+            raise TypeCastError.new("Cannot cast #{obj.class.name} to #{T}")
+          end
         else
           raise TypeCastError.new("Cannot cast nil Variant to #{T}")
         end

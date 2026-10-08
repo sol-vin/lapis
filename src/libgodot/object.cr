@@ -67,6 +67,7 @@ module Godot
     if res.is_a?(RefCounted) && res.get_reference_count == 0
       res.init_ref
     end
+    Bridge.register_alive_instance_by_ptr(ptr, res) if !ptr.null?
     res
   end
 
@@ -516,8 +517,8 @@ module Godot
             end
           {% end %}
 
-          if (t0 = c0) && (t1 = c1)
-            block.call(t0, t1)
+          if !c0.nil? && !c1.nil?
+            block.call(c0, c1)
           end
         end
       end
@@ -584,8 +585,8 @@ module Godot
             c1 = raw1.to_f32.as?(T1) || raw1.to_f64.as?(T1)
           end
 
-          if (t0 = c0) && (t1 = c1)
-            proc.call(t0, t1)
+          if !c0.nil? && !c1.nil?
+            proc.call(c0, c1)
           end
         end
       end
@@ -710,9 +711,9 @@ module Godot
                 if %raw_{{i}}.is_a?({{ U[i] }})
                   %val_{{i}} = %raw_{{i}}
                   %matched_{{i}} = true
-                {% if U[i] < Godot::Node %}
-                  elsif %n_{{i}} = %raw_{{i}}.as?(::Godot::Node)
-                    if %casted_{{i}} = ::Godot::Node.cast_to?(%n_{{i}}, {{ U[i] }})
+                {% if U[i] <= Godot::Object %}
+                  elsif %obj_{{i}} = %raw_{{i}}.as?(::Godot::Object)
+                    if %casted_{{i}} = %obj_{{i}}.as_a?({{ U[i] }})
                       %val_{{i}} = %casted_{{i}}
                       %matched_{{i}} = true
                     end
@@ -739,6 +740,213 @@ module Godot
             end
           {% end %}
         {% end %}
+      end
+    end
+
+    # Loose pipe (>>) to a 0-argument Proc (adaptive arity trimming)
+    def >>(proc : Proc(R)) : SignalSubscription forall R
+      sub = @target.connect(@name) do
+        proc.call
+      end
+      sub.proc_pointer = proc.pointer
+      sub.proc_closure_data = proc.closure_data
+      sub
+    end
+
+    # Loose pipe (>>) to a Proc accepting raw Variant array
+    def >>(proc : Proc(::Array(Variant), R)) : SignalSubscription forall R
+      sub = @target.connect(@name) do |args|
+        proc.call(args)
+      end
+      sub.proc_pointer = proc.pointer
+      sub.proc_closure_data = proc.closure_data
+      sub
+    end
+
+    # Loose pipe (>>) to a 1-argument typed Proc with automatic downcasting & arity adaptation
+    def >>(proc : Proc(U0, R)) : SignalSubscription forall U0, R
+      sub = @target.connect(@name) do |args|
+        if args.size >= 1
+          raw0 = args[0].raw
+          c0 : U0? = nil
+          if raw0.is_a?(Godot::Object)
+            c0 = raw0.as_a?(U0)
+          elsif raw0.is_a?(U0)
+            c0 = raw0
+          elsif raw0.is_a?(Int)
+            c0 = raw0.to_i32.as?(U0) || raw0.to_i64.as?(U0)
+          elsif raw0.is_a?(Float)
+            c0 = raw0.to_f32.as?(U0) || raw0.to_f64.as?(U0)
+          end
+
+          unless c0.nil?
+            proc.call(c0)
+          end
+        end
+      end
+      sub.proc_pointer = proc.pointer
+      sub.proc_closure_data = proc.closure_data
+      sub
+    end
+
+    # Loose pipe (>>) to a 2-argument typed Proc with automatic downcasting & arity adaptation
+    def >>(proc : Proc(U0, U1, R)) : SignalSubscription forall U0, U1, R
+      sub = @target.connect(@name) do |args|
+        if args.size >= 2
+          c0 : U0? = nil
+          raw0 = args[0].raw
+          if raw0.is_a?(Godot::Object)
+            c0 = raw0.as_a?(U0)
+          elsif raw0.is_a?(U0)
+            c0 = raw0
+          elsif raw0.is_a?(Int)
+            c0 = raw0.to_i32.as?(U0) || raw0.to_i64.as?(U0)
+          elsif raw0.is_a?(Float)
+            c0 = raw0.to_f32.as?(U0) || raw0.to_f64.as?(U0)
+          end
+
+          c1 : U1? = nil
+          raw1 = args[1].raw
+          if raw1.is_a?(Godot::Object)
+            c1 = raw1.as_a?(U1)
+          elsif raw1.is_a?(U1)
+            c1 = raw1
+          elsif raw1.is_a?(Int)
+            c1 = raw1.to_i32.as?(U1) || raw1.to_i64.as?(U1)
+          elsif raw1.is_a?(Float)
+            c1 = raw1.to_f32.as?(U1) || raw1.to_f64.as?(U1)
+          end
+
+          if !c0.nil? && !c1.nil?
+            proc.call(c0, c1)
+          end
+        end
+      end
+      sub.proc_pointer = proc.pointer
+      sub.proc_closure_data = proc.closure_data
+      sub
+    end
+
+    # Loose pipe (>>) to a 3-argument typed Proc with automatic downcasting & arity adaptation
+    def >>(proc : Proc(U0, U1, U2, R)) : SignalSubscription forall U0, U1, U2, R
+      sub = @target.connect(@name) do |args|
+        if args.size >= 3
+          c0 : U0? = nil
+          raw0 = args[0].raw
+          if raw0.is_a?(Godot::Object)
+            c0 = raw0.as_a?(U0)
+          elsif raw0.is_a?(U0)
+            c0 = raw0
+          elsif raw0.is_a?(Int)
+            c0 = raw0.to_i32.as?(U0) || raw0.to_i64.as?(U0)
+          elsif raw0.is_a?(Float)
+            c0 = raw0.to_f32.as?(U0) || raw0.to_f64.as?(U0)
+          end
+
+          c1 : U1? = nil
+          raw1 = args[1].raw
+          if raw1.is_a?(Godot::Object)
+            c1 = raw1.as_a?(U1)
+          elsif raw1.is_a?(U1)
+            c1 = raw1
+          elsif raw1.is_a?(Int)
+            c1 = raw1.to_i32.as?(U1) || raw1.to_i64.as?(U1)
+          elsif raw1.is_a?(Float)
+            c1 = raw1.to_f32.as?(U1) || raw1.to_f64.as?(U1)
+          end
+
+          c2 : U2? = nil
+          raw2 = args[2].raw
+          if raw2.is_a?(Godot::Object)
+            c2 = raw2.as_a?(U2)
+          elsif raw2.is_a?(U2)
+            c2 = raw2
+          elsif raw2.is_a?(Int)
+            c2 = raw2.to_i32.as?(U2) || raw2.to_i64.as?(U2)
+          elsif raw2.is_a?(Float)
+            c2 = raw2.to_f32.as?(U2) || raw2.to_f64.as?(U2)
+          end
+
+          if !c0.nil? && !c1.nil? && !c2.nil?
+            proc.call(c0, c1, c2)
+          end
+        end
+      end
+      sub.proc_pointer = proc.pointer
+      sub.proc_closure_data = proc.closure_data
+      sub
+    end
+
+    # Loose pipe (>>) to a 4-argument typed Proc with automatic downcasting & arity adaptation
+    def >>(proc : Proc(U0, U1, U2, U3, R)) : SignalSubscription forall U0, U1, U2, U3, R
+      sub = @target.connect(@name) do |args|
+        if args.size >= 4
+          c0 : U0? = nil
+          raw0 = args[0].raw
+          if raw0.is_a?(Godot::Object)
+            c0 = raw0.as_a?(U0)
+          elsif raw0.is_a?(U0)
+            c0 = raw0
+          elsif raw0.is_a?(Int)
+            c0 = raw0.to_i32.as?(U0) || raw0.to_i64.as?(U0)
+          elsif raw0.is_a?(Float)
+            c0 = raw0.to_f32.as?(U0) || raw0.to_f64.as?(U0)
+          end
+
+          c1 : U1? = nil
+          raw1 = args[1].raw
+          if raw1.is_a?(Godot::Object)
+            c1 = raw1.as_a?(U1)
+          elsif raw1.is_a?(U1)
+            c1 = raw1
+          elsif raw1.is_a?(Int)
+            c1 = raw1.to_i32.as?(U1) || raw1.to_i64.as?(U1)
+          elsif raw1.is_a?(Float)
+            c1 = raw1.to_f32.as?(U1) || raw1.to_f64.as?(U1)
+          end
+
+          c2 : U2? = nil
+          raw2 = args[2].raw
+          if raw2.is_a?(Godot::Object)
+            c2 = raw2.as_a?(U2)
+          elsif raw2.is_a?(U2)
+            c2 = raw2
+          elsif raw2.is_a?(Int)
+            c2 = raw2.to_i32.as?(U2) || raw2.to_i64.as?(U2)
+          elsif raw2.is_a?(Float)
+            c2 = raw2.to_f32.as?(U2) || raw2.to_f64.as?(U2)
+          end
+
+          c3 : U3? = nil
+          raw3 = args[3].raw
+          if raw3.is_a?(Godot::Object)
+            c3 = raw3.as_a?(U3)
+          elsif raw3.is_a?(U3)
+            c3 = raw3
+          elsif raw3.is_a?(Int)
+            c3 = raw3.to_i32.as?(U3) || raw3.to_i64.as?(U3)
+          elsif raw3.is_a?(Float)
+            c3 = raw3.to_f32.as?(U3) || raw3.to_f64.as?(U3)
+          end
+
+          if !c0.nil? && !c1.nil? && !c2.nil? && !c3.nil?
+            proc.call(c0, c1, c2, c3)
+          end
+        end
+      end
+      sub.proc_pointer = proc.pointer
+      sub.proc_closure_data = proc.closure_data
+      sub
+    end
+
+    # Loose pipe (>>) to a receiver object and method name tuple
+    def >>(receiver_method : Tuple(Godot::Object, String | Symbol)) : SignalSubscription
+      receiver = receiver_method[0]
+      method_name = receiver_method[1].to_s
+      @target.connect(@name, receiver: receiver) do |args|
+        if receiver.alive?
+          receiver.call(method_name, args)
+        end
       end
     end
 
@@ -841,8 +1049,8 @@ module Godot
       sub = @target.connect(@name) do |args|
         if args.size >= 1
           raw = args[0].raw
-          if raw_node = raw.as?(Godot::Node)
-            if casted = Godot::Node.cast_to?(raw_node, U0)
+          if raw.is_a?(Godot::Object)
+            if casted = raw.as_a?(U0)
               proc.call(casted)
             end
           elsif raw.is_a?(U0)
@@ -865,8 +1073,8 @@ module Godot
         if args.size >= 2
           c0 : U0? = nil
           raw0 = args[0].raw
-          if raw0.is_a?(Godot::Node)
-            c0 = Godot::Node.cast_to?(raw0, U0)
+          if raw0.is_a?(Godot::Object)
+            c0 = raw0.as_a?(U0)
           elsif raw0.is_a?(U0)
             c0 = raw0
           elsif raw0.is_a?(Int)
@@ -877,8 +1085,8 @@ module Godot
 
           c1 : U1? = nil
           raw1 = args[1].raw
-          if raw1.is_a?(Godot::Node)
-            c1 = Godot::Node.cast_to?(raw1, U1)
+          if raw1.is_a?(Godot::Object)
+            c1 = raw1.as_a?(U1)
           elsif raw1.is_a?(U1)
             c1 = raw1
           elsif raw1.is_a?(Int)
@@ -887,8 +1095,8 @@ module Godot
             c1 = raw1.to_f32.as?(U1) || raw1.to_f64.as?(U1)
           end
 
-          if (t0 = c0) && (t1 = c1)
-            proc.call(t0, t1)
+          if !c0.nil? && !c1.nil?
+            proc.call(c0, c1)
           end
         end
       end
@@ -986,9 +1194,9 @@ module Godot
                   if %raw_{{i}}.is_a?({{ U[i] }})
                     %val_{{i}} = %raw_{{i}}
                     %matched_{{i}} = true
-                  {% if U[i] < Godot::Node %}
-                    elsif %n_{{i}} = %raw_{{i}}.as?(::Godot::Node)
-                      if %casted_{{i}} = ::Godot::Node.cast_to?(%n_{{i}}, {{ U[i] }})
+                  {% if U[i] <= Godot::Object %}
+                    elsif %obj_{{i}} = %raw_{{i}}.as?(::Godot::Object)
+                      if %casted_{{i}} = %obj_{{i}}.as_a?({{ U[i] }})
                         %val_{{i}} = %casted_{{i}}
                         %matched_{{i}} = true
                       end

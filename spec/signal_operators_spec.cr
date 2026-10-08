@@ -14,6 +14,20 @@ class SpecCombatListener
   def on_death : Void
     @hit_count += 100
   end
+
+  getter four_arg_called : Bool = false
+  getter last_r0 : Int32 = 0
+  getter last_r1 : String = ""
+  getter last_r2 : Float64 = 0.0
+  getter last_r3 : Bool = false
+
+  def on_four_args(a : Int32, b : String, c : Float64, d : Bool) : Void
+    @four_arg_called = true
+    @last_r0 = a
+    @last_r1 = b
+    @last_r2 = c
+    @last_r3 = d
+  end
 end
 
 describe "Signal Compound Operators (+= and -=)" do
@@ -257,4 +271,161 @@ describe "Signal Compound Operators (+= and -=)" do
       died_calls.should eq(1)
     end
   end
+
+  describe "Signal Piping Operator (>>)" do
+    it "pipes TypedSignal to a class-specific method pointer proc with exact types" do
+      player = SpecPlayer.new
+      listener = SpecCombatListener.new
+
+      # Pipe health_changed(Int32, Int32) >> ->listener.on_damage(Int32, Int32)
+      sub = (player.health_changed >> ->listener.on_damage(Int32, Int32))
+      sub.should be_a(Godot::SignalSubscription)
+      sub.connected?.should be_true
+
+      player.take_damage(20)
+      listener.hit_count.should eq(1)
+      listener.last_hp.should eq(80)
+      listener.last_max.should eq(100)
+
+      player.take_damage(15)
+      listener.hit_count.should eq(2)
+      listener.last_hp.should eq(65)
+
+      # Unsubscribe cleanly
+      sub.unsubscribe
+      sub.connected?.should be_false
+
+      player.take_damage(10)
+      listener.hit_count.should eq(2)
+    end
+
+    it "pipes TypedSignal to a 0-argument method pointer proc with adaptive arity trimming" do
+      player = SpecPlayer.new
+      listener = SpecCombatListener.new
+
+      # Pipe health_changed(Int32, Int32) >> ->listener.on_death (takes 0 arguments!)
+      sub = (player.health_changed >> ->listener.on_death)
+      sub.connected?.should be_true
+
+      player.take_damage(10)
+      listener.hit_count.should eq(100)
+
+      # Disconnect using -= sub
+      player.health_changed -= sub
+      sub.connected?.should be_false
+
+      player.take_damage(10)
+      listener.hit_count.should eq(100)
+    end
+
+    it "pipes TypedSignal to another TypedSignal with matching signature" do
+      emitter_player = SpecPlayer.new
+      forwarder_player = SpecPlayer.new
+      received = [] of Tuple(Int32, Int32)
+
+      forwarder_player.health_changed += ->(hp : Int32, max : Int32) { received << {hp, max} }
+
+      # Pipe signal to signal: emitter.health_changed >> forwarder.health_changed
+      sub = (emitter_player.health_changed >> forwarder_player.health_changed)
+      sub.connected?.should be_true
+
+      emitter_player.take_damage(25)
+      received.should eq([{75, 100}])
+
+      emitter_player.take_damage(10)
+      received.should eq([{75, 100}, {65, 100}])
+
+      sub.unsubscribe
+      emitter_player.take_damage(10)
+      received.size.should eq(2)
+    end
+
+    it "pipes TypedSignal to a dynamic BoundSignal" do
+      emitter_player = SpecPlayer.new
+      target_node = Godot.create(Godot::Node)
+      received_vals = [] of Array(Godot::Variant)
+
+      target_sig = target_node.signal("renamed")
+      target_sig += ->(args : Array(Godot::Variant)) { received_vals << args }
+
+      # Pipe died >> renamed
+      sub = (emitter_player.died >> target_sig)
+      sub.connected?.should be_true
+
+      emitter_player.died.emit
+      received_vals.size.should eq(1)
+
+      sub.unsubscribe
+      target_node.destroy
+    end
+
+    it "pipes dynamic BoundSignal to a class method pointer proc" do
+      player = SpecPlayer.new
+      listener = SpecCombatListener.new
+
+      sig = player.signal("health_changed")
+      sub = (sig >> ->listener.on_damage(Int32, Int32))
+      sub.connected?.should be_true
+
+      player.take_damage(30)
+      listener.hit_count.should eq(1)
+      listener.last_hp.should eq(70)
+
+      sub.unsubscribe
+      player.take_damage(10)
+      listener.hit_count.should eq(1)
+    end
+
+    it "pipes dynamic BoundSignal to a 0-argument proc" do
+      player = SpecPlayer.new
+      died_count = 0
+
+      sig = player.signal("died")
+      sub = (sig >> ->{ died_count += 1 })
+      sub.connected?.should be_true
+
+      player.died.emit
+      died_count.should eq(1)
+
+      sub.unsubscribe
+      player.died.emit
+      died_count.should eq(1)
+    end
+
+    it "pipes signal to a receiver-method tuple {receiver, :method_name}" do
+      player = SpecPlayer.new
+      target_node = Godot.create(Godot::Node)
+
+      # Pipe died >> {target_node, :get_name}
+      sub = (player.died >> {target_node, "get_name"})
+      sub.connected?.should be_true
+
+      # Should invoke without errors
+      player.died.emit
+
+      sub.unsubscribe
+      target_node.destroy
+    end
+
+    it "pipes 4-argument signal to a 4-argument method pointer proc via >>" do
+      target_node = Godot.create(Godot::Node)
+      listener = SpecCombatListener.new
+
+      sig = target_node.signal("custom_quad_signal")
+      sub = (sig >> ->listener.on_four_args(Int32, String, Float64, Bool))
+      sub.connected?.should be_true
+
+      sig.emit(42, "hello", 3.14_f64, true)
+
+      listener.four_arg_called.should be_true
+      listener.last_r0.should eq(42)
+      listener.last_r1.should eq("hello")
+      listener.last_r2.should be_close(3.14, 0.001)
+      listener.last_r3.should be_true
+
+      sub.unsubscribe
+      target_node.destroy
+    end
+  end
 end
+
