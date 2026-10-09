@@ -26,6 +26,9 @@ require "./libgodot/timer"
 require "./libgodot/docs"
 require "./libgodot/multiplayer/harness"
 require "./lapis/color"
+require "./lapis/extras"
+require "./lapis/gd_extras"
+require "./lapis/cs_extras"
 {% if flag?(:testing) || flag?(:editor) || (!flag?(:release) && !flag?(:no_testing)) %}
   require "./libgodot/testing"
 {% end %}

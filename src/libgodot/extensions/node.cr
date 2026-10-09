@@ -388,6 +388,24 @@ module Godot
       end
     end
 
+    # Returns the child node at index `idx`.
+    # Falls back to local standalone children list when unparented/headless.
+    def get_child(idx : Int64, include_internal : Bool = false) : Node
+      if @pointer.null?
+        if kids = @local_children
+          if idx >= 0 && idx < kids.size
+            return kids[idx]
+          end
+        end
+        return Node.new
+      end
+      previous_def(idx, include_internal)
+    end
+
+    def get_child(idx : Int, include_internal : Bool = false) : Node
+      get_child(idx.to_i64, include_internal)
+    end
+
     # Returns the number of child nodes belonging to this node.
     # Falls back to local standalone children list when unparented/headless.
     def get_child_count(include_internal : Bool = false) : Int64

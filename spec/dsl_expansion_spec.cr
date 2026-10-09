@@ -156,9 +156,9 @@ describe "DSL Expansion Suite" do
   end
 
   describe "CanvasItem Modulate & Visual Ergonomics" do
-    it "does not expose artificial alpha wrapper, uses standard modulate" do
+    it "exposes alpha modulate accessor and does not expose artificial fade wrappers" do
       item = Godot::CanvasItem.new
-      item.responds_to?(:alpha).should be_false
+      item.responds_to?(:alpha).should be_true
       item.responds_to?(:fade_to).should be_false
       item.responds_to?(:fade_in).should be_false
       item.responds_to?(:fade_out).should be_false

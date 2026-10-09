@@ -228,57 +228,6 @@ module Godot
       {% end %}
     end
 
-    # Returns all nodes matching the glob pattern as `Array(Node)`.
-    #
-    # Supports single-level wildcard `*` and recursive globstar `**`.
-    #
-    # ### Examples:
-    # ```crystal
-    # all_enemies = get_nodes("Enemies/*")
-    # all_lights = get_nodes("**/Light*")
-    # ```
-    def get_nodes(pattern : String, case_sensitive : Bool = true) : ::Array(Node)
-      NodeQuery.find_nodes(self, pattern, case_sensitive)
-    end
-
-    # Returns all nodes matching the glob pattern filtered and cast to `Array(T)`.
-    #
-    # Only nodes inheriting from or matching type `T` are returned.
-    #
-    # ### Example:
-    # ```crystal
-    # enemies = get_nodes("Enemies/*", Enemy)
-    # enemies.each(&.alert!)
-    # ```
-    def get_nodes(pattern : String, type : T.class, case_sensitive : Bool = true) : ::Array(T) forall T
-      {% begin %}
-        {% if T.nilable? || T == Nil %}
-          {% raise "Lapis Error: get_nodes cannot take a nillable type (#{T}). Multi-node queries return empty arrays (Array(T)), not arrays of nils." %}
-        {% end %}
-      {% end %}
-      res = ::Array(T).new
-      get_nodes(pattern, case_sensitive).each do |n|
-        if typed = Node.cast_to?(n, type)
-          res << typed
-        end
-      end
-      res
-    end
-
-    # Multi-node wildcard glob query operator: self * "Node/*/Mesh"
-    def *(pattern : String) : ::Array(Node)
-      get_nodes(pattern)
-    end
-
-    # Multi-node typed wildcard glob query operator: self * {"Node/*/Mesh", MeshInstance3D}
-    def *(tuple : Tuple(String, T.class)) : ::Array(T) forall T
-      {% begin %}
-        {% if T.nilable? || T == Nil %}
-          {% raise "Lapis Error: Scene query operator '*' cannot take a nillable type (#{T}). Multi-node queries return empty arrays (Array(T)), not arrays of nils." %}
-        {% end %}
-      {% end %}
-      get_nodes(tuple[0], tuple[1])
-    end
 
     # Finds the first child or descendant matching the regex pattern
     def find_child(regex : Regex, recursive : Bool = true) : Node?
@@ -306,20 +255,6 @@ module Godot
       res
     end
 
-    # Multi-node regex query operator: self * /^HitBox_\d+$/
-    def *(regex : Regex) : ::Array(Node)
-      find_children(regex)
-    end
-
-    # Multi-node typed regex query operator: self * {/^HitBox_\d+$/, Area3D}
-    def *(tuple : Tuple(Regex, T.class)) : ::Array(T) forall T
-      {% begin %}
-        {% if T.nilable? || T == Nil %}
-          {% raise "Lapis Error: Scene query operator '*' cannot take a nillable type (#{T}). Multi-node queries return empty arrays (Array(T)), not arrays of nils." %}
-        {% end %}
-      {% end %}
-      find_children(tuple[0], tuple[1])
-    end
 
     # Alias for find_child(regex)
     def find_child_by_regex(regex : Regex, recursive : Bool = true) : Node?
@@ -331,69 +266,19 @@ module Godot
       find_children(regex, recursive)
     end
 
-    # Streams through all nodes matching `pattern`, scoping each node as both `self` and the block argument.
-    #
-    # Uses `with node yield node`, allowing three distinct calling styles:
-    # 1. Receiver-scoped block (implicit `self` dispatch):
-    #    ```crystal
-    #    each_node("Enemies/*") do
-    #      queue_free
-    #    end
-    #    ```
-    # 2. Block parameter syntax:
-    #    ```crystal
-    #    each_node("Enemies/*") do |enemy|
-    #      enemy.queue_free
-    #    end
-    #    ```
-    # 3. Block-pass shorthand:
-    #    ```crystal
-    #    each_node("Enemies/*", &.queue_free)
-    #    ```
-    #
-    # ### Rationale:
-    # Eliminates the need for specialized batch collection methods (`queue_free_all`, `show_all`)
-    # by providing zero-allocation streaming iteration that works universally with any method.
-    def each_node(pattern : String, case_sensitive : Bool = true, &) : Void
-      get_nodes(pattern, case_sensitive).each do |node|
-        with node yield node
-      end
-    end
-
-    # Streams through all nodes matching `pattern` cast to type `T`, scoping each node as both `self` and the block argument.
-    #
-    # Uses `with node yield node`, allowing three distinct calling styles:
-    # 1. Receiver-scoped block (implicit `self` dispatch):
-    #    ```crystal
-    #    each_node("Enemies/*", Enemy) do
-    #      alert!
-    #      take_damage(25)
-    #    end
-    #    ```
-    # 2. Block parameter syntax:
-    #    ```crystal
-    #    each_node("Enemies/*", Enemy) do |enemy|
-    #      enemy.take_damage(25)
-    #    end
-    #    ```
-    # 3. Block-pass shorthand:
-    #    ```crystal
-    #    each_node("Enemies/*", Enemy, &.alert!)
-    #    ```
-    def each_node(pattern : String, type : T.class, case_sensitive : Bool = true, &) : Void forall T
-      get_nodes(pattern, type, case_sensitive).each do |node|
-        with node yield node
-      end
-    end
-
     # Returns the first node matching pattern, or nil if none found.
     def first_node?(pattern : String, case_sensitive : Bool = true) : Node?
-      get_nodes(pattern, case_sensitive).first?
+      NodeQuery.find_nodes(self, pattern, case_sensitive).first?
     end
 
     # Returns the first node matching pattern cast to type T, or nil if none found or type mismatch.
     def first_node?(pattern : String, type : T.class, case_sensitive : Bool = true) : T? forall T
-      get_nodes(pattern, type, case_sensitive).first?
+      NodeQuery.find_nodes(self, pattern, case_sensitive).each do |n|
+        if typed = Node.cast_to?(n, type)
+          return typed
+        end
+      end
+      nil
     end
 
     # Returns the first node matching pattern, raising NodeNotFoundError if not found.
@@ -449,30 +334,6 @@ module Godot
       ancestor(type)
     end
 
-    # Searches upward in the scene hierarchy for an ancestor matching type T.
-    # Symmetrical with the typed scene pipeline (`scene > Type`).
-    #
-    # When passed a non-nil type (e.g. `node << Player`), returns `T` and raises `NodeNotFoundError` if not found.
-    # When passed a nilable type (e.g. `node << Player?`), returns `T?` (or `nil` if not found).
-    #
-    # ### Examples:
-    # ```crystal
-    # # Strict ancestor lookup (returns Player, raises NodeNotFoundError if missing)
-    # player = hitbox << Player
-    #
-    # # Nilable ancestor lookup (returns Player?, or nil if missing)
-    # if boss = hitbox << Boss?
-    #   boss.take_damage(100)
-    # end
-    # ```
-    def <<(type : T.class) forall T
-      {% if T.union? %}
-        {% non_nil = T.union_types.reject { |t| t.stringify == "Nil" || t.stringify == "::Nil" }.first %}
-        ancestor?({{non_nil}})
-      {% else %}
-        ancestor(T)
-      {% end %}
-    end
 
     # Walks up the parent hierarchy to find the nearest ancestor matching pattern.
     def ancestor?(pattern : String, case_sensitive : Bool = true) : Node?
