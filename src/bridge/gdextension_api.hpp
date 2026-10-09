@@ -154,7 +154,7 @@ inline void godot_log_verbose(const char *msg) {
     } else if (gd_util_print_verbose && gd_variant_from_string && gd_string_new_with_utf8_chars && gd_variant_destroy) {
         alignas(void*) char gd_str[sizeof(void*)];
         gd_string_new_with_utf8_chars(gd_str, msg);
-        alignas(void*) char var_buf[24];
+        alignas(void*) char var_buf[GD_VARIANT_SIZE];
         gd_variant_from_string(var_buf, gd_str);
         const void *args[1] = { var_buf };
         gd_util_print_verbose(nullptr, args, 1);
@@ -184,7 +184,7 @@ inline void godot_log_print(const char *msg) {
     if (gd_util_print && gd_variant_from_string && gd_string_new_with_utf8_chars && gd_variant_destroy) {
         alignas(void*) char gd_str[sizeof(void*)];
         gd_string_new_with_utf8_chars(gd_str, msg);
-        alignas(void*) char var_buf[24];
+        alignas(void*) char var_buf[GD_VARIANT_SIZE];
         gd_variant_from_string(var_buf, gd_str);
         const void *args[1] = { var_buf };
         gd_util_print(nullptr, args, 1);
@@ -218,7 +218,7 @@ inline void godot_log_printerr(const char *msg) {
     if (gd_util_printerr && gd_variant_from_string && gd_string_new_with_utf8_chars && gd_variant_destroy) {
         alignas(void*) char gd_str[sizeof(void*)];
         gd_string_new_with_utf8_chars(gd_str, msg);
-        alignas(void*) char var_buf[24];
+        alignas(void*) char var_buf[GD_VARIANT_SIZE];
         gd_variant_from_string(var_buf, gd_str);
         const void *args[1] = { var_buf };
         gd_util_printerr(nullptr, args, 1);

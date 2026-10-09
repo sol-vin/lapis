@@ -581,4 +581,6 @@ require "../spec/suites/test_tilemap_multiframe"
 require "../spec/suites/test_rigidbody_multiframe"
 require "../spec/suites/test_color_spaces_and_harmonies"
 require "../spec/suites/test_object_casting"
+require "../spec/suites/test_resource_preloading_and_materials"
+require "../spec/suites/test_timers_and_coroutine_sugar"
 

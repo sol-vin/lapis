@@ -68,6 +68,9 @@
 
 #include "gdextension_interface.h"
 
+/** Native byte size of Godot 4 Variant on 64-bit systems */
+constexpr size_t GD_VARIANT_SIZE = 40;
+
 #include "logger.hpp"
 
 #ifdef _WIN32

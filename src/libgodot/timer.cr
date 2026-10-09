@@ -59,6 +59,34 @@ module Godot
       @tick_count = 0_i64
     end
 
+    # Alias for elapsed_time
+    def elapsed : Float64
+      @elapsed_time
+    end
+
+    # Returns true if the timer has finished (either cancelled or stopped)
+    def finished? : Bool
+      @cancelled || !@running
+    end
+
+    # Returns estimated remaining time before next tick
+    def time_left : Float64
+      if @cancelled || !@running
+        0.0
+      elsif (t = @timer) && t.active?
+        t.get_time_left
+      elsif (st = @scene_tree_timer) && st.alive?
+        st.get_time_left
+      else
+        Math.max(0.0, @interval_sec - @elapsed_time)
+      end
+    end
+
+    # Explicitly registers a tick event and increments tick_count
+    def record_tick! : Int64
+      @tick_count += 1_i64
+    end
+
     # Advances time by delta, returning true if the timer should tick
     def advance(delta : Float64) : Bool
       return false unless @running && !@paused
@@ -95,21 +123,22 @@ module Godot
           timer.queue_free rescue nil
           next
         end
-        if n = node
-          unless n.active?
+        if node.is_a?(Godot::Node)
+          unless node.active?
             handle.cancel
             next
           end
         end
         next if handle.paused?
+        handle.record_tick!
         block.call(handle)
       end
-      if n = node
-        n.add_child(timer)
+      if node.is_a?(Godot::Node)
+        node.add_child(timer)
       elsif scene = tree.current_scene
         scene.add_child(timer)
       else
-        tree.root.add_child(timer)
+        tree.get_root.add_child(timer)
       end
       timer.start
       return handle
@@ -119,8 +148,8 @@ module Godot
     spawn do
       last_tick = ::Time.instant
       while handle.running?
-        if n = node
-          unless n.active?
+        if node.is_a?(Godot::Node)
+          unless node.active?
             handle.cancel
             break
           end
@@ -143,11 +172,6 @@ module Godot
     handle
   end
 
-  # Zero-argument block overload for `every`
-  def self.every(interval : ::Time::Span | Number, node : Godot::Node? = nil, &block : -> Void) : TimerHandle
-    every(interval, node: node) { |_handle| block.call }
-  end
-
   # Schedules a one-shot delay that fires after `delay`.
   # If `node` is provided, automatically cancels if the node is destroyed before expiry.
   def self.after(delay : ::Time::Span | Number, node : Godot::Node? = nil, &block : TimerHandle -> Void) : TimerHandle
@@ -158,9 +182,10 @@ module Godot
       handle = TimerHandle.new(delay_sec, node, scene_tree_timer: st_timer)
       st_timer.timeout.connect do
         next if handle.cancelled? || handle.paused?
-        if n = node
-          next unless n.active?
+        if node.is_a?(Godot::Node)
+          next unless node.active?
         end
+        handle.record_tick!
         handle.cancel
         block.call(handle)
       end
@@ -171,8 +196,8 @@ module Godot
     spawn do
       start_time = ::Time.instant
       while handle.running?
-        if n = node
-          unless n.active?
+        if node.is_a?(Godot::Node)
+          unless node.active?
             handle.cancel
             break
           end
@@ -192,11 +217,6 @@ module Godot
     end
     handle
   end
-
-  # Zero-argument block overload for `after`
-  def self.after(delay : ::Time::Span | Number, node : Godot::Node? = nil, &block : -> Void) : TimerHandle
-    after(delay, node: node) { |_handle| block.call }
-  end
 end
 
 module Godot
@@ -206,16 +226,8 @@ module Godot
       ::Godot.every(interval, node: self, &block)
     end
 
-    def every(interval : ::Time::Span | Number, &block : -> Void) : TimerHandle
-      ::Godot.every(interval, node: self, &block)
-    end
-
     # Schedules a one-shot delay scoped to this node's lifecycle
     def after(delay : ::Time::Span | Number, &block : TimerHandle -> Void) : TimerHandle
-      ::Godot.after(delay, node: self, &block)
-    end
-
-    def after(delay : ::Time::Span | Number, &block : -> Void) : TimerHandle
       ::Godot.after(delay, node: self, &block)
     end
   end
@@ -226,14 +238,6 @@ def every(interval : ::Time::Span | Number, node : Godot::Node? = nil, &block : 
   ::Godot.every(interval, node: node, &block)
 end
 
-def every(interval : ::Time::Span | Number, node : Godot::Node? = nil, &block : -> Void) : Godot::TimerHandle
-  ::Godot.every(interval, node: node, &block)
-end
-
 def after(delay : ::Time::Span | Number, node : Godot::Node? = nil, &block : Godot::TimerHandle -> Void) : Godot::TimerHandle
-  ::Godot.after(delay, node: node, &block)
-end
-
-def after(delay : ::Time::Span | Number, node : Godot::Node? = nil, &block : -> Void) : Godot::TimerHandle
   ::Godot.after(delay, node: node, &block)
 end

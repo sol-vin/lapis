@@ -331,7 +331,7 @@ inline void bridge_variant_from_type(int variant_type, void *variant, const void
     if (variant_type == GDEXTENSION_VARIANT_TYPE_CALLABLE) {
         const uint64_t *words = (const uint64_t*)src;
         if (!words || (words[0] == 0 && words[1] == 0)) {
-            memset(variant, 0, 24);
+            memset(variant, 0, GD_VARIANT_SIZE);
             return;
         }
     }
@@ -407,14 +407,14 @@ inline void bridge_call_method_vararg(GDExtensionMethodBindPtr mb, GDExtensionOb
     }
 
     void *sn = make_string_name(first_arg_name);
-    alignas(void*) char var_first_arg[24];
+    alignas(void*) char var_first_arg[GD_VARIANT_SIZE];
     memset(var_first_arg, 0, sizeof(var_first_arg));
     if (gd_variant_from_string_name) {
         gd_variant_from_string_name(var_first_arg, sn);
     }
 
     // --- Segment 2: Vararg Variant Packing ---
-    alignas(void*) char var_args[16][24];
+    alignas(void*) char var_args[16][GD_VARIANT_SIZE];
     const void *call_args[17];
     call_args[0] = var_first_arg;
 
@@ -459,7 +459,7 @@ inline void bridge_call_method_vararg(GDExtensionMethodBindPtr mb, GDExtensionOb
     }
 
     // --- Segment 3: Object Method Dispatch ---
-    alignas(void*) char var_ret[24];
+    alignas(void*) char var_ret[GD_VARIANT_SIZE];
     memset(var_ret, 0, sizeof(var_ret));
     GDExtensionCallError call_err;
     gd_object_method_bind_call(mb, instance, (const GDExtensionConstVariantPtr*)call_args, actual_count + 1, var_ret, &call_err);
@@ -483,13 +483,13 @@ inline void bridge_call_method_vararg_ret(GDExtensionMethodBindPtr mb, GDExtensi
     }
 
     void *sn = make_string_name(first_arg_name);
-    alignas(void*) char var_first_arg[24];
+    alignas(void*) char var_first_arg[GD_VARIANT_SIZE];
     memset(var_first_arg, 0, sizeof(var_first_arg));
     if (gd_variant_from_string_name) {
         gd_variant_from_string_name(var_first_arg, sn);
     }
 
-    alignas(void*) char var_args[16][24];
+    alignas(void*) char var_args[16][GD_VARIANT_SIZE];
     const void *call_args[17];
     call_args[0] = var_first_arg;
 
@@ -533,13 +533,13 @@ inline void bridge_call_method_vararg_ret(GDExtensionMethodBindPtr mb, GDExtensi
         call_args[i + 1] = var_args[i];
     }
 
-    alignas(void*) char var_ret[24];
+    alignas(void*) char var_ret[GD_VARIANT_SIZE];
     memset(var_ret, 0, sizeof(var_ret));
     GDExtensionCallError call_err;
     gd_object_method_bind_call(mb, instance, (const GDExtensionConstVariantPtr*)call_args, actual_count + 1, var_ret, &call_err);
 
     if (r_ret_variant) {
-        memcpy(r_ret_variant, var_ret, 24);
+        memcpy(r_ret_variant, var_ret, GD_VARIANT_SIZE);
     } else if (gd_variant_destroy) {
         gd_variant_destroy(var_ret);
     }
@@ -598,7 +598,7 @@ inline uint64_t bridge_object_get_instance_id(GDExtensionConstObjectPtr p_o) {
 
     // Strategy 2: Extract instance ID from Variant representation
     if (gd_variant_get_object_instance_id && gd_get_variant_from_type_constructor) {
-        alignas(void*) char var_obj[24] = {0};
+        alignas(void*) char var_obj[GD_VARIANT_SIZE] = {0};
         GDExtensionObjectPtr obj_ptr = (GDExtensionObjectPtr)p_o;
         bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_OBJECT, var_obj, &obj_ptr);
         id = (uint64_t)gd_variant_get_object_instance_id(var_obj);
@@ -698,8 +698,41 @@ inline void bridge_object_call_deferred(GDExtensionObjectPtr instance, const cha
     bridge_call_method_vararg(mb_object_call_deferred, instance, method_name, args, arg_count);
 }
 
+inline bool bridge_is_object_refcounted(GDExtensionObjectPtr obj) {
+    if (!obj || !bridge_is_object_valid(obj) || !gd_classdb_get_method_bind || !gd_object_method_bind_ptrcall) return false;
+    if (!mb_object_is_class) {
+        mb_object_is_class = bridge_get_method_bind("Object", "is_class", 2619796661ULL);
+    }
+    if (!mb_object_is_class) return false;
+    void *sn_rc = make_string_name("RefCounted");
+    const void *args[1] = { sn_rc };
+    uint8_t is_rc = 0;
+    gd_object_method_bind_ptrcall(mb_object_is_class, obj, (const GDExtensionConstTypePtr*)args, &is_rc);
+    free_string_name(sn_rc);
+    return is_rc != 0;
+}
+
+static GDExtensionMethodBindPtr mb_ref_init_ref = nullptr;
+inline void refcounted_init_ref(void *obj) {
+    if (!obj) return;
+    if (!mb_ref_init_ref && gd_classdb_get_method_bind) {
+        void *class_sn = make_string_name("RefCounted");
+        void *method_sn = make_string_name("init_ref");
+        mb_ref_init_ref = gd_classdb_get_method_bind(class_sn, method_sn, 2240911060ULL);
+        free_string_name(class_sn);
+        free_string_name(method_sn);
+    }
+    if (mb_ref_init_ref && gd_object_method_bind_ptrcall) {
+        uint8_t ret = 0;
+        gd_object_method_bind_ptrcall(mb_ref_init_ref, obj, nullptr, &ret);
+    }
+}
+
 inline void bridge_object_call(GDExtensionObjectPtr instance, const char *method_name, const BridgeSignalArg *args, int arg_count) {
     if (!instance || !bridge_is_object_valid(instance) || !method_name || !gd_classdb_get_method_bind || !gd_object_method_bind_call) return;
+    if (bridge_is_object_refcounted(instance)) {
+        refcounted_init_ref(instance);
+    }
     if (!mb_object_call) {
         mb_object_call = bridge_get_method_bind("Object", "call", 3400424181ULL);
     }
@@ -707,31 +740,21 @@ inline void bridge_object_call(GDExtensionObjectPtr instance, const char *method
     bridge_call_method_vararg(mb_object_call, instance, method_name, args, arg_count);
 }
 
-inline bool bridge_is_object_refcounted(GDExtensionObjectPtr obj) {
-    if (!obj || !bridge_is_object_valid(obj) || !gd_classdb_get_method_bind || !gd_object_method_bind_ptrcall) return false;
-    if (!mb_object_is_class) {
-        mb_object_is_class = bridge_get_method_bind("Object", "is_class", 2619796661ULL);
-    }
-    if (!mb_object_is_class) return false;
-    void *str_rc = make_string("RefCounted");
-    const void *args[1] = { str_rc };
-    uint8_t is_rc = 0;
-    gd_object_method_bind_ptrcall(mb_object_is_class, obj, (const GDExtensionConstTypePtr*)args, &is_rc);
-    free_string(str_rc);
-    return is_rc != 0;
-}
-
 inline GDExtensionObjectPtr bridge_object_call_ret_object(GDExtensionObjectPtr instance, const char *method_name, const BridgeSignalArg *args, int arg_count) {
     if (!instance || !bridge_is_object_valid(instance) || !method_name || !gd_classdb_get_method_bind || !gd_object_method_bind_call) return nullptr;
+    if (bridge_is_object_refcounted(instance)) {
+        refcounted_init_ref(instance);
+    }
     if (!mb_object_call) {
         mb_object_call = bridge_get_method_bind("Object", "call", 3400424181ULL);
     }
     if (!mb_object_call) return nullptr;
 
-    alignas(void*) char var_ret[24] = {0};
+    alignas(void*) char var_ret[GD_VARIANT_SIZE] = {0};
     bridge_call_method_vararg_ret(mb_object_call, instance, method_name, args, arg_count, var_ret);
 
     GDExtensionObjectPtr ret_obj = bridge_object_from_variant(var_ret);
+
     if (ret_obj && bridge_is_object_refcounted(ret_obj)) {
         if (!mb_refcounted_reference) {
             mb_refcounted_reference = bridge_get_method_bind("RefCounted", "reference", 2240911060ULL);
@@ -741,19 +764,24 @@ inline GDExtensionObjectPtr bridge_object_call_ret_object(GDExtensionObjectPtr i
             gd_object_method_bind_ptrcall(mb_refcounted_reference, ret_obj, nullptr, &success);
         }
     }
+
     if (gd_variant_destroy) gd_variant_destroy(var_ret);
+
     return ret_obj;
 }
 
 template <typename T, GDExtensionVariantType VType>
 inline T bridge_object_call_ret_pod(GDExtensionObjectPtr instance, const char *method_name, const BridgeSignalArg *args, int arg_count, T default_val = T{}) {
     if (!instance || !bridge_is_object_valid(instance) || !method_name || !gd_classdb_get_method_bind || !gd_object_method_bind_call) return default_val;
+    if (bridge_is_object_refcounted(instance)) {
+        refcounted_init_ref(instance);
+    }
     if (!mb_object_call) {
         mb_object_call = bridge_get_method_bind("Object", "call", 3400424181ULL);
     }
     if (!mb_object_call) return default_val;
 
-    alignas(void*) char var_ret[24] = {0};
+    alignas(void*) char var_ret[GD_VARIANT_SIZE] = {0};
     bridge_call_method_vararg_ret(mb_object_call, instance, method_name, args, arg_count, var_ret);
 
     T ret_val = default_val;
@@ -784,7 +812,7 @@ inline const char* bridge_object_call_ret_string(GDExtensionObjectPtr instance, 
     }
     if (!mb_object_call) return "";
 
-    alignas(void*) char var_ret[24] = {0};
+    alignas(void*) char var_ret[GD_VARIANT_SIZE] = {0};
     bridge_call_method_vararg_ret(mb_object_call, instance, method_name, args, arg_count, var_ret);
 
     if (gd_variant_stringify && gd_string_to_utf8_chars) {
@@ -841,8 +869,8 @@ inline GDExtensionObjectPtr bridge_node_get_node(GDExtensionObjectPtr node, cons
 
     if (gd_object_method_bind_call && gd_variant_from_string) {
         void *gd_str = make_string(path);
-        alignas(void*) char var_str[24] = {};
-        alignas(void*) char var_ret[24] = {};
+        alignas(void*) char var_str[GD_VARIANT_SIZE] = {};
+        alignas(void*) char var_ret[GD_VARIANT_SIZE] = {};
         gd_variant_from_string(var_str, gd_str);
 
         const void *call_args[1] = { var_str };
@@ -902,7 +930,7 @@ inline void bridge_node_rpc_config(GDExtensionObjectPtr node, const char *method
         dict_set_variant(raw_dict, "call_local", GDEXTENSION_VARIANT_TYPE_BOOL, &r_local);
         dict_set_variant(raw_dict, "channel", GDEXTENSION_VARIANT_TYPE_INT, &r_chan);
 
-        alignas(void*) char var_config[24] = {};
+        alignas(void*) char var_config[GD_VARIANT_SIZE] = {};
         bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_DICTIONARY, var_config, raw_dict);
 
         // Call Node.rpc_config(method, config)
@@ -920,7 +948,7 @@ inline void bridge_node_rpc_config(GDExtensionObjectPtr node, const char *method
             gd_dict_destructor(raw_dict);
         }
     } else {
-        alignas(void*) char var_config[24] = {};
+        alignas(void*) char var_config[GD_VARIANT_SIZE] = {};
         const void *args[2] = { m_sn, var_config };
         gd_object_method_bind_ptrcall(mb_node_rpc_config, node, args, nullptr);
     }
@@ -938,10 +966,10 @@ inline GDExtensionObjectPtr bridge_resource_loader_load(const char *path, const 
     }
     if (!mb_res_loader_load) return nullptr;
 
-    alignas(void*) char var_path[24] = {};
-    alignas(void*) char var_type[24] = {};
-    alignas(void*) char var_cache[24] = {};
-    alignas(void*) char var_ret[24] = {};
+    alignas(void*) char var_path[GD_VARIANT_SIZE] = {};
+    alignas(void*) char var_type[GD_VARIANT_SIZE] = {};
+    alignas(void*) char var_cache[GD_VARIANT_SIZE] = {};
+    alignas(void*) char var_ret[GD_VARIANT_SIZE] = {};
 
     void *gd_path = make_string(path);
     if (gd_variant_from_string) gd_variant_from_string(var_path, gd_path);
@@ -997,8 +1025,8 @@ inline GDExtensionObjectPtr bridge_packed_scene_instantiate(GDExtensionObjectPtr
     }
 
     if (gd_object_method_bind_call) {
-        alignas(void*) char var_edit[24] = {};
-        alignas(void*) char var_ret[24] = {};
+        alignas(void*) char var_edit[GD_VARIANT_SIZE] = {};
+        alignas(void*) char var_ret[GD_VARIANT_SIZE] = {};
 
         if (gd_get_variant_from_type_constructor) {
             GDExtensionVariantFromTypeConstructorFunc conv = gd_get_variant_from_type_constructor(GDEXTENSION_VARIANT_TYPE_INT);
@@ -1051,7 +1079,7 @@ inline const char* bridge_node_get_name(GDExtensionObjectPtr node) {
 
         if (gd_string_destroy) gd_string_destroy(gd_str);
     } else if (gd_variant_stringify && gd_string_to_utf8_chars) {
-        alignas(void*) char var_sn[24] = {};
+        alignas(void*) char var_sn[GD_VARIANT_SIZE] = {};
         alignas(void*) char gd_str[8] = {};
         bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_STRING_NAME, var_sn, sn_buf);
         gd_variant_stringify(var_sn, gd_str);
@@ -1167,22 +1195,6 @@ inline void bridge_ret_ref(void *r_ret, void *obj) {
 
 inline bool bridge_object_is_class(GDExtensionObjectPtr obj, const char *class_name);
 
-static GDExtensionMethodBindPtr mb_ref_init_ref = nullptr;
-inline void refcounted_init_ref(void *obj) {
-    if (!obj) return;
-    if (!mb_ref_init_ref && gd_classdb_get_method_bind) {
-        void *class_sn = make_string_name("RefCounted");
-        void *method_sn = make_string_name("init_ref");
-        mb_ref_init_ref = gd_classdb_get_method_bind(class_sn, method_sn, 2240911060ULL);
-        free_string_name(class_sn);
-        free_string_name(method_sn);
-    }
-    if (mb_ref_init_ref && gd_object_method_bind_ptrcall) {
-        uint8_t ret = 0;
-        gd_object_method_bind_ptrcall(mb_ref_init_ref, obj, nullptr, &ret);
-    }
-}
-
 inline void bridge_ret_variant_object(void *r_ret, void *obj) {
     if (!r_ret) return;
     if (obj && bridge_object_is_class(obj, "RefCounted")) {
@@ -1193,7 +1205,7 @@ inline void bridge_ret_variant_object(void *r_ret, void *obj) {
 
 inline void bridge_ret_variant_nil(void *r_ret) {
     if (!r_ret) return;
-    memset(r_ret, 0, 24);
+    memset(r_ret, 0, GD_VARIANT_SIZE);
 }
 
 inline bool has_cr_extension(const char *path) {
@@ -1422,26 +1434,26 @@ inline void bridge_highlighter_add_span(void *r_color_map, int64_t col, float r,
     alignas(void*) char sub_dict[8] = {};
     gd_dictionary_constructor(sub_dict, nullptr);
 
-    alignas(void*) char var_color_str[24] = {};
+    alignas(void*) char var_color_str[GD_VARIANT_SIZE] = {};
     const char *color_str = "color";
     bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_STRING, var_color_str, &color_str);
 
-    alignas(void*) char var_color_sn[24] = {};
+    alignas(void*) char var_color_sn[GD_VARIANT_SIZE] = {};
     void *sn_color = make_string_name("color");
     bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_STRING_NAME, var_color_sn, sn_color);
     free_string_name(sn_color);
 
     struct { float r, g, b, a; } color_val = { r, g, b, a };
-    alignas(void*) char var_color_val[24] = {};
+    alignas(void*) char var_color_val[GD_VARIANT_SIZE] = {};
     bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_COLOR, var_color_val, &color_val);
 
     gd_dict_keyed_setter(sub_dict, var_color_str, var_color_val);
     gd_dict_keyed_setter(sub_dict, var_color_sn, var_color_val);
 
-    alignas(void*) char var_col[24] = {};
+    alignas(void*) char var_col[GD_VARIANT_SIZE] = {};
     bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_INT, var_col, &col);
 
-    alignas(void*) char var_sub_dict[24] = {};
+    alignas(void*) char var_sub_dict[GD_VARIANT_SIZE] = {};
     bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_DICTIONARY, var_sub_dict, sub_dict);
 
     gd_dict_keyed_setter(r_color_map, var_col, var_sub_dict);
@@ -1497,11 +1509,11 @@ inline void dict_set_variant(void *dict, const char *key_str, int var_type, cons
     }
     if (!gd_dict_keyed_setter) return;
 
-    alignas(void*) char var_key[24] = {};
+    alignas(void*) char var_key[GD_VARIANT_SIZE] = {};
     const char *k = key_str;
     bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_STRING, var_key, &k);
 
-    alignas(void*) char var_val[24] = {};
+    alignas(void*) char var_val[GD_VARIANT_SIZE] = {};
     bridge_variant_from_type(var_type, var_val, val_ptr);
 
     gd_dict_keyed_setter(dict, var_key, var_val);
@@ -1532,7 +1544,7 @@ inline void bridge_ret_dictionary_complete_code(void *r_ret) {
     dict_set_variant(r_ret, "call_hint", GDEXTENSION_VARIANT_TYPE_STRING, &v_hint);
 
     // Initialize an empty Array variant for "options" so Godot engine validation succeeds
-    alignas(void*) char arr_options[24] = {};
+    alignas(void*) char arr_options[GD_VARIANT_SIZE] = {};
     if (!gd_array_constructor && gd_variant_get_ptr_constructor) {
         gd_array_constructor = gd_variant_get_ptr_constructor(GDEXTENSION_VARIANT_TYPE_ARRAY, 0);
     }
@@ -1565,7 +1577,7 @@ inline void bridge_ret_dictionary_complete_code_ex(
     dict_set_variant(r_ret, "call_hint", GDEXTENSION_VARIANT_TYPE_STRING, &v_hint);
 
     // Initialize an empty Array for "options"
-    alignas(void*) char arr_options[24] = {};
+    alignas(void*) char arr_options[GD_VARIANT_SIZE] = {};
     if (!gd_array_constructor && gd_variant_get_ptr_constructor) {
         gd_array_constructor = gd_variant_get_ptr_constructor(GDEXTENSION_VARIANT_TYPE_ARRAY, 0);
     }
@@ -1588,7 +1600,7 @@ inline void bridge_ret_dictionary_complete_code_ex(
 
     if (gd_array_push_back && options && option_count > 0) {
         for (int i = 0; i < option_count; i++) {
-            alignas(void*) char opt_dict[24] = {};
+            alignas(void*) char opt_dict[GD_VARIANT_SIZE] = {};
             if (!gd_dictionary_constructor && gd_variant_get_ptr_constructor) {
                 gd_dictionary_constructor = gd_variant_get_ptr_constructor(GDEXTENSION_VARIANT_TYPE_DICTIONARY, 0);
             }
@@ -1618,8 +1630,8 @@ inline void bridge_ret_dictionary_complete_code_ex(
             GDExtensionObjectPtr icon_obj = nullptr;
             dict_set_variant(opt_dict, "icon", GDEXTENSION_VARIANT_TYPE_OBJECT, &icon_obj);
 
-            // Box opt_dict (Dictionary) into a 24-byte Variant before passing to Array.push_back
-            alignas(void*) char var_opt_dict[24] = {};
+            // Box opt_dict (Dictionary) into a Variant before passing to Array.push_back
+            alignas(void*) char var_opt_dict[GD_VARIANT_SIZE] = {};
             bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_DICTIONARY, var_opt_dict, opt_dict);
 
             const GDExtensionConstTypePtr pb_args[1] = { var_opt_dict };
@@ -1658,7 +1670,7 @@ inline void bridge_ret_dictionary_validate_ex(
     dict_set_variant(r_ret, "valid", GDEXTENSION_VARIANT_TYPE_BOOL, &v_bool);
 
     // Initialize an empty Array for "errors"
-    alignas(void*) char arr_errors[24] = {};
+    alignas(void*) char arr_errors[GD_VARIANT_SIZE] = {};
     if (!gd_array_constructor && gd_variant_get_ptr_constructor) {
         gd_array_constructor = gd_variant_get_ptr_constructor(GDEXTENSION_VARIANT_TYPE_ARRAY, 0);
     }
@@ -1674,7 +1686,7 @@ inline void bridge_ret_dictionary_validate_ex(
 
     if (gd_array_push_back && errors && error_count > 0) {
         for (int i = 0; i < error_count; i++) {
-            alignas(void*) char err_dict[24] = {};
+            alignas(void*) char err_dict[GD_VARIANT_SIZE] = {};
             if (!gd_dictionary_constructor && gd_variant_get_ptr_constructor) {
                 gd_dictionary_constructor = gd_variant_get_ptr_constructor(GDEXTENSION_VARIANT_TYPE_DICTIONARY, 0);
             }
@@ -1689,7 +1701,7 @@ inline void bridge_ret_dictionary_validate_ex(
             const char *msg = errors[i].message ? errors[i].message : "";
             dict_set_variant(err_dict, "message", GDEXTENSION_VARIANT_TYPE_STRING, &msg);
 
-            alignas(void*) char var_err_dict[24] = {};
+            alignas(void*) char var_err_dict[GD_VARIANT_SIZE] = {};
             bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_DICTIONARY, var_err_dict, err_dict);
 
             const GDExtensionConstTypePtr pb_args[1] = { var_err_dict };
@@ -1717,13 +1729,13 @@ inline void bridge_ret_dictionary_validate_ex(
     }
 
     // Initialize an empty Array for "warnings"
-    alignas(void*) char arr_warnings[24] = {};
+    alignas(void*) char arr_warnings[GD_VARIANT_SIZE] = {};
     if (gd_array_constructor) {
         gd_array_constructor(arr_warnings, nullptr);
     }
     if (gd_array_push_back && warnings && warning_count > 0) {
         for (int i = 0; i < warning_count; i++) {
-            alignas(void*) char warn_dict[24] = {};
+            alignas(void*) char warn_dict[GD_VARIANT_SIZE] = {};
             if (gd_dictionary_constructor) {
                 gd_dictionary_constructor(warn_dict, nullptr);
             }
@@ -1734,7 +1746,7 @@ inline void bridge_ret_dictionary_validate_ex(
             const char *msg = warnings[i].message ? warnings[i].message : "";
             dict_set_variant(warn_dict, "message", GDEXTENSION_VARIANT_TYPE_STRING, &msg);
 
-            alignas(void*) char var_warn_dict[24] = {};
+            alignas(void*) char var_warn_dict[GD_VARIANT_SIZE] = {};
             bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_DICTIONARY, var_warn_dict, warn_dict);
 
             const GDExtensionConstTypePtr pb_args[1] = { var_warn_dict };
@@ -1811,7 +1823,7 @@ inline void bridge_ret_script_templates(void *r_ret, const BridgeScriptTemplate 
     if (!gd_array_push_back) return;
 
     for (int i = 0; i < count; i++) {
-        alignas(void*) char t_dict[24] = {};
+        alignas(void*) char t_dict[GD_VARIANT_SIZE] = {};
         if (!gd_dictionary_constructor && gd_variant_get_ptr_constructor) {
             gd_dictionary_constructor = gd_variant_get_ptr_constructor(GDEXTENSION_VARIANT_TYPE_DICTIONARY, 0);
         }
@@ -1837,7 +1849,7 @@ inline void bridge_ret_script_templates(void *r_ret, const BridgeScriptTemplate 
         int64_t origin = 0; // TEMPLATE_ORIGIN_BUILTIN
         dict_set_variant(t_dict, "origin", GDEXTENSION_VARIANT_TYPE_INT, &origin);
 
-        alignas(void*) char var_t_dict[24] = {};
+        alignas(void*) char var_t_dict[GD_VARIANT_SIZE] = {};
         bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_DICTIONARY, var_t_dict, t_dict);
 
         const GDExtensionConstTypePtr pb_args[1] = { var_t_dict };
@@ -1881,7 +1893,7 @@ inline void bridge_ret_signal_list(void *r_ret, const struct CrystalSignalDesc *
     if (!gd_array_push_back || !gd_dictionary_constructor || !gd_array_constructor) return;
 
     for (int i = 0; i < signal_count; i++) {
-        alignas(void*) char sig_dict[24] = {};
+        alignas(void*) char sig_dict[GD_VARIANT_SIZE] = {};
         gd_dictionary_constructor(sig_dict, nullptr);
 
         const char *s_name = signals[i].name ? signals[i].name : "";
@@ -1890,12 +1902,12 @@ inline void bridge_ret_signal_list(void *r_ret, const struct CrystalSignalDesc *
         int64_t s_flags = 1; // METHOD_FLAG_NORMAL
         dict_set_variant(sig_dict, "flags", GDEXTENSION_VARIANT_TYPE_INT, &s_flags);
 
-        alignas(void*) char arr_args[24] = {};
+        alignas(void*) char arr_args[GD_VARIANT_SIZE] = {};
         gd_array_constructor(arr_args, nullptr);
 
         if (signals[i].args && signals[i].arg_count > 0) {
             for (int j = 0; j < signals[i].arg_count; j++) {
-                alignas(void*) char arg_dict[24] = {};
+                alignas(void*) char arg_dict[GD_VARIANT_SIZE] = {};
                 gd_dictionary_constructor(arg_dict, nullptr);
 
                 const char *a_name = signals[i].args[j].name ? signals[i].args[j].name : "";
@@ -1911,7 +1923,7 @@ inline void bridge_ret_signal_list(void *r_ret, const struct CrystalSignalDesc *
                 dict_set_variant(arg_dict, "hint_string", GDEXTENSION_VARIANT_TYPE_STRING, &empty_str);
                 dict_set_variant(arg_dict, "usage", GDEXTENSION_VARIANT_TYPE_INT, &usage_val);
 
-                alignas(void*) char var_arg_dict[24] = {};
+                alignas(void*) char var_arg_dict[GD_VARIANT_SIZE] = {};
                 bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_DICTIONARY, var_arg_dict, arg_dict);
 
                 const GDExtensionConstTypePtr pb_arg[1] = { var_arg_dict };
@@ -1926,19 +1938,19 @@ inline void bridge_ret_signal_list(void *r_ret, const struct CrystalSignalDesc *
         dict_set_variant(sig_dict, "args", GDEXTENSION_VARIANT_TYPE_ARRAY, arr_args);
         if (gd_array_destructor) gd_array_destructor(arr_args);
 
-        alignas(void*) char arr_defargs[24] = {};
+        alignas(void*) char arr_defargs[GD_VARIANT_SIZE] = {};
         gd_array_constructor(arr_defargs, nullptr);
         dict_set_variant(sig_dict, "default_args", GDEXTENSION_VARIANT_TYPE_ARRAY, arr_defargs);
         if (gd_array_destructor) gd_array_destructor(arr_defargs);
 
-        alignas(void*) char ret_dict[24] = {};
+        alignas(void*) char ret_dict[GD_VARIANT_SIZE] = {};
         gd_dictionary_constructor(ret_dict, nullptr);
         int64_t nil_type = 0; // Variant::NIL
         dict_set_variant(ret_dict, "type", GDEXTENSION_VARIANT_TYPE_INT, &nil_type);
         dict_set_variant(sig_dict, "return", GDEXTENSION_VARIANT_TYPE_DICTIONARY, ret_dict);
         if (gd_dict_destructor) gd_dict_destructor(ret_dict);
 
-        alignas(void*) char var_sig_dict[24] = {};
+        alignas(void*) char var_sig_dict[GD_VARIANT_SIZE] = {};
         bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_DICTIONARY, var_sig_dict, sig_dict);
 
         const GDExtensionConstTypePtr pb_sig[1] = { var_sig_dict };
@@ -1969,7 +1981,7 @@ inline void bridge_ret_property_list(void *r_ret, const struct CrystalPropertyDe
     if (!gd_array_push_back || !gd_dictionary_constructor) return;
 
     for (int i = 0; i < prop_count; i++) {
-        alignas(void*) char prop_dict[24] = {};
+        alignas(void*) char prop_dict[GD_VARIANT_SIZE] = {};
         gd_dictionary_constructor(prop_dict, nullptr);
 
         const char *p_name = props[i].name ? props[i].name : "";
@@ -1986,7 +1998,7 @@ inline void bridge_ret_property_list(void *r_ret, const struct CrystalPropertyDe
         dict_set_variant(prop_dict, "hint_string", GDEXTENSION_VARIANT_TYPE_STRING, &p_hint_str);
         dict_set_variant(prop_dict, "usage", GDEXTENSION_VARIANT_TYPE_INT, &p_usage);
 
-        alignas(void*) char var_prop_dict[24] = {};
+        alignas(void*) char var_prop_dict[GD_VARIANT_SIZE] = {};
         bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_DICTIONARY, var_prop_dict, prop_dict);
 
         const GDExtensionConstTypePtr pb_prop[1] = { var_prop_dict };
@@ -2697,7 +2709,7 @@ inline GDExtensionObjectPtr bridge_editor_get_selected_node(GDExtensionObjectPtr
     }
     if (!mb_get_sel) return nullptr;
 
-    alignas(void*) char var_sel[24] = {0};
+    alignas(void*) char var_sel[GD_VARIANT_SIZE] = {0};
     bridge_call_method_vararg_ret(mb_get_sel, ed_iface, "get_selection", nullptr, 0, var_sel);
     GDExtensionObjectPtr sel_obj = bridge_object_from_variant(var_sel);
     if (gd_variant_destroy) gd_variant_destroy(var_sel);

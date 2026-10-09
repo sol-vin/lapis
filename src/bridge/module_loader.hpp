@@ -332,6 +332,48 @@ inline bool bridge_should_use_shadow_copy() {
 }
 
 /**
+ * Checks whether a library filename represents a core runtime dependency or system DLL
+ * (such as Boehm GC, PCRE2, OpenSSL, LLVM, zlib, etc.) that should not be dynamically
+ * loaded as a Crystal game/addon module.
+ */
+inline bool is_runtime_dependency_library(const char *name) {
+    if (!name || name[0] == '\0' || name[0] == '.' || name[0] == '~') return true;
+    if (strstr(name, "crystal_bridge") != nullptr) return true;
+    if (strstr(name, "_loaded_") != nullptr) return true;
+    if (strstr(name, "plugin") != nullptr) return true;
+
+    // Convert filename to lowercase for case-insensitive matching
+    std::string lower(name);
+    for (char &c : lower) {
+        c = (char)tolower((unsigned char)c);
+    }
+
+    const char *ignored_patterns[] = {
+        "crystal_bridge",
+        "libgodot",
+        "gc.dll",
+        "libgc",
+        "iconv",
+        "pcre2",
+        "libssl",
+        "libcrypto",
+        "libxml",
+        "llvm",
+        "yaml",
+        "zlib",
+        "libz"
+    };
+
+    for (const char *pat : ignored_patterns) {
+        if (lower.find(pat) != std::string::npos) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
  * Locates, shadow-copies, loads, and initializes the Crystal game library (game.dll / game.so).
  *
  * @param p_library Opaque handle to the active GDExtension library.
@@ -527,14 +569,7 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
             if (hFind != INVALID_HANDLE_VALUE) {
                 do {
                     // Skip system runtime dlls and existing shadow dlls
-                    if (strstr(fd.cFileName, "crystal_bridge") == nullptr &&
-                        fd.cFileName[0] != '~' &&
-                        strcmp(fd.cFileName, "gc.dll") != 0 &&
-                        strcmp(fd.cFileName, "iconv-2.dll") != 0 &&
-                        strcmp(fd.cFileName, "pcre2-8.dll") != 0 &&
-                        strcmp(fd.cFileName, "libgodot.dll") != 0 &&
-                        strcmp(fd.cFileName, "plugin.dll") != 0 &&
-                        strstr(fd.cFileName, "_loaded_") == nullptr) {
+                    if (!is_runtime_dependency_library(fd.cFileName)) {
                         char full_path[MAX_PATH];
                         snprintf(full_path, sizeof(full_path), "%s\\%s", bridge_dir, fd.cFileName);
                         to_load.push_back(std::string(full_path));
@@ -552,14 +587,7 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
                     size_t len = strlen(name);
                     bool is_lib = (len > 3 && strcmp(name + len - 3, ".so") == 0) ||
                                   (len > 6 && strcmp(name + len - 6, ".dylib") == 0);
-                    if (is_lib &&
-                        strstr(name, "crystal_bridge") == nullptr &&
-                        strstr(name, "plugin") == nullptr &&
-                        strstr(name, "libgc") == nullptr &&
-                        strstr(name, "libpcre2") == nullptr &&
-                        strstr(name, "libiconv") == nullptr &&
-                        strstr(name, "libgodot") == nullptr &&
-                        strstr(name, "_loaded_") == nullptr) {
+                    if (is_lib && !is_runtime_dependency_library(name)) {
                         char full_path[MAX_PATH];
                         snprintf(full_path, sizeof(full_path), "%s/%s", bridge_dir, name);
                         to_load.push_back(std::string(full_path));

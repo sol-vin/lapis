@@ -3,6 +3,11 @@ module Godot
   # SceneTree Ergonomic Extensions
   # ===========================================================================
   class SceneTree
+    # Property alias for get_root
+    def root : Window
+      get_root
+    end
+
     # Creates a SceneTreeTimer with integer seconds
     def create_timer(time_sec : Int, process_always : Bool = true, process_in_physics : Bool = false, ignore_time_scale : Bool = false) : SceneTreeTimer
       create_timer(time_sec.to_f64, process_always, process_in_physics, ignore_time_scale)

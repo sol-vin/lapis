@@ -93,7 +93,7 @@ module Godot
     def self.get_or_load(path : String, type : T.class) : T forall T
       @@mutex.synchronize do
         if res = @@cache[path]?
-          if res.alive?
+          if res.active?
             if res.is_a?(T)
               return res
             elsif alive = Bridge.find_alive_instance(res.pointer)
@@ -116,7 +116,7 @@ module Godot
     def self.get_or_load?(path : String, type : T.class) : T? forall T
       @@mutex.synchronize do
         if res = @@cache[path]?
-          if res.alive?
+          if res.active?
             if res.is_a?(T)
               return res
             elsif alive = Bridge.find_alive_instance(res.pointer)
@@ -145,6 +145,26 @@ module Godot
 
     def self.has?(path : String) : Bool
       @@mutex.synchronize { @@cache.has_key?(path) }
+    end
+
+    # Directly inserts or overrides a resource in the preloaded cache
+    def self.[]=(path : String, resource : Resource) : Void
+      @@mutex.synchronize { @@cache[path] = resource }
+    end
+
+    # Directly inserts or overrides a resource in the preloaded cache
+    def self.set(path : String, resource : Resource) : Void
+      @@mutex.synchronize { @@cache[path] = resource }
+    end
+
+    # Returns the count of resources currently cached in memory
+    def self.size : Int32
+      @@mutex.synchronize { @@cache.size }
+    end
+
+    # Removes a cached resource from memory, returning it if present
+    def self.delete(path : String) : Resource?
+      @@mutex.synchronize { @@cache.delete(path) }
     end
   end
 
@@ -204,9 +224,51 @@ module Godot
         end
       end
     end
+
+    # Duplicates this resource with subresources optionally duplicated.
+    # Uses Bridge.object_call_ret_object to ensure safe Ref<Resource> lifecycle
+    # management across the GDExtension boundary without ABI ptrcall corruption.
+    def duplicate(deep : Bool = false) : Resource
+      check_alive!
+      ptr = Bridge.object_call_ret_object(@pointer, "duplicate", deep)
+      return self if ptr.null?
+      if inst = Bridge.find_alive_instance(ptr)
+        if casted = inst.as?(Resource)
+          return casted
+        end
+      end
+      res = Resource.new(ptr)
+      Bridge.register_alive_instance_by_ptr(ptr, res)
+      res
+    end
+
+    # Returns a duplicate of this resource downcast to requested type T
+    def duplicate(deep : Bool = false, *, as type : T.class) : T forall T
+      check_alive!
+      ptr = Bridge.object_call_ret_object(@pointer, "duplicate", deep)
+      return self.as(T) if ptr.null?
+      T.new(ptr)
+    end
   end
 
   class StandardMaterial3D < BaseMaterial3D
+    # Duplicates this material directly returning typed StandardMaterial3D
+    def duplicate(deep : Bool = false) : StandardMaterial3D
+      if @pointer.null?
+        clone = StandardMaterial3D.new
+        clone.albedo_color = @local_albedo
+        clone.roughness = @local_roughness
+        clone.metallic = @local_metallic
+        clone.emission_enabled = @local_emission_enabled
+        clone.emission = @local_emission
+        return clone
+      end
+      check_alive!
+      ptr = Bridge.object_call_ret_object(@pointer, "duplicate", deep)
+      return self if ptr.null?
+      StandardMaterial3D.new(ptr)
+    end
+
     @local_albedo : Color = Color.new(1.0, 1.0, 1.0, 1.0)
     @local_roughness : Float32 = 1.0_f32
     @local_metallic : Float32 = 0.0_f32
@@ -257,29 +319,16 @@ module Godot
       @local_emission = c
       set_emission(c) unless @pointer.null?
     end
-
-    def duplicate(deep : Bool = false) : Resource
-      if @pointer.null?
-        clone = StandardMaterial3D.new
-        clone.albedo_color = @local_albedo
-        clone.roughness = @local_roughness
-        clone.metallic = @local_metallic
-        clone.emission_enabled = @local_emission_enabled
-        clone.emission = @local_emission
-        return clone
-      end
-      super(deep)
-    end
   end
 
   class Mesh < Resource
     # Returns the material for the given surface index, downcast to target type T.
-    def surface_get_material(surf_idx : Int, as type : T.class) : T forall T
+    def surface_get_material(surf_idx : Int, *, as type : T.class) : T forall T
       surface_get_material(surf_idx.to_i64).as_a(T)
     end
 
     # Returns the material for the given surface index, downcast to target type T (or nil if invalid/incompatible).
-    def surface_get_material?(surf_idx : Int, as type : T.class) : T? forall T
+    def surface_get_material?(surf_idx : Int, *, as type : T.class) : T? forall T
       surface_get_material(surf_idx.to_i64).as_a?(T)
     end
 
@@ -294,12 +343,12 @@ module Godot
 
   class PrimitiveMesh < Mesh
     # Returns the material of this primitive mesh, downcast to target type T.
-    def material(as type : T.class) : T forall T
+    def material(*, as type : T.class) : T forall T
       get_material.as_a(T)
     end
 
     # Returns the material of this primitive mesh, downcast to target type T (or nil if invalid/incompatible).
-    def material?(as type : T.class) : T? forall T
+    def material?(*, as type : T.class) : T? forall T
       get_material.as_a?(T)
     end
 

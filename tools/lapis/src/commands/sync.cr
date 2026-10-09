@@ -341,9 +341,9 @@ HELP
             end
           end
 
-          # Sync game binary to corresponding addons/crystal_integration/bin for consumer projects
+          # Sync game binary to corresponding addons/crystal_integration/bin for consumer projects and root
           game_file = Core::Env.game_file
-          consumer_projs = ["test", "template", "performance"]
+          consumer_projs = [".", "test", "template", "performance"]
           examples_dir = root.join("examples")
           if Dir.exists?(examples_dir)
             Dir.each_child(examples_dir) do |child|
