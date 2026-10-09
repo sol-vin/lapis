@@ -361,7 +361,11 @@ inline bool is_runtime_dependency_library(const char *name) {
         "llvm",
         "yaml",
         "zlib",
-        "libz"
+        "libz",
+        "vcruntime",
+        "msvcp",
+        "ucrtbase",
+        "api-ms-win"
     };
 
     for (const char *pat : ignored_patterns) {
@@ -559,6 +563,41 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
             }
         }
 
+        // If standard names not found, check if directory is an addon subfolder: addons/<name>/bin/<name>.ext
+        if (to_load.empty()) {
+            std::string bdir(bridge_dir);
+            size_t bin_pos = bdir.rfind("bin");
+            if (bin_pos != std::string::npos && bin_pos > 0 && (bdir[bin_pos - 1] == '/' || bdir[bin_pos - 1] == '\\')) {
+                size_t name_end = bin_pos - 1;
+                size_t name_start = bdir.find_last_of("/\\", name_end - 1);
+                if (name_start != std::string::npos && name_start < name_end) {
+                    std::string addon_name = bdir.substr(name_start + 1, name_end - name_start - 1);
+                    if (!addon_name.empty()) {
+                        char addon_bin_path[MAX_PATH] = {0};
+#ifdef _WIN32
+                        snprintf(addon_bin_path, sizeof(addon_bin_path), "%s%s%s.dll", bridge_dir, path_sep, addon_name.c_str());
+#elif defined(__ANDROID__) || defined(ANDROID)
+                        snprintf(addon_bin_path, sizeof(addon_bin_path), "%s%slib%s.so", bridge_dir, path_sep, addon_name.c_str());
+#elif defined(__APPLE__)
+                        snprintf(addon_bin_path, sizeof(addon_bin_path), "%s%slib%s.dylib", bridge_dir, path_sep, addon_name.c_str());
+                        if (!bridge_file_exists(addon_bin_path)) {
+                            snprintf(addon_bin_path, sizeof(addon_bin_path), "%s%s%s.dylib", bridge_dir, path_sep, addon_name.c_str());
+                        }
+#else
+                        snprintf(addon_bin_path, sizeof(addon_bin_path), "%s%slib%s.so", bridge_dir, path_sep, addon_name.c_str());
+                        if (!bridge_file_exists(addon_bin_path)) {
+                            snprintf(addon_bin_path, sizeof(addon_bin_path), "%s%s%s.so", bridge_dir, path_sep, addon_name.c_str());
+                        }
+#endif
+                        if (bridge_file_exists(addon_bin_path)) {
+                            to_load.push_back(std::string(addon_bin_path));
+                            loaded_game_or_addon = true;
+                        }
+                    }
+                }
+            }
+        }
+
         // If standard names not found, search directory for any custom addon DLL/SO
         if (to_load.empty()) {
 #ifdef _WIN32
@@ -574,6 +613,7 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
                         snprintf(full_path, sizeof(full_path), "%s\\%s", bridge_dir, fd.cFileName);
                         to_load.push_back(std::string(full_path));
                         loaded_game_or_addon = true;
+                        break; // Each addon directory only houses a single Crystal extension binary
                     }
                 } while (FindNextFileA(hFind, &fd));
                 FindClose(hFind);
@@ -592,6 +632,7 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
                         snprintf(full_path, sizeof(full_path), "%s/%s", bridge_dir, name);
                         to_load.push_back(std::string(full_path));
                         loaded_game_or_addon = true;
+                        break; // Each addon directory only houses a single Crystal extension binary
                     }
                 }
                 closedir(d);

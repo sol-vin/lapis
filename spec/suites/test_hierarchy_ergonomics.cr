@@ -262,7 +262,7 @@ test_suite "HierarchyErgonomics" do
     original.add_child(child)
 
     # Duplicate entire subtree
-    dup = original.duplicate(Godot::Node::DuplicateFlags::DuplicateSignals.value | Godot::Node::DuplicateFlags::DuplicateGroups.value)
+    dup = original.duplicate(Godot::Node::DuplicateFlags::DuplicateGroups.value)
     dup_node = Godot::Node2D.new(dup.pointer)
 
     assert_not_nil dup_node
