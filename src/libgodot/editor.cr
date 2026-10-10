@@ -10,6 +10,7 @@ require "./editor/action_driver"
 require "./editor/action_driver_vision"
 require "./editor/action_driver_ipc"
 require "./editor/state_preserver"
+require "../editor/async_command_runner"
 
 module Lapis
   include Godot
@@ -564,11 +565,70 @@ module Lapis
       self.class.setup_main_screen_panel
     end
 
+    @@console_dock : Godot::Control? = nil
+    @@console_dock_button : Godot::Button? = nil
+    @@setting_up_dock : Bool = false
+
+    # Docks the CrystalConsoleDock into Godot Editor's bottom panel and makes it available to the editor
+    def self.setup_bottom_panel_dock : Void
+      return if @@setting_up_dock
+      return if headless_suppressed?
+      if (d = @@console_dock) && !d.pointer.null?
+        return
+      end
+      if Godot::EditorInterface.singleton_ptr.null?
+        return
+      end
+      ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
+      base_ctrl = ed_iface.get_base_control
+      if base_ctrl.pointer.null?
+        return
+      end
+
+      if !Godot::DisplayServer.singleton_ptr.null?
+        ds = Godot::DisplayServer.new(Godot::DisplayServer.singleton_ptr)
+        if ds.call_str("get_name") == "headless" && ::ENV["LIBGODOT_ENABLE_EDITOR_UI"]? != "1"
+          return
+        end
+      end
+
+      existing = base_ctrl.call_obj("find_child", "CrystalConsoleDock", true, false)
+      if existing && !existing.pointer.null?
+        @@console_dock = Godot::Control.new(existing.pointer)
+        return
+      end
+
+      @@setting_up_dock = true
+      begin
+        if (dock = Godot.create("CrystalConsoleDock")) && !dock.pointer.null?
+          dock.call("set_name", "CrystalConsoleDock")
+          ctrl_dock = Godot::Control.new(dock.pointer)
+          @@console_dock = ctrl_dock
+          if inst = @@instance
+            btn = inst.add_control_to_bottom_panel(ctrl_dock, "Crystal") rescue nil
+            @@console_dock_button = btn if btn && !btn.pointer.null?
+          else
+            base_ctrl.call_deferred("add_child", dock) rescue nil
+          end
+          Godot.log_debug("Editor", "[CrystalIntegrationPlugin] Crystal Console added to Editor Bottom Panel successfully.")
+        end
+      ensure
+        @@setting_up_dock = false
+      end
+    rescue ex
+      Godot.printerr("[CrystalIntegrationPlugin] Notice: could not setup bottom panel dock: #{ex.message}")
+    end
+
+    def setup_bottom_panel_dock : Void
+      self.class.setup_bottom_panel_dock
+    end
+
     def deferred_setup_editor_ui : Void
       return if self.class.headless_suppressed?
       self.class.setup_toolbar_button
       self.class.setup_new_script_button
       self.class.setup_main_screen_panel
+      self.class.setup_bottom_panel_dock
       self.class.setup_debugger_plugin
     end
 
@@ -1556,6 +1616,30 @@ module Lapis
         test_failures << "CrystalPanel main screen not found by ActionDriver"
       end
 
+      # 2b. Verify Crystal Console Bottom Panel Dock
+      Godot.print("[ActionDriverTest] 2b. Verifying Crystal Console Bottom Panel Dock...")
+      if dock = driver.find_crystal_console_dock
+        Godot.print("[ActionDriverTest] SUCCESS: Found CrystalConsoleDock: '#{dock.name}' (#{dock.get_class})")
+      else
+        Godot.print("[ActionDriverTest] Note: CrystalConsoleDock bottom panel dock not directly resolved via find_child")
+      end
+
+      # 2c. Verify CrystalPanel tabs & BenchmarkGraphControl
+      Godot.print("[ActionDriverTest] 2c. Verifying CrystalPanel tabs & BenchmarkGraphControl...")
+      if panel = driver.find_crystal_panel
+        tabs = panel.find_child("TabContainer", true, false)
+        if tabs && !tabs.pointer.null?
+          tab_cnt = tabs.call_i64("get_tab_count") rescue 0_i64
+          Godot.print("[ActionDriverTest] SUCCESS: CrystalPanel has #{tab_cnt} tabs.")
+        end
+        graph = panel.find_child("BenchmarkGraphControl", true, false)
+        if graph && !graph.pointer.null?
+          Godot.print("[ActionDriverTest] SUCCESS: Found BenchmarkGraphControl inside CrystalPanel!")
+        else
+          Godot.print("[ActionDriverTest] Note: BenchmarkGraphControl not directly resolved via find_child")
+        end
+      end
+
       # 3. Verify opening scripts (.cr and .gd)
       Godot.print("[ActionDriverTest] 3. Verifying Script Opening...")
       cr_script = "scripts/patch_docs.cr"
@@ -2428,6 +2512,7 @@ module Lapis
       if dbg = @@debugger_plugin
         dbg.call("poll") rescue nil
       end
+      Lapis::AsyncCommandRunner.instance.poll rescue nil
 
       if Godot.editor_hint?
         if ::ENV["LIBGODOT_TEST_BUILD_BUTTON"]? == "1" || !::ENV["LIBGODOT_TEST_RELOAD_CYCLES"]?.nil?

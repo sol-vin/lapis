@@ -415,6 +415,16 @@ module Lapis
         !find_crystal_panel.nil?
       end
 
+      # Locates the "CrystalConsoleDock" bottom panel companion control
+      def find_crystal_console_dock : Godot::Control?
+        find_dock("CrystalConsoleDock") || find_control("CrystalConsoleDock")
+      end
+
+      # Checks whether the "CrystalConsoleDock" bottom panel dock exists in the editor UI
+      def has_crystal_console_dock? : Bool
+        !find_crystal_console_dock.nil?
+      end
+
       # Clicks the "Build Crystal" toolbar button
       def click_crystal_build_button : Bool
         if btn = find_crystal_build_button

@@ -7,6 +7,9 @@
 
 require "../lapis"
 require "json"
+require "./async_command_runner"
+require "./toolchain"
+require "./benchmark_graph_control"
 
 module Lapis
   include Godot
@@ -27,6 +30,22 @@ module Lapis
     @benchmarks_log : RichTextLabel? = nil
     @benchmarks_category_filter : String? = nil
     @benchmarks_iterations_spin : SpinBox? = nil
+    @benchmarks_all_lang_chk : CheckBox? = nil
+    @benchmark_graph : BenchmarkGraphControl? = nil
+
+    # Doctor GUI fields
+    @doctor_tree : Tree? = nil
+    @doctor_status_lbl : Label? = nil
+    @doctor_log : RichTextLabel? = nil
+
+    # Shards GUI fields
+    @shards_tree : Tree? = nil
+    @shards_status_lbl : Label? = nil
+    @shards_log : RichTextLabel? = nil
+
+    # ClassDB GUI fields
+    @classdb_tree : Tree? = nil
+    @classdb_filter : LineEdit? = nil
 
     # Crystal Log GUI fields
     @log_filter_level : LogLevel? = nil
@@ -70,7 +89,14 @@ module Lapis
       refresh_addons_list
       refresh_spec_list
       refresh_benchmarks_list
+      refresh_doctor_list
+      refresh_shards_list
+      refresh_classdb_list
       refresh_log_view
+    end
+
+    def _physics_process(delta : Float64) : Void
+      AsyncCommandRunner.instance.poll
     end
 
     # =========================================================================
@@ -178,6 +204,9 @@ module Lapis
       create_addons_tab(tabs)
       create_test_runner_tab(tabs)
       create_benchmarks_tab(tabs)
+      create_doctor_tab(tabs)
+      create_shards_tab(tabs)
+      create_classdb_tab(tabs)
       create_log_tab(tabs)
 
       root_vbox.call("add_child", tabs)
@@ -519,6 +548,15 @@ module Lapis
           ctrl_row.call("add_child", spin_iter)
         end
 
+        chk_all = Godot.create(Godot::CheckBox)
+        if chk_all
+          chk_all.call("set_text", "All Languages")
+          chk_all.call("set_tooltip_text", "Include C++, Rust, C# along with Crystal and GDScript")
+          chk_all.call("add_theme_color_override", "font_color", Color.new(1.0_f32, 1.0_f32, 1.0_f32, 1.0_f32))
+          @benchmarks_all_lang_chk = chk_all
+          ctrl_row.call("add_child", chk_all)
+        end
+
         btn_html = Godot.create(Godot::Button)
         if btn_html
           btn_html.call("set_text", "Open HTML Report")
@@ -556,23 +594,48 @@ module Lapis
         split.call("set_h_size_flags", 3)
         split.call("set_v_size_flags", 3)
 
-        tree = Godot.create(Godot::Tree)
-        if tree
-          tree.call("set_h_size_flags", 3)
-          tree.call("set_v_size_flags", 3)
-          tree.call("set_columns", 6)
-          tree.call("set_column_title", 0, "Benchmark / Group")
-          tree.call("set_column_title", 1, "Category / Target")
-          tree.call("set_column_title", 2, "Crystal (Native)")
-          tree.call("set_column_title", 3, "GDScript")
-          tree.call("set_column_title", 4, "Speedup Ratio")
-          tree.call("set_column_title", 5, "Multi-Lang / Custom Metrics")
-          tree.call("set_column_titles_visible", true)
-          tree.call("add_theme_color_override", "font_color", Color.new(1.0_f32, 1.0_f32, 1.0_f32, 1.0_f32))
-          tree.call("add_theme_color_override", "title_button_color", Color.new(1.0_f32, 1.0_f32, 1.0_f32, 1.0_f32))
-          tree.connect("item_activated") { on_run_selected_benchmark }
-          @benchmarks_tree = tree
-          split.call("add_child", tree)
+        bench_subtabs = Godot.create(Godot::TabContainer)
+        if bench_subtabs
+          bench_subtabs.call("set_h_size_flags", 3)
+          bench_subtabs.call("set_v_size_flags", 3)
+
+          # Subtab 1: Visual Comparison Graphs
+          graph_scroll = Godot.create(Godot::ScrollContainer)
+          if graph_scroll
+            graph_scroll.call("set_name", "Visual Comparison")
+            graph_scroll.call("set_h_size_flags", 3)
+            graph_scroll.call("set_v_size_flags", 3)
+
+            graph_ctrl = Godot.create("BenchmarkGraphControl")
+            if graph_ctrl
+              graph_scroll.call("add_child", graph_ctrl)
+              @benchmark_graph = graph_ctrl.as?(BenchmarkGraphControl) || BenchmarkGraphControl.new(graph_ctrl.pointer)
+            end
+            bench_subtabs.call("add_child", graph_scroll)
+          end
+
+          # Subtab 2: Data Table
+          tree = Godot.create(Godot::Tree)
+          if tree
+            tree.call("set_name", "Data Table")
+            tree.call("set_h_size_flags", 3)
+            tree.call("set_v_size_flags", 3)
+            tree.call("set_columns", 6)
+            tree.call("set_column_title", 0, "Benchmark / Group")
+            tree.call("set_column_title", 1, "Category / Target")
+            tree.call("set_column_title", 2, "Crystal (Native)")
+            tree.call("set_column_title", 3, "GDScript")
+            tree.call("set_column_title", 4, "Speedup Ratio")
+            tree.call("set_column_title", 5, "Multi-Lang / Custom Metrics")
+            tree.call("set_column_titles_visible", true)
+            tree.call("add_theme_color_override", "font_color", Color.new(1.0_f32, 1.0_f32, 1.0_f32, 1.0_f32))
+            tree.call("add_theme_color_override", "title_button_color", Color.new(1.0_f32, 1.0_f32, 1.0_f32, 1.0_f32))
+            tree.connect("item_activated") { on_run_selected_benchmark }
+            @benchmarks_tree = tree
+            bench_subtabs.call("add_child", tree)
+          end
+
+          split.call("add_child", bench_subtabs)
         end
 
         log_box = Godot.create(Godot::RichTextLabel)
@@ -837,6 +900,238 @@ module Lapis
       tabs.call("add_child", vbox)
     end
 
+    # --- Tab 6: Doctor & Diagnostics ---
+    def create_doctor_tab(tabs : Node) : Void
+      vbox = Godot.create(Godot::VBoxContainer)
+      return unless vbox
+      vbox.call("set_name", "Doctor & Health")
+      vbox.call("add_theme_constant_override", "separation", 10)
+
+      top_row = Godot.create(Godot::HBoxContainer)
+      if top_row
+        top_row.call("add_theme_constant_override", "separation", 10)
+
+        lbl = Godot.create(Godot::Label)
+        if lbl
+          lbl.call("set_text", "Lapis Development Environment & Toolchain Diagnostics:")
+          lbl.call("add_theme_color_override", "font_color", Color.new(1.0_f32, 1.0_f32, 1.0_f32, 1.0_f32))
+          top_row.call("add_child", lbl)
+        end
+
+        spacer = Godot.create(Godot::Control)
+        spacer.call("set_h_size_flags", 3_i64) if spacer
+        top_row.call("add_child", spacer) if spacer
+
+        btn_run = Godot.create(Godot::Button)
+        if btn_run
+          btn_run.call("set_text", "Run Diagnostics")
+          btn_run.connect("pressed") { refresh_doctor_list }
+          top_row.call("add_child", btn_run)
+        end
+
+        btn_fix = Godot.create(Godot::Button)
+        if btn_fix
+          btn_fix.call("set_text", "Autofix Environment")
+          btn_fix.call("add_theme_color_override", "font_color", Color.new(0.4_f32, 1.0_f32, 0.6_f32, 1.0_f32))
+          btn_fix.connect("pressed") { on_run_doctor_autofix }
+          top_row.call("add_child", btn_fix)
+        end
+
+        [btn_run, btn_fix].each do |b|
+          next unless b
+          b.call("add_theme_color_override", "font_color", Color.new(1.0_f32, 1.0_f32, 1.0_f32, 1.0_f32))
+        end
+
+        vbox.call("add_child", top_row)
+      end
+
+      split = Godot.create(Godot::VSplitContainer)
+      if split
+        split.call("set_h_size_flags", 3_i64)
+        split.call("set_v_size_flags", 3_i64)
+
+        tree = Godot.create(Godot::Tree)
+        if tree
+          tree.call("set_h_size_flags", 3_i64)
+          tree.call("set_v_size_flags", 3_i64)
+          tree.call("set_columns", 3)
+          tree.call("set_column_title", 0, "Diagnostic Check")
+          tree.call("set_column_title", 1, "Status")
+          tree.call("set_column_title", 2, "Details & Recommendations")
+          tree.call("set_column_titles_visible", true)
+          tree.call("add_theme_color_override", "font_color", Color.new(1.0_f32, 1.0_f32, 1.0_f32, 1.0_f32))
+          tree.call("add_theme_color_override", "title_button_color", Color.new(1.0_f32, 1.0_f32, 1.0_f32, 1.0_f32))
+          @doctor_tree = tree
+          split.call("add_child", tree)
+        end
+
+        log_box = Godot.create(Godot::RichTextLabel)
+        if log_box
+          log_box.call("set_h_size_flags", 3_i64)
+          log_box.call("set_v_size_flags", 3_i64)
+          log_box.call("set_use_bbcode", true)
+          log_box.call("set_selection_enabled", true)
+          log_box.call("add_theme_color_override", "default_color", Color.new(0.95_f32, 0.95_f32, 0.95_f32, 1.0_f32))
+          log_box.call("set_text", "[color=#8b949e]Diagnostic logs and autofix remediation details will stream here.[/color]")
+          @doctor_log = log_box
+          split.call("add_child", log_box)
+        end
+
+        vbox.call("add_child", split)
+      end
+
+      tabs.call("add_child", vbox)
+    end
+
+    # --- Tab 7: Shards & Dependencies ---
+    def create_shards_tab(tabs : Node) : Void
+      vbox = Godot.create(Godot::VBoxContainer)
+      return unless vbox
+      vbox.call("set_name", "Shards & Dependencies")
+      vbox.call("add_theme_constant_override", "separation", 10)
+
+      top_row = Godot.create(Godot::HBoxContainer)
+      if top_row
+        top_row.call("add_theme_constant_override", "separation", 10)
+
+        lbl = Godot.create(Godot::Label)
+        if lbl
+          lbl.call("set_text", "Project Dependencies (shard.yml):")
+          lbl.call("add_theme_color_override", "font_color", Color.new(1.0_f32, 1.0_f32, 1.0_f32, 1.0_f32))
+          top_row.call("add_child", lbl)
+        end
+
+        spacer = Godot.create(Godot::Control)
+        spacer.call("set_h_size_flags", 3_i64) if spacer
+        top_row.call("add_child", spacer) if spacer
+
+        btn_install = Godot.create(Godot::Button)
+        if btn_install
+          btn_install.call("set_text", "Install Shards (shards install)")
+          btn_install.connect("pressed") { on_shards_install }
+          top_row.call("add_child", btn_install)
+        end
+
+        btn_update = Godot.create(Godot::Button)
+        if btn_update
+          btn_update.call("set_text", "Update Shards (shards update)")
+          btn_update.connect("pressed") { on_shards_update }
+          top_row.call("add_child", btn_update)
+        end
+
+        btn_refresh = Godot.create(Godot::Button)
+        if btn_refresh
+          btn_refresh.call("set_text", "Refresh")
+          btn_refresh.connect("pressed") { refresh_shards_list }
+          top_row.call("add_child", btn_refresh)
+        end
+
+        [btn_install, btn_update, btn_refresh].each do |b|
+          next unless b
+          b.call("add_theme_color_override", "font_color", Color.new(1.0_f32, 1.0_f32, 1.0_f32, 1.0_f32))
+        end
+
+        vbox.call("add_child", top_row)
+      end
+
+      split = Godot.create(Godot::VSplitContainer)
+      if split
+        split.call("set_h_size_flags", 3_i64)
+        split.call("set_v_size_flags", 3_i64)
+
+        tree = Godot.create(Godot::Tree)
+        if tree
+          tree.call("set_h_size_flags", 3_i64)
+          tree.call("set_v_size_flags", 3_i64)
+          tree.call("set_columns", 4)
+          tree.call("set_column_title", 0, "Dependency Name")
+          tree.call("set_column_title", 1, "Requirement")
+          tree.call("set_column_title", 2, "Status in lib/")
+          tree.call("set_column_title", 3, "Source")
+          tree.call("set_column_titles_visible", true)
+          tree.call("add_theme_color_override", "font_color", Color.new(1.0_f32, 1.0_f32, 1.0_f32, 1.0_f32))
+          tree.call("add_theme_color_override", "title_button_color", Color.new(1.0_f32, 1.0_f32, 1.0_f32, 1.0_f32))
+          @shards_tree = tree
+          split.call("add_child", tree)
+        end
+
+        log_box = Godot.create(Godot::RichTextLabel)
+        if log_box
+          log_box.call("set_h_size_flags", 3_i64)
+          log_box.call("set_v_size_flags", 3_i64)
+          log_box.call("set_use_bbcode", true)
+          log_box.call("set_selection_enabled", true)
+          log_box.call("add_theme_color_override", "default_color", Color.new(0.95_f32, 0.95_f32, 0.95_f32, 1.0_f32))
+          log_box.call("set_text", "[color=#8b949e]Shards operations output and dependency tree info will stream here.[/color]")
+          @shards_log = log_box
+          split.call("add_child", log_box)
+        end
+
+        vbox.call("add_child", split)
+      end
+
+      tabs.call("add_child", vbox)
+    end
+
+    # --- Tab 8: ClassDB Registry ---
+    def create_classdb_tab(tabs : Node) : Void
+      vbox = Godot.create(Godot::VBoxContainer)
+      return unless vbox
+      vbox.call("set_name", "ClassDB Registry")
+      vbox.call("add_theme_constant_override", "separation", 10)
+
+      top_row = Godot.create(Godot::HBoxContainer)
+      if top_row
+        top_row.call("add_theme_constant_override", "separation", 10)
+
+        lbl = Godot.create(Godot::Label)
+        if lbl
+          lbl.call("set_text", "Registered Crystal Classes & Reflection in ClassDB:")
+          lbl.call("add_theme_color_override", "font_color", Color.new(1.0_f32, 1.0_f32, 1.0_f32, 1.0_f32))
+          top_row.call("add_child", lbl)
+        end
+
+        spacer = Godot.create(Godot::Control)
+        spacer.call("set_h_size_flags", 3_i64) if spacer
+        top_row.call("add_child", spacer) if spacer
+
+        filter_edit = Godot.create(Godot::LineEdit)
+        if filter_edit
+          filter_edit.call("set_placeholder_text", "Filter classes or properties...")
+          filter_edit.call("set_custom_minimum_size", Vector2.new(220_f32, 0_f32))
+          filter_edit.connect("text_changed") { |_args| refresh_classdb_list }
+          top_row.call("add_child", filter_edit)
+          @classdb_filter = filter_edit
+        end
+
+        btn_refresh = Godot.create(Godot::Button)
+        if btn_refresh
+          btn_refresh.call("set_text", "Refresh List")
+          btn_refresh.connect("pressed") { refresh_classdb_list }
+          top_row.call("add_child", btn_refresh)
+        end
+
+        vbox.call("add_child", top_row)
+      end
+
+      tree = Godot.create(Godot::Tree)
+      if tree
+        tree.call("set_h_size_flags", 3_i64)
+        tree.call("set_v_size_flags", 3_i64)
+        tree.call("set_columns", 3)
+        tree.call("set_column_title", 0, "Class / Member Name")
+        tree.call("set_column_title", 1, "Category / Type")
+        tree.call("set_column_title", 2, "Inheritance / Signature / Hints")
+        tree.call("set_column_titles_visible", true)
+        tree.call("add_theme_color_override", "font_color", Color.new(1.0_f32, 1.0_f32, 1.0_f32, 1.0_f32))
+        tree.call("add_theme_color_override", "title_button_color", Color.new(1.0_f32, 1.0_f32, 1.0_f32, 1.0_f32))
+        @classdb_tree = tree
+        vbox.call("add_child", tree)
+      end
+
+      tabs.call("add_child", vbox)
+    end
+
     # =========================================================================
     # Logging Utilities & Live Filter Dispatch
     # =========================================================================
@@ -960,6 +1255,11 @@ module Lapis
     # =========================================================================
 
     def on_build_game(is_release : Bool) : Void
+      if AsyncCommandRunner.instance.running?
+        log_warn("A command (#{AsyncCommandRunner.instance.active_command_name}) is already running!")
+        return
+      end
+
       log_info("Starting Crystal build (#{is_release ? "Release -O3" : "Debug"})...")
 
       # Recompile any modified addons first if option enabled
@@ -985,43 +1285,49 @@ module Lapis
       Dir.mkdir_p(out_dir) unless Dir.exists?(out_dir)
 
       compiler_env = CrystalIntegrationPlugin.build_compiler_env
-      log_info("Executing: crystal #{args.join(" ")}")
-      output_io = IO::Memory.new
-      status = Process.run("crystal", args, env: compiler_env, output: output_io, error: output_io)
-      output_str = output_io.to_s.strip
+      log_info("Executing asynchronously: crystal #{args.join(" ")}")
 
-      if !output_str.empty?
-        output_str.each_line do |l|
-          if l.includes?("error") || l.includes?("Error")
-            log_error("  #{l}")
+      started = AsyncCommandRunner.instance.run(
+        name: "Crystal Build (#{is_release ? "Release" : "Debug"})",
+        command: "crystal",
+        args: args,
+        env: compiler_env,
+        on_line: ->(line : String) {
+          if line.includes?("error") || line.includes?("Error")
+            log_error("  #{line}")
           else
-            append_log("  [color=#ffffff]#{l}[/color]")
+            append_log("  [color=#ffffff]#{line}[/color]")
           end
+          nil
+        }
+      ) do |exit_code, elapsed_sec, output_str|
+        if exit_code == 0
+          log_success("Game library built successfully in #{elapsed_sec.round(2)}s -> #{out_lib}")
+          # Sync to root bin if in subfolder
+          if File.directory?("../bin")
+            begin
+              File.copy(out_lib, "../bin/#{File.basename(out_lib)}")
+              log_info("Synced binary to workspace root: ../bin/#{File.basename(out_lib)}")
+            rescue
+            end
+          end
+          addon_bin_target = "addons/crystal_integration/bin/#{File.basename(out_lib)}"
+          if File.directory?("addons/crystal_integration/bin")
+            begin
+              File.copy(out_lib, addon_bin_target)
+              log_info("Synced binary to addon: #{addon_bin_target}")
+            rescue
+            end
+          end
+          on_reload_extensions
+        else
+          log_error("Crystal build failed with exit code #{exit_code} after #{elapsed_sec.round(2)}s.")
+          CrystalIntegrationPlugin.report_build_failure("Crystal build", output_str, output_str, exit_code)
         end
       end
 
-      if status.success?
-        log_success("Game library built successfully -> #{out_lib}")
-        # Sync to root bin if in subfolder
-        if File.directory?("../bin")
-          begin
-            File.copy(out_lib, "../bin/#{File.basename(out_lib)}")
-            log_info("Synced binary to workspace root: ../bin/#{File.basename(out_lib)}")
-          rescue
-          end
-        end
-        addon_bin_target = "addons/crystal_integration/bin/#{File.basename(out_lib)}"
-        if File.directory?("addons/crystal_integration/bin")
-          begin
-            File.copy(out_lib, addon_bin_target)
-            log_info("Synced binary to addon: #{addon_bin_target}")
-          rescue
-          end
-        end
-        on_reload_extensions
-      else
-        log_error("Crystal build failed with exit code #{status.exit_code}.")
-        CrystalIntegrationPlugin.report_build_failure("Crystal build", output_str, output_str, status.exit_code)
+      unless started
+        log_warn("Failed to launch background build process.")
       end
     rescue ex
       log_error("Error during build: #{ex.message}")
@@ -1460,57 +1766,70 @@ module Lapis
     end
 
     def on_run_all_specs : Void
+      if AsyncCommandRunner.instance.running?
+        log_warn("A command is already running (#{AsyncCommandRunner.instance.active_command_name})")
+        return
+      end
+
       log_info("Executing Crystal unit test specifications...")
-      if lbl = @test_status_label
+      @test_status_label.try do |lbl|
         lbl.call("set_text", "Running crystal spec in background...")
         lbl.call("add_theme_color_override", "font_color", Color.new(1.0_f32, 0.85_f32, 0.2_f32, 1.0_f32))
       end
 
       # Mark all items as running
-      if tree = @test_tree
-        if root = tree.call_obj("get_root")
-          update_tree_item_status_recursive(root, "[⏳ Running...]", Color.new(1.0_f32, 0.85_f32, 0.2_f32, 1.0_f32))
+      if run_tree = @test_tree
+        if running_root = run_tree.call_obj("get_root")
+          update_tree_item_status_recursive(running_root, "[⏳ Running...]", Color.new(1.0_f32, 0.85_f32, 0.2_f32, 1.0_f32))
         end
       end
 
       spec_dir, cwd = resolve_spec_context
 
-      output_io = IO::Memory.new
-      start_time = ::Time.instant
-      status = Process.run("crystal", ["spec", "--no-color"], chdir: cwd, output: output_io, error: output_io)
-      elapsed = (::Time.instant - start_time).total_seconds.round(2)
-      output_text = output_io.to_s
+      started = AsyncCommandRunner.instance.run(
+        name: "Crystal Specs",
+        command: "crystal",
+        args: ["spec", "--no-color"],
+        chdir: cwd,
+        on_line: ->(l : String) {
+          append_log("  [color=#ffffff]#{l}[/color]")
+          nil
+        }
+      ) do |exit_code, elapsed_sec, output_text|
+        elapsed = elapsed_sec.round(2)
+        passed = (exit_code == 0)
 
-      # Log full output in white
-      output_text.each_line { |l| append_log("  [color=#ffffff]#{l}[/color]") }
+        @test_details.try do |details|
+          if passed
+            details.call("set_text", "[color=#44ff88][b]All Crystal specifications passed successfully![/b][/color]\n[color=#ffffff]Execution Time: #{elapsed}s[/color]\n\n[color=#f5f5f5]#{output_text}[/color]")
+          else
+            details.call("set_text", "[color=#ff4444][b]Specification Failures Detected:[/b][/color]\n[color=#ffffff]Execution Time: #{elapsed}s[/color]\n\n[color=#ff8888]#{output_text}[/color]")
+          end
+        end
 
-      passed = status.success?
-      if details = @test_details
-        if passed
-          details.call("set_text", "[color=#44ff88][b]All Crystal specifications passed successfully![/b][/color]\n[color=#ffffff]Execution Time: #{elapsed}s[/color]\n\n[color=#f5f5f5]#{output_text}[/color]")
-        else
-          details.call("set_text", "[color=#ff4444][b]Specification Failures Detected:[/b][/color]\n[color=#ffffff]Execution Time: #{elapsed}s[/color]\n\n[color=#ff8888]#{output_text}[/color]")
+        if res_tree = @test_tree
+          if res_root = res_tree.call_obj("get_root")
+            status_str = passed ? "[✅ PASSED]" : "[❌ FAILED]"
+            status_col = passed ? Color.new(0.3_f32, 1.0_f32, 0.4_f32, 1.0_f32) : Color.new(1.0_f32, 0.3_f32, 0.3_f32, 1.0_f32)
+            update_tree_item_status_recursive(res_root, status_str, status_col)
+          end
+        end
+
+        @test_status_label.try do |finish_lbl|
+          if passed
+            finish_lbl.call("set_text", "✅ All specifications passed cleanly in #{elapsed}s!")
+            finish_lbl.call("add_theme_color_override", "font_color", Color.new(0.3_f32, 1.0_f32, 0.4_f32, 1.0_f32))
+            log_success("All specifications passed cleanly in #{elapsed}s!")
+          else
+            finish_lbl.call("set_text", "❌ Failures detected in #{elapsed}s. See details below.")
+            finish_lbl.call("add_theme_color_override", "font_color", Color.new(1.0_f32, 0.3_f32, 0.3_f32, 1.0_f32))
+            log_error("Specification failures detected in #{elapsed}s.")
+          end
         end
       end
 
-      if tree = @test_tree
-        if root = tree.call_obj("get_root")
-          status_str = passed ? "[✅ PASSED]" : "[❌ FAILED]"
-          status_col = passed ? Color.new(0.3_f32, 1.0_f32, 0.4_f32, 1.0_f32) : Color.new(1.0_f32, 0.3_f32, 0.3_f32, 1.0_f32)
-          update_tree_item_status_recursive(root, status_str, status_col)
-        end
-      end
-
-      if lbl = @test_status_label
-        if passed
-          lbl.call("set_text", "✅ All specifications passed cleanly in #{elapsed}s!")
-          lbl.call("add_theme_color_override", "font_color", Color.new(0.3_f32, 1.0_f32, 0.4_f32, 1.0_f32))
-          log_success("All specifications passed cleanly in #{elapsed}s!")
-        else
-          lbl.call("set_text", "❌ Failures detected in #{elapsed}s. See details below.")
-          lbl.call("add_theme_color_override", "font_color", Color.new(1.0_f32, 0.3_f32, 0.3_f32, 1.0_f32))
-          log_error("Specification failures detected in #{elapsed}s.")
-        end
+      unless started
+        log_warn("Failed to launch background spec runner.")
       end
     rescue ex
       log_error("Error running specs: #{ex.message}")
@@ -1956,8 +2275,14 @@ module Lapis
     end
 
     def on_run_benchmarks(group_name : String? = nil, benchmark_name : String? = nil) : Void
+      if AsyncCommandRunner.instance.running?
+        log_warn("A command is already running (#{AsyncCommandRunner.instance.active_command_name})")
+        return
+      end
+
       log_info("Starting Lapis benchmark execution...")
-      @benchmarks_status_label.try &.call("set_text", "Executing benchmarks...")
+      @benchmarks_status_label.try &.call("set_text", "Executing benchmarks in background...")
+      @benchmark_graph.try &.clear_entries
 
       iters = 3
       if spin = @benchmarks_iterations_spin
@@ -1969,34 +2294,41 @@ module Lapis
       args += ["-g", group_name] if group_name
       args += ["-f", benchmark_name] if benchmark_name
 
+      if @benchmarks_all_lang_chk.try(&.call_bool("is_pressed"))
+        args << "--all-languages"
+      end
+
       if log_box = @benchmarks_log
         log_box.call("set_text", "[color=#00d2ff]━━━ Starting Benchmark Execution (Iterations: #{iters}) ━━━[/color]\n")
       end
 
-      output_io = IO::Memory.new
-      start_time = ::Time.instant
-
-      # Spawn subprocess
-      res = Process.run(lapis_exe, args, output: output_io, error: output_io)
-      elapsed = (::Time.instant - start_time).total_seconds.round(2)
-      out_str = output_io.to_s
-
-      if log_box = @benchmarks_log
-        log_box.call("append_text", out_str)
-      end
-
-      if res.success?
-        log_success("Benchmark execution completed in #{elapsed}s!")
-        @benchmarks_status_label.try &.call("set_text", "Benchmarks complete! HTML & XML reports updated (#{elapsed}s).")
-        latest_xml = "benchmarks/reports/benchmarks_latest.xml"
-        if File.exists?(latest_xml)
-          populate_benchmark_results_from_xml(latest_xml)
+      started = AsyncCommandRunner.instance.run(
+        name: "Lapis Benchmarks",
+        command: lapis_exe,
+        args: args,
+        on_line: ->(line : String) {
+          @benchmarks_log.try &.call("append_text", "#{line}\n")
+          nil
+        }
+      ) do |exit_code, elapsed_sec, out_str|
+        elapsed = elapsed_sec.round(2)
+        if exit_code == 0
+          log_success("Benchmark execution completed in #{elapsed}s!")
+          @benchmarks_status_label.try &.call("set_text", "Benchmarks complete! HTML & XML reports updated (#{elapsed}s).")
+          latest_xml = "benchmarks/reports/benchmarks_latest.xml"
+          if File.exists?(latest_xml)
+            populate_benchmark_results_from_xml(latest_xml)
+          end
+        else
+          log_error("Benchmark execution finished with exit code #{exit_code}.")
+          @benchmarks_status_label.try &.call("set_text", "Benchmark run failed. Check Benchmark Log below.")
         end
-      else
-        log_error("Benchmark execution finished with exit code #{res.exit_code}.")
-        @benchmarks_status_label.try &.call("set_text", "Benchmark run failed. Check Benchmark Log below.")
+        append_log(out_str)
       end
-      append_log(out_str)
+
+      unless started
+        log_warn("Failed to launch background benchmark runner.")
+      end
     end
 
     def populate_benchmark_results_from_xml(xml_path : String) : Void
@@ -2064,6 +2396,18 @@ module Lapis
           find_and_update_child_row(root, "Matmul (C#)", cs_ms ? "#{cs_ms} ms" : "-", "-", "-", ".NET 8 RyuJIT")
           find_and_update_child_row(root, "Matmul (GDScript)", "-", gd_str, "-", "Godot VM Bytecode")
         end
+
+        # Update visual comparison graph
+        if graph = @benchmark_graph
+          graph.add_comparison(
+            name: c_name,
+            crystal_ms: cr_ms.to_f? || 0.0,
+            gdscript_ms: gd_ms.try(&.to_f?),
+            cpp_ms: cpp_ms.try(&.to_f?),
+            rust_ms: rs_ms.try(&.to_f?),
+            speedup: sp.try(&.to_f?)
+          )
+        end
       end
     end
 
@@ -2129,6 +2473,432 @@ module Lapis
         end
       else
         log_error("Benchmark report HTML not found. Run benchmarks first.")
+      end
+    end
+
+    # =========================================================================
+    # Doctor & Diagnostics Operations
+    # =========================================================================
+
+    def refresh_doctor_list : Void
+      tree = @doctor_tree
+      return unless tree
+      tree.call("clear")
+
+      root = tree.call_obj("create_item")
+      return unless root
+      root.call("set_text", 0, "Lapis Development Environment Health")
+      root.call("set_custom_color", 0, Color.new(1.0_f32, 1.0_f32, 1.0_f32, 1.0_f32))
+
+      checks = [] of Tuple(String, Symbol, String)
+
+      # 1. Crystal Compiler
+      if cr_exe = Process.find_executable("crystal")
+        ver_io = IO::Memory.new
+        Process.run(cr_exe, ["--version"], output: ver_io, error: ver_io) rescue nil
+        ver_str = ver_io.to_s.lines.first?.try(&.strip) || "Installed"
+        checks << {"Crystal Compiler", :pass, "#{cr_exe} (#{ver_str})"}
+      else
+        checks << {"Crystal Compiler", :fail, "Not found in PATH. Install Crystal 1.20+"}
+      end
+
+      # 2. Godot Engine Binary
+      godot_candidates = [
+        "godot.exe", "godot",
+        "bin/godot.exe", "bin/godot",
+        "../bin/godot.exe", "../bin/godot",
+      ]
+      found_godot = godot_candidates.find { |p| File.exists?(p) } || Process.find_executable("godot")
+      if found_godot
+        checks << {"Godot Engine Binary", :pass, "Detected at #{found_godot}"}
+      else
+        checks << {"Godot Engine Binary", :warn, "Not found in PATH or bin/. Launching via editor host."}
+      end
+
+      # 3. C++ Toolchain
+      cxx_candidates = {% if flag?(:windows) %} ["g++", "clang++", "cl"] {% else %} ["g++", "clang++"] {% end %}
+      found_cxx = cxx_candidates.find { |c| Process.find_executable(c) }
+      if found_cxx
+        checks << {"C++ Compiler (#{found_cxx})", :pass, "Available for compiling crystal_bridge and C++ extensions."}
+      else
+        checks << {"C++ Compiler", :warn, "No C++ compiler found (g++/clang++/cl). Needed if rebuilding bridge DLL."}
+      end
+
+      # 4. GNU Make
+      if Process.find_executable("make")
+        checks << {"GNU Make", :pass, "make tool found in PATH for 'make all' orchestration."}
+      else
+        checks << {"GNU Make", :warn, "make not found in PATH. Use 'lapis build' or install make."}
+      end
+
+      # 5. Radare2 Debugger
+      if Process.find_executable("r2")
+        checks << {"Radare2 Debugger (r2)", :pass, "Installed for native crash forensics and debugging."}
+      else
+        checks << {"Radare2 Debugger (r2)", :warn, "Optional: 'r2' not in PATH. Install radare2 for native crash forensics."}
+      end
+
+      # 6. Shards Package Manager
+      if Process.find_executable("shards")
+        checks << {"Shards Package Manager", :pass, "shards CLI ready for shard.yml dependency resolution."}
+      else
+        checks << {"Shards Package Manager", :fail, "shards CLI not found in PATH."}
+      end
+
+      # 7. Runtime DLLs / Shared Libraries
+      required_libs = {% if flag?(:windows) %}
+        ["gc.dll", "libgodot.dll", "crystal_bridge.dll"]
+      {% else %}
+        ["libgodot.so", "crystal_bridge.so"]
+      {% end %}
+      missing_libs = required_libs.reject { |lib_name| File.exists?("bin/#{lib_name}") || File.exists?("../bin/#{lib_name}") || File.exists?("addons/crystal_integration/bin/#{lib_name}") }
+      if missing_libs.empty?
+        checks << {"Runtime Shared Libraries", :pass, "All essential runtime DLLs/libraries present."}
+      else
+        checks << {"Runtime Shared Libraries", :fail, "Missing runtime libraries in bin/: #{missing_libs.join(", ")}"}
+      end
+
+      # 8. Lapis CLI Toolchain
+      if lapis_path = find_lapis_executable
+        checks << {"Lapis CLI Toolchain", :pass, "Resolved at #{lapis_path}"}
+      else
+        checks << {"Lapis CLI Toolchain", :warn, "lapis binary not found. Build via 'make lapis' or run 'crystal src/main.cr'."}
+      end
+
+      pass_count = 0
+      warn_count = 0
+      fail_count = 0
+
+      checks.each do |(name, status, details)|
+        item = tree.call_obj("create_item", root)
+        next unless item
+        item.call("set_text", 0, name)
+        item.call("set_custom_color", 0, Color.new(1.0_f32, 1.0_f32, 1.0_f32, 1.0_f32))
+
+        case status
+        when :pass
+          pass_count += 1
+          item.call("set_text", 1, "✔ PASSED")
+          item.call("set_custom_color", 1, Color.new(0.3_f32, 1.0_f32, 0.4_f32, 1.0_f32))
+        when :warn
+          warn_count += 1
+          item.call("set_text", 1, "⚠ WARNING")
+          item.call("set_custom_color", 1, Color.new(1.0_f32, 0.75_f32, 0.2_f32, 1.0_f32))
+        when :fail
+          fail_count += 1
+          item.call("set_text", 1, "✘ FAILED")
+          item.call("set_custom_color", 1, Color.new(1.0_f32, 0.3_f32, 0.3_f32, 1.0_f32))
+        end
+
+        item.call("set_text", 2, details)
+        item.call("set_custom_color", 2, Color.new(0.85_f32, 0.85_f32, 0.9_f32, 1.0_f32))
+      end
+
+      if log_box = @doctor_log
+        summary_color = fail_count > 0 ? "#ff4444" : (warn_count > 0 ? "#ffaa00" : "#44ff88")
+        log_box.call("set_text", "[color=#{summary_color}][b]Diagnostics Summary: #{pass_count} passed, #{warn_count} warnings, #{fail_count} failed.[/b][/color]\n[color=#8b949e]Click 'Autofix Environment' to automatically remediate detectable gaps or missing components.[/color]\n")
+      end
+    end
+
+    def on_run_doctor_autofix : Void
+      if AsyncCommandRunner.instance.running?
+        log_warn("A command is already running (#{AsyncCommandRunner.instance.active_command_name})")
+        return
+      end
+
+      lapis_exe = find_lapis_executable || "lapis"
+      if log_box = @doctor_log
+        log_box.call("append_text", "[color=#00d2ff]━━━ Executing lapis doctor autofix ━━━[/color]\n")
+      end
+
+      started = AsyncCommandRunner.instance.run(
+        name: "Doctor Autofix",
+        command: lapis_exe,
+        args: ["doctor", "autofix"],
+        on_line: ->(line : String) {
+          @doctor_log.try &.call("append_text", "#{line}\n")
+          nil
+        }
+      ) do |exit_code, elapsed_sec, out_str|
+        if exit_code == 0
+          log_success("Doctor autofix completed successfully (#{elapsed_sec.round(2)}s).")
+        else
+          log_warn("Doctor autofix completed with exit code #{exit_code}.")
+        end
+        refresh_doctor_list
+      end
+
+      unless started
+        log_warn("Failed to launch background doctor autofix process.")
+      end
+    end
+
+    # =========================================================================
+    # Shards & Dependencies Operations
+    # =========================================================================
+
+    def refresh_shards_list : Void
+      tree = @shards_tree
+      return unless tree
+      tree.call("clear")
+
+      root = tree.call_obj("create_item")
+      return unless root
+      root.call("set_text", 0, "shard.yml Dependencies")
+      root.call("set_custom_color", 0, Color.new(1.0_f32, 1.0_f32, 1.0_f32, 1.0_f32))
+
+      shard_file = ["shard.yml", "../shard.yml"].find { |f| File.exists?(f) }
+      unless shard_file
+        if log_box = @shards_log
+          log_box.call("set_text", "[color=#ffaa00]No shard.yml detected in project or parent directory.[/color]")
+        end
+        return
+      end
+
+      in_deps = false
+      in_dev_deps = false
+      dep_count = 0
+
+      current_name = ""
+      current_req = ""
+      current_src = ""
+
+      commit_dep = ->(section : String) {
+        return if current_name.empty?
+        dep_count += 1
+        item = tree.call_obj("create_item", root)
+        if item
+          item.call("set_text", 0, "#{current_name} (#{section})")
+          item.call("set_custom_color", 0, Color.new(1.0_f32, 1.0_f32, 1.0_f32, 1.0_f32))
+          item.call("set_text", 1, current_req.empty? ? "*" : current_req)
+          item.call("set_custom_color", 1, Color.new(0.6_f32, 0.85_f32, 1.0_f32, 1.0_f32))
+
+          lib_dir = ["lib/#{current_name}", "../lib/#{current_name}"].find { |d| Dir.exists?(d) }
+          if lib_dir
+            item.call("set_text", 2, "✔ Installed")
+            item.call("set_custom_color", 2, Color.new(0.3_f32, 1.0_f32, 0.4_f32, 1.0_f32))
+          else
+            item.call("set_text", 2, "✘ Missing")
+            item.call("set_custom_color", 2, Color.new(1.0_f32, 0.4_f32, 0.4_f32, 1.0_f32))
+          end
+
+          item.call("set_text", 3, current_src)
+          item.call("set_custom_color", 3, Color.new(0.8_f32, 0.8_f32, 0.9_f32, 1.0_f32))
+        end
+        current_name = ""
+        current_req = ""
+        current_src = ""
+      }
+
+      current_section = "Runtime"
+      File.each_line(shard_file) do |line|
+        trimmed = line.strip
+        if trimmed == "dependencies:"
+          commit_dep.call(current_section)
+          in_deps = true
+          in_dev_deps = false
+          current_section = "Runtime"
+          next
+        elsif trimmed == "development_dependencies:"
+          commit_dep.call(current_section)
+          in_deps = false
+          in_dev_deps = true
+          current_section = "Dev"
+          next
+        elsif !line.starts_with?(" ") && !line.starts_with?("\t") && trimmed.includes?(":")
+          commit_dep.call(current_section)
+          in_deps = false
+          in_dev_deps = false
+          next
+        end
+
+        next unless in_deps || in_dev_deps
+
+        if line =~ /^[ \t]{2}([A-Za-z0-9_-]+):/
+          commit_dep.call(current_section)
+          current_name = $1
+        elsif line =~ /^[ \t]{4}github:\s*([^\s#]+)/
+          current_src = "github: #{$1}"
+        elsif line =~ /^[ \t]{4}path:\s*([^\s#]+)/
+          current_src = "path: #{$1}"
+        elsif line =~ /^[ \t]{4}version:\s*["']?([^"'#]+)["']?/
+          current_req = $1.strip
+        end
+      end
+      commit_dep.call(current_section)
+
+      if log_box = @shards_log
+        log_box.call("set_text", "[color=#8b949e]Found #{dep_count} dependencies in #{shard_file}. Click 'Install Shards' to resolve or 'Update Shards' to fetch latest versions.[/color]\n")
+      end
+    end
+
+    def on_shards_install : Void
+      if AsyncCommandRunner.instance.running?
+        log_warn("A command is already running (#{AsyncCommandRunner.instance.active_command_name})")
+        return
+      end
+
+      if log_box = @shards_log
+        log_box.call("append_text", "[color=#00d2ff]━━━ Executing shards install ━━━[/color]\n")
+      end
+
+      started = AsyncCommandRunner.instance.run(
+        name: "Shards Install",
+        command: "shards",
+        args: ["install"],
+        on_line: ->(line : String) {
+          @shards_log.try &.call("append_text", "#{line}\n")
+          nil
+        }
+      ) do |exit_code, elapsed_sec, out_str|
+        if exit_code == 0
+          log_success("shards install finished successfully (#{elapsed_sec.round(2)}s).")
+        else
+          log_error("shards install failed with code #{exit_code}.")
+        end
+        refresh_shards_list
+      end
+
+      unless started
+        log_warn("Failed to launch shards install.")
+      end
+    end
+
+    def on_shards_update : Void
+      if AsyncCommandRunner.instance.running?
+        log_warn("A command is already running (#{AsyncCommandRunner.instance.active_command_name})")
+        return
+      end
+
+      if log_box = @shards_log
+        log_box.call("append_text", "[color=#00d2ff]━━━ Executing shards update ━━━[/color]\n")
+      end
+
+      started = AsyncCommandRunner.instance.run(
+        name: "Shards Update",
+        command: "shards",
+        args: ["update"],
+        on_line: ->(line : String) {
+          @shards_log.try &.call("append_text", "#{line}\n")
+          nil
+        }
+      ) do |exit_code, elapsed_sec, out_str|
+        if exit_code == 0
+          log_success("shards update finished successfully (#{elapsed_sec.round(2)}s).")
+        else
+          log_error("shards update failed with code #{exit_code}.")
+        end
+        refresh_shards_list
+      end
+
+      unless started
+        log_warn("Failed to launch shards update.")
+      end
+    end
+
+    # =========================================================================
+    # ClassDB Registry Operations
+    # =========================================================================
+
+    def refresh_classdb_list : Void
+      tree = @classdb_tree
+      return unless tree
+      tree.call("clear")
+
+      root = tree.call_obj("create_item")
+      return unless root
+      root.call("set_text", 0, "Registered Classes in ClassDB")
+      root.call("set_custom_color", 0, Color.new(1.0_f32, 1.0_f32, 1.0_f32, 1.0_f32))
+
+      cdb_ptr = Bridge.get_singleton("ClassDB")
+      return if cdb_ptr.null?
+      cdb = Godot::ClassDB.new(cdb_ptr)
+
+      filter_text = @classdb_filter.try(&.call_str("get_text").strip.downcase) || ""
+
+      # Category roots
+      ext_root = tree.call_obj("create_item", root)
+      if ext_root
+        ext_root.call("set_text", 0, "Crystal & GDExtension Classes")
+        ext_root.call("set_custom_color", 0, Color.new(0.0_f32, 0.85_f32, 1.0_f32, 1.0_f32))
+      end
+
+      editor_root = tree.call_obj("create_item", root)
+      if editor_root
+        editor_root.call("set_text", 0, "Editor Classes")
+        editor_root.call("set_custom_color", 0, Color.new(1.0_f32, 0.8_f32, 0.3_f32, 1.0_f32))
+      end
+
+      core_root = tree.call_obj("create_item", root)
+      if core_root
+        core_root.call("set_text", 0, "Godot Core Classes")
+        core_root.call("set_custom_color", 0, Color.new(0.7_f32, 0.7_f32, 0.8_f32, 1.0_f32))
+      end
+
+      known_crystal_classes = [
+        "CrystalPanel", "CrystalConsoleDock", "BenchmarkGraphControl",
+        "CrystalIntegrationPlugin", "CrystalDebuggerPlugin", "CrystalLanguage", "CrystalScript",
+        "ToolTester2D", "ToolTester3D", "RunTesterPanel",
+        "DummyDialoguePlugin", "DummyInventoryPlugin", "DummyAudioPlugin"
+      ]
+
+      # Find additional custom classes declared in src/
+      if Dir.exists?("src")
+        Dir.glob("src/**/*.cr").each do |cr_file|
+          File.each_line(cr_file) do |line|
+            if line =~ /^\s*(?:@\[Tool\]\s*)?node\s+([A-Za-z0-9_]+)\s*</
+              cls = $1
+              known_crystal_classes << cls unless known_crystal_classes.includes?(cls)
+            elsif line =~ /^\s*class\s+([A-Za-z0-9_]+)\s*<\s*Godot::/
+              cls = $1
+              known_crystal_classes << cls unless known_crystal_classes.includes?(cls)
+            end
+          end
+        rescue
+        end
+      end
+
+      common_engine_classes = [
+        "Node", "Node2D", "Node3D", "CanvasItem", "Control",
+        "CharacterBody2D", "CharacterBody3D", "RigidBody2D", "RigidBody3D",
+        "StaticBody2D", "StaticBody3D", "Area2D", "Area3D", "Camera2D", "Camera3D",
+        "Resource", "RefCounted", "PackedScene", "AudioStream", "Texture2D",
+        "MeshInstance3D", "AnimationPlayer", "Timer", "CollisionShape2D", "CollisionShape3D",
+        "Sprite2D", "Sprite3D", "Label", "Button", "Tree", "RichTextLabel",
+        "ProgressBar", "LineEdit", "TextEdit", "CodeEdit", "EditorPlugin",
+        "EditorInterface", "ScriptEditor", "EditorFileSystem"
+      ]
+
+      all_candidates = (known_crystal_classes + common_engine_classes).uniq
+
+      all_candidates.each do |c_name|
+        next if !filter_text.empty? && !c_name.downcase.includes?(filter_text)
+        next unless cdb.class_exists(c_name)
+
+        is_crystal = known_crystal_classes.includes?(c_name)
+        is_editor = c_name.starts_with?("Editor") && !is_crystal
+        parent = cdb.get_parent_class(c_name) rescue ""
+
+        target_parent = if is_crystal
+                          ext_root
+                        elsif is_editor
+                          editor_root
+                        else
+                          core_root
+                        end
+        next unless target_parent
+
+        item = tree.call_obj("create_item", target_parent)
+        next unless item
+        item.call("set_text", 0, c_name)
+        item.call("set_custom_color", 0, is_crystal ? Color.new(0.4_f32, 0.9_f32, 1.0_f32, 1.0_f32) : Color.new(1.0_f32, 1.0_f32, 1.0_f32, 1.0_f32))
+
+        cat_desc = is_crystal ? "Crystal Extension" : (is_editor ? "Editor Class" : "Core Engine")
+        item.call("set_text", 1, cat_desc)
+        item.call("set_custom_color", 1, Color.new(0.6_f32, 0.8_f32, 1.0_f32, 1.0_f32))
+
+        item.call("set_text", 2, "< #{parent}")
+        item.call("set_custom_color", 2, Color.new(0.8_f32, 0.8_f32, 0.8_f32, 1.0_f32))
       end
     end
   end

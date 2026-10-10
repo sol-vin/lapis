@@ -126,6 +126,39 @@ func _run_in_editor_tool_tests():
 		else:
 			print("[CrystalToolTester]   ✔ %s registered as EditorPlugin" % cls)
 
+	# 3a. Verify Custom Editor Control Classes in ClassDB (CrystalConsoleDock, BenchmarkGraphControl)
+	print("[CrystalToolTester] Verifying custom editor control classes in ClassDB...")
+	var required_custom_controls = {
+		"CrystalConsoleDock": "VBoxContainer",
+		"BenchmarkGraphControl": "VBoxContainer"
+	}
+	for cls in required_custom_controls:
+		var parent_cls = required_custom_controls[cls]
+		if not ClassDB.class_exists(cls):
+			var msg = "[CrystalToolTester] Required custom control class '%s' missing from ClassDB!" % cls
+			printerr(msg)
+			error_messages.append(msg)
+			errors += 1
+		elif not ClassDB.is_parent_class(cls, parent_cls):
+			var msg = "[CrystalToolTester] Class '%s' does not inherit from %s!" % [cls, parent_cls]
+			printerr(msg)
+			error_messages.append(msg)
+			errors += 1
+		else:
+			print("[CrystalToolTester]   ✔ %s registered and inherits from %s" % [cls, parent_cls])
+			if ClassDB.can_instantiate(cls):
+				var inst = ClassDB.instantiate(cls)
+				if inst:
+					print("[CrystalToolTester]   ✔ Successfully instantiated %s (%s)" % [cls, inst.get_class()])
+					if cls == "BenchmarkGraphControl":
+						if inst.has_method("add_comparison"):
+							inst.call("add_comparison", "TestMatmul", 1.25, 45.0, 1.1, 1.2, 36.0, "Multi-lang")
+							print("[CrystalToolTester]   ✔ BenchmarkGraphControl.add_comparison executed cleanly")
+						if inst.has_method("clear_entries"):
+							inst.call("clear_entries")
+							print("[CrystalToolTester]   ✔ BenchmarkGraphControl.clear_entries executed cleanly")
+					inst.free()
+
 	# 3b. Verify Crystal Main Screen Editor Tab and Panel
 	print("[CrystalToolTester] Verifying Crystal main screen editor plugin configuration...")
 	var plugin_script = load("res://addons/crystal_integration/plugin.gd")
@@ -266,6 +299,22 @@ func _run_in_editor_tool_tests():
 					errors += 1
 				else:
 					print("[CrystalToolTester]   ✔ Switching to 'Crystal' tab successfully displayed CrystalPanel (visible=true)!")
+
+			# Inspect CrystalPanel subtabs and controls
+			var tab_containers = crystal_panel.find_children("*", "TabContainer", true, false)
+			for tc in tab_containers:
+				var titles = []
+				for t_idx in range(tc.get_tab_count()):
+					titles.append(tc.get_tab_title(t_idx))
+				print("[CrystalToolTester]   ✔ CrystalPanel TabContainer tabs: " + str(titles))
+				var expected_tabs = ["Build & Project", "Addon Manager", "Test Runner", "Benchmarks", "Crystal Log", "Doctor & Health", "Shards & Dependencies", "ClassDB Registry"]
+				for exp_t in expected_tabs:
+					if titles.has(exp_t):
+						print("[CrystalToolTester]   ✔ Found expected tab: '%s'" % exp_t)
+
+			var bench_graph = crystal_panel.find_child("BenchmarkGraphControl", true, false)
+			if bench_graph:
+				print("[CrystalToolTester]   ✔ Found embedded BenchmarkGraphControl in CrystalPanel Benchmarks tab")
 
 	# 4. Open a .cr script in the editor to verify Script tab integration and saving
 	var test_tab_script_path = "res://bin/test_editor_tab_script.cr"

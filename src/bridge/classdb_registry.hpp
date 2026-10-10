@@ -27,6 +27,8 @@ inline bool is_editor_system_class(const char *name) {
             strcmp(name, "CrystalHighlighter") == 0 ||
             strcmp(name, "CrystalDebuggerPlugin") == 0 ||
             strcmp(name, "CrystalPanel") == 0 ||
+            strcmp(name, "CrystalConsoleDock") == 0 ||
+            strcmp(name, "BenchmarkGraphControl") == 0 ||
             strcmp(name, "CrystalRadareSessionTab") == 0);
 }
 
