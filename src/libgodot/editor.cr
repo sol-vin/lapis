@@ -10,7 +10,8 @@ require "./editor/action_driver"
 require "./editor/action_driver_vision"
 require "./editor/action_driver_ipc"
 require "./editor/state_preserver"
-require "../editor/async_command_runner"
+require "./editor/async_command_runner"
+require "./editor/toolchain"
 
 module Lapis
   include Godot

@@ -7,8 +7,8 @@
 
 require "../lapis"
 require "json"
-require "./async_command_runner"
-require "./toolchain"
+require "../libgodot/editor/async_command_runner"
+require "../libgodot/editor/toolchain"
 require "./benchmark_graph_control"
 
 module Lapis

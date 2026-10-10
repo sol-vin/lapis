@@ -1,4 +1,7 @@
 require "./spec_helper"
+require "../src/libgodot/editor/toolchain"
+require "../src/libgodot/editor/async_command_runner"
+require "../src/editor/benchmark_graph_control"
 
 describe Lapis::Test::EditorDriver do
   ext = {% if flag?(:windows) %}

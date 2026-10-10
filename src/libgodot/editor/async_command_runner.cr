@@ -66,11 +66,12 @@ module Lapis
         @start_time = ::Time.instant
       end
 
-      # Background OS worker thread
-      ::Thread.new do
+      # Spawn background worker fiber
+      spawn do
         read_pipe, write_pipe = IO.pipe
         begin
-          proc = Process.new(command, args, env: env, chdir: chdir, output: write_pipe, error: write_pipe)
+          resolved_cmd = Process.find_executable(command) || command
+          proc = Process.new(resolved_cmd, args, env: env, chdir: chdir, output: write_pipe, error: write_pipe)
           @mutex.synchronize { @active_process = proc }
           write_pipe.close
 
@@ -96,6 +97,7 @@ module Lapis
             @active_process = nil
           end
         ensure
+          write_pipe.close rescue nil
           read_pipe.close rescue nil
         end
       end
@@ -121,6 +123,7 @@ module Lapis
 
     # Drains all queued output events and dispatches callbacks on the calling thread (Godot main thread).
     def poll : Void
+      Fiber.yield
       events_to_process = [] of Event
       @mutex.synchronize do
         return if @queue.empty?

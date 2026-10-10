@@ -7,8 +7,8 @@
 # =============================================================================
 
 require "../lapis"
-require "./async_command_runner"
-require "./toolchain"
+require "../libgodot/editor/async_command_runner"
+require "../libgodot/editor/toolchain"
 
 module Lapis
   @[Tool]

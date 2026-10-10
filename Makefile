@@ -108,6 +108,7 @@ LIBGODOT_DLL     = $(LIBGODOT_LIB)
 $(LAPIS): $(wildcard tools/lapis/src/**/*.cr) $(wildcard tools/lapis/src/*.cr) $(wildcard tools/lapis/*.yml) $(wildcard template/**/*) $(wildcard template-addon/**/*) $(wildcard addons/crystal_integration/*) shard.yml godot-version.yml
 	@echo "[Lapis] Compiling Lapis toolchain $(LAPIS)..."
 	@shards install --skip-postinstall || true
+	@(cd tools/lapis && shards install --skip-postinstall) || true
 ifeq ($(PLATFORM),windows)
 	@$(CRYSTAL) build $(CRYSTAL_FLAGS) --static tools/lapis/src/lapis.cr -o $(LAPIS)
 else

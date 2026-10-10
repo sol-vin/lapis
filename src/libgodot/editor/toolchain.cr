@@ -5,8 +5,6 @@
 # and prepares command arguments for builds, tests, benchmarks, and doctor diagnostics.
 # =============================================================================
 
-require "../lapis"
-
 module Lapis
   module Toolchain
     # Resolves the path to the 'lapis' CLI executable
