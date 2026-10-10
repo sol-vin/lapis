@@ -217,4 +217,55 @@ test_suite "GameplayErgonomics" do
     err = Godot::SceneChangeError.new("Scene load failure")
     assert_eq err.message, "Scene load failure"
   end
+
+  test "Pillar 9: NodeType.instantiate, add_sibling, and add_child positional scene overloads" do
+    # 1. Direct class-level instantiate with config block
+    marker = Godot::Marker2D.instantiate("res://scenes/test_marker_scene.tscn") do |m|
+      m.position = Godot::Vector2.new(10.0_f32, 50.0_f32)
+    end
+    assert_not_nil marker
+    assert_true marker.is_a?(Godot::Marker2D)
+    assert_approx_eq marker.position.x, 10.0_f32
+    assert_approx_eq marker.position.y, 50.0_f32
+
+    # 2. Add sibling using (path, Type) positional args
+    parent = Godot.create(Godot::Node2D)
+    child1 = parent.add_child(Godot::Node2D)
+
+    sibling = child1.add_sibling("res://scenes/test_marker_scene.tscn", Godot::Marker2D) do |s|
+      s.position = Godot::Vector2.new(25.0_f32, 75.0_f32)
+    end
+    assert_not_nil sibling
+    assert_true sibling.is_a?(Godot::Marker2D)
+    assert_approx_eq sibling.position.x, 25.0_f32
+    assert_approx_eq sibling.position.y, 75.0_f32
+    assert_eq parent.get_child_count, 2_i64
+
+    # 3. Add child using (path, Type) positional args
+    child2 = parent.add_child("res://scenes/test_marker_scene.tscn", Godot::Marker2D) do |c|
+      c.position = Godot::Vector2.new(5.0_f32, 15.0_f32)
+    end
+    assert_not_nil child2
+    assert_true child2.is_a?(Godot::Marker2D)
+    assert_approx_eq child2.position.x, 5.0_f32
+    assert_approx_eq child2.position.y, 15.0_f32
+    assert_eq parent.get_child_count, 3_i64
+
+    # 4. Safe nilable variant on non-existent path
+    nil_marker = Godot::Marker2D.instantiate?("res://scenes/does_not_exist_xyz.tscn")
+    assert_nil nil_marker
+
+    # 5. Nested instantiate passed directly to add_sibling
+    sibling2 = child1.add_sibling(Godot::Marker2D.instantiate("res://scenes/test_marker_scene.tscn") do |m|
+      m.position = Godot::Vector2.new(0.0_f32, 50.0_f32)
+    end)
+    assert_not_nil sibling2
+    assert_true sibling2.is_a?(Godot::Marker2D)
+    assert_approx_eq sibling2.position.y, 50.0_f32
+    assert_eq parent.get_child_count, 4_i64
+
+    parent.destroy
+    marker.destroy
+  end
 end
+

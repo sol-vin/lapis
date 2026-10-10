@@ -105,6 +105,22 @@ module Godot
       add_child(scene, as: type, force_readable_name: force_readable_name, internal: internal)
     end
 
+    # Overload: Instantiates a scene at path or PackedScene as type T, configures in block, adds as child, and returns it.
+    def add_child(path_or_scene : String | PackedScene, type : T.class, force_readable_name : Bool = false, internal : InternalMode | Int = 0, &block : T -> Void) : T forall T
+      node = type.instantiate(path_or_scene)
+      with node yield node
+      add_child(node.as(Node), force_readable_name, internal)
+      node
+    end
+
+    # Overload: Instantiates a scene at path or PackedScene as type T, adds as child, and returns it.
+    def add_child(path_or_scene : String | PackedScene, type : T.class, force_readable_name : Bool = false, internal : InternalMode | Int = 0) : T forall T
+      node = type.instantiate(path_or_scene)
+      add_child(node.as(Node), force_readable_name, internal)
+      node
+    end
+
+
 
     # Explicit cross-thread helper that safely defers addition via Godot's MessageQueue
     def defer_add_child(node : Node, force_readable_name : Bool = false, internal : InternalMode | Int = 0) : Void
@@ -247,6 +263,22 @@ module Godot
       scene = ::Godot.load_scene(scene_path)
       add_sibling(scene, as: type, force_readable_name: force_readable_name)
     end
+
+    # Overload: Instantiates a scene at path or PackedScene as type T, configures in block, adds as sibling, and returns it.
+    def add_sibling(path_or_scene : String | PackedScene, type : T.class, force_readable_name : Bool = false, &block : T -> Void) : T forall T
+      node = type.instantiate(path_or_scene)
+      with node yield node
+      add_sibling(node.as(Node), force_readable_name)
+      node
+    end
+
+    # Overload: Instantiates a scene at path or PackedScene as type T, adds as sibling, and returns it.
+    def add_sibling(path_or_scene : String | PackedScene, type : T.class, force_readable_name : Bool = false) : T forall T
+      node = type.instantiate(path_or_scene)
+      add_sibling(node.as(Node), force_readable_name)
+      node
+    end
+
 
 
     # Moves child node to a new index in the parent's child list.
@@ -638,7 +670,51 @@ module Godot
     ) : Node?
       play_sound(stream_or_path, at, pitch_scale, volume_db, bus) { |_| }
     end
+
+    # ===========================================================================
+    # Class-Level Scene Instantiation Ergonomics
+    # ===========================================================================
+
+    # Instantiates a PackedScene (.tscn) from path or scene instance directly as this Node type.
+    # When cached is true (default), leverages PreloadCache to prevent redundant disk I/O.
+    def self.instantiate(path_or_scene : String | PackedScene, edit_state : Int64 = 0_i64, cached : Bool = true) : self
+      scene = case path_or_scene
+      in String
+        cached ? ::Godot::PreloadCache.get_or_load(path_or_scene, ::Godot::PackedScene) : ::Godot.load_scene(path_or_scene)
+      in PackedScene
+        path_or_scene
+      end
+      scene.instantiate_as(self, edit_state)
+    end
+
+    # Instantiates a PackedScene (.tscn) from path or scene instance directly as this Node type and configures it in a block.
+    def self.instantiate(path_or_scene : String | PackedScene, edit_state : Int64 = 0_i64, cached : Bool = true, &block : self -> Void) : self
+      node = instantiate(path_or_scene, edit_state, cached)
+      with node yield node
+      node
+    end
+
+    # Safe nilable variant: instantiates a PackedScene directly as this Node type, returning nil on load failure or type mismatch.
+    def self.instantiate?(path_or_scene : String | PackedScene, edit_state : Int64 = 0_i64, cached : Bool = true) : self?
+      scene = case path_or_scene
+      in String
+        cached ? ::Godot::PreloadCache.get_or_load?(path_or_scene, ::Godot::PackedScene) : ::Godot.load_scene?(path_or_scene)
+      in PackedScene
+        path_or_scene
+      end
+      return nil unless scene
+      scene.instantiate_as?(self, edit_state)
+    end
+
+    # Safe nilable variant configuring the instance in a block when not nil.
+    def self.instantiate?(path_or_scene : String | PackedScene, edit_state : Int64 = 0_i64, cached : Bool = true, &block : self -> Void) : self?
+      if node = instantiate?(path_or_scene, edit_state, cached)
+        with node yield node
+        node
+      end
+    end
   end
+
 
   # ===========================================================================
   # CanvasItem Visual & Opacity Ergonomics

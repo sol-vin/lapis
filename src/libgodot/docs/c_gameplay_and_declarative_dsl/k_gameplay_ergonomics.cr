@@ -118,8 +118,22 @@ module Lapis
         # marker = add_sibling(Marker2D) do |m|
         #   m.position = self.position
         # end
+        #
+        # # 5. Class-level typed scene instantiation:
+        # marker = Marker2D.instantiate("res://scenes/marker.tscn") do |m|
+        #   m.position = Vector2.new(0, 50)
+        # end
+        #
+        # # 6. Positional scene instantiation into sibling or child:
+        # marker = add_sibling("res://scenes/marker.tscn", Marker2D) do |m|
+        #   m.position = Vector2.new(0, 50)
+        # end
+        # bullet = add_child("res://scenes/bullet.tscn", Bullet) do |b|
+        #   b.global_position = muzzle_pos
+        # end
         # ```
         def self.topic_01_tree_instantiation : Nil; end
+
 
         # **Dictionary Ergonomics**: Seamless Symbol keys, kwargs initialization, and typed getters.
         #
