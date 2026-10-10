@@ -520,6 +520,7 @@ macro node(decl, &block)
     user_methods = [] of Nil
     tool_buttons = [] of Nil
     class_constants = [] of Nil
+    included_modules = [] of Nil
     class_doc = ""
     raw_stmts = if block.is_a?(Nop)
                   [] of Nil
@@ -910,6 +911,8 @@ macro node(decl, &block)
       {% for g in stmt.args %}
         {% node_groups << (g.is_a?(StringLiteral) ? g : g.id.stringify) %}
       {% end %}
+    {% elsif stmt.is_a?(Include) %}
+      {% included_modules << stmt.name %}
     {% elsif stmt.is_a?(Call) && (stmt.name.stringify == "onready" || stmt.name.stringify == "node_ref" || stmt.name.stringify == "unique_node_ref" || stmt.name.stringify == "unique_node") %}
       {% is_unique_call = (stmt.name.stringify == "unique_node_ref" || stmt.name.stringify == "unique_node") %}
       {% if stmt.args.size == 1 %}
@@ -1733,38 +1736,6 @@ macro node(decl, &block)
         {% end %}
       end
     end
-
-    macro finished
-      def self._godot_module_properties : ::Array(::Godot::PropertyInfo)
-        props_list = ::Array(::Godot::PropertyInfo).new
-        \{% for anc in @type.ancestors %}
-          \{% if anc.resolve.methods.map(&.name.stringify).includes?("_godot_module_properties") %}
-            props_list.concat(\{{anc.resolve}}._godot_module_properties)
-          \{% end %}
-        \{% end %}
-        props_list
-      end
-
-      def self._godot_module_signals : ::Array(::Godot::SignalInfo)
-        sigs_list = ::Array(::Godot::SignalInfo).new
-        \{% for anc in @type.ancestors %}
-          \{% if anc.resolve.methods.map(&.name.stringify).includes?("_godot_module_signals") %}
-            sigs_list.concat(\{{anc.resolve}}._godot_module_signals)
-          \{% end %}
-        \{% end %}
-        sigs_list
-      end
-
-      def self._godot_module_constants : ::Array(::Godot::ConstantInfo)
-        consts_list = ::Array(::Godot::ConstantInfo).new
-        \{% for anc in @type.ancestors %}
-          \{% if anc.resolve.methods.map(&.name.stringify).includes?("_godot_module_constants") %}
-            consts_list.concat(\{{anc.resolve}}._godot_module_constants)
-          \{% end %}
-        \{% end %}
-        consts_list
-      end
-    end
   end
 
   # Auto-register this node with full property and signal metadata
@@ -2305,9 +2276,17 @@ macro node(decl, &block)
     signals_{{class_name}} << ::Godot::SignalInfo.new("{{sig_name.id}}", args_{{sig_name.id}})
   {% end %}
 
-  properties_{{class_name}}.concat({{class_name}}._godot_module_properties)
-  constants_{{class_name}}.concat({{class_name}}._godot_module_constants)
-  signals_{{class_name}}.concat({{class_name}}._godot_module_signals)
+  {% for inc in included_modules %}
+    {% if inc.resolve.methods.map(&.name.stringify).includes?("_godot_module_properties") %}
+      properties_{{class_name}}.concat({{inc}}._godot_module_properties)
+    {% end %}
+    {% if inc.resolve.methods.map(&.name.stringify).includes?("_godot_module_constants") %}
+      constants_{{class_name}}.concat({{inc}}._godot_module_constants)
+    {% end %}
+    {% if inc.resolve.methods.map(&.name.stringify).includes?("_godot_module_signals") %}
+      signals_{{class_name}}.concat({{inc}}._godot_module_signals)
+    {% end %}
+  {% end %}
 
   {% if script_path_override && !script_path_override.empty? %}
     script_path_{{class_name}} = {{script_path_override}}

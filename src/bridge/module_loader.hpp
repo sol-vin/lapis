@@ -542,29 +542,8 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
 #ifdef _WIN32
         SetDllDirectoryA(bridge_dir);
 #endif
-        for (size_t c = 0; c < sizeof(candidate_names) / sizeof(candidate_names[0]); c++) {
-            bool is_plugin = (strstr(candidate_names[c], "plugin") != nullptr);
-            if (!is_editor_active() && is_plugin) {
-                continue; // Do not load editor plugins in standalone game runtime
-            }
-            if (is_plugin && !is_crystal_integration) {
-                continue; // Non-crystal_integration addons never load editor plugin
-            }
-            if (loaded_game_or_addon && !is_plugin) {
-                continue;
-            }
-            char test_path[MAX_PATH] = {0};
-            snprintf(test_path, sizeof(test_path), "%s%s%s", bridge_dir, path_sep, candidate_names[c]);
-            if (bridge_file_exists(test_path)) {
-                to_load.push_back(std::string(test_path));
-                if (!is_plugin) {
-                    loaded_game_or_addon = true;
-                }
-            }
-        }
-
-        // If standard names not found, check if directory is an addon subfolder: addons/<name>/bin/<name>.ext
-        if (to_load.empty()) {
+        // For addons (non-crystal_integration), prioritize the addon's specific binary: addons/<name>/bin/<name>.ext
+        if (!is_crystal_integration) {
             std::string bdir(bridge_dir);
             size_t bin_pos = bdir.rfind("bin");
             if (bin_pos != std::string::npos && bin_pos > 0 && (bdir[bin_pos - 1] == '/' || bdir[bin_pos - 1] == '\\')) {
@@ -594,6 +573,27 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
                             loaded_game_or_addon = true;
                         }
                     }
+                }
+            }
+        }
+
+        for (size_t c = 0; c < sizeof(candidate_names) / sizeof(candidate_names[0]); c++) {
+            bool is_plugin = (strstr(candidate_names[c], "plugin") != nullptr);
+            if (!is_editor_active() && is_plugin) {
+                continue; // Do not load editor plugins in standalone game runtime
+            }
+            if (is_plugin && !is_crystal_integration) {
+                continue; // Non-crystal_integration addons never load editor plugin
+            }
+            if (loaded_game_or_addon && !is_plugin) {
+                continue;
+            }
+            char test_path[MAX_PATH] = {0};
+            snprintf(test_path, sizeof(test_path), "%s%s%s", bridge_dir, path_sep, candidate_names[c]);
+            if (bridge_file_exists(test_path)) {
+                to_load.push_back(std::string(test_path));
+                if (!is_plugin) {
+                    loaded_game_or_addon = true;
                 }
             }
         }
@@ -641,8 +641,8 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
         }
 
         // --- Segment 6: Relative Project Directory Traversal ---
-        // If bridge sits in an addon subfolder (`addons/<name>/bin/`), check the root game binary and plugin.
-        if (!loaded_game_or_addon) {
+        // If bridge sits in crystal_integration (`addons/crystal_integration/bin/`), check the root game binary and plugin.
+        if (!loaded_game_or_addon && is_crystal_integration) {
             char rel_game_path[MAX_PATH] = {0};
             snprintf(rel_game_path, sizeof(rel_game_path), "%s%s..%s..%s..%sbin%sgame.%s",
                      bridge_dir, path_sep, path_sep, path_sep, path_sep, path_sep, shadow_ext);

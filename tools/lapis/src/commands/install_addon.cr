@@ -935,28 +935,27 @@ module Lapis
             download_url : String? = nil
             download_filename : String? = nil
 
-            # Step 1: Scan for source code first
-            has_source = gitlab_repo_has_source_code?(owner, repo)
-            if has_source && !prefer_release
-              Core::Logger.info("Found source code in #{owner}/#{repo} GitLab repository tree.")
-              ref_name = tag || "main"
-              download_url = "https://gitlab.com/#{owner}/#{repo}/-/archive/#{ref_name}/#{repo}-#{ref_name}.zip"
-              download_filename = "#{repo}-#{ref_name}.zip"
-            end
-
-            # Step 2: Fall back to release binary if source not available or prefer_release
-            if download_url.nil?
+            # Step 1: Check GitLab Releases first (unless --source explicitly requested)
+            if !prefer_source
               if release_asset = find_gitlab_release_asset_url(owner, repo, tag)
                 download_url, download_filename = release_asset
                 Core::Logger.step("Install:Addon", "Found GitLab release asset '#{download_filename}' from #{download_url}")
-              elsif prefer_release
+              end
+            end
+
+            # Step 2: Fall back to repository source if release not available or --source requested
+            if download_url.nil?
+              if prefer_release
                 Core::Logger.error("No suitable release asset found for #{owner}/#{repo} on platform #{Core::Env.current_platform}")
                 return 1
-              else
-                ref_name = tag || "main"
-                download_url = "https://gitlab.com/#{owner}/#{repo}/-/archive/#{ref_name}/#{repo}-#{ref_name}.zip"
-                download_filename = "#{repo}-#{ref_name}.zip"
               end
+              has_source = gitlab_repo_has_source_code?(owner, repo)
+              if has_source
+                Core::Logger.info("Found source code in #{owner}/#{repo} GitLab repository tree.")
+              end
+              ref_name = tag || "main"
+              download_url = "https://gitlab.com/#{owner}/#{repo}/-/archive/#{ref_name}/#{repo}-#{ref_name}.zip"
+              download_filename = "#{repo}-#{ref_name}.zip"
             end
 
             url = download_url.not_nil!
@@ -977,39 +976,42 @@ module Lapis
             download_url = nil
             download_filename = nil
 
-            # Step 1: Scan for source code first
-            has_source = repo_has_source_code?(owner, repo)
-            if has_source && !prefer_source && !prefer_release
-              # In GitHub, if source has addons folder or crystal files, we can include source
-              Core::Logger.info("Found source code in #{owner}/#{repo} GitHub repository tree.")
-              branch = tag || "master"
-              download_url = "https://github.com/#{owner}/#{repo}/archive/refs/heads/#{branch}.zip"
-              download_filename = "#{repo}-#{branch}.zip"
-            end
-
-            # Step 2: Fall back to precompiled release if source not present or prefer_release
-            if download_url.nil? || prefer_release
+            # Step 1: Check GitHub Releases first (unless --source explicitly requested)
+            if !prefer_source
               if release_asset = find_release_asset_url(owner, repo, tag)
                 download_url, download_filename = release_asset
                 Core::Logger.step("Install:Addon", "Found release asset '#{download_filename}' from #{download_url}")
-              elsif prefer_release
+              end
+            end
+
+            # Step 2: Fall back to repository source if release not available or --source requested
+            if download_url.nil?
+              if prefer_release
                 Core::Logger.error("No suitable release asset found for #{owner}/#{repo} on platform #{Core::Env.current_platform}")
                 return 1
-              else
-                Core::Logger.info("No pre-compiled release asset found for #{owner}/#{repo} (#{Core::Env.current_platform}). Checking repository source...")
-                branch = tag || "master"
-                download_url = "https://github.com/#{owner}/#{repo}/archive/refs/heads/#{branch}.zip"
-                download_filename = "#{repo}-#{branch}.zip"
               end
+              has_source = repo_has_source_code?(owner, repo)
+              if has_source
+                Core::Logger.info("Found source code in #{owner}/#{repo} GitHub repository tree.")
+              end
+              branch = tag || "main"
+              download_url = "https://github.com/#{owner}/#{repo}/archive/refs/heads/#{branch}.zip"
+              download_filename = "#{repo}-#{branch}.zip"
             end
 
             url = download_url.not_nil!
             Core::Logger.step("Install:Addon", "Downloading #{download_filename} from #{url}...")
             if !Get.download_file(url, temp_zip)
-              # If master branch failed, try main
-              if (tag.nil? || tag == "master") && url.includes?("/heads/master.zip")
-                alt_url = "https://github.com/#{owner}/#{repo}/archive/refs/heads/main.zip"
-                Core::Logger.info("Retrying with default branch 'main' -> #{alt_url}...")
+              # If main/master branch failed, try the other
+              alt_url = if url.includes?("/heads/main.zip")
+                          "https://github.com/#{owner}/#{repo}/archive/refs/heads/master.zip"
+                        elsif url.includes?("/heads/master.zip")
+                          "https://github.com/#{owner}/#{repo}/archive/refs/heads/main.zip"
+                        else
+                          nil
+                        end
+              if alt_url && tag.nil?
+                Core::Logger.info("Retrying with alternative branch -> #{alt_url}...")
                 if !Get.download_file(alt_url, temp_zip)
                   Core::Logger.error("Failed to download addon archive from #{url} or #{alt_url}")
                   return 1

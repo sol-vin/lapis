@@ -226,7 +226,10 @@ module Lapis
             win_libs = if addon_name == "crystal_integration"
                          ["crystal_bridge.dll", "plugin.dll", "gc.dll", "iconv-2.dll", "pcre2-8.dll"]
                        else
-                         ["crystal_bridge.dll", "game.dll", "#{addon_name}.dll", "gc.dll", "iconv-2.dll", "pcre2-8.dll"]
+                         addon_lib = "#{addon_name}.dll"
+                         has_addon_lib = src_bins.any? { |b| File.exists?(b.join(addon_lib)) }
+                         main_lib = has_addon_lib ? addon_lib : "game.dll"
+                         ["crystal_bridge.dll", main_lib, "gc.dll", "iconv-2.dll", "pcre2-8.dll"]
                        end
             win_libs.each do |lib_file|
               src = src_bins.compact_map { |b| b.join(lib_file) if File.exists?(b.join(lib_file)) }.first?
@@ -236,7 +239,10 @@ module Lapis
             nix_libs = if addon_name == "crystal_integration"
                          ["crystal_bridge.so", "plugin.so"]
                        else
-                         ["crystal_bridge.so", "game.so", "#{addon_name}.so"]
+                         addon_lib = "#{addon_name}.so"
+                         has_addon_lib = src_bins.any? { |b| File.exists?(b.join(addon_lib)) }
+                         main_lib = has_addon_lib ? addon_lib : "game.so"
+                         ["crystal_bridge.so", main_lib]
                        end
             nix_libs.each do |lib_file|
               src = src_bins.compact_map { |b| b.join(lib_file) if File.exists?(b.join(lib_file)) }.first?
@@ -246,7 +252,10 @@ module Lapis
             mac_libs = if addon_name == "crystal_integration"
                          ["crystal_bridge.dylib", "plugin.dylib"]
                        else
-                         ["crystal_bridge.dylib", "game.dylib", "#{addon_name}.dylib"]
+                         addon_lib = "#{addon_name}.dylib"
+                         has_addon_lib = src_bins.any? { |b| File.exists?(b.join(addon_lib)) }
+                         main_lib = has_addon_lib ? addon_lib : "game.dylib"
+                         ["crystal_bridge.dylib", main_lib]
                        end
             mac_libs.each do |lib_file|
               src = src_bins.compact_map { |b| b.join(lib_file) if File.exists?(b.join(lib_file)) }.first?
