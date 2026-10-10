@@ -231,6 +231,25 @@ inline void do_classdb_register(CrystalClassDesc *desc) {
             continue;
         }
 
+        // Prevent duplicate registration of inherited properties on subclasses in ClassDB
+        bool already_in_ancestor = false;
+        std::string cur_parent = pcd ? pcd->parent_name : "";
+        while (!cur_parent.empty()) {
+            auto pit = g_persistent_class_descs.find(cur_parent);
+            if (pit != g_persistent_class_descs.end()) {
+                if (p.name && pit->second->registered_property_names.count(p.name) > 0) {
+                    already_in_ancestor = true;
+                    break;
+                }
+                cur_parent = pit->second->parent_name;
+            } else {
+                break;
+            }
+        }
+        if (already_in_ancestor) {
+            continue;
+        }
+
         ScopedString hint_str(p.hint_string ? p.hint_string : "");
         GDExtensionPropertyInfo pinfo = {};
         pinfo.type = (GDExtensionVariantType)p.variant_type;
@@ -259,6 +278,26 @@ inline void do_classdb_register(CrystalClassDesc *desc) {
         if (pcd && s.name && pcd->registered_signal_names.count(s.name) > 0) {
             continue;
         }
+
+        // Prevent duplicate registration of inherited signals on subclasses in ClassDB
+        bool sig_already_in_ancestor = false;
+        std::string cur_sig_parent = pcd ? pcd->parent_name : "";
+        while (!cur_sig_parent.empty()) {
+            auto pit = g_persistent_class_descs.find(cur_sig_parent);
+            if (pit != g_persistent_class_descs.end()) {
+                if (s.name && pit->second->registered_signal_names.count(s.name) > 0) {
+                    sig_already_in_ancestor = true;
+                    break;
+                }
+                cur_sig_parent = pit->second->parent_name;
+            } else {
+                break;
+            }
+        }
+        if (sig_already_in_ancestor) {
+            continue;
+        }
+
         void *sig_sn = make_string_name(s.name);
         std::vector<GDExtensionPropertyInfo> sargs(s.arg_count);
         for (int a = 0; a < s.arg_count; a++) {

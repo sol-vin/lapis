@@ -169,9 +169,19 @@ module Godot
       end
     {% end %}
 
+    def self.has_ancestor_property?(entry : Entry, prop_name : String) : Bool
+      cur = entry.parent_name
+      while parent = find(cur)
+        return true if parent.properties.any? { |p| p.name == prop_name }
+        cur = parent.parent_name
+      end
+      false
+    end
+
     def self.register(entry : Entry)
       if existing = find(entry.class_name)
         entry.properties.each do |p|
+          next if has_ancestor_property?(existing, p.name)
           existing.properties << p unless existing.properties.any? { |ep| ep.name == p.name }
         end
         entry.signals.each do |s|

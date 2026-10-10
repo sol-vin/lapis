@@ -150,7 +150,7 @@ module Godot
           def self._godot_auto_register_class : Void
             props = ::Array(::Godot::PropertyInfo).new
             \{% for ivar in @type.instance_vars %}
-              \{% if ivar.annotation(::Export) %}
+              \{% if ivar.annotation(::Export) && !(@type.superclass && @type.superclass.instance_vars.map(&.name.stringify).includes?(ivar.name.stringify)) %}
                 \{% ivar_type = ivar.type.stringify.gsub(/^(::)?Godot::/, "") %}
                 \{%
                   vtype = 0
