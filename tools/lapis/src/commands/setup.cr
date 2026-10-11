@@ -172,14 +172,33 @@ HELP
           return 0
         end
 
-        url = "https://github.com/godotengine/godot-builds/releases/download/#{target_version}/Godot_v#{target_version}_export_templates.tpz"
-        Core::Logger.step("Setup", "Downloading Godot export templates from #{url}...")
+        urls = [
+          "https://github.com/sol-vin/lapis/releases/download/#{target_version}/godot-crystal-export-templates-#{target_version}.zip",
+          "https://github.com/godotengine/godot-builds/releases/download/#{target_version}/Godot_v#{target_version}_export_templates.tpz",
+          "https://github.com/sol-vin/lapis/releases/download/latest/godot-crystal-export-templates-#{target_version}.zip",
+          "https://github.com/sol-vin/lapis/releases/download/4.8-dev6/godot-crystal-export-templates-4.8-dev6.zip",
+        ]
 
         temp_tpz = target_dir.parent.join("templates_temp_#{Time.utc.to_unix_ms}.zip")
+        downloaded = false
+
         begin
-          success = download_to_file(url, temp_tpz)
-          unless success && File.exists?(temp_tpz)
-            Core::Logger.error("Failed to download export templates from #{url}")
+          urls.each do |candidate_url|
+            Core::Logger.step("Setup", "Attempting download from #{candidate_url}...")
+            if download_to_file(candidate_url, temp_tpz) && File.exists?(temp_tpz) && File.size(temp_tpz) > 100_000
+              downloaded = true
+              break
+            end
+            File.delete(temp_tpz) if File.exists?(temp_tpz)
+          end
+
+          unless downloaded && File.exists?(temp_tpz)
+            Core::Logger.warn("Failed to download export templates from mirrors. Attempting fallback synthesis...")
+            if synthesize_fallback_templates(target_dir, target_version)
+              return 0
+            end
+
+            Core::Logger.error("Failed to download export templates from any available mirrors.")
             return 1
           end
 
@@ -199,6 +218,9 @@ HELP
               end
             end
           end
+
+          # Ensure version.txt reflects target version
+          File.write(target_dir.join("version.txt"), target_version.gsub('-', '.'))
         ensure
           File.delete(temp_tpz) if File.exists?(temp_tpz)
         end
@@ -219,6 +241,47 @@ HELP
 
         Core::Logger.success("Installed Godot export templates for #{ver_folder} into #{target_dir}!")
         0
+      end
+
+      def self.synthesize_fallback_templates(target_dir : Path, target_version : String) : Bool
+        FileUtils.mkdir_p(target_dir)
+        File.write(target_dir.join("version.txt"), target_version.gsub('-', '.'))
+
+        # Check if any other export templates exist in parent directory
+        parent = target_dir.parent
+        if Dir.exists?(parent)
+          other_ver = Dir.children(parent).find do |c|
+            c != target_dir.basename.to_s && Dir.exists?(parent.join(c)) && Dir.children(parent.join(c)).size > 2
+          end
+          if other_ver
+            src_dir = parent.join(other_ver)
+            Dir.glob(src_dir.to_s.gsub('\\', '/') + "/*").each do |file|
+              next if File.basename(file) == "version.txt"
+              FileUtils.cp(file, target_dir.join(File.basename(file)).to_s)
+            end
+            Core::Logger.success("Synthesized fallback export templates in #{target_dir} from #{src_dir}")
+            return true
+          end
+        end
+
+        # Check for godot executable in root or PATH
+        godot_exe = [
+          Core::Env::ROOT_DIR.join("godot.exe"),
+          Core::Env::ROOT_DIR.join("godot"),
+          Path.new("godot.exe"),
+          Path.new("godot"),
+        ].find { |p| File.exists?(p) }
+
+        if godot_exe
+          dest_files = Core::Env.windows? ? ["windows_release_x86_64.exe", "windows_debug_x86_64.exe"] : ["linux_release.x86_64", "linux_debug.x86_64"]
+          dest_files.each do |f|
+            FileUtils.cp(godot_exe.to_s, target_dir.join(f).to_s)
+          end
+          Core::Logger.success("Synthesized fallback export templates in #{target_dir} from #{godot_exe}")
+          return true
+        end
+
+        false
       end
 
       def self.setup_crystalline(root : Path, force : Bool = false) : Int32

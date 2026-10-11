@@ -192,6 +192,17 @@ module Lapis
         # if maybe_marker = self["Visuals/WeaponMount", Godot::Marker2D]?
         #   maybe_marker.position = Godot::Vector2.new(10.0_f32, 0.0_f32)
         # end
+        #
+        # # 5. Wildcard and glob queries with safe nil check:
+        # if hitbox = self["Enemies/*/Hitbox", Area2D]?
+        #   # Returns the first matching Area2D, or nil if the result array would have been empty
+        #   hitbox.monitorable = true
+        # end
+        #
+        # # Multi-node collection indexer returning Array(T) or nil when empty:
+        # if hitboxes = self["Enemies/*/Hitbox", Array(Area2D)]?
+        #   hitboxes.each(&.set_deferred("monitoring", false))
+        # end
         # ```
         #
         def self.topic_01_typed_indexers : Nil; end

@@ -1,159 +1,5 @@
 # Generated classes part 2 (in topological order)
 module Godot
-  class CameraServer < Godot::Object
-    def initialize(pointer : Void* = Pointer(Void).null)
-      super(pointer)
-    end
-    enum FeedImage : Int64
-      FeedRgbaImage = 0_i64
-      FeedYcbcrImage = 0_i64
-      FeedYImage = 0_i64
-      FeedCbcrImage = 1_i64
-    end
-    @@mb_set_monitoring_feeds : Void* = Pointer(Void).null
-    def set_monitoring_feeds(is_monitoring_feeds : Bool) : Void
-      godot_bind(@@mb_set_monitoring_feeds, "CameraServer", "set_monitoring_feeds", 2586408642_i64)
-      val_0 = is_monitoring_feeds
-      arg_0 = pointerof(val_0).as(Void*)
-      args = StaticArray[arg_0]
-      godot_ptrcall_void(@@mb_set_monitoring_feeds, @pointer, args.to_unsafe.as(Void**))
-    end
-    @@mb_is_monitoring_feeds : Void* = Pointer(Void).null
-    def is_monitoring_feeds() : Bool
-      godot_bind(@@mb_is_monitoring_feeds, "CameraServer", "is_monitoring_feeds", 36873697_i64)
-      godot_ptrcall_bool(@@mb_is_monitoring_feeds, @pointer, Pointer(Pointer(Void)).null)
-    end
-    # Predicate alias for `is_monitoring_feeds`
-    def is_monitoring_feeds?() : Bool
-      is_monitoring_feeds()
-    end
-    # Predicate alias for `is_monitoring_feeds`
-    def monitoring_feeds?() : Bool
-      is_monitoring_feeds()
-    end
-    @@mb_get_feed : Void* = Pointer(Void).null
-    def get_feed(index : Int64) : CameraFeed
-      godot_bind(@@mb_get_feed, "CameraServer", "get_feed", 361927068_i64)
-      val_0 = index.to_i64
-      arg_0 = pointerof(val_0).as(Void*)
-      args = StaticArray[arg_0]
-      godot_ptrcall_obj(@@mb_get_feed, @pointer, args.to_unsafe.as(Void**), CameraFeed)
-    end
-    @@mb_get_feed_count : Void* = Pointer(Void).null
-    def get_feed_count() : Int64
-      godot_bind(@@mb_get_feed_count, "CameraServer", "get_feed_count", 2455072627_i64)
-      godot_ptrcall_int(@@mb_get_feed_count, @pointer, Pointer(Pointer(Void)).null)
-    end
-    @@mb_feeds : Void* = Pointer(Void).null
-    def feeds() : Pointer(Void)
-      godot_bind(@@mb_feeds, "CameraServer", "feeds", 2915620761_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_feeds, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
-    end
-    @@mb_add_feed : Void* = Pointer(Void).null
-    def add_feed(feed : CameraFeed) : Void
-      godot_bind(@@mb_add_feed, "CameraServer", "add_feed", 3204782488_i64)
-      arg_ptr_0 = feed ? feed.pointer : Pointer(Void).null
-      arg_0 = pointerof(arg_ptr_0).as(Void*)
-      args = StaticArray[arg_0]
-      godot_ptrcall_void(@@mb_add_feed, @pointer, args.to_unsafe.as(Void**))
-    end
-    @@mb_remove_feed : Void* = Pointer(Void).null
-    def remove_feed(feed : CameraFeed) : Void
-      godot_bind(@@mb_remove_feed, "CameraServer", "remove_feed", 3204782488_i64)
-      arg_ptr_0 = feed ? feed.pointer : Pointer(Void).null
-      arg_0 = pointerof(arg_ptr_0).as(Void*)
-      args = StaticArray[arg_0]
-      godot_ptrcall_void(@@mb_remove_feed, @pointer, args.to_unsafe.as(Void**))
-    end
-    # Property `monitoring_feeds` getter
-    def monitoring_feeds
-      is_monitoring_feeds
-    end
-    # Property `monitoring_feeds` setter
-    def monitoring_feeds=(val)
-      set_monitoring_feeds(val)
-    end
-    godot_signal camera_feed_added, Int64
-    godot_signal camera_feed_removed, Int64
-    godot_signal camera_feeds_updated
-  end
-  class CameraTexture < Godot::Texture2D
-    def initialize(pointer : Void* = Pointer(Void).null)
-      super(pointer)
-    end
-    @@mb_set_camera_feed_id : Void* = Pointer(Void).null
-    def set_camera_feed_id(feed_id : Int64) : Void
-      godot_bind(@@mb_set_camera_feed_id, "CameraTexture", "set_camera_feed_id", 1286410249_i64)
-      val_0 = feed_id.to_i64
-      arg_0 = pointerof(val_0).as(Void*)
-      args = StaticArray[arg_0]
-      godot_ptrcall_void(@@mb_set_camera_feed_id, @pointer, args.to_unsafe.as(Void**))
-    end
-    @@mb_get_camera_feed_id : Void* = Pointer(Void).null
-    def get_camera_feed_id() : Int64
-      godot_bind(@@mb_get_camera_feed_id, "CameraTexture", "get_camera_feed_id", 3905245786_i64)
-      godot_ptrcall_int(@@mb_get_camera_feed_id, @pointer, Pointer(Pointer(Void)).null)
-    end
-    @@mb_set_which_feed : Void* = Pointer(Void).null
-    def set_which_feed(which_feed : Godot::CameraServer::FeedImage | Int) : Void
-      godot_bind(@@mb_set_which_feed, "CameraTexture", "set_which_feed", 1595299230_i64)
-      val_0 = which_feed.is_a?(Int) ? which_feed.to_i64 : which_feed.value.to_i64
-      arg_0 = pointerof(val_0).as(Void*)
-      args = StaticArray[arg_0]
-      godot_ptrcall_void(@@mb_set_which_feed, @pointer, args.to_unsafe.as(Void**))
-    end
-    @@mb_get_which_feed : Void* = Pointer(Void).null
-    def get_which_feed() : Godot::CameraServer::FeedImage
-      godot_bind(@@mb_get_which_feed, "CameraTexture", "get_which_feed", 91039457_i64)
-      godot_ptrcall_enum(@@mb_get_which_feed, @pointer, Pointer(Pointer(Void)).null, Godot::CameraServer::FeedImage)
-    end
-    @@mb_set_camera_active : Void* = Pointer(Void).null
-    def set_camera_active(active : Bool) : Void
-      godot_bind(@@mb_set_camera_active, "CameraTexture", "set_camera_active", 2586408642_i64)
-      val_0 = active
-      arg_0 = pointerof(val_0).as(Void*)
-      args = StaticArray[arg_0]
-      godot_ptrcall_void(@@mb_set_camera_active, @pointer, args.to_unsafe.as(Void**))
-    end
-    @@mb_get_camera_active : Void* = Pointer(Void).null
-    def get_camera_active() : Bool
-      godot_bind(@@mb_get_camera_active, "CameraTexture", "get_camera_active", 36873697_i64)
-      godot_ptrcall_bool(@@mb_get_camera_active, @pointer, Pointer(Pointer(Void)).null)
-    end
-    # Predicate alias for `get_camera_active`
-    def get_camera_active?() : Bool
-      get_camera_active()
-    end
-    # Property `camera_feed_id` getter
-    def camera_feed_id
-      get_camera_feed_id
-    end
-    # Property `camera_feed_id` setter
-    def camera_feed_id=(val : Int)
-      set_camera_feed_id(val.to_i64)
-    end
-    # Property `which_feed` getter
-    def which_feed
-      get_which_feed
-    end
-    # Property `which_feed` setter
-    def which_feed=(val : Int)
-      set_which_feed(val.to_i64)
-    end
-    # Property `camera_is_active` getter
-    def camera_is_active
-      get_camera_active
-    end
-    def camera_is_active?
-      camera_is_active
-    end
-    # Property `camera_is_active` setter
-    def camera_is_active=(val)
-      set_camera_active(val)
-    end
-  end
   class CanvasGroup < Godot::Node2D
     def initialize(pointer : Void* = Pointer(Void).null)
       super(pointer)
@@ -1728,10 +1574,6 @@ module Godot
       godot_bind(@@mb_is_on_floor, "CharacterBody2D", "is_on_floor", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_on_floor, @pointer, Pointer(Pointer(Void)).null)
     end
-    # Predicate alias for `is_on_floor`
-    def is_on_floor?() : Bool
-      is_on_floor()
-    end
     @@mb_is_on_floor_only : Void* = Pointer(Void).null
     def is_on_floor_only() : Bool
       godot_bind(@@mb_is_on_floor_only, "CharacterBody2D", "is_on_floor_only", 36873697_i64)
@@ -1750,10 +1592,6 @@ module Godot
       godot_bind(@@mb_is_on_ceiling, "CharacterBody2D", "is_on_ceiling", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_on_ceiling, @pointer, Pointer(Pointer(Void)).null)
     end
-    # Predicate alias for `is_on_ceiling`
-    def is_on_ceiling?() : Bool
-      is_on_ceiling()
-    end
     @@mb_is_on_ceiling_only : Void* = Pointer(Void).null
     def is_on_ceiling_only() : Bool
       godot_bind(@@mb_is_on_ceiling_only, "CharacterBody2D", "is_on_ceiling_only", 36873697_i64)
@@ -1771,10 +1609,6 @@ module Godot
     def is_on_wall() : Bool
       godot_bind(@@mb_is_on_wall, "CharacterBody2D", "is_on_wall", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_on_wall, @pointer, Pointer(Pointer(Void)).null)
-    end
-    # Predicate alias for `is_on_wall`
-    def is_on_wall?() : Bool
-      is_on_wall()
     end
     @@mb_is_on_wall_only : Void* = Pointer(Void).null
     def is_on_wall_only() : Bool
@@ -2221,10 +2055,6 @@ module Godot
       godot_bind(@@mb_is_on_floor, "CharacterBody3D", "is_on_floor", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_on_floor, @pointer, Pointer(Pointer(Void)).null)
     end
-    # Predicate alias for `is_on_floor`
-    def is_on_floor?() : Bool
-      is_on_floor()
-    end
     @@mb_is_on_floor_only : Void* = Pointer(Void).null
     def is_on_floor_only() : Bool
       godot_bind(@@mb_is_on_floor_only, "CharacterBody3D", "is_on_floor_only", 36873697_i64)
@@ -2243,10 +2073,6 @@ module Godot
       godot_bind(@@mb_is_on_ceiling, "CharacterBody3D", "is_on_ceiling", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_on_ceiling, @pointer, Pointer(Pointer(Void)).null)
     end
-    # Predicate alias for `is_on_ceiling`
-    def is_on_ceiling?() : Bool
-      is_on_ceiling()
-    end
     @@mb_is_on_ceiling_only : Void* = Pointer(Void).null
     def is_on_ceiling_only() : Bool
       godot_bind(@@mb_is_on_ceiling_only, "CharacterBody3D", "is_on_ceiling_only", 36873697_i64)
@@ -2264,10 +2090,6 @@ module Godot
     def is_on_wall() : Bool
       godot_bind(@@mb_is_on_wall, "CharacterBody3D", "is_on_wall", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_on_wall, @pointer, Pointer(Pointer(Void)).null)
-    end
-    # Predicate alias for `is_on_wall`
-    def is_on_wall?() : Bool
-      is_on_wall()
     end
     @@mb_is_on_wall_only : Void* = Pointer(Void).null
     def is_on_wall_only() : Bool
@@ -2893,6 +2715,24 @@ module Godot
     # Predicate alias for `is_class_enabled`
     def class_enabled?(godot_class : String) : Bool
       is_class_enabled(godot_class)
+    end
+    @@mb_is_class_exposed : Void* = Pointer(Void).null
+    def is_class_exposed(godot_class : String) : Bool
+      godot_bind(@@mb_is_class_exposed, "ClassDB", "is_class_exposed", 2619796661_i64)
+      sn_0 = Bridge.make_string_name(godot_class)
+      arg_0 = sn_0
+      args = StaticArray[arg_0]
+      godot_ptrcall_bool(@@mb_is_class_exposed, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string_name(sn_0)
+    end
+    # Predicate alias for `is_class_exposed`
+    def is_class_exposed?(godot_class : String) : Bool
+      is_class_exposed(godot_class)
+    end
+    # Predicate alias for `is_class_exposed`
+    def class_exposed?(godot_class : String) : Bool
+      is_class_exposed(godot_class)
     end
   end
   class TextEdit < Godot::Control
@@ -13189,6 +13029,14 @@ module Godot
       godot_bind(@@mb_get_sky_mode, "DirectionalLight3D", "get_sky_mode", 3819982774_i64)
       godot_ptrcall_enum(@@mb_get_sky_mode, @pointer, Pointer(Pointer(Void)).null, SkyMode)
     end
+    # Property `sky_mode` getter
+    def sky_mode
+      get_sky_mode
+    end
+    # Property `sky_mode` setter
+    def sky_mode=(val : Int)
+      set_sky_mode(val.to_i64)
+    end
     # Property `directional_shadow_mode` getter
     def directional_shadow_mode
       get_shadow_mode
@@ -13255,14 +13103,6 @@ module Godot
     # Property `directional_shadow_pancake_size` setter
     def directional_shadow_pancake_size=(val : Number)
       set_param(16_i64, val.to_f64)
-    end
-    # Property `sky_mode` getter
-    def sky_mode
-      get_sky_mode
-    end
-    # Property `sky_mode` setter
-    def sky_mode=(val : Int)
-      set_sky_mode(val.to_i64)
     end
   end
   class DisplayServer < Godot::Object
@@ -19281,27 +19121,6 @@ module Godot
     ensure
       Bridge.free_string(str_0)
     end
-    @@mb_set_mode_overrides_title : Void* = Pointer(Void).null
-    def set_mode_overrides_title(override : Bool) : Void
-      godot_bind(@@mb_set_mode_overrides_title, "FileDialog", "set_mode_overrides_title", 2586408642_i64)
-      val_0 = override
-      arg_0 = pointerof(val_0).as(Void*)
-      args = StaticArray[arg_0]
-      godot_ptrcall_void(@@mb_set_mode_overrides_title, @pointer, args.to_unsafe.as(Void**))
-    end
-    @@mb_is_mode_overriding_title : Void* = Pointer(Void).null
-    def is_mode_overriding_title() : Bool
-      godot_bind(@@mb_is_mode_overriding_title, "FileDialog", "is_mode_overriding_title", 36873697_i64)
-      godot_ptrcall_bool(@@mb_is_mode_overriding_title, @pointer, Pointer(Pointer(Void)).null)
-    end
-    # Predicate alias for `is_mode_overriding_title`
-    def is_mode_overriding_title?() : Bool
-      is_mode_overriding_title()
-    end
-    # Predicate alias for `is_mode_overriding_title`
-    def mode_overriding_title?() : Bool
-      is_mode_overriding_title()
-    end
     @@mb_set_file_mode : Void* = Pointer(Void).null
     def set_file_mode(mode : FileMode | Int) : Void
       godot_bind(@@mb_set_file_mode, "FileDialog", "set_file_mode", 3654936397_i64)
@@ -19514,6 +19333,27 @@ module Godot
     def invalidate() : Void
       godot_bind(@@mb_invalidate, "FileDialog", "invalidate", 3218959716_i64)
       godot_ptrcall_void(@@mb_invalidate, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_set_mode_overrides_title : Void* = Pointer(Void).null
+    def set_mode_overrides_title(override : Bool) : Void
+      godot_bind(@@mb_set_mode_overrides_title, "FileDialog", "set_mode_overrides_title", 2586408642_i64)
+      val_0 = override
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_mode_overrides_title, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_is_mode_overriding_title : Void* = Pointer(Void).null
+    def is_mode_overriding_title() : Bool
+      godot_bind(@@mb_is_mode_overriding_title, "FileDialog", "is_mode_overriding_title", 36873697_i64)
+      godot_ptrcall_bool(@@mb_is_mode_overriding_title, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_mode_overriding_title`
+    def is_mode_overriding_title?() : Bool
+      is_mode_overriding_title()
+    end
+    # Predicate alias for `is_mode_overriding_title`
+    def mode_overriding_title?() : Bool
+      is_mode_overriding_title()
     end
     # Property `mode_overrides_title` getter
     def mode_overrides_title
@@ -20072,6 +19912,12 @@ module Godot
       ScrollHintModeAll = 1_i64
       ScrollHintModeTopAndLeft = 2_i64
       ScrollHintModeBottomAndRight = 3_i64
+      ScrollHintModeTopAndBottom = 4_i64
+      ScrollHintModeLeftAndRight = 5_i64
+      ScrollHintModeTop = 6_i64
+      ScrollHintModeBottom = 7_i64
+      ScrollHintModeLeft = 8_i64
+      ScrollHintModeRight = 9_i64
     end
     @@mb_set_h_scroll : Void* = Pointer(Void).null
     def set_h_scroll(value : Int64) : Void
@@ -29910,6 +29756,19 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_add_title_bar_control, @pointer, args.to_unsafe.as(Void**))
     end
+    @@mb_get_title_bar_control : Void* = Pointer(Void).null
+    def get_title_bar_control(index : Int64) : Control
+      godot_bind(@@mb_get_title_bar_control, "FoldableContainer", "get_title_bar_control", 1065994134_i64)
+      val_0 = index.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_obj(@@mb_get_title_bar_control, @pointer, args.to_unsafe.as(Void**), Control)
+    end
+    @@mb_get_title_bar_control_count : Void* = Pointer(Void).null
+    def get_title_bar_control_count() : Int64
+      godot_bind(@@mb_get_title_bar_control_count, "FoldableContainer", "get_title_bar_control_count", 3905245786_i64)
+      godot_ptrcall_int(@@mb_get_title_bar_control_count, @pointer, Pointer(Pointer(Void)).null)
+    end
     @@mb_remove_title_bar_control : Void* = Pointer(Void).null
     def remove_title_bar_control(control : Control) : Void
       godot_bind(@@mb_remove_title_bar_control, "FoldableContainer", "remove_title_bar_control", 1496901182_i64)
@@ -33091,6 +32950,780 @@ module Godot
       godot_ptrcall_void(@@mb_publish_diagnostics, @pointer, args.to_unsafe.as(Void**))
     ensure
       Bridge.free_string(str_0)
+    end
+  end
+  class GLTFAccessor < Godot::Resource
+    def initialize(pointer : Void* = Pointer(Void).null)
+      super(pointer)
+    end
+    enum GLTFAccessorType : Int64
+      TypeScalar = 0_i64
+      TypeVec2 = 1_i64
+      TypeVec3 = 2_i64
+      TypeVec4 = 3_i64
+      TypeMat2 = 4_i64
+      TypeMat3 = 5_i64
+      TypeMat4 = 6_i64
+    end
+    enum GLTFComponentType : Int64
+      ComponentTypeNone = 0_i64
+      ComponentTypeSignedByte = 5120_i64
+      ComponentTypeUnsignedByte = 5121_i64
+      ComponentTypeSignedShort = 5122_i64
+      ComponentTypeUnsignedShort = 5123_i64
+      ComponentTypeSignedInt = 5124_i64
+      ComponentTypeUnsignedInt = 5125_i64
+      ComponentTypeSingleFloat = 5126_i64
+      ComponentTypeDoubleFloat = 5130_i64
+      ComponentTypeHalfFloat = 5131_i64
+      ComponentTypeSignedLong = 5134_i64
+      ComponentTypeUnsignedLong = 5135_i64
+    end
+    @@mb_from_dictionary : Void* = Pointer(Void).null
+    def self.from_dictionary(dictionary : Pointer(Void)) : GLTFAccessor
+      godot_bind(@@mb_from_dictionary, "GLTFAccessor", "from_dictionary", 3495091019_i64)
+      val_0 = dictionary
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_obj(@@mb_from_dictionary, Pointer(Void).null, args.to_unsafe.as(Void**), GLTFAccessor)
+    end
+    # Instance convenience delegator for static method `from_dictionary`
+    def from_dictionary(dictionary : Pointer(Void)) : GLTFAccessor
+      self.class.from_dictionary(dictionary)
+    end
+    @@mb_to_dictionary : Void* = Pointer(Void).null
+    def to_dictionary() : Pointer(Void)
+      godot_bind(@@mb_to_dictionary, "GLTFAccessor", "to_dictionary", 3102165223_i64)
+      ret_ptr = Pointer(Void).null
+      godot_ptrcall(@@mb_to_dictionary, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
+      ret_ptr
+    end
+    @@mb_get_buffer_view : Void* = Pointer(Void).null
+    def get_buffer_view() : Int64
+      godot_bind(@@mb_get_buffer_view, "GLTFAccessor", "get_buffer_view", 3905245786_i64)
+      godot_ptrcall_int(@@mb_get_buffer_view, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_set_buffer_view : Void* = Pointer(Void).null
+    def set_buffer_view(buffer_view : Int64) : Void
+      godot_bind(@@mb_set_buffer_view, "GLTFAccessor", "set_buffer_view", 1286410249_i64)
+      val_0 = buffer_view.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_buffer_view, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_byte_offset : Void* = Pointer(Void).null
+    def get_byte_offset() : Int64
+      godot_bind(@@mb_get_byte_offset, "GLTFAccessor", "get_byte_offset", 3905245786_i64)
+      godot_ptrcall_int(@@mb_get_byte_offset, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_set_byte_offset : Void* = Pointer(Void).null
+    def set_byte_offset(byte_offset : Int64) : Void
+      godot_bind(@@mb_set_byte_offset, "GLTFAccessor", "set_byte_offset", 1286410249_i64)
+      val_0 = byte_offset.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_byte_offset, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_component_type : Void* = Pointer(Void).null
+    def get_component_type() : GLTFComponentType
+      godot_bind(@@mb_get_component_type, "GLTFAccessor", "get_component_type", 852227802_i64)
+      godot_ptrcall_enum(@@mb_get_component_type, @pointer, Pointer(Pointer(Void)).null, GLTFComponentType)
+    end
+    @@mb_set_component_type : Void* = Pointer(Void).null
+    def set_component_type(component_type : GLTFComponentType | Int) : Void
+      godot_bind(@@mb_set_component_type, "GLTFAccessor", "set_component_type", 1780020221_i64)
+      val_0 = component_type.is_a?(Int) ? component_type.to_i64 : component_type.value.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_component_type, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_normalized : Void* = Pointer(Void).null
+    def get_normalized() : Bool
+      godot_bind(@@mb_get_normalized, "GLTFAccessor", "get_normalized", 36873697_i64)
+      godot_ptrcall_bool(@@mb_get_normalized, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `get_normalized`
+    def get_normalized?() : Bool
+      get_normalized()
+    end
+    @@mb_set_normalized : Void* = Pointer(Void).null
+    def set_normalized(normalized : Bool) : Void
+      godot_bind(@@mb_set_normalized, "GLTFAccessor", "set_normalized", 2586408642_i64)
+      val_0 = normalized
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_normalized, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_count : Void* = Pointer(Void).null
+    def get_count() : Int64
+      godot_bind(@@mb_get_count, "GLTFAccessor", "get_count", 3905245786_i64)
+      godot_ptrcall_int(@@mb_get_count, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_set_count : Void* = Pointer(Void).null
+    def set_count(count : Int64) : Void
+      godot_bind(@@mb_set_count, "GLTFAccessor", "set_count", 1286410249_i64)
+      val_0 = count.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_count, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_accessor_type : Void* = Pointer(Void).null
+    def get_accessor_type() : GLTFAccessorType
+      godot_bind(@@mb_get_accessor_type, "GLTFAccessor", "get_accessor_type", 1998183368_i64)
+      godot_ptrcall_enum(@@mb_get_accessor_type, @pointer, Pointer(Pointer(Void)).null, GLTFAccessorType)
+    end
+    @@mb_set_accessor_type : Void* = Pointer(Void).null
+    def set_accessor_type(accessor_type : GLTFAccessorType | Int) : Void
+      godot_bind(@@mb_set_accessor_type, "GLTFAccessor", "set_accessor_type", 2347728198_i64)
+      val_0 = accessor_type.is_a?(Int) ? accessor_type.to_i64 : accessor_type.value.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_accessor_type, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_type : Void* = Pointer(Void).null
+    def get_type() : Int64
+      godot_bind(@@mb_get_type, "GLTFAccessor", "get_type", 3905245786_i64)
+      godot_ptrcall_int(@@mb_get_type, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_set_type : Void* = Pointer(Void).null
+    def set_type(get_type : Int64) : Void
+      godot_bind(@@mb_set_type, "GLTFAccessor", "set_type", 1286410249_i64)
+      val_0 = get_type.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_type, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_min : Void* = Pointer(Void).null
+    def get_min() : Pointer(Void)
+      godot_bind(@@mb_get_min, "GLTFAccessor", "get_min", 547233126_i64)
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_min, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+    end
+    @@mb_set_min : Void* = Pointer(Void).null
+    def set_min(min : Pointer(Void)) : Void
+      godot_bind(@@mb_set_min, "GLTFAccessor", "set_min", 2576592201_i64)
+      val_0 = min
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_min, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_max : Void* = Pointer(Void).null
+    def get_max() : Pointer(Void)
+      godot_bind(@@mb_get_max, "GLTFAccessor", "get_max", 547233126_i64)
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_max, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+    end
+    @@mb_set_max : Void* = Pointer(Void).null
+    def set_max(max : Pointer(Void)) : Void
+      godot_bind(@@mb_set_max, "GLTFAccessor", "set_max", 2576592201_i64)
+      val_0 = max
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_max, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_sparse_count : Void* = Pointer(Void).null
+    def get_sparse_count() : Int64
+      godot_bind(@@mb_get_sparse_count, "GLTFAccessor", "get_sparse_count", 3905245786_i64)
+      godot_ptrcall_int(@@mb_get_sparse_count, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_set_sparse_count : Void* = Pointer(Void).null
+    def set_sparse_count(sparse_count : Int64) : Void
+      godot_bind(@@mb_set_sparse_count, "GLTFAccessor", "set_sparse_count", 1286410249_i64)
+      val_0 = sparse_count.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_sparse_count, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_sparse_indices_buffer_view : Void* = Pointer(Void).null
+    def get_sparse_indices_buffer_view() : Int64
+      godot_bind(@@mb_get_sparse_indices_buffer_view, "GLTFAccessor", "get_sparse_indices_buffer_view", 3905245786_i64)
+      godot_ptrcall_int(@@mb_get_sparse_indices_buffer_view, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_set_sparse_indices_buffer_view : Void* = Pointer(Void).null
+    def set_sparse_indices_buffer_view(sparse_indices_buffer_view : Int64) : Void
+      godot_bind(@@mb_set_sparse_indices_buffer_view, "GLTFAccessor", "set_sparse_indices_buffer_view", 1286410249_i64)
+      val_0 = sparse_indices_buffer_view.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_sparse_indices_buffer_view, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_sparse_indices_byte_offset : Void* = Pointer(Void).null
+    def get_sparse_indices_byte_offset() : Int64
+      godot_bind(@@mb_get_sparse_indices_byte_offset, "GLTFAccessor", "get_sparse_indices_byte_offset", 3905245786_i64)
+      godot_ptrcall_int(@@mb_get_sparse_indices_byte_offset, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_set_sparse_indices_byte_offset : Void* = Pointer(Void).null
+    def set_sparse_indices_byte_offset(sparse_indices_byte_offset : Int64) : Void
+      godot_bind(@@mb_set_sparse_indices_byte_offset, "GLTFAccessor", "set_sparse_indices_byte_offset", 1286410249_i64)
+      val_0 = sparse_indices_byte_offset.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_sparse_indices_byte_offset, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_sparse_indices_component_type : Void* = Pointer(Void).null
+    def get_sparse_indices_component_type() : GLTFComponentType
+      godot_bind(@@mb_get_sparse_indices_component_type, "GLTFAccessor", "get_sparse_indices_component_type", 852227802_i64)
+      godot_ptrcall_enum(@@mb_get_sparse_indices_component_type, @pointer, Pointer(Pointer(Void)).null, GLTFComponentType)
+    end
+    @@mb_set_sparse_indices_component_type : Void* = Pointer(Void).null
+    def set_sparse_indices_component_type(sparse_indices_component_type : GLTFComponentType | Int) : Void
+      godot_bind(@@mb_set_sparse_indices_component_type, "GLTFAccessor", "set_sparse_indices_component_type", 1780020221_i64)
+      val_0 = sparse_indices_component_type.is_a?(Int) ? sparse_indices_component_type.to_i64 : sparse_indices_component_type.value.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_sparse_indices_component_type, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_sparse_values_buffer_view : Void* = Pointer(Void).null
+    def get_sparse_values_buffer_view() : Int64
+      godot_bind(@@mb_get_sparse_values_buffer_view, "GLTFAccessor", "get_sparse_values_buffer_view", 3905245786_i64)
+      godot_ptrcall_int(@@mb_get_sparse_values_buffer_view, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_set_sparse_values_buffer_view : Void* = Pointer(Void).null
+    def set_sparse_values_buffer_view(sparse_values_buffer_view : Int64) : Void
+      godot_bind(@@mb_set_sparse_values_buffer_view, "GLTFAccessor", "set_sparse_values_buffer_view", 1286410249_i64)
+      val_0 = sparse_values_buffer_view.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_sparse_values_buffer_view, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_sparse_values_byte_offset : Void* = Pointer(Void).null
+    def get_sparse_values_byte_offset() : Int64
+      godot_bind(@@mb_get_sparse_values_byte_offset, "GLTFAccessor", "get_sparse_values_byte_offset", 3905245786_i64)
+      godot_ptrcall_int(@@mb_get_sparse_values_byte_offset, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_set_sparse_values_byte_offset : Void* = Pointer(Void).null
+    def set_sparse_values_byte_offset(sparse_values_byte_offset : Int64) : Void
+      godot_bind(@@mb_set_sparse_values_byte_offset, "GLTFAccessor", "set_sparse_values_byte_offset", 1286410249_i64)
+      val_0 = sparse_values_byte_offset.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_sparse_values_byte_offset, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Property `buffer_view` getter
+    def buffer_view
+      get_buffer_view
+    end
+    # Property `buffer_view` setter
+    def buffer_view=(val : Int)
+      set_buffer_view(val.to_i64)
+    end
+    # Property `byte_offset` getter
+    def byte_offset
+      get_byte_offset
+    end
+    # Property `byte_offset` setter
+    def byte_offset=(val : Int)
+      set_byte_offset(val.to_i64)
+    end
+    # Property `component_type` getter
+    def component_type
+      get_component_type
+    end
+    # Property `component_type` setter
+    def component_type=(val : Int)
+      set_component_type(val.to_i64)
+    end
+    # Property `normalized` getter
+    def normalized
+      get_normalized
+    end
+    def normalized?
+      normalized
+    end
+    # Property `normalized` setter
+    def normalized=(val)
+      set_normalized(val)
+    end
+    # Property `count` getter
+    def count
+      get_count
+    end
+    # Property `count` setter
+    def count=(val : Int)
+      set_count(val.to_i64)
+    end
+    # Property `accessor_type` getter
+    def accessor_type
+      get_accessor_type
+    end
+    # Property `accessor_type` setter
+    def accessor_type=(val : Int)
+      set_accessor_type(val.to_i64)
+    end
+    # Property `min` getter
+    def min
+      get_min
+    end
+    # Property `min` setter
+    def min=(val)
+      set_min(val)
+    end
+    # Property `max` getter
+    def max
+      get_max
+    end
+    # Property `max` setter
+    def max=(val)
+      set_max(val)
+    end
+    # Property `sparse_count` getter
+    def sparse_count
+      get_sparse_count
+    end
+    # Property `sparse_count` setter
+    def sparse_count=(val : Int)
+      set_sparse_count(val.to_i64)
+    end
+    # Property `sparse_indices_buffer_view` getter
+    def sparse_indices_buffer_view
+      get_sparse_indices_buffer_view
+    end
+    # Property `sparse_indices_buffer_view` setter
+    def sparse_indices_buffer_view=(val : Int)
+      set_sparse_indices_buffer_view(val.to_i64)
+    end
+    # Property `sparse_indices_byte_offset` getter
+    def sparse_indices_byte_offset
+      get_sparse_indices_byte_offset
+    end
+    # Property `sparse_indices_byte_offset` setter
+    def sparse_indices_byte_offset=(val : Int)
+      set_sparse_indices_byte_offset(val.to_i64)
+    end
+    # Property `sparse_indices_component_type` getter
+    def sparse_indices_component_type
+      get_sparse_indices_component_type
+    end
+    # Property `sparse_indices_component_type` setter
+    def sparse_indices_component_type=(val : Int)
+      set_sparse_indices_component_type(val.to_i64)
+    end
+    # Property `sparse_values_buffer_view` getter
+    def sparse_values_buffer_view
+      get_sparse_values_buffer_view
+    end
+    # Property `sparse_values_buffer_view` setter
+    def sparse_values_buffer_view=(val : Int)
+      set_sparse_values_buffer_view(val.to_i64)
+    end
+    # Property `sparse_values_byte_offset` getter
+    def sparse_values_byte_offset
+      get_sparse_values_byte_offset
+    end
+    # Property `sparse_values_byte_offset` setter
+    def sparse_values_byte_offset=(val : Int)
+      set_sparse_values_byte_offset(val.to_i64)
+    end
+  end
+  class GLTFAnimation < Godot::Resource
+    def initialize(pointer : Void* = Pointer(Void).null)
+      super(pointer)
+    end
+    @@mb_get_original_name : Void* = Pointer(Void).null
+    def get_original_name() : String
+      godot_bind(@@mb_get_original_name, "GLTFAnimation", "get_original_name", 2841200299_i64)
+      godot_call_str("get_original_name")
+    end
+    @@mb_set_original_name : Void* = Pointer(Void).null
+    def set_original_name(original_name : String) : Void
+      godot_bind(@@mb_set_original_name, "GLTFAnimation", "set_original_name", 83702148_i64)
+      str_0 = Bridge.make_string(original_name)
+      arg_0 = str_0
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_original_name, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string(str_0)
+    end
+    @@mb_get_loop : Void* = Pointer(Void).null
+    def get_loop() : Bool
+      godot_bind(@@mb_get_loop, "GLTFAnimation", "get_loop", 36873697_i64)
+      godot_ptrcall_bool(@@mb_get_loop, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `get_loop`
+    def get_loop?() : Bool
+      get_loop()
+    end
+    @@mb_set_loop : Void* = Pointer(Void).null
+    def set_loop(loop : Bool) : Void
+      godot_bind(@@mb_set_loop, "GLTFAnimation", "set_loop", 2586408642_i64)
+      val_0 = loop
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_loop, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_additional_data : Void* = Pointer(Void).null
+    def get_additional_data(extension_name : String) : Pointer(Void)
+      godot_bind(@@mb_get_additional_data, "GLTFAnimation", "get_additional_data", 2138907829_i64)
+      sn_0 = Bridge.make_string_name(extension_name)
+      arg_0 = sn_0
+      args = StaticArray[arg_0]
+      ret_var = StaticArray(UInt8, 24).new(0_u8)
+      godot_ptrcall(@@mb_get_additional_data, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
+      ret_ptr = Pointer(Void).null
+      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
+      ret_ptr
+    ensure
+      Bridge.free_string_name(sn_0)
+    end
+    @@mb_set_additional_data : Void* = Pointer(Void).null
+    def set_additional_data(extension_name : String, additional_data : Pointer(Void)) : Void
+      godot_bind(@@mb_set_additional_data, "GLTFAnimation", "set_additional_data", 3776071444_i64)
+      sn_0 = Bridge.make_string_name(extension_name)
+      arg_0 = sn_0
+      val_1 = additional_data
+      arg_1 = pointerof(val_1).as(Void*)
+      args = StaticArray[arg_0, arg_1]
+      godot_ptrcall_void(@@mb_set_additional_data, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string_name(sn_0)
+    end
+    # Property `original_name` getter
+    def original_name
+      get_original_name
+    end
+    # Property `original_name` setter
+    def original_name=(val)
+      set_original_name(val)
+    end
+    # Property `loop` getter
+    def loop
+      get_loop
+    end
+    def loop?
+      loop
+    end
+    # Property `loop` setter
+    def loop=(val)
+      set_loop(val)
+    end
+  end
+  class GLTFBufferView < Godot::Resource
+    def initialize(pointer : Void* = Pointer(Void).null)
+      super(pointer)
+    end
+    @@mb_load_buffer_view_data : Void* = Pointer(Void).null
+    def load_buffer_view_data(state : GLTFState) : Pointer(Void)
+      godot_bind(@@mb_load_buffer_view_data, "GLTFBufferView", "load_buffer_view_data", 3945446907_i64)
+      arg_ptr_0 = state ? state.pointer : Pointer(Void).null
+      arg_0 = pointerof(arg_ptr_0).as(Void*)
+      args = StaticArray[arg_0]
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_load_buffer_view_data, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+    end
+    @@mb_from_dictionary : Void* = Pointer(Void).null
+    def self.from_dictionary(dictionary : Pointer(Void)) : GLTFBufferView
+      godot_bind(@@mb_from_dictionary, "GLTFBufferView", "from_dictionary", 2594413512_i64)
+      val_0 = dictionary
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_obj(@@mb_from_dictionary, Pointer(Void).null, args.to_unsafe.as(Void**), GLTFBufferView)
+    end
+    # Instance convenience delegator for static method `from_dictionary`
+    def from_dictionary(dictionary : Pointer(Void)) : GLTFBufferView
+      self.class.from_dictionary(dictionary)
+    end
+    @@mb_to_dictionary : Void* = Pointer(Void).null
+    def to_dictionary() : Pointer(Void)
+      godot_bind(@@mb_to_dictionary, "GLTFBufferView", "to_dictionary", 3102165223_i64)
+      ret_ptr = Pointer(Void).null
+      godot_ptrcall(@@mb_to_dictionary, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
+      ret_ptr
+    end
+    @@mb_get_buffer : Void* = Pointer(Void).null
+    def get_buffer() : Int64
+      godot_bind(@@mb_get_buffer, "GLTFBufferView", "get_buffer", 3905245786_i64)
+      godot_ptrcall_int(@@mb_get_buffer, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_set_buffer : Void* = Pointer(Void).null
+    def set_buffer(buffer : Int64) : Void
+      godot_bind(@@mb_set_buffer, "GLTFBufferView", "set_buffer", 1286410249_i64)
+      val_0 = buffer.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_buffer, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_byte_offset : Void* = Pointer(Void).null
+    def get_byte_offset() : Int64
+      godot_bind(@@mb_get_byte_offset, "GLTFBufferView", "get_byte_offset", 3905245786_i64)
+      godot_ptrcall_int(@@mb_get_byte_offset, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_set_byte_offset : Void* = Pointer(Void).null
+    def set_byte_offset(byte_offset : Int64) : Void
+      godot_bind(@@mb_set_byte_offset, "GLTFBufferView", "set_byte_offset", 1286410249_i64)
+      val_0 = byte_offset.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_byte_offset, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_byte_length : Void* = Pointer(Void).null
+    def get_byte_length() : Int64
+      godot_bind(@@mb_get_byte_length, "GLTFBufferView", "get_byte_length", 3905245786_i64)
+      godot_ptrcall_int(@@mb_get_byte_length, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_set_byte_length : Void* = Pointer(Void).null
+    def set_byte_length(byte_length : Int64) : Void
+      godot_bind(@@mb_set_byte_length, "GLTFBufferView", "set_byte_length", 1286410249_i64)
+      val_0 = byte_length.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_byte_length, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_byte_stride : Void* = Pointer(Void).null
+    def get_byte_stride() : Int64
+      godot_bind(@@mb_get_byte_stride, "GLTFBufferView", "get_byte_stride", 3905245786_i64)
+      godot_ptrcall_int(@@mb_get_byte_stride, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_set_byte_stride : Void* = Pointer(Void).null
+    def set_byte_stride(byte_stride : Int64) : Void
+      godot_bind(@@mb_set_byte_stride, "GLTFBufferView", "set_byte_stride", 1286410249_i64)
+      val_0 = byte_stride.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_byte_stride, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_indices : Void* = Pointer(Void).null
+    def get_indices() : Bool
+      godot_bind(@@mb_get_indices, "GLTFBufferView", "get_indices", 36873697_i64)
+      godot_ptrcall_bool(@@mb_get_indices, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `get_indices`
+    def get_indices?() : Bool
+      get_indices()
+    end
+    @@mb_set_indices : Void* = Pointer(Void).null
+    def set_indices(indices : Bool) : Void
+      godot_bind(@@mb_set_indices, "GLTFBufferView", "set_indices", 2586408642_i64)
+      val_0 = indices
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_indices, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_vertex_attributes : Void* = Pointer(Void).null
+    def get_vertex_attributes() : Bool
+      godot_bind(@@mb_get_vertex_attributes, "GLTFBufferView", "get_vertex_attributes", 36873697_i64)
+      godot_ptrcall_bool(@@mb_get_vertex_attributes, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `get_vertex_attributes`
+    def get_vertex_attributes?() : Bool
+      get_vertex_attributes()
+    end
+    @@mb_set_vertex_attributes : Void* = Pointer(Void).null
+    def set_vertex_attributes(is_attributes : Bool) : Void
+      godot_bind(@@mb_set_vertex_attributes, "GLTFBufferView", "set_vertex_attributes", 2586408642_i64)
+      val_0 = is_attributes
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_vertex_attributes, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Property `buffer` getter
+    def buffer
+      get_buffer
+    end
+    # Property `buffer` setter
+    def buffer=(val : Int)
+      set_buffer(val.to_i64)
+    end
+    # Property `byte_offset` getter
+    def byte_offset
+      get_byte_offset
+    end
+    # Property `byte_offset` setter
+    def byte_offset=(val : Int)
+      set_byte_offset(val.to_i64)
+    end
+    # Property `byte_length` getter
+    def byte_length
+      get_byte_length
+    end
+    # Property `byte_length` setter
+    def byte_length=(val : Int)
+      set_byte_length(val.to_i64)
+    end
+    # Property `byte_stride` getter
+    def byte_stride
+      get_byte_stride
+    end
+    # Property `byte_stride` setter
+    def byte_stride=(val : Int)
+      set_byte_stride(val.to_i64)
+    end
+    # Property `indices` getter
+    def indices
+      get_indices
+    end
+    def indices?
+      indices
+    end
+    # Property `indices` setter
+    def indices=(val)
+      set_indices(val)
+    end
+    # Property `vertex_attributes` getter
+    def vertex_attributes
+      get_vertex_attributes
+    end
+    def vertex_attributes?
+      vertex_attributes
+    end
+    # Property `vertex_attributes` setter
+    def vertex_attributes=(val)
+      set_vertex_attributes(val)
+    end
+  end
+  class GLTFCamera < Godot::Resource
+    def initialize(pointer : Void* = Pointer(Void).null)
+      super(pointer)
+    end
+    @@mb_from_node : Void* = Pointer(Void).null
+    def self.from_node(camera_node : Camera3D) : GLTFCamera
+      godot_bind(@@mb_from_node, "GLTFCamera", "from_node", 237784_i64)
+      arg_ptr_0 = camera_node ? camera_node.pointer : Pointer(Void).null
+      arg_0 = pointerof(arg_ptr_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_obj(@@mb_from_node, Pointer(Void).null, args.to_unsafe.as(Void**), GLTFCamera)
+    end
+    # Instance convenience delegator for static method `from_node`
+    def from_node(camera_node : Camera3D) : GLTFCamera
+      self.class.from_node(camera_node)
+    end
+    @@mb_to_node : Void* = Pointer(Void).null
+    def to_node() : Camera3D
+      godot_bind(@@mb_to_node, "GLTFCamera", "to_node", 2285090890_i64)
+      godot_ptrcall_obj(@@mb_to_node, @pointer, Pointer(Pointer(Void)).null, Camera3D)
+    end
+    @@mb_from_dictionary : Void* = Pointer(Void).null
+    def self.from_dictionary(dictionary : Pointer(Void)) : GLTFCamera
+      godot_bind(@@mb_from_dictionary, "GLTFCamera", "from_dictionary", 2495512509_i64)
+      val_0 = dictionary
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_obj(@@mb_from_dictionary, Pointer(Void).null, args.to_unsafe.as(Void**), GLTFCamera)
+    end
+    # Instance convenience delegator for static method `from_dictionary`
+    def from_dictionary(dictionary : Pointer(Void)) : GLTFCamera
+      self.class.from_dictionary(dictionary)
+    end
+    @@mb_to_dictionary : Void* = Pointer(Void).null
+    def to_dictionary() : Pointer(Void)
+      godot_bind(@@mb_to_dictionary, "GLTFCamera", "to_dictionary", 3102165223_i64)
+      ret_ptr = Pointer(Void).null
+      godot_ptrcall(@@mb_to_dictionary, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
+      ret_ptr
+    end
+    @@mb_get_perspective : Void* = Pointer(Void).null
+    def get_perspective() : Bool
+      godot_bind(@@mb_get_perspective, "GLTFCamera", "get_perspective", 36873697_i64)
+      godot_ptrcall_bool(@@mb_get_perspective, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `get_perspective`
+    def get_perspective?() : Bool
+      get_perspective()
+    end
+    @@mb_set_perspective : Void* = Pointer(Void).null
+    def set_perspective(perspective : Bool) : Void
+      godot_bind(@@mb_set_perspective, "GLTFCamera", "set_perspective", 2586408642_i64)
+      val_0 = perspective
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_perspective, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_fov : Void* = Pointer(Void).null
+    def get_fov() : Float64
+      godot_bind(@@mb_get_fov, "GLTFCamera", "get_fov", 1740695150_i64)
+      godot_ptrcall_float(@@mb_get_fov, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_set_fov : Void* = Pointer(Void).null
+    def set_fov(fov : Float64) : Void
+      godot_bind(@@mb_set_fov, "GLTFCamera", "set_fov", 373806689_i64)
+      val_0 = fov.to_f64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_fov, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_size_mag : Void* = Pointer(Void).null
+    def get_size_mag() : Float64
+      godot_bind(@@mb_get_size_mag, "GLTFCamera", "get_size_mag", 1740695150_i64)
+      godot_ptrcall_float(@@mb_get_size_mag, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_set_size_mag : Void* = Pointer(Void).null
+    def set_size_mag(size_mag : Float64) : Void
+      godot_bind(@@mb_set_size_mag, "GLTFCamera", "set_size_mag", 373806689_i64)
+      val_0 = size_mag.to_f64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_size_mag, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_depth_far : Void* = Pointer(Void).null
+    def get_depth_far() : Float64
+      godot_bind(@@mb_get_depth_far, "GLTFCamera", "get_depth_far", 1740695150_i64)
+      godot_ptrcall_float(@@mb_get_depth_far, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_set_depth_far : Void* = Pointer(Void).null
+    def set_depth_far(zdepth_far : Float64) : Void
+      godot_bind(@@mb_set_depth_far, "GLTFCamera", "set_depth_far", 373806689_i64)
+      val_0 = zdepth_far.to_f64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_depth_far, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_depth_near : Void* = Pointer(Void).null
+    def get_depth_near() : Float64
+      godot_bind(@@mb_get_depth_near, "GLTFCamera", "get_depth_near", 1740695150_i64)
+      godot_ptrcall_float(@@mb_get_depth_near, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_set_depth_near : Void* = Pointer(Void).null
+    def set_depth_near(zdepth_near : Float64) : Void
+      godot_bind(@@mb_set_depth_near, "GLTFCamera", "set_depth_near", 373806689_i64)
+      val_0 = zdepth_near.to_f64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_depth_near, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Property `perspective` getter
+    def perspective
+      get_perspective
+    end
+    def perspective?
+      perspective
+    end
+    # Property `perspective` setter
+    def perspective=(val)
+      set_perspective(val)
+    end
+    # Property `fov` getter
+    def fov
+      get_fov
+    end
+    # Property `fov` setter
+    def fov=(val : Number)
+      set_fov(val.to_f64)
+    end
+    # Property `size_mag` getter
+    def size_mag
+      get_size_mag
+    end
+    # Property `size_mag` setter
+    def size_mag=(val : Number)
+      set_size_mag(val.to_f64)
+    end
+    # Property `depth_far` getter
+    def depth_far
+      get_depth_far
+    end
+    # Property `depth_far` setter
+    def depth_far=(val : Number)
+      set_depth_far(val.to_f64)
+    end
+    # Property `depth_near` getter
+    def depth_near
+      get_depth_near
+    end
+    # Property `depth_near` setter
+    def depth_near=(val : Number)
+      set_depth_near(val.to_f64)
     end
   end
 end

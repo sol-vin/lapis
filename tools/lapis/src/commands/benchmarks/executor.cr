@@ -26,8 +26,9 @@ module Lapis
             flags << "-O3"
           end
 
+          root_dir = Core::Env.find_root
           Core::Logger.trace("Benchmark", "crystal #{flags.join(" ")}")
-          res = Core::ProcessRunner.run(cmd, flags, chdir: base_dir.to_s)
+          res = Core::ProcessRunner.run(cmd, flags, chdir: root_dir.to_s)
           res.success? && File.exists?(out_path)
         end
 

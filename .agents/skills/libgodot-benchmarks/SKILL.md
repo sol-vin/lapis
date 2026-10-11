@@ -9,6 +9,46 @@ This skill governs the compilation, execution, profiling, and visualization of t
 
 ---
 
+## Table of Contents
+<table>
+  <thead>
+    <tr>
+      <th align="left">Section</th>
+      <th align="left">Description</th>
+      <th align="center">Lines</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><a href="#1-quick-command-reference"><strong>1. Quick Command Reference</strong></a></td>
+      <td><table></td>
+      <td align="center"><code>L52–L102</code></td>
+    </tr>
+    <tr>
+      <td><a href="#2-benchmark-architecture-amp-categories"><strong>2. Benchmark Architecture &amp; Categories</strong></a></td>
+      <td>Benchmarks live under benchmarks/ and are organized into distinct evaluation domains:</td>
+      <td align="center"><code>L103–L145</code></td>
+    </tr>
+    <tr>
+      <td><a href="#3-cli-filtering-amp-multi-language-comparison"><strong>3. CLI Filtering &amp; Multi-Language Comparison</strong></a></td>
+      <td>### Multi-Language Execution:</td>
+      <td align="center"><code>L146–L168</code></td>
+    </tr>
+    <tr>
+      <td><a href="#4-visual-charting-amp-formatting-options"><strong>4. Visual Charting &amp; Formatting Options</strong></a></td>
+      <td>The benchmark runner supports multiple reporting formats:</td>
+      <td align="center"><code>L169–L189</code></td>
+    </tr>
+    <tr>
+      <td><a href="#5-memory-amp-gc-allocation-profiling"><strong>5. Memory &amp; GC Allocation Profiling</strong></a></td>
+      <td>To profile Boehm GC memory allocations during benchmark runs:</td>
+      <td align="center"><code>L190–L203</code></td>
+    </tr>
+  </tbody>
+</table>
+
+---
+
 ## 1. Quick Command Reference
 
 <table>

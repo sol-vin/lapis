@@ -315,6 +315,17 @@ describe "Lapis Subcommands" do
       res.output.should contain("0 failures")
     end
   end
+
+  describe "driver" do
+    it "displays driver help screen" do
+      res = LapisSpecHelper.run_lapis(["driver", "--help"])
+      res.success?.should be_true
+      res.output.should contain("In-Editor Action Driver Controller")
+      res.output.should contain("open-script")
+      res.output.should contain("screen")
+      res.output.should contain("find")
+    end
+  end
 end
 
 

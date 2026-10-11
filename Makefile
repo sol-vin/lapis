@@ -108,6 +108,7 @@ LIBGODOT_DLL     = $(LIBGODOT_LIB)
 $(LAPIS): $(wildcard tools/lapis/src/**/*.cr) $(wildcard tools/lapis/src/*.cr) $(wildcard tools/lapis/*.yml) $(wildcard template/**/*) $(wildcard template-addon/**/*) $(wildcard addons/crystal_integration/*) shard.yml godot-version.yml
 	@echo "[Lapis] Compiling Lapis toolchain $(LAPIS)..."
 	@shards install --skip-postinstall || true
+	@(cd tools/lapis && shards install --skip-postinstall) || true
 ifeq ($(PLATFORM),windows)
 	@$(CRYSTAL) build $(CRYSTAL_FLAGS) --static tools/lapis/src/lapis.cr -o $(LAPIS)
 else
@@ -123,6 +124,10 @@ install: $(LAPIS)
 # Uninstall Lapis CLI toolchain globally
 uninstall: $(LAPIS)
 	@$(LAPIS) install --uninstall $(if $(INSTALL_DIR),--dir "$(INSTALL_DIR)",) $(if $(PREFIX),--prefix "$(PREFIX)",)
+
+# Run Carbon version bump and multi-target file synchronization
+bump_version bump-version bump:
+	@sh .githooks/pre-commit
 
 # Default target: compile lapis, bridge, plugin, test project, standalone runner, examples, template, template_addon, perf, sync DLLs, run test suite, and Windows installer
 all: lapis dirs deps bridge plugin addons dummy_addons test_project test_standalone examples template template_addon perf perf_standalone sync $(if $(filter 1,$(SKIP_TESTS)),,test) $(if $(filter windows,$(PLATFORM)),$(if $(filter 1,$(SKIP_INSTALLER)),,package_installer),)
@@ -280,7 +285,7 @@ benchmarks_run benchmarks-run: benchmarks
 # Package playable standalone Godot game (binary + PCK + runtime DLLs)
 package_game package-game:
 	@echo [Package] Packaging playable standalone Godot game...
-	@$(LAPIS) package game $(if $(or $(PROJECT),$(PATH)),-p "$(or $(PROJECT),$(PATH))",) $(if $(NAME),-n "$(NAME)",) $(if $(filter 1,$(RELEASE)),-r,) $(if $(or $(TARGET_DIR),$(EXPORT_DIR)),-t "$(or $(TARGET_DIR),$(EXPORT_DIR))",) $(if $(filter 1,$(FORCE)),-f,)
+	@$(LAPIS) package game $(if $(or $(PROJECT),$(PATH)),-p "$(or $(PROJECT),$(PATH))",) $(if $(NAME),-n "$(NAME)",) $(if $(filter 1,$(RELEASE)),-r,) $(if $(filter 1,$(DEBUG)),--debug,) $(if $(or $(TARGET_DIR),$(EXPORT_DIR)),-t "$(or $(TARGET_DIR),$(EXPORT_DIR))",) $(if $(filter 1,$(FORCE)),-f,)
 
 # Scaffold a new compiled Crystal GDExtension addon project
 new_addon new-addon:
@@ -353,8 +358,18 @@ engine:
 	@$(LAPIS) sync
 	@echo $(LIBGODOT_LIB) updated successfully!
 
+# Update and synchronize Table of Contents across all skills in .agents/skills/
+skills_toc update_skills_toc update-skills-toc:
+	@echo [Skills] Updating Table of Contents with exact line numbers across all skills...
+	@$(CRYSTAL) run tools/update_skill_tocs.cr
+
+# Check that Table of Contents across all skills in .agents/skills/ are up to date
+check_skills_toc check-skills-toc:
+	@echo [Skills] Verifying Table of Contents line numbers across all skills...
+	@$(CRYSTAL) run tools/update_skill_tocs.cr -- --check
+
 # Run Crystal unit specifications (spec and tools/lapis/spec)
-spec:
+spec: check_skills_toc
 	@echo [Spec] Running Phase 1a: Engine & EditorDriver specifications (spec)...
 	$(CRYSTAL) spec spec
 	@echo [Spec] Running Phase 1b: Lapis CLI specifications (tools/lapis/spec)...

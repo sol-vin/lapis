@@ -1,5 +1,435 @@
 # Generated classes part 6 (in topological order)
 module Godot
+  class UDSServer < Godot::SocketServer
+    def initialize(pointer : Void* = Pointer(Void).null)
+      super(pointer)
+    end
+    @@mb_listen : Void* = Pointer(Void).null
+    def listen(path : String) : Godot::Error
+      godot_bind(@@mb_listen, "UDSServer", "listen", 166001499_i64)
+      str_0 = Bridge.make_string(path)
+      arg_0 = str_0
+      args = StaticArray[arg_0]
+      godot_ptrcall_enum(@@mb_listen, @pointer, args.to_unsafe.as(Void**), Godot::Error)
+    ensure
+      Bridge.free_string(str_0)
+    end
+    @@mb_take_connection : Void* = Pointer(Void).null
+    def take_connection() : StreamPeerUDS
+      godot_bind(@@mb_take_connection, "UDSServer", "take_connection", 1623851112_i64)
+      godot_ptrcall_obj(@@mb_take_connection, @pointer, Pointer(Pointer(Void)).null, StreamPeerUDS)
+    end
+  end
+  class UPNP < Godot::RefCounted
+    def initialize(pointer : Void* = Pointer(Void).null)
+      super(pointer)
+    end
+    enum UPNPResult : Int64
+      UpnpResultSuccess = 0_i64
+      UpnpResultNotAuthorized = 1_i64
+      UpnpResultPortMappingNotFound = 2_i64
+      UpnpResultInconsistentParameters = 3_i64
+      UpnpResultNoSuchEntryInArray = 4_i64
+      UpnpResultActionFailed = 5_i64
+      UpnpResultSrcIpWildcardNotPermitted = 6_i64
+      UpnpResultExtPortWildcardNotPermitted = 7_i64
+      UpnpResultIntPortWildcardNotPermitted = 8_i64
+      UpnpResultRemoteHostMustBeWildcard = 9_i64
+      UpnpResultExtPortMustBeWildcard = 10_i64
+      UpnpResultNoPortMapsAvailable = 11_i64
+      UpnpResultConflictWithOtherMechanism = 12_i64
+      UpnpResultConflictWithOtherMapping = 13_i64
+      UpnpResultSamePortValuesRequired = 14_i64
+      UpnpResultOnlyPermanentLeaseSupported = 15_i64
+      UpnpResultInvalidGateway = 16_i64
+      UpnpResultInvalidPort = 17_i64
+      UpnpResultInvalidProtocol = 18_i64
+      UpnpResultInvalidDuration = 19_i64
+      UpnpResultInvalidArgs = 20_i64
+      UpnpResultInvalidResponse = 21_i64
+      UpnpResultInvalidParam = 22_i64
+      UpnpResultHttpError = 23_i64
+      UpnpResultSocketError = 24_i64
+      UpnpResultMemAllocError = 25_i64
+      UpnpResultNoGateway = 26_i64
+      UpnpResultNoDevices = 27_i64
+      UpnpResultUnknownError = 28_i64
+    end
+    @@mb_get_device_count : Void* = Pointer(Void).null
+    def get_device_count() : Int64
+      godot_bind(@@mb_get_device_count, "UPNP", "get_device_count", 3905245786_i64)
+      godot_ptrcall_int(@@mb_get_device_count, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_get_device : Void* = Pointer(Void).null
+    def get_device(index : Int64) : UPNPDevice
+      godot_bind(@@mb_get_device, "UPNP", "get_device", 2193290270_i64)
+      val_0 = index.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_obj(@@mb_get_device, @pointer, args.to_unsafe.as(Void**), UPNPDevice)
+    end
+    @@mb_add_device : Void* = Pointer(Void).null
+    def add_device(device : UPNPDevice) : Void
+      godot_bind(@@mb_add_device, "UPNP", "add_device", 986715920_i64)
+      arg_ptr_0 = device ? device.pointer : Pointer(Void).null
+      arg_0 = pointerof(arg_ptr_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_add_device, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_set_device : Void* = Pointer(Void).null
+    def set_device(index : Int64, device : UPNPDevice) : Void
+      godot_bind(@@mb_set_device, "UPNP", "set_device", 3015133723_i64)
+      val_0 = index.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      arg_ptr_1 = device ? device.pointer : Pointer(Void).null
+      arg_1 = pointerof(arg_ptr_1).as(Void*)
+      args = StaticArray[arg_0, arg_1]
+      godot_ptrcall_void(@@mb_set_device, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_remove_device : Void* = Pointer(Void).null
+    def remove_device(index : Int64) : Void
+      godot_bind(@@mb_remove_device, "UPNP", "remove_device", 1286410249_i64)
+      val_0 = index.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_remove_device, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_clear_devices : Void* = Pointer(Void).null
+    def clear_devices() : Void
+      godot_bind(@@mb_clear_devices, "UPNP", "clear_devices", 3218959716_i64)
+      godot_ptrcall_void(@@mb_clear_devices, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_get_gateway : Void* = Pointer(Void).null
+    def get_gateway() : UPNPDevice
+      godot_bind(@@mb_get_gateway, "UPNP", "get_gateway", 2276800779_i64)
+      godot_ptrcall_obj(@@mb_get_gateway, @pointer, Pointer(Pointer(Void)).null, UPNPDevice)
+    end
+    @@mb_discover : Void* = Pointer(Void).null
+    def discover(timeout : Int64 = 2000_i64, ttl : Int64 = 2_i64, device_filter : String = "InternetGatewayDevice") : Int64
+      godot_bind(@@mb_discover, "UPNP", "discover", 1575334765_i64)
+      val_0 = timeout.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      val_1 = ttl.to_i64
+      arg_1 = pointerof(val_1).as(Void*)
+      str_2 = Bridge.make_string(device_filter)
+      arg_2 = str_2
+      args = StaticArray[arg_0, arg_1, arg_2]
+      godot_ptrcall_int(@@mb_discover, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string(str_2)
+    end
+    @@mb_query_external_address : Void* = Pointer(Void).null
+    def query_external_address() : String
+      godot_bind(@@mb_query_external_address, "UPNP", "query_external_address", 201670096_i64)
+      godot_call_str("query_external_address")
+    end
+    @@mb_add_port_mapping : Void* = Pointer(Void).null
+    def add_port_mapping(port : Int64, port_internal : Int64 = 0_i64, desc : String = "", proto : String = "UDP", duration : Int64 = 0_i64) : Int64
+      godot_bind(@@mb_add_port_mapping, "UPNP", "add_port_mapping", 818314583_i64)
+      val_0 = port.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      val_1 = port_internal.to_i64
+      arg_1 = pointerof(val_1).as(Void*)
+      str_2 = Bridge.make_string(desc)
+      arg_2 = str_2
+      str_3 = Bridge.make_string(proto)
+      arg_3 = str_3
+      val_4 = duration.to_i64
+      arg_4 = pointerof(val_4).as(Void*)
+      args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
+      godot_ptrcall_int(@@mb_add_port_mapping, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string(str_2)
+      Bridge.free_string(str_3)
+    end
+    @@mb_delete_port_mapping : Void* = Pointer(Void).null
+    def delete_port_mapping(port : Int64, proto : String = "UDP") : Int64
+      godot_bind(@@mb_delete_port_mapping, "UPNP", "delete_port_mapping", 3444187325_i64)
+      val_0 = port.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      str_1 = Bridge.make_string(proto)
+      arg_1 = str_1
+      args = StaticArray[arg_0, arg_1]
+      godot_ptrcall_int(@@mb_delete_port_mapping, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string(str_1)
+    end
+    @@mb_set_discover_multicast_if : Void* = Pointer(Void).null
+    def set_discover_multicast_if(m_if : String) : Void
+      godot_bind(@@mb_set_discover_multicast_if, "UPNP", "set_discover_multicast_if", 83702148_i64)
+      str_0 = Bridge.make_string(m_if)
+      arg_0 = str_0
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_discover_multicast_if, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string(str_0)
+    end
+    @@mb_get_discover_multicast_if : Void* = Pointer(Void).null
+    def get_discover_multicast_if() : String
+      godot_bind(@@mb_get_discover_multicast_if, "UPNP", "get_discover_multicast_if", 201670096_i64)
+      godot_call_str("get_discover_multicast_if")
+    end
+    @@mb_set_discover_local_port : Void* = Pointer(Void).null
+    def set_discover_local_port(port : Int64) : Void
+      godot_bind(@@mb_set_discover_local_port, "UPNP", "set_discover_local_port", 1286410249_i64)
+      val_0 = port.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_discover_local_port, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_discover_local_port : Void* = Pointer(Void).null
+    def get_discover_local_port() : Int64
+      godot_bind(@@mb_get_discover_local_port, "UPNP", "get_discover_local_port", 3905245786_i64)
+      godot_ptrcall_int(@@mb_get_discover_local_port, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_set_discover_ipv6 : Void* = Pointer(Void).null
+    def set_discover_ipv6(ipv6 : Bool) : Void
+      godot_bind(@@mb_set_discover_ipv6, "UPNP", "set_discover_ipv6", 2586408642_i64)
+      val_0 = ipv6
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_discover_ipv6, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_is_discover_ipv6 : Void* = Pointer(Void).null
+    def is_discover_ipv6() : Bool
+      godot_bind(@@mb_is_discover_ipv6, "UPNP", "is_discover_ipv6", 36873697_i64)
+      godot_ptrcall_bool(@@mb_is_discover_ipv6, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_discover_ipv6`
+    def is_discover_ipv6?() : Bool
+      is_discover_ipv6()
+    end
+    # Predicate alias for `is_discover_ipv6`
+    def discover_ipv6?() : Bool
+      is_discover_ipv6()
+    end
+    # Property `discover_multicast_if` getter
+    def discover_multicast_if
+      get_discover_multicast_if
+    end
+    # Property `discover_multicast_if` setter
+    def discover_multicast_if=(val)
+      set_discover_multicast_if(val)
+    end
+    # Property `discover_local_port` getter
+    def discover_local_port
+      get_discover_local_port
+    end
+    # Property `discover_local_port` setter
+    def discover_local_port=(val : Int)
+      set_discover_local_port(val.to_i64)
+    end
+    # Property `discover_ipv6` getter
+    def discover_ipv6
+      is_discover_ipv6
+    end
+    # Property `discover_ipv6` setter
+    def discover_ipv6=(val)
+      set_discover_ipv6(val)
+    end
+  end
+  class UPNPDevice < Godot::RefCounted
+    def initialize(pointer : Void* = Pointer(Void).null)
+      super(pointer)
+    end
+    enum IGDStatus : Int64
+      IgdStatusOk = 0_i64
+      IgdStatusHttpError = 1_i64
+      IgdStatusHttpEmpty = 2_i64
+      IgdStatusNoUrls = 3_i64
+      IgdStatusNoIgd = 4_i64
+      IgdStatusDisconnected = 5_i64
+      IgdStatusUnknownDevice = 6_i64
+      IgdStatusInvalidControl = 7_i64
+      IgdStatusMallocError = 8_i64
+      IgdStatusUnknownError = 9_i64
+    end
+    @@mb_is_valid_gateway : Void* = Pointer(Void).null
+    def is_valid_gateway() : Bool
+      godot_bind(@@mb_is_valid_gateway, "UPNPDevice", "is_valid_gateway", 36873697_i64)
+      godot_ptrcall_bool(@@mb_is_valid_gateway, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_valid_gateway`
+    def is_valid_gateway?() : Bool
+      is_valid_gateway()
+    end
+    # Predicate alias for `is_valid_gateway`
+    def valid_gateway?() : Bool
+      is_valid_gateway()
+    end
+    @@mb_query_external_address : Void* = Pointer(Void).null
+    def query_external_address() : String
+      godot_bind(@@mb_query_external_address, "UPNPDevice", "query_external_address", 201670096_i64)
+      godot_call_str("query_external_address")
+    end
+    @@mb_add_port_mapping : Void* = Pointer(Void).null
+    def add_port_mapping(port : Int64, port_internal : Int64 = 0_i64, desc : String = "", proto : String = "UDP", duration : Int64 = 0_i64) : Int64
+      godot_bind(@@mb_add_port_mapping, "UPNPDevice", "add_port_mapping", 818314583_i64)
+      val_0 = port.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      val_1 = port_internal.to_i64
+      arg_1 = pointerof(val_1).as(Void*)
+      str_2 = Bridge.make_string(desc)
+      arg_2 = str_2
+      str_3 = Bridge.make_string(proto)
+      arg_3 = str_3
+      val_4 = duration.to_i64
+      arg_4 = pointerof(val_4).as(Void*)
+      args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
+      godot_ptrcall_int(@@mb_add_port_mapping, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string(str_2)
+      Bridge.free_string(str_3)
+    end
+    @@mb_delete_port_mapping : Void* = Pointer(Void).null
+    def delete_port_mapping(port : Int64, proto : String = "UDP") : Int64
+      godot_bind(@@mb_delete_port_mapping, "UPNPDevice", "delete_port_mapping", 3444187325_i64)
+      val_0 = port.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      str_1 = Bridge.make_string(proto)
+      arg_1 = str_1
+      args = StaticArray[arg_0, arg_1]
+      godot_ptrcall_int(@@mb_delete_port_mapping, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string(str_1)
+    end
+    @@mb_set_description_url : Void* = Pointer(Void).null
+    def set_description_url(url : String) : Void
+      godot_bind(@@mb_set_description_url, "UPNPDevice", "set_description_url", 83702148_i64)
+      str_0 = Bridge.make_string(url)
+      arg_0 = str_0
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_description_url, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string(str_0)
+    end
+    @@mb_get_description_url : Void* = Pointer(Void).null
+    def get_description_url() : String
+      godot_bind(@@mb_get_description_url, "UPNPDevice", "get_description_url", 201670096_i64)
+      godot_call_str("get_description_url")
+    end
+    @@mb_set_service_type : Void* = Pointer(Void).null
+    def set_service_type(get_type : String) : Void
+      godot_bind(@@mb_set_service_type, "UPNPDevice", "set_service_type", 83702148_i64)
+      str_0 = Bridge.make_string(get_type)
+      arg_0 = str_0
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_service_type, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string(str_0)
+    end
+    @@mb_get_service_type : Void* = Pointer(Void).null
+    def get_service_type() : String
+      godot_bind(@@mb_get_service_type, "UPNPDevice", "get_service_type", 201670096_i64)
+      godot_call_str("get_service_type")
+    end
+    @@mb_set_igd_control_url : Void* = Pointer(Void).null
+    def set_igd_control_url(url : String) : Void
+      godot_bind(@@mb_set_igd_control_url, "UPNPDevice", "set_igd_control_url", 83702148_i64)
+      str_0 = Bridge.make_string(url)
+      arg_0 = str_0
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_igd_control_url, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string(str_0)
+    end
+    @@mb_get_igd_control_url : Void* = Pointer(Void).null
+    def get_igd_control_url() : String
+      godot_bind(@@mb_get_igd_control_url, "UPNPDevice", "get_igd_control_url", 201670096_i64)
+      godot_call_str("get_igd_control_url")
+    end
+    @@mb_set_igd_service_type : Void* = Pointer(Void).null
+    def set_igd_service_type(get_type : String) : Void
+      godot_bind(@@mb_set_igd_service_type, "UPNPDevice", "set_igd_service_type", 83702148_i64)
+      str_0 = Bridge.make_string(get_type)
+      arg_0 = str_0
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_igd_service_type, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string(str_0)
+    end
+    @@mb_get_igd_service_type : Void* = Pointer(Void).null
+    def get_igd_service_type() : String
+      godot_bind(@@mb_get_igd_service_type, "UPNPDevice", "get_igd_service_type", 201670096_i64)
+      godot_call_str("get_igd_service_type")
+    end
+    @@mb_set_igd_our_addr : Void* = Pointer(Void).null
+    def set_igd_our_addr(addr : String) : Void
+      godot_bind(@@mb_set_igd_our_addr, "UPNPDevice", "set_igd_our_addr", 83702148_i64)
+      str_0 = Bridge.make_string(addr)
+      arg_0 = str_0
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_igd_our_addr, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string(str_0)
+    end
+    @@mb_get_igd_our_addr : Void* = Pointer(Void).null
+    def get_igd_our_addr() : String
+      godot_bind(@@mb_get_igd_our_addr, "UPNPDevice", "get_igd_our_addr", 201670096_i64)
+      godot_call_str("get_igd_our_addr")
+    end
+    @@mb_set_igd_status : Void* = Pointer(Void).null
+    def set_igd_status(status : IGDStatus | Int) : Void
+      godot_bind(@@mb_set_igd_status, "UPNPDevice", "set_igd_status", 519504122_i64)
+      val_0 = status.is_a?(Int) ? status.to_i64 : status.value.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_igd_status, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_igd_status : Void* = Pointer(Void).null
+    def get_igd_status() : IGDStatus
+      godot_bind(@@mb_get_igd_status, "UPNPDevice", "get_igd_status", 180887011_i64)
+      godot_ptrcall_enum(@@mb_get_igd_status, @pointer, Pointer(Pointer(Void)).null, IGDStatus)
+    end
+    # Property `description_url` getter
+    def description_url
+      get_description_url
+    end
+    # Property `description_url` setter
+    def description_url=(val)
+      set_description_url(val)
+    end
+    # Property `service_type` getter
+    def service_type
+      get_service_type
+    end
+    # Property `service_type` setter
+    def service_type=(val)
+      set_service_type(val)
+    end
+    # Property `igd_control_url` getter
+    def igd_control_url
+      get_igd_control_url
+    end
+    # Property `igd_control_url` setter
+    def igd_control_url=(val)
+      set_igd_control_url(val)
+    end
+    # Property `igd_service_type` getter
+    def igd_service_type
+      get_igd_service_type
+    end
+    # Property `igd_service_type` setter
+    def igd_service_type=(val)
+      set_igd_service_type(val)
+    end
+    # Property `igd_our_addr` getter
+    def igd_our_addr
+      get_igd_our_addr
+    end
+    # Property `igd_our_addr` setter
+    def igd_our_addr=(val)
+      set_igd_our_addr(val)
+    end
+    # Property `igd_status` getter
+    def igd_status
+      get_igd_status
+    end
+    # Property `igd_status` setter
+    def igd_status=(val : Int)
+      set_igd_status(val.to_i64)
+    end
+  end
   class UndoRedo < Godot::Object
     def initialize(pointer : Void* = Pointer(Void).null)
       super(pointer)
@@ -7257,6 +7687,23 @@ module Godot
       godot_bind(@@mb_get_requested_reference_space_types, "WebXRInterface", "get_requested_reference_space_types", 201670096_i64)
       godot_call_str("get_requested_reference_space_types")
     end
+    @@mb_set_disable_webxr_layers : Void* = Pointer(Void).null
+    def set_disable_webxr_layers(disable : Bool) : Void
+      godot_bind(@@mb_set_disable_webxr_layers, "WebXRInterface", "set_disable_webxr_layers", 2586408642_i64)
+      val_0 = disable
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_disable_webxr_layers, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_disable_webxr_layers : Void* = Pointer(Void).null
+    def get_disable_webxr_layers() : Bool
+      godot_bind(@@mb_get_disable_webxr_layers, "WebXRInterface", "get_disable_webxr_layers", 36873697_i64)
+      godot_ptrcall_bool(@@mb_get_disable_webxr_layers, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `get_disable_webxr_layers`
+    def get_disable_webxr_layers?() : Bool
+      get_disable_webxr_layers()
+    end
     @@mb_is_input_source_active : Void* = Pointer(Void).null
     def is_input_source_active(input_source_id : Int64) : Bool
       godot_bind(@@mb_is_input_source_active, "WebXRInterface", "is_input_source_active", 1116898809_i64)
@@ -7345,6 +7792,17 @@ module Godot
     # Property `requested_reference_space_types` setter
     def requested_reference_space_types=(val)
       set_requested_reference_space_types(val)
+    end
+    # Property `disable_webxr_layers` getter
+    def disable_webxr_layers
+      get_disable_webxr_layers
+    end
+    def disable_webxr_layers?
+      disable_webxr_layers
+    end
+    # Property `disable_webxr_layers` setter
+    def disable_webxr_layers=(val)
+      set_disable_webxr_layers(val)
     end
     # Property `reference_space_type` getter
     def reference_space_type

@@ -22,6 +22,20 @@ test_suite "Nodes" do
     sigs = entry.not_nil!.signals.map(&.name)
     assert_includes sigs, "banner_clicked"
   end
+
+  test "CrystalAddonBanner instantiation, property mutation, and clean destruction" do
+    banner_ptr = Godot::Bridge.construct_object("CrystalAddonBanner")
+    assert_false banner_ptr.null?, "CrystalAddonBanner must be constructible"
+    banner = Godot::Control.new(banner_ptr)
+    assert_true banner.alive?
+    assert_eq banner.call_str("get", "message"), "Hello from Compiled Crystal Addon!"
+
+    banner.call("set", "message", "Custom Message")
+    assert_eq banner.call_str("get", "message"), "Custom Message"
+
+    banner.destroy
+    assert_true banner.destroyed?
+  end
 end
 
 test_case "Editor", "CrystalAddonPlugin is marked as tool" do

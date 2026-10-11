@@ -17,8 +17,8 @@ sections:
     type: "Array(String)"
     return_value:
       - "Build & Sync: build, bind, clean, sync, deps, dirs"
-      - "Testing & Development: doctor, test, editor, run, benchmarks, setup"
-      - "Scaffolding & Packages: new/scaffold, init, upgrade, addon, shard, ide, package, docs"
+      - "Testing & Diagnostics: doctor, test, spec, editor, run, benchmarks, setup, decompile, analyze, log"
+      - "Scaffolding & Templates: new/scaffold, init, upgrade, addon, shard, ide, template, export-templates, explore, package, docs"
       - "System & Maintenance: install, uninstall, update, completion, version"
 
   - id: "topic_01_global_flags"
@@ -27,16 +27,41 @@ sections:
     content: |
       The `lapis` executable recognizes the following global flags across all subcommands:
 
-      | Flag | Shorthand | Description |
-      | :--- | :--- | :--- |
-      | `--help` | `-h` | Prints detailed help and usage instructions for the current subcommand |
-      | `--version` | `-v` | Displays the current Lapis toolchain release version and target Godot engine |
-      | `--verbose` | | Enables verbose debug logging, process commands, and timing metrics |
-      | `--quiet` | `-q` | Suppresses non-essential terminal output for silent CI execution |
+      <table>
+        <thead>
+          <tr>
+            <th>Flag</th>
+            <th>Shorthand</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>--help</code></td>
+            <td><code>-h</code></td>
+            <td>Prints detailed help and usage instructions for the current subcommand</td>
+          </tr>
+          <tr>
+            <td><code>--version</code></td>
+            <td><code>-v</code></td>
+            <td>Displays the current Lapis toolchain release version and target Godot engine</td>
+          </tr>
+          <tr>
+            <td><code>--verbose</code></td>
+            <td></td>
+            <td>Enables verbose debug logging, process commands, and timing metrics</td>
+          </tr>
+          <tr>
+            <td><code>--quiet</code></td>
+            <td><code>-q</code></td>
+            <td>Suppresses non-essential terminal output for silent CI execution</td>
+          </tr>
+        </tbody>
+      </table>
 
   - id: "topic_02_shell_completion"
     title: "Dynamic Shell Autocompletion"
-    summary: "Generating autocompletion scripts for PowerShell, Bash, and Zsh."
+    summary: "Generating autocompletion scripts for PowerShell, Bash, Zsh, and Fish."
     content: |
       Lapis features a dynamic completion engine driven by `COMMAND_DESCRIPTIONS`:
 
@@ -59,6 +84,13 @@ sections:
       eval "$(lapis completion zsh)"
       # Or add permanently to ~/.zshrc:
       echo 'eval "$(lapis completion zsh)"' >> ~/.zshrc
+      ```
+
+      #### Fish Setup:
+      ```fish
+      lapis completion fish | source
+      # Or add permanently to ~/.config/fish/completions/lapis.fish:
+      lapis completion fish > ~/.config/fish/completions/lapis.fish
       ```
 
   - id: "topic_03_typo_correction"

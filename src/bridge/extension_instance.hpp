@@ -928,7 +928,9 @@ inline void generic_class_call_virtual_with_data(
                 if (p_args && p_args[0]) {
                     char type_buf[128] = {0};
                     bridge_arg_to_string(p_args[0], type_buf, sizeof(type_buf));
-                    if (strcmp(type_buf, "CrystalScript") == 0 || strcmp(type_buf, "Crystal") == 0) {
+                    if (bridge_strcasecmp(type_buf, "CrystalScript") == 0 ||
+                        bridge_strcasecmp(type_buf, "Crystal") == 0 ||
+                        bridge_strcasecmp(type_buf, "Script") == 0) {
                         handles = true;
                     }
                 }
@@ -941,6 +943,7 @@ inline void generic_class_call_virtual_with_data(
                     bridge_arg_to_string(p_args[0], path_buf, sizeof(path_buf));
                 }
                 if (!has_cr_extension(path_buf) ||
+                    strstr(path_buf, "/src/") != nullptr || strstr(path_buf, "\\src\\") != nullptr ||
                     strstr(path_buf, "/spec/") != nullptr || strstr(path_buf, "\\spec\\") != nullptr ||
                     strstr(path_buf, "/tools/") != nullptr || strstr(path_buf, "\\tools\\") != nullptr ||
                     strstr(path_buf, "/lib/") != nullptr || strstr(path_buf, "\\lib\\") != nullptr ||
@@ -1112,7 +1115,7 @@ inline void generic_class_call_virtual_with_data(
 
                     char log_msg[256];
                     snprintf(log_msg, sizeof(log_msg), "[ResourceFormatLoaderCrystal] Successfully loaded %s (%zu bytes)", target_path, code.size());
-                    godot_log_print(log_msg);
+                    godot_log_verbose(log_msg);
 
                     bridge_ret_variant_object(r_ret, script_obj);
                     return;
@@ -1261,7 +1264,7 @@ inline void generic_class_call_virtual_with_data(
                 if (write_ok) {
                     char log_msg[512];
                     snprintf(log_msg, sizeof(log_msg), "[ResourceFormatSaverCrystal] Successfully saved %s (%zu bytes) -> %s", path_buf, code.size(), fs_path.c_str());
-                    godot_log_print(log_msg);
+                    godot_log_verbose(log_msg);
                     if (r_ret) {
                         memset(r_ret, 0, 8); // OK (0)
                         *(int32_t*)r_ret = 0; // OK (0)

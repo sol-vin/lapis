@@ -123,19 +123,25 @@ module Godot
         return true
       {% else %}
         # 1. Fast path: compare native OS thread ID against recorded Main Thread ID
-        if @@initialized && @@main_thread_id > 0_u64
-          return current_thread_id == @@main_thread_id
+        if @@initialized && @@main_thread_id > 0_u64 && current_thread_id == @@main_thread_id
+          return true
         end
 
         # 2. Engine query fallback if bridge is initialized
         if Godot::Bridge.init_done?
-          if is_main = (Godot::Thread.is_main_thread? rescue nil)
-            record_main_thread! if is_main
-            return is_main
+          res = (Godot::Thread.is_main_thread? rescue nil)
+          unless res.nil?
+            record_main_thread! if res
+            return res
           end
         end
 
-        # 3. Headless/spec boot default: the thread that first queries is treated as main thread
+        # 3. If already initialized but not main thread (e.g. in specs/headless without Godot::Thread)
+        if @@initialized && @@main_thread_id > 0_u64
+          return false
+        end
+
+        # 4. Headless/spec boot default: the thread that first queries is treated as main thread
         record_main_thread!
         true
       {% end %}

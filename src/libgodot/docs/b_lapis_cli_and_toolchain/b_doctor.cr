@@ -79,9 +79,9 @@ module Lapis
         # ```
         #
         # #### Options:
-        # - `-p, --project=DIR`: Target specific project directory (default: current directory).
-        # - `-q, --quiet`: Only print if errors or warnings are detected.
-        # - `--verbose`: Show full executable paths, compiler flags, and exact versions.
+        # - `autofix, -f, --fix`: Automatically triage and remediate detectable warnings, missing tools & gaps.
+        # - `-v, --verbose`: Display extended diagnostic information.
+        # - `-h, --help`: Show help screen.
         #
         def self.topic_01_running_doctor : Nil; end
 
@@ -98,20 +98,20 @@ module Lapis
         #   </thead>
         #   <tbody>
         #     <tr>
-        #       <td>`[✓]`</td>
-        #       <td>**Passed**</td>
+        #       <td><code>[✓]</code></td>
+        #       <td><strong>Passed</strong></td>
         #       <td>Component verified and operational</td>
         #       <td>None</td>
         #     </tr>
         #     <tr>
-        #       <td>`[!]`</td>
-        #       <td>**Warning**</td>
+        #       <td><code>[!]</code></td>
+        #       <td><strong>Warning</strong></td>
         #       <td>Optional component missing or outdated</td>
         #       <td>Install for enhanced features (e.g. Inno Setup)</td>
         #     </tr>
         #     <tr>
-        #       <td>`[✗]`</td>
-        #       <td>**Failure**</td>
+        #       <td><code>[✗]</code></td>
+        #       <td><strong>Failure</strong></td>
         #       <td>Required component missing or broken</td>
         #       <td>Must be resolved before building games</td>
         #     </tr>

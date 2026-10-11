@@ -25,8 +25,8 @@ Options:
   --skip-specs          Skip all Crystal spec unit tests
   --skip-engine-specs   Skip engine & bindings specifications (root engine only)
   --skip-cli-specs      Skip Lapis toolchain & CLI specifications (root engine only)
-  --skip-tool-tests     Skip in-editor @tool tests (root engine only)
-  --skip-runtime-tests  Skip Godot runtime test project
+  --skip-tool-tests     Skip in-editor @tool tests (alias: --skip-editor)
+  --skip-runtime-tests  Skip Godot runtime test project (alias: --skip-runtime)
   --skip-standalone     Skip standalone compiled test executable
   -f, --filter=PATTERN  Run only runtime tests matching PATTERN
   -c, --category=NAME   Run only runtime tests in category NAME
@@ -58,7 +58,12 @@ HELP
         end
 
         # Auto-detect target project when no path is explicitly provided:
-        # If current directory is not root and contains project.godot or shard.yml, use current directory!
+        # 1. Search upwards from curr for nearest enclosing project (outside workspace root)
+        if (nearest = Core::Env.find_project_dir(curr)) && nearest != root
+          return nearest
+        end
+
+        # 2. If current directory is not root and contains project.godot or shard.yml, use current directory!
         if curr != root && (File.exists?(curr.join("project.godot")) || File.exists?(curr.join("shard.yml")))
           return curr
         end
@@ -123,8 +128,8 @@ HELP
           opts.on("--skip-engine-specs", "Skip engine & bindings specifications") { skip_engine_specs = true }
           opts.on("--skip-cli-specs", "Skip Lapis toolchain & CLI specifications") { skip_cli_specs = true }
           opts.on("--skip-external-specs", "Skip external ecosystem compatibility specifications") { skip_external_specs = true }
-          opts.on("--skip-tool-tests", "Skip in-editor @tool tests") { skip_tool_tests = true }
-          opts.on("--skip-runtime-tests", "Skip Godot runtime test project") { skip_runtime_tests = true }
+          opts.on("--skip-tool-tests", "--skip-editor", "Skip in-editor @tool tests") { skip_tool_tests = true }
+          opts.on("--skip-runtime-tests", "--skip-runtime", "Skip Godot runtime test project") { skip_runtime_tests = true }
           opts.on("--skip-standalone", "Skip standalone test executable") { skip_standalone = true }
           opts.on("-f PATTERN", "--filter=PATTERN", "Run only tests matching PATTERN") { |p| filter_pattern = p }
           opts.on("-c NAME", "--category=NAME", "Run only tests in category NAME") { |c| category_filter = c }
@@ -142,6 +147,13 @@ HELP
 
         root = Core::Env::ROOT_DIR
         target_dir = resolve_target_dir(proj_path, root)
+
+        unless Core::Env.is_crystal_dir?(target_dir) || File.exists?(target_dir.join("project.godot")) || Dir.exists?(target_dir.join("spec"))
+          Core::Logger.warn("Warning: Directory '#{target_dir}' is not a Crystal or Lapis project (missing shard.yml, project.godot, or spec/).")
+          Core::Logger.info("Tip: 'lapis test' must be run within a Crystal or Godot project containing tests.")
+          return 1
+        end
+
         is_root_engine = (target_dir == root) && Core::Env.is_libgodot_repo?(root)
         test_dir = target_dir
         test_bin_dir = target_dir.join("bin")
@@ -274,8 +286,10 @@ HELP
                     on_line: tui ? ->(l : String) { tui.not_nil!.handle_stream_line(l) } : nil
                   )
                   {% if flag?(:windows) %}
-                    if !res[:status].success?
-                      sleep 0.5.seconds
+                    retry_count = 0
+                    while !res[:status].success? && retry_count < 3
+                      retry_count += 1
+                      sleep (retry_count * 0.75).seconds
                       res = Core::ProcessRunner.run_with_capture(
                         "crystal",
                         ["spec"] + spec_files + ["--junit_output=#{spec_junit_dir.to_s.gsub('\\', '/')}"],
@@ -326,8 +340,10 @@ HELP
                     on_line: tui ? ->(l : String) { tui.not_nil!.handle_stream_line(l) } : nil
                   )
                   {% if flag?(:windows) %}
-                    if !res[:status].success?
-                      sleep 0.5.seconds
+                    retry_count = 0
+                    while !res[:status].success? && retry_count < 3
+                      retry_count += 1
+                      sleep (retry_count * 0.75).seconds
                       res = Core::ProcessRunner.run_with_capture(
                         "crystal",
                         ["spec", "tools/lapis/spec", "--junit_output=#{cli_junit_dir.to_s.gsub('\\', '/')}"],
@@ -390,19 +406,25 @@ HELP
                   spec_tag_name = Path.new(spec_file).basename.gsub(".cr", "").upcase
                   Core::Logger.step("Test:Specs:Root", "Running #{spec_file}...") unless tui
                   step_start = Time.instant
+                  cache_root_specs = test_bin_dir.join("cache_root_specs")
+                  Dir.mkdir_p(cache_root_specs)
                   res = Core::ProcessRunner.run_with_capture(
                     "crystal",
                     ["run", spec_file],
+                    env: {"CRYSTAL_CACHE_DIR" => cache_root_specs.to_s},
                     chdir: root.to_s,
                     passthrough: tui.nil?,
                     on_line: tui ? ->(l : String) { tui.not_nil!.handle_stream_line(l) } : nil
                   )
                   {% if flag?(:windows) %}
-                    if !res[:status].success?
-                      sleep 0.5.seconds
+                    retry_count = 0
+                    while !res[:status].success? && retry_count < 3
+                      retry_count += 1
+                      sleep (retry_count * 0.75).seconds
                       res = Core::ProcessRunner.run_with_capture(
                         "crystal",
                         ["run", spec_file],
+                        env: {"CRYSTAL_CACHE_DIR" => cache_root_specs.to_s},
                         chdir: root.to_s,
                         passthrough: tui.nil?,
                         on_line: tui ? ->(l : String) { tui.not_nil!.handle_stream_line(l) } : nil
@@ -449,13 +471,32 @@ HELP
                 end
                 Core::Logger.step("Test:Specs:Debugger", "Running Phase 1d: Debugger and crash handler specifications...") unless tui
                 step_start = Time.instant
+                dbg_junit_dir = test_bin_dir.join("junit_debugger_specs")
+                cache_debugger = test_bin_dir.join("cache_debugger_specs")
+                Dir.mkdir_p(cache_debugger)
                 res = Core::ProcessRunner.run_with_capture(
                   "crystal",
-                  ["spec"] + active_dbg_specs,
+                  ["spec"] + active_dbg_specs + ["--junit_output=#{dbg_junit_dir.to_s.gsub('\\', '/')}"],
+                  env: {"CRYSTAL_CACHE_DIR" => cache_debugger.to_s},
                   chdir: root.to_s,
                   passthrough: tui.nil?,
                   on_line: tui ? ->(l : String) { tui.not_nil!.handle_stream_line(l) } : nil
                 )
+                {% if flag?(:windows) %}
+                  retry_count = 0
+                  while !res[:status].success? && retry_count < 3
+                    retry_count += 1
+                    sleep (retry_count * 0.75).seconds
+                    res = Core::ProcessRunner.run_with_capture(
+                      "crystal",
+                      ["spec"] + active_dbg_specs + ["--junit_output=#{dbg_junit_dir.to_s.gsub('\\', '/')}"],
+                      env: {"CRYSTAL_CACHE_DIR" => cache_debugger.to_s},
+                      chdir: root.to_s,
+                      passthrough: tui.nil?,
+                      on_line: tui ? ->(l : String) { tui.not_nil!.handle_stream_line(l) } : nil
+                    )
+                  end
+                {% end %}
                 step_dur = (Time.instant - step_start).total_seconds.round(2)
                 if idx = phase_map[phase_tag]?
                   tui.try &.finish_phase(idx, res[:status].success?, step_dur, safe_exit_code(res[:status]), res[:error_excerpt])

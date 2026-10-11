@@ -73,9 +73,13 @@ module Lapis
 #endif
 
 H
-          if !File.exists?(hdr) || File.read(hdr) != hdr_content
-            File.write(hdr, hdr_content)
-            Core::Logger.debug("Updated #{hdr} to #{target_ver}")
+          if !File.exists?(hdr) || File.read(hdr).gsub("\r\n", "\n") != hdr_content.gsub("\r\n", "\n")
+            begin
+              File.write(hdr, hdr_content)
+              Core::Logger.debug("Updated #{hdr} to #{target_ver}")
+            rescue ex
+              Core::Logger.debug("Skipped writing #{hdr} (file locked): #{ex.message}")
+            end
           end
         end
 

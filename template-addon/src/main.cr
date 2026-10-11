@@ -33,7 +33,12 @@ node CrystalAddonBanner < Control do
   end
 
   def trigger_click : Void
-    emit(banner_clicked, @message)
+    banner_clicked.emit(@message)
+  end
+
+  # Demonstrates connecting signals via Lapis piping operator (>>)
+  def setup_click_logger(target : Godot::Object, method_name : String) : Void
+    banner_clicked >> {target, method_name}
   end
 end
 

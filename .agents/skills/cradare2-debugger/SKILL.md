@@ -9,6 +9,56 @@ This skill is the operational manual for native debugging, Ghidra decompilation,
 
 ---
 
+## Table of Contents
+<table>
+  <thead>
+    <tr>
+      <th align="left">Section</th>
+      <th align="left">Description</th>
+      <th align="center">Lines</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><a href="#1-process-attachment-launch-workflows"><strong>1. Process Attachment & Launch Workflows</strong></a></td>
+      <td>### Launching Under radare2 via Lapis CLI</td>
+      <td align="center"><code>L62–L81</code></td>
+    </tr>
+    <tr>
+      <td><a href="#2-native-decompiler-mapping-pdc-pdf"><strong>2. Native Decompiler Mapping (`pdc` / `pdf`)</strong></a></td>
+      <td>Lapis integrates radare2's native disassembly engine and the Ghidra decompiler plugin via cradare2.</td>
+      <td align="center"><code>L82–L106</code></td>
+    </tr>
+    <tr>
+      <td><a href="#3-in-editor-radare2-session-tabs-7-tabs"><strong>3. In-Editor Radare2 Session Tabs (7 Tabs)</strong></a></td>
+      <td>The Godot Editor Crystal debugger dock (CrystalDebuggerPlugin) provides 7 interactive tabs:</td>
+      <td align="center"><code>L107–L167</code></td>
+    </tr>
+    <tr>
+      <td><a href="#4-breakpoints-hardware-watchpoints"><strong>4. Breakpoints & Hardware Watchpoints</strong></a></td>
+      <td>### Setting Source-Line Breakpoints</td>
+      <td align="center"><code>L168–L192</code></td>
+    </tr>
+    <tr>
+      <td><a href="#5-automated-crash-forensics-dead-pointer-analysis"><strong>5. Automated Crash Forensics & Dead-Pointer Analysis</strong></a></td>
+      <td>Whenever an unhandled EXCEPTION_ACCESS_VIOLATION (0xC0000005) occurs:</td>
+      <td align="center"><code>L193–L211</code></td>
+    </tr>
+    <tr>
+      <td><a href="#6-multiplayer-lockstep-debugging"><strong>6. Multiplayer Lockstep Debugging</strong></a></td>
+      <td>The debugger supports concurrent multi-process debugging across a dedicated Server and multiple Clients:</td>
+      <td align="center"><code>L212–L221</code></td>
+    </tr>
+    <tr>
+      <td><a href="#7-export-debug-packaging-automated-crash-reports"><strong>7. Export Debug Packaging & Automated Crash Reports</strong></a></td>
+      <td>When distributing a test build to testers or friends who experience unhandled crashes or access violations,...</td>
+      <td align="center"><code>L222–L247</code></td>
+    </tr>
+  </tbody>
+</table>
+
+---
+
 ## 1. Process Attachment & Launch Workflows
 
 ### Launching Under radare2 via Lapis CLI
@@ -166,3 +216,31 @@ The debugger supports concurrent multi-process debugging across a dedicated Serv
 - **Client Session Tabs**: Attached to client instances (`--client-1`, `--client-2`).
 - **Role Badges**: Server (Cyan), Client (Green/Yellow).
 - **Wireshark-Style Packet Tracing**: Inspects RPC packets, transfer modes (`reliable`/`unreliable`), and channel multiplexing in real time.
+
+---
+
+## 7. Export Debug Packaging & Automated Crash Reports
+
+When distributing a test build to testers or friends who experience unhandled crashes or access violations, standard release builds cannot provide actionable stack traces or memory diagnostics.
+
+Lapis provides **Export Debug Packaging**:
+```bash
+# Package game with portable radare2, debug symbols, and automated crash dump harness:
+lapis package --debug
+# or via Makefile
+make package-game DEBUG=1
+```
+
+### What's Bundled in the Debug Package:
+1. **Full Debug Binaries**: Game executable compiled with `-d` (debug symbols) and unstripped PDB/DWARF data.
+2. **Portable radare2 Toolchain (`bin/r2/`)**: Portable `r2.exe` / `r2` standalone binary bundled directly inside the archive.
+3. **Automated Diagnostic Launcher (`run_debug.bat` / `run_debug.sh`)**:
+   - Launches the game under radare2 supervisor mode (`r2 -d <game>`).
+   - If a crash (`EXCEPTION_ACCESS_VIOLATION` / `SIGSEGV`) occurs, automatically extracts:
+     - Full register state (`dr*`)
+     - Call backtrace (`dbt`)
+     - Disassembly of the crash site (`pd 20`)
+     - Decompiled pseudo-C of the faulting routine (`pdc`)
+     - Godot instance ID analysis
+   - Bundles all diagnostics and logs into `crash_reports/crash_report_<timestamp>.zip`.
+   - The player simply sends back the generated `.zip` for instant root-cause analysis!

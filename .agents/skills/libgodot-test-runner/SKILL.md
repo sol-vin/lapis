@@ -10,6 +10,46 @@ description: >-
 
 This skill provides procedures for running and troubleshooting the complete LibGodot test infrastructure.
 
+## Table of Contents
+<table>
+  <thead>
+    <tr>
+      <th align="left">Section</th>
+      <th align="left">Description</th>
+      <th align="center">Lines</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><a href="#running-the-automated-test-suite"><strong>Running the Automated Test Suite</strong></a></td>
+      <td>To run all automated verification suites in one command:</td>
+      <td align="center"><code>L53–L65</code></td>
+    </tr>
+    <tr>
+      <td><a href="#the-4-test-tiers"><strong>The 4 Test Tiers</strong></a></td>
+      <td>### 1.</td>
+      <td align="center"><code>L66–L150</code></td>
+    </tr>
+    <tr>
+      <td><a href="#test-artifacts-and-logs"><strong>Test Artifacts and Logs</strong></a></td>
+      <td>After test execution, inspect:</td>
+      <td align="center"><code>L151–L160</code></td>
+    </tr>
+    <tr>
+      <td><a href="#quantitative-zero-leak-verification"><strong>Quantitative Zero-Leak Verification</strong></a></td>
+      <td>LibGodot verifies zero memory leaks using Godot's Performance singleton monitors:</td>
+      <td align="center"><code>L161–L174</code></td>
+    </tr>
+    <tr>
+      <td><a href="#radare2-cradare2-diagnostic-debugging-workflow"><strong>radare2 & `cradare2` Diagnostic & Debugging Workflow</strong></a></td>
+      <td>When encountering segmentation faults (0xC0000005), invalid parameter crashes, or mysterious exits:</td>
+      <td align="center"><code>L175–L203</code></td>
+    </tr>
+  </tbody>
+</table>
+
+---
+
 ## Running the Automated Test Suite
 
 To run all automated verification suites in one command:
@@ -84,6 +124,12 @@ Runs the full interactive test project in Godot:
   - `test_lifecycle_destruction.cr`: SceneTree reparenting, `queue_free`, `.destroy`.
   - `test_classdb_coverage.cr`: Reflection lookups and method dispatch.
   - `test_concurrency.cr`: Cooperative fibers, channels, mutexes, thread safety.
+  - `test_tween_dsl.cr`: 16-pillar multi-frame deterministic tween stepping and pipeline test suite.
+  - `test_signal_safety_multiframe.cr`: 7-pillar signal disconnection, dead emitter/receiver auto-pruning, and frame boundary test suite.
+  - `test_destruction_and_threads_multiframe.cr`: 7-pillar queue_free frame boundary, 50-node cascade destruction, and concurrent worker thread test suite.
+  - `test_dsl_edge_cases_and_leaks.cr`: 11-pillar comprehensive DSL syntax, match guards, and leak gate suite.
+  - `test_dsl_helpers_and_onready.cr`: 6-pillar ancestor operator (`<<`), fluent `group(:name)` DSL, `load`/`preload` inference, and onready customization suite.
+  - `test_editor_plugins_comprehensive.cr`: 8-pillar Crystal editor plugins ClassDB registration, main screen protocol, debugger session, and highlighter engine suite.
 - Command executed internally:
   ```bash
   godot.exe --headless --path . --quit-after 250

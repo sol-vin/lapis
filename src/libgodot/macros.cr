@@ -1,6 +1,7 @@
 require "./macros/annotations"
 require "./macros/node_refs"
 require "./macros/signals"
+require "./macros/match"
 
 module Godot
   struct PropertyInfo
@@ -66,6 +67,11 @@ module Godot
       property rpc_methods : ::Array(NamedTuple(name: String, rpc_mode: Int32, transfer_mode: Int32, call_local: Bool, channel: Int32))
       property has_virtual_proc : (String -> Bool)? = nil
       property script_path : String = ""
+      property is_autoload : Bool = false
+      property autoload_name : String = ""
+      property autoload_singleton : Bool = true
+      property autoload_mount_tree : Bool = true
+      property set_autoload_proc : (Object? -> Void)? = nil
 
       def has_virtual_method?(name : String) : Bool
         if proc = @has_virtual_proc
@@ -97,6 +103,11 @@ module Godot
         @has_virtual_proc : (String -> Bool)? = nil,
         @constants : ::Array(ConstantInfo) = [] of ConstantInfo,
         @script_path : String = "",
+        @is_autoload : Bool = false,
+        @autoload_name : String = "",
+        @autoload_singleton : Bool = true,
+        @autoload_mount_tree : Bool = true,
+        @set_autoload_proc : (Object? -> Void)? = nil,
       )
       end
     end
@@ -158,7 +169,57 @@ module Godot
       end
     {% end %}
 
+    def self.has_ancestor_property?(entry : Entry, prop_name : String) : Bool
+      cur = entry.parent_name
+      while parent = find(cur)
+        return true if parent.properties.any? { |p| p.name == prop_name }
+        cur = parent.parent_name
+      end
+      false
+    end
+
     def self.register(entry : Entry)
+      if existing = find(entry.class_name)
+        entry.properties.each do |p|
+          next if has_ancestor_property?(existing, p.name)
+          existing.properties << p unless existing.properties.any? { |ep| ep.name == p.name }
+        end
+        entry.signals.each do |s|
+          existing.signals << s unless existing.signals.any? { |es| es.name == s.name }
+        end
+        entry.constants.each do |c|
+          existing.constants << c unless existing.constants.any? { |ec| ec.name == c.name }
+        end
+        entry.rpc_methods.each do |r|
+          existing.rpc_methods << r unless existing.rpc_methods.any? { |er| er[:name] == r[:name] }
+        end
+        existing.is_tool ||= entry.is_tool
+        existing.has_ready ||= entry.has_ready
+        existing.has_process ||= entry.has_process
+        existing.has_physics_process ||= entry.has_physics_process
+        existing.has_enter_tree ||= entry.has_enter_tree
+        existing.has_exit_tree ||= entry.has_exit_tree
+        existing.has_input ||= entry.has_input
+        existing.has_unhandled_input ||= entry.has_unhandled_input
+        existing.has_unhandled_key_input ||= entry.has_unhandled_key_input
+        existing.has_shortcut_input ||= entry.has_shortcut_input
+        existing.has_gui_input ||= entry.has_gui_input
+        if existing.script_path.empty? && !entry.script_path.empty?
+          existing.script_path = entry.script_path
+        end
+        if entry.is_autoload
+          existing.is_autoload = true
+          existing.autoload_singleton = entry.autoload_singleton
+          existing.autoload_mount_tree = entry.autoload_mount_tree
+          if !entry.autoload_name.empty?
+            existing.autoload_name = entry.autoload_name
+          end
+          if !entry.set_autoload_proc.nil?
+            existing.set_autoload_proc = entry.set_autoload_proc
+          end
+        end
+        return
+      end
       if parent = find(entry.parent_name)
         entry.is_tool ||= parent.is_tool
         entry.has_ready ||= parent.has_ready
@@ -206,6 +267,157 @@ macro ensure_lapis
   {% end %}
 end
 
+# Instantiates a Godot object or custom node and configures its properties and methods in a block or kwargs.
+#
+# Supports:
+# 1. Keyword properties: `create Sprite2D, position: Vector2.new(10, 20), centered: true`
+# 2. Block property setters: `create Sprite2D do position = Vector2.new(10, 20); centered = true end`
+# 3. Method dispatches: `create Sprite2D do add_to_group("sprites"); rotate(0.5) end`
+# 4. Mixed kwargs and block: `create Sprite2D, centered: true do position = Vector2.new(10, 20) end`
+macro create(type, **kwargs, &block)
+  %inst = ::Godot.create({{type}})
+  {% for k, v in kwargs %}
+    %inst.{{k}} = {{v}}
+  {% end %}
+  {% if block && !block.body.is_a?(Nop) %}
+    {% stmts = block.body.is_a?(Expressions) ? block.body.expressions : [block.body] %}
+    {% for s in stmts %}
+      {% if s.is_a?(Assign) %}
+        %inst.{{s.target}} = {{s.value}}
+      {% elsif s.is_a?(Call) %}
+        %inst.{{s.name}}({{s.args.splat}})
+      {% end %}
+    {% end %}
+  {% end %}
+  %inst
+end
+
+# Idiomatic alias for `create`
+macro build(type, **kwargs, &block)
+  create({{type}}, {{kwargs.double_splat}}) {{block}}
+end
+
+# Instantiates a node, configures it, and attaches it as a child to the specified parent
+# (defaults to `self` if inside a Node method, or current scene / root).
+macro spawn_node(type, under = nil, **kwargs, &block)
+  %parent = {% if under %}{{under}}{% else %}self{% end %}
+  %inst = create({{type}}, {{kwargs.double_splat}}) {{block}}
+  %parent.add_child(%inst)
+  %inst
+end
+
+# Contextual alias for `spawn_node`
+macro spawn_child(type, under = nil, **kwargs, &block)
+  spawn_node({{type}}, under: {{under}}, {{kwargs.double_splat}}) {{block}}
+end
+
+# Declarative alias for `spawn_node`
+macro create_child(type, under = nil, **kwargs, &block)
+  spawn_node({{type}}, under: {{under}}, {{kwargs.double_splat}}) {{block}}
+end
+
+# Loads a PackedScene (.tscn) and instantiates it as wrapper type T with configuration
+macro instantiate(path, as type = Godot::Node, **kwargs, &block)
+  %scene = ::Godot.load({{path}}).as(::Godot::PackedScene)
+  %inst = %scene.instantiate_as({{type}})
+  {% for k, v in kwargs %}
+    %inst.{{k}} = {{v}}
+  {% end %}
+  {% if block && !block.body.is_a?(Nop) %}
+    {% stmts = block.body.is_a?(Expressions) ? block.body.expressions : [block.body] %}
+    {% for s in stmts %}
+      {% if s.is_a?(Assign) %}
+        %inst.{{s.target}} = {{s.value}}
+      {% elsif s.is_a?(Call) %}
+        %inst.{{s.name}}({{s.args.splat}})
+      {% end %}
+    {% end %}
+  {% end %}
+  %inst
+end
+
+# Loads a PackedScene (.tscn), instantiates it as wrapper type T, and attaches it as a child to the parent
+macro instantiate_child(path, under = nil, as type = Godot::Node, **kwargs, &block)
+  %parent = {% if under %}{{under}}{% else %}self{% end %}
+  %inst = instantiate({{path}}, as: {{type}}, {{kwargs.double_splat}}) {{block}}
+  %parent.add_child(%inst)
+  %inst
+end
+
+# Context-aware one-shot audio playback macro:
+# - Inspects `@type` at compile-time:
+#   * `@type <= Godot::Node2D` -> emits AudioStreamPlayer2D with global_position
+#   * `@type <= Godot::Node3D` -> emits AudioStreamPlayer3D with global_position
+#   * Otherwise -> emits non-spatial AudioStreamPlayer
+# - If explicit `at:` coordinate is passed (Vector2 or Vector3), spatializes appropriately
+# - Automatically preloads or loads the AudioStream
+# - Sets kwargs properties (e.g. pitch_scale: 1.2, volume_db: -5.0, bus: "SFX")
+# - Executes inline configuration block (e.g. do pitch_scale = 1.2 end)
+# - Attaches to active scene root (`current_scene || root`) so audio survives caller deletion!
+# - Connects finished.once { queue_free } for automatic memory cleanup
+# - Returns the strongly-typed audio player
+macro play_sound(stream, at = nil, under = nil, **kwargs, &block)
+  %s_val = {{stream}}
+  %stream = %s_val.is_a?(String) ? (::Godot::PreloadCache.get_or_load(%s_val, ::Godot::AudioStream)) : %s_val.as(::Godot::AudioStream)
+
+  {% if at %}
+    %at_pos = {{at}}
+    %player = if %at_pos.is_a?(::Godot::Vector3)
+                %p3d = ::Godot.create(::Godot::AudioStreamPlayer3D)
+                %p3d.global_position = %at_pos
+                %p3d
+              elsif %at_pos.is_a?(::Godot::Vector2)
+                %p2d = ::Godot.create(::Godot::AudioStreamPlayer2D)
+                %p2d.global_position = %at_pos
+                %p2d
+              else
+                ::Godot.create(::Godot::AudioStreamPlayer)
+              end
+  {% elsif @type <= Godot::Node2D %}
+    %player = ::Godot.create(::Godot::AudioStreamPlayer2D)
+    %player.global_position = self.global_position
+  {% elsif @type <= Godot::Node3D %}
+    %player = ::Godot.create(::Godot::AudioStreamPlayer3D)
+    %player.global_position = self.global_position
+  {% else %}
+    %player = ::Godot.create(::Godot::AudioStreamPlayer)
+  {% end %}
+
+  %player.stream = %stream
+  {% for k, v in kwargs %}
+    %player.{{k}} = {{v}}
+  {% end %}
+
+  {% if block && !block.body.is_a?(Nop) %}
+    {% stmts = block.body.is_a?(Expressions) ? block.body.expressions : [block.body] %}
+    {% for s in stmts %}
+      {% if s.is_a?(Assign) %}
+        %player.{{s.target}} = {{s.value}}
+      {% elsif s.is_a?(Call) %}
+        %player.{{s.name}}({{s.args.splat}})
+      {% end %}
+    {% end %}
+  {% end %}
+
+  %host = {% if under %}
+            {{under}}
+          {% else %}
+            (if %tree = ::Godot.get_tree?
+               %tree.current_scene || %tree.root
+             else
+               self.topmost_parent
+             end)
+          {% end %}
+  %host.add_child(%player)
+
+  %player.finished.once do
+    %player.queue_free
+  end
+
+  %player.play
+  %player
+end
+
 # Expressive convenience macro for 2D scene nodes defaulting to Godot::Node2D
 macro node2d(decl)
   node2d {{decl}} do
@@ -218,9 +430,15 @@ macro node2d(decl, &block)
       {{block.body}}
     end
   {% else %}
-    node {{decl}} < Godot::Node2D do
-      {{block.body}}
-    end
+    {% if decl.resolve? %}
+      node {{decl}} do
+        {{block.body}}
+      end
+    {% else %}
+      node {{decl}} < Godot::Node2D do
+        {{block.body}}
+      end
+    {% end %}
   {% end %}
 end
 
@@ -236,9 +454,15 @@ macro node3d(decl, &block)
       {{block.body}}
     end
   {% else %}
-    node {{decl}} < Godot::Node3D do
-      {{block.body}}
-    end
+    {% if decl.resolve? %}
+      node {{decl}} do
+        {{block.body}}
+      end
+    {% else %}
+      node {{decl}} < Godot::Node3D do
+        {{block.body}}
+      end
+    {% end %}
   {% end %}
 end
 
@@ -266,6 +490,7 @@ macro node(decl, &block)
     {% parent_name = "Godot::Node".id %}
     {% base_godot_name = "Node" %}
   {% end %}
+  {% is_reopen = class_name.resolve? != nil %}
 
   {%
     has_ready = false
@@ -283,6 +508,10 @@ macro node(decl, &block)
     is_tool_class = (base_godot_name == "EditorPlugin" || parent_name.stringify.includes?("EditorPlugin"))
     is_abstract_class = false
     is_static_unload = false
+    is_autoload_class = false
+    autoload_name = ""
+    autoload_singleton = true
+    autoload_mount_tree = true
     class_icon_path = ""
     script_path_override = ""
     src_file = if !block.is_a?(Nop) && block.filename
@@ -301,6 +530,7 @@ macro node(decl, &block)
     user_methods = [] of Nil
     tool_buttons = [] of Nil
     class_constants = [] of Nil
+    included_modules = [] of Nil
     class_doc = ""
     raw_stmts = if block.is_a?(Nop)
                   [] of Nil
@@ -485,6 +715,19 @@ macro node(decl, &block)
           {% is_static_unload = true %}
         {% elsif s_stripped.starts_with?("@[ScriptPath(") %}
           {% script_path_override = s_stripped.gsub(/^@\[ScriptPath\(\"/, "").gsub(/\"\)\].*/, "") %}
+        {% elsif s_stripped.starts_with?("@[Autoload") %}
+          {% is_autoload_class = true %}
+          {% if s_stripped.includes?("name:") %}
+            {% autoload_name = s_stripped.gsub(/.*name:\s*\"/, "").gsub(/\".*/, "") %}
+          {% elsif s_stripped.includes?("(\"") %}
+            {% autoload_name = s_stripped.gsub(/^@\[Autoload\(\"/, "").gsub(/\"\).*/, "") %}
+          {% end %}
+          {% if s_stripped.includes?("singleton: false") %}
+            {% autoload_singleton = false %}
+          {% end %}
+          {% if s_stripped.includes?("mount_tree: false") || s_stripped.includes?("scene_tree: false") %}
+            {% autoload_mount_tree = false %}
+          {% end %}
         {% elsif !s_stripped.starts_with?("@") && !s_stripped.empty? %}
           {% comment_accum = "" %}
           {% class_icon_path = "" %}
@@ -492,6 +735,10 @@ macro node(decl, &block)
           {% is_abstract_class = false %}
           {% is_tool_class = false %}
           {% is_static_unload = false %}
+          {% is_autoload_class = false %}
+          {% autoload_name = "" %}
+          {% autoload_singleton = true %}
+          {% autoload_mount_tree = true %}
         {% end %}
       {% elsif in_target_node %}
         {% if s_stripped.starts_with?("property ") %}
@@ -555,6 +802,22 @@ macro node(decl, &block)
           {% is_abstract_class = true %}
         {% elsif anno_name == "StaticUnload" %}
           {% is_static_unload = true %}
+        {% elsif anno_name == "Autoload" %}
+          {% is_autoload_class = true %}
+          {% if stmt.named_args %}
+            {% for na in stmt.named_args %}
+              {% if na.name.stringify == "name" %}
+                {% autoload_name = na.value.is_a?(StringLiteral) ? na.value : na.value.id.stringify %}
+              {% elsif na.name.stringify == "singleton" %}
+                {% autoload_singleton = na.value %}
+              {% elsif na.name.stringify == "mount_tree" || na.name.stringify == "scene_tree" %}
+                {% autoload_mount_tree = na.value %}
+              {% end %}
+            {% end %}
+          {% end %}
+          {% if stmt.args.size > 0 %}
+            {% autoload_name = stmt.args[0].is_a?(StringLiteral) ? stmt.args[0] : stmt.args[0].id.stringify %}
+          {% end %}
         {% elsif anno_name == "ScriptPath" %}
           {% script_path_override = stmt.args[0].stringify %}
         {% elsif anno_name == "ExportCategory" %}
@@ -605,6 +868,24 @@ macro node(decl, &block)
       {% is_abstract_class = true %}
     {% elsif stmt.is_a?(Call) && stmt.name.stringify == "static_unload" %}
       {% is_static_unload = true %}
+    {% elsif stmt.is_a?(Call) && (stmt.name.stringify == "autoload" || stmt.name.stringify == "autoload_node") %}
+      {% is_autoload_class = true %}
+      {% if stmt.args.size > 0 %}
+        {% if stmt.args[0].is_a?(StringLiteral) %}
+          {% autoload_name = stmt.args[0] %}
+        {% end %}
+      {% end %}
+      {% if stmt.named_args %}
+        {% for na in stmt.named_args %}
+          {% if na.name.stringify == "name" %}
+            {% autoload_name = na.value.is_a?(StringLiteral) ? na.value : na.value.id.stringify %}
+          {% elsif na.name.stringify == "singleton" %}
+            {% autoload_singleton = na.value %}
+          {% elsif na.name.stringify == "mount_tree" || na.name.stringify == "scene_tree" %}
+            {% autoload_mount_tree = na.value %}
+          {% end %}
+        {% end %}
+      {% end %}
     {% elsif stmt.is_a?(Call) && stmt.name.stringify == "export_category" %}
       {% cat_name = stmt.args[0].is_a?(StringLiteral) ? stmt.args[0] : stmt.args[0].id.stringify %}
       {% props << {:category, cat_name, ""} %}
@@ -640,36 +921,126 @@ macro node(decl, &block)
       {% for g in stmt.args %}
         {% node_groups << (g.is_a?(StringLiteral) ? g : g.id.stringify) %}
       {% end %}
+    {% elsif stmt.is_a?(Include) %}
+      {% included_modules << stmt.name %}
     {% elsif stmt.is_a?(Call) && (stmt.name.stringify == "onready" || stmt.name.stringify == "node_ref" || stmt.name.stringify == "unique_node_ref" || stmt.name.stringify == "unique_node") %}
       {% is_unique_call = (stmt.name.stringify == "unique_node_ref" || stmt.name.stringify == "unique_node") %}
       {% if stmt.args.size == 1 %}
         {% o_decl = stmt.args[0] %}
-        {% if o_decl.is_a?(TypeDeclaration) %}
-          {% o_name = o_decl.var.stringify %}
-          {% o_path = o_decl.value ? (o_decl.value.is_a?(StringLiteral) ? o_decl.value : o_decl.value.id.stringify) : (is_unique_call ? "%#{o_name.camelcase}" : o_name) %}
-          {% if is_unique_call && !o_path.starts_with?('%') %}
-            {% o_path = "%" + o_path %}
-          {% end %}
-          {% o_t = o_decl.type %}
-          {% if o_t.is_a?(Union) %}
-            {% actual_o_t = o_t.types.reject { |sub_t| sub_t.stringify == "Nil" || sub_t.stringify == "::Nil" }[0] %}
-          {% else %}
-            {% actual_o_t = o_t %}
-          {% end %}
-          {% onready_props << {o_decl.var, actual_o_t, o_path} %}
-        {% end %}
+        {%
+          o_var = nil
+          o_type = nil
+          raw_val = nil
+
+          if o_decl.is_a?(TypeDeclaration)
+            o_var = o_decl.var
+            o_type = o_decl.type
+            raw_val = o_decl.value
+          elsif o_decl.is_a?(Assign)
+            o_var = o_decl.target
+            raw_val = o_decl.value
+            if raw_val.is_a?(Cast)
+              o_type = raw_val.to
+            elsif raw_val.is_a?(Call) && raw_val.name.stringify == "~"
+              operand = raw_val.receiver.is_a?(Nop) || !raw_val.receiver ? raw_val.args[0] : raw_val.receiver
+              if operand.is_a?(Cast)
+                o_type = operand.to
+              end
+            end
+          end
+
+          extracted_path = nil
+          curr = raw_val
+          if curr.is_a?(Cast)
+            curr = curr.obj
+            if curr.is_a?(Expressions) && curr.expressions.size == 1
+              curr = curr.expressions[0]
+            end
+          end
+          if curr.is_a?(Call) && curr.name.stringify == "~"
+            operand = curr.receiver.is_a?(Nop) || !curr.receiver ? curr.args[0] : curr.receiver
+            if operand.is_a?(Cast)
+              extracted_path = operand.obj
+            elsif operand.is_a?(Expressions) && operand.expressions.size == 1
+              extracted_path = operand.expressions[0]
+            else
+              extracted_path = operand
+            end
+          elsif curr.is_a?(Call) && curr.name.stringify == "as"
+            extracted_path = curr.receiver
+          else
+            extracted_path = curr
+          end
+
+          actual_o_t = nil
+          if o_type
+            if o_type.is_a?(Union)
+              actual_o_t = o_type.types.reject { |sub_t| sub_t.stringify == "Nil" || sub_t.stringify == "::Nil" }[0]
+            else
+              actual_o_t = o_type
+            end
+          else
+            actual_o_t = "Godot::Node".id
+          end
+          if actual_o_t.stringify.ends_with?("?")
+            actual_o_t = actual_o_t.stringify[0...-1].id
+          end
+          if !actual_o_t.stringify.includes?("::") && Godot.has_constant?(actual_o_t.stringify)
+            actual_o_t = "::Godot::#{actual_o_t}".id
+          end
+
+          if o_var
+            o_name = o_var.stringify
+            actual_class_name = actual_o_t.stringify.split("::").last
+            fallback_target = (actual_class_name != "Node" && !actual_class_name.empty?) ? actual_class_name : o_name.camelcase
+            o_path = extracted_path ? (extracted_path.is_a?(StringLiteral) ? extracted_path : extracted_path.id.stringify) : (is_unique_call ? "%#{fallback_target}" : fallback_target)
+            if is_unique_call && !o_path.starts_with?('%')
+              o_path = "%" + o_path
+            end
+            onready_props << {o_var, actual_o_t, o_path}
+          end
+        %}
       {% elsif stmt.args.size >= 2 %}
-        {% o_var = stmt.args[0] %}
-        {% o_type = stmt.args[1] %}
-        {% if stmt.args.size >= 3 %}
-          {% raw_p = stmt.args[2] %}
+        {% if stmt.args[0].is_a?(TypeDeclaration) %}
+          {% t_decl = stmt.args[0] %}
+          {% o_var = t_decl.var %}
+          {% raw_t = t_decl.type %}
+          {% if raw_t && raw_t.is_a?(Union) %}
+            {% o_type = raw_t.types.reject { |sub_t| sub_t.stringify == "Nil" || sub_t.stringify == "::Nil" }[0] %}
+          {% elsif raw_t %}
+            {% o_type = raw_t %}
+          {% else %}
+            {% o_type = "Godot::Node".id %}
+          {% end %}
+          {% raw_p = stmt.args[1] %}
           {% o_path = raw_p.is_a?(StringLiteral) ? raw_p : raw_p.id.stringify %}
         {% else %}
-          {% o_path = is_unique_call ? "%#{o_var.id.stringify.camelcase}" : o_var.id.stringify.camelcase %}
+          {% o_var = stmt.args[0] %}
+          {% o_type = stmt.args[1] %}
+          {% if stmt.args.size >= 3 %}
+            {% raw_p = stmt.args[2] %}
+            {% o_path = raw_p.is_a?(StringLiteral) ? raw_p : raw_p.id.stringify %}
+          {% else %}
+            {%
+              type_class_name = o_type.stringify.split("::").last
+              fallback_target = (type_class_name != "Node" && !type_class_name.empty?) ? type_class_name : o_var.id.stringify.camelcase
+              o_path = is_unique_call ? "%#{fallback_target}" : fallback_target
+            %}
+          {% end %}
         {% end %}
         {% if is_unique_call && !o_path.starts_with?('%') %}
           {% o_path = "%" + o_path %}
         {% end %}
+        {%
+          if o_type.is_a?(Union)
+            o_type = o_type.types.reject { |sub_t| sub_t.stringify == "Nil" || sub_t.stringify == "::Nil" }[0]
+          elsif o_type.stringify.ends_with?("?")
+            o_type = o_type.stringify[0...-1].id
+          end
+          if !o_type.stringify.includes?("::") && Godot.has_constant?(o_type.stringify)
+            o_type = "::Godot::#{o_type}".id
+          end
+        %}
         {% onready_props << {o_var, o_type, o_path} %}
       {% end %}
     {% elsif stmt.is_a?(StringLiteral) && class_doc.empty? %}
@@ -915,10 +1286,13 @@ macro node(decl, &block)
         proc_tb_names << tb[0].stringify
       end
     end
+    if autoload_name.empty?
+      autoload_name = class_name.stringify.split("::").last
+    end
   %}
 
   @[GodotClass]
-  class {{class_name}} < {{parent_name}}
+  class {{class_name}} {% unless is_reopen %} < {{parent_name}} {% end %}
     def self.godot_class_name : String
       "{{class_name}}"
     end
@@ -926,6 +1300,40 @@ macro node(decl, &block)
     def self.godot_parent_class_name : String
       {{base_godot_name}}
     end
+
+    macro create(**kwargs, &block)
+      ::create(\{{@type}}, \{{kwargs.double_splat}}) \{{block}}
+    end
+
+    macro build(**kwargs, &block)
+      ::create(\{{@type}}, \{{kwargs.double_splat}}) \{{block}}
+    end
+
+    def self.new(&block : self ->) : self
+      inst = ::Godot.create(self)
+      with inst yield inst
+      inst
+    end
+
+    {% if is_autoload_class %}
+      @@autoload_instance : {{class_name}}? = nil
+
+      # Returns the active Autoload singleton instance of this node.
+      # Raises if the node has not been instantiated or initialized yet.
+      def self.instance : {{class_name}}
+        @@autoload_instance || raise "Autoload {{class_name}} has not been instantiated or initialized yet."
+      end
+
+      # Returns the active Autoload singleton instance of this node, or nil if not initialized.
+      def self.instance? : {{class_name}}?
+        @@autoload_instance
+      end
+
+      # Internal hook used by AutoloadManager to bind or unbind the instance.
+      def self._godot_set_autoload_instance(inst : ::Godot::Object?) : Void
+        @@autoload_instance = inst.as?({{class_name}})
+      end
+    {% end %}
 
     def self._godot_has_virtual_method(method_name : String) : Bool
       norm = method_name.starts_with?('_') ? method_name : "_#{method_name}"
@@ -942,7 +1350,11 @@ macro node(decl, &block)
         {% end %}
       {% end %}
       else
-        super
+        {% if is_reopen %}
+          previous_def
+        {% else %}
+          super
+        {% end %}
       end
     end
 
@@ -1002,11 +1414,18 @@ macro node(decl, &block)
       end
     {% end %}
 
+    # DSL directives for in-body autoload configuration
+    macro autoload(*args, **kwargs)
+    end
+
+    macro autoload_node(*args, **kwargs)
+    end
+
     # Macro block containing fields, signals, and methods
     {{ yield }}
 
     {% if onready_props.size > 0 %}
-      private def _godot_init_onready_properties : Void
+      def _godot_init_onready_properties : Void
         {% for item in onready_props %}
           {% v_name = item[0] %}
           {% v_type = item[1] %}
@@ -1062,7 +1481,11 @@ macro node(decl, &block)
           ::Godot::ThreadSafety.flush_main_thread_queue!
           _physics_process(delta) if responds_to?(:_physics_process)
         else
-          super
+          {% if is_reopen %}
+            previous_def
+          {% else %}
+            super
+          {% end %}
         end
       end
     end
@@ -1102,7 +1525,11 @@ macro node(decl, &block)
           end
         {% end %}
         else
-          super
+          {% if is_reopen %}
+            previous_def
+          {% else %}
+            super
+          {% end %}
         end
       end
     end
@@ -1118,7 +1545,11 @@ macro node(decl, &block)
           Pointer(Void).null
         {% end %}
         else
-          super
+          {% if is_reopen %}
+            previous_def
+          {% else %}
+            super
+          {% end %}
         end
       end
     end
@@ -1130,7 +1561,46 @@ macro node(decl, &block)
         {% if item[0] == :prop %}
           {% arg = item[1] %}
           {% var_name = arg.is_a?(Assign) ? arg.target : arg.var %}
-          {% var_type = arg.is_a?(Assign) ? "Callable" : (arg.type ? arg.type.stringify.gsub(/^(::)?Godot::/, "") : "Callable") %}
+          {%
+            if arg.is_a?(Assign)
+              val = arg.value
+              if val.is_a?(NumberLiteral)
+                k = val.kind.stringify
+                if k == ":f32" || k == "f32"
+                  var_type = "Float32"
+                elsif k.includes?("f") || val.stringify.includes?(".")
+                  var_type = "Float64"
+                elsif k.includes?("i64") || k.includes?("u64")
+                  var_type = "Int64"
+                else
+                  var_type = "Int32"
+                end
+              elsif val.is_a?(StringLiteral)
+                var_type = "String"
+              elsif val.is_a?(BoolLiteral)
+                var_type = "Bool"
+              elsif val.is_a?(Call)
+                rec = val.receiver ? val.receiver.stringify.gsub(/^(::)?Godot::/, "") : val.name.stringify.gsub(/^(::)?Godot::/, "")
+                if ["Vector2", "Vector2i", "Vector3", "Vector3i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis"].includes?(rec)
+                  var_type = rec
+                elsif ["Proc", "proc", "lambda", "Callable"].includes?(rec)
+                  var_type = "Callable"
+                else
+                  var_type = "Variant"
+                end
+              elsif val.is_a?(Path)
+                var_type = val.stringify.gsub(/^(::)?Godot::/, "")
+              elsif val.is_a?(ProcPointer) || val.is_a?(ProcLiteral)
+                var_type = "Callable"
+              else
+                var_type = "Variant"
+              end
+            elsif arg.type
+              var_type = arg.type.stringify.gsub(/^(::)?Godot::/, "")
+            else
+              var_type = "Variant"
+            end
+          %}
           when "{{var_name.id}}"
             {% if var_type == "Float32" %}
               self.{{var_name.id}} = val_ptr.as(Float64*).value.to_f32
@@ -1165,7 +1635,11 @@ macro node(decl, &block)
         {% end %}
       {% end %}
       else
-        super
+        {% if is_reopen %}
+          previous_def
+        {% else %}
+          super
+        {% end %}
       end
     end
 
@@ -1175,7 +1649,46 @@ macro node(decl, &block)
         {% if item[0] == :prop %}
           {% arg = item[1] %}
           {% var_name = arg.is_a?(Assign) ? arg.target : arg.var %}
-          {% var_type = arg.is_a?(Assign) ? "Callable" : (arg.type ? arg.type.stringify.gsub(/^(::)?Godot::/, "") : "Callable") %}
+          {%
+            if arg.is_a?(Assign)
+              val = arg.value
+              if val.is_a?(NumberLiteral)
+                k = val.kind.stringify
+                if k == ":f32" || k == "f32"
+                  var_type = "Float32"
+                elsif k.includes?("f") || val.stringify.includes?(".")
+                  var_type = "Float64"
+                elsif k.includes?("i64") || k.includes?("u64")
+                  var_type = "Int64"
+                else
+                  var_type = "Int32"
+                end
+              elsif val.is_a?(StringLiteral)
+                var_type = "String"
+              elsif val.is_a?(BoolLiteral)
+                var_type = "Bool"
+              elsif val.is_a?(Call)
+                rec = val.receiver ? val.receiver.stringify.gsub(/^(::)?Godot::/, "") : val.name.stringify.gsub(/^(::)?Godot::/, "")
+                if ["Vector2", "Vector2i", "Vector3", "Vector3i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis"].includes?(rec)
+                  var_type = rec
+                elsif ["Proc", "proc", "lambda", "Callable"].includes?(rec)
+                  var_type = "Callable"
+                else
+                  var_type = "Variant"
+                end
+              elsif val.is_a?(Path)
+                var_type = val.stringify.gsub(/^(::)?Godot::/, "")
+              elsif val.is_a?(ProcPointer) || val.is_a?(ProcLiteral)
+                var_type = "Callable"
+              else
+                var_type = "Variant"
+              end
+            elsif arg.type
+              var_type = arg.type.stringify.gsub(/^(::)?Godot::/, "")
+            else
+              var_type = "Variant"
+            end
+          %}
           when "{{var_name.id}}"
             {% if var_type == "Float32" || var_type == "Float64" %}
               ret_ptr.as(Float64*).value = self.{{var_name.id}}.to_f64
@@ -1205,7 +1718,11 @@ macro node(decl, &block)
         {% end %}
       {% end %}
       else
-        super
+        {% if is_reopen %}
+          previous_def
+        {% else %}
+          super
+        {% end %}
       end
     end
 
@@ -1222,39 +1739,11 @@ macro node(decl, &block)
         {% end %}
       {% end %}
       else
-        super
-      end
-    end
-
-    macro finished
-      def self._godot_module_properties : ::Array(::Godot::PropertyInfo)
-        props_list = ::Array(::Godot::PropertyInfo).new
-        \{% for anc in @type.ancestors %}
-          \{% if anc.resolve.methods.map(&.name.stringify).includes?("_godot_module_properties") %}
-            props_list.concat(\{{anc.resolve}}._godot_module_properties)
-          \{% end %}
-        \{% end %}
-        props_list
-      end
-
-      def self._godot_module_signals : ::Array(::Godot::SignalInfo)
-        sigs_list = ::Array(::Godot::SignalInfo).new
-        \{% for anc in @type.ancestors %}
-          \{% if anc.resolve.methods.map(&.name.stringify).includes?("_godot_module_signals") %}
-            sigs_list.concat(\{{anc.resolve}}._godot_module_signals)
-          \{% end %}
-        \{% end %}
-        sigs_list
-      end
-
-      def self._godot_module_constants : ::Array(::Godot::ConstantInfo)
-        consts_list = ::Array(::Godot::ConstantInfo).new
-        \{% for anc in @type.ancestors %}
-          \{% if anc.resolve.methods.map(&.name.stringify).includes?("_godot_module_constants") %}
-            consts_list.concat(\{{anc.resolve}}._godot_module_constants)
-          \{% end %}
-        \{% end %}
-        consts_list
+        {% if is_reopen %}
+          previous_def
+        {% else %}
+          super
+        {% end %}
       end
     end
   end
@@ -1311,7 +1800,46 @@ macro node(decl, &block)
       {% arg = item[1] %}
       {% anno = item[2] %}
       {% var_name = arg.is_a?(Assign) ? arg.target : arg.var %}
-      {% var_type = arg.is_a?(Assign) ? "Callable" : (arg.type ? arg.type.stringify.gsub(/^(::)?Godot::/, "") : "Callable") %}
+      {%
+        if arg.is_a?(Assign)
+          val = arg.value
+          if val.is_a?(NumberLiteral)
+            k = val.kind.stringify
+            if k == ":f32" || k == "f32"
+              var_type = "Float32"
+            elsif k.includes?("f") || val.stringify.includes?(".")
+              var_type = "Float64"
+            elsif k.includes?("i64") || k.includes?("u64")
+              var_type = "Int64"
+            else
+              var_type = "Int32"
+            end
+          elsif val.is_a?(StringLiteral)
+            var_type = "String"
+          elsif val.is_a?(BoolLiteral)
+            var_type = "Bool"
+          elsif val.is_a?(Call)
+            rec = val.receiver ? val.receiver.stringify.gsub(/^(::)?Godot::/, "") : val.name.stringify.gsub(/^(::)?Godot::/, "")
+            if ["Vector2", "Vector2i", "Vector3", "Vector3i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis"].includes?(rec)
+              var_type = rec
+            elsif ["Proc", "proc", "lambda", "Callable"].includes?(rec)
+              var_type = "Callable"
+            else
+              var_type = "Variant"
+            end
+          elsif val.is_a?(Path)
+            var_type = val.stringify.gsub(/^(::)?Godot::/, "")
+          elsif val.is_a?(ProcPointer) || val.is_a?(ProcLiteral)
+            var_type = "Callable"
+          else
+            var_type = "Variant"
+          end
+        elsif arg.type
+          var_type = arg.type.stringify.gsub(/^(::)?Godot::/, "")
+        else
+          var_type = "Variant"
+        end
+      %}
       {%
         vtype = 0
         hint = 0
@@ -1758,9 +2286,17 @@ macro node(decl, &block)
     signals_{{class_name}} << ::Godot::SignalInfo.new("{{sig_name.id}}", args_{{sig_name.id}})
   {% end %}
 
-  properties_{{class_name}}.concat({{class_name}}._godot_module_properties)
-  constants_{{class_name}}.concat({{class_name}}._godot_module_constants)
-  signals_{{class_name}}.concat({{class_name}}._godot_module_signals)
+  {% for inc in included_modules %}
+    {% if inc.resolve.methods.map(&.name.stringify).includes?("_godot_module_properties") %}
+      properties_{{class_name}}.concat({{inc}}._godot_module_properties)
+    {% end %}
+    {% if inc.resolve.methods.map(&.name.stringify).includes?("_godot_module_constants") %}
+      constants_{{class_name}}.concat({{inc}}._godot_module_constants)
+    {% end %}
+    {% if inc.resolve.methods.map(&.name.stringify).includes?("_godot_module_signals") %}
+      signals_{{class_name}}.concat({{inc}}._godot_module_signals)
+    {% end %}
+  {% end %}
 
   {% if script_path_override && !script_path_override.empty? %}
     script_path_{{class_name}} = {{script_path_override}}
@@ -1803,7 +2339,12 @@ macro node(decl, &block)
       {% end %}
       has_virtual_proc: ->(m : String) { {{class_name}}._godot_has_virtual_method(m) },
       constants: constants_{{class_name}},
-      script_path: script_path_{{class_name}}
+      script_path: script_path_{{class_name}},
+      is_autoload: {{is_autoload_class}},
+      autoload_name: {{autoload_name}},
+      autoload_singleton: {{autoload_singleton}},
+      autoload_mount_tree: {{autoload_mount_tree}},
+      set_autoload_proc: {% if is_autoload_class %} ->(obj : ::Godot::Object?) { {{class_name}}._godot_set_autoload_instance(obj) } {% else %} nil {% end %}
     )
   )
 
@@ -1829,7 +2370,46 @@ macro node(decl, &block)
         {% arg = item[1] %}
         {% p_doc = item[3] %}
         {% var_name = arg.is_a?(Assign) ? arg.target : arg.var %}
-        {% var_type = arg.is_a?(Assign) ? "Callable" : (arg.type ? arg.type.stringify.gsub(/^(::)?Godot::/, "") : "Callable") %}
+        {%
+          if arg.is_a?(Assign)
+            val = arg.value
+            if val.is_a?(NumberLiteral)
+              k = val.kind.stringify
+              if k == ":f32" || k == "f32"
+                var_type = "Float32"
+              elsif k.includes?("f") || val.stringify.includes?(".")
+                var_type = "Float64"
+              elsif k.includes?("i64") || k.includes?("u64")
+                var_type = "Int64"
+              else
+                var_type = "Int32"
+              end
+            elsif val.is_a?(StringLiteral)
+              var_type = "String"
+            elsif val.is_a?(BoolLiteral)
+              var_type = "Bool"
+            elsif val.is_a?(Call)
+              rec = val.receiver ? val.receiver.stringify.gsub(/^(::)?Godot::/, "") : val.name.stringify.gsub(/^(::)?Godot::/, "")
+              if ["Vector2", "Vector2i", "Vector3", "Vector3i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis"].includes?(rec)
+                var_type = rec
+              elsif ["Proc", "proc", "lambda", "Callable"].includes?(rec)
+                var_type = "Callable"
+              else
+                var_type = "Variant"
+              end
+            elsif val.is_a?(Path)
+              var_type = val.stringify.gsub(/^(::)?Godot::/, "")
+            elsif val.is_a?(ProcPointer) || val.is_a?(ProcLiteral)
+              var_type = "Callable"
+            else
+              var_type = "Variant"
+            end
+          elsif arg.type
+            var_type = arg.type.stringify.gsub(/^(::)?Godot::/, "")
+          else
+            var_type = "Variant"
+          end
+        %}
         {%
           gtype = "Variant"
           if var_type == "Float32" || var_type == "Float64"
@@ -1995,12 +2575,92 @@ end
 macro resource(decl, &block)
   {% if decl.is_a?(Call) && decl.name == "<" %}
     node {{decl}} do
-      {{yield}}
+      {{block.body}}
     end
   {% else %}
-    node {{decl}} < Resource do
-      {{yield}}
+    {% if decl.resolve? %}
+      node {{decl}} do
+        {{block.body}}
+      end
+    {% else %}
+      node {{decl}} < Resource do
+        {{block.body}}
+      end
+    {% end %}
+  {% end %}
+end
+
+# Declares a custom Resource strategy card.
+#
+# Custom Resources inheriting from Godot::Resource act as pluggable strategy objects
+# and data containers (e.g. inventory items, ability cards, weapon stats).
+#
+# ### Example:
+# ```crystal
+# resource_card WeaponCard < Resource do
+#   @[Export]
+#   property damage : Int32 = 50
+#   @[Export]
+#   property cooldown : Float32 = 1.0_f32
+#
+#   def use(target : CharacterBody2D) : Void
+#     # strategy implementation
+#   end
+# end
+# ```
+macro resource_card(decl)
+  resource_card {{decl}} do
+  end
+end
+
+macro resource_card(decl, &block)
+  {% if decl.is_a?(Call) && decl.name == "<" %}
+    node {{decl}} do
+      {{block.body}}
+
+      # Creates an independent deep clone of this resource card
+      def clone_card : self
+        dup_res = self.duplicate(true)
+        if alive = ::Godot::Bridge.find_alive_instance(dup_res.pointer)
+          if typed = alive.as?(self)
+            return typed
+          end
+        end
+        self.class.new(dup_res.pointer)
+      end
     end
+  {% else %}
+    {% if decl.resolve? %}
+      node {{decl}} do
+        {{block.body}}
+
+        # Creates an independent deep clone of this resource card
+        def clone_card : self
+          dup_res = self.duplicate(true)
+          if alive = ::Godot::Bridge.find_alive_instance(dup_res.pointer)
+            if typed = alive.as?(self)
+              return typed
+            end
+          end
+          self.class.new(dup_res.pointer)
+        end
+      end
+    {% else %}
+      node {{decl}} < Godot::Resource do
+        {{block.body}}
+
+        # Creates an independent deep clone of this resource card
+        def clone_card : self
+          dup_res = self.duplicate(true)
+          if alive = ::Godot::Bridge.find_alive_instance(dup_res.pointer)
+            if typed = alive.as?(self)
+              return typed
+            end
+          end
+          self.class.new(dup_res.pointer)
+        end
+      end
+    {% end %}
   {% end %}
 end
 
@@ -2027,9 +2687,15 @@ macro gdclass(decl, &block)
       {{yield}}
     end
   {% else %}
-    node {{decl}} < RefCounted do
-      {{yield}}
-    end
+    {% if decl.resolve? %}
+      node {{decl}} do
+        {{yield}}
+      end
+    {% else %}
+      node {{decl}} < RefCounted do
+        {{yield}}
+      end
+    {% end %}
   {% end %}
 end
 
@@ -2217,7 +2883,46 @@ macro gmodule(decl, &block)
           {% arg = item[1] %}
           {% anno = item[2] %}
           {% var_name = arg.is_a?(Assign) ? arg.target : arg.var %}
-          {% var_type = arg.is_a?(Assign) ? "Callable" : (arg.type ? arg.type.stringify.gsub(/^(::)?Godot::/, "") : "Callable") %}
+          {%
+            if arg.is_a?(Assign)
+              val = arg.value
+              if val.is_a?(NumberLiteral)
+                k = val.kind.stringify
+                if k == ":f32" || k == "f32"
+                  var_type = "Float32"
+                elsif k.includes?("f") || val.stringify.includes?(".")
+                  var_type = "Float64"
+                elsif k.includes?("i64") || k.includes?("u64")
+                  var_type = "Int64"
+                else
+                  var_type = "Int32"
+                end
+              elsif val.is_a?(StringLiteral)
+                var_type = "String"
+              elsif val.is_a?(BoolLiteral)
+                var_type = "Bool"
+              elsif val.is_a?(Call)
+                rec = val.receiver ? val.receiver.stringify.gsub(/^(::)?Godot::/, "") : val.name.stringify.gsub(/^(::)?Godot::/, "")
+                if ["Vector2", "Vector2i", "Vector3", "Vector3i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis"].includes?(rec)
+                  var_type = rec
+                elsif ["Proc", "proc", "lambda", "Callable"].includes?(rec)
+                  var_type = "Callable"
+                else
+                  var_type = "Variant"
+                end
+              elsif val.is_a?(Path)
+                var_type = val.stringify.gsub(/^(::)?Godot::/, "")
+              elsif val.is_a?(ProcPointer) || val.is_a?(ProcLiteral)
+                var_type = "Callable"
+              else
+                var_type = "Variant"
+              end
+            elsif arg.type
+              var_type = arg.type.stringify.gsub(/^(::)?Godot::/, "")
+            else
+              var_type = "Variant"
+            end
+          %}
           {%
             vtype = 0
             hint = 0
@@ -2458,7 +3163,46 @@ macro gmodule(decl, &block)
         {% if item[0] == :prop %}
           {% arg = item[1] %}
           {% var_name = arg.is_a?(Assign) ? arg.target : arg.var %}
-          {% var_type = arg.is_a?(Assign) ? "Callable" : (arg.type ? arg.type.stringify.gsub(/^(::)?Godot::/, "") : "Callable") %}
+          {%
+            if arg.is_a?(Assign)
+              val = arg.value
+              if val.is_a?(NumberLiteral)
+                k = val.kind.stringify
+                if k == ":f32" || k == "f32"
+                  var_type = "Float32"
+                elsif k.includes?("f") || val.stringify.includes?(".")
+                  var_type = "Float64"
+                elsif k.includes?("i64") || k.includes?("u64")
+                  var_type = "Int64"
+                else
+                  var_type = "Int32"
+                end
+              elsif val.is_a?(StringLiteral)
+                var_type = "String"
+              elsif val.is_a?(BoolLiteral)
+                var_type = "Bool"
+              elsif val.is_a?(Call)
+                rec = val.receiver ? val.receiver.stringify.gsub(/^(::)?Godot::/, "") : val.name.stringify.gsub(/^(::)?Godot::/, "")
+                if ["Vector2", "Vector2i", "Vector3", "Vector3i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis"].includes?(rec)
+                  var_type = rec
+                elsif ["Proc", "proc", "lambda", "Callable"].includes?(rec)
+                  var_type = "Callable"
+                else
+                  var_type = "Variant"
+                end
+              elsif val.is_a?(Path)
+                var_type = val.stringify.gsub(/^(::)?Godot::/, "")
+              elsif val.is_a?(ProcPointer) || val.is_a?(ProcLiteral)
+                var_type = "Callable"
+              else
+                var_type = "Variant"
+              end
+            elsif arg.type
+              var_type = arg.type.stringify.gsub(/^(::)?Godot::/, "")
+            else
+              var_type = "Variant"
+            end
+          %}
           when "{{var_name.id}}"
             {% if var_type == "Float32" %}
               self.{{var_name.id}} = val_ptr.as(Float64*).value.to_f32
@@ -2503,7 +3247,46 @@ macro gmodule(decl, &block)
         {% if item[0] == :prop %}
           {% arg = item[1] %}
           {% var_name = arg.is_a?(Assign) ? arg.target : arg.var %}
-          {% var_type = arg.is_a?(Assign) ? "Callable" : (arg.type ? arg.type.stringify.gsub(/^(::)?Godot::/, "") : "Callable") %}
+          {%
+            if arg.is_a?(Assign)
+              val = arg.value
+              if val.is_a?(NumberLiteral)
+                k = val.kind.stringify
+                if k == ":f32" || k == "f32"
+                  var_type = "Float32"
+                elsif k.includes?("f") || val.stringify.includes?(".")
+                  var_type = "Float64"
+                elsif k.includes?("i64") || k.includes?("u64")
+                  var_type = "Int64"
+                else
+                  var_type = "Int32"
+                end
+              elsif val.is_a?(StringLiteral)
+                var_type = "String"
+              elsif val.is_a?(BoolLiteral)
+                var_type = "Bool"
+              elsif val.is_a?(Call)
+                rec = val.receiver ? val.receiver.stringify.gsub(/^(::)?Godot::/, "") : val.name.stringify.gsub(/^(::)?Godot::/, "")
+                if ["Vector2", "Vector2i", "Vector3", "Vector3i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis"].includes?(rec)
+                  var_type = rec
+                elsif ["Proc", "proc", "lambda", "Callable"].includes?(rec)
+                  var_type = "Callable"
+                else
+                  var_type = "Variant"
+                end
+              elsif val.is_a?(Path)
+                var_type = val.stringify.gsub(/^(::)?Godot::/, "")
+              elsif val.is_a?(ProcPointer) || val.is_a?(ProcLiteral)
+                var_type = "Callable"
+              else
+                var_type = "Variant"
+              end
+            elsif arg.type
+              var_type = arg.type.stringify.gsub(/^(::)?Godot::/, "")
+            else
+              var_type = "Variant"
+            end
+          %}
           when "{{var_name.id}}"
             {% if var_type == "Float32" || var_type == "Float64" %}
               ret_ptr.as(Float64*).value = self.{{var_name.id}}.to_f64
@@ -2568,4 +3351,15 @@ macro godot_module(decl)
   gmodule {{decl}} do
   end
 end
+
+macro finished
+  {% for klass in ::Godot::Object.all_subclasses %}
+    {% if klass.annotation(::GodotClass) %}
+      {% if klass.class.methods.map(&.name.stringify).includes?("_godot_auto_register_class") %}
+        {{klass}}._godot_auto_register_class
+      {% end %}
+    {% end %}
+  {% end %}
+end
+
 

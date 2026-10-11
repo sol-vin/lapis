@@ -169,6 +169,12 @@ test_suite "Scenes" do
   assert_not_nil player, "Instantiated node must cast to ComplexPlayer2D"
   assert_eq player.name, "HeroPlayer"
 
+  # Pipeline operator (>): Instantiates the scene directly typed
+  pipelined_player = scene > ComplexPlayer2D
+  assert_not_nil pipelined_player, "Pipeline operator (scene > Type) must instantiate typed node"
+  assert_eq pipelined_player.character_name, "Arthas"
+  pipelined_player.destroy
+
   # Verify values loaded from .tscn file
   assert_eq player.character_name, "Arthas"
   assert_approx_eq player.health, 250.0

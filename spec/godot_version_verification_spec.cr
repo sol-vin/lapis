@@ -53,12 +53,25 @@ puts "[Spec 3] Verifying version_matches? token matching..."
 
 # Matching cases
 matches = [
-  {"4.8-dev6", "4.8-dev6"},
-  {"4.8.dev6", "4.8-dev6"},
-  {"4.8.dev6.official.8898c2b3d", "4.8-dev6"},
-  {"4.8.dev6.custom_build", "4.8-dev6"},
-  {"4.8.dev6.official.8898c2b3d", "4.8.dev6"},
+  {"4.8-dev7", "4.8-dev7"},
+  {"4.8.dev7", "4.8-dev7"},
+  {"4.8.dev7.official.c971f93e7", "4.8-dev7"},
+  {"4.8.dev7.custom_build", "4.8-dev7"},
+  {"4.8.dev.gh.c971f93e7", "4.8-dev7"},
+  {"4.8.dev7.official.c971f93e7", "4.8.dev7"},
   {"4.3.stable.official", "4.3-stable"},
+  # Alpha stage matching
+  {"4.8.alpha1.official", "4.8-alpha1"},
+  {"4.8.alpha.gh.c971f93e7", "4.8-alpha1"},
+  # Beta stage matching
+  {"4.8.beta2.official", "4.8-beta2"},
+  {"4.8.beta.custom_build", "4.8-beta2"},
+  # RC stage matching
+  {"4.8.rc1.official", "4.8-rc1"},
+  {"4.8.rc.custom_build", "4.8-rc1"},
+  # Stable stage matching
+  {"4.8.stable.official", "4.8-stable"},
+  {"4.8.0.stable", "4.8.0-stable"},
 ]
 
 matches.each do |detected, expected|
@@ -66,15 +79,23 @@ matches.each do |detected, expected|
     abort "ERROR: Expected '#{detected}' to match '#{expected}', but version_matches? returned false!"
   end
 end
-puts "  ✓ Valid version combinations successfully match"
+puts "  ✓ Valid version combinations successfully match across all stages (dev, alpha, beta, rc, stable)"
 
 # Non-matching cases
 mismatches = [
-  {"4.8.dev5.official.8898c2b3d", "4.8-dev6"},
-  {"4.4.stable.official", "4.8-dev6"},
-  {"4.8.beta1.official", "4.8-dev6"},
-  {"3.5.3.stable", "4.8-dev6"},
-  {"4.8.rc1.official", "4.8-dev6"},
+  {"4.8.dev6.official.8898c2b3d", "4.8-dev7"},
+  {"4.8.dev5.official.8898c2b3d", "4.8-dev7"},
+  {"4.4.stable.official", "4.8-dev7"},
+  {"4.8.beta1.official", "4.8-dev7"},
+  {"3.5.3.stable", "4.8-dev7"},
+  {"4.8.rc1.official", "4.8-dev7"},
+  # Cross-stage and mismatching numbers
+  {"4.8.alpha1.official", "4.8-alpha2"},
+  {"4.8.beta1.official", "4.8-beta2"},
+  {"4.8.rc1.official", "4.8-rc2"},
+  {"4.8.alpha1.official", "4.8-beta1"},
+  {"4.8.beta1.official", "4.8-rc1"},
+  {"4.8.rc1.official", "4.8-stable"},
 ]
 
 mismatches.each do |detected, expected|
@@ -82,7 +103,7 @@ mismatches.each do |detected, expected|
     abort "ERROR: Expected '#{detected}' to NOT match '#{expected}', but version_matches? returned true!"
   end
 end
-puts "  ✓ Incompatible version combinations successfully rejected"
+puts "  ✓ Incompatible version combinations successfully rejected across all stages"
 
 # -------------------------------------------------------------
 # [Spec 4] C++ Bridge Header Generation (src/bridge/godot_version.h)

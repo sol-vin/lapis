@@ -28,5 +28,33 @@ module Godot
     def instantiate(as type : T.class, edit_state : Int64 = 0_i64) : T forall T
       instantiate_as(type, edit_state)
     end
+
+    # Instantiates the scene and attempts to cast directly to wrapper type T, returning nil on failure
+    def instantiate_as?(type : T.class, edit_state : Int64 = 0_i64) : T? forall T
+      return nil if @pointer.null?
+      node = instantiate(edit_state)
+      return nil if node.pointer.null?
+      if node.is_a?(T)
+        return node
+      elsif alive = Bridge.find_alive_instance(node.pointer)
+        if typed = alive.as?(T)
+          return typed
+        end
+      end
+      if Bridge.object_is_class(node.pointer, T.name.split("::").last)
+        return T.new(node.pointer)
+      end
+      nil
+    end
+
+    # Pipeline operator (>): Instantiates the scene directly typed as T (or T? returning nil on failure)
+    def >(type : T.class) : T forall T
+      {% if T.union? %}
+        {% non_nil = T.union_types.reject { |t| t == Nil }.first %}
+        instantiate_as?( {{non_nil}} )
+      {% else %}
+        instantiate_as(type)
+      {% end %}
+    end
   end
 end

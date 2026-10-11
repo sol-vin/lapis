@@ -83,11 +83,13 @@ static BridgeAPI g_bridge_api = {
     bridge_arg_to_string,
     bridge_arg_to_string_name,
     bridge_ret_dictionary_validate,
+    bridge_ret_dictionary_validate_ex,
     bridge_ret_dictionary_complete_code,
     bridge_ret_dictionary_lookup_code,
     bridge_ret_dictionary_complete_code_ex,
     bridge_ret_dictionary_lookup_code_ex,
     bridge_ret_dictionary_global_class,
+    bridge_ret_script_templates,
     bridge_placeholder_script_instance_create,
     bridge_text_edit_get_line,
     bridge_object_connect_signal,
@@ -117,7 +119,8 @@ static BridgeAPI g_bridge_api = {
     bridge_is_verbose,
     bridge_ret_signal_list,
     bridge_ret_property_list,
-    bridge_is_object_valid
+    bridge_is_object_valid,
+    bridge_editor_get_selected_node
 };
 
 // ==============================================================================
@@ -181,5 +184,9 @@ extern "C" {
     /** Returns hot reload status flag */
     GDE_EXPORT inline int crystal_bridge_is_reloading() {
         return bridge_is_reloading();
+    }
+    /** Retrieves selected Node from EditorInterface */
+    GDE_EXPORT inline GDExtensionObjectPtr crystal_editor_get_selected_node(GDExtensionObjectPtr ed_iface) {
+        return bridge_editor_get_selected_node(ed_iface);
     }
 }

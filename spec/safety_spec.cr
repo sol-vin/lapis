@@ -59,6 +59,23 @@ node SpecProcessPrecisionNode < Node do
   end
 end
 
+class SpecSafetyNode < Godot::Object
+  property destroyed_state : Bool = false
+  property position : Vector2 = Vector2.new(5.0, 10.0)
+
+  def destroyed? : Bool
+    @destroyed_state
+  end
+
+  def alive? : Bool
+    !@destroyed_state
+  end
+
+  def destroy
+    @destroyed_state = true
+  end
+end
+
 describe "LibGodot Safety, GC Retention & Dynamic Scaling" do
   describe "Boehm GC Lifetime & Bridge Instance Tracking" do
     it "retains Crystal node instances across GC stress collections" do
@@ -181,5 +198,49 @@ describe "LibGodot Safety, GC Retention & Dynamic Scaling" do
       Godot::Input.is_action_just_released("ui_accept").should be_false
       Godot::Input.get_vector("left", "right", "up", "down").should eq(Vector2::ZERO)
     end
+
+    it "respects dead godot objects and nil in try? and if_alive" do
+      # 1. Alive object
+      alive_node = SpecSafetyNode.new
+      alive_node.position = Vector2.new(5.0, 10.0)
+
+      alive_node.try?(&.position.x).should eq(5.0_f32)
+      alive_node.try?.should_not be_nil
+      alive_node.if_alive.should_not be_nil
+
+      # 2. Dead / destroyed object
+      dead_node = SpecSafetyNode.new
+      dead_node.destroy
+
+      dead_node.try?(&.position.x).should be_nil
+      dead_node.try?.should be_nil
+      dead_node.if_alive.should be_nil
+
+      # 3. Nil target
+      nil_node : SpecSafetyNode? = nil
+      nil_node.try?(&.position.x).should be_nil
+      nil_node.try?.should be_nil
+      nil_node.if_alive.should be_nil
+
+      # 4. Union target holding alive node
+      union_alive : SpecSafetyNode? = alive_node
+      union_alive.try?(&.position.x).should eq(5.0_f32)
+      union_alive.try?.should_not be_nil
+      union_alive.if_alive.should_not be_nil
+
+      # 5. Union target holding dead node
+      union_dead : SpecSafetyNode? = dead_node
+      union_dead.try?(&.position.x).should be_nil
+      union_dead.try?.should be_nil
+      union_dead.if_alive.should be_nil
+
+      # 6. Null-pointer uninitialized wrapper
+      null_wrapper = Godot::Node2D.new
+      null_wrapper.alive?.should be_false
+      null_wrapper.try?(&.position.x).should be_nil
+      null_wrapper.try?.should be_nil
+      null_wrapper.if_alive.should be_nil
+    end
   end
 end
+

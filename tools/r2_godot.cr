@@ -31,6 +31,9 @@ module Lapis
                end
 
       plugin = R2GodotPlugin.new(client)
+      router = Cradare2::Plugin::Router.new(client)
+      router.mount("godot", plugin.godot_dispatcher)
+      router.mount("lapis", plugin.lapis_dispatcher)
 
       # Strip target flags from arguments
       cmd_args = args.reject { |a| a.ends_with?(".dll") || a.ends_with?(".exe") }
@@ -38,15 +41,15 @@ module Lapis
       if cmd_args.empty?
         # Run interactive pipe server loop if on pipe
         if in_session
-          Cradare2::Plugin::Server.run(plugin.godot_dispatcher)
+          Cradare2::Plugin::Server.run(router)
         else
-          puts plugin.dispatch("godot detect")
+          puts router.dispatch("godot detect")
           puts
-          puts plugin.dispatch("lapis info")
+          puts router.dispatch("lapis info")
         end
       else
         cmd_line = cmd_args.join(" ")
-        output = plugin.dispatch(cmd_line)
+        output = router.dispatch(cmd_line)
         puts output
       end
     rescue ex

@@ -32,13 +32,42 @@ sections:
       ```
 
       #### Common Options:
-      | Option | Shorthand | Description |
-      | :--- | :--- | :--- |
-      | `--release` | `-r` | Compiles with `--release -O3` optimizations and strips debug symbols |
-      | `--single-module` | `-m` | Compiles via a single LLVM module for maximum cross-module optimization |
-      | `--clean` | `-c` | Removes previous build artifacts before compiling |
-      | `--threads=N` | | Sets the number of parallel Crystal compilation threads |
-      | `--error-trace` | | Prints full exception backtraces on compilation errors |
+      <table>
+        <thead>
+          <tr>
+            <th>Option</th>
+            <th>Shorthand</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>--release</code></td>
+            <td><code>-r</code></td>
+            <td>Compiles with <code>--release -O3</code> optimizations and strips debug symbols</td>
+          </tr>
+          <tr>
+            <td><code>--single-module</code></td>
+            <td><code>-m</code></td>
+            <td>Compiles via a single LLVM module for maximum cross-module optimization</td>
+          </tr>
+          <tr>
+            <td><code>--clean</code></td>
+            <td><code>-c</code></td>
+            <td>Removes previous build artifacts before compiling</td>
+          </tr>
+          <tr>
+            <td><code>--threads=N</code></td>
+            <td></td>
+            <td>Sets the number of parallel Crystal compilation threads</td>
+          </tr>
+          <tr>
+            <td><code>--error-trace</code></td>
+            <td></td>
+            <td>Prints full exception backtraces on compilation errors</td>
+          </tr>
+        </tbody>
+      </table>
 
       #### Examples:
       ```bash

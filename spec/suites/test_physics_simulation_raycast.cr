@@ -129,4 +129,37 @@ end
   rb.destroy
 end
 
+  test "PhysicsDirectSpaceState3D non-allocating raycast and motion queries into pre-allocated result objects" do
+    ray_query = Godot.create(Godot::PhysicsRayQueryParameters3D)
+    ray_query.set_from(Godot::Vector3.new(0.0, 10.0, 0.0))
+    ray_query.set_to(Godot::Vector3.new(0.0, -10.0, 0.0))
+
+    ray_result = Godot.create(Godot::PhysicsIntersectRayResult3D)
+    assert_not_nil ray_result
+
+    # Space state query using pre-allocated result
+    space_rid = Godot::PhysicsServer3D.instance.space_create
+    space_3d = Godot::PhysicsServer3D.instance.space_get_direct_state(space_rid)
+    if space_3d
+      hit = space_3d.intersect_ray_into(ray_query, ray_result)
+      assert_false hit # Empty test space has no colliders
+    end
+    Godot::PhysicsServer3D.instance.free_rid(space_rid)
+
+    motion_result = Godot.create(Godot::PhysicsCastMotionResult3D)
+    assert_not_nil motion_result
+  end
+
+  test "PhysicsDirectSpaceState2D non-allocating raycast and motion queries into pre-allocated result objects" do
+    ray_query_2d = Godot.create(Godot::PhysicsRayQueryParameters2D)
+    ray_query_2d.set_from(Godot::Vector2.new(0.0, 0.0))
+    ray_query_2d.set_to(Godot::Vector2.new(100.0, 100.0))
+
+    ray_result_2d = Godot.create(Godot::PhysicsIntersectRayResult2D)
+    assert_not_nil ray_result_2d
+
+    motion_result_2d = Godot.create(Godot::PhysicsCastMotionResult2D)
+    assert_not_nil motion_result_2d
+  end
+
 end

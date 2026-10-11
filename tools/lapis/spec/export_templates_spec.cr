@@ -22,7 +22,8 @@ describe Lapis::Commands::ExportTemplates do
   end
 
   it "executes cmd_status without errors" do
-    res = Lapis::Commands::ExportTemplates.cmd_status("4.3.stable")
+    ver = Lapis::Commands::ExportTemplates.target_godot_version
+    res = Lapis::Commands::ExportTemplates.cmd_status(ver)
     res.should eq(0)
   end
 end

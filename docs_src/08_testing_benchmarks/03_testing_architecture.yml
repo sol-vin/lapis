@@ -1,0 +1,377 @@
+id: "C_TESTING_ARCHITECTURE"
+parent_module: "Lapis::Docs::H_TESTING_AND_BENCHMARKS"
+title: "Exhaustive Multi-Tier Test Suite Inventory & Phase Guide"
+summary: "Comprehensive directory of all 6 test phases, 84 modular runtime suites, 70 engine specs, 19 CLI specs, in-editor tool runners, and zero-leak invariants."
+overview: |
+  Comprehensive architectural inventory and reference manual for Lapis's multi-tier test infrastructure,
+  spanning 1,260+ asserted test blocks across 6 execution phases, headless compiler specs, in-editor tool runners,
+  standalone binary hosts, 84 modular runtime suites, and quantitative zero-leak verification.
+related_sources:
+  - "**Test Harness & Runner**: `src/libgodot/testing.cr`"
+  - "**CLI Test Command**: `tools/lapis/src/commands/test.cr`"
+  - "**Root Host Entry & Registry**: `src/main.cr`"
+  - "**Runtime Test Suites**: `spec/suites/`"
+  - "**Unit & Architectural Specs**: `spec/`"
+
+sections:
+  - id: "topic_00_inventory_metrics"
+    title: "Global Test Infrastructure Metrics"
+    summary: "High-level summary of total asserted tests, modular suites, spec files, and verification phases."
+    type: "Array(String)"
+    return_value:
+      - "Total Asserted Test Blocks: 1,260+ tests"
+      - "Engine & Core Bindings Specs: 70 files (498 it-blocks)"
+      - "Toolchain & CLI Specs: 19 files (217 it-blocks)"
+      - "Modular In-Engine Test Suites: 84 suites across 51 categories (536 test-blocks)"
+      - "External Ecosystem Specs: 3 files (9 it-blocks)"
+      - "In-Editor Tool Testers: ToolTester2D and ToolTester3D"
+      - "Standalone Host Runners: Regular (tests.exe) and Portable Embedded GDPC (tests_portable.exe)"
+      - "Verification Execution Phases: 6 distinct tiers (0 through 6)"
+
+  - id: "topic_01_phases_architecture"
+    title: "The Six-Phase Verification Pipeline"
+    summary: "Detailed overview of the 6 execution phases from pre-flight checks to multi-addon smoke testing."
+    content: |
+      Lapis organizes all testing into a strict 6-phase pipeline ensuring that syntax, binding generation,
+      memory safety, editor tooling, standalone binary embedding, and real-time physics simulation are verified:
+
+      <table>
+        <thead>
+          <tr>
+            <th>Phase</th>
+            <th>Name & Scope</th>
+            <th>Execution Command</th>
+            <th>Verification Criteria</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Phase 0</strong></td>
+            <td><strong>Pre-Flight & Prerequisites</strong></td>
+            <td><code>crystal run tools/update_skill_tocs.cr -- --check</code><br/><code>lapis deps && lapis sync</code></td>
+            <td>Toolchain discovery, TOC line-number parity, runtime DLL synchronization</td>
+          </tr>
+          <tr>
+            <td><strong>Phase 1</strong></td>
+            <td><strong>Crystal Unit Specifications</strong></td>
+            <td><code>crystal spec spec tools/lapis/spec</code></td>
+            <td>Language-level bindings, AST macros, CLI argument parsing, radare2 crash forensics</td>
+          </tr>
+          <tr>
+            <td><strong>Phase 2</strong></td>
+            <td><strong>Headless In-Editor @tool Tests</strong></td>
+            <td><code>godot.exe --headless --editor --path . --quit-after 10000</code></td>
+            <td>In-editor scene tree manipulation, @tool buttons, live reload, clean shutdown (0 string leaks)</td>
+          </tr>
+          <tr>
+            <td><strong>Phase 3</strong></td>
+            <td><strong>Standalone Binary Host Runners</strong></td>
+            <td><code>tests.exe --headless --quit-after 600 -- --autorun</code></td>
+            <td>Embedded LibGodot host paradigm; standalone executable with regular and embedded GDPC PCK</td>
+          </tr>
+          <tr>
+            <td><strong>Phase 4</strong></td>
+            <td><strong>In-Project Runtime Test Runner</strong></td>
+            <td><code>godot.exe --headless --path . --quit-after 600 -- --autorun</code></td>
+            <td>84 modular test suites executed in main_test_runner.tscn with quantitative zero-leak verification</td>
+          </tr>
+          <tr>
+            <td><strong>Phase 5</strong></td>
+            <td><strong>Benchmarks & Stress Suites</strong></td>
+            <td><code>make benchmarks-run</code><br/><code>make perf_run</code></td>
+            <td>Crystal vs GDScript 1-to-1 shootouts and 10,000+ entity stress benchmarking</td>
+          </tr>
+          <tr>
+            <td><strong>Phase 6</strong></td>
+            <td><strong>Addon Isolation & Consumer Smoke</strong></td>
+            <td><code>powershell -File scripts/verify_editor.ps1 -Path template</code></td>
+            <td>ClassDB multi-addon conflict isolation and template/example project smoke launches</td>
+          </tr>
+        </tbody>
+      </table>
+
+  - id: "topic_02_crystal_specifications"
+    title: "Crystal Specifications Breakdown"
+    summary: "Overview of the 70 engine unit specs, 19 CLI toolchain specs, and radare2 crash forensics specs."
+    content: |
+      Phase 1 executes headless Crystal specs validating binding mechanics, type marshaling, and CLI tools:
+
+      #### Phase 1a: Engine & Core Bindings Specs (spec/ - 70 files, 498 tests)
+      - `core_spec.cr`: Core Variant type conversions, StringName allocations, ObjectDB class lookups.
+      - `math_spec.cr`: Vector2, Vector3, Vector4, Transform2D, Transform3D, Basis, Quaternion, Color math.
+      - `features_spec.cr`: DSL syntax: node, @[Export], custom getters/setters, default values, signals.
+      - `safety_spec.cr`: Dead pointer protection, #check_alive!, DisposedObjectError enforcement.
+      - `safety_and_bindings_spec.cr`: Boehm GC lifetime retention, dynamic scaling (220+ properties), 10+ signal args.
+      - `scene_pipeline_spec.cr`: Typed instantiation via > operator, fluent .configure chaining.
+      - `signal_operators_spec.cr`: First-class signal operators (+=, -=, >>, >, <<).
+      - `concurrency_spec.cr`: Cooperative fibers, Fiber.yield, non-blocking channels, mutex contention.
+      - `thread_safety_spec.cr`: ThreadAffinityError when mutating SceneTree from background OS threads.
+      - `match_spec.cr`: Polymorphic pattern matching over Variant instances and downcasting.
+
+      #### Phase 1b: Lapis Toolchain & CLI Specs (tools/lapis/spec/ - 19 files, 217 tests)
+      - `cli_spec.cr` & `commands_spec.cr`: Argument parsing, subcommand dispatches, flag normalization.
+      - `standalone_spec.cr`: Standalone game compilation, CRT linking, runtime DLL synchronization.
+      - `tui_spec.cr` & `tui_views_spec.cr`: Double-buffered ANSI terminal user interface and split views.
+      - `analyze_spec.cr`: Binary auditing with radare2, ASLR/DEP hardening checks, symbol budgeting.
+      - `export_templates_spec.cr`: Automated Godot export template downloading and checksum verification.
+
+      #### Phase 1d: Debugger & Crash Forensics Specs (17 files)
+      - `crash_handler_spec.cr`: Windows SEH / Unix SIGSEGV interception and crash dump writing.
+      - `plugin_forensics_spec.cr`: Automated register extraction (RCX/RDI) and ObjectDB dead-pointer detection.
+      - `decompiler_spec.cr`: Disassembly into assembly (pdf) and pseudo-C (pdc) via radare2.
+
+      ```crystal
+      it "detects freed nodes and raises DisposedObjectError defensively" do
+        node = Godot.create(Godot::Node2D)
+        node_id = node.instance_id
+        node.alive?.should be_true
+
+        node.destroy
+        node.alive?.should be_false
+        node.destroyed?.should be_true
+
+        expect_raises(Godot::DisposedObjectError) do
+          node.set_position(Godot::Vector2.new(10.0_f32, 20.0_f32))
+        end
+      end
+      ```
+
+  - id: "topic_03_in_editor_tool_tests"
+    title: "Headless In-Editor Tool Tests"
+    summary: "Executing @tool scripts, live reload, and clean shutdown verification in headless Godot Editor."
+    content: |
+      Phase 2 boots the genuine Godot Editor in headless mode with `CRYSTAL_TOOL_TEST=1` and `GODOT_RUN_TOOL_TESTS=1`.
+
+      #### Key Components:
+      1. **ToolTester2D (`src/main.cr`)**:
+         Active `@tool` class derived from `Godot::Node2D`. Auto-executes `Registry.run_category("2D", self)`,
+         verifying 2D transform calculations, CanvasItem rendering, and in-editor tool buttons (`ExportToolButton`).
+         Outputs `.tool_tests_passed` and `junit_tool_2d.xml`.
+      2. **ToolTester3D (`src/main.cr`)**:
+         Active `@tool` class derived from `Godot::Node3D`. Auto-executes `Registry.run_category("3D", self)`,
+         verifying 3D transforms, MeshInstance3D generation, DirectionalLight3D, and Camera3D projections.
+         Outputs `junit_tool_3d.xml`.
+      3. **Editor Live Reload & Shadow DLL Loading (`spec/editor_reload_spec.cr`)**:
+         Tests the Windows shadow DLL loading cycle where modified game libraries are recompiled and hot-reloaded
+         via `crystal_bridge.cpp` while the editor remains open.
+      4. **Clean Shutdown Protocol (`scripts/verify_editor.ps1`)**:
+         Verifies that `ResourceFormatLoaderCrystal` handles `.cr` files as `Script` resources with zero loader errors,
+         and ensures upon exit that exactly ZERO `ERROR: BUG: Unreferenced static string to 0` errors occur.
+
+      ```crystal
+      @[Tool]
+      node ToolTester2D < Godot::Node2D do
+        @[ExportToolButton("▶ Run 2D Tool Tests")]
+        property run_tests_button = ->run_tool_tests
+
+        def _ready
+          if Godot.editor_hint?
+            Godot.print("[ToolTester2D] Editor detected. Auto-executing in-editor tests...")
+            run_tool_tests
+          end
+        end
+
+        def run_tool_tests
+          results = Registry.run_category("2D", self)
+          # ... asserts results and writes .tool_tests_passed ...
+        end
+      end
+      ```
+
+  - id: "topic_04_standalone_host_runners"
+    title: "Standalone Binary Host Runners"
+    summary: "Validating the pure LibGodot host paradigm with regular and portable embedded GDPC executables."
+    content: |
+      Phase 3 validates the **Standalone Host Execution Paradigm** (Mode B), where Crystal boots first and embeds
+      the Godot engine as a dynamic shared library (`libgodot.dll` / `libgodot.so`).
+
+      #### Phase 3a: Regular Standalone Runner (bin/tests.exe)
+      - Executed via: `tests.exe --headless --rendering-driver opengl3 --audio-driver Dummy --quit-after 600 -- --autorun`
+      - Accompanied by external `tests.pck` on disk.
+      - Proves that Crystal's CRT and Boehm GC cleanly bootstrap the Godot C-API and main loop.
+
+      #### Phase 3b: Portable Standalone Runner in Isolated Sandbox (bin/tests_portable.exe)
+      - The complete virtual filesystem `res://` is appended directly to the executable using Godot's GDPC format.
+      - Tested in an isolated sandbox directory (`scratch/test_portable_sandbox/`) containing NO `.pck` file on disk.
+      - Proves that portable standalone distributions unpack and execute completely self-contained without external assets.
+
+  - id: "topic_05_runtime_test_suites_inventory"
+    title: "Runtime Test Suites Comprehensive Inventory"
+    summary: "Exhaustive directory of all 84 modular runtime suites in spec/suites/ across 14 engine subsystems."
+    content: |
+      Phase 4 executes `scenes/main_test_runner.tscn`, running all **84 modular suites** (536+ test cases):
+
+      <table>
+        <thead>
+          <tr>
+            <th>Subsystem</th>
+            <th>Suites Count</th>
+            <th>Representative Suites</th>
+            <th>Scope & Invariants Tested</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>1. Core & Built-ins</strong></td>
+            <td>7 suites</td>
+            <td><code>test_core_builtins.cr</code>, <code>test_2d_nodes.cr</code>, <code>test_3d_nodes.cr</code>, <code>test_control_nodes.cr</code>, <code>test_scale_stress.cr</code></td>
+            <td>Vector2/3/4 math, transforms, Node2D/3D hierarchies, GUI containers, 5,000-node stress allocation.</td>
+          </tr>
+          <tr>
+            <td><strong>2. Graphics & Shaders</strong></td>
+            <td>5 suites</td>
+            <td><code>test_meshes_materials.cr</code>, <code>test_shaders_compilation.cr</code>, <code>test_geometry_surfacetool.cr</code></td>
+            <td>Procedural SurfaceTool meshes, custom GLSL shader compilation, materials, Viewport textures.</td>
+          </tr>
+          <tr>
+            <td><strong>3. Physics & Collision</strong></td>
+            <td>6 suites</td>
+            <td><code>test_physics_multiframe_pit_settling.cr</code>, <code>test_physics_cube_stack_stability.cr</code>, <code>test_physics_raycast_builder.cr</code></td>
+            <td>200-ball falling pit settling over 60 frames, 10-tier cube stack stability, fluent raycasting DSL.</td>
+          </tr>
+          <tr>
+            <td><strong>4. Audio & Tweens</strong></td>
+            <td>4 suites</td>
+            <td><code>test_audio_animation.cr</code>, <code>test_tween_dsl.cr</code>, <code>test_tweens_animation.cr</code></td>
+            <td>16-pillar fluent tween stepping DSL, AudioServer bus routing, AnimationPlayer keyframing.</td>
+          </tr>
+          <tr>
+            <td><strong>5. Resources & Scenes</strong></td>
+            <td>5 suites</td>
+            <td><code>test_resources_utilities.cr</code>, <code>test_scenes_persistence.cr</code>, <code>test_resource_card_lifecycle.cr</code></td>
+            <td>PackedScene serialization, custom Resource cards, ConfigFile encryption, reference counting.</td>
+          </tr>
+          <tr>
+            <td><strong>6. Memory & Safety</strong></td>
+            <td>5 suites</td>
+            <td><code>test_dead_pointer_safety.cr</code>, <code>test_lifecycle_destruction.cr</code>, <code>test_destruction_and_threads_multiframe.cr</code></td>
+            <td>Multi-wrapper aliasing dead-pointer traps, queue_free vs destroy, 50-node multi-frame cascade.</td>
+          </tr>
+          <tr>
+            <td><strong>7. Concurrency & Fibers</strong></td>
+            <td>6 suites</td>
+            <td><code>test_concurrency.cr</code>, <code>test_concurrency_actor_channel.cr</code>, <code>test_thread_safety_enforcement.cr</code></td>
+            <td>Cooperative fibers yielding across frames, Actor Pattern worker channels, thread affinity gates.</td>
+          </tr>
+          <tr>
+            <td><strong>8. Signals & Events</strong></td>
+            <td>5 suites</td>
+            <td><code>test_callable_signals_advanced.cr</code>, <code>test_signal_safety_multiframe.cr</code>, <code>test_signal_bus_advanced.cr</code></td>
+            <td>Custom Callables, dead listener auto-pruning, global decoupled signal buses, priority propagation.</td>
+          </tr>
+          <tr>
+            <td><strong>9. ClassDB & Reflection</strong></td>
+            <td>6 suites</td>
+            <td><code>test_classdb_coverage.cr</code>, <code>test_macros_dsl.cr</code>, <code>test_dsl_edge_cases_and_leaks.cr</code></td>
+            <td>ClassDB method table reflection, AST macro expansion, onready? lazy binding, dynamic properties.</td>
+          </tr>
+          <tr>
+            <td><strong>10. GDScript Interop</strong></td>
+            <td>4 suites</td>
+            <td><code>test_gdscript_channel_signal_interop.cr</code>, <code>test_gdscript_inheritance_polymorphism.cr</code></td>
+            <td>GDScript signals unboxing to Crystal channels, GDScript classes inheriting from Crystal nodes.</td>
+          </tr>
+          <tr>
+            <td><strong>11. Toolchain & Addons</strong></td>
+            <td>10 suites</td>
+            <td><code>test_multi_addon_isolation.cr</code>, <code>test_editor_plugins_comprehensive.cr</code>, <code>test_script_first_class.cr</code></td>
+            <td>5-addon ClassDB conflict isolation, EditorPlugin dock lifecycle, CrystalScript engine resource.</td>
+          </tr>
+          <tr>
+            <td><strong>12. Deep Bindings & Servers</strong></td>
+            <td>5 suites</td>
+            <td><code>test_packed_arrays_containers.cr</code>, <code>test_variant_math_deep.cr</code>, <code>test_servers_low_level_rid.cr</code></td>
+            <td>Contiguous PackedArrays, 38-variant math operators, low-level RenderingServer RID handles.</td>
+          </tr>
+          <tr>
+            <td><strong>13. Procedural & Navigation</strong></td>
+            <td>3 suites</td>
+            <td><code>test_noise_procedural_generation.cr</code>, <code>test_astar_navigation.cr</code>, <code>test_image_pixel_buffer.cr</code></td>
+            <td>FastNoiseLite fractal octaves, AStar2D/3D weighted pathfinding, raw RGBA8 image pixel buffers.</td>
+          </tr>
+          <tr>
+            <td><strong>14. Gameplay & Architecture</strong></td>
+            <td>13 suites</td>
+            <td><code>test_fsm_dsl.cr</code>, <code>test_hsm_pushdown_automata.cr</code>, <code>test_node_pool_stress.cr</code>, <code>test_combat_scenario.cr</code></td>
+            <td>Hierarchical State Machines, zero-allocation 1,000-bullet pooling, real-time combat simulation.</td>
+          </tr>
+        </tbody>
+      </table>
+
+  - id: "topic_06_quantitative_zero_leak_verification"
+    title: "Quantitative Zero Memory Leak Verification"
+    summary: "Mathematical leak verification using Godot Performance monitors and Boehm GC."
+    content: |
+      Memory leaks are fatal in native game development. Lapis enforces quantitative zero-leak verification
+      via `Lapis::Test.assert_no_leak`, leveraging Godot's internal engine performance monitors:
+
+      ```crystal
+      def assert_no_leak(max_delta_objects : Int32 = 0, name : String = "Operation", &block)
+        5.times { Fiber.yield }
+        GC.collect
+
+        perf = Godot.performance
+        initial_objects = perf.get_monitor(Godot::Performance::Monitor::ObjectCount).to_i64
+        initial_nodes   = perf.get_monitor(Godot::Performance::Monitor::ObjectNodeCount).to_i64
+
+        yield
+
+        5.times { Fiber.yield }
+        GC.collect
+
+        final_objects = perf.get_monitor(Godot::Performance::Monitor::ObjectCount).to_i64
+        final_nodes   = perf.get_monitor(Godot::Performance::Monitor::ObjectNodeCount).to_i64
+
+        delta_objects = (final_objects - initial_objects).abs
+        delta_nodes   = (final_nodes - initial_nodes).abs
+
+        assert_lte delta_objects, max_delta_objects, "#{name}: Object leak detected!"
+        assert_eq delta_nodes, 0, "#{name}: Node leak detected!"
+      end
+      ```
+
+  - id: "topic_07_developer_commands_and_cli"
+    title: "Developer Test Commands Reference"
+    summary: "Reference guide for invoking tests via Make and the Lapis CLI."
+    content: |
+      <table>
+        <thead>
+          <tr>
+            <th>Workflow</th>
+            <th>Command</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Full Test Suite</strong></td>
+            <td><code>make test</code> or <code>bin/lapis test</code></td>
+            <td>Executes Specs, Tool Tests, Standalone, and Runtime Project.</td>
+          </tr>
+          <tr>
+            <td><strong>Interactive TUI</strong></td>
+            <td><code>bin/lapis test --tui</code> (or <code>make test TUI=1</code>)</td>
+            <td>Launches double-buffered ANSI dashboard with live progress metrics.</td>
+          </tr>
+          <tr>
+            <td><strong>Crystal Specs Only</strong></td>
+            <td><code>make spec</code></td>
+            <td>Runs Phase 1a and Phase 1b unit specifications.</td>
+          </tr>
+          <tr>
+            <td><strong>Tool Tests Only</strong></td>
+            <td><code>crystal spec spec/editor_driver_spec.cr</code></td>
+            <td>Executes headless in-editor tool tests via EditorDriver.</td>
+          </tr>
+          <tr>
+            <td><strong>Filter by Category</strong></td>
+            <td><code>bin/lapis test -c "Concurrency"</code></td>
+            <td>Runs only runtime test suites in the specified category.</td>
+          </tr>
+          <tr>
+            <td><strong>Filter by Pattern</strong></td>
+            <td><code>bin/lapis test -f "Signal"</code></td>
+            <td>Runs only test cases whose names match the given regex pattern.</td>
+          </tr>
+        </tbody>
+      </table>

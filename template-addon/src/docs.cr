@@ -76,7 +76,4 @@ end
 
 require "./docs/a_getting_started/a_overview"
 require "./docs/a_getting_started/b_custom_nodes"
-
-alias Docs = ::MyAddon::Docs
-alias Godot::Docs = ::MyAddon::Docs
 {% end %}

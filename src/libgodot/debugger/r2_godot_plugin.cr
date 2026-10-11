@@ -358,18 +358,7 @@ module Lapis
 
       # Reads and validates Godot Object header at memory address.
       def self.read_object_header(client : Cradare2::Client, address : UInt64) : GodotObjectHeader
-        bytes = client.memory.read_bytes(address, 32)
-        return GodotObjectHeader.new(0_u64, 0_u64, is_alive: false) if bytes.size < 16
-
-        vtable = IO::ByteFormat::LittleEndian.decode(UInt64, bytes[0, 8])
-        instance_id = IO::ByteFormat::LittleEndian.decode(UInt64, bytes[8, 8])
-        user_data = bytes.size >= 24 ? IO::ByteFormat::LittleEndian.decode(UInt64, bytes[16, 8]) : 0_u64
-        user_data_type = bytes.size >= 32 ? IO::ByteFormat::LittleEndian.decode(UInt64, bytes[24, 8]) : 0_u64
-
-        # Validate monotonic 64-bit ID: Godot ObjectIDs start above 0 and monotonic
-        is_alive = instance_id > 0_u64 && instance_id < 0x7FFFFFFFFFFFFFFF_u64
-
-        GodotObjectHeader.new(vtable, instance_id, user_data, user_data_type, is_alive: is_alive)
+        Cradare2::Engine::Godot.read_object_header(client, address)
       end
 
       # Scans standard CPU registers for dead pointers.

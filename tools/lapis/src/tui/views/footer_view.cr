@@ -9,12 +9,15 @@ module Lapis
         def self.draw(canvas : Canvas, state : TestRunState, x : Int32, y : Int32, width : Int32) : Nil
           return if y < 0 || y >= canvas.height || width < 20
 
+          rec_label = state.recording? ? "\e[1;97;48;5;196m Ctrl+R \e[0m Stop Rec" : "\e[1;97;48;5;236m Ctrl+R \e[0m Record"
+          shot_label = "\e[1;97;48;5;236m Ctrl+S \e[0m Shot"
+
           hints = if state.searching
                     " \e[1;97;48;5;236m Type to search \e[0m  \e[1;97;48;5;236m Enter \e[0m Confirm  \e[1;97;48;5;236m Esc \e[0m Clear/Close "
                   elsif state.overall_status == OverallStatus::Running
-                    " \e[1;97;48;5;236m 1-5 \e[0m Tabs  \e[1;97;48;5;236m d \e[0m Duration  \e[1;97;48;5;236m c \e[0m Charts  \e[1;97;48;5;236m ↑↓ \e[0m Nav  \e[1;97;48;5;236m Enter \e[0m Inspect  \e[1;97;48;5;236m t \e[0m Theme  \e[1;97;48;5;236m o \e[0m Files  \e[1;97;48;5;236m x \e[0m FX  \e[1;97;48;5;236m f \e[0m Follow  \e[1;97;48;5;236m / \e[0m Search  \e[1;97;48;5;236m q \e[0m Abort  \e[1;97;48;5;236m ? \e[0m Help "
+                    " \e[1;97;48;5;236m 1-5 \e[0m Tabs  #{rec_label}  #{shot_label}  \e[1;97;48;5;236m d \e[0m Duration  \e[1;97;48;5;236m c \e[0m Charts  \e[1;97;48;5;236m ↑↓ \e[0m Nav  \e[1;97;48;5;236m Enter \e[0m Inspect  \e[1;97;48;5;236m t \e[0m Theme  \e[1;97;48;5;236m o \e[0m Files  \e[1;97;48;5;236m x \e[0m FX  \e[1;97;48;5;236m f \e[0m Follow  \e[1;97;48;5;236m / \e[0m Search  \e[1;97;48;5;236m q \e[0m Abort  \e[1;97;48;5;236m ? \e[0m Help "
                   else
-                    " \e[1;97;48;5;236m 1-5 \e[0m Tabs  \e[1;97;48;5;236m d \e[0m Duration  \e[1;97;48;5;236m c \e[0m Charts  \e[1;97;48;5;236m ↑↓ \e[0m Nav  \e[1;97;48;5;236m Enter \e[0m Inspect  \e[1;97;48;5;236m t \e[0m Theme  \e[1;97;48;5;236m o \e[0m Files  \e[1;97;48;5;236m x \e[0m FX  \e[1;97;48;5;236m f \e[0m Follow  \e[1;97;48;5;236m / \e[0m Search  \e[1;97;48;5;236m q \e[0m Exit  \e[1;97;48;5;236m ? \e[0m Help "
+                    " \e[1;97;48;5;236m 1-5 \e[0m Tabs  #{rec_label}  #{shot_label}  \e[1;97;48;5;236m d \e[0m Duration  \e[1;97;48;5;236m c \e[0m Charts  \e[1;97;48;5;236m ↑↓ \e[0m Nav  \e[1;97;48;5;236m Enter \e[0m Inspect  \e[1;97;48;5;236m t \e[0m Theme  \e[1;97;48;5;236m o \e[0m Files  \e[1;97;48;5;236m x \e[0m FX  \e[1;97;48;5;236m f \e[0m Follow  \e[1;97;48;5;236m / \e[0m Search  \e[1;97;48;5;236m q \e[0m Exit  \e[1;97;48;5;236m ? \e[0m Help "
                   end
 
           canvas.draw_text(x, y, hints, max_w: width - 25)

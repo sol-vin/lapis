@@ -89,39 +89,39 @@ module Lapis
         #   </thead>
         #   <tbody>
         #     <tr>
-        #       <td>**Crystal**</td>
+        #       <td><strong>Crystal</strong></td>
         #       <td>1.20.0 to 1.21.0</td>
         #       <td>Primary compiled gameplay language</td>
-        #       <td>[crystal-lang.org/install](https://crystal-lang.org/install/)</td>
+        #       <td><a href="https://crystal-lang.org/install/">crystal-lang.org/install</a></td>
         #     </tr>
         #     <tr>
-        #       <td>**Godot Engine**</td>
-        #       <td>4.8-dev6</td>
+        #       <td><strong>Godot Engine</strong></td>
+        #       <td>4.8-dev7</td>
         #       <td>Target game engine executable</td>
-        #       <td>[godotengine.org](https://godotengine.org)</td>
+        #       <td><a href="https://godotengine.org">godotengine.org</a></td>
         #     </tr>
         #     <tr>
-        #       <td>**C++ Compiler**</td>
+        #       <td><strong>C++ Compiler</strong></td>
         #       <td>MinGW-w64 g++ 15+ (Win) / clang (macOS)</td>
         #       <td>Compiles native GDExtension loader bridge</td>
         #       <td>Scoop / MSYS2 / Xcode</td>
         #     </tr>
         #     <tr>
-        #       <td>**GNU Make**</td>
+        #       <td><strong>GNU Make</strong></td>
         #       <td>4.4+</td>
-        #       <td>Workspace build & synchronization automation</td>
+        #       <td>Workspace build &amp; synchronization automation</td>
         #       <td>Scoop / apt / brew</td>
         #     </tr>
         #     <tr>
-        #       <td>**Git**</td>
+        #       <td><strong>Git</strong></td>
         #       <td>2.40+</td>
-        #       <td>Version control & shard package resolution</td>
-        #       <td>[git-scm.com](https://git-scm.com)</td>
+        #       <td>Version control &amp; shard package resolution</td>
+        #       <td><a href="https://git-scm.com">git-scm.com</a></td>
         #     </tr>
         #     <tr>
-        #       <td>**radare2**</td>
+        #       <td><strong>radare2</strong></td>
         #       <td>5.9.0+</td>
-        #       <td>Native multi-threaded debugger & decompiler (pdc)</td>
+        #       <td>Native multi-threaded debugger &amp; decompiler (pdc)</td>
         #       <td>Scoop / winget / apt / brew</td>
         #     </tr>
         #   </tbody>
@@ -216,7 +216,7 @@ module Lapis
         #
         # - **Warning**: Running with Crystal < 1.20.0 will cause compilation errors due to missing ExecutionContext APIs.
         # - **Warning**: Missing g++ on Windows: ensure MinGW-w64 is in your system PATH (test with `g++ --version`).
-        # - **Warning**: Godot binary mismatch: Lapis targets Godot 4.8-dev6; using 4.2 or 4.3 will trigger GDExtension ABI incompatibilities.
+        # - **Warning**: Godot binary mismatch: Lapis targets Godot 4.8-dev7; using 4.2 or 4.3 will trigger GDExtension ABI incompatibilities.
         #
         # #### Frequently Asked Questions (FAQ)
         #

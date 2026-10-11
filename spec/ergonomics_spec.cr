@@ -107,12 +107,12 @@ describe "LibGodot Ergonomic Options & Performance Regression Gates" do
       died_fired.should be_true
     end
 
-    it "Option 3: Synthesized type-safe method target.emit_signal_name(*args)" do
+    it "Option 3: Typed signal emission via target.score_updated.emit(*args)" do
       player = ErgonomicPlayer.new
       pts_received = 0
       player.score_updated.connect { |pts| pts_received = pts }
 
-      player.emit_score_updated(500)
+      player.score_updated.emit(500)
       pts_received.should eq(500)
     end
 
@@ -135,10 +135,10 @@ describe "LibGodot Ergonomic Options & Performance Regression Gates" do
       pts_received.should eq(1250)
     end
 
-    it "Option 6: Direct node event listener target.on_signal_name { ... }" do
+    it "Option 6: Declarative on macro listener on target.signal_name { ... }" do
       player = ErgonomicPlayer.new
       last_pts = 0
-      sub = player.on_score_updated do |pts|
+      sub = on player.score_updated do |pts|
         last_pts = pts
       end
 
@@ -149,10 +149,10 @@ describe "LibGodot Ergonomic Options & Performance Regression Gates" do
       sub.connected?.should be_true
     end
 
-    it "Option 7: One-shot node event listener target.on_signal_name_once { ... }" do
+    it "Option 7: One-shot node event listener target.signal_name.once { ... }" do
       player = ErgonomicPlayer.new
       trigger_count = 0
-      player.on_died_once do
+      player.died.once do
         trigger_count += 1
       end
 

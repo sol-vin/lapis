@@ -26,10 +26,10 @@ node DummyQuestEntity < Node2D do
 
   def advance_quest(delta_progress : Float64) : Float64
     @quest_progress = Math.min(1.0, @quest_progress + delta_progress)
-    emit_quest_advanced(@current_quest, @quest_progress)
+    quest_advanced.emit(@current_quest, @quest_progress)
 
     if @quest_progress >= 1.0
-      emit_quest_completed(@current_quest)
+      quest_completed.emit(@current_quest)
     end
 
     @quest_progress
@@ -50,7 +50,7 @@ node DummyQuestPlugin < EditorPlugin do
   signal quest_system_ready
 
   def _enter_tree : Void
-    emit_quest_system_ready
+    quest_system_ready.emit
     Godot.print("[DummyQuestPlugin] Initialized successfully in editor!")
   end
 

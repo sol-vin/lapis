@@ -15,16 +15,18 @@ module Lapis
         puts <<-HELP
 \e[35m=== Lapis: Environment & Toolchain Diagnostics ===\e[0m
 
-Usage: lapis doctor [options]
+Usage:
+  lapis doctor [options]
+  lapis doctor autofix
 
 Options:
-  -f, --fix             Automatically remediate detectable warnings & configuration gaps
+  autofix, -f, --fix    Automatically triage and remediate detectable warnings, missing tools & gaps
   -v, --verbose         Display extended diagnostic information
   -h, --help            Show this help screen
 
 Examples:
   lapis doctor
-  lapis doctor --fix
+  lapis doctor autofix
   lapis doctor --verbose
 HELP
       end
@@ -32,7 +34,7 @@ HELP
       # Runs comprehensive toolchain diagnostics and prints an actionable report.
       def self.run(args : Array(String)) : Int32
         verbose = args.includes?("-v") || args.includes?("--verbose")
-        fix = args.includes?("-f") || args.includes?("--fix")
+        fix = args.includes?("autofix") || args.includes?("--autofix") || args.includes?("-f") || args.includes?("--fix")
         if args.includes?("-h") || args.includes?("--help")
           print_help
           return 0
@@ -63,7 +65,7 @@ HELP
         # 2. Godot Engine Binary
         root = Core::Env::ROOT_DIR
         curr = Path.new(Dir.current).expand
-        target_dir = File.exists?(curr.join("project.godot")) ? curr : root
+        target_dir = Core::Env.find_project_dir(curr) || (File.exists?(curr.join("project.godot")) ? curr : root)
         expected_ver = Core::GodotFinder.expected_version(target_dir.to_s)
         godot_exe = Core::GodotFinder.resolve(nil, target_dir.to_s, filter_version: false)
 
@@ -211,8 +213,9 @@ HELP
         end
 
         # 8. Project Health Diagnostics (if inside a Godot project)
-        in_project = File.exists?(curr.join("project.godot")) || File.exists?(curr.join("src/main.cr"))
-        if in_project
+        proj = Core::Env.find_project_dir(curr) || (File.exists?(curr.join("project.godot")) || File.exists?(curr.join("src/main.cr")) ? curr : nil)
+        if proj
+          curr = proj
           proj_name = File.exists?(curr.join("project.godot")) ? "Godot project (#{curr.basename})" : "Crystal game project"
           issues = [] of String
 
@@ -295,6 +298,39 @@ HELP
           end
         end
 
+        # Apply triage autofixes for engine, runtime libraries, and dev tools if requested
+        if fix
+          # 1. Godot Engine auto-triage
+          if (godot_exe.nil? || !File.exists?(godot_exe.to_s))
+            Core::Logger.step("Doctor:Autofix", "Attempting automatic Godot engine resolution...")
+            if Commands::Setup.run(["--yes"]) == 0
+              remediations << "Downloaded and configured Godot engine binary"
+              has_critical_failure = false
+            end
+          end
+
+          # 2. Runtime libraries auto-triage
+          if missing_libs.size > 0
+            Core::Logger.step("Doctor:Autofix", "Restoring runtime libraries via 'lapis deps'...")
+            Commands::Deps.run(["-t", bin_dir.to_s]) rescue nil
+            remediations << "Restored missing runtime dependencies into bin/"
+          end
+
+          # 3. Missing build/debugger tools on Windows auto-triage
+          if Core::Env.windows?
+            if !Process.find_executable("make") && (choco = Process.find_executable("choco"))
+              Core::Logger.step("Doctor:Autofix", "Installing 'make' via Chocolatey...")
+              Core::ProcessRunner.run(choco, ["install", "make", "-y"])
+              remediations << "Installed make build tool"
+            end
+            if !Process.find_executable("radare2") && !Process.find_executable("r2") && (choco = Process.find_executable("choco"))
+              Core::Logger.step("Doctor:Autofix", "Installing 'radare2' via Chocolatey...")
+              Core::ProcessRunner.run(choco, ["install", "radare2", "-y"])
+              remediations << "Installed radare2 native debugger"
+            end
+          end
+        end
+
         # Print Formatted Report with Opal
         puts "\e[1mDiagnostic Results:\e[0m"
 
@@ -318,28 +354,47 @@ HELP
                            " [-] "
                          end
 
-          tip_str = item.tip || "Ready"
-          tbl.row([status_badge, item.name, item.detail, tip_str])
+          comp_str = case item.status
+                     when :pass then Opal.style.bold.fg(:green).render(item.name)
+                     when :warn then Opal.style.bold.fg(:yellow).render(item.name)
+                     when :fail then Opal.style.bold.fg(:red).render(item.name)
+                     else            item.name
+                     end
+
+          detail_str = case item.status
+                       when :pass then Opal.style.fg(:green).render(item.detail)
+                       when :warn then Opal.style.fg(:yellow).render(item.detail)
+                       when :fail then Opal.style.fg(:red).render(item.detail)
+                       else            item.detail
+                       end
+
+          tip_str = if t = item.tip
+                      case item.status
+                      when :warn then Opal.style.fg(:yellow).render(t)
+                      when :fail then Opal.style.bold.fg(:red).render(t)
+                      else            t
+                      end
+                    else
+                      Opal.style.fg(:green).render("Ready")
+                    end
+
+          tbl.row([status_badge, comp_str, detail_str, tip_str])
         end
 
         cols = begin
-          [Opal::Terminal.default_driver.size[0] - 2, 80].max
+          [Opal::Terminal.default_driver.size[0] - 2, 110].max
         rescue
-          100
+          110
         end
 
-        buffer = Opal::UI::Buffer.new(cols, items.size + 4)
-        tbl.render(buffer, 0, 0, cols, items.size + 4)
-        puts buffer.render_to_string
+        puts tbl.to_print_s(width: cols)
         puts
 
         pass_count = items.count { |i| i.status == :pass }
         ratio = items.empty? ? 1.0 : (pass_count.to_f64 / items.size.to_f64)
         gauge_color = has_critical_failure ? Opal::Color.red : (ratio < 1.0 ? Opal::Color.yellow : Opal::Color.green)
         gauge = Opal::UI::Gauge.new(ratio, label: "Toolchain Readiness: #{(ratio * 100).to_i}% (#{pass_count}/#{items.size})", color: gauge_color)
-        gauge_buf = Opal::UI::Buffer.new(Math.min(cols, 60), 2)
-        gauge.render(gauge_buf, 0, 0, Math.min(cols, 60), 2)
-        puts gauge_buf.render_to_string
+        puts gauge.to_print_s(width: Math.min(cols, 60))
         puts
 
         if fix && !remediations.empty?
@@ -348,8 +403,8 @@ HELP
             puts "  \e[32m✔\e[0m #{rem}"
           end
           puts
-        elsif !fix && items.any? { |i| i.status == :warn }
-          puts "\e[36mTip: Run 'lapis doctor --fix' to automatically resolve configuration gaps.\e[0m"
+        elsif !fix && items.any? { |i| i.status == :warn || i.status == :fail }
+          puts "\e[1;36m💡 Tip: Run 'lapis doctor autofix' to automatically triage and resolve environment issues.\e[0m"
           puts
         end
 

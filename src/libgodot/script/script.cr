@@ -478,14 +478,30 @@ module Lapis
           next
         end
 
-        # Exported property: @[Export...] property name : Type = default
-        if trimmed =~ /(?:@\[Export(?:\(([^\]]*)\))?\]\s*)?(?:property|getter|setter)\s+([A-Za-z0-9_]+)\s*:\s*([A-Za-z0-9_:]+)(?:\s*=\s*(.+))?/
+        # Exported property: @[Export...] property name [: Type] [= default]
+        if trimmed =~ /(?:@\[Export(?:\(([^\]]*)\))?\]\s*)?(?:property|getter|setter)\s+([A-Za-z0-9_]+)(?:\s*:\s*([A-Za-z0-9_:]+))?(?:\s*=\s*(.+))?/
           inline_args = $1?
           export_args = inline_args ? inline_args : pending_export_args
           pending_export_args = ""
           p_name = $2
-          p_type = $3.split("::").last
+          raw_type = $3?
           p_default = ($4? || "").strip
+
+          p_type = if raw_type && !raw_type.empty?
+            raw_type.split("::").last
+          elsif p_default.starts_with?("\"")
+            "String"
+          elsif p_default == "true" || p_default == "false"
+            "Bool"
+          elsif p_default =~ /^-?[0-9]+$/ || p_default =~ /^-?[0-9]+_[iIuU][0-9]+/
+            "Int32"
+          elsif p_default =~ /^-?[0-9]*\.[0-9]+/ || p_default =~ /^-?[0-9]+_[fF][0-9]+/
+            "Float64"
+          elsif p_default =~ /^(?:Godot::)?([A-Za-z0-9_]+)(?:\.new|\()/
+            $1.split("::").last
+          else
+            "Variant"
+          end
 
           v_type = variant_type_from_string(p_type)
           hint = 0
@@ -585,9 +601,11 @@ module Lapis
 
     def variant_type_from_string(type_str : String) : Int32
       case type_str
+      when "Nil", "Void"
+        0 # NIL
       when "Bool"
         1 # BOOL
-      when "Int32", "Int64", "Int", "UInt32", "UInt64"
+      when "Int32", "Int64", "Int", "UInt32", "UInt64", "Int8", "Int16", "UInt8", "UInt16"
         2 # INT
       when "Float32", "Float64", "Float"
         3 # FLOAT
@@ -599,26 +617,68 @@ module Lapis
         6 # VECTOR2I
       when "Rect2"
         7 # RECT2
+      when "Rect2i"
+        8 # RECT2I
       when "Vector3"
         9 # VECTOR3
       when "Vector3i"
         10 # VECTOR3I
       when "Transform2D"
         11 # TRANSFORM2D
+      when "Vector4"
+        12 # VECTOR4
+      when "Vector4i"
+        13 # VECTOR4I
       when "Plane"
-        13 # PLANE
+        14 # PLANE
       when "Quaternion"
-        14 # QUATERNION
+        15 # QUATERNION
       when "AABB"
-        15 # AABB
+        16 # AABB
       when "Basis"
-        16 # BASIS
+        17 # BASIS
       when "Transform3D"
-        17 # TRANSFORM3D
+        18 # TRANSFORM3D
+      when "Projection"
+        19 # PROJECTION
       when "Color"
         20 # COLOR
+      when "StringName"
+        21 # STRING_NAME
       when "NodePath"
         22 # NODE_PATH
+      when "RID"
+        23 # RID
+      when "Object"
+        24 # OBJECT
+      when "Callable", "Proc"
+        25 # CALLABLE
+      when "Signal"
+        26 # SIGNAL
+      when "Dictionary"
+        27 # DICTIONARY
+      when "Array"
+        28 # ARRAY
+      when "PackedByteArray"
+        29
+      when "PackedInt32Array"
+        30
+      when "PackedInt64Array"
+        31
+      when "PackedFloat32Array"
+        32
+      when "PackedFloat64Array"
+        33
+      when "PackedStringArray"
+        34
+      when "PackedVector2Array"
+        35
+      when "PackedVector3Array"
+        36
+      when "PackedColorArray"
+        37
+      when "PackedVector4Array"
+        38
       else
         24 # OBJECT
       end

@@ -33,12 +33,37 @@ sections:
       ```
 
       #### Options:
-      | Option | Shorthand | Description |
-      | :--- | :--- | :--- |
-      | `--release` | `-r` | Builds with release optimizations and strips debug symbols |
-      | `--embedded` | | Embeds game PCK data directly into the executable binary |
-      | `--output=DIR` | `-o` | Destination directory (default: `dist/`) |
-      | `--force` | `-f` | Overwrite existing distribution files |
+      <table>
+        <thead>
+          <tr>
+            <th>Option</th>
+            <th>Shorthand</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>--release</code></td>
+            <td><code>-r</code></td>
+            <td>Builds with release optimizations and strips debug symbols</td>
+          </tr>
+          <tr>
+            <td><code>--embedded</code></td>
+            <td></td>
+            <td>Embeds game PCK data directly into the executable binary</td>
+          </tr>
+          <tr>
+            <td><code>--output=DIR</code></td>
+            <td><code>-o</code></td>
+            <td>Destination directory (default: <code>dist/</code>)</td>
+          </tr>
+          <tr>
+            <td><code>--force</code></td>
+            <td><code>-f</code></td>
+            <td>Overwrite existing distribution files</td>
+          </tr>
+        </tbody>
+      </table>
 
   - id: "topic_02_windows_installer"
     title: "lapis package installer: Windows Setup"

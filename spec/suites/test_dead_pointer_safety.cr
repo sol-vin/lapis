@@ -136,4 +136,32 @@ end
   assert_eq disposed_count, 4, "All dynamic call variants must intercept dead pointers via check_alive!"
 end
 
+  test "try? and if_alive safely guard against dead pointers without raising DisposedObjectError" do
+    sprite = Godot.create(Godot::Sprite2D)
+    sprite.call("set_name", "AliveSprite")
+
+    # Alive object executes block
+    name = sprite.try?(&.call_str("get_name"))
+    assert_eq name, "AliveSprite"
+    assert_not_nil sprite.try?
+    assert_not_nil sprite.if_alive
+
+    # Destroy object
+    sprite.destroy
+    assert_false sprite.alive?
+
+    # Dead object returns nil without raising DisposedObjectError
+    dead_res = sprite.try?(&.call_str("get_name"))
+    assert_nil dead_res
+    assert_nil sprite.try?
+    assert_nil sprite.if_alive
+
+    # Nil object returns nil
+    nil_node : Godot::Sprite2D? = nil
+    assert_nil nil_node.try?(&.call_str("get_name"))
+    assert_nil nil_node.try?
+    assert_nil nil_node.if_alive
+  end
+
 end
+

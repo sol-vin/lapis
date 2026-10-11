@@ -206,6 +206,17 @@ annotation StaticUnload; end
 # Explicitly sets the source script path for editor script linking.
 annotation ScriptPath; end
 
+# Marks a node class as an Autoload singleton, automatically instantiating it,
+# registering it with Godot's Engine singleton registry, and mounting it to the SceneTree root.
+#
+# ```
+# @[Autoload]
+# node GameManager < Node do
+#   property score : Int32 = 0
+# end
+# ```
+annotation Autoload; end
+
 # Automatically initializes a node property when `_ready` is called by querying the scene tree.
 #
 # ```

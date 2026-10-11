@@ -111,23 +111,25 @@ HELP
           return 0
         end
 
-        puts sprintf("%-20s %-8s %-10s %-12s %-30s", "TEMPLATE NAME", "VERSION", "FILES", "UNCOMPRESSED", "DESCRIPTION")
-        puts "─" * 85
+        cols = [Opal::Terminal.default_driver.size[0] - 2, 85].max
+        tbl = Opal::UI::Table.new(
+          headers: ["Template Name", "Version", "Files", "Uncompressed", "Description"],
+          header_fg: :cyan
+        )
 
         templates.each do |tpl|
           size_str = format_bytes(tpl.uncompressed_bytes)
-          desc = tpl.description.size > 28 ? "#{tpl.description[0...25]}..." : tpl.description
-          puts sprintf(
-            "\e[1;96m%-20s\e[0m \e[37m%-8s\e[0m \e[33m%-10s\e[0m \e[32m%-12s\e[0m \e[38;5;250m%-30s\e[0m",
+          tbl.row([
             tpl.name,
             tpl.version,
             "#{tpl.file_count} files",
             size_str,
-            desc
-          )
+            tpl.description
+          ])
         end
-        puts "─" * 85
-        puts "Total: #{templates.size} template(s) available for 'lapis new game <name> --template <template_name>'\n"
+
+        puts tbl.to_print_s(width: cols)
+        puts "\nTotal: #{templates.size} template(s) available for 'lapis new game <name> --template <template_name>'\n"
         0
       end
 

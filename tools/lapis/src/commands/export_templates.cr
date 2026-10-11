@@ -49,14 +49,14 @@ Subcommands:
   verify               Verify checksums and executable headers of installed templates
 
 Options:
-  -v, --version=VER    Explicit Godot template version (e.g. '4.3.stable')
+  -v, --version=VER    Explicit Godot template version (e.g. '4.8.dev7')
   -h, --help           Show this help message
 
 Examples:
   lapis export-templates status
   lapis export-templates explain
   lapis export-templates install
-  lapis export-templates verify --version=4.3.stable
+  lapis export-templates verify --version=4.8.dev7
 HELP
       end
 

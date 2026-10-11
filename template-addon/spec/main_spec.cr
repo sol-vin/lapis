@@ -14,6 +14,12 @@ describe CrystalAddonBanner do
     props.should contain("message")
     props.should contain("text_color")
   end
+
+  it "declares banner_clicked signal" do
+    entry = Godot::ClassRegistry.find("CrystalAddonBanner")
+    sigs = entry.not_nil!.signals.map(&.name)
+    sigs.should contain("banner_clicked")
+  end
 end
 
 describe CrystalAddonPlugin do

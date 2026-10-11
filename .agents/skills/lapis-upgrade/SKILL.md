@@ -9,6 +9,51 @@ This operational skill governs the automated and manual procedures for executing
 
 ---
 
+## Table of Contents
+<table>
+  <thead>
+    <tr>
+      <th align="left">Section</th>
+      <th align="left">Description</th>
+      <th align="center">Lines</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><a href="#1-upgrade-command-matrix"><strong>1. Upgrade Command Matrix</strong></a></td>
+      <td><table></td>
+      <td align="center"><code>L57–L97</code></td>
+    </tr>
+    <tr>
+      <td><a href="#2-upgrade-godot-procedure"><strong>2. `/upgrade godot` Procedure</strong></a></td>
+      <td>When upgrading the Godot engine binary or when requested via /upgrade godot:</td>
+      <td align="center"><code>L98–L137</code></td>
+    </tr>
+    <tr>
+      <td><a href="#3-upgrade-cradare2-procedure"><strong>3. `/upgrade cradare2` Procedure</strong></a></td>
+      <td>When upgrading the Cradare2 Crystal shard or native Radare2 debugger:</td>
+      <td align="center"><code>L138–L180</code></td>
+    </tr>
+    <tr>
+      <td><a href="#4-upgrade-opal-procedure"><strong>4. `/upgrade opal` Procedure</strong></a></td>
+      <td>The Opal terminal toolkit (Documents/Github/opal) powers the interactive Lapis TUI dashboard, test runner,...</td>
+      <td align="center"><code>L181–L234</code></td>
+    </tr>
+    <tr>
+      <td><a href="#5-upgrade-lapis-procedure"><strong>5. `/upgrade lapis` Procedure</strong></a></td>
+      <td>When upgrading the core Lapis engine framework and toolchain:</td>
+      <td align="center"><code>L235–L277</code></td>
+    </tr>
+    <tr>
+      <td><a href="#6-post-upgrade-verification-checklist"><strong>6. Post-Upgrade Verification Checklist</strong></a></td>
+      <td>After running any upgrade procedure, ensure the following checklist is completed:</td>
+      <td align="center"><code>L278–L318</code></td>
+    </tr>
+  </tbody>
+</table>
+
+---
+
 ## 1. Upgrade Command Matrix
 
 <table>

@@ -77,7 +77,7 @@ module Godot
       @tab = tab
       tab
     rescue ex
-      Godot.print("[CrystalDebuggerPlugin] create_and_add_tab exception: #{ex.message}")
+      Godot.printerr("[CrystalDebuggerPlugin] create_and_add_tab exception: #{ex.message}")
       nil
     end
 

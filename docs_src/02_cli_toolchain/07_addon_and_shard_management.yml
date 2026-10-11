@@ -26,6 +26,9 @@ sections:
       To install a GDExtension addon into your Godot project:
 
       ```bash
+      # List installed addons and activation status:
+      lapis addon list
+
       # Install from GitHub repository:
       lapis addon install github:owner/repo
 
@@ -57,11 +60,14 @@ sections:
 
   - id: "topic_03_shard_management"
     title: "lapis shard: Managing Crystal Dependencies"
-    summary: "Adding, updating, and removing Crystal shard dependencies."
+    summary: "Listing, adding, removing, and pruning Crystal shard dependencies."
     content: |
       To manage standard Crystal packages in `shard.yml`:
 
       ```bash
+      # List declared dependencies and installation status:
+      lapis shard list
+
       # Add a GitHub dependency:
       lapis shard add github:crystal-community/compress
 
@@ -70,4 +76,7 @@ sections:
 
       # Remove a dependency:
       lapis shard remove compress
+
+      # Prune unreferenced libraries:
+      lapis shard prune
       ```

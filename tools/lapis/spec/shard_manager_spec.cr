@@ -370,5 +370,28 @@ YAML
       res.output.should contain("--bind")
       res.output.should contain("--path=DIR")
     end
+
+    it "lists dependencies via lapis shard list and lapis shard ls" do
+      res1 = LapisSpecHelper.run_lapis(["shard", "list"])
+      res1.success?.should be_true
+      res1.output.should contain("Crystal Shard Dependencies")
+
+      res2 = LapisSpecHelper.run_lapis(["shard", "ls"])
+      res2.success?.should be_true
+      res2.output.should contain("Crystal Shard Dependencies")
+    end
+
+    it "reads dependencies accurately using read_dependencies" do
+      root_shard = LapisSpecHelper.repo_root.join("shard.yml")
+      deps = Lapis::Commands::ShardManager.read_dependencies(root_shard)
+      deps.should be_a(Array(Lapis::Commands::ShardManager::ShardDepInfo))
+    end
+
+    it "rejects invalid shard subcommands with an error and exit code 1" do
+      res = LapisSpecHelper.run_lapis(["shard", "invalid_subcmd_xyz"])
+      res.success?.should be_false
+      res.exit_code.should eq(1)
+      res.all_output.should contain("Unknown shard subcommand: 'invalid_subcmd_xyz'")
+    end
   end
 end

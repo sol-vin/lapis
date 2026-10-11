@@ -461,7 +461,7 @@ module Lapis
         Dir.mkdir_p(dir_path) unless dir_path.empty? || dir_path == "."
 
         if !fs_path.empty? && Godot::SystemIO.write_file(fs_path, code)
-          Godot.print("[ResourceFormatSaverCrystal] Successfully saved #{path} (#{code.bytesize} bytes) -> #{fs_path}")
+          Godot.log_internal("ResourceFormat", "[ResourceFormatSaverCrystal] Successfully saved #{path} (#{code.bytesize} bytes) -> #{fs_path}")
           ret.as(Int64*).value = 0_i64 # OK
         else
           Godot.printerr("[ResourceFormatSaverCrystal] Failed to save #{path}")
