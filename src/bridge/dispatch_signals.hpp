@@ -2757,3 +2757,128 @@ inline GDExtensionObjectPtr bridge_editor_get_selected_node(GDExtensionObjectPtr
     return res_node;
 }
 
+/**
+ * Fast-path updates the internal pixel buffer of a Godot Image directly from raw bytes.
+ * Stack-allocates a temporary PackedByteArray, resizes it, copies pixels via direct pointer,
+ * and passes it to Image::set_data(width, height, mipmaps, format, pba).
+ */
+inline void bridge_image_update_buffer(GDExtensionObjectPtr p_image, int32_t width, int32_t height, uint8_t mipmaps, int32_t format, const uint8_t *pixels, int64_t len) {
+    if (!p_image || !pixels || len <= 0) return;
+
+    if (!mb_image_set_data && gd_classdb_get_method_bind) {
+        void *sn_image = make_string_name("Image");
+        void *sn_set_data = make_string_name("set_data");
+        mb_image_set_data = gd_classdb_get_method_bind(sn_image, sn_set_data, 2740482212ULL);
+        free_string_name(sn_image);
+        free_string_name(sn_set_data);
+    }
+    if (!mb_image_set_data) return;
+
+    if (!gd_packed_byte_array_constructor_empty && gd_variant_get_ptr_constructor) {
+        gd_packed_byte_array_constructor_empty = gd_variant_get_ptr_constructor(GDEXTENSION_VARIANT_TYPE_PACKED_BYTE_ARRAY, 0);
+    }
+    if (!gd_packed_byte_array_destructor && gd_variant_get_ptr_destructor) {
+        gd_packed_byte_array_destructor = gd_variant_get_ptr_destructor(GDEXTENSION_VARIANT_TYPE_PACKED_BYTE_ARRAY);
+    }
+    if (!gd_packed_byte_array_resize && gd_variant_get_ptr_builtin_method) {
+        void *sn_resize = make_string_name("resize");
+        gd_packed_byte_array_resize = gd_variant_get_ptr_builtin_method(GDEXTENSION_VARIANT_TYPE_PACKED_BYTE_ARRAY, sn_resize, 848867239ULL);
+        free_string_name(sn_resize);
+    }
+
+    alignas(void*) char pba[16];
+    memset(pba, 0, sizeof(pba));
+    if (gd_packed_byte_array_constructor_empty) {
+        gd_packed_byte_array_constructor_empty(pba, nullptr);
+    }
+
+    if (gd_packed_byte_array_resize) {
+        GDExtensionInt new_size = (GDExtensionInt)len;
+        const void *resize_args[1] = { &new_size };
+        gd_packed_byte_array_resize(pba, resize_args, nullptr, 1);
+    }
+
+    if (gd_packed_byte_array_operator_index) {
+        uint8_t *dst = gd_packed_byte_array_operator_index(pba, 0);
+        if (dst) {
+            memcpy(dst, pixels, (size_t)len);
+        }
+    }
+
+    int64_t w = width;
+    int64_t h = height;
+    uint8_t m = mipmaps ? 1 : 0;
+    int64_t fmt = format;
+    const void *set_data_args[5] = { &w, &h, &m, &fmt, pba };
+    if (gd_object_method_bind_ptrcall) {
+        gd_object_method_bind_ptrcall(mb_image_set_data, p_image, (GDExtensionConstTypePtr*)set_data_args, nullptr);
+    }
+
+    if (gd_packed_byte_array_destructor) {
+        gd_packed_byte_array_destructor(pba);
+    }
+}
+
+/**
+ * Fast-path reads back the pixel buffer of a Godot Image into a destination buffer.
+ * Calls Image::get_data(), reads via packed_byte_array_operator_index_const, and copies bytes.
+ */
+inline int64_t bridge_image_copy_to_buffer(GDExtensionObjectPtr p_image, uint8_t *dst, int64_t max_len) {
+    if (!p_image || !dst || max_len <= 0) return 0;
+
+    if (!mb_image_get_data && gd_classdb_get_method_bind) {
+        void *sn_image = make_string_name("Image");
+        void *sn_get_data = make_string_name("get_data");
+        mb_image_get_data = gd_classdb_get_method_bind(sn_image, sn_get_data, 2362200018ULL);
+        free_string_name(sn_image);
+        free_string_name(sn_get_data);
+    }
+    if (!mb_image_get_data || !gd_object_method_bind_ptrcall) return 0;
+
+    if (!gd_packed_byte_array_destructor && gd_variant_get_ptr_destructor) {
+        gd_packed_byte_array_destructor = gd_variant_get_ptr_destructor(GDEXTENSION_VARIANT_TYPE_PACKED_BYTE_ARRAY);
+    }
+
+    alignas(void*) char pba[16];
+    memset(pba, 0, sizeof(pba));
+    gd_object_method_bind_ptrcall(mb_image_get_data, p_image, nullptr, pba);
+
+    int64_t copied = 0;
+    const uint8_t *src = nullptr;
+    if (gd_packed_byte_array_operator_index_const) {
+        src = gd_packed_byte_array_operator_index_const(pba, 0);
+    } else if (gd_packed_byte_array_operator_index) {
+        src = gd_packed_byte_array_operator_index(pba, 0);
+    }
+
+    if (src) {
+        static GDExtensionPtrBuiltInMethod gd_pba_size = nullptr;
+        if (!gd_pba_size && gd_variant_get_ptr_builtin_method) {
+            void *sn_size = make_string_name("size");
+            gd_pba_size = gd_variant_get_ptr_builtin_method(GDEXTENSION_VARIANT_TYPE_PACKED_BYTE_ARRAY, sn_size, 3173160232ULL);
+            free_string_name(sn_size);
+        }
+        int64_t actual_size = max_len;
+        if (gd_pba_size) {
+            gd_pba_size(pba, nullptr, &actual_size, 0);
+        }
+        copied = actual_size < max_len ? actual_size : max_len;
+        if (copied > 0) {
+            memcpy(dst, src, (size_t)copied);
+        }
+    }
+
+    if (gd_packed_byte_array_destructor) {
+        gd_packed_byte_array_destructor(pba);
+    }
+    return copied;
+}
+
+/**
+ * Returns direct pointer to element at index in a PackedByteArray.
+ */
+inline uint8_t* bridge_packed_byte_array_operator_index(GDExtensionTypePtr p_self, int64_t index) {
+    if (!gd_packed_byte_array_operator_index || !p_self) return nullptr;
+    return gd_packed_byte_array_operator_index(p_self, (GDExtensionInt)index);
+}
+

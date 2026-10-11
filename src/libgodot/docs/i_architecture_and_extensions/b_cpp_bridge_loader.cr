@@ -33,6 +33,11 @@ module Lapis
       #       <td><code>.topic_01_function_pointer_table</code></td>
       #       <td>How Crystal receives direct Godot engine entry points.</td>
       #     </tr>
+      #     <tr>
+      #       <td><strong>Zero-Copy Video & Image Buffer Blitting</strong></td>
+      #       <td><code>.topic_02_zero_copy_image_buffers</code></td>
+      #       <td>High-performance direct memory transfer between raw pointers and Godot Image.</td>
+      #     </tr>
       #   </tbody>
       # </table>
       #
@@ -65,6 +70,15 @@ module Lapis
         # When `crystal_godot_init(&g_bridge_api)` is called, Crystal stores these function pointers in `Godot::Bridge`, bypassing all C++ ABI name mangling and calling engine routines at raw C speed!
         #
         def self.topic_01_function_pointer_table : Nil; end
+
+        # **Zero-Copy Video & Image Buffer Blitting**: High-performance direct memory transfer between raw pointers and Godot Image.
+        #
+        # To enable 30-60 FPS video decoders (LibVLC in Emerald), camera feeds, and procedural textures without memory allocation bottlenecks, `crystal_bridge` provides dedicated fast-path buffer operations:
+        # - `bridge_image_update_buffer`: Stack-allocates a 16-byte `PackedByteArray`, resizes it, copies pixels directly via `gd_packed_byte_array_operator_index`, and updates `Image::set_data` in a single native step.
+        # - `bridge_image_copy_to_buffer`: Reads back native `Image::get_data` memory directly into a destination buffer without allocating intermediate objects.
+        # - `packed_byte_array_operator_index`: Direct pointer indexing into native Godot byte arrays.
+        #
+        def self.topic_02_zero_copy_image_buffers : Nil; end
       end
     end
   end

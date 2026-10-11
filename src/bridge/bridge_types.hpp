@@ -384,6 +384,9 @@ struct BridgeAPI {
     void (*ret_property_list)(void *r_ret, const struct CrystalPropertyDesc *props, int prop_count);
     uint8_t (*is_object_valid)(GDExtensionObjectPtr obj);
     GDExtensionObjectPtr (*editor_get_selected_node)(GDExtensionObjectPtr ed_iface);
+    void (*image_update_buffer)(GDExtensionObjectPtr img, int32_t width, int32_t height, uint8_t mipmaps, int32_t format, const uint8_t *pixels, int64_t len);
+    int64_t (*image_copy_to_buffer)(GDExtensionObjectPtr img, uint8_t *dst, int64_t max_len);
+    uint8_t* (*packed_byte_array_operator_index)(GDExtensionTypePtr p_self, int64_t index);
 };
 
 struct BridgeGCFunctions {

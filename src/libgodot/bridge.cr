@@ -199,6 +199,9 @@ module Godot
       ret_property_list : (Void*, CrystalPropertyDesc*, Int32 -> Void)
       is_object_valid : (Void* -> UInt8)
       editor_get_selected_node : (Void* -> Void*)
+      image_update_buffer : (Void*, Int32, Int32, UInt8, Int32, UInt8*, Int64 -> Void)
+      image_copy_to_buffer : (Void*, UInt8*, Int64 -> Int64)
+      packed_byte_array_operator_index : (Void*, Int64 -> UInt8*)
     end
 
     struct BridgeGCFunctions
@@ -1674,6 +1677,21 @@ module Godot
     def self.editor_get_selected_node(ed_iface : Void*) : Void*
       return Pointer(Void).null if ed_iface.null? || @@api.null? || @@api.value.editor_get_selected_node.pointer.null?
       @@api.value.editor_get_selected_node.call(ed_iface)
+    end
+
+    def self.image_update_buffer(img : Void*, width : Int32, height : Int32, mipmaps : Bool, format : Int32, pixels : UInt8*, len : Int64) : Void
+      return if img.null? || pixels.null? || len <= 0 || @@api.null? || @@api.value.image_update_buffer.pointer.null?
+      @@api.value.image_update_buffer.call(img, width, height, mipmaps ? 1_u8 : 0_u8, format, pixels, len)
+    end
+
+    def self.image_copy_to_buffer(img : Void*, dst : UInt8*, max_len : Int64) : Int64
+      return 0_i64 if img.null? || dst.null? || max_len <= 0 || @@api.null? || @@api.value.image_copy_to_buffer.pointer.null?
+      @@api.value.image_copy_to_buffer.call(img, dst, max_len)
+    end
+
+    def self.packed_byte_array_operator_index(pba : Void*, index : Int64) : UInt8*
+      return Pointer(UInt8).null if pba.null? || @@api.null? || @@api.value.packed_byte_array_operator_index.pointer.null?
+      @@api.value.packed_byte_array_operator_index.call(pba, index)
     end
   end
 end

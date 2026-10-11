@@ -553,6 +553,12 @@ crystal_library_init(GDExtensionInterfaceGetProcAddress p_get_proc_address,
   gd_placeholder_script_instance_create =
       (GDExtensionInterfacePlaceHolderScriptInstanceCreate)p_get_proc_address(
           "placeholder_script_instance_create");
+  gd_packed_byte_array_operator_index =
+      (GDExtensionInterfacePackedByteArrayOperatorIndex)p_get_proc_address(
+          "packed_byte_array_operator_index");
+  gd_packed_byte_array_operator_index_const =
+      (GDExtensionInterfacePackedByteArrayOperatorIndexConst)p_get_proc_address(
+          "packed_byte_array_operator_index_const");
 
   // --- Segment 6: Variant Destructors and Utility Builtins ---
   // Resolve type-specific destructors and utility built-in functions (print,

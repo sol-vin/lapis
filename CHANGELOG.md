@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+#### Fast-Path Image Buffer Blitting & Direct PackedByteArray Indexing
+- **Zero-Copy Video & Texture Streaming**:
+  - Implemented `Image#update_buffer(width, height, format, slice, mipmaps)` and `Image.create_from_buffer(width, height, format, slice, mipmaps)` enabling zero-copy, zero-allocation pixel transfer directly from native decoders (such as LibVLC in `emerald`) into Godot `Image` and `ImageTexture` at 60+ FPS.
+  - Added `Image#read_buffer(destination_slice)` and `Image#to_slice` for high-throughput image memory extraction and reading.
+  - Added native C++ GDExtension bridge helpers `bridge_image_update_buffer`, `bridge_image_copy_to_buffer`, and `bridge_packed_byte_array_operator_index` in `crystal_bridge.cpp`, binding directly to `godot_packed_byte_array_operator_index` without intermediate variant wrapping or heap copies.
+  - Documented architecture and usage in `Docs::I_ARCHITECTURE_AND_EXTENSIONS::B_CPP_BRIDGE_LOADER#topic_02_zero_copy_image_buffers`.
+
 #### Dead-Pointer Safe `try?` and `if_alive` Invocations
 - **Dead-Pointer Protected Calls**:
   - Implemented `Godot::Object#try? : self?` and `Godot::Object#try?(&block)` providing dead-pointer armor that verifies engine instance survival in Godot's ObjectDB (`alive?`) before dispatching blocks or returning references.

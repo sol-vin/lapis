@@ -999,4 +999,27 @@ inline void init_common_method_binds() {
     if (gd_get_variant_from_type_constructor) {
         gd_variant_from_string = gd_get_variant_from_type_constructor(GDEXTENSION_VARIANT_TYPE_STRING);
     }
+
+    // --- Segment 5: PackedByteArray & Image Buffer Fast-Path ---
+    if (gd_variant_get_ptr_constructor) {
+        gd_packed_byte_array_constructor_empty = gd_variant_get_ptr_constructor(GDEXTENSION_VARIANT_TYPE_PACKED_BYTE_ARRAY, 0);
+    }
+    if (gd_variant_get_ptr_destructor) {
+        gd_packed_byte_array_destructor = gd_variant_get_ptr_destructor(GDEXTENSION_VARIANT_TYPE_PACKED_BYTE_ARRAY);
+    }
+    if (gd_variant_get_ptr_builtin_method) {
+        void *sn_resize = make_string_name("resize");
+        gd_packed_byte_array_resize = gd_variant_get_ptr_builtin_method(GDEXTENSION_VARIANT_TYPE_PACKED_BYTE_ARRAY, sn_resize, 848867239ULL);
+        free_string_name(sn_resize);
+    }
+    if (gd_classdb_get_method_bind) {
+        void *sn_image = make_string_name("Image");
+        void *sn_set_data = make_string_name("set_data");
+        void *sn_get_data = make_string_name("get_data");
+        mb_image_set_data = gd_classdb_get_method_bind(sn_image, sn_set_data, 2740482212ULL);
+        mb_image_get_data = gd_classdb_get_method_bind(sn_image, sn_get_data, 2362200018ULL);
+        free_string_name(sn_image);
+        free_string_name(sn_set_data);
+        free_string_name(sn_get_data);
+    }
 }

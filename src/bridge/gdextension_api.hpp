@@ -116,6 +116,14 @@ static GDExtensionMethodBindPtr mb_text_edit_get_line = nullptr;
 typedef GDExtensionVariantPtr (*GDExtensionInterfaceArrayOperatorIndex)(GDExtensionTypePtr p_self, GDExtensionInt p_index);
 static GDExtensionInterfaceArrayOperatorIndex gd_array_operator_index = nullptr;
 
+static GDExtensionInterfacePackedByteArrayOperatorIndex gd_packed_byte_array_operator_index = nullptr;
+static GDExtensionInterfacePackedByteArrayOperatorIndexConst gd_packed_byte_array_operator_index_const = nullptr;
+static GDExtensionPtrConstructor gd_packed_byte_array_constructor_empty = nullptr;
+static GDExtensionPtrDestructor gd_packed_byte_array_destructor = nullptr;
+static GDExtensionPtrBuiltInMethod gd_packed_byte_array_resize = nullptr;
+static GDExtensionMethodBindPtr mb_image_set_data = nullptr;
+static GDExtensionMethodBindPtr mb_image_get_data = nullptr;
+
 // ==============================================================================
 // Godot Engine Diagnostic & Console Logging Helpers
 // ==============================================================================
