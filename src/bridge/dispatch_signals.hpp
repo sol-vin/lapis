@@ -2452,9 +2452,9 @@ inline void bridge_object_connect_signal(GDExtensionObjectPtr instance, const ch
         memset(&info, 0, sizeof(info));
         info.callable_userdata = binding;
         info.token = g_library;
-        info.object_id = 0;
+        info.object_id = (GDObjectInstanceID)target_id;
         info.call_func = custom_callable_call;
-        info.is_valid_func = nullptr;
+        info.is_valid_func = custom_callable_is_valid;
         info.free_func = custom_callable_free;
         info.hash_func = custom_callable_hash;
         info.equal_func = custom_callable_equal;
@@ -2466,9 +2466,9 @@ inline void bridge_object_connect_signal(GDExtensionObjectPtr instance, const ch
         memset(&info, 0, sizeof(info));
         info.callable_userdata = binding;
         info.token = g_library;
-        info.object_id = 0;
+        info.object_id = (GDObjectInstanceID)target_id;
         info.call_func = custom_callable_call;
-        info.is_valid_func = nullptr;
+        info.is_valid_func = custom_callable_is_valid;
         info.free_func = custom_callable_free;
         info.hash_func = custom_callable_hash;
         info.equal_func = custom_callable_equal;
@@ -2523,8 +2523,9 @@ inline void bridge_object_disconnect_signal(GDExtensionObjectPtr instance, const
         memset(&info, 0, sizeof(info));
         info.callable_userdata = &temp_binding;
         info.token = g_library;
-        info.object_id = 0;
+        info.object_id = (GDObjectInstanceID)target_id;
         info.call_func = custom_callable_call;
+        info.is_valid_func = custom_callable_is_valid;
         info.hash_func = custom_callable_hash;
         info.equal_func = custom_callable_equal;
         info.less_than_func = custom_callable_less_than;
@@ -2534,8 +2535,9 @@ inline void bridge_object_disconnect_signal(GDExtensionObjectPtr instance, const
         memset(&info, 0, sizeof(info));
         info.callable_userdata = &temp_binding;
         info.token = g_library;
-        info.object_id = 0;
+        info.object_id = (GDObjectInstanceID)target_id;
         info.call_func = custom_callable_call;
+        info.is_valid_func = custom_callable_is_valid;
         info.hash_func = custom_callable_hash;
         info.equal_func = custom_callable_equal;
         info.less_than_func = custom_callable_less_than;
