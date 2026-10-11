@@ -2795,7 +2795,8 @@ inline void bridge_image_update_buffer(GDExtensionObjectPtr p_image, int32_t wid
     if (gd_packed_byte_array_resize) {
         GDExtensionInt new_size = (GDExtensionInt)len;
         const void *resize_args[1] = { &new_size };
-        gd_packed_byte_array_resize(pba, resize_args, nullptr, 1);
+        int64_t resize_ret = 0;
+        gd_packed_byte_array_resize(pba, (const GDExtensionConstTypePtr*)resize_args, &resize_ret, 1);
     }
 
     if (gd_packed_byte_array_operator_index) {
