@@ -255,10 +255,15 @@ inline void do_classdb_register(CrystalClassDesc *desc) {
         if (qpos != std::string::npos) cname = cname.substr(0, qpos);
         size_t npos = cname.find('|');
         if (npos != std::string::npos) cname = cname.substr(0, npos);
-        while (!cname.empty() && (cname.back() == ' ' || cname.back() == '\t')) cname.pop_back();
+        while (!cname.empty() && (cname.back() == ' ' || cname.back() == '\t' || cname.back() == ')')) cname.pop_back();
+        while (!cname.empty() && (cname.front() == ' ' || cname.front() == '\t' || cname.front() == '(')) cname.erase(0, 1);
 
         uint32_t prop_hint = p.hint;
         std::string prop_hint_string = p.hint_string ? p.hint_string : "";
+        size_t h_bar = prop_hint_string.find('|');
+        if (h_bar != std::string::npos) prop_hint_string = prop_hint_string.substr(0, h_bar);
+        while (!prop_hint_string.empty() && (prop_hint_string.back() == ' ' || prop_hint_string.back() == '\t' || prop_hint_string.back() == ')')) prop_hint_string.pop_back();
+        while (!prop_hint_string.empty() && (prop_hint_string.front() == ' ' || prop_hint_string.front() == '\t' || prop_hint_string.front() == '(')) prop_hint_string.erase(0, 1);
 
         // If it's an Object/Resource without an explicit hint, auto-assign PROPERTY_HINT_RESOURCE_TYPE (17)
         // so the Godot Editor inspector restricts the picker strictly to this resource type.

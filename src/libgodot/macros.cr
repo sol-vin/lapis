@@ -2285,7 +2285,9 @@ macro node(decl, &block)
         {% end %}
       {% end %}
       {%
-        clean_t = var_type.id.stringify.gsub(/\?/, "").gsub(/\s*\|\s*(::)?Nil/, "").strip
+        type_str = var_type.id.stringify
+        parts = type_str.split("|")
+        clean_t = parts[0].gsub(/\?/, "").gsub(/[\(\)]/, "").strip.gsub(/^(::)?Godot::/, "")
         final_hint = hint || 0
         final_hint_str = hint_str || ""
         if vtype == 24 && final_hint == 0 && !clean_t.empty? && clean_t != "Object" && clean_t != "Variant" && clean_t != "Node" && clean_t != "RefCounted"
@@ -3113,7 +3115,9 @@ macro gmodule(decl, &block)
             {% end %}
           {% end %}
           {%
-            clean_t = var_type.id.stringify.gsub(/\?/, "").gsub(/\s*\|\s*(::)?Nil/, "").strip
+            type_str = var_type.id.stringify
+            parts = type_str.split("|")
+            clean_t = parts[0].gsub(/\?/, "").gsub(/[\(\)]/, "").strip.gsub(/^(::)?Godot::/, "")
             final_hint = hint || 0
             final_hint_str = hint_str || ""
             if vtype == 24 && final_hint == 0 && !clean_t.empty? && clean_t != "Object" && clean_t != "Variant" && clean_t != "Node" && clean_t != "RefCounted"

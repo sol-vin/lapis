@@ -30,8 +30,8 @@ module Godot
 
     # Creates a new Godot Image directly from a raw slice of pixel bytes.
     def self.create_from_buffer(width : Int, height : Int, format : Format | Int, pixels : Slice(UInt8), use_mipmaps : Bool = false) : Image
-      img = Godot.create(Image)
-      img.create_empty(width.to_i64, height.to_i64, use_mipmaps, format.is_a?(Int) ? format.to_i64 : format.value.to_i64)
+      img = create_empty(width.to_i64, height.to_i64, use_mipmaps, format.is_a?(Int) ? format.to_i64 : format.value.to_i64)
+      img.reference
       img.update_buffer(width, height, format, pixels, use_mipmaps)
       img
     end
