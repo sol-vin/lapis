@@ -565,16 +565,22 @@ inline void* generic_class_get_virtual_call_data(void *p_class_userdata, GDExten
                 strcmp(norm_name, "_get_global_class_name") == 0) {
                 return (void*)intern_virtual_method(norm_name);
             }
-        } else if (strcmp(desc->name, "ResourceFormatLoaderCrystal") == 0) {
+        } else if (strcmp(desc->name, "ResourceFormatLoaderCrystal") == 0 ||
+                   (desc->parent_desc && strcmp(desc->parent_desc->name, "ResourceFormatLoader") == 0) ||
+                   strstr(desc->name, "ResourceFormatLoader") != nullptr) {
             if (strcmp(norm_name, "_get_recognized_extensions") == 0 ||
                 strcmp(norm_name, "_handles_type") == 0 ||
                 strcmp(norm_name, "_get_resource_type") == 0 ||
                 strcmp(norm_name, "_get_resource_script_class") == 0 ||
+                strcmp(norm_name, "_get_resource_uid") == 0 ||
                 strcmp(norm_name, "_load") == 0 ||
-                strcmp(norm_name, "_recognize_path") == 0) {
+                strcmp(norm_name, "_recognize_path") == 0 ||
+                strcmp(norm_name, "_exists") == 0) {
                 return (void*)intern_virtual_method(norm_name);
             }
-        } else if (strcmp(desc->name, "ResourceFormatSaverCrystal") == 0) {
+        } else if (strcmp(desc->name, "ResourceFormatSaverCrystal") == 0 ||
+                   (desc->parent_desc && strcmp(desc->parent_desc->name, "ResourceFormatSaver") == 0) ||
+                   strstr(desc->name, "ResourceFormatSaver") != nullptr) {
             if (strcmp(norm_name, "_get_recognized_extensions") == 0 ||
                 strcmp(norm_name, "_recognize") == 0 ||
                 strcmp(norm_name, "_recognize_path") == 0 ||

@@ -250,12 +250,30 @@ inline void do_classdb_register(CrystalClassDesc *desc) {
             continue;
         }
 
-        ScopedString hint_str(p.hint_string ? p.hint_string : "");
+        std::string cname = p.type_name ? p.type_name : "";
+        size_t qpos = cname.find('?');
+        if (qpos != std::string::npos) cname = cname.substr(0, qpos);
+        size_t npos = cname.find('|');
+        if (npos != std::string::npos) cname = cname.substr(0, npos);
+        while (!cname.empty() && (cname.back() == ' ' || cname.back() == '\t')) cname.pop_back();
+
+        uint32_t prop_hint = p.hint;
+        std::string prop_hint_string = p.hint_string ? p.hint_string : "";
+
+        // If it's an Object/Resource without an explicit hint, auto-assign PROPERTY_HINT_RESOURCE_TYPE (17)
+        // so the Godot Editor inspector restricts the picker strictly to this resource type.
+        if (p.variant_type == 24 /* GDEXTENSION_VARIANT_TYPE_OBJECT */ && prop_hint == 0 &&
+            !cname.empty() && cname != "Object" && cname != "Variant" && cname != "Node" && cname != "RefCounted") {
+            prop_hint = 17; // PROPERTY_HINT_RESOURCE_TYPE
+            prop_hint_string = cname;
+        }
+
+        ScopedString hint_str(prop_hint_string.c_str());
         GDExtensionPropertyInfo pinfo = {};
         pinfo.type = (GDExtensionVariantType)p.variant_type;
         pinfo.name = make_string_name(p.name);
-        pinfo.class_name = make_string_name(p.type_name ? p.type_name : "");
-        pinfo.hint = p.hint;
+        pinfo.class_name = make_string_name(cname.c_str());
+        pinfo.hint = prop_hint;
         pinfo.hint_string = hint_str;
         pinfo.usage = p.usage ? p.usage : 6; // PROPERTY_USAGE_DEFAULT
 

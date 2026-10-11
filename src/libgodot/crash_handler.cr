@@ -33,7 +33,14 @@
         case exception_info.value.exceptionRecord.value.exceptionCode
         when LibC::EXCEPTION_ACCESS_VIOLATION
           addr = exception_info.value.exceptionRecord.value.exceptionInformation[1]
-          Crystal::System.print_error "Invalid memory access (C0000005) at address %p\n", Pointer(Void).new(addr)
+          fault_ip = exception_info.value.exceptionRecord.value.exceptionAddress
+          ctx = exception_info.value.contextRecord
+          Crystal::System.print_error "Invalid memory access (C0000005) at address %p, IP: %p, RCX: %p, RDX: %p, RAX: %p\n",
+            Pointer(Void).new(addr),
+            fault_ip,
+            Pointer(Void).new(ctx.value.rcx),
+            Pointer(Void).new(ctx.value.rdx),
+            Pointer(Void).new(ctx.value.rax)
           {% if flag?(:gnu) %}
             Exception::CallStack.print_backtrace
           {% else %}

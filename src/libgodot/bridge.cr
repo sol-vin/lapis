@@ -1764,6 +1764,12 @@ fun crystal_godot_init(api : Godot::LibBridge::BridgeAPI*) : Void
     Godot::ResourceFormatLoaderCrystal.ensure_registered rescue nil
     Godot::ResourceFormatSaverCrystal.ensure_registered rescue nil
   {% end %}
+  # Auto-initialize registered loaders or components from addons or games
+  Godot::ClassRegistry.entries.each do |entry|
+    if proc = entry.init_proc
+      proc.call rescue nil
+    end
+  end
 end
 
 {% if flag?(:libgodot_addon) %}

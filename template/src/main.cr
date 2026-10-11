@@ -73,12 +73,15 @@ node MainNode < Node3D do
     cam_y = target_pos.y + @orbit_height
     
     # Cycle particle colors smoothly using intermediary HSV color struct
-    mat = particles.draw_pass_1.surface_get_material(0).as_a(StandardMaterial3D)
-    hsv = mat.albedo_color.hsv
-    hsv.h = (hsv.h + delta * 0.25) % 1.0
-    hsv.v = 1.0
-    hsv.s = 1.0
-    mat.albedo_color = hsv.to_color
+    if qm = particles.draw_pass_1.as?(QuadMesh)
+      if mat = (qm.material || qm.surface_get_material(0)).as?(StandardMaterial3D)
+        hsv = mat.albedo_color.hsv
+        hsv.h = (hsv.h + delta * 0.25) % 1.0
+        hsv.v = 1.0
+        hsv.s = 1.0
+        mat.albedo_color = hsv.to_color
+      end
+    end
 
     camera.global_position = Vector3.new(cam_x, cam_y, cam_z)
     camera.look_at(target_pos, Vector3::UP)

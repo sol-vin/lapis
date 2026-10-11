@@ -16,6 +16,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added native C++ GDExtension bridge helpers `bridge_image_update_buffer`, `bridge_image_copy_to_buffer`, and `bridge_packed_byte_array_operator_index` in `crystal_bridge.cpp`, binding directly to `godot_packed_byte_array_operator_index` without intermediate variant wrapping or heap copies.
   - Documented architecture and usage in `Docs::I_ARCHITECTURE_AND_EXTENSIONS::B_CPP_BRIDGE_LOADER#topic_02_zero_copy_image_buffers`.
 
+#### Automatic ResourceFormatLoader & Saver Registration & Virtual Dispatch
+- **Custom Resource Format Loaders & Savers**:
+  - Implemented fast-path C++ GDExtension virtual method dispatch in `extension_instance.hpp` for all `ResourceFormatLoader` methods (`_get_recognized_extensions`, `_handles_type`, `_get_resource_type`, `_get_resource_script_class`, `_get_resource_uid`, `_load`, `_recognize_path`, `_exists`) and `ResourceFormatSaver` methods.
+  - Added macro-generated `def self.ensure_registered` and automatic `init_proc` dispatch during `crystal_godot_init` so custom loader and saver nodes (such as `emerald`'s `ResourceFormatLoaderEmerald` for MP4 video files) are automatically recognized and registered with `ResourceLoader` and `ResourceSaver` upon engine startup and editor scan.
+
+#### Strict Resource Type Property Hinting
+- **Type-Safe Inspector Resource Filtering**:
+  - In `classdb_registry.hpp`, `src/libgodot/macros.cr`, and `src/libgodot/script/script.cr`, exported typed `Resource` properties (e.g., `property media_resource : EmeraldMediaResource?`) automatically receive `PROPERTY_HINT_RESOURCE_TYPE` (17) and hint string set to the target class name.
+  - Limits inspector drop-down pickers, file dialogs, and drag-and-drop targets strictly to the specified resource type instead of accepting all Godot resources.
+
+#### Enhanced Crash Forensics & Panic Diagnostics
+- **Context Record Register Inspection**:
+  - Enhanced Windows SEH panic handler in `src/libgodot/crash_handler.cr` to print instruction pointer (`fault_ip`) and CPU register state (`RCX`, `RDX`, `RAX`) upon access violations (`0xC0000005`) for immediate crash triage.
+
 #### Dead-Pointer Safe `try?` and `if_alive` Invocations
 - **Dead-Pointer Protected Calls**:
   - Implemented `Godot::Object#try? : self?` and `Godot::Object#try?(&block)` providing dead-pointer armor that verifies engine instance survival in Godot's ObjectDB (`alive?`) before dispatching blocks or returning references.

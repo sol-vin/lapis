@@ -518,6 +518,12 @@ module Lapis
             end
           end
 
+          # If it's an Object/Resource type without an explicit hint, hint as resource type
+          if v_type == 24 && hint == 0 && !p_type.empty? && p_type != "Object" && p_type != "Variant" && p_type != "Node" && p_type != "RefCounted"
+            hint = 17 # PROPERTY_HINT_RESOURCE_TYPE
+            hint_str = p_type
+          end
+
           @properties << ScriptProperty.new(
             name: p_name,
             type_name: p_type,

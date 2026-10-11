@@ -72,6 +72,7 @@ module Godot
       property autoload_singleton : Bool = true
       property autoload_mount_tree : Bool = true
       property set_autoload_proc : (Object? -> Void)? = nil
+      property init_proc : (-> Void)? = nil
 
       def has_virtual_method?(name : String) : Bool
         if proc = @has_virtual_proc
@@ -108,6 +109,7 @@ module Godot
         @autoload_singleton : Bool = true,
         @autoload_mount_tree : Bool = true,
         @set_autoload_proc : (Object? -> Void)? = nil,
+        @init_proc : (-> Void)? = nil,
       )
       end
     end
@@ -1335,6 +1337,46 @@ macro node(decl, &block)
       end
     {% end %}
 
+    {% if parent_name.stringify == "ResourceFormatLoader" || parent_name.stringify.ends_with?("::ResourceFormatLoader") %}
+      @@_auto_loader_instance : {{class_name}}? = nil
+
+      def self.ensure_registered : Void
+        return if @@_auto_loader_instance
+        if loader = ::Godot.create({{class_name}})
+          @@_auto_loader_instance = loader
+          rl_ptr = ::Godot::Bridge.get_singleton("ResourceLoader")
+          unless rl_ptr.null?
+            r_loader = ::Godot::ResourceLoader.new(rl_ptr)
+            begin
+              r_loader.add_resource_format_loader(loader, false)
+            rescue
+              r_loader.call("add_resource_format_loader", loader, false) rescue nil
+            end
+          end
+        end
+      end
+    {% end %}
+
+    {% if parent_name.stringify == "ResourceFormatSaver" || parent_name.stringify.ends_with?("::ResourceFormatSaver") %}
+      @@_auto_saver_instance : {{class_name}}? = nil
+
+      def self.ensure_registered : Void
+        return if @@_auto_saver_instance
+        if saver = ::Godot.create({{class_name}})
+          @@_auto_saver_instance = saver
+          rs_ptr = ::Godot::Bridge.get_singleton("ResourceSaver")
+          unless rs_ptr.null?
+            r_saver = ::Godot::ResourceSaver.new(rs_ptr)
+            begin
+              r_saver.add_resource_format_saver(saver, false)
+            rescue
+              r_saver.call("add_resource_format_saver", saver, false) rescue nil
+            end
+          end
+        end
+      end
+    {% end %}
+
     def self._godot_has_virtual_method(method_name : String) : Bool
       norm = method_name.starts_with?('_') ? method_name : "_#{method_name}"
       case norm
@@ -1917,7 +1959,10 @@ macro node(decl, &block)
           {% if anno.named_args %}
             {% for key, val in anno.named_args %}
               {% k_str = key.stringify %}
-              {% if k_str == "range" %}
+              {% if k_str == "type" || k_str == "resource_type" %}
+                {% hint = 17 %}
+                {% hint_str = val.id.stringify %}
+              {% elsif k_str == "range" %}
                 {% hint = 1 %}
                 {% b_id = val.begin.id.gsub(/_[a-z0-9]+/, "") %}
                 {% e_id = val.end.id.gsub(/_[a-z0-9]+/, "") %}
@@ -2239,12 +2284,21 @@ macro node(decl, &block)
           {% end %}
         {% end %}
       {% end %}
+      {%
+        clean_t = var_type.id.stringify.gsub(/\?/, "").gsub(/\s*\|\s*(::)?Nil/, "").strip
+        final_hint = hint || 0
+        final_hint_str = hint_str || ""
+        if vtype == 24 && final_hint == 0 && !clean_t.empty? && clean_t != "Object" && clean_t != "Variant" && clean_t != "Node" && clean_t != "RefCounted"
+          final_hint = 17
+          final_hint_str = clean_t
+        end
+      %}
       properties_{{class_name}} << ::Godot::PropertyInfo.new(
         "{{var_name.id}}",
-        "{{hint == 39 ? "Callable".id : var_type.id}}",
+        "{{hint == 39 ? "Callable".id : clean_t.id}}",
         {{vtype}},
-        {{hint || 0}}_u32,
-        "{{hint_str.id}}",
+        {{final_hint}}_u32,
+        "{{final_hint_str.id}}",
         {{prop_usage || 6}}_u32
       )
     {% end %}
@@ -2344,7 +2398,8 @@ macro node(decl, &block)
       autoload_name: {{autoload_name}},
       autoload_singleton: {{autoload_singleton}},
       autoload_mount_tree: {{autoload_mount_tree}},
-      set_autoload_proc: {% if is_autoload_class %} ->(obj : ::Godot::Object?) { {{class_name}}._godot_set_autoload_instance(obj) } {% else %} nil {% end %}
+      set_autoload_proc: {% if is_autoload_class %} ->(obj : ::Godot::Object?) { {{class_name}}._godot_set_autoload_instance(obj) } {% else %} nil {% end %},
+      init_proc: {% if parent_name.stringify == "ResourceFormatLoader" || parent_name.stringify.ends_with?("::ResourceFormatLoader") || parent_name.stringify == "ResourceFormatSaver" || parent_name.stringify.ends_with?("::ResourceFormatSaver") %} ->{ {{class_name}}.ensure_registered rescue nil } {% else %} nil {% end %}
     )
   )
 
@@ -3057,12 +3112,21 @@ macro gmodule(decl, &block)
               {% end %}
             {% end %}
           {% end %}
+          {%
+            clean_t = var_type.id.stringify.gsub(/\?/, "").gsub(/\s*\|\s*(::)?Nil/, "").strip
+            final_hint = hint || 0
+            final_hint_str = hint_str || ""
+            if vtype == 24 && final_hint == 0 && !clean_t.empty? && clean_t != "Object" && clean_t != "Variant" && clean_t != "Node" && clean_t != "RefCounted"
+              final_hint = 17
+              final_hint_str = clean_t
+            end
+          %}
           properties_{{module_name.id}} << ::Godot::PropertyInfo.new(
             "{{var_name.id}}",
-            "{{hint == 39 ? "Callable".id : var_type.id}}",
+            "{{hint == 39 ? "Callable".id : clean_t.id}}",
             {{vtype}},
-            {{hint || 0}}_u32,
-            "{{hint_str.id}}",
+            {{final_hint}}_u32,
+            "{{final_hint_str.id}}",
             {{prop_usage || 6}}_u32
           )
         {% end %}
