@@ -261,30 +261,31 @@ jobs:
         shell: bash
         run: |
           shards install || true
-          mkdir -p bin
-          if [ ! -f "bin/lapis" ]; then
+          mkdir -p tools_bin
+          if [ ! -f "tools_bin/lapis" ]; then
             echo "Fetching standalone Lapis CLI and bridge for Linux..."
             wget -q https://github.com/sol-vin/lapis/releases/latest/download/lapis-linux-x86_64.tar.gz -O lapis.tar.gz 2>/dev/null || true
             if [ -f "lapis.tar.gz" ] && [ -s "lapis.tar.gz" ]; then
-              tar -xzf lapis.tar.gz -C bin/
-              chmod +x bin/lapis
+              tar -xzf lapis.tar.gz -C tools_bin/
+              chmod +x tools_bin/lapis
             elif [ -f "lib/lapis/tools/lapis/src/lapis.cr" ]; then
-              crystal build lib/lapis/tools/lapis/src/lapis.cr -o bin/lapis
+              crystal build lib/lapis/tools/lapis/src/lapis.cr -o tools_bin/lapis
             fi
           fi
-          if [ -f "bin/lapis" ]; then
-            chmod +x bin/lapis
-            echo "$(pwd)/bin" >> "$GITHUB_PATH"
+          if [ -f "tools_bin/lapis" ]; then
+            chmod +x tools_bin/lapis
+            echo "$(pwd)/tools_bin" >> "$GITHUB_PATH"
           fi
 
       - name: Build Game Binary (Release)
         shell: bash
         run: |
           shards install || true
-          make build RELEASE=1 || (
-            mkdir -p bin
-            crystal build src/main.cr -o bin/game.so --link-flags "-shared" --release -Dlibgodot
-          )
+          GAME_NAME="${{ needs.init-release.outputs.game_name }}"
+          if [ -z "$GAME_NAME" ]; then GAME_NAME="game"; fi
+          echo "Building and packaging standalone playable game $GAME_NAME for Linux with embedded PCK..."
+          lapis package game -p . -n "$GAME_NAME" -r --embed-pck -f
+          rm -f bin/lapis bin/lapis.exe bin/lapis.tar.gz bin/lapis.zip || true
 
       - name: Upload Core Binaries (Linux)
         uses: actions/upload-artifact@v4
@@ -315,30 +316,31 @@ jobs:
         shell: bash
         run: |
           shards install || true
-          mkdir -p bin
-          if [ ! -f "bin/lapis" ]; then
+          mkdir -p tools_bin
+          if [ ! -f "tools_bin/lapis" ]; then
             echo "Fetching standalone Lapis CLI and bridge for macOS..."
             wget -q https://github.com/sol-vin/lapis/releases/latest/download/lapis-macos.zip -O lapis.zip 2>/dev/null || true
             if [ -f "lapis.zip" ] && [ -s "lapis.zip" ]; then
-              unzip -q lapis.zip -d bin/
-              chmod +x bin/lapis
+              unzip -q lapis.zip -d tools_bin/
+              chmod +x tools_bin/lapis
             elif [ -f "lib/lapis/tools/lapis/src/lapis.cr" ]; then
-              crystal build lib/lapis/tools/lapis/src/lapis.cr -o bin/lapis
+              crystal build lib/lapis/tools/lapis/src/lapis.cr -o tools_bin/lapis
             fi
           fi
-          if [ -f "bin/lapis" ]; then
-            chmod +x bin/lapis
-            echo "$(pwd)/bin" >> "$GITHUB_PATH"
+          if [ -f "tools_bin/lapis" ]; then
+            chmod +x tools_bin/lapis
+            echo "$(pwd)/tools_bin" >> "$GITHUB_PATH"
           fi
 
       - name: Build Game Binary (Release)
         shell: bash
         run: |
           shards install || true
-          make build RELEASE=1 || (
-            mkdir -p bin
-            crystal build src/main.cr -o bin/game.dylib --link-flags "-dynamiclib" --release -Dlibgodot
-          )
+          GAME_NAME="${{ needs.init-release.outputs.game_name }}"
+          if [ -z "$GAME_NAME" ]; then GAME_NAME="game"; fi
+          echo "Building and packaging standalone playable game $GAME_NAME for macOS with embedded PCK..."
+          lapis package game -p . -n "$GAME_NAME" -r --embed-pck -f
+          rm -f bin/lapis bin/lapis.exe bin/lapis.zip || true
 
       - name: Upload Core Binaries (macOS)
         uses: actions/upload-artifact@v4
@@ -392,33 +394,38 @@ jobs:
         shell: pwsh
         run: |
           shards install
-          if (-not (Test-Path "bin")) { New-Item -ItemType Directory -Path "bin" -Force }
-          if (-not (Test-Path "bin/lapis.exe")) {
+          if (-not (Test-Path "tools_bin")) { New-Item -ItemType Directory -Path "tools_bin" -Force }
+          if (-not (Test-Path "tools_bin/lapis.exe")) {
             Write-Host "Fetching standalone Lapis CLI for Windows..."
             try {
               Invoke-WebRequest -Uri "https://github.com/sol-vin/lapis/releases/latest/download/lapis-windows-x86_64.zip" -OutFile "lapis.zip"
-              Expand-Archive -Path "lapis.zip" -DestinationPath "bin" -Force
+              Expand-Archive -Path "lapis.zip" -DestinationPath "tools_bin" -Force
               Remove-Item "lapis.zip" -Force
             } catch {
               Write-Host "Lapis standalone download fallback: $_"
             }
           }
-          if (-not (Test-Path "bin/lapis.exe")) {
+          if (-not (Test-Path "tools_bin/lapis.exe")) {
             if (Test-Path "lib/lapis/tools/lapis/src/lapis.cr") {
               Write-Host "Compiling Lapis CLI from shard lib/lapis..."
-              crystal build lib/lapis/tools/lapis/src/lapis.cr -o bin/lapis.exe
+              crystal build lib/lapis/tools/lapis/src/lapis.cr -o tools_bin/lapis.exe
             }
           }
-          if (Test-Path "bin/lapis.exe") {
-            $binPath = (Resolve-Path "bin").Path
-            $binPath | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+          if (Test-Path "tools_bin/lapis.exe") {
+            $toolsBinPath = (Resolve-Path "tools_bin").Path
+            $toolsBinPath | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
           }
 
       - name: Build Game Binary (Release)
         shell: pwsh
         run: |
           shards install
-          make build RELEASE=1
+          $gameName = "${{ needs.init-release.outputs.game_name }}"
+          if (-not $gameName) { $gameName = "game" }
+          Write-Host "Building and packaging standalone playable game $gameName for Windows with embedded PCK..."
+          lapis package game -p . -n $gameName -r --embed-pck -f
+          if (Test-Path "bin/lapis.exe") { Remove-Item "bin/lapis.exe" -Force }
+          if (Test-Path "bin/lapis.zip") { Remove-Item "bin/lapis.zip" -Force }
 
       - name: Upload Core Binaries (Windows)
         uses: actions/upload-artifact@v4
@@ -514,11 +521,24 @@ jobs:
       - name: Stage Distribution Deliverables
         run: |
           mkdir -p dist
-          GAME_NAME=$(awk '/^name:/ {print $2}' shard.yml 2>/dev/null | tr -d ' "\r\n')
-          if [ -z "$GAME_NAME" ]; then GAME_NAME="${{ needs.init-release.outputs.game_name }}"; fi
+          GAME_NAME="${{ needs.init-release.outputs.game_name }}"
+          if [ -z "$GAME_NAME" ]; then
+            GAME_NAME=$(awk '/^name:/ {print $2}' shard.yml 2>/dev/null | tr -d ' "\r\n')
+          fi
           if [ -z "$GAME_NAME" ]; then GAME_NAME="game"; fi
+          rm -f bin/lapis bin/lapis.exe bin/lapis.tar.gz bin/lapis.zip || true
+
+          # 1. Stage standalone Linux executable with embedded PCK
+          if [ -f "bin/${GAME_NAME}" ]; then
+            cp "bin/${GAME_NAME}" "dist/${GAME_NAME}-linux-x86_64"
+            chmod +x "dist/${GAME_NAME}-linux-x86_64"
+            echo "Staged standalone Linux executable: dist/${GAME_NAME}-linux-x86_64"
+          fi
+
+          # 2. Stage complete zip distribution containing executable + libraries
           if [ -d "bin" ]; then
             zip -r "dist/${GAME_NAME}-linux.zip" bin
+            echo "Staged game zip archive: dist/${GAME_NAME}-linux.zip"
           fi
       - name: Upload Consumer Packages Artifact (Linux)
         uses: actions/upload-artifact@v4
@@ -542,11 +562,16 @@ jobs:
       - name: Stage Distribution Deliverables
         run: |
           mkdir -p dist
-          GAME_NAME=$(awk '/^name:/ {print $2}' shard.yml 2>/dev/null | tr -d ' "\r\n')
-          if [ -z "$GAME_NAME" ]; then GAME_NAME="${{ needs.init-release.outputs.game_name }}"; fi
+          GAME_NAME="${{ needs.init-release.outputs.game_name }}"
+          if [ -z "$GAME_NAME" ]; then
+            GAME_NAME=$(awk '/^name:/ {print $2}' shard.yml 2>/dev/null | tr -d ' "\r\n')
+          fi
           if [ -z "$GAME_NAME" ]; then GAME_NAME="game"; fi
+          rm -f bin/lapis bin/lapis.exe bin/lapis.zip || true
+
           if [ -d "bin" ]; then
             zip -r "dist/${GAME_NAME}-macos.zip" bin
+            echo "Staged game zip archive: dist/${GAME_NAME}-macos.zip"
           fi
       - name: Upload Consumer Packages Artifact (macOS)
         uses: actions/upload-artifact@v4
@@ -556,7 +581,7 @@ jobs:
 
   build-consumers-windows:
     name: Build Consumers & Templates (Windows)
-    needs: [build-core-windows]
+    needs: [init-release, build-core-windows]
     runs-on: windows-latest
     timeout-minutes: 10
     steps:
@@ -571,15 +596,30 @@ jobs:
         shell: pwsh
         run: |
           if (-not (Test-Path "dist")) { New-Item -ItemType Directory -Path "dist" -Force }
-          $gameName = "game"
-          if (Test-Path "shard.yml") {
-            $content = Get-Content "shard.yml" -Raw
-            if ($content -match 'name:\s*[''"]?([^''"\r\n]+)[''"]?') {
-              $gameName = $matches[1].Trim()
+          $gameName = "${{ needs.init-release.outputs.game_name }}"
+          if (-not $gameName) {
+            $gameName = "game"
+            if (Test-Path "shard.yml") {
+              $content = Get-Content "shard.yml" -Raw
+              if ($content -match 'name:\s*[''"]?([^''"\r\n]+)[''"]?') {
+                $gameName = $matches[1].Trim()
+              }
             }
           }
+          # Ensure lapis CLI is purged from game deliverables
+          if (Test-Path "bin/lapis.exe") { Remove-Item "bin/lapis.exe" -Force }
+          if (Test-Path "bin/lapis.zip") { Remove-Item "bin/lapis.zip" -Force }
+
+          # 1. Package the whole game up as an exe (with embedded PCK) and stage directly in dist/
+          if (Test-Path "bin/$gameName.exe") {
+            Copy-Item "bin/$gameName.exe" "dist/$gameName.exe" -Force
+            Write-Host "Staged standalone game executable with embedded PCK: dist/$gameName.exe"
+          }
+
+          # 2. Package complete zip distribution containing executable + companion libraries
           if (Test-Path "bin") {
             Compress-Archive -Path "bin/*" -DestinationPath "dist/$gameName-windows.zip" -Force
+            Write-Host "Staged game zip archive: dist/$gameName-windows.zip"
           }
       - name: Upload Consumer Packages Artifact (Windows)
         uses: actions/upload-artifact@v4
@@ -813,9 +853,11 @@ jobs:
           ## ${{ needs.init-release.outputs.game_name }} Game Release Notes
 
           ### 📦 Deliverables
-          - **`${GAME_NAME}-windows.zip`**: Standalone executable & libraries for **Windows (x86_64)**.
-          - **`${GAME_NAME}-linux.zip`**: Standalone executable & libraries for **Linux (x86_64)**.
-          - **`${GAME_NAME}-macos.zip`**: Standalone bundle for **macOS**.
+          - **`${GAME_NAME}.exe`**: Standalone playable game executable with embedded PCK for **Windows (x86_64)**.
+          - **`${GAME_NAME}-windows.zip`**: Complete game distribution package with executable & libraries for **Windows (x86_64)**.
+          - **`${GAME_NAME}-linux-x86_64`**: Standalone playable game executable for **Linux (x86_64)**.
+          - **`${GAME_NAME}-linux.zip`**: Complete game package for **Linux (x86_64)**.
+          - **`${GAME_NAME}-macos.zip`**: Complete game bundle for **macOS**.
 
           ### 🔧 Engine Compatibility
           - **Target Godot Engine**: `${GODOT_VER}`
