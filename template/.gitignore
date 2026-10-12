@@ -8,7 +8,8 @@ log/*
 *.log
 
 # Crystal dependencies
-lib/
+lib/*
+!lib/.gdignore
 shard.lock
 shard.override.yml
 /docs/

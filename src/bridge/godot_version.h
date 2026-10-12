@@ -2,5 +2,5 @@
 #pragma once
 
 #ifndef LIBGODOT_TARGET_VERSION
-#define LIBGODOT_TARGET_VERSION "0.0.304"
+#define LIBGODOT_TARGET_VERSION "0.0.305"
 #endif
