@@ -537,8 +537,8 @@ CONTROL
           end
         end
 
-        # 4. Stage runtime DLLs (gc.dll, pcre2-8.dll, iconv-2.dll)
-        ["gc.dll", "pcre2-8.dll", "iconv-2.dll"].each do |dll|
+        # 4. Stage runtime DLLs (crystal_bridge.dll, libgodot.dll, gc.dll, pcre2-8.dll, iconv-2.dll)
+        ["crystal_bridge.dll", "libgodot.dll", "gc.dll", "pcre2-8.dll", "iconv-2.dll"].each do |dll|
           dll_path = root.join("bin/#{dll}")
           if File.exists?(dll_path)
             safe_copy(dll_path, stage_dir.join(dll))

@@ -76,6 +76,23 @@ module Lapis
           end
         end
 
+        # 3. Check well-known developer workspace locations
+        candidates = [] of Path
+        if (exe = Process.executable_path)
+          exe_p = Path.new(exe)
+          candidates << exe_p.parent.parent
+          candidates << exe_p.parent.parent.parent
+        end
+        candidates << Path.new(Dir.current).join("libgodot")
+        candidates << Path.home.join("Documents", "libgodot")
+        candidates << Path.home.join("libgodot")
+        candidates << Path.home.join("projects", "libgodot")
+        candidates << Path.home.join("src", "libgodot")
+
+        candidates.each do |c|
+          return c.expand if Dir.exists?(c) && is_libgodot_repo?(c)
+        end
+
         nil
       end
 
@@ -259,9 +276,17 @@ module Lapis
           exe_p = Path.new(exe)
           dirs << exe_p.parent if Dir.exists?(exe_p.parent)
           dirs << exe_p.parent.join("addons/crystal_integration/bin") if Dir.exists?(exe_p.parent.join("addons/crystal_integration/bin"))
+          dirs << exe_p.parent.parent.join("bin") if Dir.exists?(exe_p.parent.parent.join("bin"))
           dirs << exe_p.parent.parent.join("share/lapis/addons/crystal_integration/bin") if Dir.exists?(exe_p.parent.parent.join("share/lapis/addons/crystal_integration/bin"))
           dirs << exe_p.parent.parent.join("addons/crystal_integration/bin") if Dir.exists?(exe_p.parent.parent.join("addons/crystal_integration/bin"))
         end
+
+        {% if flag?(:windows) %}
+          if (local_app_data = ENV["LOCALAPPDATA"]?) && !local_app_data.empty?
+            p_bin = Path.new(local_app_data).join("Programs", "Lapis", "bin")
+            dirs << p_bin if Dir.exists?(p_bin)
+          end
+        {% end %}
 
         if crystal_exe = Process.find_executable("crystal")
           c_bin = Path.new(crystal_exe).parent

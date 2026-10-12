@@ -203,6 +203,7 @@ MD
         end
 
         # 4. Check target directory emptiness
+        created_dest = false
         if Dir.exists?(dest)
           entries = Dir.children(dest).reject { |c| c.starts_with?(".") }
           if !entries.empty? && !force
@@ -211,6 +212,7 @@ MD
           end
         else
           FileUtils.mkdir_p(dest)
+          created_dest = true
         end
 
         Core::Logger.step("Scaffold", "Creating new Lapis game '#{proj_title}' at #{dest}...")
@@ -219,6 +221,7 @@ MD
         if template_name && (tpl = Core::TemplateStore.get_template(template_name))
           Core::Logger.step("Scaffold:Template", "Extracting custom template '#{tpl.name}' into #{dest}...")
           unless Core::TemplateStore.extract_template(tpl.name, dest)
+            FileUtils.rm_rf(dest) if created_dest
             Core::Logger.error("Failed to extract template '#{tpl.name}'.")
             return 1
           end
@@ -299,6 +302,7 @@ MD
         # Verification: ensure GDExtension loader bridge exists
         bridge_file = Core::Env.bridge_file
         unless File.exists?(addon_bin.join(bridge_file))
+          FileUtils.rm_rf(dest) if created_dest
           Core::Logger.error("Failed to bundle required GDExtension bridge (#{bridge_file}) into #{addon_bin}.")
           return 1
         end

@@ -270,7 +270,12 @@ HELP
           if File.exists?(dest_bin)
             begin
               File.delete(dest_bin)
-              clean_config
+              is_global = explicit_dir.nil? && prefix.nil?
+              if is_global
+                clean_config
+              elsif (cfg = read_config) && (saved_bin = cfg["bin_path"]?)
+                clean_config if Path.new(saved_bin).expand == dest_bin.expand
+              end
               Core::Logger.success("Lapis CLI uninstalled successfully from #{dest_bin}.")
               return 0
             rescue ex
@@ -279,7 +284,7 @@ HELP
             end
           else
             Core::Logger.info("Lapis executable not found at #{dest_bin}. Nothing to uninstall.")
-            clean_config
+            clean_config if explicit_dir.nil? && prefix.nil?
             return 0
           end
         end
@@ -331,8 +336,10 @@ HELP
           return 1
         end
 
-        # Save configuration
-        save_config(root, dest_bin)
+        # Save configuration only for global default installation (not custom --dir or --prefix test runs)
+        if explicit_dir.nil? && prefix.nil?
+          save_config(root, dest_bin)
+        end
 
         Core::Logger.success("Lapis CLI (v#{Lapis::VERSION}) installed successfully!")
         puts "  Destination: \e[32m#{dest_bin}\e[0m"
