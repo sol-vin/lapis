@@ -23,6 +23,51 @@ module Godot
       end
     end
 
+    # Returns true if the underlying engine pointer is null or invalid
+    def null? : Bool
+      @pointer.null?
+    end
+
+    # Returns true if the underlying engine pointer is non-null and currently valid
+    def not_null? : Bool
+      !@pointer.null? && alive?
+    end
+
+    # Polymorphically downcasts this Godot object wrapper to target type `T`, or returns nil if type mismatch or pointer is null.
+    def as_a?(type : T.class) : T? forall T
+      return self.as?(T) if self.is_a?(T)
+      return nil if @pointer.null?
+      if inst = Bridge.find_alive_instance(@pointer)
+        if casted = inst.as?(T)
+          return casted
+        end
+      end
+      {% if T < Godot::Object %}
+        t_name = {{ T.name.stringify.split("::").last }}
+        if Bridge.object_is_class(@pointer, t_name)
+          T.new(@pointer)
+        else
+          nil
+        end
+      {% else %}
+        self.as?(T)
+      {% end %}
+    end
+
+    # Polymorphically downcasts this Godot object wrapper to target type `T`, raising `TypeCastError` if invalid.
+    def as_a(type : T.class) : T forall T
+      as_a?(type) || raise TypeCastError.new("Cannot cast #{self.class.name} to #{T.name}")
+    end
+
+    # Ergonomic aliases for polymorphic downcasting
+    def as_g?(type : T.class) : T? forall T
+      as_a?(type)
+    end
+
+    def as_g(type : T.class) : T forall T
+      as_a(type)
+    end
+
     # Configures this existing object in-place using with-yield semantics
     def configure(& : self ->) : self
       with self yield self

@@ -27,6 +27,12 @@ module Godot
       is_bitfield : Bool
     end
 
+    struct CrystalMethodDesc
+      name : LibC::Char*
+      ret_variant_type : Int32
+      arg_count : Int32
+    end
+
     struct CrystalClassDesc
       name : LibC::Char*
       parent_name : LibC::Char*
@@ -63,6 +69,9 @@ module Godot
 
       constant_count : Int32
       constants : CrystalConstantDesc*
+
+      method_count : Int32
+      methods : CrystalMethodDesc*
 
       parent_desc : Void*
     end
@@ -591,6 +600,17 @@ module Godot
           consts[idx] = c_item
         end
 
+        # Populate class methods
+        m_count = entry.methods.size
+        meths = Pointer(LibBridge::CrystalMethodDesc).malloc(m_count > 0 ? m_count : 1)
+        entry.methods.each_with_index do |m_name, idx|
+          m_item = LibBridge::CrystalMethodDesc.new
+          m_item.name = m_name.to_unsafe
+          m_item.ret_variant_type = 0
+          m_item.arg_count = 0
+          meths[idx] = m_item
+        end
+
         desc = LibBridge::CrystalClassDesc.new
         desc.name = entry.class_name.to_unsafe
         desc.parent_name = entry.parent_name.to_unsafe
@@ -626,6 +646,9 @@ module Godot
 
         desc.constant_count = c_count
         desc.constants = consts
+
+        desc.method_count = m_count
+        desc.methods = meths
 
         desc_ptr = Pointer(LibBridge::CrystalClassDesc).malloc(1)
         desc_ptr.value = desc

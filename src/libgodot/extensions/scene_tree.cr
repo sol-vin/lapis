@@ -8,6 +8,20 @@ module Godot
       get_root
     end
 
+    # Returns the root Window, or nil if invalid or null
+    def get_root? : Window?
+      return nil if @pointer.null?
+      r = get_root
+      r.pointer.null? ? nil : r
+    end
+
+    # Returns the first node in a group, or nil if none found
+    def get_first_node_in_group?(group_name : String) : Node?
+      return nil if @pointer.null?
+      node = get_first_node_in_group(group_name)
+      node.pointer.null? ? nil : node
+    end
+
     # Creates a SceneTreeTimer with integer seconds
     def create_timer(time_sec : Int, process_always : Bool = true, process_in_physics : Bool = false, ignore_time_scale : Bool = false) : SceneTreeTimer
       create_timer(time_sec.to_f64, process_always, process_in_physics, ignore_time_scale)

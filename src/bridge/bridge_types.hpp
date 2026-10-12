@@ -124,6 +124,16 @@ struct CrystalConstantDesc {
     bool is_bitfield;          /** True if part of a bitfield flags enum */
 };
 
+/**
+ * Class method descriptor registered into Godot's ClassDB.
+ * Populated by Crystal macros for user methods and deferred callbacks.
+ */
+struct CrystalMethodDesc {
+    const char *name;          /** Method identifier (e.g. "open_pause_menu") */
+    int ret_variant_type;      /** GDExtensionVariantType of return value (0 for void/Nil) */
+    int arg_count;             /** Number of arguments */
+};
+
 struct CrystalClassDesc {
     const char *name;         /** Registered class name (e.g. "MyPlayer", "ToolTester2D") */
     const char *parent_name;  /** Native or Crystal parent class (e.g. "CharacterBody3D") */
@@ -161,6 +171,9 @@ struct CrystalClassDesc {
     int constant_count;
     const CrystalConstantDesc *constants;
 
+    int method_count;
+    const CrystalMethodDesc *methods;
+
     const CrystalClassDesc *parent_desc;
 };
 
@@ -189,9 +202,13 @@ struct PersistentClassDesc {
     std::vector<std::string> const_names;
     std::vector<CrystalConstantDesc> constants;
 
+    std::vector<std::string> method_names;
+    std::vector<CrystalMethodDesc> methods;
+
     std::unordered_set<std::string> registered_property_names;
     std::unordered_set<std::string> registered_signal_names;
     std::unordered_set<std::string> registered_constant_names;
+    std::unordered_set<std::string> registered_method_names;
     void *registered_library = nullptr;
     bool is_registered_in_classdb = false;
 
@@ -281,6 +298,21 @@ struct PersistentClassDesc {
             }
         }
 
+        // Copy methods
+        method_names.clear();
+        methods.clear();
+
+        if (p_desc->methods && p_desc->method_count > 0) {
+            method_names.resize(p_desc->method_count);
+            methods.resize(p_desc->method_count);
+
+            for (int i = 0; i < p_desc->method_count; i++) {
+                method_names[i] = p_desc->methods[i].name ? p_desc->methods[i].name : "";
+                methods[i] = p_desc->methods[i];
+                methods[i].name = method_names[i].c_str();
+            }
+        }
+
         desc = *p_desc;
         desc.name = name.c_str();
         desc.parent_name = parent_name.c_str();
@@ -291,6 +323,8 @@ struct PersistentClassDesc {
         desc.signal_count = (int)signals.size();
         desc.constants = constants.empty() ? nullptr : constants.data();
         desc.constant_count = (int)constants.size();
+        desc.methods = methods.empty() ? nullptr : methods.data();
+        desc.method_count = (int)methods.size();
         desc.parent_desc = nullptr;
     }
 };

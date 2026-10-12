@@ -342,6 +342,15 @@ module Godot
   end
 
   class PrimitiveMesh < Mesh
+    # Returns the material assigned to this primitive mesh.
+    def material : Godot::Material?
+      get_material
+    end
+
+    def material=(val : Godot::Material?) : Void
+      set_material(val)
+    end
+
     # Returns the material of this primitive mesh, downcast to target type T.
     def material(*, as type : T.class) : T forall T
       get_material.as_a(T)

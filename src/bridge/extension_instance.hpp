@@ -1632,3 +1632,29 @@ inline void channel_method_call(
         bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_BOOL, r_return, &b);
     }
 }
+
+inline void generic_class_user_method_call(
+    void *method_userdata,
+    GDExtensionClassInstancePtr p_instance,
+    const GDExtensionConstVariantPtr *p_args,
+    GDExtensionInt p_argument_count,
+    GDExtensionVariantPtr r_return,
+    GDExtensionCallError *r_error
+) {
+    ensure_gc_thread_registered();
+    GenericExtensionInstance *inst = (GenericExtensionInstance*)p_instance;
+    if (!inst || !inst->desc || !inst->crystal_instance || !inst->desc->call_virtual_with_data) {
+        if (r_error) r_error->error = GDEXTENSION_CALL_ERROR_INSTANCE_IS_NULL;
+        return;
+    }
+    if (r_error) r_error->error = GDEXTENSION_CALL_OK;
+
+    const char *mname = (const char*)method_userdata;
+    if (!mname) return;
+
+    inst->desc->call_virtual_with_data(inst->crystal_instance, mname, (const void**)p_args, (void*)r_return);
+    if (r_return && gd_variant_new_nil) {
+        gd_variant_new_nil(r_return);
+    }
+}
+

@@ -101,9 +101,17 @@ macro __define_node_ref_property(name_or_decl, type = nil, path = nil, is_unique
       {% if raw_val.is_a?(Call) && raw_val.name.stringify == "as" %}
         {% raw_val = raw_val.receiver %}
       {% end %}
-      {% v_path = raw_val.is_a?(StringLiteral) ? raw_val : raw_val.id.stringify %}
+      {% if raw_val.is_a?(ArrayLiteral) || raw_val.is_a?(TupleLiteral) %}
+        {% v_path = raw_val %}
+      {% else %}
+        {% v_path = raw_val.is_a?(StringLiteral) ? raw_val : raw_val.id.stringify %}
+      {% end %}
+    {% elsif type && (type.is_a?(ArrayLiteral) || type.is_a?(TupleLiteral)) %}
+      {% v_path = type %}
     {% elsif type %}
       {% v_path = type.is_a?(StringLiteral) ? type : type.id.stringify %}
+    {% elsif path && (path.is_a?(ArrayLiteral) || path.is_a?(TupleLiteral)) %}
+      {% v_path = path %}
     {% elsif path %}
       {% v_path = path.is_a?(StringLiteral) ? path : path.id.stringify %}
     {% else %}
@@ -133,7 +141,17 @@ macro __define_node_ref_property(name_or_decl, type = nil, path = nil, is_unique
     {% elsif v_type.stringify.ends_with?("?") %}
       {% v_type = v_type.stringify[0...-1].id %}
     {% end %}
-    {% v_path = raw_val ? (raw_val.is_a?(StringLiteral) ? raw_val : raw_val.id.stringify) : (path ? (path.is_a?(StringLiteral) ? path : path.id.stringify) : nil) %}
+    {% if raw_val && (raw_val.is_a?(ArrayLiteral) || raw_val.is_a?(TupleLiteral)) %}
+      {% v_path = raw_val %}
+    {% elsif raw_val %}
+      {% v_path = raw_val.is_a?(StringLiteral) ? raw_val : raw_val.id.stringify %}
+    {% elsif path && (path.is_a?(ArrayLiteral) || path.is_a?(TupleLiteral)) %}
+      {% v_path = path %}
+    {% elsif path %}
+      {% v_path = path.is_a?(StringLiteral) ? path : path.id.stringify %}
+    {% else %}
+      {% v_path = nil %}
+    {% end %}
   {% else %}
     {% v_name = name_or_decl %}
     {% if type && type.is_a?(Union) %}
@@ -145,16 +163,45 @@ macro __define_node_ref_property(name_or_decl, type = nil, path = nil, is_unique
     {% else %}
       {% v_type = "::Godot::Node".id %}
     {% end %}
-    {% v_path = path ? (path.is_a?(StringLiteral) ? path : path.id.stringify) : nil %}
+    {% if path && (path.is_a?(ArrayLiteral) || path.is_a?(TupleLiteral)) %}
+      {% v_path = path %}
+    {% elsif path %}
+      {% v_path = path.is_a?(StringLiteral) ? path : path.id.stringify %}
+    {% else %}
+      {% v_path = nil %}
+    {% end %}
   {% end %}
 
   {% if !v_type.stringify.includes?("::") && Godot.has_constant?(v_type.stringify) %}
     {% v_type = "::Godot::#{v_type}".id %}
   {% end %}
 
-  {% if !v_path %}
+  {% if v_path.is_a?(ArrayLiteral) || v_path.is_a?(TupleLiteral) %}
+    {% candidate_paths = v_path %}
+    {% fallback_search_name = nil %}
+  {% elsif v_path %}
+    {% str_path = v_path.is_a?(StringLiteral) ? v_path : v_path.id.stringify %}
+    {% if is_unique %}
+      {% u_name = str_path.starts_with?('%') ? str_path : "%#{str_path.id}" %}
+      {% candidate_paths = [u_name] %}
+      {% fallback_search_name = str_path.starts_with?('%') ? str_path[1..-1] : str_path %}
+    {% elsif str_path.starts_with?('%') || str_path.includes?('/') %}
+      {% candidate_paths = [str_path] %}
+      {% fallback_search_name = nil %}
+    {% else %}
+      {% candidate_paths = ["%#{str_path.id}", str_path] %}
+      {% fallback_search_name = str_path %}
+    {% end %}
+  {% else %}
     {% t_simple = v_type.stringify.split("::").last %}
-    {% v_path = (t_simple != "Node" && !t_simple.empty?) ? t_simple : v_name.id.stringify.camelcase %}
+    {% inferred_name = (t_simple != "Node" && !t_simple.empty?) ? t_simple : v_name.id.stringify.camelcase %}
+    {% if is_unique %}
+      {% candidate_paths = ["%#{inferred_name.id}"] %}
+      {% fallback_search_name = inferred_name %}
+    {% else %}
+      {% candidate_paths = ["%#{inferred_name.id}", inferred_name] %}
+      {% fallback_search_name = inferred_name %}
+    {% end %}
   {% end %}
 
   @{{v_name.id}} : {{v_type.id}}? = nil
@@ -168,11 +215,12 @@ macro __define_node_ref_property(name_or_decl, type = nil, path = nil, is_unique
           @{{v_name.id}} = nil
         end
       end
-      {% if is_unique %}
-        u_name = ({{v_path}}).to_s.starts_with?('%') ? ({{v_path}}).to_s : "%#{{{v_path}}}"
-        found = get_node_as?(u_name, {{v_type.id}})
-      {% else %}
-        found = get_node_as?({{v_path}}, {{v_type.id}})
+      found : {{v_type.id}}? = nil
+      {% for cand in candidate_paths %}
+        found ||= get_node_as?({{cand}}, {{v_type.id}})
+      {% end %}
+      {% if fallback_search_name %}
+        found ||= find_child_as({{v_type.id}}, {{fallback_search_name}}, recursive: true, owned: false)
       {% end %}
       @{{v_name.id}} = found
       found
@@ -183,14 +231,18 @@ macro __define_node_ref_property(name_or_decl, type = nil, path = nil, is_unique
         cached.check_alive!
         return cached
       end
-      {% if is_unique %}
-        u_name = ({{v_path}}).to_s.starts_with?('%') ? ({{v_path}}).to_s : "%#{{{v_path}}}"
-        found = get_node_as(u_name, {{v_type.id}})
-      {% else %}
-        found = get_node_as({{v_path}}, {{v_type.id}})
+      found : {{v_type.id}}? = nil
+      {% for cand in candidate_paths %}
+        found ||= get_node_as?({{cand}}, {{v_type.id}})
       {% end %}
-      @{{v_name.id}} = found
-      found
+      {% if fallback_search_name %}
+        found ||= find_child_as({{v_type.id}}, {{fallback_search_name}}, recursive: true, owned: false)
+      {% end %}
+      if found
+        @{{v_name.id}} = found
+        return found
+      end
+      raise ::Godot::NodeNotFoundError.new("Node not found for '{{v_name.id}}' (relative to '#{self.name}').")
     end
   {% end %}
 

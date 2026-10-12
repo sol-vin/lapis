@@ -62,6 +62,7 @@ module Godot
       property properties : ::Array(PropertyInfo)
       property signals : ::Array(SignalInfo)
       property constants : ::Array(ConstantInfo)
+      property methods : ::Array(String) = [] of String
       property icon_path : String
       property is_abstract : Bool
       property rpc_methods : ::Array(NamedTuple(name: String, rpc_mode: Int32, transfer_mode: Int32, call_local: Bool, channel: Int32))
@@ -104,6 +105,7 @@ module Godot
         @rpc_methods : ::Array(NamedTuple(name: String, rpc_mode: Int32, transfer_mode: Int32, call_local: Bool, channel: Int32)) = [] of NamedTuple(name: String, rpc_mode: Int32, transfer_mode: Int32, call_local: Bool, channel: Int32),
         @has_virtual_proc : (String -> Bool)? = nil,
         @constants : ::Array(ConstantInfo) = [] of ConstantInfo,
+        @methods : ::Array(String) = [] of String,
         @script_path : String = "",
         @is_autoload : Bool = false,
         @autoload_name : String = "",
@@ -1343,6 +1345,12 @@ macro node(decl, &block)
       def self._godot_set_autoload_instance(inst : ::Godot::Object?) : Void
         @@autoload_instance = inst.as?({{class_name}})
       end
+
+      {% for m in user_methods %}
+      def self.{{m.id}}(*args, **kwargs)
+        instance.{{m.id}}(*args, **kwargs)
+      end
+      {% end %}
     {% end %}
 
     {% if parent_name.stringify == "ResourceFormatLoader" || parent_name.stringify.ends_with?("::ResourceFormatLoader") %}
@@ -1588,10 +1596,14 @@ macro node(decl, &block)
       end
     end
 
-    {% if !has_custom_virtual_with_data && (has_input || has_unhandled_input || has_unhandled_key_input || has_shortcut_input || has_gui_input) %}
+    {% if !has_custom_virtual_with_data && (has_input || has_unhandled_input || has_unhandled_key_input || has_shortcut_input || has_gui_input || user_methods.size > 0) %}
     def _godot_call_virtual_with_data(method_name : String, args : Void**, ret : Void*) : Void
       ::Godot::NodeContext.scope(self) do
         case method_name
+        {% for m in user_methods %}
+        when {{m.stringify}}
+          {{m.id}}
+        {% end %}
         {% if has_input %}
         when "_input", "input"
           if !args.null? && !args[0].null?
@@ -1846,9 +1858,12 @@ macro node(decl, &block)
     end
   end
 
-  # Auto-register this node with full property and signal metadata
   properties_{{class_name}} = Array(::Godot::PropertyInfo).new
   constants_{{class_name}} = Array(::Godot::ConstantInfo).new
+  methods_{{class_name}} = Array(String).new
+  {% for m in user_methods %}
+    methods_{{class_name}} << {{m.stringify}}
+  {% end %}
   {% for c in class_constants %}
     constants_{{class_name}} << ::Godot::ConstantInfo.new(
       {{c[0]}},
@@ -2451,6 +2466,7 @@ macro node(decl, &block)
       {% end %}
       has_virtual_proc: ->(m : String) { {{class_name}}._godot_has_virtual_method(m) },
       constants: constants_{{class_name}},
+      methods: methods_{{class_name}},
       script_path: script_path_{{class_name}},
       is_autoload: {{is_autoload_class}},
       autoload_name: {{autoload_name}},

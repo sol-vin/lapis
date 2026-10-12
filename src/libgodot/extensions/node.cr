@@ -350,6 +350,76 @@ module Godot
       p.pointer.null? ? nil : p
     end
 
+    # Returns the viewport this node is attached to, or nil if detached/orphan
+    def get_viewport? : Viewport?
+      return nil unless alive?
+      return nil if @pointer.null?
+      vp = get_viewport
+      vp.pointer.null? ? nil : vp
+    end
+
+    # Checks if this node, or any ancestor above it in the scene tree, belongs to `group`.
+    def in_group_or_ancestor?(group : String) : Bool
+      curr : Node? = self
+      while curr && curr.alive?
+        return true if curr.in_group?(group)
+        curr = curr.get_parent?
+      end
+      false
+    end
+
+    def in_group_or_ancestor?(group : Symbol) : Bool
+      in_group_or_ancestor?(group.to_s)
+    end
+
+    # Returns the nearest ancestor node (or nil) belonging to `group`.
+    def ancestor_in_group?(group : String) : Node?
+      curr = get_parent?
+      while curr && curr.alive?
+        return curr if curr.in_group?(group)
+        curr = curr.get_parent?
+      end
+      nil
+    end
+
+    def ancestor_in_group?(group : Symbol) : Node?
+      ancestor_in_group?(group.to_s)
+    end
+
+    # Traverses upward starting from self, returning the first node matching type T, or nil if none found.
+    def self_or_ancestor?(type : T.class) : T? forall T
+      curr : Node? = self
+      while curr && curr.alive?
+        if typed = curr.as_a?(T)
+          return typed
+        end
+        curr = curr.get_parent?
+      end
+      nil
+    end
+
+    # Traverses upward starting from self, returning the first node matching type T, or raising NilAssertionError.
+    def self_or_ancestor(type : T.class) : T forall T
+      self_or_ancestor?(type) || raise NilAssertionError.new("No #{T.name} ancestor found for node '#{name}'")
+    end
+
+    # Traverses upward starting from parent, returning the first ancestor matching type T, or nil.
+    def ancestor?(type : T.class) : T? forall T
+      curr = get_parent?
+      while curr && curr.alive?
+        if typed = curr.as_a?(T)
+          return typed
+        end
+        curr = curr.get_parent?
+      end
+      nil
+    end
+
+    # Traverses upward starting from parent, returning the first ancestor matching type T, or raising NilAssertionError.
+    def ancestor(type : T.class) : T forall T
+      ancestor?(type) || raise NilAssertionError.new("No #{T.name} ancestor found for node '#{name}'")
+    end
+
     # Retrieves child at specified index, or nil if not found
     def get_child?(idx : Int, include_internal : Bool = false) : Node?
       return nil unless alive?

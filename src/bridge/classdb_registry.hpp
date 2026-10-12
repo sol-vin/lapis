@@ -49,6 +49,7 @@ inline void mark_class_unregistered(const std::string &cname) {
         pcd_it->second->registered_property_names.clear();
         pcd_it->second->registered_signal_names.clear();
         pcd_it->second->registered_constant_names.clear();
+        pcd_it->second->registered_method_names.clear();
     }
 }
 
@@ -365,6 +366,38 @@ inline void do_classdb_register(CrystalClassDesc *desc) {
             if (pcd && c.constant_name) pcd->registered_constant_names.insert(c.constant_name);
         }
     }
+
+    // --- Segment 6.5: User Methods Registration into ClassDB ---
+    if (gd_classdb_register_extension_class_method) {
+        for (int i = 0; i < desc->method_count; i++) {
+            const CrystalMethodDesc &m = desc->methods[i];
+            if (!m.name || (pcd && pcd->registered_method_names.count(m.name) > 0)) {
+                continue;
+            }
+
+            void *sn_name = make_string_name(m.name);
+            GDExtensionClassMethodInfo minfo = {};
+            minfo.name = sn_name;
+            minfo.method_userdata = (void*)m.name;
+            minfo.call_func = generic_class_user_method_call;
+            minfo.ptrcall_func = nullptr;
+            minfo.method_flags = GDEXTENSION_METHOD_FLAG_NORMAL;
+            minfo.has_return_value = 0;
+            minfo.return_value_info = nullptr;
+            minfo.return_value_metadata = GDEXTENSION_METHOD_ARGUMENT_METADATA_NONE;
+            minfo.argument_count = 0;
+            minfo.arguments_info = nullptr;
+            minfo.arguments_metadata = nullptr;
+            minfo.default_argument_count = 0;
+            minfo.default_arguments = nullptr;
+
+            gd_classdb_register_extension_class_method(g_library, class_sn, &minfo);
+            free_string_name(sn_name);
+
+            if (pcd && m.name) pcd->registered_method_names.insert(m.name);
+        }
+    }
+
 
     // --- Segment 7: GodotChannel Method Registration & Class Tracking ---
     if (strcmp(desc->name, "GodotChannel") == 0) {

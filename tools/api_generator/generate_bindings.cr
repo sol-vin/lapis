@@ -352,6 +352,16 @@ File.open("src/libgodot/generated/singletons.cr", "w") do |f|
   f.puts "end"
 end
 
+singleton_classes = Set(String).new
+if singletons = api_data["singletons"]?
+  singletons.as_a.each do |s|
+    s_name = s["name"].as_s
+    s_type = s["type"]?.try(&.as_s) || s_name
+    singleton_classes.add(s_name)
+    singleton_classes.add(s_type)
+  end
+end
+
 # =============================================================================
 # 3. Classes (Topologically Sorted)
 # =============================================================================
@@ -406,7 +416,11 @@ ext_files = Dir.glob("src/libgodot/extensions/*.cr")
 if ext_files.empty?
   ext_files = Dir.glob(File.join(__DIR__, "..", "..", "src", "libgodot", "extensions", "*.cr"))
 end
-manual_files = ["src/libgodot/object.cr", "src/libgodot.cr"] + ext_files
+class_files = Dir.glob("src/libgodot/classes/*.cr")
+if class_files.empty?
+  class_files = Dir.glob(File.join(__DIR__, "..", "..", "src", "libgodot", "classes", "*.cr"))
+end
+manual_files = ["src/libgodot/object.cr", "src/libgodot.cr"] + class_files + ext_files
 manual_files.each do |manual_file|
   path = if File.exists?(manual_file)
            manual_file
@@ -432,12 +446,13 @@ manual_files.each do |manual_file|
   end
 end
 
-def generate_class_code(io : IO, c : JSON::Any, keywords : Hash(String, String), type_map : Hash(String, String), class_names : Set(String), all_method_names : Set(String), manual_methods : Hash(String, Set(String)), predicate_aliases : Hash(String, Array(String)))
+def generate_class_code(io : IO, c : JSON::Any, keywords : Hash(String, String), type_map : Hash(String, String), class_names : Set(String), all_method_names : Set(String), manual_methods : Hash(String, Set(String)), predicate_aliases : Hash(String, Array(String)), singleton_classes : Set(String))
   name = c["name"].as_s
   parent = c["inherits"]?.try(&.as_s) || "Godot::Object"
   parent_type = parent == "Godot::Object" ? parent : (parent.starts_with?("Godot::") ? parent : "Godot::#{parent}")
   class_manuals = manual_methods[name]?
   defined_class_methods = Set(String).new
+  is_singleton_class = singleton_classes.includes?(name)
 
   # Class documentation
   class_doc_parts = [] of String
@@ -491,6 +506,17 @@ def generate_class_code(io : IO, c : JSON::Any, keywords : Hash(String, String),
     end
   end
 
+  # Constants
+  if constants = c["constants"]?.try(&.as_a)
+    constants.each do |cn|
+      c_name = cn["name"].as_s
+      c_val = cn["value"].as_i64
+      c_const_name = c_name[0].ascii_uppercase? ? c_name : c_name.upcase
+      io.puts "    #{c_const_name} = #{c_val}_i64"
+    end
+    io.puts ""
+  end
+
   # Methods
   if methods = c["methods"]?
     methods.as_a.each do |m|
@@ -499,6 +525,9 @@ def generate_class_code(io : IO, c : JSON::Any, keywords : Hash(String, String),
       next if m["is_vararg"]?.try(&.as_bool)
       hash_val = m["hash"]?.try(&.as_i64) || 0_i64
       sanitized_m_name = sanitize_name(m_name, keywords)
+      if name == "Node" && (m_name == "add_child" || m_name == "add_sibling")
+        sanitized_m_name = "engine_#{m_name}"
+      end
 
       is_static = m["is_static"]?.try(&.as_bool) || false
       target_ptr = is_static ? "Pointer(Void).null" : "@pointer"
@@ -674,6 +703,17 @@ def generate_class_code(io : IO, c : JSON::Any, keywords : Hash(String, String),
         io.puts "    end\n"
       end
 
+      if is_singleton_class && !is_static
+        sig = "def self.#{sanitized_m_name}"
+        if !defined_class_methods.includes?(sig)
+          defined_class_methods.add(sig)
+          io.puts "    # Class-level singleton delegator for `#{sanitized_m_name}`"
+          io.puts "    def self.#{sanitized_m_name}(#{arg_defs.join(", ")}) : #{ret_type_crystal}"
+          io.puts "      instance.#{sanitized_m_name}(#{arg_names.join(", ")})"
+          io.puts "    end\n"
+        end
+      end
+
       if sanitized_m_name != m_name && m_name == "begin" && !args.empty?
         io.puts "    def begin(#{arg_defs.join(", ")}) : #{ret_type_crystal}"
         io.puts "      begin_val(#{arg_names.join(", ")})"
@@ -713,6 +753,17 @@ def generate_class_code(io : IO, c : JSON::Any, keywords : Hash(String, String),
             io.puts "      #{sanitized_m_name}(#{arg_names.join(", ")})"
           end
           io.puts "    end\n"
+
+          if is_singleton_class && !is_static
+            pred_sig_cls = "def self.#{pred_name}"
+            if !defined_class_methods.includes?(pred_sig_cls)
+              defined_class_methods.add(pred_sig_cls)
+              io.puts "    # Class-level singleton predicate delegator for `#{pred_name}`"
+              io.puts "    def self.#{pred_name}(#{arg_defs.join(", ")}) : Bool"
+              io.puts "      instance.#{pred_name}(#{arg_names.join(", ")})"
+              io.puts "    end\n"
+            end
+          end
 
           if is_static
             inst_pred_sig = "def #{pred_name}"
@@ -797,6 +848,25 @@ def generate_class_code(io : IO, c : JSON::Any, keywords : Hash(String, String),
               io.puts "    end\n"
             end
           end
+
+          if is_singleton_class
+            prop_get_sig = "def self.#{clean_p_name}"
+            if !defined_class_methods.includes?(prop_get_sig)
+              defined_class_methods.add(prop_get_sig)
+              io.puts "    def self.#{clean_p_name}"
+              io.puts "      instance.#{clean_p_name}"
+              io.puts "    end\n"
+            end
+            if p_type == "bool" || raw_getter.starts_with?("is_") || raw_getter.starts_with?("has_")
+              pred_get_sig = "def self.#{clean_p_name}?"
+              if !defined_class_methods.includes?(pred_get_sig)
+                defined_class_methods.add(pred_get_sig)
+                io.puts "    def self.#{clean_p_name}?"
+                io.puts "      instance.#{clean_p_name}?"
+                io.puts "    end\n"
+              end
+            end
+          end
         end
       end
 
@@ -817,12 +887,12 @@ def generate_class_code(io : IO, c : JSON::Any, keywords : Hash(String, String),
             end
           elsif p_type == "int"
             if has_index
-              io.puts "    def #{clean_p_name}=(val : Int)"
-              io.puts "      #{clean_setter}(#{index_val}, val.to_i64)"
+              io.puts "    def #{clean_p_name}=(val : Int | Enum)"
+              io.puts "      #{clean_setter}(#{index_val}, val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)"
               io.puts "    end\n"
             else
-              io.puts "    def #{clean_p_name}=(val : Int)"
-              io.puts "      #{clean_setter}(val.to_i64)"
+              io.puts "    def #{clean_p_name}=(val : Int | Enum)"
+              io.puts "      #{clean_setter}(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)"
               io.puts "    end\n"
             end
           else
@@ -833,6 +903,16 @@ def generate_class_code(io : IO, c : JSON::Any, keywords : Hash(String, String),
             else
               io.puts "    def #{clean_p_name}=(val)"
               io.puts "      #{clean_setter}(val)"
+              io.puts "    end\n"
+            end
+          end
+
+          if is_singleton_class
+            prop_set_sig = "def self.#{clean_p_name}="
+            if !defined_class_methods.includes?(prop_set_sig)
+              defined_class_methods.add(prop_set_sig)
+              io.puts "    def self.#{clean_p_name}=(val)"
+              io.puts "      instance.#{clean_p_name} = val"
               io.puts "    end\n"
             end
           end
@@ -886,7 +966,7 @@ num_parts.times do |part_idx|
     f.puts "# Generated classes part #{part_num} (in topological order)"
     f.puts "module Godot"
     part_classes.each do |c|
-      generate_class_code(f, c, keywords, type_map, class_names, all_method_names, manual_methods, predicate_aliases)
+      generate_class_code(f, c, keywords, type_map, class_names, all_method_names, manual_methods, predicate_aliases, singleton_classes)
     end
     f.puts "end"
   end

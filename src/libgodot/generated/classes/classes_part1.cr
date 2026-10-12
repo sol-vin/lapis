@@ -13,6 +13,10 @@ module Godot
       ConnectReferenceCounted = 8_i64
       ConnectAppendSourceObject = 16_i64
     end
+    NOTIFICATION_POSTINITIALIZE = 0_i64
+    NOTIFICATION_PREDELETE = 1_i64
+    NOTIFICATION_EXTENSION_RELOADED = 2_i64
+
     @@mb_get_class : Void* = Pointer(Void).null
     def get_class() : String
       godot_bind(@@mb_get_class, "Object", "get_class", 201670096_i64)
@@ -1482,8 +1486,8 @@ module Godot
       get_cell_shape
     end
     # Property `cell_shape` setter
-    def cell_shape=(val : Int)
-      set_cell_shape(val.to_i64)
+    def cell_shape=(val : Int | Enum)
+      set_cell_shape(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `jumping_enabled` getter
     def jumping_enabled
@@ -1498,24 +1502,24 @@ module Godot
       get_default_compute_heuristic
     end
     # Property `default_compute_heuristic` setter
-    def default_compute_heuristic=(val : Int)
-      set_default_compute_heuristic(val.to_i64)
+    def default_compute_heuristic=(val : Int | Enum)
+      set_default_compute_heuristic(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `default_estimate_heuristic` getter
     def default_estimate_heuristic
       get_default_estimate_heuristic
     end
     # Property `default_estimate_heuristic` setter
-    def default_estimate_heuristic=(val : Int)
-      set_default_estimate_heuristic(val.to_i64)
+    def default_estimate_heuristic=(val : Int | Enum)
+      set_default_estimate_heuristic(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `diagonal_mode` getter
     def diagonal_mode
       get_diagonal_mode
     end
     # Property `diagonal_mode` setter
-    def diagonal_mode=(val : Int)
-      set_diagonal_mode(val.to_i64)
+    def diagonal_mode=(val : Int | Enum)
+      set_diagonal_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class Node < Godot::Object
@@ -1562,6 +1566,56 @@ module Godot
       AutoTranslateModeAlways = 1_i64
       AutoTranslateModeDisabled = 2_i64
     end
+    NOTIFICATION_ENTER_TREE = 10_i64
+    NOTIFICATION_EXIT_TREE = 11_i64
+    NOTIFICATION_MOVED_IN_PARENT = 12_i64
+    NOTIFICATION_READY = 13_i64
+    NOTIFICATION_PAUSED = 14_i64
+    NOTIFICATION_UNPAUSED = 15_i64
+    NOTIFICATION_PHYSICS_PROCESS = 16_i64
+    NOTIFICATION_PROCESS = 17_i64
+    NOTIFICATION_PARENTED = 18_i64
+    NOTIFICATION_UNPARENTED = 19_i64
+    NOTIFICATION_SCENE_INSTANTIATED = 20_i64
+    NOTIFICATION_DRAG_BEGIN = 21_i64
+    NOTIFICATION_DRAG_END = 22_i64
+    NOTIFICATION_PATH_RENAMED = 23_i64
+    NOTIFICATION_CHILD_ORDER_CHANGED = 24_i64
+    NOTIFICATION_INTERNAL_PROCESS = 25_i64
+    NOTIFICATION_INTERNAL_PHYSICS_PROCESS = 26_i64
+    NOTIFICATION_POST_ENTER_TREE = 27_i64
+    NOTIFICATION_DISABLED = 28_i64
+    NOTIFICATION_ENABLED = 29_i64
+    NOTIFICATION_RESET_PHYSICS_INTERPOLATION = 2001_i64
+    NOTIFICATION_EDITOR_PRE_SAVE = 9001_i64
+    NOTIFICATION_EDITOR_POST_SAVE = 9002_i64
+    NOTIFICATION_WM_MOUSE_ENTER = 1002_i64
+    NOTIFICATION_WM_MOUSE_EXIT = 1003_i64
+    NOTIFICATION_WM_WINDOW_FOCUS_IN = 1004_i64
+    NOTIFICATION_WM_WINDOW_FOCUS_OUT = 1005_i64
+    NOTIFICATION_WM_CLOSE_REQUEST = 1006_i64
+    NOTIFICATION_WM_GO_BACK_REQUEST = 1007_i64
+    NOTIFICATION_WM_SIZE_CHANGED = 1008_i64
+    NOTIFICATION_WM_DPI_CHANGE = 1009_i64
+    NOTIFICATION_VP_MOUSE_ENTER = 1010_i64
+    NOTIFICATION_VP_MOUSE_EXIT = 1011_i64
+    NOTIFICATION_WM_POSITION_CHANGED = 1012_i64
+    NOTIFICATION_WM_OUTPUT_MAX_LINEAR_VALUE_CHANGED = 1013_i64
+    NOTIFICATION_OS_MEMORY_WARNING = 2009_i64
+    NOTIFICATION_TRANSLATION_CHANGED = 2010_i64
+    NOTIFICATION_WM_ABOUT = 2011_i64
+    NOTIFICATION_CRASH = 2012_i64
+    NOTIFICATION_OS_IME_UPDATE = 2013_i64
+    NOTIFICATION_APPLICATION_RESUMED = 2014_i64
+    NOTIFICATION_APPLICATION_PAUSED = 2015_i64
+    NOTIFICATION_APPLICATION_FOCUS_IN = 2016_i64
+    NOTIFICATION_APPLICATION_FOCUS_OUT = 2017_i64
+    NOTIFICATION_TEXT_SERVER_CHANGED = 2018_i64
+    NOTIFICATION_APPLICATION_PIP_MODE_ENTERED = 2019_i64
+    NOTIFICATION_APPLICATION_PIP_MODE_EXITED = 2020_i64
+    NOTIFICATION_ACCESSIBILITY_UPDATE = 3000_i64
+    NOTIFICATION_ACCESSIBILITY_INVALIDATE = 3001_i64
+
     @@mb_print_orphan_nodes : Void* = Pointer(Void).null
     def self.print_orphan_nodes() : Void
       godot_bind(@@mb_print_orphan_nodes, "Node", "print_orphan_nodes", 3218959716_i64)
@@ -2644,64 +2698,64 @@ module Godot
       get_process_mode
     end
     # Property `process_mode` setter
-    def process_mode=(val : Int)
-      set_process_mode(val.to_i64)
+    def process_mode=(val : Int | Enum)
+      set_process_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `process_priority` getter
     def process_priority
       get_process_priority
     end
     # Property `process_priority` setter
-    def process_priority=(val : Int)
-      set_process_priority(val.to_i64)
+    def process_priority=(val : Int | Enum)
+      set_process_priority(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `process_physics_priority` getter
     def process_physics_priority
       get_physics_process_priority
     end
     # Property `process_physics_priority` setter
-    def process_physics_priority=(val : Int)
-      set_physics_process_priority(val.to_i64)
+    def process_physics_priority=(val : Int | Enum)
+      set_physics_process_priority(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `process_thread_group` getter
     def process_thread_group
       get_process_thread_group
     end
     # Property `process_thread_group` setter
-    def process_thread_group=(val : Int)
-      set_process_thread_group(val.to_i64)
+    def process_thread_group=(val : Int | Enum)
+      set_process_thread_group(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `process_thread_group_order` getter
     def process_thread_group_order
       get_process_thread_group_order
     end
     # Property `process_thread_group_order` setter
-    def process_thread_group_order=(val : Int)
-      set_process_thread_group_order(val.to_i64)
+    def process_thread_group_order=(val : Int | Enum)
+      set_process_thread_group_order(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `process_thread_messages` getter
     def process_thread_messages
       get_process_thread_messages
     end
     # Property `process_thread_messages` setter
-    def process_thread_messages=(val : Int)
-      set_process_thread_messages(val.to_i64)
+    def process_thread_messages=(val : Int | Enum)
+      set_process_thread_messages(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `physics_interpolation_mode` getter
     def physics_interpolation_mode
       get_physics_interpolation_mode
     end
     # Property `physics_interpolation_mode` setter
-    def physics_interpolation_mode=(val : Int)
-      set_physics_interpolation_mode(val.to_i64)
+    def physics_interpolation_mode=(val : Int | Enum)
+      set_physics_interpolation_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `auto_translate_mode` getter
     def auto_translate_mode
       get_auto_translate_mode
     end
     # Property `auto_translate_mode` setter
-    def auto_translate_mode=(val : Int)
-      set_auto_translate_mode(val.to_i64)
+    def auto_translate_mode=(val : Int | Enum)
+      set_auto_translate_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `editor_description` getter
     def editor_description
@@ -3950,24 +4004,24 @@ module Godot
       get_msaa_2d
     end
     # Property `msaa_2d` setter
-    def msaa_2d=(val : Int)
-      set_msaa_2d(val.to_i64)
+    def msaa_2d=(val : Int | Enum)
+      set_msaa_2d(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `msaa_3d` getter
     def msaa_3d
       get_msaa_3d
     end
     # Property `msaa_3d` setter
-    def msaa_3d=(val : Int)
-      set_msaa_3d(val.to_i64)
+    def msaa_3d=(val : Int | Enum)
+      set_msaa_3d(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `screen_space_aa` getter
     def screen_space_aa
       get_screen_space_aa
     end
     # Property `screen_space_aa` setter
-    def screen_space_aa=(val : Int)
-      set_screen_space_aa(val.to_i64)
+    def screen_space_aa=(val : Int | Enum)
+      set_screen_space_aa(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `use_taa` getter
     def use_taa
@@ -4015,8 +4069,8 @@ module Godot
       get_debug_draw
     end
     # Property `debug_draw` setter
-    def debug_draw=(val : Int)
-      set_debug_draw(val.to_i64)
+    def debug_draw=(val : Int | Enum)
+      set_debug_draw(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `use_hdr_2d` getter
     def use_hdr_2d
@@ -4034,8 +4088,8 @@ module Godot
       get_scaling_3d_mode
     end
     # Property `scaling_3d_mode` setter
-    def scaling_3d_mode=(val : Int)
-      set_scaling_3d_mode(val.to_i64)
+    def scaling_3d_mode=(val : Int | Enum)
+      set_scaling_3d_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `scaling_3d_scale` getter
     def scaling_3d_scale
@@ -4058,8 +4112,8 @@ module Godot
       get_anisotropic_filtering_level
     end
     # Property `anisotropic_filtering_level` setter
-    def anisotropic_filtering_level=(val : Int)
-      set_anisotropic_filtering_level(val.to_i64)
+    def anisotropic_filtering_level=(val : Int | Enum)
+      set_anisotropic_filtering_level(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `fsr_sharpness` getter
     def fsr_sharpness
@@ -4074,16 +4128,16 @@ module Godot
       get_vrs_mode
     end
     # Property `vrs_mode` setter
-    def vrs_mode=(val : Int)
-      set_vrs_mode(val.to_i64)
+    def vrs_mode=(val : Int | Enum)
+      set_vrs_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `vrs_update_mode` getter
     def vrs_update_mode
       get_vrs_update_mode
     end
     # Property `vrs_update_mode` setter
-    def vrs_update_mode=(val : Int)
-      set_vrs_update_mode(val.to_i64)
+    def vrs_update_mode=(val : Int | Enum)
+      set_vrs_update_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `vrs_texture` getter
     def vrs_texture
@@ -4098,16 +4152,16 @@ module Godot
       get_default_canvas_item_texture_filter
     end
     # Property `canvas_item_default_texture_filter` setter
-    def canvas_item_default_texture_filter=(val : Int)
-      set_default_canvas_item_texture_filter(val.to_i64)
+    def canvas_item_default_texture_filter=(val : Int | Enum)
+      set_default_canvas_item_texture_filter(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `canvas_item_default_texture_repeat` getter
     def canvas_item_default_texture_repeat
       get_default_canvas_item_texture_repeat
     end
     # Property `canvas_item_default_texture_repeat` setter
-    def canvas_item_default_texture_repeat=(val : Int)
-      set_default_canvas_item_texture_repeat(val.to_i64)
+    def canvas_item_default_texture_repeat=(val : Int | Enum)
+      set_default_canvas_item_texture_repeat(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `audio_listener_enable_2d` getter
     def audio_listener_enable_2d
@@ -4202,32 +4256,32 @@ module Godot
       get_drag_threshold
     end
     # Property `gui_drag_threshold` setter
-    def gui_drag_threshold=(val : Int)
-      set_drag_threshold(val.to_i64)
+    def gui_drag_threshold=(val : Int | Enum)
+      set_drag_threshold(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `sdf_oversize` getter
     def sdf_oversize
       get_sdf_oversize
     end
     # Property `sdf_oversize` setter
-    def sdf_oversize=(val : Int)
-      set_sdf_oversize(val.to_i64)
+    def sdf_oversize=(val : Int | Enum)
+      set_sdf_oversize(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `sdf_scale` getter
     def sdf_scale
       get_sdf_scale
     end
     # Property `sdf_scale` setter
-    def sdf_scale=(val : Int)
-      set_sdf_scale(val.to_i64)
+    def sdf_scale=(val : Int | Enum)
+      set_sdf_scale(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `positional_shadow_atlas_size` getter
     def positional_shadow_atlas_size
       get_positional_shadow_atlas_size
     end
     # Property `positional_shadow_atlas_size` setter
-    def positional_shadow_atlas_size=(val : Int)
-      set_positional_shadow_atlas_size(val.to_i64)
+    def positional_shadow_atlas_size=(val : Int | Enum)
+      set_positional_shadow_atlas_size(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `positional_shadow_atlas_16_bits` getter
     def positional_shadow_atlas_16_bits
@@ -4245,32 +4299,32 @@ module Godot
       get_positional_shadow_atlas_quadrant_subdiv(0_i64)
     end
     # Property `positional_shadow_atlas_quad_0` setter
-    def positional_shadow_atlas_quad_0=(val : Int)
-      set_positional_shadow_atlas_quadrant_subdiv(0_i64, val.to_i64)
+    def positional_shadow_atlas_quad_0=(val : Int | Enum)
+      set_positional_shadow_atlas_quadrant_subdiv(0_i64, val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `positional_shadow_atlas_quad_1` getter
     def positional_shadow_atlas_quad_1
       get_positional_shadow_atlas_quadrant_subdiv(1_i64)
     end
     # Property `positional_shadow_atlas_quad_1` setter
-    def positional_shadow_atlas_quad_1=(val : Int)
-      set_positional_shadow_atlas_quadrant_subdiv(1_i64, val.to_i64)
+    def positional_shadow_atlas_quad_1=(val : Int | Enum)
+      set_positional_shadow_atlas_quadrant_subdiv(1_i64, val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `positional_shadow_atlas_quad_2` getter
     def positional_shadow_atlas_quad_2
       get_positional_shadow_atlas_quadrant_subdiv(2_i64)
     end
     # Property `positional_shadow_atlas_quad_2` setter
-    def positional_shadow_atlas_quad_2=(val : Int)
-      set_positional_shadow_atlas_quadrant_subdiv(2_i64, val.to_i64)
+    def positional_shadow_atlas_quad_2=(val : Int | Enum)
+      set_positional_shadow_atlas_quadrant_subdiv(2_i64, val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `positional_shadow_atlas_quad_3` getter
     def positional_shadow_atlas_quad_3
       get_positional_shadow_atlas_quadrant_subdiv(3_i64)
     end
     # Property `positional_shadow_atlas_quad_3` setter
-    def positional_shadow_atlas_quad_3=(val : Int)
-      set_positional_shadow_atlas_quadrant_subdiv(3_i64, val.to_i64)
+    def positional_shadow_atlas_quad_3=(val : Int | Enum)
+      set_positional_shadow_atlas_quadrant_subdiv(3_i64, val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `canvas_transform` getter
     def canvas_transform
@@ -4293,8 +4347,8 @@ module Godot
       get_canvas_cull_mask
     end
     # Property `canvas_cull_mask` setter
-    def canvas_cull_mask=(val : Int)
-      set_canvas_cull_mask(val.to_i64)
+    def canvas_cull_mask=(val : Int | Enum)
+      set_canvas_cull_mask(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `oversampling` getter
     def oversampling
@@ -4378,6 +4432,9 @@ module Godot
       WindowInitialPositionCenterScreenWithMouseFocus = 4_i64
       WindowInitialPositionCenterScreenWithKeyboardFocus = 5_i64
     end
+    NOTIFICATION_VISIBILITY_CHANGED = 30_i64
+    NOTIFICATION_THEME_CHANGED = 32_i64
+
     @@mb_set_title : Void* = Pointer(Void).null
     def set_title(title : String) : Void
       godot_bind(@@mb_set_title, "Window", "set_title", 83702148_i64)
@@ -5663,8 +5720,8 @@ module Godot
       get_mode
     end
     # Property `mode` setter
-    def mode=(val : Int)
-      set_mode(val.to_i64)
+    def mode=(val : Int | Enum)
+      set_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `title` getter
     def title
@@ -5679,8 +5736,8 @@ module Godot
       get_initial_position
     end
     # Property `initial_position` setter
-    def initial_position=(val : Int)
-      set_initial_position(val.to_i64)
+    def initial_position=(val : Int | Enum)
+      set_initial_position(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `position` getter
     def position
@@ -5703,8 +5760,8 @@ module Godot
       get_current_screen
     end
     # Property `current_screen` setter
-    def current_screen=(val : Int)
-      set_current_screen(val.to_i64)
+    def current_screen=(val : Int | Enum)
+      set_current_screen(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `nonclient_area` getter
     def nonclient_area
@@ -5967,24 +6024,24 @@ module Godot
       get_content_scale_mode
     end
     # Property `content_scale_mode` setter
-    def content_scale_mode=(val : Int)
-      set_content_scale_mode(val.to_i64)
+    def content_scale_mode=(val : Int | Enum)
+      set_content_scale_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `content_scale_aspect` getter
     def content_scale_aspect
       get_content_scale_aspect
     end
     # Property `content_scale_aspect` setter
-    def content_scale_aspect=(val : Int)
-      set_content_scale_aspect(val.to_i64)
+    def content_scale_aspect=(val : Int | Enum)
+      set_content_scale_aspect(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `content_scale_stretch` getter
     def content_scale_stretch
       get_content_scale_stretch
     end
     # Property `content_scale_stretch` setter
-    def content_scale_stretch=(val : Int)
-      set_content_scale_stretch(val.to_i64)
+    def content_scale_stretch=(val : Int | Enum)
+      set_content_scale_stretch(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `content_scale_factor` getter
     def content_scale_factor
@@ -6370,13 +6427,25 @@ module Godot
       godot_bind(@@mb_is_supported, "AccessibilityServer", "is_supported", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_supported, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Class-level singleton delegator for `is_supported`
+    def self.is_supported() : Bool
+      instance.is_supported()
+    end
     # Predicate alias for `is_supported`
     def is_supported?() : Bool
       is_supported()
     end
+    # Class-level singleton predicate delegator for `is_supported?`
+    def self.is_supported?() : Bool
+      instance.is_supported?()
+    end
     # Predicate alias for `is_supported`
     def supported?() : Bool
       is_supported()
+    end
+    # Class-level singleton predicate delegator for `supported?`
+    def self.supported?() : Bool
+      instance.supported?()
     end
     @@mb_create_element : Void* = Pointer(Void).null
     def create_element(window_id : Int64, role : AccessibilityRole | Int) : Int64
@@ -6387,6 +6456,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_create_element, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `create_element`
+    def self.create_element(window_id : Int64, role : AccessibilityRole | Int) : Int64
+      instance.create_element(window_id, role)
     end
     @@mb_create_sub_element : Void* = Pointer(Void).null
     def create_sub_element(parent_rid : Int64, role : AccessibilityRole | Int, insert_pos : Int64 = -1_i64) : Int64
@@ -6399,6 +6472,10 @@ module Godot
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_int(@@mb_create_sub_element, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `create_sub_element`
+    def self.create_sub_element(parent_rid : Int64, role : AccessibilityRole | Int, insert_pos : Int64 = -1_i64) : Int64
+      instance.create_sub_element(parent_rid, role, insert_pos)
     end
     @@mb_create_sub_text_edit_elements : Void* = Pointer(Void).null
     def create_sub_text_edit_elements(parent_rid : Int64, shaped_text : Int64, min_height : Float64, insert_pos : Int64 = -1_i64, is_last_line : Bool = false) : Int64
@@ -6416,6 +6493,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
       godot_ptrcall_int(@@mb_create_sub_text_edit_elements, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `create_sub_text_edit_elements`
+    def self.create_sub_text_edit_elements(parent_rid : Int64, shaped_text : Int64, min_height : Float64, insert_pos : Int64 = -1_i64, is_last_line : Bool = false) : Int64
+      instance.create_sub_text_edit_elements(parent_rid, shaped_text, min_height, insert_pos, is_last_line)
+    end
     @@mb_has_element : Void* = Pointer(Void).null
     def has_element(id : Int64) : Bool
       godot_bind(@@mb_has_element, "AccessibilityServer", "has_element", 4155700596_i64)
@@ -6424,9 +6505,17 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_has_element, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `has_element`
+    def self.has_element(id : Int64) : Bool
+      instance.has_element(id)
+    end
     # Predicate alias for `has_element`
     def has_element?(id : Int64) : Bool
       has_element(id)
+    end
+    # Class-level singleton predicate delegator for `has_element?`
+    def self.has_element?(id : Int64) : Bool
+      instance.has_element?(id)
     end
     @@mb_free_element : Void* = Pointer(Void).null
     def free_element(id : Int64) : Void
@@ -6435,6 +6524,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_free_element, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `free_element`
+    def self.free_element(id : Int64) : Void
+      instance.free_element(id)
     end
     @@mb_element_set_meta : Void* = Pointer(Void).null
     def element_set_meta(id : Int64, meta : Pointer(Void)) : Void
@@ -6445,6 +6538,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_element_set_meta, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `element_set_meta`
+    def self.element_set_meta(id : Int64, meta : Pointer(Void)) : Void
+      instance.element_set_meta(id, meta)
     end
     @@mb_element_get_meta : Void* = Pointer(Void).null
     def element_get_meta(id : Int64) : Pointer(Void)
@@ -6458,6 +6555,10 @@ module Godot
       Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
       ret_ptr
     end
+    # Class-level singleton delegator for `element_get_meta`
+    def self.element_get_meta(id : Int64) : Pointer(Void)
+      instance.element_get_meta(id)
+    end
     @@mb_set_window_rect : Void* = Pointer(Void).null
     def set_window_rect(window_id : Int64, rect_out : Rect2, rect_in : Rect2) : Void
       godot_bind(@@mb_set_window_rect, "AccessibilityServer", "set_window_rect", 2386961724_i64)
@@ -6470,6 +6571,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_set_window_rect, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `set_window_rect`
+    def self.set_window_rect(window_id : Int64, rect_out : Rect2, rect_in : Rect2) : Void
+      instance.set_window_rect(window_id, rect_out, rect_in)
+    end
     @@mb_set_window_focused : Void* = Pointer(Void).null
     def set_window_focused(window_id : Int64, focused : Bool) : Void
       godot_bind(@@mb_set_window_focused, "AccessibilityServer", "set_window_focused", 300928843_i64)
@@ -6480,6 +6585,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_window_focused, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `set_window_focused`
+    def self.set_window_focused(window_id : Int64, focused : Bool) : Void
+      instance.set_window_focused(window_id, focused)
+    end
     @@mb_update_set_focus : Void* = Pointer(Void).null
     def update_set_focus(id : Int64) : Void
       godot_bind(@@mb_update_set_focus, "AccessibilityServer", "update_set_focus", 2722037293_i64)
@@ -6488,6 +6597,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_update_set_focus, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `update_set_focus`
+    def self.update_set_focus(id : Int64) : Void
+      instance.update_set_focus(id)
+    end
     @@mb_get_window_root : Void* = Pointer(Void).null
     def get_window_root(window_id : Int64) : Int64
       godot_bind(@@mb_get_window_root, "AccessibilityServer", "get_window_root", 495598643_i64)
@@ -6495,6 +6608,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_window_root, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `get_window_root`
+    def self.get_window_root(window_id : Int64) : Int64
+      instance.get_window_root(window_id)
     end
     @@mb_update_set_role : Void* = Pointer(Void).null
     def update_set_role(id : Int64, role : AccessibilityRole | Int) : Void
@@ -6505,6 +6622,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_set_role, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `update_set_role`
+    def self.update_set_role(id : Int64, role : AccessibilityRole | Int) : Void
+      instance.update_set_role(id, role)
     end
     @@mb_update_set_name : Void* = Pointer(Void).null
     def update_set_name(id : Int64, name : String) : Void
@@ -6518,6 +6639,10 @@ module Godot
     ensure
       Bridge.free_string(str_1)
     end
+    # Class-level singleton delegator for `update_set_name`
+    def self.update_set_name(id : Int64, name : String) : Void
+      instance.update_set_name(id, name)
+    end
     @@mb_update_set_braille_label : Void* = Pointer(Void).null
     def update_set_braille_label(id : Int64, name : String) : Void
       godot_bind(@@mb_update_set_braille_label, "AccessibilityServer", "update_set_braille_label", 2726140452_i64)
@@ -6529,6 +6654,10 @@ module Godot
       godot_ptrcall_void(@@mb_update_set_braille_label, @pointer, args.to_unsafe.as(Void**))
     ensure
       Bridge.free_string(str_1)
+    end
+    # Class-level singleton delegator for `update_set_braille_label`
+    def self.update_set_braille_label(id : Int64, name : String) : Void
+      instance.update_set_braille_label(id, name)
     end
     @@mb_update_set_braille_role_description : Void* = Pointer(Void).null
     def update_set_braille_role_description(id : Int64, description : String) : Void
@@ -6542,6 +6671,10 @@ module Godot
     ensure
       Bridge.free_string(str_1)
     end
+    # Class-level singleton delegator for `update_set_braille_role_description`
+    def self.update_set_braille_role_description(id : Int64, description : String) : Void
+      instance.update_set_braille_role_description(id, description)
+    end
     @@mb_update_set_extra_info : Void* = Pointer(Void).null
     def update_set_extra_info(id : Int64, name : String) : Void
       godot_bind(@@mb_update_set_extra_info, "AccessibilityServer", "update_set_extra_info", 2726140452_i64)
@@ -6553,6 +6686,10 @@ module Godot
       godot_ptrcall_void(@@mb_update_set_extra_info, @pointer, args.to_unsafe.as(Void**))
     ensure
       Bridge.free_string(str_1)
+    end
+    # Class-level singleton delegator for `update_set_extra_info`
+    def self.update_set_extra_info(id : Int64, name : String) : Void
+      instance.update_set_extra_info(id, name)
     end
     @@mb_update_set_description : Void* = Pointer(Void).null
     def update_set_description(id : Int64, description : String) : Void
@@ -6566,6 +6703,10 @@ module Godot
     ensure
       Bridge.free_string(str_1)
     end
+    # Class-level singleton delegator for `update_set_description`
+    def self.update_set_description(id : Int64, description : String) : Void
+      instance.update_set_description(id, description)
+    end
     @@mb_update_set_value : Void* = Pointer(Void).null
     def update_set_value(id : Int64, value : String) : Void
       godot_bind(@@mb_update_set_value, "AccessibilityServer", "update_set_value", 2726140452_i64)
@@ -6577,6 +6718,10 @@ module Godot
       godot_ptrcall_void(@@mb_update_set_value, @pointer, args.to_unsafe.as(Void**))
     ensure
       Bridge.free_string(str_1)
+    end
+    # Class-level singleton delegator for `update_set_value`
+    def self.update_set_value(id : Int64, value : String) : Void
+      instance.update_set_value(id, value)
     end
     @@mb_update_set_tooltip : Void* = Pointer(Void).null
     def update_set_tooltip(id : Int64, tooltip : String) : Void
@@ -6590,6 +6735,10 @@ module Godot
     ensure
       Bridge.free_string(str_1)
     end
+    # Class-level singleton delegator for `update_set_tooltip`
+    def self.update_set_tooltip(id : Int64, tooltip : String) : Void
+      instance.update_set_tooltip(id, tooltip)
+    end
     @@mb_update_set_bounds : Void* = Pointer(Void).null
     def update_set_bounds(id : Int64, rect : Rect2) : Void
       godot_bind(@@mb_update_set_bounds, "AccessibilityServer", "update_set_bounds", 1378122625_i64)
@@ -6599,6 +6748,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_set_bounds, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `update_set_bounds`
+    def self.update_set_bounds(id : Int64, rect : Rect2) : Void
+      instance.update_set_bounds(id, rect)
     end
     @@mb_update_set_transform : Void* = Pointer(Void).null
     def update_set_transform(id : Int64, transform : Transform2D) : Void
@@ -6610,6 +6763,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_set_transform, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `update_set_transform`
+    def self.update_set_transform(id : Int64, transform : Transform2D) : Void
+      instance.update_set_transform(id, transform)
+    end
     @@mb_update_add_child : Void* = Pointer(Void).null
     def update_add_child(id : Int64, child_id : Int64) : Void
       godot_bind(@@mb_update_add_child, "AccessibilityServer", "update_add_child", 395945892_i64)
@@ -6619,6 +6776,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_add_child, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `update_add_child`
+    def self.update_add_child(id : Int64, child_id : Int64) : Void
+      instance.update_add_child(id, child_id)
     end
     @@mb_update_add_related_controls : Void* = Pointer(Void).null
     def update_add_related_controls(id : Int64, related_id : Int64) : Void
@@ -6630,6 +6791,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_add_related_controls, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `update_add_related_controls`
+    def self.update_add_related_controls(id : Int64, related_id : Int64) : Void
+      instance.update_add_related_controls(id, related_id)
+    end
     @@mb_update_add_related_details : Void* = Pointer(Void).null
     def update_add_related_details(id : Int64, related_id : Int64) : Void
       godot_bind(@@mb_update_add_related_details, "AccessibilityServer", "update_add_related_details", 395945892_i64)
@@ -6639,6 +6804,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_add_related_details, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `update_add_related_details`
+    def self.update_add_related_details(id : Int64, related_id : Int64) : Void
+      instance.update_add_related_details(id, related_id)
     end
     @@mb_update_add_related_described_by : Void* = Pointer(Void).null
     def update_add_related_described_by(id : Int64, related_id : Int64) : Void
@@ -6650,6 +6819,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_add_related_described_by, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `update_add_related_described_by`
+    def self.update_add_related_described_by(id : Int64, related_id : Int64) : Void
+      instance.update_add_related_described_by(id, related_id)
+    end
     @@mb_update_add_related_flow_to : Void* = Pointer(Void).null
     def update_add_related_flow_to(id : Int64, related_id : Int64) : Void
       godot_bind(@@mb_update_add_related_flow_to, "AccessibilityServer", "update_add_related_flow_to", 395945892_i64)
@@ -6659,6 +6832,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_add_related_flow_to, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `update_add_related_flow_to`
+    def self.update_add_related_flow_to(id : Int64, related_id : Int64) : Void
+      instance.update_add_related_flow_to(id, related_id)
     end
     @@mb_update_add_related_labeled_by : Void* = Pointer(Void).null
     def update_add_related_labeled_by(id : Int64, related_id : Int64) : Void
@@ -6670,6 +6847,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_add_related_labeled_by, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `update_add_related_labeled_by`
+    def self.update_add_related_labeled_by(id : Int64, related_id : Int64) : Void
+      instance.update_add_related_labeled_by(id, related_id)
+    end
     @@mb_update_add_related_radio_group : Void* = Pointer(Void).null
     def update_add_related_radio_group(id : Int64, related_id : Int64) : Void
       godot_bind(@@mb_update_add_related_radio_group, "AccessibilityServer", "update_add_related_radio_group", 395945892_i64)
@@ -6679,6 +6860,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_add_related_radio_group, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `update_add_related_radio_group`
+    def self.update_add_related_radio_group(id : Int64, related_id : Int64) : Void
+      instance.update_add_related_radio_group(id, related_id)
     end
     @@mb_update_set_active_descendant : Void* = Pointer(Void).null
     def update_set_active_descendant(id : Int64, other_id : Int64) : Void
@@ -6690,6 +6875,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_set_active_descendant, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `update_set_active_descendant`
+    def self.update_set_active_descendant(id : Int64, other_id : Int64) : Void
+      instance.update_set_active_descendant(id, other_id)
+    end
     @@mb_update_set_next_on_line : Void* = Pointer(Void).null
     def update_set_next_on_line(id : Int64, other_id : Int64) : Void
       godot_bind(@@mb_update_set_next_on_line, "AccessibilityServer", "update_set_next_on_line", 395945892_i64)
@@ -6699,6 +6888,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_set_next_on_line, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `update_set_next_on_line`
+    def self.update_set_next_on_line(id : Int64, other_id : Int64) : Void
+      instance.update_set_next_on_line(id, other_id)
     end
     @@mb_update_set_previous_on_line : Void* = Pointer(Void).null
     def update_set_previous_on_line(id : Int64, other_id : Int64) : Void
@@ -6710,6 +6903,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_set_previous_on_line, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `update_set_previous_on_line`
+    def self.update_set_previous_on_line(id : Int64, other_id : Int64) : Void
+      instance.update_set_previous_on_line(id, other_id)
+    end
     @@mb_update_set_member_of : Void* = Pointer(Void).null
     def update_set_member_of(id : Int64, group_id : Int64) : Void
       godot_bind(@@mb_update_set_member_of, "AccessibilityServer", "update_set_member_of", 395945892_i64)
@@ -6719,6 +6916,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_set_member_of, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `update_set_member_of`
+    def self.update_set_member_of(id : Int64, group_id : Int64) : Void
+      instance.update_set_member_of(id, group_id)
     end
     @@mb_update_set_in_page_link_target : Void* = Pointer(Void).null
     def update_set_in_page_link_target(id : Int64, other_id : Int64) : Void
@@ -6730,6 +6931,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_set_in_page_link_target, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `update_set_in_page_link_target`
+    def self.update_set_in_page_link_target(id : Int64, other_id : Int64) : Void
+      instance.update_set_in_page_link_target(id, other_id)
+    end
     @@mb_update_set_error_message : Void* = Pointer(Void).null
     def update_set_error_message(id : Int64, other_id : Int64) : Void
       godot_bind(@@mb_update_set_error_message, "AccessibilityServer", "update_set_error_message", 395945892_i64)
@@ -6740,6 +6945,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_set_error_message, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `update_set_error_message`
+    def self.update_set_error_message(id : Int64, other_id : Int64) : Void
+      instance.update_set_error_message(id, other_id)
+    end
     @@mb_update_set_live : Void* = Pointer(Void).null
     def update_set_live(id : Int64, live : AccessibilityLiveMode | Int) : Void
       godot_bind(@@mb_update_set_live, "AccessibilityServer", "update_set_live", 2993365237_i64)
@@ -6749,6 +6958,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_set_live, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `update_set_live`
+    def self.update_set_live(id : Int64, live : AccessibilityLiveMode | Int) : Void
+      instance.update_set_live(id, live)
     end
     @@mb_update_add_action : Void* = Pointer(Void).null
     def update_add_action(id : Int64, action : AccessibilityAction | Int, callable : Pointer(Void)) : Void
@@ -6761,6 +6974,10 @@ module Godot
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_update_add_action, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `update_add_action`
+    def self.update_add_action(id : Int64, action : AccessibilityAction | Int, callable : Pointer(Void)) : Void
+      instance.update_add_action(id, action, callable)
     end
     @@mb_update_add_custom_action : Void* = Pointer(Void).null
     def update_add_custom_action(id : Int64, action_id : Int64, action_description : String) : Void
@@ -6776,6 +6993,10 @@ module Godot
     ensure
       Bridge.free_string(str_2)
     end
+    # Class-level singleton delegator for `update_add_custom_action`
+    def self.update_add_custom_action(id : Int64, action_id : Int64, action_description : String) : Void
+      instance.update_add_custom_action(id, action_id, action_description)
+    end
     @@mb_update_set_table_row_count : Void* = Pointer(Void).null
     def update_set_table_row_count(id : Int64, count : Int64) : Void
       godot_bind(@@mb_update_set_table_row_count, "AccessibilityServer", "update_set_table_row_count", 3411492887_i64)
@@ -6785,6 +7006,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_set_table_row_count, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `update_set_table_row_count`
+    def self.update_set_table_row_count(id : Int64, count : Int64) : Void
+      instance.update_set_table_row_count(id, count)
     end
     @@mb_update_set_table_column_count : Void* = Pointer(Void).null
     def update_set_table_column_count(id : Int64, count : Int64) : Void
@@ -6796,6 +7021,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_set_table_column_count, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `update_set_table_column_count`
+    def self.update_set_table_column_count(id : Int64, count : Int64) : Void
+      instance.update_set_table_column_count(id, count)
+    end
     @@mb_update_set_table_row_index : Void* = Pointer(Void).null
     def update_set_table_row_index(id : Int64, index : Int64) : Void
       godot_bind(@@mb_update_set_table_row_index, "AccessibilityServer", "update_set_table_row_index", 3411492887_i64)
@@ -6806,6 +7035,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_set_table_row_index, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `update_set_table_row_index`
+    def self.update_set_table_row_index(id : Int64, index : Int64) : Void
+      instance.update_set_table_row_index(id, index)
+    end
     @@mb_update_set_table_column_index : Void* = Pointer(Void).null
     def update_set_table_column_index(id : Int64, index : Int64) : Void
       godot_bind(@@mb_update_set_table_column_index, "AccessibilityServer", "update_set_table_column_index", 3411492887_i64)
@@ -6815,6 +7048,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_set_table_column_index, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `update_set_table_column_index`
+    def self.update_set_table_column_index(id : Int64, index : Int64) : Void
+      instance.update_set_table_column_index(id, index)
     end
     @@mb_update_set_table_cell_position : Void* = Pointer(Void).null
     def update_set_table_cell_position(id : Int64, row_index : Int64, column_index : Int64) : Void
@@ -6828,6 +7065,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_update_set_table_cell_position, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `update_set_table_cell_position`
+    def self.update_set_table_cell_position(id : Int64, row_index : Int64, column_index : Int64) : Void
+      instance.update_set_table_cell_position(id, row_index, column_index)
+    end
     @@mb_update_set_table_cell_span : Void* = Pointer(Void).null
     def update_set_table_cell_span(id : Int64, row_span : Int64, column_span : Int64) : Void
       godot_bind(@@mb_update_set_table_cell_span, "AccessibilityServer", "update_set_table_cell_span", 4288446313_i64)
@@ -6840,6 +7081,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_update_set_table_cell_span, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `update_set_table_cell_span`
+    def self.update_set_table_cell_span(id : Int64, row_span : Int64, column_span : Int64) : Void
+      instance.update_set_table_cell_span(id, row_span, column_span)
+    end
     @@mb_update_set_list_item_count : Void* = Pointer(Void).null
     def update_set_list_item_count(id : Int64, size : Int64) : Void
       godot_bind(@@mb_update_set_list_item_count, "AccessibilityServer", "update_set_list_item_count", 3411492887_i64)
@@ -6849,6 +7094,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_set_list_item_count, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `update_set_list_item_count`
+    def self.update_set_list_item_count(id : Int64, size : Int64) : Void
+      instance.update_set_list_item_count(id, size)
     end
     @@mb_update_set_list_item_index : Void* = Pointer(Void).null
     def update_set_list_item_index(id : Int64, index : Int64) : Void
@@ -6860,6 +7109,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_set_list_item_index, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `update_set_list_item_index`
+    def self.update_set_list_item_index(id : Int64, index : Int64) : Void
+      instance.update_set_list_item_index(id, index)
+    end
     @@mb_update_set_list_item_level : Void* = Pointer(Void).null
     def update_set_list_item_level(id : Int64, level : Int64) : Void
       godot_bind(@@mb_update_set_list_item_level, "AccessibilityServer", "update_set_list_item_level", 3411492887_i64)
@@ -6869,6 +7122,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_set_list_item_level, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `update_set_list_item_level`
+    def self.update_set_list_item_level(id : Int64, level : Int64) : Void
+      instance.update_set_list_item_level(id, level)
     end
     @@mb_update_set_list_item_selected : Void* = Pointer(Void).null
     def update_set_list_item_selected(id : Int64, selected : Bool) : Void
@@ -6880,6 +7137,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_set_list_item_selected, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `update_set_list_item_selected`
+    def self.update_set_list_item_selected(id : Int64, selected : Bool) : Void
+      instance.update_set_list_item_selected(id, selected)
+    end
     @@mb_update_set_list_item_expanded : Void* = Pointer(Void).null
     def update_set_list_item_expanded(id : Int64, expanded : Bool) : Void
       godot_bind(@@mb_update_set_list_item_expanded, "AccessibilityServer", "update_set_list_item_expanded", 1265174801_i64)
@@ -6889,6 +7150,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_set_list_item_expanded, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `update_set_list_item_expanded`
+    def self.update_set_list_item_expanded(id : Int64, expanded : Bool) : Void
+      instance.update_set_list_item_expanded(id, expanded)
     end
     @@mb_update_set_popup_type : Void* = Pointer(Void).null
     def update_set_popup_type(id : Int64, popup : AccessibilityPopupType | Int) : Void
@@ -6900,6 +7165,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_set_popup_type, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `update_set_popup_type`
+    def self.update_set_popup_type(id : Int64, popup : AccessibilityPopupType | Int) : Void
+      instance.update_set_popup_type(id, popup)
+    end
     @@mb_update_set_checked : Void* = Pointer(Void).null
     def update_set_checked(id : Int64, checekd : Bool) : Void
       godot_bind(@@mb_update_set_checked, "AccessibilityServer", "update_set_checked", 1265174801_i64)
@@ -6910,6 +7179,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_set_checked, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `update_set_checked`
+    def self.update_set_checked(id : Int64, checekd : Bool) : Void
+      instance.update_set_checked(id, checekd)
+    end
     @@mb_update_set_num_value : Void* = Pointer(Void).null
     def update_set_num_value(id : Int64, position : Float64) : Void
       godot_bind(@@mb_update_set_num_value, "AccessibilityServer", "update_set_num_value", 1794382983_i64)
@@ -6919,6 +7192,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_set_num_value, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `update_set_num_value`
+    def self.update_set_num_value(id : Int64, position : Float64) : Void
+      instance.update_set_num_value(id, position)
     end
     @@mb_update_set_num_range : Void* = Pointer(Void).null
     def update_set_num_range(id : Int64, min : Float64, max : Float64) : Void
@@ -6932,6 +7209,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_update_set_num_range, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `update_set_num_range`
+    def self.update_set_num_range(id : Int64, min : Float64, max : Float64) : Void
+      instance.update_set_num_range(id, min, max)
+    end
     @@mb_update_set_num_step : Void* = Pointer(Void).null
     def update_set_num_step(id : Int64, step : Float64) : Void
       godot_bind(@@mb_update_set_num_step, "AccessibilityServer", "update_set_num_step", 1794382983_i64)
@@ -6941,6 +7222,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_set_num_step, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `update_set_num_step`
+    def self.update_set_num_step(id : Int64, step : Float64) : Void
+      instance.update_set_num_step(id, step)
     end
     @@mb_update_set_num_jump : Void* = Pointer(Void).null
     def update_set_num_jump(id : Int64, jump : Float64) : Void
@@ -6952,6 +7237,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_set_num_jump, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `update_set_num_jump`
+    def self.update_set_num_jump(id : Int64, jump : Float64) : Void
+      instance.update_set_num_jump(id, jump)
+    end
     @@mb_update_set_scroll_x : Void* = Pointer(Void).null
     def update_set_scroll_x(id : Int64, position : Float64) : Void
       godot_bind(@@mb_update_set_scroll_x, "AccessibilityServer", "update_set_scroll_x", 1794382983_i64)
@@ -6961,6 +7250,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_set_scroll_x, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `update_set_scroll_x`
+    def self.update_set_scroll_x(id : Int64, position : Float64) : Void
+      instance.update_set_scroll_x(id, position)
     end
     @@mb_update_set_scroll_x_range : Void* = Pointer(Void).null
     def update_set_scroll_x_range(id : Int64, min : Float64, max : Float64) : Void
@@ -6974,6 +7267,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_update_set_scroll_x_range, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `update_set_scroll_x_range`
+    def self.update_set_scroll_x_range(id : Int64, min : Float64, max : Float64) : Void
+      instance.update_set_scroll_x_range(id, min, max)
+    end
     @@mb_update_set_scroll_y : Void* = Pointer(Void).null
     def update_set_scroll_y(id : Int64, position : Float64) : Void
       godot_bind(@@mb_update_set_scroll_y, "AccessibilityServer", "update_set_scroll_y", 1794382983_i64)
@@ -6983,6 +7280,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_set_scroll_y, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `update_set_scroll_y`
+    def self.update_set_scroll_y(id : Int64, position : Float64) : Void
+      instance.update_set_scroll_y(id, position)
     end
     @@mb_update_set_scroll_y_range : Void* = Pointer(Void).null
     def update_set_scroll_y_range(id : Int64, min : Float64, max : Float64) : Void
@@ -6995,6 +7296,10 @@ module Godot
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_update_set_scroll_y_range, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `update_set_scroll_y_range`
+    def self.update_set_scroll_y_range(id : Int64, min : Float64, max : Float64) : Void
+      instance.update_set_scroll_y_range(id, min, max)
     end
     @@mb_update_set_text_decorations : Void* = Pointer(Void).null
     def update_set_text_decorations(id : Int64, underline : Bool, strikethrough : Bool, overline : Bool, color : Color = Color.new(0.to_f32, 0.to_f32, 0.to_f32, 1.to_f32)) : Void
@@ -7012,6 +7317,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
       godot_ptrcall_void(@@mb_update_set_text_decorations, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `update_set_text_decorations`
+    def self.update_set_text_decorations(id : Int64, underline : Bool, strikethrough : Bool, overline : Bool, color : Color = Color.new(0.to_f32, 0.to_f32, 0.to_f32, 1.to_f32)) : Void
+      instance.update_set_text_decorations(id, underline, strikethrough, overline, color)
+    end
     @@mb_update_set_text_align : Void* = Pointer(Void).null
     def update_set_text_align(id : Int64, align : Godot::HorizontalAlignment | Int) : Void
       godot_bind(@@mb_update_set_text_align, "AccessibilityServer", "update_set_text_align", 3725995085_i64)
@@ -7021,6 +7330,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_set_text_align, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `update_set_text_align`
+    def self.update_set_text_align(id : Int64, align : Godot::HorizontalAlignment | Int) : Void
+      instance.update_set_text_align(id, align)
     end
     @@mb_update_set_text_selection : Void* = Pointer(Void).null
     def update_set_text_selection(id : Int64, text_start_id : Int64, start_char : Int64, text_end_id : Int64, end_char : Int64) : Void
@@ -7038,6 +7351,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
       godot_ptrcall_void(@@mb_update_set_text_selection, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `update_set_text_selection`
+    def self.update_set_text_selection(id : Int64, text_start_id : Int64, start_char : Int64, text_end_id : Int64, end_char : Int64) : Void
+      instance.update_set_text_selection(id, text_start_id, start_char, text_end_id, end_char)
+    end
     @@mb_update_set_flag : Void* = Pointer(Void).null
     def update_set_flag(id : Int64, flag : AccessibilityFlags | Int, value : Bool) : Void
       godot_bind(@@mb_update_set_flag, "AccessibilityServer", "update_set_flag", 1473043386_i64)
@@ -7049,6 +7366,10 @@ module Godot
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_update_set_flag, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `update_set_flag`
+    def self.update_set_flag(id : Int64, flag : AccessibilityFlags | Int, value : Bool) : Void
+      instance.update_set_flag(id, flag, value)
     end
     @@mb_update_set_classname : Void* = Pointer(Void).null
     def update_set_classname(id : Int64, classname : String) : Void
@@ -7062,6 +7383,10 @@ module Godot
     ensure
       Bridge.free_string(str_1)
     end
+    # Class-level singleton delegator for `update_set_classname`
+    def self.update_set_classname(id : Int64, classname : String) : Void
+      instance.update_set_classname(id, classname)
+    end
     @@mb_update_set_placeholder : Void* = Pointer(Void).null
     def update_set_placeholder(id : Int64, placeholder : String) : Void
       godot_bind(@@mb_update_set_placeholder, "AccessibilityServer", "update_set_placeholder", 2726140452_i64)
@@ -7073,6 +7398,10 @@ module Godot
       godot_ptrcall_void(@@mb_update_set_placeholder, @pointer, args.to_unsafe.as(Void**))
     ensure
       Bridge.free_string(str_1)
+    end
+    # Class-level singleton delegator for `update_set_placeholder`
+    def self.update_set_placeholder(id : Int64, placeholder : String) : Void
+      instance.update_set_placeholder(id, placeholder)
     end
     @@mb_update_set_language : Void* = Pointer(Void).null
     def update_set_language(id : Int64, language : String) : Void
@@ -7086,6 +7415,10 @@ module Godot
     ensure
       Bridge.free_string(str_1)
     end
+    # Class-level singleton delegator for `update_set_language`
+    def self.update_set_language(id : Int64, language : String) : Void
+      instance.update_set_language(id, language)
+    end
     @@mb_update_set_text_orientation : Void* = Pointer(Void).null
     def update_set_text_orientation(id : Int64, vertical : Bool) : Void
       godot_bind(@@mb_update_set_text_orientation, "AccessibilityServer", "update_set_text_orientation", 1265174801_i64)
@@ -7096,6 +7429,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_set_text_orientation, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `update_set_text_orientation`
+    def self.update_set_text_orientation(id : Int64, vertical : Bool) : Void
+      instance.update_set_text_orientation(id, vertical)
+    end
     @@mb_update_set_list_orientation : Void* = Pointer(Void).null
     def update_set_list_orientation(id : Int64, vertical : Bool) : Void
       godot_bind(@@mb_update_set_list_orientation, "AccessibilityServer", "update_set_list_orientation", 1265174801_i64)
@@ -7105,6 +7442,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_set_list_orientation, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `update_set_list_orientation`
+    def self.update_set_list_orientation(id : Int64, vertical : Bool) : Void
+      instance.update_set_list_orientation(id, vertical)
     end
     @@mb_update_set_shortcut : Void* = Pointer(Void).null
     def update_set_shortcut(id : Int64, shortcut : String) : Void
@@ -7118,6 +7459,10 @@ module Godot
     ensure
       Bridge.free_string(str_1)
     end
+    # Class-level singleton delegator for `update_set_shortcut`
+    def self.update_set_shortcut(id : Int64, shortcut : String) : Void
+      instance.update_set_shortcut(id, shortcut)
+    end
     @@mb_update_set_url : Void* = Pointer(Void).null
     def update_set_url(id : Int64, url : String) : Void
       godot_bind(@@mb_update_set_url, "AccessibilityServer", "update_set_url", 2726140452_i64)
@@ -7129,6 +7474,10 @@ module Godot
       godot_ptrcall_void(@@mb_update_set_url, @pointer, args.to_unsafe.as(Void**))
     ensure
       Bridge.free_string(str_1)
+    end
+    # Class-level singleton delegator for `update_set_url`
+    def self.update_set_url(id : Int64, url : String) : Void
+      instance.update_set_url(id, url)
     end
     @@mb_update_set_role_description : Void* = Pointer(Void).null
     def update_set_role_description(id : Int64, description : String) : Void
@@ -7142,6 +7491,10 @@ module Godot
     ensure
       Bridge.free_string(str_1)
     end
+    # Class-level singleton delegator for `update_set_role_description`
+    def self.update_set_role_description(id : Int64, description : String) : Void
+      instance.update_set_role_description(id, description)
+    end
     @@mb_update_set_state_description : Void* = Pointer(Void).null
     def update_set_state_description(id : Int64, description : String) : Void
       godot_bind(@@mb_update_set_state_description, "AccessibilityServer", "update_set_state_description", 2726140452_i64)
@@ -7154,6 +7507,10 @@ module Godot
     ensure
       Bridge.free_string(str_1)
     end
+    # Class-level singleton delegator for `update_set_state_description`
+    def self.update_set_state_description(id : Int64, description : String) : Void
+      instance.update_set_state_description(id, description)
+    end
     @@mb_update_set_color_value : Void* = Pointer(Void).null
     def update_set_color_value(id : Int64, color : Color) : Void
       godot_bind(@@mb_update_set_color_value, "AccessibilityServer", "update_set_color_value", 2948539648_i64)
@@ -7163,6 +7520,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_set_color_value, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `update_set_color_value`
+    def self.update_set_color_value(id : Int64, color : Color) : Void
+      instance.update_set_color_value(id, color)
     end
     @@mb_update_set_background_color : Void* = Pointer(Void).null
     def update_set_background_color(id : Int64, color : Color) : Void
@@ -7174,6 +7535,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_set_background_color, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `update_set_background_color`
+    def self.update_set_background_color(id : Int64, color : Color) : Void
+      instance.update_set_background_color(id, color)
+    end
     @@mb_update_set_foreground_color : Void* = Pointer(Void).null
     def update_set_foreground_color(id : Int64, color : Color) : Void
       godot_bind(@@mb_update_set_foreground_color, "AccessibilityServer", "update_set_foreground_color", 2948539648_i64)
@@ -7183,6 +7548,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_update_set_foreground_color, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `update_set_foreground_color`
+    def self.update_set_foreground_color(id : Int64, color : Color) : Void
+      instance.update_set_foreground_color(id, color)
     end
   end
   class Node3D < Godot::Node
@@ -7194,6 +7563,12 @@ module Godot
       RotationEditModeQuaternion = 1_i64
       RotationEditModeBasis = 2_i64
     end
+    NOTIFICATION_TRANSFORM_CHANGED = 2000_i64
+    NOTIFICATION_ENTER_WORLD = 41_i64
+    NOTIFICATION_EXIT_WORLD = 42_i64
+    NOTIFICATION_VISIBILITY_CHANGED = 43_i64
+    NOTIFICATION_LOCAL_TRANSFORM_CHANGED = 44_i64
+
     @@mb_set_transform : Void* = Pointer(Void).null
     def set_transform(local : Transform3D) : Void
       godot_bind(@@mb_set_transform, "Node3D", "set_transform", 2952846383_i64)
@@ -7744,16 +8119,16 @@ module Godot
       get_rotation_edit_mode
     end
     # Property `rotation_edit_mode` setter
-    def rotation_edit_mode=(val : Int)
-      set_rotation_edit_mode(val.to_i64)
+    def rotation_edit_mode=(val : Int | Enum)
+      set_rotation_edit_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `rotation_order` getter
     def rotation_order
       get_rotation_order
     end
     # Property `rotation_order` setter
-    def rotation_order=(val : Int)
-      set_rotation_order(val.to_i64)
+    def rotation_order=(val : Int | Enum)
+      set_rotation_order(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `visibility_parent` getter
     def visibility_parent
@@ -8142,8 +8517,8 @@ module Godot
       get_setting_count
     end
     # Property `setting_count` setter
-    def setting_count=(val : Int)
-      set_setting_count(val.to_i64)
+    def setting_count=(val : Int | Enum)
+      set_setting_count(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class CanvasItem < Godot::Node
@@ -8179,6 +8554,14 @@ module Godot
       OversamplingWithScaleEnabled = 2_i64
       OversamplingWithScaleMax = 3_i64
     end
+    NOTIFICATION_TRANSFORM_CHANGED = 2000_i64
+    NOTIFICATION_LOCAL_TRANSFORM_CHANGED = 35_i64
+    NOTIFICATION_DRAW = 30_i64
+    NOTIFICATION_VISIBILITY_CHANGED = 31_i64
+    NOTIFICATION_ENTER_CANVAS = 32_i64
+    NOTIFICATION_EXIT_CANVAS = 33_i64
+    NOTIFICATION_WORLD_2D_CHANGED = 36_i64
+
     @@mb_get_canvas_item : Void* = Pointer(Void).null
     def get_canvas_item() : Int64
       godot_bind(@@mb_get_canvas_item, "CanvasItem", "get_canvas_item", 2944877500_i64)
@@ -9252,40 +9635,40 @@ module Godot
       get_clip_children_mode
     end
     # Property `clip_children` setter
-    def clip_children=(val : Int)
-      set_clip_children_mode(val.to_i64)
+    def clip_children=(val : Int | Enum)
+      set_clip_children_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `oversampling_with_scale` getter
     def oversampling_with_scale
       get_oversampling_with_scale
     end
     # Property `oversampling_with_scale` setter
-    def oversampling_with_scale=(val : Int)
-      set_oversampling_with_scale(val.to_i64)
+    def oversampling_with_scale=(val : Int | Enum)
+      set_oversampling_with_scale(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `light_mask` getter
     def light_mask
       get_light_mask
     end
     # Property `light_mask` setter
-    def light_mask=(val : Int)
-      set_light_mask(val.to_i64)
+    def light_mask=(val : Int | Enum)
+      set_light_mask(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `visibility_layer` getter
     def visibility_layer
       get_visibility_layer
     end
     # Property `visibility_layer` setter
-    def visibility_layer=(val : Int)
-      set_visibility_layer(val.to_i64)
+    def visibility_layer=(val : Int | Enum)
+      set_visibility_layer(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `z_index` getter
     def z_index
       get_z_index
     end
     # Property `z_index` setter
-    def z_index=(val : Int)
-      set_z_index(val.to_i64)
+    def z_index=(val : Int | Enum)
+      set_z_index(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `z_as_relative` getter
     def z_as_relative
@@ -9311,16 +9694,16 @@ module Godot
       get_texture_filter
     end
     # Property `texture_filter` setter
-    def texture_filter=(val : Int)
-      set_texture_filter(val.to_i64)
+    def texture_filter=(val : Int | Enum)
+      set_texture_filter(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `texture_repeat` getter
     def texture_repeat
       get_texture_repeat
     end
     # Property `texture_repeat` setter
-    def texture_repeat=(val : Int)
-      set_texture_repeat(val.to_i64)
+    def texture_repeat=(val : Int | Enum)
+      set_texture_repeat(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `material` getter
     def material
@@ -9925,24 +10308,24 @@ module Godot
       get_disable_mode
     end
     # Property `disable_mode` setter
-    def disable_mode=(val : Int)
-      set_disable_mode(val.to_i64)
+    def disable_mode=(val : Int | Enum)
+      set_disable_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `collision_layer` getter
     def collision_layer
       get_collision_layer
     end
     # Property `collision_layer` setter
-    def collision_layer=(val : Int)
-      set_collision_layer(val.to_i64)
+    def collision_layer=(val : Int | Enum)
+      set_collision_layer(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `collision_mask` getter
     def collision_mask
       get_collision_mask
     end
     # Property `collision_mask` setter
-    def collision_mask=(val : Int)
-      set_collision_mask(val.to_i64)
+    def collision_mask=(val : Int | Enum)
+      set_collision_mask(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `collision_priority` getter
     def collision_priority
@@ -10433,24 +10816,24 @@ module Godot
       get_disable_mode
     end
     # Property `disable_mode` setter
-    def disable_mode=(val : Int)
-      set_disable_mode(val.to_i64)
+    def disable_mode=(val : Int | Enum)
+      set_disable_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `collision_layer` getter
     def collision_layer
       get_collision_layer
     end
     # Property `collision_layer` setter
-    def collision_layer=(val : Int)
-      set_collision_layer(val.to_i64)
+    def collision_layer=(val : Int | Enum)
+      set_collision_layer(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `collision_mask` getter
     def collision_mask
       get_collision_mask
     end
     # Property `collision_mask` setter
-    def collision_mask=(val : Int)
-      set_collision_mask(val.to_i64)
+    def collision_mask=(val : Int | Enum)
+      set_collision_mask(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `collision_priority` getter
     def collision_priority
@@ -11003,8 +11386,8 @@ module Godot
       get_frame
     end
     # Property `frame` setter
-    def frame=(val : Int)
-      set_frame(val.to_i64)
+    def frame=(val : Int | Enum)
+      set_frame(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `frame_progress` getter
     def frame_progress
@@ -11167,8 +11550,8 @@ module Godot
       get_layer_mask
     end
     # Property `layers` setter
-    def layers=(val : Int)
-      set_layer_mask(val.to_i64)
+    def layers=(val : Int | Enum)
+      set_layer_mask(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `sorting_offset` getter
     def sorting_offset
@@ -11485,8 +11868,8 @@ module Godot
       get_cast_shadows_setting
     end
     # Property `cast_shadow` setter
-    def cast_shadow=(val : Int)
-      set_cast_shadows_setting(val.to_i64)
+    def cast_shadow=(val : Int | Enum)
+      set_cast_shadows_setting(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `extra_cull_margin` getter
     def extra_cull_margin
@@ -11528,8 +11911,8 @@ module Godot
       get_gi_mode
     end
     # Property `gi_mode` setter
-    def gi_mode=(val : Int)
-      set_gi_mode(val.to_i64)
+    def gi_mode=(val : Int | Enum)
+      set_gi_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `gi_lightmap_texel_scale` getter
     def gi_lightmap_texel_scale
@@ -11544,8 +11927,8 @@ module Godot
       get_lightmap_scale
     end
     # Property `gi_lightmap_scale` setter
-    def gi_lightmap_scale=(val : Int)
-      set_lightmap_scale(val.to_i64)
+    def gi_lightmap_scale=(val : Int | Enum)
+      set_lightmap_scale(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `visibility_range_begin` getter
     def visibility_range_begin
@@ -11584,8 +11967,8 @@ module Godot
       get_visibility_range_fade_mode
     end
     # Property `visibility_range_fade_mode` setter
-    def visibility_range_fade_mode=(val : Int)
-      set_visibility_range_fade_mode(val.to_i64)
+    def visibility_range_fade_mode=(val : Int | Enum)
+      set_visibility_range_fade_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class SpriteBase3D < Godot::GeometryInstance3D
@@ -11916,16 +12299,16 @@ module Godot
       get_axis
     end
     # Property `axis` setter
-    def axis=(val : Int)
-      set_axis(val.to_i64)
+    def axis=(val : Int | Enum)
+      set_axis(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `billboard` getter
     def billboard
       get_billboard_mode
     end
     # Property `billboard` setter
-    def billboard=(val : Int)
-      set_billboard_mode(val.to_i64)
+    def billboard=(val : Int | Enum)
+      set_billboard_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `transparent` getter
     def transparent
@@ -11987,8 +12370,8 @@ module Godot
       get_alpha_cut_mode
     end
     # Property `alpha_cut` setter
-    def alpha_cut=(val : Int)
-      set_alpha_cut_mode(val.to_i64)
+    def alpha_cut=(val : Int | Enum)
+      set_alpha_cut_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `alpha_scissor_threshold` getter
     def alpha_scissor_threshold
@@ -12011,8 +12394,8 @@ module Godot
       get_alpha_antialiasing
     end
     # Property `alpha_antialiasing_mode` setter
-    def alpha_antialiasing_mode=(val : Int)
-      set_alpha_antialiasing(val.to_i64)
+    def alpha_antialiasing_mode=(val : Int | Enum)
+      set_alpha_antialiasing(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `alpha_antialiasing_edge` getter
     def alpha_antialiasing_edge
@@ -12027,16 +12410,16 @@ module Godot
       get_texture_filter
     end
     # Property `texture_filter` setter
-    def texture_filter=(val : Int)
-      set_texture_filter(val.to_i64)
+    def texture_filter=(val : Int | Enum)
+      set_texture_filter(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `render_priority` getter
     def render_priority
       get_render_priority
     end
     # Property `render_priority` setter
-    def render_priority=(val : Int)
-      set_render_priority(val.to_i64)
+    def render_priority=(val : Int | Enum)
+      set_render_priority(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class AnimatedSprite3D < Godot::SpriteBase3D
@@ -12216,8 +12599,8 @@ module Godot
       get_frame
     end
     # Property `frame` setter
-    def frame=(val : Int)
-      set_frame(val.to_i64)
+    def frame=(val : Int | Enum)
+      set_frame(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `frame_progress` getter
     def frame_progress
@@ -12583,6 +12966,8 @@ module Godot
     def initialize(pointer : Void* = Pointer(Void).null)
       super(pointer)
     end
+    MAX_FRAMES = 256_i64
+
     @@mb_set_frames : Void* = Pointer(Void).null
     def set_frames(frames : Int64) : Void
       godot_bind(@@mb_set_frames, "AnimatedTexture", "set_frames", 1286410249_i64)
@@ -12697,16 +13082,16 @@ module Godot
       get_frames
     end
     # Property `frames` setter
-    def frames=(val : Int)
-      set_frames(val.to_i64)
+    def frames=(val : Int | Enum)
+      set_frames(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `current_frame` getter
     def current_frame
       get_current_frame
     end
     # Property `current_frame` setter
-    def current_frame=(val : Int)
-      set_current_frame(val.to_i64)
+    def current_frame=(val : Int | Enum)
+      set_current_frame(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `pause` getter
     def pause
@@ -13699,8 +14084,8 @@ module Godot
       get_loop_mode
     end
     # Property `loop_mode` setter
-    def loop_mode=(val : Int)
-      set_loop_mode(val.to_i64)
+    def loop_mode=(val : Int | Enum)
+      set_loop_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `step` getter
     def step
@@ -14207,32 +14592,32 @@ module Godot
       get_audio_max_polyphony
     end
     # Property `audio_max_polyphony` setter
-    def audio_max_polyphony=(val : Int)
-      set_audio_max_polyphony(val.to_i64)
+    def audio_max_polyphony=(val : Int | Enum)
+      set_audio_max_polyphony(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `callback_mode_process` getter
     def callback_mode_process
       get_callback_mode_process
     end
     # Property `callback_mode_process` setter
-    def callback_mode_process=(val : Int)
-      set_callback_mode_process(val.to_i64)
+    def callback_mode_process=(val : Int | Enum)
+      set_callback_mode_process(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `callback_mode_method` getter
     def callback_mode_method
       get_callback_mode_method
     end
     # Property `callback_mode_method` setter
-    def callback_mode_method=(val : Int)
-      set_callback_mode_method(val.to_i64)
+    def callback_mode_method=(val : Int | Enum)
+      set_callback_mode_method(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `callback_mode_discrete` getter
     def callback_mode_discrete
       get_callback_mode_discrete
     end
     # Property `callback_mode_discrete` setter
-    def callback_mode_discrete=(val : Int)
-      set_callback_mode_discrete(val.to_i64)
+    def callback_mode_discrete=(val : Int | Enum)
+      set_callback_mode_discrete(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     godot_signal animation_list_changed
     godot_signal animation_libraries_updated
@@ -14702,8 +15087,8 @@ module Godot
       get_play_mode
     end
     # Property `play_mode` setter
-    def play_mode=(val : Int)
-      set_play_mode(val.to_i64)
+    def play_mode=(val : Int | Enum)
+      set_play_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `advance_on_start` getter
     def advance_on_start
@@ -14756,8 +15141,8 @@ module Godot
       get_loop_mode
     end
     # Property `loop_mode` setter
-    def loop_mode=(val : Int)
-      set_loop_mode(val.to_i64)
+    def loop_mode=(val : Int | Enum)
+      set_loop_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class AnimationNodeBlend2 < Godot::AnimationNodeSync
@@ -15041,8 +15426,8 @@ module Godot
       get_blend_mode
     end
     # Property `blend_mode` setter
-    def blend_mode=(val : Int)
-      set_blend_mode(val.to_i64)
+    def blend_mode=(val : Int | Enum)
+      set_blend_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `sync` getter
     def sync
@@ -15060,8 +15445,8 @@ module Godot
       get_sync_mode
     end
     # Property `sync_mode` setter
-    def sync_mode=(val : Int)
-      set_sync_mode(val.to_i64)
+    def sync_mode=(val : Int | Enum)
+      set_sync_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `cyclic_length` getter
     def cyclic_length
@@ -15431,8 +15816,8 @@ module Godot
       get_blend_mode
     end
     # Property `blend_mode` setter
-    def blend_mode=(val : Int)
-      set_blend_mode(val.to_i64)
+    def blend_mode=(val : Int | Enum)
+      set_blend_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `sync` getter
     def sync
@@ -15450,8 +15835,8 @@ module Godot
       get_sync_mode
     end
     # Property `sync_mode` setter
-    def sync_mode=(val : Int)
-      set_sync_mode(val.to_i64)
+    def sync_mode=(val : Int | Enum)
+      set_sync_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `cyclic_length` getter
     def cyclic_length
@@ -15467,6 +15852,13 @@ module Godot
     def initialize(pointer : Void* = Pointer(Void).null)
       super(pointer)
     end
+    CONNECTION_OK = 0_i64
+    CONNECTION_ERROR_NO_INPUT = 1_i64
+    CONNECTION_ERROR_NO_INPUT_INDEX = 2_i64
+    CONNECTION_ERROR_NO_OUTPUT = 3_i64
+    CONNECTION_ERROR_SAME_NODE = 4_i64
+    CONNECTION_ERROR_CONNECTION_EXISTS = 5_i64
+
     @@mb_add_node : Void* = Pointer(Void).null
     def add_node(name : String, node : AnimationNode, position : Vector2 = Vector2.new(0.to_f32, 0.to_f32)) : Void
       godot_bind(@@mb_add_node, "AnimationNodeBlendTree", "add_node", 1980270704_i64)
@@ -15850,8 +16242,8 @@ module Godot
       get_mix_mode
     end
     # Property `mix_mode` setter
-    def mix_mode=(val : Int)
-      set_mix_mode(val.to_i64)
+    def mix_mode=(val : Int | Enum)
+      set_mix_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `fadein_time` getter
     def fadein_time
@@ -16214,8 +16606,8 @@ module Godot
       get_state_machine_type
     end
     # Property `state_machine_type` setter
-    def state_machine_type=(val : Int)
-      set_state_machine_type(val.to_i64)
+    def state_machine_type=(val : Int | Enum)
+      set_state_machine_type(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `allow_transition_to_self` getter
     def allow_transition_to_self
@@ -16529,24 +16921,24 @@ module Godot
       get_priority
     end
     # Property `priority` setter
-    def priority=(val : Int)
-      set_priority(val.to_i64)
+    def priority=(val : Int | Enum)
+      set_priority(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `switch_mode` getter
     def switch_mode
       get_switch_mode
     end
     # Property `switch_mode` setter
-    def switch_mode=(val : Int)
-      set_switch_mode(val.to_i64)
+    def switch_mode=(val : Int | Enum)
+      set_switch_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `advance_mode` getter
     def advance_mode
       get_advance_mode
     end
     # Property `advance_mode` setter
-    def advance_mode=(val : Int)
-      set_advance_mode(val.to_i64)
+    def advance_mode=(val : Int | Enum)
+      set_advance_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `advance_condition` getter
     def advance_condition
@@ -16776,8 +17168,8 @@ module Godot
       get_input_count
     end
     # Property `input_count` setter
-    def input_count=(val : Int)
-      set_input_count(val.to_i64)
+    def input_count=(val : Int | Enum)
+      set_input_count(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class AnimationPlayer < Godot::AnimationMixer
@@ -17375,16 +17767,16 @@ module Godot
       get_auto_capture_transition_type
     end
     # Property `playback_auto_capture_transition_type` setter
-    def playback_auto_capture_transition_type=(val : Int)
-      set_auto_capture_transition_type(val.to_i64)
+    def playback_auto_capture_transition_type=(val : Int | Enum)
+      set_auto_capture_transition_type(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `playback_auto_capture_ease_type` getter
     def playback_auto_capture_ease_type
       get_auto_capture_ease_type
     end
     # Property `playback_auto_capture_ease_type` setter
-    def playback_auto_capture_ease_type=(val : Int)
-      set_auto_capture_ease_type(val.to_i64)
+    def playback_auto_capture_ease_type=(val : Int | Enum)
+      set_auto_capture_ease_type(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `playback_default_blend_time` getter
     def playback_default_blend_time
@@ -17835,16 +18227,16 @@ module Godot
       get_priority
     end
     # Property `priority` setter
-    def priority=(val : Int)
-      set_priority(val.to_i64)
+    def priority=(val : Int | Enum)
+      set_priority(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `gravity_space_override` getter
     def gravity_space_override
       get_gravity_space_override_mode
     end
     # Property `gravity_space_override` setter
-    def gravity_space_override=(val : Int)
-      set_gravity_space_override_mode(val.to_i64)
+    def gravity_space_override=(val : Int | Enum)
+      set_gravity_space_override_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `gravity_point` getter
     def gravity_point
@@ -17894,8 +18286,8 @@ module Godot
       get_linear_damp_space_override_mode
     end
     # Property `linear_damp_space_override` setter
-    def linear_damp_space_override=(val : Int)
-      set_linear_damp_space_override_mode(val.to_i64)
+    def linear_damp_space_override=(val : Int | Enum)
+      set_linear_damp_space_override_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `linear_damp` getter
     def linear_damp
@@ -17910,8 +18302,8 @@ module Godot
       get_angular_damp_space_override_mode
     end
     # Property `angular_damp_space_override` setter
-    def angular_damp_space_override=(val : Int)
-      set_angular_damp_space_override_mode(val.to_i64)
+    def angular_damp_space_override=(val : Int | Enum)
+      set_angular_damp_space_override_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `angular_damp` getter
     def angular_damp
@@ -18369,16 +18761,16 @@ module Godot
       get_priority
     end
     # Property `priority` setter
-    def priority=(val : Int)
-      set_priority(val.to_i64)
+    def priority=(val : Int | Enum)
+      set_priority(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `gravity_space_override` getter
     def gravity_space_override
       get_gravity_space_override_mode
     end
     # Property `gravity_space_override` setter
-    def gravity_space_override=(val : Int)
-      set_gravity_space_override_mode(val.to_i64)
+    def gravity_space_override=(val : Int | Enum)
+      set_gravity_space_override_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `gravity_point` getter
     def gravity_point
@@ -18428,8 +18820,8 @@ module Godot
       get_linear_damp_space_override_mode
     end
     # Property `linear_damp_space_override` setter
-    def linear_damp_space_override=(val : Int)
-      set_linear_damp_space_override_mode(val.to_i64)
+    def linear_damp_space_override=(val : Int | Enum)
+      set_linear_damp_space_override_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `linear_damp` getter
     def linear_damp
@@ -18444,8 +18836,8 @@ module Godot
       get_angular_damp_space_override_mode
     end
     # Property `angular_damp_space_override` setter
-    def angular_damp_space_override=(val : Int)
-      set_angular_damp_space_override_mode(val.to_i64)
+    def angular_damp_space_override=(val : Int | Enum)
+      set_angular_damp_space_override_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `angular_damp` getter
     def angular_damp
@@ -18935,16 +19327,16 @@ module Godot
       get_bake_mode
     end
     # Property `light_bake_mode` setter
-    def light_bake_mode=(val : Int)
-      set_bake_mode(val.to_i64)
+    def light_bake_mode=(val : Int | Enum)
+      set_bake_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `light_cull_mask` getter
     def light_cull_mask
       get_cull_mask
     end
     # Property `light_cull_mask` setter
-    def light_cull_mask=(val : Int)
-      set_cull_mask(val.to_i64)
+    def light_cull_mask=(val : Int | Enum)
+      set_cull_mask(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `shadow_enabled` getter
     def shadow_enabled
@@ -19013,8 +19405,8 @@ module Godot
       get_shadow_caster_mask
     end
     # Property `shadow_caster_mask` setter
-    def shadow_caster_mask=(val : Int)
-      set_shadow_caster_mask(val.to_i64)
+    def shadow_caster_mask=(val : Int | Enum)
+      set_shadow_caster_mask(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `shadow_contact_shadows_allow` getter
     def shadow_contact_shadows_allow
@@ -19591,8 +19983,8 @@ module Godot
       get_blend_shape_mode
     end
     # Property `blend_shape_mode` setter
-    def blend_shape_mode=(val : Int)
-      set_blend_shape_mode(val.to_i64)
+    def blend_shape_mode=(val : Int | Enum)
+      set_blend_shape_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `custom_aabb` getter
     def custom_aabb
@@ -19778,6 +20170,18 @@ module Godot
       TextDirectionLtr = 1_i64
       TextDirectionRtl = 2_i64
     end
+    NOTIFICATION_RESIZED = 40_i64
+    NOTIFICATION_MOUSE_ENTER = 41_i64
+    NOTIFICATION_MOUSE_EXIT = 42_i64
+    NOTIFICATION_MOUSE_ENTER_SELF = 60_i64
+    NOTIFICATION_MOUSE_EXIT_SELF = 61_i64
+    NOTIFICATION_FOCUS_ENTER = 43_i64
+    NOTIFICATION_FOCUS_EXIT = 44_i64
+    NOTIFICATION_THEME_CHANGED = 45_i64
+    NOTIFICATION_SCROLL_BEGIN = 47_i64
+    NOTIFICATION_SCROLL_END = 48_i64
+    NOTIFICATION_LAYOUT_DIRECTION_CHANGED = 49_i64
+
     @@mb_accept_event : Void* = Pointer(Void).null
     def accept_event() : Void
       godot_bind(@@mb_accept_event, "Control", "accept_event", 3218959716_i64)
@@ -21450,16 +21854,16 @@ module Godot
       get_h_grow_direction
     end
     # Property `grow_horizontal` setter
-    def grow_horizontal=(val : Int)
-      set_h_grow_direction(val.to_i64)
+    def grow_horizontal=(val : Int | Enum)
+      set_h_grow_direction(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `grow_vertical` getter
     def grow_vertical
       get_v_grow_direction
     end
     # Property `grow_vertical` setter
-    def grow_vertical=(val : Int)
-      set_v_grow_direction(val.to_i64)
+    def grow_vertical=(val : Int | Enum)
+      set_v_grow_direction(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `rotation_degrees` getter
     def rotation_degrees
@@ -21490,16 +21894,16 @@ module Godot
       get_h_size_flags
     end
     # Property `size_flags_horizontal` setter
-    def size_flags_horizontal=(val : Int)
-      set_h_size_flags(val.to_i64)
+    def size_flags_horizontal=(val : Int | Enum)
+      set_h_size_flags(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `size_flags_vertical` getter
     def size_flags_vertical
       get_v_size_flags
     end
     # Property `size_flags_vertical` setter
-    def size_flags_vertical=(val : Int)
-      set_v_size_flags(val.to_i64)
+    def size_flags_vertical=(val : Int | Enum)
+      set_v_size_flags(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `size_flags_stretch_ratio` getter
     def size_flags_stretch_ratio
@@ -21589,8 +21993,8 @@ module Godot
       get_layout_direction
     end
     # Property `layout_direction` setter
-    def layout_direction=(val : Int)
-      set_layout_direction(val.to_i64)
+    def layout_direction=(val : Int | Enum)
+      set_layout_direction(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `translation_context` getter
     def translation_context
@@ -21624,8 +22028,8 @@ module Godot
       get_tooltip_auto_translate_mode
     end
     # Property `tooltip_auto_translate_mode` setter
-    def tooltip_auto_translate_mode=(val : Int)
-      set_tooltip_auto_translate_mode(val.to_i64)
+    def tooltip_auto_translate_mode=(val : Int | Enum)
+      set_tooltip_auto_translate_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `focus_neighbor_left` getter
     def focus_neighbor_left
@@ -21680,32 +22084,32 @@ module Godot
       get_focus_mode
     end
     # Property `focus_mode` setter
-    def focus_mode=(val : Int)
-      set_focus_mode(val.to_i64)
+    def focus_mode=(val : Int | Enum)
+      set_focus_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `focus_behavior_recursive` getter
     def focus_behavior_recursive
       get_focus_behavior_recursive
     end
     # Property `focus_behavior_recursive` setter
-    def focus_behavior_recursive=(val : Int)
-      set_focus_behavior_recursive(val.to_i64)
+    def focus_behavior_recursive=(val : Int | Enum)
+      set_focus_behavior_recursive(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `mouse_filter` getter
     def mouse_filter
       get_mouse_filter
     end
     # Property `mouse_filter` setter
-    def mouse_filter=(val : Int)
-      set_mouse_filter(val.to_i64)
+    def mouse_filter=(val : Int | Enum)
+      set_mouse_filter(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `mouse_behavior_recursive` getter
     def mouse_behavior_recursive
       get_mouse_behavior_recursive
     end
     # Property `mouse_behavior_recursive` setter
-    def mouse_behavior_recursive=(val : Int)
-      set_mouse_behavior_recursive(val.to_i64)
+    def mouse_behavior_recursive=(val : Int | Enum)
+      set_mouse_behavior_recursive(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `mouse_force_pass_scroll_events` getter
     def mouse_force_pass_scroll_events
@@ -21723,8 +22127,8 @@ module Godot
       get_default_cursor_shape
     end
     # Property `mouse_default_cursor_shape` setter
-    def mouse_default_cursor_shape=(val : Int)
-      set_default_cursor_shape(val.to_i64)
+    def mouse_default_cursor_shape=(val : Int | Enum)
+      set_default_cursor_shape(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `shortcut_context` getter
     def shortcut_context
@@ -21755,8 +22159,8 @@ module Godot
       get_accessibility_live
     end
     # Property `accessibility_live` setter
-    def accessibility_live=(val : Int)
-      set_accessibility_live(val.to_i64)
+    def accessibility_live=(val : Int | Enum)
+      set_accessibility_live(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `accessibility_controls_nodes` getter
     def accessibility_controls_nodes
@@ -21821,6 +22225,9 @@ module Godot
     def initialize(pointer : Void* = Pointer(Void).null)
       super(pointer)
     end
+    NOTIFICATION_PRE_SORT_CHILDREN = 50_i64
+    NOTIFICATION_SORT_CHILDREN = 51_i64
+
     @@mb_queue_sort : Void* = Pointer(Void).null
     def queue_sort() : Void
       godot_bind(@@mb_queue_sort, "Container", "queue_sort", 3218959716_i64)
@@ -21948,24 +22355,24 @@ module Godot
       get_stretch_mode
     end
     # Property `stretch_mode` setter
-    def stretch_mode=(val : Int)
-      set_stretch_mode(val.to_i64)
+    def stretch_mode=(val : Int | Enum)
+      set_stretch_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `alignment_horizontal` getter
     def alignment_horizontal
       get_alignment_horizontal
     end
     # Property `alignment_horizontal` setter
-    def alignment_horizontal=(val : Int)
-      set_alignment_horizontal(val.to_i64)
+    def alignment_horizontal=(val : Int | Enum)
+      set_alignment_horizontal(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `alignment_vertical` getter
     def alignment_vertical
       get_alignment_vertical
     end
     # Property `alignment_vertical` setter
-    def alignment_vertical=(val : Int)
-      set_alignment_vertical(val.to_i64)
+    def alignment_vertical=(val : Int | Enum)
+      set_alignment_vertical(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class AtlasTexture < Godot::Texture2D
@@ -22212,8 +22619,8 @@ module Godot
       get_db
     end
     # Property `db` setter
-    def db=(val : Int)
-      set_db(val.to_i64)
+    def db=(val : Int | Enum)
+      set_db(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class AudioEffectBandLimitFilter < Godot::AudioEffectFilter
@@ -22455,8 +22862,8 @@ module Godot
       get_voice_count
     end
     # Property `voice_count` setter
-    def voice_count=(val : Int)
-      set_voice_count(val.to_i64)
+    def voice_count=(val : Int | Enum)
+      set_voice_count(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `dry` getter
     def dry
@@ -23012,8 +23419,8 @@ module Godot
       get_mode
     end
     # Property `mode` setter
-    def mode=(val : Int)
-      set_mode(val.to_i64)
+    def mode=(val : Int | Enum)
+      set_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `pre_gain` getter
     def pre_gain
@@ -23486,8 +23893,8 @@ module Godot
       get_fft_size
     end
     # Property `fft_size` setter
-    def fft_size=(val : Int)
-      set_fft_size(val.to_i64)
+    def fft_size=(val : Int | Enum)
+      set_fft_size(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class AudioEffectRecord < Godot::AudioEffect
@@ -23538,8 +23945,8 @@ module Godot
       get_format
     end
     # Property `format` setter
-    def format=(val : Int)
-      set_format(val.to_i64)
+    def format=(val : Int | Enum)
+      set_format(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class AudioEffectReverb < Godot::AudioEffect
@@ -23766,8 +24173,8 @@ module Godot
       get_fft_size
     end
     # Property `fft_size` setter
-    def fft_size=(val : Int)
-      set_fft_size(val.to_i64)
+    def fft_size=(val : Int | Enum)
+      set_fft_size(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class AudioEffectSpectrumAnalyzerInstance < Godot::AudioEffectInstance
@@ -23942,8 +24349,8 @@ module Godot
       get_doppler_tracking
     end
     # Property `doppler_tracking` setter
-    def doppler_tracking=(val : Int)
-      set_doppler_tracking(val.to_i64)
+    def doppler_tracking=(val : Int | Enum)
+      set_doppler_tracking(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class AudioSample < Godot::RefCounted
@@ -23980,10 +24387,18 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_bus_count, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `set_bus_count`
+    def self.set_bus_count(amount : Int64) : Void
+      instance.set_bus_count(amount)
+    end
     @@mb_get_bus_count : Void* = Pointer(Void).null
     def get_bus_count() : Int64
       godot_bind(@@mb_get_bus_count, "AudioServer", "get_bus_count", 3905245786_i64)
       godot_ptrcall_int(@@mb_get_bus_count, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `get_bus_count`
+    def self.get_bus_count() : Int64
+      instance.get_bus_count()
     end
     @@mb_remove_bus : Void* = Pointer(Void).null
     def remove_bus(index : Int64) : Void
@@ -23993,6 +24408,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_remove_bus, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `remove_bus`
+    def self.remove_bus(index : Int64) : Void
+      instance.remove_bus(index)
+    end
     @@mb_add_bus : Void* = Pointer(Void).null
     def add_bus(at_position : Int64 = -1_i64) : Void
       godot_bind(@@mb_add_bus, "AudioServer", "add_bus", 1025054187_i64)
@@ -24000,6 +24419,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_add_bus, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `add_bus`
+    def self.add_bus(at_position : Int64 = -1_i64) : Void
+      instance.add_bus(at_position)
     end
     @@mb_move_bus : Void* = Pointer(Void).null
     def move_bus(index : Int64, to_index : Int64) : Void
@@ -24010,6 +24433,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_move_bus, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `move_bus`
+    def self.move_bus(index : Int64, to_index : Int64) : Void
+      instance.move_bus(index, to_index)
     end
     @@mb_set_bus_name : Void* = Pointer(Void).null
     def set_bus_name(bus_idx : Int64, name : String) : Void
@@ -24023,6 +24450,10 @@ module Godot
     ensure
       Bridge.free_string(str_1)
     end
+    # Class-level singleton delegator for `set_bus_name`
+    def self.set_bus_name(bus_idx : Int64, name : String) : Void
+      instance.set_bus_name(bus_idx, name)
+    end
     @@mb_get_bus_name : Void* = Pointer(Void).null
     def get_bus_name(bus_idx : Int64) : String
       godot_bind(@@mb_get_bus_name, "AudioServer", "get_bus_name", 844755477_i64)
@@ -24030,6 +24461,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_bus_name", bus_idx)
+    end
+    # Class-level singleton delegator for `get_bus_name`
+    def self.get_bus_name(bus_idx : Int64) : String
+      instance.get_bus_name(bus_idx)
     end
     @@mb_get_bus_index : Void* = Pointer(Void).null
     def get_bus_index(bus_name : String) : Int64
@@ -24041,6 +24476,10 @@ module Godot
     ensure
       Bridge.free_string_name(sn_0)
     end
+    # Class-level singleton delegator for `get_bus_index`
+    def self.get_bus_index(bus_name : String) : Int64
+      instance.get_bus_index(bus_name)
+    end
     @@mb_get_bus_channels : Void* = Pointer(Void).null
     def get_bus_channels(bus_idx : Int64) : Int64
       godot_bind(@@mb_get_bus_channels, "AudioServer", "get_bus_channels", 923996154_i64)
@@ -24048,6 +24487,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_bus_channels, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `get_bus_channels`
+    def self.get_bus_channels(bus_idx : Int64) : Int64
+      instance.get_bus_channels(bus_idx)
     end
     @@mb_set_bus_volume_db : Void* = Pointer(Void).null
     def set_bus_volume_db(bus_idx : Int64, volume_db : Float64) : Void
@@ -24059,6 +24502,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_bus_volume_db, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `set_bus_volume_db`
+    def self.set_bus_volume_db(bus_idx : Int64, volume_db : Float64) : Void
+      instance.set_bus_volume_db(bus_idx, volume_db)
+    end
     @@mb_get_bus_volume_db : Void* = Pointer(Void).null
     def get_bus_volume_db(bus_idx : Int64) : Float64
       godot_bind(@@mb_get_bus_volume_db, "AudioServer", "get_bus_volume_db", 2339986948_i64)
@@ -24066,6 +24513,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_float(@@mb_get_bus_volume_db, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `get_bus_volume_db`
+    def self.get_bus_volume_db(bus_idx : Int64) : Float64
+      instance.get_bus_volume_db(bus_idx)
     end
     @@mb_set_bus_volume_linear : Void* = Pointer(Void).null
     def set_bus_volume_linear(bus_idx : Int64, volume_linear : Float64) : Void
@@ -24077,6 +24528,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_bus_volume_linear, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `set_bus_volume_linear`
+    def self.set_bus_volume_linear(bus_idx : Int64, volume_linear : Float64) : Void
+      instance.set_bus_volume_linear(bus_idx, volume_linear)
+    end
     @@mb_get_bus_volume_linear : Void* = Pointer(Void).null
     def get_bus_volume_linear(bus_idx : Int64) : Float64
       godot_bind(@@mb_get_bus_volume_linear, "AudioServer", "get_bus_volume_linear", 2339986948_i64)
@@ -24084,6 +24539,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_float(@@mb_get_bus_volume_linear, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `get_bus_volume_linear`
+    def self.get_bus_volume_linear(bus_idx : Int64) : Float64
+      instance.get_bus_volume_linear(bus_idx)
     end
     @@mb_set_bus_send : Void* = Pointer(Void).null
     def set_bus_send(bus_idx : Int64, send : String) : Void
@@ -24097,6 +24556,10 @@ module Godot
     ensure
       Bridge.free_string_name(sn_1)
     end
+    # Class-level singleton delegator for `set_bus_send`
+    def self.set_bus_send(bus_idx : Int64, send : String) : Void
+      instance.set_bus_send(bus_idx, send)
+    end
     @@mb_get_bus_send : Void* = Pointer(Void).null
     def get_bus_send(bus_idx : Int64) : String
       godot_bind(@@mb_get_bus_send, "AudioServer", "get_bus_send", 659327637_i64)
@@ -24104,6 +24567,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_bus_send", bus_idx)
+    end
+    # Class-level singleton delegator for `get_bus_send`
+    def self.get_bus_send(bus_idx : Int64) : String
+      instance.get_bus_send(bus_idx)
     end
     @@mb_set_bus_solo : Void* = Pointer(Void).null
     def set_bus_solo(bus_idx : Int64, enable : Bool) : Void
@@ -24115,6 +24582,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_bus_solo, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `set_bus_solo`
+    def self.set_bus_solo(bus_idx : Int64, enable : Bool) : Void
+      instance.set_bus_solo(bus_idx, enable)
+    end
     @@mb_is_bus_solo : Void* = Pointer(Void).null
     def is_bus_solo(bus_idx : Int64) : Bool
       godot_bind(@@mb_is_bus_solo, "AudioServer", "is_bus_solo", 1116898809_i64)
@@ -24123,13 +24594,25 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_bus_solo, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `is_bus_solo`
+    def self.is_bus_solo(bus_idx : Int64) : Bool
+      instance.is_bus_solo(bus_idx)
+    end
     # Predicate alias for `is_bus_solo`
     def is_bus_solo?(bus_idx : Int64) : Bool
       is_bus_solo(bus_idx)
     end
+    # Class-level singleton predicate delegator for `is_bus_solo?`
+    def self.is_bus_solo?(bus_idx : Int64) : Bool
+      instance.is_bus_solo?(bus_idx)
+    end
     # Predicate alias for `is_bus_solo`
     def bus_solo?(bus_idx : Int64) : Bool
       is_bus_solo(bus_idx)
+    end
+    # Class-level singleton predicate delegator for `bus_solo?`
+    def self.bus_solo?(bus_idx : Int64) : Bool
+      instance.bus_solo?(bus_idx)
     end
     @@mb_set_bus_mute : Void* = Pointer(Void).null
     def set_bus_mute(bus_idx : Int64, enable : Bool) : Void
@@ -24141,6 +24624,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_bus_mute, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `set_bus_mute`
+    def self.set_bus_mute(bus_idx : Int64, enable : Bool) : Void
+      instance.set_bus_mute(bus_idx, enable)
+    end
     @@mb_is_bus_mute : Void* = Pointer(Void).null
     def is_bus_mute(bus_idx : Int64) : Bool
       godot_bind(@@mb_is_bus_mute, "AudioServer", "is_bus_mute", 1116898809_i64)
@@ -24149,13 +24636,25 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_bus_mute, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `is_bus_mute`
+    def self.is_bus_mute(bus_idx : Int64) : Bool
+      instance.is_bus_mute(bus_idx)
+    end
     # Predicate alias for `is_bus_mute`
     def is_bus_mute?(bus_idx : Int64) : Bool
       is_bus_mute(bus_idx)
     end
+    # Class-level singleton predicate delegator for `is_bus_mute?`
+    def self.is_bus_mute?(bus_idx : Int64) : Bool
+      instance.is_bus_mute?(bus_idx)
+    end
     # Predicate alias for `is_bus_mute`
     def bus_mute?(bus_idx : Int64) : Bool
       is_bus_mute(bus_idx)
+    end
+    # Class-level singleton predicate delegator for `bus_mute?`
+    def self.bus_mute?(bus_idx : Int64) : Bool
+      instance.bus_mute?(bus_idx)
     end
     @@mb_set_bus_bypass_effects : Void* = Pointer(Void).null
     def set_bus_bypass_effects(bus_idx : Int64, enable : Bool) : Void
@@ -24167,6 +24666,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_bus_bypass_effects, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `set_bus_bypass_effects`
+    def self.set_bus_bypass_effects(bus_idx : Int64, enable : Bool) : Void
+      instance.set_bus_bypass_effects(bus_idx, enable)
+    end
     @@mb_is_bus_bypassing_effects : Void* = Pointer(Void).null
     def is_bus_bypassing_effects(bus_idx : Int64) : Bool
       godot_bind(@@mb_is_bus_bypassing_effects, "AudioServer", "is_bus_bypassing_effects", 1116898809_i64)
@@ -24175,13 +24678,25 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_bus_bypassing_effects, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `is_bus_bypassing_effects`
+    def self.is_bus_bypassing_effects(bus_idx : Int64) : Bool
+      instance.is_bus_bypassing_effects(bus_idx)
+    end
     # Predicate alias for `is_bus_bypassing_effects`
     def is_bus_bypassing_effects?(bus_idx : Int64) : Bool
       is_bus_bypassing_effects(bus_idx)
     end
+    # Class-level singleton predicate delegator for `is_bus_bypassing_effects?`
+    def self.is_bus_bypassing_effects?(bus_idx : Int64) : Bool
+      instance.is_bus_bypassing_effects?(bus_idx)
+    end
     # Predicate alias for `is_bus_bypassing_effects`
     def bus_bypassing_effects?(bus_idx : Int64) : Bool
       is_bus_bypassing_effects(bus_idx)
+    end
+    # Class-level singleton predicate delegator for `bus_bypassing_effects?`
+    def self.bus_bypassing_effects?(bus_idx : Int64) : Bool
+      instance.bus_bypassing_effects?(bus_idx)
     end
     @@mb_add_bus_effect : Void* = Pointer(Void).null
     def add_bus_effect(bus_idx : Int64, effect : AudioEffect, at_position : Int64 = -1_i64) : Void
@@ -24195,6 +24710,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_add_bus_effect, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `add_bus_effect`
+    def self.add_bus_effect(bus_idx : Int64, effect : AudioEffect, at_position : Int64 = -1_i64) : Void
+      instance.add_bus_effect(bus_idx, effect, at_position)
+    end
     @@mb_remove_bus_effect : Void* = Pointer(Void).null
     def remove_bus_effect(bus_idx : Int64, effect_idx : Int64) : Void
       godot_bind(@@mb_remove_bus_effect, "AudioServer", "remove_bus_effect", 3937882851_i64)
@@ -24205,6 +24724,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_remove_bus_effect, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `remove_bus_effect`
+    def self.remove_bus_effect(bus_idx : Int64, effect_idx : Int64) : Void
+      instance.remove_bus_effect(bus_idx, effect_idx)
+    end
     @@mb_get_bus_effect_count : Void* = Pointer(Void).null
     def get_bus_effect_count(bus_idx : Int64) : Int64
       godot_bind(@@mb_get_bus_effect_count, "AudioServer", "get_bus_effect_count", 3744713108_i64)
@@ -24212,6 +24735,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_bus_effect_count, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `get_bus_effect_count`
+    def self.get_bus_effect_count(bus_idx : Int64) : Int64
+      instance.get_bus_effect_count(bus_idx)
     end
     @@mb_get_bus_effect : Void* = Pointer(Void).null
     def get_bus_effect(bus_idx : Int64, effect_idx : Int64) : AudioEffect
@@ -24222,6 +24749,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_obj(@@mb_get_bus_effect, @pointer, args.to_unsafe.as(Void**), AudioEffect)
+    end
+    # Class-level singleton delegator for `get_bus_effect`
+    def self.get_bus_effect(bus_idx : Int64, effect_idx : Int64) : AudioEffect
+      instance.get_bus_effect(bus_idx, effect_idx)
     end
     @@mb_get_bus_effect_instance : Void* = Pointer(Void).null
     def get_bus_effect_instance(bus_idx : Int64, effect_idx : Int64, channel : Int64 = 0_i64) : AudioEffectInstance
@@ -24235,6 +24766,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_obj(@@mb_get_bus_effect_instance, @pointer, args.to_unsafe.as(Void**), AudioEffectInstance)
     end
+    # Class-level singleton delegator for `get_bus_effect_instance`
+    def self.get_bus_effect_instance(bus_idx : Int64, effect_idx : Int64, channel : Int64 = 0_i64) : AudioEffectInstance
+      instance.get_bus_effect_instance(bus_idx, effect_idx, channel)
+    end
     @@mb_swap_bus_effects : Void* = Pointer(Void).null
     def swap_bus_effects(bus_idx : Int64, effect_idx : Int64, by_effect_idx : Int64) : Void
       godot_bind(@@mb_swap_bus_effects, "AudioServer", "swap_bus_effects", 1649997291_i64)
@@ -24246,6 +24781,10 @@ module Godot
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_swap_bus_effects, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `swap_bus_effects`
+    def self.swap_bus_effects(bus_idx : Int64, effect_idx : Int64, by_effect_idx : Int64) : Void
+      instance.swap_bus_effects(bus_idx, effect_idx, by_effect_idx)
     end
     @@mb_set_bus_effect_enabled : Void* = Pointer(Void).null
     def set_bus_effect_enabled(bus_idx : Int64, effect_idx : Int64, enabled : Bool) : Void
@@ -24259,6 +24798,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_set_bus_effect_enabled, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `set_bus_effect_enabled`
+    def self.set_bus_effect_enabled(bus_idx : Int64, effect_idx : Int64, enabled : Bool) : Void
+      instance.set_bus_effect_enabled(bus_idx, effect_idx, enabled)
+    end
     @@mb_is_bus_effect_enabled : Void* = Pointer(Void).null
     def is_bus_effect_enabled(bus_idx : Int64, effect_idx : Int64) : Bool
       godot_bind(@@mb_is_bus_effect_enabled, "AudioServer", "is_bus_effect_enabled", 2522259332_i64)
@@ -24269,13 +24812,25 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_bool(@@mb_is_bus_effect_enabled, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `is_bus_effect_enabled`
+    def self.is_bus_effect_enabled(bus_idx : Int64, effect_idx : Int64) : Bool
+      instance.is_bus_effect_enabled(bus_idx, effect_idx)
+    end
     # Predicate alias for `is_bus_effect_enabled`
     def is_bus_effect_enabled?(bus_idx : Int64, effect_idx : Int64) : Bool
       is_bus_effect_enabled(bus_idx, effect_idx)
     end
+    # Class-level singleton predicate delegator for `is_bus_effect_enabled?`
+    def self.is_bus_effect_enabled?(bus_idx : Int64, effect_idx : Int64) : Bool
+      instance.is_bus_effect_enabled?(bus_idx, effect_idx)
+    end
     # Predicate alias for `is_bus_effect_enabled`
     def bus_effect_enabled?(bus_idx : Int64, effect_idx : Int64) : Bool
       is_bus_effect_enabled(bus_idx, effect_idx)
+    end
+    # Class-level singleton predicate delegator for `bus_effect_enabled?`
+    def self.bus_effect_enabled?(bus_idx : Int64, effect_idx : Int64) : Bool
+      instance.bus_effect_enabled?(bus_idx, effect_idx)
     end
     @@mb_get_bus_peak_volume_left_db : Void* = Pointer(Void).null
     def get_bus_peak_volume_left_db(bus_idx : Int64, channel : Int64) : Float64
@@ -24287,6 +24842,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_float(@@mb_get_bus_peak_volume_left_db, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `get_bus_peak_volume_left_db`
+    def self.get_bus_peak_volume_left_db(bus_idx : Int64, channel : Int64) : Float64
+      instance.get_bus_peak_volume_left_db(bus_idx, channel)
+    end
     @@mb_get_bus_peak_volume_right_db : Void* = Pointer(Void).null
     def get_bus_peak_volume_right_db(bus_idx : Int64, channel : Int64) : Float64
       godot_bind(@@mb_get_bus_peak_volume_right_db, "AudioServer", "get_bus_peak_volume_right_db", 3085491603_i64)
@@ -24297,6 +24856,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_float(@@mb_get_bus_peak_volume_right_db, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `get_bus_peak_volume_right_db`
+    def self.get_bus_peak_volume_right_db(bus_idx : Int64, channel : Int64) : Float64
+      instance.get_bus_peak_volume_right_db(bus_idx, channel)
+    end
     @@mb_set_playback_speed_scale : Void* = Pointer(Void).null
     def set_playback_speed_scale(scale : Float64) : Void
       godot_bind(@@mb_set_playback_speed_scale, "AudioServer", "set_playback_speed_scale", 373806689_i64)
@@ -24305,40 +24868,72 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_playback_speed_scale, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `set_playback_speed_scale`
+    def self.set_playback_speed_scale(scale : Float64) : Void
+      instance.set_playback_speed_scale(scale)
+    end
     @@mb_get_playback_speed_scale : Void* = Pointer(Void).null
     def get_playback_speed_scale() : Float64
       godot_bind(@@mb_get_playback_speed_scale, "AudioServer", "get_playback_speed_scale", 1740695150_i64)
       godot_ptrcall_float(@@mb_get_playback_speed_scale, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `get_playback_speed_scale`
+    def self.get_playback_speed_scale() : Float64
+      instance.get_playback_speed_scale()
     end
     @@mb_lock : Void* = Pointer(Void).null
     def lock() : Void
       godot_bind(@@mb_lock, "AudioServer", "lock", 3218959716_i64)
       godot_ptrcall_void(@@mb_lock, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Class-level singleton delegator for `lock`
+    def self.lock() : Void
+      instance.lock()
+    end
     @@mb_unlock : Void* = Pointer(Void).null
     def unlock() : Void
       godot_bind(@@mb_unlock, "AudioServer", "unlock", 3218959716_i64)
       godot_ptrcall_void(@@mb_unlock, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `unlock`
+    def self.unlock() : Void
+      instance.unlock()
     end
     @@mb_get_speaker_mode : Void* = Pointer(Void).null
     def get_speaker_mode() : SpeakerMode
       godot_bind(@@mb_get_speaker_mode, "AudioServer", "get_speaker_mode", 2549190337_i64)
       godot_ptrcall_enum(@@mb_get_speaker_mode, @pointer, Pointer(Pointer(Void)).null, SpeakerMode)
     end
+    # Class-level singleton delegator for `get_speaker_mode`
+    def self.get_speaker_mode() : SpeakerMode
+      instance.get_speaker_mode()
+    end
     @@mb_get_mix_rate : Void* = Pointer(Void).null
     def get_mix_rate() : Float64
       godot_bind(@@mb_get_mix_rate, "AudioServer", "get_mix_rate", 1740695150_i64)
       godot_ptrcall_float(@@mb_get_mix_rate, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `get_mix_rate`
+    def self.get_mix_rate() : Float64
+      instance.get_mix_rate()
     end
     @@mb_get_input_mix_rate : Void* = Pointer(Void).null
     def get_input_mix_rate() : Float64
       godot_bind(@@mb_get_input_mix_rate, "AudioServer", "get_input_mix_rate", 1740695150_i64)
       godot_ptrcall_float(@@mb_get_input_mix_rate, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Class-level singleton delegator for `get_input_mix_rate`
+    def self.get_input_mix_rate() : Float64
+      instance.get_input_mix_rate()
+    end
     @@mb_get_driver_name : Void* = Pointer(Void).null
     def get_driver_name() : String
       godot_bind(@@mb_get_driver_name, "AudioServer", "get_driver_name", 201670096_i64)
       godot_call_str("get_driver_name")
+    end
+    # Class-level singleton delegator for `get_driver_name`
+    def self.get_driver_name() : String
+      instance.get_driver_name()
     end
     @@mb_get_output_device_list : Void* = Pointer(Void).null
     def get_output_device_list() : Pointer(Void)
@@ -24347,10 +24942,18 @@ module Godot
       godot_ptrcall(@@mb_get_output_device_list, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
       ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
+    # Class-level singleton delegator for `get_output_device_list`
+    def self.get_output_device_list() : Pointer(Void)
+      instance.get_output_device_list()
+    end
     @@mb_get_output_device : Void* = Pointer(Void).null
     def get_output_device() : String
       godot_bind(@@mb_get_output_device, "AudioServer", "get_output_device", 2841200299_i64)
       godot_call_str("get_output_device")
+    end
+    # Class-level singleton delegator for `get_output_device`
+    def self.get_output_device() : String
+      instance.get_output_device()
     end
     @@mb_set_output_device : Void* = Pointer(Void).null
     def set_output_device(name : String) : Void
@@ -24362,20 +24965,36 @@ module Godot
     ensure
       Bridge.free_string(str_0)
     end
+    # Class-level singleton delegator for `set_output_device`
+    def self.set_output_device(name : String) : Void
+      instance.set_output_device(name)
+    end
     @@mb_get_time_to_next_mix : Void* = Pointer(Void).null
     def get_time_to_next_mix() : Float64
       godot_bind(@@mb_get_time_to_next_mix, "AudioServer", "get_time_to_next_mix", 1740695150_i64)
       godot_ptrcall_float(@@mb_get_time_to_next_mix, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `get_time_to_next_mix`
+    def self.get_time_to_next_mix() : Float64
+      instance.get_time_to_next_mix()
     end
     @@mb_get_time_since_last_mix : Void* = Pointer(Void).null
     def get_time_since_last_mix() : Float64
       godot_bind(@@mb_get_time_since_last_mix, "AudioServer", "get_time_since_last_mix", 1740695150_i64)
       godot_ptrcall_float(@@mb_get_time_since_last_mix, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Class-level singleton delegator for `get_time_since_last_mix`
+    def self.get_time_since_last_mix() : Float64
+      instance.get_time_since_last_mix()
+    end
     @@mb_get_output_latency : Void* = Pointer(Void).null
     def get_output_latency() : Float64
       godot_bind(@@mb_get_output_latency, "AudioServer", "get_output_latency", 1740695150_i64)
       godot_ptrcall_float(@@mb_get_output_latency, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `get_output_latency`
+    def self.get_output_latency() : Float64
+      instance.get_output_latency()
     end
     @@mb_get_input_device_list : Void* = Pointer(Void).null
     def get_input_device_list() : Pointer(Void)
@@ -24384,10 +25003,18 @@ module Godot
       godot_ptrcall(@@mb_get_input_device_list, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
       ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
+    # Class-level singleton delegator for `get_input_device_list`
+    def self.get_input_device_list() : Pointer(Void)
+      instance.get_input_device_list()
+    end
     @@mb_get_input_device : Void* = Pointer(Void).null
     def get_input_device() : String
       godot_bind(@@mb_get_input_device, "AudioServer", "get_input_device", 2841200299_i64)
       godot_call_str("get_input_device")
+    end
+    # Class-level singleton delegator for `get_input_device`
+    def self.get_input_device() : String
+      instance.get_input_device()
     end
     @@mb_set_input_device : Void* = Pointer(Void).null
     def set_input_device(name : String) : Void
@@ -24399,6 +25026,10 @@ module Godot
     ensure
       Bridge.free_string(str_0)
     end
+    # Class-level singleton delegator for `set_input_device`
+    def self.set_input_device(name : String) : Void
+      instance.set_input_device(name)
+    end
     @@mb_set_input_device_active : Void* = Pointer(Void).null
     def set_input_device_active(active : Bool) : Godot::Error
       godot_bind(@@mb_set_input_device_active, "AudioServer", "set_input_device_active", 1413768114_i64)
@@ -24407,15 +25038,27 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_enum(@@mb_set_input_device_active, @pointer, args.to_unsafe.as(Void**), Godot::Error)
     end
+    # Class-level singleton delegator for `set_input_device_active`
+    def self.set_input_device_active(active : Bool) : Godot::Error
+      instance.set_input_device_active(active)
+    end
     @@mb_get_input_frames_available : Void* = Pointer(Void).null
     def get_input_frames_available() : Int64
       godot_bind(@@mb_get_input_frames_available, "AudioServer", "get_input_frames_available", 2455072627_i64)
       godot_ptrcall_int(@@mb_get_input_frames_available, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Class-level singleton delegator for `get_input_frames_available`
+    def self.get_input_frames_available() : Int64
+      instance.get_input_frames_available()
+    end
     @@mb_get_input_buffer_length_frames : Void* = Pointer(Void).null
     def get_input_buffer_length_frames() : Int64
       godot_bind(@@mb_get_input_buffer_length_frames, "AudioServer", "get_input_buffer_length_frames", 2455072627_i64)
       godot_ptrcall_int(@@mb_get_input_buffer_length_frames, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `get_input_buffer_length_frames`
+    def self.get_input_buffer_length_frames() : Int64
+      instance.get_input_buffer_length_frames()
     end
     @@mb_get_input_frames : Void* = Pointer(Void).null
     def get_input_frames(frames : Int64) : Pointer(Void)
@@ -24427,6 +25070,10 @@ module Godot
       godot_ptrcall(@@mb_get_input_frames, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
       ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
+    # Class-level singleton delegator for `get_input_frames`
+    def self.get_input_frames(frames : Int64) : Pointer(Void)
+      instance.get_input_frames(frames)
+    end
     @@mb_set_bus_layout : Void* = Pointer(Void).null
     def set_bus_layout(bus_layout : AudioBusLayout) : Void
       godot_bind(@@mb_set_bus_layout, "AudioServer", "set_bus_layout", 3319058824_i64)
@@ -24435,10 +25082,18 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_bus_layout, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `set_bus_layout`
+    def self.set_bus_layout(bus_layout : AudioBusLayout) : Void
+      instance.set_bus_layout(bus_layout)
+    end
     @@mb_generate_bus_layout : Void* = Pointer(Void).null
     def generate_bus_layout() : AudioBusLayout
       godot_bind(@@mb_generate_bus_layout, "AudioServer", "generate_bus_layout", 3769973890_i64)
       godot_ptrcall_obj(@@mb_generate_bus_layout, @pointer, Pointer(Pointer(Void)).null, AudioBusLayout)
+    end
+    # Class-level singleton delegator for `generate_bus_layout`
+    def self.generate_bus_layout() : AudioBusLayout
+      instance.generate_bus_layout()
     end
     @@mb_set_enable_tagging_used_audio_streams : Void* = Pointer(Void).null
     def set_enable_tagging_used_audio_streams(enable : Bool) : Void
@@ -24448,6 +25103,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_enable_tagging_used_audio_streams, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `set_enable_tagging_used_audio_streams`
+    def self.set_enable_tagging_used_audio_streams(enable : Bool) : Void
+      instance.set_enable_tagging_used_audio_streams(enable)
+    end
     @@mb_is_stream_registered_as_sample : Void* = Pointer(Void).null
     def is_stream_registered_as_sample(stream : AudioStream) : Bool
       godot_bind(@@mb_is_stream_registered_as_sample, "AudioServer", "is_stream_registered_as_sample", 500225754_i64)
@@ -24456,13 +25115,25 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_stream_registered_as_sample, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `is_stream_registered_as_sample`
+    def self.is_stream_registered_as_sample(stream : AudioStream) : Bool
+      instance.is_stream_registered_as_sample(stream)
+    end
     # Predicate alias for `is_stream_registered_as_sample`
     def is_stream_registered_as_sample?(stream : AudioStream) : Bool
       is_stream_registered_as_sample(stream)
     end
+    # Class-level singleton predicate delegator for `is_stream_registered_as_sample?`
+    def self.is_stream_registered_as_sample?(stream : AudioStream) : Bool
+      instance.is_stream_registered_as_sample?(stream)
+    end
     # Predicate alias for `is_stream_registered_as_sample`
     def stream_registered_as_sample?(stream : AudioStream) : Bool
       is_stream_registered_as_sample(stream)
+    end
+    # Class-level singleton predicate delegator for `stream_registered_as_sample?`
+    def self.stream_registered_as_sample?(stream : AudioStream) : Bool
+      instance.stream_registered_as_sample?(stream)
     end
     @@mb_register_stream_as_sample : Void* = Pointer(Void).null
     def register_stream_as_sample(stream : AudioStream) : Void
@@ -24472,37 +25143,65 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_register_stream_as_sample, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `register_stream_as_sample`
+    def self.register_stream_as_sample(stream : AudioStream) : Void
+      instance.register_stream_as_sample(stream)
+    end
     # Property `bus_count` getter
     def bus_count
       get_bus_count
     end
+    def self.bus_count
+      instance.bus_count
+    end
     # Property `bus_count` setter
-    def bus_count=(val : Int)
-      set_bus_count(val.to_i64)
+    def bus_count=(val : Int | Enum)
+      set_bus_count(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
+    end
+    def self.bus_count=(val)
+      instance.bus_count = val
     end
     # Property `output_device` getter
     def output_device
       get_output_device
     end
+    def self.output_device
+      instance.output_device
+    end
     # Property `output_device` setter
     def output_device=(val)
       set_output_device(val)
+    end
+    def self.output_device=(val)
+      instance.output_device = val
     end
     # Property `input_device` getter
     def input_device
       get_input_device
     end
+    def self.input_device
+      instance.input_device
+    end
     # Property `input_device` setter
     def input_device=(val)
       set_input_device(val)
+    end
+    def self.input_device=(val)
+      instance.input_device = val
     end
     # Property `playback_speed_scale` getter
     def playback_speed_scale
       get_playback_speed_scale
     end
+    def self.playback_speed_scale
+      instance.playback_speed_scale
+    end
     # Property `playback_speed_scale` setter
     def playback_speed_scale=(val : Number)
       set_playback_speed_scale(val.to_f64)
+    end
+    def self.playback_speed_scale=(val)
+      instance.playback_speed_scale = val
     end
     godot_signal bus_layout_changed
     godot_signal bus_renamed, Int64, String, String
@@ -24617,8 +25316,8 @@ module Godot
       get_mix_rate_mode
     end
     # Property `mix_rate_mode` setter
-    def mix_rate_mode=(val : Int)
-      set_mix_rate_mode(val.to_i64)
+    def mix_rate_mode=(val : Int | Enum)
+      set_mix_rate_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `mix_rate` getter
     def mix_rate
@@ -24804,6 +25503,8 @@ module Godot
       AutoAdvanceEnabled = 1_i64
       AutoAdvanceReturnToHold = 2_i64
     end
+    CLIP_ANY = -1_i64
+
     @@mb_set_clip_count : Void* = Pointer(Void).null
     def set_clip_count(clip_count : Int64) : Void
       godot_bind(@@mb_set_clip_count, "AudioStreamInteractive", "set_clip_count", 1286410249_i64)
@@ -25050,16 +25751,16 @@ module Godot
       get_clip_count
     end
     # Property `clip_count` setter
-    def clip_count=(val : Int)
-      set_clip_count(val.to_i64)
+    def clip_count=(val : Int | Enum)
+      set_clip_count(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `initial_clip` getter
     def initial_clip
       get_initial_clip
     end
     # Property `initial_clip` setter
-    def initial_clip=(val : Int)
-      set_initial_clip(val.to_i64)
+    def initial_clip=(val : Int | Enum)
+      set_initial_clip(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class AudioStreamMP3 < Godot::AudioStream
@@ -25197,16 +25898,16 @@ module Godot
       get_beat_count
     end
     # Property `beat_count` setter
-    def beat_count=(val : Int)
-      set_beat_count(val.to_i64)
+    def beat_count=(val : Int | Enum)
+      set_beat_count(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `bar_beats` getter
     def bar_beats
       get_bar_beats
     end
     # Property `bar_beats` setter
-    def bar_beats=(val : Int)
-      set_bar_beats(val.to_i64)
+    def bar_beats=(val : Int | Enum)
+      set_bar_beats(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `loop` getter
     def loop
@@ -25381,16 +26082,16 @@ module Godot
       get_beat_count
     end
     # Property `beat_count` setter
-    def beat_count=(val : Int)
-      set_beat_count(val.to_i64)
+    def beat_count=(val : Int | Enum)
+      set_beat_count(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `bar_beats` getter
     def bar_beats
       get_bar_beats
     end
     # Property `bar_beats` setter
-    def bar_beats=(val : Int)
-      set_bar_beats(val.to_i64)
+    def bar_beats=(val : Int | Enum)
+      set_bar_beats(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `tags` getter
     def tags
@@ -25462,6 +26163,8 @@ module Godot
     def initialize(pointer : Void* = Pointer(Void).null)
       super(pointer)
     end
+    INVALID_ID = -1_i64
+
     @@mb_play_stream : Void* = Pointer(Void).null
     def play_stream(stream : AudioStream, from_offset : Float64 = 0.0_f64, volume_db : Float64 = 0.0_f64, pitch_scale : Float64 = 1.0_f64, playback_type : Godot::AudioServer::PlaybackType | Int = 0, bus : String = "Master") : Int64
       godot_bind(@@mb_play_stream, "AudioStreamPlaybackPolyphonic", "play_stream", 1846744803_i64)
@@ -25813,16 +26516,16 @@ module Godot
       get_mix_target
     end
     # Property `mix_target` setter
-    def mix_target=(val : Int)
-      set_mix_target(val.to_i64)
+    def mix_target=(val : Int | Enum)
+      set_mix_target(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `max_polyphony` getter
     def max_polyphony
       get_max_polyphony
     end
     # Property `max_polyphony` setter
-    def max_polyphony=(val : Int)
-      set_max_polyphony(val.to_i64)
+    def max_polyphony=(val : Int | Enum)
+      set_max_polyphony(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `bus` getter
     def bus
@@ -25837,8 +26540,8 @@ module Godot
       get_playback_type
     end
     # Property `playback_type` setter
-    def playback_type=(val : Int)
-      set_playback_type(val.to_i64)
+    def playback_type=(val : Int | Enum)
+      set_playback_type(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     godot_signal finished
   end
@@ -26173,8 +26876,8 @@ module Godot
       get_max_polyphony
     end
     # Property `max_polyphony` setter
-    def max_polyphony=(val : Int)
-      set_max_polyphony(val.to_i64)
+    def max_polyphony=(val : Int | Enum)
+      set_max_polyphony(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `panning_strength` getter
     def panning_strength
@@ -26197,16 +26900,16 @@ module Godot
       get_area_mask
     end
     # Property `area_mask` setter
-    def area_mask=(val : Int)
-      set_area_mask(val.to_i64)
+    def area_mask=(val : Int | Enum)
+      set_area_mask(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `playback_type` getter
     def playback_type
       get_playback_type
     end
     # Property `playback_type` setter
-    def playback_type=(val : Int)
-      set_playback_type(val.to_i64)
+    def playback_type=(val : Int | Enum)
+      set_playback_type(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     godot_signal finished
   end
@@ -26594,8 +27297,8 @@ module Godot
       get_attenuation_model
     end
     # Property `attenuation_model` setter
-    def attenuation_model=(val : Int)
-      set_attenuation_model(val.to_i64)
+    def attenuation_model=(val : Int | Enum)
+      set_attenuation_model(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `volume_db` getter
     def volume_db
@@ -26680,8 +27383,8 @@ module Godot
       get_max_polyphony
     end
     # Property `max_polyphony` setter
-    def max_polyphony=(val : Int)
-      set_max_polyphony(val.to_i64)
+    def max_polyphony=(val : Int | Enum)
+      set_max_polyphony(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `panning_strength` getter
     def panning_strength
@@ -26704,16 +27407,16 @@ module Godot
       get_area_mask
     end
     # Property `area_mask` setter
-    def area_mask=(val : Int)
-      set_area_mask(val.to_i64)
+    def area_mask=(val : Int | Enum)
+      set_area_mask(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `playback_type` getter
     def playback_type
       get_playback_type
     end
     # Property `playback_type` setter
-    def playback_type=(val : Int)
-      set_playback_type(val.to_i64)
+    def playback_type=(val : Int | Enum)
+      set_playback_type(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `emission_angle_enabled` getter
     def emission_angle_enabled
@@ -26760,8 +27463,8 @@ module Godot
       get_doppler_tracking
     end
     # Property `doppler_tracking` setter
-    def doppler_tracking=(val : Int)
-      set_doppler_tracking(val.to_i64)
+    def doppler_tracking=(val : Int | Enum)
+      set_doppler_tracking(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     godot_signal finished
   end
@@ -26769,6 +27472,8 @@ module Godot
     def initialize(pointer : Void* = Pointer(Void).null)
       super(pointer)
     end
+    MAX_STREAMS = 64_i64
+
     @@mb_set_stream_count : Void* = Pointer(Void).null
     def set_stream_count(stream_count : Int64) : Void
       godot_bind(@@mb_set_stream_count, "AudioStreamPlaylist", "set_stream_count", 1286410249_i64)
@@ -26887,8 +27592,8 @@ module Godot
       get_stream_count
     end
     # Property `stream_count` setter
-    def stream_count=(val : Int)
-      set_stream_count(val.to_i64)
+    def stream_count=(val : Int | Enum)
+      set_stream_count(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `stream_0` getter
     def stream_0
@@ -27425,8 +28130,8 @@ module Godot
       get_polyphony
     end
     # Property `polyphony` setter
-    def polyphony=(val : Int)
-      set_polyphony(val.to_i64)
+    def polyphony=(val : Int | Enum)
+      set_polyphony(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class AudioStreamRandomizer < Godot::AudioStream
@@ -27574,8 +28279,8 @@ module Godot
       get_playback_mode
     end
     # Property `playback_mode` setter
-    def playback_mode=(val : Int)
-      set_playback_mode(val.to_i64)
+    def playback_mode=(val : Int | Enum)
+      set_playback_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `random_pitch` getter
     def random_pitch
@@ -27606,14 +28311,16 @@ module Godot
       get_streams_count
     end
     # Property `streams_count` setter
-    def streams_count=(val : Int)
-      set_streams_count(val.to_i64)
+    def streams_count=(val : Int | Enum)
+      set_streams_count(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class AudioStreamSynchronized < Godot::AudioStream
     def initialize(pointer : Void* = Pointer(Void).null)
       super(pointer)
     end
+    MAX_STREAMS = 32_i64
+
     @@mb_set_stream_count : Void* = Pointer(Void).null
     def set_stream_count(stream_count : Int64) : Void
       godot_bind(@@mb_set_stream_count, "AudioStreamSynchronized", "set_stream_count", 1286410249_i64)
@@ -27668,8 +28375,8 @@ module Godot
       get_stream_count
     end
     # Property `stream_count` setter
-    def stream_count=(val : Int)
-      set_stream_count(val.to_i64)
+    def stream_count=(val : Int | Enum)
+      set_stream_count(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class AudioStreamWAV < Godot::AudioStream
@@ -27857,40 +28564,40 @@ module Godot
       get_format
     end
     # Property `format` setter
-    def format=(val : Int)
-      set_format(val.to_i64)
+    def format=(val : Int | Enum)
+      set_format(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `loop_mode` getter
     def loop_mode
       get_loop_mode
     end
     # Property `loop_mode` setter
-    def loop_mode=(val : Int)
-      set_loop_mode(val.to_i64)
+    def loop_mode=(val : Int | Enum)
+      set_loop_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `loop_begin` getter
     def loop_begin
       get_loop_begin
     end
     # Property `loop_begin` setter
-    def loop_begin=(val : Int)
-      set_loop_begin(val.to_i64)
+    def loop_begin=(val : Int | Enum)
+      set_loop_begin(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `loop_end` getter
     def loop_end
       get_loop_end
     end
     # Property `loop_end` setter
-    def loop_end=(val : Int)
-      set_loop_end(val.to_i64)
+    def loop_end=(val : Int | Enum)
+      set_loop_end(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `mix_rate` getter
     def mix_rate
       get_mix_rate
     end
     # Property `mix_rate` setter
-    def mix_rate=(val : Int)
-      set_mix_rate(val.to_i64)
+    def mix_rate=(val : Int | Enum)
+      set_mix_rate(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `stereo` getter
     def stereo
@@ -27968,8 +28675,8 @@ module Godot
       get_copy_mode
     end
     # Property `copy_mode` setter
-    def copy_mode=(val : Int)
-      set_copy_mode(val.to_i64)
+    def copy_mode=(val : Int | Enum)
+      set_copy_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `rect` getter
     def rect
@@ -28236,16 +28943,16 @@ module Godot
       get_action_mode
     end
     # Property `action_mode` setter
-    def action_mode=(val : Int)
-      set_action_mode(val.to_i64)
+    def action_mode=(val : Int | Enum)
+      set_action_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `button_mask` getter
     def button_mask
       get_button_mask
     end
     # Property `button_mask` setter
-    def button_mask=(val : Int)
-      set_button_mask(val.to_i64)
+    def button_mask=(val : Int | Enum)
+      set_button_mask(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `keep_pressed_outside` getter
     def keep_pressed_outside
@@ -28299,6 +29006,9 @@ module Godot
     def initialize(pointer : Void* = Pointer(Void).null)
       super(pointer)
     end
+    RENDER_PRIORITY_MAX = 127_i64
+    RENDER_PRIORITY_MIN = -128_i64
+
     @@mb_set_next_pass : Void* = Pointer(Void).null
     def set_next_pass(next_pass : Material) : Void
       godot_bind(@@mb_set_next_pass, "Material", "set_next_pass", 2757459619_i64)
@@ -28340,8 +29050,8 @@ module Godot
       get_render_priority
     end
     # Property `render_priority` setter
-    def render_priority=(val : Int)
-      set_render_priority(val.to_i64)
+    def render_priority=(val : Int | Enum)
+      set_render_priority(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `next_pass` getter
     def next_pass
@@ -29595,8 +30305,8 @@ module Godot
       get_transparency
     end
     # Property `transparency` setter
-    def transparency=(val : Int)
-      set_transparency(val.to_i64)
+    def transparency=(val : Int | Enum)
+      set_transparency(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `alpha_scissor_threshold` getter
     def alpha_scissor_threshold
@@ -29619,8 +30329,8 @@ module Godot
       get_alpha_antialiasing
     end
     # Property `alpha_antialiasing_mode` setter
-    def alpha_antialiasing_mode=(val : Int)
-      set_alpha_antialiasing(val.to_i64)
+    def alpha_antialiasing_mode=(val : Int | Enum)
+      set_alpha_antialiasing(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `alpha_antialiasing_edge` getter
     def alpha_antialiasing_edge
@@ -29635,24 +30345,24 @@ module Godot
       get_blend_mode
     end
     # Property `blend_mode` setter
-    def blend_mode=(val : Int)
-      set_blend_mode(val.to_i64)
+    def blend_mode=(val : Int | Enum)
+      set_blend_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `cull_mode` getter
     def cull_mode
       get_cull_mode
     end
     # Property `cull_mode` setter
-    def cull_mode=(val : Int)
-      set_cull_mode(val.to_i64)
+    def cull_mode=(val : Int | Enum)
+      set_cull_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `depth_draw_mode` getter
     def depth_draw_mode
       get_depth_draw_mode
     end
     # Property `depth_draw_mode` setter
-    def depth_draw_mode=(val : Int)
-      set_depth_draw_mode(val.to_i64)
+    def depth_draw_mode=(val : Int | Enum)
+      set_depth_draw_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `no_depth_test` getter
     def no_depth_test
@@ -29670,32 +30380,32 @@ module Godot
       get_depth_test
     end
     # Property `depth_test` setter
-    def depth_test=(val : Int)
-      set_depth_test(val.to_i64)
+    def depth_test=(val : Int | Enum)
+      set_depth_test(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `shading_mode` getter
     def shading_mode
       get_shading_mode
     end
     # Property `shading_mode` setter
-    def shading_mode=(val : Int)
-      set_shading_mode(val.to_i64)
+    def shading_mode=(val : Int | Enum)
+      set_shading_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `diffuse_mode` getter
     def diffuse_mode
       get_diffuse_mode
     end
     # Property `diffuse_mode` setter
-    def diffuse_mode=(val : Int)
-      set_diffuse_mode(val.to_i64)
+    def diffuse_mode=(val : Int | Enum)
+      set_diffuse_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `specular_mode` getter
     def specular_mode
       get_specular_mode
     end
     # Property `specular_mode` setter
-    def specular_mode=(val : Int)
-      set_specular_mode(val.to_i64)
+    def specular_mode=(val : Int | Enum)
+      set_specular_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `disable_ambient_light` getter
     def disable_ambient_light
@@ -29827,8 +30537,8 @@ module Godot
       get_metallic_texture_channel
     end
     # Property `metallic_texture_channel` setter
-    def metallic_texture_channel=(val : Int)
-      set_metallic_texture_channel(val.to_i64)
+    def metallic_texture_channel=(val : Int | Enum)
+      set_metallic_texture_channel(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `roughness` getter
     def roughness
@@ -29851,8 +30561,8 @@ module Godot
       get_roughness_texture_channel
     end
     # Property `roughness_texture_channel` setter
-    def roughness_texture_channel=(val : Int)
-      set_roughness_texture_channel(val.to_i64)
+    def roughness_texture_channel=(val : Int | Enum)
+      set_roughness_texture_channel(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `emission_enabled` getter
     def emission_enabled
@@ -29894,8 +30604,8 @@ module Godot
       get_emission_operator
     end
     # Property `emission_operator` setter
-    def emission_operator=(val : Int)
-      set_emission_operator(val.to_i64)
+    def emission_operator=(val : Int | Enum)
+      set_emission_operator(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `emission_on_uv2` getter
     def emission_on_uv2
@@ -30102,8 +30812,8 @@ module Godot
       get_ao_texture_channel
     end
     # Property `ao_texture_channel` setter
-    def ao_texture_channel=(val : Int)
-      set_ao_texture_channel(val.to_i64)
+    def ao_texture_channel=(val : Int | Enum)
+      set_ao_texture_channel(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `heightmap_enabled` getter
     def heightmap_enabled
@@ -30140,16 +30850,16 @@ module Godot
       get_heightmap_deep_parallax_min_layers
     end
     # Property `heightmap_min_layers` setter
-    def heightmap_min_layers=(val : Int)
-      set_heightmap_deep_parallax_min_layers(val.to_i64)
+    def heightmap_min_layers=(val : Int | Enum)
+      set_heightmap_deep_parallax_min_layers(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `heightmap_max_layers` getter
     def heightmap_max_layers
       get_heightmap_deep_parallax_max_layers
     end
     # Property `heightmap_max_layers` setter
-    def heightmap_max_layers=(val : Int)
-      set_heightmap_deep_parallax_max_layers(val.to_i64)
+    def heightmap_max_layers=(val : Int | Enum)
+      set_heightmap_deep_parallax_max_layers(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `heightmap_flip_tangent` getter
     def heightmap_flip_tangent
@@ -30332,8 +31042,8 @@ module Godot
       get_refraction_texture_channel
     end
     # Property `refraction_texture_channel` setter
-    def refraction_texture_channel=(val : Int)
-      set_refraction_texture_channel(val.to_i64)
+    def refraction_texture_channel=(val : Int | Enum)
+      set_refraction_texture_channel(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `detail_enabled` getter
     def detail_enabled
@@ -30359,16 +31069,16 @@ module Godot
       get_detail_blend_mode
     end
     # Property `detail_blend_mode` setter
-    def detail_blend_mode=(val : Int)
-      set_detail_blend_mode(val.to_i64)
+    def detail_blend_mode=(val : Int | Enum)
+      set_detail_blend_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `detail_uv_layer` getter
     def detail_uv_layer
       get_detail_uv
     end
     # Property `detail_uv_layer` setter
-    def detail_uv_layer=(val : Int)
-      set_detail_uv(val.to_i64)
+    def detail_uv_layer=(val : Int | Enum)
+      set_detail_uv(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `detail_albedo` getter
     def detail_albedo
@@ -30483,8 +31193,8 @@ module Godot
       get_texture_filter
     end
     # Property `texture_filter` setter
-    def texture_filter=(val : Int)
-      set_texture_filter(val.to_i64)
+    def texture_filter=(val : Int | Enum)
+      set_texture_filter(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `texture_repeat` getter
     def texture_repeat
@@ -30524,8 +31234,8 @@ module Godot
       get_billboard_mode
     end
     # Property `billboard_mode` setter
-    def billboard_mode=(val : Int)
-      set_billboard_mode(val.to_i64)
+    def billboard_mode=(val : Int | Enum)
+      set_billboard_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `billboard_keep_scale` getter
     def billboard_keep_scale
@@ -30554,16 +31264,16 @@ module Godot
       get_particles_anim_h_frames
     end
     # Property `particles_anim_h_frames` setter
-    def particles_anim_h_frames=(val : Int)
-      set_particles_anim_h_frames(val.to_i64)
+    def particles_anim_h_frames=(val : Int | Enum)
+      set_particles_anim_h_frames(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `particles_anim_v_frames` getter
     def particles_anim_v_frames
       get_particles_anim_v_frames
     end
     # Property `particles_anim_v_frames` setter
-    def particles_anim_v_frames=(val : Int)
-      set_particles_anim_v_frames(val.to_i64)
+    def particles_anim_v_frames=(val : Int | Enum)
+      set_particles_anim_v_frames(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `particles_anim_loop` getter
     def particles_anim_loop
@@ -30711,8 +31421,8 @@ module Godot
       get_distance_fade
     end
     # Property `distance_fade_mode` setter
-    def distance_fade_mode=(val : Int)
-      set_distance_fade(val.to_i64)
+    def distance_fade_mode=(val : Int | Enum)
+      set_distance_fade(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `distance_fade_min_distance` getter
     def distance_fade_min_distance
@@ -30735,32 +31445,32 @@ module Godot
       get_stencil_mode
     end
     # Property `stencil_mode` setter
-    def stencil_mode=(val : Int)
-      set_stencil_mode(val.to_i64)
+    def stencil_mode=(val : Int | Enum)
+      set_stencil_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `stencil_flags` getter
     def stencil_flags
       get_stencil_flags
     end
     # Property `stencil_flags` setter
-    def stencil_flags=(val : Int)
-      set_stencil_flags(val.to_i64)
+    def stencil_flags=(val : Int | Enum)
+      set_stencil_flags(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `stencil_compare` getter
     def stencil_compare
       get_stencil_compare
     end
     # Property `stencil_compare` setter
-    def stencil_compare=(val : Int)
-      set_stencil_compare(val.to_i64)
+    def stencil_compare=(val : Int | Enum)
+      set_stencil_compare(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `stencil_reference` getter
     def stencil_reference
       get_stencil_reference
     end
     # Property `stencil_reference` setter
-    def stencil_reference=(val : Int)
-      set_stencil_reference(val.to_i64)
+    def stencil_reference=(val : Int | Enum)
+      set_stencil_reference(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `stencil_color` getter
     def stencil_color
@@ -30943,8 +31653,8 @@ module Godot
       get_blend_mode
     end
     # Property `blend_mode` setter
-    def blend_mode=(val : Int)
-      set_blend_mode(val.to_i64)
+    def blend_mode=(val : Int | Enum)
+      set_blend_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class Bone2D < Godot::Node2D
@@ -31135,8 +31845,8 @@ module Godot
       get_bone_idx
     end
     # Property `bone_idx` setter
-    def bone_idx=(val : Int)
-      set_bone_idx(val.to_i64)
+    def bone_idx=(val : Int | Enum)
+      set_bone_idx(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `override_pose` getter
     def override_pose
@@ -31371,8 +32081,8 @@ module Godot
       get_setting_size
     end
     # Property `setting_size` setter
-    def setting_size=(val : Int)
-      set_setting_size(val.to_i64)
+    def setting_size=(val : Int | Enum)
+      set_setting_size(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class BoneTwistDisperser3D < Godot::SkeletonModifier3D
@@ -31723,8 +32433,8 @@ module Godot
       get_setting_count
     end
     # Property `setting_count` setter
-    def setting_count=(val : Int)
-      set_setting_count(val.to_i64)
+    def setting_count=(val : Int | Enum)
+      set_setting_count(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class BoxContainer < Godot::Container
@@ -31804,8 +32514,8 @@ module Godot
       get_alignment
     end
     # Property `alignment` setter
-    def alignment=(val : Int)
-      set_alignment(val.to_i64)
+    def alignment=(val : Int | Enum)
+      set_alignment(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `vertical` getter
     def vertical
@@ -31912,14 +32622,6 @@ module Godot
     def request_update() : Void
       godot_bind(@@mb_request_update, "PrimitiveMesh", "request_update", 3218959716_i64)
       godot_ptrcall_void(@@mb_request_update, @pointer, Pointer(Pointer(Void)).null)
-    end
-    # Property `material` getter
-    def material
-      get_material
-    end
-    # Property `material` setter
-    def material=(val)
-      set_material(val)
     end
     # Property `custom_aabb` getter
     def custom_aabb
@@ -32029,24 +32731,24 @@ module Godot
       get_subdivide_width
     end
     # Property `subdivide_width` setter
-    def subdivide_width=(val : Int)
-      set_subdivide_width(val.to_i64)
+    def subdivide_width=(val : Int | Enum)
+      set_subdivide_width(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `subdivide_height` getter
     def subdivide_height
       get_subdivide_height
     end
     # Property `subdivide_height` setter
-    def subdivide_height=(val : Int)
-      set_subdivide_height(val.to_i64)
+    def subdivide_height=(val : Int | Enum)
+      set_subdivide_height(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `subdivide_depth` getter
     def subdivide_depth
       get_subdivide_depth
     end
     # Property `subdivide_depth` setter
-    def subdivide_depth=(val : Int)
-      set_subdivide_depth(val.to_i64)
+    def subdivide_depth=(val : Int | Enum)
+      set_subdivide_depth(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class BoxOccluder3D < Godot::Occluder3D
@@ -32379,32 +33081,32 @@ module Godot
       get_text_alignment
     end
     # Property `alignment` setter
-    def alignment=(val : Int)
-      set_text_alignment(val.to_i64)
+    def alignment=(val : Int | Enum)
+      set_text_alignment(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `text_overrun_behavior` getter
     def text_overrun_behavior
       get_text_overrun_behavior
     end
     # Property `text_overrun_behavior` setter
-    def text_overrun_behavior=(val : Int)
-      set_text_overrun_behavior(val.to_i64)
+    def text_overrun_behavior=(val : Int | Enum)
+      set_text_overrun_behavior(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `autowrap_mode` getter
     def autowrap_mode
       get_autowrap_mode
     end
     # Property `autowrap_mode` setter
-    def autowrap_mode=(val : Int)
-      set_autowrap_mode(val.to_i64)
+    def autowrap_mode=(val : Int | Enum)
+      set_autowrap_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `autowrap_trim_flags` getter
     def autowrap_trim_flags
       get_autowrap_trim_flags
     end
     # Property `autowrap_trim_flags` setter
-    def autowrap_trim_flags=(val : Int)
-      set_autowrap_trim_flags(val.to_i64)
+    def autowrap_trim_flags=(val : Int | Enum)
+      set_autowrap_trim_flags(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `clip_text` getter
     def clip_text
@@ -32422,16 +33124,16 @@ module Godot
       get_icon_alignment
     end
     # Property `icon_alignment` setter
-    def icon_alignment=(val : Int)
-      set_icon_alignment(val.to_i64)
+    def icon_alignment=(val : Int | Enum)
+      set_icon_alignment(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `vertical_icon_alignment` getter
     def vertical_icon_alignment
       get_vertical_icon_alignment
     end
     # Property `vertical_icon_alignment` setter
-    def vertical_icon_alignment=(val : Int)
-      set_vertical_icon_alignment(val.to_i64)
+    def vertical_icon_alignment=(val : Int | Enum)
+      set_vertical_icon_alignment(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `expand_icon` getter
     def expand_icon
@@ -32446,8 +33148,8 @@ module Godot
       get_text_direction
     end
     # Property `text_direction` setter
-    def text_direction=(val : Int)
-      set_text_direction(val.to_i64)
+    def text_direction=(val : Int | Enum)
+      set_text_direction(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `language` getter
     def language
@@ -32987,8 +33689,8 @@ module Godot
       get_max_iterations
     end
     # Property `max_iterations` setter
-    def max_iterations=(val : Int)
-      set_max_iterations(val.to_i64)
+    def max_iterations=(val : Int | Enum)
+      set_max_iterations(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `min_distance` getter
     def min_distance
@@ -33019,8 +33721,8 @@ module Godot
       get_setting_count
     end
     # Property `setting_count` setter
-    def setting_count=(val : Int)
-      set_setting_count(val.to_i64)
+    def setting_count=(val : Int | Enum)
+      set_setting_count(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class CCDIK3D < Godot::IterateIK3D
@@ -33645,8 +34347,8 @@ module Godot
       get_amount
     end
     # Property `amount` setter
-    def amount=(val : Int)
-      set_amount(val.to_i64)
+    def amount=(val : Int | Enum)
+      set_amount(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `texture` getter
     def texture
@@ -33723,8 +34425,8 @@ module Godot
       get_seed
     end
     # Property `seed` setter
-    def seed=(val : Int)
-      set_seed(val.to_i64)
+    def seed=(val : Int | Enum)
+      set_seed(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `lifetime_randomness` getter
     def lifetime_randomness
@@ -33739,8 +34441,8 @@ module Godot
       get_fixed_fps
     end
     # Property `fixed_fps` setter
-    def fixed_fps=(val : Int)
-      set_fixed_fps(val.to_i64)
+    def fixed_fps=(val : Int | Enum)
+      set_fixed_fps(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `fract_delta` getter
     def fract_delta
@@ -33769,16 +34471,16 @@ module Godot
       get_draw_order
     end
     # Property `draw_order` setter
-    def draw_order=(val : Int)
-      set_draw_order(val.to_i64)
+    def draw_order=(val : Int | Enum)
+      set_draw_order(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `emission_shape` getter
     def emission_shape
       get_emission_shape
     end
     # Property `emission_shape` setter
-    def emission_shape=(val : Int)
-      set_emission_shape(val.to_i64)
+    def emission_shape=(val : Int | Enum)
+      set_emission_shape(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `emission_sphere_radius` getter
     def emission_sphere_radius
@@ -34905,8 +35607,8 @@ module Godot
       get_amount
     end
     # Property `amount` setter
-    def amount=(val : Int)
-      set_amount(val.to_i64)
+    def amount=(val : Int | Enum)
+      set_amount(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `lifetime` getter
     def lifetime
@@ -34975,8 +35677,8 @@ module Godot
       get_seed
     end
     # Property `seed` setter
-    def seed=(val : Int)
-      set_seed(val.to_i64)
+    def seed=(val : Int | Enum)
+      set_seed(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `lifetime_randomness` getter
     def lifetime_randomness
@@ -34991,8 +35693,8 @@ module Godot
       get_fixed_fps
     end
     # Property `fixed_fps` setter
-    def fixed_fps=(val : Int)
-      set_fixed_fps(val.to_i64)
+    def fixed_fps=(val : Int | Enum)
+      set_fixed_fps(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `fract_delta` getter
     def fract_delta
@@ -35029,8 +35731,8 @@ module Godot
       get_draw_order
     end
     # Property `draw_order` setter
-    def draw_order=(val : Int)
-      set_draw_order(val.to_i64)
+    def draw_order=(val : Int | Enum)
+      set_draw_order(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `mesh` getter
     def mesh
@@ -35045,8 +35747,8 @@ module Godot
       get_emission_shape
     end
     # Property `emission_shape` setter
-    def emission_shape=(val : Int)
-      set_emission_shape(val.to_i64)
+    def emission_shape=(val : Int | Enum)
+      set_emission_shape(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `emission_sphere_radius` getter
     def emission_sphere_radius
@@ -35779,8 +36481,8 @@ module Godot
       get_operation
     end
     # Property `operation` setter
-    def operation=(val : Int)
-      set_operation(val.to_i64)
+    def operation=(val : Int | Enum)
+      set_operation(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `snap` getter
     def snap
@@ -35817,16 +36519,16 @@ module Godot
       get_collision_layer
     end
     # Property `collision_layer` setter
-    def collision_layer=(val : Int)
-      set_collision_layer(val.to_i64)
+    def collision_layer=(val : Int | Enum)
+      set_collision_layer(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `collision_mask` getter
     def collision_mask
       get_collision_mask
     end
     # Property `collision_mask` setter
-    def collision_mask=(val : Int)
-      set_collision_mask(val.to_i64)
+    def collision_mask=(val : Int | Enum)
+      set_collision_mask(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `collision_priority` getter
     def collision_priority
@@ -36037,8 +36739,8 @@ module Godot
       get_sides
     end
     # Property `sides` setter
-    def sides=(val : Int)
-      set_sides(val.to_i64)
+    def sides=(val : Int | Enum)
+      set_sides(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `cone` getter
     def cone
@@ -36403,8 +37105,8 @@ module Godot
       get_mode
     end
     # Property `mode` setter
-    def mode=(val : Int)
-      set_mode(val.to_i64)
+    def mode=(val : Int | Enum)
+      set_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `depth` getter
     def depth
@@ -36427,8 +37129,8 @@ module Godot
       get_spin_sides
     end
     # Property `spin_sides` setter
-    def spin_sides=(val : Int)
-      set_spin_sides(val.to_i64)
+    def spin_sides=(val : Int | Enum)
+      set_spin_sides(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `path_node` getter
     def path_node
@@ -36443,8 +37145,8 @@ module Godot
       get_path_interval_type
     end
     # Property `path_interval_type` setter
-    def path_interval_type=(val : Int)
-      set_path_interval_type(val.to_i64)
+    def path_interval_type=(val : Int | Enum)
+      set_path_interval_type(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `path_interval` getter
     def path_interval
@@ -36467,8 +37169,8 @@ module Godot
       get_path_rotation
     end
     # Property `path_rotation` setter
-    def path_rotation=(val : Int)
-      set_path_rotation(val.to_i64)
+    def path_rotation=(val : Int | Enum)
+      set_path_rotation(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `path_rotation_accurate` getter
     def path_rotation_accurate
@@ -36619,16 +37321,16 @@ module Godot
       get_radial_segments
     end
     # Property `radial_segments` setter
-    def radial_segments=(val : Int)
-      set_radial_segments(val.to_i64)
+    def radial_segments=(val : Int | Enum)
+      set_radial_segments(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `rings` getter
     def rings
       get_rings
     end
     # Property `rings` setter
-    def rings=(val : Int)
-      set_rings(val.to_i64)
+    def rings=(val : Int | Enum)
+      set_rings(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `smooth_faces` getter
     def smooth_faces
@@ -36757,16 +37459,16 @@ module Godot
       get_sides
     end
     # Property `sides` setter
-    def sides=(val : Int)
-      set_sides(val.to_i64)
+    def sides=(val : Int | Enum)
+      set_sides(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `ring_sides` getter
     def ring_sides
       get_ring_sides
     end
     # Property `ring_sides` setter
-    def ring_sides=(val : Int)
-      set_ring_sides(val.to_i64)
+    def ring_sides=(val : Int | Enum)
+      set_ring_sides(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `smooth_faces` getter
     def smooth_faces
@@ -37258,8 +37960,8 @@ module Godot
       get_anchor_mode
     end
     # Property `anchor_mode` setter
-    def anchor_mode=(val : Int)
-      set_anchor_mode(val.to_i64)
+    def anchor_mode=(val : Int | Enum)
+      set_anchor_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `ignore_rotation` getter
     def ignore_rotation
@@ -37301,8 +38003,8 @@ module Godot
       get_process_callback
     end
     # Property `process_callback` setter
-    def process_callback=(val : Int)
-      set_process_callback(val.to_i64)
+    def process_callback=(val : Int | Enum)
+      set_process_callback(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `limit_enabled` getter
     def limit_enabled
@@ -37317,32 +38019,32 @@ module Godot
       get_limit(0_i64)
     end
     # Property `limit_left` setter
-    def limit_left=(val : Int)
-      set_limit(0_i64, val.to_i64)
+    def limit_left=(val : Int | Enum)
+      set_limit(0_i64, val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `limit_top` getter
     def limit_top
       get_limit(1_i64)
     end
     # Property `limit_top` setter
-    def limit_top=(val : Int)
-      set_limit(1_i64, val.to_i64)
+    def limit_top=(val : Int | Enum)
+      set_limit(1_i64, val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `limit_right` getter
     def limit_right
       get_limit(2_i64)
     end
     # Property `limit_right` setter
-    def limit_right=(val : Int)
-      set_limit(2_i64, val.to_i64)
+    def limit_right=(val : Int | Enum)
+      set_limit(2_i64, val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `limit_bottom` getter
     def limit_bottom
       get_limit(3_i64)
     end
     # Property `limit_bottom` setter
-    def limit_bottom=(val : Int)
-      set_limit(3_i64, val.to_i64)
+    def limit_bottom=(val : Int | Enum)
+      set_limit(3_i64, val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `limit_smoothed` getter
     def limit_smoothed
@@ -37881,16 +38583,16 @@ module Godot
       get_keep_aspect_mode
     end
     # Property `keep_aspect` setter
-    def keep_aspect=(val : Int)
-      set_keep_aspect_mode(val.to_i64)
+    def keep_aspect=(val : Int | Enum)
+      set_keep_aspect_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `cull_mask` getter
     def cull_mask
       get_cull_mask
     end
     # Property `cull_mask` setter
-    def cull_mask=(val : Int)
-      set_cull_mask(val.to_i64)
+    def cull_mask=(val : Int | Enum)
+      set_cull_mask(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `environment` getter
     def environment
@@ -37937,16 +38639,16 @@ module Godot
       get_doppler_tracking
     end
     # Property `doppler_tracking` setter
-    def doppler_tracking=(val : Int)
-      set_doppler_tracking(val.to_i64)
+    def doppler_tracking=(val : Int | Enum)
+      set_doppler_tracking(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `projection` getter
     def projection
       get_projection
     end
     # Property `projection` setter
-    def projection=(val : Int)
-      set_projection(val.to_i64)
+    def projection=(val : Int | Enum)
+      set_projection(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `size` getter
     def size
@@ -38668,18 +39370,34 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_monitoring_feeds, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `set_monitoring_feeds`
+    def self.set_monitoring_feeds(is_monitoring_feeds : Bool) : Void
+      instance.set_monitoring_feeds(is_monitoring_feeds)
+    end
     @@mb_is_monitoring_feeds : Void* = Pointer(Void).null
     def is_monitoring_feeds() : Bool
       godot_bind(@@mb_is_monitoring_feeds, "CameraServer", "is_monitoring_feeds", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_monitoring_feeds, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Class-level singleton delegator for `is_monitoring_feeds`
+    def self.is_monitoring_feeds() : Bool
+      instance.is_monitoring_feeds()
+    end
     # Predicate alias for `is_monitoring_feeds`
     def is_monitoring_feeds?() : Bool
       is_monitoring_feeds()
     end
+    # Class-level singleton predicate delegator for `is_monitoring_feeds?`
+    def self.is_monitoring_feeds?() : Bool
+      instance.is_monitoring_feeds?()
+    end
     # Predicate alias for `is_monitoring_feeds`
     def monitoring_feeds?() : Bool
       is_monitoring_feeds()
+    end
+    # Class-level singleton predicate delegator for `monitoring_feeds?`
+    def self.monitoring_feeds?() : Bool
+      instance.monitoring_feeds?()
     end
     @@mb_get_feed : Void* = Pointer(Void).null
     def get_feed(index : Int64) : CameraFeed
@@ -38689,10 +39407,18 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_get_feed, @pointer, args.to_unsafe.as(Void**), CameraFeed)
     end
+    # Class-level singleton delegator for `get_feed`
+    def self.get_feed(index : Int64) : CameraFeed
+      instance.get_feed(index)
+    end
     @@mb_get_feed_count : Void* = Pointer(Void).null
     def get_feed_count() : Int64
       godot_bind(@@mb_get_feed_count, "CameraServer", "get_feed_count", 2455072627_i64)
       godot_ptrcall_int(@@mb_get_feed_count, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `get_feed_count`
+    def self.get_feed_count() : Int64
+      instance.get_feed_count()
     end
     @@mb_feeds : Void* = Pointer(Void).null
     def feeds() : Pointer(Void)
@@ -38700,6 +39426,10 @@ module Godot
       ret_ptr = Pointer(Void).null
       godot_ptrcall(@@mb_feeds, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
       ret_ptr
+    end
+    # Class-level singleton delegator for `feeds`
+    def self.feeds() : Pointer(Void)
+      instance.feeds()
     end
     @@mb_add_feed : Void* = Pointer(Void).null
     def add_feed(feed : CameraFeed) : Void
@@ -38709,6 +39439,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_add_feed, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `add_feed`
+    def self.add_feed(feed : CameraFeed) : Void
+      instance.add_feed(feed)
+    end
     @@mb_remove_feed : Void* = Pointer(Void).null
     def remove_feed(feed : CameraFeed) : Void
       godot_bind(@@mb_remove_feed, "CameraServer", "remove_feed", 3204782488_i64)
@@ -38717,13 +39451,23 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_remove_feed, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `remove_feed`
+    def self.remove_feed(feed : CameraFeed) : Void
+      instance.remove_feed(feed)
+    end
     # Property `monitoring_feeds` getter
     def monitoring_feeds
       is_monitoring_feeds
     end
+    def self.monitoring_feeds
+      instance.monitoring_feeds
+    end
     # Property `monitoring_feeds` setter
     def monitoring_feeds=(val)
       set_monitoring_feeds(val)
+    end
+    def self.monitoring_feeds=(val)
+      instance.monitoring_feeds = val
     end
     godot_signal camera_feed_added, Int64
     godot_signal camera_feed_removed, Int64
@@ -38781,16 +39525,16 @@ module Godot
       get_camera_feed_id
     end
     # Property `camera_feed_id` setter
-    def camera_feed_id=(val : Int)
-      set_camera_feed_id(val.to_i64)
+    def camera_feed_id=(val : Int | Enum)
+      set_camera_feed_id(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `which_feed` getter
     def which_feed
       get_which_feed
     end
     # Property `which_feed` setter
-    def which_feed=(val : Int)
-      set_which_feed(val.to_i64)
+    def which_feed=(val : Int | Enum)
+      set_which_feed(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `camera_is_active` getter
     def camera_is_active
