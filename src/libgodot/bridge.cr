@@ -725,6 +725,12 @@ module Godot
       unregister_component("ResourceFormatLoaderCrystal", "loader")
       unregister_component("ResourceFormatSaverCrystal", "saver")
       unregister_component("CrystalLanguage", "language")
+      # Clean up all registered loaders, savers, or custom components from addons or games
+      ClassRegistry.entries.reverse_each do |entry|
+        if proc = entry.deinit_proc
+          proc.call rescue nil
+        end
+      end
       Godot.debug("[Bridge.deinit] Completed successfully!")
     end
 

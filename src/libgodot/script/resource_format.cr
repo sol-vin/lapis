@@ -64,7 +64,11 @@ module Lapis
         end
       end
       if loader.alive?
-        loader.destroy rescue nil
+        if loader.is_a?(RefCounted)
+          loader.unreference rescue nil
+        else
+          loader.destroy rescue nil
+        end
       end
       loader = nil
       @@instance = nil
@@ -262,7 +266,11 @@ module Lapis
         end
       end
       if saver.alive?
-        saver.destroy rescue nil
+        if saver.is_a?(RefCounted)
+          saver.unreference rescue nil
+        else
+          saver.destroy rescue nil
+        end
       end
       saver = nil
       @@instance = nil

@@ -162,6 +162,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+#### ResourceFormatLoader & ResourceFormatSaver Teardown & RefCounted Cleanup
+- **Automatic Deinit & ObjectDB Cleanup**:
+  - Implemented automatic `deinit_proc` dispatch in `Bridge.deinit` across all registered `ClassRegistry.entries`, invoking macro-generated `def self.unregister` for custom `ResourceFormatLoader` and `ResourceFormatSaver` subclasses upon module deinitialization.
+  - Replaced manual `.destroy` calls with `.unreference` for `RefCounted` instances across `ResourceFormatLoaderCrystal`, `ResourceFormatSaverCrystal`, and addon loaders, preventing reference-count underflow, leaked instances, and editor shutdown access violations (`0xC0000005`).
+
 #### Multi-Module GC Safety & Boehm Collector Sweep Protection
 - **GC Linked List Null-Guards**:
   - Implemented pointer null-guards on `Fiber.unsafe_each` and `Thread.unsafe_each` (`src/libgodot/gc_safety.cr`) to prevent `0xC0000005` access violations at address `0x8` during Boehm GC collection sweeps when secondary Crystal GDExtension modules (such as Diorite or custom addons) are loaded.

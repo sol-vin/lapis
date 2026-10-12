@@ -73,6 +73,7 @@ module Godot
       property autoload_mount_tree : Bool = true
       property set_autoload_proc : (Object? -> Void)? = nil
       property init_proc : (-> Void)? = nil
+      property deinit_proc : (-> Void)? = nil
 
       def has_virtual_method?(name : String) : Bool
         if proc = @has_virtual_proc
@@ -110,6 +111,7 @@ module Godot
         @autoload_mount_tree : Bool = true,
         @set_autoload_proc : (Object? -> Void)? = nil,
         @init_proc : (-> Void)? = nil,
+        @deinit_proc : (-> Void)? = nil,
       )
       end
     end
@@ -219,6 +221,12 @@ module Godot
           if !entry.set_autoload_proc.nil?
             existing.set_autoload_proc = entry.set_autoload_proc
           end
+        end
+        if !entry.init_proc.nil?
+          existing.init_proc = entry.init_proc
+        end
+        if !entry.deinit_proc.nil?
+          existing.deinit_proc = entry.deinit_proc
         end
         return
       end
@@ -1355,6 +1363,30 @@ macro node(decl, &block)
           end
         end
       end
+
+      def self.unregister : Void
+        loader = @@_auto_loader_instance
+        @@_auto_loader_instance = nil
+        return unless loader && !loader.pointer.null?
+
+        rl_ptr = ::Godot::Bridge.get_singleton("ResourceLoader")
+        unless rl_ptr.null?
+          r_loader = ::Godot::ResourceLoader.new(rl_ptr)
+          begin
+            r_loader.remove_resource_format_loader(loader)
+          rescue
+            r_loader.call("remove_resource_format_loader", loader) rescue nil
+          end
+        end
+
+        if loader.alive?
+          if loader.is_a?(::Godot::RefCounted)
+            loader.unreference rescue nil
+          else
+            loader.destroy rescue nil
+          end
+        end
+      end
     {% end %}
 
     {% if parent_name.stringify == "ResourceFormatSaver" || parent_name.stringify.ends_with?("::ResourceFormatSaver") %}
@@ -1372,6 +1404,30 @@ macro node(decl, &block)
             rescue
               r_saver.call("add_resource_format_saver", saver, false) rescue nil
             end
+          end
+        end
+      end
+
+      def self.unregister : Void
+        saver = @@_auto_saver_instance
+        @@_auto_saver_instance = nil
+        return unless saver && !saver.pointer.null?
+
+        rs_ptr = ::Godot::Bridge.get_singleton("ResourceSaver")
+        unless rs_ptr.null?
+          r_saver = ::Godot::ResourceSaver.new(rs_ptr)
+          begin
+            r_saver.remove_resource_format_saver(saver)
+          rescue
+            r_saver.call("remove_resource_format_saver", saver) rescue nil
+          end
+        end
+
+        if saver.alive?
+          if saver.is_a?(::Godot::RefCounted)
+            saver.unreference rescue nil
+          else
+            saver.destroy rescue nil
           end
         end
       end
@@ -2401,7 +2457,8 @@ macro node(decl, &block)
       autoload_singleton: {{autoload_singleton}},
       autoload_mount_tree: {{autoload_mount_tree}},
       set_autoload_proc: {% if is_autoload_class %} ->(obj : ::Godot::Object?) { {{class_name}}._godot_set_autoload_instance(obj) } {% else %} nil {% end %},
-      init_proc: {% if parent_name.stringify == "ResourceFormatLoader" || parent_name.stringify.ends_with?("::ResourceFormatLoader") || parent_name.stringify == "ResourceFormatSaver" || parent_name.stringify.ends_with?("::ResourceFormatSaver") %} ->{ {{class_name}}.ensure_registered rescue nil } {% else %} nil {% end %}
+      init_proc: {% if parent_name.stringify == "ResourceFormatLoader" || parent_name.stringify.ends_with?("::ResourceFormatLoader") || parent_name.stringify == "ResourceFormatSaver" || parent_name.stringify.ends_with?("::ResourceFormatSaver") %} ->{ {{class_name}}.ensure_registered rescue nil } {% else %} nil {% end %},
+      deinit_proc: {% if parent_name.stringify == "ResourceFormatLoader" || parent_name.stringify.ends_with?("::ResourceFormatLoader") || parent_name.stringify == "ResourceFormatSaver" || parent_name.stringify.ends_with?("::ResourceFormatSaver") %} ->{ {{class_name}}.unregister rescue nil } {% else %} nil {% end %}
     )
   )
 
