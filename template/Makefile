@@ -43,12 +43,14 @@ ifeq ($(strip $(RELEASE)),1)
 	CRYSTAL_FLAGS += --release
 endif
 
-.PHONY: all game_dll game-dll game_exe game-exe package_game package-game deps bridge extension_list addons project_bindings project-bindings bindings rebuild export export_release export-release run editor run_editor run-editor test spec docs setup_dev setup-dev clean help
+.PHONY: all build game_dll game-dll game_exe game-exe package_game package-game deps bridge extension_list addons project_bindings project-bindings bindings rebuild export export_release export-release run editor run_editor run-editor test spec docs setup_dev setup-dev clean help
 
 all: dirs deps bridge extension_list addons project_bindings game_dll game_exe
 	@echo ===================================================================
 	@echo   Template game library and playable executable built successfully!
 	@echo ===================================================================
+
+build: game_dll
 
 dirs:
 	@$(LAPIS) dirs

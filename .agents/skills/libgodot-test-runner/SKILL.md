@@ -61,6 +61,10 @@ Or via Makefile:
 make test
 ```
 
+> [!IMPORTANT]
+> **Mandatory Rule: Always Monitor Long-Running Test & Build Tasks with Timers**:
+> Whenever running `make test`, `make all`, or any long-running command in the background, agents MUST set a 30-second timer using `schedule(DurationSeconds: 30, TimerCondition: "<task-id>")`. Upon timer expiration, proactively inspect task status with `manage_task(Action: 'status')`. If stalled or crashed (e.g. `0xC0000005`), kill the task immediately with `manage_task(Action: 'kill')` instead of hanging.
+
 ---
 
 ## The 4 Test Tiers

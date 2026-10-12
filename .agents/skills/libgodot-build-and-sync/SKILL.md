@@ -87,6 +87,27 @@ LibGodot is a multi-consumer architecture. When code changes in `src/` or the C+
 
 ---
 
+## 1.1 Mandatory Rule: Always Monitor `make all` and Background Tasks with Timers
+
+Whenever invoking `make all` or any command that runs as a background task:
+1. **Never Leave Background Tasks Unmonitored**:
+   - Immediately after launching a background task, schedule a 30-second recurring or one-shot reminder using the `schedule` tool:
+     ```json
+     {
+       "DurationSeconds": 30,
+       "Prompt": "Check status of background task",
+       "TimerCondition": "<task-id>",
+       "toolAction": "Scheduling status check",
+       "toolSummary": "Schedule task check"
+     }
+     ```
+2. **Active Status Check on Wakeup**:
+   - When the timer fires, inspect the task's log and progress using `manage_task(Action: 'status', TaskId: '<task-id>')`.
+   - If progress has stalled or an unrecoverable fault / crash (e.g. `0xC0000005`, `EditorNode::is_cmdline_mode`) is detected in the log, immediately terminate the task using `manage_task(Action: 'kill', TaskId: '<task-id>')` to prevent hanging indefinitely.
+   - If the task is still progressing normally, schedule the next 30-second check until completion.
+
+---
+
 ## 2. Multi-Target Build Lifecycle & Dependency DAG
 
 ```mermaid

@@ -14,3 +14,5 @@ addons: {}
 targets:
   game:
     main: src/main.cr
+  carbon:
+    main: lib/carbon/src/carbon/cli.cr

@@ -1017,8 +1017,8 @@ inline GDExtensionObjectPtr bridge_packed_scene_instantiate(GDExtensionObjectPtr
     if (!mb_packed_scene_instantiate) return nullptr;
 
     if (gd_object_method_bind_ptrcall) {
-        int32_t state_i32 = (int32_t)edit_state;
-        const void *args[1] = { &state_i32 };
+        int64_t state_i64 = edit_state;
+        const void *args[1] = { &state_i64 };
         GDExtensionObjectPtr ret_node = nullptr;
         gd_object_method_bind_ptrcall(mb_packed_scene_instantiate, scene, args, &ret_node);
         if (ret_node) return ret_node;

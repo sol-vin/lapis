@@ -2,6 +2,9 @@ name: Release Game
 
 on:
   push:
+    branches:
+      - master
+      - main
     tags:
       - 'v*'
       - '[0-9]*'
@@ -497,7 +500,7 @@ jobs:
 
   build-consumers-linux:
     name: Build Consumers & Templates (Linux)
-    needs: [build-core-linux]
+    needs: [build-core-linux, init-release]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -511,7 +514,9 @@ jobs:
       - name: Stage Distribution Deliverables
         run: |
           mkdir -p dist
-          GAME_NAME=$(sed -n 's/^name:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' shard.yml | tr -d '\r\n[:space:]')
+          GAME_NAME=$(awk '/^name:/ {print $2}' shard.yml 2>/dev/null | tr -d ' "\r\n')
+          if [ -z "$GAME_NAME" ]; then GAME_NAME="${{ needs.init-release.outputs.game_name }}"; fi
+          if [ -z "$GAME_NAME" ]; then GAME_NAME="game"; fi
           if [ -d "bin" ]; then
             zip -r "dist/${GAME_NAME}-linux.zip" bin
           fi
@@ -523,7 +528,7 @@ jobs:
 
   build-consumers-macos:
     name: Build Consumers & Templates (macOS)
-    needs: [build-core-macos]
+    needs: [build-core-macos, init-release]
     runs-on: macos-latest
     timeout-minutes: 10
     steps:
@@ -537,7 +542,9 @@ jobs:
       - name: Stage Distribution Deliverables
         run: |
           mkdir -p dist
-          GAME_NAME=$(sed -n 's/^name:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' shard.yml | tr -d '\r\n[:space:]')
+          GAME_NAME=$(awk '/^name:/ {print $2}' shard.yml 2>/dev/null | tr -d ' "\r\n')
+          if [ -z "$GAME_NAME" ]; then GAME_NAME="${{ needs.init-release.outputs.game_name }}"; fi
+          if [ -z "$GAME_NAME" ]; then GAME_NAME="game"; fi
           if [ -d "bin" ]; then
             zip -r "dist/${GAME_NAME}-macos.zip" bin
           fi
@@ -819,6 +826,11 @@ jobs:
           EOF
           sed -i "s/\${GAME_NAME}/$GAME_NAME/g" release_body.md
           sed -i "s/\${GODOT_VER}/$GODOT_VER/g" release_body.md
+          if [ -f "CHANGELOG.md" ]; then
+            echo "" >> release_body.md
+            echo "### 📝 Changelog" >> release_body.md
+            cat CHANGELOG.md >> release_body.md
+          fi
 
       - name: Publish Release Assets
         uses: softprops/action-gh-release@v2

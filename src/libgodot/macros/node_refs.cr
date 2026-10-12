@@ -184,8 +184,16 @@ macro __define_node_ref_property(name_or_decl, type = nil, path = nil, is_unique
     {% if is_unique %}
       {% u_name = str_path.starts_with?('%') ? str_path : "%#{str_path.id}" %}
       {% candidate_paths = [u_name] %}
-      {% fallback_search_name = str_path.starts_with?('%') ? str_path[1..-1] : str_path %}
-    {% elsif str_path.starts_with?('%') || str_path.includes?('/') %}
+    {% elsif str_path.starts_with?('%') %}
+      {% u_clean = str_path[1..-1] %}
+      {% if u_clean.includes?('/') %}
+        {% candidate_paths = [str_path] %}
+        {% fallback_search_name = nil %}
+      {% else %}
+        {% candidate_paths = [str_path, u_clean] %}
+        {% fallback_search_name = u_clean %}
+      {% end %}
+    {% elsif str_path.includes?('/') %}
       {% candidate_paths = [str_path] %}
       {% fallback_search_name = nil %}
     {% else %}

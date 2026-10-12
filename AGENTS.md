@@ -128,7 +128,7 @@ LibGodot supports two distinct execution paradigms designed for both rapid in-ed
   6. Starter templates (`template/bin/game.dll`, `template-addon/dist/`) are compiled.
   7. All output binaries are synchronized across `bin/`, `test/bin/`, `template/bin/`, and `examples/*/bin/`.
   8. Full test suite verification runs.
-- **Monitoring Rule**: When running `make all` as a background task, agents must check its progress every 30 seconds (via `schedule` or `manage_task` status check) to actively detect progress, avoid stalls, and monitor build step transitions.
+- **Monitoring Rule & Mandatory Timers**: When running `make all` or any other command as a background task, agents MUST ALWAYS schedule a 30-second timer (via `schedule` with `DurationSeconds: 30, TimerCondition: "<task-id>"`) to actively inspect status and logs every 30 seconds. If a crash or stall occurs (e.g. `0xC0000005`, `EditorNode::is_cmdline_mode`), kill the task immediately with `manage_task(Action: 'kill')` rather than hanging.
 
 ### Build Target Reference:
 - `make all`: Full workspace build, synchronization, and test run.
