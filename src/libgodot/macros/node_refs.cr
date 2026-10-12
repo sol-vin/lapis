@@ -176,6 +176,7 @@ macro __define_node_ref_property(name_or_decl, type = nil, path = nil, is_unique
     {% v_type = "::Godot::#{v_type}".id %}
   {% end %}
 
+  {% fallback_search_name = nil %}
   {% if v_path.is_a?(ArrayLiteral) || v_path.is_a?(TupleLiteral) %}
     {% candidate_paths = v_path %}
     {% fallback_search_name = nil %}
@@ -184,6 +185,7 @@ macro __define_node_ref_property(name_or_decl, type = nil, path = nil, is_unique
     {% if is_unique %}
       {% u_name = str_path.starts_with?('%') ? str_path : "%#{str_path.id}" %}
       {% candidate_paths = [u_name] %}
+      {% fallback_search_name = str_path.starts_with?('%') ? str_path[1..-1] : str_path %}
     {% elsif str_path.starts_with?('%') %}
       {% u_clean = str_path[1..-1] %}
       {% if u_clean.includes?('/') %}
