@@ -16,14 +16,14 @@ class String
   def >(type : T.class) : T forall T
     {% if T.union? %}
       {% non_nil = T.union_types.reject { |t| t == Nil }.first %}
-      {% if non_nil < Godot::Node %}
+      {% if non_nil <= Godot::Node %}
         scene = ::Godot::PreloadCache.get_or_load?(self, ::Godot::PackedScene)
         return nil unless scene
         scene.instantiate_as?( {{non_nil}} )
       {% else %}
         ::Godot::PreloadCache.get_or_load?(self, {{non_nil}} )
       {% end %}
-    {% elsif T < Godot::Node %}
+    {% elsif T <= Godot::Node %}
       scene = ::Godot::PreloadCache.get_or_load(self, ::Godot::PackedScene)
       scene.instantiate_as(T)
     {% else %}
@@ -47,14 +47,14 @@ class String
   def >>(type : T.class) : T forall T
     {% if T.union? %}
       {% non_nil = T.union_types.reject { |t| t == Nil }.first %}
-      {% if non_nil < Godot::Node %}
+      {% if non_nil <= Godot::Node %}
         scene = ::Godot.load_scene?(self)
         return nil unless scene
         scene.instantiate_as?( {{non_nil}} )
       {% else %}
         ::Godot.load?(self, {{non_nil}} )
       {% end %}
-    {% elsif T < Godot::Node %}
+    {% elsif T <= Godot::Node %}
       scene = ::Godot.load_scene(self)
       scene.instantiate_as(T)
     {% else %}
