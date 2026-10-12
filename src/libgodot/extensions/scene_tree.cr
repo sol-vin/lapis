@@ -161,15 +161,52 @@ module Godot
   # ===========================================================================
   # SceneTreeTimer Cooperative Await
   # ===========================================================================
-  # Cooperatively awaits a SceneTreeTimer until its countdown expires
-  def self.await(timer : SceneTreeTimer) : Void
-    return unless timer.alive?
+  # Cooperatively awaits a SceneTreeTimer until its countdown expires.
+  # Returns `AwaitStatus(Nil)` indicating completion or timeout.
+  def self.await(timer : SceneTreeTimer, timeout_sec : Float64? = nil) : AwaitStatus(Nil)
+    return AwaitStatus(Nil).completed(nil) unless timer.alive?
     if Bridge.init_done?
-      await(timer, "timeout")
+      status = await(timer, "timeout", timeout_sec: timeout_sec)
+      if status.completed?
+        AwaitStatus(Nil).completed(nil)
+      else
+        AwaitStatus(Nil).timed_out
+      end
     else
+      start = ::Time.instant
       while timer.alive? && timer.get_time_left > 0.0
         Fiber.yield
+        if timeout_sec && (::Time.instant - start).total_seconds >= timeout_sec
+          return AwaitStatus(Nil).timed_out
+        end
       end
+      AwaitStatus(Nil).completed(nil)
     end
+  end
+
+  def self.await(timer : SceneTreeTimer, timeout_sec : Number) : AwaitStatus(Nil)
+    await(timer, timeout_sec.to_f64)
+  end
+
+  # Cooperatively awaits a SceneTreeTimer, raising `TimeoutError` if timeout_sec expires.
+  def self.await!(timer : SceneTreeTimer, timeout_sec : Float64? = nil) : Void
+    status = await(timer, timeout_sec: timeout_sec)
+    if status.timed_out?
+      raise TimeoutError.new("Timed out awaiting SceneTreeTimer after #{timeout_sec}s")
+    end
+    nil
+  end
+
+  def self.await!(timer : SceneTreeTimer, timeout_sec : Number) : Void
+    await!(timer, timeout_sec.to_f64)
+  end
+
+  # Cooperatively awaits a SceneTreeTimer, returning `true` on completion and `false` on timeout.
+  def self.await?(timer : SceneTreeTimer, timeout_sec : Float64? = nil) : Bool
+    await(timer, timeout_sec: timeout_sec).completed?
+  end
+
+  def self.await?(timer : SceneTreeTimer, timeout_sec : Number) : Bool
+    await?(timer, timeout_sec.to_f64)
   end
 end

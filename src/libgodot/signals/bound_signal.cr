@@ -32,14 +32,33 @@ module Godot
     end
 
     # Cooperatively awaits this signal without blocking the engine main loop.
-    # Returns the emitted arguments as an Array(Variant).
-    def await(timeout_sec : Float64? = nil) : ::Array(Variant)
+    # Returns an AwaitStatus(Array(Variant)) indicating completion or timeout.
+    def await(timeout_sec : Float64? = nil) : AwaitStatus(::Array(Variant))
       Godot.await(@target, @name, timeout_sec)
     end
 
     # Cooperatively awaits this signal with timeout in seconds
-    def await(timeout_sec : Number) : ::Array(Variant)
+    def await(timeout_sec : Number) : AwaitStatus(::Array(Variant))
       Godot.await(@target, @name, timeout_sec.to_f64)
+    end
+
+    # Cooperatively awaits this signal, returning the emitted arguments as Array(Variant),
+    # or raising Godot::TimeoutError if timeout_sec expires.
+    def await!(timeout_sec : Float64? = nil) : ::Array(Variant)
+      Godot.await!(@target, @name, timeout_sec)
+    end
+
+    def await!(timeout_sec : Number) : ::Array(Variant)
+      Godot.await!(@target, @name, timeout_sec.to_f64)
+    end
+
+    # Cooperatively awaits this signal, returning Array(Variant)?, or nil if timeout_sec expires.
+    def await?(timeout_sec : Float64? = nil) : ::Array(Variant)?
+      Godot.await?(@target, @name, timeout_sec)
+    end
+
+    def await?(timeout_sec : Number) : ::Array(Variant)?
+      Godot.await?(@target, @name, timeout_sec.to_f64)
     end
 
     # Connects a callback proc to this signal

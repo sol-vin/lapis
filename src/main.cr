@@ -584,4 +584,5 @@ require "../spec/suites/test_object_casting"
 require "../spec/suites/test_resource_preloading_and_materials"
 require "../spec/suites/test_timers_and_coroutine_sugar"
 require "../spec/suites/test_subclass_inheritance_dsl"
+require "../spec/suites/test_await_status_and_predicates"
 

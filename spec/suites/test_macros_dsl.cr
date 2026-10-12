@@ -843,33 +843,43 @@ end
   node = Godot.create(TypedSignalTestEmitterNode)
   root.add_child(node)
 
-  # 1. Zero-arg await returns nil
+  # 1. Zero-arg await returns AwaitStatus(Nil), await! returns nil
   nil_res = "initial"
+  status_completed = false
   Godot.spawn do
-    res = node.status_ping.await
+    st = node.status_ping.await
+    status_completed = st.completed?
+    res = node.status_ping.await!
     nil_res = res.nil? ? "was_nil" : "was_not_nil"
   end
   3.times { Fiber.yield }
   node.status_ping.emit
+  3.times { Fiber.yield }
+  node.status_ping.emit
   5.times { Fiber.yield }
-  assert_eq nil_res, "was_nil", "Zero-arg await should return nil"
+  assert_true status_completed, "Zero-arg await should return completed AwaitStatus"
+  assert_eq nil_res, "was_nil", "Zero-arg await! should return nil"
 
-  # 2. Single-arg await returns T directly (Int32)
+  # 2. Single-arg await! returns T directly (Int32), await returns AwaitStatus(Int32)
   single_res = 0
+  single_status_ok = false
   Godot.spawn do
-    single_res = node.single_score.await
+    st = node.single_score.await
+    single_status_ok = st.ok?
+    single_res = st.value!
   end
   3.times { Fiber.yield }
   node.single_score.emit(999)
   5.times { Fiber.yield }
+  assert_true single_status_ok, "Single-arg await should return completed status"
   assert_eq single_res, 999, "Single-arg await should return unboxed T directly"
 
-  # 3. Multi-arg await returns Tuple(*T)
+  # 3. Multi-arg await! returns Tuple(*T) directly
   scored_score = 0
   scored_bonus = 0.0_f32
   scored_title = ""
   Godot.spawn do
-    score, bonus, title = node.level_scored.await
+    score, bonus, title = node.level_scored.await!
     scored_score = score
     scored_bonus = bonus
     scored_title = title

@@ -148,10 +148,113 @@ module Godot
     subs_to_notify.try(&.each(&.trigger(args)))
   end
 
+  # Status enum representing the completion outcome of an asynchronous await operation.
+  enum AwaitState
+    Completed
+    TimedOut
+
+    # Returns true if the operation completed successfully without timing out.
+    def completed? : Bool
+      self == Completed
+    end
+
+    # Returns true if the operation timed out.
+    def timed_out? : Bool
+      self == TimedOut
+    end
+
+    # Alias to `completed?`.
+    def ok? : Bool
+      self == Completed
+    end
+  end
+
+  # Zero-allocation status wrapper carrying completion state and optional unboxed value.
+  # Provides `.completed?`, `.timed_out?`, `.ok?`, `.status`, `.value`, `.value!`, `.value?`,
+  # and delegates element access and methods to the underlying value.
+  struct AwaitStatus(T)
+    getter status : AwaitState
+    getter value : T?
+
+    def initialize(@status : AwaitState, @value : T? = nil)
+    end
+
+    # Returns true if the operation completed successfully without timing out.
+    def completed? : Bool
+      @status.completed?
+    end
+
+    # Returns true if the operation timed out.
+    def timed_out? : Bool
+      @status.timed_out?
+    end
+
+    # Alias to `completed?`.
+    def ok? : Bool
+      @status.completed?
+    end
+
+    # Returns the unwrapped value of type T if completed, or raises Godot::TimeoutError if timed out.
+    def value! : T
+      if timed_out?
+        raise TimeoutError.new("Timed out while awaiting signal or timer")
+      end
+      @value.as(T)
+    end
+
+    # Returns the value if completed, or nil if timed out.
+    def value? : T?
+      @value
+    end
+
+    # Factory constructors
+    def self.completed(value : T? = nil) : self
+      new(AwaitState::Completed, value)
+    end
+
+    def self.timed_out : self
+      new(AwaitState::TimedOut, nil)
+    end
+
+    # Equality comparisons for state, symbols, and values
+    def ==(other : AwaitState) : Bool
+      @status == other
+    end
+
+    def ==(other : Symbol) : Bool
+      case other
+      when :completed then completed?
+      when :timed_out then timed_out?
+      else false
+      end
+    end
+
+    def ==(other : T) : Bool
+      @value == other
+    end
+
+    # Index delegation for Tuple / Array destructuring:
+    # Allows `a, b = status` when T is an Indexable or Tuple!
+    def [](index : Int)
+      val = value!
+      if val.is_a?(Indexable) || val.is_a?(Tuple)
+        val[index]
+      else
+        raise IndexError.new("Cannot index #{T} in AwaitStatus")
+      end
+    end
+
+    def to_s(io : IO) : Void
+      io << "AwaitStatus(" << @status << ", value: " << @value.inspect << ")"
+    end
+
+    forward_missing_to value!
+  end
+
   # Cooperatively awaits until the named signal is emitted on the target object.
-  # Returns the emitted arguments as an Array(Variant).
-  # If the target object is freed while awaiting, raises Godot::DisposedObjectError.
-  def self.await(target : Godot::Object, signal_name : String, timeout_sec : Float64? = nil) : ::Array(Variant)
+  # Returns an `AwaitStatus(Array(Variant))` indicating completion or timeout.
+  # If the target object is freed while awaiting, raises `Godot::DisposedObjectError`.
+  def self.await(target : Godot::Object, signal_name : String, timeout_sec : Float64? = nil) : AwaitStatus(::Array(Variant))
     target.check_alive!
     target_id = target.signal_target_id
     sub = subscribe_signal(target_id, signal_name)
@@ -159,6 +262,7 @@ module Godot
       Bridge.object_connect_signal(target.pointer, signal_name)
     end
     start_time = ::Time.instant
+    timed_out = false
     begin
       while !sub.completed?
         # Dead-pointer validation: fail fast if target was destroyed
@@ -167,41 +271,172 @@ module Godot
         end
         if timeout = timeout_sec
           if (::Time.instant - start_time).total_seconds >= timeout
+            timed_out = true
             break
           end
         end
         Fiber.yield
       end
-      sub.args
+      if timed_out
+        AwaitStatus(::Array(Variant)).timed_out
+      else
+        AwaitStatus(::Array(Variant)).completed(sub.args)
+      end
     ensure
       unsubscribe_signal(sub)
     end
   end
 
+  def self.await(target : Godot::Object, signal_name : String, timeout_sec : Number) : AwaitStatus(::Array(Variant))
+    await(target, signal_name, timeout_sec.to_f64)
+  end
+
+  # Cooperatively awaits until the named signal is emitted on the target object.
+  # Returns the emitted arguments as `Array(Variant)`, or raises `Godot::TimeoutError` if `timeout_sec` expires.
+  def self.await!(target : Godot::Object, signal_name : String, timeout_sec : Float64? = nil) : ::Array(Variant)
+    status = await(target, signal_name, timeout_sec)
+    if status.timed_out?
+      raise TimeoutError.new("Timed out awaiting signal '#{signal_name}' on #{target.class.name} after #{timeout_sec}s")
+    end
+    status.value!
+  end
+
+  def self.await!(target : Godot::Object, signal_name : String, timeout_sec : Number) : ::Array(Variant)
+    await!(target, signal_name, timeout_sec.to_f64)
+  end
+
+  # Cooperatively awaits until the named signal is emitted on the target object.
+  # Returns the emitted arguments as `Array(Variant)?`, or `nil` if `timeout_sec` expires.
+  def self.await?(target : Godot::Object, signal_name : String, timeout_sec : Float64? = nil) : ::Array(Variant)?
+    status = await(target, signal_name, timeout_sec)
+    status.value?
+  end
+
+  def self.await?(target : Godot::Object, signal_name : String, timeout_sec : Number) : ::Array(Variant)?
+    await?(target, signal_name, timeout_sec.to_f64)
+  end
+
   # Cooperatively pauses execution for the given duration in seconds.
+  # Returns `AwaitStatus(Nil)` indicating completion or timeout.
   # Safe for use in cooperative fibers without blocking the Godot main loop.
-  def self.await(seconds : Number) : Void
+  def self.await(seconds : Number, timeout_sec : Float64? = nil) : AwaitStatus(Nil)
     start_time = ::Time.instant
     target_sec = seconds.to_f64
-    while (::Time.instant - start_time).total_seconds < target_sec
+    timed_out = false
+    while (elapsed = (::Time.instant - start_time).total_seconds) < target_sec
+      if timeout = timeout_sec
+        if elapsed >= timeout
+          timed_out = true
+          break
+        end
+      end
       Fiber.yield
+    end
+    timed_out ? AwaitStatus(Nil).timed_out : AwaitStatus(Nil).completed
+  end
+
+  def self.await(seconds : Number, timeout_sec : Number) : AwaitStatus(Nil)
+    await(seconds, timeout_sec.to_f64)
+  end
+
+  # Cooperatively pauses execution for the given duration in seconds.
+  # Raises `Godot::TimeoutError` if `timeout_sec` expires before the delay completes.
+  def self.await!(seconds : Number, timeout_sec : Float64? = nil) : Void
+    status = await(seconds, timeout_sec)
+    if status.timed_out?
+      raise TimeoutError.new("Timed out after #{timeout_sec}s awaiting delay of #{seconds}s")
     end
   end
 
+  def self.await!(seconds : Number, timeout_sec : Number) : Void
+    await!(seconds, timeout_sec.to_f64)
+  end
+
+  # Cooperatively pauses execution for the given duration in seconds.
+  # Returns `true` if the delay completed, or `false` if `timeout_sec` expired.
+  def self.await?(seconds : Number, timeout_sec : Float64? = nil) : Bool
+    status = await(seconds, timeout_sec)
+    status.completed?
+  end
+
+  def self.await?(seconds : Number, timeout_sec : Number) : Bool
+    await?(seconds, timeout_sec.to_f64)
+  end
+
   # Cooperatively pauses execution for the given Time::Span duration.
-  def self.await(span : ::Time::Span) : Void
-    await(span.total_seconds)
+  def self.await(span : ::Time::Span, timeout_sec : Float64? = nil) : AwaitStatus(Nil)
+    await(span.total_seconds, timeout_sec)
+  end
+
+  def self.await(span : ::Time::Span, timeout_sec : Number) : AwaitStatus(Nil)
+    await(span.total_seconds, timeout_sec.to_f64)
+  end
+
+  def self.await!(span : ::Time::Span, timeout_sec : Float64? = nil) : Void
+    await!(span.total_seconds, timeout_sec)
+  end
+
+  def self.await!(span : ::Time::Span, timeout_sec : Number) : Void
+    await!(span.total_seconds, timeout_sec.to_f64)
+  end
+
+  def self.await?(span : ::Time::Span, timeout_sec : Float64? = nil) : Bool
+    await?(span.total_seconds, timeout_sec)
+  end
+
+  def self.await?(span : ::Time::Span, timeout_sec : Number) : Bool
+    await?(span.total_seconds, timeout_sec.to_f64)
   end
 
   # Cooperatively pauses execution for the given duration in seconds.
   # Alias to `Godot.await(seconds)`.
-  def self.delay(seconds : Number) : Void
-    await(seconds)
+  def self.delay(seconds : Number, timeout_sec : Float64? = nil) : AwaitStatus(Nil)
+    await(seconds, timeout_sec)
+  end
+
+  def self.delay(seconds : Number, timeout_sec : Number) : AwaitStatus(Nil)
+    await(seconds, timeout_sec.to_f64)
+  end
+
+  def self.delay!(seconds : Number, timeout_sec : Float64? = nil) : Void
+    await!(seconds, timeout_sec)
+  end
+
+  def self.delay!(seconds : Number, timeout_sec : Number) : Void
+    await!(seconds, timeout_sec.to_f64)
+  end
+
+  def self.delay?(seconds : Number, timeout_sec : Float64? = nil) : Bool
+    await?(seconds, timeout_sec)
+  end
+
+  def self.delay?(seconds : Number, timeout_sec : Number) : Bool
+    await?(seconds, timeout_sec.to_f64)
   end
 
   # Cooperatively pauses execution for the given Time::Span duration.
-  def self.delay(span : ::Time::Span) : Void
-    await(span.total_seconds)
+  def self.delay(span : ::Time::Span, timeout_sec : Float64? = nil) : AwaitStatus(Nil)
+    await(span.total_seconds, timeout_sec)
+  end
+
+  def self.delay(span : ::Time::Span, timeout_sec : Number) : AwaitStatus(Nil)
+    await(span.total_seconds, timeout_sec.to_f64)
+  end
+
+  def self.delay!(span : ::Time::Span, timeout_sec : Float64? = nil) : Void
+    await!(span.total_seconds, timeout_sec)
+  end
+
+  def self.delay!(span : ::Time::Span, timeout_sec : Number) : Void
+    await!(span.total_seconds, timeout_sec.to_f64)
+  end
+
+  def self.delay?(span : ::Time::Span, timeout_sec : Float64? = nil) : Bool
+    await?(span.total_seconds, timeout_sec)
+  end
+
+  def self.delay?(span : ::Time::Span, timeout_sec : Number) : Bool
+    await?(span.total_seconds, timeout_sec.to_f64)
   end
 
   # Spawns a cooperative gameplay fiber with managed exception logging.

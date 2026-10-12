@@ -164,6 +164,8 @@ module Lapis
   {% unless @type.has_constant?(:VERSION) %}
     VERSION = Godot::VERSION
   {% end %}
+  alias AwaitState = Godot::AwaitState
+  alias AwaitStatus = Godot::AwaitStatus
 end
 
 # Core math and transform value-type aliases
@@ -183,6 +185,8 @@ alias Quaternion = Godot::Quaternion
 alias Plane = Godot::Plane
 alias AABB = Godot::AABB
 alias Bridge = Godot::Bridge
+alias AwaitState = Godot::AwaitState
+alias AwaitStatus = Godot::AwaitStatus
 
 # Global fluent group query helper
 def group(name : String | Symbol) : Godot::GroupQuery

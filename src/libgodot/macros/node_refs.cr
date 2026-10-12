@@ -500,6 +500,32 @@ macro await(target, signal_name = nil, timeout_sec = nil)
   {% end %}
 end
 
+# Cooperatively awaits a signal, timer, or duration, raising `Godot::TimeoutError` if timeout expires.
+macro await!(target, signal_name = nil, timeout_sec = nil)
+  {% if signal_name != nil && timeout_sec != nil %}
+    ::Godot.await!({{target}}, {{signal_name}}, timeout_sec: {{timeout_sec}})
+  {% elsif signal_name != nil %}
+    ::Godot.await!({{target}}, {{signal_name}})
+  {% elsif timeout_sec != nil %}
+    ::Godot.await!({{target}}, timeout_sec: {{timeout_sec}})
+  {% else %}
+    ::Godot.await!({{target}})
+  {% end %}
+end
+
+# Cooperatively awaits a signal, timer, or duration, returning nil (or false) if timeout expires.
+macro await?(target, signal_name = nil, timeout_sec = nil)
+  {% if signal_name != nil && timeout_sec != nil %}
+    ::Godot.await?({{target}}, {{signal_name}}, timeout_sec: {{timeout_sec}})
+  {% elsif signal_name != nil %}
+    ::Godot.await?({{target}}, {{signal_name}})
+  {% elsif timeout_sec != nil %}
+    ::Godot.await?({{target}}, timeout_sec: {{timeout_sec}})
+  {% else %}
+    ::Godot.await?({{target}})
+  {% end %}
+end
+
 # Cooperatively yields the calling fiber while `condition` evaluates to truthy.
 #
 # Uses `Fiber.yield` between evaluation cycles. Supports an optional `timeout_sec`

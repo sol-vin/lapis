@@ -604,8 +604,31 @@ module Godot
     end
 
     # Cooperatively awaits a signal emitted on this object.
-    def await_signal(signal_name : String, timeout_sec : Float64? = nil) : ::Array(Variant)
-      Godot.await(self, signal_name, timeout_sec)
+    # Returns `AwaitStatus(Array(Variant))` indicating completion or timeout.
+    def await_signal(signal_name : String | Symbol, timeout_sec : Float64? = nil) : AwaitStatus(::Array(Variant))
+      Godot.await(self, signal_name.to_s, timeout_sec)
+    end
+
+    def await_signal(signal_name : String | Symbol, timeout_sec : Number) : AwaitStatus(::Array(Variant))
+      await_signal(signal_name, timeout_sec.to_f64)
+    end
+
+    # Cooperatively awaits a signal emitted on this object, raising `TimeoutError` if timeout expires.
+    def await_signal!(signal_name : String | Symbol, timeout_sec : Float64? = nil) : ::Array(Variant)
+      Godot.await!(self, signal_name.to_s, timeout_sec)
+    end
+
+    def await_signal!(signal_name : String | Symbol, timeout_sec : Number) : ::Array(Variant)
+      await_signal!(signal_name, timeout_sec.to_f64)
+    end
+
+    # Cooperatively awaits a signal emitted on this object, returning nil if timeout expires.
+    def await_signal?(signal_name : String | Symbol, timeout_sec : Float64? = nil) : ::Array(Variant)?
+      Godot.await?(self, signal_name.to_s, timeout_sec)
+    end
+
+    def await_signal?(signal_name : String | Symbol, timeout_sec : Number) : ::Array(Variant)?
+      await_signal?(signal_name, timeout_sec.to_f64)
     end
 
     # Returns a bound signal representation for the named signal.

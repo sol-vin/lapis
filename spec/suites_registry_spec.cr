@@ -22,7 +22,8 @@ describe "Lapis::Test::Registry Test Suites" do
       "ActorChannel", "ResourceCard", "SpatialPhysics", "ScenePipelineRegex",
       "Autoload", "SignalPiping", "Nodes2DMultiFrame", "Nodes3DMultiFrame", "ControlMultiFrame",
       "RayCastMultiFrame", "AnimationMultiFrame", "ParticlesAndAudioMultiFrame", "TileMapMultiFrame", "RigidBodyMultiFrame",
-      "ColorSpaces", "ObjectCasting", "ResourcePreload", "Timers", "SubclassInheritance"
+      "ColorSpaces", "ObjectCasting", "ResourcePreload", "Timers", "SubclassInheritance",
+      "AwaitStatus"
     ]
 
     expected_categories.each do |cat|
