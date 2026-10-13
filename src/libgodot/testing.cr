@@ -6,6 +6,7 @@ require "./testing/cold_boot_context"
 require "./testing/test_case"
 require "./testing/registry"
 require "./testing/junit_exporter"
+require "./profiler"
 # =============================================================================
 # LibGodot - Reusable Testing Apparatus & Extended Assertion Framework
 # =============================================================================
@@ -495,6 +496,83 @@ module Lapis
     def assert_memory_stable(cycles : Int32 = 1, max_delta : Int32 = 2, name : String = "Memory Stability", file : String = __FILE__, line : Int32 = __LINE__, &block)
       assert_no_leak(max_delta_objects: max_delta, name: name, file: file, line: line) do
         cycles.times { block.call }
+      end
+    end
+
+    # ===========================================================================
+    # 4. Zero-Allocation & Hot Loop Profiling Assertions
+    # ===========================================================================
+
+    # Asserts that evaluating the block executes with ZERO heap allocations across `iterations`.
+    def assert_zero_allocation(
+      name : String = "Hot Loop",
+      iterations : Int32 = 1000,
+      warmup : Int32 = 10,
+      file : String = __FILE__,
+      line : Int32 = __LINE__,
+      &
+    ) : Lapis::Profiler::AllocationReport
+      report = Lapis::Profiler::AllocationProbe.run(name, iterations, warmup, 0_i64) do |i|
+        yield i
+      end
+      unless report.zero_allocation?
+        raise AssertionError.new(report.failure_message(0_i64), file, line)
+      end
+      report
+    end
+
+    # Asserts that total allocations during the hot loop do not exceed `max_bytes`.
+    def assert_max_allocations(
+      max_bytes : Int64 | Int32,
+      name : String = "Operation",
+      iterations : Int32 = 1000,
+      warmup : Int32 = 10,
+      file : String = __FILE__,
+      line : Int32 = __LINE__,
+      &
+    ) : Lapis::Profiler::AllocationReport
+      target_max = max_bytes.to_i64
+      report = Lapis::Profiler::AllocationProbe.run(name, iterations, warmup, target_max) do |i|
+        yield i
+      end
+      if report.bytes_allocated > target_max
+        raise AssertionError.new(report.failure_message(target_max), file, line)
+      end
+      report
+    end
+
+    # Asserts that the average allocation rate does not exceed `max_rate` bytes per iteration.
+    def assert_bytes_per_iteration(
+      max_rate : Float64 | Number,
+      name : String = "Operation",
+      iterations : Int32 = 1000,
+      warmup : Int32 = 10,
+      file : String = __FILE__,
+      line : Int32 = __LINE__,
+      &
+    ) : Lapis::Profiler::AllocationReport
+      rate = max_rate.to_f64
+      report = Lapis::Profiler::AllocationProbe.run(name, iterations, warmup, (rate * iterations).to_i64) do |i|
+        yield i
+      end
+      if report.bytes_per_iteration > rate
+        detail = "Allocation Rate Exceeded for '#{name}'!\n" \
+                 "  Expected: <= #{rate} bytes/iter\n" \
+                 "  Actual:   #{report.bytes_per_iteration} bytes/iter (#{report.bytes_allocated}B across #{iterations} iters)"
+        raise AssertionError.new(detail, file, line)
+      end
+      report
+    end
+
+    # Profiles the block across `iterations` and returns the resulting AllocationReport without asserting.
+    def profile_allocations(
+      name : String = "Operation",
+      iterations : Int32 = 1000,
+      warmup : Int32 = 10,
+      &
+    ) : Lapis::Profiler::AllocationReport
+      Lapis::Profiler::AllocationProbe.run(name, iterations, warmup) do |i|
+        yield i
       end
     end
 

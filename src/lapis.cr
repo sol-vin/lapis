@@ -37,6 +37,9 @@ require "./lapis/cs_extras"
 {% if flag?(:benchmarks) || flag?(:editor) || (!flag?(:release) && !flag?(:no_benchmarks)) %}
   require "./libgodot/benchmarks"
 {% end %}
+{% if flag?(:testing) || flag?(:benchmarks) || flag?(:editor) || (!flag?(:release) && !flag?(:no_profiler)) %}
+  require "./libgodot/profiler"
+{% end %}
 {% unless flag?(:release) %}
   require "./libgodot/debugger/agent"
 {% end %}
