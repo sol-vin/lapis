@@ -15,6 +15,19 @@ module Godot
       r.pointer.null? ? nil : r
     end
 
+    # Returns the currently active scene node, or nil if none is set or pointer is null
+    def current_scene : Node?
+      return nil if @pointer.null?
+      cs = get_current_scene
+      (cs.nil? || cs.pointer.null?) ? nil : cs
+    end
+
+    # Sets the currently active scene node
+    def current_scene=(scene : Node) : Void
+      return if @pointer.null?
+      set_current_scene(scene)
+    end
+
     # Returns the first node in a group, or nil if none found
     def get_first_node_in_group?(group_name : String) : Node?
       return nil if @pointer.null?

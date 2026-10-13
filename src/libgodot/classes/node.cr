@@ -97,10 +97,7 @@ module Godot
       Godot::Error.new(err_code)
     end
 
-    # Returns the SceneTree containing this node.
-    def get_tree : SceneTree
-      SceneTree.new
-    end
+
 
     # Retrieves a child or sibling node by NodePath string.
     # Returns the Node if found, or produces an error if the node does not exist.

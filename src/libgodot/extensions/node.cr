@@ -29,6 +29,13 @@ module Godot
       set_name(val)
     end
 
+    # Returns the SceneTree containing this node, or nil if not inside the tree
+    def get_tree? : SceneTree?
+      return nil if @pointer.null?
+      tree = get_tree
+      (tree.nil? || tree.pointer.null?) ? nil : tree
+    end
+
     # Overload: Instantiates a Node of class T, configures it in block, adds it as child, and returns it.
     def add_child(type : T.class, force_readable_name : Bool = false, internal : InternalMode | Int = 0, &block : T -> Void) : T forall T
       node = ::Godot.create(type)
