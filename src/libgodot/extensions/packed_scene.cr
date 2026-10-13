@@ -74,3 +74,16 @@ module Godot
     end
   end
 end
+
+class String
+  # Scene pipeline operator (>): Loads and instantiates the scene at path typed as T (or T? returning nil on failure)
+  def >(type : T.class) : T forall T
+    {% if T.union? %}
+      {% non_nil = T.union_types.reject { |t| t == Nil }.first %}
+      ::Godot.instantiate_scene?(self, {{non_nil}})
+    {% else %}
+      ::Godot.instantiate_scene(self, type)
+    {% end %}
+  end
+end
+
