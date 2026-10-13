@@ -1,0 +1,68 @@
+id: "K_PROJECT_CELESTINE_GDD"
+parent_module: "Lapis::Docs::GDD"
+title: "Project Celestine: Canonical Game Design Document"
+summary: "Canonical Game Design Document for the 3D retro movement-platformer Project Celestine built with Godot 4.8 and Lapis."
+overview: |
+  Master GDD detailing the narrative, GoldSrc-style kinematics, 4-pip stamina economy,
+  the Celestine War Hammer mechanics, TrenchBroom/FuncGodot entity schemas, and Two-Tier DSL architecture.
+related_sources:
+  - "**Canonical GDD Document**: `docs/gdd/PROJECT_CELESTINE_GDD.md`"
+  - "**Core Kinematics Engine**: `src/celestine/core/kinematics.cr`"
+  - "**Stamina Resource Manager**: `src/celestine/core/stamina_pool.cr`"
+  - "**Declarative DSL Builders**: `src/celestine/dsl/builder.cr`"
+  - "**Verification Specifications**: `spec/celestine_spec.cr`"
+
+sections:
+  - id: "topic_00_high_concept"
+    title: "High Concept & Narrative Pillars"
+    summary: "The myth of Menoitios and the upward odyssey through the nine shattered layers of Tartarus."
+    type: "Array(String)"
+    return_value:
+      - "Protagonist: Menoitios, breaker of the Gates of Tartarus, cast into the 9th layer for 1,000 days."
+      - "World state: Gods slain by liberated wraiths, leaving Tartarus as an autonomous mechanical ruin."
+      - "Structure: 9 vertical biomes ascending from Layer 9 (Treachery) to Layer 1 (Limbo)."
+      - "Core Tool: The Celestine War Hammer with adamantine tether chain."
+
+  - id: "topic_01_kinematics_and_movement"
+    title: "GoldSrc Air Acceleration & Momentum Physics"
+    summary: "Deterministic vector math driving strafe-jumping, ramp surfing, and fall damage mitigation."
+    content: |
+      Kinematic motion calculations in Celestine execute at 60Hz and adhere to the Quake/GoldSrc vector projection:
+
+      ```crystal
+      # Air acceleration step (Core Engine Tier)
+      current_speed = velocity.dot(wish_dir)
+      add_speed = (AIR_CAP - current_speed).clamp(0.0_f32, AIR_ACCEL * wish_speed * dt)
+      velocity += wish_dir * add_speed
+      ```
+
+  - id: "topic_02_hammer_and_stamina"
+    title: "Hammer Actions & The 4-Pip Stamina Economy"
+    summary: "Balanced resource allocation across dashes, uppercuts, ground slams, and chain tethers."
+    type: "Array(String)"
+    return_value:
+      - "Left-Click Ground: Standard Swing (45 dmg, projectile parry)"
+      - "Left-Click Airborne: Red Dash (1 pip, 22 m/s) or Blue Hyper Dash (2 pips, 34 m/s)"
+      - "Right-Click Ground: Seismic Bonk (25 dmg, AoE stun wave, 4 m/s upward bounce)"
+      - "Right-Click Airborne: Downward Hammer Throw (25-55 degree pitch, chain slingshot reel-in)"
+      - "Ground Contact: 100% immediate stamina refill across all 4 pips"
+
+  - id: "topic_03_two_tier_dsl_codex"
+    title: "Two-Tier Crystal Architecture"
+    summary: "Separation of pure high-throughput math structs from declarative node macros."
+    content: |
+      ```crystal
+      require "celestine"
+
+      # Tier 1: Pure Core Engine struct (zero GC allocations)
+      pool = Celestine::Core::StaminaPool.new
+      pool.consume(2) # Consumes 2 pips for blue dash
+
+      # Tier 2: Declarative DSL Builder
+      character = Celestine.character do |c|
+        c.name = "Menoitios"
+        c.base_walk_speed = 8.0_f32
+        c.wish_speed = 14.0_f32
+        c.hammer_damage = 45
+      end
+      ```
