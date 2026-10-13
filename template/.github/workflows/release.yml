@@ -639,9 +639,9 @@ jobs:
 
             # Smoke test verification: execute headlessly to verify boot capability
             Write-Host "Running smoke test on dist/$gameName.exe..."
-            & "dist/$gameName.exe" --headless --quit-after 50
-            if ($LASTEXITCODE -ne 0) {
-              Write-Error "CRITICAL: dist/$gameName.exe failed headless boot smoke test (exit code: $LASTEXITCODE)!"
+            $proc = Start-Process -FilePath "dist/$gameName.exe" -ArgumentList @("--headless", "--quit-after", "50") -Wait -NoNewWindow -PassThru
+            if ($proc.ExitCode -ne 0) {
+              Write-Error "CRITICAL: dist/$gameName.exe failed headless boot smoke test (exit code: $($proc.ExitCode))!"
               exit 1
             }
             Write-Host "dist/$gameName.exe passed headless boot smoke test!"
