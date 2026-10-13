@@ -5,6 +5,24 @@ All notable changes to the Lapis for Crystal framework are documented in this fi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.311] - 2026-10-13
+
+### Added
+
+#### Automated Zero-Allocation Assertion Engine & Hot Loop Profiler
+- **Core Profiler Engine (`Lapis::Profiler::AllocationProbe`, `AllocationSnapshot`, `AllocationReport`)**:
+  - Implemented low-overhead point-in-time GC statistic tracking capturing total allocated bytes, bytes since GC, heap size, and free bytes with zero probe measurement overhead.
+  - Added microsecond-precision hot loop profiling with warm-up cycles, GC suppression (`GC.disable`), throughput calculations (ops/sec, B/iter), and diagnostic troubleshooting guidance for CI failures.
+- **Two-Tier Declarative DSL (`Lapis::Profiler.audit`, `hot_loop`)**:
+  - Introduced fluent audit builder pattern (`Lapis::Profiler::AuditBuilder`) supporting chaining `.iterations`, `.warmup`, `.max_bytes`, and `.assert_zero_allocation`.
+  - Added concise one-liner macro `Lapis::Profiler.hot_loop(name, iterations) do ... end`.
+- **Integrated Spec Matchers & Test Helpers**:
+  - Added `assert_zero_allocation`, `assert_max_allocations`, `assert_bytes_per_iteration`, and `profile_allocations` to `Lapis::Test`.
+  - Added custom Spec matchers `allocate_zero_bytes`, `allocate_at_most`, `allocate_bytes_per_iteration`, and alias `expect_zero_allocation` in `Spec::Expectations`.
+  - Solved Windows x64 ABI calling convention return-buffer alignment for struct-returning procs via generic `forall T` dispatch.
+- **Automated Verification Suite (`spec/zero_allocation_spec.cr`)**:
+  - Created 24-example automated spec suite verifying zero allocations across 2D/3D spatial math (`Vector2`, `Vector3`, `Transform2D`, `Transform3D`, `Rect2`, `Basis`, `Quaternion`, `AABB`), color spaces (`Color`, `HSV`), and gameplay math.
+
 ## [4.8-dev7] - 2026-10-10
 
 ### Added
