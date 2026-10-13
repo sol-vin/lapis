@@ -47,6 +47,22 @@ module Godot
       nil
     end
 
+    # Safe nil-returning instantiate
+    def instantiate?(edit_state : Int64 = 0_i64) : Node?
+      return nil if @pointer.null?
+      ptr = Bridge.packed_scene_instantiate(@pointer, edit_state)
+      return nil if ptr.null?
+      if inst = Bridge.find_alive_instance(ptr)
+        return inst.as?(Node)
+      end
+      Node.new(ptr)
+    end
+
+    # Safe nil-returning instantiate with target type
+    def instantiate?(as type : T.class, edit_state : Int64 = 0_i64) : T? forall T
+      instantiate_as?(type, edit_state)
+    end
+
     # Pipeline operator (>): Instantiates the scene directly typed as T (or T? returning nil on failure)
     def >(type : T.class) : T forall T
       {% if T.union? %}

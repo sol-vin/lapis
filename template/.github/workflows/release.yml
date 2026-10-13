@@ -540,14 +540,22 @@ jobs:
             GAME_NAME=$(awk '/^name:/ {print $2}' shard.yml 2>/dev/null | tr -d ' "\r\n')
           fi
           if [ -z "$GAME_NAME" ]; then GAME_NAME="game"; fi
-          rm -f bin/lapis bin/lapis.exe bin/lapis.tar.gz bin/lapis.zip || true
+          # Ensure lapis CLI and auxiliary build tools are purged from game deliverables
+          rm -f bin/lapis bin/lapis.exe bin/lapis.tar.gz bin/lapis.zip bin/carbon bin/*.console.pck || true
 
           # 1. Stage standalone Linux executable with embedded PCK
-          if [ -f "bin/${GAME_NAME}" ]; then
+          if [ -f "bin/${GAME_NAME}_portable" ]; then
+            cp "bin/${GAME_NAME}_portable" "dist/${GAME_NAME}-linux-x86_64"
+            rm -f "bin/${GAME_NAME}_portable"
+            chmod +x "dist/${GAME_NAME}-linux-x86_64"
+            echo "Staged standalone Linux executable: dist/${GAME_NAME}-linux-x86_64"
+          elif [ -f "bin/${GAME_NAME}" ]; then
             cp "bin/${GAME_NAME}" "dist/${GAME_NAME}-linux-x86_64"
             chmod +x "dist/${GAME_NAME}-linux-x86_64"
             echo "Staged standalone Linux executable: dist/${GAME_NAME}-linux-x86_64"
+          fi
 
+          if [ -f "dist/${GAME_NAME}-linux-x86_64" ]; then
             echo "Running smoke test on dist/${GAME_NAME}-linux-x86_64..."
             ./dist/${GAME_NAME}-linux-x86_64 --headless --quit-after 50
             if [ $? -ne 0 ]; then
@@ -628,15 +636,25 @@ jobs:
               }
             }
           }
-          # Ensure lapis CLI is purged from game deliverables
+          # Ensure lapis CLI and auxiliary build tools are purged from game deliverables
           if (Test-Path "bin/lapis.exe") { Remove-Item "bin/lapis.exe" -Force }
           if (Test-Path "bin/lapis.zip") { Remove-Item "bin/lapis.zip" -Force }
+          if (Test-Path "bin/carbon.exe") { Remove-Item "bin/carbon.exe" -Force }
+          Get-ChildItem -Path "bin" -Filter "*.console.pck" -Recurse | Remove-Item -Force
 
           # 1. Package the whole game up as an exe (with embedded PCK) and stage directly in dist/
-          if (Test-Path "bin/$gameName.exe") {
-            Copy-Item "bin/$gameName.exe" "dist/$gameName.exe" -Force
+          # When lapis package game runs with --embed-pck, it generates ${gameName}_portable.exe
+          if (Test-Path "bin/${gameName}_portable.exe") {
+            Copy-Item "bin/${gameName}_portable.exe" "dist/$gameName.exe" -Force
+            # Remove portable executable from bin/ so it is NOT bundled into the zip distribution
+            Remove-Item "bin/${gameName}_portable.exe" -Force
             Write-Host "Staged standalone game executable with embedded PCK: dist/$gameName.exe"
+          } elseif (Test-Path "bin/$gameName.exe") {
+            Copy-Item "bin/$gameName.exe" "dist/$gameName.exe" -Force
+            Write-Host "Staged standalone game executable: dist/$gameName.exe"
+          }
 
+          if (Test-Path "dist/$gameName.exe") {
             # Smoke test verification: execute headlessly to verify boot capability
             Write-Host "Running smoke test on dist/$gameName.exe..."
             $proc = Start-Process -FilePath "dist/$gameName.exe" -ArgumentList @("--headless", "--quit-after", "50") -Wait -NoNewWindow -PassThru
