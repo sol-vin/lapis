@@ -155,6 +155,14 @@ module Lapis
           if Env.windows? && c =~ %r{\A/([a-zA-Z])/(.*)\z}
             c = "#{$1}:/#{$2}"
           end
+          # On Windows, if candidate is a console wrapper, check for companion GUI binary first
+          if Env.windows? && (c.ends_with?("_console.exe") || c.ends_with?(".console.exe"))
+            gui_c = c.sub(/(_console|\.console)\.exe$/i, ".exe")
+            if File.exists?(gui_c) && !Dir.exists?(gui_c)
+              exp_gui = File.expand_path(gui_c)
+              valid_candidates << exp_gui unless valid_candidates.includes?(exp_gui)
+            end
+          end
           if File.exists?(c) && !Dir.exists?(c)
             exp = File.expand_path(c)
             valid_candidates << exp unless valid_candidates.includes?(exp)
@@ -162,6 +170,14 @@ module Lapis
         end
 
         return nil if valid_candidates.empty?
+
+        # On Windows, prioritize real Godot engine binaries (>5MB) over console wrappers (<5MB)
+        if Env.windows?
+          valid_candidates.sort_by! do |cand|
+            is_wrapper = cand.ends_with?("_console.exe") || cand.ends_with?(".console.exe") || (File.size(cand) rescue 0_i64) < 5_000_000
+            is_wrapper ? 1 : 0
+          end
+        end
 
         if filter_version
           # Prefer candidate that matches target_version

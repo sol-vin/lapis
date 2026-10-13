@@ -370,25 +370,39 @@ jobs:
       - name: Configure Godot Executable (Windows)
         shell: pwsh
         run: |
-          $candidate = $env:GODOT4
-          if ($candidate) {
-            $candidate = $candidate -replace '^/([a-zA-Z])/', '$1:/'
-            $mainCand = $candidate -replace '(_console|\.console)\.exe$', '.exe'
-            if (Test-Path $mainCand) { $candidate = $mainCand }
+          # 1. Search for actual Godot GUI executable (>10MB, excluding console wrapper)
+          $godotCandidate = Get-ChildItem -Path . -Recurse -Filter "*.exe" -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -like "*godot*" -and $_.Name -notlike "*_console*" -and $_.Name -notlike "*.console*" -and $_.Length -gt 10MB } |
+            Select-Object -First 1
+
+          if (-not $godotCandidate -and $env:GODOT4) {
+            $cand = $env:GODOT4 -replace '^/([a-zA-Z])/', '$1:/'
+            $mainCand = $cand -replace '(_console|\.console)\.exe$', '.exe'
+            if (Test-Path $mainCand) { $godotCandidate = Get-Item $mainCand }
+            elseif (Test-Path $cand) { $godotCandidate = Get-Item $cand }
           }
-          if ($candidate -and (Test-Path $candidate)) {
-            Copy-Item $candidate ./godot.exe -Force
-          } elseif ($env:GODOT4_BIN) {
-            $candidate2 = $env:GODOT4_BIN -replace '^/([a-zA-Z])/', '$1:/'
-            $mainCand2 = $candidate2 -replace '(_console|\.console)\.exe$', '.exe'
-            if (Test-Path $mainCand2) { $candidate2 = $mainCand2 }
-            if (Test-Path $candidate2) { Copy-Item $candidate2 ./godot.exe -Force }
+          if (-not $godotCandidate -and $env:GODOT4_BIN) {
+            $cand2 = $env:GODOT4_BIN -replace '^/([a-zA-Z])/', '$1:/'
+            $mainCand2 = $cand2 -replace '(_console|\.console)\.exe$', '.exe'
+            if (Test-Path $mainCand2) { $godotCandidate = Get-Item $mainCand2 }
+            elseif (Test-Path $cand2) { $godotCandidate = Get-Item $cand2 }
           }
-          if (Test-Path ./godot.exe) {
-            Write-Host "Godot configured at ./godot.exe"
-            $currPath = (Get-Location).Path
-            $currPath | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+
+          if ($godotCandidate) {
+            Write-Host "Found Godot engine binary: $($godotCandidate.FullName) ($([math]::Round($godotCandidate.Length / 1MB, 2)) MB)"
+            Copy-Item $godotCandidate.FullName ./godot.exe -Force
+            $godotExePath = (Resolve-Path "./godot.exe").Path
+            "GODOT4=$godotExePath" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+            "GODOT4_BIN=$godotExePath" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+            "GODOT=$godotExePath" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+            Write-Host "Configured Godot engine at: $godotExePath"
+          } else {
+            Write-Error "CRITICAL: Could not find valid Godot engine binary (>10MB)!"
+            exit 1
           }
+
+          $currPath = (Get-Location).Path
+          $currPath | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
 
       - name: Ensure Lapis CLI & Bridge
         shell: pwsh
@@ -533,6 +547,14 @@ jobs:
             cp "bin/${GAME_NAME}" "dist/${GAME_NAME}-linux-x86_64"
             chmod +x "dist/${GAME_NAME}-linux-x86_64"
             echo "Staged standalone Linux executable: dist/${GAME_NAME}-linux-x86_64"
+
+            echo "Running smoke test on dist/${GAME_NAME}-linux-x86_64..."
+            ./dist/${GAME_NAME}-linux-x86_64 --headless --quit-after 50
+            if [ $? -ne 0 ]; then
+              echo "CRITICAL: dist/${GAME_NAME}-linux-x86_64 failed headless boot smoke test!"
+              exit 1
+            fi
+            echo "dist/${GAME_NAME}-linux-x86_64 passed headless boot smoke test!"
           fi
 
           # 2. Stage complete zip distribution containing executable + libraries
@@ -614,6 +636,15 @@ jobs:
           if (Test-Path "bin/$gameName.exe") {
             Copy-Item "bin/$gameName.exe" "dist/$gameName.exe" -Force
             Write-Host "Staged standalone game executable with embedded PCK: dist/$gameName.exe"
+
+            # Smoke test verification: execute headlessly to verify boot capability
+            Write-Host "Running smoke test on dist/$gameName.exe..."
+            & "dist/$gameName.exe" --headless --quit-after 50
+            if ($LASTEXITCODE -ne 0) {
+              Write-Error "CRITICAL: dist/$gameName.exe failed headless boot smoke test (exit code: $LASTEXITCODE)!"
+              exit 1
+            }
+            Write-Host "dist/$gameName.exe passed headless boot smoke test!"
           }
 
           # 2. Package complete zip distribution containing executable + companion libraries

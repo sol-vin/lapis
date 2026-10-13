@@ -1027,8 +1027,19 @@ CONTROL
         end
 
         # 6. Locate Godot and create playable executable + pack
-        godot_exe = Core::GodotFinder.resolve(nil)
+        godot_exe = Core::GodotFinder.resolve(nil, proj_dir.to_s)
         if godot_exe
+          # On Windows, ensure we never use a console wrapper as the main game binary
+          if Core::Env.windows? && (godot_exe.ends_with?("_console.exe") || godot_exe.ends_with?(".console.exe"))
+            gui_cand = godot_exe.sub(/(_console|\.console)\.exe$/i, ".exe")
+            godot_exe = gui_cand if File.exists?(gui_cand)
+          end
+
+          if Core::Env.windows? && (File.size(godot_exe) rescue 0_i64) < 5_000_000
+            Core::Logger.error("Packaging Error: Resolved Godot binary '#{godot_exe}' is only #{File.size(godot_exe)} bytes, which indicates a console wrapper rather than the Godot engine binary!")
+            return 1
+          end
+
           named_exe = bin_dir.join("#{game_name}#{Core::Env.exe_ext}")
           safe_copy(Path.new(godot_exe), named_exe)
 
@@ -1064,6 +1075,19 @@ CONTROL
               if embed_pck && !portable
                 # If explicitly asked to embed PCK directly into main exe
                 safe_copy(portable_exe, named_exe)
+              end
+            end
+
+            # Verify the packaged binary is actually runnable
+            target_test_exe = (embed_pck && !portable) ? named_exe : (portable ? bin_dir.join("#{game_name}_portable#{Core::Env.exe_ext}") : named_exe)
+            if File.exists?(target_test_exe)
+              Core::Logger.step("PackageGame", "Verifying packaged executable boot capability: #{target_test_exe.basename}...")
+              test_status = Core::ProcessRunner.run(target_test_exe.to_s, ["--headless", "--quit-after", "20"])
+              if test_status.success?
+                Core::Logger.success("Packaged executable verified successfully runnable!")
+              else
+                Core::Logger.error("VERIFICATION FAILED: Packaged executable '#{target_test_exe.basename}' failed to boot headlessly (exit code: #{test_status.exit_code})!")
+                return 1
               end
             end
           else
