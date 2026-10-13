@@ -413,10 +413,7 @@ CR
         File.write(ex_dir.join("scenes/main.tscn"), <<-TSCN
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://src/#{name.underscore}.cr" id="1_main"]
-
 [node name="Main" type="#{name.camelcase}"]
-script = ExtResource("1_main")
 TSCN
         )
 

@@ -1,6 +1,5 @@
 [gd_scene format=3 uid="uid://cofcndr2uxf3e"]
 
-[ext_resource type="Script" uid="uid://dphvveoe3munb" path="res://src/main.cr" id="1_main"]
 [ext_resource type="Texture2D" uid="uid://dosvrqckrvlht" path="res://logo.png" id="2_0wfyh"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sugp2"]
@@ -25,7 +24,6 @@ material = SubResource("StandardMaterial3D_8gx7p")
 size = Vector2(0.25, 0.25)
 
 [node name="MainNode" type="MainNode" unique_id=1913652511]
-script = ExtResource("1_main")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1664467660]
 material_override = SubResource("StandardMaterial3D_sugp2")
