@@ -310,3 +310,16 @@ end
 
 macro warning_ignore_restore(name)
 end
+
+# Marks a method or type as a zero-allocation hot path audited by the Sol-Vin AST Linter.
+annotation ZeroAllocation; end
+
+# Marks a method or type as a performance-critical hot path.
+annotation HotPath; end
+
+# Marks a method or type as non-allocating.
+annotation NoAlloc; end
+
+# Marks a method as explicitly allowed to allocate on the heap inside a hot type.
+annotation AllowAllocation; end
+

@@ -220,15 +220,29 @@ macro godot_signal(name, *types)
 
   {% if types.empty? %}
     def {{name.id}} : ::Godot::TypedSignal()
-      ::Godot::TypedSignal().new(self, {{name.stringify}})
+      cache = (@_bound_signal_cache ||= ::Hash(String, ::Godot::BoundSignal).new)
+      if existing = cache[{{name.stringify}}]?
+        existing.as(::Godot::TypedSignal())
+      else
+        sig = ::Godot::TypedSignal().new(self, {{name.stringify}})
+        cache[{{name.stringify}}] = sig
+        sig
+      end
     end
 
     def emit_{{name.id}} : Void
-      emit_signal({{name.stringify}})
+      {{name.id}}.emit
     end
   {% else %}
     def {{name.id}} : ::Godot::TypedSignal({{types.splat}})
-      ::Godot::TypedSignal({{types.splat}}).new(self, {{name.stringify}})
+      cache = (@_bound_signal_cache ||= ::Hash(String, ::Godot::BoundSignal).new)
+      if existing = cache[{{name.stringify}}]?
+        existing.as(::Godot::TypedSignal({{types.splat}}))
+      else
+        sig = ::Godot::TypedSignal({{types.splat}}).new(self, {{name.stringify}})
+        cache[{{name.stringify}}] = sig
+        sig
+      end
     end
 
     def emit_{{name.id}}(*args) : Void

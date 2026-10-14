@@ -30,12 +30,70 @@ macro signal(name_or_decl, *extra_types)
 
   # Bound signal accessor for idiomatic `node.{{sig_name.id}}.emit(...)`, `await(node.{{sig_name.id}})`, or `on node.{{sig_name.id}} { ... }`
   {% if param_types.size > 0 %}
+    @_typed_sig_{{sig_name.id}} : ::Godot::TypedSignal({{param_types.splat}})? = nil
+
+    @[ZeroAllocation]
+    @[HotPath]
+    @[AlwaysInline]
     def {{sig_name.id}} : ::Godot::TypedSignal({{param_types.splat}})
-      ::Godot::TypedSignal({{param_types.splat}}).new(self, "{{sig_name.id}}")
+      if existing = @_typed_sig_{{sig_name.id}}
+        existing
+      else
+        init_typed_sig_{{sig_name.id}}
+      end
+    end
+
+    private def init_typed_sig_{{sig_name.id}} : ::Godot::TypedSignal({{param_types.splat}})
+      sig = ::Godot::TypedSignal({{param_types.splat}}).new(self, "{{sig_name.id}}")
+      @_typed_sig_{{sig_name.id}} = sig
+      sig
+    end
+
+    @[ZeroAllocation]
+    @[HotPath]
+    @[AlwaysInline]
+    def {{sig_name.id}}_slot : ::Lapis::Core::StaticSignalSlot({{param_types.splat}})
+      {{sig_name.id}}.static_slot
+    end
+
+    @[ZeroAllocation]
+    @[HotPath]
+    @[AlwaysInline]
+    def emit_{{sig_name.id}}(*args : *T) : Void forall T
+      {{sig_name.id}}.emit(*args)
     end
   {% else %}
+    @_typed_sig_{{sig_name.id}} : ::Godot::TypedSignal()? = nil
+
+    @[ZeroAllocation]
+    @[HotPath]
+    @[AlwaysInline]
     def {{sig_name.id}} : ::Godot::TypedSignal()
-      ::Godot::TypedSignal().new(self, "{{sig_name.id}}")
+      if existing = @_typed_sig_{{sig_name.id}}
+        existing
+      else
+        init_typed_sig_{{sig_name.id}}
+      end
+    end
+
+    private def init_typed_sig_{{sig_name.id}} : ::Godot::TypedSignal()
+      sig = ::Godot::TypedSignal().new(self, "{{sig_name.id}}")
+      @_typed_sig_{{sig_name.id}} = sig
+      sig
+    end
+
+    @[ZeroAllocation]
+    @[HotPath]
+    @[AlwaysInline]
+    def {{sig_name.id}}_slot : ::Lapis::Core::StaticSignalSlot()
+      {{sig_name.id}}.static_slot
+    end
+
+    @[ZeroAllocation]
+    @[HotPath]
+    @[AlwaysInline]
+    def emit_{{sig_name.id}} : Void
+      {{sig_name.id}}.emit
     end
   {% end %}
 
@@ -92,5 +150,25 @@ macro on(sig_or_target, *args, once = false, &block)
     {% else %}
       {{sig_or_target}}.connect {{block}}
     {% end %}
+  {% end %}
+end
+
+# Zero-allocation static signal connection macro binding typed procs or blocks
+# to `StaticSignalTable` slots.
+macro on_signal(sig_or_target, *args, once = false, &block)
+  {% if block && !block.body.is_a?(Nop) %}
+    {% if args.size > 0 %}
+      on({{sig_or_target}}, {{args.splat}}, once: {{once}}) {{block}}
+    {% else %}
+      on({{sig_or_target}}, once: {{once}}) {{block}}
+    {% end %}
+  {% elsif args.size == 1 %}
+    {% if once %}
+      {{sig_or_target}}.bind({{args[0]}}, flags: ::Godot::ConnectFlags::OneShot)
+    {% else %}
+      {{sig_or_target}}.bind({{args[0]}})
+    {% end %}
+  {% elsif args.size >= 2 && (args[0].is_a?(StringLiteral) || args[0].is_a?(SymbolLiteral)) %}
+    ::Lapis::Core::StaticSignalTable.global.bind(({{sig_or_target}}).signal_target_id, ({{args[0]}}).to_s, {{args[1]}}, once: {{once}})
   {% end %}
 end
