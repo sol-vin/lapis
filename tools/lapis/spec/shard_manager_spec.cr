@@ -133,7 +133,7 @@ version: 0.1.0
 dependencies:
   crshader:
     github: sol-vin/crshader
-    branch: master
+    branch: main
   lapis:
     path: #{root_rel}
 YAML
