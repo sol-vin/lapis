@@ -204,6 +204,11 @@ module Lapis
           end
         end
 
+        ["radare2", "r2"].each do |cand|
+          local_bin = Env::ROOT_DIR.join("bin", "#{cand}#{Env.exe_ext}")
+          return local_bin.to_s if File.exists?(local_bin) && get_radare2_version(local_bin.to_s)
+        end
+
         {% if flag?(:windows) %}
           user_profile = ENV["USERPROFILE"]? || ""
           candidates = [
@@ -249,7 +254,7 @@ module Lapis
             supported: false,
             path: nil,
             message: "radare2 debugger ('radare2' / 'r2') was not found. Install radare2 (e.g. 'scoop install radare2' on Windows, 'brew install radare2' on macOS, 'sudo apt install radare2' on Linux) for native Crystal debugging and pdc decompilation.",
-            required: true
+            required: false
           )
         end
 
@@ -262,7 +267,7 @@ module Lapis
             supported: false,
             path: r2_path,
             message: "radare2 debugger executable exists at #{r2_path}, but failed version query. Verify toolchain dependencies.",
-            required: true
+            required: false
           )
         end
 
@@ -273,7 +278,7 @@ module Lapis
           supported: true,
           path: r2_path,
           message: "radare2 debugger & decompiler verified at #{r2_path} (#{ver}).",
-          required: true
+          required: false
         )
       end
 

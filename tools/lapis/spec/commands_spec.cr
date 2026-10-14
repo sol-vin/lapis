@@ -309,7 +309,7 @@ describe "Lapis Subcommands" do
 
   describe "test" do
     it "resolves and runs tests scoped to a consumer project like template" do
-      res = LapisSpecHelper.run_lapis(["test", "template", "--no-tui", "--skip-runtime-tests"])
+      res = LapisSpecHelper.run_lapis(["test", "template", "--no-tui", "--skip-runtime-tests", "--skip-tool-tests"])
       res.success?.should be_true, "Output:\n#{res.all_output}"
       res.output.should contain("Running project specifications in template/spec")
       res.output.should contain("0 failures")
@@ -327,5 +327,3 @@ describe "Lapis Subcommands" do
     end
   end
 end
-
-

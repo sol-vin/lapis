@@ -117,12 +117,11 @@ HELP
         if r2_status.installed
           items << CheckItem.new("Native Debugger (radare2)", :pass, "#{r2_status.path} (#{r2_status.version}) [native decompiler: pdc]")
         else
-          has_critical_failure = true
           tip_msg = Core::Env.windows? ? "Install via 'scoop install radare2' or 'winget install radare2.radare2' for in-editor debugging and pdc decompilation." : "Install via 'sudo apt install radare2' (Debian/Ubuntu) or 'brew install radare2' (macOS)."
           items << CheckItem.new(
             "Native Debugger (radare2)",
-            :fail,
-            "radare2 not found (required for native debugging, breakpoint sync & pdc decompiler)",
+            :warn,
+            "radare2 not found (recommended for native debugging, breakpoint sync & pdc decompiler)",
             tip_msg
           )
         end

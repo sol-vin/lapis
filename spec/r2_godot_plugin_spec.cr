@@ -1,9 +1,16 @@
 require "spec"
 require "cradare2"
+require "../src/libgodot/debugger/radare_driver"
 require "../src/libgodot/debugger/r2_godot_plugin"
 
 describe Lapis::Debugger::R2GodotPlugin do
   it "initializes dual dispatchers for godot and lapis prefixes" do
+    unless Lapis::Debugger::RadareDriver.available?
+      pending! "radare2 not installed on system PATH"
+    end
+    unless File.exists?("bin/game.dll")
+      pending! "bin/game.dll not found for R2GodotPlugin spec"
+    end
     # Create in-session or offline client using cradare2 Mock / memory
     opts = Cradare2::Options.build do |o|
       o.target = "bin/game.dll"
@@ -30,6 +37,12 @@ describe Lapis::Debugger::R2GodotPlugin do
   end
 
   it "dispatches commands via unified dispatch method" do
+    unless Lapis::Debugger::RadareDriver.available?
+      pending! "radare2 not installed on system PATH"
+    end
+    unless File.exists?("bin/game.dll")
+      pending! "bin/game.dll not found for R2GodotPlugin spec"
+    end
     opts = Cradare2::Options.build { |o| o.target = "bin/game.dll" }
     client = Cradare2.open(opts)
     plugin = Lapis::Debugger::R2GodotPlugin.new(client)
