@@ -76,8 +76,14 @@ module Godot
     @[AlwaysInline]
     def mark_unsubscribed! : Void
       @unsubscribed = true
-      @completed = true
       @static_slot_token = 0_u64
+    end
+
+    @[ZeroAllocation]
+    @[HotPath]
+    @[AlwaysInline]
+    def mark_completed! : Void
+      @completed = true
     end
 
     def unsubscribe : Void
@@ -362,7 +368,7 @@ module Godot
       case other
       when :completed then completed?
       when :timed_out then timed_out?
-      else false
+      else                 false
       end
     end
 
@@ -654,5 +660,4 @@ module Godot
 
   # Wildcard type filter for signal connections and type queries
   alias Any = VariantValue
-
 end

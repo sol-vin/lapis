@@ -37,7 +37,7 @@ module Lapis
         @active_listeners : Int32,
         @total_emissions : UInt64,
         @slot_capacity : Int32,
-        @listener_capacity : Int32
+        @listener_capacity : Int32,
       )
       end
     end
@@ -59,7 +59,7 @@ module Lapis
         @tail_index : Int32 = -1,
         @active_count : Int32 = 0,
         @emission_count : UInt64 = 0_u64,
-        @occupied : Bool = false
+        @occupied : Bool = false,
       )
       end
 
@@ -100,7 +100,7 @@ module Lapis
         @next_index : Int32 = -1,
         @arity : Int32 = 0,
         @once : Bool = false,
-        @active : Bool = false
+        @active : Bool = false,
       )
       end
 
@@ -238,7 +238,7 @@ module Lapis
         once : Bool = false,
         subscription : ::Godot::SignalSubscription? = nil,
         match_proc_pointer : Pointer(Void) = Pointer(Void).null,
-        match_closure_data : Pointer(Void) = Pointer(Void).null
+        match_closure_data : Pointer(Void) = Pointer(Void).null,
       ) : UInt64 forall T, R
         sig_hash = self.class.fnv1a_64(signal_name)
         bind_by_hash(
@@ -260,7 +260,7 @@ module Lapis
         once : Bool = false,
         subscription : ::Godot::SignalSubscription? = nil,
         match_proc_pointer : Pointer(Void) = Pointer(Void).null,
-        match_closure_data : Pointer(Void) = Pointer(Void).null
+        match_closure_data : Pointer(Void) = Pointer(Void).null,
       ) : UInt64 forall T, R
         slot_idx = find_or_create_slot(emitter_id, signal_hash)
         return 0_u64 if slot_idx < 0
@@ -421,7 +421,7 @@ module Lapis
         emitter_id : UInt64,
         signal_name : String,
         payload_ptr : Pointer(Void) = Pointer(Void).null,
-        payload_bytes : Int32 = 0
+        payload_bytes : Int32 = 0,
       ) : Int32
         return 0 if emitter_id == 0_u64 || @active_slots == 0
         sig_hash = self.class.fnv1a_64(signal_name)
@@ -468,7 +468,7 @@ module Lapis
         emitter_id : UInt64,
         signal_name : String,
         value : T,
-        arena : FrameArena = FrameArena.current
+        arena : FrameArena = FrameArena.current,
       ) : Int32 forall T
         return 0 if emitter_id == 0_u64 || @active_slots == 0
         sig_hash = self.class.fnv1a_64(signal_name)
@@ -494,6 +494,9 @@ module Lapis
           rec_idx = snapshot.to_unsafe[idx]
           rec = @listeners.unsafe_fetch(rec_idx)
           if rec.active && is_record_live?(rec)
+            if sub = rec.subscription
+              sub.mark_completed!
+            end
             if rec.once
               deactivate_record(slot_idx, rec_idx)
             end
@@ -584,7 +587,7 @@ module Lapis
         emitter_id : UInt64,
         signal_name : String,
         proc_ptr : Pointer(Void),
-        closure_ptr : Pointer(Void)
+        closure_ptr : Pointer(Void),
       ) : Bool
         sig_hash = self.class.fnv1a_64(signal_name)
         unbind_proc_by_hash(emitter_id, sig_hash, proc_ptr, closure_ptr)
@@ -594,7 +597,7 @@ module Lapis
         emitter_id : UInt64,
         signal_hash : UInt64,
         proc_ptr : Pointer(Void),
-        closure_ptr : Pointer(Void)
+        closure_ptr : Pointer(Void),
       ) : Bool
         slot_idx = find_slot_index(emitter_id, signal_hash)
         return false if slot_idx < 0
@@ -907,7 +910,7 @@ module Lapis
         emitter_id : UInt64,
         indices_ptr : Pointer(Int32),
         count : Int32,
-        *args : *T
+        *args : *T,
       ) : Int32 forall T
         invoked = 0
         idx = 0
@@ -915,6 +918,9 @@ module Lapis
           rec_idx = indices_ptr[idx]
           rec = @listeners.unsafe_fetch(rec_idx)
           if rec.active && is_record_live?(rec)
+            if sub = rec.subscription
+              sub.mark_completed!
+            end
             if rec.once
               deactivate_record(rec.slot_index, rec_idx)
             end
@@ -940,7 +946,7 @@ module Lapis
       private def invoke_typed_proc(
         proc_ptr : Pointer(Void),
         closure_ptr : Pointer(Void),
-        *args : *T
+        *args : *T,
       ) : Void forall T
         cb = Proc(*T, Void).new(proc_ptr, closure_ptr)
         cb.call(*args)
@@ -949,7 +955,7 @@ module Lapis
       @[AlwaysInline]
       private def invoke_zero_arg_proc(
         proc_ptr : Pointer(Void),
-        closure_ptr : Pointer(Void)
+        closure_ptr : Pointer(Void),
       ) : Void
         cb = Proc(Void).new(proc_ptr, closure_ptr)
         cb.call
@@ -1059,7 +1065,7 @@ module Lapis
       def initialize(
         @name : String = "signal",
         @table : StaticSignalTable = StaticSignalTable.global,
-        @emitter_id : UInt64 = StaticSignalTable.next_anonymous_emitter_id
+        @emitter_id : UInt64 = StaticSignalTable.next_anonymous_emitter_id,
       )
         @signal_hash = StaticSignalTable.fnv1a_64(@name)
       end
@@ -1068,7 +1074,7 @@ module Lapis
         @table : StaticSignalTable,
         @emitter_id : UInt64,
         @name : String,
-        @signal_hash : UInt64
+        @signal_hash : UInt64,
       )
       end
 
@@ -1077,7 +1083,7 @@ module Lapis
         table : StaticSignalTable,
         emitter_id : UInt64,
         name : String,
-        signal_hash : UInt64
+        signal_hash : UInt64,
       ) : self
         new(table, emitter_id, name, signal_hash)
       end
@@ -1089,7 +1095,7 @@ module Lapis
         once : Bool = false,
         subscription : ::Godot::SignalSubscription? = nil,
         match_proc_pointer : Pointer(Void) = Pointer(Void).null,
-        match_closure_data : Pointer(Void) = Pointer(Void).null
+        match_closure_data : Pointer(Void) = Pointer(Void).null,
       ) : UInt64 forall R
         @table.bind_by_hash(
           @emitter_id,

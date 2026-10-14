@@ -296,5 +296,18 @@ describe "WO-064: Lapis::Core::FrameArena & StaticSignalTable (Zero-Allocation)"
       node.disconnect_all
       node.signal_connection_count("health_changed").should eq(0)
     end
+
+    it "does not mark awaiting subscriptions as completed when emitter is destroyed or unsubscribed" do
+      node = ArenaSignalTestNode.new
+      tid = node.signal_target_id
+      sub = Godot.subscribe_signal(tid, "zero_arg_triggered")
+      sub.completed?.should be_false
+      sub.unsubscribed?.should be_false
+
+      Godot.clear_signal_subscriptions(tid)
+      sub.unsubscribed?.should be_true
+      sub.completed?.should be_false
+      sub.active?.should be_false
+    end
   end
 end
