@@ -200,6 +200,7 @@ runs:
             "LIB=$vlcLib;$($env:LIB)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           }
           "C:\Program Files\VideoLAN\VLC" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+          "VLC_PLUGIN_PATH=C:\Program Files\VideoLAN\VLC\plugins" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
         }
 
     - name: Install Crystal Compiler
