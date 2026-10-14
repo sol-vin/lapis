@@ -666,6 +666,7 @@ module Godot
       # Register native signal callback from C++ bridge into Crystal signal dispatcher
       if !api.value.register_signal_callback.pointer.null?
         cb = ->(target_id : UInt64, sig_ptr : LibC::Char*, args_ptr : LibBridge::VariantArg*, count : Int32) {
+          return if Godot.in_typed_emit?
           sig_name = String.new(sig_ptr)
           arr = Array(Godot::Variant).new(count)
           if !args_ptr.null? && count > 0

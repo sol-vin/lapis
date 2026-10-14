@@ -5,6 +5,7 @@ module Godot
     property pointer : Void* = Pointer(Void).null
     getter instance_id : UInt64 = 0_u64
     getter? destroyed : Bool = false
+    @_bound_signal_cache : ::Hash(String, ::Godot::BoundSignal)? = nil
 
     def initialize(@pointer : Void* = Pointer(Void).null)
       if !@pointer.null?
@@ -625,14 +626,18 @@ module Godot
     def _godot_call_tool_button(button_name : String) : Void
     end
 
-    # Emits a parameterless signal on this Godot object.
+    # Emits a parameterless signal on this Godot object with zero GC heap allocations.
+    @[ZeroAllocation]
+    @[HotPath]
     def emit_signal(name : String) : Void
       check_alive!
       ::Godot::SignalSpy.record(self.class.name, name, 0)
+      tid = signal_target_id
+      ::Lapis::Core::StaticSignalTable.global.emit_standalone_zero_arg(tid, name)
       if !@pointer.null? && Bridge.available?
         Bridge.emit_signal(@pointer, name)
       else
-        Godot.notify_signal(signal_target_id, name, [] of Variant)
+        Godot.notify_signal(tid, name, Godot::EMPTY_VARIANT_ARGS)
       end
     end
 
@@ -643,8 +648,11 @@ module Godot
       if !@pointer.null? && Bridge.available?
         Bridge.emit_signal(@pointer, name, *args)
       else
-        var_args = args.map { |a| Variant.new(a) }.to_a
-        Godot.notify_signal(signal_target_id, name, var_args)
+        tid = signal_target_id
+        if Godot.has_signal_subscribers?(tid, name)
+          var_args = args.map { |a| Variant.new(a) }.to_a
+          Godot.notify_signal(tid, name, var_args)
+        end
       end
     end
 
@@ -896,9 +904,13 @@ module Godot
 
     # Disconnects all signal subscriptions for the named signal on this object.
     def disconnect(signal_name : String) : Void
-      key = {signal_target_id, signal_name}
+      tid = signal_target_id
+      ::Lapis::Core::StaticSignalTable.global.clear_signal(tid, signal_name)
+      key = {tid, signal_name}
       Godot.signal_subs_mutex.synchronize do
-        Godot.signal_subs.delete(key)
+        if list = Godot.signal_subs.delete(key)
+          list.each(&.mark_unsubscribed!)
+        end
       end
       if !@pointer.null? && @instance_id > 0
         Bridge.object_disconnect_signal(@pointer, signal_name)
@@ -919,13 +931,16 @@ module Godot
     # Disconnects all subscriptions across ALL signals on this object, returning self
     def disconnect_all : self
       tid = signal_target_id
+      ::Lapis::Core::StaticSignalTable.global.clear_emitter(tid)
       keys_to_delete = [] of Tuple(UInt64, String)
       Godot.signal_subs_mutex.synchronize do
         Godot.signal_subs.each_key do |k|
           keys_to_delete << k if k[0] == tid
         end
         keys_to_delete.each do |k|
-          Godot.signal_subs.delete(k)
+          if list = Godot.signal_subs.delete(k)
+            list.each(&.mark_unsubscribed!)
+          end
         end
       end
       if !@pointer.null? && @instance_id > 0
@@ -958,7 +973,9 @@ module Godot
       if entry = Godot::ClassRegistry.find(class_name)
         return true if entry.signals.any? { |s| s.name == signal_name }
       end
-      key = {signal_target_id, signal_name}
+      tid = signal_target_id
+      return true if ::Lapis::Core::StaticSignalTable.global.has_listeners?(tid, signal_name)
+      key = {tid, signal_name}
       Godot.signal_subs_mutex.synchronize do
         return true if Godot.signal_subs.has_key?(key)
       end
@@ -967,14 +984,17 @@ module Godot
 
     # Returns the count of active subscriptions for the given signal on this object.
     def signal_connection_count(signal_name : String) : Int32
-      key = {signal_target_id, signal_name}
+      tid = signal_target_id
+      key = {tid, signal_name}
+      count = 0
       Godot.signal_subs_mutex.synchronize do
         if list = Godot.signal_subs[key]?
-          list.size
-        else
-          0
+          list.each do |sub|
+            count += 1 if sub.active?
+          end
         end
       end
+      count + ::Lapis::Core::StaticSignalTable.global.standalone_listener_count(tid, signal_name)
     end
 
     # Prints a message to Godot's debug console.

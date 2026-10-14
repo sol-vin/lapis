@@ -125,62 +125,115 @@ module Godot
       self
     end
 
-    # Operator `+` for 1-argument typed Proc (supports exact types and downcasting)
+    # Operator `+` for 1-argument typed Proc (supports exact types and downcasting via StaticSignalTable)
     def +(proc : Proc(U0, R)) : self forall U0, R
-      sub = @target.connect(@name) do |args|
-        if args.size >= 1
-          raw = args[0].raw
-          if raw.is_a?(Godot::Object)
-            if casted = raw.as_a?(U0)
-              proc.call(casted)
+      sub = {% begin %}
+        {% if T.size >= 1 %}
+          connect do |{% for i in 0...T.size %}arg{{i}},{% end %}|
+            raw = arg0
+            if raw.is_a?(Godot::Object)
+              if casted = raw.as_a?(U0)
+                proc.call(casted)
+              end
+            elsif raw.is_a?(U0)
+              proc.call(raw)
+            elsif raw.is_a?(Int) && (num = raw.to_i32.as?(U0) || raw.to_i64.as?(U0))
+              proc.call(num)
+            elsif raw.is_a?(Float) && (flt = raw.to_f32.as?(U0) || raw.to_f64.as?(U0))
+              proc.call(flt)
             end
-          elsif raw.is_a?(U0)
-            proc.call(raw)
-          elsif raw.is_a?(Int) && (num = raw.to_i32.as?(U0) || raw.to_i64.as?(U0))
-            proc.call(num)
-          elsif raw.is_a?(Float) && (flt = raw.to_f32.as?(U0) || raw.to_f64.as?(U0))
-            proc.call(flt)
           end
-        end
-      end
+        {% else %}
+          @target.connect(@name) do |args|
+            if args.size >= 1
+              raw = args[0].raw
+              if raw.is_a?(Godot::Object)
+                if casted = raw.as_a?(U0)
+                  proc.call(casted)
+                end
+              elsif raw.is_a?(U0)
+                proc.call(raw)
+              elsif raw.is_a?(Int) && (num = raw.to_i32.as?(U0) || raw.to_i64.as?(U0))
+                proc.call(num)
+              elsif raw.is_a?(Float) && (flt = raw.to_f32.as?(U0) || raw.to_f64.as?(U0))
+                proc.call(flt)
+              end
+            end
+          end
+        {% end %}
+      {% end %}
       sub.proc_pointer = proc.pointer
       sub.proc_closure_data = proc.closure_data
       self
     end
 
-    # Operator `+` for 2-argument typed Proc (supports exact types and downcasting)
+    # Operator `+` for 2-argument typed Proc (supports exact types and downcasting via StaticSignalTable)
     def +(proc : Proc(U0, U1, R)) : self forall U0, U1, R
-      sub = @target.connect(@name) do |args|
-        if args.size >= 2
-          c0 : U0? = nil
-          raw0 = args[0].raw
-          if raw0.is_a?(Godot::Object)
-            c0 = raw0.as_a?(U0)
-          elsif raw0.is_a?(U0)
-            c0 = raw0
-          elsif raw0.is_a?(Int)
-            c0 = raw0.to_i32.as?(U0) || raw0.to_i64.as?(U0)
-          elsif raw0.is_a?(Float)
-            c0 = raw0.to_f32.as?(U0) || raw0.to_f64.as?(U0)
-          end
+      sub = {% begin %}
+        {% if T.size >= 2 %}
+          connect do |{% for i in 0...T.size %}arg{{i}},{% end %}|
+            c0 : U0? = nil
+            raw0 = arg0
+            if raw0.is_a?(Godot::Object)
+              c0 = raw0.as_a?(U0)
+            elsif raw0.is_a?(U0)
+              c0 = raw0
+            elsif raw0.is_a?(Int)
+              c0 = raw0.to_i32.as?(U0) || raw0.to_i64.as?(U0)
+            elsif raw0.is_a?(Float)
+              c0 = raw0.to_f32.as?(U0) || raw0.to_f64.as?(U0)
+            end
 
-          c1 : U1? = nil
-          raw1 = args[1].raw
-          if raw1.is_a?(Godot::Object)
-            c1 = raw1.as_a?(U1)
-          elsif raw1.is_a?(U1)
-            c1 = raw1
-          elsif raw1.is_a?(Int)
-            c1 = raw1.to_i32.as?(U1) || raw1.to_i64.as?(U1)
-          elsif raw1.is_a?(Float)
-            c1 = raw1.to_f32.as?(U1) || raw1.to_f64.as?(U1)
-          end
+            c1 : U1? = nil
+            raw1 = arg1
+            if raw1.is_a?(Godot::Object)
+              c1 = raw1.as_a?(U1)
+            elsif raw1.is_a?(U1)
+              c1 = raw1
+            elsif raw1.is_a?(Int)
+              c1 = raw1.to_i32.as?(U1) || raw1.to_i64.as?(U1)
+            elsif raw1.is_a?(Float)
+              c1 = raw1.to_f32.as?(U1) || raw1.to_f64.as?(U1)
+            end
 
-          if !c0.nil? && !c1.nil?
-            proc.call(c0, c1)
+            if !c0.nil? && !c1.nil?
+              proc.call(c0, c1)
+            end
           end
-        end
-      end
+        {% else %}
+          @target.connect(@name) do |args|
+            if args.size >= 2
+              c0 : U0? = nil
+              raw0 = args[0].raw
+              if raw0.is_a?(Godot::Object)
+                c0 = raw0.as_a?(U0)
+              elsif raw0.is_a?(U0)
+                c0 = raw0
+              elsif raw0.is_a?(Int)
+                c0 = raw0.to_i32.as?(U0) || raw0.to_i64.as?(U0)
+              elsif raw0.is_a?(Float)
+                c0 = raw0.to_f32.as?(U0) || raw0.to_f64.as?(U0)
+              end
+
+              c1 : U1? = nil
+              raw1 = args[1].raw
+              if raw1.is_a?(Godot::Object)
+                c1 = raw1.as_a?(U1)
+              elsif raw1.is_a?(U1)
+                c1 = raw1
+              elsif raw1.is_a?(Int)
+                c1 = raw1.to_i32.as?(U1) || raw1.to_i64.as?(U1)
+              elsif raw1.is_a?(Float)
+                c1 = raw1.to_f32.as?(U1) || raw1.to_f64.as?(U1)
+              end
+
+              if !c0.nil? && !c1.nil?
+                proc.call(c0, c1)
+              end
+            end
+          end
+        {% end %}
+      {% end %}
       sub.proc_pointer = proc.pointer
       sub.proc_closure_data = proc.closure_data
       self
@@ -188,9 +241,17 @@ module Godot
 
     # Operator `+` syntactic sugar for 0-argument Proc (supports `sig += ->handler`)
     def +(proc : Proc(R)) : self forall R
-      sub = @target.connect(@name) do
-        proc.call
-      end
+      sub = {% begin %}
+        {% if T.size == 0 %}
+          connect do
+            proc.call
+          end
+        {% else %}
+          connect do |{% for i in 0...T.size %}_arg{{i}},{% end %}|
+            proc.call
+          end
+        {% end %}
+      {% end %}
       sub.proc_pointer = proc.pointer
       sub.proc_closure_data = proc.closure_data
       self
@@ -212,7 +273,11 @@ module Godot
           sub_to_unsub = list.reverse.find { |s| s.proc_pointer == proc.pointer && s.proc_closure_data == proc.closure_data && s.active? }
         end
       end
-      sub_to_unsub.try(&.unsubscribe)
+      if sub = sub_to_unsub
+        sub.unsubscribe
+      else
+        ::Lapis::Core::StaticSignalTable.global.unbind_proc_by_hash(tid, @signal_hash, proc.pointer, proc.closure_data)
+      end
       self
     end
 

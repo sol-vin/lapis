@@ -1,10 +1,32 @@
 module Godot
-  # Strongly-typed signal binding offering compile-time type safety for signal connections and await.
+  # Strongly-typed signal binding offering compile-time type safety and zero-allocation
+  # dispatch via `Lapis::Core::StaticSignalTable`.
   class TypedSignal(*T) < BoundSignal
-    # Type-safe connect with automatic unboxing into block parameters
+    getter signal_hash : UInt64
+
+    def initialize(@target : Godot::Object, @name : String)
+      super(@target, @name)
+      @signal_hash = ::Lapis::Core::StaticSignalTable.fnv1a_64(@name)
+    end
+
+    # Returns the zero-allocation `Lapis::Core::StaticSignalSlot(*T)` backing this signal.
+    @[ZeroAllocation]
+    @[HotPath]
+    @[AlwaysInline]
+    def static_slot : ::Lapis::Core::StaticSignalSlot(*T)
+      ::Lapis::Core::StaticSignalSlot(*T).from_table(
+        ::Lapis::Core::StaticSignalTable.global,
+        target_id,
+        @name,
+        @signal_hash
+      )
+    end
+
+    # Type-safe connect binding directly to `StaticSignalTable` for zero-allocation emission,
+    # while maintaining a synchronized `SignalSubscription` for lifecycle and dynamic fallback.
     def connect(flags : ConnectFlags = ConnectFlags::None, receiver : Godot::Object? = nil, &block : *T -> Void) : SignalSubscription
       cb = block
-      @target.connect(@name, flags, receiver: receiver) do |args|
+      sub = @target.connect(@name, flags, receiver: receiver) do |args|
         {% begin %}
           {% if T.size == 0 %}
             cb.call
@@ -21,11 +43,41 @@ module Godot
           {% end %}
         {% end %}
       end
+      sub.typed_fast_path = true
+      sub.proc_pointer = cb.pointer
+      sub.proc_closure_data = cb.closure_data
+      token = ::Lapis::Core::StaticSignalTable.global.bind_by_hash(
+        target_id,
+        @signal_hash,
+        cb,
+        once: flags.includes?(ConnectFlags::OneShot),
+        subscription: sub
+      )
+      sub.static_slot_token = token
+      sub
     end
 
     # Overload allowing receiver as first positional argument: `sig.connect(receiver) { |args| ... }`
     def connect(receiver : Godot::Object, flags : ConnectFlags = ConnectFlags::None, &block : *T -> Void) : SignalSubscription
       connect(flags: flags, receiver: receiver, &block)
+    end
+
+    # Binds a pre-constructed `Proc(*T, R)` directly to the underlying `StaticSignalTable` slot.
+    def bind(proc : Proc(*T, R), flags : ConnectFlags = ConnectFlags::None, receiver : Godot::Object? = nil) : SignalSubscription forall R
+      sub = {% begin %}
+        {% if T.size == 0 %}
+          connect(flags: flags, receiver: receiver) do
+            proc.call
+          end
+        {% else %}
+          connect(flags: flags, receiver: receiver) do |{% for i in 0...T.size %}arg{{i}},{% end %}|
+            proc.call({% for i in 0...T.size %}arg{{i}},{% end %})
+          end
+        {% end %}
+      {% end %}
+      sub.proc_pointer = proc.pointer
+      sub.proc_closure_data = proc.closure_data
+      sub
     end
 
     # Backwards-compatibility helper redirecting to ConnectFlags::OneShot
@@ -38,9 +90,41 @@ module Godot
       connect(flags: ConnectFlags::OneShot, &block)
     end
 
+    # Emits this typed signal with strictly ZERO GC heap allocations on the typed hot path.
+    @[ZeroAllocation]
+    @[HotPath]
     def emit(*args : *T) : self
-      @target.emit_signal(@name, *args)
+      @target.check_alive!
+      ::Godot::SignalSpy.record(@target.class.name, @name, {{ T.size }})
+      tid = target_id
+      ::Lapis::Core::StaticSignalTable.global.emit_by_hash(tid, @signal_hash, *args)
+      if Godot.has_untyped_signal_subscribers?(tid, @name)
+        emit_untyped_fallback(tid, *args)
+      end
+      if !@target.pointer.null? && Bridge.available?
+        emit_bridge_fallback(*args)
+      end
       self
+    end
+
+    private def emit_untyped_fallback(tid : UInt64, *args : *T) : Void
+      {% if T.size == 0 %}
+        Godot.notify_untyped_signal(tid, @name, Godot::EMPTY_VARIANT_ARGS)
+      {% else %}
+        var_args = args.map { |a| Variant.new(a) }.to_a
+        Godot.notify_untyped_signal(tid, @name, var_args)
+      {% end %}
+    end
+
+    @[ZeroAllocation]
+    private def emit_bridge_fallback(*args : *T) : Void
+      Godot.in_typed_emit = true
+      {% if T.size == 0 %}
+        Bridge.emit_signal(@target.pointer, @name)
+      {% else %}
+        Bridge.emit_signal(@target.pointer, @name, *args)
+      {% end %}
+      Godot.in_typed_emit = false
     end
 
     def await(timeout_sec : Float64? = nil)

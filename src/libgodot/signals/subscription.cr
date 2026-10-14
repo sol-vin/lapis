@@ -8,16 +8,24 @@ module Godot
     ReferenceCounted = 8_u32
   end
 
+  # Pre-allocated empty Variant array for zero-allocation parameterless signal dispatch.
+  EMPTY_VARIANT_ARGS = [] of Variant
+
+  # Re-entrancy guard when TypedSignal#emit dispatches through C++ Bridge.emit_signal.
+  class_property? in_typed_emit : Bool = false
+
   # Represents an active signal subscription or awaiter
   class SignalSubscription
     getter target_id : UInt64
     getter signal_name : String
     getter flags : ConnectFlags
     getter? completed : Bool = false
-    getter args : ::Array(Variant) = ::Array(Variant).new
+    getter args : ::Array(Variant) = EMPTY_VARIANT_ARGS
     getter callback : Proc(::Array(Variant), Void)?
     property proc_pointer : Void* = Pointer(Void).null
     property proc_closure_data : Void* = Pointer(Void).null
+    property? typed_fast_path : Bool = false
+    property static_slot_token : UInt64 = 0_u64
     getter receiver : Godot::Object? = nil
     getter receiver_id : UInt64? = nil
 
@@ -63,9 +71,29 @@ module Godot
 
     getter? unsubscribed : Bool = false
 
+    @[ZeroAllocation]
+    @[HotPath]
+    @[AlwaysInline]
+    def mark_unsubscribed! : Void
+      @unsubscribed = true
+      @static_slot_token = 0_u64
+    end
+
+    @[ZeroAllocation]
+    @[HotPath]
+    @[AlwaysInline]
+    def mark_completed! : Void
+      @completed = true
+    end
+
     def unsubscribe : Void
       return if @unsubscribed
       @unsubscribed = true
+      if @static_slot_token != 0_u64
+        tok = @static_slot_token
+        @static_slot_token = 0_u64
+        ::Lapis::Core::StaticSignalTable.global.unbind(tok)
+      end
       Godot.unsubscribe_signal(self)
     end
 
@@ -75,6 +103,8 @@ module Godot
     end
 
     # Returns true if this subscription is still active and listening
+    @[ZeroAllocation]
+    @[HotPath]
     def active? : Bool
       return false if @unsubscribed
       if recv = @receiver
@@ -88,6 +118,8 @@ module Godot
     end
 
     # Idiomatic alias for `active?`
+    @[ZeroAllocation]
+    @[HotPath]
     def connected? : Bool
       active?
     end
@@ -127,25 +159,136 @@ module Godot
   # Cleans up all signal subscriptions associated with a target instance ID (as emitter or receiver)
   def self.clear_signal_subscriptions(target_id : UInt64) : Void
     return if target_id == 0
+    ::Lapis::Core::StaticSignalTable.global.clear_emitter(target_id)
     signal_subs_mutex.synchronize do
       signal_subs.each_value do |list|
-        list.reject! { |sub| sub.receiver_id == target_id }
+        list.reject! do |sub|
+          if sub.receiver_id == target_id
+            sub.mark_unsubscribed!
+            true
+          else
+            false
+          end
+        end
       end
-      signal_subs.reject! { |(tid, _), list| tid == target_id || list.empty? }
+      signal_subs.reject! do |(tid, _), list|
+        if tid == target_id
+          list.each(&.mark_unsubscribed!)
+          true
+        else
+          list.empty?
+        end
+      end
     end
   end
 
-  # Notifies active subscribers that a signal has fired on an object
-  def self.notify_signal(target_id : UInt64, signal_name : String, args : ::Array(Variant)) : Void
-    return if target_id == 0
+  # Returns true if `(target_id, signal_name)` has any active `SignalSubscription` listeners.
+  @[ZeroAllocation]
+  @[HotPath]
+  def self.has_signal_subscribers?(target_id : UInt64, signal_name : String) : Bool
+    return false if target_id == 0_u64 || @@signal_subs.empty?
     key = {target_id, signal_name}
-    subs_to_notify = nil
-    signal_subs_mutex.synchronize do
-      if list = signal_subs[key]?
-        subs_to_notify = list.dup
+    if list = @@signal_subs[key]?
+      i = 0
+      n = list.size
+      while i < n
+        return true if list.unsafe_fetch(i).active?
+        i += 1
       end
     end
-    subs_to_notify.try(&.each(&.trigger(args)))
+    false
+  end
+
+  # Returns true if `(target_id, signal_name)` has any active untyped `BoundSignal` / `await` listeners.
+  @[ZeroAllocation]
+  @[HotPath]
+  def self.has_untyped_signal_subscribers?(target_id : UInt64, signal_name : String) : Bool
+    return false if target_id == 0_u64 || @@signal_subs.empty?
+    key = {target_id, signal_name}
+    if list = @@signal_subs[key]?
+      i = 0
+      n = list.size
+      while i < n
+        sub = list.unsafe_fetch(i)
+        return true if !sub.typed_fast_path? && sub.active?
+        i += 1
+      end
+    end
+    false
+  end
+
+  # Notifies active subscribers that a signal has fired on an object.
+  # Uses a stack-allocated StaticArray snapshot for <= 64 listeners (zero heap allocations).
+  def self.notify_signal(target_id : UInt64, signal_name : String, args : ::Array(Variant) = EMPTY_VARIANT_ARGS) : Void
+    return if target_id == 0_u64 || @@signal_subs.empty?
+    key = {target_id, signal_name}
+    snap = uninitialized StaticArray(SignalSubscription, 64)
+    snap_count = 0
+    overflow = nil
+    signal_subs_mutex.synchronize do
+      if list = signal_subs[key]?
+        n = list.size
+        if n <= 64
+          i = 0
+          while i < n
+            s = list.unsafe_fetch(i)
+            if s.active?
+              snap.to_unsafe[snap_count] = s
+              snap_count += 1
+            end
+            i += 1
+          end
+        else
+          overflow = list.dup
+        end
+      end
+    end
+    if ov = overflow
+      ov.each(&.trigger(args))
+    else
+      idx = 0
+      while idx < snap_count
+        snap.to_unsafe[idx].trigger(args)
+        idx += 1
+      end
+    end
+  end
+
+  # Notifies only untyped `BoundSignal` / `await` subscribers when a `TypedSignal` has already
+  # dispatched all typed fast-path subscribers through `StaticSignalTable`.
+  def self.notify_untyped_signal(target_id : UInt64, signal_name : String, args : ::Array(Variant) = EMPTY_VARIANT_ARGS) : Void
+    return if target_id == 0_u64 || @@signal_subs.empty?
+    key = {target_id, signal_name}
+    snap = uninitialized StaticArray(SignalSubscription, 64)
+    snap_count = 0
+    overflow = nil
+    signal_subs_mutex.synchronize do
+      if list = signal_subs[key]?
+        n = list.size
+        if n <= 64
+          i = 0
+          while i < n
+            s = list.unsafe_fetch(i)
+            if !s.typed_fast_path? && s.active?
+              snap.to_unsafe[snap_count] = s
+              snap_count += 1
+            end
+            i += 1
+          end
+        else
+          overflow = list.reject(&.typed_fast_path?)
+        end
+      end
+    end
+    if ov = overflow
+      ov.each(&.trigger(args))
+    else
+      idx = 0
+      while idx < snap_count
+        snap.to_unsafe[idx].trigger(args)
+        idx += 1
+      end
+    end
   end
 
   # Status enum representing the completion outcome of an asynchronous await operation.
@@ -225,7 +368,7 @@ module Godot
       case other
       when :completed then completed?
       when :timed_out then timed_out?
-      else false
+      else                 false
       end
     end
 
@@ -517,5 +660,4 @@ module Godot
 
   # Wildcard type filter for signal connections and type queries
   alias Any = VariantValue
-
 end
