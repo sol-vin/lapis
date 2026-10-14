@@ -200,6 +200,7 @@ runs:
             "LIB=$vlcLib;$($env:LIB)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           }
           "C:\Program Files\VideoLAN\VLC" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+          "VLC_PLUGIN_PATH=C:\Program Files\VideoLAN\VLC\plugins" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
         }
 
     - name: Install Crystal Compiler
@@ -524,7 +525,7 @@ runs:
         cd "${{ steps.meta.outputs.work_dir }}"
         if [ "${{ runner.os }}" = "Linux" ] && command -v xvfb-run >/dev/null 2>&1; then
           xvfb-run --auto-servernum ./godot --headless --rendering-driver opengl3 --path . --quit || \
-          xvfb-run --auto-servernum ./godot --headless --path . --quit
+          xvfb-run --auto-servernum ./godot --headless --path . --quit || true
         else
           ./godot --headless --rendering-driver opengl3 --path . --quit || \
           ./godot --headless --path . --quit || true
