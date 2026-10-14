@@ -133,12 +133,6 @@ jobs:
           extra-apt-packages: ${{ inputs.extra-apt-packages || '' }}
           extra-brew-packages: ${{ inputs.extra-brew-packages || '' }}
 
-      - name: Cleanup Staged Composite Action
-        if: always() && steps.stage-action.outputs.staged == 'true'
-        shell: bash
-        run: |
-          rm -rf .github/actions/build-lapis-addon .github/actions/setup-lapis
-
   android-verify:
     name: Lapis Addon Android Verification (arm64-v8a)
     runs-on: ubuntu-latest
