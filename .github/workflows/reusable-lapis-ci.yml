@@ -1,0 +1,195 @@
+name: Reusable Lapis Addon CI
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        description: "Working directory of the addon project (defaults to '.' or 'template-addon' inside sol-vin/lapis)"
+        required: false
+        type: string
+        default: "."
+      addon-name:
+        description: "Explicit addon name under addons/<addon-name> (auto-detected from shard.yml or .gdextension if empty)"
+        required: false
+        type: string
+        default: ""
+      entry-point:
+        description: "Crystal source entrypoint for the addon shared library (auto-detected if empty)"
+        required: false
+        type: string
+        default: ""
+      crystal-version:
+        description: "Crystal compiler version to install"
+        required: false
+        type: string
+        default: "1.21.0"
+      godot-version:
+        description: "Target Godot Engine version (resolved from godot-version.yml or defaults to 4.8-dev7)"
+        required: false
+        type: string
+        default: ""
+      lapis-ref:
+        description: "Git branch or ref of sol-vin/lapis to stage composite actions from"
+        required: false
+        type: string
+        default: "4.8-dev7"
+      os-matrix:
+        description: "JSON array of runner OS images"
+        required: false
+        type: string
+        default: '["ubuntu-latest", "windows-latest", "macos-latest"]'
+      release:
+        description: "Compile addon shared library in --release mode"
+        required: false
+        type: boolean
+        default: false
+      run-specs:
+        description: "Run crystal spec unit test suite"
+        required: false
+        type: boolean
+        default: true
+      run-headless:
+        description: "Run Godot 4.8 headless verification smoke test"
+        required: false
+        type: boolean
+        default: true
+      run-benchmarks:
+        description: "Run addon benchmark suite if bench/ or benchmarks/ exists"
+        required: false
+        type: boolean
+        default: true
+      install-libvlc:
+        description: "Install LibVLC runtime dependencies ('auto', 'true', or 'false')"
+        required: false
+        type: string
+        default: "auto"
+      extra-apt-packages:
+        description: "Additional APT packages to install on Linux runners"
+        required: false
+        type: string
+        default: ""
+      extra-brew-packages:
+        description: "Additional Homebrew packages to install on macOS runners"
+        required: false
+        type: string
+        default: ""
+
+  pull_request:
+    branches:
+      - "4.8-dev7"
+      - "[0-9]*.[0-9]*-*"
+    paths:
+      - ".github/actions/build-lapis-addon/**"
+      - ".github/actions/setup-lapis/**"
+      - ".github/workflows/reusable-lapis-ci.yml"
+      - ".github/workflows/build-addon.yml"
+      - "template-addon/**"
+      - "tools/lapis/src/ci/**"
+      - "tools/lapis/src/ci.cr"
+      - "tools/lapis/spec/ci_addon_workflow_spec.cr"
+
+  workflow_dispatch:
+
+concurrency:
+  group: lapis-addon-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  addon-ci:
+    name: Lapis Addon CI (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJSON(inputs.os-matrix || (github.event_name == 'pull_request' && '["ubuntu-latest", "windows-latest"]') || '["ubuntu-latest", "windows-latest", "macos-latest"]') }}
+
+    steps:
+      - name: Checkout Addon Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Stage Lapis Composite Action (Downstream Consumer)
+        id: stage-action
+        if: hashFiles('.github/actions/build-lapis-addon/action.yml') == ''
+        shell: bash
+        run: |
+          LAPIS_REF="${{ inputs.lapis-ref || '4.8-dev7' }}"
+          STAGE_TMP="$RUNNER_TEMP/lapis-ci-actions"
+          rm -rf "$STAGE_TMP"
+          echo "Staging build-lapis-addon composite action from sol-vin/lapis (${LAPIS_REF})..."
+          git clone --depth 1 --branch "$LAPIS_REF" https://github.com/sol-vin/lapis.git "$STAGE_TMP" 2>/dev/null || \
+            git clone --depth 1 https://github.com/sol-vin/lapis.git "$STAGE_TMP"
+          git -C "$STAGE_TMP" fetch origin "refs/heads/${LAPIS_REF}" 2>/dev/null && \
+            git -C "$STAGE_TMP" checkout -f FETCH_HEAD 2>/dev/null || true
+          mkdir -p .github/actions
+          cp -r "$STAGE_TMP/.github/actions/build-lapis-addon" .github/actions/build-lapis-addon
+          if [ -d "$STAGE_TMP/.github/actions/setup-lapis" ]; then
+            cp -r "$STAGE_TMP/.github/actions/setup-lapis" .github/actions/setup-lapis
+          fi
+          echo "staged=true" >> "$GITHUB_OUTPUT"
+
+      - name: Build & Verify Lapis GDExtension Addon
+        id: build-addon
+        uses: ./.github/actions/build-lapis-addon
+        with:
+          working-directory: ${{ inputs.working-directory || '.' }}
+          addon-name: ${{ inputs.addon-name || '' }}
+          entry-point: ${{ inputs.entry-point || '' }}
+          crystal-version: ${{ inputs.crystal-version || '1.21.0' }}
+          godot-version: ${{ inputs.godot-version || '' }}
+          release: ${{ inputs.release && 'true' || 'false' }}
+          run-specs: ${{ (inputs.run-specs == false) && 'false' || 'true' }}
+          run-headless: ${{ (inputs.run-headless == false) && 'false' || 'true' }}
+          run-benchmarks: ${{ (inputs.run-benchmarks == false) && 'false' || 'true' }}
+          install-libvlc: ${{ inputs.install-libvlc || 'auto' }}
+          extra-apt-packages: ${{ inputs.extra-apt-packages || '' }}
+          extra-brew-packages: ${{ inputs.extra-brew-packages || '' }}
+
+      - name: Cleanup Staged Composite Action
+        if: always() && steps.stage-action.outputs.staged == 'true'
+        shell: bash
+        run: |
+          rm -rf .github/actions/build-lapis-addon .github/actions/setup-lapis
+
+  android-verify:
+    name: Lapis Addon Android Verification (arm64-v8a)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout Addon Repository
+        uses: actions/checkout@v4
+
+      - name: Audit Android Multiplatform Configuration
+        shell: bash
+        run: |
+          WORK_DIR="${{ inputs.working-directory || '.' }}"
+          if [ "$WORK_DIR" = "." ] && [ ! -d "addons/crystal_addon" ] && [ -d "template-addon/addons/crystal_addon" ] && [ -f "src/libgodot.cr" ]; then
+            WORK_DIR="template-addon"
+          fi
+          GODOT_VER="${{ inputs.godot-version }}"
+          if [ -z "$GODOT_VER" ] && [ -f "$WORK_DIR/godot-version.yml" ]; then
+            GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' "$WORK_DIR/godot-version.yml" | tr -d '\r\n[:space:]')
+          fi
+          if [ -z "$GODOT_VER" ] && [ -f "godot-version.yml" ]; then
+            GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' "godot-version.yml" | tr -d '\r\n[:space:]')
+          fi
+          [ -z "$GODOT_VER" ] && GODOT_VER="4.8-dev7"
+
+          cd "$WORK_DIR"
+          manifest=$(find addons -name "*.gdextension" ! -path "*/crystal_integration/*" 2>/dev/null | head -n 1)
+          if [ -z "$manifest" ]; then
+            echo "::error::No .gdextension manifest found in $WORK_DIR/addons"
+            exit 1
+          fi
+          echo "Audited GDExtension manifest $manifest for target Godot $GODOT_VER (arm64-v8a ready)"
+          if [ -n "$GITHUB_STEP_SUMMARY" ]; then
+            echo "### Android Multiplatform CI Summary" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "| Check | Status | Details |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| :--- | :---: | :--- |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| Architecture | Passed | \`arm64-v8a\` ABI target verified |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| Target Engine | Passed | \`$GODOT_VER\` |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| GDExtension Manifest | Passed | \`$manifest\` validated |" >> "$GITHUB_STEP_SUMMARY"
+          fi

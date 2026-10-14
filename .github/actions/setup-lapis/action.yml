@@ -1,0 +1,65 @@
+name: "Setup Lapis & Godot 4.8 Toolchain"
+description: "Composite GitHub Action to install Crystal, cache shards, and setup Godot 4.8 for Lapis projects and addons."
+author: "Sol-Vin AI Organization (Gamma)"
+
+inputs:
+  working-directory:
+    description: "Working directory of the project"
+    required: false
+    default: "."
+  crystal-version:
+    description: "Crystal compiler version to install"
+    required: false
+    default: "1.21.0"
+  godot-version:
+    description: "Target Godot Engine version (resolved from godot-version.yml or defaults to 4.8-dev7)"
+    required: false
+    default: ""
+
+outputs:
+  godot-version:
+    description: "Resolved target Godot Engine version"
+    value: ${{ steps.meta.outputs.godot_version }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Resolve Godot Version
+      id: meta
+      shell: bash
+      run: |
+        WORK_DIR="${{ inputs.working-directory }}"
+        [ -z "$WORK_DIR" ] && WORK_DIR="."
+        GODOT_VER="${{ inputs.godot-version }}"
+        if [ -z "$GODOT_VER" ] && [ -f "$WORK_DIR/godot-version.yml" ]; then
+          GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' "$WORK_DIR/godot-version.yml" | tr -d '\r\n[:space:]')
+        fi
+        if [ -z "$GODOT_VER" ] && [ -f "godot-version.yml" ]; then
+          GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' "godot-version.yml" | tr -d '\r\n[:space:]')
+        fi
+        [ -z "$GODOT_VER" ] && GODOT_VER="4.8-dev7"
+        echo "godot_version=$GODOT_VER" >> "$GITHUB_OUTPUT"
+        echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
+
+    - name: Install Crystal Compiler
+      uses: crystal-lang/install-crystal@v1
+      with:
+        crystal: ${{ inputs.crystal-version }}
+
+    - name: Cache Crystal Build & Shards
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/crystal
+          ~\AppData\Local\crystal\cache
+          ${{ inputs.working-directory }}/lib
+        key: lapis-setup-cache-${{ runner.os }}-${{ hashFiles('**/shard.yml', '**/shard.lock') }}
+        restore-keys: |
+          lapis-setup-cache-${{ runner.os }}-
+
+    - name: Setup Godot Engine
+      uses: appsinacup/action_setup_godot@main
+      with:
+        repo: godotengine/godot-builds
+        version: ${{ steps.meta.outputs.godot_version }}
+        enable_cache: true
