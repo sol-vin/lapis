@@ -23,7 +23,7 @@ module Godot
       @operation : String,
       @target_class : String,
       @calling_context : String,
-      node : Godot::Node? = nil
+      node : Godot::Node? = nil,
     )
       @inside_tree = false
       if node && node.alive?
@@ -153,17 +153,17 @@ module Godot
       f = Fiber.current
       ec = f.execution_context?
       ec_desc = case ec
-      when nil
-        "unmanaged OS thread (Thread.new, no ExecutionContext)"
-      when Fiber::ExecutionContext::Parallel
-        "Fiber::ExecutionContext::Parallel('#{ec.name}')"
-      when Fiber::ExecutionContext::Concurrent
-        "Fiber::ExecutionContext::Concurrent('#{ec.name}')"
-      when Fiber::ExecutionContext::Isolated
-        "Fiber::ExecutionContext::Isolated"
-      else
-        "#{ec.class.name}('#{ec.name}')"
-      end
+                when nil
+                  "unmanaged OS thread (Thread.new, no ExecutionContext)"
+                when Fiber::ExecutionContext::Parallel
+                  "Fiber::ExecutionContext::Parallel('#{ec.name}')"
+                when Fiber::ExecutionContext::Concurrent
+                  "Fiber::ExecutionContext::Concurrent('#{ec.name}')"
+                when Fiber::ExecutionContext::Isolated
+                  "Fiber::ExecutionContext::Isolated"
+                else
+                  "#{ec.class.name}('#{ec.name}')"
+                end
       "Fiber '#{f.name || "anonymous"}' in #{ec_desc} [OS Thread ID: #{os_id}]"
     end
 
@@ -172,7 +172,7 @@ module Godot
       operation : String,
       target_class : String,
       node : Godot::Node? = nil,
-      child : Godot::Node? = nil
+      child : Godot::Node? = nil,
     ) : Void
       {% if flag?(:no_thread_safety) || flag?(:disable_thread_safety) || flag?(:fast_dispatch) %}
         # 0-cost no-op: thread safety checks bypassed for maximum speed
@@ -239,3 +239,32 @@ module Godot
     ThreadSafety.run_on_main_thread(&block)
   end
 end
+
+{% if !flag?(:without_mt) && !flag?(:preview_mt) || flag?(:execution_context) %}
+  # In Crystal 1.20+ (ExecutionContext), Fiber.syscall marks the active scheduler
+  # with SYSCALL_FLAG during blocking C calls (such as LibC.open in Polling#open).
+  # If the 10ms SYSMON thread (Fiber::ExecutionContext::Monitor) ticks while the
+  # default scheduler is inside a syscall on Godot's Main OS Thread, SYSMON
+  # detaches the scheduler from Godot's Main OS Thread, parks Godot's Main Thread
+  # in ThreadPool#checkin (parked.wait), and resumes Fiber 'main' (along with
+  # Godot's C++ call stack) on a background pthread.
+  #
+  # Pin the default execution context scheduler to its host thread (identical to
+  # Fiber::ExecutionContext::Isolated#syscall) so Godot's Main Thread is never
+  # detached into the background thread pool.
+  class ::Fiber::ExecutionContext::Parallel::Scheduler
+    def syscall(& : -> U) : U forall U
+      if @execution_context == ::Fiber::ExecutionContext.default
+        return yield
+      end
+      super { yield }
+    end
+
+    protected def detach_syscall? : Bool
+      if @execution_context == ::Fiber::ExecutionContext.default
+        return false
+      end
+      super
+    end
+  end
+{% end %}

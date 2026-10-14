@@ -36,8 +36,8 @@ describe "Godot::ThreadSafety & ThreadAffinityError Headless Specs" do
       worker_pool.spawn(name: "ChunkWorker") do
         f = Fiber.current
         ch.send({
-          main: Godot::ThreadSafety.main_thread?,
-          ec_name: f.execution_context?.try(&.name)
+          main:    Godot::ThreadSafety.main_thread?,
+          ec_name: f.execution_context?.try(&.name),
         })
       end
 
@@ -183,6 +183,20 @@ describe "Godot::ThreadSafety & ThreadAffinityError Headless Specs" do
       executed_values.should be_empty
       Godot::ThreadSafety.flush_main_thread_queue!
       executed_values.should eq([100, 200])
+    end
+
+    it "pins the default ExecutionContext scheduler to the Main OS Thread across Fiber.syscall ticks" do
+      initial_tid = Godot::ThreadSafety.current_thread_id
+      initial_tid.should eq(Godot::ThreadSafety.main_thread_id)
+
+      # Hold inside Fiber.syscall longer than SYSMON's 10ms monitor interval
+      ::Fiber.syscall do
+        Crystal::System::Thread.sleep(25.milliseconds)
+      end
+
+      # Fiber 'main' must remain on the exact same OS thread and never migrate to ThreadPool
+      Godot::ThreadSafety.current_thread_id.should eq(initial_tid)
+      Godot::ThreadSafety.main_thread?.should be_true
     end
   end
 end
