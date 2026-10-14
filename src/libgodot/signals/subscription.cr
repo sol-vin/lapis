@@ -368,7 +368,7 @@ module Godot
       case other
       when :completed then completed?
       when :timed_out then timed_out?
-      else false
+      else                 false
       end
     end
 
@@ -660,5 +660,4 @@ module Godot
 
   # Wildcard type filter for signal connections and type queries
   alias Any = VariantValue
-
 end
