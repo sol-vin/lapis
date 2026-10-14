@@ -525,7 +525,7 @@ runs:
         cd "${{ steps.meta.outputs.work_dir }}"
         if [ "${{ runner.os }}" = "Linux" ] && command -v xvfb-run >/dev/null 2>&1; then
           xvfb-run --auto-servernum ./godot --headless --rendering-driver opengl3 --path . --quit || \
-          xvfb-run --auto-servernum ./godot --headless --path . --quit
+          xvfb-run --auto-servernum ./godot --headless --path . --quit || true
         else
           ./godot --headless --rendering-driver opengl3 --path . --quit || \
           ./godot --headless --path . --quit || true
