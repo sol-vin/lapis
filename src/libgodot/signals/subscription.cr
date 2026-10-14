@@ -76,8 +76,14 @@ module Godot
     @[AlwaysInline]
     def mark_unsubscribed! : Void
       @unsubscribed = true
-      @completed = true
       @static_slot_token = 0_u64
+    end
+
+    @[ZeroAllocation]
+    @[HotPath]
+    @[AlwaysInline]
+    def mark_completed! : Void
+      @completed = true
     end
 
     def unsubscribe : Void

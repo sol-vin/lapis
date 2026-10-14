@@ -298,3 +298,224 @@ describe "WO-064: Lapis::Core::FrameArena & StaticSignalTable (Zero-Allocation)"
     end
   end
 end
+
+# =============================================================================
+# WO-065 ([AS-2]): Declarative `node` / `signal` / `on_signal` / `@[OnSignal]`
+# Compile-Time Typed Proc Binding to `StaticSignalTable` Slots
+# =============================================================================
+
+gmodule WO065CombatMixin do
+  signal shield_hit(absorbed : Int32)
+
+  property shield_absorbed_total : Int32 = 0
+  property mixin_annot_hits : Int32 = 0
+
+  on_signal shield_hit, ->on_shield_hit(Int32)
+
+  def on_shield_hit(absorbed : Int32) : Void
+    @shield_absorbed_total += absorbed
+  end
+
+  @[OnSignal(:shield_hit)]
+  def on_shield_hit_annotated(absorbed : Int32) : Void
+    @mixin_annot_hits += absorbed
+  end
+end
+
+node WO065DeclarativeActor < Node2D do
+  include WO065CombatMixin
+
+  signal health_changed(current : Int32, max : Int32)
+  signal stamina_changed(stamina : Float32)
+  signal combo_landed(hits : Int32, multiplier : Float64)
+  signal spawned
+  signal died
+
+  property last_hp : Int32 = 100
+  property last_max_hp : Int32 = 100
+  property last_stamina : Float32 = 0.0_f32
+  property combo_score : Float64 = 0.0
+  property spawn_count : Int32 = 0
+  property death_count : Int32 = 0
+  property block_hp_bonus : Int32 = 0
+  property dynamic_self_pings : Int32 = 0
+
+  # 1. Explicit compile-time typed ProcPointer on class-level `on_signal`
+  on_signal health_changed, ->on_health_changed(Int32, Int32)
+
+  # 2. Symbol signal name + inferred ProcPointer (types inferred from `def` / `signal`)
+  on_signal :stamina_changed, ->on_stamina_changed
+
+  # 3. Symbol signal name + symbol method name
+  on_signal :died, :on_died_handler
+
+  # 4. One-shot declarative `on_signal`
+  on_signal spawned, ->on_spawned_once, once: true
+
+  # 5. Block-based declarative `on_signal` in node body
+  on_signal health_changed do |hp, max|
+    @block_hp_bonus += (max - hp)
+  end
+
+  def on_health_changed(current : Int32, max : Int32) : Void
+    @last_hp = current
+    @last_max_hp = max
+  end
+
+  def on_stamina_changed(stamina : Float32) : Void
+    @last_stamina = stamina
+  end
+
+  def on_died_handler : Void
+    @death_count += 1
+  end
+
+  def on_spawned_once : Void
+    @spawn_count += 1
+  end
+
+  # 6. `@[OnSignal]` method annotation binding directly to `StaticSignalTable`
+  @[OnSignal(:combo_landed)]
+  def on_combo_landed(hits : Int32, multiplier : Float64) : Void
+    @combo_score += hits.to_f64 * multiplier
+  end
+
+  def bind_in_method_scope : Void
+    on_signal :died, ->on_dynamic_ping
+  end
+
+  def on_dynamic_ping : Void
+    @dynamic_self_pings += 1
+  end
+end
+
+describe "WO-065: Declarative `node` / `signal` / `on_signal` StaticSignalTable Proc Binding" do
+  it "automatically binds class-level `on_signal`, `@[OnSignal]`, and `gmodule` procs to StaticSignalTable slots on instantiation" do
+    actor = WO065DeclarativeActor.new
+
+    # Emit 2-arg signal via fast-path emit_health_changed (never allocating TypedSignal wrapper)
+    actor.emit_health_changed(75, 120)
+    actor.last_hp.should eq(75)
+    actor.last_max_hp.should eq(120)
+    actor.block_hp_bonus.should eq(45)
+
+    # Emit 1-arg Float32 signal bound via inferred ProcPointer `->on_stamina_changed`
+    actor.emit_stamina_changed(88.5_f32)
+    actor.last_stamina.should eq(88.5_f32)
+
+    # Emit 2-arg signal bound via `@[OnSignal(:combo_landed)]`
+    actor.emit_combo_landed(4, 2.5)
+    actor.combo_score.should eq(10.0)
+
+    # Emit 0-arg one-shot signal bound via `once: true`
+    actor.emit_spawned
+    actor.emit_spawned
+    actor.spawn_count.should eq(1)
+
+    # Emit 0-arg signal bound via symbol method `:on_died_handler`
+    actor.emit_died
+    actor.emit_died
+    actor.death_count.should eq(2)
+
+    # Emit mixin signal declared in `gmodule WO065CombatMixin`
+    actor.emit_shield_hit(30)
+    actor.shield_absorbed_total.should eq(30)
+    actor.mixin_annot_hits.should eq(30)
+
+    # Method-scope `on_signal :died, ->on_dynamic_ping`
+    actor.bind_in_method_scope
+    actor.emit_died
+    actor.dynamic_self_pings.should eq(1)
+    actor.death_count.should eq(3)
+
+    actor.disconnect_all
+  end
+
+  it "provides synthesized `<name>_slot`, `bind_<name>`, `unbind_<name>`, and `<name>_signal_hash` without allocating TypedSignal" do
+    actor = WO065DeclarativeActor.new
+    actor.disconnect_all
+
+    actor.health_changed_signal_hash.should eq(Lapis::Core::StaticSignalTable.hash_signal_name("health_changed"))
+
+    slot = actor.health_changed_slot
+    slot.empty?.should be_true
+
+    observed_hp = 0
+    cb = ->(hp : Int32, max : Int32) {
+      observed_hp = hp + max
+      nil
+    }
+
+    token = actor.bind_health_changed(cb)
+    token.should be > 0_u64
+    slot.active_count.should eq(1)
+
+    actor.emit_health_changed(40, 100)
+    observed_hp.should eq(140)
+
+    actor.unbind_health_changed(cb).should be_true
+    slot.active_count.should eq(0)
+
+    # Rebind declarative class-level signals via rebind_static_signals!
+    actor.rebind_static_signals!
+    actor.emit_health_changed(60, 100)
+    actor.last_hp.should eq(60)
+
+    actor.disconnect_all
+  end
+
+  it "supports Tier 2 Lapis.static_signals / StaticSignalBuilder and Godot::Object static signal helpers" do
+    actor = WO065DeclarativeActor.new
+    actor.disconnect_all
+
+    total = 0
+    cb = ->(hp : Int32, max : Int32) {
+      total += hp + max
+      nil
+    }
+
+    Lapis.static_signals do |signals|
+      tok = signals.bind(actor, "health_changed", cb)
+      tok.should be > 0_u64
+      signals.emit(actor, "health_changed", 25, 75).should eq(1)
+      total.should eq(100)
+      signals.unbind(actor, "health_changed", cb).should be_true
+    end
+
+    tok2 = actor.bind_static_signal(:health_changed, cb)
+    tok2.should be > 0_u64
+    actor.emit_static_signal(:health_changed, 10, 20).should eq(1)
+    total.should eq(130)
+    actor.unbind_static_signal(tok2).should be_true
+    actor.emit_static_signal(:health_changed, 10, 20).should eq(0)
+  end
+
+  it "executes declarative `node` / `signal` / `on_signal` emission and slot binding with strictly ZERO GC heap allocations" do
+    actor = WO065DeclarativeActor.new
+
+    assert_zero_allocation("WO-065 Declarative emit_health_changed (2-arg)", iterations: 25_000, warmup: 20) do
+      actor.emit_health_changed(80, 100)
+    end
+
+    assert_zero_allocation("WO-065 Declarative emit_combo_landed (@[OnSignal])", iterations: 25_000, warmup: 20) do
+      actor.emit_combo_landed(3, 1.5)
+    end
+
+    assert_zero_allocation("WO-065 Declarative emit_shield_hit (gmodule)", iterations: 25_000, warmup: 20) do
+      actor.emit_shield_hit(5)
+    end
+
+    slot = actor.health_changed_slot
+    assert_zero_allocation("WO-065 Synthesized <name>_slot.emit", iterations: 25_000, warmup: 20) do
+      slot.emit(90, 100)
+    end
+
+    cb = ->(hp : Int32, max : Int32) { nil }
+    assert_zero_allocation("WO-065 bind_health_changed + unbind_health_changed cycle", iterations: 10_000, warmup: 20) do
+      tok = actor.bind_health_changed(cb)
+      actor.unbind_health_changed(tok)
+    end
+
+    actor.disconnect_all
+  end
+end

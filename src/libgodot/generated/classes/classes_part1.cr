@@ -4,7 +4,9 @@ module Godot
     def initialize(@pointer : Void* = Pointer(Void).null)
       if !@pointer.null?
         @instance_id = Bridge.object_get_instance_id(@pointer)
+        ::Godot::LeakTracker.register(@instance_id, self.class.name, __FILE__, __LINE__)
       end
+      _godot_bind_static_signals
     end
     enum ConnectFlags : Int64
       ConnectDeferred = 1_i64

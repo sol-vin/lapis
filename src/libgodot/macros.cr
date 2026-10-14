@@ -535,6 +535,11 @@ macro node(decl, &block)
                end
     props = [] of Nil
     sigs = [] of Nil
+    sig_param_types = {} of StringLiteral => ArrayLiteral(ASTNode)
+    def_param_types = {} of StringLiteral => ArrayLiteral(ASTNode)
+    pending_on_signal_annos = [] of ASTNode
+    self_static_signals = [] of Nil
+    ready_static_signals = [] of Nil
     methods_doc = [] of Nil
     onready_props = [] of Nil
     rpc_methods = [] of Nil
@@ -869,6 +874,9 @@ macro node(decl, &block)
           {% end %}
           {% props << {:subgroup, sub_name, pfx} %}
           {% last_anno = stmt %}
+        {% elsif anno_name == "OnSignal" %}
+          {% pending_on_signal_annos << stmt %}
+          {% last_anno = stmt %}
         {% elsif anno_name == "WarningIgnore" || anno_name == "WarningIgnoreStart" || anno_name == "WarningIgnoreRestore" %}
           # suppressed warning, no-op
         {% else %}
@@ -1175,6 +1183,35 @@ macro node(decl, &block)
       {% end %}
       {%
         m_name_str = stmt.name.stringify
+        d_types = [] of ASTNode
+        stmt.args.each do |d_arg|
+          if d_arg.restriction && !d_arg.restriction.is_a?(Nop)
+            d_types << d_arg.restriction
+          end
+        end
+        def_param_types[m_name_str] = d_types
+        pending_on_signal_annos.each do |os_anno|
+          if os_anno.args.size > 0
+            os_sig_arg = os_anno.args[0]
+            os_sig_name = if os_sig_arg.is_a?(SymbolLiteral) || os_sig_arg.is_a?(StringLiteral)
+                            os_sig_arg.id.stringify
+                          elsif os_sig_arg.is_a?(Call)
+                            os_sig_arg.name.stringify.gsub(/_slot$/, "")
+                          else
+                            os_sig_arg.id.stringify.gsub(/^:/, "").gsub(/_slot$/, "")
+                          end
+            os_once = false
+            if os_anno.named_args
+              os_anno.named_args.each do |na|
+                if na.name.stringify == "once"
+                  os_once = na.value
+                end
+              end
+            end
+            self_static_signals << {:anno_method, os_sig_name, stmt.name, d_types, os_once}
+          end
+        end
+        pending_on_signal_annos = [] of ASTNode
         is_lifecycle_cb = (m_name_str == "_ready" || m_name_str == "_process" || m_name_str == "_physics_process" || m_name_str == "_enter_tree" || m_name_str == "_exit_tree" || m_name_str == "_build")
         m_doc = extracted_method_docs[m_name_str] || (stmt.doc_comment ? stmt.doc_comment.stringify : "") || ""
       %}
@@ -1272,22 +1309,80 @@ macro node(decl, &block)
         {% end %}
         {% props << {:prop, stmt.args[0], last_anno, p_doc} %}
       {% end %}
+      {% pending_on_signal_annos = [] of ASTNode %}
       {% last_anno = nil %}
     {% elsif stmt.is_a?(Call) && stmt.name.id == "signal" %}
       {%
         s_item = stmt.args[0]
         s_name_str = (s_item.is_a?(Call) ? s_item.name : s_item).stringify
         s_doc = extracted_sig_docs[s_name_str] || ""
+        s_types = [] of ASTNode
+        if s_item.is_a?(Call)
+          s_item.args.each do |s_arg|
+            if s_arg.is_a?(TypeDeclaration)
+              s_types << s_arg.type
+            else
+              s_types << s_arg
+            end
+          end
+        end
+        sig_param_types[s_name_str] = s_types
+        pending_on_signal_annos = [] of ASTNode
       %}
       {% sigs << {stmt.args[0], s_doc} %}
       {% last_anno = nil %}
+    {% elsif stmt.is_a?(Call) && stmt.name.stringify == "on_signal" %}
+      {%
+        os_once = false
+        if stmt.named_args
+          stmt.named_args.each do |na|
+            if na.name.stringify == "once"
+              os_once = na.value
+            end
+          end
+        end
+        has_blk = (stmt.block && !stmt.block.is_a?(Nop))
+        first_arg = stmt.args.size > 0 ? stmt.args[0] : nil
+        is_self_sig = false
+        if first_arg
+          if first_arg.stringify == "self"
+            is_self_sig = true
+          elsif first_arg.is_a?(Call) && first_arg.receiver && !first_arg.receiver.is_a?(Nop) && first_arg.receiver.stringify != "self"
+            is_self_sig = false
+          elsif (stmt.args.size == 1 && has_blk) || (stmt.args.size == 2 && !has_blk)
+            is_self_sig = true
+          end
+        end
+
+        if is_self_sig
+          sig_arg = (first_arg.stringify == "self" && stmt.args.size > 1) ? stmt.args[1] : first_arg
+          sig_name_str = if sig_arg.is_a?(SymbolLiteral) || sig_arg.is_a?(StringLiteral)
+                           sig_arg.id.stringify
+                         elsif sig_arg.is_a?(Call)
+                           sig_arg.name.stringify.gsub(/_slot$/, "")
+                         else
+                           sig_arg.id.stringify.gsub(/^:/, "").gsub(/_slot$/, "")
+                         end
+          if has_blk
+            self_static_signals << {:self_block, sig_name_str, stmt.block, os_once}
+          else
+            cb_arg = (first_arg.stringify == "self") ? stmt.args[2] : stmt.args[1]
+            self_static_signals << {:self_cb, sig_name_str, cb_arg, os_once}
+          end
+        else
+          ready_static_signals << stmt
+        end
+        pending_on_signal_annos = [] of ASTNode
+        last_anno = nil
+      %}
     {% else %}
+      {% pending_on_signal_annos = [] of ASTNode %}
       {% last_anno = nil %}
     {% end %}
     {% end %}
   {% end %}
 
-  {% if onready_props.size > 0 || rpc_methods.size > 0 %}
+  {% if onready_props.size > 0 || rpc_methods.size > 0 || ready_static_signals.size > 0 %}
     {% has_ready = true %}
   {% end %}
 
@@ -1530,6 +1625,137 @@ macro node(decl, &block)
     # Macro block containing fields, signals, and methods
     {{ yield }}
 
+    {% if self_static_signals.size > 0 %}
+      @[ZeroAllocation]
+      def _godot_bind_static_signals_impl(tid : UInt64) : Void
+        {% if is_reopen %}
+          previous_def(tid)
+        {% else %}
+          super(tid)
+        {% end %}
+        {% for entry in self_static_signals %}
+          {% kind = entry[0] %}
+          {% if kind == :anno_method %}
+            {%
+              os_sig_name = entry[1]
+              m_name = entry[2]
+              d_types = entry[3]
+              os_once = entry[4]
+              p_types = d_types.size > 0 ? d_types : (sig_param_types[os_sig_name] || ([] of ASTNode))
+            %}
+            {% if p_types.size > 0 %}
+              ::Lapis::Core::StaticSignalTable.global.bind_by_hash(
+                tid,
+                ::Lapis::Core::StaticSignalTable.hash_signal_name({{os_sig_name}}),
+                ->self.{{m_name.id}}({{p_types.splat}}),
+                once: {{os_once}}
+              )
+            {% else %}
+              ::Lapis::Core::StaticSignalTable.global.bind_by_hash(
+                tid,
+                ::Lapis::Core::StaticSignalTable.hash_signal_name({{os_sig_name}}),
+                ->self.{{m_name.id}},
+                once: {{os_once}}
+              )
+            {% end %}
+          {% elsif kind == :self_cb %}
+            {%
+              os_sig_name = entry[1]
+              cb_arg = entry[2]
+              os_once = entry[3]
+            %}
+            {% if cb_arg.is_a?(ProcPointer) %}
+              {%
+                m_name = cb_arg.name
+                m_obj = (cb_arg.obj.is_a?(Nop) || !cb_arg.obj) ? "self".id : cb_arg.obj
+                p_types = if cb_arg.args.size > 0
+                            cb_arg.args
+                          elsif def_param_types[m_name.stringify] && def_param_types[m_name.stringify].size > 0
+                            def_param_types[m_name.stringify]
+                          elsif sig_param_types[os_sig_name]
+                            sig_param_types[os_sig_name]
+                          else
+                            [] of ASTNode
+                          end
+              %}
+              {% if p_types.size > 0 %}
+                ::Lapis::Core::StaticSignalTable.global.bind_by_hash(
+                  tid,
+                  ::Lapis::Core::StaticSignalTable.hash_signal_name({{os_sig_name}}),
+                  ->{{m_obj}}.{{m_name.id}}({{p_types.splat}}),
+                  once: {{os_once}}
+                )
+              {% else %}
+                ::Lapis::Core::StaticSignalTable.global.bind_by_hash(
+                  tid,
+                  ::Lapis::Core::StaticSignalTable.hash_signal_name({{os_sig_name}}),
+                  ->{{m_obj}}.{{m_name.id}},
+                  once: {{os_once}}
+                )
+              {% end %}
+            {% elsif cb_arg.is_a?(SymbolLiteral) %}
+              {%
+                m_name_str = cb_arg.id.stringify
+                p_types = if def_param_types[m_name_str] && def_param_types[m_name_str].size > 0
+                            def_param_types[m_name_str]
+                          elsif sig_param_types[os_sig_name]
+                            sig_param_types[os_sig_name]
+                          else
+                            [] of ASTNode
+                          end
+              %}
+              {% if p_types.size > 0 %}
+                ::Lapis::Core::StaticSignalTable.global.bind_by_hash(
+                  tid,
+                  ::Lapis::Core::StaticSignalTable.hash_signal_name({{os_sig_name}}),
+                  ->self.{{m_name_str.id}}({{p_types.splat}}),
+                  once: {{os_once}}
+                )
+              {% else %}
+                ::Lapis::Core::StaticSignalTable.global.bind_by_hash(
+                  tid,
+                  ::Lapis::Core::StaticSignalTable.hash_signal_name({{os_sig_name}}),
+                  ->self.{{m_name_str.id}},
+                  once: {{os_once}}
+                )
+              {% end %}
+            {% else %}
+              ::Lapis::Core::StaticSignalTable.global.bind_by_hash(
+                tid,
+                ::Lapis::Core::StaticSignalTable.hash_signal_name({{os_sig_name}}),
+                {{cb_arg}},
+                once: {{os_once}}
+              )
+            {% end %}
+          {% elsif kind == :self_block %}
+            {%
+              os_sig_name = entry[1]
+              blk = entry[2]
+              os_once = entry[3]
+              s_types = sig_param_types[os_sig_name]
+            %}
+            {% if s_types %}
+              bind_{{os_sig_name.id}}(once: {{os_once}}) {{blk}}
+            {% else %}
+              if responds_to?(:bind_{{os_sig_name.id}})
+                bind_{{os_sig_name.id}}(once: {{os_once}}) {{blk}}
+              else
+                ::Lapis::Core::StaticSignalTable.global.connect(tid, {{os_sig_name}}, once: {{os_once}}) {{blk}}
+              end
+            {% end %}
+          {% end %}
+        {% end %}
+      end
+    {% end %}
+
+    {% if ready_static_signals.size > 0 %}
+      def _godot_bind_ready_signals : Void
+        {% for r_stmt in ready_static_signals %}
+          {{r_stmt}}
+        {% end %}
+      end
+    {% end %}
+
     {% if onready_props.size > 0 %}
       def _godot_init_onready_properties : Void
         {% for item in onready_props %}
@@ -1575,6 +1801,12 @@ macro node(decl, &block)
           {% end %}
           {% if onready_props.size > 0 %}
             _godot_init_onready_properties
+          {% end %}
+          {% if self_static_signals.size > 0 %}
+            _godot_bind_static_signals
+          {% end %}
+          {% if ready_static_signals.size > 0 %}
+            _godot_bind_ready_signals
           {% end %}
           {% if rpc_methods.size > 0 %}
             _godot_setup_rpc_configs
@@ -2425,6 +2657,22 @@ macro node(decl, &block)
     {% end %}
   {% end %}
 
+  {% if parent_name.is_a?(Path) && parent_name.resolve? %}
+    {% for anc in parent_name.resolve.ancestors %}
+      {% if anc.annotation(::GodotModule) %}
+        {{anc}}._godot_module_properties.each do |mp|
+          properties_{{class_name}} << mp unless properties_{{class_name}}.any? { |ep| ep.name == mp.name }
+        end
+        {{anc}}._godot_module_constants.each do |mc|
+          constants_{{class_name}} << mc unless constants_{{class_name}}.any? { |ec| ec.name == mc.name }
+        end
+        {{anc}}._godot_module_signals.each do |ms|
+          signals_{{class_name}} << ms unless signals_{{class_name}}.any? { |es| es.name == ms.name }
+        end
+      {% end %}
+    {% end %}
+  {% end %}
+
   {% if script_path_override && !script_path_override.empty? %}
     script_path_{{class_name}} = {{script_path_override}}
   {% else %}
@@ -2874,6 +3122,10 @@ macro gmodule(decl, &block)
   {%
     props = [] of Nil
     sigs = [] of Nil
+    sig_param_types = {} of StringLiteral => ArrayLiteral(ASTNode)
+    def_param_types = {} of StringLiteral => ArrayLiteral(ASTNode)
+    pending_on_signal_annos = [] of ASTNode
+    self_static_signals = [] of Nil
     tool_buttons = [] of Nil
     rpc_methods = [] of Nil
     class_constants = [] of Nil
@@ -2933,6 +3185,9 @@ macro gmodule(decl, &block)
             pfx = stmt.args.size > 1 ? (stmt.args[1].is_a?(StringLiteral) ? stmt.args[1] : stmt.args[1].id.stringify) : ""
             props << {:group, grp_name, pfx}
             last_anno = stmt
+          elsif anno_name == "OnSignal"
+            pending_on_signal_annos << stmt
+            last_anno = stmt
           elsif anno_name == "WarningIgnore" || anno_name == "WarningIgnoreStart" || anno_name == "WarningIgnoreRestore"
             # no-op
           else
@@ -2940,6 +3195,35 @@ macro gmodule(decl, &block)
           end
         elsif stmt.is_a?(Def) && (stmt.receiver.is_a?(Nop) || !stmt.receiver)
           m_name_str = stmt.name.stringify
+          d_types = [] of ASTNode
+          stmt.args.each do |d_arg|
+            if d_arg.restriction && !d_arg.restriction.is_a?(Nop)
+              d_types << d_arg.restriction
+            end
+          end
+          def_param_types[m_name_str] = d_types
+          pending_on_signal_annos.each do |os_anno|
+            if os_anno.args.size > 0
+              os_sig_arg = os_anno.args[0]
+              os_sig_name = if os_sig_arg.is_a?(SymbolLiteral) || os_sig_arg.is_a?(StringLiteral)
+                              os_sig_arg.id.stringify
+                            elsif os_sig_arg.is_a?(Call)
+                              os_sig_arg.name.stringify.gsub(/_slot$/, "")
+                            else
+                              os_sig_arg.id.stringify.gsub(/^:/, "").gsub(/_slot$/, "")
+                            end
+              os_once = false
+              if os_anno.named_args
+                os_anno.named_args.each do |na|
+                  if na.name.stringify == "once"
+                    os_once = na.value
+                  end
+                end
+              end
+              self_static_signals << {:anno_method, os_sig_name, stmt.name, d_types, os_once}
+            end
+          end
+          pending_on_signal_annos = [] of ASTNode
           if m_name_str.starts_with?("_")
             virtual_methods << m_name_str
           else
@@ -2974,17 +3258,63 @@ macro gmodule(decl, &block)
             end
           end
           props << {:prop, stmt.args[0], last_anno, ""}
+          pending_on_signal_annos = [] of ASTNode
           last_anno = nil
         elsif stmt.is_a?(Call) && stmt.name.id == "signal"
+          s_item = stmt.args[0]
+          s_name_str = (s_item.is_a?(Call) ? s_item.name : s_item).stringify
+          s_types = [] of ASTNode
+          if s_item.is_a?(Call)
+            s_item.args.each do |s_arg|
+              if s_arg.is_a?(TypeDeclaration)
+                s_types << s_arg.type
+              else
+                s_types << s_arg
+              end
+            end
+          end
+          sig_param_types[s_name_str] = s_types
           sigs << {stmt.args[0], ""}
+          pending_on_signal_annos = [] of ASTNode
+          last_anno = nil
+        elsif stmt.is_a?(Call) && stmt.name.stringify == "on_signal"
+          os_once = false
+          if stmt.named_args
+            stmt.named_args.each do |na|
+              if na.name.stringify == "once"
+                os_once = na.value
+              end
+            end
+          end
+          has_blk = (stmt.block && !stmt.block.is_a?(Nop))
+          first_arg = stmt.args.size > 0 ? stmt.args[0] : nil
+          if first_arg
+            sig_arg = (first_arg.stringify == "self" && stmt.args.size > 1) ? stmt.args[1] : first_arg
+            sig_name_str = if sig_arg.is_a?(SymbolLiteral) || sig_arg.is_a?(StringLiteral)
+                             sig_arg.id.stringify
+                           elsif sig_arg.is_a?(Call)
+                             sig_arg.name.stringify.gsub(/_slot$/, "")
+                           else
+                             sig_arg.id.stringify.gsub(/^:/, "").gsub(/_slot$/, "")
+                           end
+            if has_blk
+              self_static_signals << {:self_block, sig_name_str, stmt.block, os_once}
+            elsif stmt.args.size >= 2
+              cb_arg = (first_arg.stringify == "self") ? stmt.args[2] : stmt.args[1]
+              self_static_signals << {:self_cb, sig_name_str, cb_arg, os_once}
+            end
+          end
+          pending_on_signal_annos = [] of ASTNode
           last_anno = nil
         else
+          pending_on_signal_annos = [] of ASTNode
           last_anno = nil
         end
       end
     end
   %}
 
+  @[GodotModule]
   module {{module_name}}
     {% if parent_module %}
       include {{parent_module}}
@@ -3479,6 +3809,125 @@ macro gmodule(decl, &block)
     end
 
     {{ yield }}
+
+    {% if self_static_signals.size > 0 %}
+      @[ZeroAllocation]
+      def _godot_bind_static_signals_impl(tid : UInt64) : Void
+        super(tid)
+        {% for entry in self_static_signals %}
+          {% kind = entry[0] %}
+          {% if kind == :anno_method %}
+            {%
+              os_sig_name = entry[1]
+              m_name = entry[2]
+              d_types = entry[3]
+              os_once = entry[4]
+              p_types = d_types.size > 0 ? d_types : (sig_param_types[os_sig_name] || ([] of ASTNode))
+            %}
+            {% if p_types.size > 0 %}
+              ::Lapis::Core::StaticSignalTable.global.bind_by_hash(
+                tid,
+                ::Lapis::Core::StaticSignalTable.hash_signal_name({{os_sig_name}}),
+                ->self.{{m_name.id}}({{p_types.splat}}),
+                once: {{os_once}}
+              )
+            {% else %}
+              ::Lapis::Core::StaticSignalTable.global.bind_by_hash(
+                tid,
+                ::Lapis::Core::StaticSignalTable.hash_signal_name({{os_sig_name}}),
+                ->self.{{m_name.id}},
+                once: {{os_once}}
+              )
+            {% end %}
+          {% elsif kind == :self_cb %}
+            {%
+              os_sig_name = entry[1]
+              cb_arg = entry[2]
+              os_once = entry[3]
+            %}
+            {% if cb_arg.is_a?(ProcPointer) %}
+              {%
+                m_name = cb_arg.name
+                m_obj = (cb_arg.obj.is_a?(Nop) || !cb_arg.obj) ? "self".id : cb_arg.obj
+                p_types = if cb_arg.args.size > 0
+                            cb_arg.args
+                          elsif def_param_types[m_name.stringify] && def_param_types[m_name.stringify].size > 0
+                            def_param_types[m_name.stringify]
+                          elsif sig_param_types[os_sig_name]
+                            sig_param_types[os_sig_name]
+                          else
+                            [] of ASTNode
+                          end
+              %}
+              {% if p_types.size > 0 %}
+                ::Lapis::Core::StaticSignalTable.global.bind_by_hash(
+                  tid,
+                  ::Lapis::Core::StaticSignalTable.hash_signal_name({{os_sig_name}}),
+                  ->{{m_obj}}.{{m_name.id}}({{p_types.splat}}),
+                  once: {{os_once}}
+                )
+              {% else %}
+                ::Lapis::Core::StaticSignalTable.global.bind_by_hash(
+                  tid,
+                  ::Lapis::Core::StaticSignalTable.hash_signal_name({{os_sig_name}}),
+                  ->{{m_obj}}.{{m_name.id}},
+                  once: {{os_once}}
+                )
+              {% end %}
+            {% elsif cb_arg.is_a?(SymbolLiteral) %}
+              {%
+                m_name_str = cb_arg.id.stringify
+                p_types = if def_param_types[m_name_str] && def_param_types[m_name_str].size > 0
+                            def_param_types[m_name_str]
+                          elsif sig_param_types[os_sig_name]
+                            sig_param_types[os_sig_name]
+                          else
+                            [] of ASTNode
+                          end
+              %}
+              {% if p_types.size > 0 %}
+                ::Lapis::Core::StaticSignalTable.global.bind_by_hash(
+                  tid,
+                  ::Lapis::Core::StaticSignalTable.hash_signal_name({{os_sig_name}}),
+                  ->self.{{m_name_str.id}}({{p_types.splat}}),
+                  once: {{os_once}}
+                )
+              {% else %}
+                ::Lapis::Core::StaticSignalTable.global.bind_by_hash(
+                  tid,
+                  ::Lapis::Core::StaticSignalTable.hash_signal_name({{os_sig_name}}),
+                  ->self.{{m_name_str.id}},
+                  once: {{os_once}}
+                )
+              {% end %}
+            {% else %}
+              ::Lapis::Core::StaticSignalTable.global.bind_by_hash(
+                tid,
+                ::Lapis::Core::StaticSignalTable.hash_signal_name({{os_sig_name}}),
+                {{cb_arg}},
+                once: {{os_once}}
+              )
+            {% end %}
+          {% elsif kind == :self_block %}
+            {%
+              os_sig_name = entry[1]
+              blk = entry[2]
+              os_once = entry[3]
+              s_types = sig_param_types[os_sig_name]
+            %}
+            {% if s_types %}
+              bind_{{os_sig_name.id}}(once: {{os_once}}) {{blk}}
+            {% else %}
+              if responds_to?(:bind_{{os_sig_name.id}})
+                bind_{{os_sig_name.id}}(once: {{os_once}}) {{blk}}
+              else
+                ::Lapis::Core::StaticSignalTable.global.connect(tid, {{os_sig_name}}, once: {{os_once}}) {{blk}}
+              end
+            {% end %}
+          {% end %}
+        {% end %}
+      end
+    {% end %}
   end
 end
 

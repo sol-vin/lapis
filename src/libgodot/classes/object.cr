@@ -6,12 +6,14 @@ module Godot
     getter instance_id : UInt64 = 0_u64
     getter? destroyed : Bool = false
     @_bound_signal_cache : ::Hash(String, ::Godot::BoundSignal)? = nil
+    @_static_signals_bound_tid : UInt64 = 0_u64
 
     def initialize(@pointer : Void* = Pointer(Void).null)
       if !@pointer.null?
         @instance_id = Bridge.object_get_instance_id(@pointer)
         ::Godot::LeakTracker.register(@instance_id, self.class.name, __FILE__, __LINE__)
       end
+      _godot_bind_static_signals
     end
 
     def pointer=(val : Void*)
@@ -19,6 +21,7 @@ module Godot
       if !@pointer.null?
         @instance_id = Bridge.object_get_instance_id(@pointer)
         ::Godot::LeakTracker.register(@instance_id, self.class.name, __FILE__, __LINE__)
+        _godot_bind_static_signals
       else
         @instance_id = 0_u64
       end
@@ -626,6 +629,30 @@ module Godot
     def _godot_call_tool_button(button_name : String) : Void
     end
 
+    # Binds declarative class-level `on_signal` and `@[OnSignal]` callbacks to `StaticSignalTable` slots.
+    # Invokes `_godot_bind_static_signals_impl` synthesized by the `node` and `gmodule` macros.
+    @[ZeroAllocation]
+    def _godot_bind_static_signals(force : Bool = false) : Void
+      tid = signal_target_id
+      return if !force && @_static_signals_bound_tid == tid
+      if @_static_signals_bound_tid != 0_u64 && @_static_signals_bound_tid != tid
+        ::Lapis::Core::StaticSignalTable.global.clear_emitter(@_static_signals_bound_tid)
+      end
+      @_static_signals_bound_tid = tid
+      _godot_bind_static_signals_impl(tid)
+    end
+
+    # Internal hook overridden by `node` and `gmodule` macros to bind compile-time typed procs to `StaticSignalTable`.
+    @[ZeroAllocation]
+    def _godot_bind_static_signals_impl(tid : UInt64) : Void
+    end
+
+    # Explicitly rebinds all declarative `on_signal` and `@[OnSignal]` callbacks to `StaticSignalTable` slots.
+    @[ZeroAllocation]
+    def rebind_static_signals! : Void
+      _godot_bind_static_signals(force: true)
+    end
+
     # Emits a parameterless signal on this Godot object with zero GC heap allocations.
     @[ZeroAllocation]
     @[HotPath]
@@ -931,6 +958,7 @@ module Godot
     # Disconnects all subscriptions across ALL signals on this object, returning self
     def disconnect_all : self
       tid = signal_target_id
+      @_static_signals_bound_tid = 0_u64
       ::Lapis::Core::StaticSignalTable.global.clear_emitter(tid)
       keys_to_delete = [] of Tuple(UInt64, String)
       Godot.signal_subs_mutex.synchronize do

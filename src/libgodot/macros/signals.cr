@@ -29,6 +29,22 @@ macro signal(name_or_decl, *extra_types)
   {% end %}
 
   # Bound signal accessor for idiomatic `node.{{sig_name.id}}.emit(...)`, `await(node.{{sig_name.id}})`, or `on node.{{sig_name.id}} { ... }`
+  @_sig_hash_{{sig_name.id}} : UInt64 = 0_u64
+
+  @[ZeroAllocation]
+  @[HotPath]
+  @[AlwaysInline]
+  def {{sig_name.id}}_signal_hash : UInt64
+    h = @_sig_hash_{{sig_name.id}}
+    if h != 0_u64
+      h
+    else
+      computed = ::Lapis::Core::StaticSignalTable.fnv1a_64("{{sig_name.id}}")
+      @_sig_hash_{{sig_name.id}} = computed
+      computed
+    end
+  end
+
   {% if param_types.size > 0 %}
     @_typed_sig_{{sig_name.id}} : ::Godot::TypedSignal({{param_types.splat}})? = nil
 
@@ -53,14 +69,53 @@ macro signal(name_or_decl, *extra_types)
     @[HotPath]
     @[AlwaysInline]
     def {{sig_name.id}}_slot : ::Lapis::Core::StaticSignalSlot({{param_types.splat}})
-      {{sig_name.id}}.static_slot
+      ::Lapis::Core::StaticSignalSlot({{param_types.splat}}).from_table(
+        ::Lapis::Core::StaticSignalTable.global,
+        signal_target_id,
+        "{{sig_name.id}}",
+        {{sig_name.id}}_signal_hash
+      )
+    end
+
+    @[AlwaysInline]
+    def bind_{{sig_name.id}}(callback : Proc({{param_types.splat}}, R), once : Bool = false) : UInt64 forall R
+      {{sig_name.id}}_slot.bind(callback, once: once)
+    end
+
+    @[AlwaysInline]
+    def bind_{{sig_name.id}}(once : Bool = false, &block : ({{param_types.splat}}) -> Void) : UInt64
+      {{sig_name.id}}_slot.bind(block, once: once)
+    end
+
+    @[AlwaysInline]
+    def unbind_{{sig_name.id}}(token : UInt64) : Bool
+      {{sig_name.id}}_slot.unbind(token)
+    end
+
+    @[AlwaysInline]
+    def unbind_{{sig_name.id}}(callback : Proc({{param_types.splat}}, R)) : Bool forall R
+      {{sig_name.id}}_slot.unbind(callback)
     end
 
     @[ZeroAllocation]
     @[HotPath]
     @[AlwaysInline]
     def emit_{{sig_name.id}}(*args : *T) : Void forall T
-      {{sig_name.id}}.emit(*args)
+      if existing = @_typed_sig_{{sig_name.id}}
+        existing.emit(*args)
+      else
+        check_alive!
+        ::Godot::SignalSpy.record(self.class.name, "{{sig_name.id}}", {{ param_types.size }})
+        tid = signal_target_id
+        ::Lapis::Core::StaticSignalTable.global.emit_by_hash(tid, {{sig_name.id}}_signal_hash, *args)
+        if ::Godot.has_untyped_signal_subscribers?(tid, "{{sig_name.id}}")
+          {{sig_name.id}}.emit(*args)
+        elsif !@pointer.null? && ::Godot::Bridge.available?
+          ::Godot.in_typed_emit = true
+          ::Godot::Bridge.emit_signal(@pointer, "{{sig_name.id}}", *args)
+          ::Godot.in_typed_emit = false
+        end
+      end
     end
   {% else %}
     @_typed_sig_{{sig_name.id}} : ::Godot::TypedSignal()? = nil
@@ -86,14 +141,53 @@ macro signal(name_or_decl, *extra_types)
     @[HotPath]
     @[AlwaysInline]
     def {{sig_name.id}}_slot : ::Lapis::Core::StaticSignalSlot()
-      {{sig_name.id}}.static_slot
+      ::Lapis::Core::StaticSignalSlot().from_table(
+        ::Lapis::Core::StaticSignalTable.global,
+        signal_target_id,
+        "{{sig_name.id}}",
+        {{sig_name.id}}_signal_hash
+      )
+    end
+
+    @[AlwaysInline]
+    def bind_{{sig_name.id}}(callback : Proc(R), once : Bool = false) : UInt64 forall R
+      {{sig_name.id}}_slot.bind(callback, once: once)
+    end
+
+    @[AlwaysInline]
+    def bind_{{sig_name.id}}(once : Bool = false, &block : -> Void) : UInt64
+      {{sig_name.id}}_slot.bind(block, once: once)
+    end
+
+    @[AlwaysInline]
+    def unbind_{{sig_name.id}}(token : UInt64) : Bool
+      {{sig_name.id}}_slot.unbind(token)
+    end
+
+    @[AlwaysInline]
+    def unbind_{{sig_name.id}}(callback : Proc(R)) : Bool forall R
+      {{sig_name.id}}_slot.unbind(callback)
     end
 
     @[ZeroAllocation]
     @[HotPath]
     @[AlwaysInline]
     def emit_{{sig_name.id}} : Void
-      {{sig_name.id}}.emit
+      if existing = @_typed_sig_{{sig_name.id}}
+        existing.emit
+      else
+        check_alive!
+        ::Godot::SignalSpy.record(self.class.name, "{{sig_name.id}}", 0)
+        tid = signal_target_id
+        ::Lapis::Core::StaticSignalTable.global.emit_by_hash(tid, {{sig_name.id}}_signal_hash)
+        if ::Godot.has_untyped_signal_subscribers?(tid, "{{sig_name.id}}")
+          {{sig_name.id}}.emit
+        elsif !@pointer.null? && ::Godot::Bridge.available?
+          ::Godot.in_typed_emit = true
+          ::Godot::Bridge.emit_signal(@pointer, "{{sig_name.id}}")
+          ::Godot.in_typed_emit = false
+        end
+      end
     end
   {% end %}
 
@@ -153,22 +247,75 @@ macro on(sig_or_target, *args, once = false, &block)
   {% end %}
 end
 
-# Zero-allocation static signal connection macro binding typed procs or blocks
-# to `StaticSignalTable` slots.
+# Zero-allocation static signal connection macro binding compile-time typed procs
+# or blocks directly to `StaticSignalTable` slots.
+#
+# Can be used both:
+# 1. Declaratively at class body scope inside `node` or `gmodule`:
+#    ```crystal
+#    node Player < CharacterBody3D do
+#      signal health_changed(new_health : Int32, max_health : Int32)
+#      signal died
+#
+#      on_signal health_changed, ->on_health_changed(Int32, Int32)
+#      on_signal :died, ->on_died, once: true
+#
+#      def on_health_changed(hp : Int32, max : Int32) : Void
+#      end
+#
+#      def on_died : Void
+#      end
+#    end
+#    ```
+# 2. Imperatively inside methods or scripts:
+#    ```crystal
+#    on_signal player.health_changed, ->(hp : Int32, max : Int32) { ... }
+#    on_signal player.health_changed_slot, handler_proc
+#    on_signal player, :health_changed, handler_proc, once: true
+#    on_signal player.health_changed do |hp, max|
+#      ...
+#    end
+#    ```
 macro on_signal(sig_or_target, *args, once = false, &block)
-  {% if block && !block.body.is_a?(Nop) %}
-    {% if args.size > 0 %}
+  {% if @def == nil && (@type.annotation(::GodotClass) || @type.annotation(::GodotModule)) %}
+    # Declarative class-body signal binding is extracted and bound by the `node` / `gmodule` macro.
+  {% elsif block && !block.body.is_a?(Nop) %}
+    {% if sig_or_target.is_a?(SymbolLiteral) || sig_or_target.is_a?(StringLiteral) %}
+      {% if args.size > 0 %}
+        on(self.{{sig_or_target.id}}, {{args.splat}}, once: {{once}}) {{block}}
+      {% else %}
+        self.{{sig_or_target.id}}.bind(once: {{once}}) {{block}}
+      {% end %}
+    {% elsif args.size > 0 && (args[0].is_a?(StringLiteral) || args[0].is_a?(SymbolLiteral)) %}
+      {% if args.size > 1 %}
+        ::Lapis::Core::StaticSignalTable.global.connect(({{sig_or_target}}).signal_target_id, ({{args[0]}}).to_s, {{args[1..-1].splat}}, once: {{once}}) {{block}}
+      {% else %}
+        ::Lapis::Core::StaticSignalTable.global.connect(({{sig_or_target}}).signal_target_id, ({{args[0]}}).to_s, once: {{once}}) {{block}}
+      {% end %}
+    {% elsif args.size > 0 %}
       on({{sig_or_target}}, {{args.splat}}, once: {{once}}) {{block}}
     {% else %}
-      on({{sig_or_target}}, once: {{once}}) {{block}}
+      ({{sig_or_target}}).bind(once: {{once}}) {{block}}
     {% end %}
   {% elsif args.size == 1 %}
-    {% if once %}
-      {{sig_or_target}}.bind({{args[0]}}, flags: ::Godot::ConnectFlags::OneShot)
+    {% proc_arg = args[0] %}
+    {% if proc_arg.is_a?(ProcPointer) && !proc_arg.obj && (@type < ::Godot::Object) %}
+      {% resolved_proc = proc_arg.args.size > 0 ? "->self.#{proc_arg.name.id}(#{proc_arg.args.splat})".id : "->self.#{proc_arg.name.id}".id %}
     {% else %}
-      {{sig_or_target}}.bind({{args[0]}})
+      {% resolved_proc = proc_arg %}
+    {% end %}
+    {% if sig_or_target.is_a?(SymbolLiteral) || sig_or_target.is_a?(StringLiteral) %}
+      ::Lapis::Core::StaticSignalTable.global.bind(self.signal_target_id, ({{sig_or_target}}).to_s, {{resolved_proc}}, once: {{once}})
+    {% else %}
+      ({{sig_or_target}}).bind({{resolved_proc}}, once: {{once}})
     {% end %}
   {% elsif args.size >= 2 && (args[0].is_a?(StringLiteral) || args[0].is_a?(SymbolLiteral)) %}
-    ::Lapis::Core::StaticSignalTable.global.bind(({{sig_or_target}}).signal_target_id, ({{args[0]}}).to_s, {{args[1]}}, once: {{once}})
+    {% proc_arg = args[1] %}
+    {% if proc_arg.is_a?(ProcPointer) && !proc_arg.obj && (@type < ::Godot::Object) %}
+      {% resolved_proc = proc_arg.args.size > 0 ? "->self.#{proc_arg.name.id}(#{proc_arg.args.splat})".id : "->self.#{proc_arg.name.id}".id %}
+    {% else %}
+      {% resolved_proc = proc_arg %}
+    {% end %}
+    ::Lapis::Core::StaticSignalTable.global.bind(({{sig_or_target}}).signal_target_id, ({{args[0]}}).to_s, {{resolved_proc}}, once: {{once}})
   {% end %}
 end

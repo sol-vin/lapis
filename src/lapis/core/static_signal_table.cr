@@ -192,6 +192,14 @@ module Lapis
         hash
       end
 
+      # Alias for `fnv1a_64` used by synthesized `signal` and `on_signal` macros.
+      @[ZeroAllocation]
+      @[HotPath]
+      @[AlwaysInline]
+      def self.hash_signal_name(name : String) : UInt64
+        fnv1a_64(name)
+      end
+
       # Mixes `(emitter_id, signal_hash)` into a well-distributed 64-bit probe key.
       @[ZeroAllocation]
       @[HotPath]
@@ -579,7 +587,33 @@ module Lapis
         false
       end
 
+      # Unbinds the most recently registered active listener matching `callback`.
+      @[ZeroAllocation]
+      @[HotPath]
+      @[AlwaysInline]
+      def unbind_proc(
+        emitter_id : UInt64,
+        signal_name : String,
+        callback : Proc(*T, R)
+      ) : Bool forall T, R
+        unbind_proc(emitter_id, signal_name, callback.pointer, callback.closure_data)
+      end
+
+      # Unbinds the most recently registered active listener matching `callback` by precomputed hash.
+      @[ZeroAllocation]
+      @[HotPath]
+      @[AlwaysInline]
+      def unbind_proc_by_hash(
+        emitter_id : UInt64,
+        signal_hash : UInt64,
+        callback : Proc(*T, R)
+      ) : Bool forall T, R
+        unbind_proc_by_hash(emitter_id, signal_hash, callback.pointer, callback.closure_data)
+      end
+
       # Unbinds the most recently registered active listener matching `(proc_ptr, closure_ptr)`.
+      @[ZeroAllocation]
+      @[HotPath]
       def unbind_proc(
         emitter_id : UInt64,
         signal_name : String,
@@ -590,6 +624,8 @@ module Lapis
         unbind_proc_by_hash(emitter_id, sig_hash, proc_ptr, closure_ptr)
       end
 
+      @[ZeroAllocation]
+      @[HotPath]
       def unbind_proc_by_hash(
         emitter_id : UInt64,
         signal_hash : UInt64,
@@ -1082,6 +1118,15 @@ module Lapis
         new(table, emitter_id, name, signal_hash)
       end
 
+      @[AlwaysInline]
+      def self.from_table(
+        table : StaticSignalTable,
+        emitter_id : UInt64,
+        signal_hash : UInt64
+      ) : self
+        new(table, emitter_id, "signal", signal_hash)
+      end
+
       # Binds a typed `Proc(*T, R)` directly to this static signal slot.
       @[AlwaysInline]
       def bind(
@@ -1105,6 +1150,12 @@ module Lapis
       # Connects a typed block to this static signal slot.
       @[AlwaysInline]
       def connect(once : Bool = false, &block : *T -> Void) : UInt64
+        bind(block, once: once)
+      end
+
+      # Block overload for `bind` delegating directly to `StaticSignalTable#bind_by_hash`.
+      @[AlwaysInline]
+      def bind(once : Bool = false, &block : *T -> Void) : UInt64
         bind(block, once: once)
       end
 
@@ -1140,6 +1191,12 @@ module Lapis
       @[AlwaysInline]
       def unbind(token : UInt64) : Bool
         @table.unbind(token)
+      end
+
+      # Unbinds the most recently registered listener matching `callback`.
+      @[AlwaysInline]
+      def unbind(callback : Proc(*T, R)) : Bool forall R
+        @table.unbind_proc_by_hash(@emitter_id, @signal_hash, callback.pointer, callback.closure_data)
       end
 
       # Clears all listeners registered in this slot.

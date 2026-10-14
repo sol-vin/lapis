@@ -4,8 +4,8 @@
 # Ergonomic builders and node-level helpers wrapping Tier 1 `Lapis::Core::FrameArena`
 # and `Lapis::Core::StaticSignalTable` in accordance with the Two-Tier DSL Codex.
 #
-# Work Order: WO-064 ([AS-1])
-# Specialist: Gamma (Godot Lead Engineer)
+# Work Orders: WO-064 ([AS-1]) & WO-065 ([AS-2])
+# Specialists: Gamma (Godot Lead Engineer) & Alpha (Principal Systems Architect)
 # Target Branch: 4.8-dev7
 # =============================================================================
 
@@ -72,6 +72,107 @@ module Lapis
         @arena.reset!
       end
     end
+
+    # Declarative builder wrapping Tier 1 `Lapis::Core::StaticSignalTable` for
+    # compile-time typed proc binding, slot construction, and zero-allocation emission.
+    struct StaticSignalBuilder
+      getter table : ::Lapis::Core::StaticSignalTable
+
+      def initialize(@table : ::Lapis::Core::StaticSignalTable = ::Lapis::Core::StaticSignalTable.global)
+      end
+
+      # Returns a typed `StaticSignalSlot(*T)` bound to `(emitter_id, signal_name)`.
+      @[AlwaysInline]
+      def slot(emitter_id : UInt64, signal_name : String, *types : *T) forall T
+        @table.slot(emitter_id, signal_name, *types)
+      end
+
+      # Returns a typed `StaticSignalSlot(*T)` bound to `(emitter, signal_name)`.
+      @[AlwaysInline]
+      def slot(emitter : ::Godot::Object, signal_name : String | Symbol, *types : *T) forall T
+        @table.slot(emitter.signal_target_id, signal_name.to_s, *types)
+      end
+
+      # Binds a compile-time typed `Proc(*T, R)` to `(emitter_id, signal_name)`.
+      @[ZeroAllocation]
+      @[HotPath]
+      @[AlwaysInline]
+      def bind(emitter_id : UInt64, signal_name : String, callback : Proc(*T, R), once : Bool = false) : UInt64 forall T, R
+        @table.bind(emitter_id, signal_name, callback, once: once)
+      end
+
+      # Binds a compile-time typed `Proc(*T, R)` to `(emitter, signal_name)`.
+      @[ZeroAllocation]
+      @[HotPath]
+      @[AlwaysInline]
+      def bind(emitter : ::Godot::Object, signal_name : String, callback : Proc(*T, R), once : Bool = false) : UInt64 forall T, R
+        @table.bind(emitter.signal_target_id, signal_name, callback, once: once)
+      end
+
+      # Binds a compile-time typed `Proc(*T, R)` to `(emitter_id, signal_hash)`.
+      @[ZeroAllocation]
+      @[HotPath]
+      @[AlwaysInline]
+      def bind_by_hash(emitter_id : UInt64, signal_hash : UInt64, callback : Proc(*T, R), once : Bool = false) : UInt64 forall T, R
+        @table.bind_by_hash(emitter_id, signal_hash, callback, once: once)
+      end
+
+      # Unbinds a listener slot by `token`.
+      @[ZeroAllocation]
+      @[HotPath]
+      @[AlwaysInline]
+      def unbind(token : UInt64) : Bool
+        @table.unbind(token)
+      end
+
+      # Unbinds a matching `Proc(*T, R)` from `(emitter_id, signal_name)`.
+      @[ZeroAllocation]
+      @[HotPath]
+      @[AlwaysInline]
+      def unbind(emitter_id : UInt64, signal_name : String, callback : Proc(*T, R)) : Bool forall T, R
+        @table.unbind_proc(emitter_id, signal_name, callback)
+      end
+
+      # Unbinds a matching `Proc(*T, R)` from `(emitter, signal_name)`.
+      @[ZeroAllocation]
+      @[HotPath]
+      @[AlwaysInline]
+      def unbind(emitter : ::Godot::Object, signal_name : String, callback : Proc(*T, R)) : Bool forall T, R
+        @table.unbind_proc(emitter.signal_target_id, signal_name, callback)
+      end
+
+      # Emits `(emitter_id, signal_name)` with `*args` with strictly zero GC heap allocations.
+      @[ZeroAllocation]
+      @[HotPath]
+      @[AlwaysInline]
+      def emit(emitter_id : UInt64, signal_name : String, *args : *T) : Int32 forall T
+        @table.emit(emitter_id, signal_name, *args)
+      end
+
+      # Emits `(emitter, signal_name)` with `*args` with strictly zero GC heap allocations.
+      @[ZeroAllocation]
+      @[HotPath]
+      @[AlwaysInline]
+      def emit(emitter : ::Godot::Object, signal_name : String, *args : *T) : Int32 forall T
+        @table.emit(emitter.signal_target_id, signal_name, *args)
+      end
+
+      # Clears all signal bindings for `emitter_id`.
+      @[ZeroAllocation]
+      @[HotPath]
+      @[AlwaysInline]
+      def clear_emitter(emitter_id : UInt64) : Int32
+        @table.clear_emitter(emitter_id)
+      end
+
+      # Clears all signal bindings for `emitter`.
+      @[ZeroAllocation]
+      @[HotPath]
+      @[AlwaysInline]
+      def clear_emitter(emitter : ::Godot::Object) : Int32
+        @table.clear_emitter(emitter.signal_target_id)
+      end
+    end
   end
 
   # Executes a scoped scratchpad block on `Lapis::Core::FrameArena.current`,
@@ -106,6 +207,21 @@ module Lapis
   @[AlwaysInline]
   def self.tick_frame_arena! : Core::FrameArena
     Core::FrameArena.tick!
+  end
+
+  # Yields a declarative `StaticSignalBuilder` wrapping `Lapis::Core::StaticSignalTable`.
+  @[AlwaysInline]
+  def self.static_signals(table : Core::StaticSignalTable = Core::StaticSignalTable.global, &block : DSL::StaticSignalBuilder -> _)
+    builder = DSL::StaticSignalBuilder.new(table)
+    yield builder
+  end
+
+  # Returns the global `Lapis::Core::StaticSignalTable`.
+  @[ZeroAllocation]
+  @[HotPath]
+  @[AlwaysInline]
+  def self.static_signals : Core::StaticSignalTable
+    Core::StaticSignalTable.global
   end
 end
 
@@ -150,6 +266,62 @@ module Godot
     @[AlwaysInline]
     def static_signal_slot(signal_name : String, *types : *T) forall T
       ::Lapis::Core::StaticSignalTable.global.slot(signal_target_id, signal_name, *types)
+    end
+
+    # Returns a compile-time typed `StaticSignalSlot(*T)` bound to this object by symbol name.
+    @[AlwaysInline]
+    def static_signal_slot(signal_name : Symbol, *types : *T) forall T
+      static_signal_slot(signal_name.to_s, *types)
+    end
+
+    # Binds a compile-time typed `Proc(*T, R)` directly to this object's `StaticSignalTable` slot.
+    @[ZeroAllocation]
+    @[HotPath]
+    @[AlwaysInline]
+    def bind_static_signal(signal_name : String, callback : Proc(*T, R), once : Bool = false) : UInt64 forall T, R
+      ::Lapis::Core::StaticSignalTable.global.bind(signal_target_id, signal_name, callback, once: once)
+    end
+
+    # Binds a compile-time typed `Proc(*T, R)` directly to this object's `StaticSignalTable` slot (Symbol overload).
+    @[AlwaysInline]
+    def bind_static_signal(signal_name : Symbol, callback : Proc(*T, R), once : Bool = false) : UInt64 forall T, R
+      bind_static_signal(signal_name.to_s, callback, once: once)
+    end
+
+    # Unbinds a `StaticSignalTable` listener token.
+    @[ZeroAllocation]
+    @[HotPath]
+    @[AlwaysInline]
+    def unbind_static_signal(token : UInt64) : Bool
+      ::Lapis::Core::StaticSignalTable.global.unbind(token)
+    end
+
+    # Unbinds a matching compile-time typed `Proc(*T, R)` from this object's `StaticSignalTable` slot.
+    @[ZeroAllocation]
+    @[HotPath]
+    @[AlwaysInline]
+    def unbind_static_signal(signal_name : String, callback : Proc(*T, R)) : Bool forall T, R
+      ::Lapis::Core::StaticSignalTable.global.unbind_proc(signal_target_id, signal_name, callback)
+    end
+
+    # Unbinds a matching compile-time typed `Proc(*T, R)` from this object's `StaticSignalTable` slot (Symbol overload).
+    @[AlwaysInline]
+    def unbind_static_signal(signal_name : Symbol, callback : Proc(*T, R)) : Bool forall T, R
+      unbind_static_signal(signal_name.to_s, callback)
+    end
+
+    # Emits a typed signal directly through `StaticSignalTable.global` with zero GC heap allocations.
+    @[ZeroAllocation]
+    @[HotPath]
+    @[AlwaysInline]
+    def emit_static_signal(signal_name : String, *args : *T) : Int32 forall T
+      ::Lapis::Core::StaticSignalTable.global.emit(signal_target_id, signal_name, *args)
+    end
+
+    # Emits a typed signal directly through `StaticSignalTable.global` (Symbol overload).
+    @[AlwaysInline]
+    def emit_static_signal(signal_name : Symbol, *args : *T) : Int32 forall T
+      emit_static_signal(signal_name.to_s, *args)
     end
   end
 end

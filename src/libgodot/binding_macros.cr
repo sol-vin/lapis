@@ -211,14 +211,66 @@ end
 # Signal Synthesizer Macros
 # ===========================================================================
 
-# Synthesizes a first-class typed signal accessor and direct emission helper
+# Synthesizes a first-class typed signal accessor, StaticSignalSlot view, and direct emission helper
 macro godot_signal(name, *types)
   # Identity setter enabling compound operator sugar (`node.{{name.id}} += ->handler`, `node.{{name.id}} -= ->handler`)
   def {{name.id}}=(val : ::Godot::BoundSignal) : ::Godot::BoundSignal
     val
   end
 
+  @[ZeroAllocation]
+  @[HotPath]
+  @[AlwaysInline]
+  def {{name.id}}_signal_hash : UInt64
+    ::Lapis::Core::StaticSignalTable.hash_signal_name({{name.stringify}})
+  end
+
   {% if types.empty? %}
+    @[ZeroAllocation]
+    @[HotPath]
+    @[AlwaysInline]
+    def {{name.id}}_slot : ::Lapis::Core::StaticSignalSlot()
+      ::Lapis::Core::StaticSignalSlot().from_table(
+        ::Lapis::Core::StaticSignalTable.global,
+        signal_target_id,
+        {{name.id}}_signal_hash
+      )
+    end
+
+    @[ZeroAllocation]
+    @[HotPath]
+    @[AlwaysInline]
+    def bind_{{name.id}}(callback : Proc(R), once : Bool = false) : UInt64 forall R
+      ::Lapis::Core::StaticSignalTable.global.bind_by_hash(
+        signal_target_id,
+        {{name.id}}_signal_hash,
+        callback,
+        once: once
+      )
+    end
+
+    def bind_{{name.id}}(once : Bool = false, &block : -> Void) : UInt64
+      bind_{{name.id}}(block, once: once)
+    end
+
+    @[ZeroAllocation]
+    @[HotPath]
+    @[AlwaysInline]
+    def unbind_{{name.id}}(token : UInt64) : Bool
+      ::Lapis::Core::StaticSignalTable.global.unbind(token)
+    end
+
+    @[ZeroAllocation]
+    @[HotPath]
+    @[AlwaysInline]
+    def unbind_{{name.id}}(callback : Proc(R)) : Bool forall R
+      ::Lapis::Core::StaticSignalTable.global.unbind_proc_by_hash(
+        signal_target_id,
+        {{name.id}}_signal_hash,
+        callback
+      )
+    end
+
     def {{name.id}} : ::Godot::TypedSignal()
       cache = (@_bound_signal_cache ||= ::Hash(String, ::Godot::BoundSignal).new)
       if existing = cache[{{name.stringify}}]?
@@ -234,6 +286,51 @@ macro godot_signal(name, *types)
       {{name.id}}.emit
     end
   {% else %}
+    @[ZeroAllocation]
+    @[HotPath]
+    @[AlwaysInline]
+    def {{name.id}}_slot : ::Lapis::Core::StaticSignalSlot({{types.splat}})
+      ::Lapis::Core::StaticSignalSlot({{types.splat}}).from_table(
+        ::Lapis::Core::StaticSignalTable.global,
+        signal_target_id,
+        {{name.id}}_signal_hash
+      )
+    end
+
+    @[ZeroAllocation]
+    @[HotPath]
+    @[AlwaysInline]
+    def bind_{{name.id}}(callback : Proc({{types.splat}}, R), once : Bool = false) : UInt64 forall R
+      ::Lapis::Core::StaticSignalTable.global.bind_by_hash(
+        signal_target_id,
+        {{name.id}}_signal_hash,
+        callback,
+        once: once
+      )
+    end
+
+    def bind_{{name.id}}(once : Bool = false, &block : {{types.splat}} -> Void) : UInt64
+      bind_{{name.id}}(block, once: once)
+    end
+
+    @[ZeroAllocation]
+    @[HotPath]
+    @[AlwaysInline]
+    def unbind_{{name.id}}(token : UInt64) : Bool
+      ::Lapis::Core::StaticSignalTable.global.unbind(token)
+    end
+
+    @[ZeroAllocation]
+    @[HotPath]
+    @[AlwaysInline]
+    def unbind_{{name.id}}(callback : Proc({{types.splat}}, R)) : Bool forall R
+      ::Lapis::Core::StaticSignalTable.global.unbind_proc_by_hash(
+        signal_target_id,
+        {{name.id}}_signal_hash,
+        callback
+      )
+    end
+
     def {{name.id}} : ::Godot::TypedSignal({{types.splat}})
       cache = (@_bound_signal_cache ||= ::Hash(String, ::Godot::BoundSignal).new)
       if existing = cache[{{name.stringify}}]?

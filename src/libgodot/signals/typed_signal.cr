@@ -62,22 +62,98 @@ module Godot
       connect(flags: flags, receiver: receiver, &block)
     end
 
-    # Binds a pre-constructed `Proc(*T, R)` directly to the underlying `StaticSignalTable` slot.
-    def bind(proc : Proc(*T, R), flags : ConnectFlags = ConnectFlags::None, receiver : Godot::Object? = nil) : SignalSubscription forall R
-      sub = {% begin %}
-        {% if T.size == 0 %}
-          connect(flags: flags, receiver: receiver) do
+    # Binds a pre-constructed `Proc(*T, R)` directly to the underlying `StaticSignalTable` slot
+    # without intermediate closure wrapping on the typed fast path.
+    def bind(
+      proc : Proc(*T, R),
+      flags : ConnectFlags = ConnectFlags::None,
+      once : Bool = false,
+      receiver : Godot::Object? = nil
+    ) : SignalSubscription forall R
+      actual_flags = once ? (flags | ConnectFlags::OneShot) : flags
+      sub = @target.connect(@name, actual_flags, receiver: receiver) do |args|
+        {% begin %}
+          {% if T.size == 0 %}
             proc.call
-          end
-        {% else %}
-          connect(flags: flags, receiver: receiver) do |{% for i in 0...T.size %}arg{{i}},{% end %}|
-            proc.call({% for i in 0...T.size %}arg{{i}},{% end %})
-          end
+          {% else %}
+            proc.call(
+              {% for i in 0...T.size %}
+                (if (arg = args[{{i}}]?)
+                  arg.as_t({{ T[i] }})
+                else
+                  Variant.default_for({{ T[i] }})
+                end),
+              {% end %}
+            )
+          {% end %}
         {% end %}
-      {% end %}
+      end
+      sub.typed_fast_path = true
       sub.proc_pointer = proc.pointer
       sub.proc_closure_data = proc.closure_data
+      token = ::Lapis::Core::StaticSignalTable.global.bind_by_hash(
+        target_id,
+        @signal_hash,
+        proc,
+        once: actual_flags.includes?(ConnectFlags::OneShot),
+        subscription: sub
+      )
+      sub.static_slot_token = token
       sub
+    end
+
+    # Block overload for `bind` delegating to `connect` with optional `once` flag.
+    def bind(
+      once : Bool = false,
+      flags : ConnectFlags = ConnectFlags::None,
+      receiver : Godot::Object? = nil,
+      &block : *T -> Void
+    ) : SignalSubscription
+      actual_flags = once ? (flags | ConnectFlags::OneShot) : flags
+      connect(flags: actual_flags, receiver: receiver, &block)
+    end
+
+    # Binds a compile-time typed `Proc(*T, R)` directly to the `StaticSignalTable` slot
+    # without allocating a `SignalSubscription`, returning the 64-bit slot token.
+    @[AlwaysInline]
+    def bind_slot(proc : Proc(*T, R), once : Bool = false) : UInt64 forall R
+      ::Lapis::Core::StaticSignalTable.global.bind_by_hash(
+        target_id,
+        @signal_hash,
+        proc,
+        once: once
+      )
+    end
+
+    # Binds a typed block directly to the `StaticSignalTable` slot, returning the 64-bit slot token.
+    @[AlwaysInline]
+    def bind_slot(once : Bool = false, &block : *T -> Void) : UInt64
+      bind_slot(block, once: once)
+    end
+
+    # Unbinds a listener by its 64-bit `StaticSignalTable` token.
+    @[AlwaysInline]
+    def unbind(token : UInt64) : Bool
+      ::Lapis::Core::StaticSignalTable.global.unbind(token)
+    end
+
+    # Unbinds a typed `Proc(*T, R)` from this signal.
+    def unbind(proc : Proc(*T, R)) : Bool forall R
+      tid = target_id
+      sname = @name
+      key = {tid, sname}
+      sub_to_unsub = nil
+      Godot.signal_subs_mutex.synchronize do
+        if list = Godot.signal_subs[key]?
+          sub_to_unsub = list.reverse.find { |s| s.proc_pointer == proc.pointer && s.proc_closure_data == proc.closure_data && s.active? }
+        end
+      end
+      if sub = sub_to_unsub
+        sub.unsubscribe
+        true
+      else
+        ::Lapis::Core::StaticSignalTable.global.unbind_proc_by_hash(tid, @signal_hash, proc.pointer, proc.closure_data)
+      end
     end
 
     # Backwards-compatibility helper redirecting to ConnectFlags::OneShot

@@ -323,3 +323,24 @@ annotation NoAlloc; end
 # Marks a method as explicitly allowed to allocate on the heap inside a hot type.
 annotation AllowAllocation; end
 
+# Explicitly designates a Crystal module as a Godot mixin module (`gmodule`).
+annotation GodotModule; end
+
+# Declaratively binds a method inside a `node` or `gmodule` block as a compile-time
+# typed `Proc` listener in `Lapis::Core::StaticSignalTable`.
+#
+# ```
+# node Player < CharacterBody3D do
+#   signal health_changed(new_health : Int32, max_health : Int32)
+#   signal died
+#
+#   @[OnSignal(:health_changed)]
+#   def on_health_changed(hp : Int32, max : Int32) : Void
+#   end
+#
+#   @[OnSignal(:died, once: true)]
+#   def on_died : Void
+#   end
+# end
+# ```
+annotation OnSignal; end
