@@ -20,7 +20,7 @@ inputs:
     required: false
     default: "1.21.0"
   godot-version:
-    description: "Target Godot Engine version (resolved from godot-version.yml or defaults to 4.8-dev7)"
+    description: "Target Godot Engine version (resolved from godot-version.yml or defaults to 4.8-beta1)"
     required: false
     default: ""
   release:
@@ -95,7 +95,7 @@ runs:
           GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' "godot-version.yml" | tr -d '\r\n[:space:]')
         fi
         if [ -z "$GODOT_VER" ]; then
-          GODOT_VER="4.8-dev7"
+          GODOT_VER="4.8-beta1"
         fi
         if [ ! -f "$WORK_DIR/godot-version.yml" ]; then
           echo "version: \"$GODOT_VER\"" > "$WORK_DIR/godot-version.yml"

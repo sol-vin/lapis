@@ -4468,9 +4468,8 @@ module Godot
       LightParamShadowBlur = 18_i64
       LightParamTransmittanceBias = 19_i64
       LightParamIntensity = 20_i64
-      LightParamContactShadowOpacity = 21_i64
-      LightParamContactShadowBlur = 22_i64
-      LightParamMax = 23_i64
+      LightParamContactShadowBlur = 21_i64
+      LightParamMax = 22_i64
     end
     enum LightBakeMode : Int64
       LightBakeDisabled = 0_i64
@@ -14017,6 +14016,13 @@ module Godot
       UpdateTooltip = 64_i64
       UpdateWidthUnit = 128_i64
     end
+    enum ResourceAccessFlag : Int64
+      ResourceAccessResources = 1_i64
+      ResourceAccessUserdata = 2_i64
+      ResourceAccessFilesystem = 4_i64
+      ResourceAccessPipe = 8_i64
+      ResourceAccessNetwork = 16_i64
+    end
     enum ImageUnit : Int64
       ImageUnitPixel = 0_i64
       ImageUnitPercent = 1_i64
@@ -15270,6 +15276,27 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_menu_option, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_resource_access_flags : Void* = Pointer(Void).null
+    def get_resource_access_flags() : ResourceAccessFlag
+      godot_bind(@@mb_get_resource_access_flags, "RichTextLabel", "get_resource_access_flags", 2228477831_i64)
+      godot_ptrcall_enum(@@mb_get_resource_access_flags, @pointer, Pointer(Pointer(Void)).null, ResourceAccessFlag)
+    end
+    @@mb_set_resource_access_flags : Void* = Pointer(Void).null
+    def set_resource_access_flags(flags : ResourceAccessFlag | Int) : Void
+      godot_bind(@@mb_set_resource_access_flags, "RichTextLabel", "set_resource_access_flags", 4127961739_i64)
+      val_0 = flags.is_a?(Int) ? flags.to_i64 : flags.value.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_resource_access_flags, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Property `resource_access_flags` getter
+    def resource_access_flags
+      get_resource_access_flags
+    end
+    # Property `resource_access_flags` setter
+    def resource_access_flags=(val : Int | Enum)
+      set_resource_access_flags(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `bbcode_enabled` getter
     def bbcode_enabled
@@ -33262,11 +33289,6 @@ module Godot
       super(pointer)
     end
   end
-  class TextServerFallback < Godot::TextServerExtension
-    def initialize(pointer : Void* = Pointer(Void).null)
-      super(pointer)
-    end
-  end
   class TextServerManager < Godot::Object
     def initialize(pointer : Void* = Pointer(Void).null)
       super(pointer)
@@ -44230,6 +44252,26 @@ module Godot
     # Property `max_pending_connections` setter
     def max_pending_connections=(val : Int | Enum)
       set_max_pending_connections(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
+    end
+  end
+  class UDSServer < Godot::SocketServer
+    def initialize(pointer : Void* = Pointer(Void).null)
+      super(pointer)
+    end
+    @@mb_listen : Void* = Pointer(Void).null
+    def listen(path : String) : Godot::Error
+      godot_bind(@@mb_listen, "UDSServer", "listen", 166001499_i64)
+      str_0 = Bridge.make_string(path)
+      arg_0 = str_0
+      args = StaticArray[arg_0]
+      godot_ptrcall_enum(@@mb_listen, @pointer, args.to_unsafe.as(Void**), Godot::Error)
+    ensure
+      Bridge.free_string(str_0)
+    end
+    @@mb_take_connection : Void* = Pointer(Void).null
+    def take_connection() : StreamPeerUDS
+      godot_bind(@@mb_take_connection, "UDSServer", "take_connection", 1623851112_i64)
+      godot_ptrcall_obj(@@mb_take_connection, @pointer, Pointer(Pointer(Void)).null, StreamPeerUDS)
     end
   end
 end

@@ -246,9 +246,9 @@ deinitialize_crystal_module(void *p_userdata,
  * Validates semantic version compatibility between target engine and runtime
  * engine.
  *
- * @param expected Null-terminated target semver string (e.g. "4.8-dev6").
+ * @param expected Null-terminated target semver string (e.g. "4.8-beta1").
  * @param actual Null-terminated active Godot version string (e.g.
- * "4.8.dev6.official").
+ * "4.8.beta1.official").
  * @return True if all expected version tokens match the active engine string.
  */
 static inline bool bridge_version_matches(const char *expected,
@@ -293,6 +293,7 @@ static inline bool bridge_version_matches(const char *expected,
   // --- Segment 2: Subset Token Matching ---
   // Ensures that every token specified in expected version exists in the actual
   // version.
+  const char *stages[] = {"dev", "alpha", "beta", "rc"};
   for (const auto &exp : exp_tokens) {
     bool found = false;
     for (const auto &act : act_tokens) {
@@ -300,10 +301,14 @@ static inline bool bridge_version_matches(const char *expected,
         found = true;
         break;
       }
-      if (exp.rfind("dev", 0) == 0 && (act == "dev" || act == exp)) {
-        found = true;
-        break;
+      for (const char *stage : stages) {
+        if (exp.rfind(stage, 0) == 0 && (act == stage || act == exp)) {
+          found = true;
+          break;
+        }
       }
+      if (found)
+        break;
     }
     if (!found)
       return false;

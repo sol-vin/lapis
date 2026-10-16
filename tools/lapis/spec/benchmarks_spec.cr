@@ -57,7 +57,7 @@ describe "Lapis Benchmarks & Installer Command Specifications" do
     xml = Lapis::Commands::Benchmarks::XmlHandler.generate_xml(
       metrics: metrics,
       version: "0.0.98",
-      godot_ver: "4.8-dev6",
+      godot_ver: "4.8-beta1",
       iterations: 3,
       platform: "windows"
     )
@@ -73,7 +73,7 @@ describe "Lapis Benchmarks & Installer Command Specifications" do
     meta, parsed = Lapis::Commands::Benchmarks::XmlHandler.parse_xml(xml)
     meta["version"].should eq("0.0.98")
     meta["platform"].should eq("windows")
-    meta["godot"].should eq("4.8-dev6")
+    meta["godot"].should eq("4.8-beta1")
     meta["iterations"].should eq("3")
 
     parsed.size.should eq(2)
@@ -220,7 +220,7 @@ describe "Lapis Benchmarks & Installer Command Specifications" do
     end
   end
 
-  it "generates tag comparison HTML with custom tags (e.g. 4.8-dev5 -> 4.8-dev6)" do
+  it "generates tag comparison HTML with custom tags" do
     prev_metrics = [
       Lapis::Commands::Benchmarks::BenchmarkMetric.new("Matmul", Lapis::Commands::Benchmarks::Category::Compute, 14.50, 185.0, 12.76, "Matrix mult"),
     ]
@@ -231,13 +231,13 @@ describe "Lapis Benchmarks & Installer Command Specifications" do
     html = Lapis::Commands::Benchmarks::HtmlGenerator.generate_comparison_html(
       curr_metrics,
       prev_metrics,
-      "0.0.118",
-      "0.0.117",
-      curr_tag: "4.8-dev6",
-      prev_tag: "4.8-dev5"
+      "0.1.1",
+      "0.1.0",
+      curr_tag: "4.8-beta1",
+      prev_tag: "4.8-beta0"
     )
-    html.should contain("Lapis Benchmark Progression: 4.8-dev5 vs 4.8-dev6")
-    html.should contain("Comparing Baseline <strong>4.8-dev5</strong> &rarr; Target <strong>4.8-dev6</strong>")
+    html.should contain("Lapis Benchmark Progression: 4.8-beta0 vs 4.8-beta1")
+    html.should contain("Comparing Baseline <strong>4.8-beta0</strong> &rarr; Target <strong>4.8-beta1</strong>")
     html.should contain("Back to Main Report")
   end
 
@@ -247,40 +247,40 @@ describe "Lapis Benchmarks & Installer Command Specifications" do
     ]
     history = [
       Lapis::Commands::Benchmarks::HtmlGenerator::HistoryEntry.new(
-        tag: "4.8-dev5",
-        version: "0.0.117",
-        godot_ver: "4.8-dev5",
-        filename: "report_4.8-dev5.html",
-        xml_filename: "benchmarks_4.8-dev5.xml",
+        tag: "4.8-beta0",
+        version: "0.1.0",
+        godot_ver: "4.8-beta0",
+        filename: "report_4.8-beta0.html",
+        xml_filename: "benchmarks_4.8-beta0.xml",
         speedup: 12.5
       ),
     ]
     comparisons = [
       Lapis::Commands::Benchmarks::HtmlGenerator::ComparisonEntry.new(
-        prev_tag: "4.8-dev5",
-        curr_tag: "4.8-dev6",
-        filename: "comparison_4.8-dev5_to_4.8-dev6.html"
+        prev_tag: "4.8-beta0",
+        curr_tag: "4.8-beta1",
+        filename: "comparison_4.8-beta0_to_4.8-beta1.html"
       ),
     ]
 
     html = Lapis::Commands::Benchmarks::HtmlGenerator.generate_report(
       metrics,
-      "0.0.118",
+      "0.1.1",
       "windows",
-      "4.8-dev6",
-      tag: "4.8-dev6",
+      "4.8-beta1",
+      tag: "4.8-beta1",
       history: history,
       comparisons: comparisons,
-      prev_tag: "4.8-dev5",
+      prev_tag: "4.8-beta0",
       prev_speedup: 12.5
     )
-    html.should contain("4.8-dev6")
+    html.should contain("4.8-beta1")
     html.should contain("Release Progression:")
-    html.should contain("Tag <code>4.8-dev5</code> &rarr; <code>4.8-dev6</code>")
+    html.should contain("Tag <code>4.8-beta0</code> &rarr; <code>4.8-beta1</code>")
     html.should contain("Historical Benchmark Releases &amp; Logs")
-    html.should contain("report_4.8-dev5.html")
-    html.should contain("benchmarks_4.8-dev5.xml")
-    html.should contain("comparison_4.8-dev5_to_4.8-dev6.html")
+    html.should contain("report_4.8-beta0.html")
+    html.should contain("benchmarks_4.8-beta0.xml")
+    html.should contain("comparison_4.8-beta0_to_4.8-beta1.html")
   end
 
   it "generates native mode benchmark XML and single-bar SVG without GDScript" do
@@ -416,7 +416,7 @@ describe "Lapis Benchmarks & Installer Command Specifications" do
       metrics: metrics,
       version: "0.1.0",
       platform: "linux",
-      godot_ver: "4.8-dev6"
+      godot_ver: "4.8-beta1"
     )
 
     html.should contain("lang-filter-bar")
@@ -591,7 +591,7 @@ describe "Lapis Benchmarks & Installer Command Specifications" do
       metrics: metrics,
       version: "1.0.0",
       platform: "windows",
-      godot_ver: "4.8-dev6"
+      godot_ver: "4.8-beta1"
     )
 
     html.should contain("chart-view-selector")

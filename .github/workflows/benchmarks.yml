@@ -65,9 +65,14 @@ jobs:
       - name: Setup Godot Engine
         shell: powershell
         run: |
+          $ver = "4.8-beta1"
+          if (Test-Path "godot-version.yml") {
+            $match = Select-String -Path "godot-version.yml" -Pattern '^\s*version:\s*"?([^"\s#]+)"?'
+            if ($match) { $ver = $match.Matches[0].Groups[1].Value }
+          }
           if (-not (Test-Path "godot.exe")) {
-            Write-Host "Downloading Godot 4.8-dev6..."
-            Invoke-WebRequest -Uri "https://github.com/godotengine/godot-builds/releases/download/4.8-dev6/Godot_v4.8-dev6_win64.exe.zip" -OutFile "godot.zip"
+            Write-Host "Downloading Godot $ver..."
+            Invoke-WebRequest -Uri "https://github.com/godotengine/godot-builds/releases/download/$ver/Godot_v${ver}_win64.exe.zip" -OutFile "godot.zip"
             Expand-Archive -Path "godot.zip" -DestinationPath "." -Force
             $exe = Get-ChildItem -Filter "Godot*.exe" | Select-Object -First 1
             if ($exe) {

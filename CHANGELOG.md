@@ -5,7 +5,19 @@ All notable changes to the Lapis for Crystal framework are documented in this fi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.0.311] - 2026-10-13
+## [4.8-beta1] - 2026-10-16
+
+### Changed
+
+#### Godot Engine 4.8-beta1 Upgrade & API Binding Regeneration
+- **Godot 4.8-beta1 (`v4.8.beta1.official.4d10419ca`)**:
+  - Upgraded target Godot Engine version to `4.8-beta1` across `godot-version.yml`, `src/bridge/godot_version.h`, `src/lapis.cr`, `Dockerfile.test`, CI/CD workflows, and starter templates.
+  - Regenerated `extension_api.json` (`rsrc/extension_api.json`) and 1,069 typed Crystal classes (`src/libgodot/generated/classes/classes_part1..6.cr`) for Godot 4.8-beta1, including new `SubMenuButton` class, `Performance::Monitor` / `DisplayServer::Feature` / `RenderingServer` enum additions, and updated `AudioServer`, `GraphEdit`, `CodeEdit`, and `WebXRInterface` signatures.
+  - Enhanced C++ bridge version matching (`bridge_version_matches` in `src/bridge/crystal_bridge.cpp`) and `Lapis::Commands::ExportTemplates` to support `alpha`, `beta`, and `rc` stage prefixes alongside `dev`.
+  - Updated `tools/api_generator/generate_bindings.cr` and `tools/lapis/src/commands/bind/engine.cr` so `Godot::Object#initialize` automatically preserves `LeakTracker.register` and `_godot_bind_static_signals` across binding regenerations.
+  - Added re-entrancy guard to `Godot::CrashHandler` on Windows so secondary faults during process teardown exit cleanly.
+
+## [0.1.0] - 2026-10-16
 
 ### Added
 

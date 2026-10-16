@@ -25,10 +25,10 @@ module Lapis
       def self.target_godot_version : String
         root = Core::Env::ROOT_DIR.to_s
         expected = Core::GodotFinder.expected_version(root)
-        # Normalize to template folder name (e.g., "4.3.stable" or "4.3")
+        # Normalize to template folder name (e.g., "4.8.beta1" or "4.4.stable")
         if expected.includes?("-")
           expected.gsub('-', '.')
-        elsif !expected.includes?(".stable") && !expected.includes?(".dev") && !expected.includes?(".rc")
+        elsif !expected.includes?(".stable") && !expected.includes?(".dev") && !expected.includes?(".alpha") && !expected.includes?(".beta") && !expected.includes?(".rc")
           "#{expected}.stable"
         else
           expected
@@ -49,14 +49,14 @@ Subcommands:
   verify               Verify checksums and executable headers of installed templates
 
 Options:
-  -v, --version=VER    Explicit Godot template version (e.g. '4.8.dev7')
+  -v, --version=VER    Explicit Godot template version (e.g. '4.8.beta1')
   -h, --help           Show this help message
 
 Examples:
   lapis export-templates status
   lapis export-templates explain
   lapis export-templates install
-  lapis export-templates verify --version=4.8.dev7
+  lapis export-templates verify --version=4.8.beta1
 HELP
       end
 
@@ -218,15 +218,10 @@ EXPLAIN
         FileUtils.mkdir_p(target_dir)
 
         # Download URL for official Godot export templates .tpz
-        # e.g., https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz
-        clean_tag = version.gsub('.', '-').gsub("-stable", "-stable")
-        # Format tag for Godot GitHub release
-        gh_tag = if version.includes?(".stable")
-                   version.gsub(".stable", "-stable")
-                 else
-                   version
-                 end
-        tpz_url = "https://github.com/godotengine/godot/releases/download/#{gh_tag}/Godot_v#{gh_tag}_export_templates.tpz"
+        # e.g., https://github.com/godotengine/godot-builds/releases/download/4.8-beta1/Godot_v4.8-beta1_export_templates.tpz
+        # Format tag for Godot GitHub release (convert last '.' before stage token to '-')
+        gh_tag = version.sub(/\.(stable|dev\d*|alpha\d*|beta\d*|rc\d*)$/, "-\\1")
+        tpz_url = "https://github.com/godotengine/godot-builds/releases/download/#{gh_tag}/Godot_v#{gh_tag}_export_templates.tpz"
 
         Core::Logger.step("Download", "Downloading templates archive from GitHub: #{tpz_url}")
         tmp_archive = Path.new(Dir.tempdir).join("godot_templates_#{version}.tpz")

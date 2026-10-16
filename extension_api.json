@@ -3,9 +3,9 @@
 		"version_major": 4,
 		"version_minor": 8,
 		"version_patch": 0,
-		"version_status": "dev",
-		"version_build": "gh",
-		"version_full_name": "Godot Engine v4.8.dev.gh",
+		"version_status": "beta1",
+		"version_build": "official",
+		"version_full_name": "Godot Engine v4.8.beta1.official",
 		"precision": "single"
 	},
 	"builtin_class_sizes": [
@@ -82041,6 +82041,20 @@
 					]
 				},
 				{
+					"name": "play_theme_sound",
+					"is_const": false,
+					"is_vararg": false,
+					"is_static": false,
+					"is_virtual": false,
+					"hash": 2210767741,
+					"arguments": [
+						{
+							"name": "stream",
+							"type": "AudioStream"
+						}
+					]
+				},
+				{
 					"name": "set_h_size_flags",
 					"is_const": false,
 					"is_vararg": false,
@@ -90338,6 +90352,10 @@
 						{
 							"name": "FEATURE_PIP_MODE",
 							"value": 36
+						},
+						{
+							"name": "FEATURE_EMBEDDED",
+							"value": 37
 						}
 					]
 				},
@@ -94275,6 +94293,26 @@
 						{
 							"name": "position",
 							"type": "Vector2i"
+						},
+						{
+							"name": "window_id",
+							"type": "int",
+							"meta": "int32",
+							"default_value": "0"
+						}
+					]
+				},
+				{
+					"name": "window_set_ime_rect",
+					"is_const": false,
+					"is_vararg": false,
+					"is_static": false,
+					"is_virtual": false,
+					"hash": 2829673102,
+					"arguments": [
+						{
+							"name": "rect",
+							"type": "Rect2i"
 						},
 						{
 							"name": "window_id",
@@ -157408,16 +157446,12 @@
 							"value": 20
 						},
 						{
-							"name": "PARAM_CONTACT_SHADOW_OPACITY",
+							"name": "PARAM_CONTACT_SHADOW_BLUR",
 							"value": 21
 						},
 						{
-							"name": "PARAM_CONTACT_SHADOW_BLUR",
-							"value": 22
-						},
-						{
 							"name": "PARAM_MAX",
-							"value": 23
+							"value": 22
 						}
 					]
 				},
@@ -158031,17 +158065,10 @@
 				},
 				{
 					"type": "float",
-					"name": "shadow_contact_shadows_opacity",
-					"setter": "set_param",
-					"getter": "get_param",
-					"index": 21
-				},
-				{
-					"type": "float",
 					"name": "shadow_contact_shadows_blur",
 					"setter": "set_param",
 					"getter": "get_param",
-					"index": 22
+					"index": 21
 				},
 				{
 					"type": "bool",
@@ -160224,11 +160251,11 @@
 					"is_bitfield": false,
 					"values": [
 						{
-							"name": "TILING_MODE_UNIT",
+							"name": "TILING_MODE_STRETCH",
 							"value": 0
 						},
 						{
-							"name": "TILING_MODE_LENGTH",
+							"name": "TILING_MODE_TILE",
 							"value": 1
 						},
 						{
@@ -254208,16 +254235,12 @@
 							"value": 20
 						},
 						{
-							"name": "LIGHT_PARAM_CONTACT_SHADOW_OPACITY",
+							"name": "LIGHT_PARAM_CONTACT_SHADOW_BLUR",
 							"value": 21
 						},
 						{
-							"name": "LIGHT_PARAM_CONTACT_SHADOW_BLUR",
-							"value": 22
-						},
-						{
 							"name": "LIGHT_PARAM_MAX",
-							"value": 23
+							"value": 22
 						}
 					]
 				},
@@ -269498,6 +269521,32 @@
 					]
 				},
 				{
+					"name": "ResourceAccessFlag",
+					"is_bitfield": true,
+					"values": [
+						{
+							"name": "RESOURCE_ACCESS_RESOURCES",
+							"value": 1
+						},
+						{
+							"name": "RESOURCE_ACCESS_USERDATA",
+							"value": 2
+						},
+						{
+							"name": "RESOURCE_ACCESS_FILESYSTEM",
+							"value": 4
+						},
+						{
+							"name": "RESOURCE_ACCESS_PIPE",
+							"value": 8
+						},
+						{
+							"name": "RESOURCE_ACCESS_NETWORK",
+							"value": 16
+						}
+					]
+				},
+				{
 					"name": "ImageUnit",
 					"is_bitfield": false,
 					"values": [
@@ -271696,6 +271745,31 @@
 							"meta": "int32"
 						}
 					]
+				},
+				{
+					"name": "get_resource_access_flags",
+					"is_const": true,
+					"is_vararg": false,
+					"is_static": false,
+					"is_virtual": false,
+					"hash": 2228477831,
+					"return_value": {
+						"type": "bitfield::RichTextLabel.ResourceAccessFlag"
+					}
+				},
+				{
+					"name": "set_resource_access_flags",
+					"is_const": false,
+					"is_vararg": false,
+					"is_static": false,
+					"is_virtual": false,
+					"hash": 4127961739,
+					"arguments": [
+						{
+							"name": "flags",
+							"type": "bitfield::RichTextLabel.ResourceAccessFlag"
+						}
+					]
 				}
 			],
 			"signals": [
@@ -271731,6 +271805,12 @@
 				}
 			],
 			"properties": [
+				{
+					"type": "int",
+					"name": "resource_access_flags",
+					"setter": "set_resource_access_flags",
+					"getter": "get_resource_access_flags"
+				},
 				{
 					"type": "bool",
 					"name": "bbcode_enabled",
@@ -318483,13 +318563,6 @@
 			]
 		},
 		{
-			"name": "TextServerFallback",
-			"is_refcounted": true,
-			"is_instantiable": true,
-			"inherits": "TextServerExtension",
-			"api_type": "core"
-		},
-		{
 			"name": "TextServerManager",
 			"is_refcounted": false,
 			"is_instantiable": true,
@@ -355922,6 +355995,20 @@
 					]
 				},
 				{
+					"name": "set_ime_rect",
+					"is_const": false,
+					"is_vararg": false,
+					"is_static": false,
+					"is_virtual": false,
+					"hash": 1763793166,
+					"arguments": [
+						{
+							"name": "rect",
+							"type": "Rect2i"
+						}
+					]
+				},
+				{
 					"name": "is_embedded",
 					"is_const": true,
 					"is_vararg": false,
@@ -364169,7 +364256,7 @@
 		},
 		{
 			"name": "Glyph",
-			"format": "int start = -1;int end = -1;uint8_t count = 0;uint8_t repeat = 1;uint16_t flags = 0;float x_off = 0.f;float y_off = 0.f;float advance = 0.f;RID font_rid;int font_size = 0;int32_t index = 0"
+			"format": "int start = -1;int end = -1;uint8_t count = 0;uint8_t repeat = 1;uint16_t flags = 0;float x_off = 0.f;float y_off = 0.f;float advance = 0.f;RID font_rid;int font_size = 0;int32_t index = 0;int span_index = -1"
 		},
 		{
 			"name": "ObjectID",

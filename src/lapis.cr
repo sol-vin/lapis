@@ -114,7 +114,7 @@ module Godot
                 .strip
             }}
   TARGET_GODOT_VERSION = {{
-                           (read_file?("#{__DIR__}/../godot-version.yml") || "version: 4.8.dev6")
+                           (read_file?("#{__DIR__}/../godot-version.yml") || "version: 4.8-beta1")
                              .split("\n")
                              .find(&.includes?("version:"))
                              .split(":")[1]

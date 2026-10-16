@@ -18,7 +18,7 @@ module Lapis
 Usage: lapis setup [templates] [version] [options]
 
 Options:
-  -v, --version=TAG     Target Godot version (e.g. 4.8-dev6, default from godot-version.yml)
+  -v, --version=TAG     Target Godot version (e.g. 4.8-beta1, default from godot-version.yml)
   -t, --templates       Download and install Godot export templates
   -o, --output=PATH     Package export templates into specified zip
   -f, --force           Force download even if godot executable exists
@@ -29,7 +29,7 @@ Options:
 
 Examples:
   lapis setup
-  lapis setup 4.8-dev6
+  lapis setup 4.8-beta1
   lapis setup templates
   lapis setup templates -o bin/export-templates.zip
   lapis setup --force
@@ -176,7 +176,7 @@ HELP
           "https://github.com/sol-vin/lapis/releases/download/#{target_version}/godot-crystal-export-templates-#{target_version}.zip",
           "https://github.com/godotengine/godot-builds/releases/download/#{target_version}/Godot_v#{target_version}_export_templates.tpz",
           "https://github.com/sol-vin/lapis/releases/download/latest/godot-crystal-export-templates-#{target_version}.zip",
-          "https://github.com/sol-vin/lapis/releases/download/4.8-dev6/godot-crystal-export-templates-4.8-dev6.zip",
+          "https://github.com/godotengine/godot/releases/download/#{target_version}/Godot_v#{target_version}_export_templates.tpz",
         ]
 
         temp_tpz = target_dir.parent.join("templates_temp_#{Time.utc.to_unix_ms}.zip")

@@ -28,10 +28,24 @@
   # Genuine stack overflows occurring in user or engine code are handled with the full
   # diagnostic backtrace and termination.
   struct Exception::CallStack
+    @@in_crash_handler : Bool = false
+
+    def self.in_crash_handler? : Bool
+      @@in_crash_handler
+    end
+
+    def self.in_crash_handler=(val : Bool)
+      @@in_crash_handler = val
+    end
+
     def self.setup_crash_handler
       LibC.AddVectoredExceptionHandler(1, ->(exception_info) do
         case exception_info.value.exceptionRecord.value.exceptionCode
         when LibC::EXCEPTION_ACCESS_VIOLATION
+          if Exception::CallStack.in_crash_handler?
+            LibC._exit(1)
+          end
+          Exception::CallStack.in_crash_handler = true
           addr = exception_info.value.exceptionRecord.value.exceptionInformation[1]
           fault_ip = exception_info.value.exceptionRecord.value.exceptionAddress
           ctx = exception_info.value.contextRecord

@@ -9,9 +9,9 @@ describe "Lapis Game Composite Action & Reusable Packaging Workflow (WO-040)" do
         ci.game_name "celestine"
         ci.working_directory "template"
         ci.entry "src/main.cr"
-        ci.godot_version "4.8-dev7"
+        ci.godot_version "4.8-beta1"
         ci.crystal_version "1.21.0"
-        ci.lapis_ref "4.8-dev7"
+        ci.lapis_ref "4.8-beta1"
         ci.release true
         ci.package_game true
         ci.embed_pck true
@@ -26,9 +26,9 @@ describe "Lapis Game Composite Action & Reusable Packaging Workflow (WO-040)" do
       config.game_name.should eq("celestine")
       config.working_directory.should eq("template")
       config.entry_point.should eq("src/main.cr")
-      config.godot_version.should eq("4.8-dev7")
+      config.godot_version.should eq("4.8-beta1")
       config.crystal_version.should eq("1.21.0")
-      config.lapis_ref.should eq("4.8-dev7")
+      config.lapis_ref.should eq("4.8-beta1")
       config.release.should be_true
       config.package_game.should be_true
       config.embed_pck.should be_true
@@ -57,7 +57,7 @@ describe "Lapis Game Composite Action & Reusable Packaging Workflow (WO-040)" do
 
       report.valid?.should be_true
       report.game_name.should eq("godot_crystal_template")
-      report.godot_version.should eq("4.8-dev7")
+      report.godot_version.should eq("4.8-beta1")
       report.entry_point.should eq("src/main.cr")
       report.project_audit.valid?.should be_true
       report.project_audit.config_version.should eq(5)
@@ -72,11 +72,11 @@ describe "Lapis Game Composite Action & Reusable Packaging Workflow (WO-040)" do
 
     it "renders valid caller workflow YAML for downstream Lapis games" do
       config = Lapis::CI.game_pipeline do |ci|
-        ci.lapis_ref "4.8-dev7"
+        ci.lapis_ref "4.8-beta1"
       end
       yaml_str = Lapis::CI::ActionGenerator.render_game_caller_workflow(config)
       parsed = YAML.parse(yaml_str)
-      parsed["jobs"]["lapis-game-ci"]["uses"].as_s.should eq("sol-vin/lapis/.github/workflows/build-game.yml@4.8-dev7")
+      parsed["jobs"]["lapis-game-ci"]["uses"].as_s.should eq("sol-vin/lapis/.github/workflows/build-game.yml@4.8-beta1")
     end
   end
 
@@ -143,7 +143,7 @@ describe "Lapis Game Composite Action & Reusable Packaging Workflow (WO-040)" do
       on_node.not_nil!["workflow_call"]?.should_not be_nil
 
       wf_inputs = on_node.not_nil!["workflow_call"]["inputs"].as_h
-      wf_inputs["lapis-ref"]["default"].as_s.should eq("4.8-dev7")
+      wf_inputs["lapis-ref"]["default"].as_s.should eq("4.8-beta1")
       wf_inputs["crystal-version"]["default"].as_s.should eq("1.21.0")
 
       jobs = doc["jobs"].as_h

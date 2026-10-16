@@ -4,6 +4,7 @@ require "compress/zip"
 require "file_utils"
 require "./env"
 require "./logger"
+require "./godot_finder"
 
 module Lapis
   module Core
@@ -30,7 +31,7 @@ module Lapis
         @description : String = "",
         @author : String = "",
         @version : String = "1.0.0",
-        @godot_version : String = "4.4.stable",
+        @godot_version : String = GodotFinder::EMBEDDED_GODOT_VERSION,
         @tags = [] of String,
         @features = Hash(String, Bool).new,
         @addons = [] of String,
@@ -103,7 +104,7 @@ module Lapis
         detected_author = author || "Developer"
         detected_desc = description || "Custom Lapis project template"
         detected_ver = "1.0.0"
-        detected_godot = "4.4.stable"
+        detected_godot = GodotFinder.expected_version(source_dir.to_s)
         detected_addons = [] of String
         detected_features = Hash(String, Bool).new
 

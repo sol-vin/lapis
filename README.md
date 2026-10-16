@@ -6,8 +6,8 @@
 
 <!-- carbon:badges -->
 [![Crystal](https://img.shields.io/badge/Crystal-1.20+-black.svg?logo=crystal)](https://crystal-lang.org)
-[![Lapis](https://img.shields.io/badge/Lapis-0.1.0-blueviolet.svg)](https://github.com/sol-vin/lapis/releases)
-[![Godot](https://img.shields.io/badge/Godot-4.8--dev7-blue.svg?logo=godotengine)](https://godotengine.org)
+[![Lapis](https://img.shields.io/badge/Lapis-0.1.1-blueviolet.svg)](https://github.com/sol-vin/lapis/releases)
+[![Godot](https://img.shields.io/badge/Godot-4.8--beta1-blue.svg?logo=godotengine)](https://godotengine.org)
 [![Tests](https://github.com/sol-vin/lapis/actions/workflows/test.yml/badge.svg)](https://github.com/sol-vin/lapis/actions/workflows/test.yml)
 [![Release](https://github.com/sol-vin/lapis/actions/workflows/release.yml/badge.svg)](https://github.com/sol-vin/lapis/actions/workflows/release.yml)
 [![Docs](https://img.shields.io/badge/Docs-Online-blueviolet.svg)](https://sol-vin.github.io/lapis/)
@@ -514,7 +514,7 @@ lapis decompile bin/game.dll "*Player*physics_process*" --side-by-side
 Lapis includes an interactive full-screen terminal command center powered by **Opal** (`sol-vin/opal`). Launch it with `lapis cli` (or `lapis -i`):
 
 ```
-┌── Lapis Engine Command Hub (v0.0.264) ───────────────────────── [Godot 4.8-dev7] ──┐
+┌── Lapis Engine Command Hub (v0.1.1) ─────────────────────────── [Godot 4.8-beta1] ──┐
 │                                                                                    │
 │   [+] New Project / Addon Wizard      Interactive folder & template scaffold       │
 │   [#] Launch Godot Editor             Persistent launcher with log watching        │
@@ -849,7 +849,7 @@ make docs
 ### System Dependencies
 - **Crystal Compiler**: 1.20+
 - **radare2**: 5.8+ (native debugger, disassembler, and decompiler)
-- **Godot Engine**: 4.8-dev7+ (Standard build, 64-bit)
+- **Godot Engine**: 4.8-beta1+ (Standard build, 64-bit)
 - **C++ Compiler**: GCC (`g++`) or Clang (for compiling the GDExtension loader bridge)
 - **GNU Make**: Workspace build & synchronization automation
 - **Git**: Shards dependency resolution & version control
@@ -896,7 +896,7 @@ make docs
 dependencies:
   lapis:
     github: sol-vin/lapis
-    branch: 4.8-dev7
+    branch: 4.8-beta1
 ```
 Run `shards install` to install dependencies.
 

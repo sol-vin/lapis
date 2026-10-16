@@ -96,7 +96,7 @@ module Lapis
         #     </tr>
         #     <tr>
         #       <td><strong>Godot Engine</strong></td>
-        #       <td>4.8-dev7</td>
+        #       <td>4.8-beta1</td>
         #       <td>Target game engine executable</td>
         #       <td><a href="https://godotengine.org">godotengine.org</a></td>
         #     </tr>
@@ -194,7 +194,7 @@ module Lapis
         # [Doctor] Diagnosing Lapis development environment...
         # Diagnostic Results:
         #   [✓] Crystal Compiler: Crystal 1.21.0 (2026-07-16)
-        #   [✓] Godot Engine: C:\Users\Dev\Documents\libgodot\godot.exe (v4.8.dev6.official.8898c2b3d)
+        #   [✓] Godot Engine: C:\Users\Dev\Documents\libgodot\godot.exe (v4.8.beta1.official)
         #   [✓] C++ Bridge Compiler: g++ (g++ (GCC) 15.2.0)
         #   [✓] Native Debugger (radare2): radare2 6.2.2 [native decompiler: pdc]
         #   [✓] GNU Make: Found at C:\Users\Dev\scoop\shims\make.exe
@@ -216,7 +216,7 @@ module Lapis
         #
         # - **Warning**: Running with Crystal < 1.20.0 will cause compilation errors due to missing ExecutionContext APIs.
         # - **Warning**: Missing g++ on Windows: ensure MinGW-w64 is in your system PATH (test with `g++ --version`).
-        # - **Warning**: Godot binary mismatch: Lapis targets Godot 4.8-dev7; using 4.2 or 4.3 will trigger GDExtension ABI incompatibilities.
+        # - **Warning**: Godot binary mismatch: Lapis targets Godot 4.8-beta1; using 4.2 or 4.3 will trigger GDExtension ABI incompatibilities.
         #
         # #### Frequently Asked Questions (FAQ)
         #

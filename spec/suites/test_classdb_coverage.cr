@@ -235,7 +235,7 @@ end
   end
 end
 
-  test "ClassDB.is_class_exposed and 4.8-dev7 non-allocating result classes exposure" do
+  test "ClassDB.is_class_exposed and 4.8-beta1 non-allocating result classes exposure" do
     cdb_ptr = Godot::Bridge.get_singleton("ClassDB")
     if !cdb_ptr.null?
       class_db = Godot::ClassDB.new(cdb_ptr)

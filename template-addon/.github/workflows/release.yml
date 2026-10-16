@@ -54,7 +54,7 @@ jobs:
           if [ -f "godot-version.yml" ]; then
             GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml | tr -d '\r\n[:space:]')
           fi
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev6"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
           echo "godot_version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "Resolved Godot Version: $GODOT_VER"
 
@@ -241,7 +241,7 @@ jobs:
         uses: appsinacup/action_setup_godot@main
         with:
           repo: godotengine/godot-builds
-          version: 4.8-dev6
+          version: 4.8-beta1
           enable_cache: true
       - name: Configure Godot Executable (Linux)
         shell: bash
@@ -266,7 +266,7 @@ jobs:
           if [ -f "godot-version.yml" ]; then
             GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml | tr -d '\r\n[:space:]')
           fi
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev6"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
 
           if [ ! -f "bin/lapis" ]; then
             echo "Fetching standalone Lapis CLI and bridge for Linux (target $GODOT_VER)..."
@@ -330,7 +330,7 @@ jobs:
         uses: appsinacup/action_setup_godot@main
         with:
           repo: godotengine/godot-builds
-          version: 4.8-dev6
+          version: 4.8-beta1
           enable_cache: true
       - name: Ensure Lapis CLI & Bridge
         shell: bash
@@ -341,7 +341,7 @@ jobs:
           if [ -f "godot-version.yml" ]; then
             GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml | tr -d '\r\n[:space:]')
           fi
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev6"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
 
           if [ ! -f "bin/lapis" ]; then
             echo "Fetching standalone Lapis CLI and bridge for macOS (target $GODOT_VER)..."
@@ -404,7 +404,7 @@ jobs:
         uses: appsinacup/action_setup_godot@main
         with:
           repo: godotengine/godot-builds
-          version: 4.8-dev6
+          version: 4.8-beta1
           enable_cache: true
       - name: Configure Godot Executable (Windows)
         shell: pwsh
@@ -434,7 +434,7 @@ jobs:
         run: |
           shards install
           if (-not (Test-Path "bin")) { New-Item -ItemType Directory -Path "bin" -Force }
-          $godotVer = "4.8-dev6"
+          $godotVer = "4.8-beta1"
           if (Test-Path "godot-version.yml") {
             $content = Get-Content "godot-version.yml" -Raw
             if ($content -match 'version:\s*[''"]?([^''"\r\n]+)[''"]?') {
@@ -1019,7 +1019,7 @@ jobs:
         uses: appsinacup/action_setup_godot@main
         with:
           repo: godotengine/godot-builds
-          version: 4.8-dev6
+          version: 4.8-beta1
           enable_cache: false
 
       - name: Configure Godot Executable
@@ -1027,7 +1027,7 @@ jobs:
         shell: bash
         run: |
           GODOT_VER="${{ needs.init-release.outputs.godot_version }}"
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev6"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
           if [ -n "$GODOT4" ] && [ -f "$GODOT4" ] && file -b "$GODOT4" | grep -q "ELF.*x86-64"; then
             cp "$GODOT4" ./godot
             chmod +x ./godot
@@ -1064,8 +1064,8 @@ jobs:
           fi
           if [ ! -f "bin/lapis" ]; then
             echo "Downloading Lapis CLI release binary..."
-            curl -sSL "https://github.com/sol-vin/lapis/releases/download/4.8-dev6/lapis-linux-x86_64.tar.gz" -o lapis.tar.gz 2>/dev/null || \
-            curl -sSL "https://github.com/sol-vin/lapis/releases/latest/download/lapis-linux-x86_64.tar.gz" -o lapis.tar.gz 2>/dev/null || true
+            curl -fsSL "https://github.com/sol-vin/lapis/releases/download/4.8-beta1/lapis-linux-x86_64.tar.gz" -o lapis.tar.gz 2>/dev/null || \
+            curl -fsSL "https://github.com/sol-vin/lapis/releases/latest/download/lapis-linux-x86_64.tar.gz" -o lapis.tar.gz 2>/dev/null || true
             if [ -f "lapis.tar.gz" ] && [ -s "lapis.tar.gz" ]; then
               tar -xzf lapis.tar.gz -C bin/ 2>/dev/null || true
               rm -f lapis.tar.gz

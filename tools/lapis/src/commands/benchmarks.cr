@@ -41,8 +41,8 @@ Options:
   -c, --category=CAT    Filter by category ('compute', 'engine', 'toolchain', 'custom')
   -g, --group=GROUP     Run only benchmarks within the specified comparison group
   -e, --env=ENV         Execution environment: 'standalone', 'editor', 'all' (default: standalone)
-  -t, --tag=TAG         Target release tag (e.g. '4.8-dev7')
-  --previous-tag=TAG    Previous baseline release tag (e.g. '4.8-dev6')
+  -t, --tag=TAG         Target release tag (e.g. '4.8-beta1')
+  --previous-tag=TAG    Previous baseline release tag (e.g. '4.8-dev7')
   -o, --output=PATH     Explicit output file or directory path
   --from=PATH           Input XML file for 'export html'
   --current=PATH        Current benchmark XML file for comparison
@@ -64,9 +64,9 @@ Examples:
   lapis benchmarks -g MatrixMultiplication
   lapis benchmarks -g CompileTime
   lapis benchmarks -g Shaders
-  lapis benchmarks run html --tag 4.8-dev6 --previous-tag 4.8-dev5
-  lapis benchmarks export html --from=benchmarks/reports/benchmarks_4.8-dev6.xml
-  lapis benchmarks compare --tag 4.8-dev6 --previous-tag 4.8-dev5
+  lapis benchmarks run html --tag 4.8-beta1 --previous-tag 4.8-dev7
+  lapis benchmarks export html --from=benchmarks/reports/benchmarks_4.8-beta1.xml
+  lapis benchmarks compare --tag 4.8-beta1 --previous-tag 4.8-dev7
   lapis benchmarks compare html
   lapis benchmarks -f matmul -i 5
 HELP
@@ -150,8 +150,8 @@ HELP
           end
           opts.on("-g GROUP", "--group=GROUP", "Filter by comparison group name") { |g| group_filter = g }
           opts.on("-e ENV", "--env=ENV", "Environment (standalone, editor, all)") { |e| env_mode = e.downcase }
-          opts.on("-t TAG", "--tag=TAG", "Target release tag (e.g. '4.8-dev6')") { |t| cli_tag = t }
-          opts.on("--previous-tag=TAG", "Previous baseline release tag (e.g. '4.8-dev5')") { |pt| cli_prev_tag = pt }
+          opts.on("-t TAG", "--tag=TAG", "Target release tag (e.g. '4.8-beta1')") { |t| cli_tag = t }
+          opts.on("--previous-tag=TAG", "Previous baseline release tag (e.g. '4.8-dev7')") { |pt| cli_prev_tag = pt }
           opts.on("--native", "Force pure native performance benchmark mode") { cli_native = true }
           opts.on("--comparative", "Force comparative (Crystal vs GDScript) benchmark mode") { cli_comparative = true }
           opts.on("--github=REPO", "Target GitHub repository (owner/name) for baseline discovery") { |gh| cli_github = gh }

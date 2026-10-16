@@ -8,9 +8,9 @@ describe "Lapis GDExtension Addon Composite Action & Reusable CI Workflow (WO-03
       config = Lapis::CI.addon_pipeline do |ci|
         ci.addon_name "diorite"
         ci.entry "src/diorite/diorite.cr"
-        ci.godot_version "4.8-dev7"
+        ci.godot_version "4.8-beta1"
         ci.crystal_version "1.21.0"
-        ci.lapis_ref "4.8-dev7"
+        ci.lapis_ref "4.8-beta1"
         ci.platforms "ubuntu-latest", "windows-latest"
         ci.run_specs true
         ci.run_headless true
@@ -20,9 +20,9 @@ describe "Lapis GDExtension Addon Composite Action & Reusable CI Workflow (WO-03
 
       config.addon_name.should eq("diorite")
       config.entry_point.should eq("src/diorite/diorite.cr")
-      config.godot_version.should eq("4.8-dev7")
+      config.godot_version.should eq("4.8-beta1")
       config.crystal_version.should eq("1.21.0")
-      config.lapis_ref.should eq("4.8-dev7")
+      config.lapis_ref.should eq("4.8-beta1")
       config.os_matrix.should eq(["ubuntu-latest", "windows-latest"])
       config.extra_apt_packages.should eq(["xvfb"])
       config.target_branch_valid?.should be_true
@@ -47,7 +47,7 @@ describe "Lapis GDExtension Addon Composite Action & Reusable CI Workflow (WO-03
 
       report.valid?.should be_true
       report.addon_name.should eq("crystal_addon")
-      report.godot_version.should eq("4.8-dev7")
+      report.godot_version.should eq("4.8-beta1")
       report.entry_point.should eq("src/main.cr")
       report.manifest_audit.valid?.should be_true
       report.manifest_audit.entry_symbol.should eq("crystal_library_init")
@@ -58,11 +58,11 @@ describe "Lapis GDExtension Addon Composite Action & Reusable CI Workflow (WO-03
 
     it "renders valid 5-line caller workflow YAML for downstream addons" do
       config = Lapis::CI.addon_pipeline do |ci|
-        ci.lapis_ref "4.8-dev7"
+        ci.lapis_ref "4.8-beta1"
       end
       yaml_str = Lapis::CI::ActionGenerator.render_caller_workflow(config)
       parsed = YAML.parse(yaml_str)
-      parsed["jobs"]["lapis-addon-ci"]["uses"].as_s.should eq("sol-vin/lapis/.github/workflows/reusable-lapis-ci.yml@4.8-dev7")
+      parsed["jobs"]["lapis-addon-ci"]["uses"].as_s.should eq("sol-vin/lapis/.github/workflows/reusable-lapis-ci.yml@4.8-beta1")
     end
   end
 
@@ -118,7 +118,7 @@ describe "Lapis GDExtension Addon Composite Action & Reusable CI Workflow (WO-03
       on_node.not_nil!["workflow_call"]?.should_not be_nil
 
       wf_inputs = on_node.not_nil!["workflow_call"]["inputs"].as_h
-      wf_inputs["lapis-ref"]["default"].as_s.should eq("4.8-dev7")
+      wf_inputs["lapis-ref"]["default"].as_s.should eq("4.8-beta1")
       wf_inputs["crystal-version"]["default"].as_s.should eq("1.21.0")
 
       jobs = doc["jobs"].as_h

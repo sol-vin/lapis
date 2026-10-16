@@ -474,7 +474,9 @@ def generate_class_code(io : IO, c : JSON::Any, keywords : Hash(String, String),
     io.puts "    def initialize(@pointer : Void* = Pointer(Void).null)"
     io.puts "      if !@pointer.null?"
     io.puts "        @instance_id = Bridge.object_get_instance_id(@pointer)"
+    io.puts "        ::Godot::LeakTracker.register(@instance_id, self.class.name, __FILE__, __LINE__)"
     io.puts "      end"
+    io.puts "      _godot_bind_static_signals"
     io.puts "    end\n"
   else
     io.puts "  class #{name} < #{parent_type}"

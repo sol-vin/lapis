@@ -1,25 +1,5 @@
 # Generated classes part 6 (in topological order)
 module Godot
-  class UDSServer < Godot::SocketServer
-    def initialize(pointer : Void* = Pointer(Void).null)
-      super(pointer)
-    end
-    @@mb_listen : Void* = Pointer(Void).null
-    def listen(path : String) : Godot::Error
-      godot_bind(@@mb_listen, "UDSServer", "listen", 166001499_i64)
-      str_0 = Bridge.make_string(path)
-      arg_0 = str_0
-      args = StaticArray[arg_0]
-      godot_ptrcall_enum(@@mb_listen, @pointer, args.to_unsafe.as(Void**), Godot::Error)
-    ensure
-      Bridge.free_string(str_0)
-    end
-    @@mb_take_connection : Void* = Pointer(Void).null
-    def take_connection() : StreamPeerUDS
-      godot_bind(@@mb_take_connection, "UDSServer", "take_connection", 1623851112_i64)
-      godot_ptrcall_obj(@@mb_take_connection, @pointer, Pointer(Pointer(Void)).null, StreamPeerUDS)
-    end
-  end
   class UPNP < Godot::RefCounted
     def initialize(pointer : Void* = Pointer(Void).null)
       super(pointer)

@@ -61,7 +61,7 @@ jobs:
           if [ -f "godot-version.yml" ]; then
             GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml | tr -d '\r\n[:space:]')
           fi
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev6"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
           echo "godot_version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "Resolved Godot Engine Version: $GODOT_VER"
 
@@ -93,7 +93,7 @@ jobs:
           else
             if [ "${{ runner.os }}" = "macOS" ]; then
               echo "Fallback: Downloading Godot ${GODOT_VER} macos.universal..."
-              wget -q "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VER}/Godot_v${GODOT_VER}_macos.universal.zip" -O godot.zip
+              curl -fsSL "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VER}/Godot_v${GODOT_VER}_macos.universal.zip" -o godot.zip
               unzip -q godot.zip
               app_bin=$(find . -maxdepth 4 -name "Godot" -perm +111 -type f 2>/dev/null | head -n 1)
               [ -n "$app_bin" ] && cp "$app_bin" ./godot || true
@@ -117,7 +117,7 @@ jobs:
         shell: pwsh
         run: |
           $godotVer = "${{ steps.godot-meta.outputs.godot_version }}"
-          if (-not $godotVer) { $godotVer = "4.8-dev6" }
+          if (-not $godotVer) { $godotVer = "4.8-beta1" }
           $candidate = $env:GODOT4
           if (-not $candidate) { $candidate = $env:GODOT4_BIN }
           if (-not $candidate) { $candidate = $env:GODOT }
@@ -158,7 +158,7 @@ jobs:
         run: |
           mkdir -p bin
           GODOT_VER="${{ steps.godot-meta.outputs.godot_version }}"
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev6"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
           if command -v lapis >/dev/null 2>&1; then
             echo "Lapis found on system PATH: $(command -v lapis)"
           elif [ -f "bin/lapis" ] || [ -f "bin/lapis.exe" ]; then
@@ -169,24 +169,24 @@ jobs:
           else
             if [ "${{ runner.os }}" = "Windows" ]; then
               echo "Downloading pre-compiled Lapis CLI for Windows..."
-              curl -sSL "https://github.com/sol-vin/lapis/releases/download/${GODOT_VER}/lapis-windows-x86_64.zip" -o lapis.zip || \
-              curl -sSL "https://github.com/sol-vin/lapis/releases/latest/download/lapis-windows-x86_64.zip" -o lapis.zip || true
+              curl -fsSL "https://github.com/sol-vin/lapis/releases/download/${GODOT_VER}/lapis-windows-x86_64.zip" -o lapis.zip || \
+              curl -fsSL "https://github.com/sol-vin/lapis/releases/latest/download/lapis-windows-x86_64.zip" -o lapis.zip || true
               if [ -f "lapis.zip" ] && [ -s "lapis.zip" ]; then
                 unzip -q -o lapis.zip -d bin/ 2>/dev/null || true
                 rm -f lapis.zip
               fi
             elif [ "${{ runner.os }}" = "macOS" ]; then
               echo "Downloading pre-compiled Lapis CLI for macOS..."
-              curl -sSL "https://github.com/sol-vin/lapis/releases/download/${GODOT_VER}/lapis-macos.zip" -o lapis.zip || \
-              curl -sSL "https://github.com/sol-vin/lapis/releases/latest/download/lapis-macos.zip" -o lapis.zip || true
+              curl -fsSL "https://github.com/sol-vin/lapis/releases/download/${GODOT_VER}/lapis-macos.zip" -o lapis.zip || \
+              curl -fsSL "https://github.com/sol-vin/lapis/releases/latest/download/lapis-macos.zip" -o lapis.zip || true
               if [ -f "lapis.zip" ] && [ -s "lapis.zip" ]; then
                 unzip -q -o lapis.zip -d bin/ 2>/dev/null || true
                 rm -f lapis.zip
               fi
             else
               echo "Downloading pre-compiled Lapis CLI for Linux..."
-              curl -sSL "https://github.com/sol-vin/lapis/releases/download/${GODOT_VER}/lapis-linux-x86_64.tar.gz" -o lapis.tar.gz || \
-              curl -sSL "https://github.com/sol-vin/lapis/releases/latest/download/lapis-linux-x86_64.tar.gz" -o lapis.tar.gz || true
+              curl -fsSL "https://github.com/sol-vin/lapis/releases/download/${GODOT_VER}/lapis-linux-x86_64.tar.gz" -o lapis.tar.gz || \
+              curl -fsSL "https://github.com/sol-vin/lapis/releases/latest/download/lapis-linux-x86_64.tar.gz" -o lapis.tar.gz || true
               if [ -f "lapis.tar.gz" ] && [ -s "lapis.tar.gz" ]; then
                 tar -xzf lapis.tar.gz -C bin/ 2>/dev/null || true
                 rm -f lapis.tar.gz
@@ -271,7 +271,7 @@ jobs:
           if [ -f "godot-version.yml" ]; then
             GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml | tr -d '\r\n[:space:]')
           fi
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev6"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
           echo "godot_version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "Resolved Godot Engine Version: $GODOT_VER"
 

@@ -263,7 +263,7 @@ jobs:
         id: godot-version
         shell: pwsh
         run: |
-          $ver = "4.8-dev6"
+          $ver = "4.8-beta1"
           if (Test-Path "godot-version.yml") {
             $content = Get-Content "godot-version.yml" -Raw
             if ($content -match 'version:\s*[''"]?([^''"\r\n]+)[''"]?') {
@@ -408,7 +408,7 @@ jobs:
         shell: bash
         run: |
           GODOT_VER=$(grep 'version:' godot-version.yml | cut -d: -f2 | tr -d ' "\r\n\t')
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev7"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
           echo "Resolved Godot Version: $GODOT_VER"
           echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
@@ -451,7 +451,8 @@ jobs:
             local exe="$1"
             if [ -n "$exe" ] && [ -f "$exe" ]; then
               local ver="$("$exe" --version 2>/dev/null || true)"
-              if (echo "$ver" | grep -q "${GODOT_VERSION}" || echo "$ver" | grep -q "4\.8\.dev7") && ! echo "$ver" | grep -qi "mono"; then
+              local ver_dot="${GODOT_VERSION//-/.}"
+              if (echo "$ver" | grep -qF "${GODOT_VERSION}" || echo "$ver" | grep -qF "${ver_dot}") && ! echo "$ver" | grep -qi "mono"; then
                 echo "$exe"
                 return 0
               fi
@@ -536,7 +537,7 @@ jobs:
         shell: bash
         run: |
           GODOT_VER=$(grep 'version:' godot-version.yml | cut -d: -f2 | tr -d ' "\r\n\t')
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev7"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
           echo "Resolved Godot Version: $GODOT_VER"
           echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
@@ -574,7 +575,8 @@ jobs:
             local exe="$1"
             if [ -n "$exe" ] && [ -f "$exe" ]; then
               local ver="$("$exe" --version 2>/dev/null || true)"
-              if echo "$ver" | grep -q "${GODOT_VERSION}" || echo "$ver" | grep -q "4\.8\.dev7"; then
+              local ver_dot="${GODOT_VERSION//-/.}"
+              if echo "$ver" | grep -qF "${GODOT_VERSION}" || echo "$ver" | grep -qF "${ver_dot}"; then
                 echo "$exe"
                 return 0
               fi
@@ -592,8 +594,8 @@ jobs:
 
           if [ -z "$GODOT_EXEC" ]; then
             echo "Fallback: Downloading Godot ${GODOT_VERSION} macos.universal..."
-            if ! curl -sSL "https://github.com/sol-vin/lapis/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_macos.universal.zip" -o godot.zip; then
-              curl -sSL "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_macos.universal.zip" -o godot.zip
+            if ! curl -fsSL "https://github.com/sol-vin/lapis/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_macos.universal.zip" -o godot.zip; then
+              curl -fsSL "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_macos.universal.zip" -o godot.zip
             fi
             unzip -q godot.zip
             if [ -d "Godot.app" ]; then
@@ -684,7 +686,7 @@ jobs:
         id: godot-version
         shell: pwsh
         run: |
-          $ver = "4.8-dev6"
+          $ver = "4.8-beta1"
           if (Test-Path "godot-version.yml") {
             $content = Get-Content "godot-version.yml" -Raw
             if ($content -match 'version:\s*[''"]?([^''"\r\n]+)[''"]?') {
@@ -912,7 +914,7 @@ jobs:
         shell: bash
         run: |
           GODOT_VER=$(grep 'version:' godot-version.yml | cut -d: -f2 | tr -d ' "\r\n\t')
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev7"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
           echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
 
@@ -960,7 +962,8 @@ jobs:
             local exe="$1"
             if [ -n "$exe" ] && [ -f "$exe" ]; then
               local ver="$("$exe" --version 2>/dev/null || true)"
-              if (echo "$ver" | grep -q "${GODOT_VERSION}" || echo "$ver" | grep -q "4\.8\.dev7") && ! echo "$ver" | grep -qi "mono"; then
+              local ver_dot="${GODOT_VERSION//-/.}"
+              if (echo "$ver" | grep -qF "${GODOT_VERSION}" || echo "$ver" | grep -qF "${ver_dot}") && ! echo "$ver" | grep -qi "mono"; then
                 echo "$exe"
                 return 0
               fi
@@ -1122,7 +1125,7 @@ jobs:
         shell: bash
         run: |
           GODOT_VER=$(grep 'version:' godot-version.yml | cut -d: -f2 | tr -d ' "\r\n\t')
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev7"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
           echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
 
@@ -1165,7 +1168,8 @@ jobs:
             local exe="$1"
             if [ -n "$exe" ] && [ -f "$exe" ]; then
               local ver="$("$exe" --version 2>/dev/null || true)"
-              if echo "$ver" | grep -q "${GODOT_VERSION}" || echo "$ver" | grep -q "4\.8\.dev7"; then
+              local ver_dot="${GODOT_VERSION//-/.}"
+              if echo "$ver" | grep -qF "${GODOT_VERSION}" || echo "$ver" | grep -qF "${ver_dot}"; then
                 echo "$exe"
                 return 0
               fi
@@ -1183,8 +1187,8 @@ jobs:
 
           if [ -z "$GODOT_EXEC" ]; then
             echo "Fallback: Downloading Godot ${GODOT_VERSION} macos.universal..."
-            if ! curl -sSL "https://github.com/sol-vin/lapis/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_macos.universal.zip" -o godot.zip; then
-              curl -sSL "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_macos.universal.zip" -o godot.zip
+            if ! curl -fsSL "https://github.com/sol-vin/lapis/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_macos.universal.zip" -o godot.zip; then
+              curl -fsSL "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_macos.universal.zip" -o godot.zip
             fi
             unzip -q godot.zip
             if [ -d "Godot.app" ]; then
@@ -1346,7 +1350,7 @@ jobs:
         id: godot-version
         shell: pwsh
         run: |
-          $ver = "4.8-dev6"
+          $ver = "4.8-beta1"
           if (Test-Path "godot-version.yml") {
             $content = Get-Content "godot-version.yml" -Raw
             if ($content -match 'version:\s*[''"]?([^''"\r\n]+)[''"]?') {
@@ -1478,7 +1482,7 @@ jobs:
         shell: bash
         run: |
           GODOT_VER=$(grep 'version:' godot-version.yml | cut -d: -f2 | tr -d ' "\r\n\t')
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev7"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
           echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
 
@@ -1520,7 +1524,8 @@ jobs:
             local exe="$1"
             if [ -n "$exe" ] && [ -f "$exe" ]; then
               local ver="$("$exe" --version 2>/dev/null || true)"
-              if (echo "$ver" | grep -q "${GODOT_VERSION}" || echo "$ver" | grep -q "4\.8\.dev7") && ! echo "$ver" | grep -qi "mono"; then
+              local ver_dot="${GODOT_VERSION//-/.}"
+              if (echo "$ver" | grep -qF "${GODOT_VERSION}" || echo "$ver" | grep -qF "${ver_dot}") && ! echo "$ver" | grep -qi "mono"; then
                 echo "$exe"
                 return 0
               fi
@@ -1615,7 +1620,7 @@ jobs:
         shell: bash
         run: |
           GODOT_VER=$(grep 'version:' godot-version.yml | cut -d: -f2 | tr -d ' "\r\n\t')
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev7"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
           echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
 
@@ -1652,7 +1657,8 @@ jobs:
             local exe="$1"
             if [ -n "$exe" ] && [ -f "$exe" ]; then
               local ver="$("$exe" --version 2>/dev/null || true)"
-              if echo "$ver" | grep -q "${GODOT_VERSION}" || echo "$ver" | grep -q "4\.8\.dev7"; then
+              local ver_dot="${GODOT_VERSION//-/.}"
+              if echo "$ver" | grep -qF "${GODOT_VERSION}" || echo "$ver" | grep -qF "${ver_dot}"; then
                 echo "$exe"
                 return 0
               fi
@@ -1670,8 +1676,8 @@ jobs:
 
           if [ -z "$GODOT_EXEC" ]; then
             echo "Fallback: Downloading Godot ${GODOT_VERSION} macos.universal..."
-            if ! curl -sSL "https://github.com/sol-vin/lapis/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_macos.universal.zip" -o godot.zip; then
-              curl -sSL "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_macos.universal.zip" -o godot.zip
+            if ! curl -fsSL "https://github.com/sol-vin/lapis/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_macos.universal.zip" -o godot.zip; then
+              curl -fsSL "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_macos.universal.zip" -o godot.zip
             fi
             unzip -q godot.zip
             if [ -d "Godot.app" ]; then
@@ -1920,7 +1926,7 @@ jobs:
         shell: bash
         run: |
           GODOT_VER=$(grep 'version:' godot-version.yml | cut -d: -f2 | tr -d ' "\r\n\t')
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-dev7"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
           echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
 

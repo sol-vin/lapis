@@ -4825,6 +4825,14 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_ime_position, @pointer, args.to_unsafe.as(Void**))
     end
+    @@mb_set_ime_rect : Void* = Pointer(Void).null
+    def set_ime_rect(rect : Rect2i) : Void
+      godot_bind(@@mb_set_ime_rect, "Window", "set_ime_rect", 1763793166_i64)
+      val_0 = rect
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_ime_rect, @pointer, args.to_unsafe.as(Void**))
+    end
     @@mb_is_embedded : Void* = Pointer(Void).null
     def is_embedded() : Bool
       godot_bind(@@mb_is_embedded, "Window", "is_embedded", 36873697_i64)
@@ -18962,9 +18970,8 @@ module Godot
       ParamShadowBlur = 18_i64
       ParamTransmittanceBias = 19_i64
       ParamIntensity = 20_i64
-      ParamContactShadowOpacity = 21_i64
-      ParamContactShadowBlur = 22_i64
-      ParamMax = 23_i64
+      ParamContactShadowBlur = 21_i64
+      ParamMax = 22_i64
     end
     enum BakeMode : Int64
       BakeDisabled = 0_i64
@@ -19421,21 +19428,13 @@ module Godot
     def shadow_contact_shadows_allow=(val)
       set_allow_contact_shadows(val)
     end
-    # Property `shadow_contact_shadows_opacity` getter
-    def shadow_contact_shadows_opacity
-      get_param(21_i64)
-    end
-    # Property `shadow_contact_shadows_opacity` setter
-    def shadow_contact_shadows_opacity=(val : Number)
-      set_param(21_i64, val.to_f64)
-    end
     # Property `shadow_contact_shadows_blur` getter
     def shadow_contact_shadows_blur
-      get_param(22_i64)
+      get_param(21_i64)
     end
     # Property `shadow_contact_shadows_blur` setter
     def shadow_contact_shadows_blur=(val : Number)
-      set_param(22_i64, val.to_f64)
+      set_param(21_i64, val.to_f64)
     end
     # Property `distance_fade_enabled` getter
     def distance_fade_enabled
@@ -20588,6 +20587,14 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_find_valid_focus_neighbor, @pointer, args.to_unsafe.as(Void**), Control)
+    end
+    @@mb_play_theme_sound : Void* = Pointer(Void).null
+    def play_theme_sound(stream : AudioStream) : Void
+      godot_bind(@@mb_play_theme_sound, "Control", "play_theme_sound", 2210767741_i64)
+      arg_ptr_0 = stream ? stream.pointer : Pointer(Void).null
+      arg_0 = pointerof(arg_ptr_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_play_theme_sound, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_set_h_size_flags : Void* = Pointer(Void).null
     def set_h_size_flags(flags : SizeFlags | Int) : Void

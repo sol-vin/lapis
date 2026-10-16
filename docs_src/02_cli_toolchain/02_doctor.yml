@@ -17,7 +17,7 @@ sections:
     type: "Array(String)"
     return_value:
       - "1. Crystal Compiler: Version >= 1.20.0"
-      - "2. Godot Engine Executable: Target version 4.8-dev6"
+      - "2. Godot Engine Executable: Target version 4.8-beta1"
       - "3. C++ Bridge Compiler: MinGW-w64 g++, MSVC cl, or clang"
       - "4. Native Debugger: radare2 executable"
       - "5. Build System: GNU Make >= 4.4"
