@@ -10,7 +10,7 @@ module PerfFramework
     signal data_dispatched(val : Int32, label : String)
 
     def trigger(val : Int32) : Void
-      emit_data_dispatched(val, "Payload_#{val}")
+      data_dispatched.emit(val, "Payload_#{val}")
     end
   end
 

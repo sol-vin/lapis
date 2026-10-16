@@ -92,5 +92,5 @@ inline void bridge_flush_editor_help() {
     // --- Segment 3: Status Logging ---
     char log_buf[128];
     snprintf(log_buf, sizeof(log_buf), "[CrystalBridge] Flushed %zu EditorHelp XML documentation document(s) into Godot", g_editor_doc_xmls.size());
-    godot_log_print(log_buf);
+    godot_log_verbose(log_buf);
 }

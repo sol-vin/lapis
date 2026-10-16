@@ -113,11 +113,34 @@ macro godot_ptrcall_val(mb, target_ptr, args_slice, type_name)
   ret_val
 end
 
-# Executes a ptrcall returning a typed object wrapper
+# Executes a ptrcall returning a typed object wrapper, reusing alive instance if present
 macro godot_ptrcall_obj(mb, target_ptr, args_slice, class_type)
   ret_obj_ptr = Pointer(Void).null
   godot_ptrcall({{mb}}, {{target_ptr}}, {{args_slice}}, pointerof(ret_obj_ptr).as(Void*))
-  {{class_type.id}}.new(ret_obj_ptr)
+  if ret_obj_ptr.null?
+    {{class_type.id}}.new(ret_obj_ptr)
+  else
+    if alive = ::Godot::Bridge.find_alive_instance(ret_obj_ptr)
+      alive.as?({{class_type.id}}) || {{class_type.id}}.new(ret_obj_ptr)
+    else
+      {{class_type.id}}.new(ret_obj_ptr)
+    end
+  end
+end
+
+# Executes a ptrcall returning a typed object wrapper, or nil if Godot returned nullptr
+macro godot_ptrcall_obj_or_nil(mb, target_ptr, args_slice, class_type)
+  ret_obj_ptr = Pointer(Void).null
+  godot_ptrcall({{mb}}, {{target_ptr}}, {{args_slice}}, pointerof(ret_obj_ptr).as(Void*))
+  if ret_obj_ptr.null?
+    nil
+  else
+    if alive = ::Godot::Bridge.find_alive_instance(ret_obj_ptr)
+      alive.as?({{class_type.id}}) || {{class_type.id}}.new(ret_obj_ptr)
+    else
+      {{class_type.id}}.new(ret_obj_ptr)
+    end
+  end
 end
 
 # Executes a ptrcall returning a strongly-typed enum
@@ -188,19 +211,135 @@ end
 # Signal Synthesizer Macros
 # ===========================================================================
 
-# Synthesizes a first-class typed signal accessor and direct emission helper
+# Synthesizes a first-class typed signal accessor, StaticSignalSlot view, and direct emission helper
 macro godot_signal(name, *types)
+  # Identity setter enabling compound operator sugar (`node.{{name.id}} += ->handler`, `node.{{name.id}} -= ->handler`)
+  def {{name.id}}=(val : ::Godot::BoundSignal) : ::Godot::BoundSignal
+    val
+  end
+
+  @[ZeroAllocation]
+  @[HotPath]
+  @[AlwaysInline]
+  def {{name.id}}_signal_hash : UInt64
+    ::Lapis::Core::StaticSignalTable.hash_signal_name({{name.stringify}})
+  end
+
   {% if types.empty? %}
+    @[ZeroAllocation]
+    @[HotPath]
+    @[AlwaysInline]
+    def {{name.id}}_slot : ::Lapis::Core::StaticSignalSlot()
+      ::Lapis::Core::StaticSignalSlot().from_table(
+        ::Lapis::Core::StaticSignalTable.global,
+        signal_target_id,
+        {{name.id}}_signal_hash
+      )
+    end
+
+    @[ZeroAllocation]
+    @[HotPath]
+    @[AlwaysInline]
+    def bind_{{name.id}}(callback : Proc(R), once : Bool = false) : UInt64 forall R
+      ::Lapis::Core::StaticSignalTable.global.bind_by_hash(
+        signal_target_id,
+        {{name.id}}_signal_hash,
+        callback,
+        once: once
+      )
+    end
+
+    def bind_{{name.id}}(once : Bool = false, &block : -> Void) : UInt64
+      bind_{{name.id}}(block, once: once)
+    end
+
+    @[ZeroAllocation]
+    @[HotPath]
+    @[AlwaysInline]
+    def unbind_{{name.id}}(token : UInt64) : Bool
+      ::Lapis::Core::StaticSignalTable.global.unbind(token)
+    end
+
+    @[ZeroAllocation]
+    @[HotPath]
+    @[AlwaysInline]
+    def unbind_{{name.id}}(callback : Proc(R)) : Bool forall R
+      ::Lapis::Core::StaticSignalTable.global.unbind_proc_by_hash(
+        signal_target_id,
+        {{name.id}}_signal_hash,
+        callback
+      )
+    end
+
     def {{name.id}} : ::Godot::TypedSignal()
-      ::Godot::TypedSignal().new(self, {{name.stringify}})
+      cache = (@_bound_signal_cache ||= ::Hash(String, ::Godot::BoundSignal).new)
+      if existing = cache[{{name.stringify}}]?
+        existing.as(::Godot::TypedSignal())
+      else
+        sig = ::Godot::TypedSignal().new(self, {{name.stringify}})
+        cache[{{name.stringify}}] = sig
+        sig
+      end
     end
 
     def emit_{{name.id}} : Void
-      emit_signal({{name.stringify}})
+      {{name.id}}.emit
     end
   {% else %}
+    @[ZeroAllocation]
+    @[HotPath]
+    @[AlwaysInline]
+    def {{name.id}}_slot : ::Lapis::Core::StaticSignalSlot({{types.splat}})
+      ::Lapis::Core::StaticSignalSlot({{types.splat}}).from_table(
+        ::Lapis::Core::StaticSignalTable.global,
+        signal_target_id,
+        {{name.id}}_signal_hash
+      )
+    end
+
+    @[ZeroAllocation]
+    @[HotPath]
+    @[AlwaysInline]
+    def bind_{{name.id}}(callback : Proc({{types.splat}}, R), once : Bool = false) : UInt64 forall R
+      ::Lapis::Core::StaticSignalTable.global.bind_by_hash(
+        signal_target_id,
+        {{name.id}}_signal_hash,
+        callback,
+        once: once
+      )
+    end
+
+    def bind_{{name.id}}(once : Bool = false, &block : {{types.splat}} -> Void) : UInt64
+      bind_{{name.id}}(block, once: once)
+    end
+
+    @[ZeroAllocation]
+    @[HotPath]
+    @[AlwaysInline]
+    def unbind_{{name.id}}(token : UInt64) : Bool
+      ::Lapis::Core::StaticSignalTable.global.unbind(token)
+    end
+
+    @[ZeroAllocation]
+    @[HotPath]
+    @[AlwaysInline]
+    def unbind_{{name.id}}(callback : Proc({{types.splat}}, R)) : Bool forall R
+      ::Lapis::Core::StaticSignalTable.global.unbind_proc_by_hash(
+        signal_target_id,
+        {{name.id}}_signal_hash,
+        callback
+      )
+    end
+
     def {{name.id}} : ::Godot::TypedSignal({{types.splat}})
-      ::Godot::TypedSignal({{types.splat}}).new(self, {{name.stringify}})
+      cache = (@_bound_signal_cache ||= ::Hash(String, ::Godot::BoundSignal).new)
+      if existing = cache[{{name.stringify}}]?
+        existing.as(::Godot::TypedSignal({{types.splat}}))
+      else
+        sig = ::Godot::TypedSignal({{types.splat}}).new(self, {{name.stringify}})
+        cache[{{name.stringify}}] = sig
+        sig
+      end
     end
 
     def emit_{{name.id}}(*args) : Void

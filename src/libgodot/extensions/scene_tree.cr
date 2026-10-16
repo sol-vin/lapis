@@ -3,6 +3,38 @@ module Godot
   # SceneTree Ergonomic Extensions
   # ===========================================================================
   class SceneTree
+    # Property alias for get_root
+    def root : Window
+      get_root
+    end
+
+    # Returns the root Window, or nil if invalid or null
+    def get_root? : Window?
+      return nil if @pointer.null?
+      r = get_root
+      r.pointer.null? ? nil : r
+    end
+
+    # Returns the currently active scene node, or nil if none is set or pointer is null
+    def current_scene : Node?
+      return nil if @pointer.null?
+      cs = get_current_scene
+      (cs.nil? || cs.pointer.null?) ? nil : cs
+    end
+
+    # Sets the currently active scene node
+    def current_scene=(scene : Node) : Void
+      return if @pointer.null?
+      set_current_scene(scene)
+    end
+
+    # Returns the first node in a group, or nil if none found
+    def get_first_node_in_group?(group_name : String) : Node?
+      return nil if @pointer.null?
+      node = get_first_node_in_group(group_name)
+      node.pointer.null? ? nil : node
+    end
+
     # Creates a SceneTreeTimer with integer seconds
     def create_timer(time_sec : Int, process_always : Bool = true, process_in_physics : Bool = false, ignore_time_scale : Bool = false) : SceneTreeTimer
       create_timer(time_sec.to_f64, process_always, process_in_physics, ignore_time_scale)
@@ -75,20 +107,133 @@ module Godot
       return if @pointer.null?
       previous_def
     end
+
+    # Changes running scene to file at specified path, raising SceneChangeError on failure
+    def change_scene!(path : String) : Nil
+      return if @pointer.null?
+      err = change_scene_to_file(path)
+      if err != Godot::Error::Ok
+        raise SceneChangeError.new("Failed to change scene to '#{path}': Error #{err}")
+      end
+    end
+
+    # Changes running scene to specified PackedScene, raising SceneChangeError on failure
+    def change_scene!(scene : PackedScene) : Nil
+      return if @pointer.null?
+      err = change_scene_to_packed(scene)
+      if err != Godot::Error::Ok
+        raise SceneChangeError.new("Failed to change scene to packed scene: Error #{err}")
+      end
+    end
+
+    # Reloads currently running scene, raising SceneChangeError on failure
+    def reload_scene! : Nil
+      return if @pointer.null?
+      err = reload_current_scene
+      if err != Godot::Error::Ok
+        raise SceneChangeError.new("Failed to reload current scene: Error #{err}")
+      end
+    end
+
+    # Returns the current scene cast to wrapper type T, or nil if not present or type mismatch
+    def current_scene_as(type : T.class) : T? forall T
+      return nil if @pointer.null?
+      cs = current_scene
+      return nil if cs.nil? || cs.pointer.null?
+      if cs.is_a?(T)
+        cs
+      elsif typed = Godot::Node.cast_to?(cs, T)
+        typed
+      else
+        nil
+      end
+    end
+
+    # Returns a fluent GroupQuery for the specified node group.
+    def group(name : String | Symbol) : GroupQuery
+      GroupQuery.new(name)
+    end
+  end
+
+  # Exception raised when a scene change or reload operation fails
+  class SceneChangeError < Exception
+  end
+
+  class Node
+    # Changes running scene via the active SceneTree
+    def change_scene!(path : String) : Nil
+      return if @pointer.null?
+      get_tree.change_scene!(path)
+    end
+
+    # Changes running scene to PackedScene via the active SceneTree
+    def change_scene!(scene : PackedScene) : Nil
+      return if @pointer.null?
+      get_tree.change_scene!(scene)
+    end
+
+    # Reloads running scene via the active SceneTree
+    def reload_scene! : Nil
+      return if @pointer.null?
+      get_tree.reload_scene!
+    end
+
+    # Returns the current running scene cast to wrapper type T
+    def current_scene_as(type : T.class) : T? forall T
+      return nil if @pointer.null?
+      get_tree.current_scene_as(T)
+    end
   end
 
   # ===========================================================================
   # SceneTreeTimer Cooperative Await
   # ===========================================================================
-  # Cooperatively awaits a SceneTreeTimer until its countdown expires
-  def self.await(timer : SceneTreeTimer) : Void
-    return unless timer.alive?
+  # Cooperatively awaits a SceneTreeTimer until its countdown expires.
+  # Returns `AwaitStatus(Nil)` indicating completion or timeout.
+  def self.await(timer : SceneTreeTimer, timeout_sec : Float64? = nil) : AwaitStatus(Nil)
+    return AwaitStatus(Nil).completed(nil) unless timer.alive?
     if Bridge.init_done?
-      await(timer, "timeout")
+      status = await(timer, "timeout", timeout_sec: timeout_sec)
+      if status.completed?
+        AwaitStatus(Nil).completed(nil)
+      else
+        AwaitStatus(Nil).timed_out
+      end
     else
+      start = ::Time.instant
       while timer.alive? && timer.get_time_left > 0.0
         Fiber.yield
+        if timeout_sec && (::Time.instant - start).total_seconds >= timeout_sec
+          return AwaitStatus(Nil).timed_out
+        end
       end
+      AwaitStatus(Nil).completed(nil)
     end
+  end
+
+  def self.await(timer : SceneTreeTimer, timeout_sec : Number) : AwaitStatus(Nil)
+    await(timer, timeout_sec.to_f64)
+  end
+
+  # Cooperatively awaits a SceneTreeTimer, raising `TimeoutError` if timeout_sec expires.
+  def self.await!(timer : SceneTreeTimer, timeout_sec : Float64? = nil) : Void
+    status = await(timer, timeout_sec: timeout_sec)
+    if status.timed_out?
+      raise TimeoutError.new("Timed out awaiting SceneTreeTimer after #{timeout_sec}s")
+    end
+    nil
+  end
+
+  def self.await!(timer : SceneTreeTimer, timeout_sec : Number) : Void
+    await!(timer, timeout_sec.to_f64)
+  end
+
+  # Cooperatively awaits a SceneTreeTimer, returning `true` on completion and `false` on timeout.
+  def self.await?(timer : SceneTreeTimer, timeout_sec : Float64? = nil) : Bool
+    await(timer, timeout_sec: timeout_sec).completed?
+  end
+
+  def self.await?(timer : SceneTreeTimer, timeout_sec : Number) : Bool
+    await?(timer, timeout_sec.to_f64)
   end
 end

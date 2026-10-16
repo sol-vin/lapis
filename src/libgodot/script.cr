@@ -1,3 +1,4 @@
+require "./script/validator"
 require "./script/lsp"
 require "./script/highlighter"
 require "./script/language"

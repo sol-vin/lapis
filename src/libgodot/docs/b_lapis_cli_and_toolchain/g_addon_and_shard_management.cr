@@ -41,7 +41,7 @@ module Lapis
       #     <tr>
       #       <td><strong>lapis shard: Managing Crystal Dependencies</strong></td>
       #       <td><code>.topic_03_shard_management</code></td>
-      #       <td>Adding, updating, and removing Crystal shard dependencies.</td>
+      #       <td>Listing, adding, removing, and pruning Crystal shard dependencies.</td>
       #     </tr>
       #   </tbody>
       # </table>
@@ -66,6 +66,9 @@ module Lapis
         # To install a GDExtension addon into your Godot project:
         #
         # ```bash
+        # # List installed addons and activation status:
+        # lapis addon list
+        #
         # # Install from GitHub repository:
         # lapis addon install github:owner/repo
         #
@@ -97,11 +100,14 @@ module Lapis
         #
         def self.topic_02_addon_uninstallation : Nil; end
 
-        # **lapis shard: Managing Crystal Dependencies**: Adding, updating, and removing Crystal shard dependencies.
+        # **lapis shard: Managing Crystal Dependencies**: Listing, adding, removing, and pruning Crystal shard dependencies.
         #
         # To manage standard Crystal packages in `shard.yml`:
         #
         # ```bash
+        # # List declared dependencies and installation status:
+        # lapis shard list
+        #
         # # Add a GitHub dependency:
         # lapis shard add github:crystal-community/compress
         #
@@ -110,6 +116,9 @@ module Lapis
         #
         # # Remove a dependency:
         # lapis shard remove compress
+        #
+        # # Prune unreferenced libraries:
+        # lapis shard prune
         # ```
         #
         def self.topic_03_shard_management : Nil; end

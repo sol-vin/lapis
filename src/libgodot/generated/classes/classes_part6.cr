@@ -1,5 +1,435 @@
 # Generated classes part 6 (in topological order)
 module Godot
+  class UDSServer < Godot::SocketServer
+    def initialize(pointer : Void* = Pointer(Void).null)
+      super(pointer)
+    end
+    @@mb_listen : Void* = Pointer(Void).null
+    def listen(path : String) : Godot::Error
+      godot_bind(@@mb_listen, "UDSServer", "listen", 166001499_i64)
+      str_0 = Bridge.make_string(path)
+      arg_0 = str_0
+      args = StaticArray[arg_0]
+      godot_ptrcall_enum(@@mb_listen, @pointer, args.to_unsafe.as(Void**), Godot::Error)
+    ensure
+      Bridge.free_string(str_0)
+    end
+    @@mb_take_connection : Void* = Pointer(Void).null
+    def take_connection() : StreamPeerUDS
+      godot_bind(@@mb_take_connection, "UDSServer", "take_connection", 1623851112_i64)
+      godot_ptrcall_obj(@@mb_take_connection, @pointer, Pointer(Pointer(Void)).null, StreamPeerUDS)
+    end
+  end
+  class UPNP < Godot::RefCounted
+    def initialize(pointer : Void* = Pointer(Void).null)
+      super(pointer)
+    end
+    enum UPNPResult : Int64
+      UpnpResultSuccess = 0_i64
+      UpnpResultNotAuthorized = 1_i64
+      UpnpResultPortMappingNotFound = 2_i64
+      UpnpResultInconsistentParameters = 3_i64
+      UpnpResultNoSuchEntryInArray = 4_i64
+      UpnpResultActionFailed = 5_i64
+      UpnpResultSrcIpWildcardNotPermitted = 6_i64
+      UpnpResultExtPortWildcardNotPermitted = 7_i64
+      UpnpResultIntPortWildcardNotPermitted = 8_i64
+      UpnpResultRemoteHostMustBeWildcard = 9_i64
+      UpnpResultExtPortMustBeWildcard = 10_i64
+      UpnpResultNoPortMapsAvailable = 11_i64
+      UpnpResultConflictWithOtherMechanism = 12_i64
+      UpnpResultConflictWithOtherMapping = 13_i64
+      UpnpResultSamePortValuesRequired = 14_i64
+      UpnpResultOnlyPermanentLeaseSupported = 15_i64
+      UpnpResultInvalidGateway = 16_i64
+      UpnpResultInvalidPort = 17_i64
+      UpnpResultInvalidProtocol = 18_i64
+      UpnpResultInvalidDuration = 19_i64
+      UpnpResultInvalidArgs = 20_i64
+      UpnpResultInvalidResponse = 21_i64
+      UpnpResultInvalidParam = 22_i64
+      UpnpResultHttpError = 23_i64
+      UpnpResultSocketError = 24_i64
+      UpnpResultMemAllocError = 25_i64
+      UpnpResultNoGateway = 26_i64
+      UpnpResultNoDevices = 27_i64
+      UpnpResultUnknownError = 28_i64
+    end
+    @@mb_get_device_count : Void* = Pointer(Void).null
+    def get_device_count() : Int64
+      godot_bind(@@mb_get_device_count, "UPNP", "get_device_count", 3905245786_i64)
+      godot_ptrcall_int(@@mb_get_device_count, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_get_device : Void* = Pointer(Void).null
+    def get_device(index : Int64) : UPNPDevice
+      godot_bind(@@mb_get_device, "UPNP", "get_device", 2193290270_i64)
+      val_0 = index.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_obj(@@mb_get_device, @pointer, args.to_unsafe.as(Void**), UPNPDevice)
+    end
+    @@mb_add_device : Void* = Pointer(Void).null
+    def add_device(device : UPNPDevice) : Void
+      godot_bind(@@mb_add_device, "UPNP", "add_device", 986715920_i64)
+      arg_ptr_0 = device ? device.pointer : Pointer(Void).null
+      arg_0 = pointerof(arg_ptr_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_add_device, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_set_device : Void* = Pointer(Void).null
+    def set_device(index : Int64, device : UPNPDevice) : Void
+      godot_bind(@@mb_set_device, "UPNP", "set_device", 3015133723_i64)
+      val_0 = index.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      arg_ptr_1 = device ? device.pointer : Pointer(Void).null
+      arg_1 = pointerof(arg_ptr_1).as(Void*)
+      args = StaticArray[arg_0, arg_1]
+      godot_ptrcall_void(@@mb_set_device, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_remove_device : Void* = Pointer(Void).null
+    def remove_device(index : Int64) : Void
+      godot_bind(@@mb_remove_device, "UPNP", "remove_device", 1286410249_i64)
+      val_0 = index.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_remove_device, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_clear_devices : Void* = Pointer(Void).null
+    def clear_devices() : Void
+      godot_bind(@@mb_clear_devices, "UPNP", "clear_devices", 3218959716_i64)
+      godot_ptrcall_void(@@mb_clear_devices, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_get_gateway : Void* = Pointer(Void).null
+    def get_gateway() : UPNPDevice
+      godot_bind(@@mb_get_gateway, "UPNP", "get_gateway", 2276800779_i64)
+      godot_ptrcall_obj(@@mb_get_gateway, @pointer, Pointer(Pointer(Void)).null, UPNPDevice)
+    end
+    @@mb_discover : Void* = Pointer(Void).null
+    def discover(timeout : Int64 = 2000_i64, ttl : Int64 = 2_i64, device_filter : String = "InternetGatewayDevice") : Int64
+      godot_bind(@@mb_discover, "UPNP", "discover", 1575334765_i64)
+      val_0 = timeout.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      val_1 = ttl.to_i64
+      arg_1 = pointerof(val_1).as(Void*)
+      str_2 = Bridge.make_string(device_filter)
+      arg_2 = str_2
+      args = StaticArray[arg_0, arg_1, arg_2]
+      godot_ptrcall_int(@@mb_discover, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string(str_2)
+    end
+    @@mb_query_external_address : Void* = Pointer(Void).null
+    def query_external_address() : String
+      godot_bind(@@mb_query_external_address, "UPNP", "query_external_address", 201670096_i64)
+      godot_call_str("query_external_address")
+    end
+    @@mb_add_port_mapping : Void* = Pointer(Void).null
+    def add_port_mapping(port : Int64, port_internal : Int64 = 0_i64, desc : String = "", proto : String = "UDP", duration : Int64 = 0_i64) : Int64
+      godot_bind(@@mb_add_port_mapping, "UPNP", "add_port_mapping", 818314583_i64)
+      val_0 = port.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      val_1 = port_internal.to_i64
+      arg_1 = pointerof(val_1).as(Void*)
+      str_2 = Bridge.make_string(desc)
+      arg_2 = str_2
+      str_3 = Bridge.make_string(proto)
+      arg_3 = str_3
+      val_4 = duration.to_i64
+      arg_4 = pointerof(val_4).as(Void*)
+      args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
+      godot_ptrcall_int(@@mb_add_port_mapping, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string(str_2)
+      Bridge.free_string(str_3)
+    end
+    @@mb_delete_port_mapping : Void* = Pointer(Void).null
+    def delete_port_mapping(port : Int64, proto : String = "UDP") : Int64
+      godot_bind(@@mb_delete_port_mapping, "UPNP", "delete_port_mapping", 3444187325_i64)
+      val_0 = port.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      str_1 = Bridge.make_string(proto)
+      arg_1 = str_1
+      args = StaticArray[arg_0, arg_1]
+      godot_ptrcall_int(@@mb_delete_port_mapping, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string(str_1)
+    end
+    @@mb_set_discover_multicast_if : Void* = Pointer(Void).null
+    def set_discover_multicast_if(m_if : String) : Void
+      godot_bind(@@mb_set_discover_multicast_if, "UPNP", "set_discover_multicast_if", 83702148_i64)
+      str_0 = Bridge.make_string(m_if)
+      arg_0 = str_0
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_discover_multicast_if, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string(str_0)
+    end
+    @@mb_get_discover_multicast_if : Void* = Pointer(Void).null
+    def get_discover_multicast_if() : String
+      godot_bind(@@mb_get_discover_multicast_if, "UPNP", "get_discover_multicast_if", 201670096_i64)
+      godot_call_str("get_discover_multicast_if")
+    end
+    @@mb_set_discover_local_port : Void* = Pointer(Void).null
+    def set_discover_local_port(port : Int64) : Void
+      godot_bind(@@mb_set_discover_local_port, "UPNP", "set_discover_local_port", 1286410249_i64)
+      val_0 = port.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_discover_local_port, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_discover_local_port : Void* = Pointer(Void).null
+    def get_discover_local_port() : Int64
+      godot_bind(@@mb_get_discover_local_port, "UPNP", "get_discover_local_port", 3905245786_i64)
+      godot_ptrcall_int(@@mb_get_discover_local_port, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_set_discover_ipv6 : Void* = Pointer(Void).null
+    def set_discover_ipv6(ipv6 : Bool) : Void
+      godot_bind(@@mb_set_discover_ipv6, "UPNP", "set_discover_ipv6", 2586408642_i64)
+      val_0 = ipv6
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_discover_ipv6, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_is_discover_ipv6 : Void* = Pointer(Void).null
+    def is_discover_ipv6() : Bool
+      godot_bind(@@mb_is_discover_ipv6, "UPNP", "is_discover_ipv6", 36873697_i64)
+      godot_ptrcall_bool(@@mb_is_discover_ipv6, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_discover_ipv6`
+    def is_discover_ipv6?() : Bool
+      is_discover_ipv6()
+    end
+    # Predicate alias for `is_discover_ipv6`
+    def discover_ipv6?() : Bool
+      is_discover_ipv6()
+    end
+    # Property `discover_multicast_if` getter
+    def discover_multicast_if
+      get_discover_multicast_if
+    end
+    # Property `discover_multicast_if` setter
+    def discover_multicast_if=(val)
+      set_discover_multicast_if(val)
+    end
+    # Property `discover_local_port` getter
+    def discover_local_port
+      get_discover_local_port
+    end
+    # Property `discover_local_port` setter
+    def discover_local_port=(val : Int | Enum)
+      set_discover_local_port(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
+    end
+    # Property `discover_ipv6` getter
+    def discover_ipv6
+      is_discover_ipv6
+    end
+    # Property `discover_ipv6` setter
+    def discover_ipv6=(val)
+      set_discover_ipv6(val)
+    end
+  end
+  class UPNPDevice < Godot::RefCounted
+    def initialize(pointer : Void* = Pointer(Void).null)
+      super(pointer)
+    end
+    enum IGDStatus : Int64
+      IgdStatusOk = 0_i64
+      IgdStatusHttpError = 1_i64
+      IgdStatusHttpEmpty = 2_i64
+      IgdStatusNoUrls = 3_i64
+      IgdStatusNoIgd = 4_i64
+      IgdStatusDisconnected = 5_i64
+      IgdStatusUnknownDevice = 6_i64
+      IgdStatusInvalidControl = 7_i64
+      IgdStatusMallocError = 8_i64
+      IgdStatusUnknownError = 9_i64
+    end
+    @@mb_is_valid_gateway : Void* = Pointer(Void).null
+    def is_valid_gateway() : Bool
+      godot_bind(@@mb_is_valid_gateway, "UPNPDevice", "is_valid_gateway", 36873697_i64)
+      godot_ptrcall_bool(@@mb_is_valid_gateway, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_valid_gateway`
+    def is_valid_gateway?() : Bool
+      is_valid_gateway()
+    end
+    # Predicate alias for `is_valid_gateway`
+    def valid_gateway?() : Bool
+      is_valid_gateway()
+    end
+    @@mb_query_external_address : Void* = Pointer(Void).null
+    def query_external_address() : String
+      godot_bind(@@mb_query_external_address, "UPNPDevice", "query_external_address", 201670096_i64)
+      godot_call_str("query_external_address")
+    end
+    @@mb_add_port_mapping : Void* = Pointer(Void).null
+    def add_port_mapping(port : Int64, port_internal : Int64 = 0_i64, desc : String = "", proto : String = "UDP", duration : Int64 = 0_i64) : Int64
+      godot_bind(@@mb_add_port_mapping, "UPNPDevice", "add_port_mapping", 818314583_i64)
+      val_0 = port.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      val_1 = port_internal.to_i64
+      arg_1 = pointerof(val_1).as(Void*)
+      str_2 = Bridge.make_string(desc)
+      arg_2 = str_2
+      str_3 = Bridge.make_string(proto)
+      arg_3 = str_3
+      val_4 = duration.to_i64
+      arg_4 = pointerof(val_4).as(Void*)
+      args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
+      godot_ptrcall_int(@@mb_add_port_mapping, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string(str_2)
+      Bridge.free_string(str_3)
+    end
+    @@mb_delete_port_mapping : Void* = Pointer(Void).null
+    def delete_port_mapping(port : Int64, proto : String = "UDP") : Int64
+      godot_bind(@@mb_delete_port_mapping, "UPNPDevice", "delete_port_mapping", 3444187325_i64)
+      val_0 = port.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      str_1 = Bridge.make_string(proto)
+      arg_1 = str_1
+      args = StaticArray[arg_0, arg_1]
+      godot_ptrcall_int(@@mb_delete_port_mapping, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string(str_1)
+    end
+    @@mb_set_description_url : Void* = Pointer(Void).null
+    def set_description_url(url : String) : Void
+      godot_bind(@@mb_set_description_url, "UPNPDevice", "set_description_url", 83702148_i64)
+      str_0 = Bridge.make_string(url)
+      arg_0 = str_0
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_description_url, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string(str_0)
+    end
+    @@mb_get_description_url : Void* = Pointer(Void).null
+    def get_description_url() : String
+      godot_bind(@@mb_get_description_url, "UPNPDevice", "get_description_url", 201670096_i64)
+      godot_call_str("get_description_url")
+    end
+    @@mb_set_service_type : Void* = Pointer(Void).null
+    def set_service_type(get_type : String) : Void
+      godot_bind(@@mb_set_service_type, "UPNPDevice", "set_service_type", 83702148_i64)
+      str_0 = Bridge.make_string(get_type)
+      arg_0 = str_0
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_service_type, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string(str_0)
+    end
+    @@mb_get_service_type : Void* = Pointer(Void).null
+    def get_service_type() : String
+      godot_bind(@@mb_get_service_type, "UPNPDevice", "get_service_type", 201670096_i64)
+      godot_call_str("get_service_type")
+    end
+    @@mb_set_igd_control_url : Void* = Pointer(Void).null
+    def set_igd_control_url(url : String) : Void
+      godot_bind(@@mb_set_igd_control_url, "UPNPDevice", "set_igd_control_url", 83702148_i64)
+      str_0 = Bridge.make_string(url)
+      arg_0 = str_0
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_igd_control_url, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string(str_0)
+    end
+    @@mb_get_igd_control_url : Void* = Pointer(Void).null
+    def get_igd_control_url() : String
+      godot_bind(@@mb_get_igd_control_url, "UPNPDevice", "get_igd_control_url", 201670096_i64)
+      godot_call_str("get_igd_control_url")
+    end
+    @@mb_set_igd_service_type : Void* = Pointer(Void).null
+    def set_igd_service_type(get_type : String) : Void
+      godot_bind(@@mb_set_igd_service_type, "UPNPDevice", "set_igd_service_type", 83702148_i64)
+      str_0 = Bridge.make_string(get_type)
+      arg_0 = str_0
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_igd_service_type, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string(str_0)
+    end
+    @@mb_get_igd_service_type : Void* = Pointer(Void).null
+    def get_igd_service_type() : String
+      godot_bind(@@mb_get_igd_service_type, "UPNPDevice", "get_igd_service_type", 201670096_i64)
+      godot_call_str("get_igd_service_type")
+    end
+    @@mb_set_igd_our_addr : Void* = Pointer(Void).null
+    def set_igd_our_addr(addr : String) : Void
+      godot_bind(@@mb_set_igd_our_addr, "UPNPDevice", "set_igd_our_addr", 83702148_i64)
+      str_0 = Bridge.make_string(addr)
+      arg_0 = str_0
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_igd_our_addr, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string(str_0)
+    end
+    @@mb_get_igd_our_addr : Void* = Pointer(Void).null
+    def get_igd_our_addr() : String
+      godot_bind(@@mb_get_igd_our_addr, "UPNPDevice", "get_igd_our_addr", 201670096_i64)
+      godot_call_str("get_igd_our_addr")
+    end
+    @@mb_set_igd_status : Void* = Pointer(Void).null
+    def set_igd_status(status : IGDStatus | Int) : Void
+      godot_bind(@@mb_set_igd_status, "UPNPDevice", "set_igd_status", 519504122_i64)
+      val_0 = status.is_a?(Int) ? status.to_i64 : status.value.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_igd_status, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_igd_status : Void* = Pointer(Void).null
+    def get_igd_status() : IGDStatus
+      godot_bind(@@mb_get_igd_status, "UPNPDevice", "get_igd_status", 180887011_i64)
+      godot_ptrcall_enum(@@mb_get_igd_status, @pointer, Pointer(Pointer(Void)).null, IGDStatus)
+    end
+    # Property `description_url` getter
+    def description_url
+      get_description_url
+    end
+    # Property `description_url` setter
+    def description_url=(val)
+      set_description_url(val)
+    end
+    # Property `service_type` getter
+    def service_type
+      get_service_type
+    end
+    # Property `service_type` setter
+    def service_type=(val)
+      set_service_type(val)
+    end
+    # Property `igd_control_url` getter
+    def igd_control_url
+      get_igd_control_url
+    end
+    # Property `igd_control_url` setter
+    def igd_control_url=(val)
+      set_igd_control_url(val)
+    end
+    # Property `igd_service_type` getter
+    def igd_service_type
+      get_igd_service_type
+    end
+    # Property `igd_service_type` setter
+    def igd_service_type=(val)
+      set_igd_service_type(val)
+    end
+    # Property `igd_our_addr` getter
+    def igd_our_addr
+      get_igd_our_addr
+    end
+    # Property `igd_our_addr` setter
+    def igd_our_addr=(val)
+      set_igd_our_addr(val)
+    end
+    # Property `igd_status` getter
+    def igd_status
+      get_igd_status
+    end
+    # Property `igd_status` setter
+    def igd_status=(val : Int | Enum)
+      set_igd_status(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
+    end
+  end
   class UndoRedo < Godot::Object
     def initialize(pointer : Void* = Pointer(Void).null)
       super(pointer)
@@ -204,8 +634,8 @@ module Godot
       get_max_steps
     end
     # Property `max_steps` setter
-    def max_steps=(val : Int)
-      set_max_steps(val.to_i64)
+    def max_steps=(val : Int | Enum)
+      set_max_steps(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     godot_signal version_changed
   end
@@ -952,8 +1382,8 @@ module Godot
       get_audio_track
     end
     # Property `audio_track` setter
-    def audio_track=(val : Int)
-      set_audio_track(val.to_i64)
+    def audio_track=(val : Int | Enum)
+      set_audio_track(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `stream` getter
     def stream
@@ -1033,8 +1463,8 @@ module Godot
       get_buffering_msec
     end
     # Property `buffering_msec` setter
-    def buffering_msec=(val : Int)
-      set_buffering_msec(val.to_i64)
+    def buffering_msec=(val : Int | Enum)
+      set_buffering_msec(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `stream_position` getter
     def stream_position
@@ -1256,8 +1686,8 @@ module Godot
       get_joystick_mode
     end
     # Property `joystick_mode` setter
-    def joystick_mode=(val : Int)
-      set_joystick_mode(val.to_i64)
+    def joystick_mode=(val : Int | Enum)
+      set_joystick_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `joystick_size` getter
     def joystick_size
@@ -1336,8 +1766,8 @@ module Godot
       get_visibility_mode
     end
     # Property `visibility_mode` setter
-    def visibility_mode=(val : Int)
-      set_visibility_mode(val.to_i64)
+    def visibility_mode=(val : Int | Enum)
+      set_visibility_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     godot_signal pressed
     godot_signal tapped
@@ -1460,8 +1890,8 @@ module Godot
       get_enable_mode
     end
     # Property `enable_mode` setter
-    def enable_mode=(val : Int)
-      set_enable_mode(val.to_i64)
+    def enable_mode=(val : Int | Enum)
+      set_enable_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `enable_node_path` getter
     def enable_node_path
@@ -1550,8 +1980,8 @@ module Godot
       get_enable_mode
     end
     # Property `enable_mode` setter
-    def enable_mode=(val : Int)
-      set_enable_mode(val.to_i64)
+    def enable_mode=(val : Int | Enum)
+      set_enable_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `enable_node_path` getter
     def enable_node_path
@@ -1596,6 +2026,9 @@ module Godot
       VaryingTypeTransform = 7_i64
       VaryingTypeMax = 8_i64
     end
+    NODE_ID_INVALID = -1_i64
+    NODE_ID_OUTPUT = 0_i64
+
     @@mb_set_mode : Void* = Pointer(Void).null
     def set_mode(mode : Godot::Shader::Mode | Int) : Void
       godot_bind(@@mb_set_mode, "VisualShader", "set_mode", 3978014962_i64)
@@ -2251,16 +2684,16 @@ module Godot
       get_input_port_count
     end
     # Property `input_port_count` setter
-    def input_port_count=(val : Int)
-      set_input_port_count(val.to_i64)
+    def input_port_count=(val : Int | Enum)
+      set_input_port_count(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `output_port_count` getter
     def output_port_count
       get_output_port_count
     end
     # Property `output_port_count` setter
-    def output_port_count=(val : Int)
-      set_output_port_count(val.to_i64)
+    def output_port_count=(val : Int | Enum)
+      set_output_port_count(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNode < Godot::Resource
@@ -2370,8 +2803,8 @@ module Godot
       get_output_port_for_preview
     end
     # Property `output_port_for_preview` setter
-    def output_port_for_preview=(val : Int)
-      set_output_port_for_preview(val.to_i64)
+    def output_port_for_preview=(val : Int | Enum)
+      set_output_port_for_preview(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `default_input_values` getter
     def default_input_values
@@ -2386,8 +2819,8 @@ module Godot
       get_frame
     end
     # Property `linked_parent_graph_frame` setter
-    def linked_parent_graph_frame=(val : Int)
-      set_frame(val.to_i64)
+    def linked_parent_graph_frame=(val : Int | Enum)
+      set_frame(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeBillboard < Godot::VisualShaderNode
@@ -2440,8 +2873,8 @@ module Godot
       get_billboard_type
     end
     # Property `billboard_type` setter
-    def billboard_type=(val : Int)
-      set_billboard_type(val.to_i64)
+    def billboard_type=(val : Int | Enum)
+      set_billboard_type(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `keep_scale` getter
     def keep_scale
@@ -2558,16 +2991,16 @@ module Godot
       get_qualifier
     end
     # Property `qualifier` setter
-    def qualifier=(val : Int)
-      set_qualifier(val.to_i64)
+    def qualifier=(val : Int | Enum)
+      set_qualifier(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `instance_index` getter
     def instance_index
       get_instance_index
     end
     # Property `instance_index` setter
-    def instance_index=(val : Int)
-      set_instance_index(val.to_i64)
+    def instance_index=(val : Int | Enum)
+      set_instance_index(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeBooleanParameter < Godot::VisualShaderNodeParameter
@@ -2663,8 +3096,8 @@ module Godot
       get_op_type
     end
     # Property `op_type` setter
-    def op_type=(val : Int)
-      set_op_type(val.to_i64)
+    def op_type=(val : Int | Enum)
+      set_op_type(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeColorConstant < Godot::VisualShaderNodeConstant
@@ -2724,8 +3157,8 @@ module Godot
       get_function
     end
     # Property `function` setter
-    def function=(val : Int)
-      set_function(val.to_i64)
+    def function=(val : Int | Enum)
+      set_function(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeColorOp < Godot::VisualShaderNode
@@ -2762,8 +3195,8 @@ module Godot
       get_operator
     end
     # Property `operator` setter
-    def operator=(val : Int)
-      set_operator(val.to_i64)
+    def operator=(val : Int | Enum)
+      set_operator(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeColorParameter < Godot::VisualShaderNodeParameter
@@ -3097,24 +3530,24 @@ module Godot
       get_comparison_type
     end
     # Property `type` setter
-    def get_type=(val : Int)
-      set_comparison_type(val.to_i64)
+    def get_type=(val : Int | Enum)
+      set_comparison_type(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `function` getter
     def function
       get_function
     end
     # Property `function` setter
-    def function=(val : Int)
-      set_function(val.to_i64)
+    def function=(val : Int | Enum)
+      set_function(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `condition` getter
     def condition
       get_condition
     end
     # Property `condition` setter
-    def condition=(val : Int)
-      set_condition(val.to_i64)
+    def condition=(val : Int | Enum)
+      set_condition(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeCubemap < Godot::VisualShaderNode
@@ -3176,8 +3609,8 @@ module Godot
       get_source
     end
     # Property `source` setter
-    def source=(val : Int)
-      set_source(val.to_i64)
+    def source=(val : Int | Enum)
+      set_source(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `cube_map` getter
     def cube_map
@@ -3192,8 +3625,8 @@ module Godot
       get_texture_type
     end
     # Property `texture_type` setter
-    def texture_type=(val : Int)
-      set_texture_type(val.to_i64)
+    def texture_type=(val : Int | Enum)
+      set_texture_type(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeTextureParameter < Godot::VisualShaderNodeParameter
@@ -3306,40 +3739,40 @@ module Godot
       get_texture_type
     end
     # Property `texture_type` setter
-    def texture_type=(val : Int)
-      set_texture_type(val.to_i64)
+    def texture_type=(val : Int | Enum)
+      set_texture_type(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `color_default` getter
     def color_default
       get_color_default
     end
     # Property `color_default` setter
-    def color_default=(val : Int)
-      set_color_default(val.to_i64)
+    def color_default=(val : Int | Enum)
+      set_color_default(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `texture_filter` getter
     def texture_filter
       get_texture_filter
     end
     # Property `texture_filter` setter
-    def texture_filter=(val : Int)
-      set_texture_filter(val.to_i64)
+    def texture_filter=(val : Int | Enum)
+      set_texture_filter(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `texture_repeat` getter
     def texture_repeat
       get_texture_repeat
     end
     # Property `texture_repeat` setter
-    def texture_repeat=(val : Int)
-      set_texture_repeat(val.to_i64)
+    def texture_repeat=(val : Int | Enum)
+      set_texture_repeat(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `texture_source` getter
     def texture_source
       get_texture_source
     end
     # Property `texture_source` setter
-    def texture_source=(val : Int)
-      set_texture_source(val.to_i64)
+    def texture_source=(val : Int | Enum)
+      set_texture_source(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeCubemapParameter < Godot::VisualShaderNodeTextureParameter
@@ -3490,24 +3923,24 @@ module Godot
       get_op_type
     end
     # Property `op_type` setter
-    def op_type=(val : Int)
-      set_op_type(val.to_i64)
+    def op_type=(val : Int | Enum)
+      set_op_type(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `function` getter
     def function
       get_function
     end
     # Property `function` setter
-    def function=(val : Int)
-      set_function(val.to_i64)
+    def function=(val : Int | Enum)
+      set_function(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `precision` getter
     def precision
       get_precision
     end
     # Property `precision` setter
-    def precision=(val : Int)
-      set_precision(val.to_i64)
+    def precision=(val : Int | Enum)
+      set_precision(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeDeterminant < Godot::VisualShaderNode
@@ -3776,8 +4209,8 @@ module Godot
       get_op_type
     end
     # Property `op_type` setter
-    def op_type=(val : Int)
-      set_op_type(val.to_i64)
+    def op_type=(val : Int | Enum)
+      set_op_type(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeFaceForward < Godot::VisualShaderNodeVectorBase
@@ -3868,8 +4301,8 @@ module Godot
       get_function
     end
     # Property `function` setter
-    def function=(val : Int)
-      set_function(val.to_i64)
+    def function=(val : Int | Enum)
+      set_function(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeFloatOp < Godot::VisualShaderNode
@@ -3907,8 +4340,8 @@ module Godot
       get_operator
     end
     # Property `operator` setter
-    def operator=(val : Int)
-      set_operator(val.to_i64)
+    def operator=(val : Int | Enum)
+      set_operator(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeFloatParameter < Godot::VisualShaderNodeParameter
@@ -4012,8 +4445,8 @@ module Godot
       get_hint
     end
     # Property `hint` setter
-    def hint=(val : Int)
-      set_hint(val.to_i64)
+    def hint=(val : Int | Enum)
+      set_hint(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `min` getter
     def min
@@ -4163,8 +4596,8 @@ module Godot
       get_constant
     end
     # Property `constant` setter
-    def constant=(val : Int)
-      set_constant(val.to_i64)
+    def constant=(val : Int | Enum)
+      set_constant(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeIntFunc < Godot::VisualShaderNode
@@ -4196,8 +4629,8 @@ module Godot
       get_function
     end
     # Property `function` setter
-    def function=(val : Int)
-      set_function(val.to_i64)
+    def function=(val : Int | Enum)
+      set_function(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeIntOp < Godot::VisualShaderNode
@@ -4237,8 +4670,8 @@ module Godot
       get_operator
     end
     # Property `operator` setter
-    def operator=(val : Int)
-      set_operator(val.to_i64)
+    def operator=(val : Int | Enum)
+      set_operator(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeIntParameter < Godot::VisualShaderNodeParameter
@@ -4358,32 +4791,32 @@ module Godot
       get_hint
     end
     # Property `hint` setter
-    def hint=(val : Int)
-      set_hint(val.to_i64)
+    def hint=(val : Int | Enum)
+      set_hint(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `min` getter
     def min
       get_min
     end
     # Property `min` setter
-    def min=(val : Int)
-      set_min(val.to_i64)
+    def min=(val : Int | Enum)
+      set_min(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `max` getter
     def max
       get_max
     end
     # Property `max` setter
-    def max=(val : Int)
-      set_max(val.to_i64)
+    def max=(val : Int | Enum)
+      set_max(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `step` getter
     def step
       get_step
     end
     # Property `step` setter
-    def step=(val : Int)
-      set_step(val.to_i64)
+    def step=(val : Int | Enum)
+      set_step(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `enum_names` getter
     def enum_names
@@ -4406,8 +4839,8 @@ module Godot
       get_default_value
     end
     # Property `default_value` setter
-    def default_value=(val : Int)
-      set_default_value(val.to_i64)
+    def default_value=(val : Int | Enum)
+      set_default_value(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeIs < Godot::VisualShaderNode
@@ -4437,8 +4870,8 @@ module Godot
       get_function
     end
     # Property `function` setter
-    def function=(val : Int)
-      set_function(val.to_i64)
+    def function=(val : Int | Enum)
+      set_function(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeLinearSceneDepth < Godot::VisualShaderNode
@@ -4478,8 +4911,8 @@ module Godot
       get_op_type
     end
     # Property `op_type` setter
-    def op_type=(val : Int)
-      set_op_type(val.to_i64)
+    def op_type=(val : Int | Enum)
+      set_op_type(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeMultiplyAdd < Godot::VisualShaderNode
@@ -4511,8 +4944,8 @@ module Godot
       get_op_type
     end
     # Property `op_type` setter
-    def op_type=(val : Int)
-      set_op_type(val.to_i64)
+    def op_type=(val : Int | Enum)
+      set_op_type(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeOuterProduct < Godot::VisualShaderNode
@@ -4581,8 +5014,8 @@ module Godot
       get_mode
     end
     # Property `mode` setter
-    def mode=(val : Int)
-      set_mode(val.to_i64)
+    def mode=(val : Int | Enum)
+      set_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeParticleEmitter < Godot::VisualShaderNode
@@ -4658,8 +5091,8 @@ module Godot
       get_flags
     end
     # Property `flags` setter
-    def flags=(val : Int)
-      set_flags(val.to_i64)
+    def flags=(val : Int | Enum)
+      set_flags(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeParticleMeshEmitter < Godot::VisualShaderNodeParticleEmitter
@@ -4734,8 +5167,8 @@ module Godot
       get_surface_index
     end
     # Property `surface_index` setter
-    def surface_index=(val : Int)
-      set_surface_index(val.to_i64)
+    def surface_index=(val : Int | Enum)
+      set_surface_index(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeParticleMultiplyByAxisAngle < Godot::VisualShaderNode
@@ -4806,8 +5239,8 @@ module Godot
       get_op_type
     end
     # Property `op_type` setter
-    def op_type=(val : Int)
-      set_op_type(val.to_i64)
+    def op_type=(val : Int | Enum)
+      set_op_type(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeParticleRingEmitter < Godot::VisualShaderNodeParticleEmitter
@@ -4862,8 +5295,8 @@ module Godot
       get_op_type
     end
     # Property `op_type` setter
-    def op_type=(val : Int)
-      set_op_type(val.to_i64)
+    def op_type=(val : Int | Enum)
+      set_op_type(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeReroute < Godot::VisualShaderNode
@@ -4922,8 +5355,8 @@ module Godot
       get_source
     end
     # Property `source` setter
-    def source=(val : Int)
-      set_source(val.to_i64)
+    def source=(val : Int | Enum)
+      set_source(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeScreenNormalWorldSpace < Godot::VisualShaderNode
@@ -4968,8 +5401,8 @@ module Godot
       get_op_type
     end
     # Property `op_type` setter
-    def op_type=(val : Int)
-      set_op_type(val.to_i64)
+    def op_type=(val : Int | Enum)
+      set_op_type(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeStep < Godot::VisualShaderNode
@@ -5004,8 +5437,8 @@ module Godot
       get_op_type
     end
     # Property `op_type` setter
-    def op_type=(val : Int)
-      set_op_type(val.to_i64)
+    def op_type=(val : Int | Enum)
+      set_op_type(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeSwitch < Godot::VisualShaderNode
@@ -5041,8 +5474,8 @@ module Godot
       get_op_type
     end
     # Property `op_type` setter
-    def op_type=(val : Int)
-      set_op_type(val.to_i64)
+    def op_type=(val : Int | Enum)
+      set_op_type(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeTexture < Godot::VisualShaderNode
@@ -5110,8 +5543,8 @@ module Godot
       get_source
     end
     # Property `source` setter
-    def source=(val : Int)
-      set_source(val.to_i64)
+    def source=(val : Int | Enum)
+      set_source(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `texture` getter
     def texture
@@ -5126,8 +5559,8 @@ module Godot
       get_texture_type
     end
     # Property `texture_type` setter
-    def texture_type=(val : Int)
-      set_texture_type(val.to_i64)
+    def texture_type=(val : Int | Enum)
+      set_texture_type(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeTexture2DArray < Godot::VisualShaderNodeSample3D
@@ -5275,8 +5708,8 @@ module Godot
       get_function
     end
     # Property `function` setter
-    def function=(val : Int)
-      set_function(val.to_i64)
+    def function=(val : Int | Enum)
+      set_function(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeTransformOp < Godot::VisualShaderNode
@@ -5313,8 +5746,8 @@ module Godot
       get_operator
     end
     # Property `operator` setter
-    def operator=(val : Int)
-      set_operator(val.to_i64)
+    def operator=(val : Int | Enum)
+      set_operator(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeTransformParameter < Godot::VisualShaderNodeParameter
@@ -5401,8 +5834,8 @@ module Godot
       get_operator
     end
     # Property `operator` setter
-    def operator=(val : Int)
-      set_operator(val.to_i64)
+    def operator=(val : Int | Enum)
+      set_operator(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeUIntConstant < Godot::VisualShaderNodeConstant
@@ -5427,8 +5860,8 @@ module Godot
       get_constant
     end
     # Property `constant` setter
-    def constant=(val : Int)
-      set_constant(val.to_i64)
+    def constant=(val : Int | Enum)
+      set_constant(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeUIntFunc < Godot::VisualShaderNode
@@ -5458,8 +5891,8 @@ module Godot
       get_function
     end
     # Property `function` setter
-    def function=(val : Int)
-      set_function(val.to_i64)
+    def function=(val : Int | Enum)
+      set_function(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeUIntOp < Godot::VisualShaderNode
@@ -5499,8 +5932,8 @@ module Godot
       get_operator
     end
     # Property `operator` setter
-    def operator=(val : Int)
-      set_operator(val.to_i64)
+    def operator=(val : Int | Enum)
+      set_operator(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeUIntParameter < Godot::VisualShaderNodeParameter
@@ -5554,8 +5987,8 @@ module Godot
       get_default_value
     end
     # Property `default_value` setter
-    def default_value=(val : Int)
-      set_default_value(val.to_i64)
+    def default_value=(val : Int | Enum)
+      set_default_value(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeUVFunc < Godot::VisualShaderNode
@@ -5585,8 +6018,8 @@ module Godot
       get_function
     end
     # Property `function` setter
-    def function=(val : Int)
-      set_function(val.to_i64)
+    def function=(val : Int | Enum)
+      set_function(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeUVPolarCoord < Godot::VisualShaderNode
@@ -5639,8 +6072,8 @@ module Godot
       get_varying_type
     end
     # Property `varying_type` setter
-    def varying_type=(val : Int)
-      set_varying_type(val.to_i64)
+    def varying_type=(val : Int | Enum)
+      set_varying_type(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeVaryingGetter < Godot::VisualShaderNodeVarying
@@ -5969,8 +6402,8 @@ module Godot
       get_function
     end
     # Property `function` setter
-    def function=(val : Int)
-      set_function(val.to_i64)
+    def function=(val : Int | Enum)
+      set_function(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeVectorLen < Godot::VisualShaderNodeVectorBase
@@ -6015,8 +6448,8 @@ module Godot
       get_operator
     end
     # Property `operator` setter
-    def operator=(val : Int)
-      set_operator(val.to_i64)
+    def operator=(val : Int | Enum)
+      set_operator(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class VisualShaderNodeVectorRefract < Godot::VisualShaderNodeVectorBase
@@ -6112,8 +6545,8 @@ module Godot
       get_subdiv
     end
     # Property `subdiv` setter
-    def subdiv=(val : Int)
-      set_subdiv(val.to_i64)
+    def subdiv=(val : Int | Enum)
+      set_subdiv(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `size` getter
     def size
@@ -6493,8 +6926,8 @@ module Godot
       get_write_mode
     end
     # Property `write_mode` setter
-    def write_mode=(val : Int)
-      set_write_mode(val.to_i64)
+    def write_mode=(val : Int | Enum)
+      set_write_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class WebRTCDataChannelExtension < Godot::WebRTCDataChannel
@@ -6880,16 +7313,16 @@ module Godot
       get_inbound_buffer_size
     end
     # Property `inbound_buffer_size` setter
-    def inbound_buffer_size=(val : Int)
-      set_inbound_buffer_size(val.to_i64)
+    def inbound_buffer_size=(val : Int | Enum)
+      set_inbound_buffer_size(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `outbound_buffer_size` getter
     def outbound_buffer_size
       get_outbound_buffer_size
     end
     # Property `outbound_buffer_size` setter
-    def outbound_buffer_size=(val : Int)
-      set_outbound_buffer_size(val.to_i64)
+    def outbound_buffer_size=(val : Int | Enum)
+      set_outbound_buffer_size(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `handshake_timeout` getter
     def handshake_timeout
@@ -6904,8 +7337,8 @@ module Godot
       get_max_queued_packets
     end
     # Property `max_queued_packets` setter
-    def max_queued_packets=(val : Int)
-      set_max_queued_packets(val.to_i64)
+    def max_queued_packets=(val : Int | Enum)
+      set_max_queued_packets(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class WebSocketPeer < Godot::PacketPeer
@@ -7139,32 +7572,32 @@ module Godot
       get_inbound_buffer_size
     end
     # Property `inbound_buffer_size` setter
-    def inbound_buffer_size=(val : Int)
-      set_inbound_buffer_size(val.to_i64)
+    def inbound_buffer_size=(val : Int | Enum)
+      set_inbound_buffer_size(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `outbound_buffer_size` getter
     def outbound_buffer_size
       get_outbound_buffer_size
     end
     # Property `outbound_buffer_size` setter
-    def outbound_buffer_size=(val : Int)
-      set_outbound_buffer_size(val.to_i64)
+    def outbound_buffer_size=(val : Int | Enum)
+      set_outbound_buffer_size(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `max_queued_packets` getter
     def max_queued_packets
       get_max_queued_packets
     end
     # Property `max_queued_packets` setter
-    def max_queued_packets=(val : Int)
-      set_max_queued_packets(val.to_i64)
+    def max_queued_packets=(val : Int | Enum)
+      set_max_queued_packets(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `heartbeat_interval` getter
     def heartbeat_interval
       get_heartbeat_interval
     end
     # Property `heartbeat_interval` setter
-    def heartbeat_interval=(val : Int)
-      set_heartbeat_interval(val.to_i64)
+    def heartbeat_interval=(val : Int | Enum)
+      set_heartbeat_interval(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class WebXRInterface < Godot::XRInterface
@@ -7257,6 +7690,23 @@ module Godot
       godot_bind(@@mb_get_requested_reference_space_types, "WebXRInterface", "get_requested_reference_space_types", 201670096_i64)
       godot_call_str("get_requested_reference_space_types")
     end
+    @@mb_set_disable_webxr_layers : Void* = Pointer(Void).null
+    def set_disable_webxr_layers(disable : Bool) : Void
+      godot_bind(@@mb_set_disable_webxr_layers, "WebXRInterface", "set_disable_webxr_layers", 2586408642_i64)
+      val_0 = disable
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_disable_webxr_layers, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_disable_webxr_layers : Void* = Pointer(Void).null
+    def get_disable_webxr_layers() : Bool
+      godot_bind(@@mb_get_disable_webxr_layers, "WebXRInterface", "get_disable_webxr_layers", 36873697_i64)
+      godot_ptrcall_bool(@@mb_get_disable_webxr_layers, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `get_disable_webxr_layers`
+    def get_disable_webxr_layers?() : Bool
+      get_disable_webxr_layers()
+    end
     @@mb_is_input_source_active : Void* = Pointer(Void).null
     def is_input_source_active(input_source_id : Int64) : Bool
       godot_bind(@@mb_is_input_source_active, "WebXRInterface", "is_input_source_active", 1116898809_i64)
@@ -7346,6 +7796,17 @@ module Godot
     def requested_reference_space_types=(val)
       set_requested_reference_space_types(val)
     end
+    # Property `disable_webxr_layers` getter
+    def disable_webxr_layers
+      get_disable_webxr_layers
+    end
+    def disable_webxr_layers?
+      disable_webxr_layers
+    end
+    # Property `disable_webxr_layers` setter
+    def disable_webxr_layers=(val)
+      set_disable_webxr_layers(val)
+    end
     # Property `reference_space_type` getter
     def reference_space_type
       get_reference_space_type
@@ -7389,6 +7850,10 @@ module Godot
     ensure
       Bridge.free_string(str_2)
     end
+    # Class-level singleton delegator for `add_task`
+    def self.add_task(action : Pointer(Void), high_priority : Bool = false, description : String = "") : Int64
+      instance.add_task(action, high_priority, description)
+    end
     @@mb_is_task_completed : Void* = Pointer(Void).null
     def is_task_completed(task_id : Int64) : Bool
       godot_bind(@@mb_is_task_completed, "WorkerThreadPool", "is_task_completed", 1116898809_i64)
@@ -7397,13 +7862,25 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_task_completed, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `is_task_completed`
+    def self.is_task_completed(task_id : Int64) : Bool
+      instance.is_task_completed(task_id)
+    end
     # Predicate alias for `is_task_completed`
     def is_task_completed?(task_id : Int64) : Bool
       is_task_completed(task_id)
     end
+    # Class-level singleton predicate delegator for `is_task_completed?`
+    def self.is_task_completed?(task_id : Int64) : Bool
+      instance.is_task_completed?(task_id)
+    end
     # Predicate alias for `is_task_completed`
     def task_completed?(task_id : Int64) : Bool
       is_task_completed(task_id)
+    end
+    # Class-level singleton predicate delegator for `task_completed?`
+    def self.task_completed?(task_id : Int64) : Bool
+      instance.task_completed?(task_id)
     end
     @@mb_wait_for_task_completion : Void* = Pointer(Void).null
     def wait_for_task_completion(task_id : Int64) : Godot::Error
@@ -7413,10 +7890,18 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_enum(@@mb_wait_for_task_completion, @pointer, args.to_unsafe.as(Void**), Godot::Error)
     end
+    # Class-level singleton delegator for `wait_for_task_completion`
+    def self.wait_for_task_completion(task_id : Int64) : Godot::Error
+      instance.wait_for_task_completion(task_id)
+    end
     @@mb_get_caller_task_id : Void* = Pointer(Void).null
     def get_caller_task_id() : Int64
       godot_bind(@@mb_get_caller_task_id, "WorkerThreadPool", "get_caller_task_id", 3905245786_i64)
       godot_ptrcall_int(@@mb_get_caller_task_id, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `get_caller_task_id`
+    def self.get_caller_task_id() : Int64
+      instance.get_caller_task_id()
     end
     @@mb_add_group_task : Void* = Pointer(Void).null
     def add_group_task(action : Pointer(Void), elements : Int64, tasks_needed : Int64 = -1_i64, high_priority : Bool = false, description : String = "") : Int64
@@ -7436,6 +7921,10 @@ module Godot
     ensure
       Bridge.free_string(str_4)
     end
+    # Class-level singleton delegator for `add_group_task`
+    def self.add_group_task(action : Pointer(Void), elements : Int64, tasks_needed : Int64 = -1_i64, high_priority : Bool = false, description : String = "") : Int64
+      instance.add_group_task(action, elements, tasks_needed, high_priority, description)
+    end
     @@mb_is_group_task_completed : Void* = Pointer(Void).null
     def is_group_task_completed(group_id : Int64) : Bool
       godot_bind(@@mb_is_group_task_completed, "WorkerThreadPool", "is_group_task_completed", 1116898809_i64)
@@ -7444,13 +7933,25 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_is_group_task_completed, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `is_group_task_completed`
+    def self.is_group_task_completed(group_id : Int64) : Bool
+      instance.is_group_task_completed(group_id)
+    end
     # Predicate alias for `is_group_task_completed`
     def is_group_task_completed?(group_id : Int64) : Bool
       is_group_task_completed(group_id)
     end
+    # Class-level singleton predicate delegator for `is_group_task_completed?`
+    def self.is_group_task_completed?(group_id : Int64) : Bool
+      instance.is_group_task_completed?(group_id)
+    end
     # Predicate alias for `is_group_task_completed`
     def group_task_completed?(group_id : Int64) : Bool
       is_group_task_completed(group_id)
+    end
+    # Class-level singleton predicate delegator for `group_task_completed?`
+    def self.group_task_completed?(group_id : Int64) : Bool
+      instance.group_task_completed?(group_id)
     end
     @@mb_get_group_processed_element_count : Void* = Pointer(Void).null
     def get_group_processed_element_count(group_id : Int64) : Int64
@@ -7460,6 +7961,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_group_processed_element_count, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `get_group_processed_element_count`
+    def self.get_group_processed_element_count(group_id : Int64) : Int64
+      instance.get_group_processed_element_count(group_id)
+    end
     @@mb_wait_for_group_task_completion : Void* = Pointer(Void).null
     def wait_for_group_task_completion(group_id : Int64) : Void
       godot_bind(@@mb_wait_for_group_task_completion, "WorkerThreadPool", "wait_for_group_task_completion", 1286410249_i64)
@@ -7468,10 +7973,18 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_wait_for_group_task_completion, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `wait_for_group_task_completion`
+    def self.wait_for_group_task_completion(group_id : Int64) : Void
+      instance.wait_for_group_task_completion(group_id)
+    end
     @@mb_get_caller_group_id : Void* = Pointer(Void).null
     def get_caller_group_id() : Int64
       godot_bind(@@mb_get_caller_group_id, "WorkerThreadPool", "get_caller_group_id", 3905245786_i64)
       godot_ptrcall_int(@@mb_get_caller_group_id, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `get_caller_group_id`
+    def self.get_caller_group_id() : Int64
+      instance.get_caller_group_id()
     end
   end
   class World2D < Godot::Resource
@@ -8147,16 +8660,16 @@ module Godot
       get_body_update
     end
     # Property `body_update` setter
-    def body_update=(val : Int)
-      set_body_update(val.to_i64)
+    def body_update=(val : Int | Enum)
+      set_body_update(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `bone_update` getter
     def bone_update
       get_bone_update
     end
     # Property `bone_update` setter
-    def bone_update=(val : Int)
-      set_bone_update(val.to_i64)
+    def bone_update=(val : Int | Enum)
+      set_bone_update(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class XRBodyTracker < Godot::XRPositionalTracker
@@ -8346,8 +8859,8 @@ module Godot
       get_body_flags
     end
     # Property `body_flags` setter
-    def body_flags=(val : Int)
-      set_body_flags(val.to_i64)
+    def body_flags=(val : Int | Enum)
+      set_body_flags(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class XRCamera3D < Godot::Camera3D
@@ -8743,8 +9256,8 @@ module Godot
       get_bone_update
     end
     # Property `bone_update` setter
-    def bone_update=(val : Int)
-      set_bone_update(val.to_i64)
+    def bone_update=(val : Int | Enum)
+      set_bone_update(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class XRHandTracker < Godot::XRPositionalTracker
@@ -8931,8 +9444,8 @@ module Godot
       get_hand_tracking_source
     end
     # Property `hand_tracking_source` setter
-    def hand_tracking_source=(val : Int)
-      set_hand_tracking_source(val.to_i64)
+    def hand_tracking_source=(val : Int | Enum)
+      set_hand_tracking_source(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class XRInterfaceExtension < Godot::XRInterface
@@ -9192,8 +9705,8 @@ module Godot
       get_tracking_confidence
     end
     # Property `tracking_confidence` setter
-    def tracking_confidence=(val : Int)
-      set_tracking_confidence(val.to_i64)
+    def tracking_confidence=(val : Int | Enum)
+      set_tracking_confidence(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class XRServer < Godot::Object
@@ -9223,6 +9736,10 @@ module Godot
       godot_bind(@@mb_get_world_scale, "XRServer", "get_world_scale", 1740695150_i64)
       godot_ptrcall_float(@@mb_get_world_scale, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Class-level singleton delegator for `get_world_scale`
+    def self.get_world_scale() : Float64
+      instance.get_world_scale()
+    end
     @@mb_set_world_scale : Void* = Pointer(Void).null
     def set_world_scale(scale : Float64) : Void
       godot_bind(@@mb_set_world_scale, "XRServer", "set_world_scale", 373806689_i64)
@@ -9231,10 +9748,18 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_world_scale, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `set_world_scale`
+    def self.set_world_scale(scale : Float64) : Void
+      instance.set_world_scale(scale)
+    end
     @@mb_get_world_origin : Void* = Pointer(Void).null
     def get_world_origin() : Transform3D
       godot_bind(@@mb_get_world_origin, "XRServer", "get_world_origin", 3229777777_i64)
       godot_ptrcall_val(@@mb_get_world_origin, @pointer, Pointer(Pointer(Void)).null, Transform3D)
+    end
+    # Class-level singleton delegator for `get_world_origin`
+    def self.get_world_origin() : Transform3D
+      instance.get_world_origin()
     end
     @@mb_set_world_origin : Void* = Pointer(Void).null
     def set_world_origin(world_origin : Transform3D) : Void
@@ -9244,15 +9769,27 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_world_origin, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `set_world_origin`
+    def self.set_world_origin(world_origin : Transform3D) : Void
+      instance.set_world_origin(world_origin)
+    end
     @@mb_get_reference_frame : Void* = Pointer(Void).null
     def get_reference_frame() : Transform3D
       godot_bind(@@mb_get_reference_frame, "XRServer", "get_reference_frame", 3229777777_i64)
       godot_ptrcall_val(@@mb_get_reference_frame, @pointer, Pointer(Pointer(Void)).null, Transform3D)
     end
+    # Class-level singleton delegator for `get_reference_frame`
+    def self.get_reference_frame() : Transform3D
+      instance.get_reference_frame()
+    end
     @@mb_clear_reference_frame : Void* = Pointer(Void).null
     def clear_reference_frame() : Void
       godot_bind(@@mb_clear_reference_frame, "XRServer", "clear_reference_frame", 3218959716_i64)
       godot_ptrcall_void(@@mb_clear_reference_frame, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `clear_reference_frame`
+    def self.clear_reference_frame() : Void
+      instance.clear_reference_frame()
     end
     @@mb_center_on_hmd : Void* = Pointer(Void).null
     def center_on_hmd(rotation_mode : RotationMode | Int, keep_height : Bool) : Void
@@ -9264,10 +9801,18 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_center_on_hmd, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `center_on_hmd`
+    def self.center_on_hmd(rotation_mode : RotationMode | Int, keep_height : Bool) : Void
+      instance.center_on_hmd(rotation_mode, keep_height)
+    end
     @@mb_get_hmd_transform : Void* = Pointer(Void).null
     def get_hmd_transform() : Transform3D
       godot_bind(@@mb_get_hmd_transform, "XRServer", "get_hmd_transform", 4183770049_i64)
       godot_ptrcall_val(@@mb_get_hmd_transform, @pointer, Pointer(Pointer(Void)).null, Transform3D)
+    end
+    # Class-level singleton delegator for `get_hmd_transform`
+    def self.get_hmd_transform() : Transform3D
+      instance.get_hmd_transform()
     end
     @@mb_set_camera_locked_to_origin : Void* = Pointer(Void).null
     def set_camera_locked_to_origin(enabled : Bool) : Void
@@ -9277,18 +9822,34 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_camera_locked_to_origin, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `set_camera_locked_to_origin`
+    def self.set_camera_locked_to_origin(enabled : Bool) : Void
+      instance.set_camera_locked_to_origin(enabled)
+    end
     @@mb_is_camera_locked_to_origin : Void* = Pointer(Void).null
     def is_camera_locked_to_origin() : Bool
       godot_bind(@@mb_is_camera_locked_to_origin, "XRServer", "is_camera_locked_to_origin", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_camera_locked_to_origin, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Class-level singleton delegator for `is_camera_locked_to_origin`
+    def self.is_camera_locked_to_origin() : Bool
+      instance.is_camera_locked_to_origin()
+    end
     # Predicate alias for `is_camera_locked_to_origin`
     def is_camera_locked_to_origin?() : Bool
       is_camera_locked_to_origin()
     end
+    # Class-level singleton predicate delegator for `is_camera_locked_to_origin?`
+    def self.is_camera_locked_to_origin?() : Bool
+      instance.is_camera_locked_to_origin?()
+    end
     # Predicate alias for `is_camera_locked_to_origin`
     def camera_locked_to_origin?() : Bool
       is_camera_locked_to_origin()
+    end
+    # Class-level singleton predicate delegator for `camera_locked_to_origin?`
+    def self.camera_locked_to_origin?() : Bool
+      instance.camera_locked_to_origin?()
     end
     @@mb_add_interface : Void* = Pointer(Void).null
     def add_interface(interface : XRInterface) : Void
@@ -9298,10 +9859,18 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_add_interface, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `add_interface`
+    def self.add_interface(interface : XRInterface) : Void
+      instance.add_interface(interface)
+    end
     @@mb_get_interface_count : Void* = Pointer(Void).null
     def get_interface_count() : Int64
       godot_bind(@@mb_get_interface_count, "XRServer", "get_interface_count", 3905245786_i64)
       godot_ptrcall_int(@@mb_get_interface_count, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `get_interface_count`
+    def self.get_interface_count() : Int64
+      instance.get_interface_count()
     end
     @@mb_remove_interface : Void* = Pointer(Void).null
     def remove_interface(interface : XRInterface) : Void
@@ -9311,6 +9880,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_remove_interface, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `remove_interface`
+    def self.remove_interface(interface : XRInterface) : Void
+      instance.remove_interface(interface)
+    end
     @@mb_get_interface : Void* = Pointer(Void).null
     def get_interface(idx : Int64) : XRInterface
       godot_bind(@@mb_get_interface, "XRServer", "get_interface", 4237347919_i64)
@@ -9319,12 +9892,20 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_get_interface, @pointer, args.to_unsafe.as(Void**), XRInterface)
     end
+    # Class-level singleton delegator for `get_interface`
+    def self.get_interface(idx : Int64) : XRInterface
+      instance.get_interface(idx)
+    end
     @@mb_get_interfaces : Void* = Pointer(Void).null
     def get_interfaces() : Pointer(Void)
       godot_bind(@@mb_get_interfaces, "XRServer", "get_interfaces", 3995934104_i64)
       ret_ptr = Pointer(Void).null
       godot_ptrcall(@@mb_get_interfaces, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
       ret_ptr
+    end
+    # Class-level singleton delegator for `get_interfaces`
+    def self.get_interfaces() : Pointer(Void)
+      instance.get_interfaces()
     end
     @@mb_find_interface : Void* = Pointer(Void).null
     def find_interface(name : String) : XRInterface
@@ -9336,6 +9917,10 @@ module Godot
     ensure
       Bridge.free_string(str_0)
     end
+    # Class-level singleton delegator for `find_interface`
+    def self.find_interface(name : String) : XRInterface
+      instance.find_interface(name)
+    end
     @@mb_add_tracker : Void* = Pointer(Void).null
     def add_tracker(tracker : XRTracker) : Void
       godot_bind(@@mb_add_tracker, "XRServer", "add_tracker", 684804553_i64)
@@ -9344,6 +9929,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_add_tracker, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `add_tracker`
+    def self.add_tracker(tracker : XRTracker) : Void
+      instance.add_tracker(tracker)
+    end
     @@mb_remove_tracker : Void* = Pointer(Void).null
     def remove_tracker(tracker : XRTracker) : Void
       godot_bind(@@mb_remove_tracker, "XRServer", "remove_tracker", 684804553_i64)
@@ -9351,6 +9940,10 @@ module Godot
       arg_0 = pointerof(arg_ptr_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_remove_tracker, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `remove_tracker`
+    def self.remove_tracker(tracker : XRTracker) : Void
+      instance.remove_tracker(tracker)
     end
     @@mb_get_trackers : Void* = Pointer(Void).null
     def get_trackers(tracker_types : Int64) : Pointer(Void)
@@ -9362,6 +9955,10 @@ module Godot
       godot_ptrcall(@@mb_get_trackers, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
       ret_ptr
     end
+    # Class-level singleton delegator for `get_trackers`
+    def self.get_trackers(tracker_types : Int64) : Pointer(Void)
+      instance.get_trackers(tracker_types)
+    end
     @@mb_get_tracker : Void* = Pointer(Void).null
     def get_tracker(tracker_name : String) : XRTracker
       godot_bind(@@mb_get_tracker, "XRServer", "get_tracker", 147382240_i64)
@@ -9371,6 +9968,10 @@ module Godot
       godot_ptrcall_obj(@@mb_get_tracker, @pointer, args.to_unsafe.as(Void**), XRTracker)
     ensure
       Bridge.free_string_name(sn_0)
+    end
+    # Class-level singleton delegator for `get_tracker`
+    def self.get_tracker(tracker_name : String) : XRTracker
+      instance.get_tracker(tracker_name)
     end
     @@mb_get_camera_projections : Void* = Pointer(Void).null
     def get_camera_projections(tracker_name : String, aspect : Float64, near : Float64, far : Float64) : Pointer(Void)
@@ -9390,6 +9991,10 @@ module Godot
     ensure
       Bridge.free_string_name(sn_0)
     end
+    # Class-level singleton delegator for `get_camera_projections`
+    def self.get_camera_projections(tracker_name : String, aspect : Float64, near : Float64, far : Float64) : Pointer(Void)
+      instance.get_camera_projections(tracker_name, aspect, near, far)
+    end
     @@mb_get_camera_offsets : Void* = Pointer(Void).null
     def get_camera_offsets(tracker_name : String) : Pointer(Void)
       godot_bind(@@mb_get_camera_offsets, "XRServer", "get_camera_offsets", 689397652_i64)
@@ -9402,10 +10007,18 @@ module Godot
     ensure
       Bridge.free_string_name(sn_0)
     end
+    # Class-level singleton delegator for `get_camera_offsets`
+    def self.get_camera_offsets(tracker_name : String) : Pointer(Void)
+      instance.get_camera_offsets(tracker_name)
+    end
     @@mb_get_primary_interface : Void* = Pointer(Void).null
     def get_primary_interface() : XRInterface
       godot_bind(@@mb_get_primary_interface, "XRServer", "get_primary_interface", 2143545064_i64)
       godot_ptrcall_obj(@@mb_get_primary_interface, @pointer, Pointer(Pointer(Void)).null, XRInterface)
+    end
+    # Class-level singleton delegator for `get_primary_interface`
+    def self.get_primary_interface() : XRInterface
+      instance.get_primary_interface()
     end
     @@mb_set_primary_interface : Void* = Pointer(Void).null
     def set_primary_interface(interface : XRInterface) : Void
@@ -9415,37 +10028,65 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_primary_interface, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `set_primary_interface`
+    def self.set_primary_interface(interface : XRInterface) : Void
+      instance.set_primary_interface(interface)
+    end
     # Property `world_scale` getter
     def world_scale
       get_world_scale
+    end
+    def self.world_scale
+      instance.world_scale
     end
     # Property `world_scale` setter
     def world_scale=(val : Number)
       set_world_scale(val.to_f64)
     end
+    def self.world_scale=(val)
+      instance.world_scale = val
+    end
     # Property `world_origin` getter
     def world_origin
       get_world_origin
+    end
+    def self.world_origin
+      instance.world_origin
     end
     # Property `world_origin` setter
     def world_origin=(val)
       set_world_origin(val)
     end
+    def self.world_origin=(val)
+      instance.world_origin = val
+    end
     # Property `camera_locked_to_origin` getter
     def camera_locked_to_origin
       is_camera_locked_to_origin
+    end
+    def self.camera_locked_to_origin
+      instance.camera_locked_to_origin
     end
     # Property `camera_locked_to_origin` setter
     def camera_locked_to_origin=(val)
       set_camera_locked_to_origin(val)
     end
+    def self.camera_locked_to_origin=(val)
+      instance.camera_locked_to_origin = val
+    end
     # Property `primary_interface` getter
     def primary_interface
       get_primary_interface
     end
+    def self.primary_interface
+      instance.primary_interface
+    end
     # Property `primary_interface` setter
     def primary_interface=(val)
       set_primary_interface(val)
+    end
+    def self.primary_interface=(val)
+      instance.primary_interface = val
     end
     godot_signal reference_frame_changed
     godot_signal interface_added, String
@@ -9624,8 +10265,8 @@ module Godot
       get_compression_level
     end
     # Property `compression_level` setter
-    def compression_level=(val : Int)
-      set_compression_level(val.to_i64)
+    def compression_level=(val : Int | Enum)
+      set_compression_level(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class ZIPReader < Godot::RefCounted

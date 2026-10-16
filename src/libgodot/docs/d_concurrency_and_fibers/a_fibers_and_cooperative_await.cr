@@ -38,6 +38,11 @@ module Lapis
       #       <td><code>.topic_02_the_sleep_deadlock_hazard</code></td>
       #       <td>Why sleep hangs in fibers and how to await timers safely.</td>
       #     </tr>
+      #     <tr>
+      #       <td><strong>AwaitStatus, Bang (!), and Predicate (?) Await Paradigms</strong></td>
+      #       <td><code>.topic_03_await_status_and_predicates</code></td>
+      #       <td>Handling timeouts cleanly using AwaitStatus, exception-raising await!, and nilable/boolean await?.</td>
+      #     </tr>
       #   </tbody>
       # </table>
       #
@@ -93,6 +98,69 @@ module Lapis
         # ```
         #
         def self.topic_02_the_sleep_deadlock_hazard : Nil; end
+
+        # **AwaitStatus, Bang (!), and Predicate (?) Await Paradigms**: Handling timeouts cleanly using AwaitStatus, exception-raising await!, and nilable/boolean await?.
+        #
+        # LibGodot provides three complementary await idioms to distinguish between successful signal emissions and timeouts without ambiguous empty return values:
+        #
+        # <table>
+        #   <thead>
+        #     <tr>
+        #       <th>Paradigm</th>
+        #       <th>On Success</th>
+        #       <th>On Timeout</th>
+        #       <th>Primary Use Case</th>
+        #     </tr>
+        #   </thead>
+        #   <tbody>
+        #     <tr>
+        #       <td><code>await(...)</code></td>
+        #       <td><code>AwaitStatus(T).completed(val)</code></td>
+        #       <td><code>AwaitStatus(T).timed_out</code></td>
+        #       <td>Inspection via <code>status.completed?</code> or <code>status.timed_out?</code> without raising exceptions</td>
+        #     </tr>
+        #     <tr>
+        #       <td><code>await!(...)</code></td>
+        #       <td>Unwrapped <code>T</code> directly</td>
+        #       <td>Raises <code>Godot::TimeoutError</code></td>
+        #       <td>Fail-fast operations, strict handshakes, and turn-based RPC sequences</td>
+        #     </tr>
+        #     <tr>
+        #       <td><code>await?(...)</code></td>
+        #       <td><code>val</code> (or <code>true</code> for 0-arg/timers)</td>
+        #       <td><code>nil</code> (or <code>false</code> for 0-arg/timers)</td>
+        #       <td>Quick-time events (QTEs), guard checks, and non-raising optional reactions</td>
+        #     </tr>
+        #   </tbody>
+        # </table>
+        #
+        # #### 1. AwaitStatus Inspection (`await`):
+        # ```crystal
+        # status = await(boss.phase_changed, timeout_sec: 5.0)
+        # if status.completed?
+        #   Godot.print("Boss entered phase: #{status.value!}")
+        # else
+        #   Godot.print("Phase change timed out!")
+        # end
+        # ```
+        #
+        # #### 2. Fail-Fast Unwrapping (`await!`):
+        # ```crystal
+        # # Returns unwrapped tuple directly or raises Godot::TimeoutError
+        # score, bonus = node.level_scored.await!(timeout_sec: 10.0)
+        # ```
+        #
+        # #### 3. Nilable Predicates (`await?`):
+        # ```crystal
+        # # Returns true if parried in time, false if timed out
+        # if await?(player.parry_pressed, timeout_sec: 0.25)
+        #   enemy.stagger!
+        # else
+        #   player.take_damage(50)
+        # end
+        # ```
+        #
+        def self.topic_03_await_status_and_predicates : Nil; end
       end
     end
   end

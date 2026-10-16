@@ -33,3 +33,12 @@ sections:
       - `gd_variant_get_ptr_utility_function`
 
       When `crystal_godot_init(&g_bridge_api)` is called, Crystal stores these function pointers in `Godot::Bridge`, bypassing all C++ ABI name mangling and calling engine routines at raw C speed!
+
+  - id: "topic_02_zero_copy_image_buffers"
+    title: "Zero-Copy Video & Image Buffer Blitting"
+    summary: "High-performance direct memory transfer between raw pointers and Godot Image."
+    content: |
+      To enable 30-60 FPS video decoders (LibVLC in Emerald), camera feeds, and procedural textures without memory allocation bottlenecks, `crystal_bridge` provides dedicated fast-path buffer operations:
+      - `bridge_image_update_buffer`: Stack-allocates a 16-byte `PackedByteArray`, resizes it, copies pixels directly via `gd_packed_byte_array_operator_index`, and updates `Image::set_data` in a single native step.
+      - `bridge_image_copy_to_buffer`: Reads back native `Image::get_data` memory directly into a destination buffer without allocating intermediate objects.
+      - `packed_byte_array_operator_index`: Direct pointer indexing into native Godot byte arrays.

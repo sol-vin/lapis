@@ -288,13 +288,12 @@ HELP
 
               methods.each do |method_fn|
                 offset_hex = "0x#{method_fn.offset.to_s(16)}"
-                r2.cmd("af @ #{offset_hex}") rescue nil
                 code = if mode_asm
-                         r2.cmd("pdf @ #{offset_hex}")
+                         r2.disasm.function_text(offset_hex)
                        elsif mode_side_by_side
-                         r2.cmd("pdca @ #{offset_hex}")
+                         r2.disasm.side_by_side(offset_hex)
                        else
-                         r2.cmd("pdc @ #{offset_hex}")
+                         r2.disasm.decompile(offset_hex)
                        end
                 output_buf.puts code
                 output_buf.puts "\n"
@@ -334,7 +333,7 @@ HELP
                              r2.cmd("cl @ #{offset_hex}").strip rescue ""
                            end
 
-              source_disasm = r2.cmd("pdls 20 @ #{offset_hex}").strip rescue ""
+              source_disasm = r2.disasm.source_interleaved(offset_hex, 20)
               if source_disasm.empty? || source_disasm.includes?("Cannot")
                 source_disasm = r2.cmd("pdsf @ #{offset_hex}").strip rescue ""
               end
@@ -394,8 +393,8 @@ HELP
                 puts rendered
               end
             elsif mode_side_by_side
-              asm_code = r2.cmd("pdf @ #{offset_hex}").strip
-              c_code = r2.cmd("pdc @ #{offset_hex}").strip
+              asm_code = r2.disasm.function_text(offset_hex).strip
+              c_code = r2.disasm.decompile(offset_hex, fallback_asm: false).strip
               if c_code.empty? || c_code.includes?("Cannot")
                 c_code = "// Pseudocode decompilation unavailable for this symbol"
               end
@@ -422,9 +421,12 @@ HELP
               end
             else
               decompiled = if mode_asm
-                             r2.cmd("pdf @ #{offset_hex}")
+                             r2.disasm.function_text(offset_hex)
+                           elsif target_str.includes?('#')
+                             parts = target_str.split('#', 2)
+                             r2.crystal.decompile_method(parts[0], parts[1])
                            else
-                             r2.cmd("pdc @ #{offset_hex}")
+                             r2.disasm.decompile(offset_hex)
                            end
 
               if decompiled.empty? || decompiled.includes?("Cannot find function")

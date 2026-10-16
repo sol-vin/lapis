@@ -1,5 +1,773 @@
 # Generated classes part 5 (in topological order)
 module Godot
+  class RayCast2D < Godot::Node2D
+    def initialize(pointer : Void* = Pointer(Void).null)
+      super(pointer)
+    end
+    @@mb_set_enabled : Void* = Pointer(Void).null
+    def set_enabled(enabled : Bool) : Void
+      godot_bind(@@mb_set_enabled, "RayCast2D", "set_enabled", 2586408642_i64)
+      val_0 = enabled
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_enabled, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_is_enabled : Void* = Pointer(Void).null
+    def is_enabled() : Bool
+      godot_bind(@@mb_is_enabled, "RayCast2D", "is_enabled", 36873697_i64)
+      godot_ptrcall_bool(@@mb_is_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_enabled`
+    def is_enabled?() : Bool
+      is_enabled()
+    end
+    # Predicate alias for `is_enabled`
+    def enabled?() : Bool
+      is_enabled()
+    end
+    @@mb_set_target_position : Void* = Pointer(Void).null
+    def set_target_position(local_point : Vector2) : Void
+      godot_bind(@@mb_set_target_position, "RayCast2D", "set_target_position", 743155724_i64)
+      val_0 = local_point
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_target_position, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_target_position : Void* = Pointer(Void).null
+    def get_target_position() : Vector2
+      godot_bind(@@mb_get_target_position, "RayCast2D", "get_target_position", 3341600327_i64)
+      godot_ptrcall_val(@@mb_get_target_position, @pointer, Pointer(Pointer(Void)).null, Vector2)
+    end
+    @@mb_is_colliding : Void* = Pointer(Void).null
+    def is_colliding() : Bool
+      godot_bind(@@mb_is_colliding, "RayCast2D", "is_colliding", 36873697_i64)
+      godot_ptrcall_bool(@@mb_is_colliding, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_colliding`
+    def is_colliding?() : Bool
+      is_colliding()
+    end
+    # Predicate alias for `is_colliding`
+    def colliding?() : Bool
+      is_colliding()
+    end
+    # Predicate alias for `is_colliding`
+    def has_collider?() : Bool
+      is_colliding()
+    end
+    @@mb_force_raycast_update : Void* = Pointer(Void).null
+    def force_raycast_update() : Void
+      godot_bind(@@mb_force_raycast_update, "RayCast2D", "force_raycast_update", 3218959716_i64)
+      godot_ptrcall_void(@@mb_force_raycast_update, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_get_collider : Void* = Pointer(Void).null
+    def get_collider() : Godot::Object
+      godot_bind(@@mb_get_collider, "RayCast2D", "get_collider", 1981248198_i64)
+      godot_ptrcall_obj(@@mb_get_collider, @pointer, Pointer(Pointer(Void)).null, Godot::Object)
+    end
+    @@mb_get_collider_rid : Void* = Pointer(Void).null
+    def get_collider_rid() : Int64
+      godot_bind(@@mb_get_collider_rid, "RayCast2D", "get_collider_rid", 2944877500_i64)
+      godot_ptrcall_int(@@mb_get_collider_rid, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_get_collider_shape : Void* = Pointer(Void).null
+    def get_collider_shape() : Int64
+      godot_bind(@@mb_get_collider_shape, "RayCast2D", "get_collider_shape", 3905245786_i64)
+      godot_ptrcall_int(@@mb_get_collider_shape, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_get_collision_point : Void* = Pointer(Void).null
+    def get_collision_point() : Vector2
+      godot_bind(@@mb_get_collision_point, "RayCast2D", "get_collision_point", 3341600327_i64)
+      godot_ptrcall_val(@@mb_get_collision_point, @pointer, Pointer(Pointer(Void)).null, Vector2)
+    end
+    @@mb_get_collision_normal : Void* = Pointer(Void).null
+    def get_collision_normal() : Vector2
+      godot_bind(@@mb_get_collision_normal, "RayCast2D", "get_collision_normal", 3341600327_i64)
+      godot_ptrcall_val(@@mb_get_collision_normal, @pointer, Pointer(Pointer(Void)).null, Vector2)
+    end
+    @@mb_add_exception_rid : Void* = Pointer(Void).null
+    def add_exception_rid(rid : Int64) : Void
+      godot_bind(@@mb_add_exception_rid, "RayCast2D", "add_exception_rid", 2722037293_i64)
+      val_0 = rid
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_add_exception_rid, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_add_exception : Void* = Pointer(Void).null
+    def add_exception(node : CollisionObject2D) : Void
+      godot_bind(@@mb_add_exception, "RayCast2D", "add_exception", 3090941106_i64)
+      arg_ptr_0 = node ? node.pointer : Pointer(Void).null
+      arg_0 = pointerof(arg_ptr_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_add_exception, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_remove_exception_rid : Void* = Pointer(Void).null
+    def remove_exception_rid(rid : Int64) : Void
+      godot_bind(@@mb_remove_exception_rid, "RayCast2D", "remove_exception_rid", 2722037293_i64)
+      val_0 = rid
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_remove_exception_rid, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_remove_exception : Void* = Pointer(Void).null
+    def remove_exception(node : CollisionObject2D) : Void
+      godot_bind(@@mb_remove_exception, "RayCast2D", "remove_exception", 3090941106_i64)
+      arg_ptr_0 = node ? node.pointer : Pointer(Void).null
+      arg_0 = pointerof(arg_ptr_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_remove_exception, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_clear_exceptions : Void* = Pointer(Void).null
+    def clear_exceptions() : Void
+      godot_bind(@@mb_clear_exceptions, "RayCast2D", "clear_exceptions", 3218959716_i64)
+      godot_ptrcall_void(@@mb_clear_exceptions, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_set_collision_mask : Void* = Pointer(Void).null
+    def set_collision_mask(mask : Int64) : Void
+      godot_bind(@@mb_set_collision_mask, "RayCast2D", "set_collision_mask", 1286410249_i64)
+      val_0 = mask.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_collision_mask, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_collision_mask : Void* = Pointer(Void).null
+    def get_collision_mask() : Int64
+      godot_bind(@@mb_get_collision_mask, "RayCast2D", "get_collision_mask", 3905245786_i64)
+      godot_ptrcall_int(@@mb_get_collision_mask, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_set_collision_mask_value : Void* = Pointer(Void).null
+    def set_collision_mask_value(layer_number : Int64, value : Bool) : Void
+      godot_bind(@@mb_set_collision_mask_value, "RayCast2D", "set_collision_mask_value", 300928843_i64)
+      val_0 = layer_number.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      val_1 = value
+      arg_1 = pointerof(val_1).as(Void*)
+      args = StaticArray[arg_0, arg_1]
+      godot_ptrcall_void(@@mb_set_collision_mask_value, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_collision_mask_value : Void* = Pointer(Void).null
+    def get_collision_mask_value(layer_number : Int64) : Bool
+      godot_bind(@@mb_get_collision_mask_value, "RayCast2D", "get_collision_mask_value", 1116898809_i64)
+      val_0 = layer_number.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_bool(@@mb_get_collision_mask_value, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `get_collision_mask_value`
+    def get_collision_mask_value?(layer_number : Int64) : Bool
+      get_collision_mask_value(layer_number)
+    end
+    @@mb_set_exclude_parent_body : Void* = Pointer(Void).null
+    def set_exclude_parent_body(mask : Bool) : Void
+      godot_bind(@@mb_set_exclude_parent_body, "RayCast2D", "set_exclude_parent_body", 2586408642_i64)
+      val_0 = mask
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_exclude_parent_body, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_exclude_parent_body : Void* = Pointer(Void).null
+    def get_exclude_parent_body() : Bool
+      godot_bind(@@mb_get_exclude_parent_body, "RayCast2D", "get_exclude_parent_body", 36873697_i64)
+      godot_ptrcall_bool(@@mb_get_exclude_parent_body, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `get_exclude_parent_body`
+    def get_exclude_parent_body?() : Bool
+      get_exclude_parent_body()
+    end
+    @@mb_set_collide_with_areas : Void* = Pointer(Void).null
+    def set_collide_with_areas(enable : Bool) : Void
+      godot_bind(@@mb_set_collide_with_areas, "RayCast2D", "set_collide_with_areas", 2586408642_i64)
+      val_0 = enable
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_collide_with_areas, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_is_collide_with_areas_enabled : Void* = Pointer(Void).null
+    def is_collide_with_areas_enabled() : Bool
+      godot_bind(@@mb_is_collide_with_areas_enabled, "RayCast2D", "is_collide_with_areas_enabled", 36873697_i64)
+      godot_ptrcall_bool(@@mb_is_collide_with_areas_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_collide_with_areas_enabled`
+    def is_collide_with_areas_enabled?() : Bool
+      is_collide_with_areas_enabled()
+    end
+    # Predicate alias for `is_collide_with_areas_enabled`
+    def collide_with_areas_enabled?() : Bool
+      is_collide_with_areas_enabled()
+    end
+    @@mb_set_collide_with_bodies : Void* = Pointer(Void).null
+    def set_collide_with_bodies(enable : Bool) : Void
+      godot_bind(@@mb_set_collide_with_bodies, "RayCast2D", "set_collide_with_bodies", 2586408642_i64)
+      val_0 = enable
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_collide_with_bodies, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_is_collide_with_bodies_enabled : Void* = Pointer(Void).null
+    def is_collide_with_bodies_enabled() : Bool
+      godot_bind(@@mb_is_collide_with_bodies_enabled, "RayCast2D", "is_collide_with_bodies_enabled", 36873697_i64)
+      godot_ptrcall_bool(@@mb_is_collide_with_bodies_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_collide_with_bodies_enabled`
+    def is_collide_with_bodies_enabled?() : Bool
+      is_collide_with_bodies_enabled()
+    end
+    # Predicate alias for `is_collide_with_bodies_enabled`
+    def collide_with_bodies_enabled?() : Bool
+      is_collide_with_bodies_enabled()
+    end
+    @@mb_set_hit_from_inside : Void* = Pointer(Void).null
+    def set_hit_from_inside(enable : Bool) : Void
+      godot_bind(@@mb_set_hit_from_inside, "RayCast2D", "set_hit_from_inside", 2586408642_i64)
+      val_0 = enable
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_hit_from_inside, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_is_hit_from_inside_enabled : Void* = Pointer(Void).null
+    def is_hit_from_inside_enabled() : Bool
+      godot_bind(@@mb_is_hit_from_inside_enabled, "RayCast2D", "is_hit_from_inside_enabled", 36873697_i64)
+      godot_ptrcall_bool(@@mb_is_hit_from_inside_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_hit_from_inside_enabled`
+    def is_hit_from_inside_enabled?() : Bool
+      is_hit_from_inside_enabled()
+    end
+    # Predicate alias for `is_hit_from_inside_enabled`
+    def hit_from_inside_enabled?() : Bool
+      is_hit_from_inside_enabled()
+    end
+    # Property `enabled` getter
+    def enabled
+      is_enabled
+    end
+    # Property `enabled` setter
+    def enabled=(val)
+      set_enabled(val)
+    end
+    # Property `exclude_parent` getter
+    def exclude_parent
+      get_exclude_parent_body
+    end
+    def exclude_parent?
+      exclude_parent
+    end
+    # Property `exclude_parent` setter
+    def exclude_parent=(val)
+      set_exclude_parent_body(val)
+    end
+    # Property `target_position` getter
+    def target_position
+      get_target_position
+    end
+    # Property `target_position` setter
+    def target_position=(val)
+      set_target_position(val)
+    end
+    # Property `collision_mask` getter
+    def collision_mask
+      get_collision_mask
+    end
+    # Property `collision_mask` setter
+    def collision_mask=(val : Int | Enum)
+      set_collision_mask(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
+    end
+    # Property `hit_from_inside` getter
+    def hit_from_inside
+      is_hit_from_inside_enabled
+    end
+    def hit_from_inside?
+      hit_from_inside
+    end
+    # Property `hit_from_inside` setter
+    def hit_from_inside=(val)
+      set_hit_from_inside(val)
+    end
+    # Property `collide_with_areas` getter
+    def collide_with_areas
+      is_collide_with_areas_enabled
+    end
+    def collide_with_areas?
+      collide_with_areas
+    end
+    # Property `collide_with_areas` setter
+    def collide_with_areas=(val)
+      set_collide_with_areas(val)
+    end
+    # Property `collide_with_bodies` getter
+    def collide_with_bodies
+      is_collide_with_bodies_enabled
+    end
+    def collide_with_bodies?
+      collide_with_bodies
+    end
+    # Property `collide_with_bodies` setter
+    def collide_with_bodies=(val)
+      set_collide_with_bodies(val)
+    end
+  end
+  class RayCast3D < Godot::Node3D
+    def initialize(pointer : Void* = Pointer(Void).null)
+      super(pointer)
+    end
+    @@mb_set_enabled : Void* = Pointer(Void).null
+    def set_enabled(enabled : Bool) : Void
+      godot_bind(@@mb_set_enabled, "RayCast3D", "set_enabled", 2586408642_i64)
+      val_0 = enabled
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_enabled, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_is_enabled : Void* = Pointer(Void).null
+    def is_enabled() : Bool
+      godot_bind(@@mb_is_enabled, "RayCast3D", "is_enabled", 36873697_i64)
+      godot_ptrcall_bool(@@mb_is_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_enabled`
+    def is_enabled?() : Bool
+      is_enabled()
+    end
+    @@mb_set_target_position : Void* = Pointer(Void).null
+    def set_target_position(local_point : Vector3) : Void
+      godot_bind(@@mb_set_target_position, "RayCast3D", "set_target_position", 3460891852_i64)
+      val_0 = local_point
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_target_position, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_target_position : Void* = Pointer(Void).null
+    def get_target_position() : Vector3
+      godot_bind(@@mb_get_target_position, "RayCast3D", "get_target_position", 3360562783_i64)
+      godot_ptrcall_val(@@mb_get_target_position, @pointer, Pointer(Pointer(Void)).null, Vector3)
+    end
+    @@mb_is_colliding : Void* = Pointer(Void).null
+    def is_colliding() : Bool
+      godot_bind(@@mb_is_colliding, "RayCast3D", "is_colliding", 36873697_i64)
+      godot_ptrcall_bool(@@mb_is_colliding, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_colliding`
+    def is_colliding?() : Bool
+      is_colliding()
+    end
+    # Predicate alias for `is_colliding`
+    def has_collider?() : Bool
+      is_colliding()
+    end
+    @@mb_force_raycast_update : Void* = Pointer(Void).null
+    def force_raycast_update() : Void
+      godot_bind(@@mb_force_raycast_update, "RayCast3D", "force_raycast_update", 3218959716_i64)
+      godot_ptrcall_void(@@mb_force_raycast_update, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_get_collider : Void* = Pointer(Void).null
+    def get_collider() : Godot::Object
+      godot_bind(@@mb_get_collider, "RayCast3D", "get_collider", 1981248198_i64)
+      godot_ptrcall_obj(@@mb_get_collider, @pointer, Pointer(Pointer(Void)).null, Godot::Object)
+    end
+    @@mb_get_collider_rid : Void* = Pointer(Void).null
+    def get_collider_rid() : Int64
+      godot_bind(@@mb_get_collider_rid, "RayCast3D", "get_collider_rid", 2944877500_i64)
+      godot_ptrcall_int(@@mb_get_collider_rid, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_get_collider_shape : Void* = Pointer(Void).null
+    def get_collider_shape() : Int64
+      godot_bind(@@mb_get_collider_shape, "RayCast3D", "get_collider_shape", 3905245786_i64)
+      godot_ptrcall_int(@@mb_get_collider_shape, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_get_collision_point : Void* = Pointer(Void).null
+    def get_collision_point() : Vector3
+      godot_bind(@@mb_get_collision_point, "RayCast3D", "get_collision_point", 3360562783_i64)
+      godot_ptrcall_val(@@mb_get_collision_point, @pointer, Pointer(Pointer(Void)).null, Vector3)
+    end
+    @@mb_get_collision_normal : Void* = Pointer(Void).null
+    def get_collision_normal() : Vector3
+      godot_bind(@@mb_get_collision_normal, "RayCast3D", "get_collision_normal", 3360562783_i64)
+      godot_ptrcall_val(@@mb_get_collision_normal, @pointer, Pointer(Pointer(Void)).null, Vector3)
+    end
+    @@mb_get_collision_face_index : Void* = Pointer(Void).null
+    def get_collision_face_index() : Int64
+      godot_bind(@@mb_get_collision_face_index, "RayCast3D", "get_collision_face_index", 3905245786_i64)
+      godot_ptrcall_int(@@mb_get_collision_face_index, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_add_exception_rid : Void* = Pointer(Void).null
+    def add_exception_rid(rid : Int64) : Void
+      godot_bind(@@mb_add_exception_rid, "RayCast3D", "add_exception_rid", 2722037293_i64)
+      val_0 = rid
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_add_exception_rid, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_add_exception : Void* = Pointer(Void).null
+    def add_exception(node : CollisionObject3D) : Void
+      godot_bind(@@mb_add_exception, "RayCast3D", "add_exception", 1976431078_i64)
+      arg_ptr_0 = node ? node.pointer : Pointer(Void).null
+      arg_0 = pointerof(arg_ptr_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_add_exception, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_remove_exception_rid : Void* = Pointer(Void).null
+    def remove_exception_rid(rid : Int64) : Void
+      godot_bind(@@mb_remove_exception_rid, "RayCast3D", "remove_exception_rid", 2722037293_i64)
+      val_0 = rid
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_remove_exception_rid, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_remove_exception : Void* = Pointer(Void).null
+    def remove_exception(node : CollisionObject3D) : Void
+      godot_bind(@@mb_remove_exception, "RayCast3D", "remove_exception", 1976431078_i64)
+      arg_ptr_0 = node ? node.pointer : Pointer(Void).null
+      arg_0 = pointerof(arg_ptr_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_remove_exception, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_clear_exceptions : Void* = Pointer(Void).null
+    def clear_exceptions() : Void
+      godot_bind(@@mb_clear_exceptions, "RayCast3D", "clear_exceptions", 3218959716_i64)
+      godot_ptrcall_void(@@mb_clear_exceptions, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_set_collision_mask : Void* = Pointer(Void).null
+    def set_collision_mask(mask : Int64) : Void
+      godot_bind(@@mb_set_collision_mask, "RayCast3D", "set_collision_mask", 1286410249_i64)
+      val_0 = mask.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_collision_mask, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_collision_mask : Void* = Pointer(Void).null
+    def get_collision_mask() : Int64
+      godot_bind(@@mb_get_collision_mask, "RayCast3D", "get_collision_mask", 3905245786_i64)
+      godot_ptrcall_int(@@mb_get_collision_mask, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_set_collision_mask_value : Void* = Pointer(Void).null
+    def set_collision_mask_value(layer_number : Int64, value : Bool) : Void
+      godot_bind(@@mb_set_collision_mask_value, "RayCast3D", "set_collision_mask_value", 300928843_i64)
+      val_0 = layer_number.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      val_1 = value
+      arg_1 = pointerof(val_1).as(Void*)
+      args = StaticArray[arg_0, arg_1]
+      godot_ptrcall_void(@@mb_set_collision_mask_value, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_collision_mask_value : Void* = Pointer(Void).null
+    def get_collision_mask_value(layer_number : Int64) : Bool
+      godot_bind(@@mb_get_collision_mask_value, "RayCast3D", "get_collision_mask_value", 1116898809_i64)
+      val_0 = layer_number.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_bool(@@mb_get_collision_mask_value, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Predicate alias for `get_collision_mask_value`
+    def get_collision_mask_value?(layer_number : Int64) : Bool
+      get_collision_mask_value(layer_number)
+    end
+    @@mb_set_exclude_parent_body : Void* = Pointer(Void).null
+    def set_exclude_parent_body(mask : Bool) : Void
+      godot_bind(@@mb_set_exclude_parent_body, "RayCast3D", "set_exclude_parent_body", 2586408642_i64)
+      val_0 = mask
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_exclude_parent_body, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_exclude_parent_body : Void* = Pointer(Void).null
+    def get_exclude_parent_body() : Bool
+      godot_bind(@@mb_get_exclude_parent_body, "RayCast3D", "get_exclude_parent_body", 36873697_i64)
+      godot_ptrcall_bool(@@mb_get_exclude_parent_body, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `get_exclude_parent_body`
+    def get_exclude_parent_body?() : Bool
+      get_exclude_parent_body()
+    end
+    @@mb_set_collide_with_areas : Void* = Pointer(Void).null
+    def set_collide_with_areas(enable : Bool) : Void
+      godot_bind(@@mb_set_collide_with_areas, "RayCast3D", "set_collide_with_areas", 2586408642_i64)
+      val_0 = enable
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_collide_with_areas, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_is_collide_with_areas_enabled : Void* = Pointer(Void).null
+    def is_collide_with_areas_enabled() : Bool
+      godot_bind(@@mb_is_collide_with_areas_enabled, "RayCast3D", "is_collide_with_areas_enabled", 36873697_i64)
+      godot_ptrcall_bool(@@mb_is_collide_with_areas_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_collide_with_areas_enabled`
+    def is_collide_with_areas_enabled?() : Bool
+      is_collide_with_areas_enabled()
+    end
+    # Predicate alias for `is_collide_with_areas_enabled`
+    def collide_with_areas_enabled?() : Bool
+      is_collide_with_areas_enabled()
+    end
+    @@mb_set_collide_with_bodies : Void* = Pointer(Void).null
+    def set_collide_with_bodies(enable : Bool) : Void
+      godot_bind(@@mb_set_collide_with_bodies, "RayCast3D", "set_collide_with_bodies", 2586408642_i64)
+      val_0 = enable
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_collide_with_bodies, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_is_collide_with_bodies_enabled : Void* = Pointer(Void).null
+    def is_collide_with_bodies_enabled() : Bool
+      godot_bind(@@mb_is_collide_with_bodies_enabled, "RayCast3D", "is_collide_with_bodies_enabled", 36873697_i64)
+      godot_ptrcall_bool(@@mb_is_collide_with_bodies_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_collide_with_bodies_enabled`
+    def is_collide_with_bodies_enabled?() : Bool
+      is_collide_with_bodies_enabled()
+    end
+    # Predicate alias for `is_collide_with_bodies_enabled`
+    def collide_with_bodies_enabled?() : Bool
+      is_collide_with_bodies_enabled()
+    end
+    @@mb_set_hit_from_inside : Void* = Pointer(Void).null
+    def set_hit_from_inside(enable : Bool) : Void
+      godot_bind(@@mb_set_hit_from_inside, "RayCast3D", "set_hit_from_inside", 2586408642_i64)
+      val_0 = enable
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_hit_from_inside, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_is_hit_from_inside_enabled : Void* = Pointer(Void).null
+    def is_hit_from_inside_enabled() : Bool
+      godot_bind(@@mb_is_hit_from_inside_enabled, "RayCast3D", "is_hit_from_inside_enabled", 36873697_i64)
+      godot_ptrcall_bool(@@mb_is_hit_from_inside_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_hit_from_inside_enabled`
+    def is_hit_from_inside_enabled?() : Bool
+      is_hit_from_inside_enabled()
+    end
+    # Predicate alias for `is_hit_from_inside_enabled`
+    def hit_from_inside_enabled?() : Bool
+      is_hit_from_inside_enabled()
+    end
+    @@mb_set_hit_back_faces : Void* = Pointer(Void).null
+    def set_hit_back_faces(enable : Bool) : Void
+      godot_bind(@@mb_set_hit_back_faces, "RayCast3D", "set_hit_back_faces", 2586408642_i64)
+      val_0 = enable
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_hit_back_faces, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_is_hit_back_faces_enabled : Void* = Pointer(Void).null
+    def is_hit_back_faces_enabled() : Bool
+      godot_bind(@@mb_is_hit_back_faces_enabled, "RayCast3D", "is_hit_back_faces_enabled", 36873697_i64)
+      godot_ptrcall_bool(@@mb_is_hit_back_faces_enabled, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `is_hit_back_faces_enabled`
+    def is_hit_back_faces_enabled?() : Bool
+      is_hit_back_faces_enabled()
+    end
+    # Predicate alias for `is_hit_back_faces_enabled`
+    def hit_back_faces_enabled?() : Bool
+      is_hit_back_faces_enabled()
+    end
+    @@mb_set_debug_shape_custom_color : Void* = Pointer(Void).null
+    def set_debug_shape_custom_color(debug_shape_custom_color : Color) : Void
+      godot_bind(@@mb_set_debug_shape_custom_color, "RayCast3D", "set_debug_shape_custom_color", 2920490490_i64)
+      val_0 = debug_shape_custom_color
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_debug_shape_custom_color, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_debug_shape_custom_color : Void* = Pointer(Void).null
+    def get_debug_shape_custom_color() : Color
+      godot_bind(@@mb_get_debug_shape_custom_color, "RayCast3D", "get_debug_shape_custom_color", 3444240500_i64)
+      godot_ptrcall_val(@@mb_get_debug_shape_custom_color, @pointer, Pointer(Pointer(Void)).null, Color)
+    end
+    @@mb_set_debug_shape_thickness : Void* = Pointer(Void).null
+    def set_debug_shape_thickness(debug_shape_thickness : Int64) : Void
+      godot_bind(@@mb_set_debug_shape_thickness, "RayCast3D", "set_debug_shape_thickness", 1286410249_i64)
+      val_0 = debug_shape_thickness.to_i64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_debug_shape_thickness, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_debug_shape_thickness : Void* = Pointer(Void).null
+    def get_debug_shape_thickness() : Int64
+      godot_bind(@@mb_get_debug_shape_thickness, "RayCast3D", "get_debug_shape_thickness", 3905245786_i64)
+      godot_ptrcall_int(@@mb_get_debug_shape_thickness, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Property `exclude_parent` getter
+    def exclude_parent
+      get_exclude_parent_body
+    end
+    def exclude_parent?
+      exclude_parent
+    end
+    # Property `exclude_parent` setter
+    def exclude_parent=(val)
+      set_exclude_parent_body(val)
+    end
+    # Property `collision_mask` getter
+    def collision_mask
+      get_collision_mask
+    end
+    # Property `collision_mask` setter
+    def collision_mask=(val : Int | Enum)
+      set_collision_mask(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
+    end
+    # Property `hit_from_inside` getter
+    def hit_from_inside
+      is_hit_from_inside_enabled
+    end
+    def hit_from_inside?
+      hit_from_inside
+    end
+    # Property `hit_from_inside` setter
+    def hit_from_inside=(val)
+      set_hit_from_inside(val)
+    end
+    # Property `hit_back_faces` getter
+    def hit_back_faces
+      is_hit_back_faces_enabled
+    end
+    def hit_back_faces?
+      hit_back_faces
+    end
+    # Property `hit_back_faces` setter
+    def hit_back_faces=(val)
+      set_hit_back_faces(val)
+    end
+    # Property `collide_with_areas` getter
+    def collide_with_areas
+      is_collide_with_areas_enabled
+    end
+    def collide_with_areas?
+      collide_with_areas
+    end
+    # Property `collide_with_areas` setter
+    def collide_with_areas=(val)
+      set_collide_with_areas(val)
+    end
+    # Property `collide_with_bodies` getter
+    def collide_with_bodies
+      is_collide_with_bodies_enabled
+    end
+    def collide_with_bodies?
+      collide_with_bodies
+    end
+    # Property `collide_with_bodies` setter
+    def collide_with_bodies=(val)
+      set_collide_with_bodies(val)
+    end
+    # Property `debug_shape_custom_color` getter
+    def debug_shape_custom_color
+      get_debug_shape_custom_color
+    end
+    # Property `debug_shape_custom_color` setter
+    def debug_shape_custom_color=(val)
+      set_debug_shape_custom_color(val)
+    end
+    # Property `debug_shape_thickness` getter
+    def debug_shape_thickness
+      get_debug_shape_thickness
+    end
+    # Property `debug_shape_thickness` setter
+    def debug_shape_thickness=(val : Int | Enum)
+      set_debug_shape_thickness(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
+    end
+  end
+  class RectangleShape2D < Godot::Shape2D
+    def initialize(pointer : Void* = Pointer(Void).null)
+      super(pointer)
+    end
+    @@mb_set_size : Void* = Pointer(Void).null
+    def set_size(size : Vector2) : Void
+      godot_bind(@@mb_set_size, "RectangleShape2D", "set_size", 743155724_i64)
+      val_0 = size
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_size, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_size : Void* = Pointer(Void).null
+    def get_size() : Vector2
+      godot_bind(@@mb_get_size, "RectangleShape2D", "get_size", 3341600327_i64)
+      godot_ptrcall_val(@@mb_get_size, @pointer, Pointer(Pointer(Void)).null, Vector2)
+    end
+    # Property `size` getter
+    def size
+      get_size
+    end
+    # Property `size` setter
+    def size=(val)
+      set_size(val)
+    end
+  end
+  class ReferenceRect < Godot::Control
+    def initialize(pointer : Void* = Pointer(Void).null)
+      super(pointer)
+    end
+    @@mb_get_border_color : Void* = Pointer(Void).null
+    def get_border_color() : Color
+      godot_bind(@@mb_get_border_color, "ReferenceRect", "get_border_color", 3444240500_i64)
+      godot_ptrcall_val(@@mb_get_border_color, @pointer, Pointer(Pointer(Void)).null, Color)
+    end
+    @@mb_set_border_color : Void* = Pointer(Void).null
+    def set_border_color(color : Color) : Void
+      godot_bind(@@mb_set_border_color, "ReferenceRect", "set_border_color", 2920490490_i64)
+      val_0 = color
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_border_color, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_border_width : Void* = Pointer(Void).null
+    def get_border_width() : Float64
+      godot_bind(@@mb_get_border_width, "ReferenceRect", "get_border_width", 1740695150_i64)
+      godot_ptrcall_float(@@mb_get_border_width, @pointer, Pointer(Pointer(Void)).null)
+    end
+    @@mb_set_border_width : Void* = Pointer(Void).null
+    def set_border_width(width : Float64) : Void
+      godot_bind(@@mb_set_border_width, "ReferenceRect", "set_border_width", 373806689_i64)
+      val_0 = width.to_f64
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_border_width, @pointer, args.to_unsafe.as(Void**))
+    end
+    @@mb_get_editor_only : Void* = Pointer(Void).null
+    def get_editor_only() : Bool
+      godot_bind(@@mb_get_editor_only, "ReferenceRect", "get_editor_only", 36873697_i64)
+      godot_ptrcall_bool(@@mb_get_editor_only, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Predicate alias for `get_editor_only`
+    def get_editor_only?() : Bool
+      get_editor_only()
+    end
+    @@mb_set_editor_only : Void* = Pointer(Void).null
+    def set_editor_only(enabled : Bool) : Void
+      godot_bind(@@mb_set_editor_only, "ReferenceRect", "set_editor_only", 2586408642_i64)
+      val_0 = enabled
+      arg_0 = pointerof(val_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_editor_only, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Property `border_color` getter
+    def border_color
+      get_border_color
+    end
+    # Property `border_color` setter
+    def border_color=(val)
+      set_border_color(val)
+    end
+    # Property `border_width` getter
+    def border_width
+      get_border_width
+    end
+    # Property `border_width` setter
+    def border_width=(val : Number)
+      set_border_width(val.to_f64)
+    end
+    # Property `editor_only` getter
+    def editor_only
+      get_editor_only
+    end
+    def editor_only?
+      editor_only
+    end
+    # Property `editor_only` setter
+    def editor_only=(val)
+      set_editor_only(val)
+    end
+  end
   class ReflectionProbe < Godot::VisualInstance3D
     def initialize(pointer : Void* = Pointer(Void).null)
       super(pointer)
@@ -237,8 +1005,8 @@ module Godot
       get_update_mode
     end
     # Property `update_mode` setter
-    def update_mode=(val : Int)
-      set_update_mode(val.to_i64)
+    def update_mode=(val : Int | Enum)
+      set_update_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `intensity` getter
     def intensity
@@ -318,16 +1086,16 @@ module Godot
       get_cull_mask
     end
     # Property `cull_mask` setter
-    def cull_mask=(val : Int)
-      set_cull_mask(val.to_i64)
+    def cull_mask=(val : Int | Enum)
+      set_cull_mask(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `reflection_mask` getter
     def reflection_mask
       get_reflection_mask
     end
     # Property `reflection_mask` setter
-    def reflection_mask=(val : Int)
-      set_reflection_mask(val.to_i64)
+    def reflection_mask=(val : Int | Enum)
+      set_reflection_mask(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `mesh_lod_threshold` getter
     def mesh_lod_threshold
@@ -342,8 +1110,8 @@ module Godot
       get_ambient_mode
     end
     # Property `ambient_mode` setter
-    def ambient_mode=(val : Int)
-      set_ambient_mode(val.to_i64)
+    def ambient_mode=(val : Int | Enum)
+      set_ambient_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `ambient_color` getter
     def ambient_color
@@ -1045,32 +1813,32 @@ module Godot
       get_view_count
     end
     # Property `view_count` setter
-    def view_count=(val : Int)
-      set_view_count(val.to_i64)
+    def view_count=(val : Int | Enum)
+      set_view_count(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `scaling_3d_mode` getter
     def scaling_3d_mode
       get_scaling_3d_mode
     end
     # Property `scaling_3d_mode` setter
-    def scaling_3d_mode=(val : Int)
-      set_scaling_3d_mode(val.to_i64)
+    def scaling_3d_mode=(val : Int | Enum)
+      set_scaling_3d_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `msaa_3d` getter
     def msaa_3d
       get_msaa_3d
     end
     # Property `msaa_3d` setter
-    def msaa_3d=(val : Int)
-      set_msaa_3d(val.to_i64)
+    def msaa_3d=(val : Int | Enum)
+      set_msaa_3d(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `screen_space_aa` getter
     def screen_space_aa
       get_screen_space_aa
     end
     # Property `screen_space_aa` setter
-    def screen_space_aa=(val : Int)
-      set_screen_space_aa(val.to_i64)
+    def screen_space_aa=(val : Int | Enum)
+      set_screen_space_aa(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `fsr_sharpness` getter
     def fsr_sharpness
@@ -1099,8 +1867,8 @@ module Godot
       get_anisotropic_filtering_level
     end
     # Property `anisotropic_filtering_level` setter
-    def anisotropic_filtering_level=(val : Int)
-      set_anisotropic_filtering_level(val.to_i64)
+    def anisotropic_filtering_level=(val : Int | Enum)
+      set_anisotropic_filtering_level(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class RenderSceneBuffersExtension < Godot::RenderSceneBuffers
@@ -2115,6 +2883,9 @@ module Godot
       DrawClearAll = 327935_i64
       DrawIgnoreAll = 720640_i64
     end
+    INVALID_ID = -1_i64
+    INVALID_FORMAT_ID = -1_i64
+
     @@mb_texture_create : Void* = Pointer(Void).null
     def texture_create(format : RDTextureFormat, view : RDTextureView, data : Pointer(Void)) : Int64
       godot_bind(@@mb_texture_create, "RenderingDevice", "texture_create", 3709173589_i64)
@@ -4217,6 +4988,25 @@ module Godot
       FeatureShaders = 0_i64
       FeatureMultithreaded = 1_i64
     end
+    NO_INDEX_ARRAY = -1_i64
+    ARRAY_WEIGHTS_SIZE = 4_i64
+    CANVAS_ITEM_Z_MIN = -4096_i64
+    CANVAS_ITEM_Z_MAX = 4096_i64
+    CANVAS_LAYER_MIN = -2147483648_i64
+    CANVAS_LAYER_MAX = 2147483647_i64
+    MAX_GLOW_LEVELS = 7_i64
+    MAX_CURSORS = 8_i64
+    MAX_2D_DIRECTIONAL_LIGHTS = 8_i64
+    MAX_MESH_SURFACES = 256_i64
+    MATERIAL_RENDER_PRIORITY_MIN = -128_i64
+    MATERIAL_RENDER_PRIORITY_MAX = 127_i64
+    ARRAY_CUSTOM_COUNT = 4_i64
+    PARTICLES_EMIT_FLAG_POSITION = 1_i64
+    PARTICLES_EMIT_FLAG_ROTATION_SCALE = 2_i64
+    PARTICLES_EMIT_FLAG_VELOCITY = 4_i64
+    PARTICLES_EMIT_FLAG_COLOR = 8_i64
+    PARTICLES_EMIT_FLAG_CUSTOM = 16_i64
+
     @@mb_texture_2d_create : Void* = Pointer(Void).null
     def texture_2d_create(image : Image) : Int64
       godot_bind(@@mb_texture_2d_create, "RenderingServer", "texture_2d_create", 2010018390_i64)
@@ -4224,6 +5014,10 @@ module Godot
       arg_0 = pointerof(arg_ptr_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_texture_2d_create, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `texture_2d_create`
+    def self.texture_2d_create(image : Image) : Int64
+      instance.texture_2d_create(image)
     end
     @@mb_texture_2d_layered_create : Void* = Pointer(Void).null
     def texture_2d_layered_create(layers : Pointer(Void), layered_type : TextureLayeredType | Int) : Int64
@@ -4234,6 +5028,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_texture_2d_layered_create, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `texture_2d_layered_create`
+    def self.texture_2d_layered_create(layers : Pointer(Void), layered_type : TextureLayeredType | Int) : Int64
+      instance.texture_2d_layered_create(layers, layered_type)
     end
     @@mb_texture_3d_create : Void* = Pointer(Void).null
     def texture_3d_create(format : Godot::Image::Format | Int, width : Int64, height : Int64, depth : Int64, mipmaps : Bool, data : Pointer(Void)) : Int64
@@ -4253,6 +5051,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5]
       godot_ptrcall_int(@@mb_texture_3d_create, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `texture_3d_create`
+    def self.texture_3d_create(format : Godot::Image::Format | Int, width : Int64, height : Int64, depth : Int64, mipmaps : Bool, data : Pointer(Void)) : Int64
+      instance.texture_3d_create(format, width, height, depth, mipmaps, data)
+    end
     @@mb_texture_proxy_create : Void* = Pointer(Void).null
     def texture_proxy_create(base : Int64) : Int64
       godot_bind(@@mb_texture_proxy_create, "RenderingServer", "texture_proxy_create", 41030802_i64)
@@ -4260,6 +5062,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_texture_proxy_create, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `texture_proxy_create`
+    def self.texture_proxy_create(base : Int64) : Int64
+      instance.texture_proxy_create(base)
     end
     @@mb_texture_create_from_native_handle : Void* = Pointer(Void).null
     def texture_create_from_native_handle(get_type : TextureType | Int, format : Godot::Image::Format | Int, native_handle : Int64, width : Int64, height : Int64, depth : Int64, layers : Int64 = 1_i64, layered_type : TextureLayeredType | Int = 0) : Int64
@@ -4283,6 +5089,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5, arg_6, arg_7]
       godot_ptrcall_int(@@mb_texture_create_from_native_handle, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `texture_create_from_native_handle`
+    def self.texture_create_from_native_handle(get_type : TextureType | Int, format : Godot::Image::Format | Int, native_handle : Int64, width : Int64, height : Int64, depth : Int64, layers : Int64 = 1_i64, layered_type : TextureLayeredType | Int = 0) : Int64
+      instance.texture_create_from_native_handle(get_type, format, native_handle, width, height, depth, layers, layered_type)
+    end
     @@mb_texture_drawable_create : Void* = Pointer(Void).null
     def texture_drawable_create(width : Int64, height : Int64, format : TextureDrawableFormat | Int, color : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32), with_mipmaps : Bool = false) : Int64
       godot_bind(@@mb_texture_drawable_create, "RenderingServer", "texture_drawable_create", 1993613667_i64)
@@ -4299,6 +5109,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
       godot_ptrcall_int(@@mb_texture_drawable_create, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `texture_drawable_create`
+    def self.texture_drawable_create(width : Int64, height : Int64, format : TextureDrawableFormat | Int, color : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32), with_mipmaps : Bool = false) : Int64
+      instance.texture_drawable_create(width, height, format, color, with_mipmaps)
+    end
     @@mb_texture_2d_update : Void* = Pointer(Void).null
     def texture_2d_update(texture : Int64, image : Image, layer : Int64) : Void
       godot_bind(@@mb_texture_2d_update, "RenderingServer", "texture_2d_update", 999539803_i64)
@@ -4311,6 +5125,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_texture_2d_update, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `texture_2d_update`
+    def self.texture_2d_update(texture : Int64, image : Image, layer : Int64) : Void
+      instance.texture_2d_update(texture, image, layer)
+    end
     @@mb_texture_3d_update : Void* = Pointer(Void).null
     def texture_3d_update(texture : Int64, data : Pointer(Void)) : Void
       godot_bind(@@mb_texture_3d_update, "RenderingServer", "texture_3d_update", 684822712_i64)
@@ -4321,6 +5139,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_texture_3d_update, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `texture_3d_update`
+    def self.texture_3d_update(texture : Int64, data : Pointer(Void)) : Void
+      instance.texture_3d_update(texture, data)
+    end
     @@mb_texture_proxy_update : Void* = Pointer(Void).null
     def texture_proxy_update(texture : Int64, proxy_to : Int64) : Void
       godot_bind(@@mb_texture_proxy_update, "RenderingServer", "texture_proxy_update", 395945892_i64)
@@ -4330,6 +5152,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_texture_proxy_update, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `texture_proxy_update`
+    def self.texture_proxy_update(texture : Int64, proxy_to : Int64) : Void
+      instance.texture_proxy_update(texture, proxy_to)
     end
     @@mb_texture_drawable_blit_rect : Void* = Pointer(Void).null
     def texture_drawable_blit_rect(textures : Pointer(Void), rect : Rect2i, material : Int64, modulate : Color, source_textures : Pointer(Void), to_mipmap : Int64 = 0_i64) : Void
@@ -4349,10 +5175,18 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5]
       godot_ptrcall_void(@@mb_texture_drawable_blit_rect, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `texture_drawable_blit_rect`
+    def self.texture_drawable_blit_rect(textures : Pointer(Void), rect : Rect2i, material : Int64, modulate : Color, source_textures : Pointer(Void), to_mipmap : Int64 = 0_i64) : Void
+      instance.texture_drawable_blit_rect(textures, rect, material, modulate, source_textures, to_mipmap)
+    end
     @@mb_texture_2d_placeholder_create : Void* = Pointer(Void).null
     def texture_2d_placeholder_create() : Int64
       godot_bind(@@mb_texture_2d_placeholder_create, "RenderingServer", "texture_2d_placeholder_create", 529393457_i64)
       godot_ptrcall_int(@@mb_texture_2d_placeholder_create, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `texture_2d_placeholder_create`
+    def self.texture_2d_placeholder_create() : Int64
+      instance.texture_2d_placeholder_create()
     end
     @@mb_texture_2d_layered_placeholder_create : Void* = Pointer(Void).null
     def texture_2d_layered_placeholder_create(layered_type : TextureLayeredType | Int) : Int64
@@ -4362,10 +5196,18 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_texture_2d_layered_placeholder_create, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `texture_2d_layered_placeholder_create`
+    def self.texture_2d_layered_placeholder_create(layered_type : TextureLayeredType | Int) : Int64
+      instance.texture_2d_layered_placeholder_create(layered_type)
+    end
     @@mb_texture_3d_placeholder_create : Void* = Pointer(Void).null
     def texture_3d_placeholder_create() : Int64
       godot_bind(@@mb_texture_3d_placeholder_create, "RenderingServer", "texture_3d_placeholder_create", 529393457_i64)
       godot_ptrcall_int(@@mb_texture_3d_placeholder_create, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `texture_3d_placeholder_create`
+    def self.texture_3d_placeholder_create() : Int64
+      instance.texture_3d_placeholder_create()
     end
     @@mb_texture_2d_get : Void* = Pointer(Void).null
     def texture_2d_get(texture : Int64) : Image
@@ -4374,6 +5216,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_texture_2d_get, @pointer, args.to_unsafe.as(Void**), Image)
+    end
+    # Class-level singleton delegator for `texture_2d_get`
+    def self.texture_2d_get(texture : Int64) : Image
+      instance.texture_2d_get(texture)
     end
     @@mb_texture_2d_layer_get : Void* = Pointer(Void).null
     def texture_2d_layer_get(texture : Int64, layer : Int64) : Image
@@ -4385,6 +5231,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_obj(@@mb_texture_2d_layer_get, @pointer, args.to_unsafe.as(Void**), Image)
     end
+    # Class-level singleton delegator for `texture_2d_layer_get`
+    def self.texture_2d_layer_get(texture : Int64, layer : Int64) : Image
+      instance.texture_2d_layer_get(texture, layer)
+    end
     @@mb_texture_3d_get : Void* = Pointer(Void).null
     def texture_3d_get(texture : Int64) : Pointer(Void)
       godot_bind(@@mb_texture_3d_get, "RenderingServer", "texture_3d_get", 2684255073_i64)
@@ -4395,6 +5245,10 @@ module Godot
       godot_ptrcall(@@mb_texture_3d_get, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
       ret_ptr
     end
+    # Class-level singleton delegator for `texture_3d_get`
+    def self.texture_3d_get(texture : Int64) : Pointer(Void)
+      instance.texture_3d_get(texture)
+    end
     @@mb_texture_drawable_generate_mipmaps : Void* = Pointer(Void).null
     def texture_drawable_generate_mipmaps(texture : Int64) : Void
       godot_bind(@@mb_texture_drawable_generate_mipmaps, "RenderingServer", "texture_drawable_generate_mipmaps", 2722037293_i64)
@@ -4403,10 +5257,18 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_texture_drawable_generate_mipmaps, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `texture_drawable_generate_mipmaps`
+    def self.texture_drawable_generate_mipmaps(texture : Int64) : Void
+      instance.texture_drawable_generate_mipmaps(texture)
+    end
     @@mb_texture_drawable_get_default_material : Void* = Pointer(Void).null
     def texture_drawable_get_default_material() : Int64
       godot_bind(@@mb_texture_drawable_get_default_material, "RenderingServer", "texture_drawable_get_default_material", 2944877500_i64)
       godot_ptrcall_int(@@mb_texture_drawable_get_default_material, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `texture_drawable_get_default_material`
+    def self.texture_drawable_get_default_material() : Int64
+      instance.texture_drawable_get_default_material()
     end
     @@mb_texture_replace : Void* = Pointer(Void).null
     def texture_replace(texture : Int64, by_texture : Int64) : Void
@@ -4418,6 +5280,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_texture_replace, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `texture_replace`
+    def self.texture_replace(texture : Int64, by_texture : Int64) : Void
+      instance.texture_replace(texture, by_texture)
+    end
     @@mb_texture_replace_compatible : Void* = Pointer(Void).null
     def texture_replace_compatible(texture : Int64, by_texture : Int64) : Void
       godot_bind(@@mb_texture_replace_compatible, "RenderingServer", "texture_replace_compatible", 395945892_i64)
@@ -4427,6 +5293,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_texture_replace_compatible, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `texture_replace_compatible`
+    def self.texture_replace_compatible(texture : Int64, by_texture : Int64) : Void
+      instance.texture_replace_compatible(texture, by_texture)
     end
     @@mb_texture_set_size_override : Void* = Pointer(Void).null
     def texture_set_size_override(texture : Int64, width : Int64, height : Int64) : Void
@@ -4440,6 +5310,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_texture_set_size_override, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `texture_set_size_override`
+    def self.texture_set_size_override(texture : Int64, width : Int64, height : Int64) : Void
+      instance.texture_set_size_override(texture, width, height)
+    end
     @@mb_texture_set_path : Void* = Pointer(Void).null
     def texture_set_path(texture : Int64, path : String) : Void
       godot_bind(@@mb_texture_set_path, "RenderingServer", "texture_set_path", 2726140452_i64)
@@ -4452,6 +5326,10 @@ module Godot
     ensure
       Bridge.free_string(str_1)
     end
+    # Class-level singleton delegator for `texture_set_path`
+    def self.texture_set_path(texture : Int64, path : String) : Void
+      instance.texture_set_path(texture, path)
+    end
     @@mb_texture_get_path : Void* = Pointer(Void).null
     def texture_get_path(texture : Int64) : String
       godot_bind(@@mb_texture_get_path, "RenderingServer", "texture_get_path", 642473191_i64)
@@ -4460,6 +5338,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_call_str("texture_get_path", texture)
     end
+    # Class-level singleton delegator for `texture_get_path`
+    def self.texture_get_path(texture : Int64) : String
+      instance.texture_get_path(texture)
+    end
     @@mb_texture_get_format : Void* = Pointer(Void).null
     def texture_get_format(texture : Int64) : Godot::Image::Format
       godot_bind(@@mb_texture_get_format, "RenderingServer", "texture_get_format", 1932918979_i64)
@@ -4467,6 +5349,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_enum(@@mb_texture_get_format, @pointer, args.to_unsafe.as(Void**), Godot::Image::Format)
+    end
+    # Class-level singleton delegator for `texture_get_format`
+    def self.texture_get_format(texture : Int64) : Godot::Image::Format
+      instance.texture_get_format(texture)
     end
     @@mb_texture_set_force_redraw_if_visible : Void* = Pointer(Void).null
     def texture_set_force_redraw_if_visible(texture : Int64, enable : Bool) : Void
@@ -4478,6 +5364,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_texture_set_force_redraw_if_visible, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `texture_set_force_redraw_if_visible`
+    def self.texture_set_force_redraw_if_visible(texture : Int64, enable : Bool) : Void
+      instance.texture_set_force_redraw_if_visible(texture, enable)
+    end
     @@mb_texture_rd_create : Void* = Pointer(Void).null
     def texture_rd_create(rd_texture : Int64, layer_type : TextureLayeredType | Int = 0) : Int64
       godot_bind(@@mb_texture_rd_create, "RenderingServer", "texture_rd_create", 1434128712_i64)
@@ -4487,6 +5377,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_texture_rd_create, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `texture_rd_create`
+    def self.texture_rd_create(rd_texture : Int64, layer_type : TextureLayeredType | Int = 0) : Int64
+      instance.texture_rd_create(rd_texture, layer_type)
     end
     @@mb_texture_get_rd_texture : Void* = Pointer(Void).null
     def texture_get_rd_texture(texture : Int64, srgb : Bool = false) : Int64
@@ -4498,6 +5392,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_texture_get_rd_texture, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `texture_get_rd_texture`
+    def self.texture_get_rd_texture(texture : Int64, srgb : Bool = false) : Int64
+      instance.texture_get_rd_texture(texture, srgb)
+    end
     @@mb_texture_get_native_handle : Void* = Pointer(Void).null
     def texture_get_native_handle(texture : Int64, srgb : Bool = false) : Int64
       godot_bind(@@mb_texture_get_native_handle, "RenderingServer", "texture_get_native_handle", 1834114100_i64)
@@ -4508,10 +5406,18 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_texture_get_native_handle, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `texture_get_native_handle`
+    def self.texture_get_native_handle(texture : Int64, srgb : Bool = false) : Int64
+      instance.texture_get_native_handle(texture, srgb)
+    end
     @@mb_shader_create : Void* = Pointer(Void).null
     def shader_create() : Int64
       godot_bind(@@mb_shader_create, "RenderingServer", "shader_create", 529393457_i64)
       godot_ptrcall_int(@@mb_shader_create, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `shader_create`
+    def self.shader_create() : Int64
+      instance.shader_create()
     end
     @@mb_shader_set_code : Void* = Pointer(Void).null
     def shader_set_code(shader : Int64, code : String) : Void
@@ -4525,6 +5431,10 @@ module Godot
     ensure
       Bridge.free_string(str_1)
     end
+    # Class-level singleton delegator for `shader_set_code`
+    def self.shader_set_code(shader : Int64, code : String) : Void
+      instance.shader_set_code(shader, code)
+    end
     @@mb_shader_set_path_hint : Void* = Pointer(Void).null
     def shader_set_path_hint(shader : Int64, path : String) : Void
       godot_bind(@@mb_shader_set_path_hint, "RenderingServer", "shader_set_path_hint", 2726140452_i64)
@@ -4537,6 +5447,10 @@ module Godot
     ensure
       Bridge.free_string(str_1)
     end
+    # Class-level singleton delegator for `shader_set_path_hint`
+    def self.shader_set_path_hint(shader : Int64, path : String) : Void
+      instance.shader_set_path_hint(shader, path)
+    end
     @@mb_shader_get_code : Void* = Pointer(Void).null
     def shader_get_code(shader : Int64) : String
       godot_bind(@@mb_shader_get_code, "RenderingServer", "shader_get_code", 642473191_i64)
@@ -4544,6 +5458,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("shader_get_code", shader)
+    end
+    # Class-level singleton delegator for `shader_get_code`
+    def self.shader_get_code(shader : Int64) : String
+      instance.shader_get_code(shader)
     end
     @@mb_get_shader_parameter_list : Void* = Pointer(Void).null
     def get_shader_parameter_list(shader : Int64) : Pointer(Void)
@@ -4554,6 +5472,10 @@ module Godot
       ret_ptr = Pointer(Void).null
       godot_ptrcall(@@mb_get_shader_parameter_list, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
       ret_ptr
+    end
+    # Class-level singleton delegator for `get_shader_parameter_list`
+    def self.get_shader_parameter_list(shader : Int64) : Pointer(Void)
+      instance.get_shader_parameter_list(shader)
     end
     @@mb_shader_get_parameter_default : Void* = Pointer(Void).null
     def shader_get_parameter_default(shader : Int64, name : String) : Pointer(Void)
@@ -4571,6 +5493,10 @@ module Godot
     ensure
       Bridge.free_string_name(sn_1)
     end
+    # Class-level singleton delegator for `shader_get_parameter_default`
+    def self.shader_get_parameter_default(shader : Int64, name : String) : Pointer(Void)
+      instance.shader_get_parameter_default(shader, name)
+    end
     @@mb_shader_set_default_texture_parameter : Void* = Pointer(Void).null
     def shader_set_default_texture_parameter(shader : Int64, name : String, texture : Int64, index : Int64 = 0_i64) : Void
       godot_bind(@@mb_shader_set_default_texture_parameter, "RenderingServer", "shader_set_default_texture_parameter", 4094001817_i64)
@@ -4587,6 +5513,10 @@ module Godot
     ensure
       Bridge.free_string_name(sn_1)
     end
+    # Class-level singleton delegator for `shader_set_default_texture_parameter`
+    def self.shader_set_default_texture_parameter(shader : Int64, name : String, texture : Int64, index : Int64 = 0_i64) : Void
+      instance.shader_set_default_texture_parameter(shader, name, texture, index)
+    end
     @@mb_shader_get_default_texture_parameter : Void* = Pointer(Void).null
     def shader_get_default_texture_parameter(shader : Int64, name : String, index : Int64 = 0_i64) : Int64
       godot_bind(@@mb_shader_get_default_texture_parameter, "RenderingServer", "shader_get_default_texture_parameter", 1464608890_i64)
@@ -4601,10 +5531,18 @@ module Godot
     ensure
       Bridge.free_string_name(sn_1)
     end
+    # Class-level singleton delegator for `shader_get_default_texture_parameter`
+    def self.shader_get_default_texture_parameter(shader : Int64, name : String, index : Int64 = 0_i64) : Int64
+      instance.shader_get_default_texture_parameter(shader, name, index)
+    end
     @@mb_material_create : Void* = Pointer(Void).null
     def material_create() : Int64
       godot_bind(@@mb_material_create, "RenderingServer", "material_create", 529393457_i64)
       godot_ptrcall_int(@@mb_material_create, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `material_create`
+    def self.material_create() : Int64
+      instance.material_create()
     end
     @@mb_material_set_shader : Void* = Pointer(Void).null
     def material_set_shader(shader_material : Int64, shader : Int64) : Void
@@ -4615,6 +5553,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_material_set_shader, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `material_set_shader`
+    def self.material_set_shader(shader_material : Int64, shader : Int64) : Void
+      instance.material_set_shader(shader_material, shader)
     end
     @@mb_material_set_param : Void* = Pointer(Void).null
     def material_set_param(material : Int64, parameter : String, value : Pointer(Void)) : Void
@@ -4629,6 +5571,10 @@ module Godot
       godot_ptrcall_void(@@mb_material_set_param, @pointer, args.to_unsafe.as(Void**))
     ensure
       Bridge.free_string_name(sn_1)
+    end
+    # Class-level singleton delegator for `material_set_param`
+    def self.material_set_param(material : Int64, parameter : String, value : Pointer(Void)) : Void
+      instance.material_set_param(material, parameter, value)
     end
     @@mb_material_get_param : Void* = Pointer(Void).null
     def material_get_param(material : Int64, parameter : String) : Pointer(Void)
@@ -4646,6 +5592,10 @@ module Godot
     ensure
       Bridge.free_string_name(sn_1)
     end
+    # Class-level singleton delegator for `material_get_param`
+    def self.material_get_param(material : Int64, parameter : String) : Pointer(Void)
+      instance.material_get_param(material, parameter)
+    end
     @@mb_material_set_render_priority : Void* = Pointer(Void).null
     def material_set_render_priority(material : Int64, priority : Int64) : Void
       godot_bind(@@mb_material_set_render_priority, "RenderingServer", "material_set_render_priority", 3411492887_i64)
@@ -4655,6 +5605,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_material_set_render_priority, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `material_set_render_priority`
+    def self.material_set_render_priority(material : Int64, priority : Int64) : Void
+      instance.material_set_render_priority(material, priority)
     end
     @@mb_material_set_next_pass : Void* = Pointer(Void).null
     def material_set_next_pass(material : Int64, next_material : Int64) : Void
@@ -4666,6 +5620,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_material_set_next_pass, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `material_set_next_pass`
+    def self.material_set_next_pass(material : Int64, next_material : Int64) : Void
+      instance.material_set_next_pass(material, next_material)
+    end
     @@mb_material_set_use_debanding : Void* = Pointer(Void).null
     def material_set_use_debanding(enable : Bool) : Void
       godot_bind(@@mb_material_set_use_debanding, "RenderingServer", "material_set_use_debanding", 2586408642_i64)
@@ -4673,6 +5631,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_material_set_use_debanding, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `material_set_use_debanding`
+    def self.material_set_use_debanding(enable : Bool) : Void
+      instance.material_set_use_debanding(enable)
     end
     @@mb_mesh_create_from_surfaces : Void* = Pointer(Void).null
     def mesh_create_from_surfaces(surfaces : Pointer(Void), blend_shape_count : Int64 = 0_i64) : Int64
@@ -4684,10 +5646,18 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_mesh_create_from_surfaces, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `mesh_create_from_surfaces`
+    def self.mesh_create_from_surfaces(surfaces : Pointer(Void), blend_shape_count : Int64 = 0_i64) : Int64
+      instance.mesh_create_from_surfaces(surfaces, blend_shape_count)
+    end
     @@mb_mesh_create : Void* = Pointer(Void).null
     def mesh_create() : Int64
       godot_bind(@@mb_mesh_create, "RenderingServer", "mesh_create", 529393457_i64)
       godot_ptrcall_int(@@mb_mesh_create, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `mesh_create`
+    def self.mesh_create() : Int64
+      instance.mesh_create()
     end
     @@mb_mesh_surface_get_format_offset : Void* = Pointer(Void).null
     def mesh_surface_get_format_offset(format : ArrayFormat | Int, vertex_count : Int64, array_index : Int64) : Int64
@@ -4701,6 +5671,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_int(@@mb_mesh_surface_get_format_offset, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `mesh_surface_get_format_offset`
+    def self.mesh_surface_get_format_offset(format : ArrayFormat | Int, vertex_count : Int64, array_index : Int64) : Int64
+      instance.mesh_surface_get_format_offset(format, vertex_count, array_index)
+    end
     @@mb_mesh_surface_get_format_vertex_stride : Void* = Pointer(Void).null
     def mesh_surface_get_format_vertex_stride(format : ArrayFormat | Int, vertex_count : Int64) : Int64
       godot_bind(@@mb_mesh_surface_get_format_vertex_stride, "RenderingServer", "mesh_surface_get_format_vertex_stride", 3188363337_i64)
@@ -4710,6 +5684,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_mesh_surface_get_format_vertex_stride, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `mesh_surface_get_format_vertex_stride`
+    def self.mesh_surface_get_format_vertex_stride(format : ArrayFormat | Int, vertex_count : Int64) : Int64
+      instance.mesh_surface_get_format_vertex_stride(format, vertex_count)
     end
     @@mb_mesh_surface_get_format_normal_tangent_stride : Void* = Pointer(Void).null
     def mesh_surface_get_format_normal_tangent_stride(format : ArrayFormat | Int, vertex_count : Int64) : Int64
@@ -4721,6 +5699,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_mesh_surface_get_format_normal_tangent_stride, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `mesh_surface_get_format_normal_tangent_stride`
+    def self.mesh_surface_get_format_normal_tangent_stride(format : ArrayFormat | Int, vertex_count : Int64) : Int64
+      instance.mesh_surface_get_format_normal_tangent_stride(format, vertex_count)
+    end
     @@mb_mesh_surface_get_format_attribute_stride : Void* = Pointer(Void).null
     def mesh_surface_get_format_attribute_stride(format : ArrayFormat | Int, vertex_count : Int64) : Int64
       godot_bind(@@mb_mesh_surface_get_format_attribute_stride, "RenderingServer", "mesh_surface_get_format_attribute_stride", 3188363337_i64)
@@ -4730,6 +5712,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_mesh_surface_get_format_attribute_stride, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `mesh_surface_get_format_attribute_stride`
+    def self.mesh_surface_get_format_attribute_stride(format : ArrayFormat | Int, vertex_count : Int64) : Int64
+      instance.mesh_surface_get_format_attribute_stride(format, vertex_count)
     end
     @@mb_mesh_surface_get_format_skin_stride : Void* = Pointer(Void).null
     def mesh_surface_get_format_skin_stride(format : ArrayFormat | Int, vertex_count : Int64) : Int64
@@ -4741,6 +5727,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_mesh_surface_get_format_skin_stride, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `mesh_surface_get_format_skin_stride`
+    def self.mesh_surface_get_format_skin_stride(format : ArrayFormat | Int, vertex_count : Int64) : Int64
+      instance.mesh_surface_get_format_skin_stride(format, vertex_count)
+    end
     @@mb_mesh_surface_get_format_index_stride : Void* = Pointer(Void).null
     def mesh_surface_get_format_index_stride(format : ArrayFormat | Int, vertex_count : Int64) : Int64
       godot_bind(@@mb_mesh_surface_get_format_index_stride, "RenderingServer", "mesh_surface_get_format_index_stride", 3188363337_i64)
@@ -4751,6 +5741,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_mesh_surface_get_format_index_stride, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `mesh_surface_get_format_index_stride`
+    def self.mesh_surface_get_format_index_stride(format : ArrayFormat | Int, vertex_count : Int64) : Int64
+      instance.mesh_surface_get_format_index_stride(format, vertex_count)
+    end
     @@mb_mesh_add_surface : Void* = Pointer(Void).null
     def mesh_add_surface(mesh : Int64, surface : Pointer(Void)) : Void
       godot_bind(@@mb_mesh_add_surface, "RenderingServer", "mesh_add_surface", 1217542888_i64)
@@ -4760,6 +5754,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_mesh_add_surface, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `mesh_add_surface`
+    def self.mesh_add_surface(mesh : Int64, surface : Pointer(Void)) : Void
+      instance.mesh_add_surface(mesh, surface)
     end
     @@mb_mesh_add_surface_from_arrays : Void* = Pointer(Void).null
     def mesh_add_surface_from_arrays(mesh : Int64, primitive : PrimitiveType | Int, arrays : Pointer(Void), blend_shapes : Pointer(Void), lods : Pointer(Void), compress_format : ArrayFormat | Int = 0) : Void
@@ -4779,6 +5777,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5]
       godot_ptrcall_void(@@mb_mesh_add_surface_from_arrays, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `mesh_add_surface_from_arrays`
+    def self.mesh_add_surface_from_arrays(mesh : Int64, primitive : PrimitiveType | Int, arrays : Pointer(Void), blend_shapes : Pointer(Void), lods : Pointer(Void), compress_format : ArrayFormat | Int = 0) : Void
+      instance.mesh_add_surface_from_arrays(mesh, primitive, arrays, blend_shapes, lods, compress_format)
+    end
     @@mb_mesh_get_blend_shape_count : Void* = Pointer(Void).null
     def mesh_get_blend_shape_count(mesh : Int64) : Int64
       godot_bind(@@mb_mesh_get_blend_shape_count, "RenderingServer", "mesh_get_blend_shape_count", 2198884583_i64)
@@ -4786,6 +5788,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_mesh_get_blend_shape_count, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `mesh_get_blend_shape_count`
+    def self.mesh_get_blend_shape_count(mesh : Int64) : Int64
+      instance.mesh_get_blend_shape_count(mesh)
     end
     @@mb_mesh_set_blend_shape_mode : Void* = Pointer(Void).null
     def mesh_set_blend_shape_mode(mesh : Int64, mode : BlendShapeMode | Int) : Void
@@ -4797,6 +5803,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_mesh_set_blend_shape_mode, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `mesh_set_blend_shape_mode`
+    def self.mesh_set_blend_shape_mode(mesh : Int64, mode : BlendShapeMode | Int) : Void
+      instance.mesh_set_blend_shape_mode(mesh, mode)
+    end
     @@mb_mesh_get_blend_shape_mode : Void* = Pointer(Void).null
     def mesh_get_blend_shape_mode(mesh : Int64) : BlendShapeMode
       godot_bind(@@mb_mesh_get_blend_shape_mode, "RenderingServer", "mesh_get_blend_shape_mode", 4282291819_i64)
@@ -4804,6 +5814,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_enum(@@mb_mesh_get_blend_shape_mode, @pointer, args.to_unsafe.as(Void**), BlendShapeMode)
+    end
+    # Class-level singleton delegator for `mesh_get_blend_shape_mode`
+    def self.mesh_get_blend_shape_mode(mesh : Int64) : BlendShapeMode
+      instance.mesh_get_blend_shape_mode(mesh)
     end
     @@mb_mesh_surface_set_material : Void* = Pointer(Void).null
     def mesh_surface_set_material(mesh : Int64, surface : Int64, material : Int64) : Void
@@ -4817,6 +5831,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_mesh_surface_set_material, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `mesh_surface_set_material`
+    def self.mesh_surface_set_material(mesh : Int64, surface : Int64, material : Int64) : Void
+      instance.mesh_surface_set_material(mesh, surface, material)
+    end
     @@mb_mesh_surface_get_material : Void* = Pointer(Void).null
     def mesh_surface_get_material(mesh : Int64, surface : Int64) : Int64
       godot_bind(@@mb_mesh_surface_get_material, "RenderingServer", "mesh_surface_get_material", 1066463050_i64)
@@ -4826,6 +5844,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_mesh_surface_get_material, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `mesh_surface_get_material`
+    def self.mesh_surface_get_material(mesh : Int64, surface : Int64) : Int64
+      instance.mesh_surface_get_material(mesh, surface)
     end
     @@mb_mesh_get_surface : Void* = Pointer(Void).null
     def mesh_get_surface(mesh : Int64, surface : Int64) : Pointer(Void)
@@ -4839,6 +5861,10 @@ module Godot
       godot_ptrcall(@@mb_mesh_get_surface, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
       ret_ptr
     end
+    # Class-level singleton delegator for `mesh_get_surface`
+    def self.mesh_get_surface(mesh : Int64, surface : Int64) : Pointer(Void)
+      instance.mesh_get_surface(mesh, surface)
+    end
     @@mb_mesh_surface_get_arrays : Void* = Pointer(Void).null
     def mesh_surface_get_arrays(mesh : Int64, surface : Int64) : Pointer(Void)
       godot_bind(@@mb_mesh_surface_get_arrays, "RenderingServer", "mesh_surface_get_arrays", 1778388067_i64)
@@ -4850,6 +5876,10 @@ module Godot
       ret_ptr = Pointer(Void).null
       godot_ptrcall(@@mb_mesh_surface_get_arrays, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
       ret_ptr
+    end
+    # Class-level singleton delegator for `mesh_surface_get_arrays`
+    def self.mesh_surface_get_arrays(mesh : Int64, surface : Int64) : Pointer(Void)
+      instance.mesh_surface_get_arrays(mesh, surface)
     end
     @@mb_mesh_surface_get_blend_shape_arrays : Void* = Pointer(Void).null
     def mesh_surface_get_blend_shape_arrays(mesh : Int64, surface : Int64) : Pointer(Void)
@@ -4863,6 +5893,10 @@ module Godot
       godot_ptrcall(@@mb_mesh_surface_get_blend_shape_arrays, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
       ret_ptr
     end
+    # Class-level singleton delegator for `mesh_surface_get_blend_shape_arrays`
+    def self.mesh_surface_get_blend_shape_arrays(mesh : Int64, surface : Int64) : Pointer(Void)
+      instance.mesh_surface_get_blend_shape_arrays(mesh, surface)
+    end
     @@mb_mesh_get_surface_count : Void* = Pointer(Void).null
     def mesh_get_surface_count(mesh : Int64) : Int64
       godot_bind(@@mb_mesh_get_surface_count, "RenderingServer", "mesh_get_surface_count", 2198884583_i64)
@@ -4870,6 +5904,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_mesh_get_surface_count, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `mesh_get_surface_count`
+    def self.mesh_get_surface_count(mesh : Int64) : Int64
+      instance.mesh_get_surface_count(mesh)
     end
     @@mb_mesh_set_custom_aabb : Void* = Pointer(Void).null
     def mesh_set_custom_aabb(mesh : Int64, aabb : AABB) : Void
@@ -4881,6 +5919,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_mesh_set_custom_aabb, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `mesh_set_custom_aabb`
+    def self.mesh_set_custom_aabb(mesh : Int64, aabb : AABB) : Void
+      instance.mesh_set_custom_aabb(mesh, aabb)
+    end
     @@mb_mesh_get_custom_aabb : Void* = Pointer(Void).null
     def mesh_get_custom_aabb(mesh : Int64) : AABB
       godot_bind(@@mb_mesh_get_custom_aabb, "RenderingServer", "mesh_get_custom_aabb", 974181306_i64)
@@ -4888,6 +5930,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_mesh_get_custom_aabb, @pointer, args.to_unsafe.as(Void**), AABB)
+    end
+    # Class-level singleton delegator for `mesh_get_custom_aabb`
+    def self.mesh_get_custom_aabb(mesh : Int64) : AABB
+      instance.mesh_get_custom_aabb(mesh)
     end
     @@mb_mesh_surface_remove : Void* = Pointer(Void).null
     def mesh_surface_remove(mesh : Int64, surface : Int64) : Void
@@ -4899,6 +5945,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_mesh_surface_remove, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `mesh_surface_remove`
+    def self.mesh_surface_remove(mesh : Int64, surface : Int64) : Void
+      instance.mesh_surface_remove(mesh, surface)
+    end
     @@mb_mesh_clear : Void* = Pointer(Void).null
     def mesh_clear(mesh : Int64) : Void
       godot_bind(@@mb_mesh_clear, "RenderingServer", "mesh_clear", 2722037293_i64)
@@ -4906,6 +5956,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_mesh_clear, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `mesh_clear`
+    def self.mesh_clear(mesh : Int64) : Void
+      instance.mesh_clear(mesh)
     end
     @@mb_mesh_surface_update_vertex_region : Void* = Pointer(Void).null
     def mesh_surface_update_vertex_region(mesh : Int64, surface : Int64, offset : Int64, data : Pointer(Void)) : Void
@@ -4921,6 +5975,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_mesh_surface_update_vertex_region, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `mesh_surface_update_vertex_region`
+    def self.mesh_surface_update_vertex_region(mesh : Int64, surface : Int64, offset : Int64, data : Pointer(Void)) : Void
+      instance.mesh_surface_update_vertex_region(mesh, surface, offset, data)
+    end
     @@mb_mesh_surface_update_attribute_region : Void* = Pointer(Void).null
     def mesh_surface_update_attribute_region(mesh : Int64, surface : Int64, offset : Int64, data : Pointer(Void)) : Void
       godot_bind(@@mb_mesh_surface_update_attribute_region, "RenderingServer", "mesh_surface_update_attribute_region", 2900195149_i64)
@@ -4934,6 +5992,10 @@ module Godot
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_mesh_surface_update_attribute_region, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `mesh_surface_update_attribute_region`
+    def self.mesh_surface_update_attribute_region(mesh : Int64, surface : Int64, offset : Int64, data : Pointer(Void)) : Void
+      instance.mesh_surface_update_attribute_region(mesh, surface, offset, data)
     end
     @@mb_mesh_surface_update_skin_region : Void* = Pointer(Void).null
     def mesh_surface_update_skin_region(mesh : Int64, surface : Int64, offset : Int64, data : Pointer(Void)) : Void
@@ -4949,6 +6011,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_mesh_surface_update_skin_region, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `mesh_surface_update_skin_region`
+    def self.mesh_surface_update_skin_region(mesh : Int64, surface : Int64, offset : Int64, data : Pointer(Void)) : Void
+      instance.mesh_surface_update_skin_region(mesh, surface, offset, data)
+    end
     @@mb_mesh_surface_update_index_region : Void* = Pointer(Void).null
     def mesh_surface_update_index_region(mesh : Int64, surface : Int64, offset : Int64, data : Pointer(Void)) : Void
       godot_bind(@@mb_mesh_surface_update_index_region, "RenderingServer", "mesh_surface_update_index_region", 2900195149_i64)
@@ -4963,6 +6029,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_mesh_surface_update_index_region, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `mesh_surface_update_index_region`
+    def self.mesh_surface_update_index_region(mesh : Int64, surface : Int64, offset : Int64, data : Pointer(Void)) : Void
+      instance.mesh_surface_update_index_region(mesh, surface, offset, data)
+    end
     @@mb_mesh_surface_get_vertex_buffer_rd_rid : Void* = Pointer(Void).null
     def mesh_surface_get_vertex_buffer_rd_rid(mesh : Int64, surface : Int64) : Int64
       godot_bind(@@mb_mesh_surface_get_vertex_buffer_rd_rid, "RenderingServer", "mesh_surface_get_vertex_buffer_rd_rid", 1066463050_i64)
@@ -4972,6 +6042,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_mesh_surface_get_vertex_buffer_rd_rid, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `mesh_surface_get_vertex_buffer_rd_rid`
+    def self.mesh_surface_get_vertex_buffer_rd_rid(mesh : Int64, surface : Int64) : Int64
+      instance.mesh_surface_get_vertex_buffer_rd_rid(mesh, surface)
     end
     @@mb_mesh_surface_get_attribute_buffer_rd_rid : Void* = Pointer(Void).null
     def mesh_surface_get_attribute_buffer_rd_rid(mesh : Int64, surface : Int64) : Int64
@@ -4983,6 +6057,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_mesh_surface_get_attribute_buffer_rd_rid, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `mesh_surface_get_attribute_buffer_rd_rid`
+    def self.mesh_surface_get_attribute_buffer_rd_rid(mesh : Int64, surface : Int64) : Int64
+      instance.mesh_surface_get_attribute_buffer_rd_rid(mesh, surface)
+    end
     @@mb_mesh_surface_get_skin_buffer_rd_rid : Void* = Pointer(Void).null
     def mesh_surface_get_skin_buffer_rd_rid(mesh : Int64, surface : Int64) : Int64
       godot_bind(@@mb_mesh_surface_get_skin_buffer_rd_rid, "RenderingServer", "mesh_surface_get_skin_buffer_rd_rid", 1066463050_i64)
@@ -4992,6 +6070,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_mesh_surface_get_skin_buffer_rd_rid, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `mesh_surface_get_skin_buffer_rd_rid`
+    def self.mesh_surface_get_skin_buffer_rd_rid(mesh : Int64, surface : Int64) : Int64
+      instance.mesh_surface_get_skin_buffer_rd_rid(mesh, surface)
     end
     @@mb_mesh_surface_get_index_buffer_rd_rid : Void* = Pointer(Void).null
     def mesh_surface_get_index_buffer_rd_rid(mesh : Int64, surface : Int64) : Int64
@@ -5003,6 +6085,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_mesh_surface_get_index_buffer_rd_rid, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `mesh_surface_get_index_buffer_rd_rid`
+    def self.mesh_surface_get_index_buffer_rd_rid(mesh : Int64, surface : Int64) : Int64
+      instance.mesh_surface_get_index_buffer_rd_rid(mesh, surface)
+    end
     @@mb_mesh_set_shadow_mesh : Void* = Pointer(Void).null
     def mesh_set_shadow_mesh(mesh : Int64, shadow_mesh : Int64) : Void
       godot_bind(@@mb_mesh_set_shadow_mesh, "RenderingServer", "mesh_set_shadow_mesh", 395945892_i64)
@@ -5013,10 +6099,18 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_mesh_set_shadow_mesh, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `mesh_set_shadow_mesh`
+    def self.mesh_set_shadow_mesh(mesh : Int64, shadow_mesh : Int64) : Void
+      instance.mesh_set_shadow_mesh(mesh, shadow_mesh)
+    end
     @@mb_multimesh_create : Void* = Pointer(Void).null
     def multimesh_create() : Int64
       godot_bind(@@mb_multimesh_create, "RenderingServer", "multimesh_create", 529393457_i64)
       godot_ptrcall_int(@@mb_multimesh_create, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `multimesh_create`
+    def self.multimesh_create() : Int64
+      instance.multimesh_create()
     end
     @@mb_multimesh_allocate_data : Void* = Pointer(Void).null
     def multimesh_allocate_data(multimesh : Int64, instances : Int64, transform_format : MultimeshTransformFormat | Int, color_format : Bool = false, custom_data_format : Bool = false, use_indirect : Bool = false) : Void
@@ -5036,6 +6130,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5]
       godot_ptrcall_void(@@mb_multimesh_allocate_data, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `multimesh_allocate_data`
+    def self.multimesh_allocate_data(multimesh : Int64, instances : Int64, transform_format : MultimeshTransformFormat | Int, color_format : Bool = false, custom_data_format : Bool = false, use_indirect : Bool = false) : Void
+      instance.multimesh_allocate_data(multimesh, instances, transform_format, color_format, custom_data_format, use_indirect)
+    end
     @@mb_multimesh_get_instance_count : Void* = Pointer(Void).null
     def multimesh_get_instance_count(multimesh : Int64) : Int64
       godot_bind(@@mb_multimesh_get_instance_count, "RenderingServer", "multimesh_get_instance_count", 2198884583_i64)
@@ -5043,6 +6141,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_multimesh_get_instance_count, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `multimesh_get_instance_count`
+    def self.multimesh_get_instance_count(multimesh : Int64) : Int64
+      instance.multimesh_get_instance_count(multimesh)
     end
     @@mb_multimesh_set_mesh : Void* = Pointer(Void).null
     def multimesh_set_mesh(multimesh : Int64, mesh : Int64) : Void
@@ -5053,6 +6155,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_multimesh_set_mesh, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `multimesh_set_mesh`
+    def self.multimesh_set_mesh(multimesh : Int64, mesh : Int64) : Void
+      instance.multimesh_set_mesh(multimesh, mesh)
     end
     @@mb_multimesh_instance_set_transform : Void* = Pointer(Void).null
     def multimesh_instance_set_transform(multimesh : Int64, index : Int64, transform : Transform3D) : Void
@@ -5066,6 +6172,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_multimesh_instance_set_transform, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `multimesh_instance_set_transform`
+    def self.multimesh_instance_set_transform(multimesh : Int64, index : Int64, transform : Transform3D) : Void
+      instance.multimesh_instance_set_transform(multimesh, index, transform)
+    end
     @@mb_multimesh_instance_set_transform_2d : Void* = Pointer(Void).null
     def multimesh_instance_set_transform_2d(multimesh : Int64, index : Int64, transform : Transform2D) : Void
       godot_bind(@@mb_multimesh_instance_set_transform_2d, "RenderingServer", "multimesh_instance_set_transform_2d", 736082694_i64)
@@ -5077,6 +6187,10 @@ module Godot
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_multimesh_instance_set_transform_2d, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `multimesh_instance_set_transform_2d`
+    def self.multimesh_instance_set_transform_2d(multimesh : Int64, index : Int64, transform : Transform2D) : Void
+      instance.multimesh_instance_set_transform_2d(multimesh, index, transform)
     end
     @@mb_multimesh_instance_set_color : Void* = Pointer(Void).null
     def multimesh_instance_set_color(multimesh : Int64, index : Int64, color : Color) : Void
@@ -5090,6 +6204,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_multimesh_instance_set_color, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `multimesh_instance_set_color`
+    def self.multimesh_instance_set_color(multimesh : Int64, index : Int64, color : Color) : Void
+      instance.multimesh_instance_set_color(multimesh, index, color)
+    end
     @@mb_multimesh_instance_set_custom_data : Void* = Pointer(Void).null
     def multimesh_instance_set_custom_data(multimesh : Int64, index : Int64, custom_data : Color) : Void
       godot_bind(@@mb_multimesh_instance_set_custom_data, "RenderingServer", "multimesh_instance_set_custom_data", 176975443_i64)
@@ -5102,6 +6220,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_multimesh_instance_set_custom_data, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `multimesh_instance_set_custom_data`
+    def self.multimesh_instance_set_custom_data(multimesh : Int64, index : Int64, custom_data : Color) : Void
+      instance.multimesh_instance_set_custom_data(multimesh, index, custom_data)
+    end
     @@mb_multimesh_get_mesh : Void* = Pointer(Void).null
     def multimesh_get_mesh(multimesh : Int64) : Int64
       godot_bind(@@mb_multimesh_get_mesh, "RenderingServer", "multimesh_get_mesh", 3814569979_i64)
@@ -5110,6 +6232,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_multimesh_get_mesh, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `multimesh_get_mesh`
+    def self.multimesh_get_mesh(multimesh : Int64) : Int64
+      instance.multimesh_get_mesh(multimesh)
+    end
     @@mb_multimesh_get_aabb : Void* = Pointer(Void).null
     def multimesh_get_aabb(multimesh : Int64) : AABB
       godot_bind(@@mb_multimesh_get_aabb, "RenderingServer", "multimesh_get_aabb", 974181306_i64)
@@ -5117,6 +6243,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_multimesh_get_aabb, @pointer, args.to_unsafe.as(Void**), AABB)
+    end
+    # Class-level singleton delegator for `multimesh_get_aabb`
+    def self.multimesh_get_aabb(multimesh : Int64) : AABB
+      instance.multimesh_get_aabb(multimesh)
     end
     @@mb_multimesh_set_custom_aabb : Void* = Pointer(Void).null
     def multimesh_set_custom_aabb(multimesh : Int64, aabb : AABB) : Void
@@ -5128,6 +6258,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_multimesh_set_custom_aabb, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `multimesh_set_custom_aabb`
+    def self.multimesh_set_custom_aabb(multimesh : Int64, aabb : AABB) : Void
+      instance.multimesh_set_custom_aabb(multimesh, aabb)
+    end
     @@mb_multimesh_get_custom_aabb : Void* = Pointer(Void).null
     def multimesh_get_custom_aabb(multimesh : Int64) : AABB
       godot_bind(@@mb_multimesh_get_custom_aabb, "RenderingServer", "multimesh_get_custom_aabb", 974181306_i64)
@@ -5135,6 +6269,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_multimesh_get_custom_aabb, @pointer, args.to_unsafe.as(Void**), AABB)
+    end
+    # Class-level singleton delegator for `multimesh_get_custom_aabb`
+    def self.multimesh_get_custom_aabb(multimesh : Int64) : AABB
+      instance.multimesh_get_custom_aabb(multimesh)
     end
     @@mb_multimesh_instance_get_transform : Void* = Pointer(Void).null
     def multimesh_instance_get_transform(multimesh : Int64, index : Int64) : Transform3D
@@ -5146,6 +6284,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_val(@@mb_multimesh_instance_get_transform, @pointer, args.to_unsafe.as(Void**), Transform3D)
     end
+    # Class-level singleton delegator for `multimesh_instance_get_transform`
+    def self.multimesh_instance_get_transform(multimesh : Int64, index : Int64) : Transform3D
+      instance.multimesh_instance_get_transform(multimesh, index)
+    end
     @@mb_multimesh_instance_get_transform_2d : Void* = Pointer(Void).null
     def multimesh_instance_get_transform_2d(multimesh : Int64, index : Int64) : Transform2D
       godot_bind(@@mb_multimesh_instance_get_transform_2d, "RenderingServer", "multimesh_instance_get_transform_2d", 1324854622_i64)
@@ -5155,6 +6297,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_val(@@mb_multimesh_instance_get_transform_2d, @pointer, args.to_unsafe.as(Void**), Transform2D)
+    end
+    # Class-level singleton delegator for `multimesh_instance_get_transform_2d`
+    def self.multimesh_instance_get_transform_2d(multimesh : Int64, index : Int64) : Transform2D
+      instance.multimesh_instance_get_transform_2d(multimesh, index)
     end
     @@mb_multimesh_instance_get_color : Void* = Pointer(Void).null
     def multimesh_instance_get_color(multimesh : Int64, index : Int64) : Color
@@ -5166,6 +6312,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_val(@@mb_multimesh_instance_get_color, @pointer, args.to_unsafe.as(Void**), Color)
     end
+    # Class-level singleton delegator for `multimesh_instance_get_color`
+    def self.multimesh_instance_get_color(multimesh : Int64, index : Int64) : Color
+      instance.multimesh_instance_get_color(multimesh, index)
+    end
     @@mb_multimesh_instance_get_custom_data : Void* = Pointer(Void).null
     def multimesh_instance_get_custom_data(multimesh : Int64, index : Int64) : Color
       godot_bind(@@mb_multimesh_instance_get_custom_data, "RenderingServer", "multimesh_instance_get_custom_data", 2946315076_i64)
@@ -5175,6 +6325,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_val(@@mb_multimesh_instance_get_custom_data, @pointer, args.to_unsafe.as(Void**), Color)
+    end
+    # Class-level singleton delegator for `multimesh_instance_get_custom_data`
+    def self.multimesh_instance_get_custom_data(multimesh : Int64, index : Int64) : Color
+      instance.multimesh_instance_get_custom_data(multimesh, index)
     end
     @@mb_multimesh_set_visible_instances : Void* = Pointer(Void).null
     def multimesh_set_visible_instances(multimesh : Int64, visible : Int64) : Void
@@ -5186,6 +6340,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_multimesh_set_visible_instances, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `multimesh_set_visible_instances`
+    def self.multimesh_set_visible_instances(multimesh : Int64, visible : Int64) : Void
+      instance.multimesh_set_visible_instances(multimesh, visible)
+    end
     @@mb_multimesh_get_visible_instances : Void* = Pointer(Void).null
     def multimesh_get_visible_instances(multimesh : Int64) : Int64
       godot_bind(@@mb_multimesh_get_visible_instances, "RenderingServer", "multimesh_get_visible_instances", 2198884583_i64)
@@ -5193,6 +6351,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_multimesh_get_visible_instances, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `multimesh_get_visible_instances`
+    def self.multimesh_get_visible_instances(multimesh : Int64) : Int64
+      instance.multimesh_get_visible_instances(multimesh)
     end
     @@mb_multimesh_set_buffer : Void* = Pointer(Void).null
     def multimesh_set_buffer(multimesh : Int64, buffer : Pointer(Void)) : Void
@@ -5204,6 +6366,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_multimesh_set_buffer, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `multimesh_set_buffer`
+    def self.multimesh_set_buffer(multimesh : Int64, buffer : Pointer(Void)) : Void
+      instance.multimesh_set_buffer(multimesh, buffer)
+    end
     @@mb_multimesh_get_command_buffer_rd_rid : Void* = Pointer(Void).null
     def multimesh_get_command_buffer_rd_rid(multimesh : Int64) : Int64
       godot_bind(@@mb_multimesh_get_command_buffer_rd_rid, "RenderingServer", "multimesh_get_command_buffer_rd_rid", 3814569979_i64)
@@ -5212,6 +6378,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_multimesh_get_command_buffer_rd_rid, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `multimesh_get_command_buffer_rd_rid`
+    def self.multimesh_get_command_buffer_rd_rid(multimesh : Int64) : Int64
+      instance.multimesh_get_command_buffer_rd_rid(multimesh)
+    end
     @@mb_multimesh_get_buffer_rd_rid : Void* = Pointer(Void).null
     def multimesh_get_buffer_rd_rid(multimesh : Int64) : Int64
       godot_bind(@@mb_multimesh_get_buffer_rd_rid, "RenderingServer", "multimesh_get_buffer_rd_rid", 3814569979_i64)
@@ -5219,6 +6389,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_multimesh_get_buffer_rd_rid, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `multimesh_get_buffer_rd_rid`
+    def self.multimesh_get_buffer_rd_rid(multimesh : Int64) : Int64
+      instance.multimesh_get_buffer_rd_rid(multimesh)
     end
     @@mb_multimesh_get_buffer : Void* = Pointer(Void).null
     def multimesh_get_buffer(multimesh : Int64) : Pointer(Void)
@@ -5229,6 +6403,10 @@ module Godot
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_multimesh_get_buffer, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
       ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+    end
+    # Class-level singleton delegator for `multimesh_get_buffer`
+    def self.multimesh_get_buffer(multimesh : Int64) : Pointer(Void)
+      instance.multimesh_get_buffer(multimesh)
     end
     @@mb_multimesh_set_buffer_interpolated : Void* = Pointer(Void).null
     def multimesh_set_buffer_interpolated(multimesh : Int64, buffer : Pointer(Void), buffer_previous : Pointer(Void)) : Void
@@ -5242,6 +6420,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_multimesh_set_buffer_interpolated, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `multimesh_set_buffer_interpolated`
+    def self.multimesh_set_buffer_interpolated(multimesh : Int64, buffer : Pointer(Void), buffer_previous : Pointer(Void)) : Void
+      instance.multimesh_set_buffer_interpolated(multimesh, buffer, buffer_previous)
+    end
     @@mb_multimesh_set_physics_interpolated : Void* = Pointer(Void).null
     def multimesh_set_physics_interpolated(multimesh : Int64, interpolated : Bool) : Void
       godot_bind(@@mb_multimesh_set_physics_interpolated, "RenderingServer", "multimesh_set_physics_interpolated", 1265174801_i64)
@@ -5251,6 +6433,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_multimesh_set_physics_interpolated, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `multimesh_set_physics_interpolated`
+    def self.multimesh_set_physics_interpolated(multimesh : Int64, interpolated : Bool) : Void
+      instance.multimesh_set_physics_interpolated(multimesh, interpolated)
     end
     @@mb_multimesh_set_physics_interpolation_quality : Void* = Pointer(Void).null
     def multimesh_set_physics_interpolation_quality(multimesh : Int64, quality : MultimeshPhysicsInterpolationQuality | Int) : Void
@@ -5262,6 +6448,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_multimesh_set_physics_interpolation_quality, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `multimesh_set_physics_interpolation_quality`
+    def self.multimesh_set_physics_interpolation_quality(multimesh : Int64, quality : MultimeshPhysicsInterpolationQuality | Int) : Void
+      instance.multimesh_set_physics_interpolation_quality(multimesh, quality)
+    end
     @@mb_multimesh_instance_reset_physics_interpolation : Void* = Pointer(Void).null
     def multimesh_instance_reset_physics_interpolation(multimesh : Int64, index : Int64) : Void
       godot_bind(@@mb_multimesh_instance_reset_physics_interpolation, "RenderingServer", "multimesh_instance_reset_physics_interpolation", 3411492887_i64)
@@ -5272,6 +6462,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_multimesh_instance_reset_physics_interpolation, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `multimesh_instance_reset_physics_interpolation`
+    def self.multimesh_instance_reset_physics_interpolation(multimesh : Int64, index : Int64) : Void
+      instance.multimesh_instance_reset_physics_interpolation(multimesh, index)
+    end
     @@mb_multimesh_instances_reset_physics_interpolation : Void* = Pointer(Void).null
     def multimesh_instances_reset_physics_interpolation(multimesh : Int64) : Void
       godot_bind(@@mb_multimesh_instances_reset_physics_interpolation, "RenderingServer", "multimesh_instances_reset_physics_interpolation", 2722037293_i64)
@@ -5280,10 +6474,18 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_multimesh_instances_reset_physics_interpolation, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `multimesh_instances_reset_physics_interpolation`
+    def self.multimesh_instances_reset_physics_interpolation(multimesh : Int64) : Void
+      instance.multimesh_instances_reset_physics_interpolation(multimesh)
+    end
     @@mb_skeleton_create : Void* = Pointer(Void).null
     def skeleton_create() : Int64
       godot_bind(@@mb_skeleton_create, "RenderingServer", "skeleton_create", 529393457_i64)
       godot_ptrcall_int(@@mb_skeleton_create, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `skeleton_create`
+    def self.skeleton_create() : Int64
+      instance.skeleton_create()
     end
     @@mb_skeleton_allocate_data : Void* = Pointer(Void).null
     def skeleton_allocate_data(skeleton : Int64, bones : Int64, is_2d_skeleton : Bool = false) : Void
@@ -5297,6 +6499,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_skeleton_allocate_data, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `skeleton_allocate_data`
+    def self.skeleton_allocate_data(skeleton : Int64, bones : Int64, is_2d_skeleton : Bool = false) : Void
+      instance.skeleton_allocate_data(skeleton, bones, is_2d_skeleton)
+    end
     @@mb_skeleton_get_bone_count : Void* = Pointer(Void).null
     def skeleton_get_bone_count(skeleton : Int64) : Int64
       godot_bind(@@mb_skeleton_get_bone_count, "RenderingServer", "skeleton_get_bone_count", 2198884583_i64)
@@ -5304,6 +6510,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_skeleton_get_bone_count, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `skeleton_get_bone_count`
+    def self.skeleton_get_bone_count(skeleton : Int64) : Int64
+      instance.skeleton_get_bone_count(skeleton)
     end
     @@mb_skeleton_bone_set_transform : Void* = Pointer(Void).null
     def skeleton_bone_set_transform(skeleton : Int64, bone : Int64, transform : Transform3D) : Void
@@ -5317,6 +6527,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_skeleton_bone_set_transform, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `skeleton_bone_set_transform`
+    def self.skeleton_bone_set_transform(skeleton : Int64, bone : Int64, transform : Transform3D) : Void
+      instance.skeleton_bone_set_transform(skeleton, bone, transform)
+    end
     @@mb_skeleton_bone_get_transform : Void* = Pointer(Void).null
     def skeleton_bone_get_transform(skeleton : Int64, bone : Int64) : Transform3D
       godot_bind(@@mb_skeleton_bone_get_transform, "RenderingServer", "skeleton_bone_get_transform", 1050775521_i64)
@@ -5326,6 +6540,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_val(@@mb_skeleton_bone_get_transform, @pointer, args.to_unsafe.as(Void**), Transform3D)
+    end
+    # Class-level singleton delegator for `skeleton_bone_get_transform`
+    def self.skeleton_bone_get_transform(skeleton : Int64, bone : Int64) : Transform3D
+      instance.skeleton_bone_get_transform(skeleton, bone)
     end
     @@mb_skeleton_bone_set_transform_2d : Void* = Pointer(Void).null
     def skeleton_bone_set_transform_2d(skeleton : Int64, bone : Int64, transform : Transform2D) : Void
@@ -5339,6 +6557,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_skeleton_bone_set_transform_2d, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `skeleton_bone_set_transform_2d`
+    def self.skeleton_bone_set_transform_2d(skeleton : Int64, bone : Int64, transform : Transform2D) : Void
+      instance.skeleton_bone_set_transform_2d(skeleton, bone, transform)
+    end
     @@mb_skeleton_bone_get_transform_2d : Void* = Pointer(Void).null
     def skeleton_bone_get_transform_2d(skeleton : Int64, bone : Int64) : Transform2D
       godot_bind(@@mb_skeleton_bone_get_transform_2d, "RenderingServer", "skeleton_bone_get_transform_2d", 1324854622_i64)
@@ -5348,6 +6570,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_val(@@mb_skeleton_bone_get_transform_2d, @pointer, args.to_unsafe.as(Void**), Transform2D)
+    end
+    # Class-level singleton delegator for `skeleton_bone_get_transform_2d`
+    def self.skeleton_bone_get_transform_2d(skeleton : Int64, bone : Int64) : Transform2D
+      instance.skeleton_bone_get_transform_2d(skeleton, bone)
     end
     @@mb_skeleton_set_base_transform_2d : Void* = Pointer(Void).null
     def skeleton_set_base_transform_2d(skeleton : Int64, base_transform : Transform2D) : Void
@@ -5359,25 +6585,45 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_skeleton_set_base_transform_2d, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `skeleton_set_base_transform_2d`
+    def self.skeleton_set_base_transform_2d(skeleton : Int64, base_transform : Transform2D) : Void
+      instance.skeleton_set_base_transform_2d(skeleton, base_transform)
+    end
     @@mb_directional_light_create : Void* = Pointer(Void).null
     def directional_light_create() : Int64
       godot_bind(@@mb_directional_light_create, "RenderingServer", "directional_light_create", 529393457_i64)
       godot_ptrcall_int(@@mb_directional_light_create, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `directional_light_create`
+    def self.directional_light_create() : Int64
+      instance.directional_light_create()
     end
     @@mb_omni_light_create : Void* = Pointer(Void).null
     def omni_light_create() : Int64
       godot_bind(@@mb_omni_light_create, "RenderingServer", "omni_light_create", 529393457_i64)
       godot_ptrcall_int(@@mb_omni_light_create, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Class-level singleton delegator for `omni_light_create`
+    def self.omni_light_create() : Int64
+      instance.omni_light_create()
+    end
     @@mb_spot_light_create : Void* = Pointer(Void).null
     def spot_light_create() : Int64
       godot_bind(@@mb_spot_light_create, "RenderingServer", "spot_light_create", 529393457_i64)
       godot_ptrcall_int(@@mb_spot_light_create, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Class-level singleton delegator for `spot_light_create`
+    def self.spot_light_create() : Int64
+      instance.spot_light_create()
+    end
     @@mb_area_light_create : Void* = Pointer(Void).null
     def area_light_create() : Int64
       godot_bind(@@mb_area_light_create, "RenderingServer", "area_light_create", 529393457_i64)
       godot_ptrcall_int(@@mb_area_light_create, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `area_light_create`
+    def self.area_light_create() : Int64
+      instance.area_light_create()
     end
     @@mb_light_set_color : Void* = Pointer(Void).null
     def light_set_color(light : Int64, color : Color) : Void
@@ -5388,6 +6634,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_light_set_color, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `light_set_color`
+    def self.light_set_color(light : Int64, color : Color) : Void
+      instance.light_set_color(light, color)
     end
     @@mb_light_set_param : Void* = Pointer(Void).null
     def light_set_param(light : Int64, param : LightParam | Int, value : Float64) : Void
@@ -5401,6 +6651,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_light_set_param, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `light_set_param`
+    def self.light_set_param(light : Int64, param : LightParam | Int, value : Float64) : Void
+      instance.light_set_param(light, param, value)
+    end
     @@mb_light_set_shadow : Void* = Pointer(Void).null
     def light_set_shadow(light : Int64, enabled : Bool) : Void
       godot_bind(@@mb_light_set_shadow, "RenderingServer", "light_set_shadow", 1265174801_i64)
@@ -5410,6 +6664,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_light_set_shadow, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `light_set_shadow`
+    def self.light_set_shadow(light : Int64, enabled : Bool) : Void
+      instance.light_set_shadow(light, enabled)
     end
     @@mb_light_set_projector : Void* = Pointer(Void).null
     def light_set_projector(light : Int64, texture : Int64) : Void
@@ -5421,6 +6679,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_light_set_projector, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `light_set_projector`
+    def self.light_set_projector(light : Int64, texture : Int64) : Void
+      instance.light_set_projector(light, texture)
+    end
     @@mb_light_set_negative : Void* = Pointer(Void).null
     def light_set_negative(light : Int64, enable : Bool) : Void
       godot_bind(@@mb_light_set_negative, "RenderingServer", "light_set_negative", 1265174801_i64)
@@ -5431,6 +6693,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_light_set_negative, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `light_set_negative`
+    def self.light_set_negative(light : Int64, enable : Bool) : Void
+      instance.light_set_negative(light, enable)
+    end
     @@mb_light_set_cull_mask : Void* = Pointer(Void).null
     def light_set_cull_mask(light : Int64, mask : Int64) : Void
       godot_bind(@@mb_light_set_cull_mask, "RenderingServer", "light_set_cull_mask", 3411492887_i64)
@@ -5440,6 +6706,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_light_set_cull_mask, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `light_set_cull_mask`
+    def self.light_set_cull_mask(light : Int64, mask : Int64) : Void
+      instance.light_set_cull_mask(light, mask)
     end
     @@mb_light_set_distance_fade : Void* = Pointer(Void).null
     def light_set_distance_fade(decal : Int64, enabled : Bool, begin_val : Float64, shadow : Float64, length : Float64) : Void
@@ -5457,6 +6727,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
       godot_ptrcall_void(@@mb_light_set_distance_fade, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `light_set_distance_fade`
+    def self.light_set_distance_fade(decal : Int64, enabled : Bool, begin_val : Float64, shadow : Float64, length : Float64) : Void
+      instance.light_set_distance_fade(decal, enabled, begin_val, shadow, length)
+    end
     @@mb_light_set_reverse_cull_face_mode : Void* = Pointer(Void).null
     def light_set_reverse_cull_face_mode(light : Int64, enabled : Bool) : Void
       godot_bind(@@mb_light_set_reverse_cull_face_mode, "RenderingServer", "light_set_reverse_cull_face_mode", 1265174801_i64)
@@ -5466,6 +6740,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_light_set_reverse_cull_face_mode, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `light_set_reverse_cull_face_mode`
+    def self.light_set_reverse_cull_face_mode(light : Int64, enabled : Bool) : Void
+      instance.light_set_reverse_cull_face_mode(light, enabled)
     end
     @@mb_light_set_shadow_caster_mask : Void* = Pointer(Void).null
     def light_set_shadow_caster_mask(light : Int64, mask : Int64) : Void
@@ -5477,6 +6755,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_light_set_shadow_caster_mask, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `light_set_shadow_caster_mask`
+    def self.light_set_shadow_caster_mask(light : Int64, mask : Int64) : Void
+      instance.light_set_shadow_caster_mask(light, mask)
+    end
     @@mb_light_set_bake_mode : Void* = Pointer(Void).null
     def light_set_bake_mode(light : Int64, bake_mode : LightBakeMode | Int) : Void
       godot_bind(@@mb_light_set_bake_mode, "RenderingServer", "light_set_bake_mode", 1048525260_i64)
@@ -5486,6 +6768,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_light_set_bake_mode, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `light_set_bake_mode`
+    def self.light_set_bake_mode(light : Int64, bake_mode : LightBakeMode | Int) : Void
+      instance.light_set_bake_mode(light, bake_mode)
     end
     @@mb_light_set_max_sdfgi_cascade : Void* = Pointer(Void).null
     def light_set_max_sdfgi_cascade(light : Int64, cascade : Int64) : Void
@@ -5497,6 +6783,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_light_set_max_sdfgi_cascade, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `light_set_max_sdfgi_cascade`
+    def self.light_set_max_sdfgi_cascade(light : Int64, cascade : Int64) : Void
+      instance.light_set_max_sdfgi_cascade(light, cascade)
+    end
     @@mb_light_set_allow_contact_shadows : Void* = Pointer(Void).null
     def light_set_allow_contact_shadows(light : Int64, enable : Bool) : Void
       godot_bind(@@mb_light_set_allow_contact_shadows, "RenderingServer", "light_set_allow_contact_shadows", 1265174801_i64)
@@ -5506,6 +6796,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_light_set_allow_contact_shadows, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `light_set_allow_contact_shadows`
+    def self.light_set_allow_contact_shadows(light : Int64, enable : Bool) : Void
+      instance.light_set_allow_contact_shadows(light, enable)
     end
     @@mb_light_omni_set_shadow_mode : Void* = Pointer(Void).null
     def light_omni_set_shadow_mode(light : Int64, mode : LightOmniShadowMode | Int) : Void
@@ -5517,6 +6811,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_light_omni_set_shadow_mode, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `light_omni_set_shadow_mode`
+    def self.light_omni_set_shadow_mode(light : Int64, mode : LightOmniShadowMode | Int) : Void
+      instance.light_omni_set_shadow_mode(light, mode)
+    end
     @@mb_light_directional_set_shadow_mode : Void* = Pointer(Void).null
     def light_directional_set_shadow_mode(light : Int64, mode : LightDirectionalShadowMode | Int) : Void
       godot_bind(@@mb_light_directional_set_shadow_mode, "RenderingServer", "light_directional_set_shadow_mode", 380462970_i64)
@@ -5526,6 +6824,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_light_directional_set_shadow_mode, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `light_directional_set_shadow_mode`
+    def self.light_directional_set_shadow_mode(light : Int64, mode : LightDirectionalShadowMode | Int) : Void
+      instance.light_directional_set_shadow_mode(light, mode)
     end
     @@mb_light_directional_set_blend_splits : Void* = Pointer(Void).null
     def light_directional_set_blend_splits(light : Int64, enable : Bool) : Void
@@ -5537,6 +6839,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_light_directional_set_blend_splits, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `light_directional_set_blend_splits`
+    def self.light_directional_set_blend_splits(light : Int64, enable : Bool) : Void
+      instance.light_directional_set_blend_splits(light, enable)
+    end
     @@mb_light_directional_set_sky_mode : Void* = Pointer(Void).null
     def light_directional_set_sky_mode(light : Int64, mode : LightDirectionalSkyMode | Int) : Void
       godot_bind(@@mb_light_directional_set_sky_mode, "RenderingServer", "light_directional_set_sky_mode", 2559740754_i64)
@@ -5546,6 +6852,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_light_directional_set_sky_mode, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `light_directional_set_sky_mode`
+    def self.light_directional_set_sky_mode(light : Int64, mode : LightDirectionalSkyMode | Int) : Void
+      instance.light_directional_set_sky_mode(light, mode)
     end
     @@mb_light_area_set_size : Void* = Pointer(Void).null
     def light_area_set_size(light : Int64, size : Vector2) : Void
@@ -5557,6 +6867,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_light_area_set_size, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `light_area_set_size`
+    def self.light_area_set_size(light : Int64, size : Vector2) : Void
+      instance.light_area_set_size(light, size)
+    end
     @@mb_light_area_set_normalize_energy : Void* = Pointer(Void).null
     def light_area_set_normalize_energy(light : Int64, enable : Bool) : Void
       godot_bind(@@mb_light_area_set_normalize_energy, "RenderingServer", "light_area_set_normalize_energy", 1265174801_i64)
@@ -5567,6 +6881,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_light_area_set_normalize_energy, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `light_area_set_normalize_energy`
+    def self.light_area_set_normalize_energy(light : Int64, enable : Bool) : Void
+      instance.light_area_set_normalize_energy(light, enable)
+    end
     @@mb_light_projectors_set_filter : Void* = Pointer(Void).null
     def light_projectors_set_filter(filter : LightProjectorFilter | Int) : Void
       godot_bind(@@mb_light_projectors_set_filter, "RenderingServer", "light_projectors_set_filter", 43944325_i64)
@@ -5574,6 +6892,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_light_projectors_set_filter, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `light_projectors_set_filter`
+    def self.light_projectors_set_filter(filter : LightProjectorFilter | Int) : Void
+      instance.light_projectors_set_filter(filter)
     end
     @@mb_lightmaps_set_bicubic_filter : Void* = Pointer(Void).null
     def lightmaps_set_bicubic_filter(enable : Bool) : Void
@@ -5583,6 +6905,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_lightmaps_set_bicubic_filter, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `lightmaps_set_bicubic_filter`
+    def self.lightmaps_set_bicubic_filter(enable : Bool) : Void
+      instance.lightmaps_set_bicubic_filter(enable)
+    end
     @@mb_positional_soft_shadow_filter_set_quality : Void* = Pointer(Void).null
     def positional_soft_shadow_filter_set_quality(quality : ShadowQuality | Int) : Void
       godot_bind(@@mb_positional_soft_shadow_filter_set_quality, "RenderingServer", "positional_soft_shadow_filter_set_quality", 3613045266_i64)
@@ -5591,6 +6917,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_positional_soft_shadow_filter_set_quality, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `positional_soft_shadow_filter_set_quality`
+    def self.positional_soft_shadow_filter_set_quality(quality : ShadowQuality | Int) : Void
+      instance.positional_soft_shadow_filter_set_quality(quality)
+    end
     @@mb_directional_soft_shadow_filter_set_quality : Void* = Pointer(Void).null
     def directional_soft_shadow_filter_set_quality(quality : ShadowQuality | Int) : Void
       godot_bind(@@mb_directional_soft_shadow_filter_set_quality, "RenderingServer", "directional_soft_shadow_filter_set_quality", 3613045266_i64)
@@ -5598,6 +6928,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_directional_soft_shadow_filter_set_quality, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `directional_soft_shadow_filter_set_quality`
+    def self.directional_soft_shadow_filter_set_quality(quality : ShadowQuality | Int) : Void
+      instance.directional_soft_shadow_filter_set_quality(quality)
     end
     @@mb_directional_shadow_atlas_set_size : Void* = Pointer(Void).null
     def directional_shadow_atlas_set_size(size : Int64, is_16bits : Bool) : Void
@@ -5609,10 +6943,18 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_directional_shadow_atlas_set_size, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `directional_shadow_atlas_set_size`
+    def self.directional_shadow_atlas_set_size(size : Int64, is_16bits : Bool) : Void
+      instance.directional_shadow_atlas_set_size(size, is_16bits)
+    end
     @@mb_reflection_probe_create : Void* = Pointer(Void).null
     def reflection_probe_create() : Int64
       godot_bind(@@mb_reflection_probe_create, "RenderingServer", "reflection_probe_create", 529393457_i64)
       godot_ptrcall_int(@@mb_reflection_probe_create, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `reflection_probe_create`
+    def self.reflection_probe_create() : Int64
+      instance.reflection_probe_create()
     end
     @@mb_reflection_probe_set_update_mode : Void* = Pointer(Void).null
     def reflection_probe_set_update_mode(probe : Int64, mode : ReflectionProbeUpdateMode | Int) : Void
@@ -5624,6 +6966,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_reflection_probe_set_update_mode, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `reflection_probe_set_update_mode`
+    def self.reflection_probe_set_update_mode(probe : Int64, mode : ReflectionProbeUpdateMode | Int) : Void
+      instance.reflection_probe_set_update_mode(probe, mode)
+    end
     @@mb_reflection_probe_set_intensity : Void* = Pointer(Void).null
     def reflection_probe_set_intensity(probe : Int64, intensity : Float64) : Void
       godot_bind(@@mb_reflection_probe_set_intensity, "RenderingServer", "reflection_probe_set_intensity", 1794382983_i64)
@@ -5633,6 +6979,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_reflection_probe_set_intensity, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `reflection_probe_set_intensity`
+    def self.reflection_probe_set_intensity(probe : Int64, intensity : Float64) : Void
+      instance.reflection_probe_set_intensity(probe, intensity)
     end
     @@mb_reflection_probe_set_blend_distance : Void* = Pointer(Void).null
     def reflection_probe_set_blend_distance(probe : Int64, blend_distance : Float64) : Void
@@ -5644,6 +6994,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_reflection_probe_set_blend_distance, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `reflection_probe_set_blend_distance`
+    def self.reflection_probe_set_blend_distance(probe : Int64, blend_distance : Float64) : Void
+      instance.reflection_probe_set_blend_distance(probe, blend_distance)
+    end
     @@mb_reflection_probe_set_ambient_mode : Void* = Pointer(Void).null
     def reflection_probe_set_ambient_mode(probe : Int64, mode : ReflectionProbeAmbientMode | Int) : Void
       godot_bind(@@mb_reflection_probe_set_ambient_mode, "RenderingServer", "reflection_probe_set_ambient_mode", 184163074_i64)
@@ -5653,6 +7007,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_reflection_probe_set_ambient_mode, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `reflection_probe_set_ambient_mode`
+    def self.reflection_probe_set_ambient_mode(probe : Int64, mode : ReflectionProbeAmbientMode | Int) : Void
+      instance.reflection_probe_set_ambient_mode(probe, mode)
     end
     @@mb_reflection_probe_set_ambient_color : Void* = Pointer(Void).null
     def reflection_probe_set_ambient_color(probe : Int64, color : Color) : Void
@@ -5664,6 +7022,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_reflection_probe_set_ambient_color, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `reflection_probe_set_ambient_color`
+    def self.reflection_probe_set_ambient_color(probe : Int64, color : Color) : Void
+      instance.reflection_probe_set_ambient_color(probe, color)
+    end
     @@mb_reflection_probe_set_ambient_energy : Void* = Pointer(Void).null
     def reflection_probe_set_ambient_energy(probe : Int64, energy : Float64) : Void
       godot_bind(@@mb_reflection_probe_set_ambient_energy, "RenderingServer", "reflection_probe_set_ambient_energy", 1794382983_i64)
@@ -5673,6 +7035,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_reflection_probe_set_ambient_energy, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `reflection_probe_set_ambient_energy`
+    def self.reflection_probe_set_ambient_energy(probe : Int64, energy : Float64) : Void
+      instance.reflection_probe_set_ambient_energy(probe, energy)
     end
     @@mb_reflection_probe_set_max_distance : Void* = Pointer(Void).null
     def reflection_probe_set_max_distance(probe : Int64, distance : Float64) : Void
@@ -5684,6 +7050,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_reflection_probe_set_max_distance, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `reflection_probe_set_max_distance`
+    def self.reflection_probe_set_max_distance(probe : Int64, distance : Float64) : Void
+      instance.reflection_probe_set_max_distance(probe, distance)
+    end
     @@mb_reflection_probe_set_size : Void* = Pointer(Void).null
     def reflection_probe_set_size(probe : Int64, size : Vector3) : Void
       godot_bind(@@mb_reflection_probe_set_size, "RenderingServer", "reflection_probe_set_size", 3227306858_i64)
@@ -5693,6 +7063,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_reflection_probe_set_size, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `reflection_probe_set_size`
+    def self.reflection_probe_set_size(probe : Int64, size : Vector3) : Void
+      instance.reflection_probe_set_size(probe, size)
     end
     @@mb_reflection_probe_set_origin_offset : Void* = Pointer(Void).null
     def reflection_probe_set_origin_offset(probe : Int64, offset : Vector3) : Void
@@ -5704,6 +7078,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_reflection_probe_set_origin_offset, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `reflection_probe_set_origin_offset`
+    def self.reflection_probe_set_origin_offset(probe : Int64, offset : Vector3) : Void
+      instance.reflection_probe_set_origin_offset(probe, offset)
+    end
     @@mb_reflection_probe_set_as_interior : Void* = Pointer(Void).null
     def reflection_probe_set_as_interior(probe : Int64, enable : Bool) : Void
       godot_bind(@@mb_reflection_probe_set_as_interior, "RenderingServer", "reflection_probe_set_as_interior", 1265174801_i64)
@@ -5713,6 +7091,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_reflection_probe_set_as_interior, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `reflection_probe_set_as_interior`
+    def self.reflection_probe_set_as_interior(probe : Int64, enable : Bool) : Void
+      instance.reflection_probe_set_as_interior(probe, enable)
     end
     @@mb_reflection_probe_set_enable_box_projection : Void* = Pointer(Void).null
     def reflection_probe_set_enable_box_projection(probe : Int64, enable : Bool) : Void
@@ -5724,6 +7106,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_reflection_probe_set_enable_box_projection, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `reflection_probe_set_enable_box_projection`
+    def self.reflection_probe_set_enable_box_projection(probe : Int64, enable : Bool) : Void
+      instance.reflection_probe_set_enable_box_projection(probe, enable)
+    end
     @@mb_reflection_probe_set_enable_shadows : Void* = Pointer(Void).null
     def reflection_probe_set_enable_shadows(probe : Int64, enable : Bool) : Void
       godot_bind(@@mb_reflection_probe_set_enable_shadows, "RenderingServer", "reflection_probe_set_enable_shadows", 1265174801_i64)
@@ -5733,6 +7119,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_reflection_probe_set_enable_shadows, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `reflection_probe_set_enable_shadows`
+    def self.reflection_probe_set_enable_shadows(probe : Int64, enable : Bool) : Void
+      instance.reflection_probe_set_enable_shadows(probe, enable)
     end
     @@mb_reflection_probe_set_cull_mask : Void* = Pointer(Void).null
     def reflection_probe_set_cull_mask(probe : Int64, layers : Int64) : Void
@@ -5744,6 +7134,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_reflection_probe_set_cull_mask, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `reflection_probe_set_cull_mask`
+    def self.reflection_probe_set_cull_mask(probe : Int64, layers : Int64) : Void
+      instance.reflection_probe_set_cull_mask(probe, layers)
+    end
     @@mb_reflection_probe_set_reflection_mask : Void* = Pointer(Void).null
     def reflection_probe_set_reflection_mask(probe : Int64, layers : Int64) : Void
       godot_bind(@@mb_reflection_probe_set_reflection_mask, "RenderingServer", "reflection_probe_set_reflection_mask", 3411492887_i64)
@@ -5753,6 +7147,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_reflection_probe_set_reflection_mask, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `reflection_probe_set_reflection_mask`
+    def self.reflection_probe_set_reflection_mask(probe : Int64, layers : Int64) : Void
+      instance.reflection_probe_set_reflection_mask(probe, layers)
     end
     @@mb_reflection_probe_set_resolution : Void* = Pointer(Void).null
     def reflection_probe_set_resolution(probe : Int64, resolution : Int64) : Void
@@ -5764,6 +7162,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_reflection_probe_set_resolution, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `reflection_probe_set_resolution`
+    def self.reflection_probe_set_resolution(probe : Int64, resolution : Int64) : Void
+      instance.reflection_probe_set_resolution(probe, resolution)
+    end
     @@mb_reflection_probe_set_mesh_lod_threshold : Void* = Pointer(Void).null
     def reflection_probe_set_mesh_lod_threshold(probe : Int64, pixels : Float64) : Void
       godot_bind(@@mb_reflection_probe_set_mesh_lod_threshold, "RenderingServer", "reflection_probe_set_mesh_lod_threshold", 1794382983_i64)
@@ -5774,10 +7176,18 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_reflection_probe_set_mesh_lod_threshold, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `reflection_probe_set_mesh_lod_threshold`
+    def self.reflection_probe_set_mesh_lod_threshold(probe : Int64, pixels : Float64) : Void
+      instance.reflection_probe_set_mesh_lod_threshold(probe, pixels)
+    end
     @@mb_decal_create : Void* = Pointer(Void).null
     def decal_create() : Int64
       godot_bind(@@mb_decal_create, "RenderingServer", "decal_create", 529393457_i64)
       godot_ptrcall_int(@@mb_decal_create, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `decal_create`
+    def self.decal_create() : Int64
+      instance.decal_create()
     end
     @@mb_decal_set_size : Void* = Pointer(Void).null
     def decal_set_size(decal : Int64, size : Vector3) : Void
@@ -5788,6 +7198,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_decal_set_size, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `decal_set_size`
+    def self.decal_set_size(decal : Int64, size : Vector3) : Void
+      instance.decal_set_size(decal, size)
     end
     @@mb_decal_set_texture : Void* = Pointer(Void).null
     def decal_set_texture(decal : Int64, get_type : DecalTexture | Int, texture : Int64) : Void
@@ -5801,6 +7215,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_decal_set_texture, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `decal_set_texture`
+    def self.decal_set_texture(decal : Int64, get_type : DecalTexture | Int, texture : Int64) : Void
+      instance.decal_set_texture(decal, get_type, texture)
+    end
     @@mb_decal_set_emission_energy : Void* = Pointer(Void).null
     def decal_set_emission_energy(decal : Int64, energy : Float64) : Void
       godot_bind(@@mb_decal_set_emission_energy, "RenderingServer", "decal_set_emission_energy", 1794382983_i64)
@@ -5810,6 +7228,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_decal_set_emission_energy, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `decal_set_emission_energy`
+    def self.decal_set_emission_energy(decal : Int64, energy : Float64) : Void
+      instance.decal_set_emission_energy(decal, energy)
     end
     @@mb_decal_set_albedo_mix : Void* = Pointer(Void).null
     def decal_set_albedo_mix(decal : Int64, albedo_mix : Float64) : Void
@@ -5821,6 +7243,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_decal_set_albedo_mix, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `decal_set_albedo_mix`
+    def self.decal_set_albedo_mix(decal : Int64, albedo_mix : Float64) : Void
+      instance.decal_set_albedo_mix(decal, albedo_mix)
+    end
     @@mb_decal_set_modulate : Void* = Pointer(Void).null
     def decal_set_modulate(decal : Int64, color : Color) : Void
       godot_bind(@@mb_decal_set_modulate, "RenderingServer", "decal_set_modulate", 2948539648_i64)
@@ -5831,6 +7257,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_decal_set_modulate, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `decal_set_modulate`
+    def self.decal_set_modulate(decal : Int64, color : Color) : Void
+      instance.decal_set_modulate(decal, color)
+    end
     @@mb_decal_set_cull_mask : Void* = Pointer(Void).null
     def decal_set_cull_mask(decal : Int64, mask : Int64) : Void
       godot_bind(@@mb_decal_set_cull_mask, "RenderingServer", "decal_set_cull_mask", 3411492887_i64)
@@ -5840,6 +7270,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_decal_set_cull_mask, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `decal_set_cull_mask`
+    def self.decal_set_cull_mask(decal : Int64, mask : Int64) : Void
+      instance.decal_set_cull_mask(decal, mask)
     end
     @@mb_decal_set_distance_fade : Void* = Pointer(Void).null
     def decal_set_distance_fade(decal : Int64, enabled : Bool, begin_val : Float64, length : Float64) : Void
@@ -5855,6 +7289,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_decal_set_distance_fade, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `decal_set_distance_fade`
+    def self.decal_set_distance_fade(decal : Int64, enabled : Bool, begin_val : Float64, length : Float64) : Void
+      instance.decal_set_distance_fade(decal, enabled, begin_val, length)
+    end
     @@mb_decal_set_fade : Void* = Pointer(Void).null
     def decal_set_fade(decal : Int64, above : Float64, below : Float64) : Void
       godot_bind(@@mb_decal_set_fade, "RenderingServer", "decal_set_fade", 2513314492_i64)
@@ -5867,6 +7305,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_decal_set_fade, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `decal_set_fade`
+    def self.decal_set_fade(decal : Int64, above : Float64, below : Float64) : Void
+      instance.decal_set_fade(decal, above, below)
+    end
     @@mb_decal_set_normal_fade : Void* = Pointer(Void).null
     def decal_set_normal_fade(decal : Int64, fade : Float64) : Void
       godot_bind(@@mb_decal_set_normal_fade, "RenderingServer", "decal_set_normal_fade", 1794382983_i64)
@@ -5877,6 +7319,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_decal_set_normal_fade, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `decal_set_normal_fade`
+    def self.decal_set_normal_fade(decal : Int64, fade : Float64) : Void
+      instance.decal_set_normal_fade(decal, fade)
+    end
     @@mb_decals_set_filter : Void* = Pointer(Void).null
     def decals_set_filter(filter : DecalFilter | Int) : Void
       godot_bind(@@mb_decals_set_filter, "RenderingServer", "decals_set_filter", 3519875702_i64)
@@ -5884,6 +7330,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_decals_set_filter, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `decals_set_filter`
+    def self.decals_set_filter(filter : DecalFilter | Int) : Void
+      instance.decals_set_filter(filter)
     end
     @@mb_gi_set_use_half_resolution : Void* = Pointer(Void).null
     def gi_set_use_half_resolution(half_resolution : Bool) : Void
@@ -5893,10 +7343,18 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_gi_set_use_half_resolution, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `gi_set_use_half_resolution`
+    def self.gi_set_use_half_resolution(half_resolution : Bool) : Void
+      instance.gi_set_use_half_resolution(half_resolution)
+    end
     @@mb_voxel_gi_create : Void* = Pointer(Void).null
     def voxel_gi_create() : Int64
       godot_bind(@@mb_voxel_gi_create, "RenderingServer", "voxel_gi_create", 529393457_i64)
       godot_ptrcall_int(@@mb_voxel_gi_create, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `voxel_gi_create`
+    def self.voxel_gi_create() : Int64
+      instance.voxel_gi_create()
     end
     @@mb_voxel_gi_allocate_data : Void* = Pointer(Void).null
     def voxel_gi_allocate_data(voxel_gi : Int64, to_cell_xform : Transform3D, aabb : AABB, octree_size : Vector3i, octree_cells : Pointer(Void), data_cells : Pointer(Void), distance_field : Pointer(Void), level_counts : Pointer(Void)) : Void
@@ -5920,6 +7378,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5, arg_6, arg_7]
       godot_ptrcall_void(@@mb_voxel_gi_allocate_data, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `voxel_gi_allocate_data`
+    def self.voxel_gi_allocate_data(voxel_gi : Int64, to_cell_xform : Transform3D, aabb : AABB, octree_size : Vector3i, octree_cells : Pointer(Void), data_cells : Pointer(Void), distance_field : Pointer(Void), level_counts : Pointer(Void)) : Void
+      instance.voxel_gi_allocate_data(voxel_gi, to_cell_xform, aabb, octree_size, octree_cells, data_cells, distance_field, level_counts)
+    end
     @@mb_voxel_gi_get_octree_size : Void* = Pointer(Void).null
     def voxel_gi_get_octree_size(voxel_gi : Int64) : Vector3i
       godot_bind(@@mb_voxel_gi_get_octree_size, "RenderingServer", "voxel_gi_get_octree_size", 2607699645_i64)
@@ -5927,6 +7389,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_voxel_gi_get_octree_size, @pointer, args.to_unsafe.as(Void**), Vector3i)
+    end
+    # Class-level singleton delegator for `voxel_gi_get_octree_size`
+    def self.voxel_gi_get_octree_size(voxel_gi : Int64) : Vector3i
+      instance.voxel_gi_get_octree_size(voxel_gi)
     end
     @@mb_voxel_gi_get_octree_cells : Void* = Pointer(Void).null
     def voxel_gi_get_octree_cells(voxel_gi : Int64) : Pointer(Void)
@@ -5938,6 +7404,10 @@ module Godot
       godot_ptrcall(@@mb_voxel_gi_get_octree_cells, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
       ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
+    # Class-level singleton delegator for `voxel_gi_get_octree_cells`
+    def self.voxel_gi_get_octree_cells(voxel_gi : Int64) : Pointer(Void)
+      instance.voxel_gi_get_octree_cells(voxel_gi)
+    end
     @@mb_voxel_gi_get_data_cells : Void* = Pointer(Void).null
     def voxel_gi_get_data_cells(voxel_gi : Int64) : Pointer(Void)
       godot_bind(@@mb_voxel_gi_get_data_cells, "RenderingServer", "voxel_gi_get_data_cells", 3348040486_i64)
@@ -5947,6 +7417,10 @@ module Godot
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_voxel_gi_get_data_cells, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
       ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+    end
+    # Class-level singleton delegator for `voxel_gi_get_data_cells`
+    def self.voxel_gi_get_data_cells(voxel_gi : Int64) : Pointer(Void)
+      instance.voxel_gi_get_data_cells(voxel_gi)
     end
     @@mb_voxel_gi_get_distance_field : Void* = Pointer(Void).null
     def voxel_gi_get_distance_field(voxel_gi : Int64) : Pointer(Void)
@@ -5958,6 +7432,10 @@ module Godot
       godot_ptrcall(@@mb_voxel_gi_get_distance_field, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
       ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
+    # Class-level singleton delegator for `voxel_gi_get_distance_field`
+    def self.voxel_gi_get_distance_field(voxel_gi : Int64) : Pointer(Void)
+      instance.voxel_gi_get_distance_field(voxel_gi)
+    end
     @@mb_voxel_gi_get_level_counts : Void* = Pointer(Void).null
     def voxel_gi_get_level_counts(voxel_gi : Int64) : Pointer(Void)
       godot_bind(@@mb_voxel_gi_get_level_counts, "RenderingServer", "voxel_gi_get_level_counts", 788230395_i64)
@@ -5968,6 +7446,10 @@ module Godot
       godot_ptrcall(@@mb_voxel_gi_get_level_counts, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
       ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
+    # Class-level singleton delegator for `voxel_gi_get_level_counts`
+    def self.voxel_gi_get_level_counts(voxel_gi : Int64) : Pointer(Void)
+      instance.voxel_gi_get_level_counts(voxel_gi)
+    end
     @@mb_voxel_gi_get_to_cell_xform : Void* = Pointer(Void).null
     def voxel_gi_get_to_cell_xform(voxel_gi : Int64) : Transform3D
       godot_bind(@@mb_voxel_gi_get_to_cell_xform, "RenderingServer", "voxel_gi_get_to_cell_xform", 1128465797_i64)
@@ -5975,6 +7457,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_voxel_gi_get_to_cell_xform, @pointer, args.to_unsafe.as(Void**), Transform3D)
+    end
+    # Class-level singleton delegator for `voxel_gi_get_to_cell_xform`
+    def self.voxel_gi_get_to_cell_xform(voxel_gi : Int64) : Transform3D
+      instance.voxel_gi_get_to_cell_xform(voxel_gi)
     end
     @@mb_voxel_gi_set_dynamic_range : Void* = Pointer(Void).null
     def voxel_gi_set_dynamic_range(voxel_gi : Int64, range : Float64) : Void
@@ -5986,6 +7472,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_voxel_gi_set_dynamic_range, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `voxel_gi_set_dynamic_range`
+    def self.voxel_gi_set_dynamic_range(voxel_gi : Int64, range : Float64) : Void
+      instance.voxel_gi_set_dynamic_range(voxel_gi, range)
+    end
     @@mb_voxel_gi_set_propagation : Void* = Pointer(Void).null
     def voxel_gi_set_propagation(voxel_gi : Int64, amount : Float64) : Void
       godot_bind(@@mb_voxel_gi_set_propagation, "RenderingServer", "voxel_gi_set_propagation", 1794382983_i64)
@@ -5995,6 +7485,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_voxel_gi_set_propagation, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `voxel_gi_set_propagation`
+    def self.voxel_gi_set_propagation(voxel_gi : Int64, amount : Float64) : Void
+      instance.voxel_gi_set_propagation(voxel_gi, amount)
     end
     @@mb_voxel_gi_set_energy : Void* = Pointer(Void).null
     def voxel_gi_set_energy(voxel_gi : Int64, energy : Float64) : Void
@@ -6006,6 +7500,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_voxel_gi_set_energy, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `voxel_gi_set_energy`
+    def self.voxel_gi_set_energy(voxel_gi : Int64, energy : Float64) : Void
+      instance.voxel_gi_set_energy(voxel_gi, energy)
+    end
     @@mb_voxel_gi_set_baked_exposure_normalization : Void* = Pointer(Void).null
     def voxel_gi_set_baked_exposure_normalization(voxel_gi : Int64, baked_exposure : Float64) : Void
       godot_bind(@@mb_voxel_gi_set_baked_exposure_normalization, "RenderingServer", "voxel_gi_set_baked_exposure_normalization", 1794382983_i64)
@@ -6015,6 +7513,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_voxel_gi_set_baked_exposure_normalization, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `voxel_gi_set_baked_exposure_normalization`
+    def self.voxel_gi_set_baked_exposure_normalization(voxel_gi : Int64, baked_exposure : Float64) : Void
+      instance.voxel_gi_set_baked_exposure_normalization(voxel_gi, baked_exposure)
     end
     @@mb_voxel_gi_set_bias : Void* = Pointer(Void).null
     def voxel_gi_set_bias(voxel_gi : Int64, bias : Float64) : Void
@@ -6026,6 +7528,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_voxel_gi_set_bias, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `voxel_gi_set_bias`
+    def self.voxel_gi_set_bias(voxel_gi : Int64, bias : Float64) : Void
+      instance.voxel_gi_set_bias(voxel_gi, bias)
+    end
     @@mb_voxel_gi_set_normal_bias : Void* = Pointer(Void).null
     def voxel_gi_set_normal_bias(voxel_gi : Int64, bias : Float64) : Void
       godot_bind(@@mb_voxel_gi_set_normal_bias, "RenderingServer", "voxel_gi_set_normal_bias", 1794382983_i64)
@@ -6035,6 +7541,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_voxel_gi_set_normal_bias, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `voxel_gi_set_normal_bias`
+    def self.voxel_gi_set_normal_bias(voxel_gi : Int64, bias : Float64) : Void
+      instance.voxel_gi_set_normal_bias(voxel_gi, bias)
     end
     @@mb_voxel_gi_set_interior : Void* = Pointer(Void).null
     def voxel_gi_set_interior(voxel_gi : Int64, enable : Bool) : Void
@@ -6046,6 +7556,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_voxel_gi_set_interior, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `voxel_gi_set_interior`
+    def self.voxel_gi_set_interior(voxel_gi : Int64, enable : Bool) : Void
+      instance.voxel_gi_set_interior(voxel_gi, enable)
+    end
     @@mb_voxel_gi_set_use_two_bounces : Void* = Pointer(Void).null
     def voxel_gi_set_use_two_bounces(voxel_gi : Int64, enable : Bool) : Void
       godot_bind(@@mb_voxel_gi_set_use_two_bounces, "RenderingServer", "voxel_gi_set_use_two_bounces", 1265174801_i64)
@@ -6056,6 +7570,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_voxel_gi_set_use_two_bounces, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `voxel_gi_set_use_two_bounces`
+    def self.voxel_gi_set_use_two_bounces(voxel_gi : Int64, enable : Bool) : Void
+      instance.voxel_gi_set_use_two_bounces(voxel_gi, enable)
+    end
     @@mb_voxel_gi_set_quality : Void* = Pointer(Void).null
     def voxel_gi_set_quality(quality : VoxelGIQuality | Int) : Void
       godot_bind(@@mb_voxel_gi_set_quality, "RenderingServer", "voxel_gi_set_quality", 1538689978_i64)
@@ -6064,10 +7582,18 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_voxel_gi_set_quality, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `voxel_gi_set_quality`
+    def self.voxel_gi_set_quality(quality : VoxelGIQuality | Int) : Void
+      instance.voxel_gi_set_quality(quality)
+    end
     @@mb_lightmap_create : Void* = Pointer(Void).null
     def lightmap_create() : Int64
       godot_bind(@@mb_lightmap_create, "RenderingServer", "lightmap_create", 529393457_i64)
       godot_ptrcall_int(@@mb_lightmap_create, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `lightmap_create`
+    def self.lightmap_create() : Int64
+      instance.lightmap_create()
     end
     @@mb_lightmap_set_textures : Void* = Pointer(Void).null
     def lightmap_set_textures(lightmap : Int64, light : Int64, uses_sh : Bool) : Void
@@ -6081,6 +7607,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_lightmap_set_textures, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `lightmap_set_textures`
+    def self.lightmap_set_textures(lightmap : Int64, light : Int64, uses_sh : Bool) : Void
+      instance.lightmap_set_textures(lightmap, light, uses_sh)
+    end
     @@mb_lightmap_set_probe_bounds : Void* = Pointer(Void).null
     def lightmap_set_probe_bounds(lightmap : Int64, bounds : AABB) : Void
       godot_bind(@@mb_lightmap_set_probe_bounds, "RenderingServer", "lightmap_set_probe_bounds", 3696536120_i64)
@@ -6091,6 +7621,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_lightmap_set_probe_bounds, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `lightmap_set_probe_bounds`
+    def self.lightmap_set_probe_bounds(lightmap : Int64, bounds : AABB) : Void
+      instance.lightmap_set_probe_bounds(lightmap, bounds)
+    end
     @@mb_lightmap_set_probe_interior : Void* = Pointer(Void).null
     def lightmap_set_probe_interior(lightmap : Int64, interior : Bool) : Void
       godot_bind(@@mb_lightmap_set_probe_interior, "RenderingServer", "lightmap_set_probe_interior", 1265174801_i64)
@@ -6100,6 +7634,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_lightmap_set_probe_interior, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `lightmap_set_probe_interior`
+    def self.lightmap_set_probe_interior(lightmap : Int64, interior : Bool) : Void
+      instance.lightmap_set_probe_interior(lightmap, interior)
     end
     @@mb_lightmap_set_probe_capture_data : Void* = Pointer(Void).null
     def lightmap_set_probe_capture_data(lightmap : Int64, points : Pointer(Void), point_sh : Pointer(Void), tetrahedra : Pointer(Void), bsp_tree : Pointer(Void)) : Void
@@ -6117,6 +7655,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
       godot_ptrcall_void(@@mb_lightmap_set_probe_capture_data, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `lightmap_set_probe_capture_data`
+    def self.lightmap_set_probe_capture_data(lightmap : Int64, points : Pointer(Void), point_sh : Pointer(Void), tetrahedra : Pointer(Void), bsp_tree : Pointer(Void)) : Void
+      instance.lightmap_set_probe_capture_data(lightmap, points, point_sh, tetrahedra, bsp_tree)
+    end
     @@mb_lightmap_get_probe_capture_points : Void* = Pointer(Void).null
     def lightmap_get_probe_capture_points(lightmap : Int64) : Pointer(Void)
       godot_bind(@@mb_lightmap_get_probe_capture_points, "RenderingServer", "lightmap_get_probe_capture_points", 808965560_i64)
@@ -6126,6 +7668,10 @@ module Godot
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_lightmap_get_probe_capture_points, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
       ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+    end
+    # Class-level singleton delegator for `lightmap_get_probe_capture_points`
+    def self.lightmap_get_probe_capture_points(lightmap : Int64) : Pointer(Void)
+      instance.lightmap_get_probe_capture_points(lightmap)
     end
     @@mb_lightmap_get_probe_capture_sh : Void* = Pointer(Void).null
     def lightmap_get_probe_capture_sh(lightmap : Int64) : Pointer(Void)
@@ -6137,6 +7683,10 @@ module Godot
       godot_ptrcall(@@mb_lightmap_get_probe_capture_sh, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
       ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
+    # Class-level singleton delegator for `lightmap_get_probe_capture_sh`
+    def self.lightmap_get_probe_capture_sh(lightmap : Int64) : Pointer(Void)
+      instance.lightmap_get_probe_capture_sh(lightmap)
+    end
     @@mb_lightmap_get_probe_capture_tetrahedra : Void* = Pointer(Void).null
     def lightmap_get_probe_capture_tetrahedra(lightmap : Int64) : Pointer(Void)
       godot_bind(@@mb_lightmap_get_probe_capture_tetrahedra, "RenderingServer", "lightmap_get_probe_capture_tetrahedra", 788230395_i64)
@@ -6146,6 +7696,10 @@ module Godot
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_lightmap_get_probe_capture_tetrahedra, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
       ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+    end
+    # Class-level singleton delegator for `lightmap_get_probe_capture_tetrahedra`
+    def self.lightmap_get_probe_capture_tetrahedra(lightmap : Int64) : Pointer(Void)
+      instance.lightmap_get_probe_capture_tetrahedra(lightmap)
     end
     @@mb_lightmap_get_probe_capture_bsp_tree : Void* = Pointer(Void).null
     def lightmap_get_probe_capture_bsp_tree(lightmap : Int64) : Pointer(Void)
@@ -6157,6 +7711,10 @@ module Godot
       godot_ptrcall(@@mb_lightmap_get_probe_capture_bsp_tree, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
       ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
+    # Class-level singleton delegator for `lightmap_get_probe_capture_bsp_tree`
+    def self.lightmap_get_probe_capture_bsp_tree(lightmap : Int64) : Pointer(Void)
+      instance.lightmap_get_probe_capture_bsp_tree(lightmap)
+    end
     @@mb_lightmap_set_baked_exposure_normalization : Void* = Pointer(Void).null
     def lightmap_set_baked_exposure_normalization(lightmap : Int64, baked_exposure : Float64) : Void
       godot_bind(@@mb_lightmap_set_baked_exposure_normalization, "RenderingServer", "lightmap_set_baked_exposure_normalization", 1794382983_i64)
@@ -6167,6 +7725,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_lightmap_set_baked_exposure_normalization, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `lightmap_set_baked_exposure_normalization`
+    def self.lightmap_set_baked_exposure_normalization(lightmap : Int64, baked_exposure : Float64) : Void
+      instance.lightmap_set_baked_exposure_normalization(lightmap, baked_exposure)
+    end
     @@mb_lightmap_set_probe_capture_update_speed : Void* = Pointer(Void).null
     def lightmap_set_probe_capture_update_speed(speed : Float64) : Void
       godot_bind(@@mb_lightmap_set_probe_capture_update_speed, "RenderingServer", "lightmap_set_probe_capture_update_speed", 373806689_i64)
@@ -6175,10 +7737,18 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_lightmap_set_probe_capture_update_speed, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `lightmap_set_probe_capture_update_speed`
+    def self.lightmap_set_probe_capture_update_speed(speed : Float64) : Void
+      instance.lightmap_set_probe_capture_update_speed(speed)
+    end
     @@mb_particles_create : Void* = Pointer(Void).null
     def particles_create() : Int64
       godot_bind(@@mb_particles_create, "RenderingServer", "particles_create", 529393457_i64)
       godot_ptrcall_int(@@mb_particles_create, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `particles_create`
+    def self.particles_create() : Int64
+      instance.particles_create()
     end
     @@mb_particles_set_mode : Void* = Pointer(Void).null
     def particles_set_mode(particles : Int64, mode : ParticlesMode | Int) : Void
@@ -6190,6 +7760,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_mode, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `particles_set_mode`
+    def self.particles_set_mode(particles : Int64, mode : ParticlesMode | Int) : Void
+      instance.particles_set_mode(particles, mode)
+    end
     @@mb_particles_set_emitting : Void* = Pointer(Void).null
     def particles_set_emitting(particles : Int64, emitting : Bool) : Void
       godot_bind(@@mb_particles_set_emitting, "RenderingServer", "particles_set_emitting", 1265174801_i64)
@@ -6200,6 +7774,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_emitting, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `particles_set_emitting`
+    def self.particles_set_emitting(particles : Int64, emitting : Bool) : Void
+      instance.particles_set_emitting(particles, emitting)
+    end
     @@mb_particles_get_emitting : Void* = Pointer(Void).null
     def particles_get_emitting(particles : Int64) : Bool
       godot_bind(@@mb_particles_get_emitting, "RenderingServer", "particles_get_emitting", 3521089500_i64)
@@ -6208,9 +7786,17 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_particles_get_emitting, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `particles_get_emitting`
+    def self.particles_get_emitting(particles : Int64) : Bool
+      instance.particles_get_emitting(particles)
+    end
     # Predicate alias for `particles_get_emitting`
     def particles_get_emitting?(particles : Int64) : Bool
       particles_get_emitting(particles)
+    end
+    # Class-level singleton predicate delegator for `particles_get_emitting?`
+    def self.particles_get_emitting?(particles : Int64) : Bool
+      instance.particles_get_emitting?(particles)
     end
     @@mb_particles_set_amount : Void* = Pointer(Void).null
     def particles_set_amount(particles : Int64, amount : Int64) : Void
@@ -6222,6 +7808,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_amount, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `particles_set_amount`
+    def self.particles_set_amount(particles : Int64, amount : Int64) : Void
+      instance.particles_set_amount(particles, amount)
+    end
     @@mb_particles_set_amount_ratio : Void* = Pointer(Void).null
     def particles_set_amount_ratio(particles : Int64, ratio : Float64) : Void
       godot_bind(@@mb_particles_set_amount_ratio, "RenderingServer", "particles_set_amount_ratio", 1794382983_i64)
@@ -6231,6 +7821,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_amount_ratio, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `particles_set_amount_ratio`
+    def self.particles_set_amount_ratio(particles : Int64, ratio : Float64) : Void
+      instance.particles_set_amount_ratio(particles, ratio)
     end
     @@mb_particles_set_lifetime : Void* = Pointer(Void).null
     def particles_set_lifetime(particles : Int64, lifetime : Float64) : Void
@@ -6242,6 +7836,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_lifetime, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `particles_set_lifetime`
+    def self.particles_set_lifetime(particles : Int64, lifetime : Float64) : Void
+      instance.particles_set_lifetime(particles, lifetime)
+    end
     @@mb_particles_set_one_shot : Void* = Pointer(Void).null
     def particles_set_one_shot(particles : Int64, one_shot : Bool) : Void
       godot_bind(@@mb_particles_set_one_shot, "RenderingServer", "particles_set_one_shot", 1265174801_i64)
@@ -6252,6 +7850,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_one_shot, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `particles_set_one_shot`
+    def self.particles_set_one_shot(particles : Int64, one_shot : Bool) : Void
+      instance.particles_set_one_shot(particles, one_shot)
+    end
     @@mb_particles_set_pre_process_time : Void* = Pointer(Void).null
     def particles_set_pre_process_time(particles : Int64, time : Float64) : Void
       godot_bind(@@mb_particles_set_pre_process_time, "RenderingServer", "particles_set_pre_process_time", 1794382983_i64)
@@ -6261,6 +7863,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_pre_process_time, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `particles_set_pre_process_time`
+    def self.particles_set_pre_process_time(particles : Int64, time : Float64) : Void
+      instance.particles_set_pre_process_time(particles, time)
     end
     @@mb_particles_request_process_time : Void* = Pointer(Void).null
     def particles_request_process_time(particles : Int64, process_time : Float64, process_time_residual : Float64 = 0.0_f64) : Void
@@ -6274,6 +7880,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_particles_request_process_time, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `particles_request_process_time`
+    def self.particles_request_process_time(particles : Int64, process_time : Float64, process_time_residual : Float64 = 0.0_f64) : Void
+      instance.particles_request_process_time(particles, process_time, process_time_residual)
+    end
     @@mb_particles_set_explosiveness_ratio : Void* = Pointer(Void).null
     def particles_set_explosiveness_ratio(particles : Int64, ratio : Float64) : Void
       godot_bind(@@mb_particles_set_explosiveness_ratio, "RenderingServer", "particles_set_explosiveness_ratio", 1794382983_i64)
@@ -6283,6 +7893,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_explosiveness_ratio, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `particles_set_explosiveness_ratio`
+    def self.particles_set_explosiveness_ratio(particles : Int64, ratio : Float64) : Void
+      instance.particles_set_explosiveness_ratio(particles, ratio)
     end
     @@mb_particles_set_randomness_ratio : Void* = Pointer(Void).null
     def particles_set_randomness_ratio(particles : Int64, ratio : Float64) : Void
@@ -6294,6 +7908,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_randomness_ratio, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `particles_set_randomness_ratio`
+    def self.particles_set_randomness_ratio(particles : Int64, ratio : Float64) : Void
+      instance.particles_set_randomness_ratio(particles, ratio)
+    end
     @@mb_particles_set_interp_to_end : Void* = Pointer(Void).null
     def particles_set_interp_to_end(particles : Int64, factor : Float64) : Void
       godot_bind(@@mb_particles_set_interp_to_end, "RenderingServer", "particles_set_interp_to_end", 1794382983_i64)
@@ -6303,6 +7921,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_interp_to_end, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `particles_set_interp_to_end`
+    def self.particles_set_interp_to_end(particles : Int64, factor : Float64) : Void
+      instance.particles_set_interp_to_end(particles, factor)
     end
     @@mb_particles_set_emitter_velocity : Void* = Pointer(Void).null
     def particles_set_emitter_velocity(particles : Int64, velocity : Vector3) : Void
@@ -6314,6 +7936,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_emitter_velocity, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `particles_set_emitter_velocity`
+    def self.particles_set_emitter_velocity(particles : Int64, velocity : Vector3) : Void
+      instance.particles_set_emitter_velocity(particles, velocity)
+    end
     @@mb_particles_set_custom_aabb : Void* = Pointer(Void).null
     def particles_set_custom_aabb(particles : Int64, aabb : AABB) : Void
       godot_bind(@@mb_particles_set_custom_aabb, "RenderingServer", "particles_set_custom_aabb", 3696536120_i64)
@@ -6323,6 +7949,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_custom_aabb, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `particles_set_custom_aabb`
+    def self.particles_set_custom_aabb(particles : Int64, aabb : AABB) : Void
+      instance.particles_set_custom_aabb(particles, aabb)
     end
     @@mb_particles_set_speed_scale : Void* = Pointer(Void).null
     def particles_set_speed_scale(particles : Int64, scale : Float64) : Void
@@ -6334,6 +7964,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_speed_scale, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `particles_set_speed_scale`
+    def self.particles_set_speed_scale(particles : Int64, scale : Float64) : Void
+      instance.particles_set_speed_scale(particles, scale)
+    end
     @@mb_particles_set_use_local_coordinates : Void* = Pointer(Void).null
     def particles_set_use_local_coordinates(particles : Int64, enable : Bool) : Void
       godot_bind(@@mb_particles_set_use_local_coordinates, "RenderingServer", "particles_set_use_local_coordinates", 1265174801_i64)
@@ -6343,6 +7977,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_use_local_coordinates, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `particles_set_use_local_coordinates`
+    def self.particles_set_use_local_coordinates(particles : Int64, enable : Bool) : Void
+      instance.particles_set_use_local_coordinates(particles, enable)
     end
     @@mb_particles_set_process_material : Void* = Pointer(Void).null
     def particles_set_process_material(particles : Int64, material : Int64) : Void
@@ -6354,6 +7992,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_process_material, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `particles_set_process_material`
+    def self.particles_set_process_material(particles : Int64, material : Int64) : Void
+      instance.particles_set_process_material(particles, material)
+    end
     @@mb_particles_set_fixed_fps : Void* = Pointer(Void).null
     def particles_set_fixed_fps(particles : Int64, fps : Int64) : Void
       godot_bind(@@mb_particles_set_fixed_fps, "RenderingServer", "particles_set_fixed_fps", 3411492887_i64)
@@ -6363,6 +8005,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_fixed_fps, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `particles_set_fixed_fps`
+    def self.particles_set_fixed_fps(particles : Int64, fps : Int64) : Void
+      instance.particles_set_fixed_fps(particles, fps)
     end
     @@mb_particles_set_interpolate : Void* = Pointer(Void).null
     def particles_set_interpolate(particles : Int64, enable : Bool) : Void
@@ -6374,6 +8020,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_interpolate, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `particles_set_interpolate`
+    def self.particles_set_interpolate(particles : Int64, enable : Bool) : Void
+      instance.particles_set_interpolate(particles, enable)
+    end
     @@mb_particles_set_fractional_delta : Void* = Pointer(Void).null
     def particles_set_fractional_delta(particles : Int64, enable : Bool) : Void
       godot_bind(@@mb_particles_set_fractional_delta, "RenderingServer", "particles_set_fractional_delta", 1265174801_i64)
@@ -6383,6 +8033,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_fractional_delta, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `particles_set_fractional_delta`
+    def self.particles_set_fractional_delta(particles : Int64, enable : Bool) : Void
+      instance.particles_set_fractional_delta(particles, enable)
     end
     @@mb_particles_set_collision_base_size : Void* = Pointer(Void).null
     def particles_set_collision_base_size(particles : Int64, size : Float64) : Void
@@ -6394,6 +8048,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_collision_base_size, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `particles_set_collision_base_size`
+    def self.particles_set_collision_base_size(particles : Int64, size : Float64) : Void
+      instance.particles_set_collision_base_size(particles, size)
+    end
     @@mb_particles_set_transform_align : Void* = Pointer(Void).null
     def particles_set_transform_align(particles : Int64, align : ParticlesTransformAlign | Int) : Void
       godot_bind(@@mb_particles_set_transform_align, "RenderingServer", "particles_set_transform_align", 3264971368_i64)
@@ -6403,6 +8061,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_transform_align, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `particles_set_transform_align`
+    def self.particles_set_transform_align(particles : Int64, align : ParticlesTransformAlign | Int) : Void
+      instance.particles_set_transform_align(particles, align)
     end
     @@mb_particles_set_transform_align_channel_filter : Void* = Pointer(Void).null
     def particles_set_transform_align_channel_filter(particles : Int64, channel_filter : ParticlesTransformAlignCustomSrc | Int) : Void
@@ -6414,6 +8076,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_transform_align_channel_filter, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `particles_set_transform_align_channel_filter`
+    def self.particles_set_transform_align_channel_filter(particles : Int64, channel_filter : ParticlesTransformAlignCustomSrc | Int) : Void
+      instance.particles_set_transform_align_channel_filter(particles, channel_filter)
+    end
     @@mb_particles_set_transform_align_axis : Void* = Pointer(Void).null
     def particles_set_transform_align_axis(particles : Int64, rotation_axis : ParticlesTransformAlignAxis | Int) : Void
       godot_bind(@@mb_particles_set_transform_align_axis, "RenderingServer", "particles_set_transform_align_axis", 3065310065_i64)
@@ -6423,6 +8089,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_transform_align_axis, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `particles_set_transform_align_axis`
+    def self.particles_set_transform_align_axis(particles : Int64, rotation_axis : ParticlesTransformAlignAxis | Int) : Void
+      instance.particles_set_transform_align_axis(particles, rotation_axis)
     end
     @@mb_particles_set_trails : Void* = Pointer(Void).null
     def particles_set_trails(particles : Int64, enable : Bool, length_sec : Float64) : Void
@@ -6436,6 +8106,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_particles_set_trails, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `particles_set_trails`
+    def self.particles_set_trails(particles : Int64, enable : Bool, length_sec : Float64) : Void
+      instance.particles_set_trails(particles, enable, length_sec)
+    end
     @@mb_particles_set_trail_bind_poses : Void* = Pointer(Void).null
     def particles_set_trail_bind_poses(particles : Int64, bind_poses : Pointer(Void)) : Void
       godot_bind(@@mb_particles_set_trail_bind_poses, "RenderingServer", "particles_set_trail_bind_poses", 684822712_i64)
@@ -6446,6 +8120,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_trail_bind_poses, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `particles_set_trail_bind_poses`
+    def self.particles_set_trail_bind_poses(particles : Int64, bind_poses : Pointer(Void)) : Void
+      instance.particles_set_trail_bind_poses(particles, bind_poses)
+    end
     @@mb_particles_is_inactive : Void* = Pointer(Void).null
     def particles_is_inactive(particles : Int64) : Bool
       godot_bind(@@mb_particles_is_inactive, "RenderingServer", "particles_is_inactive", 3521089500_i64)
@@ -6454,9 +8132,17 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_particles_is_inactive, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `particles_is_inactive`
+    def self.particles_is_inactive(particles : Int64) : Bool
+      instance.particles_is_inactive(particles)
+    end
     # Predicate alias for `particles_is_inactive`
     def particles_is_inactive?(particles : Int64) : Bool
       particles_is_inactive(particles)
+    end
+    # Class-level singleton predicate delegator for `particles_is_inactive?`
+    def self.particles_is_inactive?(particles : Int64) : Bool
+      instance.particles_is_inactive?(particles)
     end
     @@mb_particles_request_process : Void* = Pointer(Void).null
     def particles_request_process(particles : Int64) : Void
@@ -6466,6 +8152,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_particles_request_process, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `particles_request_process`
+    def self.particles_request_process(particles : Int64) : Void
+      instance.particles_request_process(particles)
+    end
     @@mb_particles_restart : Void* = Pointer(Void).null
     def particles_restart(particles : Int64) : Void
       godot_bind(@@mb_particles_restart, "RenderingServer", "particles_restart", 2722037293_i64)
@@ -6473,6 +8163,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_particles_restart, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `particles_restart`
+    def self.particles_restart(particles : Int64) : Void
+      instance.particles_restart(particles)
     end
     @@mb_particles_set_subemitter : Void* = Pointer(Void).null
     def particles_set_subemitter(particles : Int64, subemitter_particles : Int64) : Void
@@ -6483,6 +8177,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_subemitter, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `particles_set_subemitter`
+    def self.particles_set_subemitter(particles : Int64, subemitter_particles : Int64) : Void
+      instance.particles_set_subemitter(particles, subemitter_particles)
     end
     @@mb_particles_emit : Void* = Pointer(Void).null
     def particles_emit(particles : Int64, transform : Transform3D, velocity : Vector3, color : Color, custom : Color, emit_flags : Int64) : Void
@@ -6502,6 +8200,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5]
       godot_ptrcall_void(@@mb_particles_emit, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `particles_emit`
+    def self.particles_emit(particles : Int64, transform : Transform3D, velocity : Vector3, color : Color, custom : Color, emit_flags : Int64) : Void
+      instance.particles_emit(particles, transform, velocity, color, custom, emit_flags)
+    end
     @@mb_particles_set_draw_order : Void* = Pointer(Void).null
     def particles_set_draw_order(particles : Int64, order : ParticlesDrawOrder | Int) : Void
       godot_bind(@@mb_particles_set_draw_order, "RenderingServer", "particles_set_draw_order", 935028487_i64)
@@ -6512,6 +8214,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_draw_order, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `particles_set_draw_order`
+    def self.particles_set_draw_order(particles : Int64, order : ParticlesDrawOrder | Int) : Void
+      instance.particles_set_draw_order(particles, order)
+    end
     @@mb_particles_set_draw_passes : Void* = Pointer(Void).null
     def particles_set_draw_passes(particles : Int64, count : Int64) : Void
       godot_bind(@@mb_particles_set_draw_passes, "RenderingServer", "particles_set_draw_passes", 3411492887_i64)
@@ -6521,6 +8227,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_draw_passes, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `particles_set_draw_passes`
+    def self.particles_set_draw_passes(particles : Int64, count : Int64) : Void
+      instance.particles_set_draw_passes(particles, count)
     end
     @@mb_particles_set_draw_pass_mesh : Void* = Pointer(Void).null
     def particles_set_draw_pass_mesh(particles : Int64, pass : Int64, mesh : Int64) : Void
@@ -6534,6 +8244,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_particles_set_draw_pass_mesh, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `particles_set_draw_pass_mesh`
+    def self.particles_set_draw_pass_mesh(particles : Int64, pass : Int64, mesh : Int64) : Void
+      instance.particles_set_draw_pass_mesh(particles, pass, mesh)
+    end
     @@mb_particles_get_current_aabb : Void* = Pointer(Void).null
     def particles_get_current_aabb(particles : Int64) : AABB
       godot_bind(@@mb_particles_get_current_aabb, "RenderingServer", "particles_get_current_aabb", 3952830260_i64)
@@ -6541,6 +8255,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_particles_get_current_aabb, @pointer, args.to_unsafe.as(Void**), AABB)
+    end
+    # Class-level singleton delegator for `particles_get_current_aabb`
+    def self.particles_get_current_aabb(particles : Int64) : AABB
+      instance.particles_get_current_aabb(particles)
     end
     @@mb_particles_set_emission_transform : Void* = Pointer(Void).null
     def particles_set_emission_transform(particles : Int64, transform : Transform3D) : Void
@@ -6552,10 +8270,18 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_set_emission_transform, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `particles_set_emission_transform`
+    def self.particles_set_emission_transform(particles : Int64, transform : Transform3D) : Void
+      instance.particles_set_emission_transform(particles, transform)
+    end
     @@mb_particles_collision_create : Void* = Pointer(Void).null
     def particles_collision_create() : Int64
       godot_bind(@@mb_particles_collision_create, "RenderingServer", "particles_collision_create", 529393457_i64)
       godot_ptrcall_int(@@mb_particles_collision_create, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `particles_collision_create`
+    def self.particles_collision_create() : Int64
+      instance.particles_collision_create()
     end
     @@mb_particles_collision_set_collision_type : Void* = Pointer(Void).null
     def particles_collision_set_collision_type(particles_collision : Int64, get_type : ParticlesCollisionType | Int) : Void
@@ -6567,6 +8293,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_collision_set_collision_type, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `particles_collision_set_collision_type`
+    def self.particles_collision_set_collision_type(particles_collision : Int64, get_type : ParticlesCollisionType | Int) : Void
+      instance.particles_collision_set_collision_type(particles_collision, get_type)
+    end
     @@mb_particles_collision_set_cull_mask : Void* = Pointer(Void).null
     def particles_collision_set_cull_mask(particles_collision : Int64, mask : Int64) : Void
       godot_bind(@@mb_particles_collision_set_cull_mask, "RenderingServer", "particles_collision_set_cull_mask", 3411492887_i64)
@@ -6576,6 +8306,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_collision_set_cull_mask, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `particles_collision_set_cull_mask`
+    def self.particles_collision_set_cull_mask(particles_collision : Int64, mask : Int64) : Void
+      instance.particles_collision_set_cull_mask(particles_collision, mask)
     end
     @@mb_particles_collision_set_sphere_radius : Void* = Pointer(Void).null
     def particles_collision_set_sphere_radius(particles_collision : Int64, radius : Float64) : Void
@@ -6587,6 +8321,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_collision_set_sphere_radius, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `particles_collision_set_sphere_radius`
+    def self.particles_collision_set_sphere_radius(particles_collision : Int64, radius : Float64) : Void
+      instance.particles_collision_set_sphere_radius(particles_collision, radius)
+    end
     @@mb_particles_collision_set_box_extents : Void* = Pointer(Void).null
     def particles_collision_set_box_extents(particles_collision : Int64, extents : Vector3) : Void
       godot_bind(@@mb_particles_collision_set_box_extents, "RenderingServer", "particles_collision_set_box_extents", 3227306858_i64)
@@ -6596,6 +8334,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_collision_set_box_extents, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `particles_collision_set_box_extents`
+    def self.particles_collision_set_box_extents(particles_collision : Int64, extents : Vector3) : Void
+      instance.particles_collision_set_box_extents(particles_collision, extents)
     end
     @@mb_particles_collision_set_attractor_strength : Void* = Pointer(Void).null
     def particles_collision_set_attractor_strength(particles_collision : Int64, strength : Float64) : Void
@@ -6607,6 +8349,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_collision_set_attractor_strength, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `particles_collision_set_attractor_strength`
+    def self.particles_collision_set_attractor_strength(particles_collision : Int64, strength : Float64) : Void
+      instance.particles_collision_set_attractor_strength(particles_collision, strength)
+    end
     @@mb_particles_collision_set_attractor_directionality : Void* = Pointer(Void).null
     def particles_collision_set_attractor_directionality(particles_collision : Int64, amount : Float64) : Void
       godot_bind(@@mb_particles_collision_set_attractor_directionality, "RenderingServer", "particles_collision_set_attractor_directionality", 1794382983_i64)
@@ -6616,6 +8362,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_collision_set_attractor_directionality, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `particles_collision_set_attractor_directionality`
+    def self.particles_collision_set_attractor_directionality(particles_collision : Int64, amount : Float64) : Void
+      instance.particles_collision_set_attractor_directionality(particles_collision, amount)
     end
     @@mb_particles_collision_set_attractor_attenuation : Void* = Pointer(Void).null
     def particles_collision_set_attractor_attenuation(particles_collision : Int64, curve : Float64) : Void
@@ -6627,6 +8377,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_collision_set_attractor_attenuation, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `particles_collision_set_attractor_attenuation`
+    def self.particles_collision_set_attractor_attenuation(particles_collision : Int64, curve : Float64) : Void
+      instance.particles_collision_set_attractor_attenuation(particles_collision, curve)
+    end
     @@mb_particles_collision_set_field_texture : Void* = Pointer(Void).null
     def particles_collision_set_field_texture(particles_collision : Int64, texture : Int64) : Void
       godot_bind(@@mb_particles_collision_set_field_texture, "RenderingServer", "particles_collision_set_field_texture", 395945892_i64)
@@ -6637,6 +8391,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_collision_set_field_texture, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `particles_collision_set_field_texture`
+    def self.particles_collision_set_field_texture(particles_collision : Int64, texture : Int64) : Void
+      instance.particles_collision_set_field_texture(particles_collision, texture)
+    end
     @@mb_particles_collision_height_field_update : Void* = Pointer(Void).null
     def particles_collision_height_field_update(particles_collision : Int64) : Void
       godot_bind(@@mb_particles_collision_height_field_update, "RenderingServer", "particles_collision_height_field_update", 2722037293_i64)
@@ -6644,6 +8402,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_particles_collision_height_field_update, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `particles_collision_height_field_update`
+    def self.particles_collision_height_field_update(particles_collision : Int64) : Void
+      instance.particles_collision_height_field_update(particles_collision)
     end
     @@mb_particles_collision_set_height_field_resolution : Void* = Pointer(Void).null
     def particles_collision_set_height_field_resolution(particles_collision : Int64, resolution : ParticlesCollisionHeightfieldResolution | Int) : Void
@@ -6655,6 +8417,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_collision_set_height_field_resolution, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `particles_collision_set_height_field_resolution`
+    def self.particles_collision_set_height_field_resolution(particles_collision : Int64, resolution : ParticlesCollisionHeightfieldResolution | Int) : Void
+      instance.particles_collision_set_height_field_resolution(particles_collision, resolution)
+    end
     @@mb_particles_collision_set_height_field_mask : Void* = Pointer(Void).null
     def particles_collision_set_height_field_mask(particles_collision : Int64, mask : Int64) : Void
       godot_bind(@@mb_particles_collision_set_height_field_mask, "RenderingServer", "particles_collision_set_height_field_mask", 3411492887_i64)
@@ -6665,10 +8431,18 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_particles_collision_set_height_field_mask, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `particles_collision_set_height_field_mask`
+    def self.particles_collision_set_height_field_mask(particles_collision : Int64, mask : Int64) : Void
+      instance.particles_collision_set_height_field_mask(particles_collision, mask)
+    end
     @@mb_fog_volume_create : Void* = Pointer(Void).null
     def fog_volume_create() : Int64
       godot_bind(@@mb_fog_volume_create, "RenderingServer", "fog_volume_create", 529393457_i64)
       godot_ptrcall_int(@@mb_fog_volume_create, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `fog_volume_create`
+    def self.fog_volume_create() : Int64
+      instance.fog_volume_create()
     end
     @@mb_fog_volume_set_shape : Void* = Pointer(Void).null
     def fog_volume_set_shape(fog_volume : Int64, shape : FogVolumeShape | Int) : Void
@@ -6680,6 +8454,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_fog_volume_set_shape, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `fog_volume_set_shape`
+    def self.fog_volume_set_shape(fog_volume : Int64, shape : FogVolumeShape | Int) : Void
+      instance.fog_volume_set_shape(fog_volume, shape)
+    end
     @@mb_fog_volume_set_size : Void* = Pointer(Void).null
     def fog_volume_set_size(fog_volume : Int64, size : Vector3) : Void
       godot_bind(@@mb_fog_volume_set_size, "RenderingServer", "fog_volume_set_size", 3227306858_i64)
@@ -6689,6 +8467,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_fog_volume_set_size, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `fog_volume_set_size`
+    def self.fog_volume_set_size(fog_volume : Int64, size : Vector3) : Void
+      instance.fog_volume_set_size(fog_volume, size)
     end
     @@mb_fog_volume_set_material : Void* = Pointer(Void).null
     def fog_volume_set_material(fog_volume : Int64, material : Int64) : Void
@@ -6700,10 +8482,18 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_fog_volume_set_material, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `fog_volume_set_material`
+    def self.fog_volume_set_material(fog_volume : Int64, material : Int64) : Void
+      instance.fog_volume_set_material(fog_volume, material)
+    end
     @@mb_visibility_notifier_create : Void* = Pointer(Void).null
     def visibility_notifier_create() : Int64
       godot_bind(@@mb_visibility_notifier_create, "RenderingServer", "visibility_notifier_create", 529393457_i64)
       godot_ptrcall_int(@@mb_visibility_notifier_create, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `visibility_notifier_create`
+    def self.visibility_notifier_create() : Int64
+      instance.visibility_notifier_create()
     end
     @@mb_visibility_notifier_set_aabb : Void* = Pointer(Void).null
     def visibility_notifier_set_aabb(notifier : Int64, aabb : AABB) : Void
@@ -6714,6 +8504,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_visibility_notifier_set_aabb, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `visibility_notifier_set_aabb`
+    def self.visibility_notifier_set_aabb(notifier : Int64, aabb : AABB) : Void
+      instance.visibility_notifier_set_aabb(notifier, aabb)
     end
     @@mb_visibility_notifier_set_callbacks : Void* = Pointer(Void).null
     def visibility_notifier_set_callbacks(notifier : Int64, enter_callable : Pointer(Void), exit_callable : Pointer(Void)) : Void
@@ -6727,10 +8521,18 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_visibility_notifier_set_callbacks, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `visibility_notifier_set_callbacks`
+    def self.visibility_notifier_set_callbacks(notifier : Int64, enter_callable : Pointer(Void), exit_callable : Pointer(Void)) : Void
+      instance.visibility_notifier_set_callbacks(notifier, enter_callable, exit_callable)
+    end
     @@mb_occluder_create : Void* = Pointer(Void).null
     def occluder_create() : Int64
       godot_bind(@@mb_occluder_create, "RenderingServer", "occluder_create", 529393457_i64)
       godot_ptrcall_int(@@mb_occluder_create, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `occluder_create`
+    def self.occluder_create() : Int64
+      instance.occluder_create()
     end
     @@mb_occluder_set_mesh : Void* = Pointer(Void).null
     def occluder_set_mesh(occluder : Int64, vertices : Pointer(Void), indices : Pointer(Void)) : Void
@@ -6744,10 +8546,18 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_occluder_set_mesh, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `occluder_set_mesh`
+    def self.occluder_set_mesh(occluder : Int64, vertices : Pointer(Void), indices : Pointer(Void)) : Void
+      instance.occluder_set_mesh(occluder, vertices, indices)
+    end
     @@mb_camera_create : Void* = Pointer(Void).null
     def camera_create() : Int64
       godot_bind(@@mb_camera_create, "RenderingServer", "camera_create", 529393457_i64)
       godot_ptrcall_int(@@mb_camera_create, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `camera_create`
+    def self.camera_create() : Int64
+      instance.camera_create()
     end
     @@mb_camera_set_perspective : Void* = Pointer(Void).null
     def camera_set_perspective(camera : Int64, fovy_degrees : Float64, z_near : Float64, z_far : Float64) : Void
@@ -6763,6 +8573,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_camera_set_perspective, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `camera_set_perspective`
+    def self.camera_set_perspective(camera : Int64, fovy_degrees : Float64, z_near : Float64, z_far : Float64) : Void
+      instance.camera_set_perspective(camera, fovy_degrees, z_near, z_far)
+    end
     @@mb_camera_set_orthogonal : Void* = Pointer(Void).null
     def camera_set_orthogonal(camera : Int64, size : Float64, z_near : Float64, z_far : Float64) : Void
       godot_bind(@@mb_camera_set_orthogonal, "RenderingServer", "camera_set_orthogonal", 157498339_i64)
@@ -6776,6 +8590,10 @@ module Godot
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_camera_set_orthogonal, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `camera_set_orthogonal`
+    def self.camera_set_orthogonal(camera : Int64, size : Float64, z_near : Float64, z_far : Float64) : Void
+      instance.camera_set_orthogonal(camera, size, z_near, z_far)
     end
     @@mb_camera_set_frustum : Void* = Pointer(Void).null
     def camera_set_frustum(camera : Int64, size : Float64, offset : Vector2, z_near : Float64, z_far : Float64) : Void
@@ -6793,6 +8611,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
       godot_ptrcall_void(@@mb_camera_set_frustum, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `camera_set_frustum`
+    def self.camera_set_frustum(camera : Int64, size : Float64, offset : Vector2, z_near : Float64, z_far : Float64) : Void
+      instance.camera_set_frustum(camera, size, offset, z_near, z_far)
+    end
     @@mb_camera_set_xr_projections : Void* = Pointer(Void).null
     def camera_set_xr_projections(camera : Int64, projections : Pointer(Void), offsets : Pointer(Void)) : Void
       godot_bind(@@mb_camera_set_xr_projections, "RenderingServer", "camera_set_xr_projections", 1352140595_i64)
@@ -6805,6 +8627,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_camera_set_xr_projections, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `camera_set_xr_projections`
+    def self.camera_set_xr_projections(camera : Int64, projections : Pointer(Void), offsets : Pointer(Void)) : Void
+      instance.camera_set_xr_projections(camera, projections, offsets)
+    end
     @@mb_camera_set_transform : Void* = Pointer(Void).null
     def camera_set_transform(camera : Int64, transform : Transform3D) : Void
       godot_bind(@@mb_camera_set_transform, "RenderingServer", "camera_set_transform", 3935195649_i64)
@@ -6814,6 +8640,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_camera_set_transform, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `camera_set_transform`
+    def self.camera_set_transform(camera : Int64, transform : Transform3D) : Void
+      instance.camera_set_transform(camera, transform)
     end
     @@mb_camera_set_cull_mask : Void* = Pointer(Void).null
     def camera_set_cull_mask(camera : Int64, layers : Int64) : Void
@@ -6825,6 +8655,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_camera_set_cull_mask, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `camera_set_cull_mask`
+    def self.camera_set_cull_mask(camera : Int64, layers : Int64) : Void
+      instance.camera_set_cull_mask(camera, layers)
+    end
     @@mb_camera_set_environment : Void* = Pointer(Void).null
     def camera_set_environment(camera : Int64, env : Int64) : Void
       godot_bind(@@mb_camera_set_environment, "RenderingServer", "camera_set_environment", 395945892_i64)
@@ -6834,6 +8668,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_camera_set_environment, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `camera_set_environment`
+    def self.camera_set_environment(camera : Int64, env : Int64) : Void
+      instance.camera_set_environment(camera, env)
     end
     @@mb_camera_set_camera_attributes : Void* = Pointer(Void).null
     def camera_set_camera_attributes(camera : Int64, effects : Int64) : Void
@@ -6845,6 +8683,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_camera_set_camera_attributes, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `camera_set_camera_attributes`
+    def self.camera_set_camera_attributes(camera : Int64, effects : Int64) : Void
+      instance.camera_set_camera_attributes(camera, effects)
+    end
     @@mb_camera_set_compositor : Void* = Pointer(Void).null
     def camera_set_compositor(camera : Int64, compositor : Int64) : Void
       godot_bind(@@mb_camera_set_compositor, "RenderingServer", "camera_set_compositor", 395945892_i64)
@@ -6854,6 +8696,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_camera_set_compositor, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `camera_set_compositor`
+    def self.camera_set_compositor(camera : Int64, compositor : Int64) : Void
+      instance.camera_set_compositor(camera, compositor)
     end
     @@mb_camera_set_use_vertical_aspect : Void* = Pointer(Void).null
     def camera_set_use_vertical_aspect(camera : Int64, enable : Bool) : Void
@@ -6865,10 +8711,18 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_camera_set_use_vertical_aspect, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `camera_set_use_vertical_aspect`
+    def self.camera_set_use_vertical_aspect(camera : Int64, enable : Bool) : Void
+      instance.camera_set_use_vertical_aspect(camera, enable)
+    end
     @@mb_viewport_create : Void* = Pointer(Void).null
     def viewport_create() : Int64
       godot_bind(@@mb_viewport_create, "RenderingServer", "viewport_create", 529393457_i64)
       godot_ptrcall_int(@@mb_viewport_create, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `viewport_create`
+    def self.viewport_create() : Int64
+      instance.viewport_create()
     end
     @@mb_viewport_set_use_xr : Void* = Pointer(Void).null
     def viewport_set_use_xr(viewport : Int64, use_xr : Bool) : Void
@@ -6879,6 +8733,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_use_xr, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `viewport_set_use_xr`
+    def self.viewport_set_use_xr(viewport : Int64, use_xr : Bool) : Void
+      instance.viewport_set_use_xr(viewport, use_xr)
     end
     @@mb_viewport_set_size : Void* = Pointer(Void).null
     def viewport_set_size(viewport : Int64, width : Int64, height : Int64, view_count : Int64 = 1_i64) : Void
@@ -6894,6 +8752,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_viewport_set_size, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `viewport_set_size`
+    def self.viewport_set_size(viewport : Int64, width : Int64, height : Int64, view_count : Int64 = 1_i64) : Void
+      instance.viewport_set_size(viewport, width, height, view_count)
+    end
     @@mb_viewport_set_active : Void* = Pointer(Void).null
     def viewport_set_active(viewport : Int64, active : Bool) : Void
       godot_bind(@@mb_viewport_set_active, "RenderingServer", "viewport_set_active", 1265174801_i64)
@@ -6904,6 +8766,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_active, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `viewport_set_active`
+    def self.viewport_set_active(viewport : Int64, active : Bool) : Void
+      instance.viewport_set_active(viewport, active)
+    end
     @@mb_viewport_set_parent_viewport : Void* = Pointer(Void).null
     def viewport_set_parent_viewport(viewport : Int64, parent_viewport : Int64) : Void
       godot_bind(@@mb_viewport_set_parent_viewport, "RenderingServer", "viewport_set_parent_viewport", 395945892_i64)
@@ -6913,6 +8779,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_parent_viewport, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `viewport_set_parent_viewport`
+    def self.viewport_set_parent_viewport(viewport : Int64, parent_viewport : Int64) : Void
+      instance.viewport_set_parent_viewport(viewport, parent_viewport)
     end
     @@mb_viewport_attach_to_screen : Void* = Pointer(Void).null
     def viewport_attach_to_screen(viewport : Int64, rect : Rect2 = Rect2.new(0.to_f32, 0.to_f32, 0.to_f32, 0.to_f32), screen : Int64 = 0_i64) : Void
@@ -6926,6 +8796,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_viewport_attach_to_screen, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `viewport_attach_to_screen`
+    def self.viewport_attach_to_screen(viewport : Int64, rect : Rect2 = Rect2.new(0.to_f32, 0.to_f32, 0.to_f32, 0.to_f32), screen : Int64 = 0_i64) : Void
+      instance.viewport_attach_to_screen(viewport, rect, screen)
+    end
     @@mb_viewport_set_render_direct_to_screen : Void* = Pointer(Void).null
     def viewport_set_render_direct_to_screen(viewport : Int64, enabled : Bool) : Void
       godot_bind(@@mb_viewport_set_render_direct_to_screen, "RenderingServer", "viewport_set_render_direct_to_screen", 1265174801_i64)
@@ -6935,6 +8809,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_render_direct_to_screen, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `viewport_set_render_direct_to_screen`
+    def self.viewport_set_render_direct_to_screen(viewport : Int64, enabled : Bool) : Void
+      instance.viewport_set_render_direct_to_screen(viewport, enabled)
     end
     @@mb_viewport_set_canvas_cull_mask : Void* = Pointer(Void).null
     def viewport_set_canvas_cull_mask(viewport : Int64, canvas_cull_mask : Int64) : Void
@@ -6946,6 +8824,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_canvas_cull_mask, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `viewport_set_canvas_cull_mask`
+    def self.viewport_set_canvas_cull_mask(viewport : Int64, canvas_cull_mask : Int64) : Void
+      instance.viewport_set_canvas_cull_mask(viewport, canvas_cull_mask)
+    end
     @@mb_viewport_set_scaling_3d_mode : Void* = Pointer(Void).null
     def viewport_set_scaling_3d_mode(viewport : Int64, scaling_3d_mode : ViewportScaling3DMode | Int) : Void
       godot_bind(@@mb_viewport_set_scaling_3d_mode, "RenderingServer", "viewport_set_scaling_3d_mode", 2386524376_i64)
@@ -6955,6 +8837,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_scaling_3d_mode, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `viewport_set_scaling_3d_mode`
+    def self.viewport_set_scaling_3d_mode(viewport : Int64, scaling_3d_mode : ViewportScaling3DMode | Int) : Void
+      instance.viewport_set_scaling_3d_mode(viewport, scaling_3d_mode)
     end
     @@mb_viewport_set_scaling_3d_scale : Void* = Pointer(Void).null
     def viewport_set_scaling_3d_scale(viewport : Int64, scale : Float64) : Void
@@ -6966,6 +8852,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_scaling_3d_scale, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `viewport_set_scaling_3d_scale`
+    def self.viewport_set_scaling_3d_scale(viewport : Int64, scale : Float64) : Void
+      instance.viewport_set_scaling_3d_scale(viewport, scale)
+    end
     @@mb_viewport_set_fsr_sharpness : Void* = Pointer(Void).null
     def viewport_set_fsr_sharpness(viewport : Int64, sharpness : Float64) : Void
       godot_bind(@@mb_viewport_set_fsr_sharpness, "RenderingServer", "viewport_set_fsr_sharpness", 1794382983_i64)
@@ -6975,6 +8865,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_fsr_sharpness, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `viewport_set_fsr_sharpness`
+    def self.viewport_set_fsr_sharpness(viewport : Int64, sharpness : Float64) : Void
+      instance.viewport_set_fsr_sharpness(viewport, sharpness)
     end
     @@mb_viewport_set_texture_mipmap_bias : Void* = Pointer(Void).null
     def viewport_set_texture_mipmap_bias(viewport : Int64, mipmap_bias : Float64) : Void
@@ -6986,6 +8880,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_texture_mipmap_bias, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `viewport_set_texture_mipmap_bias`
+    def self.viewport_set_texture_mipmap_bias(viewport : Int64, mipmap_bias : Float64) : Void
+      instance.viewport_set_texture_mipmap_bias(viewport, mipmap_bias)
+    end
     @@mb_viewport_set_anisotropic_filtering_level : Void* = Pointer(Void).null
     def viewport_set_anisotropic_filtering_level(viewport : Int64, anisotropic_filtering_level : ViewportAnisotropicFiltering | Int) : Void
       godot_bind(@@mb_viewport_set_anisotropic_filtering_level, "RenderingServer", "viewport_set_anisotropic_filtering_level", 3953214029_i64)
@@ -6995,6 +8893,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_anisotropic_filtering_level, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `viewport_set_anisotropic_filtering_level`
+    def self.viewport_set_anisotropic_filtering_level(viewport : Int64, anisotropic_filtering_level : ViewportAnisotropicFiltering | Int) : Void
+      instance.viewport_set_anisotropic_filtering_level(viewport, anisotropic_filtering_level)
     end
     @@mb_viewport_set_update_mode : Void* = Pointer(Void).null
     def viewport_set_update_mode(viewport : Int64, update_mode : ViewportUpdateMode | Int) : Void
@@ -7006,6 +8908,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_update_mode, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `viewport_set_update_mode`
+    def self.viewport_set_update_mode(viewport : Int64, update_mode : ViewportUpdateMode | Int) : Void
+      instance.viewport_set_update_mode(viewport, update_mode)
+    end
     @@mb_viewport_get_update_mode : Void* = Pointer(Void).null
     def viewport_get_update_mode(viewport : Int64) : ViewportUpdateMode
       godot_bind(@@mb_viewport_get_update_mode, "RenderingServer", "viewport_get_update_mode", 3803901472_i64)
@@ -7013,6 +8919,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_enum(@@mb_viewport_get_update_mode, @pointer, args.to_unsafe.as(Void**), ViewportUpdateMode)
+    end
+    # Class-level singleton delegator for `viewport_get_update_mode`
+    def self.viewport_get_update_mode(viewport : Int64) : ViewportUpdateMode
+      instance.viewport_get_update_mode(viewport)
     end
     @@mb_viewport_set_clear_mode : Void* = Pointer(Void).null
     def viewport_set_clear_mode(viewport : Int64, clear_mode : ViewportClearMode | Int) : Void
@@ -7024,6 +8934,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_clear_mode, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `viewport_set_clear_mode`
+    def self.viewport_set_clear_mode(viewport : Int64, clear_mode : ViewportClearMode | Int) : Void
+      instance.viewport_set_clear_mode(viewport, clear_mode)
+    end
     @@mb_viewport_get_render_target : Void* = Pointer(Void).null
     def viewport_get_render_target(viewport : Int64) : Int64
       godot_bind(@@mb_viewport_get_render_target, "RenderingServer", "viewport_get_render_target", 3814569979_i64)
@@ -7032,6 +8946,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_viewport_get_render_target, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `viewport_get_render_target`
+    def self.viewport_get_render_target(viewport : Int64) : Int64
+      instance.viewport_get_render_target(viewport)
+    end
     @@mb_viewport_get_texture : Void* = Pointer(Void).null
     def viewport_get_texture(viewport : Int64) : Int64
       godot_bind(@@mb_viewport_get_texture, "RenderingServer", "viewport_get_texture", 3814569979_i64)
@@ -7039,6 +8957,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_viewport_get_texture, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `viewport_get_texture`
+    def self.viewport_get_texture(viewport : Int64) : Int64
+      instance.viewport_get_texture(viewport)
     end
     @@mb_viewport_set_disable_3d : Void* = Pointer(Void).null
     def viewport_set_disable_3d(viewport : Int64, disable : Bool) : Void
@@ -7050,6 +8972,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_disable_3d, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `viewport_set_disable_3d`
+    def self.viewport_set_disable_3d(viewport : Int64, disable : Bool) : Void
+      instance.viewport_set_disable_3d(viewport, disable)
+    end
     @@mb_viewport_set_disable_2d : Void* = Pointer(Void).null
     def viewport_set_disable_2d(viewport : Int64, disable : Bool) : Void
       godot_bind(@@mb_viewport_set_disable_2d, "RenderingServer", "viewport_set_disable_2d", 1265174801_i64)
@@ -7059,6 +8985,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_disable_2d, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `viewport_set_disable_2d`
+    def self.viewport_set_disable_2d(viewport : Int64, disable : Bool) : Void
+      instance.viewport_set_disable_2d(viewport, disable)
     end
     @@mb_viewport_set_environment_mode : Void* = Pointer(Void).null
     def viewport_set_environment_mode(viewport : Int64, mode : ViewportEnvironmentMode | Int) : Void
@@ -7070,6 +9000,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_environment_mode, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `viewport_set_environment_mode`
+    def self.viewport_set_environment_mode(viewport : Int64, mode : ViewportEnvironmentMode | Int) : Void
+      instance.viewport_set_environment_mode(viewport, mode)
+    end
     @@mb_viewport_attach_camera : Void* = Pointer(Void).null
     def viewport_attach_camera(viewport : Int64, camera : Int64) : Void
       godot_bind(@@mb_viewport_attach_camera, "RenderingServer", "viewport_attach_camera", 395945892_i64)
@@ -7079,6 +9013,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_attach_camera, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `viewport_attach_camera`
+    def self.viewport_attach_camera(viewport : Int64, camera : Int64) : Void
+      instance.viewport_attach_camera(viewport, camera)
     end
     @@mb_viewport_set_scenario : Void* = Pointer(Void).null
     def viewport_set_scenario(viewport : Int64, scenario : Int64) : Void
@@ -7090,6 +9028,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_scenario, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `viewport_set_scenario`
+    def self.viewport_set_scenario(viewport : Int64, scenario : Int64) : Void
+      instance.viewport_set_scenario(viewport, scenario)
+    end
     @@mb_viewport_attach_canvas : Void* = Pointer(Void).null
     def viewport_attach_canvas(viewport : Int64, canvas : Int64) : Void
       godot_bind(@@mb_viewport_attach_canvas, "RenderingServer", "viewport_attach_canvas", 395945892_i64)
@@ -7099,6 +9041,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_attach_canvas, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `viewport_attach_canvas`
+    def self.viewport_attach_canvas(viewport : Int64, canvas : Int64) : Void
+      instance.viewport_attach_canvas(viewport, canvas)
     end
     @@mb_viewport_remove_canvas : Void* = Pointer(Void).null
     def viewport_remove_canvas(viewport : Int64, canvas : Int64) : Void
@@ -7110,6 +9056,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_remove_canvas, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `viewport_remove_canvas`
+    def self.viewport_remove_canvas(viewport : Int64, canvas : Int64) : Void
+      instance.viewport_remove_canvas(viewport, canvas)
+    end
     @@mb_viewport_set_snap_2d_transforms_to_pixel : Void* = Pointer(Void).null
     def viewport_set_snap_2d_transforms_to_pixel(viewport : Int64, enabled : Bool) : Void
       godot_bind(@@mb_viewport_set_snap_2d_transforms_to_pixel, "RenderingServer", "viewport_set_snap_2d_transforms_to_pixel", 1265174801_i64)
@@ -7119,6 +9069,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_snap_2d_transforms_to_pixel, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `viewport_set_snap_2d_transforms_to_pixel`
+    def self.viewport_set_snap_2d_transforms_to_pixel(viewport : Int64, enabled : Bool) : Void
+      instance.viewport_set_snap_2d_transforms_to_pixel(viewport, enabled)
     end
     @@mb_viewport_set_snap_2d_vertices_to_pixel : Void* = Pointer(Void).null
     def viewport_set_snap_2d_vertices_to_pixel(viewport : Int64, enabled : Bool) : Void
@@ -7130,6 +9084,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_snap_2d_vertices_to_pixel, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `viewport_set_snap_2d_vertices_to_pixel`
+    def self.viewport_set_snap_2d_vertices_to_pixel(viewport : Int64, enabled : Bool) : Void
+      instance.viewport_set_snap_2d_vertices_to_pixel(viewport, enabled)
+    end
     @@mb_viewport_set_default_canvas_item_texture_filter : Void* = Pointer(Void).null
     def viewport_set_default_canvas_item_texture_filter(viewport : Int64, filter : CanvasItemTextureFilter | Int) : Void
       godot_bind(@@mb_viewport_set_default_canvas_item_texture_filter, "RenderingServer", "viewport_set_default_canvas_item_texture_filter", 1155129294_i64)
@@ -7140,6 +9098,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_default_canvas_item_texture_filter, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `viewport_set_default_canvas_item_texture_filter`
+    def self.viewport_set_default_canvas_item_texture_filter(viewport : Int64, filter : CanvasItemTextureFilter | Int) : Void
+      instance.viewport_set_default_canvas_item_texture_filter(viewport, filter)
+    end
     @@mb_viewport_set_default_canvas_item_texture_repeat : Void* = Pointer(Void).null
     def viewport_set_default_canvas_item_texture_repeat(viewport : Int64, repeat : CanvasItemTextureRepeat | Int) : Void
       godot_bind(@@mb_viewport_set_default_canvas_item_texture_repeat, "RenderingServer", "viewport_set_default_canvas_item_texture_repeat", 1652956681_i64)
@@ -7149,6 +9111,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_default_canvas_item_texture_repeat, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `viewport_set_default_canvas_item_texture_repeat`
+    def self.viewport_set_default_canvas_item_texture_repeat(viewport : Int64, repeat : CanvasItemTextureRepeat | Int) : Void
+      instance.viewport_set_default_canvas_item_texture_repeat(viewport, repeat)
     end
     @@mb_viewport_set_canvas_transform : Void* = Pointer(Void).null
     def viewport_set_canvas_transform(viewport : Int64, canvas : Int64, offset : Transform2D) : Void
@@ -7161,6 +9127,10 @@ module Godot
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_viewport_set_canvas_transform, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `viewport_set_canvas_transform`
+    def self.viewport_set_canvas_transform(viewport : Int64, canvas : Int64, offset : Transform2D) : Void
+      instance.viewport_set_canvas_transform(viewport, canvas, offset)
     end
     @@mb_viewport_set_canvas_stacking : Void* = Pointer(Void).null
     def viewport_set_canvas_stacking(viewport : Int64, canvas : Int64, layer : Int64, sublayer : Int64) : Void
@@ -7176,6 +9146,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_viewport_set_canvas_stacking, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `viewport_set_canvas_stacking`
+    def self.viewport_set_canvas_stacking(viewport : Int64, canvas : Int64, layer : Int64, sublayer : Int64) : Void
+      instance.viewport_set_canvas_stacking(viewport, canvas, layer, sublayer)
+    end
     @@mb_viewport_set_transparent_background : Void* = Pointer(Void).null
     def viewport_set_transparent_background(viewport : Int64, enabled : Bool) : Void
       godot_bind(@@mb_viewport_set_transparent_background, "RenderingServer", "viewport_set_transparent_background", 1265174801_i64)
@@ -7186,6 +9160,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_transparent_background, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `viewport_set_transparent_background`
+    def self.viewport_set_transparent_background(viewport : Int64, enabled : Bool) : Void
+      instance.viewport_set_transparent_background(viewport, enabled)
+    end
     @@mb_viewport_set_global_canvas_transform : Void* = Pointer(Void).null
     def viewport_set_global_canvas_transform(viewport : Int64, transform : Transform2D) : Void
       godot_bind(@@mb_viewport_set_global_canvas_transform, "RenderingServer", "viewport_set_global_canvas_transform", 1246044741_i64)
@@ -7195,6 +9173,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_global_canvas_transform, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `viewport_set_global_canvas_transform`
+    def self.viewport_set_global_canvas_transform(viewport : Int64, transform : Transform2D) : Void
+      instance.viewport_set_global_canvas_transform(viewport, transform)
     end
     @@mb_viewport_set_sdf_oversize_and_scale : Void* = Pointer(Void).null
     def viewport_set_sdf_oversize_and_scale(viewport : Int64, oversize : ViewportSDFOversize | Int, scale : ViewportSDFScale | Int) : Void
@@ -7208,6 +9190,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_viewport_set_sdf_oversize_and_scale, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `viewport_set_sdf_oversize_and_scale`
+    def self.viewport_set_sdf_oversize_and_scale(viewport : Int64, oversize : ViewportSDFOversize | Int, scale : ViewportSDFScale | Int) : Void
+      instance.viewport_set_sdf_oversize_and_scale(viewport, oversize, scale)
+    end
     @@mb_viewport_set_positional_shadow_atlas_size : Void* = Pointer(Void).null
     def viewport_set_positional_shadow_atlas_size(viewport : Int64, size : Int64, use_16_bits : Bool = false) : Void
       godot_bind(@@mb_viewport_set_positional_shadow_atlas_size, "RenderingServer", "viewport_set_positional_shadow_atlas_size", 1904426712_i64)
@@ -7219,6 +9205,10 @@ module Godot
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_viewport_set_positional_shadow_atlas_size, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `viewport_set_positional_shadow_atlas_size`
+    def self.viewport_set_positional_shadow_atlas_size(viewport : Int64, size : Int64, use_16_bits : Bool = false) : Void
+      instance.viewport_set_positional_shadow_atlas_size(viewport, size, use_16_bits)
     end
     @@mb_viewport_set_positional_shadow_atlas_quadrant_subdivision : Void* = Pointer(Void).null
     def viewport_set_positional_shadow_atlas_quadrant_subdivision(viewport : Int64, quadrant : Int64, subdivision : Int64) : Void
@@ -7232,6 +9222,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_viewport_set_positional_shadow_atlas_quadrant_subdivision, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `viewport_set_positional_shadow_atlas_quadrant_subdivision`
+    def self.viewport_set_positional_shadow_atlas_quadrant_subdivision(viewport : Int64, quadrant : Int64, subdivision : Int64) : Void
+      instance.viewport_set_positional_shadow_atlas_quadrant_subdivision(viewport, quadrant, subdivision)
+    end
     @@mb_viewport_set_msaa_3d : Void* = Pointer(Void).null
     def viewport_set_msaa_3d(viewport : Int64, msaa : ViewportMSAA | Int) : Void
       godot_bind(@@mb_viewport_set_msaa_3d, "RenderingServer", "viewport_set_msaa_3d", 3764433340_i64)
@@ -7241,6 +9235,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_msaa_3d, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `viewport_set_msaa_3d`
+    def self.viewport_set_msaa_3d(viewport : Int64, msaa : ViewportMSAA | Int) : Void
+      instance.viewport_set_msaa_3d(viewport, msaa)
     end
     @@mb_viewport_set_msaa_2d : Void* = Pointer(Void).null
     def viewport_set_msaa_2d(viewport : Int64, msaa : ViewportMSAA | Int) : Void
@@ -7252,6 +9250,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_msaa_2d, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `viewport_set_msaa_2d`
+    def self.viewport_set_msaa_2d(viewport : Int64, msaa : ViewportMSAA | Int) : Void
+      instance.viewport_set_msaa_2d(viewport, msaa)
+    end
     @@mb_viewport_set_use_hdr_2d : Void* = Pointer(Void).null
     def viewport_set_use_hdr_2d(viewport : Int64, enabled : Bool) : Void
       godot_bind(@@mb_viewport_set_use_hdr_2d, "RenderingServer", "viewport_set_use_hdr_2d", 1265174801_i64)
@@ -7261,6 +9263,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_use_hdr_2d, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `viewport_set_use_hdr_2d`
+    def self.viewport_set_use_hdr_2d(viewport : Int64, enabled : Bool) : Void
+      instance.viewport_set_use_hdr_2d(viewport, enabled)
     end
     @@mb_viewport_set_screen_space_aa : Void* = Pointer(Void).null
     def viewport_set_screen_space_aa(viewport : Int64, mode : ViewportScreenSpaceAA | Int) : Void
@@ -7272,6 +9278,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_screen_space_aa, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `viewport_set_screen_space_aa`
+    def self.viewport_set_screen_space_aa(viewport : Int64, mode : ViewportScreenSpaceAA | Int) : Void
+      instance.viewport_set_screen_space_aa(viewport, mode)
+    end
     @@mb_viewport_set_use_taa : Void* = Pointer(Void).null
     def viewport_set_use_taa(viewport : Int64, enable : Bool) : Void
       godot_bind(@@mb_viewport_set_use_taa, "RenderingServer", "viewport_set_use_taa", 1265174801_i64)
@@ -7281,6 +9291,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_use_taa, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `viewport_set_use_taa`
+    def self.viewport_set_use_taa(viewport : Int64, enable : Bool) : Void
+      instance.viewport_set_use_taa(viewport, enable)
     end
     @@mb_viewport_set_use_debanding : Void* = Pointer(Void).null
     def viewport_set_use_debanding(viewport : Int64, enable : Bool) : Void
@@ -7292,6 +9306,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_use_debanding, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `viewport_set_use_debanding`
+    def self.viewport_set_use_debanding(viewport : Int64, enable : Bool) : Void
+      instance.viewport_set_use_debanding(viewport, enable)
+    end
     @@mb_viewport_set_use_occlusion_culling : Void* = Pointer(Void).null
     def viewport_set_use_occlusion_culling(viewport : Int64, enable : Bool) : Void
       godot_bind(@@mb_viewport_set_use_occlusion_culling, "RenderingServer", "viewport_set_use_occlusion_culling", 1265174801_i64)
@@ -7302,6 +9320,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_use_occlusion_culling, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `viewport_set_use_occlusion_culling`
+    def self.viewport_set_use_occlusion_culling(viewport : Int64, enable : Bool) : Void
+      instance.viewport_set_use_occlusion_culling(viewport, enable)
+    end
     @@mb_viewport_set_occlusion_rays_per_thread : Void* = Pointer(Void).null
     def viewport_set_occlusion_rays_per_thread(rays_per_thread : Int64) : Void
       godot_bind(@@mb_viewport_set_occlusion_rays_per_thread, "RenderingServer", "viewport_set_occlusion_rays_per_thread", 1286410249_i64)
@@ -7310,6 +9332,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_viewport_set_occlusion_rays_per_thread, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `viewport_set_occlusion_rays_per_thread`
+    def self.viewport_set_occlusion_rays_per_thread(rays_per_thread : Int64) : Void
+      instance.viewport_set_occlusion_rays_per_thread(rays_per_thread)
+    end
     @@mb_viewport_set_occlusion_culling_build_quality : Void* = Pointer(Void).null
     def viewport_set_occlusion_culling_build_quality(quality : ViewportOcclusionCullingBuildQuality | Int) : Void
       godot_bind(@@mb_viewport_set_occlusion_culling_build_quality, "RenderingServer", "viewport_set_occlusion_culling_build_quality", 2069725696_i64)
@@ -7317,6 +9343,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_viewport_set_occlusion_culling_build_quality, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `viewport_set_occlusion_culling_build_quality`
+    def self.viewport_set_occlusion_culling_build_quality(quality : ViewportOcclusionCullingBuildQuality | Int) : Void
+      instance.viewport_set_occlusion_culling_build_quality(quality)
     end
     @@mb_viewport_get_render_info : Void* = Pointer(Void).null
     def viewport_get_render_info(viewport : Int64, get_type : ViewportRenderInfoType | Int, info : ViewportRenderInfo | Int) : Int64
@@ -7330,6 +9360,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_int(@@mb_viewport_get_render_info, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `viewport_get_render_info`
+    def self.viewport_get_render_info(viewport : Int64, get_type : ViewportRenderInfoType | Int, info : ViewportRenderInfo | Int) : Int64
+      instance.viewport_get_render_info(viewport, get_type, info)
+    end
     @@mb_viewport_set_debug_draw : Void* = Pointer(Void).null
     def viewport_set_debug_draw(viewport : Int64, draw : ViewportDebugDraw | Int) : Void
       godot_bind(@@mb_viewport_set_debug_draw, "RenderingServer", "viewport_set_debug_draw", 2089420930_i64)
@@ -7339,6 +9373,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_debug_draw, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `viewport_set_debug_draw`
+    def self.viewport_set_debug_draw(viewport : Int64, draw : ViewportDebugDraw | Int) : Void
+      instance.viewport_set_debug_draw(viewport, draw)
     end
     @@mb_viewport_set_measure_render_time : Void* = Pointer(Void).null
     def viewport_set_measure_render_time(viewport : Int64, enable : Bool) : Void
@@ -7350,6 +9388,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_measure_render_time, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `viewport_set_measure_render_time`
+    def self.viewport_set_measure_render_time(viewport : Int64, enable : Bool) : Void
+      instance.viewport_set_measure_render_time(viewport, enable)
+    end
     @@mb_viewport_get_measured_render_time_cpu : Void* = Pointer(Void).null
     def viewport_get_measured_render_time_cpu(viewport : Int64) : Float64
       godot_bind(@@mb_viewport_get_measured_render_time_cpu, "RenderingServer", "viewport_get_measured_render_time_cpu", 866169185_i64)
@@ -7358,6 +9400,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_float(@@mb_viewport_get_measured_render_time_cpu, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `viewport_get_measured_render_time_cpu`
+    def self.viewport_get_measured_render_time_cpu(viewport : Int64) : Float64
+      instance.viewport_get_measured_render_time_cpu(viewport)
+    end
     @@mb_viewport_get_measured_render_time_gpu : Void* = Pointer(Void).null
     def viewport_get_measured_render_time_gpu(viewport : Int64) : Float64
       godot_bind(@@mb_viewport_get_measured_render_time_gpu, "RenderingServer", "viewport_get_measured_render_time_gpu", 866169185_i64)
@@ -7365,6 +9411,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_float(@@mb_viewport_get_measured_render_time_gpu, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `viewport_get_measured_render_time_gpu`
+    def self.viewport_get_measured_render_time_gpu(viewport : Int64) : Float64
+      instance.viewport_get_measured_render_time_gpu(viewport)
     end
     @@mb_viewport_set_vrs_mode : Void* = Pointer(Void).null
     def viewport_set_vrs_mode(viewport : Int64, mode : ViewportVRSMode | Int) : Void
@@ -7376,6 +9426,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_vrs_mode, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `viewport_set_vrs_mode`
+    def self.viewport_set_vrs_mode(viewport : Int64, mode : ViewportVRSMode | Int) : Void
+      instance.viewport_set_vrs_mode(viewport, mode)
+    end
     @@mb_viewport_set_vrs_update_mode : Void* = Pointer(Void).null
     def viewport_set_vrs_update_mode(viewport : Int64, mode : ViewportVRSUpdateMode | Int) : Void
       godot_bind(@@mb_viewport_set_vrs_update_mode, "RenderingServer", "viewport_set_vrs_update_mode", 2696154815_i64)
@@ -7385,6 +9439,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_vrs_update_mode, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `viewport_set_vrs_update_mode`
+    def self.viewport_set_vrs_update_mode(viewport : Int64, mode : ViewportVRSUpdateMode | Int) : Void
+      instance.viewport_set_vrs_update_mode(viewport, mode)
     end
     @@mb_viewport_set_vrs_texture : Void* = Pointer(Void).null
     def viewport_set_vrs_texture(viewport : Int64, texture : Int64) : Void
@@ -7396,10 +9454,18 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_viewport_set_vrs_texture, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `viewport_set_vrs_texture`
+    def self.viewport_set_vrs_texture(viewport : Int64, texture : Int64) : Void
+      instance.viewport_set_vrs_texture(viewport, texture)
+    end
     @@mb_sky_create : Void* = Pointer(Void).null
     def sky_create() : Int64
       godot_bind(@@mb_sky_create, "RenderingServer", "sky_create", 529393457_i64)
       godot_ptrcall_int(@@mb_sky_create, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `sky_create`
+    def self.sky_create() : Int64
+      instance.sky_create()
     end
     @@mb_sky_set_radiance_size : Void* = Pointer(Void).null
     def sky_set_radiance_size(sky : Int64, radiance_size : Int64) : Void
@@ -7411,6 +9477,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_sky_set_radiance_size, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `sky_set_radiance_size`
+    def self.sky_set_radiance_size(sky : Int64, radiance_size : Int64) : Void
+      instance.sky_set_radiance_size(sky, radiance_size)
+    end
     @@mb_sky_set_mode : Void* = Pointer(Void).null
     def sky_set_mode(sky : Int64, mode : SkyMode | Int) : Void
       godot_bind(@@mb_sky_set_mode, "RenderingServer", "sky_set_mode", 3279019937_i64)
@@ -7421,6 +9491,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_sky_set_mode, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `sky_set_mode`
+    def self.sky_set_mode(sky : Int64, mode : SkyMode | Int) : Void
+      instance.sky_set_mode(sky, mode)
+    end
     @@mb_sky_set_material : Void* = Pointer(Void).null
     def sky_set_material(sky : Int64, material : Int64) : Void
       godot_bind(@@mb_sky_set_material, "RenderingServer", "sky_set_material", 395945892_i64)
@@ -7430,6 +9504,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_sky_set_material, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `sky_set_material`
+    def self.sky_set_material(sky : Int64, material : Int64) : Void
+      instance.sky_set_material(sky, material)
     end
     @@mb_sky_bake_panorama : Void* = Pointer(Void).null
     def sky_bake_panorama(sky : Int64, energy : Float64, bake_irradiance : Bool, size : Vector2i) : Image
@@ -7445,10 +9523,18 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_obj(@@mb_sky_bake_panorama, @pointer, args.to_unsafe.as(Void**), Image)
     end
+    # Class-level singleton delegator for `sky_bake_panorama`
+    def self.sky_bake_panorama(sky : Int64, energy : Float64, bake_irradiance : Bool, size : Vector2i) : Image
+      instance.sky_bake_panorama(sky, energy, bake_irradiance, size)
+    end
     @@mb_compositor_effect_create : Void* = Pointer(Void).null
     def compositor_effect_create() : Int64
       godot_bind(@@mb_compositor_effect_create, "RenderingServer", "compositor_effect_create", 529393457_i64)
       godot_ptrcall_int(@@mb_compositor_effect_create, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `compositor_effect_create`
+    def self.compositor_effect_create() : Int64
+      instance.compositor_effect_create()
     end
     @@mb_compositor_effect_set_enabled : Void* = Pointer(Void).null
     def compositor_effect_set_enabled(effect : Int64, enabled : Bool) : Void
@@ -7459,6 +9545,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_compositor_effect_set_enabled, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `compositor_effect_set_enabled`
+    def self.compositor_effect_set_enabled(effect : Int64, enabled : Bool) : Void
+      instance.compositor_effect_set_enabled(effect, enabled)
     end
     @@mb_compositor_effect_set_callback : Void* = Pointer(Void).null
     def compositor_effect_set_callback(effect : Int64, callback_type : CompositorEffectCallbackType | Int, callback : Pointer(Void)) : Void
@@ -7472,6 +9562,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_compositor_effect_set_callback, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `compositor_effect_set_callback`
+    def self.compositor_effect_set_callback(effect : Int64, callback_type : CompositorEffectCallbackType | Int, callback : Pointer(Void)) : Void
+      instance.compositor_effect_set_callback(effect, callback_type, callback)
+    end
     @@mb_compositor_effect_set_flag : Void* = Pointer(Void).null
     def compositor_effect_set_flag(effect : Int64, flag : CompositorEffectFlags | Int, set : Bool) : Void
       godot_bind(@@mb_compositor_effect_set_flag, "RenderingServer", "compositor_effect_set_flag", 3659527075_i64)
@@ -7484,10 +9578,18 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_compositor_effect_set_flag, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `compositor_effect_set_flag`
+    def self.compositor_effect_set_flag(effect : Int64, flag : CompositorEffectFlags | Int, set : Bool) : Void
+      instance.compositor_effect_set_flag(effect, flag, set)
+    end
     @@mb_compositor_create : Void* = Pointer(Void).null
     def compositor_create() : Int64
       godot_bind(@@mb_compositor_create, "RenderingServer", "compositor_create", 529393457_i64)
       godot_ptrcall_int(@@mb_compositor_create, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `compositor_create`
+    def self.compositor_create() : Int64
+      instance.compositor_create()
     end
     @@mb_compositor_set_compositor_effects : Void* = Pointer(Void).null
     def compositor_set_compositor_effects(compositor : Int64, effects : Pointer(Void)) : Void
@@ -7499,10 +9601,18 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_compositor_set_compositor_effects, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `compositor_set_compositor_effects`
+    def self.compositor_set_compositor_effects(compositor : Int64, effects : Pointer(Void)) : Void
+      instance.compositor_set_compositor_effects(compositor, effects)
+    end
     @@mb_environment_create : Void* = Pointer(Void).null
     def environment_create() : Int64
       godot_bind(@@mb_environment_create, "RenderingServer", "environment_create", 529393457_i64)
       godot_ptrcall_int(@@mb_environment_create, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `environment_create`
+    def self.environment_create() : Int64
+      instance.environment_create()
     end
     @@mb_environment_set_background : Void* = Pointer(Void).null
     def environment_set_background(env : Int64, bg : EnvironmentBG | Int) : Void
@@ -7514,6 +9624,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_environment_set_background, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `environment_set_background`
+    def self.environment_set_background(env : Int64, bg : EnvironmentBG | Int) : Void
+      instance.environment_set_background(env, bg)
+    end
     @@mb_environment_set_camera_id : Void* = Pointer(Void).null
     def environment_set_camera_id(env : Int64, id : Int64) : Void
       godot_bind(@@mb_environment_set_camera_id, "RenderingServer", "environment_set_camera_id", 3411492887_i64)
@@ -7523,6 +9637,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_environment_set_camera_id, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `environment_set_camera_id`
+    def self.environment_set_camera_id(env : Int64, id : Int64) : Void
+      instance.environment_set_camera_id(env, id)
     end
     @@mb_environment_set_sky : Void* = Pointer(Void).null
     def environment_set_sky(env : Int64, sky : Int64) : Void
@@ -7534,6 +9652,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_environment_set_sky, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `environment_set_sky`
+    def self.environment_set_sky(env : Int64, sky : Int64) : Void
+      instance.environment_set_sky(env, sky)
+    end
     @@mb_environment_set_sky_custom_fov : Void* = Pointer(Void).null
     def environment_set_sky_custom_fov(env : Int64, scale : Float64) : Void
       godot_bind(@@mb_environment_set_sky_custom_fov, "RenderingServer", "environment_set_sky_custom_fov", 1794382983_i64)
@@ -7543,6 +9665,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_environment_set_sky_custom_fov, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `environment_set_sky_custom_fov`
+    def self.environment_set_sky_custom_fov(env : Int64, scale : Float64) : Void
+      instance.environment_set_sky_custom_fov(env, scale)
     end
     @@mb_environment_set_sky_orientation : Void* = Pointer(Void).null
     def environment_set_sky_orientation(env : Int64, orientation : Basis) : Void
@@ -7554,6 +9680,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_environment_set_sky_orientation, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `environment_set_sky_orientation`
+    def self.environment_set_sky_orientation(env : Int64, orientation : Basis) : Void
+      instance.environment_set_sky_orientation(env, orientation)
+    end
     @@mb_environment_set_bg_color : Void* = Pointer(Void).null
     def environment_set_bg_color(env : Int64, color : Color) : Void
       godot_bind(@@mb_environment_set_bg_color, "RenderingServer", "environment_set_bg_color", 2948539648_i64)
@@ -7563,6 +9693,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_environment_set_bg_color, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `environment_set_bg_color`
+    def self.environment_set_bg_color(env : Int64, color : Color) : Void
+      instance.environment_set_bg_color(env, color)
     end
     @@mb_environment_set_bg_energy : Void* = Pointer(Void).null
     def environment_set_bg_energy(env : Int64, multiplier : Float64, exposure_value : Float64) : Void
@@ -7576,6 +9710,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_environment_set_bg_energy, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `environment_set_bg_energy`
+    def self.environment_set_bg_energy(env : Int64, multiplier : Float64, exposure_value : Float64) : Void
+      instance.environment_set_bg_energy(env, multiplier, exposure_value)
+    end
     @@mb_environment_set_canvas_max_layer : Void* = Pointer(Void).null
     def environment_set_canvas_max_layer(env : Int64, max_layer : Int64) : Void
       godot_bind(@@mb_environment_set_canvas_max_layer, "RenderingServer", "environment_set_canvas_max_layer", 3411492887_i64)
@@ -7585,6 +9723,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_environment_set_canvas_max_layer, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `environment_set_canvas_max_layer`
+    def self.environment_set_canvas_max_layer(env : Int64, max_layer : Int64) : Void
+      instance.environment_set_canvas_max_layer(env, max_layer)
     end
     @@mb_environment_set_ambient_light : Void* = Pointer(Void).null
     def environment_set_ambient_light(env : Int64, color : Color, ambient : EnvironmentAmbientSource | Int = 0, energy : Float64 = 1.0_f64, sky_contribution : Float64 = 0.0_f64, reflection_source : EnvironmentReflectionSource | Int = 0) : Void
@@ -7603,6 +9745,10 @@ module Godot
       arg_5 = pointerof(val_5).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5]
       godot_ptrcall_void(@@mb_environment_set_ambient_light, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `environment_set_ambient_light`
+    def self.environment_set_ambient_light(env : Int64, color : Color, ambient : EnvironmentAmbientSource | Int = 0, energy : Float64 = 1.0_f64, sky_contribution : Float64 = 0.0_f64, reflection_source : EnvironmentReflectionSource | Int = 0) : Void
+      instance.environment_set_ambient_light(env, color, ambient, energy, sky_contribution, reflection_source)
     end
     @@mb_environment_set_glow : Void* = Pointer(Void).null
     def environment_set_glow(env : Int64, enable : Bool, levels : Pointer(Void), intensity : Float64, strength : Float64, mix : Float64, bloom_threshold : Float64, blend_mode : EnvironmentGlowBlendMode | Int, hdr_bleed_threshold : Float64, hdr_bleed_scale : Float64, hdr_luminance_cap : Float64, glow_map_strength : Float64, glow_map : Int64) : Void
@@ -7636,6 +9782,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5, arg_6, arg_7, arg_8, arg_9, arg_10, arg_11, arg_12]
       godot_ptrcall_void(@@mb_environment_set_glow, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `environment_set_glow`
+    def self.environment_set_glow(env : Int64, enable : Bool, levels : Pointer(Void), intensity : Float64, strength : Float64, mix : Float64, bloom_threshold : Float64, blend_mode : EnvironmentGlowBlendMode | Int, hdr_bleed_threshold : Float64, hdr_bleed_scale : Float64, hdr_luminance_cap : Float64, glow_map_strength : Float64, glow_map : Int64) : Void
+      instance.environment_set_glow(env, enable, levels, intensity, strength, mix, bloom_threshold, blend_mode, hdr_bleed_threshold, hdr_bleed_scale, hdr_luminance_cap, glow_map_strength, glow_map)
+    end
     @@mb_environment_set_tonemap : Void* = Pointer(Void).null
     def environment_set_tonemap(env : Int64, tone_mapper : EnvironmentToneMapper | Int, exposure : Float64, white : Float64) : Void
       godot_bind(@@mb_environment_set_tonemap, "RenderingServer", "environment_set_tonemap", 2914312638_i64)
@@ -7650,6 +9800,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_environment_set_tonemap, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `environment_set_tonemap`
+    def self.environment_set_tonemap(env : Int64, tone_mapper : EnvironmentToneMapper | Int, exposure : Float64, white : Float64) : Void
+      instance.environment_set_tonemap(env, tone_mapper, exposure, white)
+    end
     @@mb_environment_set_tonemap_agx_contrast : Void* = Pointer(Void).null
     def environment_set_tonemap_agx_contrast(env : Int64, agx_contrast : Float64) : Void
       godot_bind(@@mb_environment_set_tonemap_agx_contrast, "RenderingServer", "environment_set_tonemap_agx_contrast", 1794382983_i64)
@@ -7659,6 +9813,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_environment_set_tonemap_agx_contrast, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `environment_set_tonemap_agx_contrast`
+    def self.environment_set_tonemap_agx_contrast(env : Int64, agx_contrast : Float64) : Void
+      instance.environment_set_tonemap_agx_contrast(env, agx_contrast)
     end
     @@mb_environment_set_adjustment : Void* = Pointer(Void).null
     def environment_set_adjustment(env : Int64, enable : Bool, brightness : Float64, contrast : Float64, saturation : Float64, use_1d_color_correction : Bool, color_correction : Int64) : Void
@@ -7680,6 +9838,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5, arg_6]
       godot_ptrcall_void(@@mb_environment_set_adjustment, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `environment_set_adjustment`
+    def self.environment_set_adjustment(env : Int64, enable : Bool, brightness : Float64, contrast : Float64, saturation : Float64, use_1d_color_correction : Bool, color_correction : Int64) : Void
+      instance.environment_set_adjustment(env, enable, brightness, contrast, saturation, use_1d_color_correction, color_correction)
+    end
     @@mb_environment_set_ssr : Void* = Pointer(Void).null
     def environment_set_ssr(env : Int64, enable : Bool, max_steps : Int64, fade_in : Float64, fade_out : Float64, depth_tolerance : Float64) : Void
       godot_bind(@@mb_environment_set_ssr, "RenderingServer", "environment_set_ssr", 3607294374_i64)
@@ -7697,6 +9859,10 @@ module Godot
       arg_5 = pointerof(val_5).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5]
       godot_ptrcall_void(@@mb_environment_set_ssr, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `environment_set_ssr`
+    def self.environment_set_ssr(env : Int64, enable : Bool, max_steps : Int64, fade_in : Float64, fade_out : Float64, depth_tolerance : Float64) : Void
+      instance.environment_set_ssr(env, enable, max_steps, fade_in, fade_out, depth_tolerance)
     end
     @@mb_environment_set_ssao : Void* = Pointer(Void).null
     def environment_set_ssao(env : Int64, enable : Bool, radius : Float64, intensity : Float64, power : Float64, detail : Float64, horizon : Float64, sharpness : Float64, light_affect : Float64, ao_channel_affect : Float64) : Void
@@ -7723,6 +9889,10 @@ module Godot
       arg_9 = pointerof(val_9).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5, arg_6, arg_7, arg_8, arg_9]
       godot_ptrcall_void(@@mb_environment_set_ssao, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `environment_set_ssao`
+    def self.environment_set_ssao(env : Int64, enable : Bool, radius : Float64, intensity : Float64, power : Float64, detail : Float64, horizon : Float64, sharpness : Float64, light_affect : Float64, ao_channel_affect : Float64) : Void
+      instance.environment_set_ssao(env, enable, radius, intensity, power, detail, horizon, sharpness, light_affect, ao_channel_affect)
     end
     @@mb_environment_set_fog : Void* = Pointer(Void).null
     def environment_set_fog(env : Int64, enable : Bool, light_color : Color, light_energy : Float64, sun_scatter : Float64, density : Float64, height : Float64, height_density : Float64, aerial_perspective : Float64, sky_affect : Float64, fog_mode : EnvironmentFogMode | Int = 0) : Void
@@ -7752,6 +9922,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5, arg_6, arg_7, arg_8, arg_9, arg_10]
       godot_ptrcall_void(@@mb_environment_set_fog, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `environment_set_fog`
+    def self.environment_set_fog(env : Int64, enable : Bool, light_color : Color, light_energy : Float64, sun_scatter : Float64, density : Float64, height : Float64, height_density : Float64, aerial_perspective : Float64, sky_affect : Float64, fog_mode : EnvironmentFogMode | Int = 0) : Void
+      instance.environment_set_fog(env, enable, light_color, light_energy, sun_scatter, density, height, height_density, aerial_perspective, sky_affect, fog_mode)
+    end
     @@mb_environment_set_fog_depth : Void* = Pointer(Void).null
     def environment_set_fog_depth(env : Int64, curve : Float64, begin_val : Float64, end_val : Float64) : Void
       godot_bind(@@mb_environment_set_fog_depth, "RenderingServer", "environment_set_fog_depth", 157498339_i64)
@@ -7765,6 +9939,10 @@ module Godot
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_environment_set_fog_depth, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `environment_set_fog_depth`
+    def self.environment_set_fog_depth(env : Int64, curve : Float64, begin_val : Float64, end_val : Float64) : Void
+      instance.environment_set_fog_depth(env, curve, begin_val, end_val)
     end
     @@mb_environment_set_sdfgi : Void* = Pointer(Void).null
     def environment_set_sdfgi(env : Int64, enable : Bool, cascades : Int64, min_cell_size : Float64, y_scale : EnvironmentSDFGIYScale | Int, use_occlusion : Bool, bounce_feedback : Float64, read_sky : Bool, energy : Float64, normal_bias : Float64, probe_bias : Float64) : Void
@@ -7793,6 +9971,10 @@ module Godot
       arg_10 = pointerof(val_10).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5, arg_6, arg_7, arg_8, arg_9, arg_10]
       godot_ptrcall_void(@@mb_environment_set_sdfgi, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `environment_set_sdfgi`
+    def self.environment_set_sdfgi(env : Int64, enable : Bool, cascades : Int64, min_cell_size : Float64, y_scale : EnvironmentSDFGIYScale | Int, use_occlusion : Bool, bounce_feedback : Float64, read_sky : Bool, energy : Float64, normal_bias : Float64, probe_bias : Float64) : Void
+      instance.environment_set_sdfgi(env, enable, cascades, min_cell_size, y_scale, use_occlusion, bounce_feedback, read_sky, energy, normal_bias, probe_bias)
     end
     @@mb_environment_set_volumetric_fog : Void* = Pointer(Void).null
     def environment_set_volumetric_fog(env : Int64, enable : Bool, density : Float64, albedo : Color, emission : Color, emission_energy : Float64, anisotropy : Float64, length : Float64, detail_spread : Float64, gi_inject : Float64, temporal_reprojection : Bool, temporal_reprojection_amount : Float64, ambient_inject : Float64, sky_affect : Float64) : Void
@@ -7828,6 +10010,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5, arg_6, arg_7, arg_8, arg_9, arg_10, arg_11, arg_12, arg_13]
       godot_ptrcall_void(@@mb_environment_set_volumetric_fog, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `environment_set_volumetric_fog`
+    def self.environment_set_volumetric_fog(env : Int64, enable : Bool, density : Float64, albedo : Color, emission : Color, emission_energy : Float64, anisotropy : Float64, length : Float64, detail_spread : Float64, gi_inject : Float64, temporal_reprojection : Bool, temporal_reprojection_amount : Float64, ambient_inject : Float64, sky_affect : Float64) : Void
+      instance.environment_set_volumetric_fog(env, enable, density, albedo, emission, emission_energy, anisotropy, length, detail_spread, gi_inject, temporal_reprojection, temporal_reprojection_amount, ambient_inject, sky_affect)
+    end
     @@mb_environment_glow_set_use_bicubic_upscale : Void* = Pointer(Void).null
     def environment_glow_set_use_bicubic_upscale(enable : Bool) : Void
       godot_bind(@@mb_environment_glow_set_use_bicubic_upscale, "RenderingServer", "environment_glow_set_use_bicubic_upscale", 2586408642_i64)
@@ -7835,6 +10021,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_environment_glow_set_use_bicubic_upscale, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `environment_glow_set_use_bicubic_upscale`
+    def self.environment_glow_set_use_bicubic_upscale(enable : Bool) : Void
+      instance.environment_glow_set_use_bicubic_upscale(enable)
     end
     @@mb_environment_set_ssr_half_size : Void* = Pointer(Void).null
     def environment_set_ssr_half_size(half_size : Bool) : Void
@@ -7844,6 +10034,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_environment_set_ssr_half_size, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `environment_set_ssr_half_size`
+    def self.environment_set_ssr_half_size(half_size : Bool) : Void
+      instance.environment_set_ssr_half_size(half_size)
+    end
     @@mb_environment_set_ssr_roughness_quality : Void* = Pointer(Void).null
     def environment_set_ssr_roughness_quality(quality : EnvironmentSSRRoughnessQuality | Int) : Void
       godot_bind(@@mb_environment_set_ssr_roughness_quality, "RenderingServer", "environment_set_ssr_roughness_quality", 1190026788_i64)
@@ -7851,6 +10045,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_environment_set_ssr_roughness_quality, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `environment_set_ssr_roughness_quality`
+    def self.environment_set_ssr_roughness_quality(quality : EnvironmentSSRRoughnessQuality | Int) : Void
+      instance.environment_set_ssr_roughness_quality(quality)
     end
     @@mb_environment_set_ssao_quality : Void* = Pointer(Void).null
     def environment_set_ssao_quality(quality : EnvironmentSSAOQuality | Int, half_size : Bool, adaptive_target : Float64, blur_passes : Int64, fadeout_from : Float64, fadeout_to : Float64) : Void
@@ -7870,6 +10068,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5]
       godot_ptrcall_void(@@mb_environment_set_ssao_quality, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `environment_set_ssao_quality`
+    def self.environment_set_ssao_quality(quality : EnvironmentSSAOQuality | Int, half_size : Bool, adaptive_target : Float64, blur_passes : Int64, fadeout_from : Float64, fadeout_to : Float64) : Void
+      instance.environment_set_ssao_quality(quality, half_size, adaptive_target, blur_passes, fadeout_from, fadeout_to)
+    end
     @@mb_environment_set_ssil_quality : Void* = Pointer(Void).null
     def environment_set_ssil_quality(quality : EnvironmentSSILQuality | Int, half_size : Bool, adaptive_target : Float64, blur_passes : Int64, fadeout_from : Float64, fadeout_to : Float64) : Void
       godot_bind(@@mb_environment_set_ssil_quality, "RenderingServer", "environment_set_ssil_quality", 1713836683_i64)
@@ -7888,6 +10090,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5]
       godot_ptrcall_void(@@mb_environment_set_ssil_quality, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `environment_set_ssil_quality`
+    def self.environment_set_ssil_quality(quality : EnvironmentSSILQuality | Int, half_size : Bool, adaptive_target : Float64, blur_passes : Int64, fadeout_from : Float64, fadeout_to : Float64) : Void
+      instance.environment_set_ssil_quality(quality, half_size, adaptive_target, blur_passes, fadeout_from, fadeout_to)
+    end
     @@mb_environment_set_sdfgi_ray_count : Void* = Pointer(Void).null
     def environment_set_sdfgi_ray_count(ray_count : EnvironmentSDFGIRayCount | Int) : Void
       godot_bind(@@mb_environment_set_sdfgi_ray_count, "RenderingServer", "environment_set_sdfgi_ray_count", 340137951_i64)
@@ -7895,6 +10101,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_environment_set_sdfgi_ray_count, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `environment_set_sdfgi_ray_count`
+    def self.environment_set_sdfgi_ray_count(ray_count : EnvironmentSDFGIRayCount | Int) : Void
+      instance.environment_set_sdfgi_ray_count(ray_count)
     end
     @@mb_environment_set_sdfgi_frames_to_converge : Void* = Pointer(Void).null
     def environment_set_sdfgi_frames_to_converge(frames : EnvironmentSDFGIFramesToConverge | Int) : Void
@@ -7904,6 +10114,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_environment_set_sdfgi_frames_to_converge, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `environment_set_sdfgi_frames_to_converge`
+    def self.environment_set_sdfgi_frames_to_converge(frames : EnvironmentSDFGIFramesToConverge | Int) : Void
+      instance.environment_set_sdfgi_frames_to_converge(frames)
+    end
     @@mb_environment_set_sdfgi_frames_to_update_light : Void* = Pointer(Void).null
     def environment_set_sdfgi_frames_to_update_light(frames : EnvironmentSDFGIFramesToUpdateLight | Int) : Void
       godot_bind(@@mb_environment_set_sdfgi_frames_to_update_light, "RenderingServer", "environment_set_sdfgi_frames_to_update_light", 1251144068_i64)
@@ -7911,6 +10125,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_environment_set_sdfgi_frames_to_update_light, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `environment_set_sdfgi_frames_to_update_light`
+    def self.environment_set_sdfgi_frames_to_update_light(frames : EnvironmentSDFGIFramesToUpdateLight | Int) : Void
+      instance.environment_set_sdfgi_frames_to_update_light(frames)
     end
     @@mb_environment_set_volumetric_fog_volume_size : Void* = Pointer(Void).null
     def environment_set_volumetric_fog_volume_size(size : Int64, depth : Int64) : Void
@@ -7922,6 +10140,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_environment_set_volumetric_fog_volume_size, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `environment_set_volumetric_fog_volume_size`
+    def self.environment_set_volumetric_fog_volume_size(size : Int64, depth : Int64) : Void
+      instance.environment_set_volumetric_fog_volume_size(size, depth)
+    end
     @@mb_environment_set_volumetric_fog_filter_active : Void* = Pointer(Void).null
     def environment_set_volumetric_fog_filter_active(active : Bool) : Void
       godot_bind(@@mb_environment_set_volumetric_fog_filter_active, "RenderingServer", "environment_set_volumetric_fog_filter_active", 2586408642_i64)
@@ -7929,6 +10151,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_environment_set_volumetric_fog_filter_active, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `environment_set_volumetric_fog_filter_active`
+    def self.environment_set_volumetric_fog_filter_active(active : Bool) : Void
+      instance.environment_set_volumetric_fog_filter_active(active)
     end
     @@mb_environment_bake_panorama : Void* = Pointer(Void).null
     def environment_bake_panorama(environment : Int64, bake_irradiance : Bool, size : Vector2i) : Image
@@ -7942,6 +10168,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_obj(@@mb_environment_bake_panorama, @pointer, args.to_unsafe.as(Void**), Image)
     end
+    # Class-level singleton delegator for `environment_bake_panorama`
+    def self.environment_bake_panorama(environment : Int64, bake_irradiance : Bool, size : Vector2i) : Image
+      instance.environment_bake_panorama(environment, bake_irradiance, size)
+    end
     @@mb_screen_space_roughness_limiter_set_active : Void* = Pointer(Void).null
     def screen_space_roughness_limiter_set_active(enable : Bool, amount : Float64, limit : Float64) : Void
       godot_bind(@@mb_screen_space_roughness_limiter_set_active, "RenderingServer", "screen_space_roughness_limiter_set_active", 916716790_i64)
@@ -7954,6 +10184,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_screen_space_roughness_limiter_set_active, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `screen_space_roughness_limiter_set_active`
+    def self.screen_space_roughness_limiter_set_active(enable : Bool, amount : Float64, limit : Float64) : Void
+      instance.screen_space_roughness_limiter_set_active(enable, amount, limit)
+    end
     @@mb_sub_surface_scattering_set_quality : Void* = Pointer(Void).null
     def sub_surface_scattering_set_quality(quality : SubSurfaceScatteringQuality | Int) : Void
       godot_bind(@@mb_sub_surface_scattering_set_quality, "RenderingServer", "sub_surface_scattering_set_quality", 64571803_i64)
@@ -7961,6 +10195,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_sub_surface_scattering_set_quality, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `sub_surface_scattering_set_quality`
+    def self.sub_surface_scattering_set_quality(quality : SubSurfaceScatteringQuality | Int) : Void
+      instance.sub_surface_scattering_set_quality(quality)
     end
     @@mb_sub_surface_scattering_set_scale : Void* = Pointer(Void).null
     def sub_surface_scattering_set_scale(scale : Float64, depth_scale : Float64) : Void
@@ -7972,10 +10210,18 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_sub_surface_scattering_set_scale, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `sub_surface_scattering_set_scale`
+    def self.sub_surface_scattering_set_scale(scale : Float64, depth_scale : Float64) : Void
+      instance.sub_surface_scattering_set_scale(scale, depth_scale)
+    end
     @@mb_camera_attributes_create : Void* = Pointer(Void).null
     def camera_attributes_create() : Int64
       godot_bind(@@mb_camera_attributes_create, "RenderingServer", "camera_attributes_create", 529393457_i64)
       godot_ptrcall_int(@@mb_camera_attributes_create, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `camera_attributes_create`
+    def self.camera_attributes_create() : Int64
+      instance.camera_attributes_create()
     end
     @@mb_camera_attributes_set_dof_blur_quality : Void* = Pointer(Void).null
     def camera_attributes_set_dof_blur_quality(quality : DOFBlurQuality | Int, use_jitter : Bool) : Void
@@ -7987,6 +10233,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_camera_attributes_set_dof_blur_quality, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `camera_attributes_set_dof_blur_quality`
+    def self.camera_attributes_set_dof_blur_quality(quality : DOFBlurQuality | Int, use_jitter : Bool) : Void
+      instance.camera_attributes_set_dof_blur_quality(quality, use_jitter)
+    end
     @@mb_camera_attributes_set_dof_blur_bokeh_shape : Void* = Pointer(Void).null
     def camera_attributes_set_dof_blur_bokeh_shape(shape : DOFBokehShape | Int) : Void
       godot_bind(@@mb_camera_attributes_set_dof_blur_bokeh_shape, "RenderingServer", "camera_attributes_set_dof_blur_bokeh_shape", 1205058394_i64)
@@ -7994,6 +10244,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_camera_attributes_set_dof_blur_bokeh_shape, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `camera_attributes_set_dof_blur_bokeh_shape`
+    def self.camera_attributes_set_dof_blur_bokeh_shape(shape : DOFBokehShape | Int) : Void
+      instance.camera_attributes_set_dof_blur_bokeh_shape(shape)
     end
     @@mb_camera_attributes_set_dof_blur : Void* = Pointer(Void).null
     def camera_attributes_set_dof_blur(camera_attributes : Int64, far_enable : Bool, far_distance : Float64, far_transition : Float64, near_enable : Bool, near_distance : Float64, near_transition : Float64, amount : Float64) : Void
@@ -8017,6 +10271,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5, arg_6, arg_7]
       godot_ptrcall_void(@@mb_camera_attributes_set_dof_blur, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `camera_attributes_set_dof_blur`
+    def self.camera_attributes_set_dof_blur(camera_attributes : Int64, far_enable : Bool, far_distance : Float64, far_transition : Float64, near_enable : Bool, near_distance : Float64, near_transition : Float64, amount : Float64) : Void
+      instance.camera_attributes_set_dof_blur(camera_attributes, far_enable, far_distance, far_transition, near_enable, near_distance, near_transition, amount)
+    end
     @@mb_camera_attributes_set_exposure : Void* = Pointer(Void).null
     def camera_attributes_set_exposure(camera_attributes : Int64, multiplier : Float64, normalization : Float64) : Void
       godot_bind(@@mb_camera_attributes_set_exposure, "RenderingServer", "camera_attributes_set_exposure", 2513314492_i64)
@@ -8028,6 +10286,10 @@ module Godot
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_camera_attributes_set_exposure, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `camera_attributes_set_exposure`
+    def self.camera_attributes_set_exposure(camera_attributes : Int64, multiplier : Float64, normalization : Float64) : Void
+      instance.camera_attributes_set_exposure(camera_attributes, multiplier, normalization)
     end
     @@mb_camera_attributes_set_auto_exposure : Void* = Pointer(Void).null
     def camera_attributes_set_auto_exposure(camera_attributes : Int64, enable : Bool, min_sensitivity : Float64, max_sensitivity : Float64, speed : Float64, scale : Float64) : Void
@@ -8047,10 +10309,18 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5]
       godot_ptrcall_void(@@mb_camera_attributes_set_auto_exposure, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `camera_attributes_set_auto_exposure`
+    def self.camera_attributes_set_auto_exposure(camera_attributes : Int64, enable : Bool, min_sensitivity : Float64, max_sensitivity : Float64, speed : Float64, scale : Float64) : Void
+      instance.camera_attributes_set_auto_exposure(camera_attributes, enable, min_sensitivity, max_sensitivity, speed, scale)
+    end
     @@mb_scenario_create : Void* = Pointer(Void).null
     def scenario_create() : Int64
       godot_bind(@@mb_scenario_create, "RenderingServer", "scenario_create", 529393457_i64)
       godot_ptrcall_int(@@mb_scenario_create, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `scenario_create`
+    def self.scenario_create() : Int64
+      instance.scenario_create()
     end
     @@mb_scenario_set_environment : Void* = Pointer(Void).null
     def scenario_set_environment(scenario : Int64, environment : Int64) : Void
@@ -8062,6 +10332,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_scenario_set_environment, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `scenario_set_environment`
+    def self.scenario_set_environment(scenario : Int64, environment : Int64) : Void
+      instance.scenario_set_environment(scenario, environment)
+    end
     @@mb_scenario_set_fallback_environment : Void* = Pointer(Void).null
     def scenario_set_fallback_environment(scenario : Int64, environment : Int64) : Void
       godot_bind(@@mb_scenario_set_fallback_environment, "RenderingServer", "scenario_set_fallback_environment", 395945892_i64)
@@ -8071,6 +10345,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_scenario_set_fallback_environment, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `scenario_set_fallback_environment`
+    def self.scenario_set_fallback_environment(scenario : Int64, environment : Int64) : Void
+      instance.scenario_set_fallback_environment(scenario, environment)
     end
     @@mb_scenario_set_camera_attributes : Void* = Pointer(Void).null
     def scenario_set_camera_attributes(scenario : Int64, effects : Int64) : Void
@@ -8082,6 +10360,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_scenario_set_camera_attributes, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `scenario_set_camera_attributes`
+    def self.scenario_set_camera_attributes(scenario : Int64, effects : Int64) : Void
+      instance.scenario_set_camera_attributes(scenario, effects)
+    end
     @@mb_scenario_set_compositor : Void* = Pointer(Void).null
     def scenario_set_compositor(scenario : Int64, compositor : Int64) : Void
       godot_bind(@@mb_scenario_set_compositor, "RenderingServer", "scenario_set_compositor", 395945892_i64)
@@ -8091,6 +10373,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_scenario_set_compositor, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `scenario_set_compositor`
+    def self.scenario_set_compositor(scenario : Int64, compositor : Int64) : Void
+      instance.scenario_set_compositor(scenario, compositor)
     end
     @@mb_instance_create2 : Void* = Pointer(Void).null
     def instance_create2(base : Int64, scenario : Int64) : Int64
@@ -8102,10 +10388,18 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_instance_create2, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `instance_create2`
+    def self.instance_create2(base : Int64, scenario : Int64) : Int64
+      instance.instance_create2(base, scenario)
+    end
     @@mb_instance_create : Void* = Pointer(Void).null
     def instance_create() : Int64
       godot_bind(@@mb_instance_create, "RenderingServer", "instance_create", 529393457_i64)
       godot_ptrcall_int(@@mb_instance_create, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `instance_create`
+    def self.instance_create() : Int64
+      instance.instance_create()
     end
     @@mb_instance_set_base : Void* = Pointer(Void).null
     def instance_set_base(instance : Int64, base : Int64) : Void
@@ -8117,6 +10411,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_instance_set_base, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `instance_set_base`
+    def self.instance_set_base(instance : Int64, base : Int64) : Void
+      instance.instance_set_base(instance, base)
+    end
     @@mb_instance_set_scenario : Void* = Pointer(Void).null
     def instance_set_scenario(instance : Int64, scenario : Int64) : Void
       godot_bind(@@mb_instance_set_scenario, "RenderingServer", "instance_set_scenario", 395945892_i64)
@@ -8127,6 +10425,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_instance_set_scenario, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `instance_set_scenario`
+    def self.instance_set_scenario(instance : Int64, scenario : Int64) : Void
+      instance.instance_set_scenario(instance, scenario)
+    end
     @@mb_instance_set_layer_mask : Void* = Pointer(Void).null
     def instance_set_layer_mask(instance : Int64, mask : Int64) : Void
       godot_bind(@@mb_instance_set_layer_mask, "RenderingServer", "instance_set_layer_mask", 3411492887_i64)
@@ -8136,6 +10438,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_instance_set_layer_mask, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `instance_set_layer_mask`
+    def self.instance_set_layer_mask(instance : Int64, mask : Int64) : Void
+      instance.instance_set_layer_mask(instance, mask)
     end
     @@mb_instance_set_pivot_data : Void* = Pointer(Void).null
     def instance_set_pivot_data(instance : Int64, sorting_offset : Float64, use_aabb_center : Bool) : Void
@@ -8149,6 +10455,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_instance_set_pivot_data, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `instance_set_pivot_data`
+    def self.instance_set_pivot_data(instance : Int64, sorting_offset : Float64, use_aabb_center : Bool) : Void
+      instance.instance_set_pivot_data(instance, sorting_offset, use_aabb_center)
+    end
     @@mb_instance_set_transform : Void* = Pointer(Void).null
     def instance_set_transform(instance : Int64, transform : Transform3D) : Void
       godot_bind(@@mb_instance_set_transform, "RenderingServer", "instance_set_transform", 3935195649_i64)
@@ -8159,6 +10469,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_instance_set_transform, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `instance_set_transform`
+    def self.instance_set_transform(instance : Int64, transform : Transform3D) : Void
+      instance.instance_set_transform(instance, transform)
+    end
     @@mb_instance_attach_object_instance_id : Void* = Pointer(Void).null
     def instance_attach_object_instance_id(instance : Int64, id : Int64) : Void
       godot_bind(@@mb_instance_attach_object_instance_id, "RenderingServer", "instance_attach_object_instance_id", 3411492887_i64)
@@ -8168,6 +10482,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_instance_attach_object_instance_id, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `instance_attach_object_instance_id`
+    def self.instance_attach_object_instance_id(instance : Int64, id : Int64) : Void
+      instance.instance_attach_object_instance_id(instance, id)
     end
     @@mb_instance_set_blend_shape_weight : Void* = Pointer(Void).null
     def instance_set_blend_shape_weight(instance : Int64, shape : Int64, weight : Float64) : Void
@@ -8181,6 +10499,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_instance_set_blend_shape_weight, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `instance_set_blend_shape_weight`
+    def self.instance_set_blend_shape_weight(instance : Int64, shape : Int64, weight : Float64) : Void
+      instance.instance_set_blend_shape_weight(instance, shape, weight)
+    end
     @@mb_instance_set_surface_override_material : Void* = Pointer(Void).null
     def instance_set_surface_override_material(instance : Int64, surface : Int64, material : Int64) : Void
       godot_bind(@@mb_instance_set_surface_override_material, "RenderingServer", "instance_set_surface_override_material", 2310537182_i64)
@@ -8193,6 +10515,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_instance_set_surface_override_material, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `instance_set_surface_override_material`
+    def self.instance_set_surface_override_material(instance : Int64, surface : Int64, material : Int64) : Void
+      instance.instance_set_surface_override_material(instance, surface, material)
+    end
     @@mb_instance_set_visible : Void* = Pointer(Void).null
     def instance_set_visible(instance : Int64, visible : Bool) : Void
       godot_bind(@@mb_instance_set_visible, "RenderingServer", "instance_set_visible", 1265174801_i64)
@@ -8202,6 +10528,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_instance_set_visible, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `instance_set_visible`
+    def self.instance_set_visible(instance : Int64, visible : Bool) : Void
+      instance.instance_set_visible(instance, visible)
     end
     @@mb_instance_geometry_set_transparency : Void* = Pointer(Void).null
     def instance_geometry_set_transparency(instance : Int64, transparency : Float64) : Void
@@ -8213,6 +10543,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_instance_geometry_set_transparency, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `instance_geometry_set_transparency`
+    def self.instance_geometry_set_transparency(instance : Int64, transparency : Float64) : Void
+      instance.instance_geometry_set_transparency(instance, transparency)
+    end
     @@mb_instance_teleport : Void* = Pointer(Void).null
     def instance_teleport(instance : Int64) : Void
       godot_bind(@@mb_instance_teleport, "RenderingServer", "instance_teleport", 2722037293_i64)
@@ -8220,6 +10554,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_instance_teleport, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `instance_teleport`
+    def self.instance_teleport(instance : Int64) : Void
+      instance.instance_teleport(instance)
     end
     @@mb_instance_set_custom_aabb : Void* = Pointer(Void).null
     def instance_set_custom_aabb(instance : Int64, aabb : AABB) : Void
@@ -8231,6 +10569,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_instance_set_custom_aabb, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `instance_set_custom_aabb`
+    def self.instance_set_custom_aabb(instance : Int64, aabb : AABB) : Void
+      instance.instance_set_custom_aabb(instance, aabb)
+    end
     @@mb_instance_attach_skeleton : Void* = Pointer(Void).null
     def instance_attach_skeleton(instance : Int64, skeleton : Int64) : Void
       godot_bind(@@mb_instance_attach_skeleton, "RenderingServer", "instance_attach_skeleton", 395945892_i64)
@@ -8240,6 +10582,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_instance_attach_skeleton, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `instance_attach_skeleton`
+    def self.instance_attach_skeleton(instance : Int64, skeleton : Int64) : Void
+      instance.instance_attach_skeleton(instance, skeleton)
     end
     @@mb_instance_set_extra_visibility_margin : Void* = Pointer(Void).null
     def instance_set_extra_visibility_margin(instance : Int64, margin : Float64) : Void
@@ -8251,6 +10597,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_instance_set_extra_visibility_margin, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `instance_set_extra_visibility_margin`
+    def self.instance_set_extra_visibility_margin(instance : Int64, margin : Float64) : Void
+      instance.instance_set_extra_visibility_margin(instance, margin)
+    end
     @@mb_instance_set_visibility_parent : Void* = Pointer(Void).null
     def instance_set_visibility_parent(instance : Int64, parent : Int64) : Void
       godot_bind(@@mb_instance_set_visibility_parent, "RenderingServer", "instance_set_visibility_parent", 395945892_i64)
@@ -8261,6 +10611,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_instance_set_visibility_parent, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `instance_set_visibility_parent`
+    def self.instance_set_visibility_parent(instance : Int64, parent : Int64) : Void
+      instance.instance_set_visibility_parent(instance, parent)
+    end
     @@mb_instance_set_ignore_culling : Void* = Pointer(Void).null
     def instance_set_ignore_culling(instance : Int64, enabled : Bool) : Void
       godot_bind(@@mb_instance_set_ignore_culling, "RenderingServer", "instance_set_ignore_culling", 1265174801_i64)
@@ -8270,6 +10624,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_instance_set_ignore_culling, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `instance_set_ignore_culling`
+    def self.instance_set_ignore_culling(instance : Int64, enabled : Bool) : Void
+      instance.instance_set_ignore_culling(instance, enabled)
     end
     @@mb_instance_geometry_set_flag : Void* = Pointer(Void).null
     def instance_geometry_set_flag(instance : Int64, flag : InstanceFlags | Int, enabled : Bool) : Void
@@ -8283,6 +10641,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_instance_geometry_set_flag, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `instance_geometry_set_flag`
+    def self.instance_geometry_set_flag(instance : Int64, flag : InstanceFlags | Int, enabled : Bool) : Void
+      instance.instance_geometry_set_flag(instance, flag, enabled)
+    end
     @@mb_instance_geometry_set_cast_shadows_setting : Void* = Pointer(Void).null
     def instance_geometry_set_cast_shadows_setting(instance : Int64, shadow_casting_setting : ShadowCastingSetting | Int) : Void
       godot_bind(@@mb_instance_geometry_set_cast_shadows_setting, "RenderingServer", "instance_geometry_set_cast_shadows_setting", 3768836020_i64)
@@ -8292,6 +10654,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_instance_geometry_set_cast_shadows_setting, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `instance_geometry_set_cast_shadows_setting`
+    def self.instance_geometry_set_cast_shadows_setting(instance : Int64, shadow_casting_setting : ShadowCastingSetting | Int) : Void
+      instance.instance_geometry_set_cast_shadows_setting(instance, shadow_casting_setting)
     end
     @@mb_instance_geometry_set_material_override : Void* = Pointer(Void).null
     def instance_geometry_set_material_override(instance : Int64, material : Int64) : Void
@@ -8303,6 +10669,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_instance_geometry_set_material_override, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `instance_geometry_set_material_override`
+    def self.instance_geometry_set_material_override(instance : Int64, material : Int64) : Void
+      instance.instance_geometry_set_material_override(instance, material)
+    end
     @@mb_instance_geometry_set_material_overlay : Void* = Pointer(Void).null
     def instance_geometry_set_material_overlay(instance : Int64, material : Int64) : Void
       godot_bind(@@mb_instance_geometry_set_material_overlay, "RenderingServer", "instance_geometry_set_material_overlay", 395945892_i64)
@@ -8312,6 +10682,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_instance_geometry_set_material_overlay, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `instance_geometry_set_material_overlay`
+    def self.instance_geometry_set_material_overlay(instance : Int64, material : Int64) : Void
+      instance.instance_geometry_set_material_overlay(instance, material)
     end
     @@mb_instance_geometry_set_visibility_range : Void* = Pointer(Void).null
     def instance_geometry_set_visibility_range(instance : Int64, min : Float64, max : Float64, min_margin : Float64, max_margin : Float64, fade_mode : VisibilityRangeFadeMode | Int) : Void
@@ -8331,6 +10705,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5]
       godot_ptrcall_void(@@mb_instance_geometry_set_visibility_range, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `instance_geometry_set_visibility_range`
+    def self.instance_geometry_set_visibility_range(instance : Int64, min : Float64, max : Float64, min_margin : Float64, max_margin : Float64, fade_mode : VisibilityRangeFadeMode | Int) : Void
+      instance.instance_geometry_set_visibility_range(instance, min, max, min_margin, max_margin, fade_mode)
+    end
     @@mb_instance_geometry_set_lightmap : Void* = Pointer(Void).null
     def instance_geometry_set_lightmap(instance : Int64, lightmap : Int64, lightmap_uv_scale : Rect2, lightmap_slice : Int64) : Void
       godot_bind(@@mb_instance_geometry_set_lightmap, "RenderingServer", "instance_geometry_set_lightmap", 536974962_i64)
@@ -8345,6 +10723,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_instance_geometry_set_lightmap, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `instance_geometry_set_lightmap`
+    def self.instance_geometry_set_lightmap(instance : Int64, lightmap : Int64, lightmap_uv_scale : Rect2, lightmap_slice : Int64) : Void
+      instance.instance_geometry_set_lightmap(instance, lightmap, lightmap_uv_scale, lightmap_slice)
+    end
     @@mb_instance_geometry_set_lod_bias : Void* = Pointer(Void).null
     def instance_geometry_set_lod_bias(instance : Int64, lod_bias : Float64) : Void
       godot_bind(@@mb_instance_geometry_set_lod_bias, "RenderingServer", "instance_geometry_set_lod_bias", 1794382983_i64)
@@ -8354,6 +10736,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_instance_geometry_set_lod_bias, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `instance_geometry_set_lod_bias`
+    def self.instance_geometry_set_lod_bias(instance : Int64, lod_bias : Float64) : Void
+      instance.instance_geometry_set_lod_bias(instance, lod_bias)
     end
     @@mb_instance_geometry_set_shader_parameter : Void* = Pointer(Void).null
     def instance_geometry_set_shader_parameter(instance : Int64, parameter : String, value : Pointer(Void)) : Void
@@ -8368,6 +10754,10 @@ module Godot
       godot_ptrcall_void(@@mb_instance_geometry_set_shader_parameter, @pointer, args.to_unsafe.as(Void**))
     ensure
       Bridge.free_string_name(sn_1)
+    end
+    # Class-level singleton delegator for `instance_geometry_set_shader_parameter`
+    def self.instance_geometry_set_shader_parameter(instance : Int64, parameter : String, value : Pointer(Void)) : Void
+      instance.instance_geometry_set_shader_parameter(instance, parameter, value)
     end
     @@mb_instance_geometry_get_shader_parameter : Void* = Pointer(Void).null
     def instance_geometry_get_shader_parameter(instance : Int64, parameter : String) : Pointer(Void)
@@ -8385,6 +10775,10 @@ module Godot
     ensure
       Bridge.free_string_name(sn_1)
     end
+    # Class-level singleton delegator for `instance_geometry_get_shader_parameter`
+    def self.instance_geometry_get_shader_parameter(instance : Int64, parameter : String) : Pointer(Void)
+      instance.instance_geometry_get_shader_parameter(instance, parameter)
+    end
     @@mb_instance_geometry_get_shader_parameter_default_value : Void* = Pointer(Void).null
     def instance_geometry_get_shader_parameter_default_value(instance : Int64, parameter : String) : Pointer(Void)
       godot_bind(@@mb_instance_geometry_get_shader_parameter_default_value, "RenderingServer", "instance_geometry_get_shader_parameter_default_value", 2621281810_i64)
@@ -8401,6 +10795,10 @@ module Godot
     ensure
       Bridge.free_string_name(sn_1)
     end
+    # Class-level singleton delegator for `instance_geometry_get_shader_parameter_default_value`
+    def self.instance_geometry_get_shader_parameter_default_value(instance : Int64, parameter : String) : Pointer(Void)
+      instance.instance_geometry_get_shader_parameter_default_value(instance, parameter)
+    end
     @@mb_instance_geometry_get_shader_parameter_list : Void* = Pointer(Void).null
     def instance_geometry_get_shader_parameter_list(instance : Int64) : Pointer(Void)
       godot_bind(@@mb_instance_geometry_get_shader_parameter_list, "RenderingServer", "instance_geometry_get_shader_parameter_list", 2684255073_i64)
@@ -8410,6 +10808,10 @@ module Godot
       ret_ptr = Pointer(Void).null
       godot_ptrcall(@@mb_instance_geometry_get_shader_parameter_list, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
       ret_ptr
+    end
+    # Class-level singleton delegator for `instance_geometry_get_shader_parameter_list`
+    def self.instance_geometry_get_shader_parameter_list(instance : Int64) : Pointer(Void)
+      instance.instance_geometry_get_shader_parameter_list(instance)
     end
     @@mb_instances_cull_aabb : Void* = Pointer(Void).null
     def instances_cull_aabb(aabb : AABB, scenario : Int64) : Pointer(Void)
@@ -8422,6 +10824,10 @@ module Godot
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_instances_cull_aabb, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
       ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+    end
+    # Class-level singleton delegator for `instances_cull_aabb`
+    def self.instances_cull_aabb(aabb : AABB, scenario : Int64) : Pointer(Void)
+      instance.instances_cull_aabb(aabb, scenario)
     end
     @@mb_instances_cull_ray : Void* = Pointer(Void).null
     def instances_cull_ray(from : Vector3, to : Vector3, scenario : Int64) : Pointer(Void)
@@ -8437,6 +10843,10 @@ module Godot
       godot_ptrcall(@@mb_instances_cull_ray, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
       ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
+    # Class-level singleton delegator for `instances_cull_ray`
+    def self.instances_cull_ray(from : Vector3, to : Vector3, scenario : Int64) : Pointer(Void)
+      instance.instances_cull_ray(from, to, scenario)
+    end
     @@mb_instances_cull_convex : Void* = Pointer(Void).null
     def instances_cull_convex(convex : Pointer(Void), scenario : Int64) : Pointer(Void)
       godot_bind(@@mb_instances_cull_convex, "RenderingServer", "instances_cull_convex", 2488539944_i64)
@@ -8448,6 +10858,10 @@ module Godot
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_instances_cull_convex, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
       ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+    end
+    # Class-level singleton delegator for `instances_cull_convex`
+    def self.instances_cull_convex(convex : Pointer(Void), scenario : Int64) : Pointer(Void)
+      instance.instances_cull_convex(convex, scenario)
     end
     @@mb_bake_render_uv2 : Void* = Pointer(Void).null
     def bake_render_uv2(base : Int64, material_overrides : Pointer(Void), image_size : Vector2i) : Pointer(Void)
@@ -8463,10 +10877,18 @@ module Godot
       godot_ptrcall(@@mb_bake_render_uv2, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
       ret_ptr
     end
+    # Class-level singleton delegator for `bake_render_uv2`
+    def self.bake_render_uv2(base : Int64, material_overrides : Pointer(Void), image_size : Vector2i) : Pointer(Void)
+      instance.bake_render_uv2(base, material_overrides, image_size)
+    end
     @@mb_canvas_create : Void* = Pointer(Void).null
     def canvas_create() : Int64
       godot_bind(@@mb_canvas_create, "RenderingServer", "canvas_create", 529393457_i64)
       godot_ptrcall_int(@@mb_canvas_create, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `canvas_create`
+    def self.canvas_create() : Int64
+      instance.canvas_create()
     end
     @@mb_canvas_set_item_mirroring : Void* = Pointer(Void).null
     def canvas_set_item_mirroring(canvas : Int64, item : Int64, mirroring : Vector2) : Void
@@ -8480,6 +10902,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_canvas_set_item_mirroring, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_set_item_mirroring`
+    def self.canvas_set_item_mirroring(canvas : Int64, item : Int64, mirroring : Vector2) : Void
+      instance.canvas_set_item_mirroring(canvas, item, mirroring)
+    end
     @@mb_canvas_set_item_repeat : Void* = Pointer(Void).null
     def canvas_set_item_repeat(item : Int64, repeat_size : Vector2, repeat_times : Int64) : Void
       godot_bind(@@mb_canvas_set_item_repeat, "RenderingServer", "canvas_set_item_repeat", 1739512717_i64)
@@ -8492,6 +10918,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_canvas_set_item_repeat, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_set_item_repeat`
+    def self.canvas_set_item_repeat(item : Int64, repeat_size : Vector2, repeat_times : Int64) : Void
+      instance.canvas_set_item_repeat(item, repeat_size, repeat_times)
+    end
     @@mb_canvas_set_modulate : Void* = Pointer(Void).null
     def canvas_set_modulate(canvas : Int64, color : Color) : Void
       godot_bind(@@mb_canvas_set_modulate, "RenderingServer", "canvas_set_modulate", 2948539648_i64)
@@ -8502,6 +10932,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_set_modulate, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_set_modulate`
+    def self.canvas_set_modulate(canvas : Int64, color : Color) : Void
+      instance.canvas_set_modulate(canvas, color)
+    end
     @@mb_canvas_set_disable_scale : Void* = Pointer(Void).null
     def canvas_set_disable_scale(disable : Bool) : Void
       godot_bind(@@mb_canvas_set_disable_scale, "RenderingServer", "canvas_set_disable_scale", 2586408642_i64)
@@ -8510,10 +10944,18 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_canvas_set_disable_scale, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_set_disable_scale`
+    def self.canvas_set_disable_scale(disable : Bool) : Void
+      instance.canvas_set_disable_scale(disable)
+    end
     @@mb_canvas_texture_create : Void* = Pointer(Void).null
     def canvas_texture_create() : Int64
       godot_bind(@@mb_canvas_texture_create, "RenderingServer", "canvas_texture_create", 529393457_i64)
       godot_ptrcall_int(@@mb_canvas_texture_create, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `canvas_texture_create`
+    def self.canvas_texture_create() : Int64
+      instance.canvas_texture_create()
     end
     @@mb_canvas_texture_set_channel : Void* = Pointer(Void).null
     def canvas_texture_set_channel(canvas_texture : Int64, channel : CanvasTextureChannel | Int, texture : Int64) : Void
@@ -8527,6 +10969,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_canvas_texture_set_channel, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_texture_set_channel`
+    def self.canvas_texture_set_channel(canvas_texture : Int64, channel : CanvasTextureChannel | Int, texture : Int64) : Void
+      instance.canvas_texture_set_channel(canvas_texture, channel, texture)
+    end
     @@mb_canvas_texture_set_shading_parameters : Void* = Pointer(Void).null
     def canvas_texture_set_shading_parameters(canvas_texture : Int64, base_color : Color, shininess : Float64) : Void
       godot_bind(@@mb_canvas_texture_set_shading_parameters, "RenderingServer", "canvas_texture_set_shading_parameters", 2124967469_i64)
@@ -8539,6 +10985,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_canvas_texture_set_shading_parameters, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_texture_set_shading_parameters`
+    def self.canvas_texture_set_shading_parameters(canvas_texture : Int64, base_color : Color, shininess : Float64) : Void
+      instance.canvas_texture_set_shading_parameters(canvas_texture, base_color, shininess)
+    end
     @@mb_canvas_texture_set_texture_filter : Void* = Pointer(Void).null
     def canvas_texture_set_texture_filter(canvas_texture : Int64, filter : CanvasItemTextureFilter | Int) : Void
       godot_bind(@@mb_canvas_texture_set_texture_filter, "RenderingServer", "canvas_texture_set_texture_filter", 1155129294_i64)
@@ -8548,6 +10998,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_texture_set_texture_filter, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `canvas_texture_set_texture_filter`
+    def self.canvas_texture_set_texture_filter(canvas_texture : Int64, filter : CanvasItemTextureFilter | Int) : Void
+      instance.canvas_texture_set_texture_filter(canvas_texture, filter)
     end
     @@mb_canvas_texture_set_texture_repeat : Void* = Pointer(Void).null
     def canvas_texture_set_texture_repeat(canvas_texture : Int64, repeat : CanvasItemTextureRepeat | Int) : Void
@@ -8559,10 +11013,18 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_texture_set_texture_repeat, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_texture_set_texture_repeat`
+    def self.canvas_texture_set_texture_repeat(canvas_texture : Int64, repeat : CanvasItemTextureRepeat | Int) : Void
+      instance.canvas_texture_set_texture_repeat(canvas_texture, repeat)
+    end
     @@mb_canvas_item_create : Void* = Pointer(Void).null
     def canvas_item_create() : Int64
       godot_bind(@@mb_canvas_item_create, "RenderingServer", "canvas_item_create", 529393457_i64)
       godot_ptrcall_int(@@mb_canvas_item_create, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `canvas_item_create`
+    def self.canvas_item_create() : Int64
+      instance.canvas_item_create()
     end
     @@mb_canvas_item_set_parent : Void* = Pointer(Void).null
     def canvas_item_set_parent(item : Int64, parent : Int64) : Void
@@ -8574,6 +11036,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_item_set_parent, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_item_set_parent`
+    def self.canvas_item_set_parent(item : Int64, parent : Int64) : Void
+      instance.canvas_item_set_parent(item, parent)
+    end
     @@mb_canvas_item_set_default_texture_filter : Void* = Pointer(Void).null
     def canvas_item_set_default_texture_filter(item : Int64, filter : CanvasItemTextureFilter | Int) : Void
       godot_bind(@@mb_canvas_item_set_default_texture_filter, "RenderingServer", "canvas_item_set_default_texture_filter", 1155129294_i64)
@@ -8583,6 +11049,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_item_set_default_texture_filter, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `canvas_item_set_default_texture_filter`
+    def self.canvas_item_set_default_texture_filter(item : Int64, filter : CanvasItemTextureFilter | Int) : Void
+      instance.canvas_item_set_default_texture_filter(item, filter)
     end
     @@mb_canvas_item_set_default_texture_repeat : Void* = Pointer(Void).null
     def canvas_item_set_default_texture_repeat(item : Int64, repeat : CanvasItemTextureRepeat | Int) : Void
@@ -8594,6 +11064,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_item_set_default_texture_repeat, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_item_set_default_texture_repeat`
+    def self.canvas_item_set_default_texture_repeat(item : Int64, repeat : CanvasItemTextureRepeat | Int) : Void
+      instance.canvas_item_set_default_texture_repeat(item, repeat)
+    end
     @@mb_canvas_item_set_visible : Void* = Pointer(Void).null
     def canvas_item_set_visible(item : Int64, visible : Bool) : Void
       godot_bind(@@mb_canvas_item_set_visible, "RenderingServer", "canvas_item_set_visible", 1265174801_i64)
@@ -8603,6 +11077,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_item_set_visible, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `canvas_item_set_visible`
+    def self.canvas_item_set_visible(item : Int64, visible : Bool) : Void
+      instance.canvas_item_set_visible(item, visible)
     end
     @@mb_canvas_item_set_light_mask : Void* = Pointer(Void).null
     def canvas_item_set_light_mask(item : Int64, mask : Int64) : Void
@@ -8614,6 +11092,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_item_set_light_mask, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_item_set_light_mask`
+    def self.canvas_item_set_light_mask(item : Int64, mask : Int64) : Void
+      instance.canvas_item_set_light_mask(item, mask)
+    end
     @@mb_canvas_item_set_visibility_layer : Void* = Pointer(Void).null
     def canvas_item_set_visibility_layer(item : Int64, visibility_layer : Int64) : Void
       godot_bind(@@mb_canvas_item_set_visibility_layer, "RenderingServer", "canvas_item_set_visibility_layer", 3411492887_i64)
@@ -8623,6 +11105,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_item_set_visibility_layer, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `canvas_item_set_visibility_layer`
+    def self.canvas_item_set_visibility_layer(item : Int64, visibility_layer : Int64) : Void
+      instance.canvas_item_set_visibility_layer(item, visibility_layer)
     end
     @@mb_canvas_item_set_transform : Void* = Pointer(Void).null
     def canvas_item_set_transform(item : Int64, transform : Transform2D) : Void
@@ -8634,6 +11120,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_item_set_transform, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_item_set_transform`
+    def self.canvas_item_set_transform(item : Int64, transform : Transform2D) : Void
+      instance.canvas_item_set_transform(item, transform)
+    end
     @@mb_canvas_item_set_clip : Void* = Pointer(Void).null
     def canvas_item_set_clip(item : Int64, clip : Bool) : Void
       godot_bind(@@mb_canvas_item_set_clip, "RenderingServer", "canvas_item_set_clip", 1265174801_i64)
@@ -8644,6 +11134,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_item_set_clip, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_item_set_clip`
+    def self.canvas_item_set_clip(item : Int64, clip : Bool) : Void
+      instance.canvas_item_set_clip(item, clip)
+    end
     @@mb_canvas_item_set_distance_field_mode : Void* = Pointer(Void).null
     def canvas_item_set_distance_field_mode(item : Int64, enabled : Bool) : Void
       godot_bind(@@mb_canvas_item_set_distance_field_mode, "RenderingServer", "canvas_item_set_distance_field_mode", 1265174801_i64)
@@ -8653,6 +11147,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_item_set_distance_field_mode, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `canvas_item_set_distance_field_mode`
+    def self.canvas_item_set_distance_field_mode(item : Int64, enabled : Bool) : Void
+      instance.canvas_item_set_distance_field_mode(item, enabled)
     end
     @@mb_canvas_item_set_custom_rect : Void* = Pointer(Void).null
     def canvas_item_set_custom_rect(item : Int64, use_custom_rect : Bool, rect : Rect2 = Rect2.new(0.to_f32, 0.to_f32, 0.to_f32, 0.to_f32)) : Void
@@ -8666,6 +11164,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_canvas_item_set_custom_rect, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_item_set_custom_rect`
+    def self.canvas_item_set_custom_rect(item : Int64, use_custom_rect : Bool, rect : Rect2 = Rect2.new(0.to_f32, 0.to_f32, 0.to_f32, 0.to_f32)) : Void
+      instance.canvas_item_set_custom_rect(item, use_custom_rect, rect)
+    end
     @@mb_canvas_item_set_modulate : Void* = Pointer(Void).null
     def canvas_item_set_modulate(item : Int64, color : Color) : Void
       godot_bind(@@mb_canvas_item_set_modulate, "RenderingServer", "canvas_item_set_modulate", 2948539648_i64)
@@ -8675,6 +11177,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_item_set_modulate, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `canvas_item_set_modulate`
+    def self.canvas_item_set_modulate(item : Int64, color : Color) : Void
+      instance.canvas_item_set_modulate(item, color)
     end
     @@mb_canvas_item_set_self_modulate : Void* = Pointer(Void).null
     def canvas_item_set_self_modulate(item : Int64, color : Color) : Void
@@ -8686,6 +11192,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_item_set_self_modulate, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_item_set_self_modulate`
+    def self.canvas_item_set_self_modulate(item : Int64, color : Color) : Void
+      instance.canvas_item_set_self_modulate(item, color)
+    end
     @@mb_canvas_item_set_draw_behind_parent : Void* = Pointer(Void).null
     def canvas_item_set_draw_behind_parent(item : Int64, enabled : Bool) : Void
       godot_bind(@@mb_canvas_item_set_draw_behind_parent, "RenderingServer", "canvas_item_set_draw_behind_parent", 1265174801_i64)
@@ -8695,6 +11205,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_item_set_draw_behind_parent, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `canvas_item_set_draw_behind_parent`
+    def self.canvas_item_set_draw_behind_parent(item : Int64, enabled : Bool) : Void
+      instance.canvas_item_set_draw_behind_parent(item, enabled)
     end
     @@mb_canvas_item_set_interpolated : Void* = Pointer(Void).null
     def canvas_item_set_interpolated(item : Int64, interpolated : Bool) : Void
@@ -8706,6 +11220,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_item_set_interpolated, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_item_set_interpolated`
+    def self.canvas_item_set_interpolated(item : Int64, interpolated : Bool) : Void
+      instance.canvas_item_set_interpolated(item, interpolated)
+    end
     @@mb_canvas_item_reset_physics_interpolation : Void* = Pointer(Void).null
     def canvas_item_reset_physics_interpolation(item : Int64) : Void
       godot_bind(@@mb_canvas_item_reset_physics_interpolation, "RenderingServer", "canvas_item_reset_physics_interpolation", 2722037293_i64)
@@ -8713,6 +11231,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_canvas_item_reset_physics_interpolation, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `canvas_item_reset_physics_interpolation`
+    def self.canvas_item_reset_physics_interpolation(item : Int64) : Void
+      instance.canvas_item_reset_physics_interpolation(item)
     end
     @@mb_canvas_item_transform_physics_interpolation : Void* = Pointer(Void).null
     def canvas_item_transform_physics_interpolation(item : Int64, transform : Transform2D) : Void
@@ -8723,6 +11245,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_item_transform_physics_interpolation, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `canvas_item_transform_physics_interpolation`
+    def self.canvas_item_transform_physics_interpolation(item : Int64, transform : Transform2D) : Void
+      instance.canvas_item_transform_physics_interpolation(item, transform)
     end
     @@mb_canvas_item_add_line : Void* = Pointer(Void).null
     def canvas_item_add_line(item : Int64, from : Vector2, to : Vector2, color : Color, width : Float64 = -1.0_f64, antialiased : Bool = false) : Void
@@ -8742,6 +11268,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5]
       godot_ptrcall_void(@@mb_canvas_item_add_line, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_item_add_line`
+    def self.canvas_item_add_line(item : Int64, from : Vector2, to : Vector2, color : Color, width : Float64 = -1.0_f64, antialiased : Bool = false) : Void
+      instance.canvas_item_add_line(item, from, to, color, width, antialiased)
+    end
     @@mb_canvas_item_add_polyline : Void* = Pointer(Void).null
     def canvas_item_add_polyline(item : Int64, points : Pointer(Void), colors : Pointer(Void), width : Float64 = -1.0_f64, antialiased : Bool = false) : Void
       godot_bind(@@mb_canvas_item_add_polyline, "RenderingServer", "canvas_item_add_polyline", 3098767073_i64)
@@ -8757,6 +11287,10 @@ module Godot
       arg_4 = pointerof(val_4).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
       godot_ptrcall_void(@@mb_canvas_item_add_polyline, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `canvas_item_add_polyline`
+    def self.canvas_item_add_polyline(item : Int64, points : Pointer(Void), colors : Pointer(Void), width : Float64 = -1.0_f64, antialiased : Bool = false) : Void
+      instance.canvas_item_add_polyline(item, points, colors, width, antialiased)
     end
     @@mb_canvas_item_add_multiline : Void* = Pointer(Void).null
     def canvas_item_add_multiline(item : Int64, points : Pointer(Void), colors : Pointer(Void), width : Float64 = -1.0_f64, antialiased : Bool = false) : Void
@@ -8774,6 +11308,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
       godot_ptrcall_void(@@mb_canvas_item_add_multiline, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_item_add_multiline`
+    def self.canvas_item_add_multiline(item : Int64, points : Pointer(Void), colors : Pointer(Void), width : Float64 = -1.0_f64, antialiased : Bool = false) : Void
+      instance.canvas_item_add_multiline(item, points, colors, width, antialiased)
+    end
     @@mb_canvas_item_add_rect : Void* = Pointer(Void).null
     def canvas_item_add_rect(item : Int64, rect : Rect2, color : Color, antialiased : Bool = false) : Void
       godot_bind(@@mb_canvas_item_add_rect, "RenderingServer", "canvas_item_add_rect", 3523446176_i64)
@@ -8787,6 +11325,10 @@ module Godot
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_canvas_item_add_rect, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `canvas_item_add_rect`
+    def self.canvas_item_add_rect(item : Int64, rect : Rect2, color : Color, antialiased : Bool = false) : Void
+      instance.canvas_item_add_rect(item, rect, color, antialiased)
     end
     @@mb_canvas_item_add_circle : Void* = Pointer(Void).null
     def canvas_item_add_circle(item : Int64, pos : Vector2, radius : Float64, color : Color, antialiased : Bool = false) : Void
@@ -8803,6 +11345,10 @@ module Godot
       arg_4 = pointerof(val_4).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
       godot_ptrcall_void(@@mb_canvas_item_add_circle, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `canvas_item_add_circle`
+    def self.canvas_item_add_circle(item : Int64, pos : Vector2, radius : Float64, color : Color, antialiased : Bool = false) : Void
+      instance.canvas_item_add_circle(item, pos, radius, color, antialiased)
     end
     @@mb_canvas_item_add_ellipse : Void* = Pointer(Void).null
     def canvas_item_add_ellipse(item : Int64, pos : Vector2, major : Float64, minor : Float64, color : Color, antialiased : Bool = false) : Void
@@ -8822,6 +11368,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5]
       godot_ptrcall_void(@@mb_canvas_item_add_ellipse, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_item_add_ellipse`
+    def self.canvas_item_add_ellipse(item : Int64, pos : Vector2, major : Float64, minor : Float64, color : Color, antialiased : Bool = false) : Void
+      instance.canvas_item_add_ellipse(item, pos, major, minor, color, antialiased)
+    end
     @@mb_canvas_item_add_texture_rect : Void* = Pointer(Void).null
     def canvas_item_add_texture_rect(item : Int64, rect : Rect2, texture : Int64, tile : Bool = false, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32), transpose : Bool = false) : Void
       godot_bind(@@mb_canvas_item_add_texture_rect, "RenderingServer", "canvas_item_add_texture_rect", 324864032_i64)
@@ -8839,6 +11389,10 @@ module Godot
       arg_5 = pointerof(val_5).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5]
       godot_ptrcall_void(@@mb_canvas_item_add_texture_rect, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `canvas_item_add_texture_rect`
+    def self.canvas_item_add_texture_rect(item : Int64, rect : Rect2, texture : Int64, tile : Bool = false, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32), transpose : Bool = false) : Void
+      instance.canvas_item_add_texture_rect(item, rect, texture, tile, modulate, transpose)
     end
     @@mb_canvas_item_add_msdf_texture_rect_region : Void* = Pointer(Void).null
     def canvas_item_add_msdf_texture_rect_region(item : Int64, rect : Rect2, texture : Int64, src_rect : Rect2, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32), outline_size : Int64 = 0_i64, px_range : Float64 = 1.0_f64, scale : Float64 = 1.0_f64) : Void
@@ -8862,6 +11416,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5, arg_6, arg_7]
       godot_ptrcall_void(@@mb_canvas_item_add_msdf_texture_rect_region, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_item_add_msdf_texture_rect_region`
+    def self.canvas_item_add_msdf_texture_rect_region(item : Int64, rect : Rect2, texture : Int64, src_rect : Rect2, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32), outline_size : Int64 = 0_i64, px_range : Float64 = 1.0_f64, scale : Float64 = 1.0_f64) : Void
+      instance.canvas_item_add_msdf_texture_rect_region(item, rect, texture, src_rect, modulate, outline_size, px_range, scale)
+    end
     @@mb_canvas_item_add_lcd_texture_rect_region : Void* = Pointer(Void).null
     def canvas_item_add_lcd_texture_rect_region(item : Int64, rect : Rect2, texture : Int64, src_rect : Rect2, modulate : Color) : Void
       godot_bind(@@mb_canvas_item_add_lcd_texture_rect_region, "RenderingServer", "canvas_item_add_lcd_texture_rect_region", 359793297_i64)
@@ -8877,6 +11435,10 @@ module Godot
       arg_4 = pointerof(val_4).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
       godot_ptrcall_void(@@mb_canvas_item_add_lcd_texture_rect_region, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `canvas_item_add_lcd_texture_rect_region`
+    def self.canvas_item_add_lcd_texture_rect_region(item : Int64, rect : Rect2, texture : Int64, src_rect : Rect2, modulate : Color) : Void
+      instance.canvas_item_add_lcd_texture_rect_region(item, rect, texture, src_rect, modulate)
     end
     @@mb_canvas_item_add_texture_rect_region : Void* = Pointer(Void).null
     def canvas_item_add_texture_rect_region(item : Int64, rect : Rect2, texture : Int64, src_rect : Rect2, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32), transpose : Bool = false, clip_uv : Bool = true) : Void
@@ -8897,6 +11459,10 @@ module Godot
       arg_6 = pointerof(val_6).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5, arg_6]
       godot_ptrcall_void(@@mb_canvas_item_add_texture_rect_region, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `canvas_item_add_texture_rect_region`
+    def self.canvas_item_add_texture_rect_region(item : Int64, rect : Rect2, texture : Int64, src_rect : Rect2, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32), transpose : Bool = false, clip_uv : Bool = true) : Void
+      instance.canvas_item_add_texture_rect_region(item, rect, texture, src_rect, modulate, transpose, clip_uv)
     end
     @@mb_canvas_item_add_nine_patch : Void* = Pointer(Void).null
     def canvas_item_add_nine_patch(item : Int64, rect : Rect2, source : Rect2, texture : Int64, topleft : Vector2, bottomright : Vector2, x_axis_mode : NinePatchAxisMode | Int = 0, y_axis_mode : NinePatchAxisMode | Int = 0, draw_center : Bool = true, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32)) : Void
@@ -8924,6 +11490,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5, arg_6, arg_7, arg_8, arg_9]
       godot_ptrcall_void(@@mb_canvas_item_add_nine_patch, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_item_add_nine_patch`
+    def self.canvas_item_add_nine_patch(item : Int64, rect : Rect2, source : Rect2, texture : Int64, topleft : Vector2, bottomright : Vector2, x_axis_mode : NinePatchAxisMode | Int = 0, y_axis_mode : NinePatchAxisMode | Int = 0, draw_center : Bool = true, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32)) : Void
+      instance.canvas_item_add_nine_patch(item, rect, source, texture, topleft, bottomright, x_axis_mode, y_axis_mode, draw_center, modulate)
+    end
     @@mb_canvas_item_add_primitive : Void* = Pointer(Void).null
     def canvas_item_add_primitive(item : Int64, points : Pointer(Void), colors : Pointer(Void), uvs : Pointer(Void), texture : Int64) : Void
       godot_bind(@@mb_canvas_item_add_primitive, "RenderingServer", "canvas_item_add_primitive", 3731601077_i64)
@@ -8940,6 +11510,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
       godot_ptrcall_void(@@mb_canvas_item_add_primitive, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_item_add_primitive`
+    def self.canvas_item_add_primitive(item : Int64, points : Pointer(Void), colors : Pointer(Void), uvs : Pointer(Void), texture : Int64) : Void
+      instance.canvas_item_add_primitive(item, points, colors, uvs, texture)
+    end
     @@mb_canvas_item_add_polygon : Void* = Pointer(Void).null
     def canvas_item_add_polygon(item : Int64, points : Pointer(Void), colors : Pointer(Void), uvs : Pointer(Void), texture : Int64) : Void
       godot_bind(@@mb_canvas_item_add_polygon, "RenderingServer", "canvas_item_add_polygon", 3580000528_i64)
@@ -8955,6 +11529,10 @@ module Godot
       arg_4 = pointerof(val_4).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
       godot_ptrcall_void(@@mb_canvas_item_add_polygon, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `canvas_item_add_polygon`
+    def self.canvas_item_add_polygon(item : Int64, points : Pointer(Void), colors : Pointer(Void), uvs : Pointer(Void), texture : Int64) : Void
+      instance.canvas_item_add_polygon(item, points, colors, uvs, texture)
     end
     @@mb_canvas_item_add_triangle_array : Void* = Pointer(Void).null
     def canvas_item_add_triangle_array(item : Int64, indices : Pointer(Void), points : Pointer(Void), colors : Pointer(Void), uvs : Pointer(Void), bones : Pointer(Void), weights : Pointer(Void), texture : Int64, count : Int64 = -1_i64) : Void
@@ -8980,6 +11558,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5, arg_6, arg_7, arg_8]
       godot_ptrcall_void(@@mb_canvas_item_add_triangle_array, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_item_add_triangle_array`
+    def self.canvas_item_add_triangle_array(item : Int64, indices : Pointer(Void), points : Pointer(Void), colors : Pointer(Void), uvs : Pointer(Void), bones : Pointer(Void), weights : Pointer(Void), texture : Int64, count : Int64 = -1_i64) : Void
+      instance.canvas_item_add_triangle_array(item, indices, points, colors, uvs, bones, weights, texture, count)
+    end
     @@mb_canvas_item_add_mesh : Void* = Pointer(Void).null
     def canvas_item_add_mesh(item : Int64, mesh : Int64, transform : Transform2D, modulate : Color, texture : Int64) : Void
       godot_bind(@@mb_canvas_item_add_mesh, "RenderingServer", "canvas_item_add_mesh", 316450961_i64)
@@ -8996,6 +11578,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
       godot_ptrcall_void(@@mb_canvas_item_add_mesh, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_item_add_mesh`
+    def self.canvas_item_add_mesh(item : Int64, mesh : Int64, transform : Transform2D, modulate : Color, texture : Int64) : Void
+      instance.canvas_item_add_mesh(item, mesh, transform, modulate, texture)
+    end
     @@mb_canvas_item_add_multimesh : Void* = Pointer(Void).null
     def canvas_item_add_multimesh(item : Int64, mesh : Int64, texture : Int64) : Void
       godot_bind(@@mb_canvas_item_add_multimesh, "RenderingServer", "canvas_item_add_multimesh", 2131855138_i64)
@@ -9007,6 +11593,10 @@ module Godot
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_canvas_item_add_multimesh, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `canvas_item_add_multimesh`
+    def self.canvas_item_add_multimesh(item : Int64, mesh : Int64, texture : Int64) : Void
+      instance.canvas_item_add_multimesh(item, mesh, texture)
     end
     @@mb_canvas_item_add_particles : Void* = Pointer(Void).null
     def canvas_item_add_particles(item : Int64, particles : Int64, texture : Int64) : Void
@@ -9020,6 +11610,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_canvas_item_add_particles, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_item_add_particles`
+    def self.canvas_item_add_particles(item : Int64, particles : Int64, texture : Int64) : Void
+      instance.canvas_item_add_particles(item, particles, texture)
+    end
     @@mb_canvas_item_add_set_transform : Void* = Pointer(Void).null
     def canvas_item_add_set_transform(item : Int64, transform : Transform2D) : Void
       godot_bind(@@mb_canvas_item_add_set_transform, "RenderingServer", "canvas_item_add_set_transform", 1246044741_i64)
@@ -9030,6 +11624,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_item_add_set_transform, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_item_add_set_transform`
+    def self.canvas_item_add_set_transform(item : Int64, transform : Transform2D) : Void
+      instance.canvas_item_add_set_transform(item, transform)
+    end
     @@mb_canvas_item_add_clip_ignore : Void* = Pointer(Void).null
     def canvas_item_add_clip_ignore(item : Int64, ignore : Bool) : Void
       godot_bind(@@mb_canvas_item_add_clip_ignore, "RenderingServer", "canvas_item_add_clip_ignore", 1265174801_i64)
@@ -9039,6 +11637,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_item_add_clip_ignore, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `canvas_item_add_clip_ignore`
+    def self.canvas_item_add_clip_ignore(item : Int64, ignore : Bool) : Void
+      instance.canvas_item_add_clip_ignore(item, ignore)
     end
     @@mb_canvas_item_add_animation_slice : Void* = Pointer(Void).null
     def canvas_item_add_animation_slice(item : Int64, animation_length : Float64, slice_begin : Float64, slice_end : Float64, offset : Float64 = 0.0_f64) : Void
@@ -9056,6 +11658,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
       godot_ptrcall_void(@@mb_canvas_item_add_animation_slice, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_item_add_animation_slice`
+    def self.canvas_item_add_animation_slice(item : Int64, animation_length : Float64, slice_begin : Float64, slice_end : Float64, offset : Float64 = 0.0_f64) : Void
+      instance.canvas_item_add_animation_slice(item, animation_length, slice_begin, slice_end, offset)
+    end
     @@mb_canvas_item_set_sort_children_by_y : Void* = Pointer(Void).null
     def canvas_item_set_sort_children_by_y(item : Int64, enabled : Bool) : Void
       godot_bind(@@mb_canvas_item_set_sort_children_by_y, "RenderingServer", "canvas_item_set_sort_children_by_y", 1265174801_i64)
@@ -9065,6 +11671,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_item_set_sort_children_by_y, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `canvas_item_set_sort_children_by_y`
+    def self.canvas_item_set_sort_children_by_y(item : Int64, enabled : Bool) : Void
+      instance.canvas_item_set_sort_children_by_y(item, enabled)
     end
     @@mb_canvas_item_set_z_index : Void* = Pointer(Void).null
     def canvas_item_set_z_index(item : Int64, z_index : Int64) : Void
@@ -9076,6 +11686,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_item_set_z_index, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_item_set_z_index`
+    def self.canvas_item_set_z_index(item : Int64, z_index : Int64) : Void
+      instance.canvas_item_set_z_index(item, z_index)
+    end
     @@mb_canvas_item_set_z_as_relative_to_parent : Void* = Pointer(Void).null
     def canvas_item_set_z_as_relative_to_parent(item : Int64, enabled : Bool) : Void
       godot_bind(@@mb_canvas_item_set_z_as_relative_to_parent, "RenderingServer", "canvas_item_set_z_as_relative_to_parent", 1265174801_i64)
@@ -9085,6 +11699,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_item_set_z_as_relative_to_parent, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `canvas_item_set_z_as_relative_to_parent`
+    def self.canvas_item_set_z_as_relative_to_parent(item : Int64, enabled : Bool) : Void
+      instance.canvas_item_set_z_as_relative_to_parent(item, enabled)
     end
     @@mb_canvas_item_set_copy_to_backbuffer : Void* = Pointer(Void).null
     def canvas_item_set_copy_to_backbuffer(item : Int64, enabled : Bool, rect : Rect2) : Void
@@ -9098,6 +11716,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_canvas_item_set_copy_to_backbuffer, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_item_set_copy_to_backbuffer`
+    def self.canvas_item_set_copy_to_backbuffer(item : Int64, enabled : Bool, rect : Rect2) : Void
+      instance.canvas_item_set_copy_to_backbuffer(item, enabled, rect)
+    end
     @@mb_canvas_item_attach_skeleton : Void* = Pointer(Void).null
     def canvas_item_attach_skeleton(item : Int64, skeleton : Int64) : Void
       godot_bind(@@mb_canvas_item_attach_skeleton, "RenderingServer", "canvas_item_attach_skeleton", 395945892_i64)
@@ -9108,6 +11730,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_item_attach_skeleton, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_item_attach_skeleton`
+    def self.canvas_item_attach_skeleton(item : Int64, skeleton : Int64) : Void
+      instance.canvas_item_attach_skeleton(item, skeleton)
+    end
     @@mb_canvas_item_clear : Void* = Pointer(Void).null
     def canvas_item_clear(item : Int64) : Void
       godot_bind(@@mb_canvas_item_clear, "RenderingServer", "canvas_item_clear", 2722037293_i64)
@@ -9115,6 +11741,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_canvas_item_clear, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `canvas_item_clear`
+    def self.canvas_item_clear(item : Int64) : Void
+      instance.canvas_item_clear(item)
     end
     @@mb_canvas_item_set_draw_index : Void* = Pointer(Void).null
     def canvas_item_set_draw_index(item : Int64, index : Int64) : Void
@@ -9126,6 +11756,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_item_set_draw_index, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_item_set_draw_index`
+    def self.canvas_item_set_draw_index(item : Int64, index : Int64) : Void
+      instance.canvas_item_set_draw_index(item, index)
+    end
     @@mb_canvas_item_set_material : Void* = Pointer(Void).null
     def canvas_item_set_material(item : Int64, material : Int64) : Void
       godot_bind(@@mb_canvas_item_set_material, "RenderingServer", "canvas_item_set_material", 395945892_i64)
@@ -9136,6 +11770,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_item_set_material, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_item_set_material`
+    def self.canvas_item_set_material(item : Int64, material : Int64) : Void
+      instance.canvas_item_set_material(item, material)
+    end
     @@mb_canvas_item_set_use_parent_material : Void* = Pointer(Void).null
     def canvas_item_set_use_parent_material(item : Int64, enabled : Bool) : Void
       godot_bind(@@mb_canvas_item_set_use_parent_material, "RenderingServer", "canvas_item_set_use_parent_material", 1265174801_i64)
@@ -9145,6 +11783,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_item_set_use_parent_material, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `canvas_item_set_use_parent_material`
+    def self.canvas_item_set_use_parent_material(item : Int64, enabled : Bool) : Void
+      instance.canvas_item_set_use_parent_material(item, enabled)
     end
     @@mb_canvas_item_set_instance_shader_parameter : Void* = Pointer(Void).null
     def canvas_item_set_instance_shader_parameter(instance : Int64, parameter : String, value : Pointer(Void)) : Void
@@ -9159,6 +11801,10 @@ module Godot
       godot_ptrcall_void(@@mb_canvas_item_set_instance_shader_parameter, @pointer, args.to_unsafe.as(Void**))
     ensure
       Bridge.free_string_name(sn_1)
+    end
+    # Class-level singleton delegator for `canvas_item_set_instance_shader_parameter`
+    def self.canvas_item_set_instance_shader_parameter(instance : Int64, parameter : String, value : Pointer(Void)) : Void
+      instance.canvas_item_set_instance_shader_parameter(instance, parameter, value)
     end
     @@mb_canvas_item_get_instance_shader_parameter : Void* = Pointer(Void).null
     def canvas_item_get_instance_shader_parameter(instance : Int64, parameter : String) : Pointer(Void)
@@ -9176,6 +11822,10 @@ module Godot
     ensure
       Bridge.free_string_name(sn_1)
     end
+    # Class-level singleton delegator for `canvas_item_get_instance_shader_parameter`
+    def self.canvas_item_get_instance_shader_parameter(instance : Int64, parameter : String) : Pointer(Void)
+      instance.canvas_item_get_instance_shader_parameter(instance, parameter)
+    end
     @@mb_canvas_item_get_instance_shader_parameter_default_value : Void* = Pointer(Void).null
     def canvas_item_get_instance_shader_parameter_default_value(instance : Int64, parameter : String) : Pointer(Void)
       godot_bind(@@mb_canvas_item_get_instance_shader_parameter_default_value, "RenderingServer", "canvas_item_get_instance_shader_parameter_default_value", 2621281810_i64)
@@ -9192,6 +11842,10 @@ module Godot
     ensure
       Bridge.free_string_name(sn_1)
     end
+    # Class-level singleton delegator for `canvas_item_get_instance_shader_parameter_default_value`
+    def self.canvas_item_get_instance_shader_parameter_default_value(instance : Int64, parameter : String) : Pointer(Void)
+      instance.canvas_item_get_instance_shader_parameter_default_value(instance, parameter)
+    end
     @@mb_canvas_item_get_instance_shader_parameter_list : Void* = Pointer(Void).null
     def canvas_item_get_instance_shader_parameter_list(instance : Int64) : Pointer(Void)
       godot_bind(@@mb_canvas_item_get_instance_shader_parameter_list, "RenderingServer", "canvas_item_get_instance_shader_parameter_list", 2684255073_i64)
@@ -9201,6 +11855,10 @@ module Godot
       ret_ptr = Pointer(Void).null
       godot_ptrcall(@@mb_canvas_item_get_instance_shader_parameter_list, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
       ret_ptr
+    end
+    # Class-level singleton delegator for `canvas_item_get_instance_shader_parameter_list`
+    def self.canvas_item_get_instance_shader_parameter_list(instance : Int64) : Pointer(Void)
+      instance.canvas_item_get_instance_shader_parameter_list(instance)
     end
     @@mb_canvas_item_set_visibility_notifier : Void* = Pointer(Void).null
     def canvas_item_set_visibility_notifier(item : Int64, enable : Bool, area : Rect2, enter_callable : Pointer(Void), exit_callable : Pointer(Void)) : Void
@@ -9217,6 +11875,10 @@ module Godot
       arg_4 = pointerof(val_4).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
       godot_ptrcall_void(@@mb_canvas_item_set_visibility_notifier, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `canvas_item_set_visibility_notifier`
+    def self.canvas_item_set_visibility_notifier(item : Int64, enable : Bool, area : Rect2, enter_callable : Pointer(Void), exit_callable : Pointer(Void)) : Void
+      instance.canvas_item_set_visibility_notifier(item, enable, area, enter_callable, exit_callable)
     end
     @@mb_canvas_item_set_canvas_group_mode : Void* = Pointer(Void).null
     def canvas_item_set_canvas_group_mode(item : Int64, mode : CanvasGroupMode | Int, clear_margin : Float64 = 5.0_f64, fit_empty : Bool = false, fit_margin : Float64 = 0.0_f64, blur_mipmaps : Bool = false) : Void
@@ -9236,6 +11898,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5]
       godot_ptrcall_void(@@mb_canvas_item_set_canvas_group_mode, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_item_set_canvas_group_mode`
+    def self.canvas_item_set_canvas_group_mode(item : Int64, mode : CanvasGroupMode | Int, clear_margin : Float64 = 5.0_f64, fit_empty : Bool = false, fit_margin : Float64 = 0.0_f64, blur_mipmaps : Bool = false) : Void
+      instance.canvas_item_set_canvas_group_mode(item, mode, clear_margin, fit_empty, fit_margin, blur_mipmaps)
+    end
     @@mb_debug_canvas_item_get_rect : Void* = Pointer(Void).null
     def debug_canvas_item_get_rect(item : Int64) : Rect2
       godot_bind(@@mb_debug_canvas_item_get_rect, "RenderingServer", "debug_canvas_item_get_rect", 624227424_i64)
@@ -9244,10 +11910,18 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_val(@@mb_debug_canvas_item_get_rect, @pointer, args.to_unsafe.as(Void**), Rect2)
     end
+    # Class-level singleton delegator for `debug_canvas_item_get_rect`
+    def self.debug_canvas_item_get_rect(item : Int64) : Rect2
+      instance.debug_canvas_item_get_rect(item)
+    end
     @@mb_canvas_light_create : Void* = Pointer(Void).null
     def canvas_light_create() : Int64
       godot_bind(@@mb_canvas_light_create, "RenderingServer", "canvas_light_create", 529393457_i64)
       godot_ptrcall_int(@@mb_canvas_light_create, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `canvas_light_create`
+    def self.canvas_light_create() : Int64
+      instance.canvas_light_create()
     end
     @@mb_canvas_light_attach_to_canvas : Void* = Pointer(Void).null
     def canvas_light_attach_to_canvas(light : Int64, canvas : Int64) : Void
@@ -9259,6 +11933,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_light_attach_to_canvas, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_light_attach_to_canvas`
+    def self.canvas_light_attach_to_canvas(light : Int64, canvas : Int64) : Void
+      instance.canvas_light_attach_to_canvas(light, canvas)
+    end
     @@mb_canvas_light_set_enabled : Void* = Pointer(Void).null
     def canvas_light_set_enabled(light : Int64, enabled : Bool) : Void
       godot_bind(@@mb_canvas_light_set_enabled, "RenderingServer", "canvas_light_set_enabled", 1265174801_i64)
@@ -9268,6 +11946,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_light_set_enabled, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `canvas_light_set_enabled`
+    def self.canvas_light_set_enabled(light : Int64, enabled : Bool) : Void
+      instance.canvas_light_set_enabled(light, enabled)
     end
     @@mb_canvas_light_set_texture_scale : Void* = Pointer(Void).null
     def canvas_light_set_texture_scale(light : Int64, scale : Float64) : Void
@@ -9279,6 +11961,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_light_set_texture_scale, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_light_set_texture_scale`
+    def self.canvas_light_set_texture_scale(light : Int64, scale : Float64) : Void
+      instance.canvas_light_set_texture_scale(light, scale)
+    end
     @@mb_canvas_light_set_transform : Void* = Pointer(Void).null
     def canvas_light_set_transform(light : Int64, transform : Transform2D) : Void
       godot_bind(@@mb_canvas_light_set_transform, "RenderingServer", "canvas_light_set_transform", 1246044741_i64)
@@ -9288,6 +11974,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_light_set_transform, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `canvas_light_set_transform`
+    def self.canvas_light_set_transform(light : Int64, transform : Transform2D) : Void
+      instance.canvas_light_set_transform(light, transform)
     end
     @@mb_canvas_light_set_texture : Void* = Pointer(Void).null
     def canvas_light_set_texture(light : Int64, texture : Int64) : Void
@@ -9299,6 +11989,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_light_set_texture, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_light_set_texture`
+    def self.canvas_light_set_texture(light : Int64, texture : Int64) : Void
+      instance.canvas_light_set_texture(light, texture)
+    end
     @@mb_canvas_light_set_texture_offset : Void* = Pointer(Void).null
     def canvas_light_set_texture_offset(light : Int64, offset : Vector2) : Void
       godot_bind(@@mb_canvas_light_set_texture_offset, "RenderingServer", "canvas_light_set_texture_offset", 3201125042_i64)
@@ -9308,6 +12002,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_light_set_texture_offset, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `canvas_light_set_texture_offset`
+    def self.canvas_light_set_texture_offset(light : Int64, offset : Vector2) : Void
+      instance.canvas_light_set_texture_offset(light, offset)
     end
     @@mb_canvas_light_set_color : Void* = Pointer(Void).null
     def canvas_light_set_color(light : Int64, color : Color) : Void
@@ -9319,6 +12017,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_light_set_color, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_light_set_color`
+    def self.canvas_light_set_color(light : Int64, color : Color) : Void
+      instance.canvas_light_set_color(light, color)
+    end
     @@mb_canvas_light_set_height : Void* = Pointer(Void).null
     def canvas_light_set_height(light : Int64, height : Float64) : Void
       godot_bind(@@mb_canvas_light_set_height, "RenderingServer", "canvas_light_set_height", 1794382983_i64)
@@ -9329,6 +12031,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_light_set_height, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_light_set_height`
+    def self.canvas_light_set_height(light : Int64, height : Float64) : Void
+      instance.canvas_light_set_height(light, height)
+    end
     @@mb_canvas_light_set_energy : Void* = Pointer(Void).null
     def canvas_light_set_energy(light : Int64, energy : Float64) : Void
       godot_bind(@@mb_canvas_light_set_energy, "RenderingServer", "canvas_light_set_energy", 1794382983_i64)
@@ -9338,6 +12044,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_light_set_energy, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `canvas_light_set_energy`
+    def self.canvas_light_set_energy(light : Int64, energy : Float64) : Void
+      instance.canvas_light_set_energy(light, energy)
     end
     @@mb_canvas_light_set_z_range : Void* = Pointer(Void).null
     def canvas_light_set_z_range(light : Int64, min_z : Int64, max_z : Int64) : Void
@@ -9351,6 +12061,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_canvas_light_set_z_range, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_light_set_z_range`
+    def self.canvas_light_set_z_range(light : Int64, min_z : Int64, max_z : Int64) : Void
+      instance.canvas_light_set_z_range(light, min_z, max_z)
+    end
     @@mb_canvas_light_set_layer_range : Void* = Pointer(Void).null
     def canvas_light_set_layer_range(light : Int64, min_layer : Int64, max_layer : Int64) : Void
       godot_bind(@@mb_canvas_light_set_layer_range, "RenderingServer", "canvas_light_set_layer_range", 4288446313_i64)
@@ -9363,6 +12077,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_canvas_light_set_layer_range, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_light_set_layer_range`
+    def self.canvas_light_set_layer_range(light : Int64, min_layer : Int64, max_layer : Int64) : Void
+      instance.canvas_light_set_layer_range(light, min_layer, max_layer)
+    end
     @@mb_canvas_light_set_item_cull_mask : Void* = Pointer(Void).null
     def canvas_light_set_item_cull_mask(light : Int64, mask : Int64) : Void
       godot_bind(@@mb_canvas_light_set_item_cull_mask, "RenderingServer", "canvas_light_set_item_cull_mask", 3411492887_i64)
@@ -9372,6 +12090,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_light_set_item_cull_mask, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `canvas_light_set_item_cull_mask`
+    def self.canvas_light_set_item_cull_mask(light : Int64, mask : Int64) : Void
+      instance.canvas_light_set_item_cull_mask(light, mask)
     end
     @@mb_canvas_light_set_item_shadow_cull_mask : Void* = Pointer(Void).null
     def canvas_light_set_item_shadow_cull_mask(light : Int64, mask : Int64) : Void
@@ -9383,6 +12105,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_light_set_item_shadow_cull_mask, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_light_set_item_shadow_cull_mask`
+    def self.canvas_light_set_item_shadow_cull_mask(light : Int64, mask : Int64) : Void
+      instance.canvas_light_set_item_shadow_cull_mask(light, mask)
+    end
     @@mb_canvas_light_set_mode : Void* = Pointer(Void).null
     def canvas_light_set_mode(light : Int64, mode : CanvasLightMode | Int) : Void
       godot_bind(@@mb_canvas_light_set_mode, "RenderingServer", "canvas_light_set_mode", 2957564891_i64)
@@ -9392,6 +12118,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_light_set_mode, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `canvas_light_set_mode`
+    def self.canvas_light_set_mode(light : Int64, mode : CanvasLightMode | Int) : Void
+      instance.canvas_light_set_mode(light, mode)
     end
     @@mb_canvas_light_set_shadow_enabled : Void* = Pointer(Void).null
     def canvas_light_set_shadow_enabled(light : Int64, enabled : Bool) : Void
@@ -9403,6 +12133,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_light_set_shadow_enabled, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_light_set_shadow_enabled`
+    def self.canvas_light_set_shadow_enabled(light : Int64, enabled : Bool) : Void
+      instance.canvas_light_set_shadow_enabled(light, enabled)
+    end
     @@mb_canvas_light_set_shadow_filter : Void* = Pointer(Void).null
     def canvas_light_set_shadow_filter(light : Int64, filter : CanvasLightShadowFilter | Int) : Void
       godot_bind(@@mb_canvas_light_set_shadow_filter, "RenderingServer", "canvas_light_set_shadow_filter", 393119659_i64)
@@ -9412,6 +12146,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_light_set_shadow_filter, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `canvas_light_set_shadow_filter`
+    def self.canvas_light_set_shadow_filter(light : Int64, filter : CanvasLightShadowFilter | Int) : Void
+      instance.canvas_light_set_shadow_filter(light, filter)
     end
     @@mb_canvas_light_set_shadow_color : Void* = Pointer(Void).null
     def canvas_light_set_shadow_color(light : Int64, color : Color) : Void
@@ -9423,6 +12161,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_light_set_shadow_color, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_light_set_shadow_color`
+    def self.canvas_light_set_shadow_color(light : Int64, color : Color) : Void
+      instance.canvas_light_set_shadow_color(light, color)
+    end
     @@mb_canvas_light_set_shadow_smooth : Void* = Pointer(Void).null
     def canvas_light_set_shadow_smooth(light : Int64, smooth : Float64) : Void
       godot_bind(@@mb_canvas_light_set_shadow_smooth, "RenderingServer", "canvas_light_set_shadow_smooth", 1794382983_i64)
@@ -9432,6 +12174,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_light_set_shadow_smooth, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `canvas_light_set_shadow_smooth`
+    def self.canvas_light_set_shadow_smooth(light : Int64, smooth : Float64) : Void
+      instance.canvas_light_set_shadow_smooth(light, smooth)
     end
     @@mb_canvas_light_set_blend_mode : Void* = Pointer(Void).null
     def canvas_light_set_blend_mode(light : Int64, mode : CanvasLightBlendMode | Int) : Void
@@ -9443,6 +12189,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_light_set_blend_mode, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_light_set_blend_mode`
+    def self.canvas_light_set_blend_mode(light : Int64, mode : CanvasLightBlendMode | Int) : Void
+      instance.canvas_light_set_blend_mode(light, mode)
+    end
     @@mb_canvas_light_set_interpolated : Void* = Pointer(Void).null
     def canvas_light_set_interpolated(light : Int64, interpolated : Bool) : Void
       godot_bind(@@mb_canvas_light_set_interpolated, "RenderingServer", "canvas_light_set_interpolated", 1265174801_i64)
@@ -9453,6 +12203,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_light_set_interpolated, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_light_set_interpolated`
+    def self.canvas_light_set_interpolated(light : Int64, interpolated : Bool) : Void
+      instance.canvas_light_set_interpolated(light, interpolated)
+    end
     @@mb_canvas_light_reset_physics_interpolation : Void* = Pointer(Void).null
     def canvas_light_reset_physics_interpolation(light : Int64) : Void
       godot_bind(@@mb_canvas_light_reset_physics_interpolation, "RenderingServer", "canvas_light_reset_physics_interpolation", 2722037293_i64)
@@ -9460,6 +12214,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_canvas_light_reset_physics_interpolation, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `canvas_light_reset_physics_interpolation`
+    def self.canvas_light_reset_physics_interpolation(light : Int64) : Void
+      instance.canvas_light_reset_physics_interpolation(light)
     end
     @@mb_canvas_light_transform_physics_interpolation : Void* = Pointer(Void).null
     def canvas_light_transform_physics_interpolation(light : Int64, transform : Transform2D) : Void
@@ -9471,10 +12229,18 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_light_transform_physics_interpolation, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_light_transform_physics_interpolation`
+    def self.canvas_light_transform_physics_interpolation(light : Int64, transform : Transform2D) : Void
+      instance.canvas_light_transform_physics_interpolation(light, transform)
+    end
     @@mb_canvas_light_occluder_create : Void* = Pointer(Void).null
     def canvas_light_occluder_create() : Int64
       godot_bind(@@mb_canvas_light_occluder_create, "RenderingServer", "canvas_light_occluder_create", 529393457_i64)
       godot_ptrcall_int(@@mb_canvas_light_occluder_create, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `canvas_light_occluder_create`
+    def self.canvas_light_occluder_create() : Int64
+      instance.canvas_light_occluder_create()
     end
     @@mb_canvas_light_occluder_attach_to_canvas : Void* = Pointer(Void).null
     def canvas_light_occluder_attach_to_canvas(occluder : Int64, canvas : Int64) : Void
@@ -9486,6 +12252,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_light_occluder_attach_to_canvas, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_light_occluder_attach_to_canvas`
+    def self.canvas_light_occluder_attach_to_canvas(occluder : Int64, canvas : Int64) : Void
+      instance.canvas_light_occluder_attach_to_canvas(occluder, canvas)
+    end
     @@mb_canvas_light_occluder_set_enabled : Void* = Pointer(Void).null
     def canvas_light_occluder_set_enabled(occluder : Int64, enabled : Bool) : Void
       godot_bind(@@mb_canvas_light_occluder_set_enabled, "RenderingServer", "canvas_light_occluder_set_enabled", 1265174801_i64)
@@ -9495,6 +12265,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_light_occluder_set_enabled, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `canvas_light_occluder_set_enabled`
+    def self.canvas_light_occluder_set_enabled(occluder : Int64, enabled : Bool) : Void
+      instance.canvas_light_occluder_set_enabled(occluder, enabled)
     end
     @@mb_canvas_light_occluder_set_polygon : Void* = Pointer(Void).null
     def canvas_light_occluder_set_polygon(occluder : Int64, polygon : Int64) : Void
@@ -9506,6 +12280,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_light_occluder_set_polygon, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_light_occluder_set_polygon`
+    def self.canvas_light_occluder_set_polygon(occluder : Int64, polygon : Int64) : Void
+      instance.canvas_light_occluder_set_polygon(occluder, polygon)
+    end
     @@mb_canvas_light_occluder_set_as_sdf_collision : Void* = Pointer(Void).null
     def canvas_light_occluder_set_as_sdf_collision(occluder : Int64, enable : Bool) : Void
       godot_bind(@@mb_canvas_light_occluder_set_as_sdf_collision, "RenderingServer", "canvas_light_occluder_set_as_sdf_collision", 1265174801_i64)
@@ -9515,6 +12293,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_light_occluder_set_as_sdf_collision, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `canvas_light_occluder_set_as_sdf_collision`
+    def self.canvas_light_occluder_set_as_sdf_collision(occluder : Int64, enable : Bool) : Void
+      instance.canvas_light_occluder_set_as_sdf_collision(occluder, enable)
     end
     @@mb_canvas_light_occluder_set_transform : Void* = Pointer(Void).null
     def canvas_light_occluder_set_transform(occluder : Int64, transform : Transform2D) : Void
@@ -9526,6 +12308,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_light_occluder_set_transform, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_light_occluder_set_transform`
+    def self.canvas_light_occluder_set_transform(occluder : Int64, transform : Transform2D) : Void
+      instance.canvas_light_occluder_set_transform(occluder, transform)
+    end
     @@mb_canvas_light_occluder_set_light_mask : Void* = Pointer(Void).null
     def canvas_light_occluder_set_light_mask(occluder : Int64, mask : Int64) : Void
       godot_bind(@@mb_canvas_light_occluder_set_light_mask, "RenderingServer", "canvas_light_occluder_set_light_mask", 3411492887_i64)
@@ -9535,6 +12321,10 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_light_occluder_set_light_mask, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `canvas_light_occluder_set_light_mask`
+    def self.canvas_light_occluder_set_light_mask(occluder : Int64, mask : Int64) : Void
+      instance.canvas_light_occluder_set_light_mask(occluder, mask)
     end
     @@mb_canvas_light_occluder_set_interpolated : Void* = Pointer(Void).null
     def canvas_light_occluder_set_interpolated(occluder : Int64, interpolated : Bool) : Void
@@ -9546,6 +12336,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_light_occluder_set_interpolated, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_light_occluder_set_interpolated`
+    def self.canvas_light_occluder_set_interpolated(occluder : Int64, interpolated : Bool) : Void
+      instance.canvas_light_occluder_set_interpolated(occluder, interpolated)
+    end
     @@mb_canvas_light_occluder_reset_physics_interpolation : Void* = Pointer(Void).null
     def canvas_light_occluder_reset_physics_interpolation(occluder : Int64) : Void
       godot_bind(@@mb_canvas_light_occluder_reset_physics_interpolation, "RenderingServer", "canvas_light_occluder_reset_physics_interpolation", 2722037293_i64)
@@ -9553,6 +12347,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_canvas_light_occluder_reset_physics_interpolation, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `canvas_light_occluder_reset_physics_interpolation`
+    def self.canvas_light_occluder_reset_physics_interpolation(occluder : Int64) : Void
+      instance.canvas_light_occluder_reset_physics_interpolation(occluder)
     end
     @@mb_canvas_light_occluder_transform_physics_interpolation : Void* = Pointer(Void).null
     def canvas_light_occluder_transform_physics_interpolation(occluder : Int64, transform : Transform2D) : Void
@@ -9564,10 +12362,18 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_light_occluder_transform_physics_interpolation, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_light_occluder_transform_physics_interpolation`
+    def self.canvas_light_occluder_transform_physics_interpolation(occluder : Int64, transform : Transform2D) : Void
+      instance.canvas_light_occluder_transform_physics_interpolation(occluder, transform)
+    end
     @@mb_canvas_occluder_polygon_create : Void* = Pointer(Void).null
     def canvas_occluder_polygon_create() : Int64
       godot_bind(@@mb_canvas_occluder_polygon_create, "RenderingServer", "canvas_occluder_polygon_create", 529393457_i64)
       godot_ptrcall_int(@@mb_canvas_occluder_polygon_create, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `canvas_occluder_polygon_create`
+    def self.canvas_occluder_polygon_create() : Int64
+      instance.canvas_occluder_polygon_create()
     end
     @@mb_canvas_occluder_polygon_set_shape : Void* = Pointer(Void).null
     def canvas_occluder_polygon_set_shape(occluder_polygon : Int64, shape : Pointer(Void), closed : Bool) : Void
@@ -9581,6 +12387,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_canvas_occluder_polygon_set_shape, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_occluder_polygon_set_shape`
+    def self.canvas_occluder_polygon_set_shape(occluder_polygon : Int64, shape : Pointer(Void), closed : Bool) : Void
+      instance.canvas_occluder_polygon_set_shape(occluder_polygon, shape, closed)
+    end
     @@mb_canvas_occluder_polygon_set_cull_mode : Void* = Pointer(Void).null
     def canvas_occluder_polygon_set_cull_mode(occluder_polygon : Int64, mode : CanvasOccluderPolygonCullMode | Int) : Void
       godot_bind(@@mb_canvas_occluder_polygon_set_cull_mode, "RenderingServer", "canvas_occluder_polygon_set_cull_mode", 1839404663_i64)
@@ -9591,6 +12401,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_canvas_occluder_polygon_set_cull_mode, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `canvas_occluder_polygon_set_cull_mode`
+    def self.canvas_occluder_polygon_set_cull_mode(occluder_polygon : Int64, mode : CanvasOccluderPolygonCullMode | Int) : Void
+      instance.canvas_occluder_polygon_set_cull_mode(occluder_polygon, mode)
+    end
     @@mb_canvas_set_shadow_texture_size : Void* = Pointer(Void).null
     def canvas_set_shadow_texture_size(size : Int64) : Void
       godot_bind(@@mb_canvas_set_shadow_texture_size, "RenderingServer", "canvas_set_shadow_texture_size", 1286410249_i64)
@@ -9598,6 +12412,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_canvas_set_shadow_texture_size, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `canvas_set_shadow_texture_size`
+    def self.canvas_set_shadow_texture_size(size : Int64) : Void
+      instance.canvas_set_shadow_texture_size(size)
     end
     @@mb_global_shader_parameter_add : Void* = Pointer(Void).null
     def global_shader_parameter_add(name : String, get_type : GlobalShaderParameterType | Int, default_value : Pointer(Void)) : Void
@@ -9613,6 +12431,10 @@ module Godot
     ensure
       Bridge.free_string_name(sn_0)
     end
+    # Class-level singleton delegator for `global_shader_parameter_add`
+    def self.global_shader_parameter_add(name : String, get_type : GlobalShaderParameterType | Int, default_value : Pointer(Void)) : Void
+      instance.global_shader_parameter_add(name, get_type, default_value)
+    end
     @@mb_global_shader_parameter_remove : Void* = Pointer(Void).null
     def global_shader_parameter_remove(name : String) : Void
       godot_bind(@@mb_global_shader_parameter_remove, "RenderingServer", "global_shader_parameter_remove", 3304788590_i64)
@@ -9623,12 +12445,20 @@ module Godot
     ensure
       Bridge.free_string_name(sn_0)
     end
+    # Class-level singleton delegator for `global_shader_parameter_remove`
+    def self.global_shader_parameter_remove(name : String) : Void
+      instance.global_shader_parameter_remove(name)
+    end
     @@mb_global_shader_parameter_get_list : Void* = Pointer(Void).null
     def global_shader_parameter_get_list() : Pointer(Void)
       godot_bind(@@mb_global_shader_parameter_get_list, "RenderingServer", "global_shader_parameter_get_list", 3995934104_i64)
       ret_ptr = Pointer(Void).null
       godot_ptrcall(@@mb_global_shader_parameter_get_list, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
       ret_ptr
+    end
+    # Class-level singleton delegator for `global_shader_parameter_get_list`
+    def self.global_shader_parameter_get_list() : Pointer(Void)
+      instance.global_shader_parameter_get_list()
     end
     @@mb_global_shader_parameter_set : Void* = Pointer(Void).null
     def global_shader_parameter_set(name : String, value : Pointer(Void)) : Void
@@ -9642,6 +12472,10 @@ module Godot
     ensure
       Bridge.free_string_name(sn_0)
     end
+    # Class-level singleton delegator for `global_shader_parameter_set`
+    def self.global_shader_parameter_set(name : String, value : Pointer(Void)) : Void
+      instance.global_shader_parameter_set(name, value)
+    end
     @@mb_global_shader_parameter_set_override : Void* = Pointer(Void).null
     def global_shader_parameter_set_override(name : String, value : Pointer(Void)) : Void
       godot_bind(@@mb_global_shader_parameter_set_override, "RenderingServer", "global_shader_parameter_set_override", 3776071444_i64)
@@ -9653,6 +12487,10 @@ module Godot
       godot_ptrcall_void(@@mb_global_shader_parameter_set_override, @pointer, args.to_unsafe.as(Void**))
     ensure
       Bridge.free_string_name(sn_0)
+    end
+    # Class-level singleton delegator for `global_shader_parameter_set_override`
+    def self.global_shader_parameter_set_override(name : String, value : Pointer(Void)) : Void
+      instance.global_shader_parameter_set_override(name, value)
     end
     @@mb_global_shader_parameter_get : Void* = Pointer(Void).null
     def global_shader_parameter_get(name : String) : Pointer(Void)
@@ -9668,6 +12506,10 @@ module Godot
     ensure
       Bridge.free_string_name(sn_0)
     end
+    # Class-level singleton delegator for `global_shader_parameter_get`
+    def self.global_shader_parameter_get(name : String) : Pointer(Void)
+      instance.global_shader_parameter_get(name)
+    end
     @@mb_global_shader_parameter_get_type : Void* = Pointer(Void).null
     def global_shader_parameter_get_type(name : String) : GlobalShaderParameterType
       godot_bind(@@mb_global_shader_parameter_get_type, "RenderingServer", "global_shader_parameter_get_type", 1601414142_i64)
@@ -9678,6 +12520,10 @@ module Godot
     ensure
       Bridge.free_string_name(sn_0)
     end
+    # Class-level singleton delegator for `global_shader_parameter_get_type`
+    def self.global_shader_parameter_get_type(name : String) : GlobalShaderParameterType
+      instance.global_shader_parameter_get_type(name)
+    end
     @@mb_free_rid : Void* = Pointer(Void).null
     def free_rid(rid : Int64) : Void
       godot_bind(@@mb_free_rid, "RenderingServer", "free_rid", 2722037293_i64)
@@ -9685,6 +12531,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_free_rid, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `free_rid`
+    def self.free_rid(rid : Int64) : Void
+      instance.free_rid(rid)
     end
     @@mb_request_frame_drawn_callback : Void* = Pointer(Void).null
     def request_frame_drawn_callback(callable : Pointer(Void)) : Void
@@ -9694,14 +12544,26 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_request_frame_drawn_callback, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `request_frame_drawn_callback`
+    def self.request_frame_drawn_callback(callable : Pointer(Void)) : Void
+      instance.request_frame_drawn_callback(callable)
+    end
     @@mb_has_changed : Void* = Pointer(Void).null
     def has_changed() : Bool
       godot_bind(@@mb_has_changed, "RenderingServer", "has_changed", 36873697_i64)
       godot_ptrcall_bool(@@mb_has_changed, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Class-level singleton delegator for `has_changed`
+    def self.has_changed() : Bool
+      instance.has_changed()
+    end
     # Predicate alias for `has_changed`
     def has_changed?() : Bool
       has_changed()
+    end
+    # Class-level singleton predicate delegator for `has_changed?`
+    def self.has_changed?() : Bool
+      instance.has_changed?()
     end
     @@mb_get_rendering_info : Void* = Pointer(Void).null
     def get_rendering_info(info : RenderingInfo | Int) : Int64
@@ -9711,35 +12573,63 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_rendering_info, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `get_rendering_info`
+    def self.get_rendering_info(info : RenderingInfo | Int) : Int64
+      instance.get_rendering_info(info)
+    end
     @@mb_get_video_adapter_name : Void* = Pointer(Void).null
     def get_video_adapter_name() : String
       godot_bind(@@mb_get_video_adapter_name, "RenderingServer", "get_video_adapter_name", 201670096_i64)
       godot_call_str("get_video_adapter_name")
+    end
+    # Class-level singleton delegator for `get_video_adapter_name`
+    def self.get_video_adapter_name() : String
+      instance.get_video_adapter_name()
     end
     @@mb_get_video_adapter_vendor : Void* = Pointer(Void).null
     def get_video_adapter_vendor() : String
       godot_bind(@@mb_get_video_adapter_vendor, "RenderingServer", "get_video_adapter_vendor", 201670096_i64)
       godot_call_str("get_video_adapter_vendor")
     end
+    # Class-level singleton delegator for `get_video_adapter_vendor`
+    def self.get_video_adapter_vendor() : String
+      instance.get_video_adapter_vendor()
+    end
     @@mb_get_video_adapter_type : Void* = Pointer(Void).null
     def get_video_adapter_type() : Godot::RenderingDevice::DeviceType
       godot_bind(@@mb_get_video_adapter_type, "RenderingServer", "get_video_adapter_type", 3099547011_i64)
       godot_ptrcall_enum(@@mb_get_video_adapter_type, @pointer, Pointer(Pointer(Void)).null, Godot::RenderingDevice::DeviceType)
+    end
+    # Class-level singleton delegator for `get_video_adapter_type`
+    def self.get_video_adapter_type() : Godot::RenderingDevice::DeviceType
+      instance.get_video_adapter_type()
     end
     @@mb_get_video_adapter_api_version : Void* = Pointer(Void).null
     def get_video_adapter_api_version() : String
       godot_bind(@@mb_get_video_adapter_api_version, "RenderingServer", "get_video_adapter_api_version", 201670096_i64)
       godot_call_str("get_video_adapter_api_version")
     end
+    # Class-level singleton delegator for `get_video_adapter_api_version`
+    def self.get_video_adapter_api_version() : String
+      instance.get_video_adapter_api_version()
+    end
     @@mb_get_current_rendering_driver_name : Void* = Pointer(Void).null
     def get_current_rendering_driver_name() : String
       godot_bind(@@mb_get_current_rendering_driver_name, "RenderingServer", "get_current_rendering_driver_name", 201670096_i64)
       godot_call_str("get_current_rendering_driver_name")
     end
+    # Class-level singleton delegator for `get_current_rendering_driver_name`
+    def self.get_current_rendering_driver_name() : String
+      instance.get_current_rendering_driver_name()
+    end
     @@mb_get_current_rendering_method : Void* = Pointer(Void).null
     def get_current_rendering_method() : String
       godot_bind(@@mb_get_current_rendering_method, "RenderingServer", "get_current_rendering_method", 201670096_i64)
       godot_call_str("get_current_rendering_method")
+    end
+    # Class-level singleton delegator for `get_current_rendering_method`
+    def self.get_current_rendering_method() : String
+      instance.get_current_rendering_method()
     end
     @@mb_make_sphere_mesh : Void* = Pointer(Void).null
     def make_sphere_mesh(latitudes : Int64, longitudes : Int64, radius : Float64) : Int64
@@ -9753,20 +12643,36 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_int(@@mb_make_sphere_mesh, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `make_sphere_mesh`
+    def self.make_sphere_mesh(latitudes : Int64, longitudes : Int64, radius : Float64) : Int64
+      instance.make_sphere_mesh(latitudes, longitudes, radius)
+    end
     @@mb_get_test_cube : Void* = Pointer(Void).null
     def get_test_cube() : Int64
       godot_bind(@@mb_get_test_cube, "RenderingServer", "get_test_cube", 529393457_i64)
       godot_ptrcall_int(@@mb_get_test_cube, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `get_test_cube`
+    def self.get_test_cube() : Int64
+      instance.get_test_cube()
     end
     @@mb_get_test_texture : Void* = Pointer(Void).null
     def get_test_texture() : Int64
       godot_bind(@@mb_get_test_texture, "RenderingServer", "get_test_texture", 529393457_i64)
       godot_ptrcall_int(@@mb_get_test_texture, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Class-level singleton delegator for `get_test_texture`
+    def self.get_test_texture() : Int64
+      instance.get_test_texture()
+    end
     @@mb_get_white_texture : Void* = Pointer(Void).null
     def get_white_texture() : Int64
       godot_bind(@@mb_get_white_texture, "RenderingServer", "get_white_texture", 529393457_i64)
       godot_ptrcall_int(@@mb_get_white_texture, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `get_white_texture`
+    def self.get_white_texture() : Int64
+      instance.get_white_texture()
     end
     @@mb_set_boot_image_with_stretch : Void* = Pointer(Void).null
     def set_boot_image_with_stretch(image : Image, color : Color, stretch_mode : SplashStretchMode | Int, use_filter : Bool = true) : Void
@@ -9782,6 +12688,10 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_set_boot_image_with_stretch, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `set_boot_image_with_stretch`
+    def self.set_boot_image_with_stretch(image : Image, color : Color, stretch_mode : SplashStretchMode | Int, use_filter : Bool = true) : Void
+      instance.set_boot_image_with_stretch(image, color, stretch_mode, use_filter)
+    end
     @@mb_set_boot_image : Void* = Pointer(Void).null
     def set_boot_image(image : Image, color : Color, scale : Bool, use_filter : Bool = true) : Void
       godot_bind(@@mb_set_boot_image, "RenderingServer", "set_boot_image", 3759744527_i64)
@@ -9796,10 +12706,18 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_set_boot_image, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `set_boot_image`
+    def self.set_boot_image(image : Image, color : Color, scale : Bool, use_filter : Bool = true) : Void
+      instance.set_boot_image(image, color, scale, use_filter)
+    end
     @@mb_get_default_clear_color : Void* = Pointer(Void).null
     def get_default_clear_color() : Color
       godot_bind(@@mb_get_default_clear_color, "RenderingServer", "get_default_clear_color", 3200896285_i64)
       godot_ptrcall_val(@@mb_get_default_clear_color, @pointer, Pointer(Pointer(Void)).null, Color)
+    end
+    # Class-level singleton delegator for `get_default_clear_color`
+    def self.get_default_clear_color() : Color
+      instance.get_default_clear_color()
     end
     @@mb_set_default_clear_color : Void* = Pointer(Void).null
     def set_default_clear_color(color : Color) : Void
@@ -9808,6 +12726,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_default_clear_color, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `set_default_clear_color`
+    def self.set_default_clear_color(color : Color) : Void
+      instance.set_default_clear_color(color)
     end
     @@mb_has_os_feature : Void* = Pointer(Void).null
     def has_os_feature(feature : String) : Bool
@@ -9819,9 +12741,17 @@ module Godot
     ensure
       Bridge.free_string(str_0)
     end
+    # Class-level singleton delegator for `has_os_feature`
+    def self.has_os_feature(feature : String) : Bool
+      instance.has_os_feature(feature)
+    end
     # Predicate alias for `has_os_feature`
     def has_os_feature?(feature : String) : Bool
       has_os_feature(feature)
+    end
+    # Class-level singleton predicate delegator for `has_os_feature?`
+    def self.has_os_feature?(feature : String) : Bool
+      instance.has_os_feature?(feature)
     end
     @@mb_set_debug_generate_wireframes : Void* = Pointer(Void).null
     def set_debug_generate_wireframes(generate : Bool) : Void
@@ -9831,18 +12761,34 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_debug_generate_wireframes, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `set_debug_generate_wireframes`
+    def self.set_debug_generate_wireframes(generate : Bool) : Void
+      instance.set_debug_generate_wireframes(generate)
+    end
     @@mb_is_render_loop_enabled : Void* = Pointer(Void).null
     def is_render_loop_enabled() : Bool
       godot_bind(@@mb_is_render_loop_enabled, "RenderingServer", "is_render_loop_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_render_loop_enabled, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Class-level singleton delegator for `is_render_loop_enabled`
+    def self.is_render_loop_enabled() : Bool
+      instance.is_render_loop_enabled()
+    end
     # Predicate alias for `is_render_loop_enabled`
     def is_render_loop_enabled?() : Bool
       is_render_loop_enabled()
     end
+    # Class-level singleton predicate delegator for `is_render_loop_enabled?`
+    def self.is_render_loop_enabled?() : Bool
+      instance.is_render_loop_enabled?()
+    end
     # Predicate alias for `is_render_loop_enabled`
     def render_loop_enabled?() : Bool
       is_render_loop_enabled()
+    end
+    # Class-level singleton predicate delegator for `render_loop_enabled?`
+    def self.render_loop_enabled?() : Bool
+      instance.render_loop_enabled?()
     end
     @@mb_set_render_loop_enabled : Void* = Pointer(Void).null
     def set_render_loop_enabled(enabled : Bool) : Void
@@ -9852,15 +12798,27 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_render_loop_enabled, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `set_render_loop_enabled`
+    def self.set_render_loop_enabled(enabled : Bool) : Void
+      instance.set_render_loop_enabled(enabled)
+    end
     @@mb_get_frame_setup_time_cpu : Void* = Pointer(Void).null
     def get_frame_setup_time_cpu() : Float64
       godot_bind(@@mb_get_frame_setup_time_cpu, "RenderingServer", "get_frame_setup_time_cpu", 1740695150_i64)
       godot_ptrcall_float(@@mb_get_frame_setup_time_cpu, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Class-level singleton delegator for `get_frame_setup_time_cpu`
+    def self.get_frame_setup_time_cpu() : Float64
+      instance.get_frame_setup_time_cpu()
+    end
     @@mb_force_sync : Void* = Pointer(Void).null
     def force_sync() : Void
       godot_bind(@@mb_force_sync, "RenderingServer", "force_sync", 3218959716_i64)
       godot_ptrcall_void(@@mb_force_sync, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `force_sync`
+    def self.force_sync() : Void
+      instance.force_sync()
     end
     @@mb_force_draw : Void* = Pointer(Void).null
     def force_draw(swap_buffers : Bool = true, frame_step : Float64 = 0.0_f64) : Void
@@ -9872,28 +12830,52 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_force_draw, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `force_draw`
+    def self.force_draw(swap_buffers : Bool = true, frame_step : Float64 = 0.0_f64) : Void
+      instance.force_draw(swap_buffers, frame_step)
+    end
     @@mb_get_rendering_device : Void* = Pointer(Void).null
     def get_rendering_device() : RenderingDevice
       godot_bind(@@mb_get_rendering_device, "RenderingServer", "get_rendering_device", 1405107940_i64)
       godot_ptrcall_obj(@@mb_get_rendering_device, @pointer, Pointer(Pointer(Void)).null, RenderingDevice)
+    end
+    # Class-level singleton delegator for `get_rendering_device`
+    def self.get_rendering_device() : RenderingDevice
+      instance.get_rendering_device()
     end
     @@mb_create_local_rendering_device : Void* = Pointer(Void).null
     def create_local_rendering_device() : RenderingDevice
       godot_bind(@@mb_create_local_rendering_device, "RenderingServer", "create_local_rendering_device", 1405107940_i64)
       godot_ptrcall_obj(@@mb_create_local_rendering_device, @pointer, Pointer(Pointer(Void)).null, RenderingDevice)
     end
+    # Class-level singleton delegator for `create_local_rendering_device`
+    def self.create_local_rendering_device() : RenderingDevice
+      instance.create_local_rendering_device()
+    end
     @@mb_is_on_render_thread : Void* = Pointer(Void).null
     def is_on_render_thread() : Bool
       godot_bind(@@mb_is_on_render_thread, "RenderingServer", "is_on_render_thread", 2240911060_i64)
       godot_ptrcall_bool(@@mb_is_on_render_thread, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Class-level singleton delegator for `is_on_render_thread`
+    def self.is_on_render_thread() : Bool
+      instance.is_on_render_thread()
+    end
     # Predicate alias for `is_on_render_thread`
     def is_on_render_thread?() : Bool
       is_on_render_thread()
     end
+    # Class-level singleton predicate delegator for `is_on_render_thread?`
+    def self.is_on_render_thread?() : Bool
+      instance.is_on_render_thread?()
+    end
     # Predicate alias for `is_on_render_thread`
     def on_render_thread?() : Bool
       is_on_render_thread()
+    end
+    # Class-level singleton predicate delegator for `on_render_thread?`
+    def self.on_render_thread?() : Bool
+      instance.on_render_thread?()
     end
     @@mb_call_on_render_thread : Void* = Pointer(Void).null
     def call_on_render_thread(callable : Pointer(Void)) : Void
@@ -9903,6 +12885,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_call_on_render_thread, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `call_on_render_thread`
+    def self.call_on_render_thread(callable : Pointer(Void)) : Void
+      instance.call_on_render_thread(callable)
+    end
     @@mb_has_feature : Void* = Pointer(Void).null
     def has_feature(feature : Features | Int) : Bool
       godot_bind(@@mb_has_feature, "RenderingServer", "has_feature", 598462696_i64)
@@ -9911,17 +12897,31 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_has_feature, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `has_feature`
+    def self.has_feature(feature : Features | Int) : Bool
+      instance.has_feature(feature)
+    end
     # Predicate alias for `has_feature`
     def has_feature?(feature : Features | Int) : Bool
       has_feature(feature)
+    end
+    # Class-level singleton predicate delegator for `has_feature?`
+    def self.has_feature?(feature : Features | Int) : Bool
+      instance.has_feature?(feature)
     end
     # Property `render_loop_enabled` getter
     def render_loop_enabled
       is_render_loop_enabled
     end
+    def self.render_loop_enabled
+      instance.render_loop_enabled
+    end
     # Property `render_loop_enabled` setter
     def render_loop_enabled=(val)
       set_render_loop_enabled(val)
+    end
+    def self.render_loop_enabled=(val)
+      instance.render_loop_enabled = val
     end
     godot_signal frame_pre_draw
     godot_signal frame_post_draw
@@ -10088,6 +13088,10 @@ module Godot
       Bridge.free_string(str_0)
       Bridge.free_string(str_1)
     end
+    # Class-level singleton delegator for `load_threaded_request`
+    def self.load_threaded_request(path : String, type_hint : String = "", use_sub_threads : Bool = false, cache_mode : CacheMode | Int = 1) : Godot::Error
+      instance.load_threaded_request(path, type_hint, use_sub_threads, cache_mode)
+    end
     @@mb_load_threaded_get_status : Void* = Pointer(Void).null
     def load_threaded_get_status(path : String, progress : Pointer(Void)) : ThreadLoadStatus
       godot_bind(@@mb_load_threaded_get_status, "ResourceLoader", "load_threaded_get_status", 4137685479_i64)
@@ -10100,6 +13104,10 @@ module Godot
     ensure
       Bridge.free_string(str_0)
     end
+    # Class-level singleton delegator for `load_threaded_get_status`
+    def self.load_threaded_get_status(path : String, progress : Pointer(Void)) : ThreadLoadStatus
+      instance.load_threaded_get_status(path, progress)
+    end
     @@mb_load_threaded_get : Void* = Pointer(Void).null
     def load_threaded_get(path : String) : Resource
       godot_bind(@@mb_load_threaded_get, "ResourceLoader", "load_threaded_get", 1748875256_i64)
@@ -10109,6 +13117,10 @@ module Godot
       godot_ptrcall_obj(@@mb_load_threaded_get, @pointer, args.to_unsafe.as(Void**), Resource)
     ensure
       Bridge.free_string(str_0)
+    end
+    # Class-level singleton delegator for `load_threaded_get`
+    def self.load_threaded_get(path : String) : Resource
+      instance.load_threaded_get(path)
     end
     @@mb_load : Void* = Pointer(Void).null
     def load(path : String, type_hint : String = "", cache_mode : CacheMode | Int = 1) : Resource
@@ -10125,6 +13137,10 @@ module Godot
       Bridge.free_string(str_0)
       Bridge.free_string(str_1)
     end
+    # Class-level singleton delegator for `load`
+    def self.load(path : String, type_hint : String = "", cache_mode : CacheMode | Int = 1) : Resource
+      instance.load(path, type_hint, cache_mode)
+    end
     @@mb_get_recognized_extensions_for_type : Void* = Pointer(Void).null
     def get_recognized_extensions_for_type(get_type : String) : Pointer(Void)
       godot_bind(@@mb_get_recognized_extensions_for_type, "ResourceLoader", "get_recognized_extensions_for_type", 3538744774_i64)
@@ -10137,6 +13153,10 @@ module Godot
     ensure
       Bridge.free_string(str_0)
     end
+    # Class-level singleton delegator for `get_recognized_extensions_for_type`
+    def self.get_recognized_extensions_for_type(get_type : String) : Pointer(Void)
+      instance.get_recognized_extensions_for_type(get_type)
+    end
     @@mb_add_resource_format_loader : Void* = Pointer(Void).null
     def add_resource_format_loader(format_loader : ResourceFormatLoader, at_front : Bool = false) : Void
       godot_bind(@@mb_add_resource_format_loader, "ResourceLoader", "add_resource_format_loader", 2896595483_i64)
@@ -10147,6 +13167,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_add_resource_format_loader, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `add_resource_format_loader`
+    def self.add_resource_format_loader(format_loader : ResourceFormatLoader, at_front : Bool = false) : Void
+      instance.add_resource_format_loader(format_loader, at_front)
+    end
     @@mb_remove_resource_format_loader : Void* = Pointer(Void).null
     def remove_resource_format_loader(format_loader : ResourceFormatLoader) : Void
       godot_bind(@@mb_remove_resource_format_loader, "ResourceLoader", "remove_resource_format_loader", 405397102_i64)
@@ -10155,6 +13179,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_remove_resource_format_loader, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `remove_resource_format_loader`
+    def self.remove_resource_format_loader(format_loader : ResourceFormatLoader) : Void
+      instance.remove_resource_format_loader(format_loader)
+    end
     @@mb_set_abort_on_missing_resources : Void* = Pointer(Void).null
     def set_abort_on_missing_resources(abort : Bool) : Void
       godot_bind(@@mb_set_abort_on_missing_resources, "ResourceLoader", "set_abort_on_missing_resources", 2586408642_i64)
@@ -10162,6 +13190,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_abort_on_missing_resources, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `set_abort_on_missing_resources`
+    def self.set_abort_on_missing_resources(abort : Bool) : Void
+      instance.set_abort_on_missing_resources(abort)
     end
     @@mb_get_dependencies : Void* = Pointer(Void).null
     def get_dependencies(path : String) : Pointer(Void)
@@ -10175,6 +13207,10 @@ module Godot
     ensure
       Bridge.free_string(str_0)
     end
+    # Class-level singleton delegator for `get_dependencies`
+    def self.get_dependencies(path : String) : Pointer(Void)
+      instance.get_dependencies(path)
+    end
     @@mb_has_cached : Void* = Pointer(Void).null
     def has_cached(path : String) : Bool
       godot_bind(@@mb_has_cached, "ResourceLoader", "has_cached", 2323990056_i64)
@@ -10185,9 +13221,17 @@ module Godot
     ensure
       Bridge.free_string(str_0)
     end
+    # Class-level singleton delegator for `has_cached`
+    def self.has_cached(path : String) : Bool
+      instance.has_cached(path)
+    end
     # Predicate alias for `has_cached`
     def has_cached?(path : String) : Bool
       has_cached(path)
+    end
+    # Class-level singleton predicate delegator for `has_cached?`
+    def self.has_cached?(path : String) : Bool
+      instance.has_cached?(path)
     end
     @@mb_get_cached_ref : Void* = Pointer(Void).null
     def get_cached_ref(path : String) : Resource
@@ -10198,6 +13242,10 @@ module Godot
       godot_ptrcall_obj(@@mb_get_cached_ref, @pointer, args.to_unsafe.as(Void**), Resource)
     ensure
       Bridge.free_string(str_0)
+    end
+    # Class-level singleton delegator for `get_cached_ref`
+    def self.get_cached_ref(path : String) : Resource
+      instance.get_cached_ref(path)
     end
     @@mb_exists : Void* = Pointer(Void).null
     def exists(path : String, type_hint : String = "") : Bool
@@ -10212,9 +13260,17 @@ module Godot
       Bridge.free_string(str_0)
       Bridge.free_string(str_1)
     end
+    # Class-level singleton delegator for `exists`
+    def self.exists(path : String, type_hint : String = "") : Bool
+      instance.exists(path, type_hint)
+    end
     # Predicate alias for `exists`
     def exists?(path : String, type_hint : String = "") : Bool
       exists(path, type_hint)
+    end
+    # Class-level singleton predicate delegator for `exists?`
+    def self.exists?(path : String, type_hint : String = "") : Bool
+      instance.exists?(path, type_hint)
     end
     @@mb_get_resource_uid : Void* = Pointer(Void).null
     def get_resource_uid(path : String) : Int64
@@ -10226,6 +13282,10 @@ module Godot
     ensure
       Bridge.free_string(str_0)
     end
+    # Class-level singleton delegator for `get_resource_uid`
+    def self.get_resource_uid(path : String) : Int64
+      instance.get_resource_uid(path)
+    end
     @@mb_get_resource_type : Void* = Pointer(Void).null
     def get_resource_type(path : String) : String
       godot_bind(@@mb_get_resource_type, "ResourceLoader", "get_resource_type", 1703090593_i64)
@@ -10235,6 +13295,10 @@ module Godot
       godot_call_str("get_resource_type", path)
     ensure
       Bridge.free_string(str_0)
+    end
+    # Class-level singleton delegator for `get_resource_type`
+    def self.get_resource_type(path : String) : String
+      instance.get_resource_type(path)
     end
     @@mb_list_directory : Void* = Pointer(Void).null
     def list_directory(directory_path : String) : Pointer(Void)
@@ -10247,6 +13311,10 @@ module Godot
       ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     ensure
       Bridge.free_string(str_0)
+    end
+    # Class-level singleton delegator for `list_directory`
+    def self.list_directory(directory_path : String) : Pointer(Void)
+      instance.list_directory(directory_path)
     end
   end
   class ResourcePreloader < Godot::Node
@@ -10348,6 +13416,10 @@ module Godot
     ensure
       Bridge.free_string(str_1)
     end
+    # Class-level singleton delegator for `save`
+    def self.save(resource : Resource, path : String = "", flags : SaverFlags | Int = 0) : Godot::Error
+      instance.save(resource, path, flags)
+    end
     @@mb_set_uid : Void* = Pointer(Void).null
     def set_uid(resource : String, uid : Int64) : Godot::Error
       godot_bind(@@mb_set_uid, "ResourceSaver", "set_uid", 993915709_i64)
@@ -10360,6 +13432,10 @@ module Godot
     ensure
       Bridge.free_string(str_0)
     end
+    # Class-level singleton delegator for `set_uid`
+    def self.set_uid(resource : String, uid : Int64) : Godot::Error
+      instance.set_uid(resource, uid)
+    end
     @@mb_get_recognized_extensions : Void* = Pointer(Void).null
     def get_recognized_extensions(get_type : Resource) : Pointer(Void)
       godot_bind(@@mb_get_recognized_extensions, "ResourceSaver", "get_recognized_extensions", 4223597960_i64)
@@ -10369,6 +13445,10 @@ module Godot
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_recognized_extensions, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
       ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+    end
+    # Class-level singleton delegator for `get_recognized_extensions`
+    def self.get_recognized_extensions(get_type : Resource) : Pointer(Void)
+      instance.get_recognized_extensions(get_type)
     end
     @@mb_add_resource_format_saver : Void* = Pointer(Void).null
     def add_resource_format_saver(format_saver : ResourceFormatSaver, at_front : Bool = false) : Void
@@ -10380,6 +13460,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_add_resource_format_saver, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `add_resource_format_saver`
+    def self.add_resource_format_saver(format_saver : ResourceFormatSaver, at_front : Bool = false) : Void
+      instance.add_resource_format_saver(format_saver, at_front)
+    end
     @@mb_remove_resource_format_saver : Void* = Pointer(Void).null
     def remove_resource_format_saver(format_saver : ResourceFormatSaver) : Void
       godot_bind(@@mb_remove_resource_format_saver, "ResourceSaver", "remove_resource_format_saver", 3373026878_i64)
@@ -10387,6 +13471,10 @@ module Godot
       arg_0 = pointerof(arg_ptr_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_remove_resource_format_saver, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `remove_resource_format_saver`
+    def self.remove_resource_format_saver(format_saver : ResourceFormatSaver) : Void
+      instance.remove_resource_format_saver(format_saver)
     end
     @@mb_get_resource_id_for_path : Void* = Pointer(Void).null
     def get_resource_id_for_path(path : String, generate : Bool = false) : Int64
@@ -10400,11 +13488,17 @@ module Godot
     ensure
       Bridge.free_string(str_0)
     end
+    # Class-level singleton delegator for `get_resource_id_for_path`
+    def self.get_resource_id_for_path(path : String, generate : Bool = false) : Int64
+      instance.get_resource_id_for_path(path, generate)
+    end
   end
   class ResourceUID < Godot::Object
     def initialize(pointer : Void* = Pointer(Void).null)
       super(pointer)
     end
+    INVALID_ID = -1_i64
+
     @@mb_id_to_text : Void* = Pointer(Void).null
     def id_to_text(id : Int64) : String
       godot_bind(@@mb_id_to_text, "ResourceUID", "id_to_text", 844755477_i64)
@@ -10412,6 +13506,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("id_to_text", id)
+    end
+    # Class-level singleton delegator for `id_to_text`
+    def self.id_to_text(id : Int64) : String
+      instance.id_to_text(id)
     end
     @@mb_text_to_id : Void* = Pointer(Void).null
     def text_to_id(text_id : String) : Int64
@@ -10423,10 +13521,18 @@ module Godot
     ensure
       Bridge.free_string(str_0)
     end
+    # Class-level singleton delegator for `text_to_id`
+    def self.text_to_id(text_id : String) : Int64
+      instance.text_to_id(text_id)
+    end
     @@mb_create_id : Void* = Pointer(Void).null
     def create_id() : Int64
       godot_bind(@@mb_create_id, "ResourceUID", "create_id", 2455072627_i64)
       godot_ptrcall_int(@@mb_create_id, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `create_id`
+    def self.create_id() : Int64
+      instance.create_id()
     end
     @@mb_create_id_for_path : Void* = Pointer(Void).null
     def create_id_for_path(path : String) : Int64
@@ -10438,6 +13544,10 @@ module Godot
     ensure
       Bridge.free_string(str_0)
     end
+    # Class-level singleton delegator for `create_id_for_path`
+    def self.create_id_for_path(path : String) : Int64
+      instance.create_id_for_path(path)
+    end
     @@mb_has_id : Void* = Pointer(Void).null
     def has_id(id : Int64) : Bool
       godot_bind(@@mb_has_id, "ResourceUID", "has_id", 1116898809_i64)
@@ -10446,9 +13556,17 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_has_id, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `has_id`
+    def self.has_id(id : Int64) : Bool
+      instance.has_id(id)
+    end
     # Predicate alias for `has_id`
     def has_id?(id : Int64) : Bool
       has_id(id)
+    end
+    # Class-level singleton predicate delegator for `has_id?`
+    def self.has_id?(id : Int64) : Bool
+      instance.has_id?(id)
     end
     @@mb_add_id : Void* = Pointer(Void).null
     def add_id(id : Int64, path : String) : Void
@@ -10462,6 +13580,10 @@ module Godot
     ensure
       Bridge.free_string(str_1)
     end
+    # Class-level singleton delegator for `add_id`
+    def self.add_id(id : Int64, path : String) : Void
+      instance.add_id(id, path)
+    end
     @@mb_set_id : Void* = Pointer(Void).null
     def set_id(id : Int64, path : String) : Void
       godot_bind(@@mb_set_id, "ResourceUID", "set_id", 501894301_i64)
@@ -10474,6 +13596,10 @@ module Godot
     ensure
       Bridge.free_string(str_1)
     end
+    # Class-level singleton delegator for `set_id`
+    def self.set_id(id : Int64, path : String) : Void
+      instance.set_id(id, path)
+    end
     @@mb_get_id_path : Void* = Pointer(Void).null
     def get_id_path(id : Int64) : String
       godot_bind(@@mb_get_id_path, "ResourceUID", "get_id_path", 844755477_i64)
@@ -10482,6 +13608,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_call_str("get_id_path", id)
     end
+    # Class-level singleton delegator for `get_id_path`
+    def self.get_id_path(id : Int64) : String
+      instance.get_id_path(id)
+    end
     @@mb_remove_id : Void* = Pointer(Void).null
     def remove_id(id : Int64) : Void
       godot_bind(@@mb_remove_id, "ResourceUID", "remove_id", 1286410249_i64)
@@ -10489,6 +13619,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_remove_id, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `remove_id`
+    def self.remove_id(id : Int64) : Void
+      instance.remove_id(id)
     end
     @@mb_uid_to_path : Void* = Pointer(Void).null
     def self.uid_to_path(uid : String) : String
@@ -10709,8 +13843,8 @@ module Godot
       get_enable_flags
     end
     # Property `enable` setter
-    def enable=(val : Int)
-      set_enable_flags(val.to_i64)
+    def enable=(val : Int | Enum)
+      set_enable_flags(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class RibbonTrailMesh < Godot::PrimitiveMesh
@@ -10804,8 +13938,8 @@ module Godot
       get_shape
     end
     # Property `shape` setter
-    def shape=(val : Int)
-      set_shape(val.to_i64)
+    def shape=(val : Int | Enum)
+      set_shape(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `size` getter
     def size
@@ -10820,8 +13954,8 @@ module Godot
       get_sections
     end
     # Property `sections` setter
-    def sections=(val : Int)
-      set_sections(val.to_i64)
+    def sections=(val : Int | Enum)
+      set_sections(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `section_length` getter
     def section_length
@@ -10836,8 +13970,8 @@ module Godot
       get_section_segments
     end
     # Property `section_segments` setter
-    def section_segments=(val : Int)
-      set_section_segments(val.to_i64)
+    def section_segments=(val : Int | Enum)
+      set_section_segments(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `curve` getter
     def curve
@@ -12196,24 +15330,24 @@ module Godot
       get_autowrap_mode
     end
     # Property `autowrap_mode` setter
-    def autowrap_mode=(val : Int)
-      set_autowrap_mode(val.to_i64)
+    def autowrap_mode=(val : Int | Enum)
+      set_autowrap_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `autowrap_trim_flags` getter
     def autowrap_trim_flags
       get_autowrap_trim_flags
     end
     # Property `autowrap_trim_flags` setter
-    def autowrap_trim_flags=(val : Int)
-      set_autowrap_trim_flags(val.to_i64)
+    def autowrap_trim_flags=(val : Int | Enum)
+      set_autowrap_trim_flags(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `tab_size` getter
     def tab_size
       get_tab_size
     end
     # Property `tab_size` setter
-    def tab_size=(val : Int)
-      set_tab_size(val.to_i64)
+    def tab_size=(val : Int | Enum)
+      set_tab_size(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `context_menu_enabled` getter
     def context_menu_enabled
@@ -12236,24 +15370,24 @@ module Godot
       get_horizontal_alignment
     end
     # Property `horizontal_alignment` setter
-    def horizontal_alignment=(val : Int)
-      set_horizontal_alignment(val.to_i64)
+    def horizontal_alignment=(val : Int | Enum)
+      set_horizontal_alignment(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `vertical_alignment` getter
     def vertical_alignment
       get_vertical_alignment
     end
     # Property `vertical_alignment` setter
-    def vertical_alignment=(val : Int)
-      set_vertical_alignment(val.to_i64)
+    def vertical_alignment=(val : Int | Enum)
+      set_vertical_alignment(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `justification_flags` getter
     def justification_flags
       get_justification_flags
     end
     # Property `justification_flags` setter
-    def justification_flags=(val : Int)
-      set_justification_flags(val.to_i64)
+    def justification_flags=(val : Int | Enum)
+      set_justification_flags(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `tab_stops` getter
     def tab_stops
@@ -12300,8 +15434,8 @@ module Godot
       get_progress_bar_delay
     end
     # Property `progress_bar_delay` setter
-    def progress_bar_delay=(val : Int)
-      set_progress_bar_delay(val.to_i64)
+    def progress_bar_delay=(val : Int | Enum)
+      set_progress_bar_delay(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `selection_enabled` getter
     def selection_enabled
@@ -12343,32 +15477,32 @@ module Godot
       get_minimum_font_size
     end
     # Property `minimum_font_size` setter
-    def minimum_font_size=(val : Int)
-      set_minimum_font_size(val.to_i64)
+    def minimum_font_size=(val : Int | Enum)
+      set_minimum_font_size(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `maximum_font_size` getter
     def maximum_font_size
       get_maximum_font_size
     end
     # Property `maximum_font_size` setter
-    def maximum_font_size=(val : Int)
-      set_maximum_font_size(val.to_i64)
+    def maximum_font_size=(val : Int | Enum)
+      set_maximum_font_size(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `visible_characters` getter
     def visible_characters
       get_visible_characters
     end
     # Property `visible_characters` setter
-    def visible_characters=(val : Int)
-      set_visible_characters(val.to_i64)
+    def visible_characters=(val : Int | Enum)
+      set_visible_characters(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `visible_characters_behavior` getter
     def visible_characters_behavior
       get_visible_characters_behavior
     end
     # Property `visible_characters_behavior` setter
-    def visible_characters_behavior=(val : Int)
-      set_visible_characters_behavior(val.to_i64)
+    def visible_characters_behavior=(val : Int | Enum)
+      set_visible_characters_behavior(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `visible_ratio` getter
     def visible_ratio
@@ -12383,8 +15517,8 @@ module Godot
       get_text_direction
     end
     # Property `text_direction` setter
-    def text_direction=(val : Int)
-      set_text_direction(val.to_i64)
+    def text_direction=(val : Int | Enum)
+      set_text_direction(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `language` getter
     def language
@@ -12399,8 +15533,8 @@ module Godot
       get_structured_text_bidi_override
     end
     # Property `structured_text_bidi_override` setter
-    def structured_text_bidi_override=(val : Int)
-      set_structured_text_bidi_override(val.to_i64)
+    def structured_text_bidi_override=(val : Int | Enum)
+      set_structured_text_bidi_override(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `structured_text_bidi_override_options` getter
     def structured_text_bidi_override_options
@@ -12934,8 +16068,8 @@ module Godot
       get_center_of_mass_mode
     end
     # Property `center_of_mass_mode` setter
-    def center_of_mass_mode=(val : Int)
-      set_center_of_mass_mode(val.to_i64)
+    def center_of_mass_mode=(val : Int | Enum)
+      set_center_of_mass_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `center_of_mass` getter
     def center_of_mass
@@ -12999,8 +16133,8 @@ module Godot
       get_freeze_mode
     end
     # Property `freeze_mode` setter
-    def freeze_mode=(val : Int)
-      set_freeze_mode(val.to_i64)
+    def freeze_mode=(val : Int | Enum)
+      set_freeze_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `custom_integrator` getter
     def custom_integrator
@@ -13040,8 +16174,8 @@ module Godot
       get_max_contacts_reported
     end
     # Property `max_contacts_reported` setter
-    def max_contacts_reported=(val : Int)
-      set_max_contacts_reported(val.to_i64)
+    def max_contacts_reported=(val : Int | Enum)
+      set_max_contacts_reported(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `linear_velocity` getter
     def linear_velocity
@@ -13056,8 +16190,8 @@ module Godot
       get_linear_damp_mode
     end
     # Property `linear_damp_mode` setter
-    def linear_damp_mode=(val : Int)
-      set_linear_damp_mode(val.to_i64)
+    def linear_damp_mode=(val : Int | Enum)
+      set_linear_damp_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `linear_damp` getter
     def linear_damp
@@ -13080,8 +16214,8 @@ module Godot
       get_angular_damp_mode
     end
     # Property `angular_damp_mode` setter
-    def angular_damp_mode=(val : Int)
-      set_angular_damp_mode(val.to_i64)
+    def angular_damp_mode=(val : Int | Enum)
+      set_angular_damp_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `angular_damp` getter
     def angular_damp
@@ -13482,16 +16616,16 @@ module Godot
       get_max_sync_packet_size
     end
     # Property `max_sync_packet_size` setter
-    def max_sync_packet_size=(val : Int)
-      set_max_sync_packet_size(val.to_i64)
+    def max_sync_packet_size=(val : Int | Enum)
+      set_max_sync_packet_size(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `max_delta_packet_size` getter
     def max_delta_packet_size
       get_max_delta_packet_size
     end
     # Property `max_delta_packet_size` setter
-    def max_delta_packet_size=(val : Int)
-      set_max_delta_packet_size(val.to_i64)
+    def max_delta_packet_size=(val : Int | Enum)
+      set_max_delta_packet_size(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     godot_signal peer_authenticating, Int64
     godot_signal peer_authentication_failed, Int64
@@ -14795,15 +17929,15 @@ module Godot
       godot_ptrcall_obj(@@mb_get_base_editor, @pointer, Pointer(Pointer(Void)).null, Control)
     end
     godot_signal name_changed
-    godot_signal search_in_files_requested, String
     godot_signal request_help, String
     godot_signal request_open_script_at_line, Godot::Object, Int64
     godot_signal go_to_help, String
-    godot_signal replace_in_files_requested, String
     godot_signal go_to_method, Godot::Object, String
     godot_signal request_save_history
     godot_signal request_save_previous_state, Pointer(Void)
     godot_signal edited_script_changed
+    godot_signal search_in_files_requested, String
+    godot_signal replace_in_files_requested, String
   end
   class ScriptExtension < Godot::Script
     def initialize(pointer : Void* = Pointer(Void).null)
@@ -15612,16 +18746,16 @@ module Godot
       get_max_results
     end
     # Property `max_results` setter
-    def max_results=(val : Int)
-      set_max_results(val.to_i64)
+    def max_results=(val : Int | Enum)
+      set_max_results(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `collision_mask` getter
     def collision_mask
       get_collision_mask
     end
     # Property `collision_mask` setter
-    def collision_mask=(val : Int)
-      set_collision_mask(val.to_i64)
+    def collision_mask=(val : Int | Enum)
+      set_collision_mask(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `collision_result` getter
     def collision_result
@@ -16011,16 +19145,16 @@ module Godot
       get_max_results
     end
     # Property `max_results` setter
-    def max_results=(val : Int)
-      set_max_results(val.to_i64)
+    def max_results=(val : Int | Enum)
+      set_max_results(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `collision_mask` getter
     def collision_mask
       get_collision_mask
     end
     # Property `collision_mask` setter
-    def collision_mask=(val : Int)
-      set_collision_mask(val.to_i64)
+    def collision_mask=(val : Int | Enum)
+      set_collision_mask(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `collision_result` getter
     def collision_result
@@ -16189,6 +19323,8 @@ module Godot
       ModifierCallbackModeProcessIdle = 1_i64
       ModifierCallbackModeProcessManual = 2_i64
     end
+    NOTIFICATION_UPDATE_SKELETON = 50_i64
+
     @@mb_add_bone : Void* = Pointer(Void).null
     def add_bone(name : String) : Int64
       godot_bind(@@mb_add_bone, "Skeleton3D", "add_bone", 1597066294_i64)
@@ -16714,8 +19850,8 @@ module Godot
       get_modifier_callback_mode_process
     end
     # Property `modifier_callback_mode_process` setter
-    def modifier_callback_mode_process=(val : Int)
-      set_modifier_callback_mode_process(val.to_i64)
+    def modifier_callback_mode_process=(val : Int | Enum)
+      set_modifier_callback_mode_process(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `animate_physical_bones` getter
     def animate_physical_bones
@@ -16994,8 +20130,8 @@ module Godot
       get_max_iterations
     end
     # Property `max_iterations` setter
-    def max_iterations=(val : Int)
-      set_max_iterations(val.to_i64)
+    def max_iterations=(val : Int | Enum)
+      set_max_iterations(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `interpolation` getter
     def interpolation
@@ -17109,8 +20245,8 @@ module Godot
       get_execution_mode
     end
     # Property `execution_mode` setter
-    def execution_mode=(val : Int)
-      set_execution_mode(val.to_i64)
+    def execution_mode=(val : Int | Enum)
+      set_execution_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class SkeletonModification2DCCDIK < Godot::SkeletonModification2D
@@ -17321,8 +20457,8 @@ module Godot
       get_ccdik_data_chain_length
     end
     # Property `ccdik_data_chain_length` setter
-    def ccdik_data_chain_length=(val : Int)
-      set_ccdik_data_chain_length(val.to_i64)
+    def ccdik_data_chain_length=(val : Int | Enum)
+      set_ccdik_data_chain_length(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class SkeletonModification2DFABRIK < Godot::SkeletonModification2D
@@ -17448,8 +20584,8 @@ module Godot
       get_fabrik_data_chain_length
     end
     # Property `fabrik_data_chain_length` setter
-    def fabrik_data_chain_length=(val : Int)
-      set_fabrik_data_chain_length(val.to_i64)
+    def fabrik_data_chain_length=(val : Int | Enum)
+      set_fabrik_data_chain_length(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class SkeletonModification2DJiggle < Godot::SkeletonModification2D
@@ -17755,8 +20891,8 @@ module Godot
       get_jiggle_data_chain_length
     end
     # Property `jiggle_data_chain_length` setter
-    def jiggle_data_chain_length=(val : Int)
-      set_jiggle_data_chain_length(val.to_i64)
+    def jiggle_data_chain_length=(val : Int | Enum)
+      set_jiggle_data_chain_length(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `stiffness` getter
     def stiffness
@@ -17927,8 +21063,8 @@ module Godot
       get_bone_index
     end
     # Property `bone_index` setter
-    def bone_index=(val : Int)
-      set_bone_index(val.to_i64)
+    def bone_index=(val : Int | Enum)
+      set_bone_index(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `bone2d_node` getter
     def bone2d_node
@@ -18010,8 +21146,8 @@ module Godot
       get_physical_bone_chain_length
     end
     # Property `physical_bone_chain_length` setter
-    def physical_bone_chain_length=(val : Int)
-      set_physical_bone_chain_length(val.to_i64)
+    def physical_bone_chain_length=(val : Int | Enum)
+      set_physical_bone_chain_length(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class SkeletonModification2DStackHolder < Godot::SkeletonModification2D
@@ -18328,8 +21464,8 @@ module Godot
       get_modification_count
     end
     # Property `modification_count` setter
-    def modification_count=(val : Int)
-      set_modification_count(val.to_i64)
+    def modification_count=(val : Int | Enum)
+      set_modification_count(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class SkeletonProfile < Godot::Resource
@@ -18626,16 +21762,16 @@ module Godot
       get_group_size
     end
     # Property `group_size` setter
-    def group_size=(val : Int)
-      set_group_size(val.to_i64)
+    def group_size=(val : Int | Enum)
+      set_group_size(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `bone_size` getter
     def bone_size
       get_bone_size
     end
     # Property `bone_size` setter
-    def bone_size=(val : Int)
-      set_bone_size(val.to_i64)
+    def bone_size=(val : Int | Enum)
+      set_bone_size(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     godot_signal profile_updated
   end
@@ -18832,16 +21968,16 @@ module Godot
       get_process_mode
     end
     # Property `process_mode` setter
-    def process_mode=(val : Int)
-      set_process_mode(val.to_i64)
+    def process_mode=(val : Int | Enum)
+      set_process_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `radiance_size` getter
     def radiance_size
       get_radiance_size
     end
     # Property `radiance_size` setter
-    def radiance_size=(val : Int)
-      set_radiance_size(val.to_i64)
+    def radiance_size=(val : Int | Enum)
+      set_radiance_size(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class SliderJoint3D < Godot::Joint3D
@@ -19265,16 +22401,16 @@ module Godot
       get_collision_layer
     end
     # Property `collision_layer` setter
-    def collision_layer=(val : Int)
-      set_collision_layer(val.to_i64)
+    def collision_layer=(val : Int | Enum)
+      set_collision_layer(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `collision_mask` getter
     def collision_mask
       get_collision_mask
     end
     # Property `collision_mask` setter
-    def collision_mask=(val : Int)
-      set_collision_mask(val.to_i64)
+    def collision_mask=(val : Int | Enum)
+      set_collision_mask(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `parent_collision_ignore` getter
     def parent_collision_ignore
@@ -19289,8 +22425,8 @@ module Godot
       get_simulation_precision
     end
     # Property `simulation_precision` setter
-    def simulation_precision=(val : Int)
-      set_simulation_precision(val.to_i64)
+    def simulation_precision=(val : Int | Enum)
+      set_simulation_precision(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `total_mass` getter
     def total_mass
@@ -19357,8 +22493,8 @@ module Godot
       get_disable_mode
     end
     # Property `disable_mode` setter
-    def disable_mode=(val : Int)
-      set_disable_mode(val.to_i64)
+    def disable_mode=(val : Int | Enum)
+      set_disable_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class SphereMesh < Godot::PrimitiveMesh
@@ -19455,16 +22591,16 @@ module Godot
       get_radial_segments
     end
     # Property `radial_segments` setter
-    def radial_segments=(val : Int)
-      set_radial_segments(val.to_i64)
+    def radial_segments=(val : Int | Enum)
+      set_radial_segments(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `rings` getter
     def rings
       get_rings
     end
     # Property `rings` setter
-    def rings=(val : Int)
-      set_rings(val.to_i64)
+    def rings=(val : Int | Enum)
+      set_rings(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `is_hemisphere` getter
     def is_hemisphere
@@ -19728,8 +22864,8 @@ module Godot
       get_horizontal_alignment
     end
     # Property `alignment` setter
-    def alignment=(val : Int)
-      set_horizontal_alignment(val.to_i64)
+    def alignment=(val : Int | Enum)
+      set_horizontal_alignment(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `editable` getter
     def editable
@@ -19798,8 +22934,8 @@ module Godot
       get_format_auto_translate_mode
     end
     # Property `format_auto_translate_mode` setter
-    def format_auto_translate_mode=(val : Int)
-      set_format_auto_translate_mode(val.to_i64)
+    def format_auto_translate_mode=(val : Int | Enum)
+      set_format_auto_translate_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `prefix` getter
     def prefix
@@ -19909,8 +23045,8 @@ module Godot
       get_setting_count
     end
     # Property `setting_count` setter
-    def setting_count=(val : Int)
-      set_setting_count(val.to_i64)
+    def setting_count=(val : Int | Enum)
+      set_setting_count(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class SpotLight3D < Godot::Light3D
@@ -20041,8 +23177,8 @@ module Godot
       get_collision_mask
     end
     # Property `collision_mask` setter
-    def collision_mask=(val : Int)
-      set_collision_mask(val.to_i64)
+    def collision_mask=(val : Int | Enum)
+      set_collision_mask(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `shape` getter
     def shape
@@ -20145,8 +23281,8 @@ module Godot
       get_bone
     end
     # Property `bone` setter
-    def bone=(val : Int)
-      set_bone(val.to_i64)
+    def bone=(val : Int | Enum)
+      set_bone(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `position_offset` getter
     def position_offset
@@ -21158,8 +24294,8 @@ module Godot
       get_setting_count
     end
     # Property `setting_count` setter
-    def setting_count=(val : Int)
-      set_setting_count(val.to_i64)
+    def setting_count=(val : Int | Enum)
+      set_setting_count(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class Sprite2D < Godot::Node2D
@@ -21434,24 +24570,24 @@ module Godot
       get_hframes
     end
     # Property `hframes` setter
-    def hframes=(val : Int)
-      set_hframes(val.to_i64)
+    def hframes=(val : Int | Enum)
+      set_hframes(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `vframes` getter
     def vframes
       get_vframes
     end
     # Property `vframes` setter
-    def vframes=(val : Int)
-      set_vframes(val.to_i64)
+    def vframes=(val : Int | Enum)
+      set_vframes(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `frame` getter
     def frame
       get_frame
     end
     # Property `frame` setter
-    def frame=(val : Int)
-      set_frame(val.to_i64)
+    def frame=(val : Int | Enum)
+      set_frame(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `frame_coords` getter
     def frame_coords
@@ -21604,24 +24740,24 @@ module Godot
       get_hframes
     end
     # Property `hframes` setter
-    def hframes=(val : Int)
-      set_hframes(val.to_i64)
+    def hframes=(val : Int | Enum)
+      set_hframes(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `vframes` getter
     def vframes
       get_vframes
     end
     # Property `vframes` setter
-    def vframes=(val : Int)
-      set_vframes(val.to_i64)
+    def vframes=(val : Int | Enum)
+      set_vframes(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `frame` getter
     def frame
       get_frame
     end
     # Property `frame` setter
-    def frame=(val : Int)
-      set_frame(val.to_i64)
+    def frame=(val : Int | Enum)
+      set_frame(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `frame_coords` getter
     def frame_coords
@@ -22617,16 +25753,16 @@ module Godot
       get_max_lod_override
     end
     # Property `max_lod_override` setter
-    def max_lod_override=(val : Int)
-      set_max_lod_override(val.to_i64)
+    def max_lod_override=(val : Int | Enum)
+      set_max_lod_override(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `min_lod_override` getter
     def min_lod_override
       get_min_lod_override
     end
     # Property `min_lod_override` setter
-    def min_lod_override=(val : Int)
-      set_min_lod_override(val.to_i64)
+    def min_lod_override=(val : Int | Enum)
+      set_min_lod_override(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class StyleBox < Godot::Resource
@@ -23026,32 +26162,32 @@ module Godot
       get_border_width(0_i64)
     end
     # Property `border_width_left` setter
-    def border_width_left=(val : Int)
-      set_border_width(0_i64, val.to_i64)
+    def border_width_left=(val : Int | Enum)
+      set_border_width(0_i64, val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `border_width_top` getter
     def border_width_top
       get_border_width(1_i64)
     end
     # Property `border_width_top` setter
-    def border_width_top=(val : Int)
-      set_border_width(1_i64, val.to_i64)
+    def border_width_top=(val : Int | Enum)
+      set_border_width(1_i64, val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `border_width_right` getter
     def border_width_right
       get_border_width(2_i64)
     end
     # Property `border_width_right` setter
-    def border_width_right=(val : Int)
-      set_border_width(2_i64, val.to_i64)
+    def border_width_right=(val : Int | Enum)
+      set_border_width(2_i64, val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `border_width_bottom` getter
     def border_width_bottom
       get_border_width(3_i64)
     end
     # Property `border_width_bottom` setter
-    def border_width_bottom=(val : Int)
-      set_border_width(3_i64, val.to_i64)
+    def border_width_bottom=(val : Int | Enum)
+      set_border_width(3_i64, val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `border_color` getter
     def border_color
@@ -23077,40 +26213,40 @@ module Godot
       get_corner_radius(0_i64)
     end
     # Property `corner_radius_top_left` setter
-    def corner_radius_top_left=(val : Int)
-      set_corner_radius(0_i64, val.to_i64)
+    def corner_radius_top_left=(val : Int | Enum)
+      set_corner_radius(0_i64, val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `corner_radius_top_right` getter
     def corner_radius_top_right
       get_corner_radius(1_i64)
     end
     # Property `corner_radius_top_right` setter
-    def corner_radius_top_right=(val : Int)
-      set_corner_radius(1_i64, val.to_i64)
+    def corner_radius_top_right=(val : Int | Enum)
+      set_corner_radius(1_i64, val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `corner_radius_bottom_right` getter
     def corner_radius_bottom_right
       get_corner_radius(2_i64)
     end
     # Property `corner_radius_bottom_right` setter
-    def corner_radius_bottom_right=(val : Int)
-      set_corner_radius(2_i64, val.to_i64)
+    def corner_radius_bottom_right=(val : Int | Enum)
+      set_corner_radius(2_i64, val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `corner_radius_bottom_left` getter
     def corner_radius_bottom_left
       get_corner_radius(3_i64)
     end
     # Property `corner_radius_bottom_left` setter
-    def corner_radius_bottom_left=(val : Int)
-      set_corner_radius(3_i64, val.to_i64)
+    def corner_radius_bottom_left=(val : Int | Enum)
+      set_corner_radius(3_i64, val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `corner_detail` getter
     def corner_detail
       get_corner_detail
     end
     # Property `corner_detail` setter
-    def corner_detail=(val : Int)
-      set_corner_detail(val.to_i64)
+    def corner_detail=(val : Int | Enum)
+      set_corner_detail(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `expand_margin_left` getter
     def expand_margin_left
@@ -23157,8 +26293,8 @@ module Godot
       get_shadow_size
     end
     # Property `shadow_size` setter
-    def shadow_size=(val : Int)
-      set_shadow_size(val.to_i64)
+    def shadow_size=(val : Int | Enum)
+      set_shadow_size(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `shadow_offset` getter
     def shadow_offset
@@ -23294,8 +26430,8 @@ module Godot
       get_thickness
     end
     # Property `thickness` setter
-    def thickness=(val : Int)
-      set_thickness(val.to_i64)
+    def thickness=(val : Int | Enum)
+      set_thickness(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `vertical` getter
     def vertical
@@ -23530,16 +26666,16 @@ module Godot
       get_h_axis_stretch_mode
     end
     # Property `axis_stretch_horizontal` setter
-    def axis_stretch_horizontal=(val : Int)
-      set_h_axis_stretch_mode(val.to_i64)
+    def axis_stretch_horizontal=(val : Int | Enum)
+      set_h_axis_stretch_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `axis_stretch_vertical` getter
     def axis_stretch_vertical
       get_v_axis_stretch_mode
     end
     # Property `axis_stretch_vertical` setter
-    def axis_stretch_vertical=(val : Int)
-      set_v_axis_stretch_mode(val.to_i64)
+    def axis_stretch_vertical=(val : Int | Enum)
+      set_v_axis_stretch_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `region_rect` getter
     def region_rect
@@ -23644,8 +26780,8 @@ module Godot
       get_stretch_shrink
     end
     # Property `stretch_shrink` setter
-    def stretch_shrink=(val : Int)
-      set_stretch_shrink(val.to_i64)
+    def stretch_shrink=(val : Int | Enum)
+      set_stretch_shrink(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `mouse_target` getter
     def mouse_target
@@ -24257,24 +27393,24 @@ module Godot
       get_font_weight
     end
     # Property `font_weight` setter
-    def font_weight=(val : Int)
-      set_font_weight(val.to_i64)
+    def font_weight=(val : Int | Enum)
+      set_font_weight(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `font_stretch` getter
     def font_stretch
       get_font_stretch
     end
     # Property `font_stretch` setter
-    def font_stretch=(val : Int)
-      set_font_stretch(val.to_i64)
+    def font_stretch=(val : Int | Enum)
+      set_font_stretch(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `antialiasing` getter
     def antialiasing
       get_antialiasing
     end
     # Property `antialiasing` setter
-    def antialiasing=(val : Int)
-      set_antialiasing(val.to_i64)
+    def antialiasing=(val : Int | Enum)
+      set_antialiasing(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `generate_mipmaps` getter
     def generate_mipmaps
@@ -24327,16 +27463,16 @@ module Godot
       get_hinting
     end
     # Property `hinting` setter
-    def hinting=(val : Int)
-      set_hinting(val.to_i64)
+    def hinting=(val : Int | Enum)
+      set_hinting(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `subpixel_positioning` getter
     def subpixel_positioning
       get_subpixel_positioning
     end
     # Property `subpixel_positioning` setter
-    def subpixel_positioning=(val : Int)
-      set_subpixel_positioning(val.to_i64)
+    def subpixel_positioning=(val : Int | Enum)
+      set_subpixel_positioning(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `keep_rounding_remainders` getter
     def keep_rounding_remainders
@@ -24362,16 +27498,16 @@ module Godot
       get_msdf_pixel_range
     end
     # Property `msdf_pixel_range` setter
-    def msdf_pixel_range=(val : Int)
-      set_msdf_pixel_range(val.to_i64)
+    def msdf_pixel_range=(val : Int | Enum)
+      set_msdf_pixel_range(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `msdf_size` getter
     def msdf_size
       get_msdf_size
     end
     # Property `msdf_size` setter
-    def msdf_size=(val : Int)
-      set_msdf_size(val.to_i64)
+    def msdf_size=(val : Int | Enum)
+      set_msdf_size(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `oversampling` getter
     def oversampling
@@ -25059,24 +28195,24 @@ module Godot
       get_current_tab
     end
     # Property `current_tab` setter
-    def current_tab=(val : Int)
-      set_current_tab(val.to_i64)
+    def current_tab=(val : Int | Enum)
+      set_current_tab(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `tab_alignment` getter
     def tab_alignment
       get_tab_alignment
     end
     # Property `tab_alignment` setter
-    def tab_alignment=(val : Int)
-      set_tab_alignment(val.to_i64)
+    def tab_alignment=(val : Int | Enum)
+      set_tab_alignment(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `tab_sizing` getter
     def tab_sizing
       get_tab_sizing
     end
     # Property `tab_sizing` setter
-    def tab_sizing=(val : Int)
-      set_tab_sizing(val.to_i64)
+    def tab_sizing=(val : Int | Enum)
+      set_tab_sizing(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `clip_tabs` getter
     def clip_tabs
@@ -25105,16 +28241,16 @@ module Godot
       get_tab_close_display_policy
     end
     # Property `tab_close_display_policy` setter
-    def tab_close_display_policy=(val : Int)
-      set_tab_close_display_policy(val.to_i64)
+    def tab_close_display_policy=(val : Int | Enum)
+      set_tab_close_display_policy(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `max_tab_width` getter
     def max_tab_width
       get_max_tab_width
     end
     # Property `max_tab_width` setter
-    def max_tab_width=(val : Int)
-      set_max_tab_width(val.to_i64)
+    def max_tab_width=(val : Int | Enum)
+      set_max_tab_width(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `scrolling_enabled` getter
     def scrolling_enabled
@@ -25154,8 +28290,8 @@ module Godot
       get_tabs_rearrange_group
     end
     # Property `tabs_rearrange_group` setter
-    def tabs_rearrange_group=(val : Int)
-      set_tabs_rearrange_group(val.to_i64)
+    def tabs_rearrange_group=(val : Int | Enum)
+      set_tabs_rearrange_group(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `scroll_to_selected` getter
     def scroll_to_selected
@@ -25195,8 +28331,8 @@ module Godot
       get_tab_count
     end
     # Property `tab_count` setter
-    def tab_count=(val : Int)
-      set_tab_count(val.to_i64)
+    def tab_count=(val : Int | Enum)
+      set_tab_count(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     godot_signal tab_selected, Int64
     godot_signal tab_changed, Int64
@@ -25669,32 +28805,32 @@ module Godot
       get_tab_alignment
     end
     # Property `tab_alignment` setter
-    def tab_alignment=(val : Int)
-      set_tab_alignment(val.to_i64)
+    def tab_alignment=(val : Int | Enum)
+      set_tab_alignment(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `tab_sizing` getter
     def tab_sizing
       get_tab_sizing
     end
     # Property `tab_sizing` setter
-    def tab_sizing=(val : Int)
-      set_tab_sizing(val.to_i64)
+    def tab_sizing=(val : Int | Enum)
+      set_tab_sizing(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `current_tab` getter
     def current_tab
       get_current_tab
     end
     # Property `current_tab` setter
-    def current_tab=(val : Int)
-      set_current_tab(val.to_i64)
+    def current_tab=(val : Int | Enum)
+      set_current_tab(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `tabs_position` getter
     def tabs_position
       get_tabs_position
     end
     # Property `tabs_position` setter
-    def tabs_position=(val : Int)
-      set_tabs_position(val.to_i64)
+    def tabs_position=(val : Int | Enum)
+      set_tabs_position(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `clip_tabs` getter
     def clip_tabs
@@ -25750,8 +28886,8 @@ module Godot
       get_tabs_rearrange_group
     end
     # Property `tabs_rearrange_group` setter
-    def tabs_rearrange_group=(val : Int)
-      set_tabs_rearrange_group(val.to_i64)
+    def tabs_rearrange_group=(val : Int | Enum)
+      set_tabs_rearrange_group(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `use_hidden_tabs_for_min_size` getter
     def use_hidden_tabs_for_min_size
@@ -25769,8 +28905,8 @@ module Godot
       get_tab_focus_mode
     end
     # Property `tab_focus_mode` setter
-    def tab_focus_mode=(val : Int)
-      set_tab_focus_mode(val.to_i64)
+    def tab_focus_mode=(val : Int | Enum)
+      set_tab_focus_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `deselect_enabled` getter
     def deselect_enabled
@@ -26119,16 +29255,16 @@ module Godot
       get_direction
     end
     # Property `direction` setter
-    def direction=(val : Int)
-      set_direction(val.to_i64)
+    def direction=(val : Int | Enum)
+      set_direction(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `orientation` getter
     def orientation
       get_orientation
     end
     # Property `orientation` setter
-    def orientation=(val : Int)
-      set_orientation(val.to_i64)
+    def orientation=(val : Int | Enum)
+      set_orientation(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `preserve_invalid` getter
     def preserve_invalid
@@ -26165,24 +29301,24 @@ module Godot
       get_horizontal_alignment
     end
     # Property `alignment` setter
-    def alignment=(val : Int)
-      set_horizontal_alignment(val.to_i64)
+    def alignment=(val : Int | Enum)
+      set_horizontal_alignment(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `flags` getter
     def flags
       get_flags
     end
     # Property `flags` setter
-    def flags=(val : Int)
-      set_flags(val.to_i64)
+    def flags=(val : Int | Enum)
+      set_flags(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `text_overrun_behavior` getter
     def text_overrun_behavior
       get_text_overrun_behavior
     end
     # Property `text_overrun_behavior` setter
-    def text_overrun_behavior=(val : Int)
-      set_text_overrun_behavior(val.to_i64)
+    def text_overrun_behavior=(val : Int | Enum)
+      set_text_overrun_behavior(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `ellipsis_char` getter
     def ellipsis_char
@@ -26466,24 +29602,24 @@ module Godot
       get_font_size
     end
     # Property `font_size` setter
-    def font_size=(val : Int)
-      set_font_size(val.to_i64)
+    def font_size=(val : Int | Enum)
+      set_font_size(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `horizontal_alignment` getter
     def horizontal_alignment
       get_horizontal_alignment
     end
     # Property `horizontal_alignment` setter
-    def horizontal_alignment=(val : Int)
-      set_horizontal_alignment(val.to_i64)
+    def horizontal_alignment=(val : Int | Enum)
+      set_horizontal_alignment(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `vertical_alignment` getter
     def vertical_alignment
       get_vertical_alignment
     end
     # Property `vertical_alignment` setter
-    def vertical_alignment=(val : Int)
-      set_vertical_alignment(val.to_i64)
+    def vertical_alignment=(val : Int | Enum)
+      set_vertical_alignment(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `uppercase` getter
     def uppercase
@@ -26506,16 +29642,16 @@ module Godot
       get_autowrap_mode
     end
     # Property `autowrap_mode` setter
-    def autowrap_mode=(val : Int)
-      set_autowrap_mode(val.to_i64)
+    def autowrap_mode=(val : Int | Enum)
+      set_autowrap_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `justification_flags` getter
     def justification_flags
       get_justification_flags
     end
     # Property `justification_flags` setter
-    def justification_flags=(val : Int)
-      set_justification_flags(val.to_i64)
+    def justification_flags=(val : Int | Enum)
+      set_justification_flags(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `pixel_size` getter
     def pixel_size
@@ -26562,8 +29698,8 @@ module Godot
       get_text_direction
     end
     # Property `text_direction` setter
-    def text_direction=(val : Int)
-      set_text_direction(val.to_i64)
+    def text_direction=(val : Int | Enum)
+      set_text_direction(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `language` getter
     def language
@@ -26578,8 +29714,8 @@ module Godot
       get_structured_text_bidi_override
     end
     # Property `structured_text_bidi_override` setter
-    def structured_text_bidi_override=(val : Int)
-      set_structured_text_bidi_override(val.to_i64)
+    def structured_text_bidi_override=(val : Int | Enum)
+      set_structured_text_bidi_override(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `structured_text_bidi_override_options` getter
     def structured_text_bidi_override_options
@@ -27142,8 +30278,8 @@ module Godot
       get_direction
     end
     # Property `direction` setter
-    def direction=(val : Int)
-      set_direction(val.to_i64)
+    def direction=(val : Int | Enum)
+      set_direction(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `custom_punctuation` getter
     def custom_punctuation
@@ -27158,8 +30294,8 @@ module Godot
       get_orientation
     end
     # Property `orientation` setter
-    def orientation=(val : Int)
-      set_orientation(val.to_i64)
+    def orientation=(val : Int | Enum)
+      set_orientation(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `preserve_invalid` getter
     def preserve_invalid
@@ -27188,32 +30324,32 @@ module Godot
       get_alignment
     end
     # Property `alignment` setter
-    def alignment=(val : Int)
-      set_alignment(val.to_i64)
+    def alignment=(val : Int | Enum)
+      set_alignment(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `break_flags` getter
     def break_flags
       get_break_flags
     end
     # Property `break_flags` setter
-    def break_flags=(val : Int)
-      set_break_flags(val.to_i64)
+    def break_flags=(val : Int | Enum)
+      set_break_flags(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `justification_flags` getter
     def justification_flags
       get_justification_flags
     end
     # Property `justification_flags` setter
-    def justification_flags=(val : Int)
-      set_justification_flags(val.to_i64)
+    def justification_flags=(val : Int | Enum)
+      set_justification_flags(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `text_overrun_behavior` getter
     def text_overrun_behavior
       get_text_overrun_behavior
     end
     # Property `text_overrun_behavior` setter
-    def text_overrun_behavior=(val : Int)
-      set_text_overrun_behavior(val.to_i64)
+    def text_overrun_behavior=(val : Int | Enum)
+      set_text_overrun_behavior(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `ellipsis_char` getter
     def ellipsis_char
@@ -27236,8 +30372,8 @@ module Godot
       get_max_lines_visible
     end
     # Property `max_lines_visible` setter
-    def max_lines_visible=(val : Int)
-      set_max_lines_visible(val.to_i64)
+    def max_lines_visible=(val : Int | Enum)
+      set_max_lines_visible(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `line_spacing` getter
     def line_spacing
@@ -30126,6 +33262,11 @@ module Godot
       super(pointer)
     end
   end
+  class TextServerFallback < Godot::TextServerExtension
+    def initialize(pointer : Void* = Pointer(Void).null)
+      super(pointer)
+    end
+  end
   class TextServerManager < Godot::Object
     def initialize(pointer : Void* = Pointer(Void).null)
       super(pointer)
@@ -30138,10 +33279,18 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_add_interface, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `add_interface`
+    def self.add_interface(interface : TextServer) : Void
+      instance.add_interface(interface)
+    end
     @@mb_get_interface_count : Void* = Pointer(Void).null
     def get_interface_count() : Int64
       godot_bind(@@mb_get_interface_count, "TextServerManager", "get_interface_count", 3905245786_i64)
       godot_ptrcall_int(@@mb_get_interface_count, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `get_interface_count`
+    def self.get_interface_count() : Int64
+      instance.get_interface_count()
     end
     @@mb_remove_interface : Void* = Pointer(Void).null
     def remove_interface(interface : TextServer) : Void
@@ -30151,6 +33300,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_remove_interface, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `remove_interface`
+    def self.remove_interface(interface : TextServer) : Void
+      instance.remove_interface(interface)
+    end
     @@mb_get_interface : Void* = Pointer(Void).null
     def get_interface(idx : Int64) : TextServer
       godot_bind(@@mb_get_interface, "TextServerManager", "get_interface", 1672475555_i64)
@@ -30159,12 +33312,20 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_get_interface, @pointer, args.to_unsafe.as(Void**), TextServer)
     end
+    # Class-level singleton delegator for `get_interface`
+    def self.get_interface(idx : Int64) : TextServer
+      instance.get_interface(idx)
+    end
     @@mb_get_interfaces : Void* = Pointer(Void).null
     def get_interfaces() : Pointer(Void)
       godot_bind(@@mb_get_interfaces, "TextServerManager", "get_interfaces", 3995934104_i64)
       ret_ptr = Pointer(Void).null
       godot_ptrcall(@@mb_get_interfaces, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
       ret_ptr
+    end
+    # Class-level singleton delegator for `get_interfaces`
+    def self.get_interfaces() : Pointer(Void)
+      instance.get_interfaces()
     end
     @@mb_find_interface : Void* = Pointer(Void).null
     def find_interface(name : String) : TextServer
@@ -30176,6 +33337,10 @@ module Godot
     ensure
       Bridge.free_string(str_0)
     end
+    # Class-level singleton delegator for `find_interface`
+    def self.find_interface(name : String) : TextServer
+      instance.find_interface(name)
+    end
     @@mb_set_primary_interface : Void* = Pointer(Void).null
     def set_primary_interface(index : TextServer) : Void
       godot_bind(@@mb_set_primary_interface, "TextServerManager", "set_primary_interface", 1799689403_i64)
@@ -30184,10 +33349,18 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_primary_interface, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `set_primary_interface`
+    def self.set_primary_interface(index : TextServer) : Void
+      instance.set_primary_interface(index)
+    end
     @@mb_get_primary_interface : Void* = Pointer(Void).null
     def get_primary_interface() : TextServer
       godot_bind(@@mb_get_primary_interface, "TextServerManager", "get_primary_interface", 905850878_i64)
       godot_ptrcall_obj(@@mb_get_primary_interface, @pointer, Pointer(Pointer(Void)).null, TextServer)
+    end
+    # Class-level singleton delegator for `get_primary_interface`
+    def self.get_primary_interface() : TextServer
+      instance.get_primary_interface()
     end
     godot_signal interface_added, String
     godot_signal interface_removed, String
@@ -30512,8 +33685,8 @@ module Godot
       get_stretch_mode
     end
     # Property `stretch_mode` setter
-    def stretch_mode=(val : Int)
-      set_stretch_mode(val.to_i64)
+    def stretch_mode=(val : Int | Enum)
+      set_stretch_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `flip_h` getter
     def flip_h
@@ -30746,8 +33919,8 @@ module Godot
       get_fill_mode
     end
     # Property `fill_mode` setter
-    def fill_mode=(val : Int)
-      set_fill_mode(val.to_i64)
+    def fill_mode=(val : Int | Enum)
+      set_fill_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `radial_initial_angle` getter
     def radial_initial_angle
@@ -30789,32 +33962,32 @@ module Godot
       get_stretch_margin(0_i64)
     end
     # Property `stretch_margin_left` setter
-    def stretch_margin_left=(val : Int)
-      set_stretch_margin(0_i64, val.to_i64)
+    def stretch_margin_left=(val : Int | Enum)
+      set_stretch_margin(0_i64, val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `stretch_margin_top` getter
     def stretch_margin_top
       get_stretch_margin(1_i64)
     end
     # Property `stretch_margin_top` setter
-    def stretch_margin_top=(val : Int)
-      set_stretch_margin(1_i64, val.to_i64)
+    def stretch_margin_top=(val : Int | Enum)
+      set_stretch_margin(1_i64, val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `stretch_margin_right` getter
     def stretch_margin_right
       get_stretch_margin(2_i64)
     end
     # Property `stretch_margin_right` setter
-    def stretch_margin_right=(val : Int)
-      set_stretch_margin(2_i64, val.to_i64)
+    def stretch_margin_right=(val : Int | Enum)
+      set_stretch_margin(2_i64, val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `stretch_margin_bottom` getter
     def stretch_margin_bottom
       get_stretch_margin(3_i64)
     end
     # Property `stretch_margin_bottom` setter
-    def stretch_margin_bottom=(val : Int)
-      set_stretch_margin(3_i64, val.to_i64)
+    def stretch_margin_bottom=(val : Int | Enum)
+      set_stretch_margin(3_i64, val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `texture_under` getter
     def texture_under
@@ -30988,16 +34161,16 @@ module Godot
       get_expand_mode
     end
     # Property `expand_mode` setter
-    def expand_mode=(val : Int)
-      set_expand_mode(val.to_i64)
+    def expand_mode=(val : Int | Enum)
+      set_expand_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `stretch_mode` getter
     def stretch_mode
       get_stretch_mode
     end
     # Property `stretch_mode` setter
-    def stretch_mode=(val : Int)
-      set_stretch_mode(val.to_i64)
+    def stretch_mode=(val : Int | Enum)
+      set_stretch_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `flip_h` getter
     def flip_h
@@ -31031,6 +34204,10 @@ module Godot
       godot_bind(@@mb_get_min_lod_override, "TextureStreaming", "get_min_lod_override", 3905245786_i64)
       godot_ptrcall_int(@@mb_get_min_lod_override, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Class-level singleton delegator for `get_min_lod_override`
+    def self.get_min_lod_override() : Int64
+      instance.get_min_lod_override()
+    end
     @@mb_set_min_lod_override : Void* = Pointer(Void).null
     def set_min_lod_override(min_lod : Int64) : Void
       godot_bind(@@mb_set_min_lod_override, "TextureStreaming", "set_min_lod_override", 1286410249_i64)
@@ -31039,10 +34216,18 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_min_lod_override, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `set_min_lod_override`
+    def self.set_min_lod_override(min_lod : Int64) : Void
+      instance.set_min_lod_override(min_lod)
+    end
     @@mb_get_max_lod_override : Void* = Pointer(Void).null
     def get_max_lod_override() : Int64
       godot_bind(@@mb_get_max_lod_override, "TextureStreaming", "get_max_lod_override", 3905245786_i64)
       godot_ptrcall_int(@@mb_get_max_lod_override, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `get_max_lod_override`
+    def self.get_max_lod_override() : Int64
+      instance.get_max_lod_override()
     end
     @@mb_set_max_lod_override : Void* = Pointer(Void).null
     def set_max_lod_override(max_lod : Int64) : Void
@@ -31052,10 +34237,18 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_max_lod_override, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `set_max_lod_override`
+    def self.set_max_lod_override(max_lod : Int64) : Void
+      instance.set_max_lod_override(max_lod)
+    end
     @@mb_get_memory_budget_mb_override : Void* = Pointer(Void).null
     def get_memory_budget_mb_override() : Int64
       godot_bind(@@mb_get_memory_budget_mb_override, "TextureStreaming", "get_memory_budget_mb_override", 3905245786_i64)
       godot_ptrcall_int(@@mb_get_memory_budget_mb_override, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `get_memory_budget_mb_override`
+    def self.get_memory_budget_mb_override() : Int64
+      instance.get_memory_budget_mb_override()
     end
     @@mb_set_memory_budget_mb_override : Void* = Pointer(Void).null
     def set_memory_budget_mb_override(mb : Int64) : Void
@@ -31065,39 +34258,69 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_memory_budget_mb_override, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `set_memory_budget_mb_override`
+    def self.set_memory_budget_mb_override(mb : Int64) : Void
+      instance.set_memory_budget_mb_override(mb)
+    end
     @@mb_get_memory_budget_bytes_used : Void* = Pointer(Void).null
     def get_memory_budget_bytes_used() : Int64
       godot_bind(@@mb_get_memory_budget_bytes_used, "TextureStreaming", "get_memory_budget_bytes_used", 2455072627_i64)
       godot_ptrcall_int(@@mb_get_memory_budget_bytes_used, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `get_memory_budget_bytes_used`
+    def self.get_memory_budget_bytes_used() : Int64
+      instance.get_memory_budget_bytes_used()
     end
     @@mb_flush_texture_streaming : Void* = Pointer(Void).null
     def flush_texture_streaming() : Void
       godot_bind(@@mb_flush_texture_streaming, "TextureStreaming", "flush_texture_streaming", 3218959716_i64)
       godot_ptrcall_void(@@mb_flush_texture_streaming, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Class-level singleton delegator for `flush_texture_streaming`
+    def self.flush_texture_streaming() : Void
+      instance.flush_texture_streaming()
+    end
     # Property `min_lod_override` getter
     def min_lod_override
       get_min_lod_override
     end
+    def self.min_lod_override
+      instance.min_lod_override
+    end
     # Property `min_lod_override` setter
-    def min_lod_override=(val : Int)
-      set_min_lod_override(val.to_i64)
+    def min_lod_override=(val : Int | Enum)
+      set_min_lod_override(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
+    end
+    def self.min_lod_override=(val)
+      instance.min_lod_override = val
     end
     # Property `max_lod_override` getter
     def max_lod_override
       get_max_lod_override
     end
+    def self.max_lod_override
+      instance.max_lod_override
+    end
     # Property `max_lod_override` setter
-    def max_lod_override=(val : Int)
-      set_max_lod_override(val.to_i64)
+    def max_lod_override=(val : Int | Enum)
+      set_max_lod_override(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
+    end
+    def self.max_lod_override=(val)
+      instance.max_lod_override = val
     end
     # Property `memory_budget_mb_override` getter
     def memory_budget_mb_override
       get_memory_budget_mb_override
     end
+    def self.memory_budget_mb_override
+      instance.memory_budget_mb_override
+    end
     # Property `memory_budget_mb_override` setter
-    def memory_budget_mb_override=(val : Int)
-      set_memory_budget_mb_override(val.to_i64)
+    def memory_budget_mb_override=(val : Int | Enum)
+      set_memory_budget_mb_override(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
+    end
+    def self.memory_budget_mb_override=(val)
+      instance.memory_budget_mb_override = val
     end
     godot_signal flush_completed
   end
@@ -31112,7 +34335,8 @@ module Godot
       DataTypeFontSize = 3_i64
       DataTypeIcon = 4_i64
       DataTypeStylebox = 5_i64
-      DataTypeMax = 6_i64
+      DataTypeSound = 6_i64
+      DataTypeMax = 7_i64
     end
     @@mb_set_icon : Void* = Pointer(Void).null
     def set_icon(name : String, theme_type : String, texture : Texture2D) : Void
@@ -31672,6 +34896,99 @@ module Godot
       godot_ptrcall(@@mb_get_constant_type_list, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
       ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
+    @@mb_set_sound : Void* = Pointer(Void).null
+    def set_sound(name : String, theme_type : String, sound : AudioStream) : Void
+      godot_bind(@@mb_set_sound, "Theme", "set_sound", 2577918927_i64)
+      sn_0 = Bridge.make_string_name(name)
+      arg_0 = sn_0
+      sn_1 = Bridge.make_string_name(theme_type)
+      arg_1 = sn_1
+      arg_ptr_2 = sound ? sound.pointer : Pointer(Void).null
+      arg_2 = pointerof(arg_ptr_2).as(Void*)
+      args = StaticArray[arg_0, arg_1, arg_2]
+      godot_ptrcall_void(@@mb_set_sound, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string_name(sn_0)
+      Bridge.free_string_name(sn_1)
+    end
+    @@mb_get_sound : Void* = Pointer(Void).null
+    def get_sound(name : String, theme_type : String) : AudioStream
+      godot_bind(@@mb_get_sound, "Theme", "get_sound", 1175136407_i64)
+      sn_0 = Bridge.make_string_name(name)
+      arg_0 = sn_0
+      sn_1 = Bridge.make_string_name(theme_type)
+      arg_1 = sn_1
+      args = StaticArray[arg_0, arg_1]
+      godot_ptrcall_obj(@@mb_get_sound, @pointer, args.to_unsafe.as(Void**), AudioStream)
+    ensure
+      Bridge.free_string_name(sn_0)
+      Bridge.free_string_name(sn_1)
+    end
+    @@mb_has_sound : Void* = Pointer(Void).null
+    def has_sound(name : String, theme_type : String) : Bool
+      godot_bind(@@mb_has_sound, "Theme", "has_sound", 471820014_i64)
+      sn_0 = Bridge.make_string_name(name)
+      arg_0 = sn_0
+      sn_1 = Bridge.make_string_name(theme_type)
+      arg_1 = sn_1
+      args = StaticArray[arg_0, arg_1]
+      godot_ptrcall_bool(@@mb_has_sound, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string_name(sn_0)
+      Bridge.free_string_name(sn_1)
+    end
+    # Predicate alias for `has_sound`
+    def has_sound?(name : String, theme_type : String) : Bool
+      has_sound(name, theme_type)
+    end
+    @@mb_rename_sound : Void* = Pointer(Void).null
+    def rename_sound(old_name : String, name : String, theme_type : String) : Void
+      godot_bind(@@mb_rename_sound, "Theme", "rename_sound", 642128662_i64)
+      sn_0 = Bridge.make_string_name(old_name)
+      arg_0 = sn_0
+      sn_1 = Bridge.make_string_name(name)
+      arg_1 = sn_1
+      sn_2 = Bridge.make_string_name(theme_type)
+      arg_2 = sn_2
+      args = StaticArray[arg_0, arg_1, arg_2]
+      godot_ptrcall_void(@@mb_rename_sound, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string_name(sn_0)
+      Bridge.free_string_name(sn_1)
+      Bridge.free_string_name(sn_2)
+    end
+    @@mb_clear_sound : Void* = Pointer(Void).null
+    def clear_sound(name : String, theme_type : String) : Void
+      godot_bind(@@mb_clear_sound, "Theme", "clear_sound", 3740211285_i64)
+      sn_0 = Bridge.make_string_name(name)
+      arg_0 = sn_0
+      sn_1 = Bridge.make_string_name(theme_type)
+      arg_1 = sn_1
+      args = StaticArray[arg_0, arg_1]
+      godot_ptrcall_void(@@mb_clear_sound, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_string_name(sn_0)
+      Bridge.free_string_name(sn_1)
+    end
+    @@mb_get_sound_list : Void* = Pointer(Void).null
+    def get_sound_list(theme_type : String) : Pointer(Void)
+      godot_bind(@@mb_get_sound_list, "Theme", "get_sound_list", 4291131558_i64)
+      str_0 = Bridge.make_string(theme_type)
+      arg_0 = str_0
+      args = StaticArray[arg_0]
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_sound_list, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+    ensure
+      Bridge.free_string(str_0)
+    end
+    @@mb_get_sound_type_list : Void* = Pointer(Void).null
+    def get_sound_type_list() : Pointer(Void)
+      godot_bind(@@mb_get_sound_type_list, "Theme", "get_sound_type_list", 1139954409_i64)
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_sound_type_list, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+    end
     @@mb_set_default_base_scale : Void* = Pointer(Void).null
     def set_default_base_scale(base_scale : Float64) : Void
       godot_bind(@@mb_set_default_base_scale, "Theme", "set_default_base_scale", 373806689_i64)
@@ -31990,8 +35307,8 @@ module Godot
       get_default_font_size
     end
     # Property `default_font_size` setter
-    def default_font_size=(val : Int)
-      set_default_font_size(val.to_i64)
+    def default_font_size=(val : Int | Enum)
+      set_default_font_size(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class ThemeDB < Godot::Object
@@ -32003,10 +35320,18 @@ module Godot
       godot_bind(@@mb_get_default_theme, "ThemeDB", "get_default_theme", 754276358_i64)
       godot_ptrcall_obj(@@mb_get_default_theme, @pointer, Pointer(Pointer(Void)).null, Theme)
     end
+    # Class-level singleton delegator for `get_default_theme`
+    def self.get_default_theme() : Theme
+      instance.get_default_theme()
+    end
     @@mb_get_project_theme : Void* = Pointer(Void).null
     def get_project_theme() : Theme
       godot_bind(@@mb_get_project_theme, "ThemeDB", "get_project_theme", 754276358_i64)
       godot_ptrcall_obj(@@mb_get_project_theme, @pointer, Pointer(Pointer(Void)).null, Theme)
+    end
+    # Class-level singleton delegator for `get_project_theme`
+    def self.get_project_theme() : Theme
+      instance.get_project_theme()
     end
     @@mb_set_fallback_base_scale : Void* = Pointer(Void).null
     def set_fallback_base_scale(base_scale : Float64) : Void
@@ -32016,10 +35341,18 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_fallback_base_scale, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `set_fallback_base_scale`
+    def self.set_fallback_base_scale(base_scale : Float64) : Void
+      instance.set_fallback_base_scale(base_scale)
+    end
     @@mb_get_fallback_base_scale : Void* = Pointer(Void).null
     def get_fallback_base_scale() : Float64
       godot_bind(@@mb_get_fallback_base_scale, "ThemeDB", "get_fallback_base_scale", 191475506_i64)
       godot_ptrcall_float(@@mb_get_fallback_base_scale, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `get_fallback_base_scale`
+    def self.get_fallback_base_scale() : Float64
+      instance.get_fallback_base_scale()
     end
     @@mb_set_fallback_font : Void* = Pointer(Void).null
     def set_fallback_font(font : Font) : Void
@@ -32029,10 +35362,18 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_fallback_font, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `set_fallback_font`
+    def self.set_fallback_font(font : Font) : Void
+      instance.set_fallback_font(font)
+    end
     @@mb_get_fallback_font : Void* = Pointer(Void).null
     def get_fallback_font() : Font
       godot_bind(@@mb_get_fallback_font, "ThemeDB", "get_fallback_font", 3656929885_i64)
       godot_ptrcall_obj(@@mb_get_fallback_font, @pointer, Pointer(Pointer(Void)).null, Font)
+    end
+    # Class-level singleton delegator for `get_fallback_font`
+    def self.get_fallback_font() : Font
+      instance.get_fallback_font()
     end
     @@mb_set_fallback_font_size : Void* = Pointer(Void).null
     def set_fallback_font_size(font_size : Int64) : Void
@@ -32042,10 +35383,18 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_fallback_font_size, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `set_fallback_font_size`
+    def self.set_fallback_font_size(font_size : Int64) : Void
+      instance.set_fallback_font_size(font_size)
+    end
     @@mb_get_fallback_font_size : Void* = Pointer(Void).null
     def get_fallback_font_size() : Int64
       godot_bind(@@mb_get_fallback_font_size, "ThemeDB", "get_fallback_font_size", 2455072627_i64)
       godot_ptrcall_int(@@mb_get_fallback_font_size, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `get_fallback_font_size`
+    def self.get_fallback_font_size() : Int64
+      instance.get_fallback_font_size()
     end
     @@mb_set_fallback_icon : Void* = Pointer(Void).null
     def set_fallback_icon(icon : Texture2D) : Void
@@ -32055,10 +35404,18 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_fallback_icon, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `set_fallback_icon`
+    def self.set_fallback_icon(icon : Texture2D) : Void
+      instance.set_fallback_icon(icon)
+    end
     @@mb_get_fallback_icon : Void* = Pointer(Void).null
     def get_fallback_icon() : Texture2D
       godot_bind(@@mb_get_fallback_icon, "ThemeDB", "get_fallback_icon", 255860311_i64)
       godot_ptrcall_obj(@@mb_get_fallback_icon, @pointer, Pointer(Pointer(Void)).null, Texture2D)
+    end
+    # Class-level singleton delegator for `get_fallback_icon`
+    def self.get_fallback_icon() : Texture2D
+      instance.get_fallback_icon()
     end
     @@mb_set_fallback_stylebox : Void* = Pointer(Void).null
     def set_fallback_stylebox(stylebox : StyleBox) : Void
@@ -32068,50 +35425,123 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_fallback_stylebox, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `set_fallback_stylebox`
+    def self.set_fallback_stylebox(stylebox : StyleBox) : Void
+      instance.set_fallback_stylebox(stylebox)
+    end
     @@mb_get_fallback_stylebox : Void* = Pointer(Void).null
     def get_fallback_stylebox() : StyleBox
       godot_bind(@@mb_get_fallback_stylebox, "ThemeDB", "get_fallback_stylebox", 496040854_i64)
       godot_ptrcall_obj(@@mb_get_fallback_stylebox, @pointer, Pointer(Pointer(Void)).null, StyleBox)
     end
+    # Class-level singleton delegator for `get_fallback_stylebox`
+    def self.get_fallback_stylebox() : StyleBox
+      instance.get_fallback_stylebox()
+    end
+    @@mb_set_fallback_sound : Void* = Pointer(Void).null
+    def set_fallback_sound(audio : AudioStream) : Void
+      godot_bind(@@mb_set_fallback_sound, "ThemeDB", "set_fallback_sound", 2210767741_i64)
+      arg_ptr_0 = audio ? audio.pointer : Pointer(Void).null
+      arg_0 = pointerof(arg_ptr_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_void(@@mb_set_fallback_sound, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `set_fallback_sound`
+    def self.set_fallback_sound(audio : AudioStream) : Void
+      instance.set_fallback_sound(audio)
+    end
+    @@mb_get_fallback_sound : Void* = Pointer(Void).null
+    def get_fallback_sound() : AudioStream
+      godot_bind(@@mb_get_fallback_sound, "ThemeDB", "get_fallback_sound", 1183832186_i64)
+      godot_ptrcall_obj(@@mb_get_fallback_sound, @pointer, Pointer(Pointer(Void)).null, AudioStream)
+    end
+    # Class-level singleton delegator for `get_fallback_sound`
+    def self.get_fallback_sound() : AudioStream
+      instance.get_fallback_sound()
+    end
     # Property `fallback_base_scale` getter
     def fallback_base_scale
       get_fallback_base_scale
+    end
+    def self.fallback_base_scale
+      instance.fallback_base_scale
     end
     # Property `fallback_base_scale` setter
     def fallback_base_scale=(val : Number)
       set_fallback_base_scale(val.to_f64)
     end
+    def self.fallback_base_scale=(val)
+      instance.fallback_base_scale = val
+    end
     # Property `fallback_font` getter
     def fallback_font
       get_fallback_font
+    end
+    def self.fallback_font
+      instance.fallback_font
     end
     # Property `fallback_font` setter
     def fallback_font=(val)
       set_fallback_font(val)
     end
+    def self.fallback_font=(val)
+      instance.fallback_font = val
+    end
     # Property `fallback_font_size` getter
     def fallback_font_size
       get_fallback_font_size
     end
+    def self.fallback_font_size
+      instance.fallback_font_size
+    end
     # Property `fallback_font_size` setter
-    def fallback_font_size=(val : Int)
-      set_fallback_font_size(val.to_i64)
+    def fallback_font_size=(val : Int | Enum)
+      set_fallback_font_size(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
+    end
+    def self.fallback_font_size=(val)
+      instance.fallback_font_size = val
     end
     # Property `fallback_icon` getter
     def fallback_icon
       get_fallback_icon
     end
+    def self.fallback_icon
+      instance.fallback_icon
+    end
     # Property `fallback_icon` setter
     def fallback_icon=(val)
       set_fallback_icon(val)
+    end
+    def self.fallback_icon=(val)
+      instance.fallback_icon = val
     end
     # Property `fallback_stylebox` getter
     def fallback_stylebox
       get_fallback_stylebox
     end
+    def self.fallback_stylebox
+      instance.fallback_stylebox
+    end
     # Property `fallback_stylebox` setter
     def fallback_stylebox=(val)
       set_fallback_stylebox(val)
+    end
+    def self.fallback_stylebox=(val)
+      instance.fallback_stylebox = val
+    end
+    # Property `fallback_sound` getter
+    def fallback_sound
+      get_fallback_sound
+    end
+    def self.fallback_sound
+      instance.fallback_sound
+    end
+    # Property `fallback_sound` setter
+    def fallback_sound=(val)
+      set_fallback_sound(val)
+    end
+    def self.fallback_sound=(val)
+      instance.fallback_sound = val
     end
     godot_signal fallback_changed
   end
@@ -32789,32 +36219,32 @@ module Godot
       get_z_index
     end
     # Property `z_index` setter
-    def z_index=(val : Int)
-      set_z_index(val.to_i64)
+    def z_index=(val : Int | Enum)
+      set_z_index(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `y_sort_origin` getter
     def y_sort_origin
       get_y_sort_origin
     end
     # Property `y_sort_origin` setter
-    def y_sort_origin=(val : Int)
-      set_y_sort_origin(val.to_i64)
+    def y_sort_origin=(val : Int | Enum)
+      set_y_sort_origin(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `terrain_set` getter
     def terrain_set
       get_terrain_set
     end
     # Property `terrain_set` setter
-    def terrain_set=(val : Int)
-      set_terrain_set(val.to_i64)
+    def terrain_set=(val : Int | Enum)
+      set_terrain_set(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `terrain` getter
     def terrain
       get_terrain
     end
     # Property `terrain` setter
-    def terrain=(val : Int)
-      set_terrain(val.to_i64)
+    def terrain=(val : Int | Enum)
+      set_terrain(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `probability` getter
     def probability
@@ -33462,8 +36892,8 @@ module Godot
       get_rendering_quadrant_size
     end
     # Property `rendering_quadrant_size` setter
-    def rendering_quadrant_size=(val : Int)
-      set_rendering_quadrant_size(val.to_i64)
+    def rendering_quadrant_size=(val : Int | Enum)
+      set_rendering_quadrant_size(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `collision_animatable` getter
     def collision_animatable
@@ -33478,16 +36908,16 @@ module Godot
       get_collision_visibility_mode
     end
     # Property `collision_visibility_mode` setter
-    def collision_visibility_mode=(val : Int)
-      set_collision_visibility_mode(val.to_i64)
+    def collision_visibility_mode=(val : Int | Enum)
+      set_collision_visibility_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `navigation_visibility_mode` getter
     def navigation_visibility_mode
       get_navigation_visibility_mode
     end
     # Property `navigation_visibility_mode` setter
-    def navigation_visibility_mode=(val : Int)
-      set_navigation_visibility_mode(val.to_i64)
+    def navigation_visibility_mode=(val : Int | Enum)
+      set_navigation_visibility_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     godot_signal changed
   end
@@ -34031,8 +37461,8 @@ module Godot
       get_y_sort_origin
     end
     # Property `y_sort_origin` setter
-    def y_sort_origin=(val : Int)
-      set_y_sort_origin(val.to_i64)
+    def y_sort_origin=(val : Int | Enum)
+      set_y_sort_origin(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `x_draw_order_reversed` getter
     def x_draw_order_reversed
@@ -34047,8 +37477,8 @@ module Godot
       get_rendering_quadrant_size
     end
     # Property `rendering_quadrant_size` setter
-    def rendering_quadrant_size=(val : Int)
-      set_rendering_quadrant_size(val.to_i64)
+    def rendering_quadrant_size=(val : Int | Enum)
+      set_rendering_quadrant_size(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `collision_enabled` getter
     def collision_enabled
@@ -34074,16 +37504,16 @@ module Godot
       get_collision_visibility_mode
     end
     # Property `collision_visibility_mode` setter
-    def collision_visibility_mode=(val : Int)
-      set_collision_visibility_mode(val.to_i64)
+    def collision_visibility_mode=(val : Int | Enum)
+      set_collision_visibility_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `physics_quadrant_size` getter
     def physics_quadrant_size
       get_physics_quadrant_size
     end
     # Property `physics_quadrant_size` setter
-    def physics_quadrant_size=(val : Int)
-      set_physics_quadrant_size(val.to_i64)
+    def physics_quadrant_size=(val : Int | Enum)
+      set_physics_quadrant_size(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `navigation_enabled` getter
     def navigation_enabled
@@ -34098,8 +37528,8 @@ module Godot
       get_navigation_visibility_mode
     end
     # Property `navigation_visibility_mode` setter
-    def navigation_visibility_mode=(val : Int)
-      set_navigation_visibility_mode(val.to_i64)
+    def navigation_visibility_mode=(val : Int | Enum)
+      set_navigation_visibility_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     godot_signal changed
   end
@@ -35078,24 +38508,24 @@ module Godot
       get_tile_shape
     end
     # Property `tile_shape` setter
-    def tile_shape=(val : Int)
-      set_tile_shape(val.to_i64)
+    def tile_shape=(val : Int | Enum)
+      set_tile_shape(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `tile_layout` getter
     def tile_layout
       get_tile_layout
     end
     # Property `tile_layout` setter
-    def tile_layout=(val : Int)
-      set_tile_layout(val.to_i64)
+    def tile_layout=(val : Int | Enum)
+      set_tile_layout(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `tile_offset_axis` getter
     def tile_offset_axis
       get_tile_offset_axis
     end
     # Property `tile_offset_axis` setter
-    def tile_offset_axis=(val : Int)
-      set_tile_offset_axis(val.to_i64)
+    def tile_offset_axis=(val : Int | Enum)
+      set_tile_offset_axis(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `tile_size` getter
     def tile_size
@@ -35185,6 +38615,10 @@ module Godot
       TileAnimationModeRandomStartTimes = 1_i64
       TileAnimationModeMax = 2_i64
     end
+    TRANSFORM_FLIP_H = 4096_i64
+    TRANSFORM_FLIP_V = 8192_i64
+    TRANSFORM_TRANSPOSE = 16384_i64
+
     @@mb_set_texture : Void* = Pointer(Void).null
     def set_texture(texture : Texture2D) : Void
       godot_bind(@@mb_set_texture, "TileSetAtlasSource", "set_texture", 4051416890_i64)
@@ -35736,6 +39170,10 @@ module Godot
       godot_ptrcall(@@mb_get_datetime_dict_from_unix_time, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
       ret_ptr
     end
+    # Class-level singleton delegator for `get_datetime_dict_from_unix_time`
+    def self.get_datetime_dict_from_unix_time(unix_time_val : Int64) : Pointer(Void)
+      instance.get_datetime_dict_from_unix_time(unix_time_val)
+    end
     @@mb_get_date_dict_from_unix_time : Void* = Pointer(Void).null
     def get_date_dict_from_unix_time(unix_time_val : Int64) : Pointer(Void)
       godot_bind(@@mb_get_date_dict_from_unix_time, "Time", "get_date_dict_from_unix_time", 3485342025_i64)
@@ -35745,6 +39183,10 @@ module Godot
       ret_ptr = Pointer(Void).null
       godot_ptrcall(@@mb_get_date_dict_from_unix_time, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
       ret_ptr
+    end
+    # Class-level singleton delegator for `get_date_dict_from_unix_time`
+    def self.get_date_dict_from_unix_time(unix_time_val : Int64) : Pointer(Void)
+      instance.get_date_dict_from_unix_time(unix_time_val)
     end
     @@mb_get_time_dict_from_unix_time : Void* = Pointer(Void).null
     def get_time_dict_from_unix_time(unix_time_val : Int64) : Pointer(Void)
@@ -35756,6 +39198,10 @@ module Godot
       godot_ptrcall(@@mb_get_time_dict_from_unix_time, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
       ret_ptr
     end
+    # Class-level singleton delegator for `get_time_dict_from_unix_time`
+    def self.get_time_dict_from_unix_time(unix_time_val : Int64) : Pointer(Void)
+      instance.get_time_dict_from_unix_time(unix_time_val)
+    end
     @@mb_get_datetime_string_from_unix_time : Void* = Pointer(Void).null
     def get_datetime_string_from_unix_time(unix_time_val : Int64, use_space : Bool = false) : String
       godot_bind(@@mb_get_datetime_string_from_unix_time, "Time", "get_datetime_string_from_unix_time", 2311239925_i64)
@@ -35766,6 +39212,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_call_str("get_datetime_string_from_unix_time", unix_time_val, use_space)
     end
+    # Class-level singleton delegator for `get_datetime_string_from_unix_time`
+    def self.get_datetime_string_from_unix_time(unix_time_val : Int64, use_space : Bool = false) : String
+      instance.get_datetime_string_from_unix_time(unix_time_val, use_space)
+    end
     @@mb_get_date_string_from_unix_time : Void* = Pointer(Void).null
     def get_date_string_from_unix_time(unix_time_val : Int64) : String
       godot_bind(@@mb_get_date_string_from_unix_time, "Time", "get_date_string_from_unix_time", 844755477_i64)
@@ -35774,6 +39224,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_call_str("get_date_string_from_unix_time", unix_time_val)
     end
+    # Class-level singleton delegator for `get_date_string_from_unix_time`
+    def self.get_date_string_from_unix_time(unix_time_val : Int64) : String
+      instance.get_date_string_from_unix_time(unix_time_val)
+    end
     @@mb_get_time_string_from_unix_time : Void* = Pointer(Void).null
     def get_time_string_from_unix_time(unix_time_val : Int64) : String
       godot_bind(@@mb_get_time_string_from_unix_time, "Time", "get_time_string_from_unix_time", 844755477_i64)
@@ -35781,6 +39235,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_time_string_from_unix_time", unix_time_val)
+    end
+    # Class-level singleton delegator for `get_time_string_from_unix_time`
+    def self.get_time_string_from_unix_time(unix_time_val : Int64) : String
+      instance.get_time_string_from_unix_time(unix_time_val)
     end
     @@mb_get_datetime_dict_from_datetime_string : Void* = Pointer(Void).null
     def get_datetime_dict_from_datetime_string(datetime : String, weekday : Bool) : Pointer(Void)
@@ -35796,6 +39254,10 @@ module Godot
     ensure
       Bridge.free_string(str_0)
     end
+    # Class-level singleton delegator for `get_datetime_dict_from_datetime_string`
+    def self.get_datetime_dict_from_datetime_string(datetime : String, weekday : Bool) : Pointer(Void)
+      instance.get_datetime_dict_from_datetime_string(datetime, weekday)
+    end
     @@mb_get_datetime_string_from_datetime_dict : Void* = Pointer(Void).null
     def get_datetime_string_from_datetime_dict(datetime : Pointer(Void), use_space : Bool) : String
       godot_bind(@@mb_get_datetime_string_from_datetime_dict, "Time", "get_datetime_string_from_datetime_dict", 1898123706_i64)
@@ -35806,6 +39268,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_call_str("get_datetime_string_from_datetime_dict", datetime, use_space)
     end
+    # Class-level singleton delegator for `get_datetime_string_from_datetime_dict`
+    def self.get_datetime_string_from_datetime_dict(datetime : Pointer(Void), use_space : Bool) : String
+      instance.get_datetime_string_from_datetime_dict(datetime, use_space)
+    end
     @@mb_get_unix_time_from_datetime_dict : Void* = Pointer(Void).null
     def get_unix_time_from_datetime_dict(datetime : Pointer(Void)) : Int64
       godot_bind(@@mb_get_unix_time_from_datetime_dict, "Time", "get_unix_time_from_datetime_dict", 3021115443_i64)
@@ -35813,6 +39279,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_get_unix_time_from_datetime_dict, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `get_unix_time_from_datetime_dict`
+    def self.get_unix_time_from_datetime_dict(datetime : Pointer(Void)) : Int64
+      instance.get_unix_time_from_datetime_dict(datetime)
     end
     @@mb_get_unix_time_from_datetime_string : Void* = Pointer(Void).null
     def get_unix_time_from_datetime_string(datetime : String) : Int64
@@ -35824,6 +39294,10 @@ module Godot
     ensure
       Bridge.free_string(str_0)
     end
+    # Class-level singleton delegator for `get_unix_time_from_datetime_string`
+    def self.get_unix_time_from_datetime_string(datetime : String) : Int64
+      instance.get_unix_time_from_datetime_string(datetime)
+    end
     @@mb_get_offset_string_from_offset_minutes : Void* = Pointer(Void).null
     def get_offset_string_from_offset_minutes(offset_minutes : Int64) : String
       godot_bind(@@mb_get_offset_string_from_offset_minutes, "Time", "get_offset_string_from_offset_minutes", 844755477_i64)
@@ -35831,6 +39305,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_offset_string_from_offset_minutes", offset_minutes)
+    end
+    # Class-level singleton delegator for `get_offset_string_from_offset_minutes`
+    def self.get_offset_string_from_offset_minutes(offset_minutes : Int64) : String
+      instance.get_offset_string_from_offset_minutes(offset_minutes)
     end
     @@mb_get_datetime_dict_from_system : Void* = Pointer(Void).null
     def get_datetime_dict_from_system(utc : Bool = false) : Pointer(Void)
@@ -35842,6 +39320,10 @@ module Godot
       godot_ptrcall(@@mb_get_datetime_dict_from_system, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
       ret_ptr
     end
+    # Class-level singleton delegator for `get_datetime_dict_from_system`
+    def self.get_datetime_dict_from_system(utc : Bool = false) : Pointer(Void)
+      instance.get_datetime_dict_from_system(utc)
+    end
     @@mb_get_date_dict_from_system : Void* = Pointer(Void).null
     def get_date_dict_from_system(utc : Bool = false) : Pointer(Void)
       godot_bind(@@mb_get_date_dict_from_system, "Time", "get_date_dict_from_system", 205769976_i64)
@@ -35851,6 +39333,10 @@ module Godot
       ret_ptr = Pointer(Void).null
       godot_ptrcall(@@mb_get_date_dict_from_system, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
       ret_ptr
+    end
+    # Class-level singleton delegator for `get_date_dict_from_system`
+    def self.get_date_dict_from_system(utc : Bool = false) : Pointer(Void)
+      instance.get_date_dict_from_system(utc)
     end
     @@mb_get_time_dict_from_system : Void* = Pointer(Void).null
     def get_time_dict_from_system(utc : Bool = false) : Pointer(Void)
@@ -35862,6 +39348,10 @@ module Godot
       godot_ptrcall(@@mb_get_time_dict_from_system, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
       ret_ptr
     end
+    # Class-level singleton delegator for `get_time_dict_from_system`
+    def self.get_time_dict_from_system(utc : Bool = false) : Pointer(Void)
+      instance.get_time_dict_from_system(utc)
+    end
     @@mb_get_datetime_string_from_system : Void* = Pointer(Void).null
     def get_datetime_string_from_system(utc : Bool = false, use_space : Bool = false) : String
       godot_bind(@@mb_get_datetime_string_from_system, "Time", "get_datetime_string_from_system", 1136425492_i64)
@@ -35872,6 +39362,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       godot_call_str("get_datetime_string_from_system", utc, use_space)
     end
+    # Class-level singleton delegator for `get_datetime_string_from_system`
+    def self.get_datetime_string_from_system(utc : Bool = false, use_space : Bool = false) : String
+      instance.get_datetime_string_from_system(utc, use_space)
+    end
     @@mb_get_date_string_from_system : Void* = Pointer(Void).null
     def get_date_string_from_system(utc : Bool = false) : String
       godot_bind(@@mb_get_date_string_from_system, "Time", "get_date_string_from_system", 1162154673_i64)
@@ -35879,6 +39373,10 @@ module Godot
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_call_str("get_date_string_from_system", utc)
+    end
+    # Class-level singleton delegator for `get_date_string_from_system`
+    def self.get_date_string_from_system(utc : Bool = false) : String
+      instance.get_date_string_from_system(utc)
     end
     @@mb_get_time_string_from_system : Void* = Pointer(Void).null
     def get_time_string_from_system(utc : Bool = false) : String
@@ -35888,6 +39386,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_call_str("get_time_string_from_system", utc)
     end
+    # Class-level singleton delegator for `get_time_string_from_system`
+    def self.get_time_string_from_system(utc : Bool = false) : String
+      instance.get_time_string_from_system(utc)
+    end
     @@mb_get_time_zone_from_system : Void* = Pointer(Void).null
     def get_time_zone_from_system() : Pointer(Void)
       godot_bind(@@mb_get_time_zone_from_system, "Time", "get_time_zone_from_system", 3102165223_i64)
@@ -35895,20 +39397,36 @@ module Godot
       godot_ptrcall(@@mb_get_time_zone_from_system, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
       ret_ptr
     end
+    # Class-level singleton delegator for `get_time_zone_from_system`
+    def self.get_time_zone_from_system() : Pointer(Void)
+      instance.get_time_zone_from_system()
+    end
     @@mb_get_unix_time_from_system : Void* = Pointer(Void).null
     def get_unix_time_from_system() : Float64
       godot_bind(@@mb_get_unix_time_from_system, "Time", "get_unix_time_from_system", 1740695150_i64)
       godot_ptrcall_float(@@mb_get_unix_time_from_system, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `get_unix_time_from_system`
+    def self.get_unix_time_from_system() : Float64
+      instance.get_unix_time_from_system()
     end
     @@mb_get_ticks_msec : Void* = Pointer(Void).null
     def get_ticks_msec() : Int64
       godot_bind(@@mb_get_ticks_msec, "Time", "get_ticks_msec", 3905245786_i64)
       godot_ptrcall_int(@@mb_get_ticks_msec, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Class-level singleton delegator for `get_ticks_msec`
+    def self.get_ticks_msec() : Int64
+      instance.get_ticks_msec()
+    end
     @@mb_get_ticks_usec : Void* = Pointer(Void).null
     def get_ticks_usec() : Int64
       godot_bind(@@mb_get_ticks_usec, "Time", "get_ticks_usec", 3905245786_i64)
       godot_ptrcall_int(@@mb_get_ticks_usec, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `get_ticks_usec`
+    def self.get_ticks_usec() : Int64
+      instance.get_ticks_usec()
     end
   end
   class Timer < Godot::Node
@@ -36061,8 +39579,8 @@ module Godot
       get_timer_process_callback
     end
     # Property `process_callback` setter
-    def process_callback=(val : Int)
-      set_timer_process_callback(val.to_i64)
+    def process_callback=(val : Int | Enum)
+      set_timer_process_callback(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `wait_time` getter
     def wait_time
@@ -36193,16 +39711,16 @@ module Godot
       get_rings
     end
     # Property `rings` setter
-    def rings=(val : Int)
-      set_rings(val.to_i64)
+    def rings=(val : Int | Enum)
+      set_rings(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `ring_segments` getter
     def ring_segments
       get_ring_segments
     end
     # Property `ring_segments` setter
-    def ring_segments=(val : Int)
-      set_ring_segments(val.to_i64)
+    def ring_segments=(val : Int | Enum)
+      set_ring_segments(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class TouchScreenButton < Godot::Node2D
@@ -36441,8 +39959,8 @@ module Godot
       get_visibility_mode
     end
     # Property `visibility_mode` setter
-    def visibility_mode=(val : Int)
-      set_visibility_mode(val.to_i64)
+    def visibility_mode=(val : Int | Enum)
+      set_visibility_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     godot_signal pressed
     godot_signal released
@@ -36686,8 +40204,8 @@ module Godot
       get_limit_mode
     end
     # Property `limit_mode` setter
-    def limit_mode=(val : Int)
-      set_limit_mode(val.to_i64)
+    def limit_mode=(val : Int | Enum)
+      set_limit_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `lifetime` getter
     def lifetime
@@ -36742,16 +40260,16 @@ module Godot
       get_mesh_alignment
     end
     # Property `mesh_alignment` setter
-    def mesh_alignment=(val : Int)
-      set_mesh_alignment(val.to_i64)
+    def mesh_alignment=(val : Int | Enum)
+      set_mesh_alignment(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `material_mode` getter
     def material_mode
       get_material_mode
     end
     # Property `material_mode` setter
-    def material_mode=(val : Int)
-      set_material_mode(val.to_i64)
+    def material_mode=(val : Int | Enum)
+      set_material_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `material` getter
     def material
@@ -36766,8 +40284,8 @@ module Godot
       get_tiling_mode
     end
     # Property `tiling_mode` setter
-    def tiling_mode=(val : Int)
-      set_tiling_mode(val.to_i64)
+    def tiling_mode=(val : Int | Enum)
+      set_tiling_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `tiling_multiplier` getter
     def tiling_multiplier
@@ -37222,15 +40740,27 @@ module Godot
     ensure
       Bridge.free_string(str_0)
     end
+    # Class-level singleton delegator for `set_locale`
+    def self.set_locale(locale : String) : Void
+      instance.set_locale(locale)
+    end
     @@mb_get_locale : Void* = Pointer(Void).null
     def get_locale() : String
       godot_bind(@@mb_get_locale, "TranslationServer", "get_locale", 201670096_i64)
       godot_call_str("get_locale")
     end
+    # Class-level singleton delegator for `get_locale`
+    def self.get_locale() : String
+      instance.get_locale()
+    end
     @@mb_get_tool_locale : Void* = Pointer(Void).null
     def get_tool_locale() : String
       godot_bind(@@mb_get_tool_locale, "TranslationServer", "get_tool_locale", 2841200299_i64)
       godot_call_str("get_tool_locale")
+    end
+    # Class-level singleton delegator for `get_tool_locale`
+    def self.get_tool_locale() : String
+      instance.get_tool_locale()
     end
     @@mb_compare_locales : Void* = Pointer(Void).null
     def compare_locales(locale_a : String, locale_b : String) : Int64
@@ -37245,6 +40775,10 @@ module Godot
       Bridge.free_string(str_0)
       Bridge.free_string(str_1)
     end
+    # Class-level singleton delegator for `compare_locales`
+    def self.compare_locales(locale_a : String, locale_b : String) : Int64
+      instance.compare_locales(locale_a, locale_b)
+    end
     @@mb_standardize_locale : Void* = Pointer(Void).null
     def standardize_locale(locale : String, add_defaults : Bool = false) : String
       godot_bind(@@mb_standardize_locale, "TranslationServer", "standardize_locale", 4216441673_i64)
@@ -37257,12 +40791,20 @@ module Godot
     ensure
       Bridge.free_string(str_0)
     end
+    # Class-level singleton delegator for `standardize_locale`
+    def self.standardize_locale(locale : String, add_defaults : Bool = false) : String
+      instance.standardize_locale(locale, add_defaults)
+    end
     @@mb_get_all_languages : Void* = Pointer(Void).null
     def get_all_languages() : Pointer(Void)
       godot_bind(@@mb_get_all_languages, "TranslationServer", "get_all_languages", 1139954409_i64)
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_all_languages, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
       ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+    end
+    # Class-level singleton delegator for `get_all_languages`
+    def self.get_all_languages() : Pointer(Void)
+      instance.get_all_languages()
     end
     @@mb_get_language_name : Void* = Pointer(Void).null
     def get_language_name(language : String) : String
@@ -37274,12 +40816,20 @@ module Godot
     ensure
       Bridge.free_string(str_0)
     end
+    # Class-level singleton delegator for `get_language_name`
+    def self.get_language_name(language : String) : String
+      instance.get_language_name(language)
+    end
     @@mb_get_all_scripts : Void* = Pointer(Void).null
     def get_all_scripts() : Pointer(Void)
       godot_bind(@@mb_get_all_scripts, "TranslationServer", "get_all_scripts", 1139954409_i64)
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_all_scripts, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
       ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+    end
+    # Class-level singleton delegator for `get_all_scripts`
+    def self.get_all_scripts() : Pointer(Void)
+      instance.get_all_scripts()
     end
     @@mb_get_script_name : Void* = Pointer(Void).null
     def get_script_name(script : String) : String
@@ -37291,12 +40841,20 @@ module Godot
     ensure
       Bridge.free_string(str_0)
     end
+    # Class-level singleton delegator for `get_script_name`
+    def self.get_script_name(script : String) : String
+      instance.get_script_name(script)
+    end
     @@mb_get_all_countries : Void* = Pointer(Void).null
     def get_all_countries() : Pointer(Void)
       godot_bind(@@mb_get_all_countries, "TranslationServer", "get_all_countries", 1139954409_i64)
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_all_countries, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
       ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+    end
+    # Class-level singleton delegator for `get_all_countries`
+    def self.get_all_countries() : Pointer(Void)
+      instance.get_all_countries()
     end
     @@mb_get_country_name : Void* = Pointer(Void).null
     def get_country_name(country : String) : String
@@ -37308,6 +40866,10 @@ module Godot
     ensure
       Bridge.free_string(str_0)
     end
+    # Class-level singleton delegator for `get_country_name`
+    def self.get_country_name(country : String) : String
+      instance.get_country_name(country)
+    end
     @@mb_get_locale_name : Void* = Pointer(Void).null
     def get_locale_name(locale : String) : String
       godot_bind(@@mb_get_locale_name, "TranslationServer", "get_locale_name", 3135753539_i64)
@@ -37318,6 +40880,10 @@ module Godot
     ensure
       Bridge.free_string(str_0)
     end
+    # Class-level singleton delegator for `get_locale_name`
+    def self.get_locale_name(locale : String) : String
+      instance.get_locale_name(locale)
+    end
     @@mb_get_plural_rules : Void* = Pointer(Void).null
     def get_plural_rules(locale : String) : String
       godot_bind(@@mb_get_plural_rules, "TranslationServer", "get_plural_rules", 3135753539_i64)
@@ -37327,6 +40893,10 @@ module Godot
       godot_call_str("get_plural_rules", locale)
     ensure
       Bridge.free_string(str_0)
+    end
+    # Class-level singleton delegator for `get_plural_rules`
+    def self.get_plural_rules(locale : String) : String
+      instance.get_plural_rules(locale)
     end
     @@mb_translate : Void* = Pointer(Void).null
     def translate(message : String, context : String = "") : String
@@ -37340,6 +40910,10 @@ module Godot
     ensure
       Bridge.free_string_name(sn_0)
       Bridge.free_string_name(sn_1)
+    end
+    # Class-level singleton delegator for `translate`
+    def self.translate(message : String, context : String = "") : String
+      instance.translate(message, context)
     end
     @@mb_translate_plural : Void* = Pointer(Void).null
     def translate_plural(message : String, plural_message : String, n : Int64, context : String = "") : String
@@ -37359,6 +40933,10 @@ module Godot
       Bridge.free_string_name(sn_1)
       Bridge.free_string_name(sn_3)
     end
+    # Class-level singleton delegator for `translate_plural`
+    def self.translate_plural(message : String, plural_message : String, n : Int64, context : String = "") : String
+      instance.translate_plural(message, plural_message, n, context)
+    end
     @@mb_add_translation : Void* = Pointer(Void).null
     def add_translation(translation : Translation) : Void
       godot_bind(@@mb_add_translation, "TranslationServer", "add_translation", 1466479800_i64)
@@ -37367,6 +40945,10 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_add_translation, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `add_translation`
+    def self.add_translation(translation : Translation) : Void
+      instance.add_translation(translation)
+    end
     @@mb_remove_translation : Void* = Pointer(Void).null
     def remove_translation(translation : Translation) : Void
       godot_bind(@@mb_remove_translation, "TranslationServer", "remove_translation", 1466479800_i64)
@@ -37374,6 +40956,10 @@ module Godot
       arg_0 = pointerof(arg_ptr_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_remove_translation, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `remove_translation`
+    def self.remove_translation(translation : Translation) : Void
+      instance.remove_translation(translation)
     end
     @@mb_get_translation_object : Void* = Pointer(Void).null
     def get_translation_object(locale : String) : Translation
@@ -37385,12 +40971,20 @@ module Godot
     ensure
       Bridge.free_string(str_0)
     end
+    # Class-level singleton delegator for `get_translation_object`
+    def self.get_translation_object(locale : String) : Translation
+      instance.get_translation_object(locale)
+    end
     @@mb_get_translations : Void* = Pointer(Void).null
     def get_translations() : Pointer(Void)
       godot_bind(@@mb_get_translations, "TranslationServer", "get_translations", 3995934104_i64)
       ret_ptr = Pointer(Void).null
       godot_ptrcall(@@mb_get_translations, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
       ret_ptr
+    end
+    # Class-level singleton delegator for `get_translations`
+    def self.get_translations() : Pointer(Void)
+      instance.get_translations()
     end
     @@mb_find_translations : Void* = Pointer(Void).null
     def find_translations(locale : String, exact : Bool) : Pointer(Void)
@@ -37406,6 +41000,10 @@ module Godot
     ensure
       Bridge.free_string(str_0)
     end
+    # Class-level singleton delegator for `find_translations`
+    def self.find_translations(locale : String, exact : Bool) : Pointer(Void)
+      instance.find_translations(locale, exact)
+    end
     @@mb_has_translation_for_locale : Void* = Pointer(Void).null
     def has_translation_for_locale(locale : String, exact : Bool) : Bool
       godot_bind(@@mb_has_translation_for_locale, "TranslationServer", "has_translation_for_locale", 2034713381_i64)
@@ -37418,9 +41016,17 @@ module Godot
     ensure
       Bridge.free_string(str_0)
     end
+    # Class-level singleton delegator for `has_translation_for_locale`
+    def self.has_translation_for_locale(locale : String, exact : Bool) : Bool
+      instance.has_translation_for_locale(locale, exact)
+    end
     # Predicate alias for `has_translation_for_locale`
     def has_translation_for_locale?(locale : String, exact : Bool) : Bool
       has_translation_for_locale(locale, exact)
+    end
+    # Class-level singleton predicate delegator for `has_translation_for_locale?`
+    def self.has_translation_for_locale?(locale : String, exact : Bool) : Bool
+      instance.has_translation_for_locale?(locale, exact)
     end
     @@mb_has_translation : Void* = Pointer(Void).null
     def has_translation(translation : Translation) : Bool
@@ -37430,9 +41036,17 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_bool(@@mb_has_translation, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `has_translation`
+    def self.has_translation(translation : Translation) : Bool
+      instance.has_translation(translation)
+    end
     # Predicate alias for `has_translation`
     def has_translation?(translation : Translation) : Bool
       has_translation(translation)
+    end
+    # Class-level singleton predicate delegator for `has_translation?`
+    def self.has_translation?(translation : Translation) : Bool
+      instance.has_translation?(translation)
     end
     @@mb_has_domain : Void* = Pointer(Void).null
     def has_domain(domain : String) : Bool
@@ -37444,9 +41058,17 @@ module Godot
     ensure
       Bridge.free_string_name(sn_0)
     end
+    # Class-level singleton delegator for `has_domain`
+    def self.has_domain(domain : String) : Bool
+      instance.has_domain(domain)
+    end
     # Predicate alias for `has_domain`
     def has_domain?(domain : String) : Bool
       has_domain(domain)
+    end
+    # Class-level singleton predicate delegator for `has_domain?`
+    def self.has_domain?(domain : String) : Bool
+      instance.has_domain?(domain)
     end
     @@mb_get_or_add_domain : Void* = Pointer(Void).null
     def get_or_add_domain(domain : String) : TranslationDomain
@@ -37458,6 +41080,10 @@ module Godot
     ensure
       Bridge.free_string_name(sn_0)
     end
+    # Class-level singleton delegator for `get_or_add_domain`
+    def self.get_or_add_domain(domain : String) : TranslationDomain
+      instance.get_or_add_domain(domain)
+    end
     @@mb_remove_domain : Void* = Pointer(Void).null
     def remove_domain(domain : String) : Void
       godot_bind(@@mb_remove_domain, "TranslationServer", "remove_domain", 3304788590_i64)
@@ -37468,10 +41094,18 @@ module Godot
     ensure
       Bridge.free_string_name(sn_0)
     end
+    # Class-level singleton delegator for `remove_domain`
+    def self.remove_domain(domain : String) : Void
+      instance.remove_domain(domain)
+    end
     @@mb_clear : Void* = Pointer(Void).null
     def clear() : Void
       godot_bind(@@mb_clear, "TranslationServer", "clear", 3218959716_i64)
       godot_ptrcall_void(@@mb_clear, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `clear`
+    def self.clear() : Void
+      instance.clear()
     end
     @@mb_get_loaded_locales : Void* = Pointer(Void).null
     def get_loaded_locales() : Pointer(Void)
@@ -37479,6 +41113,10 @@ module Godot
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_loaded_locales, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
       ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+    end
+    # Class-level singleton delegator for `get_loaded_locales`
+    def self.get_loaded_locales() : Pointer(Void)
+      instance.get_loaded_locales()
     end
     @@mb_format_number : Void* = Pointer(Void).null
     def format_number(number : String, locale : String) : String
@@ -37493,6 +41131,10 @@ module Godot
       Bridge.free_string(str_0)
       Bridge.free_string(str_1)
     end
+    # Class-level singleton delegator for `format_number`
+    def self.format_number(number : String, locale : String) : String
+      instance.format_number(number, locale)
+    end
     @@mb_get_percent_sign : Void* = Pointer(Void).null
     def get_percent_sign(locale : String) : String
       godot_bind(@@mb_get_percent_sign, "TranslationServer", "get_percent_sign", 3135753539_i64)
@@ -37502,6 +41144,10 @@ module Godot
       godot_call_str("get_percent_sign", locale)
     ensure
       Bridge.free_string(str_0)
+    end
+    # Class-level singleton delegator for `get_percent_sign`
+    def self.get_percent_sign(locale : String) : String
+      instance.get_percent_sign(locale)
     end
     @@mb_parse_number : Void* = Pointer(Void).null
     def parse_number(number : String, locale : String) : String
@@ -37516,18 +41162,34 @@ module Godot
       Bridge.free_string(str_0)
       Bridge.free_string(str_1)
     end
+    # Class-level singleton delegator for `parse_number`
+    def self.parse_number(number : String, locale : String) : String
+      instance.parse_number(number, locale)
+    end
     @@mb_is_pseudolocalization_enabled : Void* = Pointer(Void).null
     def is_pseudolocalization_enabled() : Bool
       godot_bind(@@mb_is_pseudolocalization_enabled, "TranslationServer", "is_pseudolocalization_enabled", 36873697_i64)
       godot_ptrcall_bool(@@mb_is_pseudolocalization_enabled, @pointer, Pointer(Pointer(Void)).null)
     end
+    # Class-level singleton delegator for `is_pseudolocalization_enabled`
+    def self.is_pseudolocalization_enabled() : Bool
+      instance.is_pseudolocalization_enabled()
+    end
     # Predicate alias for `is_pseudolocalization_enabled`
     def is_pseudolocalization_enabled?() : Bool
       is_pseudolocalization_enabled()
     end
+    # Class-level singleton predicate delegator for `is_pseudolocalization_enabled?`
+    def self.is_pseudolocalization_enabled?() : Bool
+      instance.is_pseudolocalization_enabled?()
+    end
     # Predicate alias for `is_pseudolocalization_enabled`
     def pseudolocalization_enabled?() : Bool
       is_pseudolocalization_enabled()
+    end
+    # Class-level singleton predicate delegator for `pseudolocalization_enabled?`
+    def self.pseudolocalization_enabled?() : Bool
+      instance.pseudolocalization_enabled?()
     end
     @@mb_set_pseudolocalization_enabled : Void* = Pointer(Void).null
     def set_pseudolocalization_enabled(enabled : Bool) : Void
@@ -37537,10 +41199,18 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_pseudolocalization_enabled, @pointer, args.to_unsafe.as(Void**))
     end
+    # Class-level singleton delegator for `set_pseudolocalization_enabled`
+    def self.set_pseudolocalization_enabled(enabled : Bool) : Void
+      instance.set_pseudolocalization_enabled(enabled)
+    end
     @@mb_reload_pseudolocalization : Void* = Pointer(Void).null
     def reload_pseudolocalization() : Void
       godot_bind(@@mb_reload_pseudolocalization, "TranslationServer", "reload_pseudolocalization", 3218959716_i64)
       godot_ptrcall_void(@@mb_reload_pseudolocalization, @pointer, Pointer(Pointer(Void)).null)
+    end
+    # Class-level singleton delegator for `reload_pseudolocalization`
+    def self.reload_pseudolocalization() : Void
+      instance.reload_pseudolocalization()
     end
     @@mb_pseudolocalize : Void* = Pointer(Void).null
     def pseudolocalize(message : String) : String
@@ -37552,13 +41222,23 @@ module Godot
     ensure
       Bridge.free_string_name(sn_0)
     end
+    # Class-level singleton delegator for `pseudolocalize`
+    def self.pseudolocalize(message : String) : String
+      instance.pseudolocalize(message)
+    end
     # Property `pseudolocalization_enabled` getter
     def pseudolocalization_enabled
       is_pseudolocalization_enabled
     end
+    def self.pseudolocalization_enabled
+      instance.pseudolocalization_enabled
+    end
     # Property `pseudolocalization_enabled` setter
     def pseudolocalization_enabled=(val)
       set_pseudolocalization_enabled(val)
+    end
+    def self.pseudolocalization_enabled=(val)
+      instance.pseudolocalization_enabled = val
     end
   end
   class Tree < Godot::Control
@@ -38216,8 +41896,8 @@ module Godot
       get_columns
     end
     # Property `columns` setter
-    def columns=(val : Int)
-      set_columns(val.to_i64)
+    def columns=(val : Int | Enum)
+      set_columns(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `column_titles_visible` getter
     def column_titles_visible
@@ -38309,16 +41989,16 @@ module Godot
       get_drop_mode_flags
     end
     # Property `drop_mode_flags` setter
-    def drop_mode_flags=(val : Int)
-      set_drop_mode_flags(val.to_i64)
+    def drop_mode_flags=(val : Int | Enum)
+      set_drop_mode_flags(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `select_mode` getter
     def select_mode
       get_select_mode
     end
     # Property `select_mode` setter
-    def select_mode=(val : Int)
-      set_select_mode(val.to_i64)
+    def select_mode=(val : Int | Enum)
+      set_select_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `auto_tooltip` getter
     def auto_tooltip
@@ -38358,8 +42038,8 @@ module Godot
       get_scroll_hint_mode
     end
     # Property `scroll_hint_mode` setter
-    def scroll_hint_mode=(val : Int)
-      set_scroll_hint_mode(val.to_i64)
+    def scroll_hint_mode=(val : Int | Enum)
+      set_scroll_hint_mode(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `tile_scroll_hint` getter
     def tile_scroll_hint
@@ -39652,8 +43332,8 @@ module Godot
       get_custom_minimum_height
     end
     # Property `custom_minimum_height` setter
-    def custom_minimum_height=(val : Int)
-      set_custom_minimum_height(val.to_i64)
+    def custom_minimum_height=(val : Int | Enum)
+      set_custom_minimum_height(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class TriangleMesh < Godot::RefCounted
@@ -39841,16 +43521,16 @@ module Godot
       get_radial_steps
     end
     # Property `radial_steps` setter
-    def radial_steps=(val : Int)
-      set_radial_steps(val.to_i64)
+    def radial_steps=(val : Int | Enum)
+      set_radial_steps(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `sections` getter
     def sections
       get_sections
     end
     # Property `sections` setter
-    def sections=(val : Int)
-      set_sections(val.to_i64)
+    def sections=(val : Int | Enum)
+      set_sections(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `section_length` getter
     def section_length
@@ -39865,8 +43545,8 @@ module Godot
       get_section_rings
     end
     # Property `section_rings` setter
-    def section_rings=(val : Int)
-      set_section_rings(val.to_i64)
+    def section_rings=(val : Int | Enum)
+      set_section_rings(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `cap_top` getter
     def cap_top
@@ -40464,8 +44144,8 @@ module Godot
       get_setting_count
     end
     # Property `setting_count` setter
-    def setting_count=(val : Int)
-      set_setting_count(val.to_i64)
+    def setting_count=(val : Int | Enum)
+      set_setting_count(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
   class UDPServer < Godot::RefCounted
@@ -40548,438 +44228,8 @@ module Godot
       get_max_pending_connections
     end
     # Property `max_pending_connections` setter
-    def max_pending_connections=(val : Int)
-      set_max_pending_connections(val.to_i64)
-    end
-  end
-  class UDSServer < Godot::SocketServer
-    def initialize(pointer : Void* = Pointer(Void).null)
-      super(pointer)
-    end
-    @@mb_listen : Void* = Pointer(Void).null
-    def listen(path : String) : Godot::Error
-      godot_bind(@@mb_listen, "UDSServer", "listen", 166001499_i64)
-      str_0 = Bridge.make_string(path)
-      arg_0 = str_0
-      args = StaticArray[arg_0]
-      godot_ptrcall_enum(@@mb_listen, @pointer, args.to_unsafe.as(Void**), Godot::Error)
-    ensure
-      Bridge.free_string(str_0)
-    end
-    @@mb_take_connection : Void* = Pointer(Void).null
-    def take_connection() : StreamPeerUDS
-      godot_bind(@@mb_take_connection, "UDSServer", "take_connection", 1623851112_i64)
-      godot_ptrcall_obj(@@mb_take_connection, @pointer, Pointer(Pointer(Void)).null, StreamPeerUDS)
-    end
-  end
-  class UPNP < Godot::RefCounted
-    def initialize(pointer : Void* = Pointer(Void).null)
-      super(pointer)
-    end
-    enum UPNPResult : Int64
-      UpnpResultSuccess = 0_i64
-      UpnpResultNotAuthorized = 1_i64
-      UpnpResultPortMappingNotFound = 2_i64
-      UpnpResultInconsistentParameters = 3_i64
-      UpnpResultNoSuchEntryInArray = 4_i64
-      UpnpResultActionFailed = 5_i64
-      UpnpResultSrcIpWildcardNotPermitted = 6_i64
-      UpnpResultExtPortWildcardNotPermitted = 7_i64
-      UpnpResultIntPortWildcardNotPermitted = 8_i64
-      UpnpResultRemoteHostMustBeWildcard = 9_i64
-      UpnpResultExtPortMustBeWildcard = 10_i64
-      UpnpResultNoPortMapsAvailable = 11_i64
-      UpnpResultConflictWithOtherMechanism = 12_i64
-      UpnpResultConflictWithOtherMapping = 13_i64
-      UpnpResultSamePortValuesRequired = 14_i64
-      UpnpResultOnlyPermanentLeaseSupported = 15_i64
-      UpnpResultInvalidGateway = 16_i64
-      UpnpResultInvalidPort = 17_i64
-      UpnpResultInvalidProtocol = 18_i64
-      UpnpResultInvalidDuration = 19_i64
-      UpnpResultInvalidArgs = 20_i64
-      UpnpResultInvalidResponse = 21_i64
-      UpnpResultInvalidParam = 22_i64
-      UpnpResultHttpError = 23_i64
-      UpnpResultSocketError = 24_i64
-      UpnpResultMemAllocError = 25_i64
-      UpnpResultNoGateway = 26_i64
-      UpnpResultNoDevices = 27_i64
-      UpnpResultUnknownError = 28_i64
-    end
-    @@mb_get_device_count : Void* = Pointer(Void).null
-    def get_device_count() : Int64
-      godot_bind(@@mb_get_device_count, "UPNP", "get_device_count", 3905245786_i64)
-      godot_ptrcall_int(@@mb_get_device_count, @pointer, Pointer(Pointer(Void)).null)
-    end
-    @@mb_get_device : Void* = Pointer(Void).null
-    def get_device(index : Int64) : UPNPDevice
-      godot_bind(@@mb_get_device, "UPNP", "get_device", 2193290270_i64)
-      val_0 = index.to_i64
-      arg_0 = pointerof(val_0).as(Void*)
-      args = StaticArray[arg_0]
-      godot_ptrcall_obj(@@mb_get_device, @pointer, args.to_unsafe.as(Void**), UPNPDevice)
-    end
-    @@mb_add_device : Void* = Pointer(Void).null
-    def add_device(device : UPNPDevice) : Void
-      godot_bind(@@mb_add_device, "UPNP", "add_device", 986715920_i64)
-      arg_ptr_0 = device ? device.pointer : Pointer(Void).null
-      arg_0 = pointerof(arg_ptr_0).as(Void*)
-      args = StaticArray[arg_0]
-      godot_ptrcall_void(@@mb_add_device, @pointer, args.to_unsafe.as(Void**))
-    end
-    @@mb_set_device : Void* = Pointer(Void).null
-    def set_device(index : Int64, device : UPNPDevice) : Void
-      godot_bind(@@mb_set_device, "UPNP", "set_device", 3015133723_i64)
-      val_0 = index.to_i64
-      arg_0 = pointerof(val_0).as(Void*)
-      arg_ptr_1 = device ? device.pointer : Pointer(Void).null
-      arg_1 = pointerof(arg_ptr_1).as(Void*)
-      args = StaticArray[arg_0, arg_1]
-      godot_ptrcall_void(@@mb_set_device, @pointer, args.to_unsafe.as(Void**))
-    end
-    @@mb_remove_device : Void* = Pointer(Void).null
-    def remove_device(index : Int64) : Void
-      godot_bind(@@mb_remove_device, "UPNP", "remove_device", 1286410249_i64)
-      val_0 = index.to_i64
-      arg_0 = pointerof(val_0).as(Void*)
-      args = StaticArray[arg_0]
-      godot_ptrcall_void(@@mb_remove_device, @pointer, args.to_unsafe.as(Void**))
-    end
-    @@mb_clear_devices : Void* = Pointer(Void).null
-    def clear_devices() : Void
-      godot_bind(@@mb_clear_devices, "UPNP", "clear_devices", 3218959716_i64)
-      godot_ptrcall_void(@@mb_clear_devices, @pointer, Pointer(Pointer(Void)).null)
-    end
-    @@mb_get_gateway : Void* = Pointer(Void).null
-    def get_gateway() : UPNPDevice
-      godot_bind(@@mb_get_gateway, "UPNP", "get_gateway", 2276800779_i64)
-      godot_ptrcall_obj(@@mb_get_gateway, @pointer, Pointer(Pointer(Void)).null, UPNPDevice)
-    end
-    @@mb_discover : Void* = Pointer(Void).null
-    def discover(timeout : Int64 = 2000_i64, ttl : Int64 = 2_i64, device_filter : String = "InternetGatewayDevice") : Int64
-      godot_bind(@@mb_discover, "UPNP", "discover", 1575334765_i64)
-      val_0 = timeout.to_i64
-      arg_0 = pointerof(val_0).as(Void*)
-      val_1 = ttl.to_i64
-      arg_1 = pointerof(val_1).as(Void*)
-      str_2 = Bridge.make_string(device_filter)
-      arg_2 = str_2
-      args = StaticArray[arg_0, arg_1, arg_2]
-      godot_ptrcall_int(@@mb_discover, @pointer, args.to_unsafe.as(Void**))
-    ensure
-      Bridge.free_string(str_2)
-    end
-    @@mb_query_external_address : Void* = Pointer(Void).null
-    def query_external_address() : String
-      godot_bind(@@mb_query_external_address, "UPNP", "query_external_address", 201670096_i64)
-      godot_call_str("query_external_address")
-    end
-    @@mb_add_port_mapping : Void* = Pointer(Void).null
-    def add_port_mapping(port : Int64, port_internal : Int64 = 0_i64, desc : String = "", proto : String = "UDP", duration : Int64 = 0_i64) : Int64
-      godot_bind(@@mb_add_port_mapping, "UPNP", "add_port_mapping", 818314583_i64)
-      val_0 = port.to_i64
-      arg_0 = pointerof(val_0).as(Void*)
-      val_1 = port_internal.to_i64
-      arg_1 = pointerof(val_1).as(Void*)
-      str_2 = Bridge.make_string(desc)
-      arg_2 = str_2
-      str_3 = Bridge.make_string(proto)
-      arg_3 = str_3
-      val_4 = duration.to_i64
-      arg_4 = pointerof(val_4).as(Void*)
-      args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
-      godot_ptrcall_int(@@mb_add_port_mapping, @pointer, args.to_unsafe.as(Void**))
-    ensure
-      Bridge.free_string(str_2)
-      Bridge.free_string(str_3)
-    end
-    @@mb_delete_port_mapping : Void* = Pointer(Void).null
-    def delete_port_mapping(port : Int64, proto : String = "UDP") : Int64
-      godot_bind(@@mb_delete_port_mapping, "UPNP", "delete_port_mapping", 3444187325_i64)
-      val_0 = port.to_i64
-      arg_0 = pointerof(val_0).as(Void*)
-      str_1 = Bridge.make_string(proto)
-      arg_1 = str_1
-      args = StaticArray[arg_0, arg_1]
-      godot_ptrcall_int(@@mb_delete_port_mapping, @pointer, args.to_unsafe.as(Void**))
-    ensure
-      Bridge.free_string(str_1)
-    end
-    @@mb_set_discover_multicast_if : Void* = Pointer(Void).null
-    def set_discover_multicast_if(m_if : String) : Void
-      godot_bind(@@mb_set_discover_multicast_if, "UPNP", "set_discover_multicast_if", 83702148_i64)
-      str_0 = Bridge.make_string(m_if)
-      arg_0 = str_0
-      args = StaticArray[arg_0]
-      godot_ptrcall_void(@@mb_set_discover_multicast_if, @pointer, args.to_unsafe.as(Void**))
-    ensure
-      Bridge.free_string(str_0)
-    end
-    @@mb_get_discover_multicast_if : Void* = Pointer(Void).null
-    def get_discover_multicast_if() : String
-      godot_bind(@@mb_get_discover_multicast_if, "UPNP", "get_discover_multicast_if", 201670096_i64)
-      godot_call_str("get_discover_multicast_if")
-    end
-    @@mb_set_discover_local_port : Void* = Pointer(Void).null
-    def set_discover_local_port(port : Int64) : Void
-      godot_bind(@@mb_set_discover_local_port, "UPNP", "set_discover_local_port", 1286410249_i64)
-      val_0 = port.to_i64
-      arg_0 = pointerof(val_0).as(Void*)
-      args = StaticArray[arg_0]
-      godot_ptrcall_void(@@mb_set_discover_local_port, @pointer, args.to_unsafe.as(Void**))
-    end
-    @@mb_get_discover_local_port : Void* = Pointer(Void).null
-    def get_discover_local_port() : Int64
-      godot_bind(@@mb_get_discover_local_port, "UPNP", "get_discover_local_port", 3905245786_i64)
-      godot_ptrcall_int(@@mb_get_discover_local_port, @pointer, Pointer(Pointer(Void)).null)
-    end
-    @@mb_set_discover_ipv6 : Void* = Pointer(Void).null
-    def set_discover_ipv6(ipv6 : Bool) : Void
-      godot_bind(@@mb_set_discover_ipv6, "UPNP", "set_discover_ipv6", 2586408642_i64)
-      val_0 = ipv6
-      arg_0 = pointerof(val_0).as(Void*)
-      args = StaticArray[arg_0]
-      godot_ptrcall_void(@@mb_set_discover_ipv6, @pointer, args.to_unsafe.as(Void**))
-    end
-    @@mb_is_discover_ipv6 : Void* = Pointer(Void).null
-    def is_discover_ipv6() : Bool
-      godot_bind(@@mb_is_discover_ipv6, "UPNP", "is_discover_ipv6", 36873697_i64)
-      godot_ptrcall_bool(@@mb_is_discover_ipv6, @pointer, Pointer(Pointer(Void)).null)
-    end
-    # Predicate alias for `is_discover_ipv6`
-    def is_discover_ipv6?() : Bool
-      is_discover_ipv6()
-    end
-    # Predicate alias for `is_discover_ipv6`
-    def discover_ipv6?() : Bool
-      is_discover_ipv6()
-    end
-    # Property `discover_multicast_if` getter
-    def discover_multicast_if
-      get_discover_multicast_if
-    end
-    # Property `discover_multicast_if` setter
-    def discover_multicast_if=(val)
-      set_discover_multicast_if(val)
-    end
-    # Property `discover_local_port` getter
-    def discover_local_port
-      get_discover_local_port
-    end
-    # Property `discover_local_port` setter
-    def discover_local_port=(val : Int)
-      set_discover_local_port(val.to_i64)
-    end
-    # Property `discover_ipv6` getter
-    def discover_ipv6
-      is_discover_ipv6
-    end
-    # Property `discover_ipv6` setter
-    def discover_ipv6=(val)
-      set_discover_ipv6(val)
-    end
-  end
-  class UPNPDevice < Godot::RefCounted
-    def initialize(pointer : Void* = Pointer(Void).null)
-      super(pointer)
-    end
-    enum IGDStatus : Int64
-      IgdStatusOk = 0_i64
-      IgdStatusHttpError = 1_i64
-      IgdStatusHttpEmpty = 2_i64
-      IgdStatusNoUrls = 3_i64
-      IgdStatusNoIgd = 4_i64
-      IgdStatusDisconnected = 5_i64
-      IgdStatusUnknownDevice = 6_i64
-      IgdStatusInvalidControl = 7_i64
-      IgdStatusMallocError = 8_i64
-      IgdStatusUnknownError = 9_i64
-    end
-    @@mb_is_valid_gateway : Void* = Pointer(Void).null
-    def is_valid_gateway() : Bool
-      godot_bind(@@mb_is_valid_gateway, "UPNPDevice", "is_valid_gateway", 36873697_i64)
-      godot_ptrcall_bool(@@mb_is_valid_gateway, @pointer, Pointer(Pointer(Void)).null)
-    end
-    # Predicate alias for `is_valid_gateway`
-    def is_valid_gateway?() : Bool
-      is_valid_gateway()
-    end
-    # Predicate alias for `is_valid_gateway`
-    def valid_gateway?() : Bool
-      is_valid_gateway()
-    end
-    @@mb_query_external_address : Void* = Pointer(Void).null
-    def query_external_address() : String
-      godot_bind(@@mb_query_external_address, "UPNPDevice", "query_external_address", 201670096_i64)
-      godot_call_str("query_external_address")
-    end
-    @@mb_add_port_mapping : Void* = Pointer(Void).null
-    def add_port_mapping(port : Int64, port_internal : Int64 = 0_i64, desc : String = "", proto : String = "UDP", duration : Int64 = 0_i64) : Int64
-      godot_bind(@@mb_add_port_mapping, "UPNPDevice", "add_port_mapping", 818314583_i64)
-      val_0 = port.to_i64
-      arg_0 = pointerof(val_0).as(Void*)
-      val_1 = port_internal.to_i64
-      arg_1 = pointerof(val_1).as(Void*)
-      str_2 = Bridge.make_string(desc)
-      arg_2 = str_2
-      str_3 = Bridge.make_string(proto)
-      arg_3 = str_3
-      val_4 = duration.to_i64
-      arg_4 = pointerof(val_4).as(Void*)
-      args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
-      godot_ptrcall_int(@@mb_add_port_mapping, @pointer, args.to_unsafe.as(Void**))
-    ensure
-      Bridge.free_string(str_2)
-      Bridge.free_string(str_3)
-    end
-    @@mb_delete_port_mapping : Void* = Pointer(Void).null
-    def delete_port_mapping(port : Int64, proto : String = "UDP") : Int64
-      godot_bind(@@mb_delete_port_mapping, "UPNPDevice", "delete_port_mapping", 3444187325_i64)
-      val_0 = port.to_i64
-      arg_0 = pointerof(val_0).as(Void*)
-      str_1 = Bridge.make_string(proto)
-      arg_1 = str_1
-      args = StaticArray[arg_0, arg_1]
-      godot_ptrcall_int(@@mb_delete_port_mapping, @pointer, args.to_unsafe.as(Void**))
-    ensure
-      Bridge.free_string(str_1)
-    end
-    @@mb_set_description_url : Void* = Pointer(Void).null
-    def set_description_url(url : String) : Void
-      godot_bind(@@mb_set_description_url, "UPNPDevice", "set_description_url", 83702148_i64)
-      str_0 = Bridge.make_string(url)
-      arg_0 = str_0
-      args = StaticArray[arg_0]
-      godot_ptrcall_void(@@mb_set_description_url, @pointer, args.to_unsafe.as(Void**))
-    ensure
-      Bridge.free_string(str_0)
-    end
-    @@mb_get_description_url : Void* = Pointer(Void).null
-    def get_description_url() : String
-      godot_bind(@@mb_get_description_url, "UPNPDevice", "get_description_url", 201670096_i64)
-      godot_call_str("get_description_url")
-    end
-    @@mb_set_service_type : Void* = Pointer(Void).null
-    def set_service_type(get_type : String) : Void
-      godot_bind(@@mb_set_service_type, "UPNPDevice", "set_service_type", 83702148_i64)
-      str_0 = Bridge.make_string(get_type)
-      arg_0 = str_0
-      args = StaticArray[arg_0]
-      godot_ptrcall_void(@@mb_set_service_type, @pointer, args.to_unsafe.as(Void**))
-    ensure
-      Bridge.free_string(str_0)
-    end
-    @@mb_get_service_type : Void* = Pointer(Void).null
-    def get_service_type() : String
-      godot_bind(@@mb_get_service_type, "UPNPDevice", "get_service_type", 201670096_i64)
-      godot_call_str("get_service_type")
-    end
-    @@mb_set_igd_control_url : Void* = Pointer(Void).null
-    def set_igd_control_url(url : String) : Void
-      godot_bind(@@mb_set_igd_control_url, "UPNPDevice", "set_igd_control_url", 83702148_i64)
-      str_0 = Bridge.make_string(url)
-      arg_0 = str_0
-      args = StaticArray[arg_0]
-      godot_ptrcall_void(@@mb_set_igd_control_url, @pointer, args.to_unsafe.as(Void**))
-    ensure
-      Bridge.free_string(str_0)
-    end
-    @@mb_get_igd_control_url : Void* = Pointer(Void).null
-    def get_igd_control_url() : String
-      godot_bind(@@mb_get_igd_control_url, "UPNPDevice", "get_igd_control_url", 201670096_i64)
-      godot_call_str("get_igd_control_url")
-    end
-    @@mb_set_igd_service_type : Void* = Pointer(Void).null
-    def set_igd_service_type(get_type : String) : Void
-      godot_bind(@@mb_set_igd_service_type, "UPNPDevice", "set_igd_service_type", 83702148_i64)
-      str_0 = Bridge.make_string(get_type)
-      arg_0 = str_0
-      args = StaticArray[arg_0]
-      godot_ptrcall_void(@@mb_set_igd_service_type, @pointer, args.to_unsafe.as(Void**))
-    ensure
-      Bridge.free_string(str_0)
-    end
-    @@mb_get_igd_service_type : Void* = Pointer(Void).null
-    def get_igd_service_type() : String
-      godot_bind(@@mb_get_igd_service_type, "UPNPDevice", "get_igd_service_type", 201670096_i64)
-      godot_call_str("get_igd_service_type")
-    end
-    @@mb_set_igd_our_addr : Void* = Pointer(Void).null
-    def set_igd_our_addr(addr : String) : Void
-      godot_bind(@@mb_set_igd_our_addr, "UPNPDevice", "set_igd_our_addr", 83702148_i64)
-      str_0 = Bridge.make_string(addr)
-      arg_0 = str_0
-      args = StaticArray[arg_0]
-      godot_ptrcall_void(@@mb_set_igd_our_addr, @pointer, args.to_unsafe.as(Void**))
-    ensure
-      Bridge.free_string(str_0)
-    end
-    @@mb_get_igd_our_addr : Void* = Pointer(Void).null
-    def get_igd_our_addr() : String
-      godot_bind(@@mb_get_igd_our_addr, "UPNPDevice", "get_igd_our_addr", 201670096_i64)
-      godot_call_str("get_igd_our_addr")
-    end
-    @@mb_set_igd_status : Void* = Pointer(Void).null
-    def set_igd_status(status : IGDStatus | Int) : Void
-      godot_bind(@@mb_set_igd_status, "UPNPDevice", "set_igd_status", 519504122_i64)
-      val_0 = status.is_a?(Int) ? status.to_i64 : status.value.to_i64
-      arg_0 = pointerof(val_0).as(Void*)
-      args = StaticArray[arg_0]
-      godot_ptrcall_void(@@mb_set_igd_status, @pointer, args.to_unsafe.as(Void**))
-    end
-    @@mb_get_igd_status : Void* = Pointer(Void).null
-    def get_igd_status() : IGDStatus
-      godot_bind(@@mb_get_igd_status, "UPNPDevice", "get_igd_status", 180887011_i64)
-      godot_ptrcall_enum(@@mb_get_igd_status, @pointer, Pointer(Pointer(Void)).null, IGDStatus)
-    end
-    # Property `description_url` getter
-    def description_url
-      get_description_url
-    end
-    # Property `description_url` setter
-    def description_url=(val)
-      set_description_url(val)
-    end
-    # Property `service_type` getter
-    def service_type
-      get_service_type
-    end
-    # Property `service_type` setter
-    def service_type=(val)
-      set_service_type(val)
-    end
-    # Property `igd_control_url` getter
-    def igd_control_url
-      get_igd_control_url
-    end
-    # Property `igd_control_url` setter
-    def igd_control_url=(val)
-      set_igd_control_url(val)
-    end
-    # Property `igd_service_type` getter
-    def igd_service_type
-      get_igd_service_type
-    end
-    # Property `igd_service_type` setter
-    def igd_service_type=(val)
-      set_igd_service_type(val)
-    end
-    # Property `igd_our_addr` getter
-    def igd_our_addr
-      get_igd_our_addr
-    end
-    # Property `igd_our_addr` setter
-    def igd_our_addr=(val)
-      set_igd_our_addr(val)
-    end
-    # Property `igd_status` getter
-    def igd_status
-      get_igd_status
-    end
-    # Property `igd_status` setter
-    def igd_status=(val : Int)
-      set_igd_status(val.to_i64)
+    def max_pending_connections=(val : Int | Enum)
+      set_max_pending_connections(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
   end
 end

@@ -565,16 +565,22 @@ inline void* generic_class_get_virtual_call_data(void *p_class_userdata, GDExten
                 strcmp(norm_name, "_get_global_class_name") == 0) {
                 return (void*)intern_virtual_method(norm_name);
             }
-        } else if (strcmp(desc->name, "ResourceFormatLoaderCrystal") == 0) {
+        } else if (strcmp(desc->name, "ResourceFormatLoaderCrystal") == 0 ||
+                   (desc->parent_desc && strcmp(desc->parent_desc->name, "ResourceFormatLoader") == 0) ||
+                   strstr(desc->name, "ResourceFormatLoader") != nullptr) {
             if (strcmp(norm_name, "_get_recognized_extensions") == 0 ||
                 strcmp(norm_name, "_handles_type") == 0 ||
                 strcmp(norm_name, "_get_resource_type") == 0 ||
                 strcmp(norm_name, "_get_resource_script_class") == 0 ||
+                strcmp(norm_name, "_get_resource_uid") == 0 ||
                 strcmp(norm_name, "_load") == 0 ||
-                strcmp(norm_name, "_recognize_path") == 0) {
+                strcmp(norm_name, "_recognize_path") == 0 ||
+                strcmp(norm_name, "_exists") == 0) {
                 return (void*)intern_virtual_method(norm_name);
             }
-        } else if (strcmp(desc->name, "ResourceFormatSaverCrystal") == 0) {
+        } else if (strcmp(desc->name, "ResourceFormatSaverCrystal") == 0 ||
+                   (desc->parent_desc && strcmp(desc->parent_desc->name, "ResourceFormatSaver") == 0) ||
+                   strstr(desc->name, "ResourceFormatSaver") != nullptr) {
             if (strcmp(norm_name, "_get_recognized_extensions") == 0 ||
                 strcmp(norm_name, "_recognize") == 0 ||
                 strcmp(norm_name, "_recognize_path") == 0 ||
@@ -928,7 +934,9 @@ inline void generic_class_call_virtual_with_data(
                 if (p_args && p_args[0]) {
                     char type_buf[128] = {0};
                     bridge_arg_to_string(p_args[0], type_buf, sizeof(type_buf));
-                    if (strcmp(type_buf, "CrystalScript") == 0 || strcmp(type_buf, "Crystal") == 0) {
+                    if (bridge_strcasecmp(type_buf, "CrystalScript") == 0 ||
+                        bridge_strcasecmp(type_buf, "Crystal") == 0 ||
+                        bridge_strcasecmp(type_buf, "Script") == 0) {
                         handles = true;
                     }
                 }
@@ -941,6 +949,7 @@ inline void generic_class_call_virtual_with_data(
                     bridge_arg_to_string(p_args[0], path_buf, sizeof(path_buf));
                 }
                 if (!has_cr_extension(path_buf) ||
+                    strstr(path_buf, "/src/") != nullptr || strstr(path_buf, "\\src\\") != nullptr ||
                     strstr(path_buf, "/spec/") != nullptr || strstr(path_buf, "\\spec\\") != nullptr ||
                     strstr(path_buf, "/tools/") != nullptr || strstr(path_buf, "\\tools\\") != nullptr ||
                     strstr(path_buf, "/lib/") != nullptr || strstr(path_buf, "\\lib\\") != nullptr ||
@@ -1112,7 +1121,7 @@ inline void generic_class_call_virtual_with_data(
 
                     char log_msg[256];
                     snprintf(log_msg, sizeof(log_msg), "[ResourceFormatLoaderCrystal] Successfully loaded %s (%zu bytes)", target_path, code.size());
-                    godot_log_print(log_msg);
+                    godot_log_verbose(log_msg);
 
                     bridge_ret_variant_object(r_ret, script_obj);
                     return;
@@ -1261,7 +1270,7 @@ inline void generic_class_call_virtual_with_data(
                 if (write_ok) {
                     char log_msg[512];
                     snprintf(log_msg, sizeof(log_msg), "[ResourceFormatSaverCrystal] Successfully saved %s (%zu bytes) -> %s", path_buf, code.size(), fs_path.c_str());
-                    godot_log_print(log_msg);
+                    godot_log_verbose(log_msg);
                     if (r_ret) {
                         memset(r_ret, 0, 8); // OK (0)
                         *(int32_t*)r_ret = 0; // OK (0)
@@ -1623,3 +1632,29 @@ inline void channel_method_call(
         bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_BOOL, r_return, &b);
     }
 }
+
+inline void generic_class_user_method_call(
+    void *method_userdata,
+    GDExtensionClassInstancePtr p_instance,
+    const GDExtensionConstVariantPtr *p_args,
+    GDExtensionInt p_argument_count,
+    GDExtensionVariantPtr r_return,
+    GDExtensionCallError *r_error
+) {
+    ensure_gc_thread_registered();
+    GenericExtensionInstance *inst = (GenericExtensionInstance*)p_instance;
+    if (!inst || !inst->desc || !inst->crystal_instance || !inst->desc->call_virtual_with_data) {
+        if (r_error) r_error->error = GDEXTENSION_CALL_ERROR_INSTANCE_IS_NULL;
+        return;
+    }
+    if (r_error) r_error->error = GDEXTENSION_CALL_OK;
+
+    const char *mname = (const char*)method_userdata;
+    if (!mname) return;
+
+    inst->desc->call_virtual_with_data(inst->crystal_instance, mname, (const void**)p_args, (void*)r_return);
+    if (r_return && gd_variant_new_nil) {
+        gd_variant_new_nil(r_return);
+    }
+}
+

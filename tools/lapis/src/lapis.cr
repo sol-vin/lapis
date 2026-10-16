@@ -32,6 +32,7 @@ require "./commands/decompile"
 require "./commands/analyze"
 require "./commands/template"
 require "./commands/export_templates"
+require "./commands/driver"
 require "./commands/cli"
 require "./tui/hub"
 
@@ -39,6 +40,7 @@ module Lapis
   # Canonical registry of all subcommands with concise descriptions.
   COMMAND_DESCRIPTIONS = {
     "cli"         => "Launch interactive TUI terminal command hub and dashboard",
+    "driver"      => "In-Editor Action Driver controller, interactive REPL & AI vision",
     "dirs"        => "Ensure project and binary output directories exist",
     "deps"        => "Verify and copy Crystal runtime dependencies & libgodot DLLs",
     "sync"        => "Synchronize binaries, addons, and manifests across all targets",
@@ -58,7 +60,7 @@ module Lapis
     "init"        => "Initialize Crystal integration in an existing Godot project",
     "upgrade"     => "Upgrade an existing Godot project to latest Lapis engine",
     "addon"       => "Install, uninstall, or manage Godot GDExtension addons",
-    "shard"       => "Manage Crystal shard dependencies in Godot project",
+    "shard"       => "Manage Crystal shard dependencies in Godot project (list, install, uninstall, prune)",
     "ide"         => "Configure VS Code, Cursor, Zed, or Neovim with Crystalline LSP",
     "scaffold"    => "Scaffold a new game, addon, or example",
     "new"         => "Alias for scaffold",
@@ -70,12 +72,10 @@ module Lapis
     "update"      => "Update Lapis executable, Crystalline LSP, and Crystal compiler",
     "benchmarks"  => "Run benchmarks, export HTML reports, and track progression",
     "bench"       => "Alias for benchmarks",
-    "color"       => "Launch interactive 2D/3D TrueColor palette studio (Opal)",
     "explore"     => "Launch interactive terminal file dialog & project explorer (Opal)",
     "template"         => "Manage global project templates (save, list, remove, clean, export, import)",
     "templates"        => "Alias for template",
     "export-templates" => "Inspect, explain, install, and verify Godot & Crystal export templates",
-    "shaders"          => "Launch real-time terminal text shader FX playground (Opal)",
     "completion"       => "Generate shell autocompletion script",
     "version"          => "Display Lapis toolchain version",
   }
@@ -174,6 +174,13 @@ module Lapis
         cmd.run { |ctx| Commands::Cli.run(ctx.raw_args) }
       end
 
+      cli.command :driver do |cmd|
+        cmd.category "Testing & Development Commands"
+        cmd.description COMMAND_DESCRIPTIONS["driver"]
+        cmd.alias_name "action-driver", "action"
+        cmd.run { |ctx| Commands::Driver.run(ctx.raw_args) }
+      end
+
       cli.command :doctor do |cmd|
         cmd.category "Testing & Development Commands"
         cmd.description COMMAND_DESCRIPTIONS["doctor"]
@@ -220,32 +227,6 @@ module Lapis
         cmd.run { |ctx| Commands::Setup.run(ctx.raw_args) }
       end
 
-      cli.command :color do |cmd|
-        cmd.category "Testing & Development Commands"
-        cmd.description COMMAND_DESCRIPTIONS["color"]
-        cmd.flag :spatial, "--3d", description: "Launch in 3D spatial color picker mode"
-        cmd.option :shape, "--shape=SHAPE", description: "3D shape: cube, sphere, circle, square"
-        cmd.run do |ctx|
-          if ctx.flag?(:spatial)
-            shape_str = ctx[:shape]?.try(&.to_s.downcase)
-            shape = case shape_str
-                    when "sphere" then Opal::UI::ColorPickerShape::Sphere3D
-                    when "circle" then Opal::UI::ColorPickerShape::Circle2D
-                    when "square" then Opal::UI::ColorPickerShape::Square2D
-                    else               Opal::UI::ColorPickerShape::Cube3D
-                    end
-            if chosen = Opal.pick_color_3d(initial_shape: shape)
-              puts "Selected Color: \e[1;97m#{chosen.to_hex}\e[0m (RGB: #{chosen.to_rgb})"
-            end
-          else
-            if chosen = Opal.pick_color(Opal::Color.hex("#89B4FA"))
-              puts "Selected Color: \e[1;97m#{chosen.to_hex}\e[0m (RGB: #{chosen.to_rgb})"
-            end
-          end
-          0
-        end
-      end
-
       cli.command :explore do |cmd|
         cmd.category "Testing & Development Commands"
         cmd.description COMMAND_DESCRIPTIONS["explore"]
@@ -256,17 +237,6 @@ module Lapis
             puts "Selected: \e[1;96m#{chosen}\e[0m"
           end
           0
-        end
-      end
-
-      cli.command :shaders do |cmd|
-        cmd.category "Testing & Development Commands"
-        cmd.description COMMAND_DESCRIPTIONS["shaders"]
-        cmd.alias_name "fx"
-        cmd.run do |_ctx|
-          puts Opal.style.bold.fg(:cyan).render("✨ Opal Text Shader Playground")
-          puts "Launching TUI test runner with active CRT scanlines shader..."
-          Commands::Test.run(["--tui"])
         end
       end
 
@@ -294,12 +264,38 @@ module Lapis
         cmd.description COMMAND_DESCRIPTIONS["shard"]
         cmd.run do |ctx|
           sub_args = ctx.raw_args
-          is_uninstall = sub_args.includes?("uninstall") || sub_args.includes?("remove") || sub_args.includes?("-u")
-          shard_args = sub_args.reject { |a| a == "install" || a == "add" || a == "uninstall" || a == "remove" || a == "-u" }
-          if is_uninstall
-            Commands::ShardManager.uninstall(shard_args)
+          if sub_args.empty? || sub_args.includes?("-h") || sub_args.includes?("--help")
+            Commands::ShardManager.print_help
+            next 0
+          end
+
+          subcmd = sub_args.first
+          remaining = sub_args[1..]
+
+          case subcmd
+          when "list", "ls"
+            Commands::ShardManager.list(remaining)
+          when "install", "add"
+            Commands::ShardManager.install(remaining)
+          when "uninstall", "remove", "-u"
+            Commands::ShardManager.uninstall(remaining)
+          when "prune"
+            proj = Path.new(Dir.current).expand
+            Commands::ShardManager.run_shards_prune(proj) ? 0 : 1
           else
-            Commands::ShardManager.install(shard_args)
+            valid_subcmds = ["list", "ls", "install", "add", "uninstall", "remove", "prune"]
+            if subcmd.starts_with?("-")
+              Commands::ShardManager.print_help
+              0
+            else
+              Core::Logger.error("Unknown shard subcommand: '#{subcmd}'")
+              if suggestion = Opal::Input::Fuzzy.suggest(subcmd, valid_subcmds)
+                puts "  \e[33mDid you mean 'lapis shard #{suggestion}'?\e[0m\n"
+              end
+              puts
+              Commands::ShardManager.print_help
+              1
+            end
           end
         end
       end
@@ -393,7 +389,12 @@ module Lapis
         cmd.category "Installation & System Commands"
         cmd.description COMMAND_DESCRIPTIONS["completion"]
         cmd.run do |ctx|
-          shell = ctx.raw_args.first? || (Core::Env.windows? ? "powershell" : "bash")
+          first = ctx.raw_args.first?
+          if first == "-h" || first == "--help"
+            puts "Usage: lapis completion <powershell|bash|zsh|fish>\n\nGenerates native shell autocompletion script."
+            next 0
+          end
+          shell = first || (Core::Env.windows? ? "powershell" : "bash")
           Lapis.generate_completion(shell)
         end
       end
@@ -446,9 +447,7 @@ Usage:
   run                   Run Godot project standalone with log monitoring and radare2 attachment
   test                  Run unit specs, in-editor tool tests, and runtime test projects
   spec                  Run Crystal unit specs
-  color                 Launch interactive 2D/3D TrueColor palette studio (Opal)
   explore, files        Launch interactive terminal file dialog & project explorer (Opal)
-  shaders, fx           Launch real-time terminal text shader FX playground (Opal)
   benchmarks, bench     Run benchmarks, export HTML reports, and track version progression
   setup                 Download and configure targeted Godot engine binary
 
@@ -524,12 +523,8 @@ HELP
       Commands::Test.run(["--help"])
     when "spec"
       Commands::Spec.run(["--help"])
-    when "color"
-      puts "Usage: lapis color [options]\n\nLaunch interactive 2D/3D TrueColor palette studio (Opal).\n\nOptions:\n  --3d                 Launch in 3D spatial color picker mode\n  --shape=SHAPE        3D shape: cube, sphere, circle, square"
     when "explore", "files", "browse"
       puts "Usage: lapis explore [DIR]\n\nLaunch interactive terminal file dialog & project explorer (Opal)."
-    when "shaders", "fx"
-      puts "Usage: lapis shaders\n\nLaunch real-time terminal text shader FX playground (Opal)."
     when "editor", "run"
       Commands::Editor.run(["--help"])
     when "decompile"
@@ -586,8 +581,10 @@ HELP
       Commands::Benchmarks.print_help
     when "log", "logs"
       Commands::Log.print_help
+    when "driver", "action-driver", "action"
+      Commands::Driver.print_help
     when "completion"
-      puts "Usage: lapis completion <powershell|bash|zsh>\n\nGenerates native shell autocompletion script."
+      puts "Usage: lapis completion <powershell|bash|zsh|fish>\n\nGenerates native shell autocompletion script."
     else
       Core::Logger.error("Unknown command for help: '#{subcommand}'")
       if suggestion = suggest_command(subcommand)
@@ -608,9 +605,7 @@ HELP
     palette_options = [
       "[#] build       - Compile Crystal game library and GDExtension loader bridge",
       "[T] test        - Run Crystal specs, in-editor tool tests, and Godot runtime suites",
-      "[C] color       - Interactive 2D/3D TrueColor palette picker & studio",
       "[F] explore     - Interactive terminal file dialog & project explorer",
-      "[~] shaders     - Real-time terminal text shaders & post-processing playground",
       "[?] doctor      - Diagnose developer environment, toolchain prerequisites, and compilers",
       "[E] editor      - Open project in Godot Editor with automatic shadow DLL reloading",
       "[+] scaffold    - Interactive scaffolding wizard for new games and redistributable addons",
@@ -633,14 +628,9 @@ HELP
     case cmd_name
     when "build"       then Commands::Build.run([] of String)
     when "test"        then Commands::Test.run(["--tui"])
-    when "color"
-      Opal.pick_color(Opal::Color.hex("#89B4FA"))
-      0
     when "explore"
       Opal.file_dialog(initial_path: ".")
       0
-    when "shaders"
-      Commands::Test.run(["--tui"])
     when "doctor"      then Commands::Doctor.run([] of String)
     when "editor"      then Commands::Editor.run([] of String)
     when "scaffold"    then Commands::Scaffold.run([] of String)
@@ -705,6 +695,12 @@ HELP
       else
         print_help
       end
+      return 0
+    end
+
+    # Handle completion help flags
+    if args[0] == "completion" && (args.includes?("-h") || args.includes?("--help"))
+      puts "Usage: lapis completion <powershell|bash|zsh|fish>\n\nGenerates native shell autocompletion script."
       return 0
     end
 

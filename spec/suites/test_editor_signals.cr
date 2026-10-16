@@ -14,9 +14,9 @@ node EditorSignalTargetNode < Godot::Node do
   property label : String = "SignalTarget"
 
   def trigger_all : Void
-    emit_action_triggered
-    emit_score_updated(100, 1.5_f32)
-    emit_player_tagged("Hero", true)
+    action_triggered.emit
+    score_updated.emit(100, 1.5_f32)
+    player_tagged.emit("Hero", true)
   end
 end
 
@@ -64,9 +64,9 @@ end
       end
     end
 
-    test "CrystalScript dual-identity reflection cleanly stripped in release mode" do
+    test "CrystalIntegrationPlugin cleanly stripped in release mode" do
       class_db = Godot::ClassDB.new(Godot::ClassDB.singleton_ptr)
-      assert_false class_db.call_bool("class_exists", "CrystalScript"), "CrystalScript must not be registered in release mode"
+      assert_false class_db.call_bool("class_exists", "CrystalIntegrationPlugin"), "CrystalIntegrationPlugin must not be registered in release mode"
     end
   end
 {% else %}

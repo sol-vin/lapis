@@ -11,15 +11,15 @@ node CrystalSignalEmitterNode < Godot::Node do
   property last_received_callback_msg : String = ""
 
   def trigger_event(msg : String) : Void
-    emit_crystal_event(msg)
+    crystal_event.emit(msg)
   end
 
   def trigger_health(curr : Int32, max_val : Int32) : Void
-    emit_health_changed(curr, max_val)
+    health_changed.emit(curr, max_val)
   end
 
   def trigger_transfer(text : String) : Void
-    emit_data_transferred(text)
+    data_transferred.emit(text)
   end
 end
 
@@ -38,7 +38,7 @@ test_suite "GDScript" do
   assert_true connected, "GDScript connect_crystal_signals must return true"
 
   # Emit event from Crystal
-  emitter.emit_crystal_event("HelloGDScriptFromCrystal")
+  emitter.crystal_event.emit("HelloGDScriptFromCrystal")
 
   sig_name = root.call_str("get", "last_crystal_signal_name")
   sig_data = root.call_str("get", "last_crystal_signal_data")
@@ -49,7 +49,7 @@ test_suite "GDScript" do
   assert_eq sig_count, 1_i64, "Signal call count must be 1"
 
   # Emit multi-arg signal from Crystal
-  emitter.emit_health_changed(75, 100)
+  emitter.health_changed.emit(75, 100)
 
   sig_name2 = root.call_str("get", "last_crystal_signal_name")
   sig_data2 = root.call_str("get", "last_crystal_signal_data")
@@ -76,7 +76,7 @@ end
   received_payload = ""
   listener_called = false
 
-  emitter.on_crystal_event do |msg|
+  emitter.crystal_event.connect do |msg|
     received_payload = msg
     listener_called = true
   end

@@ -83,11 +83,13 @@ static BridgeAPI g_bridge_api = {
     bridge_arg_to_string,
     bridge_arg_to_string_name,
     bridge_ret_dictionary_validate,
+    bridge_ret_dictionary_validate_ex,
     bridge_ret_dictionary_complete_code,
     bridge_ret_dictionary_lookup_code,
     bridge_ret_dictionary_complete_code_ex,
     bridge_ret_dictionary_lookup_code_ex,
     bridge_ret_dictionary_global_class,
+    bridge_ret_script_templates,
     bridge_placeholder_script_instance_create,
     bridge_text_edit_get_line,
     bridge_object_connect_signal,
@@ -117,7 +119,11 @@ static BridgeAPI g_bridge_api = {
     bridge_is_verbose,
     bridge_ret_signal_list,
     bridge_ret_property_list,
-    bridge_is_object_valid
+    bridge_is_object_valid,
+    bridge_editor_get_selected_node,
+    bridge_image_update_buffer,
+    bridge_image_copy_to_buffer,
+    bridge_packed_byte_array_operator_index
 };
 
 // ==============================================================================
@@ -181,5 +187,21 @@ extern "C" {
     /** Returns hot reload status flag */
     GDE_EXPORT inline int crystal_bridge_is_reloading() {
         return bridge_is_reloading();
+    }
+    /** Retrieves selected Node from EditorInterface */
+    GDE_EXPORT inline GDExtensionObjectPtr crystal_editor_get_selected_node(GDExtensionObjectPtr ed_iface) {
+        return bridge_editor_get_selected_node(ed_iface);
+    }
+    /** Fast-path updates the internal pixel buffer of an Image from raw memory */
+    GDE_EXPORT inline void crystal_image_update_buffer(GDExtensionObjectPtr img, int32_t width, int32_t height, uint8_t mipmaps, int32_t format, const uint8_t *pixels, int64_t len) {
+        bridge_image_update_buffer(img, width, height, mipmaps, format, pixels, len);
+    }
+    /** Fast-path reads back the pixel buffer of an Image into a destination buffer */
+    GDE_EXPORT inline int64_t crystal_image_copy_to_buffer(GDExtensionObjectPtr img, uint8_t *dst, int64_t max_len) {
+        return bridge_image_copy_to_buffer(img, dst, max_len);
+    }
+    /** Returns direct pointer to element at index in a PackedByteArray */
+    GDE_EXPORT inline uint8_t* crystal_packed_byte_array_operator_index(GDExtensionTypePtr pba, int64_t index) {
+        return bridge_packed_byte_array_operator_index(pba, index);
     }
 }

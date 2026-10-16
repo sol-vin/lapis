@@ -30,8 +30,8 @@ node DummyCombatEntity < Node2D do
     total_damage = base_pwr + @attack_power
     @combo_counter += 1
 
-    emit_attack_executed(target_name, total_damage)
-    emit_critical_hit(mult) if is_crit
+    attack_executed.emit(target_name, total_damage)
+    critical_hit.emit(mult) if is_crit
     total_damage
   end
 
@@ -50,7 +50,7 @@ node DummyCombatPlugin < EditorPlugin do
   signal combat_system_ready
 
   def _enter_tree : Void
-    emit_combat_system_ready
+    combat_system_ready.emit
     Godot.print("[DummyCombatPlugin] Initialized successfully in editor!")
   end
 

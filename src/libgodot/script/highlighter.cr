@@ -66,25 +66,35 @@ module Lapis
       when "_get_supported_languages"
         Bridge.ret_packed_string_array(ret, ["Crystal", "cr", "CrystalScript"])
       when "_create"
-        hl = Godot.create(Godot::CrystalHighlighter)
-        if hl && !hl.pointer.null?
-          Bridge.ret_ref(ret, hl.pointer)
-        else
+        begin
+          hl = Godot.create(Godot::CrystalHighlighter)
+          if hl && !hl.pointer.null?
+            Bridge.ret_ref(ret, hl.pointer)
+          else
+            Bridge.ret_ref(ret, Pointer(Void).null)
+          end
+        rescue
           Bridge.ret_ref(ret, Pointer(Void).null)
         end
       when "_clear_highlighting_cache", "_update_cache"
         return
       when "_get_line_syntax_highlighting"
-        line_num = args[0].as(Int32*).value.to_i64
-        Bridge.ret_dictionary_empty(ret)
+        begin
+          Bridge.ret_dictionary_empty(ret)
+          return if args.null? || args[0].null?
+          line_num = args[0].as(Int32*).value.to_i64
+          return if line_num < 0
 
-        text_edit = get_text_edit
-        if text_edit && !text_edit.pointer.null? && text_edit.alive? && Bridge.is_object_valid(text_edit.pointer)
-          line_text = Bridge.text_edit_get_line(text_edit.pointer, line_num)
-          spans = CrystalHighlighter.highlight_line(line_text)
-          spans.each do |span|
-            Bridge.highlighter_add_span(ret, span.column.to_i64, span.r, span.g, span.b, span.a)
+          text_edit = (get_text_edit rescue nil)
+          if text_edit && !text_edit.pointer.null? && text_edit.alive? && Bridge.is_object_valid(text_edit.pointer)
+            line_text = Bridge.text_edit_get_line(text_edit.pointer, line_num)
+            spans = CrystalHighlighter.highlight_line(line_text)
+            spans.each do |span|
+              Bridge.highlighter_add_span(ret, span.column.to_i64, span.r, span.g, span.b, span.a)
+            end
           end
+        rescue ex
+          Godot.printerr("[CrystalHighlighter] Notice: syntax highlighting: #{ex.message}") rescue nil
         end
       else
         super

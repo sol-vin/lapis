@@ -1,6 +1,7 @@
 require "./macros/annotations"
 require "./macros/node_refs"
 require "./macros/signals"
+require "./macros/match"
 
 module Godot
   struct PropertyInfo
@@ -61,11 +62,19 @@ module Godot
       property properties : ::Array(PropertyInfo)
       property signals : ::Array(SignalInfo)
       property constants : ::Array(ConstantInfo)
+      property methods : ::Array(String) = [] of String
       property icon_path : String
       property is_abstract : Bool
       property rpc_methods : ::Array(NamedTuple(name: String, rpc_mode: Int32, transfer_mode: Int32, call_local: Bool, channel: Int32))
       property has_virtual_proc : (String -> Bool)? = nil
       property script_path : String = ""
+      property is_autoload : Bool = false
+      property autoload_name : String = ""
+      property autoload_singleton : Bool = true
+      property autoload_mount_tree : Bool = true
+      property set_autoload_proc : (Object? -> Void)? = nil
+      property init_proc : (-> Void)? = nil
+      property deinit_proc : (-> Void)? = nil
 
       def has_virtual_method?(name : String) : Bool
         if proc = @has_virtual_proc
@@ -96,7 +105,15 @@ module Godot
         @rpc_methods : ::Array(NamedTuple(name: String, rpc_mode: Int32, transfer_mode: Int32, call_local: Bool, channel: Int32)) = [] of NamedTuple(name: String, rpc_mode: Int32, transfer_mode: Int32, call_local: Bool, channel: Int32),
         @has_virtual_proc : (String -> Bool)? = nil,
         @constants : ::Array(ConstantInfo) = [] of ConstantInfo,
+        @methods : ::Array(String) = [] of String,
         @script_path : String = "",
+        @is_autoload : Bool = false,
+        @autoload_name : String = "",
+        @autoload_singleton : Bool = true,
+        @autoload_mount_tree : Bool = true,
+        @set_autoload_proc : (Object? -> Void)? = nil,
+        @init_proc : (-> Void)? = nil,
+        @deinit_proc : (-> Void)? = nil,
       )
       end
     end
@@ -158,7 +175,63 @@ module Godot
       end
     {% end %}
 
+    def self.has_ancestor_property?(entry : Entry, prop_name : String) : Bool
+      cur = entry.parent_name
+      while parent = find(cur)
+        return true if parent.properties.any? { |p| p.name == prop_name }
+        cur = parent.parent_name
+      end
+      false
+    end
+
     def self.register(entry : Entry)
+      if existing = find(entry.class_name)
+        entry.properties.each do |p|
+          next if has_ancestor_property?(existing, p.name)
+          existing.properties << p unless existing.properties.any? { |ep| ep.name == p.name }
+        end
+        entry.signals.each do |s|
+          existing.signals << s unless existing.signals.any? { |es| es.name == s.name }
+        end
+        entry.constants.each do |c|
+          existing.constants << c unless existing.constants.any? { |ec| ec.name == c.name }
+        end
+        entry.rpc_methods.each do |r|
+          existing.rpc_methods << r unless existing.rpc_methods.any? { |er| er[:name] == r[:name] }
+        end
+        existing.is_tool ||= entry.is_tool
+        existing.has_ready ||= entry.has_ready
+        existing.has_process ||= entry.has_process
+        existing.has_physics_process ||= entry.has_physics_process
+        existing.has_enter_tree ||= entry.has_enter_tree
+        existing.has_exit_tree ||= entry.has_exit_tree
+        existing.has_input ||= entry.has_input
+        existing.has_unhandled_input ||= entry.has_unhandled_input
+        existing.has_unhandled_key_input ||= entry.has_unhandled_key_input
+        existing.has_shortcut_input ||= entry.has_shortcut_input
+        existing.has_gui_input ||= entry.has_gui_input
+        if existing.script_path.empty? && !entry.script_path.empty?
+          existing.script_path = entry.script_path
+        end
+        if entry.is_autoload
+          existing.is_autoload = true
+          existing.autoload_singleton = entry.autoload_singleton
+          existing.autoload_mount_tree = entry.autoload_mount_tree
+          if !entry.autoload_name.empty?
+            existing.autoload_name = entry.autoload_name
+          end
+          if !entry.set_autoload_proc.nil?
+            existing.set_autoload_proc = entry.set_autoload_proc
+          end
+        end
+        if !entry.init_proc.nil?
+          existing.init_proc = entry.init_proc
+        end
+        if !entry.deinit_proc.nil?
+          existing.deinit_proc = entry.deinit_proc
+        end
+        return
+      end
       if parent = find(entry.parent_name)
         entry.is_tool ||= parent.is_tool
         entry.has_ready ||= parent.has_ready
@@ -206,6 +279,157 @@ macro ensure_lapis
   {% end %}
 end
 
+# Instantiates a Godot object or custom node and configures its properties and methods in a block or kwargs.
+#
+# Supports:
+# 1. Keyword properties: `create Sprite2D, position: Vector2.new(10, 20), centered: true`
+# 2. Block property setters: `create Sprite2D do position = Vector2.new(10, 20); centered = true end`
+# 3. Method dispatches: `create Sprite2D do add_to_group("sprites"); rotate(0.5) end`
+# 4. Mixed kwargs and block: `create Sprite2D, centered: true do position = Vector2.new(10, 20) end`
+macro create(type, **kwargs, &block)
+  %inst = ::Godot.create({{type}})
+  {% for k, v in kwargs %}
+    %inst.{{k}} = {{v}}
+  {% end %}
+  {% if block && !block.body.is_a?(Nop) %}
+    {% stmts = block.body.is_a?(Expressions) ? block.body.expressions : [block.body] %}
+    {% for s in stmts %}
+      {% if s.is_a?(Assign) %}
+        %inst.{{s.target}} = {{s.value}}
+      {% elsif s.is_a?(Call) %}
+        %inst.{{s.name}}({{s.args.splat}})
+      {% end %}
+    {% end %}
+  {% end %}
+  %inst
+end
+
+# Idiomatic alias for `create`
+macro build(type, **kwargs, &block)
+  create({{type}}, {{kwargs.double_splat}}) {{block}}
+end
+
+# Instantiates a node, configures it, and attaches it as a child to the specified parent
+# (defaults to `self` if inside a Node method, or current scene / root).
+macro spawn_node(type, under = nil, **kwargs, &block)
+  %parent = {% if under %}{{under}}{% else %}self{% end %}
+  %inst = create({{type}}, {{kwargs.double_splat}}) {{block}}
+  %parent.add_child(%inst)
+  %inst
+end
+
+# Contextual alias for `spawn_node`
+macro spawn_child(type, under = nil, **kwargs, &block)
+  spawn_node({{type}}, under: {{under}}, {{kwargs.double_splat}}) {{block}}
+end
+
+# Declarative alias for `spawn_node`
+macro create_child(type, under = nil, **kwargs, &block)
+  spawn_node({{type}}, under: {{under}}, {{kwargs.double_splat}}) {{block}}
+end
+
+# Loads a PackedScene (.tscn) and instantiates it as wrapper type T with configuration
+macro instantiate(path, as type = Godot::Node, **kwargs, &block)
+  %scene = ::Godot.load({{path}}).as(::Godot::PackedScene)
+  %inst = %scene.instantiate_as({{type}})
+  {% for k, v in kwargs %}
+    %inst.{{k}} = {{v}}
+  {% end %}
+  {% if block && !block.body.is_a?(Nop) %}
+    {% stmts = block.body.is_a?(Expressions) ? block.body.expressions : [block.body] %}
+    {% for s in stmts %}
+      {% if s.is_a?(Assign) %}
+        %inst.{{s.target}} = {{s.value}}
+      {% elsif s.is_a?(Call) %}
+        %inst.{{s.name}}({{s.args.splat}})
+      {% end %}
+    {% end %}
+  {% end %}
+  %inst
+end
+
+# Loads a PackedScene (.tscn), instantiates it as wrapper type T, and attaches it as a child to the parent
+macro instantiate_child(path, under = nil, as type = Godot::Node, **kwargs, &block)
+  %parent = {% if under %}{{under}}{% else %}self{% end %}
+  %inst = instantiate({{path}}, as: {{type}}, {{kwargs.double_splat}}) {{block}}
+  %parent.add_child(%inst)
+  %inst
+end
+
+# Context-aware one-shot audio playback macro:
+# - Inspects `@type` at compile-time:
+#   * `@type <= Godot::Node2D` -> emits AudioStreamPlayer2D with global_position
+#   * `@type <= Godot::Node3D` -> emits AudioStreamPlayer3D with global_position
+#   * Otherwise -> emits non-spatial AudioStreamPlayer
+# - If explicit `at:` coordinate is passed (Vector2 or Vector3), spatializes appropriately
+# - Automatically preloads or loads the AudioStream
+# - Sets kwargs properties (e.g. pitch_scale: 1.2, volume_db: -5.0, bus: "SFX")
+# - Executes inline configuration block (e.g. do pitch_scale = 1.2 end)
+# - Attaches to active scene root (`current_scene || root`) so audio survives caller deletion!
+# - Connects finished.once { queue_free } for automatic memory cleanup
+# - Returns the strongly-typed audio player
+macro play_sound(stream, at = nil, under = nil, **kwargs, &block)
+  %s_val = {{stream}}
+  %stream = %s_val.is_a?(String) ? (::Godot::PreloadCache.get_or_load(%s_val, ::Godot::AudioStream)) : %s_val.as(::Godot::AudioStream)
+
+  {% if at %}
+    %at_pos = {{at}}
+    %player = if %at_pos.is_a?(::Godot::Vector3)
+                %p3d = ::Godot.create(::Godot::AudioStreamPlayer3D)
+                %p3d.global_position = %at_pos
+                %p3d
+              elsif %at_pos.is_a?(::Godot::Vector2)
+                %p2d = ::Godot.create(::Godot::AudioStreamPlayer2D)
+                %p2d.global_position = %at_pos
+                %p2d
+              else
+                ::Godot.create(::Godot::AudioStreamPlayer)
+              end
+  {% elsif @type <= Godot::Node2D %}
+    %player = ::Godot.create(::Godot::AudioStreamPlayer2D)
+    %player.global_position = self.global_position
+  {% elsif @type <= Godot::Node3D %}
+    %player = ::Godot.create(::Godot::AudioStreamPlayer3D)
+    %player.global_position = self.global_position
+  {% else %}
+    %player = ::Godot.create(::Godot::AudioStreamPlayer)
+  {% end %}
+
+  %player.stream = %stream
+  {% for k, v in kwargs %}
+    %player.{{k}} = {{v}}
+  {% end %}
+
+  {% if block && !block.body.is_a?(Nop) %}
+    {% stmts = block.body.is_a?(Expressions) ? block.body.expressions : [block.body] %}
+    {% for s in stmts %}
+      {% if s.is_a?(Assign) %}
+        %player.{{s.target}} = {{s.value}}
+      {% elsif s.is_a?(Call) %}
+        %player.{{s.name}}({{s.args.splat}})
+      {% end %}
+    {% end %}
+  {% end %}
+
+  %host = {% if under %}
+            {{under}}
+          {% else %}
+            (if %tree = ::Godot.get_tree?
+               %tree.current_scene || %tree.root
+             else
+               self.topmost_parent
+             end)
+          {% end %}
+  %host.add_child(%player)
+
+  %player.finished.once do
+    %player.queue_free
+  end
+
+  %player.play
+  %player
+end
+
 # Expressive convenience macro for 2D scene nodes defaulting to Godot::Node2D
 macro node2d(decl)
   node2d {{decl}} do
@@ -218,9 +442,15 @@ macro node2d(decl, &block)
       {{block.body}}
     end
   {% else %}
-    node {{decl}} < Godot::Node2D do
-      {{block.body}}
-    end
+    {% if decl.resolve? %}
+      node {{decl}} do
+        {{block.body}}
+      end
+    {% else %}
+      node {{decl}} < Godot::Node2D do
+        {{block.body}}
+      end
+    {% end %}
   {% end %}
 end
 
@@ -236,9 +466,15 @@ macro node3d(decl, &block)
       {{block.body}}
     end
   {% else %}
-    node {{decl}} < Godot::Node3D do
-      {{block.body}}
-    end
+    {% if decl.resolve? %}
+      node {{decl}} do
+        {{block.body}}
+      end
+    {% else %}
+      node {{decl}} < Godot::Node3D do
+        {{block.body}}
+      end
+    {% end %}
   {% end %}
 end
 
@@ -266,6 +502,7 @@ macro node(decl, &block)
     {% parent_name = "Godot::Node".id %}
     {% base_godot_name = "Node" %}
   {% end %}
+  {% is_reopen = class_name.resolve? != nil %}
 
   {%
     has_ready = false
@@ -283,6 +520,10 @@ macro node(decl, &block)
     is_tool_class = (base_godot_name == "EditorPlugin" || parent_name.stringify.includes?("EditorPlugin"))
     is_abstract_class = false
     is_static_unload = false
+    is_autoload_class = false
+    autoload_name = ""
+    autoload_singleton = true
+    autoload_mount_tree = true
     class_icon_path = ""
     script_path_override = ""
     src_file = if !block.is_a?(Nop) && block.filename
@@ -294,6 +535,11 @@ macro node(decl, &block)
                end
     props = [] of Nil
     sigs = [] of Nil
+    sig_param_types = {} of StringLiteral => ArrayLiteral(ASTNode)
+    def_param_types = {} of StringLiteral => ArrayLiteral(ASTNode)
+    pending_on_signal_annos = [] of ASTNode
+    self_static_signals = [] of Nil
+    ready_static_signals = [] of Nil
     methods_doc = [] of Nil
     onready_props = [] of Nil
     rpc_methods = [] of Nil
@@ -301,6 +547,7 @@ macro node(decl, &block)
     user_methods = [] of Nil
     tool_buttons = [] of Nil
     class_constants = [] of Nil
+    included_modules = [] of Nil
     class_doc = ""
     raw_stmts = if block.is_a?(Nop)
                   [] of Nil
@@ -485,6 +732,19 @@ macro node(decl, &block)
           {% is_static_unload = true %}
         {% elsif s_stripped.starts_with?("@[ScriptPath(") %}
           {% script_path_override = s_stripped.gsub(/^@\[ScriptPath\(\"/, "").gsub(/\"\)\].*/, "") %}
+        {% elsif s_stripped.starts_with?("@[Autoload") %}
+          {% is_autoload_class = true %}
+          {% if s_stripped.includes?("name:") %}
+            {% autoload_name = s_stripped.gsub(/.*name:\s*\"/, "").gsub(/\".*/, "") %}
+          {% elsif s_stripped.includes?("(\"") %}
+            {% autoload_name = s_stripped.gsub(/^@\[Autoload\(\"/, "").gsub(/\"\).*/, "") %}
+          {% end %}
+          {% if s_stripped.includes?("singleton: false") %}
+            {% autoload_singleton = false %}
+          {% end %}
+          {% if s_stripped.includes?("mount_tree: false") || s_stripped.includes?("scene_tree: false") %}
+            {% autoload_mount_tree = false %}
+          {% end %}
         {% elsif !s_stripped.starts_with?("@") && !s_stripped.empty? %}
           {% comment_accum = "" %}
           {% class_icon_path = "" %}
@@ -492,6 +752,10 @@ macro node(decl, &block)
           {% is_abstract_class = false %}
           {% is_tool_class = false %}
           {% is_static_unload = false %}
+          {% is_autoload_class = false %}
+          {% autoload_name = "" %}
+          {% autoload_singleton = true %}
+          {% autoload_mount_tree = true %}
         {% end %}
       {% elsif in_target_node %}
         {% if s_stripped.starts_with?("property ") %}
@@ -555,6 +819,22 @@ macro node(decl, &block)
           {% is_abstract_class = true %}
         {% elsif anno_name == "StaticUnload" %}
           {% is_static_unload = true %}
+        {% elsif anno_name == "Autoload" %}
+          {% is_autoload_class = true %}
+          {% if stmt.named_args %}
+            {% for na in stmt.named_args %}
+              {% if na.name.stringify == "name" %}
+                {% autoload_name = na.value.is_a?(StringLiteral) ? na.value : na.value.id.stringify %}
+              {% elsif na.name.stringify == "singleton" %}
+                {% autoload_singleton = na.value %}
+              {% elsif na.name.stringify == "mount_tree" || na.name.stringify == "scene_tree" %}
+                {% autoload_mount_tree = na.value %}
+              {% end %}
+            {% end %}
+          {% end %}
+          {% if stmt.args.size > 0 %}
+            {% autoload_name = stmt.args[0].is_a?(StringLiteral) ? stmt.args[0] : stmt.args[0].id.stringify %}
+          {% end %}
         {% elsif anno_name == "ScriptPath" %}
           {% script_path_override = stmt.args[0].stringify %}
         {% elsif anno_name == "ExportCategory" %}
@@ -594,6 +874,9 @@ macro node(decl, &block)
           {% end %}
           {% props << {:subgroup, sub_name, pfx} %}
           {% last_anno = stmt %}
+        {% elsif anno_name == "OnSignal" %}
+          {% pending_on_signal_annos << stmt %}
+          {% last_anno = stmt %}
         {% elsif anno_name == "WarningIgnore" || anno_name == "WarningIgnoreStart" || anno_name == "WarningIgnoreRestore" %}
           # suppressed warning, no-op
         {% else %}
@@ -605,6 +888,24 @@ macro node(decl, &block)
       {% is_abstract_class = true %}
     {% elsif stmt.is_a?(Call) && stmt.name.stringify == "static_unload" %}
       {% is_static_unload = true %}
+    {% elsif stmt.is_a?(Call) && (stmt.name.stringify == "autoload" || stmt.name.stringify == "autoload_node") %}
+      {% is_autoload_class = true %}
+      {% if stmt.args.size > 0 %}
+        {% if stmt.args[0].is_a?(StringLiteral) %}
+          {% autoload_name = stmt.args[0] %}
+        {% end %}
+      {% end %}
+      {% if stmt.named_args %}
+        {% for na in stmt.named_args %}
+          {% if na.name.stringify == "name" %}
+            {% autoload_name = na.value.is_a?(StringLiteral) ? na.value : na.value.id.stringify %}
+          {% elsif na.name.stringify == "singleton" %}
+            {% autoload_singleton = na.value %}
+          {% elsif na.name.stringify == "mount_tree" || na.name.stringify == "scene_tree" %}
+            {% autoload_mount_tree = na.value %}
+          {% end %}
+        {% end %}
+      {% end %}
     {% elsif stmt.is_a?(Call) && stmt.name.stringify == "export_category" %}
       {% cat_name = stmt.args[0].is_a?(StringLiteral) ? stmt.args[0] : stmt.args[0].id.stringify %}
       {% props << {:category, cat_name, ""} %}
@@ -640,36 +941,126 @@ macro node(decl, &block)
       {% for g in stmt.args %}
         {% node_groups << (g.is_a?(StringLiteral) ? g : g.id.stringify) %}
       {% end %}
+    {% elsif stmt.is_a?(Include) %}
+      {% included_modules << stmt.name %}
     {% elsif stmt.is_a?(Call) && (stmt.name.stringify == "onready" || stmt.name.stringify == "node_ref" || stmt.name.stringify == "unique_node_ref" || stmt.name.stringify == "unique_node") %}
       {% is_unique_call = (stmt.name.stringify == "unique_node_ref" || stmt.name.stringify == "unique_node") %}
       {% if stmt.args.size == 1 %}
         {% o_decl = stmt.args[0] %}
-        {% if o_decl.is_a?(TypeDeclaration) %}
-          {% o_name = o_decl.var.stringify %}
-          {% o_path = o_decl.value ? (o_decl.value.is_a?(StringLiteral) ? o_decl.value : o_decl.value.id.stringify) : (is_unique_call ? "%#{o_name.camelcase}" : o_name) %}
-          {% if is_unique_call && !o_path.starts_with?('%') %}
-            {% o_path = "%" + o_path %}
-          {% end %}
-          {% o_t = o_decl.type %}
-          {% if o_t.is_a?(Union) %}
-            {% actual_o_t = o_t.types.reject { |sub_t| sub_t.stringify == "Nil" || sub_t.stringify == "::Nil" }[0] %}
-          {% else %}
-            {% actual_o_t = o_t %}
-          {% end %}
-          {% onready_props << {o_decl.var, actual_o_t, o_path} %}
-        {% end %}
+        {%
+          o_var = nil
+          o_type = nil
+          raw_val = nil
+
+          if o_decl.is_a?(TypeDeclaration)
+            o_var = o_decl.var
+            o_type = o_decl.type
+            raw_val = o_decl.value
+          elsif o_decl.is_a?(Assign)
+            o_var = o_decl.target
+            raw_val = o_decl.value
+            if raw_val.is_a?(Cast)
+              o_type = raw_val.to
+            elsif raw_val.is_a?(Call) && raw_val.name.stringify == "~"
+              operand = raw_val.receiver.is_a?(Nop) || !raw_val.receiver ? raw_val.args[0] : raw_val.receiver
+              if operand.is_a?(Cast)
+                o_type = operand.to
+              end
+            end
+          end
+
+          extracted_path = nil
+          curr = raw_val
+          if curr.is_a?(Cast)
+            curr = curr.obj
+            if curr.is_a?(Expressions) && curr.expressions.size == 1
+              curr = curr.expressions[0]
+            end
+          end
+          if curr.is_a?(Call) && curr.name.stringify == "~"
+            operand = curr.receiver.is_a?(Nop) || !curr.receiver ? curr.args[0] : curr.receiver
+            if operand.is_a?(Cast)
+              extracted_path = operand.obj
+            elsif operand.is_a?(Expressions) && operand.expressions.size == 1
+              extracted_path = operand.expressions[0]
+            else
+              extracted_path = operand
+            end
+          elsif curr.is_a?(Call) && curr.name.stringify == "as"
+            extracted_path = curr.receiver
+          else
+            extracted_path = curr
+          end
+
+          actual_o_t = nil
+          if o_type
+            if o_type.is_a?(Union)
+              actual_o_t = o_type.types.reject { |sub_t| sub_t.stringify == "Nil" || sub_t.stringify == "::Nil" }[0]
+            else
+              actual_o_t = o_type
+            end
+          else
+            actual_o_t = "Godot::Node".id
+          end
+          if actual_o_t.stringify.ends_with?("?")
+            actual_o_t = actual_o_t.stringify[0...-1].id
+          end
+          if !actual_o_t.stringify.includes?("::") && Godot.has_constant?(actual_o_t.stringify)
+            actual_o_t = "::Godot::#{actual_o_t}".id
+          end
+
+          if o_var
+            o_name = o_var.stringify
+            actual_class_name = actual_o_t.stringify.split("::").last
+            fallback_target = (actual_class_name != "Node" && !actual_class_name.empty?) ? actual_class_name : o_name.camelcase
+            o_path = extracted_path ? (extracted_path.is_a?(StringLiteral) ? extracted_path : extracted_path.id.stringify) : (is_unique_call ? "%#{fallback_target}" : fallback_target)
+            if is_unique_call && !o_path.starts_with?('%')
+              o_path = "%" + o_path
+            end
+            onready_props << {o_var, actual_o_t, o_path}
+          end
+        %}
       {% elsif stmt.args.size >= 2 %}
-        {% o_var = stmt.args[0] %}
-        {% o_type = stmt.args[1] %}
-        {% if stmt.args.size >= 3 %}
-          {% raw_p = stmt.args[2] %}
+        {% if stmt.args[0].is_a?(TypeDeclaration) %}
+          {% t_decl = stmt.args[0] %}
+          {% o_var = t_decl.var %}
+          {% raw_t = t_decl.type %}
+          {% if raw_t && raw_t.is_a?(Union) %}
+            {% o_type = raw_t.types.reject { |sub_t| sub_t.stringify == "Nil" || sub_t.stringify == "::Nil" }[0] %}
+          {% elsif raw_t %}
+            {% o_type = raw_t %}
+          {% else %}
+            {% o_type = "Godot::Node".id %}
+          {% end %}
+          {% raw_p = stmt.args[1] %}
           {% o_path = raw_p.is_a?(StringLiteral) ? raw_p : raw_p.id.stringify %}
         {% else %}
-          {% o_path = is_unique_call ? "%#{o_var.id.stringify.camelcase}" : o_var.id.stringify.camelcase %}
+          {% o_var = stmt.args[0] %}
+          {% o_type = stmt.args[1] %}
+          {% if stmt.args.size >= 3 %}
+            {% raw_p = stmt.args[2] %}
+            {% o_path = raw_p.is_a?(StringLiteral) ? raw_p : raw_p.id.stringify %}
+          {% else %}
+            {%
+              type_class_name = o_type.stringify.split("::").last
+              fallback_target = (type_class_name != "Node" && !type_class_name.empty?) ? type_class_name : o_var.id.stringify.camelcase
+              o_path = is_unique_call ? "%#{fallback_target}" : fallback_target
+            %}
+          {% end %}
         {% end %}
         {% if is_unique_call && !o_path.starts_with?('%') %}
           {% o_path = "%" + o_path %}
         {% end %}
+        {%
+          if o_type.is_a?(Union)
+            o_type = o_type.types.reject { |sub_t| sub_t.stringify == "Nil" || sub_t.stringify == "::Nil" }[0]
+          elsif o_type.stringify.ends_with?("?")
+            o_type = o_type.stringify[0...-1].id
+          end
+          if !o_type.stringify.includes?("::") && Godot.has_constant?(o_type.stringify)
+            o_type = "::Godot::#{o_type}".id
+          end
+        %}
         {% onready_props << {o_var, o_type, o_path} %}
       {% end %}
     {% elsif stmt.is_a?(StringLiteral) && class_doc.empty? %}
@@ -792,6 +1183,35 @@ macro node(decl, &block)
       {% end %}
       {%
         m_name_str = stmt.name.stringify
+        d_types = [] of ASTNode
+        stmt.args.each do |d_arg|
+          if d_arg.restriction && !d_arg.restriction.is_a?(Nop)
+            d_types << d_arg.restriction
+          end
+        end
+        def_param_types[m_name_str] = d_types
+        pending_on_signal_annos.each do |os_anno|
+          if os_anno.args.size > 0
+            os_sig_arg = os_anno.args[0]
+            os_sig_name = if os_sig_arg.is_a?(SymbolLiteral) || os_sig_arg.is_a?(StringLiteral)
+                            os_sig_arg.id.stringify
+                          elsif os_sig_arg.is_a?(Call)
+                            os_sig_arg.name.stringify.gsub(/_slot$/, "")
+                          else
+                            os_sig_arg.id.stringify.gsub(/^:/, "").gsub(/_slot$/, "")
+                          end
+            os_once = false
+            if os_anno.named_args
+              os_anno.named_args.each do |na|
+                if na.name.stringify == "once"
+                  os_once = na.value
+                end
+              end
+            end
+            self_static_signals << {:anno_method, os_sig_name, stmt.name, d_types, os_once}
+          end
+        end
+        pending_on_signal_annos = [] of ASTNode
         is_lifecycle_cb = (m_name_str == "_ready" || m_name_str == "_process" || m_name_str == "_physics_process" || m_name_str == "_enter_tree" || m_name_str == "_exit_tree" || m_name_str == "_build")
         m_doc = extracted_method_docs[m_name_str] || (stmt.doc_comment ? stmt.doc_comment.stringify : "") || ""
       %}
@@ -889,22 +1309,80 @@ macro node(decl, &block)
         {% end %}
         {% props << {:prop, stmt.args[0], last_anno, p_doc} %}
       {% end %}
+      {% pending_on_signal_annos = [] of ASTNode %}
       {% last_anno = nil %}
     {% elsif stmt.is_a?(Call) && stmt.name.id == "signal" %}
       {%
         s_item = stmt.args[0]
         s_name_str = (s_item.is_a?(Call) ? s_item.name : s_item).stringify
         s_doc = extracted_sig_docs[s_name_str] || ""
+        s_types = [] of ASTNode
+        if s_item.is_a?(Call)
+          s_item.args.each do |s_arg|
+            if s_arg.is_a?(TypeDeclaration)
+              s_types << s_arg.type
+            else
+              s_types << s_arg
+            end
+          end
+        end
+        sig_param_types[s_name_str] = s_types
+        pending_on_signal_annos = [] of ASTNode
       %}
       {% sigs << {stmt.args[0], s_doc} %}
       {% last_anno = nil %}
+    {% elsif stmt.is_a?(Call) && stmt.name.stringify == "on_signal" %}
+      {%
+        os_once = false
+        if stmt.named_args
+          stmt.named_args.each do |na|
+            if na.name.stringify == "once"
+              os_once = na.value
+            end
+          end
+        end
+        has_blk = (stmt.block && !stmt.block.is_a?(Nop))
+        first_arg = stmt.args.size > 0 ? stmt.args[0] : nil
+        is_self_sig = false
+        if first_arg
+          if first_arg.stringify == "self"
+            is_self_sig = true
+          elsif first_arg.is_a?(Call) && first_arg.receiver && !first_arg.receiver.is_a?(Nop) && first_arg.receiver.stringify != "self"
+            is_self_sig = false
+          elsif (stmt.args.size == 1 && has_blk) || (stmt.args.size == 2 && !has_blk)
+            is_self_sig = true
+          end
+        end
+
+        if is_self_sig
+          sig_arg = (first_arg.stringify == "self" && stmt.args.size > 1) ? stmt.args[1] : first_arg
+          sig_name_str = if sig_arg.is_a?(SymbolLiteral) || sig_arg.is_a?(StringLiteral)
+                           sig_arg.id.stringify
+                         elsif sig_arg.is_a?(Call)
+                           sig_arg.name.stringify.gsub(/_slot$/, "")
+                         else
+                           sig_arg.id.stringify.gsub(/^:/, "").gsub(/_slot$/, "")
+                         end
+          if has_blk
+            self_static_signals << {:self_block, sig_name_str, stmt.block, os_once}
+          else
+            cb_arg = (first_arg.stringify == "self") ? stmt.args[2] : stmt.args[1]
+            self_static_signals << {:self_cb, sig_name_str, cb_arg, os_once}
+          end
+        else
+          ready_static_signals << stmt
+        end
+        pending_on_signal_annos = [] of ASTNode
+        last_anno = nil
+      %}
     {% else %}
+      {% pending_on_signal_annos = [] of ASTNode %}
       {% last_anno = nil %}
     {% end %}
     {% end %}
   {% end %}
 
-  {% if onready_props.size > 0 || rpc_methods.size > 0 %}
+  {% if onready_props.size > 0 || rpc_methods.size > 0 || ready_static_signals.size > 0 %}
     {% has_ready = true %}
   {% end %}
 
@@ -915,10 +1393,13 @@ macro node(decl, &block)
         proc_tb_names << tb[0].stringify
       end
     end
+    if autoload_name.empty?
+      autoload_name = class_name.stringify.split("::").last
+    end
   %}
 
   @[GodotClass]
-  class {{class_name}} < {{parent_name}}
+  class {{class_name}} {% unless is_reopen %} < {{parent_name}} {% end %}
     def self.godot_class_name : String
       "{{class_name}}"
     end
@@ -926,6 +1407,134 @@ macro node(decl, &block)
     def self.godot_parent_class_name : String
       {{base_godot_name}}
     end
+
+    macro create(**kwargs, &block)
+      ::create(\{{@type}}, \{{kwargs.double_splat}}) \{{block}}
+    end
+
+    macro build(**kwargs, &block)
+      ::create(\{{@type}}, \{{kwargs.double_splat}}) \{{block}}
+    end
+
+    def self.new(&block : self ->) : self
+      inst = ::Godot.create(self)
+      with inst yield inst
+      inst
+    end
+
+    {% if is_autoload_class %}
+      @@autoload_instance : {{class_name}}? = nil
+
+      # Returns the active Autoload singleton instance of this node.
+      # Raises if the node has not been instantiated or initialized yet.
+      def self.instance : {{class_name}}
+        @@autoload_instance || raise "Autoload {{class_name}} has not been instantiated or initialized yet."
+      end
+
+      # Returns the active Autoload singleton instance of this node, or nil if not initialized.
+      def self.instance? : {{class_name}}?
+        @@autoload_instance
+      end
+
+      # Internal hook used by AutoloadManager to bind or unbind the instance.
+      def self._godot_set_autoload_instance(inst : ::Godot::Object?) : Void
+        @@autoload_instance = inst.as?({{class_name}})
+      end
+
+      {% for m in user_methods %}
+      def self.{{m.id}}(*args, **kwargs)
+        instance.{{m.id}}(*args, **kwargs)
+      end
+      {% end %}
+    {% end %}
+
+    {% if parent_name.stringify == "ResourceFormatLoader" || parent_name.stringify.ends_with?("::ResourceFormatLoader") %}
+      @@_auto_loader_instance : {{class_name}}? = nil
+
+      def self.ensure_registered : Void
+        return if @@_auto_loader_instance
+        if loader = ::Godot.create({{class_name}})
+          @@_auto_loader_instance = loader
+          rl_ptr = ::Godot::Bridge.get_singleton("ResourceLoader")
+          unless rl_ptr.null?
+            r_loader = ::Godot::ResourceLoader.new(rl_ptr)
+            begin
+              r_loader.add_resource_format_loader(loader, false)
+            rescue
+              r_loader.call("add_resource_format_loader", loader, false) rescue nil
+            end
+          end
+        end
+      end
+
+      def self.unregister : Void
+        loader = @@_auto_loader_instance
+        @@_auto_loader_instance = nil
+        return unless loader && !loader.pointer.null?
+
+        rl_ptr = ::Godot::Bridge.get_singleton("ResourceLoader")
+        unless rl_ptr.null?
+          r_loader = ::Godot::ResourceLoader.new(rl_ptr)
+          begin
+            r_loader.remove_resource_format_loader(loader)
+          rescue
+            r_loader.call("remove_resource_format_loader", loader) rescue nil
+          end
+        end
+
+        if loader.alive?
+          if loader.is_a?(::Godot::RefCounted)
+            loader.unreference rescue nil
+          else
+            loader.destroy rescue nil
+          end
+        end
+      end
+    {% end %}
+
+    {% if parent_name.stringify == "ResourceFormatSaver" || parent_name.stringify.ends_with?("::ResourceFormatSaver") %}
+      @@_auto_saver_instance : {{class_name}}? = nil
+
+      def self.ensure_registered : Void
+        return if @@_auto_saver_instance
+        if saver = ::Godot.create({{class_name}})
+          @@_auto_saver_instance = saver
+          rs_ptr = ::Godot::Bridge.get_singleton("ResourceSaver")
+          unless rs_ptr.null?
+            r_saver = ::Godot::ResourceSaver.new(rs_ptr)
+            begin
+              r_saver.add_resource_format_saver(saver, false)
+            rescue
+              r_saver.call("add_resource_format_saver", saver, false) rescue nil
+            end
+          end
+        end
+      end
+
+      def self.unregister : Void
+        saver = @@_auto_saver_instance
+        @@_auto_saver_instance = nil
+        return unless saver && !saver.pointer.null?
+
+        rs_ptr = ::Godot::Bridge.get_singleton("ResourceSaver")
+        unless rs_ptr.null?
+          r_saver = ::Godot::ResourceSaver.new(rs_ptr)
+          begin
+            r_saver.remove_resource_format_saver(saver)
+          rescue
+            r_saver.call("remove_resource_format_saver", saver) rescue nil
+          end
+        end
+
+        if saver.alive?
+          if saver.is_a?(::Godot::RefCounted)
+            saver.unreference rescue nil
+          else
+            saver.destroy rescue nil
+          end
+        end
+      end
+    {% end %}
 
     def self._godot_has_virtual_method(method_name : String) : Bool
       norm = method_name.starts_with?('_') ? method_name : "_#{method_name}"
@@ -942,7 +1551,11 @@ macro node(decl, &block)
         {% end %}
       {% end %}
       else
-        super
+        {% if is_reopen %}
+          previous_def
+        {% else %}
+          super
+        {% end %}
       end
     end
 
@@ -1002,11 +1615,149 @@ macro node(decl, &block)
       end
     {% end %}
 
+    # DSL directives for in-body autoload configuration
+    macro autoload(*args, **kwargs)
+    end
+
+    macro autoload_node(*args, **kwargs)
+    end
+
     # Macro block containing fields, signals, and methods
     {{ yield }}
 
+    {% if self_static_signals.size > 0 %}
+      @[ZeroAllocation]
+      def _godot_bind_static_signals_impl(tid : UInt64) : Void
+        {% if is_reopen %}
+          previous_def(tid)
+        {% else %}
+          super(tid)
+        {% end %}
+        {% for entry in self_static_signals %}
+          {% kind = entry[0] %}
+          {% if kind == :anno_method %}
+            {%
+              os_sig_name = entry[1]
+              m_name = entry[2]
+              d_types = entry[3]
+              os_once = entry[4]
+              p_types = d_types.size > 0 ? d_types : (sig_param_types[os_sig_name] || ([] of ASTNode))
+            %}
+            {% if p_types.size > 0 %}
+              ::Lapis::Core::StaticSignalTable.global.bind_by_hash(
+                tid,
+                ::Lapis::Core::StaticSignalTable.hash_signal_name({{os_sig_name}}),
+                ->self.{{m_name.id}}({{p_types.splat}}),
+                once: {{os_once}}
+              )
+            {% else %}
+              ::Lapis::Core::StaticSignalTable.global.bind_by_hash(
+                tid,
+                ::Lapis::Core::StaticSignalTable.hash_signal_name({{os_sig_name}}),
+                ->self.{{m_name.id}},
+                once: {{os_once}}
+              )
+            {% end %}
+          {% elsif kind == :self_cb %}
+            {%
+              os_sig_name = entry[1]
+              cb_arg = entry[2]
+              os_once = entry[3]
+            %}
+            {% if cb_arg.is_a?(ProcPointer) %}
+              {%
+                m_name = cb_arg.name
+                m_obj = (cb_arg.obj.is_a?(Nop) || !cb_arg.obj) ? "self".id : cb_arg.obj
+                p_types = if cb_arg.args.size > 0
+                            cb_arg.args
+                          elsif def_param_types[m_name.stringify] && def_param_types[m_name.stringify].size > 0
+                            def_param_types[m_name.stringify]
+                          elsif sig_param_types[os_sig_name]
+                            sig_param_types[os_sig_name]
+                          else
+                            [] of ASTNode
+                          end
+              %}
+              {% if p_types.size > 0 %}
+                ::Lapis::Core::StaticSignalTable.global.bind_by_hash(
+                  tid,
+                  ::Lapis::Core::StaticSignalTable.hash_signal_name({{os_sig_name}}),
+                  ->{{m_obj}}.{{m_name.id}}({{p_types.splat}}),
+                  once: {{os_once}}
+                )
+              {% else %}
+                ::Lapis::Core::StaticSignalTable.global.bind_by_hash(
+                  tid,
+                  ::Lapis::Core::StaticSignalTable.hash_signal_name({{os_sig_name}}),
+                  ->{{m_obj}}.{{m_name.id}},
+                  once: {{os_once}}
+                )
+              {% end %}
+            {% elsif cb_arg.is_a?(SymbolLiteral) %}
+              {%
+                m_name_str = cb_arg.id.stringify
+                p_types = if def_param_types[m_name_str] && def_param_types[m_name_str].size > 0
+                            def_param_types[m_name_str]
+                          elsif sig_param_types[os_sig_name]
+                            sig_param_types[os_sig_name]
+                          else
+                            [] of ASTNode
+                          end
+              %}
+              {% if p_types.size > 0 %}
+                ::Lapis::Core::StaticSignalTable.global.bind_by_hash(
+                  tid,
+                  ::Lapis::Core::StaticSignalTable.hash_signal_name({{os_sig_name}}),
+                  ->self.{{m_name_str.id}}({{p_types.splat}}),
+                  once: {{os_once}}
+                )
+              {% else %}
+                ::Lapis::Core::StaticSignalTable.global.bind_by_hash(
+                  tid,
+                  ::Lapis::Core::StaticSignalTable.hash_signal_name({{os_sig_name}}),
+                  ->self.{{m_name_str.id}},
+                  once: {{os_once}}
+                )
+              {% end %}
+            {% else %}
+              ::Lapis::Core::StaticSignalTable.global.bind_by_hash(
+                tid,
+                ::Lapis::Core::StaticSignalTable.hash_signal_name({{os_sig_name}}),
+                {{cb_arg}},
+                once: {{os_once}}
+              )
+            {% end %}
+          {% elsif kind == :self_block %}
+            {%
+              os_sig_name = entry[1]
+              blk = entry[2]
+              os_once = entry[3]
+              s_types = sig_param_types[os_sig_name]
+            %}
+            {% if s_types %}
+              bind_{{os_sig_name.id}}(once: {{os_once}}) {{blk}}
+            {% else %}
+              if responds_to?(:bind_{{os_sig_name.id}})
+                bind_{{os_sig_name.id}}(once: {{os_once}}) {{blk}}
+              else
+                ::Lapis::Core::StaticSignalTable.global.connect(tid, {{os_sig_name}}, once: {{os_once}}) {{blk}}
+              end
+            {% end %}
+          {% end %}
+        {% end %}
+      end
+    {% end %}
+
+    {% if ready_static_signals.size > 0 %}
+      def _godot_bind_ready_signals : Void
+        {% for r_stmt in ready_static_signals %}
+          {{r_stmt}}
+        {% end %}
+      end
+    {% end %}
+
     {% if onready_props.size > 0 %}
-      private def _godot_init_onready_properties : Void
+      def _godot_init_onready_properties : Void
         {% for item in onready_props %}
           {% v_name = item[0] %}
           {% v_type = item[1] %}
@@ -1051,6 +1802,12 @@ macro node(decl, &block)
           {% if onready_props.size > 0 %}
             _godot_init_onready_properties
           {% end %}
+          {% if self_static_signals.size > 0 %}
+            _godot_bind_static_signals
+          {% end %}
+          {% if ready_static_signals.size > 0 %}
+            _godot_bind_ready_signals
+          {% end %}
           {% if rpc_methods.size > 0 %}
             _godot_setup_rpc_configs
           {% end %}
@@ -1062,15 +1819,23 @@ macro node(decl, &block)
           ::Godot::ThreadSafety.flush_main_thread_queue!
           _physics_process(delta) if responds_to?(:_physics_process)
         else
-          super
+          {% if is_reopen %}
+            previous_def
+          {% else %}
+            super
+          {% end %}
         end
       end
     end
 
-    {% if !has_custom_virtual_with_data && (has_input || has_unhandled_input || has_unhandled_key_input || has_shortcut_input || has_gui_input) %}
+    {% if !has_custom_virtual_with_data && (has_input || has_unhandled_input || has_unhandled_key_input || has_shortcut_input || has_gui_input || user_methods.size > 0) %}
     def _godot_call_virtual_with_data(method_name : String, args : Void**, ret : Void*) : Void
       ::Godot::NodeContext.scope(self) do
         case method_name
+        {% for m in user_methods %}
+        when {{m.stringify}}
+          {{m.id}}
+        {% end %}
         {% if has_input %}
         when "_input", "input"
           if !args.null? && !args[0].null?
@@ -1102,7 +1867,11 @@ macro node(decl, &block)
           end
         {% end %}
         else
-          super
+          {% if is_reopen %}
+            previous_def
+          {% else %}
+            super
+          {% end %}
         end
       end
     end
@@ -1118,7 +1887,11 @@ macro node(decl, &block)
           Pointer(Void).null
         {% end %}
         else
-          super
+          {% if is_reopen %}
+            previous_def
+          {% else %}
+            super
+          {% end %}
         end
       end
     end
@@ -1130,7 +1903,46 @@ macro node(decl, &block)
         {% if item[0] == :prop %}
           {% arg = item[1] %}
           {% var_name = arg.is_a?(Assign) ? arg.target : arg.var %}
-          {% var_type = arg.is_a?(Assign) ? "Callable" : (arg.type ? arg.type.stringify.gsub(/^(::)?Godot::/, "") : "Callable") %}
+          {%
+            if arg.is_a?(Assign)
+              val = arg.value
+              if val.is_a?(NumberLiteral)
+                k = val.kind.stringify
+                if k == ":f32" || k == "f32"
+                  var_type = "Float32"
+                elsif k.includes?("f") || val.stringify.includes?(".")
+                  var_type = "Float64"
+                elsif k.includes?("i64") || k.includes?("u64")
+                  var_type = "Int64"
+                else
+                  var_type = "Int32"
+                end
+              elsif val.is_a?(StringLiteral)
+                var_type = "String"
+              elsif val.is_a?(BoolLiteral)
+                var_type = "Bool"
+              elsif val.is_a?(Call)
+                rec = val.receiver ? val.receiver.stringify.gsub(/^(::)?Godot::/, "") : val.name.stringify.gsub(/^(::)?Godot::/, "")
+                if ["Vector2", "Vector2i", "Vector3", "Vector3i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis"].includes?(rec)
+                  var_type = rec
+                elsif ["Proc", "proc", "lambda", "Callable"].includes?(rec)
+                  var_type = "Callable"
+                else
+                  var_type = "Variant"
+                end
+              elsif val.is_a?(Path)
+                var_type = val.stringify.gsub(/^(::)?Godot::/, "")
+              elsif val.is_a?(ProcPointer) || val.is_a?(ProcLiteral)
+                var_type = "Callable"
+              else
+                var_type = "Variant"
+              end
+            elsif arg.type
+              var_type = arg.type.stringify.gsub(/^(::)?Godot::/, "")
+            else
+              var_type = "Variant"
+            end
+          %}
           when "{{var_name.id}}"
             {% if var_type == "Float32" %}
               self.{{var_name.id}} = val_ptr.as(Float64*).value.to_f32
@@ -1165,7 +1977,11 @@ macro node(decl, &block)
         {% end %}
       {% end %}
       else
-        super
+        {% if is_reopen %}
+          previous_def
+        {% else %}
+          super
+        {% end %}
       end
     end
 
@@ -1175,7 +1991,46 @@ macro node(decl, &block)
         {% if item[0] == :prop %}
           {% arg = item[1] %}
           {% var_name = arg.is_a?(Assign) ? arg.target : arg.var %}
-          {% var_type = arg.is_a?(Assign) ? "Callable" : (arg.type ? arg.type.stringify.gsub(/^(::)?Godot::/, "") : "Callable") %}
+          {%
+            if arg.is_a?(Assign)
+              val = arg.value
+              if val.is_a?(NumberLiteral)
+                k = val.kind.stringify
+                if k == ":f32" || k == "f32"
+                  var_type = "Float32"
+                elsif k.includes?("f") || val.stringify.includes?(".")
+                  var_type = "Float64"
+                elsif k.includes?("i64") || k.includes?("u64")
+                  var_type = "Int64"
+                else
+                  var_type = "Int32"
+                end
+              elsif val.is_a?(StringLiteral)
+                var_type = "String"
+              elsif val.is_a?(BoolLiteral)
+                var_type = "Bool"
+              elsif val.is_a?(Call)
+                rec = val.receiver ? val.receiver.stringify.gsub(/^(::)?Godot::/, "") : val.name.stringify.gsub(/^(::)?Godot::/, "")
+                if ["Vector2", "Vector2i", "Vector3", "Vector3i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis"].includes?(rec)
+                  var_type = rec
+                elsif ["Proc", "proc", "lambda", "Callable"].includes?(rec)
+                  var_type = "Callable"
+                else
+                  var_type = "Variant"
+                end
+              elsif val.is_a?(Path)
+                var_type = val.stringify.gsub(/^(::)?Godot::/, "")
+              elsif val.is_a?(ProcPointer) || val.is_a?(ProcLiteral)
+                var_type = "Callable"
+              else
+                var_type = "Variant"
+              end
+            elsif arg.type
+              var_type = arg.type.stringify.gsub(/^(::)?Godot::/, "")
+            else
+              var_type = "Variant"
+            end
+          %}
           when "{{var_name.id}}"
             {% if var_type == "Float32" || var_type == "Float64" %}
               ret_ptr.as(Float64*).value = self.{{var_name.id}}.to_f64
@@ -1205,7 +2060,11 @@ macro node(decl, &block)
         {% end %}
       {% end %}
       else
-        super
+        {% if is_reopen %}
+          previous_def
+        {% else %}
+          super
+        {% end %}
       end
     end
 
@@ -1222,46 +2081,21 @@ macro node(decl, &block)
         {% end %}
       {% end %}
       else
-        super
-      end
-    end
-
-    macro finished
-      def self._godot_module_properties : ::Array(::Godot::PropertyInfo)
-        props_list = ::Array(::Godot::PropertyInfo).new
-        \{% for anc in @type.ancestors %}
-          \{% if anc.resolve.methods.map(&.name.stringify).includes?("_godot_module_properties") %}
-            props_list.concat(\{{anc.resolve}}._godot_module_properties)
-          \{% end %}
-        \{% end %}
-        props_list
-      end
-
-      def self._godot_module_signals : ::Array(::Godot::SignalInfo)
-        sigs_list = ::Array(::Godot::SignalInfo).new
-        \{% for anc in @type.ancestors %}
-          \{% if anc.resolve.methods.map(&.name.stringify).includes?("_godot_module_signals") %}
-            sigs_list.concat(\{{anc.resolve}}._godot_module_signals)
-          \{% end %}
-        \{% end %}
-        sigs_list
-      end
-
-      def self._godot_module_constants : ::Array(::Godot::ConstantInfo)
-        consts_list = ::Array(::Godot::ConstantInfo).new
-        \{% for anc in @type.ancestors %}
-          \{% if anc.resolve.methods.map(&.name.stringify).includes?("_godot_module_constants") %}
-            consts_list.concat(\{{anc.resolve}}._godot_module_constants)
-          \{% end %}
-        \{% end %}
-        consts_list
+        {% if is_reopen %}
+          previous_def
+        {% else %}
+          super
+        {% end %}
       end
     end
   end
 
-  # Auto-register this node with full property and signal metadata
   properties_{{class_name}} = Array(::Godot::PropertyInfo).new
   constants_{{class_name}} = Array(::Godot::ConstantInfo).new
+  methods_{{class_name}} = Array(String).new
+  {% for m in user_methods %}
+    methods_{{class_name}} << {{m.stringify}}
+  {% end %}
   {% for c in class_constants %}
     constants_{{class_name}} << ::Godot::ConstantInfo.new(
       {{c[0]}},
@@ -1311,7 +2145,46 @@ macro node(decl, &block)
       {% arg = item[1] %}
       {% anno = item[2] %}
       {% var_name = arg.is_a?(Assign) ? arg.target : arg.var %}
-      {% var_type = arg.is_a?(Assign) ? "Callable" : (arg.type ? arg.type.stringify.gsub(/^(::)?Godot::/, "") : "Callable") %}
+      {%
+        if arg.is_a?(Assign)
+          val = arg.value
+          if val.is_a?(NumberLiteral)
+            k = val.kind.stringify
+            if k == ":f32" || k == "f32"
+              var_type = "Float32"
+            elsif k.includes?("f") || val.stringify.includes?(".")
+              var_type = "Float64"
+            elsif k.includes?("i64") || k.includes?("u64")
+              var_type = "Int64"
+            else
+              var_type = "Int32"
+            end
+          elsif val.is_a?(StringLiteral)
+            var_type = "String"
+          elsif val.is_a?(BoolLiteral)
+            var_type = "Bool"
+          elsif val.is_a?(Call)
+            rec = val.receiver ? val.receiver.stringify.gsub(/^(::)?Godot::/, "") : val.name.stringify.gsub(/^(::)?Godot::/, "")
+            if ["Vector2", "Vector2i", "Vector3", "Vector3i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis"].includes?(rec)
+              var_type = rec
+            elsif ["Proc", "proc", "lambda", "Callable"].includes?(rec)
+              var_type = "Callable"
+            else
+              var_type = "Variant"
+            end
+          elsif val.is_a?(Path)
+            var_type = val.stringify.gsub(/^(::)?Godot::/, "")
+          elsif val.is_a?(ProcPointer) || val.is_a?(ProcLiteral)
+            var_type = "Callable"
+          else
+            var_type = "Variant"
+          end
+        elsif arg.type
+          var_type = arg.type.stringify.gsub(/^(::)?Godot::/, "")
+        else
+          var_type = "Variant"
+        end
+      %}
       {%
         vtype = 0
         hint = 0
@@ -1389,7 +2262,10 @@ macro node(decl, &block)
           {% if anno.named_args %}
             {% for key, val in anno.named_args %}
               {% k_str = key.stringify %}
-              {% if k_str == "range" %}
+              {% if k_str == "type" || k_str == "resource_type" %}
+                {% hint = 17 %}
+                {% hint_str = val.id.stringify %}
+              {% elsif k_str == "range" %}
                 {% hint = 1 %}
                 {% b_id = val.begin.id.gsub(/_[a-z0-9]+/, "") %}
                 {% e_id = val.end.id.gsub(/_[a-z0-9]+/, "") %}
@@ -1711,12 +2587,23 @@ macro node(decl, &block)
           {% end %}
         {% end %}
       {% end %}
+      {%
+        type_str = var_type.id.stringify
+        parts = type_str.split("|")
+        clean_t = parts[0].gsub(/\?/, "").gsub(/[\(\)]/, "").strip.gsub(/^(::)?Godot::/, "")
+        final_hint = hint || 0
+        final_hint_str = hint_str || ""
+        if vtype == 24 && final_hint == 0 && !clean_t.empty? && clean_t != "Object" && clean_t != "Variant" && clean_t != "Node" && clean_t != "RefCounted"
+          final_hint = 17
+          final_hint_str = clean_t
+        end
+      %}
       properties_{{class_name}} << ::Godot::PropertyInfo.new(
         "{{var_name.id}}",
-        "{{hint == 39 ? "Callable".id : var_type.id}}",
+        "{{hint == 39 ? "Callable".id : clean_t.id}}",
         {{vtype}},
-        {{hint || 0}}_u32,
-        "{{hint_str.id}}",
+        {{final_hint}}_u32,
+        "{{final_hint_str.id}}",
         {{prop_usage || 6}}_u32
       )
     {% end %}
@@ -1758,9 +2645,33 @@ macro node(decl, &block)
     signals_{{class_name}} << ::Godot::SignalInfo.new("{{sig_name.id}}", args_{{sig_name.id}})
   {% end %}
 
-  properties_{{class_name}}.concat({{class_name}}._godot_module_properties)
-  constants_{{class_name}}.concat({{class_name}}._godot_module_constants)
-  signals_{{class_name}}.concat({{class_name}}._godot_module_signals)
+  {% for inc in included_modules %}
+    {% if inc.resolve.methods.map(&.name.stringify).includes?("_godot_module_properties") %}
+      properties_{{class_name}}.concat({{inc}}._godot_module_properties)
+    {% end %}
+    {% if inc.resolve.methods.map(&.name.stringify).includes?("_godot_module_constants") %}
+      constants_{{class_name}}.concat({{inc}}._godot_module_constants)
+    {% end %}
+    {% if inc.resolve.methods.map(&.name.stringify).includes?("_godot_module_signals") %}
+      signals_{{class_name}}.concat({{inc}}._godot_module_signals)
+    {% end %}
+  {% end %}
+
+  {% if parent_name.is_a?(Path) && parent_name.resolve? %}
+    {% for anc in parent_name.resolve.ancestors %}
+      {% if anc.annotation(::GodotModule) %}
+        {{anc}}._godot_module_properties.each do |mp|
+          properties_{{class_name}} << mp unless properties_{{class_name}}.any? { |ep| ep.name == mp.name }
+        end
+        {{anc}}._godot_module_constants.each do |mc|
+          constants_{{class_name}} << mc unless constants_{{class_name}}.any? { |ec| ec.name == mc.name }
+        end
+        {{anc}}._godot_module_signals.each do |ms|
+          signals_{{class_name}} << ms unless signals_{{class_name}}.any? { |es| es.name == ms.name }
+        end
+      {% end %}
+    {% end %}
+  {% end %}
 
   {% if script_path_override && !script_path_override.empty? %}
     script_path_{{class_name}} = {{script_path_override}}
@@ -1803,7 +2714,15 @@ macro node(decl, &block)
       {% end %}
       has_virtual_proc: ->(m : String) { {{class_name}}._godot_has_virtual_method(m) },
       constants: constants_{{class_name}},
-      script_path: script_path_{{class_name}}
+      methods: methods_{{class_name}},
+      script_path: script_path_{{class_name}},
+      is_autoload: {{is_autoload_class}},
+      autoload_name: {{autoload_name}},
+      autoload_singleton: {{autoload_singleton}},
+      autoload_mount_tree: {{autoload_mount_tree}},
+      set_autoload_proc: {% if is_autoload_class %} ->(obj : ::Godot::Object?) { {{class_name}}._godot_set_autoload_instance(obj) } {% else %} nil {% end %},
+      init_proc: {% if parent_name.stringify == "ResourceFormatLoader" || parent_name.stringify.ends_with?("::ResourceFormatLoader") || parent_name.stringify == "ResourceFormatSaver" || parent_name.stringify.ends_with?("::ResourceFormatSaver") %} ->{ {{class_name}}.ensure_registered rescue nil } {% else %} nil {% end %},
+      deinit_proc: {% if parent_name.stringify == "ResourceFormatLoader" || parent_name.stringify.ends_with?("::ResourceFormatLoader") || parent_name.stringify == "ResourceFormatSaver" || parent_name.stringify.ends_with?("::ResourceFormatSaver") %} ->{ {{class_name}}.unregister rescue nil } {% else %} nil {% end %}
     )
   )
 
@@ -1829,7 +2748,46 @@ macro node(decl, &block)
         {% arg = item[1] %}
         {% p_doc = item[3] %}
         {% var_name = arg.is_a?(Assign) ? arg.target : arg.var %}
-        {% var_type = arg.is_a?(Assign) ? "Callable" : (arg.type ? arg.type.stringify.gsub(/^(::)?Godot::/, "") : "Callable") %}
+        {%
+          if arg.is_a?(Assign)
+            val = arg.value
+            if val.is_a?(NumberLiteral)
+              k = val.kind.stringify
+              if k == ":f32" || k == "f32"
+                var_type = "Float32"
+              elsif k.includes?("f") || val.stringify.includes?(".")
+                var_type = "Float64"
+              elsif k.includes?("i64") || k.includes?("u64")
+                var_type = "Int64"
+              else
+                var_type = "Int32"
+              end
+            elsif val.is_a?(StringLiteral)
+              var_type = "String"
+            elsif val.is_a?(BoolLiteral)
+              var_type = "Bool"
+            elsif val.is_a?(Call)
+              rec = val.receiver ? val.receiver.stringify.gsub(/^(::)?Godot::/, "") : val.name.stringify.gsub(/^(::)?Godot::/, "")
+              if ["Vector2", "Vector2i", "Vector3", "Vector3i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis"].includes?(rec)
+                var_type = rec
+              elsif ["Proc", "proc", "lambda", "Callable"].includes?(rec)
+                var_type = "Callable"
+              else
+                var_type = "Variant"
+              end
+            elsif val.is_a?(Path)
+              var_type = val.stringify.gsub(/^(::)?Godot::/, "")
+            elsif val.is_a?(ProcPointer) || val.is_a?(ProcLiteral)
+              var_type = "Callable"
+            else
+              var_type = "Variant"
+            end
+          elsif arg.type
+            var_type = arg.type.stringify.gsub(/^(::)?Godot::/, "")
+          else
+            var_type = "Variant"
+          end
+        %}
         {%
           gtype = "Variant"
           if var_type == "Float32" || var_type == "Float64"
@@ -1995,12 +2953,92 @@ end
 macro resource(decl, &block)
   {% if decl.is_a?(Call) && decl.name == "<" %}
     node {{decl}} do
-      {{yield}}
+      {{block.body}}
     end
   {% else %}
-    node {{decl}} < Resource do
-      {{yield}}
+    {% if decl.resolve? %}
+      node {{decl}} do
+        {{block.body}}
+      end
+    {% else %}
+      node {{decl}} < Resource do
+        {{block.body}}
+      end
+    {% end %}
+  {% end %}
+end
+
+# Declares a custom Resource strategy card.
+#
+# Custom Resources inheriting from Godot::Resource act as pluggable strategy objects
+# and data containers (e.g. inventory items, ability cards, weapon stats).
+#
+# ### Example:
+# ```crystal
+# resource_card WeaponCard < Resource do
+#   @[Export]
+#   property damage : Int32 = 50
+#   @[Export]
+#   property cooldown : Float32 = 1.0_f32
+#
+#   def use(target : CharacterBody2D) : Void
+#     # strategy implementation
+#   end
+# end
+# ```
+macro resource_card(decl)
+  resource_card {{decl}} do
+  end
+end
+
+macro resource_card(decl, &block)
+  {% if decl.is_a?(Call) && decl.name == "<" %}
+    node {{decl}} do
+      {{block.body}}
+
+      # Creates an independent deep clone of this resource card
+      def clone_card : self
+        dup_res = self.duplicate(true)
+        if alive = ::Godot::Bridge.find_alive_instance(dup_res.pointer)
+          if typed = alive.as?(self)
+            return typed
+          end
+        end
+        self.class.new(dup_res.pointer)
+      end
     end
+  {% else %}
+    {% if decl.resolve? %}
+      node {{decl}} do
+        {{block.body}}
+
+        # Creates an independent deep clone of this resource card
+        def clone_card : self
+          dup_res = self.duplicate(true)
+          if alive = ::Godot::Bridge.find_alive_instance(dup_res.pointer)
+            if typed = alive.as?(self)
+              return typed
+            end
+          end
+          self.class.new(dup_res.pointer)
+        end
+      end
+    {% else %}
+      node {{decl}} < Godot::Resource do
+        {{block.body}}
+
+        # Creates an independent deep clone of this resource card
+        def clone_card : self
+          dup_res = self.duplicate(true)
+          if alive = ::Godot::Bridge.find_alive_instance(dup_res.pointer)
+            if typed = alive.as?(self)
+              return typed
+            end
+          end
+          self.class.new(dup_res.pointer)
+        end
+      end
+    {% end %}
   {% end %}
 end
 
@@ -2027,9 +3065,15 @@ macro gdclass(decl, &block)
       {{yield}}
     end
   {% else %}
-    node {{decl}} < RefCounted do
-      {{yield}}
-    end
+    {% if decl.resolve? %}
+      node {{decl}} do
+        {{yield}}
+      end
+    {% else %}
+      node {{decl}} < RefCounted do
+        {{yield}}
+      end
+    {% end %}
   {% end %}
 end
 
@@ -2078,6 +3122,10 @@ macro gmodule(decl, &block)
   {%
     props = [] of Nil
     sigs = [] of Nil
+    sig_param_types = {} of StringLiteral => ArrayLiteral(ASTNode)
+    def_param_types = {} of StringLiteral => ArrayLiteral(ASTNode)
+    pending_on_signal_annos = [] of ASTNode
+    self_static_signals = [] of Nil
     tool_buttons = [] of Nil
     rpc_methods = [] of Nil
     class_constants = [] of Nil
@@ -2137,6 +3185,9 @@ macro gmodule(decl, &block)
             pfx = stmt.args.size > 1 ? (stmt.args[1].is_a?(StringLiteral) ? stmt.args[1] : stmt.args[1].id.stringify) : ""
             props << {:group, grp_name, pfx}
             last_anno = stmt
+          elsif anno_name == "OnSignal"
+            pending_on_signal_annos << stmt
+            last_anno = stmt
           elsif anno_name == "WarningIgnore" || anno_name == "WarningIgnoreStart" || anno_name == "WarningIgnoreRestore"
             # no-op
           else
@@ -2144,6 +3195,35 @@ macro gmodule(decl, &block)
           end
         elsif stmt.is_a?(Def) && (stmt.receiver.is_a?(Nop) || !stmt.receiver)
           m_name_str = stmt.name.stringify
+          d_types = [] of ASTNode
+          stmt.args.each do |d_arg|
+            if d_arg.restriction && !d_arg.restriction.is_a?(Nop)
+              d_types << d_arg.restriction
+            end
+          end
+          def_param_types[m_name_str] = d_types
+          pending_on_signal_annos.each do |os_anno|
+            if os_anno.args.size > 0
+              os_sig_arg = os_anno.args[0]
+              os_sig_name = if os_sig_arg.is_a?(SymbolLiteral) || os_sig_arg.is_a?(StringLiteral)
+                              os_sig_arg.id.stringify
+                            elsif os_sig_arg.is_a?(Call)
+                              os_sig_arg.name.stringify.gsub(/_slot$/, "")
+                            else
+                              os_sig_arg.id.stringify.gsub(/^:/, "").gsub(/_slot$/, "")
+                            end
+              os_once = false
+              if os_anno.named_args
+                os_anno.named_args.each do |na|
+                  if na.name.stringify == "once"
+                    os_once = na.value
+                  end
+                end
+              end
+              self_static_signals << {:anno_method, os_sig_name, stmt.name, d_types, os_once}
+            end
+          end
+          pending_on_signal_annos = [] of ASTNode
           if m_name_str.starts_with?("_")
             virtual_methods << m_name_str
           else
@@ -2178,17 +3258,63 @@ macro gmodule(decl, &block)
             end
           end
           props << {:prop, stmt.args[0], last_anno, ""}
+          pending_on_signal_annos = [] of ASTNode
           last_anno = nil
         elsif stmt.is_a?(Call) && stmt.name.id == "signal"
+          s_item = stmt.args[0]
+          s_name_str = (s_item.is_a?(Call) ? s_item.name : s_item).stringify
+          s_types = [] of ASTNode
+          if s_item.is_a?(Call)
+            s_item.args.each do |s_arg|
+              if s_arg.is_a?(TypeDeclaration)
+                s_types << s_arg.type
+              else
+                s_types << s_arg
+              end
+            end
+          end
+          sig_param_types[s_name_str] = s_types
           sigs << {stmt.args[0], ""}
+          pending_on_signal_annos = [] of ASTNode
+          last_anno = nil
+        elsif stmt.is_a?(Call) && stmt.name.stringify == "on_signal"
+          os_once = false
+          if stmt.named_args
+            stmt.named_args.each do |na|
+              if na.name.stringify == "once"
+                os_once = na.value
+              end
+            end
+          end
+          has_blk = (stmt.block && !stmt.block.is_a?(Nop))
+          first_arg = stmt.args.size > 0 ? stmt.args[0] : nil
+          if first_arg
+            sig_arg = (first_arg.stringify == "self" && stmt.args.size > 1) ? stmt.args[1] : first_arg
+            sig_name_str = if sig_arg.is_a?(SymbolLiteral) || sig_arg.is_a?(StringLiteral)
+                             sig_arg.id.stringify
+                           elsif sig_arg.is_a?(Call)
+                             sig_arg.name.stringify.gsub(/_slot$/, "")
+                           else
+                             sig_arg.id.stringify.gsub(/^:/, "").gsub(/_slot$/, "")
+                           end
+            if has_blk
+              self_static_signals << {:self_block, sig_name_str, stmt.block, os_once}
+            elsif stmt.args.size >= 2
+              cb_arg = (first_arg.stringify == "self") ? stmt.args[2] : stmt.args[1]
+              self_static_signals << {:self_cb, sig_name_str, cb_arg, os_once}
+            end
+          end
+          pending_on_signal_annos = [] of ASTNode
           last_anno = nil
         else
+          pending_on_signal_annos = [] of ASTNode
           last_anno = nil
         end
       end
     end
   %}
 
+  @[GodotModule]
   module {{module_name}}
     {% if parent_module %}
       include {{parent_module}}
@@ -2217,7 +3343,46 @@ macro gmodule(decl, &block)
           {% arg = item[1] %}
           {% anno = item[2] %}
           {% var_name = arg.is_a?(Assign) ? arg.target : arg.var %}
-          {% var_type = arg.is_a?(Assign) ? "Callable" : (arg.type ? arg.type.stringify.gsub(/^(::)?Godot::/, "") : "Callable") %}
+          {%
+            if arg.is_a?(Assign)
+              val = arg.value
+              if val.is_a?(NumberLiteral)
+                k = val.kind.stringify
+                if k == ":f32" || k == "f32"
+                  var_type = "Float32"
+                elsif k.includes?("f") || val.stringify.includes?(".")
+                  var_type = "Float64"
+                elsif k.includes?("i64") || k.includes?("u64")
+                  var_type = "Int64"
+                else
+                  var_type = "Int32"
+                end
+              elsif val.is_a?(StringLiteral)
+                var_type = "String"
+              elsif val.is_a?(BoolLiteral)
+                var_type = "Bool"
+              elsif val.is_a?(Call)
+                rec = val.receiver ? val.receiver.stringify.gsub(/^(::)?Godot::/, "") : val.name.stringify.gsub(/^(::)?Godot::/, "")
+                if ["Vector2", "Vector2i", "Vector3", "Vector3i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis"].includes?(rec)
+                  var_type = rec
+                elsif ["Proc", "proc", "lambda", "Callable"].includes?(rec)
+                  var_type = "Callable"
+                else
+                  var_type = "Variant"
+                end
+              elsif val.is_a?(Path)
+                var_type = val.stringify.gsub(/^(::)?Godot::/, "")
+              elsif val.is_a?(ProcPointer) || val.is_a?(ProcLiteral)
+                var_type = "Callable"
+              else
+                var_type = "Variant"
+              end
+            elsif arg.type
+              var_type = arg.type.stringify.gsub(/^(::)?Godot::/, "")
+            else
+              var_type = "Variant"
+            end
+          %}
           {%
             vtype = 0
             hint = 0
@@ -2352,12 +3517,23 @@ macro gmodule(decl, &block)
               {% end %}
             {% end %}
           {% end %}
+          {%
+            type_str = var_type.id.stringify
+            parts = type_str.split("|")
+            clean_t = parts[0].gsub(/\?/, "").gsub(/[\(\)]/, "").strip.gsub(/^(::)?Godot::/, "")
+            final_hint = hint || 0
+            final_hint_str = hint_str || ""
+            if vtype == 24 && final_hint == 0 && !clean_t.empty? && clean_t != "Object" && clean_t != "Variant" && clean_t != "Node" && clean_t != "RefCounted"
+              final_hint = 17
+              final_hint_str = clean_t
+            end
+          %}
           properties_{{module_name.id}} << ::Godot::PropertyInfo.new(
             "{{var_name.id}}",
-            "{{hint == 39 ? "Callable".id : var_type.id}}",
+            "{{hint == 39 ? "Callable".id : clean_t.id}}",
             {{vtype}},
-            {{hint || 0}}_u32,
-            "{{hint_str.id}}",
+            {{final_hint}}_u32,
+            "{{final_hint_str.id}}",
             {{prop_usage || 6}}_u32
           )
         {% end %}
@@ -2458,7 +3634,46 @@ macro gmodule(decl, &block)
         {% if item[0] == :prop %}
           {% arg = item[1] %}
           {% var_name = arg.is_a?(Assign) ? arg.target : arg.var %}
-          {% var_type = arg.is_a?(Assign) ? "Callable" : (arg.type ? arg.type.stringify.gsub(/^(::)?Godot::/, "") : "Callable") %}
+          {%
+            if arg.is_a?(Assign)
+              val = arg.value
+              if val.is_a?(NumberLiteral)
+                k = val.kind.stringify
+                if k == ":f32" || k == "f32"
+                  var_type = "Float32"
+                elsif k.includes?("f") || val.stringify.includes?(".")
+                  var_type = "Float64"
+                elsif k.includes?("i64") || k.includes?("u64")
+                  var_type = "Int64"
+                else
+                  var_type = "Int32"
+                end
+              elsif val.is_a?(StringLiteral)
+                var_type = "String"
+              elsif val.is_a?(BoolLiteral)
+                var_type = "Bool"
+              elsif val.is_a?(Call)
+                rec = val.receiver ? val.receiver.stringify.gsub(/^(::)?Godot::/, "") : val.name.stringify.gsub(/^(::)?Godot::/, "")
+                if ["Vector2", "Vector2i", "Vector3", "Vector3i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis"].includes?(rec)
+                  var_type = rec
+                elsif ["Proc", "proc", "lambda", "Callable"].includes?(rec)
+                  var_type = "Callable"
+                else
+                  var_type = "Variant"
+                end
+              elsif val.is_a?(Path)
+                var_type = val.stringify.gsub(/^(::)?Godot::/, "")
+              elsif val.is_a?(ProcPointer) || val.is_a?(ProcLiteral)
+                var_type = "Callable"
+              else
+                var_type = "Variant"
+              end
+            elsif arg.type
+              var_type = arg.type.stringify.gsub(/^(::)?Godot::/, "")
+            else
+              var_type = "Variant"
+            end
+          %}
           when "{{var_name.id}}"
             {% if var_type == "Float32" %}
               self.{{var_name.id}} = val_ptr.as(Float64*).value.to_f32
@@ -2503,7 +3718,46 @@ macro gmodule(decl, &block)
         {% if item[0] == :prop %}
           {% arg = item[1] %}
           {% var_name = arg.is_a?(Assign) ? arg.target : arg.var %}
-          {% var_type = arg.is_a?(Assign) ? "Callable" : (arg.type ? arg.type.stringify.gsub(/^(::)?Godot::/, "") : "Callable") %}
+          {%
+            if arg.is_a?(Assign)
+              val = arg.value
+              if val.is_a?(NumberLiteral)
+                k = val.kind.stringify
+                if k == ":f32" || k == "f32"
+                  var_type = "Float32"
+                elsif k.includes?("f") || val.stringify.includes?(".")
+                  var_type = "Float64"
+                elsif k.includes?("i64") || k.includes?("u64")
+                  var_type = "Int64"
+                else
+                  var_type = "Int32"
+                end
+              elsif val.is_a?(StringLiteral)
+                var_type = "String"
+              elsif val.is_a?(BoolLiteral)
+                var_type = "Bool"
+              elsif val.is_a?(Call)
+                rec = val.receiver ? val.receiver.stringify.gsub(/^(::)?Godot::/, "") : val.name.stringify.gsub(/^(::)?Godot::/, "")
+                if ["Vector2", "Vector2i", "Vector3", "Vector3i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis"].includes?(rec)
+                  var_type = rec
+                elsif ["Proc", "proc", "lambda", "Callable"].includes?(rec)
+                  var_type = "Callable"
+                else
+                  var_type = "Variant"
+                end
+              elsif val.is_a?(Path)
+                var_type = val.stringify.gsub(/^(::)?Godot::/, "")
+              elsif val.is_a?(ProcPointer) || val.is_a?(ProcLiteral)
+                var_type = "Callable"
+              else
+                var_type = "Variant"
+              end
+            elsif arg.type
+              var_type = arg.type.stringify.gsub(/^(::)?Godot::/, "")
+            else
+              var_type = "Variant"
+            end
+          %}
           when "{{var_name.id}}"
             {% if var_type == "Float32" || var_type == "Float64" %}
               ret_ptr.as(Float64*).value = self.{{var_name.id}}.to_f64
@@ -2555,6 +3809,125 @@ macro gmodule(decl, &block)
     end
 
     {{ yield }}
+
+    {% if self_static_signals.size > 0 %}
+      @[ZeroAllocation]
+      def _godot_bind_static_signals_impl(tid : UInt64) : Void
+        super(tid)
+        {% for entry in self_static_signals %}
+          {% kind = entry[0] %}
+          {% if kind == :anno_method %}
+            {%
+              os_sig_name = entry[1]
+              m_name = entry[2]
+              d_types = entry[3]
+              os_once = entry[4]
+              p_types = d_types.size > 0 ? d_types : (sig_param_types[os_sig_name] || ([] of ASTNode))
+            %}
+            {% if p_types.size > 0 %}
+              ::Lapis::Core::StaticSignalTable.global.bind_by_hash(
+                tid,
+                ::Lapis::Core::StaticSignalTable.hash_signal_name({{os_sig_name}}),
+                ->self.{{m_name.id}}({{p_types.splat}}),
+                once: {{os_once}}
+              )
+            {% else %}
+              ::Lapis::Core::StaticSignalTable.global.bind_by_hash(
+                tid,
+                ::Lapis::Core::StaticSignalTable.hash_signal_name({{os_sig_name}}),
+                ->self.{{m_name.id}},
+                once: {{os_once}}
+              )
+            {% end %}
+          {% elsif kind == :self_cb %}
+            {%
+              os_sig_name = entry[1]
+              cb_arg = entry[2]
+              os_once = entry[3]
+            %}
+            {% if cb_arg.is_a?(ProcPointer) %}
+              {%
+                m_name = cb_arg.name
+                m_obj = (cb_arg.obj.is_a?(Nop) || !cb_arg.obj) ? "self".id : cb_arg.obj
+                p_types = if cb_arg.args.size > 0
+                            cb_arg.args
+                          elsif def_param_types[m_name.stringify] && def_param_types[m_name.stringify].size > 0
+                            def_param_types[m_name.stringify]
+                          elsif sig_param_types[os_sig_name]
+                            sig_param_types[os_sig_name]
+                          else
+                            [] of ASTNode
+                          end
+              %}
+              {% if p_types.size > 0 %}
+                ::Lapis::Core::StaticSignalTable.global.bind_by_hash(
+                  tid,
+                  ::Lapis::Core::StaticSignalTable.hash_signal_name({{os_sig_name}}),
+                  ->{{m_obj}}.{{m_name.id}}({{p_types.splat}}),
+                  once: {{os_once}}
+                )
+              {% else %}
+                ::Lapis::Core::StaticSignalTable.global.bind_by_hash(
+                  tid,
+                  ::Lapis::Core::StaticSignalTable.hash_signal_name({{os_sig_name}}),
+                  ->{{m_obj}}.{{m_name.id}},
+                  once: {{os_once}}
+                )
+              {% end %}
+            {% elsif cb_arg.is_a?(SymbolLiteral) %}
+              {%
+                m_name_str = cb_arg.id.stringify
+                p_types = if def_param_types[m_name_str] && def_param_types[m_name_str].size > 0
+                            def_param_types[m_name_str]
+                          elsif sig_param_types[os_sig_name]
+                            sig_param_types[os_sig_name]
+                          else
+                            [] of ASTNode
+                          end
+              %}
+              {% if p_types.size > 0 %}
+                ::Lapis::Core::StaticSignalTable.global.bind_by_hash(
+                  tid,
+                  ::Lapis::Core::StaticSignalTable.hash_signal_name({{os_sig_name}}),
+                  ->self.{{m_name_str.id}}({{p_types.splat}}),
+                  once: {{os_once}}
+                )
+              {% else %}
+                ::Lapis::Core::StaticSignalTable.global.bind_by_hash(
+                  tid,
+                  ::Lapis::Core::StaticSignalTable.hash_signal_name({{os_sig_name}}),
+                  ->self.{{m_name_str.id}},
+                  once: {{os_once}}
+                )
+              {% end %}
+            {% else %}
+              ::Lapis::Core::StaticSignalTable.global.bind_by_hash(
+                tid,
+                ::Lapis::Core::StaticSignalTable.hash_signal_name({{os_sig_name}}),
+                {{cb_arg}},
+                once: {{os_once}}
+              )
+            {% end %}
+          {% elsif kind == :self_block %}
+            {%
+              os_sig_name = entry[1]
+              blk = entry[2]
+              os_once = entry[3]
+              s_types = sig_param_types[os_sig_name]
+            %}
+            {% if s_types %}
+              bind_{{os_sig_name.id}}(once: {{os_once}}) {{blk}}
+            {% else %}
+              if responds_to?(:bind_{{os_sig_name.id}})
+                bind_{{os_sig_name.id}}(once: {{os_once}}) {{blk}}
+              else
+                ::Lapis::Core::StaticSignalTable.global.connect(tid, {{os_sig_name}}, once: {{os_once}}) {{blk}}
+              end
+            {% end %}
+          {% end %}
+        {% end %}
+      end
+    {% end %}
   end
 end
 
@@ -2568,4 +3941,15 @@ macro godot_module(decl)
   gmodule {{decl}} do
   end
 end
+
+macro finished
+  {% for klass in ::Godot::Object.all_subclasses %}
+    {% if klass.annotation(::GodotClass) %}
+      {% if klass.class.methods.map(&.name.stringify).includes?("_godot_auto_register_class") %}
+        {{klass}}._godot_auto_register_class
+      {% end %}
+    {% end %}
+  {% end %}
+end
+
 

@@ -20,7 +20,7 @@ node InventoryGrid < Control do
   def add_item(item_name : String) : Bool
     return false if @item_count >= @capacity
     @item_count += 1
-    emit_item_added(item_name, @item_count)
+    item_added.emit(item_name, @item_count)
     true
   end
 end
@@ -39,7 +39,7 @@ node DummyInventoryPlugin < EditorPlugin do
   def inspect_inventory_slot(slot_index : Int32) : String
     @active_slot = slot_index
     info = "Slot #{slot_index}: TestItem_#{slot_index}"
-    emit_slot_inspected(slot_index, info)
+    slot_inspected.emit(slot_index, info)
     info
   end
 

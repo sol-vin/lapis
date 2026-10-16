@@ -6,6 +6,12 @@
 require "file_utils"
 require "./script"
 require "./editor_script_creation"
+require "./editor/action_driver"
+require "./editor/action_driver_vision"
+require "./editor/action_driver_ipc"
+require "./editor/state_preserver"
+require "./editor/async_command_runner"
+require "./editor/toolchain"
 
 module Lapis
   include Godot
@@ -56,8 +62,8 @@ module Lapis
       @@reload_pending = val
     end
 
-    def initialize
-      super
+    def initialize(pointer : Void* = Pointer(Void).null)
+      super(pointer)
       @@instance = self
     end
 
@@ -78,7 +84,7 @@ module Lapis
     # Safe to call both on startup and after GDExtension reloads.
     def self.ensure_editor_setup : Void
       return if @@setting_up_editor
-      return if headless?
+      return if headless_suppressed?
       return unless has_editor_interface?
       return if Godot::EditorInterface.singleton_ptr.null?
       ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
@@ -87,7 +93,7 @@ module Lapis
 
       if !Godot::DisplayServer.singleton_ptr.null?
         ds = Godot::DisplayServer.new(Godot::DisplayServer.singleton_ptr)
-        return if ds.call_str("get_name") == "headless"
+        return if ds.call_str("get_name") == "headless" && ::ENV["LIBGODOT_ENABLE_EDITOR_UI"]? != "1"
       end
 
       @@setting_up_editor = true
@@ -114,7 +120,7 @@ module Lapis
       verify_required_tools
 
       if Godot.editor_hint?
-        unless self.class.headless?
+        unless self.class.headless_suppressed?
           self.class.ensure_theme_icons
         end
 
@@ -148,7 +154,11 @@ module Lapis
           end
         end
 
-        unless self.class.headless?
+        # Start Action Driver IPC and restore preserved state across hot reloads
+        Lapis::Editor::DriverServer.start_if_enabled
+        Lapis::Editor::StatePreserver.restore_edited_scene
+
+        unless self.class.headless_suppressed?
           self.class.ensure_highlighter_registered
           self.class.setup_toolbar_button
           self.class.setup_new_script_button
@@ -163,7 +173,12 @@ module Lapis
         end
         self.call("set_process", true) rescue nil
 
-        Godot.print("[CrystalIntegrationPlugin] First-class .cr script support, language, and syntax highlighter registered in 100% pure Crystal.")
+        Godot.log_debug("Editor", "[CrystalIntegrationPlugin] First-class .cr script support, language, and syntax highlighter registered in 100% pure Crystal.")
+
+        # Automated ActionDriver in-editor testing (verifies build button, main screen panel, and script opening)
+        if ::ENV["LIBGODOT_ACTION_DRIVER_TEST"]? == "1"
+          self.class.check_test_action_driver_flow
+        end
 
         # Automated verification check for Build Crystal button and live GDExtension reloading
         if ::ENV["LIBGODOT_TEST_BUILD_BUTTON"]? == "1"
@@ -185,13 +200,13 @@ module Lapis
           self.call("add_user_signal", "ready_in_editor") rescue nil
         end
 
-        emit_ready_in_editor
+        ready_in_editor.emit
       end
     end
 
     # Registers Crystal icons into Godot's EditorIcons theme so ScriptCreateDialog and FileSystem dock display proper icons
     def self.ensure_theme_icons : Void
-      return if headless?
+      return if headless_suppressed?
       return unless has_editor_interface?
       return if Godot::EditorInterface.singleton_ptr.null?
       ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
@@ -206,7 +221,7 @@ module Lapis
           ["CrystalScript", "CrystalLanguage", "Crystal"].each do |type_name|
             theme.set_icon(type_name, "EditorIcons", icon_tex) rescue nil
           end
-          Godot.print("[CrystalIntegrationPlugin] Registered Crystal theme icons into EditorIcons theme.")
+          Godot.log_debug("Editor", "[CrystalIntegrationPlugin] Registered Crystal theme icons into EditorIcons theme.")
         end
       ensure
         theme.unreference rescue nil if theme
@@ -217,9 +232,9 @@ module Lapis
 
     def verify_godot_version : Void
       target_ver = ::Godot::TARGET_GODOT_VERSION
-      Godot.print("[CrystalIntegrationPlugin] Target engine version verified: #{target_ver}")
+      Godot.log_debug("Editor", "[CrystalIntegrationPlugin] Target engine version verified: #{target_ver}")
     rescue ex
-      Godot.print("[CrystalIntegrationPlugin] Note: Engine version check skipped: #{ex.message}")
+      Godot.log_debug("Editor", "[CrystalIntegrationPlugin] Note: Engine version check skipped: #{ex.message}")
     end
 
     def verify_required_tools : Void
@@ -232,7 +247,7 @@ module Lapis
       if crystal_bin.nil?
         missing_tools << "- Crystal compiler ('crystal') is not installed or not in PATH. Please install Crystal #{::Godot::MIN_CRYSTAL_VERSION}+."
       else
-        Godot.print("[CrystalIntegrationPlugin] Crystal compiler verified at #{crystal_bin} (target: #{::Godot::TARGET_CRYSTAL_VERSION})")
+        Godot.log_debug("Editor", "[CrystalIntegrationPlugin] Crystal compiler verified at #{crystal_bin} (target: #{::Godot::TARGET_CRYSTAL_VERSION})")
       end
 
       # 2. Check GNU Make
@@ -240,7 +255,7 @@ module Lapis
       if make_bin.nil?
         missing_tools << "- GNU Make ('make') is not found in PATH. Install via Scoop ('scoop install make') or system package manager."
       else
-        Godot.print("[CrystalIntegrationPlugin] GNU Make verified: #{make_bin}")
+        Godot.log_debug("Editor", "[CrystalIntegrationPlugin] GNU Make verified: #{make_bin}")
       end
 
       if !missing_tools.empty?
@@ -273,7 +288,7 @@ module Lapis
       return if @@cleaning_up
       @@cleaning_up = true
       begin
-        Godot.print("[Cleanup] Step 1: highlighter")
+        Godot.log_internal("Editor", "[Cleanup] Step 1: highlighter")
         if (highlighter = @@crystal_highlighter) && !highlighter.pointer.null?
           if has_editor_interface? && !Godot::EditorInterface.singleton_ptr.null?
             begin
@@ -291,7 +306,7 @@ module Lapis
           @@crystal_highlighter = nil
         end
 
-        Godot.print("[Cleanup] Step 2: compile_button")
+        Godot.log_internal("Editor", "[Cleanup] Step 2: compile_button")
         if btn = @@compile_button
           if !btn.pointer.null? && btn.alive?
             btn.call("set_button_icon", nil) rescue nil
@@ -310,16 +325,16 @@ module Lapis
           @@compile_button = nil
         end
 
-        Godot.print("[Cleanup] Step 3: EditorScriptCreation")
+        Godot.log_internal("Editor", "[Cleanup] Step 3: EditorScriptCreation")
         EditorScriptCreation.cleanup rescue nil
 
-        Godot.print("[Cleanup] Step 4: clear_theme_icons")
+        Godot.log_internal("Editor", "[Cleanup] Step 4: clear_theme_icons")
         clear_theme_icons
 
-        Godot.print("[Cleanup] Step 5: cached_icon_texture")
+        Godot.log_internal("Editor", "[Cleanup] Step 5: cached_icon_texture")
         @@cached_icon_texture = nil
 
-        Godot.print("[Cleanup] Step 6: debugger_plugin")
+        Godot.log_internal("Editor", "[Cleanup] Step 6: debugger_plugin")
         if dbg_plug = @@debugger_plugin
           if !dbg_plug.pointer.null?
             begin
@@ -331,13 +346,13 @@ module Lapis
                 inst.remove_debugger_plugin(dbg_plug) rescue nil
               end
             rescue ex
-              Godot.print("[CrystalIntegrationPlugin] Error in debugger cleanup: #{ex.message}")
+              Godot.log_debug("Editor", "[CrystalIntegrationPlugin] Error in debugger cleanup: #{ex.message}")
             end
           end
           @@debugger_plugin = nil
         end
 
-        Godot.print("[Cleanup] Step 7: crystal_panel")
+        Godot.log_internal("Editor", "[Cleanup] Step 7: crystal_panel")
         if panel = @@crystal_panel
           if !panel.pointer.null? && panel.alive?
             if parent = panel.get_parent
@@ -350,7 +365,7 @@ module Lapis
           @@crystal_panel = nil
         end
 
-        Godot.print("[Cleanup] Step 8: error_dialog")
+        Godot.log_internal("Editor", "[Cleanup] Step 8: error_dialog")
         if dlg = @@error_dialog
           if !dlg.pointer.null? && dlg.alive?
             if parent = dlg.get_parent
@@ -363,12 +378,12 @@ module Lapis
           @@error_dialog = nil
         end
 
-        Godot.print("[Cleanup] Step 9: ClassRegistry")
+        Godot.log_internal("Editor", "[Cleanup] Step 9: ClassRegistry")
         ClassRegistry.cleanup rescue nil
 
         @@building = false
         @@reload_pending = false
-        Godot.print("[Cleanup] Completed all cleanup steps successfully!")
+        Godot.log_internal("Editor", "[Cleanup] Completed all cleanup steps successfully!")
       ensure
         @@cleaning_up = false
       end
@@ -400,23 +415,30 @@ module Lapis
       end
       self.class.cleanup
       @@instance = nil
-      Godot.print("  [CrystalIntegrationPlugin] Native Crystal editor plugin unloaded.")
+      Godot.log_debug("Editor", "  [CrystalIntegrationPlugin] Native Crystal editor plugin unloaded.")
     end
 
     CRYSTAL_ICON_SVG = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 193.2 206.7' width='16' height='16'><path fill='#e0e0e0' d='m165.4 122-50 49.9c-.2.2-.5.3-.7.2l-68.3-18.3c-.3-.1-.5-.3-.5-.5L27.5 85.1c-.1-.3 0-.5.2-.7l50-49.9c.2-.2.5-.3.7-.2l68.3 18.3c.3.1.5.3.5.5l18.3 68.2c.2.3.1.5-.1.7zm-67-54.3L31.3 85.6c-.1 0-.2.2-.1.3l49.1 49c.1.1.3.1.3-.1l18-67c.1 0-.1-.2-.2-.1z'/></svg>"
 
     # Ensures syntax highlighter is registered with ScriptEditor
     def self.ensure_highlighter_registered : Void
-      return if headless?
-      return if (h = @@crystal_highlighter) && !h.pointer.null?
+      return if headless_suppressed?
+      if (h = @@crystal_highlighter)
+        if !h.pointer.null? && h.alive? && Bridge.is_object_valid(h.pointer)
+          return
+        else
+          @@crystal_highlighter = nil
+        end
+      end
       if !Godot::EditorInterface.singleton_ptr.null?
         ed_interface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
-        script_editor = ed_interface.get_script_editor
-        if !script_editor.pointer.null?
+        script_editor = ed_interface.get_script_editor rescue nil
+        if script_editor && !script_editor.pointer.null?
           if highlighter = Godot.create(Godot::CrystalHighlighter)
             @@crystal_highlighter = highlighter
             script_editor.register_syntax_highlighter(highlighter) rescue nil
             apply_highlighter_if_needed
+            script_editor.disconnect("editor_script_changed") rescue nil
             script_editor.connect("editor_script_changed") do |_args|
               apply_highlighter_if_needed
             end
@@ -429,7 +451,7 @@ module Lapis
 
     # Registers and configures the native radare2 debugger plugin
     def self.setup_debugger_plugin : Void
-      return if headless?
+      return if headless_suppressed?
       if @@debugger_plugin
         return
       end
@@ -446,8 +468,8 @@ module Lapis
       if !Godot::DisplayServer.singleton_ptr.null?
         ds = Godot::DisplayServer.new(Godot::DisplayServer.singleton_ptr)
         ds_name = ds.call_str("get_name")
-        Godot.print("[CrystalIntegrationPlugin] DisplayServer name: '#{ds_name}'")
-        if ds_name == "headless"
+        Godot.log_debug("Editor", "[CrystalIntegrationPlugin] DisplayServer name: '#{ds_name}'")
+        if ds_name == "headless" && ::ENV["LIBGODOT_ENABLE_EDITOR_UI"]? != "1"
           return
         end
       end
@@ -465,9 +487,9 @@ module Lapis
 
       if Debugger::RadareDriver.available?(r2_path)
         found = Debugger::RadareDriver.find_radare2(r2_path)
-        Godot.print("[CrystalIntegrationPlugin] radare2 native debugger detected: #{found}")
+        Godot.log_debug("Editor", "[CrystalIntegrationPlugin] radare2 native debugger detected: #{found}")
       else
-        Godot.print("[CrystalIntegrationPlugin] Tip: radare2 not found in PATH. Install radare2 (e.g. 'scoop install radare2' on Windows, 'apt install radare2' on Linux) for native Crystal in-editor debugging.")
+        Godot.log_debug("Editor", "[CrystalIntegrationPlugin] Tip: radare2 not found in PATH. Install radare2 (e.g. 'scoop install radare2' on Windows, 'apt install radare2' on Linux) for native Crystal in-editor debugging.")
       end
 
       dbg_plugin = Godot.create("CrystalDebuggerPlugin")
@@ -480,10 +502,10 @@ module Lapis
           inst.add_debugger_plugin(plug) rescue nil
         end
         @@debugger_plugin = plug
-        Godot.print("[CrystalIntegrationPlugin] CrystalDebuggerPlugin registered into EditorDebuggerNode.")
+        Godot.log_debug("Editor", "[CrystalIntegrationPlugin] CrystalDebuggerPlugin registered into EditorDebuggerNode.")
       end
     rescue ex
-      Godot.print("[CrystalIntegrationPlugin] Notice: debugger plugin setup: #{ex.message}")
+      Godot.log_debug("Editor", "[CrystalIntegrationPlugin] Notice: debugger plugin setup: #{ex.message}")
     end
 
     def setup_debugger_plugin : Void
@@ -493,7 +515,7 @@ module Lapis
     # Docks the CrystalPanel into Godot Editor's main screen and makes it available to the editor
     def self.setup_main_screen_panel : Void
       return if @@setting_up_panel
-      return if headless?
+      return if headless_suppressed?
       if (p = @@crystal_panel) && !p.pointer.null?
         return
       end
@@ -508,7 +530,7 @@ module Lapis
 
       if !Godot::DisplayServer.singleton_ptr.null?
         ds = Godot::DisplayServer.new(Godot::DisplayServer.singleton_ptr)
-        if ds.call_str("get_name") == "headless"
+        if ds.call_str("get_name") == "headless" && ::ENV["LIBGODOT_ENABLE_EDITOR_UI"]? != "1"
           return
         end
       end
@@ -531,7 +553,7 @@ module Lapis
             panel.call("set_visible", false)
             main_screen.call("add_child", panel)
           end
-          Godot.print("[CrystalIntegrationPlugin] Native Crystal Hub added to Editor Main Screen successfully.")
+          Godot.log_debug("Editor", "[CrystalIntegrationPlugin] Native Crystal Hub added to Editor Main Screen successfully.")
         end
       ensure
         @@setting_up_panel = false
@@ -544,11 +566,70 @@ module Lapis
       self.class.setup_main_screen_panel
     end
 
+    @@console_dock : Godot::Control? = nil
+    @@console_dock_button : Godot::Button? = nil
+    @@setting_up_dock : Bool = false
+
+    # Docks the CrystalConsoleDock into Godot Editor's bottom panel and makes it available to the editor
+    def self.setup_bottom_panel_dock : Void
+      return if @@setting_up_dock
+      return if headless_suppressed?
+      if (d = @@console_dock) && !d.pointer.null?
+        return
+      end
+      if Godot::EditorInterface.singleton_ptr.null?
+        return
+      end
+      ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
+      base_ctrl = ed_iface.get_base_control
+      if base_ctrl.pointer.null?
+        return
+      end
+
+      if !Godot::DisplayServer.singleton_ptr.null?
+        ds = Godot::DisplayServer.new(Godot::DisplayServer.singleton_ptr)
+        if ds.call_str("get_name") == "headless" && ::ENV["LIBGODOT_ENABLE_EDITOR_UI"]? != "1"
+          return
+        end
+      end
+
+      existing = base_ctrl.call_obj("find_child", "CrystalConsoleDock", true, false)
+      if existing && !existing.pointer.null?
+        @@console_dock = Godot::Control.new(existing.pointer)
+        return
+      end
+
+      @@setting_up_dock = true
+      begin
+        if (dock = Godot.create("CrystalConsoleDock")) && !dock.pointer.null?
+          dock.call("set_name", "CrystalConsoleDock")
+          ctrl_dock = Godot::Control.new(dock.pointer)
+          @@console_dock = ctrl_dock
+          if inst = @@instance
+            btn = inst.add_control_to_bottom_panel(ctrl_dock, "Crystal") rescue nil
+            @@console_dock_button = btn if btn && !btn.pointer.null?
+          else
+            base_ctrl.call_deferred("add_child", dock) rescue nil
+          end
+          Godot.log_debug("Editor", "[CrystalIntegrationPlugin] Crystal Console added to Editor Bottom Panel successfully.")
+        end
+      ensure
+        @@setting_up_dock = false
+      end
+    rescue ex
+      Godot.printerr("[CrystalIntegrationPlugin] Notice: could not setup bottom panel dock: #{ex.message}")
+    end
+
+    def setup_bottom_panel_dock : Void
+      self.class.setup_bottom_panel_dock
+    end
+
     def deferred_setup_editor_ui : Void
-      return if self.class.headless?
+      return if self.class.headless_suppressed?
       self.class.setup_toolbar_button
       self.class.setup_new_script_button
       self.class.setup_main_screen_panel
+      self.class.setup_bottom_panel_dock
       self.class.setup_debugger_plugin
     end
 
@@ -563,7 +644,7 @@ module Lapis
     end
 
     def setup_code_completion : Void
-      return if self.class.headless? || !self.class.has_editor_interface?
+      return if self.class.headless_suppressed? || !self.class.has_editor_interface?
       return if Godot::EditorInterface.singleton_ptr.null?
       ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
       script_ed = ed_iface.get_script_editor rescue nil
@@ -578,7 +659,7 @@ module Lapis
     end
 
     def configure_code_editor : Void
-      return if self.class.headless? || !self.class.has_editor_interface?
+      return if self.class.headless_suppressed? || !self.class.has_editor_interface?
       return if Godot::EditorInterface.singleton_ptr.null?
       ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
       script_ed = ed_iface.get_script_editor rescue nil
@@ -687,12 +768,19 @@ module Lapis
       false
     end
 
+    # Determines if editor UI instantiation is suppressed due to headless mode.
+    # When LIBGODOT_ENABLE_EDITOR_UI=1 is set, headless runners can instantiate
+    # real editor controls (buttons, tabs, panels) in-memory for automated testing.
+    def self.headless_suppressed? : Bool
+      headless? && ::ENV["LIBGODOT_ENABLE_EDITOR_UI"]? != "1"
+    end
+
     def self.get_crystal_icon_texture : Godot::Texture2D?
       if cached = @@cached_icon_texture
         return cached if !cached.pointer.null?
       end
 
-      return nil if headless?
+      return nil if headless_suppressed?
 
       icon_tex : Godot::Texture2D? = nil
       img = Godot.create(Godot::Image)
@@ -713,7 +801,7 @@ module Lapis
     end
 
     def self.reset_toolbar_button : Void
-      return if headless?
+      return if headless_suppressed?
       return unless has_editor_interface?
       return if Godot::EditorInterface.singleton_ptr.null?
       ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
@@ -734,13 +822,26 @@ module Lapis
         btn.connect("pressed", flags: ::Godot::ConnectFlags::Deferred) do |_args|
           on_compile_button_pressed
         end
-        Godot.print("[CrystalIntegrationPlugin] Restored Build button to 'Build' state.")
+        Godot.log_debug("Editor", "[CrystalIntegrationPlugin] Restored Build button to 'Build' state.")
       end
+
+      # Ensure CrystalLanguage, ResourceFormatLoader/Saver, and CrystalHighlighter are registered after reload
+      Godot::CrystalLanguage.ensure_registered rescue nil
+      Godot::ResourceFormatLoaderCrystal.ensure_registered rescue nil
+      Godot::ResourceFormatSaverCrystal.ensure_registered rescue nil
+      ensure_highlighter_registered rescue nil
+
+      # Rescan filesystem and update ClassDB references in editor once extension reload has settled
+      if (res_fs = ed_iface.get_resource_filesystem rescue nil) && !res_fs.pointer.null?
+        res_fs.call_deferred("scan") rescue nil
+        res_fs.call_deferred("scan_sources") rescue nil
+      end
+      refresh_inspector_deferred
     end
 
     # Defers a property list notification on edited scene root to refresh inspector after reload
     def self.refresh_inspector_deferred : Void
-      return if headless?
+      return if headless_suppressed?
       return unless has_editor_interface?
       return if Godot::EditorInterface.singleton_ptr.null?
       ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
@@ -760,7 +861,7 @@ module Lapis
     end
 
     def self.setup_toolbar_button : Void
-      return if headless?
+      return if headless_suppressed?
       return unless has_editor_interface?
       return if (btn_alive = @@compile_button) && !btn_alive.pointer.null? && (btn_alive.call_str("get_text") rescue "") == "Build"
       return if Godot::EditorInterface.singleton_ptr.null?
@@ -770,7 +871,7 @@ module Lapis
 
       if !Godot::DisplayServer.singleton_ptr.null?
         ds = Godot::DisplayServer.new(Godot::DisplayServer.singleton_ptr)
-        return if ds.call_str("get_name") == "headless"
+        return if ds.call_str("get_name") == "headless" && ::ENV["LIBGODOT_ENABLE_EDITOR_UI"]? != "1"
       end
 
       # Check if button already exists in editor tree to avoid duplicates
@@ -778,17 +879,19 @@ module Lapis
       if existing && !existing.pointer.null?
         btn = Godot::Button.new(existing.pointer)
         @@compile_button = btn
-        @@building = false
-        @@reload_pending = false
-        @@reload_watchdog = 0.0_f64
-        Godot::Bridge.set_reloading(false)
-        btn.call("set_disabled", false) rescue nil
-        btn.call("set_text", "Build") rescue nil
+        unless @@building || @@reload_pending || Godot::Bridge.reloading?
+          @@building = false
+          @@reload_pending = false
+          @@reload_watchdog = 0.0_f64
+          Godot::Bridge.set_reloading(false)
+          btn.call("set_disabled", false) rescue nil
+          btn.call("set_text", "Build") rescue nil
+        end
         Godot.clear_signal_subscriptions(btn.signal_target_id)
         btn.connect("pressed", flags: ::Godot::ConnectFlags::Deferred) do |_args|
           on_compile_button_pressed
         end
-        Godot.print("[CrystalIntegrationPlugin] Restored Build button to 'Build' state.")
+        Godot.log_debug("Editor", "[CrystalIntegrationPlugin] Restored Build button to 'Build' state.")
         return
       end
 
@@ -842,15 +945,17 @@ module Lapis
 
         if run_bar_idx >= 0
           title_bar.call("move_child", btn, run_bar_idx)
-          Godot.print("[CrystalIntegrationPlugin] Build Crystal button placed in EditorTitleBar before EditorRunBar at index #{run_bar_idx}.")
+          Godot.log_debug("Editor", "[CrystalIntegrationPlugin] Build Crystal button placed in EditorTitleBar before EditorRunBar at index #{run_bar_idx}.")
         else
-          Godot.print("[CrystalIntegrationPlugin] Build Crystal button added to ContainerToolbar.")
+          Godot.log_debug("Editor", "[CrystalIntegrationPlugin] Build Crystal button added to ContainerToolbar.")
         end
       end
 
       @@compile_button = btn
-      @@building = false
-      @@reload_pending = false
+      unless @@building || @@reload_pending || Godot::Bridge.reloading?
+        @@building = false
+        @@reload_pending = false
+      end
     rescue ex
       Godot.printerr("[CrystalIntegrationPlugin] Warning: could not setup toolbar button: #{ex.message}")
     end
@@ -860,7 +965,7 @@ module Lapis
     end
 
     def self.setup_new_script_button : Void
-      return if headless?
+      return if headless_suppressed?
       return unless has_editor_interface?
       return if Godot::EditorInterface.singleton_ptr.null?
       ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
@@ -1146,9 +1251,113 @@ module Lapis
       end
     end
 
+    # Centralized helper to trigger GDExtension reload and rescan editor filesystem & ClassDB
+    def self.trigger_extension_reload(node_path_override : String? = nil) : Bool
+      ext_path = "res://addons/crystal_integration/crystal.gdextension"
+      return false if Godot::GDExtensionManager.singleton_ptr.null?
+      gd_ext_mgr = Godot::GDExtensionManager.new(Godot::GDExtensionManager.singleton_ptr)
+      return false unless gd_ext_mgr.is_extension_loaded(ext_path)
+
+      @@reload_pending = true
+      if btn = @@compile_button
+        btn.call("set_text", "Reloading...") rescue nil
+      end
+      if !Godot::Engine.singleton_ptr.null?
+        engine = Godot::Engine.new(Godot::Engine.singleton_ptr)
+        engine.call("set_meta", "crystal_test_reloaded", true) rescue nil
+      end
+
+      # Capture active inspected node to prevent dead-pointer polling during DLL reload
+      saved_node_path : String? = node_path_override
+      if saved_node_path.nil? && has_editor_interface? && !Godot::EditorInterface.singleton_ptr.null?
+        ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
+        if (inspector = ed_iface.get_inspector rescue nil) && !inspector.pointer.null?
+          if (inspected = inspector.call_obj("get_edited_object") rescue nil) && !inspected.pointer.null?
+            cls = inspected.get_class rescue ""
+            if cls != "EditorPlugin" && !cls.includes?("Plugin")
+              if (p = inspected.call_str("get_path") rescue "") && !p.empty? && p.starts_with?("/")
+                saved_node_path = p
+              end
+            end
+          end
+        end
+        # Clear inspector selection before extension reload
+        ed_iface.call("inspect_object", nil) rescue nil
+      end
+
+      # Unregister language, loaders, and savers before reloading extension
+      Godot::CrystalLanguage.unregister rescue nil
+      Godot::ResourceFormatLoaderCrystal.unregister rescue nil
+      Godot::ResourceFormatSaverCrystal.unregister rescue nil
+
+      # Unregister syntax highlighter before reloading extension
+      if (highlighter = @@crystal_highlighter) && !highlighter.pointer.null?
+        if has_editor_interface? && !Godot::EditorInterface.singleton_ptr.null?
+          ed_interface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
+          script_editor = ed_interface.get_script_editor rescue nil
+          if script_editor && !script_editor.pointer.null?
+            script_editor.disconnect("editor_script_changed") rescue nil
+            if highlighter.alive? && Bridge.is_object_valid(highlighter.pointer)
+              script_editor.unregister_syntax_highlighter(highlighter) rescue nil
+            end
+          end
+        end
+        @@crystal_highlighter = nil
+      end
+
+      Godot::Bridge.set_reloading(true)
+      gd_ext_mgr.call_deferred("reload_extension", ext_path)
+      Godot.log_debug("Editor", "[CrystalIntegrationPlugin] Scheduled deferred GDExtension reload.")
+
+      # Filesystem rescan and inspector refresh are deferred to reset_toolbar_button
+      # to ensure the background scanner only runs after GDExtension reload has fully completed.
+
+      # Defer restoring inspector selection to reflect updated exports
+      if sel_path = saved_node_path
+        if has_editor_interface? && !Godot::EditorInterface.singleton_ptr.null?
+          ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
+          if (base_ctrl = ed_iface.get_base_control rescue nil) && !base_ctrl.pointer.null?
+            if (sel_tree = base_ctrl.get_tree rescue nil) && !sel_tree.pointer.null?
+              if timer = (sel_tree.create_timer(0.3_f64) rescue nil)
+                timer.connect("timeout") do |_args|
+                  if (curr_root = ed_iface.get_edited_scene_root rescue nil) && !curr_root.pointer.null?
+                    if (target_node = curr_root.call_obj("get_node_or_null", Godot::NodePath.new(sel_path)) rescue nil) && !target_node.pointer.null?
+                      ed_iface.edit_node(target_node) rescue nil
+                      target_node.call("notify_property_list_changed") rescue nil
+                    end
+                  end
+                end
+              end
+            end
+          end
+        end
+      end
+
+      # Safety fallback timer in editor scene tree to guarantee button returns to 'Build'
+      if has_editor_interface? && !Godot::EditorInterface.singleton_ptr.null?
+        ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
+        tree : Godot::SceneTree? = nil
+        if (inst = @@instance) && !inst.pointer.null?
+          tree = inst.get_tree rescue nil
+        end
+        if (tree.nil? || tree.pointer.null?) && (base_ctrl = ed_iface.get_base_control rescue nil) && !base_ctrl.pointer.null?
+          tree = base_ctrl.get_tree rescue nil
+        end
+        if tree && !tree.pointer.null?
+          if timer = (tree.create_timer(1.2_f64) rescue nil)
+            timer.connect("timeout") do |_args|
+              self.reset_toolbar_button
+            end
+          end
+        end
+      end
+
+      true
+    end
+
     # Handles toolbar compile button press to trigger manual Crystal rebuild
     def self.on_compile_button_pressed : Void
-      if @@building || @@reload_pending
+      if @@building || @@reload_pending || Godot::Bridge.reloading?
         Godot.print("[CrystalIntegrationPlugin] Build or reload already in progress, skipping duplicate request.")
         return
       end
@@ -1169,80 +1378,8 @@ module Lapis
           if (dlg = @@error_dialog) && dlg.alive?
             dlg.hide
           end
-          ext_path = "res://addons/crystal_integration/crystal.gdextension"
-          gd_ext_mgr = Godot::GDExtensionManager.new(Godot::GDExtensionManager.singleton_ptr)
-          if gd_ext_mgr.is_extension_loaded(ext_path)
-            @@reload_pending = true
-            if btn = @@compile_button
-              btn.call("set_text", "Reloading...") rescue nil
-            end
-            if !Godot::Engine.singleton_ptr.null?
-              engine = Godot::Engine.new(Godot::Engine.singleton_ptr)
-              engine.call("set_meta", "crystal_test_reloaded", true) rescue nil
-            end
-
-            # Capture active inspected node to prevent dead-pointer polling during DLL reload
-            saved_node_path : String? = nil
-            if has_editor_interface? && !Godot::EditorInterface.singleton_ptr.null?
-              ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
-              if (inspector = ed_iface.get_inspector rescue nil) && !inspector.pointer.null?
-                if (inspected = inspector.call_obj("get_edited_object") rescue nil) && !inspected.pointer.null?
-                  cls = inspected.get_class rescue ""
-                  if cls != "EditorPlugin" && !cls.includes?("Plugin")
-                    if (p = inspected.call_str("get_path") rescue "") && !p.empty? && p.starts_with?("/")
-                      saved_node_path = p
-                    end
-                  end
-                end
-              end
-              # Clear inspector selection before extension reload
-              ed_iface.call("inspect_object", nil) rescue nil
-            end
-
-            Godot::Bridge.set_reloading(true)
-            gd_ext_mgr.call_deferred("reload_extension", ext_path)
-            Godot.print("[CrystalIntegrationPlugin] Scheduled deferred GDExtension reload.")
-
-            # Defer restoring inspector selection to reflect updated exports
-            if sel_path = saved_node_path
-              if has_editor_interface? && !Godot::EditorInterface.singleton_ptr.null?
-                ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
-                if (base_ctrl = ed_iface.get_base_control rescue nil) && !base_ctrl.pointer.null?
-                  if (sel_tree = base_ctrl.get_tree rescue nil) && !sel_tree.pointer.null?
-                    if timer = (sel_tree.create_timer(0.3_f64) rescue nil)
-                      timer.connect("timeout") do |_args|
-                        if (curr_root = ed_iface.get_edited_scene_root rescue nil) && !curr_root.pointer.null?
-                          if (target_node = curr_root.call_obj("get_node_or_null", Godot::NodePath.new(sel_path)) rescue nil) && !target_node.pointer.null?
-                            ed_iface.edit_node(target_node) rescue nil
-                            target_node.call("notify_property_list_changed") rescue nil
-                          end
-                        end
-                      end
-                    end
-                  end
-                end
-              end
-            end
-
-            # Safety fallback timer in editor scene tree to guarantee button returns to 'Build'
-            if has_editor_interface? && !Godot::EditorInterface.singleton_ptr.null?
-              ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
-              tree : Godot::SceneTree? = nil
-              if (inst = @@instance) && !inst.pointer.null?
-                tree = inst.get_tree rescue nil
-              end
-              if (tree.nil? || tree.pointer.null?) && (base_ctrl = ed_iface.get_base_control rescue nil) && !base_ctrl.pointer.null?
-                tree = base_ctrl.get_tree rescue nil
-              end
-              if tree && !tree.pointer.null?
-                if timer = (tree.create_timer(1.2_f64) rescue nil)
-                  timer.connect("timeout") do |_args|
-                    self.reset_toolbar_button
-                  end
-                end
-              end
-            end
-          else
+          reloaded = trigger_extension_reload
+          unless reloaded
             @@building = false
             if btn = @@compile_button
               btn.call("set_disabled", false) rescue nil
@@ -1402,6 +1539,186 @@ module Lapis
           end
         end
       rescue
+      end
+    end
+
+    # =========================================================================
+    # Automated ActionDriver In-Editor User Verification
+    # =========================================================================
+
+    # Automated headless verification using ActionDriver to inspect the editor plugin:
+    # 1. Finds BuildCrystalToolbarButton in EditorTitleBar and asserts properties/icon/tooltip
+    # 2. Finds CrystalPanel in EditorMainScreen and tests main screen switching
+    # 3. Tests opening .cr and .gd scripts into ScriptEditor via ActionDriver#open_script
+    # 4. Validates get_current_script_path and syntax highlighter integration
+    # 5. Generates Set-of-Marks AI Vision manifest
+    # 6. Outputs clear SUCCESS markers and gracefully exits Godot
+    def self.check_test_action_driver_flow : Void
+      return unless ::ENV["LIBGODOT_ACTION_DRIVER_TEST"]? == "1"
+      Godot.print("==================================================================")
+      Godot.print("  [ActionDriverTest] Starting In-Editor ActionDriver Test Flow...")
+      Godot.print("==================================================================")
+
+      tree : Godot::SceneTree? = nil
+      if inst = @@instance
+        tree = inst.get_tree rescue nil
+      end
+      if (tree.nil? || tree.pointer.null?) && has_editor_interface? && !Godot::EditorInterface.singleton_ptr.null?
+        ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
+        if (base_ctrl = ed_iface.get_base_control rescue nil) && !base_ctrl.pointer.null?
+          tree = base_ctrl.get_tree rescue nil
+        end
+      end
+
+      if tree && !tree.pointer.null?
+        if timer = (tree.create_timer(0.6_f64) rescue nil)
+          timer.connect("timeout") do |_args|
+            run_action_driver_verifications
+          end
+          return
+        end
+      end
+
+      # Fallback: run immediately
+      run_action_driver_verifications
+    end
+
+    private def self.run_action_driver_verifications : Void
+      driver = Lapis::Editor::ActionDriver.new
+      test_failures = [] of String
+
+      # 1. Verify Crystal Build button
+      Godot.print("[ActionDriverTest] 1. Verifying Crystal Quick Build Button...")
+      if btn = driver.find_crystal_build_button
+        Godot.print("[ActionDriverTest] SUCCESS: Found Crystal Build button: '#{btn.name}'")
+        btn_tip = (btn.tooltip_text rescue "") || (btn.call_str("get_tooltip_text") rescue "")
+        if btn_tip.includes?("Build Crystal")
+          Godot.print("[ActionDriverTest] SUCCESS: Button tooltip contains 'Build Crystal': '#{btn_tip}'")
+        else
+          test_failures << "Button tooltip missing 'Build Crystal' (got: '#{btn_tip}')"
+        end
+
+        if parent = btn.get_parent
+          Godot.print("[ActionDriverTest] SUCCESS: Button parent is '#{parent.name}' (#{parent.get_class})")
+        else
+          test_failures << "Button has no parent in scene tree"
+        end
+      else
+        test_failures << "Build Crystal toolbar button not found by ActionDriver"
+      end
+
+      # 2. Verify Crystal Tab / Main Screen Panel
+      Godot.print("[ActionDriverTest] 2. Verifying Crystal Main Screen Panel...")
+      if panel = driver.find_crystal_panel
+        Godot.print("[ActionDriverTest] SUCCESS: Found CrystalPanel: '#{panel.name}' (#{panel.get_class})")
+        driver.open_crystal_main_screen
+        Godot.print("[ActionDriverTest] SUCCESS: Switched to Crystal main screen!")
+      else
+        test_failures << "CrystalPanel main screen not found by ActionDriver"
+      end
+
+      # 2b. Verify Crystal Console Bottom Panel Dock
+      Godot.print("[ActionDriverTest] 2b. Verifying Crystal Console Bottom Panel Dock...")
+      if dock = driver.find_crystal_console_dock
+        Godot.print("[ActionDriverTest] SUCCESS: Found CrystalConsoleDock: '#{dock.name}' (#{dock.get_class})")
+      else
+        Godot.print("[ActionDriverTest] Note: CrystalConsoleDock bottom panel dock not directly resolved via find_child")
+      end
+
+      # 2c. Verify CrystalPanel tabs & BenchmarkGraphControl
+      Godot.print("[ActionDriverTest] 2c. Verifying CrystalPanel tabs & BenchmarkGraphControl...")
+      if panel = driver.find_crystal_panel
+        tabs = panel.find_child("TabContainer", true, false)
+        if tabs && !tabs.pointer.null?
+          tab_cnt = tabs.call_i64("get_tab_count") rescue 0_i64
+          Godot.print("[ActionDriverTest] SUCCESS: CrystalPanel has #{tab_cnt} tabs.")
+        end
+        graph = panel.find_child("BenchmarkGraphControl", true, false)
+        if graph && !graph.pointer.null?
+          Godot.print("[ActionDriverTest] SUCCESS: Found BenchmarkGraphControl inside CrystalPanel!")
+        else
+          Godot.print("[ActionDriverTest] Note: BenchmarkGraphControl not directly resolved via find_child")
+        end
+      end
+
+      # 3. Verify opening scripts (.cr and .gd)
+      Godot.print("[ActionDriverTest] 3. Verifying Script Opening...")
+      cr_script = "scripts/patch_docs.cr"
+      gd_script = "scripts/comprehensive_interop_node.gd"
+
+      if File.exists?(cr_script)
+        if driver.open_script(cr_script, line: 10, col: 1)
+          Godot.print("[ActionDriverTest] SUCCESS: Opened #{cr_script} in ScriptEditor!")
+          curr = driver.get_current_script_path
+          Godot.print("[ActionDriverTest] Active script path: '#{curr}'")
+          if curr && curr.includes?("patch_docs.cr")
+            Godot.print("[ActionDriverTest] SUCCESS: Active script matches #{cr_script}!")
+          else
+            Godot.print("[ActionDriverTest] Note: active script path was '#{curr}'")
+          end
+        else
+          test_failures << "Failed to open #{cr_script} via ActionDriver"
+        end
+      end
+
+      if File.exists?(gd_script)
+        if driver.open_script(gd_script, line: 5, col: 1)
+          Godot.print("[ActionDriverTest] SUCCESS: Opened #{gd_script} in ScriptEditor!")
+        else
+          test_failures << "Failed to open #{gd_script} via ActionDriver"
+        end
+      end
+
+      # 4. Verify AI Vision manifest generation
+      Godot.print("[ActionDriverTest] 4. Verifying Set-of-Marks Vision Engine...")
+      begin
+        manifest_res = driver.capture_ai_manifest("reports/ai_vision_test")
+        Godot.print("[ActionDriverTest] SUCCESS: Generated vision manifest with #{manifest_res[:count]} interactive elements!")
+      rescue ex
+        Godot.print("[ActionDriverTest] Note: Vision capture: #{ex.message}")
+      end
+
+      # 5. Verify Script Editor CodeEdit resolution
+      Godot.print("[ActionDriverTest] 5. Verifying Script Editor CodeEdit Resolution...")
+      if ce = driver.get_active_code_edit
+        Godot.print("[ActionDriverTest] SUCCESS: Located active #{ce.get_class} editor control: '#{ce.name}'!")
+      else
+        Godot.print("[ActionDriverTest] Note: CodeEdit not directly resolved via get_current_editor (may be normal in headless)")
+      end
+
+      # 6. Verify Built-in Templates
+      Godot.print("[ActionDriverTest] 6. Verifying Built-in Script Templates...")
+      templates = CrystalLanguage.get_built_in_templates("Node")
+      if templates.size >= 4
+        Godot.print("[ActionDriverTest] SUCCESS: Verified #{templates.size} built-in script templates for Node!")
+      else
+        test_failures << "Built-in templates returned only #{templates.size} items"
+      end
+
+      # 7. Verify Static Syntax Validation
+      Godot.print("[ActionDriverTest] 7. Verifying Syntax Validator...")
+      bad_code = "node BadNode < Node do\n  def broken : Void\nend"
+      val_res = CrystalValidator.validate(bad_code)
+      if !val_res.valid? && val_res.errors.size >= 1
+        Godot.print("[ActionDriverTest] SUCCESS: Validator correctly identified syntax error (line #{val_res.errors.first.line}: #{val_res.errors.first.message})!")
+      else
+        test_failures << "Validator failed to flag syntax error in bad script"
+      end
+
+      # Check final outcome
+      if test_failures.empty?
+        Godot.print("==================================================================")
+        Godot.print("  [ActionDriverTest] ALL IN-EDITOR ACTION DRIVER TESTS PASSED!")
+        Godot.print("==================================================================")
+        File.write(".action_driver_tests_passed", "1") rescue nil
+        quit_editor(0_i64)
+      else
+        Godot.printerr("==================================================================")
+        Godot.printerr("  [ActionDriverTest] ACTION DRIVER TESTS FAILED:")
+        test_failures.each { |f| Godot.printerr("    - #{f}") }
+        Godot.printerr("==================================================================")
+        File.write(".action_driver_tests_failed", test_failures.join("\n")) rescue nil
+        quit_editor(1_i64)
       end
     end
 
@@ -1748,12 +2065,12 @@ module Lapis
 
     # Invoked by Godot editor before running project (F5 / F6)
     def _build : Bool
-      if @@building || @@reload_pending
+      if @@building || @@reload_pending || Godot::Bridge.reloading?
         Godot.print("[CrystalIntegrationPlugin] Build or reload already in progress, skipping F5 build.")
         return true
       end
       if self.class.headless?
-        Godot.print("[CrystalIntegrationPlugin] Headless mode detected, skipping editor F5 build.")
+        Godot.log_debug("Editor", "[CrystalIntegrationPlugin] Headless mode detected, skipping editor F5 build.")
         return true
       end
       @@building = true
@@ -1764,7 +2081,8 @@ module Lapis
         end
         Godot.print("[CrystalIntegrationPlugin] Editor build requested (F5 / Play). Compiling Crystal...")
         self.class.recompile_modified_addons_silent
-        self.class.execute_crystal_build
+        success = self.class.execute_crystal_build
+        success
       ensure
         @@building = false
       end
@@ -2055,6 +2373,7 @@ module Lapis
       end
 
       ensure_project_bindings
+      Lapis::Editor::StatePreserver.snapshot_edited_scene
 
       out_dll = {% if flag?(:windows) %}
                   "bin/game.dll"
@@ -2131,6 +2450,9 @@ module Lapis
           rescue
           end
         end
+        if File.exists?(out_dll)
+          @@last_game_dll_mtime = File.info(out_dll).modification_time rescue nil
+        end
         true
       else
         report_build_failure("Crystal build", out_msg, err_msg, status.exit_code)
@@ -2148,6 +2470,33 @@ module Lapis
     @@link_check_accum : Float64 = 0.0_f64
     @@reload_watchdog : Float64 = 0.0_f64
     @@hl_check_accum : Float64 = 0.0_f64
+    @@last_game_dll_mtime : ::Time? = nil
+    @@dll_check_accum : Float64 = 0.0_f64
+
+    # Checks if bin/game.dll was modified outside the editor (e.g., CLI lapis build) and triggers reload
+    def self.check_external_game_dll_update : Void
+      return if @@building || @@reload_pending || Godot::Bridge.reloading?
+      dll_path = {% if flag?(:windows) %}
+                   "bin/game.dll"
+                 {% elsif flag?(:darwin) %}
+                   "bin/game.dylib"
+                 {% else %}
+                   "bin/game.so"
+                 {% end %}
+      return unless File.exists?(dll_path)
+      mtime = File.info(dll_path).modification_time rescue nil
+      return unless mtime
+
+      if last = @@last_game_dll_mtime
+        if mtime > last
+          @@last_game_dll_mtime = mtime
+          Godot.print("[CrystalIntegrationPlugin] Detected external update to #{dll_path}. Reloading extension...")
+          trigger_extension_reload
+        end
+      else
+        @@last_game_dll_mtime = mtime
+      end
+    end
 
     def _process(delta : Float64) : Void
       Fiber.yield
@@ -2161,6 +2510,7 @@ module Lapis
       if dbg = @@debugger_plugin
         dbg.call("poll") rescue nil
       end
+      Lapis::AsyncCommandRunner.instance.poll rescue nil
 
       if Godot.editor_hint?
         if ::ENV["LIBGODOT_TEST_BUILD_BUTTON"]? == "1" || !::ENV["LIBGODOT_TEST_RELOAD_CYCLES"]?.nil?
@@ -2189,7 +2539,7 @@ module Lapis
             @@reload_watchdog += delta
             if @@reload_watchdog > 0.4_f64
               self.class.reset_toolbar_button
-              Godot.print("[CrystalIntegrationPlugin] Watchdog: Reload completed. Reset Build button to 'Build'.")
+              Godot.log_debug("Editor", "[CrystalIntegrationPlugin] Watchdog: Reload completed. Reset Build button to 'Build'.")
             end
           else
             @@reload_watchdog = 0.0_f64
@@ -2200,6 +2550,12 @@ module Lapis
         panel_inst = @@crystal_panel
         if panel_inst.nil? || panel_inst.pointer.null? || !panel_inst.alive?
           self.class.setup_main_screen_panel
+        end
+
+        @@dll_check_accum += delta
+        if @@dll_check_accum >= 1.0_f64
+          @@dll_check_accum = 0.0_f64
+          self.class.check_external_game_dll_update
         end
 
         @@link_check_accum += delta
@@ -2224,27 +2580,27 @@ module Lapis
       return if Godot::EditorInterface.singleton_ptr.null?
       ensure_highlighter_registered
       hl = @@crystal_highlighter
-      return unless hl && !hl.pointer.null?
+      return unless hl && !hl.pointer.null? && hl.alive? && Bridge.is_object_valid(hl.pointer)
 
       ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
-      se = ed_iface.get_script_editor
-      return if se.pointer.null?
+      se = ed_iface.get_script_editor rescue nil
+      return if se.nil? || se.pointer.null?
 
-      curr_script = se.get_current_script
+      curr_script = se.get_current_script rescue nil
       if curr_script && !curr_script.pointer.null?
-        path = curr_script.call_str("get_path")
-        path = curr_script.call_str("get_resource_path") if path.empty?
-        cls = curr_script.call_str("get_class")
+        path = curr_script.call_str("get_path") rescue ""
+        path = (curr_script.call_str("get_resource_path") rescue "") if path.empty?
+        cls = curr_script.call_str("get_class") rescue ""
         is_cr = path.ends_with?(".cr") || cls == "CrystalScript"
         if is_cr
-          curr_ed = se.call_obj("get_current_editor")
+          curr_ed = se.call_obj("get_current_editor") rescue nil
           if curr_ed && !curr_ed.pointer.null?
             curr_ed.call("add_syntax_highlighter", hl) rescue nil
-            base_ed = curr_ed.call_obj("get_base_editor")
+            base_ed = curr_ed.call_obj("get_base_editor") rescue nil
             if base_ed && !base_ed.pointer.null?
               existing_hl = base_ed.call_obj("get_syntax_highlighter") rescue nil
               if existing_hl.nil? || existing_hl.pointer.null?
-                tab_hl = hl.call_obj("_create")
+                tab_hl = (hl.call_obj("_create") rescue nil)
                 actual_hl = (tab_hl && !tab_hl.pointer.null?) ? tab_hl : hl
                 base_ed.call("set_syntax_highlighter", actual_hl) rescue nil
                 base_ed.call("queue_redraw") rescue nil

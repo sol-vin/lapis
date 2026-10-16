@@ -77,7 +77,12 @@ module Lapis
               io << %(  <text x="#{margin_left - 15}" y="#{group_y + 14}" text-anchor="end" font-family="sans-serif" font-size="13" font-weight="bold" fill="#F0F3F6">#{XmlHandler.escape_xml(m.name)}</text>\n)
               io << %(  <rect x="#{margin_left}" y="#{group_y}" width="#{chart_width}" height="#{bar_height}" rx="4" fill="#21262D"/>\n)
               io << %(  <rect x="#{margin_left}" y="#{group_y}" width="#{cr_w}" height="#{bar_height}" rx="4" fill="url(#crGrad)"/>\n)
-              io << %(  <text x="#{margin_left + cr_w + 10}" y="#{group_y + 14}" font-family="sans-serif" font-size="11" font-weight="700" fill="#00D2FF">#{m.crystal_ms.round(2)} ms</text>\n)
+              cr_text = "#{m.crystal_ms.round(2)} ms"
+              if cr_w >= 120
+                io << %(  <text x="#{margin_left + cr_w - 10}" y="#{group_y + 14}" text-anchor="end" font-family="sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">#{cr_text}</text>\n)
+              else
+                io << %(  <text x="#{margin_left + cr_w + 10}" y="#{group_y + 14}" font-family="sans-serif" font-size="11" font-weight="700" fill="#00D2FF">#{cr_text}</text>\n)
+              end
 
               badge_x = svg_width - 110
               io << %(  <rect x="#{badge_x}" y="#{group_y - 2}" width="85" height="22" rx="11" fill="#00D2FF" fill-opacity="0.12" stroke="#00D2FF" stroke-width="1"/>\n)
@@ -93,7 +98,7 @@ module Lapis
           bar_height = has_editor ? 12 : 14
           group_spacing = has_editor ? 70 : 58
           margin_top = 85
-          margin_left = 175
+          margin_left = 185
           margin_right = 245
           chart_width = svg_width - margin_left - margin_right
           svg_height = margin_top + (metrics.size * group_spacing) + 40
@@ -121,12 +126,22 @@ module Lapis
               io << %(  <text x="#{margin_left - 15}" y="#{group_y + 26}" text-anchor="end" font-family="sans-serif" font-size="13" font-weight="bold" fill="#F0F3F6">#{XmlHandler.escape_xml(m.name)}</text>\n)
               io << %(  <rect x="#{margin_left}" y="#{group_y}" width="#{chart_width}" height="#{bar_height}" rx="3" fill="#21262D"/>\n)
               io << %(  <rect x="#{margin_left}" y="#{group_y}" width="#{cr_w}" height="#{bar_height}" rx="3" fill="url(#crGrad)"/>\n)
-              io << %(  <text x="#{margin_left + cr_w + 8}" y="#{group_y + 10}" font-family="sans-serif" font-size="11" font-weight="600" fill="#00D2FF">#{m.crystal_ms.round(2)} ms (Crystal)</text>\n)
+              cr_text = "#{m.crystal_ms.round(2)} ms (Crystal)"
+              if cr_w >= 140
+                io << %(  <text x="#{margin_left + cr_w - 10}" y="#{group_y + 10}" text-anchor="end" font-family="sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">#{cr_text}</text>\n)
+              else
+                io << %(  <text x="#{margin_left + cr_w + 8}" y="#{group_y + 10}" font-family="sans-serif" font-size="11" font-weight="600" fill="#00D2FF">#{cr_text}</text>\n)
+              end
 
               if m.gdscript_ms > 0.0
                 io << %(  <rect x="#{margin_left}" y="#{group_y + 18}" width="#{chart_width}" height="#{bar_height}" rx="3" fill="#21262D"/>\n)
                 io << %(  <rect x="#{margin_left}" y="#{group_y + 18}" width="#{gd_w}" height="#{bar_height}" rx="3" fill="url(#gdGrad)"/>\n)
-                io << %(  <text x="#{margin_left + gd_w + 8}" y="#{group_y + 28}" font-family="sans-serif" font-size="11" font-weight="600" fill="#FF9900">#{m.gdscript_ms.round(2)} ms (GDScript)</text>\n)
+                gd_text = "#{m.gdscript_ms.round(2)} ms (GDScript)"
+                if gd_w >= 140
+                  io << %(  <text x="#{margin_left + gd_w - 10}" y="#{group_y + 28}" text-anchor="end" font-family="sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">#{gd_text}</text>\n)
+                else
+                  io << %(  <text x="#{margin_left + gd_w + 8}" y="#{group_y + 28}" font-family="sans-serif" font-size="11" font-weight="600" fill="#FF9900">#{gd_text}</text>\n)
+                end
 
                 badge_x = svg_width - 120
                 io << %(  <rect x="#{badge_x}" y="#{group_y + 10}" width="95" height="24" rx="12" fill="#238636" fill-opacity="0.2" stroke="#238636" stroke-width="1"/>\n)
@@ -161,8 +176,8 @@ module Lapis
           bar_height = has_dual ? 11 : 16
 
           margin_top = 70
-          margin_left = 160
-          margin_right = 160
+          margin_left = 175
+          margin_right = 170
           svg_width = 960
           chart_width = svg_width - margin_left - margin_right
           svg_height = margin_top + (rows.size * row_spacing) + 25
@@ -261,24 +276,38 @@ module Lapis
                 # Bar 1 (Release / Primary)
                 io << %(  <rect x="#{margin_left}" y="#{gy}" width="#{chart_width}" height="#{bar_height}" rx="3" fill="#21262D"/>\n)
                 io << %(  <rect x="#{margin_left}" y="#{gy}" width="#{w1}" height="#{bar_height}" rx="3" fill="url(#grpGrad_#{idx}_1)"/>\n)
-                io << %(  <text x="#{margin_left + w1 + 6}" y="#{gy + 9}" font-family="sans-serif" font-size="10" font-weight="600" fill="#{r.color1_start}">#{r.val1.round(1)} #{r.unit} (Release)</text>\n)
+                t1_str = "#{r.val1.round(1)} #{r.unit} (Release)"
+                if w1 >= 120
+                  io << %(  <text x="#{margin_left + w1 - 8}" y="#{gy + 9}" text-anchor="end" font-family="sans-serif" font-size="10" font-weight="700" fill="#FFFFFF">#{t1_str}</text>\n)
+                else
+                  io << %(  <text x="#{margin_left + w1 + 6}" y="#{gy + 9}" font-family="sans-serif" font-size="10" font-weight="600" fill="#{r.color1_start}">#{t1_str}</text>\n)
+                end
 
                 # Bar 2 (Debug / Secondary)
                 io << %(  <rect x="#{margin_left}" y="#{gy + bar_height + 4}" width="#{chart_width}" height="#{bar_height}" rx="3" fill="#21262D"/>\n)
                 io << %(  <rect x="#{margin_left}" y="#{gy + bar_height + 4}" width="#{w2}" height="#{bar_height}" rx="3" fill="url(#grpGrad_#{idx}_2)"/>\n)
                 c2_text = r.color2_start || "#FFAA00"
-                io << %(  <text x="#{margin_left + w2 + 6}" y="#{gy + bar_height + 13}" font-family="sans-serif" font-size="10" font-weight="600" fill="#{c2_text}">#{v2.round(1)} #{r.unit} (Debug)</text>\n)
+                t2_str = "#{v2.round(1)} #{r.unit} (Debug)"
+                if w2 >= 120
+                  io << %(  <text x="#{margin_left + w2 - 8}" y="#{gy + bar_height + 13}" text-anchor="end" font-family="sans-serif" font-size="10" font-weight="700" fill="#FFFFFF">#{t2_str}</text>\n)
+                else
+                  io << %(  <text x="#{margin_left + w2 + 6}" y="#{gy + bar_height + 13}" font-family="sans-serif" font-size="10" font-weight="600" fill="#{c2_text}">#{t2_str}</text>\n)
+                end
               else
                 # Single bar
                 io << %(  <rect x="#{margin_left}" y="#{gy}" width="#{chart_width}" height="#{bar_height}" rx="4" fill="#21262D"/>\n)
                 io << %(  <rect x="#{margin_left}" y="#{gy}" width="#{w1}" height="#{bar_height}" rx="4" fill="url(#grpGrad_#{idx}_1)"/>\n)
                 val_str = "#{r.val1.round(2)} #{r.unit}"
-                io << %(  <text x="#{margin_left + w1 + 8}" y="#{gy + 12}" font-family="sans-serif" font-size="11" font-weight="600" fill="#{r.color1_start}">#{val_str}</text>\n)
+                if w1 >= 110
+                  io << %(  <text x="#{margin_left + w1 - 8}" y="#{gy + 12}" text-anchor="end" font-family="sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">#{val_str}</text>\n)
+                else
+                  io << %(  <text x="#{margin_left + w1 + 8}" y="#{gy + 12}" font-family="sans-serif" font-size="11" font-weight="600" fill="#{r.color1_start}">#{val_str}</text>\n)
+                end
               end
 
               # Badge on the right
               if badge = r.badge
-                badge_x = svg_width - 135
+                badge_x = svg_width - 130
                 badge_bg = r.is_baseline ? "rgba(0, 210, 255, 0.12)" : "rgba(35, 134, 54, 0.15)"
                 badge_border = r.is_baseline ? "#00D2FF" : "#3FB950"
                 badge_text_col = r.is_baseline ? "#00D2FF" : "#3FB950"

@@ -48,6 +48,26 @@ module Lapis
       #       <td><code>.topic_04_node_helpers</code></td>
       #       <td>Convenient macros for groups, cached node references, and unique scene access.</td>
       #     </tr>
+      #     <tr>
+      #       <td><strong>Context-Aware Node Reopening (Define vs. Monkeypatch Mode)</strong></td>
+      #       <td><code>.topic_05_context_aware_node_reopening</code></td>
+      #       <td>Modularizing Godot node definitions across multiple files without inheritance conflicts.</td>
+      #     </tr>
+      #     <tr>
+      #       <td><strong>Traditional GodotClass Annotation Syntax</strong></td>
+      #       <td><code>.topic_06_traditional_godot_class_syntax</code></td>
+      #       <td>Authoring native Godot nodes using standard Crystal class syntax and the @[GodotClass] annotation.</td>
+      #     </tr>
+      #     <tr>
+      #       <td><strong>Pure Crystal Domain Models & Stack-Allocated Structs</strong></td>
+      #       <td><code>.topic_07_pure_crystal_domain_models</code></td>
+      #       <td>Decoupling game logic into zero-allocation stack structs for 30ms headless testing and peak cache efficiency.</td>
+      #     </tr>
+      #     <tr>
+      #       <td><strong>Autoload Nodes & Engine Singletons (@[Autoload])</strong></td>
+      #       <td><code>.topic_08_autoload_node_singletons</code></td>
+      #       <td>Declaring persistent autoload nodes automatically registered as engine singletons and mounted to the SceneTree root.</td>
+      #     </tr>
       #   </tbody>
       # </table>
       #
@@ -62,9 +82,13 @@ module Lapis
         # #### Key Topics & Information
         #
         # - Declarative syntax: node ClassName < ParentNode do ... end
+        # - Context-aware node reopening across files without inheritance conflict
+        # - Traditional class syntax via @[GodotClass] annotation
+        # - Pure Crystal domain models with zero GC stack-allocated structs
         # - Automatic ClassDB engine registration
         # - Virtual method overrides: _ready, _process, _physics_process, _enter_tree, _exit_tree
         # - In-editor live execution via @[Tool] annotation
+        # - Declarative Autoload node singletons via @[Autoload] and typed .instance accessors
         #
         def self.topic_00_dsl_features : Nil; end
 
@@ -168,17 +192,217 @@ module Lapis
         #   # Declarative group membership
         #   group "players", "damageable"
         #
-        #   # Cached node references (typed and nilable variants)
-        #   onready sprite : Sprite2D
-        #   onready? particle_fx : CPUParticles2D
+        #   # Eager onready property initialized during _ready via unary ~:
+        #   onready sprite : Sprite2D = ~"Sprite2D"
+        #   onready health_bar : ProgressBar = ~"%HealthBar"
+        #   onready anim = ~"AnimationPlayer".as(AnimationPlayer)
+        #
+        #   # Lazy-cached node accessors (resolved on first access with dead-pointer safety):
+        #   onready camera, Camera2D, "Pivot/Camera2D"
+        #   onready? particle_fx, CPUParticles2D
         #
         #   # Scene Unique Node access (%UniqueNodeName)
-        #   unique_node health_bar : ProgressBar
-        #   unique_node? quest_tracker : Control
+        #   unique_node hud, CanvasLayer, "PlayerHUD"
+        #   unique_node? quest_tracker, Control
         # end
         # ```
         #
         def self.topic_04_node_helpers : Nil; end
+
+        # **Context-Aware Node Reopening (Define vs Monkeypatch Mode)**: Modularizing Godot node definitions across multiple files without inheritance conflicts.
+        #
+        # Lapis features a context-aware `node` macro that distinguishes between the initial class definition and subsequent class reopenings (monkeypatching).
+        #
+        # In standard Crystal, declaring `class Player < CharacterBody2D` a second time triggers a compile-time superclass mismatch or redefinition error. Lapis inspects class resolution at compile time:
+        # - **Initial Definition**: `node Player < CharacterBody2D` creates the class, registers it in `ClassDB`, binds initial exported properties and lifecycle methods.
+        # - **Reopening (Monkeypatch)**: Subsequent declarations (`node Player do ... end`) automatically open the class in monkeypatch mode without repeating `< SuperClass`.
+        #
+        # All exported properties, signals, RPC definitions, and virtual methods from reopened blocks are dynamically merged into a single unified `ClassDB` table:
+        #
+        # ```crystal
+        # # File: src/entities/player.cr
+        # node Player < CharacterBody2D do
+        #   @[Export]
+        #   property speed : Float32 = 250.0_f32
+        #
+        #   def _physics_process(delta : Float64) : Void
+        #     # Movement logic
+        #   end
+        # end
+        #
+        # # File: src/entities/player_combat.cr
+        # node Player do
+        #   signal health_changed(current : Int32, max : Int32)
+        #
+        #   @[Export]
+        #   property attack_power : Int32 = 25
+        #
+        #   def take_damage(amount : Int32) : Void
+        #     # Combat resolution
+        #   end
+        # end
+        # ```
+        #
+        # Dispatch methods (`_godot_call_virtual`, `_godot_set_property`, `_godot_get_property`) seamlessly chain to `previous_def`, allowing modular code splitting across feature directories without runtime overhead.
+        #
+        def self.topic_05_context_aware_node_reopening : Nil; end
+
+        # **Traditional GodotClass Annotation Syntax**: Authoring native Godot nodes using standard Crystal class syntax and the @[GodotClass] annotation.
+        #
+        # Developers who prefer traditional object-oriented Crystal class syntax over declarative macro blocks can annotate standard classes with `@[GodotClass]`:
+        #
+        # ```crystal
+        # require "libgodot"
+        #
+        # @[GodotClass]
+        # class Player < Godot::CharacterBody2D
+        #   @[Export]
+        #   property speed : Float32 = 300.0_f32
+        #
+        #   @[Export]
+        #   property max_health : Int32 = 100
+        #
+        #   def _ready : Void
+        #     Godot.print("Player #{name} initialized via @[GodotClass]!")
+        #   end
+        #
+        #   def _physics_process(delta : Float64) : Void
+        #     # Standard physics movement
+        #   end
+        # end
+        # ```
+        #
+        # #### Automated ClassDB Synthesis:
+        # When a class inherits from any `Godot::Object` subclass and carries `@[GodotClass]`:
+        # 1. **ClassDB Registration**: Automatically generates entry with proper parent class name (`CharacterBody2D`).
+        # 2. **Property Reflection**: Gathers all `@[Export]` properties and registers typed `PropertyInfo` entries into the Godot Inspector.
+        # 3. **Virtual Dispatch**: Automatically wires `_ready`, `_process`, `_physics_process`, and input methods to engine ptrcalls.
+        # 4. **Zero Macro Boilerplate**: Requires no `node do ... end` wrapper blocks, matching standard Crystal class design.
+        #
+        def self.topic_06_traditional_godot_class_syntax : Nil; end
+
+        # **Pure Crystal Domain Models & Stack-Allocated Structs**: Decoupling game logic into zero-allocation stack structs for 30ms headless testing and peak cache efficiency.
+        #
+        # While Godot nodes are excellent for spatial hierarchies and rendering, writing all gameplay logic directly inside engine nodes introduces native wrapper overhead, garbage collection pressure, and slow test feedback loops.
+        #
+        # Lapis enables a high-performance **Domain-Driven Design (DDD)** pattern using pure Crystal stack-allocated structs:
+        #
+        # ```crystal
+        # # Zero GC allocation - lives directly in parent memory
+        # struct CombatStats
+        #   property health : Int32
+        #   property max_health : Int32
+        #   property defense : Int32
+        #   property attack_power : Int32
+        #
+        #   def initialize(@max_health : Int32, @defense : Int32, @attack_power : Int32)
+        #     @health = @max_health
+        #   end
+        #
+        #   def alive? : Bool
+        #     @health > 0
+        #   end
+        #
+        #   # Pure deterministic calculation - zero engine dependencies
+        #   def apply_incoming_damage(raw_damage : Int32) : Int32
+        #     mitigated = Math.max(1, raw_damage - @defense)
+        #     @health = Math.max(0, @health - mitigated)
+        #     mitigated
+        #   end
+        # end
+        # ```
+        #
+        # #### Clean Composition inside a Godot Node:
+        # The Godot node acts strictly as a visual renderer and spatial bridge:
+        #
+        # ```crystal
+        # node Player < CharacterBody2D do
+        #   # Inlined directly in memory - no separate heap pointer
+        #   @stats = CombatStats.new(max_health: 100, defense: 15, attack_power: 25)
+        #
+        #   def take_hit(damage : Int32) : Void
+        #     mitigated = @stats.apply_incoming_damage(damage)
+        #     Godot.print("Player took #{mitigated} damage! Remaining: #{@stats.health}")
+        #     queue_free unless @stats.alive?
+        #   end
+        # end
+        # ```
+        #
+        # #### High-Velocity Test-Driven Development (TDD):
+        # Because `CombatStats` and other domain models have no dependency on Godot's SceneTree, developers can write comprehensive headless Crystal specs:
+        #
+        # ```crystal
+        # # spec/domain/combat_stats_spec.cr
+        # require "spec"
+        # require "../../src/domain/combat_stats"
+        #
+        # describe CombatStats do
+        #   it "correctly mitigates damage by defense rating" do
+        #     stats = CombatStats.new(max_health: 100, defense: 10, attack_power: 20)
+        #     actual_dmg = stats.apply_incoming_damage(35)
+        #     actual_dmg.should eq(25)
+        #     stats.health.should eq(75)
+        #     stats.alive?.should be_true
+        #   end
+        # end
+        # ```
+        #
+        # Running `crystal spec spec/domain/` executes hundreds of unit tests in **30 milliseconds (0.03s)**, without booting Godot, creating OS windows, or waiting for scene tree initialization!
+        #
+        def self.topic_07_pure_crystal_domain_models : Nil; end
+
+        # **Autoload Nodes & Engine Singletons (@[Autoload])**: Declaring persistent autoload nodes automatically registered as engine singletons and mounted to the SceneTree root.
+        #
+        # In Godot, Autoloads are persistent nodes loaded automatically at startup, accessible globally across scenes, and optionally registered as engine singletons in `Engine.has_singleton`.
+        #
+        # Lapis provides first-class declarative support for Autoload nodes via the `@[Autoload]` annotation or in-body `autoload` macro directive:
+        #
+        # ```crystal
+        # @[Autoload]
+        # node GameManager < Node do
+        #   property score : Int32 = 0
+        #   property current_level : String = "world_1"
+        #
+        #   def add_score(points : Int32) : Void
+        #     @score += points
+        #   end
+        # end
+        # ```
+        #
+        # #### Automatic Lifecycle & SceneTree Mounting:
+        # 1. **Automatic Lifecycle**: When the GDExtension library initializes or the SceneTree boots, `AutoloadManager` instantiates every registered Autoload node.
+        # 2. **SceneTree Root Attachment**: Autoloads are mounted under the root viewport (`/root/GameManager`) so they participate in engine process loops, physics, and input events.
+        # 3. **Engine Singleton Registration**: The instance is registered in Godot's native `Engine` singleton registry (`Engine.get_singleton("GameManager")`), making it accessible from both Crystal and GDScript.
+        # 4. **Type-Safe Accessors**: The macro generates typed class-level accessors:
+        #    ```crystal
+        #    # Non-nil typed accessor (raises if not initialized)
+        #    GameManager.instance.add_score(100)
+        #
+        #    # Nilable typed accessor
+        #    if gm = GameManager.instance?
+        #      Godot.print("Score: #{gm.score}")
+        #    end
+        #
+        #    # Generic engine lookup
+        #    node = Godot.autoload(GameManager)
+        #    ```
+        #
+        # #### Customizing Autoload Registration:
+        # You can customize the singleton name, disable engine singleton registration, or disable SceneTree mounting:
+        #
+        # ```crystal
+        # # Custom name and tree-only (no Engine.register_singleton)
+        # @[Autoload(name: "AudioService", singleton: false)]
+        # node CustomAudioManager < AudioStreamPlayer do
+        # end
+        #
+        # # Or using in-body directive:
+        # node InventoryManager < Node do
+        #   autoload name: "Inventory", singleton: true, mount_tree: true
+        # end
+        # ```
+        #
+        def self.topic_08_autoload_node_singletons : Nil; end
       end
     end
   end

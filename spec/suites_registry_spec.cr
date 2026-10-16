@@ -13,7 +13,17 @@ describe "Lapis::Test::Registry Test Suites" do
       "Resources", "Lifecycle", "DeadPointerSafety", "Concurrency",
       "CallableAdv", "ClassDB", "MacrosDSL", "MultiAddon", "DepAddonsCompiled", "GDScript", "ColdBoot",
       "Noise", "Navigation", "ImageBuffer", "ConfigFile", "EditorSignals", "Multiplayer",
-      "HierarchyErgonomics", "MultiFrameOrchestration", "PluginDependenciesDAG"
+      "HierarchyErgonomics", "MultiFrameOrchestration", "PluginDependenciesDAG",
+      "GameplayErgonomics", "SlidesShowcase", "DslEdgeCasesAndLeaks", "TweenDsl",
+      "SignalSafetyMultiFrame", "DestructionAndThreadsMultiFrame",
+      "DslHelpersAndOnReady", "EditorPluginsComprehensive",
+      "FSM", "SignalBus", "Pool", "Ergonomics",
+      "HSM", "SignalBusAdv", "NodePoolStress", "CombatScenario",
+      "ActorChannel", "ResourceCard", "SpatialPhysics", "ScenePipelineRegex",
+      "Autoload", "SignalPiping", "Nodes2DMultiFrame", "Nodes3DMultiFrame", "ControlMultiFrame",
+      "RayCastMultiFrame", "AnimationMultiFrame", "ParticlesAndAudioMultiFrame", "TileMapMultiFrame", "RigidBodyMultiFrame",
+      "ColorSpaces", "ObjectCasting", "ResourcePreload", "Timers", "SubclassInheritance",
+      "AwaitStatus"
     ]
 
     expected_categories.each do |cat|
@@ -24,7 +34,7 @@ describe "Lapis::Test::Registry Test Suites" do
 
   it "contains test cases with valid source locations" do
     tests = Lapis::Test::Registry.all_tests
-    tests.size.should be >= 80
+    tests.size.should be >= 100
 
     tests.first.category.should_not be_empty
     tests.first.name.should_not be_empty

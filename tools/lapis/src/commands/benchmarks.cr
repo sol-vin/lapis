@@ -41,8 +41,8 @@ Options:
   -c, --category=CAT    Filter by category ('compute', 'engine', 'toolchain', 'custom')
   -g, --group=GROUP     Run only benchmarks within the specified comparison group
   -e, --env=ENV         Execution environment: 'standalone', 'editor', 'all' (default: standalone)
-  -t, --tag=TAG         Target release tag (e.g. '4.8-dev6')
-  --previous-tag=TAG    Previous baseline release tag (e.g. '4.8-dev5')
+  -t, --tag=TAG         Target release tag (e.g. '4.8-dev7')
+  --previous-tag=TAG    Previous baseline release tag (e.g. '4.8-dev6')
   -o, --output=PATH     Explicit output file or directory path
   --from=PATH           Input XML file for 'export html'
   --current=PATH        Current benchmark XML file for comparison
@@ -182,13 +182,24 @@ HELP
 
         root = Core::Env::ROOT_DIR
         target_dir = ((pp = proj_path) ? Path.new(pp) : Path.new(Dir.current)).expand
+
+        unless Core::Env.is_crystal_dir?(target_dir)
+          Core::Logger.warn("Warning: Directory '#{target_dir}' is not a Crystal/Lapis project (missing shard.yml or src/).")
+        end
+
         benchmarks_dir = if Dir.exists?(target_dir.join("benchmarks"))
                            target_dir.join("benchmarks")
-                         elsif Dir.exists?(root.join("benchmarks")) && proj_path.nil?
+                         elsif Dir.exists?(root.join("benchmarks")) && proj_path.nil? && Core::Env.is_libgodot_repo?(root)
                            root.join("benchmarks")
                          else
                            target_dir.join("benchmarks")
                          end
+
+        unless Dir.exists?(benchmarks_dir)
+          Core::Logger.warn("Warning: No 'benchmarks/' directory found in '#{target_dir}'.")
+          Core::Logger.info("Tip: Benchmarks must be executed from a project containing a 'benchmarks/' suite.")
+          return 1
+        end
 
         if list_groups
           groups = discover_groups(benchmarks_dir)
@@ -695,9 +706,7 @@ HELP
             val = is_native_mode ? m.crystal_ms : (m.speedup > 0.0 ? m.speedup : 1.0)
             chart.add(m.name, val, color: :cyan)
           end
-          c_buf = Opal::UI::Buffer.new(70, chart_cases.size + 2)
-          chart.render(c_buf, 2, 0, 68, chart_cases.size + 2)
-          puts c_buf.render_to_string
+          puts chart.to_print_s(width: 70)
         end
 
         html_link = Opal.hyperlink(html_file.basename, "file://#{html_file.expand}") rescue html_file.to_s

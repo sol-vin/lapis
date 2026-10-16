@@ -13,6 +13,46 @@ This runbook defines the authoritative conventions, architectural invariants, an
 
 ---
 
+## Table of Contents
+<table>
+  <thead>
+    <tr>
+      <th align="left">Section</th>
+      <th align="left">Description</th>
+      <th align="center">Lines</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><a href="#1-architectural-invariants-of-the-documentation-system"><strong>1. Architectural Invariants of the Documentation System</strong></a></td>
+      <td>The documentation system serves a dual purpose:</td>
+      <td align="center"><code>L56–L73</code></td>
+    </tr>
+    <tr>
+      <td><a href="#2-the-method-doc-comment-layout-standard"><strong>2. The Method Doc Comment Layout Standard</strong></a></td>
+      <td>### The Golden Rule of Section Organization & Method Ordering</td>
+      <td align="center"><code>L74–L173</code></td>
+    </tr>
+    <tr>
+      <td><a href="#3-formatting-styling-mandates"><strong>3. Formatting & Styling Mandates</strong></a></td>
+      <td>### 1.</td>
+      <td align="center"><code>L174–L213</code></td>
+    </tr>
+    <tr>
+      <td><a href="#4-step-by-step-procedures"><strong>4. Step-by-Step Procedures</strong></a></td>
+      <td>### How to Create a New Documentation Page:</td>
+      <td align="center"><code>L214–L235</code></td>
+    </tr>
+    <tr>
+      <td><a href="#5-verification-protocol"><strong>5. Verification Protocol</strong></a></td>
+      <td>After creating or modifying documentation files:</td>
+      <td align="center"><code>L236–L248</code></td>
+    </tr>
+  </tbody>
+</table>
+
+---
+
 ## 1. Architectural Invariants of the Documentation System
 
 The documentation system serves a dual purpose:

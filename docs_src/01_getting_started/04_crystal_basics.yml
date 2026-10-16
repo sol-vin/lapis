@@ -110,9 +110,34 @@ sections:
     content: |
       To deepen your Crystal expertise, reference the authoritative documentation:
 
-      | Resource | Link | Description |
-      | :--- | :--- | :--- |
-      | **Crystal Reference Manual** | [crystal-lang.org/reference](https://crystal-lang.org/reference/) | Full language specification and macro syntax |
-      | **Standard Library API** | [crystal-lang.org/api](https://crystal-lang.org/api/) | Built-in classes (Array, Hash, Math, Time, IO) |
-      | **Crystal Style Guide** | [Coding Style Guide](https://crystal-lang.org/reference/conventions/coding_style.html) | Formatting, naming conventions, and best practices |
-      | **Crystal Forum & Community** | [forum.crystal-lang.org](https://forum.crystal-lang.org/) | Questions, community libraries, and ecosystem |
+      <table>
+        <thead>
+          <tr>
+            <th>Resource</th>
+            <th>Link</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Crystal Reference Manual</strong></td>
+            <td><a href="https://crystal-lang.org/reference/">crystal-lang.org/reference</a></td>
+            <td>Full language specification and macro syntax</td>
+          </tr>
+          <tr>
+            <td><strong>Standard Library API</strong></td>
+            <td><a href="https://crystal-lang.org/api/">crystal-lang.org/api</a></td>
+            <td>Built-in classes (Array, Hash, Math, Time, IO)</td>
+          </tr>
+          <tr>
+            <td><strong>Crystal Style Guide</strong></td>
+            <td><a href="https://crystal-lang.org/reference/conventions/coding_style.html">Coding Style Guide</a></td>
+            <td>Formatting, naming conventions, and best practices</td>
+          </tr>
+          <tr>
+            <td><strong>Crystal Forum &amp; Community</strong></td>
+            <td><a href="https://forum.crystal-lang.org/">forum.crystal-lang.org</a></td>
+            <td>Questions, community libraries, and ecosystem</td>
+          </tr>
+        </tbody>
+      </table>

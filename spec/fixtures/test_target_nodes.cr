@@ -172,3 +172,40 @@ node GDScriptInteropTarget < Godot::Node do
     emit(crystal_ping, val)
   end
 end
+
+# 6. Autoload Test Fixture Nodes
+@[Tool]
+@[Autoload]
+node AutoloadTargetService < Godot::Node do
+  property service_status : String = "Running"
+  property execution_count : Int32 = 0
+  property ready_executed : Bool = false
+
+  def _ready : Void
+    @ready_executed = true
+  end
+
+  def increment_execution : Int32
+    @execution_count += 1
+    @execution_count
+  end
+end
+
+@[Tool]
+node AutoloadBlockTarget < Godot::Node do
+  autoload name: "CustomAutoloadName"
+
+  property custom_tag : String = "BlockConfigured"
+  property value_store : Int64 = 42_i64
+
+  def double_value : Int64
+    @value_store * 2
+  end
+end
+
+@[Tool]
+@[Autoload(name: "TreeOnlyAutoload", singleton: false, mount_tree: true)]
+node AutoloadTreeOnlyTarget < Godot::Node do
+  property tree_only_flag : Bool = true
+end
+

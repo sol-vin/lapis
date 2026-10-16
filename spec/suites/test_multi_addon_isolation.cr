@@ -208,19 +208,123 @@ end
 end
 
   test "ClassDB property and signal namespace isolation across independent addons" do
-  class_db = Godot::ClassDB.new(Godot::ClassDB.singleton_ptr)
+    class_db = Godot::ClassDB.new(Godot::ClassDB.singleton_ptr)
 
-  # Verify DialogueBox does NOT inherit InventoryGrid properties or signals
-  assert_false class_db.call_bool("class_has_signal", "DialogueBox", "item_added"), "DialogueBox must NOT have item_added signal"
-  assert_false class_db.call_bool("class_has_signal", "DialogueBox", "playback_started"), "DialogueBox must NOT have playback_started signal"
+    # Verify DialogueBox does NOT inherit InventoryGrid properties or signals
+    assert_false class_db.call_bool("class_has_signal", "DialogueBox", "item_added"), "DialogueBox must NOT have item_added signal"
+    assert_false class_db.call_bool("class_has_signal", "DialogueBox", "playback_started"), "DialogueBox must NOT have playback_started signal"
 
-  # Verify InventoryGrid does NOT inherit DialogueBox properties or signals
-  assert_false class_db.call_bool("class_has_signal", "InventoryGrid", "line_finished"), "InventoryGrid must NOT have line_finished signal"
-  assert_false class_db.call_bool("class_has_signal", "InventoryGrid", "playback_started"), "InventoryGrid must NOT have playback_started signal"
+    # Verify InventoryGrid does NOT inherit DialogueBox properties or signals
+    assert_false class_db.call_bool("class_has_signal", "InventoryGrid", "line_finished"), "InventoryGrid must NOT have line_finished signal"
+    assert_false class_db.call_bool("class_has_signal", "InventoryGrid", "playback_started"), "InventoryGrid must NOT have playback_started signal"
 
-  # Verify AudioStreamPlayerCrystal is strictly isolated
-  assert_false class_db.call_bool("class_has_signal", "AudioStreamPlayerCrystal", "line_finished"), "AudioStreamPlayerCrystal must NOT have line_finished signal"
-  assert_false class_db.call_bool("class_has_signal", "AudioStreamPlayerCrystal", "item_added"), "AudioStreamPlayerCrystal must NOT have item_added signal"
-end
+    # Verify AudioStreamPlayerCrystal is strictly isolated
+    assert_false class_db.call_bool("class_has_signal", "AudioStreamPlayerCrystal", "line_finished"), "AudioStreamPlayerCrystal must NOT have line_finished signal"
+    assert_false class_db.call_bool("class_has_signal", "AudioStreamPlayerCrystal", "item_added"), "AudioStreamPlayerCrystal must NOT have item_added signal"
+  end
+
+  test "Cross-addon signal piping and payload delivery" do
+    d_ptr = Godot::Bridge.construct_object("DialogueBox")
+    inv_ptr = Godot::Bridge.construct_object("InventoryGrid")
+    assert_false d_ptr.null?, "DialogueBox should construct"
+    assert_false inv_ptr.null?, "InventoryGrid should construct"
+
+    box = Godot::Control.new(d_ptr)
+    inv = Godot::Control.new(inv_ptr)
+    root.add_child(box)
+    root.add_child(inv)
+
+    initial_count = inv.call_i64("get", "item_count")
+    assert_eq initial_count, 5_i64
+
+    # Connect box's line_finished signal to update inv
+    sub = box.connect("line_finished") do |_args|
+      cur = inv.call_i64("get", "item_count")
+      inv.call("set", "item_count", cur + 1_i64)
+    end
+
+    # Advance dialogue: emit line_finished signal
+    box.call("emit_signal", "line_finished", "Narrator")
+
+    new_count = inv.call_i64("get", "item_count")
+    assert_eq new_count, 6_i64, "Inventory item_count should increase from cross-addon signal delivery"
+
+    sub.disconnect
+    root.remove_child(box)
+    root.remove_child(inv)
+    box.destroy
+    inv.destroy
+    assert_true box.destroyed?
+    assert_true inv.destroyed?
+  end
+
+  test "Cross-addon dead-pointer defensive protection prevents segfaults" do
+    d_ptr = Godot::Bridge.construct_object("DialogueBox")
+    assert_false d_ptr.null?, "DialogueBox must construct"
+    box = Godot::Control.new(d_ptr)
+    root.add_child(box)
+
+    # Store a second wrapper pointing to the same native Godot instance (simulating cross-addon reference retention)
+    retained_ref = Godot::Control.new(box.pointer)
+    assert_true retained_ref.alive?, "Retained cross-addon reference must initially be alive"
+
+    # Destroy the source node
+    root.remove_child(box)
+    box.destroy
+    assert_true box.destroyed?, "Source box should be destroyed"
+
+    # Retained reference must detect destruction via 64-bit monotonic instance ID
+    assert_false retained_ref.alive?, "Retained reference must report not alive after destruction"
+    assert_true retained_ref.destroyed?, "Retained reference must report destroyed"
+
+    # Method call on destroyed object must cleanly raise DisposedObjectError rather than crashing with ACCESS_VIOLATION
+    disposed_caught = false
+    begin
+      retained_ref.call_str("get", "speaker_name")
+    rescue Godot::DisposedObjectError
+      disposed_caught = true
+    end
+    assert_true disposed_caught, "Accessing dead cross-addon node must raise Godot::DisposedObjectError without segfaulting"
+  end
+
+  test "ClassDB duplicate registration resilience" do
+    class_db = Godot::ClassDB.new(Godot::ClassDB.singleton_ptr)
+    assert_true class_db.call_bool("class_exists", "DialogueBox"), "DialogueBox must already exist in ClassDB"
+    assert_true class_db.call_bool("class_exists", "InventoryGrid"), "InventoryGrid must already exist in ClassDB"
+    assert_true class_db.call_bool("class_exists", "AudioStreamPlayerCrystal"), "AudioStreamPlayerCrystal must already exist in ClassDB"
+
+    # Non-existent phantom addon class check
+    assert_false class_db.call_bool("class_exists", "NonExistentPhantomAddonClass"), "Non-existent class must not exist"
+  end
+
+  test "Multi-frame quantitative zero memory leak across multiple addon nodes" do
+    assert_no_leak(0, "MultiAddonStress") do
+      20.times do |i|
+        d_ptr = Godot::Bridge.construct_object("DialogueBox")
+        inv_ptr = Godot::Bridge.construct_object("InventoryGrid")
+        next if d_ptr.null? || inv_ptr.null?
+
+        b = Godot::Control.new(d_ptr)
+        g = Godot::Control.new(inv_ptr)
+        root.add_child(b)
+        root.add_child(g)
+
+        b.call("set", "speaker_name", "Actor_#{i}")
+        g.call("set", "capacity", (20 + i).to_i64)
+
+        sub = b.connect("line_finished") do |_args|
+          cur = g.call_i64("get", "item_count")
+          g.call("set", "item_count", cur + 1_i64)
+        end
+        b.call("emit_signal", "line_finished", "Actor_#{i}")
+        sub.disconnect
+
+        root.remove_child(b)
+        root.remove_child(g)
+        b.destroy
+        g.destroy
+      end
+    end
+  end
 
 end

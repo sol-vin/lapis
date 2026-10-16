@@ -97,8 +97,28 @@ sections:
           </tr>
           <tr>
             <td><code>@onready var sprite = $Sprite2D</code></td>
-            <td><code>getter(sprite) { ~Sprite2D }</code></td>
-            <td>Lazy memoized getter resolving child on first access.</td>
+            <td><code>onready sprite : Sprite2D = ~"Sprite2D"</code></td>
+            <td>Eager onready property initialized during _ready with dead-pointer safety.</td>
+          </tr>
+          <tr>
+            <td><code>@onready var hud = %HUD as CanvasLayer</code></td>
+            <td><code>onready hud : CanvasLayer = ~"%HUD"</code></td>
+            <td>Scene Unique Node initialized during _ready.</td>
+          </tr>
+          <tr>
+            <td><code>for enemy in get_tree().get_nodes_in_group("enemies"):<br>&nbsp;&nbsp;enemy.alert()</code></td>
+            <td><code>each_node("Enemies/*", Enemy, &.alert!)</code></td>
+            <td>Streaming traversal with receiver scoping and block-pass shorthand.</td>
+          </tr>
+          <tr>
+            <td><code>if hit and hit.collider is Enemy:<br>&nbsp;&nbsp;hit.collider.take_damage(25)</code></td>
+            <td><code>if enemy = hit.collider.as?(Enemy)<br>&nbsp;&nbsp;enemy.take_damage(25)<br>end</code></td>
+            <td>Dead-pointer safe collider lookup with standard Crystal as?(Type) downcasting.</td>
+          </tr>
+          <tr>
+            <td><code>match value:<br>&nbsp;&nbsp;int:<br>&nbsp;&nbsp;&nbsp;&nbsp;print(value * 2)</code></td>
+            <td><code>match value do<br>&nbsp;&nbsp;is Int64 do print(value * 2) end<br>end</code></td>
+            <td>Expression pattern matching with Variant unboxing and implicit type narrowing.</td>
           </tr>
           <tr>
             <td><code>signal health_changed(curr, max)</code></td>

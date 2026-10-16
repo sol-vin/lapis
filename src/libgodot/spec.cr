@@ -13,6 +13,7 @@
 
 require "spec"
 require "./testing"
+require "./profiler"
 
 # =============================================================================
 # Custom Crystal Spec Matchers for Godot Domain
@@ -170,6 +171,111 @@ module Spec
     end
   end
 
+  # Asserts that evaluating a Proc executes with zero heap allocations
+  struct AllocateZeroBytesExpectation
+    def initialize(@iterations : Int32 = 1000, @warmup : Int32 = 10)
+      @last_report = nil.as(Lapis::Profiler::AllocationReport?)
+    end
+
+    def match(actual_value : Proc(T)) : Bool forall T
+      report = Lapis::Profiler::AllocationProbe.run("Proc Block", @iterations, @warmup, 0_i64) do
+        actual_value.call
+      end
+      @last_report = report
+      report.zero_allocation?
+    end
+
+    def match(actual_value : Proc(Int32, T)) : Bool forall T
+      report = Lapis::Profiler::AllocationProbe.run("Proc Block", @iterations, @warmup, 0_i64) do |i|
+        actual_value.call(i)
+      end
+      @last_report = report
+      report.zero_allocation?
+    end
+
+    def failure_message(actual_value) : String
+      if rep = @last_report
+        rep.failure_message(0_i64)
+      else
+        "Expected block to execute with zero heap allocations, but allocations occurred"
+      end
+    end
+
+    def negative_failure_message(actual_value) : String
+      "Expected block to allocate heap memory, but zero bytes were allocated"
+    end
+  end
+
+  # Asserts that evaluating a Proc allocates at most max_bytes
+  struct AllocateAtMostExpectation
+    def initialize(@max_bytes : Int64, @iterations : Int32 = 1000, @warmup : Int32 = 10)
+      @last_report = nil.as(Lapis::Profiler::AllocationReport?)
+    end
+
+    def match(actual_value : Proc(T)) : Bool forall T
+      report = Lapis::Profiler::AllocationProbe.run("Proc Block", @iterations, @warmup, @max_bytes) do
+        actual_value.call
+      end
+      @last_report = report
+      report.passed?
+    end
+
+    def match(actual_value : Proc(Int32, T)) : Bool forall T
+      report = Lapis::Profiler::AllocationProbe.run("Proc Block", @iterations, @warmup, @max_bytes) do |i|
+        actual_value.call(i)
+      end
+      @last_report = report
+      report.passed?
+    end
+
+    def failure_message(actual_value) : String
+      if rep = @last_report
+        rep.failure_message(@max_bytes)
+      else
+        "Expected block to allocate at most #{@max_bytes} bytes, but exceeded limit"
+      end
+    end
+
+    def negative_failure_message(actual_value) : String
+      "Expected block to allocate more than #{@max_bytes} bytes, but allocated #{@last_report.try(&.bytes_allocated) || 0} bytes"
+    end
+  end
+
+  # Asserts that evaluating a Proc allocates at most max_rate bytes per iteration
+  struct AllocateBytesPerIterExpectation
+    def initialize(@max_rate : Float64, @iterations : Int32 = 1000, @warmup : Int32 = 10)
+      @last_report = nil.as(Lapis::Profiler::AllocationReport?)
+    end
+
+    def match(actual_value : Proc(T)) : Bool forall T
+      report = Lapis::Profiler::AllocationProbe.run("Proc Block", @iterations, @warmup, (@max_rate * @iterations).to_i64) do
+        actual_value.call
+      end
+      @last_report = report
+      report.bytes_per_iteration <= @max_rate
+    end
+
+    def match(actual_value : Proc(Int32, T)) : Bool forall T
+      report = Lapis::Profiler::AllocationProbe.run("Proc Block", @iterations, @warmup, (@max_rate * @iterations).to_i64) do |i|
+        actual_value.call(i)
+      end
+      @last_report = report
+      report.bytes_per_iteration <= @max_rate
+    end
+
+    def failure_message(actual_value) : String
+      if rep = @last_report
+        "Expected at most #{@max_rate} B/iter, got #{rep.bytes_per_iteration} B/iter (#{rep.bytes_allocated}B across #{@iterations} iters)"
+      else
+        "Expected at most #{@max_rate} B/iter, but exceeded limit"
+      end
+    end
+
+    def negative_failure_message(actual_value) : String
+      "Expected more than #{@max_rate} B/iter, but got #{@last_report.try(&.bytes_per_iteration) || 0.0} B/iter"
+    end
+  end
+
   module Expectations
     # Asserts that the Godot object is valid in ObjectDB
     def be_alive
@@ -215,10 +321,39 @@ module Spec
     def be_between(min : T, max : T) forall T
       BeBetweenExpectation(T).new(min, max)
     end
+
+    # Asserts that a Proc executes with zero heap allocations across iterations
+    def allocate_zero_bytes(iterations : Int32 = 1000, warmup : Int32 = 10)
+      AllocateZeroBytesExpectation.new(iterations, warmup)
+    end
+
+    # Asserts that a Proc executes allocating no more than max_bytes
+    def allocate_at_most(max_bytes : Int64 | Int32, iterations : Int32 = 1000, warmup : Int32 = 10)
+      AllocateAtMostExpectation.new(max_bytes.to_i64, iterations, warmup)
+    end
+
+    # Asserts that a Proc executes allocating no more than max_rate bytes per iteration
+    def allocate_bytes_per_iteration(max_rate : Float64 | Number, iterations : Int32 = 1000, warmup : Int32 = 10)
+      AllocateBytesPerIterExpectation.new(max_rate.to_f64, iterations, warmup)
+    end
   end
 
   module Methods
     include Lapis::Test
+
+    # Ergonomic spec alias for assert_zero_allocation
+    def expect_zero_allocation(
+      name : String = "Hot Loop",
+      iterations : Int32 = 1000,
+      warmup : Int32 = 10,
+      file : String = __FILE__,
+      line : Int32 = __LINE__,
+      &
+    ) : Lapis::Profiler::AllocationReport
+      assert_zero_allocation(name, iterations, warmup, file, line) do |i|
+        yield i
+      end
+    end
   end
 end
 
@@ -442,6 +577,58 @@ module Lapis
           DriverResult.new(
             success: false,
             output: "Failed to run editor reload tests: #{ex.message}",
+            exit_code: -1
+          )
+        ensure
+          out_file.delete rescue nil
+          err_file.delete rescue nil
+        end
+      end
+
+      # Runs Godot in headless editor mode with LIBGODOT_ENABLE_EDITOR_UI=1 and LIBGODOT_ACTION_DRIVER_TEST=1
+      # to execute automated user-level plugin UI and ActionDriver tests
+      def self.run_editor_action_driver_tests(project : String = ".", godot_path : String? = nil, quit_frames : Int32 = 600) : DriverResult
+        exe = resolve_godot(godot_path)
+        return DriverResult.new(success: false, output: "Godot executable not found", exit_code: -1) unless exe
+
+        [".action_driver_tests_passed", "bin/.action_driver_tests_passed", ".action_driver_tests_failed", "bin/.action_driver_tests_failed"].each do |m|
+          p = File.join(project, m)
+          File.delete(p) if File.exists?(p)
+        end
+
+        env = {
+          "LIBGODOT_ENABLE_EDITOR_UI"   => "1",
+          "LIBGODOT_ACTION_DRIVER_TEST" => "1",
+          "GODOT_HEADLESS"              => "1",
+        }
+        args = ["--headless", "--audio-driver", "Dummy", "--rendering-driver", "opengl3", "--editor", "--path", project, "--quit-after", quit_frames.to_s]
+        out_file = File.tempfile("action_driver_stdout")
+        err_file = File.tempfile("action_driver_stderr")
+        begin
+          proc = Process.new(exe, args, env: env, output: out_file, error: err_file)
+          status, _timed_out = wait_process(proc, 60.0)
+          out_file.rewind
+          err_file.rewind
+          out_str = out_file.gets_to_end + "\n" + err_file.gets_to_end
+
+          passed_marker = [File.join(project, ".action_driver_tests_passed"), File.join(project, "bin/.action_driver_tests_passed")].any? { |f| File.exists?(f) }
+          failed_marker = [File.join(project, ".action_driver_tests_failed"), File.join(project, "bin/.action_driver_tests_failed")].any? { |f| File.exists?(f) }
+
+          success = (status.normal_exit? && status.exit_code == 0 || passed_marker) &&
+                    !failed_marker &&
+                    out_str.includes?("ALL IN-EDITOR ACTION DRIVER TESTS PASSED!")
+          code = status.normal_exit? ? status.exit_code : -1
+          DriverResult.new(
+            success: success,
+            output: out_str,
+            exit_code: code,
+            passed_count: success ? 1 : 0,
+            total_count: 1
+          )
+        rescue ex
+          DriverResult.new(
+            success: false,
+            output: "Failed to run editor action driver tests: #{ex.message}",
             exit_code: -1
           )
         ensure

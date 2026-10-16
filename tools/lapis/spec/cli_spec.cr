@@ -271,5 +271,42 @@ describe "Lapis CLI" do
       res = LapisSpecHelper.run_lapis(["sync", "-t", "bin", "--bins-only"])
       res.success?.should be_true
     end
+
+    it "handles completion --help and -h cleanly with exit code 0" do
+      res1 = LapisSpecHelper.run_lapis(["completion", "--help"])
+      res1.success?.should be_true
+      res1.output.should contain("lapis completion <powershell|bash|zsh|fish>")
+
+      res2 = LapisSpecHelper.run_lapis(["completion", "-h"])
+      res2.success?.should be_true
+      res2.output.should contain("lapis completion <powershell|bash|zsh|fish>")
+    end
+
+    it "generates fish completions via 'lapis completion fish'" do
+      res = LapisSpecHelper.run_lapis(["completion", "fish"])
+      res.success?.should be_true
+      res.output.should contain("complete -c lapis")
+    end
+
+    it "supports sync --dry-run and -n flags" do
+      res1 = LapisSpecHelper.run_lapis(["sync", "--dry-run", "--bins-only"])
+      res1.success?.should be_true
+
+      res2 = LapisSpecHelper.run_lapis(["sync", "-n", "--bins-only"])
+      res2.success?.should be_true
+    end
+
+    it "supports clean -n flag alongside -d for dry-run" do
+      res = LapisSpecHelper.run_lapis(["clean", "-n"])
+      res.success?.should be_true
+      res.output.should contain("Dry run")
+    end
+
+    it "documents --skip-editor and --skip-runtime in test --help" do
+      res = LapisSpecHelper.run_lapis(["test", "--help"])
+      res.success?.should be_true
+      res.output.should contain("--skip-editor")
+      res.output.should contain("--skip-runtime")
+    end
   end
 end

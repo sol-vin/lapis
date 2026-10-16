@@ -39,19 +39,44 @@ sections:
       ```
 
       #### Options:
-      - `-p, --project=DIR`: Target specific project directory (default: current directory).
-      - `-q, --quiet`: Only print if errors or warnings are detected.
-      - `--verbose`: Show full executable paths, compiler flags, and exact versions.
+      - `autofix, -f, --fix`: Automatically triage and remediate detectable warnings, missing tools & gaps.
+      - `-v, --verbose`: Display extended diagnostic information.
+      - `-h, --help`: Show help screen.
 
   - id: "topic_02_interpreting_results"
     title: "Interpreting Diagnostic Output"
     summary: "Understanding check markers [✓], [!], and [✗]."
     content: |
-      | Marker | Status | Meaning | Action Required |
-      | :--- | :--- | :--- | :--- |
-      | `[✓]` | **Passed** | Component verified and operational | None |
-      | `[!]` | **Warning** | Optional component missing or outdated | Install for enhanced features (e.g. Inno Setup) |
-      | `[✗]` | **Failure** | Required component missing or broken | Must be resolved before building games |
+      <table>
+        <thead>
+          <tr>
+            <th>Marker</th>
+            <th>Status</th>
+            <th>Meaning</th>
+            <th>Action Required</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>[✓]</code></td>
+            <td><strong>Passed</strong></td>
+            <td>Component verified and operational</td>
+            <td>None</td>
+          </tr>
+          <tr>
+            <td><code>[!]</code></td>
+            <td><strong>Warning</strong></td>
+            <td>Optional component missing or outdated</td>
+            <td>Install for enhanced features (e.g. Inno Setup)</td>
+          </tr>
+          <tr>
+            <td><code>[✗]</code></td>
+            <td><strong>Failure</strong></td>
+            <td>Required component missing or broken</td>
+            <td>Must be resolved before building games</td>
+          </tr>
+        </tbody>
+      </table>
 
   - id: "topic_03_troubleshooting_failures"
     title: "Resolving Doctor Failures"

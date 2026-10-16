@@ -136,7 +136,7 @@ public:
         if (m_file) {
             fputs(line_buf, m_file);
             fputc('\n', m_file);
-            if (level <= BRIDGE_LOG_WARN) {
+            if (level <= BRIDGE_LOG_DEBUG) {
                 fflush(m_file);
             }
         }

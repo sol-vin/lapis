@@ -9,6 +9,46 @@ The Lapis modular template system allows developers to convert any configured ga
 
 ---
 
+## Table of Contents
+<table>
+  <thead>
+    <tr>
+      <th align="left">Section</th>
+      <th align="left">Description</th>
+      <th align="center">Lines</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><a href="#1-global-template-storage-architecture"><strong>1. Global Template Storage Architecture</strong></a></td>
+      <td>Templates are packaged into standalone directories containing a compressed template.zip and a lightweight t...</td>
+      <td align="center"><code>L52–L112</code></td>
+    </tr>
+    <tr>
+      <td><a href="#2-cli-command-reference"><strong>2. CLI Command Reference</strong></a></td>
+      <td><table></td>
+      <td align="center"><code>L113–L173</code></td>
+    </tr>
+    <tr>
+      <td><a href="#3-template-squirrel-away-workflow"><strong>3. Template Squirrel-Away Workflow</strong></a></td>
+      <td>To create and save a new template from an existing project:</td>
+      <td align="center"><code>L174–L194</code></td>
+    </tr>
+    <tr>
+      <td><a href="#4-scaffolding-new-games-from-templates"><strong>4. Scaffolding New Games from Templates</strong></a></td>
+      <td>Once saved in the global store, templates can be instantiated anywhere on the system:</td>
+      <td align="center"><code>L195–L224</code></td>
+    </tr>
+    <tr>
+      <td><a href="#5-interactive-template-manager-tui-lapis-template-manager"><strong>5. Interactive Template Manager TUI (`lapis template manager`)</strong></a></td>
+      <td>The Template Manager provides a full-screen split-pane TUI powered by Opal:</td>
+      <td align="center"><code>L225–L238</code></td>
+    </tr>
+  </tbody>
+</table>
+
+---
+
 ## 1. Global Template Storage Architecture
 
 Templates are packaged into standalone directories containing a compressed `template.zip` and a lightweight `template.json` metadata manifest.

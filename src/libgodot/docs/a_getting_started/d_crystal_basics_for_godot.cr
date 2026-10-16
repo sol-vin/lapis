@@ -165,23 +165,23 @@ module Lapis
         #   </thead>
         #   <tbody>
         #     <tr>
-        #       <td>**Crystal Reference Manual**</td>
-        #       <td>[crystal-lang.org/reference](https://crystal-lang.org/reference/)</td>
+        #       <td><strong>Crystal Reference Manual</strong></td>
+        #       <td><a href="https://crystal-lang.org/reference/">crystal-lang.org/reference</a></td>
         #       <td>Full language specification and macro syntax</td>
         #     </tr>
         #     <tr>
-        #       <td>**Standard Library API**</td>
-        #       <td>[crystal-lang.org/api](https://crystal-lang.org/api/)</td>
+        #       <td><strong>Standard Library API</strong></td>
+        #       <td><a href="https://crystal-lang.org/api/">crystal-lang.org/api</a></td>
         #       <td>Built-in classes (Array, Hash, Math, Time, IO)</td>
         #     </tr>
         #     <tr>
-        #       <td>**Crystal Style Guide**</td>
-        #       <td>[Coding Style Guide](https://crystal-lang.org/reference/conventions/coding_style.html)</td>
+        #       <td><strong>Crystal Style Guide</strong></td>
+        #       <td><a href="https://crystal-lang.org/reference/conventions/coding_style.html">Coding Style Guide</a></td>
         #       <td>Formatting, naming conventions, and best practices</td>
         #     </tr>
         #     <tr>
-        #       <td>**Crystal Forum & Community**</td>
-        #       <td>[forum.crystal-lang.org](https://forum.crystal-lang.org/)</td>
+        #       <td><strong>Crystal Forum &amp; Community</strong></td>
+        #       <td><a href="https://forum.crystal-lang.org/">forum.crystal-lang.org</a></td>
         #       <td>Questions, community libraries, and ecosystem</td>
         #     </tr>
         #   </tbody>

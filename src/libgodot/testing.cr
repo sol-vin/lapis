@@ -1,3 +1,12 @@
+require "./testing/errors"
+require "./testing/scenario_step_context"
+require "./testing/input_sender"
+require "./testing/signal_spy"
+require "./testing/cold_boot_context"
+require "./testing/test_case"
+require "./testing/registry"
+require "./testing/junit_exporter"
+require "./profiler"
 # =============================================================================
 # LibGodot - Reusable Testing Apparatus & Extended Assertion Framework
 # =============================================================================
@@ -20,52 +29,6 @@
 module Lapis
   module Test
     extend self
-
-    # Base exception raised on assertion failures
-    class AssertionError < Exception
-      getter file : String
-      getter line : Int32
-
-      def initialize(message : String, @file : String = "", @line : Int32 = 0)
-        full_msg = if !@file.empty? && @line > 0
-                     "#{message} (at #{@file}:#{@line})"
-                   else
-                     message
-                   end
-        super(full_msg)
-      end
-    end
-
-    # Exception raised when an asynchronous operation or signal await exceeds its timeout deadline
-    class TimeoutError < AssertionError
-    end
-
-    # Exception raised when a test is deliberately skipped
-    class SkipTestException < Exception
-    end
-
-    # Exception raised when a test is pending implementation
-    class PendingTestException < Exception
-    end
-
-    # Encapsulates the execution result of a single registered test case
-    record TestResult, category : String, name : String, passed : Bool, message : String = "", duration_ms : Float64 = 0.0, status : String = "PASS" do
-      def pass? : Bool
-        @status == "PASS" || (@passed && @status != "FAIL")
-      end
-
-      def fail? : Bool
-        !pass? && !pending? && !skipped?
-      end
-
-      def pending? : Bool
-        @status == "PENDING"
-      end
-
-      def skipped? : Bool
-        @status == "SKIPPED"
-      end
-    end
 
     # Marks the currently running test as pending implementation
     def pending(reason : String = "Test pending implementation") : Nil
@@ -529,6 +492,195 @@ module Lapis
       end
     end
 
+    # Asserts that executing the block does not result in unexpected ObjectDB or Node leaks across cycles
+    def assert_memory_stable(cycles : Int32 = 1, max_delta : Int32 = 2, name : String = "Memory Stability", file : String = __FILE__, line : Int32 = __LINE__, &block)
+      assert_no_leak(max_delta_objects: max_delta, name: name, file: file, line: line) do
+        cycles.times { block.call }
+      end
+    end
+
+    # ===========================================================================
+    # 4. Zero-Allocation & Hot Loop Profiling Assertions
+    # ===========================================================================
+
+    # Asserts that evaluating the block executes with ZERO heap allocations across `iterations`.
+    def assert_zero_allocation(
+      name : String = "Hot Loop",
+      iterations : Int32 = 1000,
+      warmup : Int32 = 10,
+      file : String = __FILE__,
+      line : Int32 = __LINE__,
+      &
+    ) : Lapis::Profiler::AllocationReport
+      report = Lapis::Profiler::AllocationProbe.run(name, iterations, warmup, 0_i64) do |i|
+        yield i
+      end
+      unless report.zero_allocation?
+        raise AssertionError.new(report.failure_message(0_i64), file, line)
+      end
+      report
+    end
+
+    # Asserts that total allocations during the hot loop do not exceed `max_bytes`.
+    def assert_max_allocations(
+      max_bytes : Int64 | Int32,
+      name : String = "Operation",
+      iterations : Int32 = 1000,
+      warmup : Int32 = 10,
+      file : String = __FILE__,
+      line : Int32 = __LINE__,
+      &
+    ) : Lapis::Profiler::AllocationReport
+      target_max = max_bytes.to_i64
+      report = Lapis::Profiler::AllocationProbe.run(name, iterations, warmup, target_max) do |i|
+        yield i
+      end
+      if report.bytes_allocated > target_max
+        raise AssertionError.new(report.failure_message(target_max), file, line)
+      end
+      report
+    end
+
+    # Asserts that the average allocation rate does not exceed `max_rate` bytes per iteration.
+    def assert_bytes_per_iteration(
+      max_rate : Float64 | Number,
+      name : String = "Operation",
+      iterations : Int32 = 1000,
+      warmup : Int32 = 10,
+      file : String = __FILE__,
+      line : Int32 = __LINE__,
+      &
+    ) : Lapis::Profiler::AllocationReport
+      rate = max_rate.to_f64
+      report = Lapis::Profiler::AllocationProbe.run(name, iterations, warmup, (rate * iterations).to_i64) do |i|
+        yield i
+      end
+      if report.bytes_per_iteration > rate
+        detail = "Allocation Rate Exceeded for '#{name}'!\n" \
+                 "  Expected: <= #{rate} bytes/iter\n" \
+                 "  Actual:   #{report.bytes_per_iteration} bytes/iter (#{report.bytes_allocated}B across #{iterations} iters)"
+        raise AssertionError.new(detail, file, line)
+      end
+      report
+    end
+
+    # Profiles the block across `iterations` and returns the resulting AllocationReport without asserting.
+    def profile_allocations(
+      name : String = "Operation",
+      iterations : Int32 = 1000,
+      warmup : Int32 = 10,
+      &
+    ) : Lapis::Profiler::AllocationReport
+      Lapis::Profiler::AllocationProbe.run(name, iterations, warmup) do |i|
+        yield i
+      end
+    end
+
+    # Simulates physics frames until a 2D or 3D rigid body has settled below velocity epsilon
+    def assert_settled(body : Godot::Object, max_frames : Int32 = 60, linear_epsilon : Float64 = 0.05, angular_epsilon : Float64 = 0.05, file : String = __FILE__, line : Int32 = __LINE__) : Void
+      frames_elapsed = 0
+      settled = false
+      lin_speed = 0.0_f64
+      ang_speed = 0.0_f64
+
+      while frames_elapsed < max_frames
+        skip_frames(1)
+        frames_elapsed += 1
+
+        if body.is_a?(Godot::RigidBody2D)
+          lin_speed = body.linear_velocity.length.to_f64
+          ang_speed = body.angular_velocity.abs.to_f64
+        elsif body.is_a?(Godot::RigidBody3D)
+          lin_speed = body.linear_velocity.length.to_f64
+          ang_speed = body.angular_velocity.length.to_f64
+        else
+          settled = true
+          break
+        end
+
+        if lin_speed <= linear_epsilon && ang_speed <= angular_epsilon
+          settled = true
+          break
+        end
+      end
+
+      unless settled
+        raise AssertionError.new("Body did not settle within #{max_frames} frames (linear speed: #{lin_speed}, angular speed: #{ang_speed})", file, line)
+      end
+    end
+
+    # Asserts that the specified signal was NOT emitted during a frame slice
+    def assert_no_signal(target : Godot::Object, signal_name : String, during_frames : Int32 = 10, file : String = __FILE__, line : Int32 = __LINE__) : Void
+      emitted = false
+      sub = target.connect(signal_name) do |_args|
+        emitted = true
+      end
+      skip_frames(during_frames)
+      sub.unsubscribe rescue nil
+
+      if emitted
+        raise AssertionError.new("Expected signal '#{signal_name}' NOT to be emitted, but it was fired!", file, line)
+      end
+    end
+
+    # Asserts that the specified signal was NOT emitted during block execution
+    def assert_no_signal(target : Godot::Object, signal_name : String, file : String = __FILE__, line : Int32 = __LINE__, &block : -> Void) : Void
+      emitted = false
+      sub = target.connect(signal_name) do |_args|
+        emitted = true
+      end
+      begin
+        block.call
+        skip_frames(2)
+      ensure
+        sub.unsubscribe rescue nil
+      end
+
+      if emitted
+        raise AssertionError.new("Expected signal '#{signal_name}' NOT to be emitted during block execution, but it was fired!", file, line)
+      end
+    end
+
+    # Asserts that the node has exactly expected number of children
+    def assert_child_count(node : Godot::Node, expected : Int32, msg : String = "", file : String = __FILE__, line : Int32 = __LINE__) : Void
+      count = node.child_count
+      if count != expected
+        detail = msg.empty? ? "Expected node '#{node.name}' to have #{expected} children, got #{count}" : "#{msg} (Expected #{expected}, got #{count})"
+        raise AssertionError.new(detail, file, line)
+      end
+    end
+
+    # Asserts that the node contains a child with the given name
+    def assert_has_child(node : Godot::Node, name : String, msg : String = "", file : String = __FILE__, line : Int32 = __LINE__) : Void
+      found = node.has_node(Godot::NodePath.new(name)) rescue false
+      if !found
+        detail = msg.empty? ? "Expected node '#{node.name}' to have child '#{name}'" : "#{msg} (Child '#{name}' not found)"
+        raise AssertionError.new(detail, file, line)
+      end
+    end
+
+    # Asserts that a node exists at the given NodePath relative to root
+    def assert_node_path_exists(root : Godot::Node, path : String, msg : String = "", file : String = __FILE__, line : Int32 = __LINE__) : Void
+      found = root.has_node(Godot::NodePath.new(path)) rescue false
+      if !found
+        detail = msg.empty? ? "Expected path '#{path}' to exist under root '#{root.name}'" : msg
+        raise AssertionError.new(detail, file, line)
+      end
+    end
+
+
+    # Defines a multi-step behavioral test scenario with step tracking and isolation
+    def scenario(name : String, &block : ScenarioStepContext -> Void) : Void
+      ctx = ScenarioStepContext.new(name)
+      block.call(ctx)
+    end
+
+    # Defines a multi-step behavioral test scenario scoped with root node
+    def scenario(root : Godot::Node, name : String, &block : ScenarioStepContext -> Void) : Void
+      ctx = ScenarioStepContext.new(name)
+      block.call(ctx)
+    end
+
     # ===========================================================================
     # 4. Automatic Node Tracking & Auto-Free Fixtures (autofree/autoqfree)
     # ===========================================================================
@@ -755,73 +907,6 @@ module Lapis
       end
     end
 
-    class InputSender
-      enum ActionType
-        DispatchEvent
-        WaitFrames
-      end
-
-      record Step, type : ActionType, event : Godot::InputEvent? = nil, frames : Int32 = 0
-
-      @steps = Array(Step).new
-
-      def key_down(keycode : Godot::Key | Int64, shift : Bool = false, ctrl : Bool = false, alt : Bool = false) : self
-        ev = InputFactory.key_down(keycode, shift, ctrl, alt)
-        @steps << Step.new(ActionType::DispatchEvent, ev)
-        self
-      end
-
-      def key_up(keycode : Godot::Key | Int64, shift : Bool = false, ctrl : Bool = false, alt : Bool = false) : self
-        ev = InputFactory.key_up(keycode, shift, ctrl, alt)
-        @steps << Step.new(ActionType::DispatchEvent, ev)
-        self
-      end
-
-      def mouse_down(button_index : Godot::MouseButton | Int64, position : Godot::Vector2 = Godot::Vector2::ZERO) : self
-        ev = InputFactory.mouse_button_down(button_index, position)
-        @steps << Step.new(ActionType::DispatchEvent, ev)
-        self
-      end
-
-      def mouse_up(button_index : Godot::MouseButton | Int64, position : Godot::Vector2 = Godot::Vector2::ZERO) : self
-        ev = InputFactory.mouse_button_up(button_index, position)
-        @steps << Step.new(ActionType::DispatchEvent, ev)
-        self
-      end
-
-      def action_down(action : String, strength : Float32 = 1.0_f32) : self
-        ev = InputFactory.action_down(action, strength)
-        @steps << Step.new(ActionType::DispatchEvent, ev)
-        self
-      end
-
-      def action_up(action : String) : self
-        ev = InputFactory.action_up(action)
-        @steps << Step.new(ActionType::DispatchEvent, ev)
-        self
-      end
-
-      def wait_frames(frames : Int32 = 1) : self
-        @steps << Step.new(ActionType::WaitFrames, frames: frames)
-        self
-      end
-
-      def send : Void
-        input = Godot::Input.instance
-        @steps.each do |step|
-          case step.type
-          when ActionType::DispatchEvent
-            if ev = step.event
-              input.parse_input_event(ev)
-            end
-          when ActionType::WaitFrames
-            step.frames.times { Fiber.yield }
-          end
-        end
-        @steps.clear
-      end
-    end
-
     def input_sender : InputSender
       InputSender.new
     end
@@ -948,504 +1033,6 @@ module Lapis
     # ===========================================================================
     # 8. Signal Recording and Spy Helper
     # ===========================================================================
-
-    class SignalSpy
-      getter emissions = Array(Array(String)).new
-      getter emitter : Godot::Object
-      getter signal_name : String
-      @subscription : Godot::SignalSubscription? = nil
-
-      def initialize(@emitter : Godot::Object, @signal_name : String)
-        @subscription = @emitter.connect(@signal_name) do |args|
-          record(args)
-        end
-      end
-
-      def record(args : Enumerable)
-        @emissions << args.map(&.to_s).to_a
-      end
-
-      def record(*args)
-        @emissions << args.map(&.to_s).to_a
-      end
-
-      def count : Int32
-        @emissions.size
-      end
-
-      def emitted? : Bool
-        !@emissions.empty?
-      end
-
-      def first_args : Array(String)?
-        @emissions.first?
-      end
-
-      def last_args : Array(String)?
-        @emissions.last?
-      end
-
-      def clear : Void
-        @emissions.clear
-      end
-
-      def disconnect : Void
-        if sub = @subscription
-          sub.unsubscribe
-          @subscription = nil
-        end
-      end
-    end
-
-    # ===========================================================================
-    # 9. Centralized Extensible Test Registry & Lifecycle Runner
-    # ===========================================================================
-
-    # Encapsulates a dedicated, completely isolated ephemeral Godot engine environment
-    # for tests requiring cold boot execution without polluting the shared engine or project.
-    class ColdBootContext
-      getter sandbox_dir : String
-      getter test_name : String
-      getter godot_exe : String
-
-      def initialize(@test_name : String)
-        @godot_exe = resolve_godot || "godot.exe"
-        unique_id = "#{::Time.utc.to_unix}_#{::Random.rand(1000..9999)}"
-        safe_name = @test_name.downcase.gsub(/[^a-z0-9_]+/, "_")
-        @sandbox_dir = File.expand_path("scratch/.cold_boot_#{safe_name}_#{unique_id}")
-        FileUtils.mkdir_p(@sandbox_dir)
-
-        # Write clean minimal project configuration
-        project_file = File.join(@sandbox_dir, "project.godot")
-        unless File.exists?(project_file)
-          File.write(project_file, "config_version=5\n\n[application]\nconfig/name=\"ColdBoot_#{safe_name}\"\n\n[rendering]\nrenderer/rendering_method=\"gl_compatibility\"\n")
-        end
-      end
-
-      # Writes an isolated test script into the ephemeral sandbox.
-      # This code only exists for this test and will NEVER be replicated across the project.
-      def write_script(rel_path : String, code : String) : String
-        full_path = File.join(@sandbox_dir, rel_path)
-        FileUtils.mkdir_p(File.dirname(full_path))
-        File.write(full_path, code)
-        full_path
-      end
-
-      # Writes an isolated scene, resource, or configuration file into the sandbox.
-      def write_file(rel_path : String, content : String) : String
-        write_script(rel_path, content)
-      end
-
-      private def wait_process(proc : Process, start_wait : ::Time::Instant, timeout_seconds : Float64 = 8.0) : {Process::Status, Bool}
-        timed_out = false
-        {% if flag?(:windows) %}
-          while !proc.terminated?
-            if (::Time.instant - start_wait).total_seconds > timeout_seconds
-              proc.terminate rescue nil
-              timed_out = true
-              break
-            end
-            Crystal::System::Thread.sleep(20.milliseconds)
-            Fiber.yield
-          end
-          status = proc.wait
-          {status, timed_out}
-        {% else %}
-          raw_status = 0
-          pid = proc.pid
-          while true
-            ret = LibC.waitpid(pid, pointerof(raw_status), LibC::WNOHANG)
-            if ret == pid || ret == -1
-              break
-            end
-            if (::Time.instant - start_wait).total_seconds > timeout_seconds
-              proc.terminate rescue nil
-              proc.signal(::Signal.new(9)) rescue nil
-              LibC.waitpid(pid, pointerof(raw_status), 0)
-              timed_out = true
-              break
-            end
-            Crystal::System::Thread.sleep(20.milliseconds)
-            Fiber.yield
-          end
-          status = Process::Status.[raw_status]
-          {status, timed_out}
-        {% end %}
-      end
-
-      # Runs an isolated script in a dedicated headless Godot process with complete environment isolation.
-      def run_isolated_script(script_rel_path : String, args : Array(String) = [] of String) : TestResult
-        res_script = script_rel_path.starts_with?("res://") ? script_rel_path : "res://#{script_rel_path}"
-        run_args = [
-          "--headless",
-          "--audio-driver", "Dummy",
-          "--display-driver", "headless",
-          "--quit-after", "100",
-          "--path", @sandbox_dir,
-          "-s", res_script,
-          "--"
-        ] + args
-
-        out_file = File.tempfile("stdout")
-        err_file = File.tempfile("stderr")
-        start = ::Time.instant
-        begin
-          proc = Process.new(@godot_exe, run_args, output: out_file, error: err_file)
-          status, timed_out = wait_process(proc, start)
-          out_file.rewind
-          err_file.rewind
-          duration = (::Time.instant - start).total_milliseconds
-          out_str = out_file.gets_to_end + "\n" + err_file.gets_to_end
-          code = status.normal_exit? ? status.exit_code : -1
-          success = !timed_out && status.success?
-          status_str = success ? "PASS" : "FAIL"
-          msg = if timed_out
-            "Process timed out after 8s: #{out_str}"
-          elsif success
-            out_str.strip
-          else
-            "Process exited with code #{code}: #{out_str}"
-          end
-          TestResult.new("ColdBoot", @test_name, success, msg, duration, status_str)
-        rescue ex
-          duration = (::Time.instant - start).total_milliseconds
-          TestResult.new("ColdBoot", @test_name, false, "Failed to launch isolated engine: #{ex.message}", duration, "FAIL")
-        ensure
-          out_file.delete rescue nil
-          err_file.delete rescue nil
-        end
-      end
-
-      # Executes the isolated project in headless runtime mode
-      def run_isolated_project(args : Array(String) = [] of String) : TestResult
-        run_args = [
-          "--headless",
-          "--audio-driver", "Dummy",
-          "--display-driver", "headless",
-          "--quit-after", "100",
-          "--path", @sandbox_dir,
-        ] + args
-
-        out_file = File.tempfile("stdout")
-        err_file = File.tempfile("stderr")
-        start = ::Time.instant
-        begin
-          proc = Process.new(@godot_exe, run_args, output: out_file, error: err_file)
-          status, timed_out = wait_process(proc, start)
-          out_file.rewind
-          err_file.rewind
-          duration = (::Time.instant - start).total_milliseconds
-          out_str = out_file.gets_to_end + "\n" + err_file.gets_to_end
-          code = status.normal_exit? ? status.exit_code : -1
-          success = !timed_out && status.success?
-          status_str = success ? "PASS" : "FAIL"
-          msg = if timed_out
-            "Process timed out after 8s: #{out_str}"
-          elsif success
-            out_str.strip
-          else
-            "Process exited with code #{code}: #{out_str}"
-          end
-          TestResult.new("ColdBoot", @test_name, success, msg, duration, status_str)
-        rescue ex
-          duration = (::Time.instant - start).total_milliseconds
-          TestResult.new("ColdBoot", @test_name, false, "Failed to launch isolated engine project: #{ex.message}", duration, "FAIL")
-        ensure
-          out_file.delete rescue nil
-          err_file.delete rescue nil
-        end
-      end
-
-      # Guarantees that ephemeral sandbox files are completely wiped upon completion.
-      def cleanup : Void
-        FileUtils.rm_rf(@sandbox_dir) if Dir.exists?(@sandbox_dir)
-      end
-
-      private def resolve_godot : String?
-        if env_bin = ENV["GODOT_BIN"]? || ENV["GODOT"]? || ENV["GODOT4"]? || ENV["GODOT4_BIN"]?
-          return env_bin if File.exists?(env_bin)
-        end
-        ["./godot.exe", "../godot.exe", "godot.exe", "./godot", "../godot", "godot"].each do |c|
-          return c if File.exists?(c) || Process.find_executable(c)
-        end
-        nil
-      end
-    end
-
-    class TestCase
-      getter category : String
-      getter name : String
-      getter file : String
-      getter line : Int32
-      getter? cold_boot : Bool
-      @block : (Godot::Node -> Void)?
-      @cold_boot_block : (ColdBootContext -> Void)?
-
-      def initialize(@category : String, @name : String, @file : String = "", @line : Int32 = 0, @cold_boot : Bool = false, &block : Godot::Node -> Void)
-        @block = block
-        @cold_boot_block = nil
-      end
-
-      def self.new_cold_boot(category : String, name : String, file : String = "", line : Int32 = 0, &block : ColdBootContext -> Void)
-        tc = allocate
-        tc.initialize_cold_boot(category, name, file, line, &block)
-        tc
-      end
-
-      protected def initialize_cold_boot(@category : String, @name : String, @file : String = "", @line : Int32 = 0, &block : ColdBootContext -> Void)
-        @cold_boot = true
-        @block = nil
-        @cold_boot_block = block
-      end
-
-      def execute(context_node : Godot::Node) : TestResult
-        cb_str = @cold_boot ? " [COLD_BOOT]" : ""
-        Godot.print("  [Running] [#{@category}] #{@name}#{cb_str}...")
-        start = ::Time.instant
-        begin
-          # Run before_each hooks
-          Registry.run_before_each(@category, context_node)
-
-          if @cold_boot
-            boot_ctx = ColdBootContext.new("#{@category}_#{@name}")
-            begin
-              if cb = @cold_boot_block
-                cb.call(boot_ctx)
-              elsif blk = @block
-                blk.call(context_node)
-              end
-            ensure
-              boot_ctx.cleanup
-            end
-          else
-            @block.not_nil!.call(context_node)
-          end
-
-          duration = (::Time.instant - start).total_milliseconds
-          TestResult.new(@category, @name, true, "PASS", duration, "PASS")
-        rescue ex : PendingTestException
-          duration = (::Time.instant - start).total_milliseconds
-          Godot.print("  [PENDING] [#{@category}] #{@name}: #{ex.message}")
-          TestResult.new(@category, @name, true, "PENDING: #{ex.message}", duration, "PENDING")
-        rescue ex : SkipTestException
-          duration = (::Time.instant - start).total_milliseconds
-          Godot.print("  [SKIPPED] [#{@category}] #{@name}: #{ex.message}")
-          TestResult.new(@category, @name, true, "SKIPPED: #{ex.message}", duration, "SKIPPED")
-        rescue ex : AssertionError
-          duration = (::Time.instant - start).total_milliseconds
-          TestResult.new(@category, @name, false, ex.message || "Assertion failed", duration, "FAIL")
-        rescue ex : Exception
-          duration = (::Time.instant - start).total_milliseconds
-          Godot.print("[ERROR] #{ex.inspect_with_backtrace}")
-          TestResult.new(@category, @name, false, "ERROR: #{ex.class.name}: #{ex.message}\n#{ex.backtrace.join("\n")}", duration, "FAIL")
-        ensure
-          # Run after_each hooks
-          Registry.run_after_each(@category, context_node)
-          # Clean up any nodes tracked via track_node during this test
-          Lapis::Test.cleanup_tracked_nodes
-          # Clean up any autofree/autoqfree objects
-          Lapis::Test.cleanup_autofree
-        end
-      end
-    end
-
-    class Registry
-      @@tests = Array(TestCase).new
-      @@before_all_hooks = Hash(String, Array(Godot::Node -> Void)).new
-      @@after_all_hooks = Hash(String, Array(Godot::Node -> Void)).new
-      @@before_each_hooks = Hash(String, Array(Godot::Node -> Void)).new
-      @@after_each_hooks = Hash(String, Array(Godot::Node -> Void)).new
-
-      def self.register(category : String, name : String, file : String = "", line : Int32 = 0, cold_boot : Bool = false, &block : Godot::Node -> Void)
-        @@tests << TestCase.new(category, name, file, line, cold_boot, &block)
-      end
-
-      def self.register_cold_boot(category : String, name : String, file : String = "", line : Int32 = 0, &block : ColdBootContext -> Void)
-        @@tests << TestCase.new_cold_boot(category, name, file, line, &block)
-      end
-
-      def self.before_all(category : String = "global", &block : Godot::Node -> Void)
-        cat_norm = category.downcase.sub(/^test_?/, "")
-        hooks = @@before_all_hooks[cat_norm] ||= Array(Godot::Node -> Void).new
-        hooks << block
-      end
-
-      def self.after_all(category : String = "global", &block : Godot::Node -> Void)
-        cat_norm = category.downcase.sub(/^test_?/, "")
-        hooks = @@after_all_hooks[cat_norm] ||= Array(Godot::Node -> Void).new
-        hooks << block
-      end
-
-      def self.before_each(category : String = "global", &block : Godot::Node -> Void)
-        cat_norm = category.downcase.sub(/^test_?/, "")
-        hooks = @@before_each_hooks[cat_norm] ||= Array(Godot::Node -> Void).new
-        hooks << block
-      end
-
-      def self.after_each(category : String = "global", &block : Godot::Node -> Void)
-        cat_norm = category.downcase.sub(/^test_?/, "")
-        hooks = @@after_each_hooks[cat_norm] ||= Array(Godot::Node -> Void).new
-        hooks << block
-      end
-
-      def self.run_before_all(category : String, context_node : Godot::Node)
-        cat_norm = category.downcase.sub(/^test_?/, "")
-        if global_hooks = @@before_all_hooks["global"]?
-          global_hooks.each { |h| h.call(context_node) }
-        end
-        if cat_hooks = @@before_all_hooks[cat_norm]?
-          cat_hooks.each { |h| h.call(context_node) }
-        end
-      end
-
-      def self.run_after_all(category : String, context_node : Godot::Node)
-        cat_norm = category.downcase.sub(/^test_?/, "")
-        if cat_hooks = @@after_all_hooks[cat_norm]?
-          cat_hooks.reverse_each { |h| h.call(context_node) rescue nil }
-        end
-        if global_hooks = @@after_all_hooks["global"]?
-          global_hooks.reverse_each { |h| h.call(context_node) rescue nil }
-        end
-      end
-
-      def self.run_before_each(category : String, context_node : Godot::Node)
-        cat_norm = category.downcase.sub(/^test_?/, "")
-        if global_hooks = @@before_each_hooks["global"]?
-          global_hooks.each { |h| h.call(context_node) }
-        end
-        if cat_hooks = @@before_each_hooks[cat_norm]?
-          cat_hooks.each { |h| h.call(context_node) }
-        end
-      end
-
-      def self.run_after_each(category : String, context_node : Godot::Node)
-        cat_norm = category.downcase.sub(/^test_?/, "")
-        if cat_hooks = @@after_each_hooks[cat_norm]?
-          cat_hooks.reverse_each { |h| h.call(context_node) rescue nil }
-        end
-        if global_hooks = @@after_each_hooks["global"]?
-          global_hooks.reverse_each { |h| h.call(context_node) rescue nil }
-        end
-      end
-
-      def self.all_tests : Array(TestCase)
-        @@tests
-      end
-
-      def self.for_category(category : String) : Array(TestCase)
-        cat_norm = category.downcase.sub(/^test_?/, "")
-        @@tests.select { |t| t.category.downcase.sub(/^test_?/, "") == cat_norm }
-      end
-
-      def self.categories : Array(String)
-        @@tests.map(&.category).uniq
-      end
-
-      def self.run_category(category : String, context_node : Godot::Node, filter : String? = nil) : Array(TestResult)
-        results = Array(TestResult).new
-        run_before_all(category, context_node)
-        begin
-          for_category(category).each do |test|
-            next if filter && !filter.empty? && !test.name.includes?(filter)
-            results << test.execute(context_node)
-          end
-        ensure
-          run_after_all(category, context_node)
-        end
-        results
-      end
-
-      def self.run_all(context_node : Godot::Node, filter : String? = nil, category_filter : String? = nil) : Array(TestResult)
-        results = Array(TestResult).new
-        cat_norm = category_filter ? category_filter.downcase.sub(/^test_?/, "") : nil
-
-        # Group by category to trigger category before_all/after_all lifecycle
-        by_category = Hash(String, Array(TestCase)).new
-        @@tests.each do |test|
-          t_cat = test.category.downcase.sub(/^test_?/, "")
-          if cat_norm && !cat_norm.empty?
-            next if t_cat != cat_norm
-          end
-          next if filter && !filter.empty? && !test.name.downcase.includes?(filter.downcase)
-          (by_category[test.category] ||= Array(TestCase).new) << test
-        end
-
-        by_category.each do |category, tests|
-          run_before_all(category, context_node)
-          begin
-            tests.each do |test|
-              results << test.execute(context_node)
-            end
-          ensure
-            run_after_all(category, context_node)
-          end
-        end
-
-        results
-      end
-
-      def self.clear : Void
-        @@tests.clear
-        @@before_all_hooks.clear
-        @@after_all_hooks.clear
-        @@before_each_hooks.clear
-        @@after_each_hooks.clear
-      end
-    end
-
-    # ===========================================================================
-    # 10. JUnit XML Test Exporter
-    # ===========================================================================
-
-    class JUnitExporter
-      def self.generate(results : Array(TestResult), filepath : String) : Void
-        total = results.size
-        failures = results.count(&.fail?)
-        time_total = results.sum(&.duration_ms) / 1000.0
-
-        by_cat = Hash(String, Array(TestResult)).new
-        results.each do |r|
-          (by_cat[r.category] ||= Array(TestResult).new) << r
-        end
-
-        xml = String.build do |io|
-          io << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-          io << "<testsuites name=\"Lapis Test Suite\" tests=\"#{total}\" failures=\"#{failures}\" errors=\"0\" time=\"#{time_total}\">\n"
-          by_cat.each do |cat, cat_results|
-            cat_failures = cat_results.count(&.fail?)
-            cat_time = cat_results.sum(&.duration_ms) / 1000.0
-            io << "  <testsuite name=\"#{escape_xml(cat)}\" tests=\"#{cat_results.size}\" failures=\"#{cat_failures}\" errors=\"0\" time=\"#{cat_time}\">\n"
-            cat_results.each do |r|
-              r_time = r.duration_ms / 1000.0
-              io << "    <testcase classname=\"#{escape_xml(r.category)}\" name=\"#{escape_xml(r.name)}\" time=\"#{r_time}\""
-              if r.fail?
-                io << ">\n"
-                io << "      <failure message=\"#{escape_xml(r.message)}\">#{escape_xml(r.message)}</failure>\n"
-                io << "    </testcase>\n"
-              elsif r.pending? || r.skipped?
-                io << ">\n"
-                io << "      <skipped message=\"#{escape_xml(r.message)}\"/>\n"
-                io << "    </testcase>\n"
-              else
-                io << "/>\n"
-              end
-            end
-            io << "  </testsuite>\n"
-          end
-          io << "</testsuites>\n"
-        end
-
-        Godot::SystemIO.write_file(filepath, xml) rescue File.write(filepath, xml)
-      end
-
-      private def self.escape_xml(str : String) : String
-        str.gsub('&', "&amp;")
-           .gsub('<', "&lt;")
-           .gsub('>', "&gt;")
-           .gsub('"', "&quot;")
-           .gsub('\'', "&apos;")
-      end
-    end
   end
 end
 

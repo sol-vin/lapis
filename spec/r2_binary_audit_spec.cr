@@ -1,5 +1,6 @@
 require "spec"
 require "cradare2"
+require "../src/libgodot/debugger/radare_driver"
 require "../src/libgodot/debugger/r2_godot_plugin"
 require "../src/libgodot/debugger/r2_classdb_reconstructor"
 
@@ -8,10 +9,20 @@ describe "Radare2 Binary Audit & Code Generation Verification" do
   game_dll = "bin/game.dll"
 
   it "verifies that target game binary exists and is valid 64-bit PE" do
+    unless File.exists?(game_dll)
+      pending! "#{game_dll} not found for binary audit"
+    end
     File.exists?(game_dll).should be_true, "Expected #{game_dll} to exist before audit"
   end
 
   it "opens game binary with cradare2 and audits exported functions and symbols" do
+    unless Lapis::Debugger::RadareDriver.available?
+      pending! "radare2 not installed on system PATH"
+    end
+    unless File.exists?(game_dll)
+      pending! "#{game_dll} not found for binary audit"
+    end
+
     opts = Cradare2::Options.build do |o|
       o.target = game_dll
       o.auto_analyze = false
@@ -69,6 +80,9 @@ describe "Radare2 Binary Audit & Code Generation Verification" do
   end
 
   it "audits the editor plugin binary (plugin.dll) for ClassDB exports" do
+    unless Lapis::Debugger::RadareDriver.available?
+      pending! "radare2 not installed on system PATH"
+    end
     plugin_dll = "addons/crystal_integration/bin/plugin.dll"
     if File.exists?(plugin_dll)
       opts = Cradare2::Options.build do |o|

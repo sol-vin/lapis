@@ -1,5 +1,6 @@
 {% unless @top_level.has_constant?(:Godot) %}
 require "./libgodot/crash_handler"
+require "./libgodot/gc_safety"
 require "./libgodot/types"
 require "./libgodot/variant"
 require "./libgodot/system_io"
@@ -19,15 +20,25 @@ require "./libgodot/instance"
 require "./libgodot/generated/global_enums"
 require "./libgodot/generated/classes/all_classes"
 require "./libgodot/generated/singletons"
+require "./libgodot/autoload"
 require "./libgodot/thread_safety"
 require "./libgodot/extensions"
+require "./libgodot/timer"
 require "./libgodot/docs"
 require "./libgodot/multiplayer/harness"
+require "./lapis/color"
+require "./lapis/math"
+require "./lapis/extras"
+require "./lapis/gd_extras"
+require "./lapis/cs_extras"
 {% if flag?(:testing) || flag?(:editor) || (!flag?(:release) && !flag?(:no_testing)) %}
   require "./libgodot/testing"
 {% end %}
 {% if flag?(:benchmarks) || flag?(:editor) || (!flag?(:release) && !flag?(:no_benchmarks)) %}
   require "./libgodot/benchmarks"
+{% end %}
+{% if flag?(:testing) || flag?(:benchmarks) || flag?(:editor) || (!flag?(:release) && !flag?(:no_profiler)) %}
+  require "./libgodot/profiler"
 {% end %}
 {% unless flag?(:release) %}
   require "./libgodot/debugger/agent"
@@ -157,6 +168,8 @@ module Lapis
   {% unless @type.has_constant?(:VERSION) %}
     VERSION = Godot::VERSION
   {% end %}
+  alias AwaitState = Godot::AwaitState
+  alias AwaitStatus = Godot::AwaitStatus
 end
 
 # Core math and transform value-type aliases
@@ -176,4 +189,17 @@ alias Quaternion = Godot::Quaternion
 alias Plane = Godot::Plane
 alias AABB = Godot::AABB
 alias Bridge = Godot::Bridge
+alias AwaitState = Godot::AwaitState
+alias AwaitStatus = Godot::AwaitStatus
+
+# Global fluent group query helper
+def group(name : String | Symbol) : Godot::GroupQuery
+  Godot::GroupQuery.new(name, Godot::NodeContext.current?)
+end
+
+# Dispatches block to execute safely on the Godot Main Thread.
+# Executes immediately if already on the main thread; queues if on a worker thread.
+def on_main_thread(&block : -> Void) : Void
+  Godot.on_main_thread(&block)
+end
 {% end %}

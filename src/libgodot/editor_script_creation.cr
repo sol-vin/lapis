@@ -14,8 +14,9 @@ module Lapis
   include Godot
 
   module EditorScriptCreation
-    ID_CRYSTAL_SCRIPT = 889901_i64
-    ID_SCENE_ATTACH   = 889902_i64
+    ID_CRYSTAL_SCRIPT        = 889901_i64
+    ID_SCENE_ATTACH          = 889902_i64
+    ID_SCENE_DETACH_CONVERT  = 889903_i64
 
     COMMON_BASE_TYPES = [
       "Node",
@@ -41,6 +42,9 @@ module Lapis
     ]
 
     @@dialog : ConfirmationDialog? = nil
+    @@detach_dialog : ConfirmationDialog? = nil
+    @@pending_detach_node : Node? = nil
+    @@pending_detach_parent_type : String = ""
     @@class_edit : LineEdit? = nil
     @@base_opt : OptionButton? = nil
     @@tmpl_opt : OptionButton? = nil
@@ -72,6 +76,24 @@ module Lapis
       rescue
       end
       results
+    end
+
+    # Retrieves the currently selected Node in the Godot Editor
+    def self.get_selected_node(ed_iface : EditorInterface) : Node?
+      ptr = Bridge.editor_get_selected_node(ed_iface.pointer)
+      if !ptr.null?
+        return Godot::Node.new(ptr)
+      end
+      if sel = ed_iface.call_obj("get_selection")
+        if nodes = sel.call_obj("get_selected_nodes")
+          if !nodes.pointer.null?
+            return nodes
+          end
+        end
+      end
+      nil
+    rescue
+      nil
     end
 
     # Converts CamelCase to snake_case for clean Crystal file naming
@@ -465,7 +487,7 @@ module Lapis
       Godot.print("[EditorScriptCreation] Notice fix_script_create_dialog: #{ex.message}")
     end
 
-    # 3. SceneTree Dock Node Context Menu ("Attach/New Crystal Script...")
+    # 3. SceneTree Dock Node Context Menu ("Attach/New Crystal Script...") & Detach Script Protection
     def self.setup_scene_tree_dock_menus(ed_iface : EditorInterface, base_ctrl : Control) : Void
       if scene_dock = base_ctrl.call_obj("find_child", "SceneTreeDock", true, false)
         popups = find_all_children(scene_dock, "PopupMenu")
@@ -492,27 +514,174 @@ module Lapis
                 popup.call("add_item", "Attach/New Crystal Script...", ID_SCENE_ATTACH) rescue nil
               end
             end
-          end
 
-          popup.connect("id_pressed") do |args|
-            if args && args.size > 0 && (args[0].as_i64 rescue -1_i64) == ID_SCENE_ATTACH
-              sel_name = ""
-              sel_type = ""
-              if sel = ed_iface.call_obj("get_selection")
-                if nodes = sel.call_obj("get_selected_nodes")
-                  if !nodes.pointer.null?
-                    sel_name = nodes.call_str("get_name") rescue ""
-                    sel_type = nodes.call_str("get_class") rescue ""
+            # Intercept Detach Script for registered Crystal classes
+            if sel_node = get_selected_node(ed_iface)
+              cls_name = sel_node.call_str("get_class") rescue ""
+              if entry = ClassRegistry.find(cls_name)
+                parent_type = entry.parent_name.empty? ? "Node" : entry.parent_name
+                count = popup.call_i64("get_item_count") rescue 0_i64
+                count.times do |i|
+                  txt = popup.call_str("get_item_text", i) rescue ""
+                  if txt == "Detach Script" || txt.starts_with?("Detach Script")
+                    popup.call("set_item_text", i, "Detach Script (Convert to #{parent_type})...") rescue nil
+                    popup.call("set_item_id", i, ID_SCENE_DETACH_CONVERT) rescue nil
+                    break
                   end
                 end
               end
+            end
+          end
+
+          popup.connect("id_pressed") do |args|
+            action_id = (args && args.size > 0 ? args[0].as_i64 : -1_i64) rescue -1_i64
+            if action_id == ID_SCENE_ATTACH
+              sel_name = ""
+              sel_type = ""
+              if sel_node = get_selected_node(ed_iface)
+                sel_name = sel_node.call_str("get_name") rescue ""
+                sel_type = sel_node.call_str("get_class") rescue ""
+              end
               show_dialog(default_name: sel_name, default_base: sel_type)
+            elsif action_id == ID_SCENE_DETACH_CONVERT
+              if sel_node = get_selected_node(ed_iface)
+                cls_name = sel_node.call_str("get_class") rescue ""
+                if entry = ClassRegistry.find(cls_name)
+                  parent_type = entry.parent_name.empty? ? "Node" : entry.parent_name
+                  show_detach_convert_dialog(sel_node, parent_type, ed_iface, base_ctrl)
+                end
+              end
+            end
+          end
+        end
+
+        # Hook ConfirmationDialog instances in SceneTreeDock (e.g. triggered via toolbar detach button)
+        dlgs = find_all_children(scene_dock, "ConfirmationDialog")
+        dlgs.each do |dlg_node|
+          dlg = Godot::ConfirmationDialog.new(dlg_node.pointer)
+          next if @@hooked_popups.includes?(dlg.signal_target_id)
+          @@hooked_popups << dlg.signal_target_id
+
+          dlg.connect("about_to_popup") do |_args|
+            txt = (dlg.call_str("get_text") rescue "") + " " + (dlg.call_str("get_title") rescue "")
+            if txt.includes?("Detach") || txt.includes?("detach")
+              if sel_node = get_selected_node(ed_iface)
+                cls_name = sel_node.call_str("get_class") rescue ""
+                if entry = ClassRegistry.find(cls_name)
+                  parent_type = entry.parent_name.empty? ? "Node" : entry.parent_name
+                  dlg.call("set_position", Godot::Vector2i.new(-10000, -10000)) rescue nil
+                  dlg.call_deferred("hide") rescue nil
+                  show_detach_convert_dialog(sel_node, parent_type, ed_iface, base_ctrl)
+                end
+              end
             end
           end
         end
       end
     rescue ex
       Godot.print("[EditorScriptCreation] Notice scene tree dock menus setup: #{ex.message}")
+    end
+
+    def self.show_detach_convert_dialog(node : Node, parent_type : String, ed_iface : EditorInterface, base_ctrl : Control) : Void
+      @@pending_detach_node = node
+      @@pending_detach_parent_type = parent_type
+
+      node_name = node.call_str("get_name") rescue "Node"
+      cls_name = node.call_str("get_class") rescue ""
+
+      dlg = @@detach_dialog
+      if dlg.nil? || dlg.pointer.null?
+        cd_obj = Godot.create("ConfirmationDialog")
+        return unless cd_obj
+        dlg = Godot::ConfirmationDialog.new(cd_obj.pointer)
+        base_ctrl.add_child(dlg)
+        @@detach_dialog = dlg
+
+        dlg.connect("confirmed") do |_args|
+          if (target = @@pending_detach_node) && !target.pointer.null? && !@@pending_detach_parent_type.empty?
+            convert_crystal_node_to_parent(target, @@pending_detach_parent_type, ed_iface)
+            @@pending_detach_node = nil
+            @@pending_detach_parent_type = ""
+          end
+        end
+      end
+
+      dlg.call("set_title", "Detach Script & Convert Node")
+      dlg.call("set_text", "Detaching the script from native Crystal node '#{node_name}' (#{cls_name}) will convert it to base engine type '#{parent_type}'.\n\nTransforms, children, and common properties will be preserved.\n\nProceed with conversion?")
+      dlg.call("popup_centered", Godot::Vector2i.new(500, 160)) rescue nil
+    end
+
+    def self.convert_crystal_node_to_parent(node : Node, parent_type : String, ed_iface : EditorInterface) : Void
+      return if node.pointer.null?
+
+      scene_root = ed_iface.call_obj("get_edited_scene_root")
+      parent = node.call_obj("get_parent")
+      node_name = node.call_str("get_name") rescue "Node"
+      orig_class = node.call_str("get_class") rescue ""
+      idx = node.call_i64("get_index") rescue 0_i64
+
+      new_node_obj = Godot.create(parent_type)
+      return unless new_node_obj
+      return if new_node_obj.pointer.null?
+      new_node = Godot::Node.new(new_node_obj.pointer)
+      new_node.call("set_name", node_name)
+
+      # Copy spatial and UI properties
+      if node.call_bool("is_class", "Node2D") && new_node.call_bool("is_class", "Node2D")
+        new_node.call("set_transform", node.call("get_transform")) rescue nil
+        new_node.call("set_z_index", node.call_i64("get_z_index")) rescue nil
+        new_node.call("set_visible", node.call_bool("is_visible")) rescue nil
+      elsif node.call_bool("is_class", "Node3D") && new_node.call_bool("is_class", "Node3D")
+        new_node.call("set_transform", node.call("get_transform")) rescue nil
+        new_node.call("set_visible", node.call_bool("is_visible")) rescue nil
+      elsif node.call_bool("is_class", "Control") && new_node.call_bool("is_class", "Control")
+        new_node.call("set_position", node.call("get_position")) rescue nil
+        new_node.call("set_size", node.call("get_size")) rescue nil
+        new_node.call("set_visible", node.call_bool("is_visible")) rescue nil
+        new_node.call("set_layout_mode", node.call_i64("get_layout_mode")) rescue nil
+        new_node.call("set_anchors_preset", node.call_i64("get_anchors_preset")) rescue nil
+      end
+
+      # Reparent children
+      child_count = node.call_i64("get_child_count") rescue 0_i64
+      children = [] of Godot::Node
+      child_count.times do |i|
+        if c = node.call_obj("get_child", i)
+          children << c
+        end
+      end
+      children.each do |child|
+        node.call("remove_child", child) rescue nil
+        new_node.call("add_child", child) rescue nil
+        if scene_root && !scene_root.pointer.null?
+          child.call("set_owner", scene_root) rescue nil
+        end
+      end
+
+      # Swap in scene tree
+      if parent && !parent.pointer.null?
+        parent.call("add_child", new_node) rescue nil
+        parent.call("move_child", new_node, idx) rescue nil
+        if scene_root && !scene_root.pointer.null?
+          new_node.call("set_owner", scene_root) rescue nil
+        end
+        node.call("queue_free") rescue nil
+      elsif scene_root && scene_root.pointer == node.pointer
+        ed_iface.call("set_edited_scene_root", new_node) rescue nil
+        node.call("queue_free") rescue nil
+      else
+        node.call("queue_free") rescue nil
+      end
+
+      # Update editor selection
+      if sel = ed_iface.call_obj("get_selection")
+        sel.call("clear") rescue nil
+        sel.call("add_node", new_node) rescue nil
+      end
+
+      Godot.print("[Lapis] Converted Crystal node '#{node_name}' (#{orig_class}) to base engine type '#{parent_type}' cleanly.")
+    rescue ex
+      Godot.print("[EditorScriptCreation] Notice convert_crystal_node_to_parent: #{ex.message}")
     end
 
     # 4. Interactive Dialog Presentation

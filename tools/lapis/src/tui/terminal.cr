@@ -155,6 +155,10 @@ module Lapis
         case byte
         when 3 # Ctrl+C
           KeyEvent.new(Key::Char, 'c', ctrl: true)
+        when 18 # Ctrl+R (Screencast Record Toggle)
+          KeyEvent.new(Key::Char, 'r', ctrl: true)
+        when 19 # Ctrl+S (VCR Screenshot)
+          KeyEvent.new(Key::Char, 's', ctrl: true)
         when 13, 10 # Enter
           KeyEvent.new(Key::Enter)
         when 9 # Tab

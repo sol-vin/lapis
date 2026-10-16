@@ -206,6 +206,17 @@ annotation StaticUnload; end
 # Explicitly sets the source script path for editor script linking.
 annotation ScriptPath; end
 
+# Marks a node class as an Autoload singleton, automatically instantiating it,
+# registering it with Godot's Engine singleton registry, and mounting it to the SceneTree root.
+#
+# ```
+# @[Autoload]
+# node GameManager < Node do
+#   property score : Int32 = 0
+# end
+# ```
+annotation Autoload; end
+
 # Automatically initializes a node property when `_ready` is called by querying the scene tree.
 #
 # ```
@@ -299,3 +310,37 @@ end
 
 macro warning_ignore_restore(name)
 end
+
+# Marks a method or type as a zero-allocation hot path audited by the Sol-Vin AST Linter.
+annotation ZeroAllocation; end
+
+# Marks a method or type as a performance-critical hot path.
+annotation HotPath; end
+
+# Marks a method or type as non-allocating.
+annotation NoAlloc; end
+
+# Marks a method as explicitly allowed to allocate on the heap inside a hot type.
+annotation AllowAllocation; end
+
+# Explicitly designates a Crystal module as a Godot mixin module (`gmodule`).
+annotation GodotModule; end
+
+# Declaratively binds a method inside a `node` or `gmodule` block as a compile-time
+# typed `Proc` listener in `Lapis::Core::StaticSignalTable`.
+#
+# ```
+# node Player < CharacterBody3D do
+#   signal health_changed(new_health : Int32, max_health : Int32)
+#   signal died
+#
+#   @[OnSignal(:health_changed)]
+#   def on_health_changed(hp : Int32, max : Int32) : Void
+#   end
+#
+#   @[OnSignal(:died, once: true)]
+#   def on_died : Void
+#   end
+# end
+# ```
+annotation OnSignal; end

@@ -87,12 +87,49 @@ sections:
     content: |
       All optimization and diagnostic flags can be specified through CLI switches or environment variables:
 
-      | Switch | Environment Variable | Crystal Flag |
-      | :--- | :--- | :--- |
-      | `--strip-docs` | `STRIP_DOCS=1` | `-Dno_doc` |
-      | `--no-thread-safety` | `NO_THREAD_SAFETY=1` | `-Dno_thread_safety` |
-      | `--leak-tracker` | `LEAK_TRACKER=1` | `-Dleak_tracker` |
-      | `--profile-dispatches` | `PROFILE_DISPATCHES=1` | `-Dprofile_dispatches` |
-      | `--trace-dead-pointers`| `TRACE_DEAD_POINTERS=1`| `-Dtrace_dead_pointers`|
-      | `--trace-signals` | `TRACE_SIGNALS=1` | `-Dtrace_signals` |
-      | `--no-crash-handler` | `NO_CRASH_HANDLER=1` | `-Dno_crash_handler` |
+      <table>
+        <thead>
+          <tr>
+            <th>Switch</th>
+            <th>Environment Variable</th>
+            <th>Crystal Flag</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>--strip-docs</code></td>
+            <td><code>STRIP_DOCS=1</code></td>
+            <td><code>-Dno_doc</code></td>
+          </tr>
+          <tr>
+            <td><code>--no-thread-safety</code></td>
+            <td><code>NO_THREAD_SAFETY=1</code></td>
+            <td><code>-Dno_thread_safety</code></td>
+          </tr>
+          <tr>
+            <td><code>--leak-tracker</code></td>
+            <td><code>LEAK_TRACKER=1</code></td>
+            <td><code>-Dleak_tracker</code></td>
+          </tr>
+          <tr>
+            <td><code>--profile-dispatches</code></td>
+            <td><code>PROFILE_DISPATCHES=1</code></td>
+            <td><code>-Dprofile_dispatches</code></td>
+          </tr>
+          <tr>
+            <td><code>--trace-dead-pointers</code></td>
+            <td><code>TRACE_DEAD_POINTERS=1</code></td>
+            <td><code>-Dtrace_dead_pointers</code></td>
+          </tr>
+          <tr>
+            <td><code>--trace-signals</code></td>
+            <td><code>TRACE_SIGNALS=1</code></td>
+            <td><code>-Dtrace_signals</code></td>
+          </tr>
+          <tr>
+            <td><code>--no-crash-handler</code></td>
+            <td><code>NO_CRASH_HANDLER=1</code></td>
+            <td><code>-Dno_crash_handler</code></td>
+          </tr>
+        </tbody>
+      </table>

@@ -9,6 +9,66 @@ This skill outlines idiomatic design patterns, architectural paradigms, memory s
 
 ---
 
+## Table of Contents
+<table>
+  <thead>
+    <tr>
+      <th align="left">Section</th>
+      <th align="left">Description</th>
+      <th align="center">Lines</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><a href="#1-composition-over-inheritance-crystal-modules"><strong>1. Composition over Inheritance (Crystal Modules)</strong></a></td>
+      <td>While Godot uses single-inheritance class hierarchies (Node &rarr; Node2D &rarr; CharacterBody2D), Crystal...</td>
+      <td align="center"><code>L72–L122</code></td>
+    </tr>
+    <tr>
+      <td><a href="#2-custom-resources-for-data-driven-design"><strong>2. Custom Resources for Data-Driven Design</strong></a></td>
+      <td>Store game configurations, item schemas, dialogue trees, and skill stats in typed Resource objects rather t...</td>
+      <td align="center"><code>L123–L160</code></td>
+    </tr>
+    <tr>
+      <td><a href="#3-concurrency-amp-multithreading-actor-pattern"><strong>3. Concurrency &amp; Multithreading (Actor Pattern)</strong></a></td>
+      <td>Godot's SceneTree is fundamentally single-threaded.</td>
+      <td align="center"><code>L161–L245</code></td>
+    </tr>
+    <tr>
+      <td><a href="#4-zero-leak-memory-management-amp-dead-pointers"><strong>4. Zero-Leak Memory Management &amp; Dead Pointers</strong></a></td>
+      <td>Crystal's Boehm GC and Godot's ObjectDB have distinct lifecycles:</td>
+      <td align="center"><code>L246–L262</code></td>
+    </tr>
+    <tr>
+      <td><a href="#5-resilient-in-editor-tool-scripts"><strong>5. Resilient In-Editor `@tool` Scripts</strong></a></td>
+      <td>When authoring tool scripts that execute live inside the Godot Editor:</td>
+      <td align="center"><code>L263–L297</code></td>
+    </tr>
+    <tr>
+      <td><a href="#6-multiplayer-networking-rpc"><strong>6. Multiplayer Networking (`@[RPC]`)</strong></a></td>
+      <td>Lapis integrates directly with Godot's High-Level Multiplayer API:</td>
+      <td align="center"><code>L298–L330</code></td>
+    </tr>
+    <tr>
+      <td><a href="#7-zero-allocation-streaming-traversal-eachnode"><strong>7. Zero-Allocation Streaming Traversal (`each_node`)</strong></a></td>
+      <td>Avoid collecting large Array(Node) buffers in hot gameplay loops.</td>
+      <td align="center"><code>L331–L352</code></td>
+    </tr>
+    <tr>
+      <td><a href="#8-dead-pointer-safe-physics-raycasts"><strong>8. Dead-Pointer Safe Physics Raycasts</strong></a></td>
+      <td>Never store or dereference raw collider pointers across frames.</td>
+      <td align="center"><code>L353–L367</code></td>
+    </tr>
+    <tr>
+      <td><a href="#9-quantitative-zero-leak-verification-assertnoleak"><strong>9. Quantitative Zero-Leak Verification (`assert_no_leak`)</strong></a></td>
+      <td>In Lapis test suites, mathematically verify zero native or GC memory leaks using Godot's Performance monitors:</td>
+      <td align="center"><code>L368–L386</code></td>
+    </tr>
+  </tbody>
+</table>
+
+---
+
 ## 1. Composition over Inheritance (Crystal Modules)
 
 While Godot uses single-inheritance class hierarchies (`Node` &rarr; `Node2D` &rarr; `CharacterBody2D`), Crystal modules provide zero-overhead compile-time mixins.
@@ -31,8 +91,8 @@ module Damageable
   def take_damage(amount : Int32) : Void
     return if current_health <= 0
     @current_health = Math.max(0, @current_health - amount)
-    emit_health_changed(@current_health, @max_health)
-    emit_died if @current_health == 0
+    health_changed.emit(@current_health, @max_health)
+    died.emit if @current_health == 0
   end
 end
 
@@ -265,3 +325,61 @@ end
 - Use `:reliable` for state transitions, actions, and inventory changes.
 - Use `:unreliable_ordered` for frequent position and velocity updates.
 - Verify `is_multiplayer_authority` before processing server-authoritative logic.
+
+---
+
+## 7. Zero-Allocation Streaming Traversal (`each_node`)
+
+Avoid collecting large `Array(Node)` buffers in hot gameplay loops. Use streaming iteration with receiver scoping:
+
+```crystal
+# 1. Receiver-scoped iteration (implicit `self` dispatch):
+each_node("Enemies/*", Enemy) do
+  alert!
+  take_damage(25)
+end
+
+# 2. Block-pass shorthand for single method calls:
+each_node("Enemies/*", Enemy, &.alert!)
+
+# 3. Deep descendant search without intermediate array allocations:
+each_descendant(Light3D) do
+  light_energy = 0.0_f32
+end
+```
+
+---
+
+## 8. Dead-Pointer Safe Physics Raycasts
+
+Never store or dereference raw collider pointers across frames. Always inspect colliders using the dead-pointer safe `.as?(Type)` pattern:
+
+```crystal
+if hit = raycast_to(target_pos)
+  # hit.collider dynamically verifies #alive?, returning nil if destroyed:
+  if enemy = hit.collider.as?(Enemy)
+    enemy.take_damage(25)
+  end
+end
+```
+
+---
+
+## 9. Quantitative Zero-Leak Verification (`assert_no_leak`)
+
+In Lapis test suites, mathematically verify zero native or GC memory leaks using Godot's `Performance` monitors:
+
+```crystal
+Lapis::Test.assert_no_leak(max_delta_objects: 0) do
+  # Perform repeated gameplay operations (e.g. 500 spawn & despawn cycles)
+  500.times do
+    node = Godot.create(Node2D)
+    node.destroy
+  end
+end
+
+# Verify no orphaned nodes were left in the engine tree:
+Lapis::Test.assert_no_new_orphans do
+  # Scene manipulation logic
+end
+```

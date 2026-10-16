@@ -142,8 +142,6 @@ deinitialize_crystal_module(void *p_userdata,
   GDExtensionClassLibraryPtr lib = (GDExtensionClassLibraryPtr)p_userdata;
   if (!lib) {
     lib = g_library;
-  } else {
-    g_library = lib;
   }
 
   // --- Segment 2: EDITOR Level Teardown ---
@@ -170,7 +168,7 @@ deinitialize_crystal_module(void *p_userdata,
       g_library_editor_classes.erase(lib);
       g_library_scene_classes.erase(lib);
 
-      // Unregister classes registered under this library.
+      // Unregister classes registered under this specific library only.
       // During reload, Godot unregisters from ClassDB and marks them reloading in extension_classes.
       // During final shutdown, Godot unregisters from ClassDB and erases them from extension_classes.
       if (gd_classdb_unregister_extension_class) {
@@ -179,22 +177,49 @@ deinitialize_crystal_module(void *p_userdata,
           auto pcd_it = g_persistent_class_descs.find(cname);
           if (pcd_it != g_persistent_class_descs.end() && pcd_it->second && pcd_it->second->is_registered_in_classdb) {
             PersistentClassDesc *pcd = pcd_it->second;
-            if (pcd->registered_library == lib) {
+            if (pcd->registered_library == lib || (!pcd->registered_library && lib == g_library)) {
+              void *target_lib = pcd->registered_library ? pcd->registered_library : lib;
               void *sn = make_string_name(cname.c_str());
-              gd_classdb_unregister_extension_class(lib, sn);
+              gd_classdb_unregister_extension_class(target_lib, sn);
               free_string_name(sn);
               pcd->is_registered_in_classdb = false;
               pcd->registered_library = nullptr;
+              pcd->registered_property_names.clear();
+              pcd->registered_signal_names.clear();
+              pcd->registered_constant_names.clear();
             }
           }
         }
       }
+      g_classes_registered_in_current_cycle.clear();
     }
 
     // --- Segment 4: Active Extension Counter & Final Cleanup ---
     g_active_extension_count--;
     if (g_active_extension_count <= 0 && !s_is_reloading) {
       g_active_extension_count = 0;
+
+      // Final pass: ensure all registered extension classes are unregistered from ClassDB
+      // before the backing game DLL is unloaded to prevent 0xC0000005 in ClassDB::cleanup().
+      if (gd_classdb_unregister_extension_class) {
+        for (int i = (int)g_registered_class_order.size() - 1; i >= 0; i--) {
+          const std::string &cname = g_registered_class_order[i];
+          auto pcd_it = g_persistent_class_descs.find(cname);
+          if (pcd_it != g_persistent_class_descs.end() && pcd_it->second && pcd_it->second->is_registered_in_classdb) {
+            PersistentClassDesc *pcd = pcd_it->second;
+            void *target_lib = pcd->registered_library ? pcd->registered_library : g_library;
+            void *sn = make_string_name(cname.c_str());
+            gd_classdb_unregister_extension_class(target_lib, sn);
+            free_string_name(sn);
+            pcd->is_registered_in_classdb = false;
+            pcd->registered_library = nullptr;
+            pcd->registered_property_names.clear();
+            pcd->registered_signal_names.clear();
+            pcd->registered_constant_names.clear();
+          }
+        }
+      }
+      g_classes_registered_in_current_cycle.clear();
 
       for (auto &pair : g_library_deinit_callbacks) {
         for (auto fn : pair.second) {
@@ -272,6 +297,10 @@ static inline bool bridge_version_matches(const char *expected,
     bool found = false;
     for (const auto &act : act_tokens) {
       if (exp == act) {
+        found = true;
+        break;
+      }
+      if (exp.rfind("dev", 0) == 0 && (act == "dev" || act == exp)) {
         found = true;
         break;
       }
@@ -475,6 +504,8 @@ crystal_library_init(GDExtensionInterfaceGetProcAddress p_get_proc_address,
           "string_to_utf8_chars");
   gd_get_library_path = (GDExtensionInterfaceGetLibraryPath)p_get_proc_address(
       "get_library_path");
+  gd_array_operator_index =
+      (GDExtensionInterfaceArrayOperatorIndex)p_get_proc_address("array_operator_index");
 
   GDExtensionInterfaceVariantGetPtrInternalGetter get_internal =
       (GDExtensionInterfaceVariantGetPtrInternalGetter)p_get_proc_address(
@@ -522,6 +553,12 @@ crystal_library_init(GDExtensionInterfaceGetProcAddress p_get_proc_address,
   gd_placeholder_script_instance_create =
       (GDExtensionInterfacePlaceHolderScriptInstanceCreate)p_get_proc_address(
           "placeholder_script_instance_create");
+  gd_packed_byte_array_operator_index =
+      (GDExtensionInterfacePackedByteArrayOperatorIndex)p_get_proc_address(
+          "packed_byte_array_operator_index");
+  gd_packed_byte_array_operator_index_const =
+      (GDExtensionInterfacePackedByteArrayOperatorIndexConst)p_get_proc_address(
+          "packed_byte_array_operator_index_const");
 
   // --- Segment 6: Variant Destructors and Utility Builtins ---
   // Resolve type-specific destructors and utility built-in functions (print,

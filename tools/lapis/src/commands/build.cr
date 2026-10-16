@@ -227,8 +227,9 @@ module Lapis
           end
           0
         else
-          Core::Logger.error("Build failed with exit code #{status.exit_code} after #{elapsed.round(2)}s")
-          status.exit_code
+          code = status.normal_exit? ? status.exit_code : -1
+          Core::Logger.error("Build failed with exit code #{code} after #{elapsed.round(2)}s")
+          code
         end
       end
 
@@ -445,6 +446,8 @@ module Lapis
 
         proj_dir = if (pp = proj_path) && !pp.empty?
                      Path.new(pp).expand
+                   elsif (nearest = Core::Env.find_project_dir(curr)) && File.exists?(nearest.join("src/main.cr"))
+                     nearest
                    elsif File.exists?(curr.join("project.godot")) || File.exists?(curr.join("src/main.cr"))
                      curr
                    elsif File.exists?(root.join("project.godot")) || File.exists?(root.join("src/main.cr"))
@@ -461,9 +464,36 @@ module Lapis
           return 1
         end
 
-        bin_dir = proj_dir.join("bin")
+        # Check if this is an addon project (targets: addon: in shard.yml)
+        is_addon_project = false
+        addon_subfolder : Path? = nil
+        if File.exists?(proj_dir.join("shard.yml"))
+          shard_txt = File.read(proj_dir.join("shard.yml")) rescue ""
+          if shard_txt =~ /targets:\s*\n\s*addon:/
+            is_addon_project = true
+            if Dir.exists?(proj_dir.join("addons"))
+              Dir.children(proj_dir.join("addons")).each do |child|
+                next if child == "crystal_integration"
+                if File.exists?(proj_dir.join("addons", child, "plugin.cfg"))
+                  addon_subfolder = proj_dir.join("addons", child)
+                  break
+                end
+              end
+            end
+          end
+        end
+
+        bin_dir = if asf = addon_subfolder
+                    asf.join("bin")
+                  else
+                    proj_dir.join("bin")
+                  end
         FileUtils.mkdir_p(bin_dir) unless Dir.exists?(bin_dir)
         output_lib = bin_dir.join(Core::Env.game_file)
+
+        if is_addon_project && (flags.nil? || !flags.not_nil!.includes?("-Dlibgodot_addon"))
+          flags = flags ? "#{flags} -Dlibgodot_addon" : "-Dlibgodot_addon"
+        end
         Sync.ensure_extension_list(proj_dir)
 
         # Resolve libgodot Crystal source path
@@ -534,6 +564,19 @@ module Lapis
           Deps.run(["-t", ci_bin.to_s, "--addon"])
         end
 
+        # If building a standalone addon project, also sync the compiled library and dependencies to root bin/
+        if is_addon_project && Dir.exists?(proj_dir.join("bin")) && proj_dir.join("bin") != bin_dir
+          root_bin = proj_dir.join("bin")
+          Commands::Deps.safe_copy(output_lib, root_bin.join(output_lib.basename))
+          if Core::Env.windows?
+            src_pdb = Path.new(output_lib.to_s.sub(/\.dll$/, ".pdb"))
+            dst_pdb = root_bin.join(output_lib.basename.to_s.sub(/\.dll$/, ".pdb"))
+            Commands::Deps.safe_copy(src_pdb, dst_pdb) if File.exists?(src_pdb)
+          end
+          Deps.run(["-t", root_bin.to_s])
+          Sync.run(["-t", root_bin.to_s, "--bins-only"])
+        end
+
         Core::Logger.success("Game library compiled and synced: #{output_lib.basename}")
         0
       end
@@ -549,7 +592,7 @@ Usage:
 
 Subcommands:
   game                  Build game library for current or specified project (default)
-  addons                Build all test/dummy addons in test/addons/
+  addons                Build all test/dummy addons in addons/
   examples              Build all showcase examples in examples/
 
 Options for game library build ('lapis build' or 'lapis build game'):
@@ -622,13 +665,21 @@ HELP
         if !has_entry_arg && !has_output_arg
           curr = Path.new(Dir.current).expand
           root = Core::Env::ROOT_DIR
-          if File.exists?(curr.join("project.godot")) && File.exists?(curr.join("src/main.cr"))
+          nearest = Core::Env.find_project_dir(curr)
+          if nearest && File.exists?(nearest.join("project.godot")) && File.exists?(nearest.join("src/main.cr"))
             return build_game(args)
-          elsif File.exists?(root.join("project.godot")) && File.exists?(root.join("src/main.cr"))
+          elsif File.exists?(curr.join("project.godot")) && File.exists?(curr.join("src/main.cr"))
             return build_game(args)
-          elsif args.empty?
-            print_help
-            return 0
+          elsif (curr == root) && File.exists?(root.join("project.godot")) && File.exists?(root.join("src/main.cr"))
+            return build_game(args)
+          else
+            unless Core::Env.is_crystal_dir?(curr)
+              Core::Logger.warn("Warning: Current directory '#{curr}' is not a Crystal/Lapis project (missing shard.yml or src/).")
+            end
+            if args.empty?
+              print_help
+              return 0
+            end
           end
         end
 

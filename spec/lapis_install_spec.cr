@@ -10,6 +10,11 @@ puts "=== Running Lapis CLI Installation & Lifecycle Specifications ==="
 root_dir = File.expand_path("..", __DIR__)
 lapis_exe = File.join(root_dir, "bin", "lapis" + ({% if flag?(:windows) %} ".exe" {% else %} "" {% end %}))
 
+# Preserve existing global configuration if present so running specs never destroys user's environment
+appdata = ENV["APPDATA"]? || ENV["LOCALAPPDATA"]? || (ENV["USERPROFILE"]? ? File.join(ENV["USERPROFILE"], "AppData", "Roaming") : nil)
+cfg_file = appdata ? File.join(appdata, "lapis", "config.json") : File.join(Path.home.to_s, ".config", "lapis", "config.json")
+existing_cfg_content = File.exists?(cfg_file) ? File.read(cfg_file) : nil
+
 # Ensure lapis binary exists for spec
 unless File.exists?(lapis_exe)
   puts "Compiling Lapis CLI for spec..."
@@ -72,6 +77,16 @@ if File.exists?(target_binary)
   abort "ERROR: Target binary #{target_binary} still exists after uninstallation!"
 end
 puts "  ✓ 'lapis uninstall' cleanly removed binary"
+
+# Verify global configuration was not deleted by --dir uninstall
+if existing_cfg_content
+  unless File.exists?(cfg_file)
+    FileUtils.mkdir_p(File.dirname(cfg_file))
+    File.write(cfg_file, existing_cfg_content)
+    abort "ERROR: Global configuration #{cfg_file} was deleted by 'lapis install --uninstall --dir'!"
+  end
+  puts "  ✓ Global configuration preserved intact during custom --dir lifecycle"
+end
 
 # Cleanup test directory
 FileUtils.rm_rf(test_install_dir) if Dir.exists?(test_install_dir)

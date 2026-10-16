@@ -50,6 +50,35 @@ struct BridgeCompletionOption {
     int64_t location;         /** Code completion location index */
 };
 
+/**
+ * Script error entry passed to Godot's ScriptLanguageExtension::_validate
+ */
+struct BridgeValidationError {
+    int32_t line;             /** 1-based line number */
+    int32_t column;           /** 1-based column number */
+    const char *message;      /** Error message description */
+};
+
+/**
+ * Script warning entry passed to Godot's ScriptLanguageExtension::_validate
+ */
+struct BridgeValidationWarning {
+    int32_t line;             /** 1-based line number */
+    int32_t code;             /** Warning code */
+    const char *message;      /** Warning message description */
+};
+
+/**
+ * Script template descriptor passed to Godot's ScriptLanguageExtension::_get_built_in_templates
+ */
+struct BridgeScriptTemplate {
+    const char *inherit;
+    const char *name;
+    const char *description;
+    const char *content;
+    int64_t id;
+};
+
 using CrystalSignalCallbackFn = void (*)(uint64_t target_id, const char *signal_name, const VariantArg *args, int arg_count);
 using CrystalDeinitCallbackFn = void (*)();
 using CrystalCleanupCallbackFn = void (*)();
@@ -95,6 +124,16 @@ struct CrystalConstantDesc {
     bool is_bitfield;          /** True if part of a bitfield flags enum */
 };
 
+/**
+ * Class method descriptor registered into Godot's ClassDB.
+ * Populated by Crystal macros for user methods and deferred callbacks.
+ */
+struct CrystalMethodDesc {
+    const char *name;          /** Method identifier (e.g. "open_pause_menu") */
+    int ret_variant_type;      /** GDExtensionVariantType of return value (0 for void/Nil) */
+    int arg_count;             /** Number of arguments */
+};
+
 struct CrystalClassDesc {
     const char *name;         /** Registered class name (e.g. "MyPlayer", "ToolTester2D") */
     const char *parent_name;  /** Native or Crystal parent class (e.g. "CharacterBody3D") */
@@ -132,6 +171,9 @@ struct CrystalClassDesc {
     int constant_count;
     const CrystalConstantDesc *constants;
 
+    int method_count;
+    const CrystalMethodDesc *methods;
+
     const CrystalClassDesc *parent_desc;
 };
 
@@ -160,9 +202,13 @@ struct PersistentClassDesc {
     std::vector<std::string> const_names;
     std::vector<CrystalConstantDesc> constants;
 
+    std::vector<std::string> method_names;
+    std::vector<CrystalMethodDesc> methods;
+
     std::unordered_set<std::string> registered_property_names;
     std::unordered_set<std::string> registered_signal_names;
     std::unordered_set<std::string> registered_constant_names;
+    std::unordered_set<std::string> registered_method_names;
     void *registered_library = nullptr;
     bool is_registered_in_classdb = false;
 
@@ -252,6 +298,21 @@ struct PersistentClassDesc {
             }
         }
 
+        // Copy methods
+        method_names.clear();
+        methods.clear();
+
+        if (p_desc->methods && p_desc->method_count > 0) {
+            method_names.resize(p_desc->method_count);
+            methods.resize(p_desc->method_count);
+
+            for (int i = 0; i < p_desc->method_count; i++) {
+                method_names[i] = p_desc->methods[i].name ? p_desc->methods[i].name : "";
+                methods[i] = p_desc->methods[i];
+                methods[i].name = method_names[i].c_str();
+            }
+        }
+
         desc = *p_desc;
         desc.name = name.c_str();
         desc.parent_name = parent_name.c_str();
@@ -262,6 +323,8 @@ struct PersistentClassDesc {
         desc.signal_count = (int)signals.size();
         desc.constants = constants.empty() ? nullptr : constants.data();
         desc.constant_count = (int)constants.size();
+        desc.methods = methods.empty() ? nullptr : methods.data();
+        desc.method_count = (int)methods.size();
         desc.parent_desc = nullptr;
     }
 };
@@ -317,11 +380,13 @@ struct BridgeAPI {
     int (*arg_to_string)(const void *arg, char *out, int max_len);
     int (*arg_to_string_name)(const void *arg, char *out, int max_len);
     void (*ret_dictionary_validate)(void *r_ret, uint8_t valid);
+    void (*ret_dictionary_validate_ex)(void *r_ret, uint8_t valid, const struct BridgeValidationError *errors, int error_count, const struct BridgeValidationWarning *warnings, int warning_count);
     void (*ret_dictionary_complete_code)(void *r_ret);
     void (*ret_dictionary_lookup_code)(void *r_ret);
     void (*ret_dictionary_complete_code_ex)(void *r_ret, int64_t result, uint8_t force, const char *call_hint, const struct BridgeCompletionOption *options, int option_count);
     void (*ret_dictionary_lookup_code_ex)(void *r_ret, int64_t result, int64_t type, const char *class_name, const char *class_member, const char *description, const char *script_path, int64_t location);
     void (*ret_dictionary_global_class)(void *r_ret, const char *class_name, const char *base_type, const char *icon_path);
+    void (*ret_script_templates)(void *r_ret, const struct BridgeScriptTemplate *templates, int count);
     void* (*placeholder_script_instance_create)(void *p_language, void *p_script, const void *p_owner_arg);
     int (*text_edit_get_line)(void *text_edit, int64_t line, char *out_buf, int max_len);
     void (*object_connect_signal)(GDExtensionObjectPtr instance, const char *signal_name, uint32_t flags);
@@ -352,6 +417,10 @@ struct BridgeAPI {
     void (*ret_signal_list)(void *r_ret, const struct CrystalSignalDesc *signals, int signal_count);
     void (*ret_property_list)(void *r_ret, const struct CrystalPropertyDesc *props, int prop_count);
     uint8_t (*is_object_valid)(GDExtensionObjectPtr obj);
+    GDExtensionObjectPtr (*editor_get_selected_node)(GDExtensionObjectPtr ed_iface);
+    void (*image_update_buffer)(GDExtensionObjectPtr img, int32_t width, int32_t height, uint8_t mipmaps, int32_t format, const uint8_t *pixels, int64_t len);
+    int64_t (*image_copy_to_buffer)(GDExtensionObjectPtr img, uint8_t *dst, int64_t max_len);
+    uint8_t* (*packed_byte_array_operator_index)(GDExtensionTypePtr p_self, int64_t index);
 };
 
 struct BridgeGCFunctions {

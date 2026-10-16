@@ -18,7 +18,7 @@ node SelfDestructingEmitterNode < Godot::Node do
   property post_emission_reached : Bool = false
 
   def trigger_destruction_event : Void
-    emit_request_destruction(self.instance_id)
+    request_destruction.emit(self.instance_id)
     @post_emission_reached = true
   end
 end
@@ -41,7 +41,7 @@ node ReentrantCallerNode < Godot::Node do
     @recursive_depth = depth
     @step_counter += 1
     if depth > 0
-      emit_reentrant_ping(depth - 1)
+      reentrant_ping.emit(depth - 1)
     end
   end
 end
@@ -70,7 +70,7 @@ end
   assert_true Godot::Object.is_instance_id_valid(emitter_id)
 
   destroyed_in_handler = false
-  emitter.on_request_destruction do |_id|
+  on emitter.request_destruction do |_id|
     destroyed_in_handler = true
     # Per Godot engine safety invariants, Nodes emitting signals use queue_free
     # to avoid corrupting the engine's active signal iteration loop.
@@ -101,7 +101,7 @@ end
   node = Godot.create(ReentrantCallerNode)
   node.step_counter = 0
 
-  node.on_reentrant_ping do |remaining_depth|
+  on node.reentrant_ping do |remaining_depth|
     if remaining_depth > 0
       node.trigger_reentrant_signal(remaining_depth)
     end

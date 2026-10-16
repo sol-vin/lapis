@@ -27,6 +27,8 @@ inline bool is_editor_system_class(const char *name) {
             strcmp(name, "CrystalHighlighter") == 0 ||
             strcmp(name, "CrystalDebuggerPlugin") == 0 ||
             strcmp(name, "CrystalPanel") == 0 ||
+            strcmp(name, "CrystalConsoleDock") == 0 ||
+            strcmp(name, "BenchmarkGraphControl") == 0 ||
             strcmp(name, "CrystalRadareSessionTab") == 0);
 }
 
@@ -47,6 +49,7 @@ inline void mark_class_unregistered(const std::string &cname) {
         pcd_it->second->registered_property_names.clear();
         pcd_it->second->registered_signal_names.clear();
         pcd_it->second->registered_constant_names.clear();
+        pcd_it->second->registered_method_names.clear();
     }
 }
 
@@ -186,7 +189,7 @@ inline void do_classdb_register(CrystalClassDesc *desc) {
     cinfo.class_userdata = pcd ? (void*)&pcd->desc : (void*)desc;
 
     // --- Segment 3: Native Engine ClassDB Registration ---
-    if (!pcd || !pcd->is_registered_in_classdb || s_is_reloading) {
+    if (!pcd || !pcd->is_registered_in_classdb) {
         gd_classdb_register_extension_class6(g_library, class_sn, parent_sn, &cinfo);
         if (pcd) {
             pcd->is_registered_in_classdb = true;
@@ -229,12 +232,54 @@ inline void do_classdb_register(CrystalClassDesc *desc) {
             continue;
         }
 
-        ScopedString hint_str(p.hint_string ? p.hint_string : "");
+        // Prevent duplicate registration of inherited properties on subclasses in ClassDB
+        bool already_in_ancestor = false;
+        std::string cur_parent = pcd ? pcd->parent_name : "";
+        while (!cur_parent.empty()) {
+            auto pit = g_persistent_class_descs.find(cur_parent);
+            if (pit != g_persistent_class_descs.end()) {
+                if (p.name && pit->second->registered_property_names.count(p.name) > 0) {
+                    already_in_ancestor = true;
+                    break;
+                }
+                cur_parent = pit->second->parent_name;
+            } else {
+                break;
+            }
+        }
+        if (already_in_ancestor) {
+            continue;
+        }
+
+        std::string cname = p.type_name ? p.type_name : "";
+        size_t qpos = cname.find('?');
+        if (qpos != std::string::npos) cname = cname.substr(0, qpos);
+        size_t npos = cname.find('|');
+        if (npos != std::string::npos) cname = cname.substr(0, npos);
+        while (!cname.empty() && (cname.back() == ' ' || cname.back() == '\t' || cname.back() == ')')) cname.pop_back();
+        while (!cname.empty() && (cname.front() == ' ' || cname.front() == '\t' || cname.front() == '(')) cname.erase(0, 1);
+
+        uint32_t prop_hint = p.hint;
+        std::string prop_hint_string = p.hint_string ? p.hint_string : "";
+        size_t h_bar = prop_hint_string.find('|');
+        if (h_bar != std::string::npos) prop_hint_string = prop_hint_string.substr(0, h_bar);
+        while (!prop_hint_string.empty() && (prop_hint_string.back() == ' ' || prop_hint_string.back() == '\t' || prop_hint_string.back() == ')')) prop_hint_string.pop_back();
+        while (!prop_hint_string.empty() && (prop_hint_string.front() == ' ' || prop_hint_string.front() == '\t' || prop_hint_string.front() == '(')) prop_hint_string.erase(0, 1);
+
+        // If it's an Object/Resource without an explicit hint, auto-assign PROPERTY_HINT_RESOURCE_TYPE (17)
+        // so the Godot Editor inspector restricts the picker strictly to this resource type.
+        if (p.variant_type == 24 /* GDEXTENSION_VARIANT_TYPE_OBJECT */ && prop_hint == 0 &&
+            !cname.empty() && cname != "Object" && cname != "Variant" && cname != "Node" && cname != "RefCounted") {
+            prop_hint = 17; // PROPERTY_HINT_RESOURCE_TYPE
+            prop_hint_string = cname;
+        }
+
+        ScopedString hint_str(prop_hint_string.c_str());
         GDExtensionPropertyInfo pinfo = {};
         pinfo.type = (GDExtensionVariantType)p.variant_type;
         pinfo.name = make_string_name(p.name);
-        pinfo.class_name = make_string_name(p.type_name ? p.type_name : "");
-        pinfo.hint = p.hint;
+        pinfo.class_name = make_string_name(cname.c_str());
+        pinfo.hint = prop_hint;
         pinfo.hint_string = hint_str;
         pinfo.usage = p.usage ? p.usage : 6; // PROPERTY_USAGE_DEFAULT
 
@@ -257,6 +302,26 @@ inline void do_classdb_register(CrystalClassDesc *desc) {
         if (pcd && s.name && pcd->registered_signal_names.count(s.name) > 0) {
             continue;
         }
+
+        // Prevent duplicate registration of inherited signals on subclasses in ClassDB
+        bool sig_already_in_ancestor = false;
+        std::string cur_sig_parent = pcd ? pcd->parent_name : "";
+        while (!cur_sig_parent.empty()) {
+            auto pit = g_persistent_class_descs.find(cur_sig_parent);
+            if (pit != g_persistent_class_descs.end()) {
+                if (s.name && pit->second->registered_signal_names.count(s.name) > 0) {
+                    sig_already_in_ancestor = true;
+                    break;
+                }
+                cur_sig_parent = pit->second->parent_name;
+            } else {
+                break;
+            }
+        }
+        if (sig_already_in_ancestor) {
+            continue;
+        }
+
         void *sig_sn = make_string_name(s.name);
         std::vector<GDExtensionPropertyInfo> sargs(s.arg_count);
         for (int a = 0; a < s.arg_count; a++) {
@@ -301,6 +366,38 @@ inline void do_classdb_register(CrystalClassDesc *desc) {
             if (pcd && c.constant_name) pcd->registered_constant_names.insert(c.constant_name);
         }
     }
+
+    // --- Segment 6.5: User Methods Registration into ClassDB ---
+    if (gd_classdb_register_extension_class_method) {
+        for (int i = 0; i < desc->method_count; i++) {
+            const CrystalMethodDesc &m = desc->methods[i];
+            if (!m.name || (pcd && pcd->registered_method_names.count(m.name) > 0)) {
+                continue;
+            }
+
+            void *sn_name = make_string_name(m.name);
+            GDExtensionClassMethodInfo minfo = {};
+            minfo.name = sn_name;
+            minfo.method_userdata = (void*)m.name;
+            minfo.call_func = generic_class_user_method_call;
+            minfo.ptrcall_func = nullptr;
+            minfo.method_flags = GDEXTENSION_METHOD_FLAG_NORMAL;
+            minfo.has_return_value = 0;
+            minfo.return_value_info = nullptr;
+            minfo.return_value_metadata = GDEXTENSION_METHOD_ARGUMENT_METADATA_NONE;
+            minfo.argument_count = 0;
+            minfo.arguments_info = nullptr;
+            minfo.arguments_metadata = nullptr;
+            minfo.default_argument_count = 0;
+            minfo.default_arguments = nullptr;
+
+            gd_classdb_register_extension_class_method(g_library, class_sn, &minfo);
+            free_string_name(sn_name);
+
+            if (pcd && m.name) pcd->registered_method_names.insert(m.name);
+        }
+    }
+
 
     // --- Segment 7: GodotChannel Method Registration & Class Tracking ---
     if (strcmp(desc->name, "GodotChannel") == 0) {

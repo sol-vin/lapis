@@ -67,8 +67,21 @@ node SpecAnnotationsSuite < CharacterBody3D do
   @[ExportToolButton("Reset")]
   property btn_reset = -> { }
 
+  @[Export]
+  property custom_badge : SpecCustomBadgeResource? = nil
+
   @[RPC(mode: :any_peer, sync: :call_local, transfer_mode: :reliable, channel: 1)]
   def attack_target(target_id : Int32)
+  end
+end
+
+node SpecCustomBadgeResource < Resource do
+  property badge_id : Int32 = 1
+end
+
+node SpecCustomLoaderNode < ResourceFormatLoader do
+  def _get_recognized_extensions : PackedStringArray
+    PackedStringArray.new
   end
 end
 
@@ -172,6 +185,15 @@ describe "LibGodot Features & Reflection" do
 
       dash_p = entry.properties.find { |p| p.name == "dash_enabled" }.not_nil!
       dash_p.type_name.should eq("Bool")
+
+      badge_p = entry.properties.find { |p| p.name == "custom_badge" }.not_nil!
+      badge_p.hint.should eq(17_u32)
+      badge_p.hint_string.should eq("SpecCustomBadgeResource")
+    end
+
+    it "attaches auto-initialization proc to ResourceFormatLoader subclasses" do
+      loader_entry = Godot::ClassRegistry.find("SpecCustomLoaderNode").not_nil!
+      loader_entry.init_proc.should_not be_nil
     end
 
     it "registers RPC multiplayer network annotations" do
@@ -212,4 +234,33 @@ describe "LibGodot Features & Reflection" do
       error_summary.should eq("undefined local variable or method 'butt_soup' for MainNode")
     end
   end
+
+  describe "Class-Level Scene Instantiation & Hierarchy Ergonomics" do
+    it "responds to self.instantiate on Godot::Node and subclasses" do
+      Godot::Node.responds_to?(:instantiate).should be_true
+      Godot::Marker2D.responds_to?(:instantiate).should be_true
+      Godot::Node2D.responds_to?(:instantiate).should be_true
+      Godot::CharacterBody3D.responds_to?(:instantiate).should be_true
+      SpecDocPlayer.responds_to?(:instantiate).should be_true
+    end
+
+    it "responds to self.instantiate? on Godot::Node and subclasses" do
+      Godot::Node.responds_to?(:instantiate?).should be_true
+      Godot::Marker2D.responds_to?(:instantiate?).should be_true
+      Godot::Node2D.responds_to?(:instantiate?).should be_true
+      SpecDocPlayer.responds_to?(:instantiate?).should be_true
+    end
+
+    it "returns nil safely with instantiate? on non-existent scene paths" do
+      res = Godot::Marker2D.instantiate?("res://non_existent_marker_123.tscn")
+      res.should be_nil
+    end
+
+    it "supports add_child and add_sibling with positional (path, Type) arguments on Node" do
+      parent = Godot::Node.new
+      parent.responds_to?(:add_child).should be_true
+      parent.responds_to?(:add_sibling).should be_true
+    end
+  end
 end
+

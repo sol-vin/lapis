@@ -27,6 +27,12 @@ module Godot
       is_bitfield : Bool
     end
 
+    struct CrystalMethodDesc
+      name : LibC::Char*
+      ret_variant_type : Int32
+      arg_count : Int32
+    end
+
     struct CrystalClassDesc
       name : LibC::Char*
       parent_name : LibC::Char*
@@ -64,6 +70,9 @@ module Godot
       constant_count : Int32
       constants : CrystalConstantDesc*
 
+      method_count : Int32
+      methods : CrystalMethodDesc*
+
       parent_desc : Void*
     end
 
@@ -88,6 +97,26 @@ module Godot
       insert_text : LibC::Char*
       default_value : LibC::Char*
       location : Int64
+    end
+
+    struct BridgeValidationError
+      line : Int32
+      column : Int32
+      message : LibC::Char*
+    end
+
+    struct BridgeValidationWarning
+      line : Int32
+      code : Int32
+      message : LibC::Char*
+    end
+
+    struct BridgeScriptTemplate
+      inherit : LibC::Char*
+      name : LibC::Char*
+      description : LibC::Char*
+      content : LibC::Char*
+      id : Int64
     end
 
     struct BridgeAPI
@@ -141,11 +170,13 @@ module Godot
       arg_to_string : (Void*, LibC::Char*, Int32 -> Int32)
       arg_to_string_name : (Void*, LibC::Char*, Int32 -> Int32)
       ret_dictionary_validate : (Void*, UInt8 -> Void)
+      ret_dictionary_validate_ex : (Void*, UInt8, BridgeValidationError*, Int32, BridgeValidationWarning*, Int32 -> Void)
       ret_dictionary_complete_code : (Void* -> Void)
       ret_dictionary_lookup_code : (Void* -> Void)
       ret_dictionary_complete_code_ex : (Void*, Int64, UInt8, LibC::Char*, BridgeCompletionOption*, Int32 -> Void)
       ret_dictionary_lookup_code_ex : (Void*, Int64, Int64, LibC::Char*, LibC::Char*, LibC::Char*, LibC::Char*, Int64 -> Void)
       ret_dictionary_global_class : (Void*, LibC::Char*, LibC::Char*, LibC::Char* -> Void)
+      ret_script_templates : (Void*, BridgeScriptTemplate*, Int32 -> Void)
       placeholder_script_instance_create : (Void*, Void*, Void* -> Void*)
       text_edit_get_line : (Void*, Int64, LibC::Char*, Int32 -> Int32)
       object_connect_signal : (Void*, LibC::Char*, UInt32 -> Void)
@@ -176,6 +207,10 @@ module Godot
       ret_signal_list : (Void*, CrystalSignalDesc*, Int32 -> Void)
       ret_property_list : (Void*, CrystalPropertyDesc*, Int32 -> Void)
       is_object_valid : (Void* -> UInt8)
+      editor_get_selected_node : (Void* -> Void*)
+      image_update_buffer : (Void*, Int32, Int32, UInt8, Int32, UInt8*, Int64 -> Void)
+      image_copy_to_buffer : (Void*, UInt8*, Int64 -> Int64)
+      packed_byte_array_operator_index : (Void*, Int64 -> UInt8*)
     end
 
     struct BridgeGCFunctions
@@ -201,8 +236,40 @@ module Godot
     end
   end
 
+  struct LibBridge::BridgeValidationError
+    def initialize(
+      @line : Int32,
+      @column : Int32,
+      @message : LibC::Char*
+    )
+    end
+  end
+
+  struct LibBridge::BridgeValidationWarning
+    def initialize(
+      @line : Int32,
+      @code : Int32,
+      @message : LibC::Char*
+    )
+    end
+  end
+
+  struct LibBridge::BridgeScriptTemplate
+    def initialize(
+      @inherit : LibC::Char*,
+      @name : LibC::Char*,
+      @description : LibC::Char*,
+      @content : LibC::Char*,
+      @id : Int64
+    )
+    end
+  end
+
   module Bridge
     alias BridgeCompletionOption = LibBridge::BridgeCompletionOption
+    alias BridgeValidationError = LibBridge::BridgeValidationError
+    alias BridgeValidationWarning = LibBridge::BridgeValidationWarning
+    alias BridgeScriptTemplate = LibBridge::BridgeScriptTemplate
 
     @@api : LibBridge::BridgeAPI* = Pointer(LibBridge::BridgeAPI).null
 
@@ -330,10 +397,10 @@ module Godot
       # Callbacks for C host
       create_fn = ->(desc : LibBridge::CrystalClassDesc*, godot_obj : Void*) : Void* {
         class_name = String.new(desc.value.name)
-        Godot.print("[create_fn] ENTERED: class_name='#{class_name}', godot_obj=#{godot_obj}")
+        Godot.log_internal("Bridge", "[create_fn] ENTERED: class_name='#{class_name}', godot_obj=#{godot_obj}")
         if entry = Godot::ClassRegistry.find(class_name)
           inst = entry.create_proc.call(godot_obj)
-          Godot.print("[create_fn] inst=#{inst.class.name} (#{inst}) for class_name='#{class_name}'")
+          Godot.log_internal("Bridge", "[create_fn] inst=#{inst.class.name} (#{inst}) for class_name='#{class_name}'")
           inst.pointer = godot_obj
           boxed = Box(Godot::Object).box(inst)
           @@alive_mutex.synchronize do
@@ -342,7 +409,7 @@ module Godot
           end
           return boxed
         end
-        Godot.print("[create_fn] FAILED: class '#{class_name}' not found in ClassRegistry!")
+        Godot.printerr("[create_fn] FAILED: class '#{class_name}' not found in ClassRegistry!")
         Pointer(Void).null
       }
 
@@ -365,6 +432,13 @@ module Godot
                  end
           if inst && inst.alive?
             m = String.new(method_name)
+            if (m == "_ready" || m == "_enter_tree")
+              {% if @top_level.has_constant?("Godot") && @top_level.constant("Godot").has_constant?("AutoloadManager") %}
+                unless Godot::AutoloadManager.mounted?
+                  Godot::AutoloadManager.mount_to_tree rescue nil
+                end
+              {% end %}
+            end
             {% unless flag?(:release) %}
               if (m == "_ready" || m == "_enter_tree") && !Godot::Debugger::Agent.initialized?
                 Godot::Debugger::Agent.initialize_agent rescue nil
@@ -526,6 +600,17 @@ module Godot
           consts[idx] = c_item
         end
 
+        # Populate class methods
+        m_count = entry.methods.size
+        meths = Pointer(LibBridge::CrystalMethodDesc).malloc(m_count > 0 ? m_count : 1)
+        entry.methods.each_with_index do |m_name, idx|
+          m_item = LibBridge::CrystalMethodDesc.new
+          m_item.name = m_name.to_unsafe
+          m_item.ret_variant_type = 0
+          m_item.arg_count = 0
+          meths[idx] = m_item
+        end
+
         desc = LibBridge::CrystalClassDesc.new
         desc.name = entry.class_name.to_unsafe
         desc.parent_name = entry.parent_name.to_unsafe
@@ -562,6 +647,9 @@ module Godot
         desc.constant_count = c_count
         desc.constants = consts
 
+        desc.method_count = m_count
+        desc.methods = meths
+
         desc_ptr = Pointer(LibBridge::CrystalClassDesc).malloc(1)
         desc_ptr.value = desc
         @@registered_descs << desc
@@ -578,6 +666,7 @@ module Godot
       # Register native signal callback from C++ bridge into Crystal signal dispatcher
       if !api.value.register_signal_callback.pointer.null?
         cb = ->(target_id : UInt64, sig_ptr : LibC::Char*, args_ptr : LibBridge::VariantArg*, count : Int32) {
+          return if Godot.in_typed_emit?
           sig_name = String.new(sig_ptr)
           arr = Array(Godot::Variant).new(count)
           if !args_ptr.null? && count > 0
@@ -604,15 +693,20 @@ module Godot
       early_register_component("CrystalLanguage")
       early_register_component("ResourceFormatLoaderCrystal")
       early_register_component("ResourceFormatSaverCrystal")
+
+      # Initialize and register all @[Autoload] singletons with Godot Engine
+      {% if @top_level.has_constant?("Godot") && @top_level.constant("Godot").has_constant?("AutoloadManager") %}
+        Godot::AutoloadManager.setup_autoloads rescue nil
+      {% end %}
     end
 
     # Early-registers an engine component if it is defined in the current compilation unit
     macro early_register_component(class_name)
       {% if @top_level.has_constant?("Godot") && @top_level.constant("Godot").has_constant?(class_name) %}
-        Godot.print("[early_register_component] Registering {{class_name.id}}...")
+        Godot.log_internal("Bridge", "[early_register_component] Registering {{class_name.id}}...")
         Godot::{{class_name.id}}.ensure_registered
       {% else %}
-        Godot.print("[early_register_component] {{class_name.id}} NOT FOUND in Godot constant!")
+        Godot.log_internal("Bridge", "[early_register_component] {{class_name.id}} NOT FOUND in Godot constant!")
       {% end %}
     end
 
@@ -649,9 +743,18 @@ module Godot
 
       Godot.debug("[Bridge.deinit] Cleaning up script cache...")
       ClassRegistry.cleanup rescue nil
+      {% if @top_level.has_constant?("Godot") && @top_level.constant("Godot").has_constant?("AutoloadManager") %}
+        Godot::AutoloadManager.teardown_autoloads rescue nil
+      {% end %}
       unregister_component("ResourceFormatLoaderCrystal", "loader")
       unregister_component("ResourceFormatSaverCrystal", "saver")
       unregister_component("CrystalLanguage", "language")
+      # Clean up all registered loaders, savers, or custom components from addons or games
+      ClassRegistry.entries.reverse_each do |entry|
+        if proc = entry.deinit_proc
+          proc.call rescue nil
+        end
+      end
       Godot.debug("[Bridge.deinit] Completed successfully!")
     end
 
@@ -1245,6 +1348,13 @@ module Godot
       @@api.value.is_instance_valid.call(id) != 0_u8
     end
 
+    def self.register_alive_instance_by_ptr(godot_obj : Void*, inst : Godot::Object) : Void
+      return if godot_obj.null?
+      @@alive_mutex.synchronize do
+        @@alive_instances_by_ptr[godot_obj] = inst
+      end
+    end
+
     def self.unregister_alive_instance_by_ptr(godot_obj : Void*) : Void
       return if godot_obj.null?
       @@alive_mutex.synchronize do
@@ -1314,6 +1424,25 @@ module Godot
       @@api.value.ret_dictionary_validate.call(ret, valid ? 1_u8 : 0_u8)
     end
 
+    def self.ret_dictionary_validate_ex(
+      ret : Void*,
+      valid : Bool,
+      errors : Slice(BridgeValidationError) | Array(BridgeValidationError) = [] of BridgeValidationError,
+      warnings : Slice(BridgeValidationWarning) | Array(BridgeValidationWarning) = [] of BridgeValidationWarning
+    ) : Void
+      return if ret.null? || @@api.null? || @@api.value.ret_dictionary_validate_ex.pointer.null?
+      err_ptr = errors.empty? ? Pointer(BridgeValidationError).null : errors.to_unsafe
+      warn_ptr = warnings.empty? ? Pointer(BridgeValidationWarning).null : warnings.to_unsafe
+      @@api.value.ret_dictionary_validate_ex.call(
+        ret,
+        valid ? 1_u8 : 0_u8,
+        err_ptr,
+        errors.size.to_i32,
+        warn_ptr,
+        warnings.size.to_i32
+      )
+    end
+
     def self.ret_dictionary_complete_code(ret : Void*) : Void
       return if ret.null? || @@api.null? || @@api.value.ret_dictionary_complete_code.pointer.null?
       @@api.value.ret_dictionary_complete_code.call(ret)
@@ -1369,6 +1498,12 @@ module Godot
     def self.ret_dictionary_global_class(ret : Void*, class_name : String, base_type : String = "Node", icon_path : String = "") : Void
       return if ret.null? || @@api.null? || @@api.value.ret_dictionary_global_class.pointer.null?
       @@api.value.ret_dictionary_global_class.call(ret, class_name.to_unsafe, base_type.to_unsafe, icon_path.to_unsafe)
+    end
+
+    def self.ret_script_templates(ret : Void*, templates : Slice(BridgeScriptTemplate) | Array(BridgeScriptTemplate)) : Void
+      return if ret.null? || @@api.null? || @@api.value.ret_script_templates.pointer.null?
+      tmpl_ptr = templates.empty? ? Pointer(BridgeScriptTemplate).null : templates.to_unsafe
+      @@api.value.ret_script_templates.call(ret, tmpl_ptr, templates.size.to_i32)
     end
 
     def self.placeholder_script_instance_create(language : Void*, script : Void*, owner : Void*) : Void*
@@ -1568,6 +1703,26 @@ module Godot
       return false if obj.null? || @@api.null? || @@api.value.is_object_valid.pointer.null?
       @@api.value.is_object_valid.call(obj) != 0_u8
     end
+
+    def self.editor_get_selected_node(ed_iface : Void*) : Void*
+      return Pointer(Void).null if ed_iface.null? || @@api.null? || @@api.value.editor_get_selected_node.pointer.null?
+      @@api.value.editor_get_selected_node.call(ed_iface)
+    end
+
+    def self.image_update_buffer(img : Void*, width : Int32, height : Int32, mipmaps : Bool, format : Int32, pixels : UInt8*, len : Int64) : Void
+      return if img.null? || pixels.null? || len <= 0 || @@api.null? || @@api.value.image_update_buffer.pointer.null?
+      @@api.value.image_update_buffer.call(img, width, height, mipmaps ? 1_u8 : 0_u8, format, pixels, len)
+    end
+
+    def self.image_copy_to_buffer(img : Void*, dst : UInt8*, max_len : Int64) : Int64
+      return 0_i64 if img.null? || dst.null? || max_len <= 0 || @@api.null? || @@api.value.image_copy_to_buffer.pointer.null?
+      @@api.value.image_copy_to_buffer.call(img, dst, max_len)
+    end
+
+    def self.packed_byte_array_operator_index(pba : Void*, index : Int64) : UInt8*
+      return Pointer(UInt8).null if pba.null? || @@api.null? || @@api.value.packed_byte_array_operator_index.pointer.null?
+      @@api.value.packed_byte_array_operator_index.call(pba, index)
+    end
   end
 end
 
@@ -1639,6 +1794,12 @@ fun crystal_godot_init(api : Godot::LibBridge::BridgeAPI*) : Void
     Godot::ResourceFormatLoaderCrystal.ensure_registered rescue nil
     Godot::ResourceFormatSaverCrystal.ensure_registered rescue nil
   {% end %}
+  # Auto-initialize registered loaders or components from addons or games
+  Godot::ClassRegistry.entries.each do |entry|
+    if proc = entry.init_proc
+      proc.call rescue nil
+    end
+  end
 end
 
 {% if flag?(:libgodot_addon) %}
