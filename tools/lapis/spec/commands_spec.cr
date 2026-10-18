@@ -326,4 +326,64 @@ describe "Lapis Subcommands" do
       res.output.should contain("find")
     end
   end
+
+  describe "sync and clean standalone project isolation" do
+    it "never creates template, template-addon, performance, or bin/addons in standalone projects and purges stray ones" do
+      LapisSpecHelper.with_temp_dir("standalone_sync_isolation") do |dir|
+        game_dir = dir.join("afterlife_test")
+        res_new = LapisSpecHelper.run_lapis(["new", "game", "afterlife_test", "-t", game_dir.to_s, "--skip-godot"])
+        res_new.success?.should be_true
+
+        # Verify scaffolded project has no .uid files or stray monorepo directories
+        Dir.glob(game_dir.join("**/*.uid").to_s.gsub('\\', '/')).should be_empty
+        Dir.exists?(game_dir.join("template")).should be_false
+        Dir.exists?(game_dir.join("template-addon")).should be_false
+        Dir.exists?(game_dir.join("performance")).should be_false
+        Dir.exists?(game_dir.join("bin/addons")).should be_false
+
+        # Simulate prior polluted state: stray monorepo dirs and polluted .godot/extension_list.cfg
+        FileUtils.mkdir_p(game_dir.join("template/addons/crystal_integration"))
+        FileUtils.mkdir_p(game_dir.join("template-addon/addons/crystal_integration"))
+        FileUtils.mkdir_p(game_dir.join("performance/addons/crystal_integration"))
+        FileUtils.mkdir_p(game_dir.join("bin/addons/crystal_integration"))
+        FileUtils.mkdir_p(game_dir.join(".godot"))
+        File.write(game_dir.join(".godot/extension_list.cfg"), [
+          "res://addons/crystal_integration/crystal.gdextension",
+          "res://performance/addons/crystal_integration/crystal.gdextension",
+          "res://template/addons/crystal_integration/crystal.gdextension",
+          "res://template-addon/addons/crystal_integration/crystal.gdextension",
+        ].join("\n") + "\n")
+
+        # Run lapis sync inside the standalone game directory
+        res_sync = LapisSpecHelper.run_lapis(["sync"], chdir: game_dir)
+        res_sync.success?.should be_true
+
+        # Verify all stray directories were purged and not recreated
+        Dir.exists?(game_dir.join("template")).should be_false
+        Dir.exists?(game_dir.join("template-addon")).should be_false
+        Dir.exists?(game_dir.join("performance")).should be_false
+        Dir.exists?(game_dir.join("bin/addons")).should be_false
+
+        # Verify .godot/extension_list.cfg was sanitized
+        ext_list = File.read(game_dir.join(".godot/extension_list.cfg")).lines.map(&.strip).reject(&.empty?)
+        ext_list.should eq(["res://addons/crystal_integration/crystal.gdextension"])
+
+        # Verify lapis sync -t bin --bins-only also keeps standalone project clean
+        res_bins = LapisSpecHelper.run_lapis(["sync", "-t", game_dir.join("bin").to_s, "--bins-only"], chdir: game_dir)
+        res_bins.success?.should be_true
+        Dir.exists?(game_dir.join("template")).should be_false
+        Dir.exists?(game_dir.join("template-addon")).should be_false
+        Dir.exists?(game_dir.join("performance")).should be_false
+        Dir.exists?(game_dir.join("bin/addons")).should be_false
+
+        # Verify lapis clean also purges stray monorepo folders in standalone projects
+        FileUtils.mkdir_p(game_dir.join("template/bin"))
+        FileUtils.mkdir_p(game_dir.join("template-addon/bin"))
+        res_clean = LapisSpecHelper.run_lapis(["clean"], chdir: game_dir)
+        res_clean.success?.should be_true
+        Dir.exists?(game_dir.join("template")).should be_false
+        Dir.exists?(game_dir.join("template-addon")).should be_false
+      end
+    end
+  end
 end

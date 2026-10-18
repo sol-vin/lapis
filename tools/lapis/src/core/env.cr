@@ -10,8 +10,10 @@ module Lapis
       def self.find_root : Path
         current = Path.new(Dir.current).expand
         # 1. Search upwards for true repository / workspace root (containing src/lapis.cr, src/libgodot.cr, or tools/lapis)
+        # Stop at scratch/ boundary so isolated test projects inside scratch/ resolve as standalone projects.
         cursor = current
         loop do
+          break if cursor.basename == "scratch"
           if File.exists?(cursor.join("src/lapis.cr")) || File.exists?(cursor.join("src/libgodot.cr")) || Dir.exists?(cursor.join("tools/lapis"))
             return cursor
           end
@@ -266,6 +268,11 @@ module Lapis
       # Candidate directories to discover source runtime libraries and bridge DLLs
       def self.candidate_runtime_dirs(root : Path = ROOT_DIR) : Array(Path)
         dirs = [] of Path
+        if !is_libgodot_repo?(root) && (global_root = global_libgodot_path)
+          dirs << global_root.join("bin") if Dir.exists?(global_root.join("bin"))
+          dirs << global_root.join("addons/crystal_integration/bin") if Dir.exists?(global_root.join("addons/crystal_integration/bin"))
+        end
+
         dirs << root.join("bin") if Dir.exists?(root.join("bin"))
         dirs << root.join("addons/crystal_integration/bin") if Dir.exists?(root.join("addons/crystal_integration/bin"))
         dirs << root.join("lib/lapis/bin") if Dir.exists?(root.join("lib/lapis/bin"))

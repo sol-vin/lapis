@@ -187,6 +187,7 @@ deinitialize_crystal_module(void *p_userdata,
               pcd->registered_property_names.clear();
               pcd->registered_signal_names.clear();
               pcd->registered_constant_names.clear();
+              pcd->registered_method_names.clear();
             }
           }
         }
@@ -216,6 +217,7 @@ deinitialize_crystal_module(void *p_userdata,
             pcd->registered_property_names.clear();
             pcd->registered_signal_names.clear();
             pcd->registered_constant_names.clear();
+            pcd->registered_method_names.clear();
           }
         }
       }

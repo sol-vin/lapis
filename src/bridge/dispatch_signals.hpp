@@ -2565,6 +2565,21 @@ inline void bridge_object_disconnect_signal(GDExtensionObjectPtr instance, const
 // Tool Button Custom Callable Dispatcher
 // ==============================================================================
 
+/**
+ * Ensures that an existing GenericExtensionInstance's Crystal heap object belongs to the
+ * currently active Crystal DLL. If a hot-reload updated `inst->desc->create_instance` to a
+ * new DLL without recreating `inst`, this transparently recreates `inst->crystal_instance`
+ * in the new DLL before any virtual/property/method dispatch occurs.
+ */
+inline void ensure_instance_current(GenericExtensionInstance *inst) {
+    if (!inst || !inst->desc || !inst->desc->create_instance || !inst->godot_object) return;
+    if (inst->crystal_instance && inst->owner_create_fn != (void*)inst->desc->create_instance) {
+        ensure_gc_thread_registered();
+        inst->crystal_instance = inst->desc->create_instance(inst->desc, inst->godot_object);
+        inst->owner_create_fn = (void*)inst->desc->create_instance;
+    }
+}
+
 struct ToolButtonBinding {
     GenericExtensionInstance *inst;
     uint64_t object_id;
@@ -2589,7 +2604,7 @@ inline void tool_button_custom_callable_call(
     if (!callable_userdata) return;
     ensure_gc_thread_registered();
     ToolButtonBinding *binding = (ToolButtonBinding*)callable_userdata;
-    if (!binding->inst || !binding->inst->crystal_instance || !binding->inst->desc) return;
+    if (!binding->inst || !binding->inst->desc) return;
 
     // Check dead pointer / object alive
     if (gd_object_get_instance_from_id && binding->object_id != 0) {
@@ -2597,6 +2612,9 @@ inline void tool_button_custom_callable_call(
             return;
         }
     }
+
+    ensure_instance_current(binding->inst);
+    if (!binding->inst->crystal_instance) return;
 
     if (binding->inst->desc->call_tool_button) {
         binding->inst->desc->call_tool_button(binding->inst->crystal_instance, binding->prop_name);

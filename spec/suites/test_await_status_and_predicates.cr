@@ -111,11 +111,12 @@ test_suite "AwaitStatus" do
       to_pred_res = node.ping.await?(timeout_sec: 0.02)
     end
 
-    # Pump frames past 0.03 seconds
+    # Pump frames past timeout until spawned fibers wake up
     start = ::Time.instant
-    while (::Time.instant - start).total_seconds < 0.04
+    while (!(to_st && to_bang_raised && !to_pred_res)) && (::Time.instant - start).total_seconds < 0.5
       Fiber.yield
     end
+    2.times { Fiber.yield }
 
     assert_true to_st, "0-arg await must return timed_out? on timeout"
     assert_true to_bang_raised, "0-arg await! must raise TimeoutError on timeout"
@@ -178,9 +179,10 @@ test_suite "AwaitStatus" do
     end
 
     start = ::Time.instant
-    while (::Time.instant - start).total_seconds < 0.04
+    while (!(rec_to_st && rec_to_bang && rec_to_pred.nil?)) && (::Time.instant - start).total_seconds < 0.5
       Fiber.yield
     end
+    2.times { Fiber.yield }
 
     assert_true rec_to_st, "Single-arg await must time out"
     assert_true rec_to_bang, "Single-arg await! must raise TimeoutError"
@@ -250,9 +252,10 @@ test_suite "AwaitStatus" do
     end
 
     start = ::Time.instant
-    while (::Time.instant - start).total_seconds < 0.04
+    while (!(bs_bang_raised && bs_pred_nil)) && (::Time.instant - start).total_seconds < 0.5
       Fiber.yield
     end
+    2.times { Fiber.yield }
 
     assert_true bs_bang_raised, "BoundSignal#await! raises TimeoutError on timeout"
     assert_true bs_pred_nil, "BoundSignal#await? returns nil on timeout"

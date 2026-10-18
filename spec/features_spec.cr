@@ -262,5 +262,28 @@ describe "LibGodot Features & Reflection" do
       parent.responds_to?(:add_sibling).should be_true
     end
   end
+
+  describe "ResourceFormatLoaderCrystal & ExportToolButton Hot-Reload Invariants" do
+    it "returns ResourceUID::INVALID_ID (-1) for _get_resource_uid to prevent uid://a collisions" do
+      Lapis::ResourceFormatLoaderCrystal._godot_has_virtual_method("_get_resource_uid").should be_true
+      Lapis::ResourceFormatLoaderCrystal._godot_has_virtual_method("get_resource_uid").should be_true
+
+      loader = Lapis::ResourceFormatLoaderCrystal.new
+      loader._get_resource_uid("res://src/main.cr").should eq(-1_i64)
+
+      ret_val = 0_i64
+      loader._godot_call_virtual_with_data("_get_resource_uid", Pointer(Void*).null, pointerof(ret_val).as(Void*))
+      ret_val.should eq(-1_i64)
+    end
+
+    it "marks @[ExportToolButton] properties with PROPERTY_HINT_TOOL_BUTTON (39) and Callable variant type (25)" do
+      entry = Godot::ClassRegistry.find("SpecAnnotationsSuite").not_nil!
+      btn_prop = entry.properties.find { |p| p.name == "btn_reset" }
+      btn_prop.should_not be_nil
+      btn_prop.not_nil!.hint.should eq(39_u32)
+      btn_prop.not_nil!.variant_type.should eq(25)
+      btn_prop.not_nil!.hint_string.should eq("Reset")
+    end
+  end
 end
 

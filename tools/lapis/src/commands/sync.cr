@@ -47,14 +47,63 @@ module Lapis
         pattern = src_addon.to_s.gsub('\\', '/') + "/**/*"
         Dir.glob(pattern).each do |file|
           next if Dir.exists?(file)
-          # Skip bin directory inside addon (handled separately by bin sync)
+          # Skip bin directory inside addon (handled separately by bin sync) and editor-generated .uid/.import files
           rel = Path.new(file).relative_to(src_addon)
           rel_str = rel.to_s.gsub('\\', '/')
           next if rel_str == "bin" || rel_str.starts_with?("bin/")
+          next if rel_str.ends_with?(".uid") || rel_str.ends_with?(".import")
 
           dst_file = dst_addon.join(rel)
           safe_copy(file, dst_file, dry_run: dry_run)
         end
+      end
+
+      # Remove stray monorepo addon-sync shell directories (template, template-addon, performance, bin/addons)
+      # from standalone consumer projects where they do not belong.
+      def self.purge_stray_monorepo_dirs(project_dir : Path, dry_run : Bool = false) : Int32
+        return 0 if Core::Env.is_libgodot_repo?(project_dir)
+
+        purged = 0
+        ["template", "template-addon", "performance"].each do |dir_name|
+          sub = project_dir.join(dir_name)
+          next unless Dir.exists?(sub)
+          # Only purge if it is an accidental addon-sync shell (no project.godot or shard.yml)
+          if !File.exists?(sub.join("project.godot")) && !File.exists?(sub.join("shard.yml"))
+            if dry_run
+              Core::Logger.info("[Dry Run] Would remove stray directory: #{sub}")
+            else
+              FileUtils.rm_rf(sub) rescue nil
+              Core::Logger.debug("Removed stray directory: #{sub}")
+            end
+            purged += 1
+          end
+        end
+
+        bin_addons = project_dir.join("bin/addons")
+        if Dir.exists?(bin_addons)
+          if dry_run
+            Core::Logger.info("[Dry Run] Would remove stray directory: #{bin_addons}")
+          else
+            FileUtils.rm_rf(bin_addons) rescue nil
+            Core::Logger.debug("Removed stray directory: #{bin_addons}")
+          end
+          purged += 1
+        end
+
+        fs_cache = project_dir.join(".godot/editor/filesystem_cache10")
+        if File.exists?(fs_cache)
+          content = File.read(fs_cache) rescue ""
+          if content.includes?("::uid://a::")
+            unless dry_run
+              File.delete(fs_cache) rescue nil
+              uid_bin = project_dir.join(".godot/uid_cache.bin")
+              File.delete(uid_bin) if File.exists?(uid_bin)
+            end
+            purged += 1
+          end
+        end
+
+        purged
       end
 
       def self.topological_sort_extensions(
@@ -107,11 +156,14 @@ module Lapis
         godot_dir = project_dir.join(".godot")
         FileUtils.mkdir_p(godot_dir) unless Dir.exists?(godot_dir)
 
+        is_monorepo = Core::Env.is_libgodot_repo?(project_dir)
         ext_list = godot_dir.join("extension_list.cfg")
         existing_lines = File.exists?(ext_list) ? File.read(ext_list).lines.map(&.strip).reject(&.empty?) : [] of String
         # Clean up legacy, wrong, or non-existent entries
         existing_lines.reject! do |l|
           if l.ends_with?("crystal_integration.gdextension")
+            true
+          elsif !is_monorepo && (l.starts_with?("res://template/") || l.starts_with?("res://template-addon/") || l.starts_with?("res://performance/"))
             true
           elsif l.starts_with?("res://")
             rel_file = l.sub("res://", "")
@@ -226,35 +278,45 @@ HELP
           parser.on("-h", "--help", "Show help") { print_help; exit 0 }
         end
 
-        root = Core::Env::ROOT_DIR
+        root = Core::Env.find_root
+        is_monorepo = Core::Env.is_libgodot_repo?(root)
         bin_dir = root.join("bin")
         target_dirs = Core::Env.collect_target_bin_dirs(root, target_bin)
+
+        unless is_monorepo
+          purge_stray_monorepo_dirs(root, dry_run: dry_run)
+          ensure_extension_list(root) unless dry_run
+        end
 
         # 1. Sync addons
         unless bins_only
           src_addon = root.join("addons/crystal_integration")
           if Dir.exists?(src_addon)
-            addon_targets = [
-              root.join("template/addons/crystal_integration"),
-              root.join("template-addon/addons/crystal_integration"),
-              root.join("performance/addons/crystal_integration"),
-            ]
+            addon_targets = [] of Path
+            if is_monorepo
+              addon_targets.concat([
+                root.join("template/addons/crystal_integration"),
+                root.join("template-addon/addons/crystal_integration"),
+                root.join("performance/addons/crystal_integration"),
+              ])
 
-            examples_dir = root.join("examples")
-            if Dir.exists?(examples_dir)
-              Dir.each_child(examples_dir) do |child|
-                ex = examples_dir.join(child)
-                if Dir.exists?(ex)
-                  addon_targets << ex.join("addons/crystal_integration")
-                  ensure_extension_list(ex)
+              examples_dir = root.join("examples")
+              if Dir.exists?(examples_dir)
+                Dir.each_child(examples_dir) do |child|
+                  ex = examples_dir.join(child)
+                  if Dir.exists?(ex)
+                    addon_targets << ex.join("addons/crystal_integration")
+                    ensure_extension_list(ex)
+                  end
                 end
               end
+
+              ensure_extension_list(root.join("template"))
+              ensure_extension_list(root.join("template-addon"))
+              ensure_extension_list(root.join("performance"))
             end
 
             ensure_extension_list(root)
-            ensure_extension_list(root.join("template"))
-            ensure_extension_list(root.join("template-addon"))
-            ensure_extension_list(root.join("performance"))
 
             curr = Path.new(Dir.current).expand
             if (File.exists?(curr.join("project.godot")) || Dir.exists?(curr.join("addons"))) && curr != root
@@ -274,6 +336,18 @@ HELP
 
           # Purge foreign binaries from root bin directory
           Core::Env.purge_foreign_binaries(bin_dir) unless dry_run
+
+          # For standalone projects, refresh crystal_bridge, plugin, and runtime DLLs from global Lapis toolchain if available
+          if !is_monorepo && (global_root = Core::Env.global_libgodot_path)
+            global_bin = global_root.join("bin")
+            if Dir.exists?(global_bin)
+              FileUtils.mkdir_p(bin_dir) unless dry_run || Dir.exists?(bin_dir)
+              (platform_files + [Core::Env.plugin_file]).each do |bin_name|
+                src_global = global_bin.join(bin_name)
+                safe_copy(src_global, bin_dir.join(bin_name), dry_run: dry_run) if File.exists?(src_global)
+              end
+            end
+          end
 
           synced_count = 0
           target_dirs.each do |dir|
@@ -343,12 +417,14 @@ HELP
 
           # Sync game binary to corresponding addons/crystal_integration/bin for consumer projects and root
           game_file = Core::Env.game_file
-          consumer_projs = [".", "test", "template", "performance"]
-          examples_dir = root.join("examples")
-          if Dir.exists?(examples_dir)
-            Dir.each_child(examples_dir) do |child|
-              ex_dir = examples_dir.join(child)
-              consumer_projs << "examples/#{child}" if File.directory?(ex_dir)
+          consumer_projs = is_monorepo ? [".", "test", "template", "performance"] : ["."]
+          if is_monorepo
+            examples_dir = root.join("examples")
+            if Dir.exists?(examples_dir)
+              Dir.each_child(examples_dir) do |child|
+                ex_dir = examples_dir.join(child)
+                consumer_projs << "examples/#{child}" if File.directory?(ex_dir)
+              end
             end
           end
           consumer_projs.each do |proj|
@@ -357,13 +433,17 @@ HELP
             if File.exists?(src_game)
               dst_game = proj_dir.join("addons/crystal_integration/bin", game_file)
               safe_copy(src_game, dst_game, dry_run: dry_run)
-              dst_bin_game = proj_dir.join("bin/addons/crystal_integration/bin", game_file)
-              safe_copy(src_game, dst_bin_game, dry_run: dry_run)
+              if is_monorepo
+                dst_bin_game = proj_dir.join("bin/addons/crystal_integration/bin", game_file)
+                safe_copy(src_game, dst_bin_game, dry_run: dry_run)
+              end
               if Core::Env.windows?
                 src_pdb = proj_dir.join("bin", "game.pdb")
                 if File.exists?(src_pdb)
                   safe_copy(src_pdb, proj_dir.join("addons/crystal_integration/bin", "game.pdb"), dry_run: dry_run)
-                  safe_copy(src_pdb, proj_dir.join("bin/addons/crystal_integration/bin", "game.pdb"), dry_run: dry_run)
+                  if is_monorepo
+                    safe_copy(src_pdb, proj_dir.join("bin/addons/crystal_integration/bin", "game.pdb"), dry_run: dry_run)
+                  end
                 end
               end
             end
@@ -372,11 +452,13 @@ HELP
           Core::Logger.step("Sync", "Binaries synchronized across #{target_dirs.size} destinations")
         end
 
-        consumer_dep_targets = ["test", "template", "template-addon", "performance", "benchmarks", "godot-src"]
-        ex_dir_check = root.join("examples")
-        if Dir.exists?(ex_dir_check)
-          Dir.each_child(ex_dir_check) do |child|
-            consumer_dep_targets << "examples/#{child}" if Dir.exists?(ex_dir_check.join(child))
+        consumer_dep_targets = is_monorepo ? ["test", "template", "template-addon", "performance", "benchmarks", "godot-src"] : [] of String
+        if is_monorepo
+          ex_dir_check = root.join("examples")
+          if Dir.exists?(ex_dir_check)
+            Dir.each_child(ex_dir_check) do |child|
+              consumer_dep_targets << "examples/#{child}" if Dir.exists?(ex_dir_check.join(child))
+            end
           end
         end
         (["."] + consumer_dep_targets).each do |proj|
@@ -387,8 +469,8 @@ HELP
           bin_gd = proj_dir.join("bin/.gdignore")
           File.write(bin_gd, "") if !dry_run && Dir.exists?(proj_dir.join("bin")) && !File.exists?(bin_gd)
 
-          if File.exists?(proj_dir.join("shard.yml")) && proj != "."
-            if Dir.exists?(root.join("src"))
+          if (!bins_only || !Core::BakedFileSystem.engine_libs_present?(proj_dir)) && File.exists?(proj_dir.join("shard.yml")) && (proj != "." || !is_monorepo)
+            if proj != "." && Dir.exists?(root.join("src")) && is_monorepo
               dest_lapis = proj_dir.join("lib/lapis")
               FileUtils.mkdir_p(dest_lapis.join("src")) unless dry_run
               FileUtils.cp_r(root.join("src").to_s, dest_lapis.to_s) unless dry_run
@@ -399,6 +481,18 @@ HELP
                 FileUtils.cp(root.join("godot-version.yml").to_s, dest_lapis.join("godot-version.yml").to_s) unless dry_run
               end
               File.write(dest_lapis.join(".gdignore"), "") if !dry_run && !File.exists?(dest_lapis.join(".gdignore"))
+
+              ["cradare2", "opal"].each do |dep_shard|
+                if Dir.exists?(root.join("lib/#{dep_shard}/src"))
+                  dest_dep = proj_dir.join("lib/#{dep_shard}")
+                  FileUtils.mkdir_p(dest_dep) unless dry_run
+                  FileUtils.cp_r(root.join("lib/#{dep_shard}/src").to_s, dest_dep.to_s) unless dry_run
+                  if File.exists?(root.join("lib/#{dep_shard}/shard.yml"))
+                    FileUtils.cp(root.join("lib/#{dep_shard}/shard.yml").to_s, dest_dep.join("shard.yml").to_s) unless dry_run
+                  end
+                  File.write(dest_dep.join(".gdignore"), "") if !dry_run && !File.exists?(dest_dep.join(".gdignore"))
+                end
+              end
             elsif Core::BakedFileSystem.files_with_prefix("src").size > 0
               Core::Logger.step("Sync", "Extracting embedded Lapis engine library into #{proj}/lib/lapis...")
               Core::BakedFileSystem.extract_engine_lib(proj_dir.join("lib/lapis"), overwrite: true) unless dry_run
@@ -413,47 +507,48 @@ HELP
           end
         end
 
-        # 4. Sync godot-version.yml across all consumer projects
-        root_version_yml = root.join("godot-version.yml")
-        if File.exists?(root_version_yml)
-          ver = Core::GodotFinder.expected_version(root.to_s)
-          # Synchronize tag in template shard specifications only if using remote github tag
-          ["template", "template-addon"].each do |t_dir|
-            ["shard.yml", "shard.release.yml"].each do |s_name|
-              s_file = root.join(t_dir, s_name)
-              if File.exists?(s_file)
-                content = File.read(s_file)
-                if content.includes?("github: sol-vin/lapis")
-                  updated = content.gsub(/tag:\s*[^\r\n]+/, "tag: #{ver}")
-                  File.write(s_file, updated) if !dry_run && updated != content
+        if is_monorepo && !bins_only
+          # 4. Sync godot-version.yml across all consumer projects
+          root_version_yml = root.join("godot-version.yml")
+          if File.exists?(root_version_yml)
+            ver = Core::GodotFinder.expected_version(root.to_s)
+            # Synchronize tag in template shard specifications only if using remote github tag
+            ["template", "template-addon"].each do |t_dir|
+              ["shard.yml", "shard.release.yml"].each do |s_name|
+                s_file = root.join(t_dir, s_name)
+                if File.exists?(s_file)
+                  content = File.read(s_file)
+                  if content.includes?("github: sol-vin/lapis")
+                    updated = content.gsub(/tag:\s*[^\r\n]+/, "tag: #{ver}")
+                    File.write(s_file, updated) if !dry_run && updated != content
+                  end
                 end
               end
             end
-          end
 
-          consumer_projs = ["test", "template", "template-addon", "performance"]
-          examples_dir = root.join("examples")
-          if Dir.exists?(examples_dir)
-            Dir.each_child(examples_dir) do |child|
-              ex = examples_dir.join(child)
-              consumer_projs << "examples/#{child}" if Dir.exists?(ex)
+            consumer_projs = ["test", "template", "template-addon", "performance"]
+            examples_dir = root.join("examples")
+            if Dir.exists?(examples_dir)
+              Dir.each_child(examples_dir) do |child|
+                ex = examples_dir.join(child)
+                consumer_projs << "examples/#{child}" if Dir.exists?(ex)
+              end
+            end
+
+            consumer_projs.each do |proj|
+              proj_dir = root.join(proj)
+              next unless Dir.exists?(proj_dir)
+              dst_yml = proj_dir.join("godot-version.yml")
+              safe_copy(root_version_yml, dst_yml, dry_run: dry_run)
             end
           end
 
-          consumer_projs.each do |proj|
-            proj_dir = root.join(proj)
-            next unless Dir.exists?(proj_dir)
-            dst_yml = proj_dir.join("godot-version.yml")
-            safe_copy(root_version_yml, dst_yml, dry_run: dry_run)
-          end
-        end
-
-        # 5. Sync src/bridge/godot_version.h
-        bridge_dir = root.join("src/bridge")
-        if Dir.exists?(bridge_dir)
-          target_ver = Core::GodotFinder.expected_version(root.to_s)
-          hdr = bridge_dir.join("godot_version.h")
-          hdr_content = <<-H
+          # 5. Sync src/bridge/godot_version.h
+          bridge_dir = root.join("src/bridge")
+          if Dir.exists?(bridge_dir)
+            target_ver = Core::GodotFinder.expected_version(root.to_s)
+            hdr = bridge_dir.join("godot_version.h")
+            hdr_content = <<-H
 // Auto-generated target Godot version for C++ GDExtension loader bridge
 #pragma once
 
@@ -462,58 +557,59 @@ HELP
 #endif
 
 H
-          if !dry_run && (!File.exists?(hdr) || File.read(hdr).gsub("\r\n", "\n") != hdr_content.gsub("\r\n", "\n"))
-            begin
-              File.write(hdr, hdr_content)
-              Core::Logger.debug("Updated #{hdr} to #{target_ver}")
-            rescue ex
-              Core::Logger.debug("Skipped writing #{hdr} (file locked): #{ex.message}")
+            if !dry_run && (!File.exists?(hdr) || File.read(hdr).gsub("\r\n", "\n") != hdr_content.gsub("\r\n", "\n"))
+              begin
+                File.write(hdr, hdr_content)
+                Core::Logger.debug("Updated #{hdr} to #{target_ver}")
+              rescue ex
+                Core::Logger.debug("Skipped writing #{hdr} (file locked): #{ex.message}")
+              end
             end
           end
-        end
 
-        # 6. Sync README.md badges and engine version requirement
-        readme_file = root.join("README.md")
-        if File.exists?(readme_file)
-          readme_content = File.read(readme_file)
-          updated_readme = readme_content
+          # 6. Sync README.md badges and engine version requirement
+          readme_file = root.join("README.md")
+          if File.exists?(readme_file)
+            readme_content = File.read(readme_file)
+            updated_readme = readme_content
 
-          # Godot version & badge
-          godot_ver = Core::GodotFinder.expected_version(root.to_s)
-          escaped_godot = godot_ver.gsub("-", "--")
-          updated_readme = updated_readme.gsub(
-            /\[!\[Godot\]\(https:\/\/img\.shields\.io\/badge\/Godot-[^-\s)]+(?:--[^-\s)]+)?-blue\.svg([^)]*)\)\]\([^)]+\)/,
-            "[![Godot](https://img.shields.io/badge/Godot-#{escaped_godot}-blue.svg\\1)](https://godotengine.org)"
-          )
-
-          # Lapis version & badge
-          lapis_ver = Lapis::VERSION
-          lapis_badge = "[![Lapis](https://img.shields.io/badge/Lapis-#{lapis_ver}-blueviolet.svg?style=flat)](https://github.com/sol-vin/lapis/releases)"
-          if updated_readme =~ /\[!\[Lapis\]\(https:\/\/img\.shields\.io\/badge\/Lapis-[^-\s)]+-blueviolet\.svg[^)]*\)\]\([^)]+\)/
+            # Godot version & badge
+            godot_ver = Core::GodotFinder.expected_version(root.to_s)
+            escaped_godot = godot_ver.gsub("-", "--")
             updated_readme = updated_readme.gsub(
-              /\[!\[Lapis\]\(https:\/\/img\.shields\.io\/badge\/Lapis-[^-\s)]+-blueviolet\.svg([^)]*)\)\]\([^)]+\)/,
-              "[![Lapis](https://img.shields.io/badge/Lapis-#{lapis_ver}-blueviolet.svg\\1)](https://github.com/sol-vin/lapis/releases)"
+              /\[!\[Godot\]\(https:\/\/img\.shields\.io\/badge\/Godot-[^-\s)]+(?:--[^-\s)]+)?-blue\.svg([^)]*)\)\]\([^)]+\)/,
+              "[![Godot](https://img.shields.io/badge/Godot-#{escaped_godot}-blue.svg\\1)](https://godotengine.org)"
             )
-          else
-            if updated_readme.includes?("[![Godot]")
-              updated_readme = updated_readme.sub("[![Godot]", "#{lapis_badge}\n[![Godot]")
-            elsif updated_readme.includes?("[![Crystal]")
-              updated_readme = updated_readme.sub("[![Crystal]", "#{lapis_badge}\n[![Crystal]")
+
+            # Lapis version & badge
+            lapis_ver = Lapis::VERSION
+            lapis_badge = "[![Lapis](https://img.shields.io/badge/Lapis-#{lapis_ver}-blueviolet.svg?style=flat)](https://github.com/sol-vin/lapis/releases)"
+            if updated_readme =~ /\[!\[Lapis\]\(https:\/\/img\.shields\.io\/badge\/Lapis-[^-\s)]+-blueviolet\.svg[^)]*\)\]\([^)]+\)/
+              updated_readme = updated_readme.gsub(
+                /\[!\[Lapis\]\(https:\/\/img\.shields\.io\/badge\/Lapis-[^-\s)]+-blueviolet\.svg([^)]*)\)\]\([^)]+\)/,
+                "[![Lapis](https://img.shields.io/badge/Lapis-#{lapis_ver}-blueviolet.svg\\1)](https://github.com/sol-vin/lapis/releases)"
+              )
+            else
+              if updated_readme.includes?("[![Godot]")
+                updated_readme = updated_readme.sub("[![Godot]", "#{lapis_badge}\n[![Godot]")
+              elsif updated_readme.includes?("[![Crystal]")
+                updated_readme = updated_readme.sub("[![Crystal]", "#{lapis_badge}\n[![Crystal]")
+              end
             end
-          end
 
-          # Godot Engine requirements text in README
-          updated_readme = updated_readme.gsub(
-            /-\s*\*\*Godot Engine\*\*:\s*4\.[0-9]+[^+]*\+?[^\n]*/,
-            "- **Godot Engine**: #{godot_ver}+ (Standard build, 64-bit)"
-          )
+            # Godot Engine requirements text in README
+            updated_readme = updated_readme.gsub(
+              /-\s*\*\*Godot Engine\*\*:\s*4\.[0-9]+[^+]*\+?[^\n]*/,
+              "- **Godot Engine**: #{godot_ver}+ (Standard build, 64-bit)"
+            )
 
-          if !dry_run && updated_readme != readme_content
-            begin
-              File.write(readme_file, updated_readme)
-              Core::Logger.info("Synchronized README.md version badges (Godot: #{godot_ver}, Lapis: #{lapis_ver})")
-            rescue ex
-              Core::Logger.debug("Skipped updating README.md (file locked): #{ex.message}")
+            if !dry_run && updated_readme != readme_content
+              begin
+                File.write(readme_file, updated_readme)
+                Core::Logger.info("Synchronized README.md version badges (Godot: #{godot_ver}, Lapis: #{lapis_ver})")
+              rescue ex
+                Core::Logger.debug("Skipped updating README.md (file locked): #{ex.message}")
+              end
             end
           end
         end

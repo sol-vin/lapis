@@ -74,21 +74,45 @@ module Lapis
 
         check_and_generate_project_bindings(entry_path, root)
 
+        entry_parent = entry_path.parent
+        proj_dir = (entry_parent.basename == "src" ? entry_parent.parent : entry_parent)
+        proj_lib = proj_dir.join("lib")
+
+        # Self-heal standalone projects missing embedded lib/lapis, lib/cradare2, or lib/opal
+        if !Core::BakedFileSystem.engine_libs_present?(proj_dir) &&
+           !Core::Env.is_libgodot_repo?(root) &&
+           !Core::Env.is_libgodot_repo?(proj_dir) &&
+           (File.exists?(proj_dir.join("shard.yml")) || File.exists?(proj_dir.join("project.godot"))) &&
+           Core::BakedFileSystem.files_with_prefix("src").size > 0
+          Core::BakedFileSystem.extract_engine_lib(proj_lib.join("lapis"), overwrite: false)
+        end
+
         src_dir = if sp = source_path
                     Path.new(sp).expand
+                  elsif Dir.exists?(proj_lib.join("lapis/src"))
+                    proj_lib.join("lapis/src")
+                  elsif Dir.exists?(proj_lib.join("libgodot/src"))
+                    proj_lib.join("libgodot/src")
+                  elsif Dir.exists?(root.join("src")) && (File.exists?(root.join("src/libgodot.cr")) || File.exists?(root.join("src/lapis.cr")))
+                    root.join("src")
+                  elsif (global = Core::Env.global_libgodot_path) && Dir.exists?(global.join("src"))
+                    global.join("src")
                   else
                     root.join("src")
                   end
         base_crystal_path = Core::ProcessRunner.capture("crystal", ["env", "CRYSTAL_PATH"])[:output].strip
-        entry_parent = entry_path.parent
-        proj_lib = (entry_parent.basename == "src" ? entry_parent.parent : entry_parent).join("lib")
 
         path_parts = [src_dir.to_s]
+        path_parts << proj_dir.join("src").to_s if Dir.exists?(proj_dir.join("src")) && proj_dir.join("src") != src_dir
         path_parts << proj_lib.to_s if Dir.exists?(proj_lib)
         path_parts << root.join("lib").to_s if Dir.exists?(root.join("lib")) && root.join("lib") != proj_lib
+        if (global = Core::Env.global_libgodot_path) && Dir.exists?(global.join("lib"))
+          glib = global.join("lib")
+          path_parts << glib.to_s if glib != proj_lib && glib != root.join("lib")
+        end
         path_parts << root.join("addons").to_s if Dir.exists?(root.join("addons"))
         path_parts << base_crystal_path unless base_crystal_path.empty?
-        full_crystal_path = path_parts.join(Core::Env.path_sep)
+        full_crystal_path = path_parts.uniq.join(Core::Env.path_sep)
 
         cmd_args = ["build", entry_path.to_s, "-o", output_path.to_s]
         if release
@@ -511,12 +535,12 @@ module Lapis
                     proj_dir.join("src").to_s
                   end
 
-        # If lib/lapis is missing and engine source is baked into BakedFileSystem, extract it directly!
-        if !Dir.exists?(proj_dir.join("lib/lapis/src")) && !File.exists?(Path.new(src_dir).join("libgodot.cr")) && !File.exists?(Path.new(src_dir).join("lapis.cr"))
+        # If lib/lapis, lib/cradare2, or lib/opal is missing and engine source is baked into BakedFileSystem, extract it directly!
+        if !Core::BakedFileSystem.engine_libs_present?(proj_dir) && !Core::Env.is_libgodot_repo?(root) && !Core::Env.is_libgodot_repo?(proj_dir)
           if Core::BakedFileSystem.files_with_prefix("src").size > 0
             Core::Logger.step("Deps", "Extracting embedded Lapis engine library into lib/lapis...")
-            Core::BakedFileSystem.extract_engine_lib(proj_dir.join("lib/lapis"))
-            src_dir = proj_dir.join("lib/lapis/src").to_s
+            Core::BakedFileSystem.extract_engine_lib(proj_dir.join("lib/lapis"), overwrite: false)
+            src_dir = proj_dir.join("lib/lapis/src").to_s if Dir.exists?(proj_dir.join("lib/lapis/src"))
           end
         end
 

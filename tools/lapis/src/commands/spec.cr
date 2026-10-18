@@ -1,6 +1,7 @@
 require "../core/env"
 require "../core/logger"
 require "../core/process_runner"
+require "../core/baked_file_system"
 require "option_parser"
 
 module Lapis
@@ -58,7 +59,20 @@ HELP
 
         parser.parse(args)
 
-        root = Core::Env::ROOT_DIR
+        curr = Path.new(Dir.current).expand
+        root = if !run_all && !engine_only && !cli_only &&
+                  Dir.exists?(curr.join("spec")) &&
+                  (File.exists?(curr.join("shard.yml")) || File.exists?(curr.join("project.godot")))
+                 curr
+               else
+                 Core::Env::ROOT_DIR
+               end
+
+        if !Core::BakedFileSystem.engine_libs_present?(root) &&
+           !Core::Env.is_libgodot_repo?(root) &&
+           Core::BakedFileSystem.files_with_prefix("src").size > 0
+          Core::BakedFileSystem.extract_engine_lib(root.join("lib/lapis"), overwrite: false)
+        end
 
         crystal_args = ["spec"]
         if ex = example_pattern
@@ -79,8 +93,20 @@ HELP
           crystal_args << "spec"
         end
 
+        base_crystal_path = Core::ProcessRunner.capture("crystal", ["env", "CRYSTAL_PATH"])[:output].strip
+        path_parts = [] of String
+        path_parts << root.join("lib/lapis/src").to_s if Dir.exists?(root.join("lib/lapis/src"))
+        path_parts << root.join("src").to_s if Core::Env.is_libgodot_repo?(root) && Dir.exists?(root.join("src"))
+        path_parts << root.join("lib").to_s if Dir.exists?(root.join("lib"))
+        if (global = Core::Env.global_libgodot_path) && Dir.exists?(global.join("lib"))
+          glib = global.join("lib").to_s
+          path_parts << glib unless path_parts.includes?(glib)
+        end
+        path_parts << base_crystal_path unless base_crystal_path.empty?
+        env = {"CRYSTAL_PATH" => path_parts.uniq.join(Core::Env.path_sep)}
+
         Core::Logger.info("Executing: crystal #{crystal_args.join(" ")}")
-        res = Process.run("crystal", crystal_args, chdir: root.to_s, output: Process::Redirect::Inherit, error: Process::Redirect::Inherit)
+        res = Process.run("crystal", crystal_args, env: env, chdir: root.to_s, output: Process::Redirect::Inherit, error: Process::Redirect::Inherit)
         res.success? ? 0 : (res.exit_code || 1)
       end
     end

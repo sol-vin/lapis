@@ -135,10 +135,14 @@ module Lapis
       end
     end
 
+    def _get_resource_uid(path : String) : Int64
+      -1_i64
+    end
+
     def self._godot_has_virtual_method(method_name : String) : Bool
       norm = method_name.starts_with?('_') ? method_name : "_#{method_name}"
       case norm
-      when "_get_recognized_extensions", "_recognize_path", "_handles_type", "_get_resource_type", "_get_resource_script_class", "_load"
+      when "_get_recognized_extensions", "_recognize_path", "_handles_type", "_get_resource_type", "_get_resource_uid", "_get_resource_script_class", "_load"
         true
       else
         false

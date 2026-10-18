@@ -181,6 +181,7 @@ struct GenericExtensionInstance {
     GDExtensionObjectPtr godot_object;  /** Native Godot C++ Object pointer */
     void *crystal_instance;             /** Heap pointer to Crystal object */
     const CrystalClassDesc *desc;       /** Metadata descriptor for the class */
+    void *owner_create_fn = nullptr;    /** create_instance pointer of the DLL that allocated crystal_instance */
 };
 
 struct PersistentClassDesc {
@@ -211,6 +212,7 @@ struct PersistentClassDesc {
     std::unordered_set<std::string> registered_method_names;
     void *registered_library = nullptr;
     bool is_registered_in_classdb = false;
+    bool owned_by_plugin = false;
 
     CrystalClassDesc desc;
 

@@ -65,6 +65,8 @@ files.each do |f|
 
   forbidden_patterns.each do |pat|
     # Only check if pat appears as a directory path component, not root subpaths
+    next if pat == "lib/" && (f.starts_with?("lib/cradare2/") || f.starts_with?("lib/opal/"))
+    next if pat == "bin/" && f.starts_with?("lib/cradare2/src/bin/") && f.ends_with?(".cr")
     if f.includes?("/#{pat}") || f.starts_with?(pat)
       abort "ERROR: Forbidden directory pattern '#{pat}' found in baked file '#{f}'!"
     end
@@ -152,7 +154,8 @@ puts "[Spec 5] Verifying platform-specific asset isolation..."
 # [Spec 6] Lean Engine Library Extraction & Bloat Exclusion
 # -------------------------------------------------------------
 puts "[Spec 6] Verifying lean engine library extraction (extract_engine_lib)..."
-temp_lib_dir = Path.new(Dir.tempdir).join("lapis_engine_lib_test_#{Time.utc.to_unix}")
+temp_lib_root = Path.new(Dir.tempdir).join("lapis_engine_lib_test_#{Time.utc.to_unix}")
+temp_lib_dir = temp_lib_root.join("lib", "lapis")
 begin
   success = Lapis::Core::BakedFileSystem.extract_engine_lib(temp_lib_dir)
   unless success
@@ -177,6 +180,14 @@ begin
     end
   end
 
+  unless File.exists?(temp_lib_root.join("lib", "cradare2", "src", "cradare2.cr"))
+    abort "ERROR: Required cradare2 file 'lib/cradare2/src/cradare2.cr' missing from extracted lib!"
+  end
+
+  unless File.exists?(temp_lib_root.join("lib", "opal", "src", "opal.cr"))
+    abort "ERROR: Required opal file 'lib/opal/src/opal.cr' missing from extracted lib!"
+  end
+
   # Non-code bloat must NEVER be extracted into lib/lapis
   if File.exists?(temp_lib_dir.join("src/main.cr"))
     abort "ERROR: Root test runner 'src/main.cr' leaked into extracted lib/lapis!"
@@ -188,7 +199,7 @@ begin
 
   puts "  ✓ Lean engine library extracted with zero non-code bloat (no src/main.cr, no docs/**)"
 ensure
-  FileUtils.rm_rf(temp_lib_dir) if Dir.exists?(temp_lib_dir)
+  FileUtils.rm_rf(temp_lib_root) if Dir.exists?(temp_lib_root)
 end
 
 # -------------------------------------------------------------
@@ -231,6 +242,12 @@ puts "[Spec 9] Verifying Bakelite volume routing and isolation..."
 unless Lapis::Core::BakedFileSystem.fs.volume?(:engine)
   abort "ERROR: Volume ':engine' not found in Bakelite registry!"
 end
+unless Lapis::Core::BakedFileSystem.fs.volume?(:cradare2)
+  abort "ERROR: Volume ':cradare2' not found in Bakelite registry!"
+end
+unless Lapis::Core::BakedFileSystem.fs.volume?(:opal)
+  abort "ERROR: Volume ':opal' not found in Bakelite registry!"
+end
 unless Lapis::Core::BakedFileSystem.fs.volume?(:template)
   abort "ERROR: Volume ':template' not found in Bakelite registry!"
 end
@@ -242,7 +259,7 @@ engine_vol = Lapis::Core::BakedFileSystem.fs.volume(:engine)
 if engine_vol.empty?
   abort "ERROR: Volume ':engine' is empty!"
 end
-puts "  ✓ Volume isolation verified: :engine (#{engine_vol.size} files), :template, :addon mounted"
+puts "  ✓ Volume isolation verified: :engine (#{engine_vol.size} files), :cradare2, :opal, :template, :addon mounted"
 
 puts "\n>>> All BakedFileSystem Specifications Passed! <<<"
 

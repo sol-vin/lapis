@@ -2093,8 +2093,24 @@ macro node(decl, &block)
   properties_{{class_name}} = Array(::Godot::PropertyInfo).new
   constants_{{class_name}} = Array(::Godot::ConstantInfo).new
   methods_{{class_name}} = Array(String).new
-  {% for m in user_methods %}
-    methods_{{class_name}} << {{m.stringify}}
+  {% if user_methods.size > 0 %}
+    {% inherited_method_names = [] of String %}
+    {% p_type = parse_type(parent_name.stringify).resolve? %}
+    {% if p_type %}
+      {% for pm in p_type.methods %}
+        {% inherited_method_names << pm.name.stringify %}
+      {% end %}
+      {% for anc in p_type.ancestors %}
+        {% for am in anc.methods %}
+          {% inherited_method_names << am.name.stringify %}
+        {% end %}
+      {% end %}
+    {% end %}
+    {% for m in user_methods %}
+      {% unless inherited_method_names.includes?(m.stringify) %}
+        methods_{{class_name}} << {{m.stringify}}
+      {% end %}
+    {% end %}
   {% end %}
   {% for c in class_constants %}
     constants_{{class_name}} << ::Godot::ConstantInfo.new(

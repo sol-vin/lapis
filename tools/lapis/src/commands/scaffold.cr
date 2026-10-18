@@ -95,9 +95,9 @@ targets:
 YAML
         File.write(shard_path, shard_content)
 
-        # Extract embedded Lapis engine library into lib/lapis
+        # Extract embedded Lapis engine library into lib/lapis and runtime dependencies (lib/cradare2, lib/opal)
         target_lib = dst_dir.join("lib/lapis")
-        if !Dir.exists?(target_lib.join("src")) && Core::BakedFileSystem.files_with_prefix("src").size > 0
+        if !Core::BakedFileSystem.engine_libs_present?(dst_dir) && Core::BakedFileSystem.files_with_prefix("src").size > 0
           Core::BakedFileSystem.extract_engine_lib(target_lib)
         end
 
@@ -138,7 +138,7 @@ MD
         pattern = src_dir.to_s.gsub('\\', '/') + "/**/*"
         Dir.glob(pattern).each do |item|
           rel = Path.new(item).relative_to(src_dir).to_s.gsub('\\', '/')
-          next if excludes.any? { |ex| rel == ex || rel.starts_with?("#{ex}/") || rel.ends_with?(".log") }
+          next if excludes.any? { |ex| rel == ex || rel.starts_with?("#{ex}/") || rel.ends_with?(".log") || rel.ends_with?(".uid") || rel.ends_with?(".import") }
 
           target_item = dst_dir.join(rel)
 
@@ -516,9 +516,9 @@ TSCN
           end
           File.write(shard, c)
 
-          # Extract embedded Lapis engine library into lib/lapis
+          # Extract embedded Lapis engine library into lib/lapis and runtime dependencies (lib/cradare2, lib/opal)
           target_lib = dest.join("lib/lapis")
-          if !Dir.exists?(target_lib.join("src")) && Core::BakedFileSystem.files_with_prefix("src").size > 0
+          if !Core::BakedFileSystem.engine_libs_present?(dest) && Core::BakedFileSystem.files_with_prefix("src").size > 0
             Core::BakedFileSystem.extract_engine_lib(target_lib)
           end
         end
@@ -941,8 +941,8 @@ CR
           Deps.run(["-t", addon_bin.to_s])
           Deps.run(["-t", root_bin.to_s])
 
-          # Resolve shards dependencies if shards executable is available
-          if shards_exe = Process.find_executable("shards")
+          # Resolve shards dependencies only if embedded engine libraries were not already extracted
+          if !Core::BakedFileSystem.engine_libs_present?(dest) && (shards_exe = Process.find_executable("shards"))
             Core::Logger.step("Shards", "Resolving dependencies for '#{slug}'...")
             Core::ProcessRunner.run(shards_exe, ["install"], chdir: dest.to_s)
           end

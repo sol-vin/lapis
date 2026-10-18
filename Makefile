@@ -105,7 +105,7 @@ LIBGODOT_DLL     = $(LIBGODOT_LIB)
 .PHONY: all lapis install uninstall bridge plugin test_project test_standalone package_installer package-installer windows_installer windows-installer installer package_tests package-tests package_lapis package-lapis package_deb package-deb package_template package-template package_template_addon package-template-addon package_examples package-examples package_addon package-addon package_all package-all package_release package-release package_perf package-perf package_benchmarks package-benchmarks benchmarks benchmarks_run benchmarks-run package_game package-game new_addon new-addon new_example new-example setup_dev setup-dev run_editor run-editor run_test run-test run_ci_local run-ci-local ci-local ci export_templates export-templates recompile_addons recompile-addons verify_editor verify-editor test_wsl test-wsl report_android report-android examples examples_exe template template_addon perf perf_standalone perf_run perf_editor game_dll game_exe android package_android generate dump_api project_bindings deps addons sync engine spec spec_cli spec-cli test_cli test-cli test tests debug debug_editor debug-editor decompile analyze audit docs run editor clean help
 
 # Compile Lapis CLI toolchain if not present or source changed
-$(LAPIS): $(wildcard tools/lapis/src/**/*.cr) $(wildcard tools/lapis/src/*.cr) $(wildcard tools/lapis/*.yml) $(wildcard template/**/*) $(wildcard template-addon/**/*) $(wildcard addons/crystal_integration/*) shard.yml godot-version.yml
+$(LAPIS): $(wildcard tools/lapis/src/**/*.cr) $(wildcard tools/lapis/src/*.cr) $(wildcard tools/lapis/*.yml) $(wildcard src/*.cr) $(wildcard src/libgodot/*.cr) $(wildcard src/libgodot/**/*.cr) $(wildcard template/*) $(wildcard template/**/*) $(wildcard template-addon/*) $(wildcard template-addon/**/*) $(wildcard addons/crystal_integration/*) $(wildcard addons/crystal_integration/*/*) shard.yml godot-version.yml
 	@echo "[Lapis] Compiling Lapis toolchain $(LAPIS)..."
 	@shards update --skip-postinstall || shards install --skip-postinstall || true
 	@(cd tools/lapis && (shards update --skip-postinstall || shards install --skip-postinstall)) || true
@@ -350,6 +350,7 @@ deps: dirs
 sync: addons
 	@echo [Sync] Syncing runtime libraries and bridge to template/bin and examples...
 	@$(LAPIS) sync
+	@$(MAKE) $(LAPIS)
 
 # Build Godot engine shared library from source (requires godot-src and scons)
 engine:

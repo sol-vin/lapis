@@ -26,6 +26,32 @@ volumes:
       - "**/*.exe"
       - "**/*.dylib"
 
+  cradare2:
+    mount: "lib/cradare2"
+    default_chunk_size: 65536
+    default_compression: deflate
+    auto_threshold: 16384
+    files:
+      - lib/cradare2/src/**/*.cr
+      - lib/cradare2/shard.yml
+    exclude:
+      - "**/*.uid"
+      - "**/*.import"
+      - "**/*.log"
+
+  opal:
+    mount: "lib/opal"
+    default_chunk_size: 65536
+    default_compression: deflate
+    auto_threshold: 16384
+    files:
+      - lib/opal/src/**/*.cr
+      - lib/opal/shard.yml
+    exclude:
+      - "**/*.uid"
+      - "**/*.import"
+      - "**/*.log"
+
   template:
     mount: "template"
     files:

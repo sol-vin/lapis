@@ -425,11 +425,7 @@ module Godot
 
       virtual_fn = ->(crystal_inst : Void*, method_name : LibC::Char*, delta : Float64) {
         if !crystal_inst.null?
-          inst = if @@alive_mutex.synchronize { @@alive_instances.has_key?(crystal_inst) }
-                   @@alive_mutex.synchronize { @@alive_instances[crystal_inst]? }
-                 else
-                   Box(Godot::Object).unbox(crystal_inst) rescue nil
-                 end
+          inst = @@alive_mutex.synchronize { @@alive_instances[crystal_inst]? }
           if inst && inst.alive?
             m = String.new(method_name)
             if (m == "_ready" || m == "_enter_tree")
@@ -460,11 +456,7 @@ module Godot
 
       set_prop_fn = ->(crystal_inst : Void*, prop_name : LibC::Char*, val_ptr : Void*) {
         if !crystal_inst.null?
-          inst = if @@alive_mutex.synchronize { @@alive_instances.has_key?(crystal_inst) }
-                   @@alive_mutex.synchronize { @@alive_instances[crystal_inst]? }
-                 else
-                   Box(Godot::Object).unbox(crystal_inst) rescue nil
-                 end
+          inst = @@alive_mutex.synchronize { @@alive_instances[crystal_inst]? }
           if inst && inst.alive?
             inst._godot_set_property(String.new(prop_name), val_ptr)
           end
@@ -473,11 +465,7 @@ module Godot
 
       get_prop_fn = ->(crystal_inst : Void*, prop_name : LibC::Char*, ret_ptr : Void*) {
         if !crystal_inst.null?
-          inst = if @@alive_mutex.synchronize { @@alive_instances.has_key?(crystal_inst) }
-                   @@alive_mutex.synchronize { @@alive_instances[crystal_inst]? }
-                 else
-                   Box(Godot::Object).unbox(crystal_inst) rescue nil
-                 end
+          inst = @@alive_mutex.synchronize { @@alive_instances[crystal_inst]? }
           if inst && inst.alive?
             inst._godot_get_property(String.new(prop_name), ret_ptr)
           end
@@ -498,11 +486,7 @@ module Godot
         m_name = String.new(method_name)
         inst : Godot::Object? = nil
         if !crystal_inst.null?
-          inst = if @@alive_mutex.synchronize { @@alive_instances.has_key?(crystal_inst) }
-                   @@alive_mutex.synchronize { @@alive_instances[crystal_inst]? }
-                 else
-                   Box(Godot::Object).unbox(crystal_inst) rescue nil
-                 end
+          inst = @@alive_mutex.synchronize { @@alive_instances[crystal_inst]? }
         end
         {% unless flag?(:release) || flag?(:libgodot_addon) || flag?(:no_editor) %}
           if !inst || !inst.is_a?(Godot::CrystalLanguage)
@@ -535,11 +519,7 @@ module Godot
 
       call_tool_button_fn = ->(crystal_inst : Void*, btn_name : LibC::Char*) {
         if !crystal_inst.null?
-          inst = if @@alive_mutex.synchronize { @@alive_instances.has_key?(crystal_inst) }
-                   @@alive_mutex.synchronize { @@alive_instances[crystal_inst]? }
-                 else
-                   Box(Godot::Object).unbox(crystal_inst) rescue nil
-                 end
+          inst = @@alive_mutex.synchronize { @@alive_instances[crystal_inst]? }
           if inst && inst.alive?
             b_name = String.new(btn_name)
             begin

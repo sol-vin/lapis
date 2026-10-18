@@ -431,6 +431,7 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
     // invoke Godot's `gd_get_library_path` on the specific library pointer to resolve
     // that addon's dedicated subfolder rather than assuming the root bridge directory.
     GDExtensionClassLibraryPtr lib_target = p_library ? p_library : g_library;
+    char active_lib_res_path[MAX_PATH] = {0};
     if (gd_get_library_path && lib_target && gd_string_to_utf8_chars) {
         uint8_t gd_str_storage[64] = {0};
         GDExtensionUninitializedStringPtr gd_str = (GDExtensionUninitializedStringPtr)&gd_str_storage[0];
@@ -445,6 +446,22 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
         }
 
         if (lib_path[0] != '\0') {
+            strncpy(active_lib_res_path, lib_path, sizeof(active_lib_res_path) - 1);
+
+            // Ignore nested sub-project .gdextension manifests if Godot's scanner picked up
+            // template/, template-addon/, performance/, test/, or examples/ subdirectories.
+            if (strncmp(lib_path, "res://template/", 15) == 0 ||
+                strncmp(lib_path, "res://template-addon/", 21) == 0 ||
+                strncmp(lib_path, "res://performance/", 18) == 0 ||
+                strncmp(lib_path, "res://test/", 11) == 0 ||
+                strncmp(lib_path, "res://examples/", 15) == 0) {
+                return;
+            }
+
+            if (strncmp(lib_path, "res://addons/crystal_integration/", 33) == 0 || !g_primary_library) {
+                g_primary_library = lib_target;
+            }
+
             const char *p = lib_path;
             if (strncmp(p, "res://", 6) == 0) p += 6;
 
@@ -535,6 +552,10 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
     bool loaded_game_or_addon = false;
     bool is_crystal_integration = (strstr(bridge_dir, "crystal_integration") != nullptr) ||
                                   (strstr(bridge_dir, "addons") == nullptr);
+    if (active_lib_res_path[0] != '\0' && strstr(active_lib_res_path, "addons/") != nullptr &&
+        strstr(active_lib_res_path, "crystal_integration") == nullptr) {
+        is_crystal_integration = false;
+    }
 
     // --- Segment 5: Primary Directory Scanning ---
     // Check candidate binaries sitting directly adjacent to crystal_bridge.
@@ -694,7 +715,7 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
         }
     }
 
-    if (!loaded_game_or_addon || (is_editor_active() && !loaded_plugin && is_crystal_integration)) {
+    if (is_crystal_integration && (!loaded_game_or_addon || (is_editor_active() && !loaded_plugin))) {
 #ifdef _WIN32
         const char *fallbacks[] = {
             "bin/game.dll",
@@ -814,14 +835,16 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
         if (is_already_loaded) {
             s_is_reloading = 1;
             bridge_reset_editor_help_cache();
-            if (is_plugin && current_mtime == map_it->second.mtime) {
-                // Plugin DLL was not recompiled; re-run its crystal_godot_init to re-register
-                // its classes and methods into the newly active extension library
+            if (current_mtime == map_it->second.mtime) {
+                // Module DLL was not recompiled; re-run its crystal_godot_init to ensure
+                // its classes and methods are registered if ClassDB was cleared on reload
                 HMODULE hMod = map_it->second.handle;
                 if (hMod) {
                     CrystalInitFn init_fn = (CrystalInitFn)bridge_get_proc(hMod, "crystal_godot_init");
                     if (init_fn) {
+                        s_loading_plugin_module = is_plugin;
                         init_fn(&g_bridge_api);
+                        s_loading_plugin_module = false;
                     }
                 }
                 continue;
@@ -934,7 +957,9 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
 
             CrystalInitFn init_fn = (CrystalInitFn)bridge_get_proc(hModule, "crystal_godot_init");
             if (init_fn) {
+                s_loading_plugin_module = is_plugin;
                 init_fn(&g_bridge_api);
+                s_loading_plugin_module = false;
             } else {
                 godot_log_error("Failed to find 'crystal_godot_init' in loaded library", nullptr, "load_crystal_game_library", __FILE__, __LINE__);
             }
