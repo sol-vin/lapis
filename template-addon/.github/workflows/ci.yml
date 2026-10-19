@@ -1,6 +1,8 @@
 name: Addon CI
 
 on:
+  push:
+    branches: [master, main]
   pull_request:
     branches: [master, main]
   workflow_dispatch:
@@ -114,6 +116,10 @@ jobs:
         run: |
           GODOT_VER="${{ steps.godot-meta.outputs.godot_version }}"
           if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
+          if [ ! -f "lib/lapis/src/lapis.cr" ] && [ -f "shard.yml" ] && grep -q "path:[[:space:]]*lib/lapis" shard.yml; then
+            printf "dependencies:\n  lapis:\n    github: sol-vin/lapis\n    branch: %s\n" "$GODOT_VER" > shard.override.yml
+            rm -f shard.lock
+          fi
           shards install --skip-postinstall || shards install || true
           if [ ! -f "lib/lapis/src/lapis.cr" ]; then
             echo "Staging lib/lapis from sol-vin/lapis ($GODOT_VER)..."
@@ -125,7 +131,6 @@ jobs:
             if [ -d "lib/lapis/lib" ]; then
               cp -rn lib/lapis/lib/* lib/ 2>/dev/null || cp -r lib/lapis/lib/* lib/ 2>/dev/null || true
             fi
-            shards install --skip-postinstall || shards install || true
           fi
 
       - name: Run Crystal Specifications

@@ -135,6 +135,10 @@ jobs:
           sudo apt-get install -y $PKGS
           GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml 2>/dev/null | tr -d '\r\n[:space:]')
           if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
+          if [ ! -f "lib/lapis/src/lapis.cr" ] && [ -f "shard.yml" ] && grep -q "path:[[:space:]]*lib/lapis" shard.yml; then
+            printf "dependencies:\n  lapis:\n    github: sol-vin/lapis\n    branch: %s\n" "$GODOT_VER" > shard.override.yml
+            rm -f shard.lock
+          fi
           shards install --skip-postinstall || shards install || true
           if [ ! -f "lib/lapis/src/lapis.cr" ]; then
             rm -rf lib/lapis && mkdir -p lib
@@ -143,7 +147,6 @@ jobs:
             git clone --depth 1 https://github.com/sol-vin/lapis.git lib/lapis
             (cd lib/lapis && (shards install --skip-postinstall || shards install || true))
             [ -d "lib/lapis/lib" ] && (cp -rn lib/lapis/lib/* lib/ 2>/dev/null || cp -r lib/lapis/lib/* lib/ 2>/dev/null || true)
-            shards install --skip-postinstall || shards install || true
           fi
       - name: Run Specifications
         run: |
@@ -193,6 +196,10 @@ jobs:
           fi
           GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml 2>/dev/null | tr -d '\r\n[:space:]')
           if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
+          if [ ! -f "lib/lapis/src/lapis.cr" ] && [ -f "shard.yml" ] && grep -q "path:[[:space:]]*lib/lapis" shard.yml; then
+            printf "dependencies:\n  lapis:\n    github: sol-vin/lapis\n    branch: %s\n" "$GODOT_VER" > shard.override.yml
+            rm -f shard.lock
+          fi
           shards install --skip-postinstall || shards install || true
           if [ ! -f "lib/lapis/src/lapis.cr" ]; then
             rm -rf lib/lapis && mkdir -p lib
@@ -201,7 +208,6 @@ jobs:
             git clone --depth 1 https://github.com/sol-vin/lapis.git lib/lapis
             (cd lib/lapis && (shards install --skip-postinstall || shards install || true))
             [ -d "lib/lapis/lib" ] && (cp -rn lib/lapis/lib/* lib/ 2>/dev/null || cp -r lib/lapis/lib/* lib/ 2>/dev/null || true)
-            shards install --skip-postinstall || shards install || true
           fi
       - name: Run Specifications
         run: |
@@ -256,6 +262,10 @@ jobs:
         run: |
           GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml 2>/dev/null | tr -d '\r\n[:space:]')
           if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
+          if [ ! -f "lib/lapis/src/lapis.cr" ] && [ -f "shard.yml" ] && grep -q "path:[[:space:]]*lib/lapis" shard.yml; then
+            printf "dependencies:\n  lapis:\n    github: sol-vin/lapis\n    branch: %s\n" "$GODOT_VER" > shard.override.yml
+            rm -f shard.lock
+          fi
           shards install --skip-postinstall || shards install || true
           if [ ! -f "lib/lapis/src/lapis.cr" ]; then
             rm -rf lib/lapis && mkdir -p lib
@@ -264,7 +274,6 @@ jobs:
             git clone --depth 1 https://github.com/sol-vin/lapis.git lib/lapis
             (cd lib/lapis && (shards install --skip-postinstall || shards install || true))
             [ -d "lib/lapis/lib" ] && (cp -rn lib/lapis/lib/* lib/ 2>/dev/null || cp -r lib/lapis/lib/* lib/ 2>/dev/null || true)
-            shards install --skip-postinstall || shards install || true
           fi
       - name: Run Specifications
         shell: pwsh
@@ -364,6 +373,10 @@ jobs:
         run: |
           GODOT_VER="${{ needs.init-release.outputs.godot_version }}"
           if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
+          if [ ! -f "lib/lapis/src/lapis.cr" ] && [ -f "shard.yml" ] && grep -q "path:[[:space:]]*lib/lapis" shard.yml; then
+            printf "dependencies:\n  lapis:\n    github: sol-vin/lapis\n    branch: %s\n" "$GODOT_VER" > shard.override.yml
+            rm -f shard.lock
+          fi
           shards install --skip-postinstall || shards install || true
           if [ ! -f "lib/lapis/src/lapis.cr" ]; then
             rm -rf lib/lapis && mkdir -p lib
@@ -372,7 +385,6 @@ jobs:
             git clone --depth 1 https://github.com/sol-vin/lapis.git lib/lapis
             (cd lib/lapis && (shards install --skip-postinstall || shards install || true))
             [ -d "lib/lapis/lib" ] && (cp -rn lib/lapis/lib/* lib/ 2>/dev/null || cp -r lib/lapis/lib/* lib/ 2>/dev/null || true)
-            shards install --skip-postinstall || shards install || true
           fi
           mkdir -p bin
           if [ ! -f "bin/lapis" ]; then
@@ -511,6 +523,10 @@ jobs:
         run: |
           GODOT_VER="${{ needs.init-release.outputs.godot_version }}"
           if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
+          if [ ! -f "lib/lapis/src/lapis.cr" ] && [ -f "shard.yml" ] && grep -q "path:[[:space:]]*lib/lapis" shard.yml; then
+            printf "dependencies:\n  lapis:\n    github: sol-vin/lapis\n    branch: %s\n" "$GODOT_VER" > shard.override.yml
+            rm -f shard.lock
+          fi
           shards install --skip-postinstall || shards install || true
           if [ ! -f "lib/lapis/src/lapis.cr" ]; then
             rm -rf lib/lapis && mkdir -p lib
@@ -519,7 +535,6 @@ jobs:
             git clone --depth 1 https://github.com/sol-vin/lapis.git lib/lapis
             (cd lib/lapis && (shards install --skip-postinstall || shards install || true))
             [ -d "lib/lapis/lib" ] && (cp -rn lib/lapis/lib/* lib/ 2>/dev/null || cp -r lib/lapis/lib/* lib/ 2>/dev/null || true)
-            shards install --skip-postinstall || shards install || true
           fi
           mkdir -p bin
           if [ ! -f "bin/lapis" ]; then
@@ -630,6 +645,10 @@ jobs:
         run: |
           GODOT_VER="${{ needs.init-release.outputs.godot_version }}"
           if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
+          if [ ! -f "lib/lapis/src/lapis.cr" ] && [ -f "shard.yml" ] && grep -q "path:[[:space:]]*lib/lapis" shard.yml; then
+            printf "dependencies:\n  lapis:\n    github: sol-vin/lapis\n    branch: %s\n" "$GODOT_VER" > shard.override.yml
+            rm -f shard.lock
+          fi
           shards install --skip-postinstall || shards install || true
           if [ ! -f "lib/lapis/src/lapis.cr" ]; then
             rm -rf lib/lapis && mkdir -p lib
@@ -638,7 +657,6 @@ jobs:
             git clone --depth 1 https://github.com/sol-vin/lapis.git lib/lapis
             (cd lib/lapis && (shards install --skip-postinstall || shards install || true))
             [ -d "lib/lapis/lib" ] && (cp -rn lib/lapis/lib/* lib/ 2>/dev/null || cp -r lib/lapis/lib/* lib/ 2>/dev/null || true)
-            shards install --skip-postinstall || shards install || true
           fi
 
       - name: Ensure Lapis CLI & Bridge
@@ -768,6 +786,10 @@ jobs:
           fi
           GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml 2>/dev/null | tr -d '\r\n[:space:]')
           if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
+          if [ ! -f "lib/lapis/src/lapis.cr" ] && [ -f "shard.yml" ] && grep -q "path:[[:space:]]*lib/lapis" shard.yml; then
+            printf "dependencies:\n  lapis:\n    github: sol-vin/lapis\n    branch: %s\n" "$GODOT_VER" > shard.override.yml
+            rm -f shard.lock
+          fi
           shards install --skip-postinstall || shards install || true
           if [ ! -f "lib/lapis/src/lapis.cr" ]; then
             rm -rf lib/lapis && mkdir -p lib
@@ -776,7 +798,6 @@ jobs:
             git clone --depth 1 https://github.com/sol-vin/lapis.git lib/lapis
             (cd lib/lapis && (shards install --skip-postinstall || shards install || true))
             [ -d "lib/lapis/lib" ] && (cp -rn lib/lapis/lib/* lib/ 2>/dev/null || cp -r lib/lapis/lib/* lib/ 2>/dev/null || true)
-            shards install --skip-postinstall || shards install || true
           fi
           crystal spec
 
@@ -820,6 +841,10 @@ jobs:
           fi
           GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml 2>/dev/null | tr -d '\r\n[:space:]')
           if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
+          if [ ! -f "lib/lapis/src/lapis.cr" ] && [ -f "shard.yml" ] && grep -q "path:[[:space:]]*lib/lapis" shard.yml; then
+            printf "dependencies:\n  lapis:\n    github: sol-vin/lapis\n    branch: %s\n" "$GODOT_VER" > shard.override.yml
+            rm -f shard.lock
+          fi
           shards install --skip-postinstall || shards install || true
           if [ ! -f "lib/lapis/src/lapis.cr" ]; then
             rm -rf lib/lapis && mkdir -p lib
@@ -828,7 +853,6 @@ jobs:
             git clone --depth 1 https://github.com/sol-vin/lapis.git lib/lapis
             (cd lib/lapis && (shards install --skip-postinstall || shards install || true))
             [ -d "lib/lapis/lib" ] && (cp -rn lib/lapis/lib/* lib/ 2>/dev/null || cp -r lib/lapis/lib/* lib/ 2>/dev/null || true)
-            shards install --skip-postinstall || shards install || true
           fi
           crystal spec
 
@@ -853,6 +877,10 @@ jobs:
         run: |
           GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml 2>/dev/null | tr -d '\r\n[:space:]')
           if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
+          if [ ! -f "lib/lapis/src/lapis.cr" ] && [ -f "shard.yml" ] && grep -q "path:[[:space:]]*lib/lapis" shard.yml; then
+            printf "dependencies:\n  lapis:\n    github: sol-vin/lapis\n    branch: %s\n" "$GODOT_VER" > shard.override.yml
+            rm -f shard.lock
+          fi
           shards install --skip-postinstall || shards install || true
           if [ ! -f "lib/lapis/src/lapis.cr" ]; then
             rm -rf lib/lapis && mkdir -p lib
@@ -861,7 +889,6 @@ jobs:
             git clone --depth 1 https://github.com/sol-vin/lapis.git lib/lapis
             (cd lib/lapis && (shards install --skip-postinstall || shards install || true))
             [ -d "lib/lapis/lib" ] && (cp -rn lib/lapis/lib/* lib/ 2>/dev/null || cp -r lib/lapis/lib/* lib/ 2>/dev/null || true)
-            shards install --skip-postinstall || shards install || true
           fi
       - name: Run Test Suites
         shell: pwsh
@@ -1377,6 +1404,10 @@ jobs:
           mkdir -p bin
           GODOT_VER="${{ needs.init-release.outputs.godot_version }}"
           if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
+          if [ ! -f "lib/lapis/src/lapis.cr" ] && [ -f "shard.yml" ] && grep -q "path:[[:space:]]*lib/lapis" shard.yml; then
+            printf "dependencies:\n  lapis:\n    github: sol-vin/lapis\n    branch: %s\n" "$GODOT_VER" > shard.override.yml
+            rm -f shard.lock
+          fi
           shards install --skip-postinstall || shards install || true
           if [ ! -f "lib/lapis/src/lapis.cr" ]; then
             rm -rf lib/lapis && mkdir -p lib
@@ -1385,7 +1416,6 @@ jobs:
             git clone --depth 1 https://github.com/sol-vin/lapis.git lib/lapis
             (cd lib/lapis && (shards install --skip-postinstall || shards install || true))
             [ -d "lib/lapis/lib" ] && (cp -rn lib/lapis/lib/* lib/ 2>/dev/null || cp -r lib/lapis/lib/* lib/ 2>/dev/null || true)
-            shards install --skip-postinstall || shards install || true
           fi
           if [ -d "lib/lapis/tools/lapis/src" ]; then
             echo "Building Lapis CLI from shard..."

@@ -251,6 +251,10 @@ runs:
             cp -r addons/crystal_integration/* "$WORK_DIR/addons/crystal_integration/"
           fi
         else
+          if [ ! -f "$WORK_DIR/lib/lapis/src/lapis.cr" ] && [ -f "$WORK_DIR/shard.yml" ] && grep -q "path:[[:space:]]*lib/lapis" "$WORK_DIR/shard.yml"; then
+            printf "dependencies:\n  lapis:\n    github: sol-vin/lapis\n    branch: %s\n" "$GODOT_VER" > "$WORK_DIR/shard.override.yml"
+            rm -f "$WORK_DIR/shard.lock"
+          fi
           (cd "$WORK_DIR" && (shards install --skip-postinstall || shards install || true))
           if [ ! -f "$WORK_DIR/lib/lapis/src/lapis.cr" ]; then
             echo "Staging lib/lapis from sol-vin/lapis ($GODOT_VER)..."
@@ -263,7 +267,6 @@ runs:
             if [ -d "$WORK_DIR/lib/lapis/lib" ]; then
               cp -rn "$WORK_DIR/lib/lapis/lib/"* "$WORK_DIR/lib/" 2>/dev/null || cp -r "$WORK_DIR/lib/lapis/lib/"* "$WORK_DIR/lib/" 2>/dev/null || true
             fi
-            (cd "$WORK_DIR" && (shards install --skip-postinstall || shards install || true))
           fi
           mkdir -p "$WORK_DIR/addons/crystal_integration/bin"
           if [ -d "$WORK_DIR/lib/lapis/addons/crystal_integration" ]; then
