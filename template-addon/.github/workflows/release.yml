@@ -124,10 +124,27 @@ jobs:
           key: crystal-cache-linux-${{ runner.os }}-${{ hashFiles('shard.yml', 'shard.lock') }}
           restore-keys: |
             crystal-cache-linux-${{ runner.os }}-
-      - name: Install Dependencies
+      - name: Install Dependencies & Stage Lapis Engine
+        shell: bash
         run: |
-          sudo apt-get update && sudo apt-get install -y lld libgc-dev
-          shards install || true
+          sudo apt-get update
+          PKGS="lld libgc-dev"
+          if [ -d "ext/libvlc" ] || grep -qiE "emerald|libvlc" shard.yml addons/*/*.gdextension 2>/dev/null; then
+            PKGS="$PKGS libvlc-dev vlc"
+          fi
+          sudo apt-get install -y $PKGS
+          GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml 2>/dev/null | tr -d '\r\n[:space:]')
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
+          shards install --skip-postinstall || shards install || true
+          if [ ! -f "lib/lapis/src/lapis.cr" ]; then
+            rm -rf lib/lapis && mkdir -p lib
+            git clone --depth 1 --branch "$GODOT_VER" https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 --branch 4.8-beta1 https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 https://github.com/sol-vin/lapis.git lib/lapis
+            (cd lib/lapis && (shards install --skip-postinstall || shards install || true))
+            [ -d "lib/lapis/lib" ] && (cp -rn lib/lapis/lib/* lib/ 2>/dev/null || cp -r lib/lapis/lib/* lib/ 2>/dev/null || true)
+            shards install --skip-postinstall || shards install || true
+          fi
       - name: Run Specifications
         run: |
           crystal spec
@@ -150,9 +167,42 @@ jobs:
           key: crystal-cache-macos-${{ runner.os }}-${{ hashFiles('shard.yml', 'shard.lock') }}
           restore-keys: |
             crystal-cache-macos-${{ runner.os }}-
-      - name: Install Dependencies
+      - name: Install Dependencies & Stage Lapis Engine
+        shell: bash
         run: |
-          shards install || true
+          if [ -d "ext/libvlc" ] || grep -qiE "emerald|libvlc" shard.yml addons/*/*.gdextension 2>/dev/null; then
+            brew install --cask vlc || true
+            VLC_LIB=$(find /Applications/VLC.app -name "libvlc*.dylib" 2>/dev/null | head -n 1)
+            if [ -n "$VLC_LIB" ]; then
+              VLC_DIR=$(dirname "$VLC_LIB")
+              sudo mkdir -p /usr/local/lib /opt/homebrew/lib
+              sudo ln -sf "$VLC_LIB" /usr/local/lib/libvlc.dylib
+              sudo ln -sf "$VLC_LIB" /usr/local/lib/liblibvlc.dylib
+              sudo ln -sf "$VLC_LIB" /opt/homebrew/lib/libvlc.dylib
+              sudo ln -sf "$VLC_LIB" /opt/homebrew/lib/liblibvlc.dylib
+              CORE_LIB=$(find /Applications/VLC.app -name "libvlccore*.dylib" 2>/dev/null | head -n 1)
+              if [ -n "$CORE_LIB" ]; then
+                sudo ln -sf "$CORE_LIB" /usr/local/lib/libvlccore.dylib
+                sudo ln -sf "$CORE_LIB" /opt/homebrew/lib/libvlccore.dylib
+              fi
+              [ ! -f "$VLC_DIR/libvlc.dylib" ] && sudo ln -sf "$VLC_LIB" "$VLC_DIR/libvlc.dylib" 2>/dev/null || true
+              [ ! -f "$VLC_DIR/liblibvlc.dylib" ] && sudo ln -sf "$VLC_LIB" "$VLC_DIR/liblibvlc.dylib" 2>/dev/null || true
+              echo "CRYSTAL_LIBRARY_PATH=$VLC_DIR:/opt/homebrew/lib:/usr/local/lib" >> "$GITHUB_ENV"
+              echo "DYLD_FALLBACK_LIBRARY_PATH=$VLC_DIR:/opt/homebrew/lib:/usr/local/lib" >> "$GITHUB_ENV"
+            fi
+          fi
+          GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml 2>/dev/null | tr -d '\r\n[:space:]')
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
+          shards install --skip-postinstall || shards install || true
+          if [ ! -f "lib/lapis/src/lapis.cr" ]; then
+            rm -rf lib/lapis && mkdir -p lib
+            git clone --depth 1 --branch "$GODOT_VER" https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 --branch 4.8-beta1 https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 https://github.com/sol-vin/lapis.git lib/lapis
+            (cd lib/lapis && (shards install --skip-postinstall || shards install || true))
+            [ -d "lib/lapis/lib" ] && (cp -rn lib/lapis/lib/* lib/ 2>/dev/null || cp -r lib/lapis/lib/* lib/ 2>/dev/null || true)
+            shards install --skip-postinstall || shards install || true
+          fi
       - name: Run Specifications
         run: |
           crystal spec
@@ -178,7 +228,44 @@ jobs:
       - name: Install Dependencies
         shell: pwsh
         run: |
-          shards install
+          $needsVlc = (Test-Path "ext/libvlc") -or ((Test-Path "shard.yml") -and ((Get-Content "shard.yml" -Raw) -match "emerald|libvlc"))
+          if ($needsVlc) {
+            if (-not (Test-Path "C:\Program Files\VideoLAN\VLC\libvlc.dll")) {
+              $installed = $false
+              for ($attempt = 1; $attempt -le 3; $attempt++) {
+                Write-Host "Installing VLC via Chocolatey (attempt $attempt)..."
+                choco install vlc -y --no-progress
+                if (Test-Path "C:\Program Files\VideoLAN\VLC\libvlc.dll") {
+                  $installed = $true
+                  break
+                }
+                Start-Sleep -Seconds 3
+              }
+              if (-not $installed) {
+                winget install VideoLAN.VLC --accept-source-agreements --accept-package-agreements --silent
+              }
+            }
+            if (Test-Path "ext/libvlc") {
+              $vlcLib = (Resolve-Path "ext/libvlc").Path
+              "LIB=$vlcLib;$($env:LIB)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+            }
+            "C:\Program Files\VideoLAN\VLC" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+          }
+      - name: Stage Lapis Engine (Windows)
+        shell: bash
+        run: |
+          GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml 2>/dev/null | tr -d '\r\n[:space:]')
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
+          shards install --skip-postinstall || shards install || true
+          if [ ! -f "lib/lapis/src/lapis.cr" ]; then
+            rm -rf lib/lapis && mkdir -p lib
+            git clone --depth 1 --branch "$GODOT_VER" https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 --branch 4.8-beta1 https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 https://github.com/sol-vin/lapis.git lib/lapis
+            (cd lib/lapis && (shards install --skip-postinstall || shards install || true))
+            [ -d "lib/lapis/lib" ] && (cp -rn lib/lapis/lib/* lib/ 2>/dev/null || cp -r lib/lapis/lib/* lib/ 2>/dev/null || true)
+            shards install --skip-postinstall || shards install || true
+          fi
       - name: Run Specifications
         shell: pwsh
         run: |
@@ -224,7 +311,7 @@ jobs:
 
   build-core-linux:
     name: Build Core Engine (Linux)
-    needs: [fast-specs-linux]
+    needs: [init-release, fast-specs-linux]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -236,22 +323,37 @@ jobs:
           crystal: 1.21.0
       - name: Install Build Dependencies
         run: |
-          sudo apt-get update && sudo apt-get install -y lld libgc-dev wget unzip
+          sudo apt-get update
+          PKGS="lld libgc-dev g++ wget unzip curl"
+          if [ -d "ext/libvlc" ] || grep -qiE "emerald|libvlc" shard.yml addons/*/*.gdextension 2>/dev/null; then
+            PKGS="$PKGS libvlc-dev vlc"
+          fi
+          sudo apt-get install -y $PKGS
       - name: Setup Godot Engine
+        continue-on-error: true
         uses: appsinacup/action_setup_godot@main
         with:
           repo: godotengine/godot-builds
-          version: 4.8-beta1
+          version: ${{ needs.init-release.outputs.godot_version }}
           enable_cache: true
       - name: Configure Godot Executable (Linux)
         shell: bash
         run: |
+          GODOT_VER="${{ needs.init-release.outputs.godot_version }}"
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
           if [ -n "$GODOT4" ] && [ -f "$GODOT4" ]; then
             cp "$GODOT4" ./godot
           elif [ -n "$GODOT4_BIN" ] && [ -f "$GODOT4_BIN" ]; then
             cp "$GODOT4_BIN" ./godot
           elif command -v godot >/dev/null 2>&1; then
             cp "$(command -v godot)" ./godot
+          else
+            curl -fsSL "https://github.com/sol-vin/lapis/releases/download/${GODOT_VER}/Godot_v${GODOT_VER}_linux.x86_64.zip" -o godot.zip || \
+            curl -fsSL "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VER}/Godot_v${GODOT_VER}_linux.x86_64.zip" -o godot.zip
+            unzip -q -o godot.zip
+            found_bin=$(find . -maxdepth 2 -name "Godot_v*linux.x86_64" | head -n 1)
+            [ -n "$found_bin" ] && mv "$found_bin" ./godot || mv "Godot_v${GODOT_VER}_linux.x86_64" ./godot
+            rm -f godot.zip
           fi
           chmod +x ./godot || true
           echo "$(pwd)" >> "$GITHUB_PATH"
@@ -260,21 +362,27 @@ jobs:
       - name: Ensure Lapis CLI & Bridge
         shell: bash
         run: |
-          shards install || true
-          mkdir -p bin
-          GODOT_VER=""
-          if [ -f "godot-version.yml" ]; then
-            GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml | tr -d '\r\n[:space:]')
-          fi
+          GODOT_VER="${{ needs.init-release.outputs.godot_version }}"
           if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
-
+          shards install --skip-postinstall || shards install || true
+          if [ ! -f "lib/lapis/src/lapis.cr" ]; then
+            rm -rf lib/lapis && mkdir -p lib
+            git clone --depth 1 --branch "$GODOT_VER" https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 --branch 4.8-beta1 https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 https://github.com/sol-vin/lapis.git lib/lapis
+            (cd lib/lapis && (shards install --skip-postinstall || shards install || true))
+            [ -d "lib/lapis/lib" ] && (cp -rn lib/lapis/lib/* lib/ 2>/dev/null || cp -r lib/lapis/lib/* lib/ 2>/dev/null || true)
+            shards install --skip-postinstall || shards install || true
+          fi
+          mkdir -p bin
           if [ ! -f "bin/lapis" ]; then
             echo "Fetching standalone Lapis CLI and bridge for Linux (target $GODOT_VER)..."
-            wget -q "https://github.com/sol-vin/lapis/releases/download/${GODOT_VER}/lapis-linux-x86_64.tar.gz" -O lapis.tar.gz 2>/dev/null || \
-            wget -q "https://github.com/sol-vin/lapis/releases/latest/download/lapis-linux-x86_64.tar.gz" -O lapis.tar.gz 2>/dev/null || true
+            curl -fsSL "https://github.com/sol-vin/lapis/releases/download/${GODOT_VER}/lapis-linux-x86_64.tar.gz" -o lapis.tar.gz 2>/dev/null || \
+            curl -fsSL "https://github.com/sol-vin/lapis/releases/latest/download/lapis-linux-x86_64.tar.gz" -o lapis.tar.gz 2>/dev/null || true
             if [ -f "lapis.tar.gz" ] && [ -s "lapis.tar.gz" ]; then
               tar -xzf lapis.tar.gz -C bin/
               chmod +x bin/lapis
+              rm -f lapis.tar.gz
             elif [ -f "lib/lapis/tools/lapis/src/lapis.cr" ]; then
               crystal build lib/lapis/tools/lapis/src/lapis.cr -o bin/lapis
             fi
@@ -288,18 +396,21 @@ jobs:
       - name: Build Addon Library (Release)
         shell: bash
         run: |
-          make build RELEASE=1 || (
-            ADDON_NAME=$(awk '/^name:/ {print $2}' shard.yml 2>/dev/null | tr -d ' "\r\n')
-            if [ -z "$ADDON_NAME" ]; then ADDON_NAME="crystal_addon"; fi
-            mkdir -p "addons/${ADDON_NAME}/bin"
-            crystal build src/main.cr -o "addons/${ADDON_NAME}/bin/game.so" --link-flags "-shared" --release -Dlibgodot_addon
-          )
           ADDON_NAME=$(awk '/^name:/ {print $2}' shard.yml 2>/dev/null | tr -d ' "\r\n')
           if [ -z "$ADDON_NAME" ]; then ADDON_NAME="crystal_addon"; fi
+          if [ -f "Makefile" ]; then
+            make build RELEASE=1 || true
+          fi
+          if [ ! -f "addons/${ADDON_NAME}/bin/game.so" ]; then
+            mkdir -p "addons/${ADDON_NAME}/bin"
+            crystal build src/main.cr -o "addons/${ADDON_NAME}/bin/game.so" --link-flags "-shared" --release -Dlibgodot_addon
+          fi
           if [ -f "bin/crystal_bridge.so" ]; then
             cp -f "bin/crystal_bridge.so" "addons/${ADDON_NAME}/bin/crystal_bridge.so"
           elif [ -f "bin/addons/crystal_integration/bin/crystal_bridge.so" ]; then
             cp -f "bin/addons/crystal_integration/bin/crystal_bridge.so" "addons/${ADDON_NAME}/bin/crystal_bridge.so"
+          elif [ ! -f "addons/${ADDON_NAME}/bin/crystal_bridge.so" ] && [ -f "lib/lapis/src/bridge/crystal_bridge.cpp" ]; then
+            g++ -std=c++17 -O2 -fPIC -shared -I lib/lapis/rsrc -I lib/lapis/src/bridge lib/lapis/src/bridge/crystal_bridge.cpp -o "addons/${ADDON_NAME}/bin/crystal_bridge.so" -ldl -lpthread
           fi
           if [ -f "bin/lapis" ]; then
             ./bin/lapis deps -t "addons/${ADDON_NAME}/bin" || true
@@ -316,7 +427,7 @@ jobs:
 
   build-core-macos:
     name: Build Core Engine (macOS)
-    needs: [fast-specs-macos]
+    needs: [init-release, fast-specs-macos]
     runs-on: macos-latest
     timeout-minutes: 15
     steps:
@@ -326,30 +437,99 @@ jobs:
         uses: crystal-lang/install-crystal@v1
         with:
           crystal: 1.21.0
+      - name: Install Dependencies
+        shell: bash
+        run: |
+          if [ -d "ext/libvlc" ] || grep -qiE "emerald|libvlc" shard.yml addons/*/*.gdextension 2>/dev/null; then
+            brew install --cask vlc || true
+            VLC_LIB=$(find /Applications/VLC.app -name "libvlc*.dylib" 2>/dev/null | head -n 1)
+            if [ -n "$VLC_LIB" ]; then
+              VLC_DIR=$(dirname "$VLC_LIB")
+              sudo mkdir -p /usr/local/lib /opt/homebrew/lib
+              sudo ln -sf "$VLC_LIB" /usr/local/lib/libvlc.dylib
+              sudo ln -sf "$VLC_LIB" /usr/local/lib/liblibvlc.dylib
+              sudo ln -sf "$VLC_LIB" /opt/homebrew/lib/libvlc.dylib
+              sudo ln -sf "$VLC_LIB" /opt/homebrew/lib/liblibvlc.dylib
+              CORE_LIB=$(find /Applications/VLC.app -name "libvlccore*.dylib" 2>/dev/null | head -n 1)
+              if [ -n "$CORE_LIB" ]; then
+                sudo ln -sf "$CORE_LIB" /usr/local/lib/libvlccore.dylib
+                sudo ln -sf "$CORE_LIB" /opt/homebrew/lib/libvlccore.dylib
+              fi
+              [ ! -f "$VLC_DIR/libvlc.dylib" ] && sudo ln -sf "$VLC_LIB" "$VLC_DIR/libvlc.dylib" 2>/dev/null || true
+              [ ! -f "$VLC_DIR/liblibvlc.dylib" ] && sudo ln -sf "$VLC_LIB" "$VLC_DIR/liblibvlc.dylib" 2>/dev/null || true
+              echo "CRYSTAL_LIBRARY_PATH=$VLC_DIR:/opt/homebrew/lib:/usr/local/lib" >> "$GITHUB_ENV"
+              echo "DYLD_FALLBACK_LIBRARY_PATH=$VLC_DIR:/opt/homebrew/lib:/usr/local/lib" >> "$GITHUB_ENV"
+            fi
+          fi
       - name: Setup Godot Engine
+        continue-on-error: true
         uses: appsinacup/action_setup_godot@main
         with:
           repo: godotengine/godot-builds
-          version: 4.8-beta1
+          version: ${{ needs.init-release.outputs.godot_version }}
           enable_cache: true
+      - name: Configure Godot Executable (macOS)
+        shell: bash
+        run: |
+          GODOT_VER="${{ needs.init-release.outputs.godot_version }}"
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
+          if [ -n "$GODOT4" ] && [ -f "$GODOT4" ]; then
+            cp "$GODOT4" ./godot
+            chmod +x ./godot
+          elif [ -n "$GODOT4_BIN" ] && [ -f "$GODOT4_BIN" ]; then
+            cp "$GODOT4_BIN" ./godot
+            chmod +x ./godot
+          elif command -v godot >/dev/null 2>&1; then
+            cp "$(command -v godot)" ./godot
+            chmod +x ./godot
+          else
+            MAC_ARCH="$(uname -m)"
+            [ "$MAC_ARCH" != "arm64" ] && [ "$MAC_ARCH" != "x86_64" ] && MAC_ARCH="arm64"
+            echo "Fallback: Downloading Godot ${GODOT_VER} macos (${MAC_ARCH})..."
+            for SUFFIX in "macos.${MAC_ARCH}.zip" "macos.arm64.zip" "macos.universal.zip" "macos.x86_64.zip"; do
+              if curl -fsSL "https://github.com/sol-vin/lapis/releases/download/${GODOT_VER}/Godot_v${GODOT_VER}_${SUFFIX}" -o godot.zip || \
+                 curl -fsSL "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VER}/Godot_v${GODOT_VER}_${SUFFIX}" -o godot.zip; then
+                [ -s godot.zip ] && break
+              fi
+            done
+            unzip -q -o godot.zip
+            if [ -d "Godot.app" ]; then
+              xattr -dr com.apple.quarantine "Godot.app" 2>/dev/null || true
+              codesign --force --deep --sign - "Godot.app" 2>/dev/null || true
+              printf '#!/usr/bin/env bash\nexec "%s" "$@"\n' "$(pwd)/Godot.app/Contents/MacOS/Godot" > ./godot
+            else
+              app_bin=$(find . -maxdepth 4 -name "Godot" -perm +111 -type f 2>/dev/null | head -n 1)
+              [ -n "$app_bin" ] && cp "$app_bin" ./godot || true
+            fi
+            chmod +x ./godot 2>/dev/null || true
+            rm -f godot.zip
+          fi
+          echo "$(pwd)" >> "$GITHUB_PATH"
+          ./godot --version || true
       - name: Ensure Lapis CLI & Bridge
         shell: bash
         run: |
-          shards install || true
-          mkdir -p bin
-          GODOT_VER=""
-          if [ -f "godot-version.yml" ]; then
-            GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml | tr -d '\r\n[:space:]')
-          fi
+          GODOT_VER="${{ needs.init-release.outputs.godot_version }}"
           if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
-
+          shards install --skip-postinstall || shards install || true
+          if [ ! -f "lib/lapis/src/lapis.cr" ]; then
+            rm -rf lib/lapis && mkdir -p lib
+            git clone --depth 1 --branch "$GODOT_VER" https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 --branch 4.8-beta1 https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 https://github.com/sol-vin/lapis.git lib/lapis
+            (cd lib/lapis && (shards install --skip-postinstall || shards install || true))
+            [ -d "lib/lapis/lib" ] && (cp -rn lib/lapis/lib/* lib/ 2>/dev/null || cp -r lib/lapis/lib/* lib/ 2>/dev/null || true)
+            shards install --skip-postinstall || shards install || true
+          fi
+          mkdir -p bin
           if [ ! -f "bin/lapis" ]; then
             echo "Fetching standalone Lapis CLI and bridge for macOS (target $GODOT_VER)..."
-            wget -q "https://github.com/sol-vin/lapis/releases/download/${GODOT_VER}/lapis-macos.zip" -O lapis.zip 2>/dev/null || \
-            wget -q "https://github.com/sol-vin/lapis/releases/latest/download/lapis-macos.zip" -O lapis.zip 2>/dev/null || true
+            curl -fsSL "https://github.com/sol-vin/lapis/releases/download/${GODOT_VER}/lapis-macos.zip" -o lapis.zip 2>/dev/null || \
+            curl -fsSL "https://github.com/sol-vin/lapis/releases/latest/download/lapis-macos.zip" -o lapis.zip 2>/dev/null || true
             if [ -f "lapis.zip" ] && [ -s "lapis.zip" ]; then
-              unzip -q lapis.zip -d bin/
+              unzip -q -o lapis.zip -d bin/
               chmod +x bin/lapis
+              rm -f lapis.zip
             elif [ -f "lib/lapis/tools/lapis/src/lapis.cr" ]; then
               crystal build lib/lapis/tools/lapis/src/lapis.cr -o bin/lapis
             fi
@@ -362,18 +542,23 @@ jobs:
       - name: Build Addon Library (Release)
         shell: bash
         run: |
-          make build RELEASE=1 || (
-            ADDON_NAME=$(awk '/^name:/ {print $2}' shard.yml 2>/dev/null | tr -d ' "\r\n')
-            if [ -z "$ADDON_NAME" ]; then ADDON_NAME="crystal_addon"; fi
-            mkdir -p "addons/${ADDON_NAME}/bin"
-            crystal build src/main.cr -o "addons/${ADDON_NAME}/bin/game.dylib" --link-flags "-dynamiclib" --release -Dlibgodot_addon
-          )
           ADDON_NAME=$(awk '/^name:/ {print $2}' shard.yml 2>/dev/null | tr -d ' "\r\n')
           if [ -z "$ADDON_NAME" ]; then ADDON_NAME="crystal_addon"; fi
+          if [ -f "Makefile" ]; then
+            make build RELEASE=1 || true
+          fi
+          if [ ! -f "addons/${ADDON_NAME}/bin/game.dylib" ]; then
+            mkdir -p "addons/${ADDON_NAME}/bin"
+            EXTRA_LFLAGS=""
+            [ -d "/Applications/VLC.app/Contents/MacOS/lib" ] && EXTRA_LFLAGS=" -L/Applications/VLC.app/Contents/MacOS/lib"
+            crystal build src/main.cr -o "addons/${ADDON_NAME}/bin/game.dylib" --link-flags "-dynamiclib${EXTRA_LFLAGS}" --release -Dlibgodot_addon
+          fi
           if [ -f "bin/crystal_bridge.dylib" ]; then
             cp -f "bin/crystal_bridge.dylib" "addons/${ADDON_NAME}/bin/crystal_bridge.dylib"
           elif [ -f "bin/addons/crystal_integration/bin/crystal_bridge.dylib" ]; then
             cp -f "bin/addons/crystal_integration/bin/crystal_bridge.dylib" "addons/${ADDON_NAME}/bin/crystal_bridge.dylib"
+          elif [ ! -f "addons/${ADDON_NAME}/bin/crystal_bridge.dylib" ] && [ -f "lib/lapis/src/bridge/crystal_bridge.cpp" ]; then
+            clang++ -std=c++17 -O2 -fPIC -dynamiclib -I lib/lapis/rsrc -I lib/lapis/src/bridge lib/lapis/src/bridge/crystal_bridge.cpp -o "addons/${ADDON_NAME}/bin/crystal_bridge.dylib" -ldl -lpthread
           fi
           if [ -f "bin/lapis" ]; then
             ./bin/lapis deps -t "addons/${ADDON_NAME}/bin" || true
@@ -390,7 +575,7 @@ jobs:
 
   build-core-windows:
     name: Build Core Engine (Windows)
-    needs: [fast-specs-windows]
+    needs: [init-release, fast-specs-windows]
     runs-on: windows-latest
     timeout-minutes: 15
     steps:
@@ -401,14 +586,17 @@ jobs:
         with:
           crystal: 1.21.0
       - name: Setup Godot Engine
+        continue-on-error: true
         uses: appsinacup/action_setup_godot@main
         with:
           repo: godotengine/godot-builds
-          version: 4.8-beta1
+          version: ${{ needs.init-release.outputs.godot_version }}
           enable_cache: true
       - name: Configure Godot Executable (Windows)
         shell: pwsh
         run: |
+          $godotVer = "${{ needs.init-release.outputs.godot_version }}"
+          if (-not $godotVer) { $godotVer = "4.8-beta1" }
           $candidate = $env:GODOT4
           if ($candidate) {
             $candidate = $candidate -replace '^/([a-zA-Z])/', '$1:/'
@@ -423,24 +611,42 @@ jobs:
             if (Test-Path $mainCand2) { $candidate2 = $mainCand2 }
             if (Test-Path $candidate2) { Copy-Item $candidate2 ./godot.exe -Force }
           }
+          if (-not (Test-Path ./godot.exe)) {
+            $zipUrl = "https://github.com/godotengine/godot-builds/releases/download/$godotVer/Godot_v${godotVer}_win64.exe.zip"
+            Invoke-WebRequest -Uri $zipUrl -OutFile "godot.zip"
+            Expand-Archive -Path "godot.zip" -DestinationPath "." -Force
+            $extractedExe = Get-ChildItem -Path "." -Filter "Godot_v*_win64.exe" | Where-Object { $_.Name -notmatch "console" } | Select-Object -First 1
+            if ($extractedExe) { Move-Item $extractedExe.FullName "./godot.exe" -Force }
+            Remove-Item "godot.zip" -Force -ErrorAction SilentlyContinue
+          }
           if (Test-Path ./godot.exe) {
             Write-Host "Godot configured at ./godot.exe"
             $currPath = (Get-Location).Path
             $currPath | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
           }
 
+      - name: Stage Lapis Engine (Windows)
+        shell: bash
+        run: |
+          GODOT_VER="${{ needs.init-release.outputs.godot_version }}"
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
+          shards install --skip-postinstall || shards install || true
+          if [ ! -f "lib/lapis/src/lapis.cr" ]; then
+            rm -rf lib/lapis && mkdir -p lib
+            git clone --depth 1 --branch "$GODOT_VER" https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 --branch 4.8-beta1 https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 https://github.com/sol-vin/lapis.git lib/lapis
+            (cd lib/lapis && (shards install --skip-postinstall || shards install || true))
+            [ -d "lib/lapis/lib" ] && (cp -rn lib/lapis/lib/* lib/ 2>/dev/null || cp -r lib/lapis/lib/* lib/ 2>/dev/null || true)
+            shards install --skip-postinstall || shards install || true
+          fi
+
       - name: Ensure Lapis CLI & Bridge
         shell: pwsh
         run: |
-          shards install
           if (-not (Test-Path "bin")) { New-Item -ItemType Directory -Path "bin" -Force }
-          $godotVer = "4.8-beta1"
-          if (Test-Path "godot-version.yml") {
-            $content = Get-Content "godot-version.yml" -Raw
-            if ($content -match 'version:\s*[''"]?([^''"\r\n]+)[''"]?') {
-              $godotVer = $matches[1].Trim()
-            }
-          }
+          $godotVer = "${{ needs.init-release.outputs.godot_version }}"
+          if (-not $godotVer) { $godotVer = "4.8-beta1" }
           if (-not (Test-Path "bin/lapis.exe")) {
             Write-Host "Fetching standalone Lapis CLI for Windows (target $godotVer)..."
             try {
@@ -471,7 +677,30 @@ jobs:
       - name: Build Addon Library (Release)
         shell: pwsh
         run: |
-          make build RELEASE=1
+          $needsVlc = (Test-Path "ext/libvlc") -or ((Test-Path "shard.yml") -and ((Get-Content "shard.yml" -Raw) -match "emerald|libvlc"))
+          if ($needsVlc) {
+            if (-not (Test-Path "C:\Program Files\VideoLAN\VLC\libvlc.dll")) {
+              $installed = $false
+              for ($attempt = 1; $attempt -le 3; $attempt++) {
+                Write-Host "Installing VLC via Chocolatey (attempt $attempt)..."
+                choco install vlc -y --no-progress
+                if (Test-Path "C:\Program Files\VideoLAN\VLC\libvlc.dll") {
+                  $installed = $true
+                  break
+                }
+                Start-Sleep -Seconds 3
+              }
+              if (-not $installed) {
+                winget install VideoLAN.VLC --accept-source-agreements --accept-package-agreements --silent
+              }
+            }
+            if (Test-Path "ext/libvlc") {
+              $vlcLib = (Resolve-Path "ext/libvlc").Path
+              $env:LIB = "$vlcLib;$($env:LIB)"
+            }
+            $env:PATH = "C:\Program Files\VideoLAN\VLC;$($env:PATH)"
+          }
+
           $addonName = "crystal_addon"
           if (Test-Path "shard.yml") {
             $content = Get-Content "shard.yml" -Raw
@@ -479,7 +708,17 @@ jobs:
               $addonName = $matches[1].Trim()
             }
           }
-          # Ensure crystal_bridge and runtime deps are staged into addons/$addonName/bin
+          if (Test-Path "Makefile") {
+            try {
+              make build RELEASE=1
+            } catch {
+              Write-Host "Make build fallback: $_"
+            }
+          }
+          if (-not (Test-Path "addons/$addonName/bin/game.dll")) {
+            New-Item -ItemType Directory -Path "addons/$addonName/bin" -Force | Out-Null
+            crystal build src/main.cr -o "addons/$addonName/bin/game.dll" --link-flags "/DLL /ENTRY:_DllMainCRTStartup /EXPORT:crystal_godot_init" --release -Dlibgodot_addon
+          }
           if (Test-Path "bin/crystal_bridge.dll") {
             Copy-Item "bin/crystal_bridge.dll" "addons/$addonName/bin/crystal_bridge.dll" -Force
           } elseif (Test-Path "bin/addons/crystal_integration/bin/crystal_bridge.dll") {
@@ -487,6 +726,9 @@ jobs:
           }
           if (Test-Path "bin/lapis.exe") {
             ./bin/lapis.exe deps -t "addons/$addonName/bin"
+          }
+          if ($needsVlc -and (Test-Path "C:\Program Files\VideoLAN\VLC\libvlc.dll")) {
+            Copy-Item "C:\Program Files\VideoLAN\VLC\libvlc.dll", "C:\Program Files\VideoLAN\VLC\libvlccore.dll" -Destination "addons/$addonName/bin" -Force
           }
 
       - name: Upload Core Binaries (Windows)
@@ -519,8 +761,23 @@ jobs:
         with:
           crystal: 1.21.0
       - name: Run Test Suites
+        shell: bash
         run: |
-          shards install || true
+          if [ -d "ext/libvlc" ] || grep -qiE "emerald|libvlc" shard.yml addons/*/*.gdextension 2>/dev/null; then
+            sudo apt-get update && sudo apt-get install -y lld libgc-dev libvlc-dev vlc
+          fi
+          GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml 2>/dev/null | tr -d '\r\n[:space:]')
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
+          shards install --skip-postinstall || shards install || true
+          if [ ! -f "lib/lapis/src/lapis.cr" ]; then
+            rm -rf lib/lapis && mkdir -p lib
+            git clone --depth 1 --branch "$GODOT_VER" https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 --branch 4.8-beta1 https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 https://github.com/sol-vin/lapis.git lib/lapis
+            (cd lib/lapis && (shards install --skip-postinstall || shards install || true))
+            [ -d "lib/lapis/lib" ] && (cp -rn lib/lapis/lib/* lib/ 2>/dev/null || cp -r lib/lapis/lib/* lib/ 2>/dev/null || true)
+            shards install --skip-postinstall || shards install || true
+          fi
           crystal spec
 
   test-engine-macos:
@@ -540,8 +797,39 @@ jobs:
         with:
           crystal: 1.21.0
       - name: Run Test Suites
+        shell: bash
         run: |
-          shards install || true
+          if [ -d "ext/libvlc" ] || grep -qiE "emerald|libvlc" shard.yml addons/*/*.gdextension 2>/dev/null; then
+            brew install --cask vlc || true
+            VLC_LIB=$(find /Applications/VLC.app -name "libvlc*.dylib" 2>/dev/null | head -n 1)
+            if [ -n "$VLC_LIB" ]; then
+              VLC_DIR=$(dirname "$VLC_LIB")
+              sudo mkdir -p /usr/local/lib /opt/homebrew/lib
+              sudo ln -sf "$VLC_LIB" /usr/local/lib/libvlc.dylib
+              sudo ln -sf "$VLC_LIB" /usr/local/lib/liblibvlc.dylib
+              sudo ln -sf "$VLC_LIB" /opt/homebrew/lib/libvlc.dylib
+              sudo ln -sf "$VLC_LIB" /opt/homebrew/lib/liblibvlc.dylib
+              CORE_LIB=$(find /Applications/VLC.app -name "libvlccore*.dylib" 2>/dev/null | head -n 1)
+              if [ -n "$CORE_LIB" ]; then
+                sudo ln -sf "$CORE_LIB" /usr/local/lib/libvlccore.dylib
+                sudo ln -sf "$CORE_LIB" /opt/homebrew/lib/libvlccore.dylib
+              fi
+              export CRYSTAL_LIBRARY_PATH="$VLC_DIR:/opt/homebrew/lib:/usr/local/lib"
+              export DYLD_FALLBACK_LIBRARY_PATH="$VLC_DIR:/opt/homebrew/lib:/usr/local/lib"
+            fi
+          fi
+          GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml 2>/dev/null | tr -d '\r\n[:space:]')
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
+          shards install --skip-postinstall || shards install || true
+          if [ ! -f "lib/lapis/src/lapis.cr" ]; then
+            rm -rf lib/lapis && mkdir -p lib
+            git clone --depth 1 --branch "$GODOT_VER" https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 --branch 4.8-beta1 https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 https://github.com/sol-vin/lapis.git lib/lapis
+            (cd lib/lapis && (shards install --skip-postinstall || shards install || true))
+            [ -d "lib/lapis/lib" ] && (cp -rn lib/lapis/lib/* lib/ 2>/dev/null || cp -r lib/lapis/lib/* lib/ 2>/dev/null || true)
+            shards install --skip-postinstall || shards install || true
+          fi
           crystal spec
 
   test-engine-windows:
@@ -560,10 +848,35 @@ jobs:
         uses: crystal-lang/install-crystal@v1
         with:
           crystal: 1.21.0
+      - name: Stage Lapis Engine (Windows)
+        shell: bash
+        run: |
+          GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml 2>/dev/null | tr -d '\r\n[:space:]')
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
+          shards install --skip-postinstall || shards install || true
+          if [ ! -f "lib/lapis/src/lapis.cr" ]; then
+            rm -rf lib/lapis && mkdir -p lib
+            git clone --depth 1 --branch "$GODOT_VER" https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 --branch 4.8-beta1 https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 https://github.com/sol-vin/lapis.git lib/lapis
+            (cd lib/lapis && (shards install --skip-postinstall || shards install || true))
+            [ -d "lib/lapis/lib" ] && (cp -rn lib/lapis/lib/* lib/ 2>/dev/null || cp -r lib/lapis/lib/* lib/ 2>/dev/null || true)
+            shards install --skip-postinstall || shards install || true
+          fi
       - name: Run Test Suites
         shell: pwsh
         run: |
-          shards install
+          $needsVlc = (Test-Path "ext/libvlc") -or ((Test-Path "shard.yml") -and ((Get-Content "shard.yml" -Raw) -match "emerald|libvlc"))
+          if ($needsVlc) {
+            if (-not (Test-Path "C:\Program Files\VideoLAN\VLC\libvlc.dll")) {
+              choco install vlc -y --no-progress
+            }
+            if (Test-Path "ext/libvlc") {
+              $vlcLib = (Resolve-Path "ext/libvlc").Path
+              $env:LIB = "$vlcLib;$($env:LIB)"
+            }
+            $env:PATH = "C:\Program Files\VideoLAN\VLC;$($env:PATH)"
+          }
           crystal spec
 
   build-consumers-linux:
@@ -916,9 +1229,12 @@ jobs:
           [ -d "staging/linux" ] && cp -r staging/linux/* "$DIST_DIR/" 2>/dev/null || true
           [ -d "staging/macos" ] && cp -r staging/macos/* "$DIST_DIR/" 2>/dev/null || true
 
-          # Create Universal Addon Archive if multiple platforms present
+          # Create Universal Addon Archive merging all platform binaries
           ADDON_NAME="${{ needs.init-release.outputs.addon_name }}"
           if [ -d "addons" ]; then
+            for pzip in "$DIST_DIR/${ADDON_NAME}-windows.zip" "$DIST_DIR/${ADDON_NAME}-linux.zip" "$DIST_DIR/${ADDON_NAME}-macos.zip"; do
+              [ -f "$pzip" ] && unzip -q -o "$pzip" 2>/dev/null || true
+            done
             zip -r "$DIST_DIR/${ADDON_NAME}-universal.zip" addons 2>/dev/null || true
           fi
 
@@ -1055,8 +1371,22 @@ jobs:
         continue-on-error: true
         shell: bash
         run: |
+          if [ -d "ext/libvlc" ] || grep -qiE "emerald|libvlc" shard.yml addons/*/*.gdextension 2>/dev/null; then
+            sudo apt-get update && sudo apt-get install -y libvlc-dev vlc || true
+          fi
           mkdir -p bin
-          shards update lapis || shards install || true
+          GODOT_VER="${{ needs.init-release.outputs.godot_version }}"
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
+          shards install --skip-postinstall || shards install || true
+          if [ ! -f "lib/lapis/src/lapis.cr" ]; then
+            rm -rf lib/lapis && mkdir -p lib
+            git clone --depth 1 --branch "$GODOT_VER" https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 --branch 4.8-beta1 https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 https://github.com/sol-vin/lapis.git lib/lapis
+            (cd lib/lapis && (shards install --skip-postinstall || shards install || true))
+            [ -d "lib/lapis/lib" ] && (cp -rn lib/lapis/lib/* lib/ 2>/dev/null || cp -r lib/lapis/lib/* lib/ 2>/dev/null || true)
+            shards install --skip-postinstall || shards install || true
+          fi
           if [ -d "lib/lapis/tools/lapis/src" ]; then
             echo "Building Lapis CLI from shard..."
             crystal build lib/lapis/tools/lapis/src/lapis.cr -o bin/lapis --release -O3 --no-debug || \
@@ -1064,7 +1394,7 @@ jobs:
           fi
           if [ ! -f "bin/lapis" ]; then
             echo "Downloading Lapis CLI release binary..."
-            curl -fsSL "https://github.com/sol-vin/lapis/releases/download/4.8-beta1/lapis-linux-x86_64.tar.gz" -o lapis.tar.gz 2>/dev/null || \
+            curl -fsSL "https://github.com/sol-vin/lapis/releases/download/${GODOT_VER}/lapis-linux-x86_64.tar.gz" -o lapis.tar.gz 2>/dev/null || \
             curl -fsSL "https://github.com/sol-vin/lapis/releases/latest/download/lapis-linux-x86_64.tar.gz" -o lapis.tar.gz 2>/dev/null || true
             if [ -f "lapis.tar.gz" ] && [ -s "lapis.tar.gz" ]; then
               tar -xzf lapis.tar.gz -C bin/ 2>/dev/null || true

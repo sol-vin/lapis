@@ -238,6 +238,8 @@ runs:
       shell: bash
       run: |
         WORK_DIR="${{ steps.meta.outputs.work_dir }}"
+        GODOT_VER="${{ steps.meta.outputs.godot_version }}"
+        if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
         if [ "$WORK_DIR" != "." ] && [ -f "shard.yml" ] && [ -f "src/lapis.cr" ]; then
           shards install --skip-postinstall || true
           mkdir -p "$WORK_DIR/lib" "$WORK_DIR/lib/lapis" "$WORK_DIR/addons/crystal_integration/bin"
@@ -250,6 +252,19 @@ runs:
           fi
         else
           (cd "$WORK_DIR" && (shards install --skip-postinstall || shards install || true))
+          if [ ! -f "$WORK_DIR/lib/lapis/src/lapis.cr" ]; then
+            echo "Staging lib/lapis from sol-vin/lapis ($GODOT_VER)..."
+            rm -rf "$WORK_DIR/lib/lapis"
+            mkdir -p "$WORK_DIR/lib"
+            git clone --depth 1 --branch "$GODOT_VER" https://github.com/sol-vin/lapis.git "$WORK_DIR/lib/lapis" 2>/dev/null || \
+            git clone --depth 1 --branch 4.8-beta1 https://github.com/sol-vin/lapis.git "$WORK_DIR/lib/lapis" 2>/dev/null || \
+            git clone --depth 1 https://github.com/sol-vin/lapis.git "$WORK_DIR/lib/lapis"
+            (cd "$WORK_DIR/lib/lapis" && (shards install --skip-postinstall || shards install || true))
+            if [ -d "$WORK_DIR/lib/lapis/lib" ]; then
+              cp -rn "$WORK_DIR/lib/lapis/lib/"* "$WORK_DIR/lib/" 2>/dev/null || cp -r "$WORK_DIR/lib/lapis/lib/"* "$WORK_DIR/lib/" 2>/dev/null || true
+            fi
+            (cd "$WORK_DIR" && (shards install --skip-postinstall || shards install || true))
+          fi
           mkdir -p "$WORK_DIR/addons/crystal_integration/bin"
           if [ -d "$WORK_DIR/lib/lapis/addons/crystal_integration" ]; then
             cp -r "$WORK_DIR/lib/lapis/addons/crystal_integration/"* "$WORK_DIR/addons/crystal_integration/" 2>/dev/null || true
@@ -292,6 +307,7 @@ runs:
         crystal spec
 
     - name: Setup Godot Engine (${{ steps.meta.outputs.godot_version }})
+      continue-on-error: true
       uses: appsinacup/action_setup_godot@main
       with:
         repo: godotengine/godot-builds
@@ -322,8 +338,14 @@ runs:
           chmod +x ./godot
         else
           if [ "${{ runner.os }}" = "macOS" ]; then
-            curl -fsSL "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VER}/Godot_v${GODOT_VER}_macos.universal.zip" -o godot.zip || \
-            curl -fsSL "https://github.com/sol-vin/lapis/releases/download/${GODOT_VER}/Godot_v${GODOT_VER}_macos.universal.zip" -o godot.zip
+            MAC_ARCH="$(uname -m)"
+            [ "$MAC_ARCH" != "arm64" ] && [ "$MAC_ARCH" != "x86_64" ] && MAC_ARCH="arm64"
+            for SUFFIX in "macos.${MAC_ARCH}.zip" "macos.arm64.zip" "macos.universal.zip" "macos.x86_64.zip"; do
+              if curl -fsSL "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VER}/Godot_v${GODOT_VER}_${SUFFIX}" -o godot.zip || \
+                 curl -fsSL "https://github.com/sol-vin/lapis/releases/download/${GODOT_VER}/Godot_v${GODOT_VER}_${SUFFIX}" -o godot.zip; then
+                [ -s godot.zip ] && break
+              fi
+            done
             unzip -q -o godot.zip
             app_bin=$(find . -maxdepth 4 -name "Godot" -perm +111 -type f 2>/dev/null | head -n 1)
             [ -n "$app_bin" ] && cp "$app_bin" ./godot || true

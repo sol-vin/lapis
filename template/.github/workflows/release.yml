@@ -124,10 +124,22 @@ jobs:
           key: crystal-cache-linux-${{ runner.os }}-${{ hashFiles('shard.yml', 'shard.lock') }}
           restore-keys: |
             crystal-cache-linux-${{ runner.os }}-
-      - name: Install Dependencies
+      - name: Install Dependencies & Stage Lapis Engine
+        shell: bash
         run: |
           sudo apt-get update && sudo apt-get install -y lld libgc-dev
-          shards install || true
+          GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml 2>/dev/null | tr -d '\r\n[:space:]')
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
+          shards install --skip-postinstall || shards install || true
+          if [ ! -f "lib/lapis/src/lapis.cr" ]; then
+            rm -rf lib/lapis && mkdir -p lib
+            git clone --depth 1 --branch "$GODOT_VER" https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 --branch 4.8-beta1 https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 https://github.com/sol-vin/lapis.git lib/lapis
+            (cd lib/lapis && (shards install --skip-postinstall || shards install || true))
+            [ -d "lib/lapis/lib" ] && (cp -rn lib/lapis/lib/* lib/ 2>/dev/null || cp -r lib/lapis/lib/* lib/ 2>/dev/null || true)
+            shards install --skip-postinstall || shards install || true
+          fi
       - name: Run Specifications
         run: |
           crystal spec
@@ -150,9 +162,21 @@ jobs:
           key: crystal-cache-macos-${{ runner.os }}-${{ hashFiles('shard.yml', 'shard.lock') }}
           restore-keys: |
             crystal-cache-macos-${{ runner.os }}-
-      - name: Install Dependencies
+      - name: Install Dependencies & Stage Lapis Engine
+        shell: bash
         run: |
-          shards install || true
+          GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml 2>/dev/null | tr -d '\r\n[:space:]')
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
+          shards install --skip-postinstall || shards install || true
+          if [ ! -f "lib/lapis/src/lapis.cr" ]; then
+            rm -rf lib/lapis && mkdir -p lib
+            git clone --depth 1 --branch "$GODOT_VER" https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 --branch 4.8-beta1 https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 https://github.com/sol-vin/lapis.git lib/lapis
+            (cd lib/lapis && (shards install --skip-postinstall || shards install || true))
+            [ -d "lib/lapis/lib" ] && (cp -rn lib/lapis/lib/* lib/ 2>/dev/null || cp -r lib/lapis/lib/* lib/ 2>/dev/null || true)
+            shards install --skip-postinstall || shards install || true
+          fi
       - name: Run Specifications
         run: |
           crystal spec
@@ -175,10 +199,21 @@ jobs:
           key: crystal-cache-windows-${{ runner.os }}-${{ hashFiles('shard.yml', 'shard.lock') }}
           restore-keys: |
             crystal-cache-windows-${{ runner.os }}-
-      - name: Install Dependencies
-        shell: pwsh
+      - name: Install Dependencies & Stage Lapis Engine
+        shell: bash
         run: |
-          shards install
+          GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml 2>/dev/null | tr -d '\r\n[:space:]')
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
+          shards install --skip-postinstall || shards install || true
+          if [ ! -f "lib/lapis/src/lapis.cr" ]; then
+            rm -rf lib/lapis && mkdir -p lib
+            git clone --depth 1 --branch "$GODOT_VER" https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 --branch 4.8-beta1 https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 https://github.com/sol-vin/lapis.git lib/lapis
+            (cd lib/lapis && (shards install --skip-postinstall || shards install || true))
+            [ -d "lib/lapis/lib" ] && (cp -rn lib/lapis/lib/* lib/ 2>/dev/null || cp -r lib/lapis/lib/* lib/ 2>/dev/null || true)
+            shards install --skip-postinstall || shards install || true
+          fi
       - name: Run Specifications
         shell: pwsh
         run: |
@@ -224,7 +259,7 @@ jobs:
 
   build-core-linux:
     name: Build Core Engine (Linux)
-    needs: [fast-specs-linux]
+    needs: [init-release, fast-specs-linux]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -236,22 +271,32 @@ jobs:
           crystal: 1.21.0
       - name: Install Build Dependencies
         run: |
-          sudo apt-get update && sudo apt-get install -y lld libgc-dev wget unzip
+          sudo apt-get update && sudo apt-get install -y lld libgc-dev wget unzip curl
       - name: Setup Godot Engine
+        continue-on-error: true
         uses: appsinacup/action_setup_godot@main
         with:
           repo: godotengine/godot-builds
-          version: 4.8-beta1
+          version: ${{ needs.init-release.outputs.godot_version }}
           enable_cache: true
       - name: Configure Godot Executable (Linux)
         shell: bash
         run: |
+          GODOT_VER="${{ needs.init-release.outputs.godot_version }}"
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
           if [ -n "$GODOT4" ] && [ -f "$GODOT4" ]; then
             cp "$GODOT4" ./godot
           elif [ -n "$GODOT4_BIN" ] && [ -f "$GODOT4_BIN" ]; then
             cp "$GODOT4_BIN" ./godot
           elif command -v godot >/dev/null 2>&1; then
             cp "$(command -v godot)" ./godot
+          else
+            curl -fsSL "https://github.com/sol-vin/lapis/releases/download/${GODOT_VER}/Godot_v${GODOT_VER}_linux.x86_64.zip" -o godot.zip || \
+            curl -fsSL "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VER}/Godot_v${GODOT_VER}_linux.x86_64.zip" -o godot.zip
+            unzip -q -o godot.zip
+            found_bin=$(find . -maxdepth 2 -name "Godot_v*linux.x86_64" | head -n 1)
+            [ -n "$found_bin" ] && mv "$found_bin" ./godot || mv "Godot_v${GODOT_VER}_linux.x86_64" ./godot
+            rm -f godot.zip
           fi
           chmod +x ./godot || true
           echo "$(pwd)" >> "$GITHUB_PATH"
@@ -260,14 +305,27 @@ jobs:
       - name: Ensure Lapis CLI & Bridge
         shell: bash
         run: |
-          shards install || true
+          GODOT_VER="${{ needs.init-release.outputs.godot_version }}"
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
+          shards install --skip-postinstall || shards install || true
+          if [ ! -f "lib/lapis/src/lapis.cr" ]; then
+            rm -rf lib/lapis && mkdir -p lib
+            git clone --depth 1 --branch "$GODOT_VER" https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 --branch 4.8-beta1 https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 https://github.com/sol-vin/lapis.git lib/lapis
+            (cd lib/lapis && (shards install --skip-postinstall || shards install || true))
+            [ -d "lib/lapis/lib" ] && (cp -rn lib/lapis/lib/* lib/ 2>/dev/null || cp -r lib/lapis/lib/* lib/ 2>/dev/null || true)
+            shards install --skip-postinstall || shards install || true
+          fi
           mkdir -p tools_bin
           if [ ! -f "tools_bin/lapis" ]; then
             echo "Fetching standalone Lapis CLI and bridge for Linux..."
-            wget -q https://github.com/sol-vin/lapis/releases/latest/download/lapis-linux-x86_64.tar.gz -O lapis.tar.gz 2>/dev/null || true
+            curl -fsSL "https://github.com/sol-vin/lapis/releases/download/${GODOT_VER}/lapis-linux-x86_64.tar.gz" -o lapis.tar.gz 2>/dev/null || \
+            curl -fsSL "https://github.com/sol-vin/lapis/releases/latest/download/lapis-linux-x86_64.tar.gz" -o lapis.tar.gz 2>/dev/null || true
             if [ -f "lapis.tar.gz" ] && [ -s "lapis.tar.gz" ]; then
               tar -xzf lapis.tar.gz -C tools_bin/
               chmod +x tools_bin/lapis
+              rm -f lapis.tar.gz
             elif [ -f "lib/lapis/tools/lapis/src/lapis.cr" ]; then
               crystal build lib/lapis/tools/lapis/src/lapis.cr -o tools_bin/lapis
             fi
@@ -280,7 +338,6 @@ jobs:
       - name: Build Game Binary (Release)
         shell: bash
         run: |
-          shards install || true
           GAME_NAME="${{ needs.init-release.outputs.game_name }}"
           if [ -z "$GAME_NAME" ]; then GAME_NAME="game"; fi
           echo "Building and packaging standalone playable game $GAME_NAME for Linux with embedded PCK..."
@@ -296,7 +353,7 @@ jobs:
 
   build-core-macos:
     name: Build Core Engine (macOS)
-    needs: [fast-specs-macos]
+    needs: [init-release, fast-specs-macos]
     runs-on: macos-latest
     timeout-minutes: 15
     steps:
@@ -307,22 +364,74 @@ jobs:
         with:
           crystal: 1.21.0
       - name: Setup Godot Engine
+        continue-on-error: true
         uses: appsinacup/action_setup_godot@main
         with:
           repo: godotengine/godot-builds
-          version: 4.8-beta1
+          version: ${{ needs.init-release.outputs.godot_version }}
           enable_cache: true
+      - name: Configure Godot Executable (macOS)
+        shell: bash
+        run: |
+          GODOT_VER="${{ needs.init-release.outputs.godot_version }}"
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
+          if [ -n "$GODOT4" ] && [ -f "$GODOT4" ]; then
+            cp "$GODOT4" ./godot
+            chmod +x ./godot
+          elif [ -n "$GODOT4_BIN" ] && [ -f "$GODOT4_BIN" ]; then
+            cp "$GODOT4_BIN" ./godot
+            chmod +x ./godot
+          elif command -v godot >/dev/null 2>&1; then
+            cp "$(command -v godot)" ./godot
+            chmod +x ./godot
+          else
+            MAC_ARCH="$(uname -m)"
+            [ "$MAC_ARCH" != "arm64" ] && [ "$MAC_ARCH" != "x86_64" ] && MAC_ARCH="arm64"
+            echo "Fallback: Downloading Godot ${GODOT_VER} macos (${MAC_ARCH})..."
+            for SUFFIX in "macos.${MAC_ARCH}.zip" "macos.arm64.zip" "macos.universal.zip" "macos.x86_64.zip"; do
+              if curl -fsSL "https://github.com/sol-vin/lapis/releases/download/${GODOT_VER}/Godot_v${GODOT_VER}_${SUFFIX}" -o godot.zip || \
+                 curl -fsSL "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VER}/Godot_v${GODOT_VER}_${SUFFIX}" -o godot.zip; then
+                [ -s godot.zip ] && break
+              fi
+            done
+            unzip -q -o godot.zip
+            if [ -d "Godot.app" ]; then
+              xattr -dr com.apple.quarantine "Godot.app" 2>/dev/null || true
+              codesign --force --deep --sign - "Godot.app" 2>/dev/null || true
+              printf '#!/usr/bin/env bash\nexec "%s" "$@"\n' "$(pwd)/Godot.app/Contents/MacOS/Godot" > ./godot
+            else
+              app_bin=$(find . -maxdepth 4 -name "Godot" -perm +111 -type f 2>/dev/null | head -n 1)
+              [ -n "$app_bin" ] && cp "$app_bin" ./godot || true
+            fi
+            chmod +x ./godot 2>/dev/null || true
+            rm -f godot.zip
+          fi
+          echo "$(pwd)" >> "$GITHUB_PATH"
+          ./godot --version || true
       - name: Ensure Lapis CLI & Bridge
         shell: bash
         run: |
-          shards install || true
+          GODOT_VER="${{ needs.init-release.outputs.godot_version }}"
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
+          shards install --skip-postinstall || shards install || true
+          if [ ! -f "lib/lapis/src/lapis.cr" ]; then
+            rm -rf lib/lapis && mkdir -p lib
+            git clone --depth 1 --branch "$GODOT_VER" https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 --branch 4.8-beta1 https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 https://github.com/sol-vin/lapis.git lib/lapis
+            (cd lib/lapis && (shards install --skip-postinstall || shards install || true))
+            [ -d "lib/lapis/lib" ] && (cp -rn lib/lapis/lib/* lib/ 2>/dev/null || cp -r lib/lapis/lib/* lib/ 2>/dev/null || true)
+            shards install --skip-postinstall || shards install || true
+          fi
           mkdir -p tools_bin
           if [ ! -f "tools_bin/lapis" ]; then
             echo "Fetching standalone Lapis CLI and bridge for macOS..."
-            wget -q https://github.com/sol-vin/lapis/releases/latest/download/lapis-macos.zip -O lapis.zip 2>/dev/null || true
+            curl -fsSL "https://github.com/sol-vin/lapis/releases/download/${GODOT_VER}/lapis-macos.zip" -o lapis.zip 2>/dev/null || \
+            curl -fsSL "https://github.com/sol-vin/lapis/releases/latest/download/lapis-macos.zip" -o lapis.zip 2>/dev/null || true
             if [ -f "lapis.zip" ] && [ -s "lapis.zip" ]; then
-              unzip -q lapis.zip -d tools_bin/
+              unzip -q -o lapis.zip -d tools_bin/
               chmod +x tools_bin/lapis
+              rm -f lapis.zip
             elif [ -f "lib/lapis/tools/lapis/src/lapis.cr" ]; then
               crystal build lib/lapis/tools/lapis/src/lapis.cr -o tools_bin/lapis
             fi
@@ -335,7 +444,6 @@ jobs:
       - name: Build Game Binary (Release)
         shell: bash
         run: |
-          shards install || true
           GAME_NAME="${{ needs.init-release.outputs.game_name }}"
           if [ -z "$GAME_NAME" ]; then GAME_NAME="game"; fi
           echo "Building and packaging standalone playable game $GAME_NAME for macOS with embedded PCK..."
@@ -351,7 +459,7 @@ jobs:
 
   build-core-windows:
     name: Build Core Engine (Windows)
-    needs: [fast-specs-windows]
+    needs: [init-release, fast-specs-windows]
     runs-on: windows-latest
     timeout-minutes: 15
     steps:
@@ -362,15 +470,17 @@ jobs:
         with:
           crystal: 1.21.0
       - name: Setup Godot Engine
+        continue-on-error: true
         uses: appsinacup/action_setup_godot@main
         with:
           repo: godotengine/godot-builds
-          version: 4.8-beta1
+          version: ${{ needs.init-release.outputs.godot_version }}
           enable_cache: true
       - name: Configure Godot Executable (Windows)
         shell: pwsh
         run: |
-          # 1. Search for actual Godot GUI executable (>10MB, excluding console wrapper)
+          $godotVer = "${{ needs.init-release.outputs.godot_version }}"
+          if (-not $godotVer) { $godotVer = "4.8-beta1" }
           $godotCandidate = Get-ChildItem -Path . -Recurse -Filter "*.exe" -ErrorAction SilentlyContinue |
             Where-Object { $_.Name -like "*godot*" -and $_.Name -notlike "*_console*" -and $_.Name -notlike "*.console*" -and $_.Length -gt 10MB } |
             Select-Object -First 1
@@ -386,6 +496,15 @@ jobs:
             $mainCand2 = $cand2 -replace '(_console|\.console)\.exe$', '.exe'
             if (Test-Path $mainCand2) { $godotCandidate = Get-Item $mainCand2 }
             elseif (Test-Path $cand2) { $godotCandidate = Get-Item $cand2 }
+          }
+
+          if (-not $godotCandidate) {
+            Write-Host "Fallback: Downloading Godot $godotVer win64..."
+            $zipUrl = "https://github.com/godotengine/godot-builds/releases/download/$godotVer/Godot_v${godotVer}_win64.exe.zip"
+            Invoke-WebRequest -Uri $zipUrl -OutFile "godot.zip"
+            Expand-Archive -Path "godot.zip" -DestinationPath "." -Force
+            $godotCandidate = Get-ChildItem -Path "." -Filter "Godot_v*_win64.exe" | Where-Object { $_.Name -notmatch "console" } | Select-Object -First 1
+            Remove-Item "godot.zip" -Force -ErrorAction SilentlyContinue
           }
 
           if ($godotCandidate) {
@@ -404,10 +523,25 @@ jobs:
           $currPath = (Get-Location).Path
           $currPath | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
 
+      - name: Stage Lapis Engine (Windows)
+        shell: bash
+        run: |
+          GODOT_VER="${{ needs.init-release.outputs.godot_version }}"
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
+          shards install --skip-postinstall || shards install || true
+          if [ ! -f "lib/lapis/src/lapis.cr" ]; then
+            rm -rf lib/lapis && mkdir -p lib
+            git clone --depth 1 --branch "$GODOT_VER" https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 --branch 4.8-beta1 https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 https://github.com/sol-vin/lapis.git lib/lapis
+            (cd lib/lapis && (shards install --skip-postinstall || shards install || true))
+            [ -d "lib/lapis/lib" ] && (cp -rn lib/lapis/lib/* lib/ 2>/dev/null || cp -r lib/lapis/lib/* lib/ 2>/dev/null || true)
+            shards install --skip-postinstall || shards install || true
+          fi
+
       - name: Ensure Lapis CLI & Bridge
         shell: pwsh
         run: |
-          shards install
           if (-not (Test-Path "tools_bin")) { New-Item -ItemType Directory -Path "tools_bin" -Force }
           if (-not (Test-Path "tools_bin/lapis.exe")) {
             Write-Host "Fetching standalone Lapis CLI for Windows..."
@@ -433,7 +567,6 @@ jobs:
       - name: Build Game Binary (Release)
         shell: pwsh
         run: |
-          shards install
           $gameName = "${{ needs.init-release.outputs.game_name }}"
           if (-not $gameName) { $gameName = "game" }
           Write-Host "Building and packaging standalone playable game $gameName for Windows with embedded PCK..."
@@ -470,8 +603,20 @@ jobs:
         with:
           crystal: 1.21.0
       - name: Run Test Suites
+        shell: bash
         run: |
-          shards install || true
+          GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml 2>/dev/null | tr -d '\r\n[:space:]')
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
+          shards install --skip-postinstall || shards install || true
+          if [ ! -f "lib/lapis/src/lapis.cr" ]; then
+            rm -rf lib/lapis && mkdir -p lib
+            git clone --depth 1 --branch "$GODOT_VER" https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 --branch 4.8-beta1 https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 https://github.com/sol-vin/lapis.git lib/lapis
+            (cd lib/lapis && (shards install --skip-postinstall || shards install || true))
+            [ -d "lib/lapis/lib" ] && (cp -rn lib/lapis/lib/* lib/ 2>/dev/null || cp -r lib/lapis/lib/* lib/ 2>/dev/null || true)
+            shards install --skip-postinstall || shards install || true
+          fi
           crystal spec
 
   test-engine-macos:
@@ -492,8 +637,20 @@ jobs:
         with:
           crystal: 1.21.0
       - name: Run Test Suites
+        shell: bash
         run: |
-          shards install || true
+          GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml 2>/dev/null | tr -d '\r\n[:space:]')
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
+          shards install --skip-postinstall || shards install || true
+          if [ ! -f "lib/lapis/src/lapis.cr" ]; then
+            rm -rf lib/lapis && mkdir -p lib
+            git clone --depth 1 --branch "$GODOT_VER" https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 --branch 4.8-beta1 https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 https://github.com/sol-vin/lapis.git lib/lapis
+            (cd lib/lapis && (shards install --skip-postinstall || shards install || true))
+            [ -d "lib/lapis/lib" ] && (cp -rn lib/lapis/lib/* lib/ 2>/dev/null || cp -r lib/lapis/lib/* lib/ 2>/dev/null || true)
+            shards install --skip-postinstall || shards install || true
+          fi
           crystal spec
 
   test-engine-windows:
@@ -513,10 +670,24 @@ jobs:
         uses: crystal-lang/install-crystal@v1
         with:
           crystal: 1.21.0
+      - name: Stage Lapis Engine (Windows)
+        shell: bash
+        run: |
+          GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' godot-version.yml 2>/dev/null | tr -d '\r\n[:space:]')
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
+          shards install --skip-postinstall || shards install || true
+          if [ ! -f "lib/lapis/src/lapis.cr" ]; then
+            rm -rf lib/lapis && mkdir -p lib
+            git clone --depth 1 --branch "$GODOT_VER" https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 --branch 4.8-beta1 https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 https://github.com/sol-vin/lapis.git lib/lapis
+            (cd lib/lapis && (shards install --skip-postinstall || shards install || true))
+            [ -d "lib/lapis/lib" ] && (cp -rn lib/lapis/lib/* lib/ 2>/dev/null || cp -r lib/lapis/lib/* lib/ 2>/dev/null || true)
+            shards install --skip-postinstall || shards install || true
+          fi
       - name: Run Test Suites
         shell: pwsh
         run: |
-          shards install
           crystal spec
 
   build-consumers-linux:
@@ -1012,7 +1183,18 @@ jobs:
         shell: bash
         run: |
           mkdir -p bin
-          shards update lapis || shards install || true
+          GODOT_VER="${{ needs.init-release.outputs.godot_version }}"
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
+          shards install --skip-postinstall || shards install || true
+          if [ ! -f "lib/lapis/src/lapis.cr" ]; then
+            rm -rf lib/lapis && mkdir -p lib
+            git clone --depth 1 --branch "$GODOT_VER" https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 --branch 4.8-beta1 https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 https://github.com/sol-vin/lapis.git lib/lapis
+            (cd lib/lapis && (shards install --skip-postinstall || shards install || true))
+            [ -d "lib/lapis/lib" ] && (cp -rn lib/lapis/lib/* lib/ 2>/dev/null || cp -r lib/lapis/lib/* lib/ 2>/dev/null || true)
+            shards install --skip-postinstall || shards install || true
+          fi
           if [ -d "lib/lapis/tools/lapis/src" ]; then
             echo "Building Lapis CLI from shard..."
             crystal build lib/lapis/tools/lapis/src/lapis.cr -o bin/lapis --release -O3 --no-debug || \
@@ -1020,7 +1202,7 @@ jobs:
           fi
           if [ ! -f "bin/lapis" ]; then
             echo "Downloading Lapis CLI release binary..."
-            curl -fsSL "https://github.com/sol-vin/lapis/releases/download/4.8-beta1/lapis-linux-x86_64.tar.gz" -o lapis.tar.gz 2>/dev/null || \
+            curl -fsSL "https://github.com/sol-vin/lapis/releases/download/${GODOT_VER}/lapis-linux-x86_64.tar.gz" -o lapis.tar.gz 2>/dev/null || \
             curl -fsSL "https://github.com/sol-vin/lapis/releases/latest/download/lapis-linux-x86_64.tar.gz" -o lapis.tar.gz 2>/dev/null || true
             if [ -f "lapis.tar.gz" ] && [ -s "lapis.tar.gz" ]; then
               tar -xzf lapis.tar.gz -C bin/ 2>/dev/null || true

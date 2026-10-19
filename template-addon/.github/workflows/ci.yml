@@ -39,20 +39,6 @@ jobs:
           restore-keys: |
             crystal-cache-${{ runner.os }}-
 
-      - name: Install Linux Build Dependencies
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y lld make libgc-dev
-
-      - name: Verify Toolchain
-        run: |
-          crystal -v
-
-      - name: Install Shards Dependencies
-        run: |
-          shards install || true
-
       - name: Resolve Godot Engine Version
         id: godot-meta
         shell: bash
@@ -65,11 +51,89 @@ jobs:
           echo "godot_version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "Resolved Godot Engine Version: $GODOT_VER"
 
+      - name: Install System Build Dependencies
+        shell: bash
+        run: |
+          NEEDS_VLC="false"
+          if [ -d "ext/libvlc" ] || grep -qiE "emerald|libvlc" shard.yml addons/*/*.gdextension 2>/dev/null; then
+            NEEDS_VLC="true"
+          fi
+          if [ "${{ runner.os }}" = "Linux" ]; then
+            sudo apt-get update
+            PKGS="lld make g++ libgc-dev wget unzip curl"
+            [ "$NEEDS_VLC" = "true" ] && PKGS="$PKGS libvlc-dev vlc"
+            sudo apt-get install -y $PKGS
+          elif [ "${{ runner.os }}" = "macOS" ] && [ "$NEEDS_VLC" = "true" ]; then
+            brew install --cask vlc || true
+            VLC_LIB=$(find /Applications/VLC.app -name "libvlc*.dylib" 2>/dev/null | head -n 1)
+            if [ -n "$VLC_LIB" ]; then
+              VLC_DIR=$(dirname "$VLC_LIB")
+              sudo mkdir -p /usr/local/lib /opt/homebrew/lib
+              sudo ln -sf "$VLC_LIB" /usr/local/lib/libvlc.dylib
+              sudo ln -sf "$VLC_LIB" /usr/local/lib/liblibvlc.dylib
+              sudo ln -sf "$VLC_LIB" /opt/homebrew/lib/libvlc.dylib
+              sudo ln -sf "$VLC_LIB" /opt/homebrew/lib/liblibvlc.dylib
+              CORE_LIB=$(find /Applications/VLC.app -name "libvlccore*.dylib" 2>/dev/null | head -n 1)
+              if [ -n "$CORE_LIB" ]; then
+                sudo ln -sf "$CORE_LIB" /usr/local/lib/libvlccore.dylib
+                sudo ln -sf "$CORE_LIB" /opt/homebrew/lib/libvlccore.dylib
+              fi
+              [ ! -f "$VLC_DIR/libvlc.dylib" ] && sudo ln -sf "$VLC_LIB" "$VLC_DIR/libvlc.dylib" 2>/dev/null || true
+              [ ! -f "$VLC_DIR/liblibvlc.dylib" ] && sudo ln -sf "$VLC_LIB" "$VLC_DIR/liblibvlc.dylib" 2>/dev/null || true
+              echo "CRYSTAL_LIBRARY_PATH=$VLC_DIR:/opt/homebrew/lib:/usr/local/lib" >> "$GITHUB_ENV"
+              echo "DYLD_FALLBACK_LIBRARY_PATH=$VLC_DIR:/opt/homebrew/lib:/usr/local/lib" >> "$GITHUB_ENV"
+            fi
+          fi
+
+      - name: Install Windows Build Dependencies
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $needsVlc = (Test-Path "ext/libvlc") -or ((Test-Path "shard.yml") -and ((Get-Content "shard.yml" -Raw) -match "emerald|libvlc"))
+          if ($needsVlc) {
+            if (-not (Test-Path "C:\Program Files\VideoLAN\VLC\libvlc.dll")) {
+              for ($attempt = 1; $attempt -le 2; $attempt++) {
+                choco install vlc -y --no-progress
+                if (Test-Path "C:\Program Files\VideoLAN\VLC\libvlc.dll") { break }
+                Start-Sleep -Seconds 2
+              }
+            }
+            if (Test-Path "ext/libvlc") {
+              $vlcLib = (Resolve-Path "ext/libvlc").Path
+              "LIB=$vlcLib;$($env:LIB)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+            }
+            "C:\Program Files\VideoLAN\VLC" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+          }
+
+      - name: Verify Toolchain
+        run: |
+          crystal -v
+
+      - name: Install Shards & Stage Lapis Engine
+        shell: bash
+        run: |
+          GODOT_VER="${{ steps.godot-meta.outputs.godot_version }}"
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
+          shards install --skip-postinstall || shards install || true
+          if [ ! -f "lib/lapis/src/lapis.cr" ]; then
+            echo "Staging lib/lapis from sol-vin/lapis ($GODOT_VER)..."
+            rm -rf lib/lapis && mkdir -p lib
+            git clone --depth 1 --branch "$GODOT_VER" https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 --branch 4.8-beta1 https://github.com/sol-vin/lapis.git lib/lapis 2>/dev/null || \
+            git clone --depth 1 https://github.com/sol-vin/lapis.git lib/lapis
+            (cd lib/lapis && (shards install --skip-postinstall || shards install || true))
+            if [ -d "lib/lapis/lib" ]; then
+              cp -rn lib/lapis/lib/* lib/ 2>/dev/null || cp -r lib/lapis/lib/* lib/ 2>/dev/null || true
+            fi
+            shards install --skip-postinstall || shards install || true
+          fi
+
       - name: Run Crystal Specifications
         run: |
           crystal spec
 
       - name: Setup Godot Engine
+        continue-on-error: true
         uses: appsinacup/action_setup_godot@main
         with:
           repo: godotengine/godot-builds
@@ -81,6 +145,7 @@ jobs:
         shell: bash
         run: |
           GODOT_VER="${{ steps.godot-meta.outputs.godot_version }}"
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
           if [ -n "$GODOT4" ] && [ -f "$GODOT4" ]; then
             cp "$GODOT4" ./godot
             chmod +x ./godot
@@ -92,17 +157,31 @@ jobs:
             chmod +x ./godot
           else
             if [ "${{ runner.os }}" = "macOS" ]; then
-              echo "Fallback: Downloading Godot ${GODOT_VER} macos.universal..."
-              curl -fsSL "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VER}/Godot_v${GODOT_VER}_macos.universal.zip" -o godot.zip
-              unzip -q godot.zip
-              app_bin=$(find . -maxdepth 4 -name "Godot" -perm +111 -type f 2>/dev/null | head -n 1)
-              [ -n "$app_bin" ] && cp "$app_bin" ./godot || true
+              MAC_ARCH="$(uname -m)"
+              [ "$MAC_ARCH" != "arm64" ] && [ "$MAC_ARCH" != "x86_64" ] && MAC_ARCH="arm64"
+              echo "Fallback: Downloading Godot ${GODOT_VER} macos (${MAC_ARCH})..."
+              for SUFFIX in "macos.${MAC_ARCH}.zip" "macos.arm64.zip" "macos.universal.zip" "macos.x86_64.zip"; do
+                if curl -fsSL "https://github.com/sol-vin/lapis/releases/download/${GODOT_VER}/Godot_v${GODOT_VER}_${SUFFIX}" -o godot.zip || \
+                   curl -fsSL "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VER}/Godot_v${GODOT_VER}_${SUFFIX}" -o godot.zip; then
+                  [ -s godot.zip ] && break
+                fi
+              done
+              unzip -q -o godot.zip
+              if [ -d "Godot.app" ]; then
+                xattr -dr com.apple.quarantine "Godot.app" 2>/dev/null || true
+                codesign --force --deep --sign - "Godot.app" 2>/dev/null || true
+                printf '#!/usr/bin/env bash\nexec "%s" "$@"\n' "$(pwd)/Godot.app/Contents/MacOS/Godot" > ./godot
+              else
+                app_bin=$(find . -maxdepth 4 -name "Godot" -perm +111 -type f 2>/dev/null | head -n 1)
+                [ -n "$app_bin" ] && cp "$app_bin" ./godot || true
+              fi
               chmod +x ./godot 2>/dev/null || true
               rm -f godot.zip
             else
               echo "Fallback: Downloading Godot ${GODOT_VER} linux.x86_64..."
-              wget -q "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VER}/Godot_v${GODOT_VER}_linux.x86_64.zip" -O godot.zip
-              unzip -q godot.zip
+              curl -fsSL "https://github.com/sol-vin/lapis/releases/download/${GODOT_VER}/Godot_v${GODOT_VER}_linux.x86_64.zip" -o godot.zip || \
+              curl -fsSL "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VER}/Godot_v${GODOT_VER}_linux.x86_64.zip" -o godot.zip
+              unzip -q -o godot.zip
               found_bin=$(find . -maxdepth 2 -name "Godot_v*linux.x86_64" | head -n 1)
               [ -n "$found_bin" ] && mv "$found_bin" ./godot || mv "Godot_v${GODOT_VER}_linux.x86_64" ./godot
               chmod +x ./godot
@@ -265,21 +344,38 @@ jobs:
         if: runner.os == 'Linux' || runner.os == 'macOS'
         shell: bash
         run: |
-          make all || (
+          if [ -f "Makefile" ]; then
+            make all || true
+          fi
+          ADDON_NAME=$(awk '/^name:/ {print $2}' shard.yml 2>/dev/null | tr -d ' "\r\n')
+          if [ -z "$ADDON_NAME" ]; then ADDON_NAME="crystal_addon"; fi
+          SO_EXT="${{ runner.os == 'macOS' && 'dylib' || 'so' }}"
+          LINK_FLAG="${{ runner.os == 'macOS' && '-dynamiclib' || '-shared' }}"
+          if [ ! -f "addons/${ADDON_NAME}/bin/game.${SO_EXT}" ]; then
             echo "Fallback direct compilation..."
-            ADDON_NAME=$(awk '/^name:/ {print $2}' shard.yml 2>/dev/null | tr -d ' "\r\n')
-            if [ -z "$ADDON_NAME" ]; then ADDON_NAME="crystal_addon"; fi
-            SO_EXT="${{ runner.os == 'macOS' && 'dylib' || 'so' }}"
-            LINK_FLAG="${{ runner.os == 'macOS' && '-dynamiclib' || '-shared' }}"
             mkdir -p "addons/${ADDON_NAME}/bin"
             crystal build src/main.cr -o "addons/${ADDON_NAME}/bin/game.${SO_EXT}" --link-flags "${LINK_FLAG}" -Dlibgodot_addon
-          )
+          fi
 
       - name: Build Addon Project (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          make all
+          $addonName = "crystal_addon"
+          if (Test-Path "shard.yml") {
+            $content = Get-Content "shard.yml" -Raw
+            if ($content -match 'name:\s*[''"]?([^''"\r\n]+)[''"]?') {
+              $addonName = $matches[1].Trim()
+            }
+          }
+          if (Test-Path "Makefile") {
+            try { make all } catch { Write-Host "Make fallback: $_" }
+          }
+          if (-not (Test-Path "addons/$addonName/bin/game.dll")) {
+            New-Item -ItemType Directory -Path "addons/$addonName/bin" -Force | Out-Null
+            crystal build src/main.cr -o "addons/$addonName/bin/game.dll" --link-flags "/DLL /ENTRY:_DllMainCRTStartup /EXPORT:crystal_godot_init" -Dlibgodot_addon
+            if (Test-Path "bin/lapis.exe") { ./bin/lapis.exe deps -t "addons/$addonName/bin" }
+          }
 
       - name: Run Godot Headless Smoke Test (Linux & macOS)
         if: runner.os == 'Linux' || runner.os == 'macOS'

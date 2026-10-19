@@ -79,7 +79,8 @@ HELP
             Compress::Zip::Reader.open(f) do |zip|
               zip.each_entry do |entry|
                 name = entry.filename
-                if name.ends_with?(".exe") || (!Core::Env.windows? && !name.includes?("."))
+                next if name.ends_with?("/") || name.ends_with?("\\")
+                if name.ends_with?(".exe") || name.ends_with?("/Contents/MacOS/Godot") || (!Core::Env.windows? && !name.includes?("."))
                   next if name.includes?("console")
                   File.open(dest_exe, "w") do |out_io|
                     IO.copy(entry.io, out_io)
@@ -94,6 +95,28 @@ HELP
         ensure
           File.delete(zip_temp) if File.exists?(zip_temp)
         end
+      end
+
+      def self.platform_suffixes : Array(String)
+        if Core::Env.windows?
+          ["win64.exe.zip"]
+        elsif Core::Env.macos?
+          {% if flag?(:aarch64) %}
+            ["macos.arm64.zip", "macos.universal.zip", "macos.x86_64.zip"]
+          {% else %}
+            ["macos.x86_64.zip", "macos.universal.zip", "macos.arm64.zip"]
+          {% end %}
+        else
+          ["linux.x86_64.zip"]
+        end
+      end
+
+      def self.download_godot_for_version(target_version : String, dest_exe : Path) : Bool
+        platform_suffixes.each do |suffix|
+          url = "https://github.com/godotengine/godot-builds/releases/download/#{target_version}/Godot_v#{target_version}_#{suffix}"
+          return true if download_and_extract(url, dest_exe)
+        end
+        false
       end
 
       def self.download_to_file(url : String, dest_file : Path, max_retries : Int32 = 3) : Bool
@@ -415,16 +438,7 @@ HELP
         if File.exists?(dest_exe) && !force
           Core::Logger.info("Godot binary already exists at #{dest_exe}. Use --force to re-download.")
         else
-          platform_suffix = if Core::Env.windows?
-                              "win64.exe.zip"
-                            elsif Core::Env.macos?
-                              "macos.universal.zip"
-                            else
-                              "linux.x86_64.zip"
-                            end
-
-          url = "https://github.com/godotengine/godot-builds/releases/download/#{target_version}/Godot_v#{target_version}_#{platform_suffix}"
-          success = download_and_extract(url, dest_exe)
+          success = download_godot_for_version(target_version, dest_exe)
           unless success
             Core::Logger.error("Failed to download Godot binary for version #{target_version}")
             return 1

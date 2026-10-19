@@ -593,13 +593,23 @@ jobs:
           fi
 
           if [ -z "$GODOT_EXEC" ]; then
-            echo "Fallback: Downloading Godot ${GODOT_VERSION} macos.universal..."
-            if ! curl -fsSL "https://github.com/sol-vin/lapis/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_macos.universal.zip" -o godot.zip; then
-              curl -fsSL "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_macos.universal.zip" -o godot.zip
-            fi
+            MAC_ARCH="$(uname -m)"
+            [ "$MAC_ARCH" != "arm64" ] && [ "$MAC_ARCH" != "x86_64" ] && MAC_ARCH="arm64"
+            echo "Fallback: Downloading Godot ${GODOT_VERSION} macos (${MAC_ARCH})..."
+            for SUFFIX in "macos.${MAC_ARCH}.zip" "macos.arm64.zip" "macos.universal.zip" "macos.x86_64.zip"; do
+              if curl -fsSL "https://github.com/sol-vin/lapis/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_${SUFFIX}" -o godot.zip || \
+                 curl -fsSL "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_${SUFFIX}" -o godot.zip; then
+                if [ -s godot.zip ]; then
+                  echo "Downloaded Godot_v${GODOT_VERSION}_${SUFFIX}"
+                  break
+                fi
+              fi
+            done
             unzip -q godot.zip
             if [ -d "Godot.app" ]; then
               GODOT_EXEC="$(pwd)/Godot.app/Contents/MacOS/Godot"
+            elif [ -f "Godot_v${GODOT_VERSION}_macos.${MAC_ARCH}" ]; then
+              GODOT_EXEC="$(pwd)/Godot_v${GODOT_VERSION}_macos.${MAC_ARCH}"
             elif [ -f "Godot_v${GODOT_VERSION}_macos.universal" ]; then
               GODOT_EXEC="$(pwd)/Godot_v${GODOT_VERSION}_macos.universal"
             elif [ -f "godot.macos.editor.universal" ]; then
@@ -1186,13 +1196,23 @@ jobs:
           fi
 
           if [ -z "$GODOT_EXEC" ]; then
-            echo "Fallback: Downloading Godot ${GODOT_VERSION} macos.universal..."
-            if ! curl -fsSL "https://github.com/sol-vin/lapis/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_macos.universal.zip" -o godot.zip; then
-              curl -fsSL "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_macos.universal.zip" -o godot.zip
-            fi
+            MAC_ARCH="$(uname -m)"
+            [ "$MAC_ARCH" != "arm64" ] && [ "$MAC_ARCH" != "x86_64" ] && MAC_ARCH="arm64"
+            echo "Fallback: Downloading Godot ${GODOT_VERSION} macos (${MAC_ARCH})..."
+            for SUFFIX in "macos.${MAC_ARCH}.zip" "macos.arm64.zip" "macos.universal.zip" "macos.x86_64.zip"; do
+              if curl -fsSL "https://github.com/sol-vin/lapis/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_${SUFFIX}" -o godot.zip || \
+                 curl -fsSL "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_${SUFFIX}" -o godot.zip; then
+                if [ -s godot.zip ]; then
+                  echo "Downloaded Godot_v${GODOT_VERSION}_${SUFFIX}"
+                  break
+                fi
+              fi
+            done
             unzip -q godot.zip
             if [ -d "Godot.app" ]; then
               GODOT_EXEC="$(pwd)/Godot.app/Contents/MacOS/Godot"
+            elif [ -f "Godot_v${GODOT_VERSION}_macos.${MAC_ARCH}" ]; then
+              GODOT_EXEC="$(pwd)/Godot_v${GODOT_VERSION}_macos.${MAC_ARCH}"
             elif [ -f "Godot_v${GODOT_VERSION}_macos.universal" ]; then
               GODOT_EXEC="$(pwd)/Godot_v${GODOT_VERSION}_macos.universal"
             elif [ -f "godot.macos.editor.universal" ]; then
@@ -1675,13 +1695,23 @@ jobs:
           fi
 
           if [ -z "$GODOT_EXEC" ]; then
-            echo "Fallback: Downloading Godot ${GODOT_VERSION} macos.universal..."
-            if ! curl -fsSL "https://github.com/sol-vin/lapis/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_macos.universal.zip" -o godot.zip; then
-              curl -fsSL "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_macos.universal.zip" -o godot.zip
-            fi
+            MAC_ARCH="$(uname -m)"
+            [ "$MAC_ARCH" != "arm64" ] && [ "$MAC_ARCH" != "x86_64" ] && MAC_ARCH="arm64"
+            echo "Fallback: Downloading Godot ${GODOT_VERSION} macos (${MAC_ARCH})..."
+            for SUFFIX in "macos.${MAC_ARCH}.zip" "macos.arm64.zip" "macos.universal.zip" "macos.x86_64.zip"; do
+              if curl -fsSL "https://github.com/sol-vin/lapis/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_${SUFFIX}" -o godot.zip || \
+                 curl -fsSL "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_${SUFFIX}" -o godot.zip; then
+                if [ -s godot.zip ]; then
+                  echo "Downloaded Godot_v${GODOT_VERSION}_${SUFFIX}"
+                  break
+                fi
+              fi
+            done
             unzip -q godot.zip
             if [ -d "Godot.app" ]; then
               GODOT_EXEC="$(pwd)/Godot.app/Contents/MacOS/Godot"
+            elif [ -f "Godot_v${GODOT_VERSION}_macos.${MAC_ARCH}" ]; then
+              GODOT_EXEC="$(pwd)/Godot_v${GODOT_VERSION}_macos.${MAC_ARCH}"
             elif [ -f "Godot_v${GODOT_VERSION}_macos.universal" ]; then
               GODOT_EXEC="$(pwd)/Godot_v${GODOT_VERSION}_macos.universal"
             elif [ -f "godot.macos.editor.universal" ]; then

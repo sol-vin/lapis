@@ -314,17 +314,9 @@ MD
             Core::Logger.info("Godot binary already exists at #{godot_dest}")
           else
             target_ver = Commands::Setup.resolve_version(dest, nil)
-            platform_suffix = if Core::Env.windows?
-                                "win64.exe.zip"
-                              elsif Core::Env.macos?
-                                "macos.universal.zip"
-                              else
-                                "linux.x86_64.zip"
-                              end
-            url = "https://github.com/godotengine/godot-builds/releases/download/#{target_ver}/Godot_v#{target_ver}_#{platform_suffix}"
             begin
               Core::Logger.step("Scaffold", "Downloading Godot engine (#{target_ver}) to #{godot_dest.basename}...")
-              success = Commands::Setup.download_and_extract(url, godot_dest)
+              success = Commands::Setup.download_godot_for_version(target_ver, godot_dest)
               if success && File.exists?(godot_dest)
                 Core::Logger.success("Installed Godot engine binary at #{godot_dest}!")
               else
