@@ -685,7 +685,7 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
                 snprintf(rel_plugin_path, sizeof(rel_plugin_path), "%s%s..%s..%s..%sbin%splugin.%s",
                          bridge_dir, path_sep, path_sep, path_sep, path_sep, path_sep, shadow_ext);
                 if (bridge_file_exists(rel_plugin_path)) {
-                    to_load.push_back(std::string(rel_plugin_path));
+                    to_load.insert(to_load.begin(), std::string(rel_plugin_path));
                 }
             }
         }
@@ -718,42 +718,42 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
     if (is_crystal_integration && (!loaded_game_or_addon || (is_editor_active() && !loaded_plugin))) {
 #ifdef _WIN32
         const char *fallbacks[] = {
-            "bin/game.dll",
-            "game.dll",
             "bin/plugin.dll",
             "plugin.dll",
-            "template/bin/game.dll",
             "addons/crystal_integration/bin/plugin.dll",
+            "bin/game.dll",
+            "game.dll",
+            "template/bin/game.dll",
             "addons/crystal_integration/bin/game.dll"
         };
 #elif defined(__ANDROID__) || defined(ANDROID)
         const char *fallbacks[] = {
+            "libplugin.so",
             "bin/android/arm64-v8a/libgame.so",
             "libgame.so",
             "game.so",
-            "addons/crystal_integration/bin/android/arm64-v8a/libgame.so",
-            "libplugin.so"
+            "addons/crystal_integration/bin/android/arm64-v8a/libgame.so"
         };
 #elif defined(__APPLE__)
         const char *fallbacks[] = {
-            "bin/game.dylib",
-            "game.dylib",
             "bin/plugin.dylib",
             "plugin.dylib",
+            "addons/crystal_integration/bin/plugin.dylib",
+            "bin/game.dylib",
+            "game.dylib",
             "bin/libgame.dylib",
             "libgame.dylib",
             "template/bin/game.dylib",
-            "addons/crystal_integration/bin/plugin.dylib",
             "addons/crystal_integration/bin/game.dylib"
         };
 #else
         const char *fallbacks[] = {
-            "bin/game.so",
-            "game.so",
             "bin/plugin.so",
             "plugin.so",
-            "template/bin/game.so",
             "addons/crystal_integration/bin/plugin.so",
+            "bin/game.so",
+            "game.so",
+            "template/bin/game.so",
             "addons/crystal_integration/bin/game.so"
         };
 #endif
@@ -769,11 +769,12 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
                 continue;
             }
             if (bridge_file_exists(fallbacks[i])) {
-                to_load.push_back(std::string(fallbacks[i]));
-                if (!is_plugin) {
-                    loaded_game_or_addon = true;
-                } else {
+                if (is_plugin) {
+                    to_load.insert(to_load.begin(), std::string(fallbacks[i]));
                     loaded_plugin = true;
+                } else {
+                    to_load.push_back(std::string(fallbacks[i]));
+                    loaded_game_or_addon = true;
                 }
             }
         }

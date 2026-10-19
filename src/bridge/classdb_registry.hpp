@@ -486,7 +486,7 @@ inline int bridge_register_class(const CrystalClassDesc *p_desc) {
     if (!p_desc || !p_desc->name || !g_library) return 0;
 
     std::string cname = p_desc->name;
-    if (g_classes_registered_in_current_cycle.count(cname) > 0) {
+    if (!s_loading_plugin_module && g_classes_registered_in_current_cycle.count(cname) > 0) {
         return 1;
     }
 
@@ -498,6 +498,27 @@ inline int bridge_register_class(const CrystalClassDesc *p_desc) {
         // Preserve classes owned by plugin.dll so game.dll never overwrites live editor plugin/language callbacks
         if (!s_loading_plugin_module && pcd->owned_by_plugin) {
             g_classes_registered_in_current_cycle.insert(cname);
+            if (!pcd->is_registered_in_classdb) {
+                if (is_editor_class(&pcd->desc)) {
+                    if (!is_editor_active()) {
+                        return 1;
+                    }
+                    if (g_current_init_level < GDEXTENSION_INITIALIZATION_EDITOR && pcd->desc.parent_name && !is_class_registered_in_engine(pcd->desc.parent_name)) {
+                        bool already_deferred = false;
+                        for (const auto &dep : g_deferred_editor_classes) {
+                            if (dep.second && dep.second->name && strcmp(dep.second->name, pcd->desc.name) == 0) {
+                                already_deferred = true;
+                                break;
+                            }
+                        }
+                        if (!already_deferred) {
+                            g_deferred_editor_classes.push_back({g_library, &pcd->desc});
+                        }
+                        return 1;
+                    }
+                }
+                do_classdb_register(&pcd->desc);
+            }
             return 1;
         }
         // Prevent secondary GDExtension libraries from overwriting or re-registering members on an already registered class
@@ -596,3 +617,28 @@ inline void register_deferred_editor_classes() {
         g_deferred_editor_classes.clear();
     }
 }
+
+/**
+ * Ensures that if `name` is a known persistent extension class, it is registered in ClassDB
+ * before attempting construction via `gd_classdb_construct_object`.
+ */
+inline bool ensure_persistent_class_registered(const char *name) {
+    if (!name) return false;
+    auto it = g_persistent_class_descs.find(name);
+    if (it != g_persistent_class_descs.end() && it->second) {
+        PersistentClassDesc *pcd = it->second;
+        if (!pcd->is_registered_in_classdb && g_library) {
+            if (is_editor_class(&pcd->desc) && !is_editor_active()) {
+                return false;
+            }
+            if (is_editor_class(&pcd->desc) && g_current_init_level < GDEXTENSION_INITIALIZATION_EDITOR &&
+                pcd->desc.parent_name && !is_class_registered_in_engine(pcd->desc.parent_name)) {
+                return false;
+            }
+            do_classdb_register(&pcd->desc);
+        }
+        return pcd->is_registered_in_classdb;
+    }
+    return true;
+}
+

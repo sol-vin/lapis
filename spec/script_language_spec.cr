@@ -87,6 +87,81 @@ describe "Crystal Script Language & LSP Intelligence (Ring 1 Specs)" do
       res.valid?.should be_true
       res.errors.should be_empty
     end
+
+    it "validates Crystal macro control blocks ({% unless %}, {% if %}, {% for %}, {% end %}) without false 'end' errors" do
+      code = <<-CRYSTAL
+      require "lapis"
+
+      {% unless flag?(:release) %}
+        require "../spec/editor/**"
+      {% end %}
+
+      node MacroNode < Node do
+        def check : Void
+          {% if flag?(:win32) %}
+            Godot.print("Windows")
+          {% elsif flag?(:darwin) %}
+            Godot.print("macOS")
+          {% else %}
+            Godot.print("Linux")
+          {% end %}
+          {% for name in ["a", "b"] %}
+            Godot.print({{ name }})
+          {% end %}
+        end
+      end
+      CRYSTAL
+
+      res = Lapis::CrystalValidator.validate(code)
+      res.valid?.should be_true
+      res.errors.should be_empty
+    end
+
+    it "detects unmatched {% end %} and unclosed {% ... %} macro blocks" do
+      stray_macro_end = <<-CRYSTAL
+      require "lapis"
+      {% end %}
+      CRYSTAL
+
+      res1 = Lapis::CrystalValidator.validate(stray_macro_end)
+      res1.valid?.should be_false
+      res1.errors.any? { |e| e.message.includes?("Unexpected '{% end %}'") }.should be_true
+
+      unclosed_macro_block = <<-CRYSTAL
+      {% unless flag?(:release) %}
+        require "../spec/editor/**"
+      CRYSTAL
+
+      res2 = Lapis::CrystalValidator.validate(unclosed_macro_block)
+      res2.valid?.should be_false
+      res2.errors.any? { |e| e.message.includes?("missing '{% end %}'") }.should be_true
+    end
+
+    it "handles regex literals with quotes/brackets and percent string literals %(...)" do
+      complex_code = <<-CRYSTAL
+      node FacesSpritesheetBuilder < Node do
+        def self.normalize_face_svg(svg_content : String) : String
+          svg_content.gsub(/<path\\b([^>]*?)\\bopacity="[^"]*"([^>]*?)\\/>/) do |_match|
+            attrs = "\#{$1}\#{$2}"
+            if attrs.includes?("fill=")
+              attrs = attrs.gsub(/\\bfill="[^"]*"/, %(fill="#ffffff"))
+            else
+              attrs = %( fill="#ffffff"\#{attrs})
+            end
+            "<path \#{attrs}/>"
+          end
+        end
+
+        def self.build_header(cols : Int32, rows : Int32, cell_size : Int32) : String
+          %(  <!--! Spritesheet (\#{cols}x\#{rows} grid, \#{cell_size // 2}px) -->\\n)
+        end
+      end
+      CRYSTAL
+
+      result = Lapis::CrystalValidator.validate(complex_code)
+      result.valid?.should be_true
+      result.errors.should be_empty
+    end
   end
 
   describe "CrystalLanguage Built-in Templates" do
@@ -139,6 +214,17 @@ describe "Crystal Script Language & LSP Intelligence (Ring 1 Specs)" do
       lines[4].should eq("    end")
       lines[5].should eq("  end")
       lines[6].should eq("end")
+    end
+
+    it "indents Crystal macro control blocks ({% unless %} ... {% end %})" do
+      lang = Lapis::CrystalLanguage.new
+      unindented = "{% unless flag?(:release) %}\nrequire \"../spec/editor/**\"\n{% end %}"
+      indented = lang.auto_indent_code(unindented, 0, 2)
+
+      lines = indented.split("\n")
+      lines[0].should eq("{% unless flag?(:release) %}")
+      lines[1].should eq("  require \"../spec/editor/**\"")
+      lines[2].should eq("{% end %}")
     end
   end
 

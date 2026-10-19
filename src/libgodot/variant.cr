@@ -41,6 +41,10 @@ module Godot
       new(val.to_s)
     end
 
+    def self.new(val : Enum)
+      new(val.value.to_i64)
+    end
+
     def is_nil? : Bool
       @raw.nil?
     end
@@ -288,6 +292,8 @@ module Godot
         else
           raise TypeCastError.new("Cannot cast nil Variant to #{T}")
         end
+      {% elsif T < Enum %}
+        T.from_value?(as_i64) || T.from_value?(0) || T.values.first
       {% else %}
         @raw.as(T)
       {% end %}
@@ -335,6 +341,8 @@ module Godot
         Godot::AABB.new
       {% elsif T <= Godot::Object %}
         T.new
+      {% elsif T < Enum %}
+        T.from_value?(0) || T.values.first
       {% else %}
         raise "No default constructor for #{T}"
       {% end %}

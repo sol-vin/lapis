@@ -141,7 +141,8 @@ module Godot
             \{% for ivar in @type.instance_vars %}
               \{% if ivar.annotation(::Export) %}
                 if prop_name == \{{ ivar.name.stringify }}
-                  \{% ivar_type = ivar.type.stringify.gsub(/^(::)?Godot::/, "") %}
+                  \{% non_nil_t = ivar.type.nilable? ? ivar.type.union_types.reject { |ut| ut.stringify == "Nil" || ut.stringify == "::Nil" }[0] : ivar.type %}
+                  \{% ivar_type = non_nil_t.stringify.gsub(/^(::)?Godot::/, "") %}
                   \{% if ivar_type == "Float32" %}
                     self.\{{ ivar.name.id }} = val_ptr.as(Float64*).value.to_f32
                   \{% elsif ivar_type == "Float64" %}
@@ -161,6 +162,19 @@ module Godot
                     self.\{{ ivar.name.id }} = val_ptr.as(::Godot::Vector3*).value
                   \{% elsif ivar_type == "Color" %}
                     self.\{{ ivar.name.id }} = val_ptr.as(::Godot::Color*).value
+                  \{% elsif non_nil_t < Enum %}
+                    self.\{{ ivar.name.id }} = \{{ non_nil_t }}.from_value?(val_ptr.as(Int64*).value) || self.\{{ ivar.name.id }}
+                  \{% elsif non_nil_t <= ::Godot::Object %}
+                    obj_ptr = val_ptr.as(Void**).value
+                    if obj_ptr.null?
+                      \{% if ivar.type.nilable? %}
+                        self.\{{ ivar.name.id }} = nil
+                      \{% else %}
+                        self.\{{ ivar.name.id }} = \{{ non_nil_t }}.new(Pointer(Void).null)
+                      \{% end %}
+                    else
+                      self.\{{ ivar.name.id }} = ::Godot::Bridge.find_alive_instance(obj_ptr).as?(\{{ non_nil_t }}) || \{{ non_nil_t }}.new(obj_ptr)
+                    end
                   \{% end %}
                   return
                 end
@@ -173,7 +187,8 @@ module Godot
             \{% for ivar in @type.instance_vars %}
               \{% if ivar.annotation(::Export) %}
                 if prop_name == \{{ ivar.name.stringify }}
-                  \{% ivar_type = ivar.type.stringify.gsub(/^(::)?Godot::/, "") %}
+                  \{% non_nil_t = ivar.type.nilable? ? ivar.type.union_types.reject { |ut| ut.stringify == "Nil" || ut.stringify == "::Nil" }[0] : ivar.type %}
+                  \{% ivar_type = non_nil_t.stringify.gsub(/^(::)?Godot::/, "") %}
                   \{% if ivar_type == "Float32" || ivar_type == "Float64" %}
                     ret_ptr.as(Float64*).value = self.\{{ ivar.name.id }}.to_f64
                   \{% elsif ivar_type == "Int32" || ivar_type == "Int64" %}
@@ -188,6 +203,10 @@ module Godot
                     ret_ptr.as(::Godot::Vector3*).value = self.\{{ ivar.name.id }}
                   \{% elsif ivar_type == "Color" %}
                     ret_ptr.as(::Godot::Color*).value = self.\{{ ivar.name.id }}
+                  \{% elsif non_nil_t < Enum %}
+                    ret_ptr.as(Int64*).value = self.\{{ ivar.name.id }}.try(&.to_i64) || 0_i64
+                  \{% elsif non_nil_t <= ::Godot::Object %}
+                    ret_ptr.as(Void**).value = self.\{{ ivar.name.id }}.try(&.pointer) || Pointer(Void).null
                   \{% end %}
                   return
                 end
@@ -200,9 +219,12 @@ module Godot
             props = ::Array(::Godot::PropertyInfo).new
             \{% for ivar in @type.instance_vars %}
               \{% if ivar.annotation(::Export) && !(@type.superclass && @type.superclass.instance_vars.map(&.name.stringify).includes?(ivar.name.stringify)) %}
-                \{% ivar_type = ivar.type.stringify.gsub(/^(::)?Godot::/, "") %}
+                \{% non_nil_t = ivar.type.nilable? ? ivar.type.union_types.reject { |ut| ut.stringify == "Nil" || ut.stringify == "::Nil" }[0] : ivar.type %}
+                \{% ivar_type = non_nil_t.stringify.gsub(/^(::)?Godot::/, "") %}
                 \{%
                   vtype = 0
+                  hint = 0_u32
+                  hint_str = ""
                   if ivar_type == "Bool"
                     vtype = 1
                   elsif ivar_type == "Int32" || ivar_type == "Int64"
@@ -217,14 +239,30 @@ module Godot
                     vtype = 9
                   elsif ivar_type == "Color"
                     vtype = 20
+                  elsif non_nil_t < Enum
+                    vtype = 2
+                    hint = 2_u32
+                    hint_str = non_nil_t.constants.map { |c| "#{c.id}:#{non_nil_t.constant(c).id}" }.join(",")
+                  elsif non_nil_t <= ::Godot::Object
+                    vtype = 24
+                    if ivar_type != "Object" && ivar_type != "Node" && ivar_type != "RefCounted"
+                      hint = 17_u32
+                      hint_str = ivar_type
+                    end
+                  end
+                  exp_anno = ivar.annotation(::Export)
+                  if exp_anno && exp_anno[:suffix]
+                    raw_sfx = exp_anno[:suffix].id.stringify
+                    sfx = raw_sfx.starts_with?("suffix:") ? raw_sfx : "suffix:#{raw_sfx.id}"
+                    hint_str = hint_str.empty? ? sfx : "#{hint_str.id},#{sfx.id}"
                   end
                 %}
                 props << ::Godot::PropertyInfo.new(
                   \{{ ivar.name.stringify }},
                   \{{ ivar_type }},
                   \{{ vtype }},
-                  0_u32,
-                  "",
+                  \{{ hint }},
+                  \{{ hint_str }},
                   6_u32
                 )
               \{% end %}

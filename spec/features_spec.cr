@@ -285,5 +285,158 @@ describe "LibGodot Features & Reflection" do
       btn_prop.not_nil!.hint_string.should eq("Reset")
     end
   end
+
+  describe "Object/Resource/Node Export Marshalling, Enum Signals, and Export Suffixes" do
+    it "marshals nilable and non-nilable Object, Resource, and Node properties in _godot_set_property and _godot_get_property" do
+      holder = SpecSuccExportAndSignalNode.new
+      holder.config.should be_nil
+      holder.yaw_target.should be_nil
+
+      # Verify _godot_get_property returns null pointer when nil
+      out_ptr = Pointer(Void).new(0xDEADBEEF_u64)
+      holder._godot_get_property("config", pointerof(out_ptr).as(Void*))
+      out_ptr.null?.should be_true
+
+      # Create a live badge resource and register it in Bridge's instance map
+      fake_badge_ptr = Pointer(Void).new(0x12345678_u64)
+      badge = SpecCustomBadgeResource.new(fake_badge_ptr)
+      badge.badge_id = 42
+      Godot::Bridge.register_alive_instance(fake_badge_ptr, badge)
+
+      begin
+        # Set property via _godot_set_property (simulating Godot Inspector / scene loader)
+        in_ptr = fake_badge_ptr
+        holder._godot_set_property("config", pointerof(in_ptr).as(Void*))
+        holder.config.should be(badge)
+        holder.config.not_nil!.badge_id.should eq(42)
+
+        # Get property via _godot_get_property
+        got_ptr = Pointer(Void).null
+        holder._godot_get_property("config", pointerof(got_ptr).as(Void*))
+        got_ptr.should eq(fake_badge_ptr)
+
+        # Set unmapped Node3D pointer and verify wrapper instantiation
+        raw_node3d_ptr = Pointer(Void).new(0x87654321_u64)
+        holder._godot_set_property("yaw_target", pointerof(raw_node3d_ptr).as(Void*))
+        holder.yaw_target.should_not be_nil
+        holder.yaw_target.not_nil!.pointer.should eq(raw_node3d_ptr)
+
+        # Clear nilable property with null pointer
+        null_ptr = Pointer(Void).null
+        holder._godot_set_property("config", pointerof(null_ptr).as(Void*))
+        holder.config.should be_nil
+        holder._godot_set_property("yaw_target", pointerof(null_ptr).as(Void*))
+        holder.yaw_target.should be_nil
+
+        # Also test gmodule property marshalling via included mixin
+        holder._godot_set_property("mixin_badge", pointerof(in_ptr).as(Void*))
+        holder.mixin_badge.should be(badge)
+        holder._godot_set_property("mixin_badge", pointerof(null_ptr).as(Void*))
+        holder.mixin_badge.should be_nil
+      ensure
+        Godot::Bridge.unregister_alive_instance(fake_badge_ptr)
+      end
+    end
+
+    it "registers Enum, Vector2, Vector3, Color, and Object signal argument types in SignalArgInfo" do
+      entry = Godot::ClassRegistry.find("SpecSuccExportAndSignalNode").not_nil!
+
+      sig_state = entry.signals.find { |s| s.name == "movement_state_changed" }.not_nil!
+      sig_state.args.size.should eq(2)
+      sig_state.args[0].name.should eq("old_state")
+      sig_state.args[0].variant_type.should eq(2) # INT (Enum)
+      sig_state.args[1].name.should eq("new_state")
+      sig_state.args[1].variant_type.should eq(2) # INT (Inner Enum)
+
+      sig_rich = entry.signals.find { |s| s.name == "telemetry_recorded" }.not_nil!
+      sig_rich.args.size.should eq(4)
+      sig_rich.args[0].variant_type.should eq(5)  # Vector2
+      sig_rich.args[1].variant_type.should eq(9)  # Vector3
+      sig_rich.args[2].variant_type.should eq(20) # Color
+      sig_rich.args[3].variant_type.should eq(24) # Object (Node3D)
+
+      mod_sigs = SpecSuccMixinModule._godot_module_signals
+      mod_sig = mod_sigs.find { |s| s.name == "mixin_role_changed" }.not_nil!
+      mod_sig.args[0].variant_type.should eq(2)
+      mod_sig.args[1].variant_type.should eq(24)
+    end
+
+    it "boxes and unboxes Enum values in Variant and TypedSignal" do
+      v = Godot::Variant.new(SpecCharacterRole::Rogue)
+      v.int?.should be_true
+      v.as_i64.should eq(5_i64)
+      v.as_t(SpecCharacterRole).should eq(SpecCharacterRole::Rogue)
+
+      Godot::Variant.default_for(SpecCharacterRole).should eq(SpecCharacterRole::Warrior)
+
+      holder = SpecSuccExportAndSignalNode.new
+      received = nil
+      holder.movement_state_changed.connect do |old_role, new_state|
+        received = {old_role, new_state}
+      end
+      holder.movement_state_changed.emit(SpecCharacterRole::Mage, SpecSuccExportAndSignalNode::InnerMoveState::Sprinting)
+      received.should eq({SpecCharacterRole::Mage, SpecSuccExportAndSignalNode::InnerMoveState::Sprinting})
+    end
+
+    it "supports suffix: on @[Export] and @[ExportRange] in node and gmodule" do
+      entry = Godot::ClassRegistry.find("SpecSuccExportAndSignalNode").not_nil!
+
+      vel_prop = entry.properties.find { |p| p.name == "walk_speed" }.not_nil!
+      vel_prop.hint.should eq(0_u32)
+      vel_prop.hint_string.should eq("suffix:m/s")
+
+      accel_prop = entry.properties.find { |p| p.name == "acceleration" }.not_nil!
+      accel_prop.hint.should eq(1_u32)
+      accel_prop.hint_string.should eq("0.0,100.0,0.5,suffix:m/s²")
+
+      mult_prop = entry.properties.find { |p| p.name == "sprint_multiplier" }.not_nil!
+      mult_prop.hint.should eq(1_u32)
+      mult_prop.hint_string.should eq("1.0,3.0,0.05,suffix:×")
+
+      mod_props = SpecSuccMixinModule._godot_module_properties
+      mod_fov = mod_props.find { |p| p.name == "mixin_fov" }.not_nil!
+      mod_fov.hint.should eq(1_u32)
+      mod_fov.hint_string.should eq("40.0,120.0,1.0,suffix:°")
+    end
+  end
 end
+
+gmodule SpecSuccMixinModule do
+  @[Export]
+  property mixin_badge : SpecCustomBadgeResource? = nil
+
+  @[ExportRange(40.0_f32, 120.0_f32, 1.0_f32, suffix: "°")]
+  property mixin_fov : Float32 = 75.0_f32
+
+  signal mixin_role_changed(role : SpecCharacterRole, badge : SpecCustomBadgeResource)
+end
+
+node SpecSuccExportAndSignalNode < Node3D do
+  include SpecSuccMixinModule
+
+  enum InnerMoveState
+    Idle      = 0
+    Walking   = 1
+    Sprinting = 2
+  end
+
+  @[Export]
+  property config : SpecCustomBadgeResource? = nil
+
+  @[Export]
+  property yaw_target : Godot::Node3D? = nil
+
+  @[Export(suffix: "m/s")]
+  property walk_speed : Float32 = 5.0_f32
+
+  @[Export(range: 0.0_f32..100.0_f32, step: 0.5_f32, suffix: "m/s²")]
+  property acceleration : Float32 = 12.0_f32
+
+  @[ExportRange(1.0_f32, 3.0_f32, 0.05_f32, suffix: "×")]
+  property sprint_multiplier : Float32 = 1.5_f32
+
+  signal movement_state_changed(old_state : SpecCharacterRole, new_state : InnerMoveState)
+  signal telemetry_recorded(uv : Vector2, pos : Vector3, tint : Color, target : Godot::Node3D)
+end
+
 

@@ -1473,6 +1473,10 @@ inline void generic_class_call_virtual_with_data(
                 return;
             }
             if (strcmp(method_name, "_create") == 0 || strcmp(method_name, "create") == 0) {
+                if (s_is_reloading || !ensure_persistent_class_registered("CrystalHighlighter")) {
+                    bridge_ret_ref(r_ret, nullptr);
+                    return;
+                }
                 void *hl_sn = make_string_name("CrystalHighlighter");
                 GDExtensionObjectPtr hl_obj = gd_classdb_construct_object(hl_sn);
                 free_string_name(hl_sn);

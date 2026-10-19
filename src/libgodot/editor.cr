@@ -423,6 +423,7 @@ module Lapis
     # Ensures syntax highlighter is registered with ScriptEditor
     def self.ensure_highlighter_registered : Void
       return if headless_suppressed?
+      return if @@building || @@reload_pending || @@cleaning_up || Godot::Bridge.reloading?
       if (h = @@crystal_highlighter)
         if !h.pointer.null? && h.alive? && Bridge.is_object_valid(h.pointer)
           return
@@ -430,11 +431,17 @@ module Lapis
           @@crystal_highlighter = nil
         end
       end
+      cdb_ptr = Bridge.get_singleton("ClassDB")
+      return if cdb_ptr.null?
+      cdb = Godot::ClassDB.new(cdb_ptr)
+      return unless (cdb.class_exists("CrystalHighlighter") rescue false)
+
       if !Godot::EditorInterface.singleton_ptr.null?
         ed_interface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
         script_editor = ed_interface.get_script_editor rescue nil
         if script_editor && !script_editor.pointer.null?
-          if highlighter = Godot.create(Godot::CrystalHighlighter)
+          highlighter = Godot.create(Godot::CrystalHighlighter) rescue nil
+          if highlighter && !highlighter.pointer.null? && highlighter.alive? && Bridge.is_object_valid(highlighter.pointer)
             @@crystal_highlighter = highlighter
             script_editor.register_syntax_highlighter(highlighter) rescue nil
             apply_highlighter_if_needed
@@ -801,6 +808,10 @@ module Lapis
     end
 
     def self.reset_toolbar_button : Void
+      @@building = false
+      @@reload_pending = false
+      @@reload_watchdog = 0.0_f64
+      Godot::Bridge.set_reloading(false)
       return if headless_suppressed?
       return unless has_editor_interface?
       return if Godot::EditorInterface.singleton_ptr.null?
@@ -812,10 +823,6 @@ module Lapis
       if existing && !existing.pointer.null?
         btn = Godot::Button.new(existing.pointer)
         @@compile_button = btn
-        @@building = false
-        @@reload_pending = false
-        @@reload_watchdog = 0.0_f64
-        Godot::Bridge.set_reloading(false)
         btn.call("set_disabled", false) rescue nil
         btn.call("set_text", "Build") rescue nil
         Godot.clear_signal_subscriptions(btn.signal_target_id)
@@ -2577,6 +2584,8 @@ module Lapis
     end
 
     def self.apply_highlighter_if_needed : Void
+      return if headless_suppressed?
+      return if @@building || @@reload_pending || @@cleaning_up || Godot::Bridge.reloading?
       return if Godot::EditorInterface.singleton_ptr.null?
       ensure_highlighter_registered
       hl = @@crystal_highlighter
@@ -2601,9 +2610,11 @@ module Lapis
               existing_hl = base_ed.call_obj("get_syntax_highlighter") rescue nil
               if existing_hl.nil? || existing_hl.pointer.null?
                 tab_hl = (hl.call_obj("_create") rescue nil)
-                actual_hl = (tab_hl && !tab_hl.pointer.null?) ? tab_hl : hl
-                base_ed.call("set_syntax_highlighter", actual_hl) rescue nil
-                base_ed.call("queue_redraw") rescue nil
+                actual_hl = (tab_hl && !tab_hl.pointer.null? && tab_hl.alive? && Bridge.is_object_valid(tab_hl.pointer)) ? tab_hl : hl
+                if !actual_hl.pointer.null? && actual_hl.alive? && Bridge.is_object_valid(actual_hl.pointer)
+                  base_ed.call("set_syntax_highlighter", actual_hl) rescue nil
+                  base_ed.call("queue_redraw") rescue nil
+                end
               end
               base_ed.call("set_code_completion_enabled", true) rescue nil
             end

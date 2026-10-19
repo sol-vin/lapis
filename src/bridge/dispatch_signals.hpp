@@ -336,6 +336,19 @@ inline void bridge_variant_from_type(int variant_type, void *variant, const void
         }
     }
 
+    // --- Segment 2c: Object Null-Pointer Guard ---
+    if (variant_type == GDEXTENSION_VARIANT_TYPE_OBJECT) {
+        GDExtensionObjectPtr obj = *(const GDExtensionObjectPtr*)src;
+        if (!obj) {
+            if (gd_variant_new_nil) {
+                gd_variant_new_nil(variant);
+            } else {
+                memset(variant, 0, GD_VARIANT_SIZE);
+            }
+            return;
+        }
+    }
+
     // --- Segment 3: Generic Type-to-Variant Constructor Dispatch ---
     if (gd_get_variant_from_type_constructor && variant && src) {
         GDExtensionVariantFromTypeConstructorFunc conv = gd_get_variant_from_type_constructor((GDExtensionVariantType)variant_type);
@@ -553,8 +566,11 @@ inline void bridge_call_method_vararg_ret(GDExtensionMethodBindPtr mb, GDExtensi
     free_string_name(sn);
 }
 
+inline bool ensure_persistent_class_registered(const char *name);
+
 inline GDExtensionObjectPtr bridge_classdb_construct_object(const char *class_name) {
     if (!gd_classdb_construct_object || !class_name) return nullptr;
+    if (!ensure_persistent_class_registered(class_name)) return nullptr;
     void *sn = make_string_name(class_name);
     GDExtensionObjectPtr obj = gd_classdb_construct_object(sn);
     free_string_name(sn);

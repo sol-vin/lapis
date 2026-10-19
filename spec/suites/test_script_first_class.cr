@@ -581,5 +581,27 @@ test_suite "ScriptFirstClass" do
     Godot::Bridge.ret_dictionary_complete_code(Pointer(Void).null)
     Godot::Bridge.ret_dictionary_complete_code_ex(Pointer(Void).null, 0_i64, true, "", [c_opt])
   end
+
+  test "CrystalValidator validates macro control blocks cleanly" do
+    macro_script = [
+      "require \"lapis\"",
+      "",
+      "{" + "% unless flag?(:release) %}",
+      "  require \"../spec/editor/**\"",
+      "{" + "% end %}",
+      "",
+      "node MacroTestNode < Node do",
+      "  def _ready : Void",
+      "    {" + "% if flag?(:win32) %}",
+      "      Godot.print(\"Windows\")",
+      "    {" + "% end %}",
+      "  end",
+      "end",
+    ].join("\n")
+
+    res = Lapis::CrystalValidator.validate(macro_script)
+    assert_true res.valid?, "CrystalValidator should accept valid macro blocks without false errors"
+    assert_eq res.errors.size, 0
+  end
 end
 {% end %}

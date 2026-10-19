@@ -548,6 +548,7 @@ macro node(decl, &block)
     tool_buttons = [] of Nil
     class_constants = [] of Nil
     included_modules = [] of Nil
+    local_enums = {} of StringLiteral => BoolLiteral
     class_doc = ""
     raw_stmts = if block.is_a?(Nop)
                   [] of Nil
@@ -1375,6 +1376,10 @@ macro node(decl, &block)
         pending_on_signal_annos = [] of ASTNode
         last_anno = nil
       %}
+    {% elsif stmt.class_name.id == "EnumDef" %}
+      {% local_enums[stmt.name.stringify.gsub(/^(::)?Godot::/, "")] = true %}
+      {% pending_on_signal_annos = [] of ASTNode %}
+      {% last_anno = nil %}
     {% else %}
       {% pending_on_signal_annos = [] of ASTNode %}
       {% last_anno = nil %}
@@ -1902,8 +1907,13 @@ macro node(decl, &block)
       {% for item in props %}
         {% if item[0] == :prop %}
           {% arg = item[1] %}
+          {% anno = item[2] %}
           {% var_name = arg.is_a?(Assign) ? arg.target : arg.var %}
           {%
+            non_nil_type = nil
+            is_nilable = false
+            base_type_str = ""
+            resolved_obj_type = nil
             if arg.is_a?(Assign)
               val = arg.value
               if val.is_a?(NumberLiteral)
@@ -1939,8 +1949,32 @@ macro node(decl, &block)
               end
             elsif arg.type
               var_type = arg.type.stringify.gsub(/^(::)?Godot::/, "")
+              is_nilable = arg.type.is_a?(Union) || arg.type.stringify.ends_with?("?")
+              non_nil_type = arg.type.is_a?(Union) ? arg.type.types.reject { |sub_t| sub_t.stringify == "Nil" || sub_t.stringify == "::Nil" }[0] : arg.type
+              if non_nil_type
+                raw_nn = non_nil_type.stringify.gsub(/\?$/, "").strip
+                base_type_str = raw_nn.gsub(/^(::)?Godot::/, "")
+                resolved_obj_type = raw_nn.id
+              end
             else
               var_type = "Variant"
+            end
+            is_enum_prop = non_nil_type && non_nil_type.is_a?(Path) && ((non_nil_type.resolve? && (non_nil_type.resolve < Enum)) || local_enums[base_type_str])
+            is_obj_prop = false
+            if !is_enum_prop && non_nil_type && non_nil_type.is_a?(Path) && !["Float32", "Float64", "Int32", "Int64", "Int8", "Int16", "UInt8", "UInt16", "UInt32", "UInt64", "Bool", "String", "Symbol", "Vector2", "Vector2i", "Vector3", "Vector3i", "Vector4", "Vector4i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis", "Projection", "Variant", "Callable", "Signal", "Dictionary", "Array", "RID", "NodePath", "StringName", "Nil"].includes?(base_type_str) && !base_type_str.starts_with?("Array(") && !base_type_str.starts_with?("Dictionary(") && !base_type_str.starts_with?("Packed") && !base_type_str.starts_with?("Proc(")
+              if non_nil_type.resolve?
+                if non_nil_type.resolve <= ::Godot::Object
+                  is_obj_prop = true
+                end
+              elsif !raw_nn.includes?("::") && ::Godot.has_constant?(base_type_str)
+                godot_t_path = parse_type("::Godot::#{base_type_str.id}")
+                if godot_t_path.resolve? && (godot_t_path.resolve <= ::Godot::Object)
+                  is_obj_prop = true
+                  resolved_obj_type = "::Godot::#{base_type_str.id}".id
+                end
+              elsif anno
+                is_obj_prop = true
+              end
             end
           %}
           when "{{var_name.id}}"
@@ -1971,8 +2005,19 @@ macro node(decl, &block)
             {% elsif var_type == "String" %}
               c_str = val_ptr.as(Pointer(UInt8)*).value
               self.{{var_name.id}} = c_str.null? ? "" : String.new(c_str)
-            {% elsif arg.is_a?(TypeDeclaration) && arg.type && arg.type.is_a?(Path) && arg.type.resolve? && (arg.type.resolve < Enum) %}
-              self.{{var_name.id}} = {{arg.type.id}}.from_value?(val_ptr.as(Int64*).value) || self.{{var_name.id}}
+            {% elsif is_enum_prop %}
+              self.{{var_name.id}} = {{non_nil_type.id}}.from_value?(val_ptr.as(Int64*).value) || self.{{var_name.id}}
+            {% elsif is_obj_prop %}
+              obj_ptr = val_ptr.null? ? Pointer(Void).null : val_ptr.as(Void**).value
+              if obj_ptr.null?
+                {% if is_nilable %}
+                  self.{{var_name.id}} = nil
+                {% else %}
+                  self.{{var_name.id}} = {{resolved_obj_type}}.new(Pointer(Void).null)
+                {% end %}
+              else
+                self.{{var_name.id}} = ::Godot::Bridge.find_alive_instance(obj_ptr).as?({{resolved_obj_type}}) || {{resolved_obj_type}}.new(obj_ptr)
+              end
             {% end %}
         {% end %}
       {% end %}
@@ -1990,8 +2035,13 @@ macro node(decl, &block)
       {% for item in props %}
         {% if item[0] == :prop %}
           {% arg = item[1] %}
+          {% anno = item[2] %}
           {% var_name = arg.is_a?(Assign) ? arg.target : arg.var %}
           {%
+            non_nil_type = nil
+            is_nilable = false
+            base_type_str = ""
+            resolved_obj_type = nil
             if arg.is_a?(Assign)
               val = arg.value
               if val.is_a?(NumberLiteral)
@@ -2027,8 +2077,32 @@ macro node(decl, &block)
               end
             elsif arg.type
               var_type = arg.type.stringify.gsub(/^(::)?Godot::/, "")
+              is_nilable = arg.type.is_a?(Union) || arg.type.stringify.ends_with?("?")
+              non_nil_type = arg.type.is_a?(Union) ? arg.type.types.reject { |sub_t| sub_t.stringify == "Nil" || sub_t.stringify == "::Nil" }[0] : arg.type
+              if non_nil_type
+                raw_nn = non_nil_type.stringify.gsub(/\?$/, "").strip
+                base_type_str = raw_nn.gsub(/^(::)?Godot::/, "")
+                resolved_obj_type = raw_nn.id
+              end
             else
               var_type = "Variant"
+            end
+            is_enum_prop = non_nil_type && non_nil_type.is_a?(Path) && ((non_nil_type.resolve? && (non_nil_type.resolve < Enum)) || local_enums[base_type_str])
+            is_obj_prop = false
+            if !is_enum_prop && non_nil_type && non_nil_type.is_a?(Path) && !["Float32", "Float64", "Int32", "Int64", "Int8", "Int16", "UInt8", "UInt16", "UInt32", "UInt64", "Bool", "String", "Symbol", "Vector2", "Vector2i", "Vector3", "Vector3i", "Vector4", "Vector4i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis", "Projection", "Variant", "Callable", "Signal", "Dictionary", "Array", "RID", "NodePath", "StringName", "Nil"].includes?(base_type_str) && !base_type_str.starts_with?("Array(") && !base_type_str.starts_with?("Dictionary(") && !base_type_str.starts_with?("Packed") && !base_type_str.starts_with?("Proc(")
+              if non_nil_type.resolve?
+                if non_nil_type.resolve <= ::Godot::Object
+                  is_obj_prop = true
+                end
+              elsif !raw_nn.includes?("::") && ::Godot.has_constant?(base_type_str)
+                godot_t_path = parse_type("::Godot::#{base_type_str.id}")
+                if godot_t_path.resolve? && (godot_t_path.resolve <= ::Godot::Object)
+                  is_obj_prop = true
+                  resolved_obj_type = "::Godot::#{base_type_str.id}".id
+                end
+              elsif anno
+                is_obj_prop = true
+              end
             end
           %}
           when "{{var_name.id}}"
@@ -2054,8 +2128,10 @@ macro node(decl, &block)
               ret_ptr.as(::Godot::Transform3D*).value = self.{{var_name.id}}
             {% elsif var_type == "String" %}
               ret_ptr.as(Pointer(UInt8)*).value = self.{{var_name.id}}.to_unsafe
-            {% elsif arg.is_a?(TypeDeclaration) && arg.type && arg.type.is_a?(Path) && arg.type.resolve? && (arg.type.resolve < Enum) %}
-              ret_ptr.as(Int64*).value = self.{{var_name.id}}.to_i64
+            {% elsif is_enum_prop %}
+              ret_ptr.as(Int64*).value = self.{{var_name.id}}.try(&.to_i64) || 0_i64
+            {% elsif is_obj_prop %}
+              ret_ptr.as(Void**).value = self.{{var_name.id}}.try(&.pointer) || Pointer(Void).null
             {% end %}
         {% end %}
       {% end %}
@@ -2275,6 +2351,8 @@ macro node(decl, &block)
       {% if anno %}
         {% a_name = anno.name.stringify %}
         {% if a_name == "Export" %}
+          {% export_suffix = "" %}
+          {% export_step = "" %}
           {% if anno.named_args %}
             {% for key, val in anno.named_args %}
               {% k_str = key.stringify %}
@@ -2287,8 +2365,10 @@ macro node(decl, &block)
                 {% e_id = val.end.id.gsub(/_[a-z0-9]+/, "") %}
                 {% hint_str = "#{b_id},#{e_id}" %}
               {% elsif k_str == "step" %}
-                {% s_id = val.id.gsub(/_[a-z0-9]+/, "") %}
-                {% hint_str = "#{hint_str.id},#{s_id}" %}
+                {% export_step = val.id.gsub(/_[a-z0-9]+/, "") %}
+              {% elsif k_str == "suffix" %}
+                {% raw_sfx = (val.is_a?(StringLiteral) ? val : val.id.stringify).gsub(/^\"|\"$/, "") %}
+                {% export_suffix = raw_sfx.starts_with?("suffix:") ? raw_sfx : "suffix:#{raw_sfx.id}" %}
               {% elsif k_str == "enum" %}
                 {% hint = 2 %}
                 {% if val.is_a?(ArrayLiteral) %}
@@ -2415,36 +2495,74 @@ macro node(decl, &block)
               {% end %}
             {% end %}
           {% end %}
+          {% if !export_step.empty? %}
+            {% hint_str = hint_str.empty? ? export_step : "#{hint_str.id},#{export_step.id}" %}
+          {% end %}
+          {% if !export_suffix.empty? %}
+            {% hint_str = hint_str.empty? ? export_suffix : "#{hint_str.id},#{export_suffix.id}" %}
+          {% end %}
         {% elsif a_name == "ExportRange" %}
           {% hint = 1 %}
           {% step_val = "" %}
+          {% range_suffix = "" %}
+          {% range_extra_flags = [] of StringLiteral %}
           {% if anno.named_args %}
             {% for k, v in anno.named_args %}
-              {% if k.stringify == "step" %}
+              {% k_s = k.stringify %}
+              {% if k_s == "range" %}
+                {% b_id = v.begin.id.gsub(/_[a-z0-9]+/, "") %}
+                {% e_id = v.end.id.gsub(/_[a-z0-9]+/, "") %}
+                {% hint_str = "#{b_id},#{e_id}" %}
+              {% elsif k_s == "step" %}
                 {% step_val = v.id.gsub(/_[a-z0-9]+/, "") %}
+              {% elsif k_s == "suffix" %}
+                {% raw_sfx = (v.is_a?(StringLiteral) ? v : v.id.stringify).gsub(/^\"|\"$/, "") %}
+                {% range_suffix = raw_sfx.starts_with?("suffix:") ? raw_sfx : "suffix:#{raw_sfx.id}" %}
+              {% elsif (k_s == "or_greater" || k_s == "or_less" || k_s == "exp" || k_s == "hide_slider" || k_s == "radians_as_degrees" || k_s == "degrees") && v == true %}
+                {% range_extra_flags << k_s %}
               {% end %}
             {% end %}
           {% end %}
-          {% if anno.args[0].is_a?(RangeLiteral) %}
-            {% b_id = anno.args[0].begin.id.gsub(/_[a-z0-9]+/, "") %}
-            {% e_id = anno.args[0].end.id.gsub(/_[a-z0-9]+/, "") %}
-            {% hint_str = "#{b_id},#{e_id}" %}
-            {% if !step_val.empty? %}
-              {% hint_str = "#{hint_str.id},#{step_val.id}" %}
+          {% if anno.args.size > 0 %}
+            {% if anno.args[0].is_a?(RangeLiteral) %}
+              {% b_id = anno.args[0].begin.id.gsub(/_[a-z0-9]+/, "") %}
+              {% e_id = anno.args[0].end.id.gsub(/_[a-z0-9]+/, "") %}
+              {% hint_str = "#{b_id},#{e_id}" %}
+              {% if !step_val.empty? %}
+                {% hint_str = "#{hint_str.id},#{step_val.id}" %}
+              {% elsif anno.args.size > 1 && !anno.args[1].is_a?(StringLiteral) %}
+                {% s_id = anno.args[1].id.gsub(/_[a-z0-9]+/, "") %}
+                {% hint_str = "#{hint_str.id},#{s_id}" %}
+              {% end %}
+              {% for extra_arg in anno.args[1..-1] %}
+                {% if extra_arg.is_a?(StringLiteral) %}
+                  {% range_extra_flags << extra_arg %}
+                {% end %}
+              {% end %}
             {% elsif anno.args.size > 1 %}
-              {% s_id = anno.args[1].id.gsub(/_[a-z0-9]+/, "") %}
-              {% hint_str = "#{hint_str.id},#{s_id}" %}
+              {% b_id = anno.args[0].id.gsub(/_[a-z0-9]+/, "") %}
+              {% e_id = anno.args[1].id.gsub(/_[a-z0-9]+/, "") %}
+              {% hint_str = "#{b_id},#{e_id}" %}
+              {% if !step_val.empty? %}
+                {% hint_str = "#{hint_str.id},#{step_val.id}" %}
+              {% elsif anno.args.size > 2 && !anno.args[2].is_a?(StringLiteral) %}
+                {% s_id = anno.args[2].id.gsub(/_[a-z0-9]+/, "") %}
+                {% hint_str = "#{hint_str.id},#{s_id}" %}
+              {% end %}
+              {% for extra_arg in anno.args[2..-1] %}
+                {% if extra_arg.is_a?(StringLiteral) %}
+                  {% range_extra_flags << extra_arg %}
+                {% end %}
+              {% end %}
             {% end %}
-          {% else %}
-            {% b_id = anno.args[0].id.gsub(/_[a-z0-9]+/, "") %}
-            {% e_id = anno.args[1].id.gsub(/_[a-z0-9]+/, "") %}
-            {% hint_str = "#{b_id},#{e_id}" %}
-            {% if !step_val.empty? %}
-              {% hint_str = "#{hint_str.id},#{step_val.id}" %}
-            {% elsif anno.args.size > 2 %}
-              {% s_id = anno.args[2].id.gsub(/_[a-z0-9]+/, "") %}
-              {% hint_str = "#{hint_str.id},#{s_id}" %}
-            {% end %}
+          {% elsif !step_val.empty? && !hint_str.empty? %}
+            {% hint_str = "#{hint_str.id},#{step_val.id}" %}
+          {% end %}
+          {% for ef in range_extra_flags %}
+            {% hint_str = hint_str.empty? ? ef : "#{hint_str.id},#{ef.id}" %}
+          {% end %}
+          {% if !range_suffix.empty? %}
+            {% hint_str = hint_str.empty? ? range_suffix : "#{hint_str.id},#{range_suffix.id}" %}
           {% end %}
         {% elsif a_name == "ExportEnum" %}
           {% hint = 2 %}
@@ -2640,17 +2758,66 @@ macro node(decl, &block)
     args_{{sig_name.id}} = Array(::Godot::SignalArgInfo).new
     {% for a in sig_args %}
       {% if a.is_a?(TypeDeclaration) %}
-        {% atype = a.type.stringify %}
         {%
+          non_nil_a = a.type.is_a?(Union) ? a.type.types.reject { |sub_t| sub_t.stringify == "Nil" || sub_t.stringify == "::Nil" }[0] : a.type
+          atype = non_nil_a.stringify.gsub(/\?$/, "").strip.gsub(/^(::)?Godot::/, "")
           avtype = 0
-          if atype == "Float32" || atype == "Float64"
-            avtype = 3
-          elsif atype == "Int32" || atype == "Int64"
-            avtype = 2
-          elsif atype == "Bool"
+          if atype == "Bool"
             avtype = 1
+          elsif atype == "Int32" || atype == "Int64" || atype == "UInt32" || atype == "UInt64" || (non_nil_a.is_a?(Path) && ((non_nil_a.resolve? && (non_nil_a.resolve < Enum)) || local_enums[atype]))
+            avtype = 2
+          elsif atype == "Float32" || atype == "Float64"
+            avtype = 3
           elsif atype == "String"
             avtype = 4
+          elsif atype == "Vector2"
+            avtype = 5
+          elsif atype == "Vector2i"
+            avtype = 6
+          elsif atype == "Rect2"
+            avtype = 7
+          elsif atype == "Rect2i"
+            avtype = 8
+          elsif atype == "Vector3"
+            avtype = 9
+          elsif atype == "Vector3i"
+            avtype = 10
+          elsif atype == "Transform2D"
+            avtype = 11
+          elsif atype == "Vector4"
+            avtype = 12
+          elsif atype == "Vector4i"
+            avtype = 13
+          elsif atype == "Plane"
+            avtype = 14
+          elsif atype == "Quaternion"
+            avtype = 15
+          elsif atype == "AABB"
+            avtype = 16
+          elsif atype == "Basis"
+            avtype = 17
+          elsif atype == "Transform3D"
+            avtype = 18
+          elsif atype == "Projection"
+            avtype = 19
+          elsif atype == "Color"
+            avtype = 20
+          elsif atype == "StringName"
+            avtype = 21
+          elsif atype == "NodePath"
+            avtype = 22
+          elsif atype == "RID"
+            avtype = 23
+          elsif atype == "Callable"
+            avtype = 25
+          elsif atype == "Signal"
+            avtype = 26
+          elsif atype == "Dictionary"
+            avtype = 27
+          elsif atype == "Array"
+            avtype = 28
+          elsif atype != "Variant" && !atype.empty?
+            avtype = 24
           end
         %}
         args_{{sig_name.id}} << ::Godot::SignalArgInfo.new("{{a.var.id}}", {{avtype}})
@@ -3147,6 +3314,7 @@ macro gmodule(decl, &block)
     class_constants = [] of Nil
     virtual_methods = [] of Nil
     user_methods = [] of Nil
+    local_enums = [] of StringLiteral
 
     raw_stmts = if block.is_a?(Nop)
                   [] of Nil
@@ -3322,6 +3490,10 @@ macro gmodule(decl, &block)
           end
           pending_on_signal_annos = [] of ASTNode
           last_anno = nil
+        elsif stmt.class_name.id == "EnumDef"
+          local_enums << stmt.name.stringify
+          pending_on_signal_annos = [] of ASTNode
+          last_anno = nil
         else
           pending_on_signal_annos = [] of ASTNode
           last_anno = nil
@@ -3473,17 +3645,21 @@ macro gmodule(decl, &block)
           {% if anno %}
             {% a_name = anno.name.stringify %}
             {% if a_name == "Export" %}
+              {% export_suffix = "" %}
+              {% export_step = "" %}
               {% if anno.named_args %}
                 {% for key, val in anno.named_args %}
                   {% k_str = key.stringify %}
-                  {% if k_str == "range" %}
+                  {% if k_str == "type" || k_str == "resource_type" %}
+                    {% hint = 17 %}
+                    {% hint_str = val.id.stringify %}
+                  {% elsif k_str == "range" %}
                     {% hint = 1 %}
                     {% b_id = val.begin.id.gsub(/_[a-z0-9]+/, "") %}
                     {% e_id = val.end.id.gsub(/_[a-z0-9]+/, "") %}
                     {% hint_str = "#{b_id},#{e_id}" %}
                   {% elsif k_str == "step" %}
-                    {% s_id = val.id.gsub(/_[a-z0-9]+/, "") %}
-                    {% hint_str = "#{hint_str.id},#{s_id}" %}
+                    {% export_step = val.id.gsub(/_[a-z0-9]+/, "") %}
                   {% elsif k_str == "enum" %}
                     {% hint = 2 %}
                     {% if val.is_a?(ArrayLiteral) %}
@@ -3494,31 +3670,83 @@ macro gmodule(decl, &block)
                       {% if var_type != "String" %}
                         {% vtype = 2 %}
                       {% end %}
+                    {% else %}
+                      {% hint_str = val.id.stringify %}
                     {% end %}
+                  {% elsif k_str == "suffix" %}
+                    {% raw_sfx = (val.is_a?(StringLiteral) ? val : val.id.stringify).gsub(/^\"|\"$/, "") %}
+                    {% export_suffix = raw_sfx.starts_with?("suffix:") ? raw_sfx : "suffix:#{raw_sfx.id}" %}
                   {% end %}
                 {% end %}
               {% end %}
+              {% if !export_step.empty? %}
+                {% hint_str = hint_str.empty? ? export_step : "#{hint_str.id},#{export_step.id}" %}
+              {% end %}
+              {% if !export_suffix.empty? %}
+                {% hint_str = hint_str.empty? ? export_suffix : "#{hint_str.id},#{export_suffix.id}" %}
+              {% end %}
             {% elsif a_name == "ExportRange" %}
               {% hint = 1 %}
+              {% step_val = "" %}
+              {% range_suffix = "" %}
+              {% range_extra_flags = [] of StringLiteral %}
               {% if anno.named_args %}
                 {% for k, v in anno.named_args %}
-                  {% if k.stringify == "range" %}
+                  {% k_s = k.stringify %}
+                  {% if k_s == "range" %}
                     {% b_id = v.begin.id.gsub(/_[a-z0-9]+/, "") %}
                     {% e_id = v.end.id.gsub(/_[a-z0-9]+/, "") %}
                     {% hint_str = "#{b_id},#{e_id}" %}
-                  {% elsif k.stringify == "step" %}
-                    {% s_id = v.id.gsub(/_[a-z0-9]+/, "") %}
-                    {% hint_str = "#{hint_str.id},#{s_id}" %}
+                  {% elsif k_s == "step" %}
+                    {% step_val = v.id.gsub(/_[a-z0-9]+/, "") %}
+                  {% elsif k_s == "suffix" %}
+                    {% raw_sfx = (v.is_a?(StringLiteral) ? v : v.id.stringify).gsub(/^\"|\"$/, "") %}
+                    {% range_suffix = raw_sfx.starts_with?("suffix:") ? raw_sfx : "suffix:#{raw_sfx.id}" %}
+                  {% elsif (k_s == "or_greater" || k_s == "or_less" || k_s == "exp" || k_s == "hide_slider" || k_s == "radians_as_degrees" || k_s == "degrees") && v == true %}
+                    {% range_extra_flags << k_s %}
                   {% end %}
                 {% end %}
-              {% elsif anno.args.size > 1 %}
-                {% b_id = anno.args[0].id.gsub(/_[a-z0-9]+/, "") %}
-                {% e_id = anno.args[1].id.gsub(/_[a-z0-9]+/, "") %}
-                {% hint_str = "#{b_id},#{e_id}" %}
-                {% if anno.args.size > 2 %}
-                  {% s_id = anno.args[2].id.gsub(/_[a-z0-9]+/, "") %}
-                  {% hint_str = "#{hint_str.id},#{s_id}" %}
+              {% end %}
+              {% if anno.args.size > 0 %}
+                {% if anno.args[0].is_a?(RangeLiteral) %}
+                  {% b_id = anno.args[0].begin.id.gsub(/_[a-z0-9]+/, "") %}
+                  {% e_id = anno.args[0].end.id.gsub(/_[a-z0-9]+/, "") %}
+                  {% hint_str = "#{b_id},#{e_id}" %}
+                  {% if !step_val.empty? %}
+                    {% hint_str = "#{hint_str.id},#{step_val.id}" %}
+                  {% elsif anno.args.size > 1 && !anno.args[1].is_a?(StringLiteral) %}
+                    {% s_id = anno.args[1].id.gsub(/_[a-z0-9]+/, "") %}
+                    {% hint_str = "#{hint_str.id},#{s_id}" %}
+                  {% end %}
+                  {% for extra_arg in anno.args[1..-1] %}
+                    {% if extra_arg.is_a?(StringLiteral) %}
+                      {% range_extra_flags << extra_arg %}
+                    {% end %}
+                  {% end %}
+                {% elsif anno.args.size > 1 %}
+                  {% b_id = anno.args[0].id.gsub(/_[a-z0-9]+/, "") %}
+                  {% e_id = anno.args[1].id.gsub(/_[a-z0-9]+/, "") %}
+                  {% hint_str = "#{b_id},#{e_id}" %}
+                  {% if !step_val.empty? %}
+                    {% hint_str = "#{hint_str.id},#{step_val.id}" %}
+                  {% elsif anno.args.size > 2 && !anno.args[2].is_a?(StringLiteral) %}
+                    {% s_id = anno.args[2].id.gsub(/_[a-z0-9]+/, "") %}
+                    {% hint_str = "#{hint_str.id},#{s_id}" %}
+                  {% end %}
+                  {% for extra_arg in anno.args[2..-1] %}
+                    {% if extra_arg.is_a?(StringLiteral) %}
+                      {% range_extra_flags << extra_arg %}
+                    {% end %}
+                  {% end %}
                 {% end %}
+              {% elsif !step_val.empty? && !hint_str.empty? %}
+                {% hint_str = "#{hint_str.id},#{step_val.id}" %}
+              {% end %}
+              {% for ef in range_extra_flags %}
+                {% hint_str = hint_str.empty? ? ef : "#{hint_str.id},#{ef.id}" %}
+              {% end %}
+              {% if !range_suffix.empty? %}
+                {% hint_str = hint_str.empty? ? range_suffix : "#{hint_str.id},#{range_suffix.id}" %}
               {% end %}
             {% elsif a_name == "ExportEnum" %}
               {% hint = 2 %}
@@ -3578,17 +3806,65 @@ macro gmodule(decl, &block)
         args_{{sig_name.id}} = ::Array(::Godot::SignalArgInfo).new
         {% for a in sig_args %}
           {% if a.is_a?(TypeDeclaration) %}
-            {% atype = a.type.stringify %}
+            {% atype = a.type.stringify.gsub(/^(::)?Godot::/, "").gsub(/\?$/, "").split("|")[0].strip %}
             {%
               avtype = 0
-              if atype == "Float32" || atype == "Float64"
-                avtype = 3
-              elsif atype == "Int32" || atype == "Int64"
-                avtype = 2
-              elsif atype == "Bool"
+              if atype == "Bool"
                 avtype = 1
+              elsif atype == "Int" || atype == "Int8" || atype == "Int16" || atype == "Int32" || atype == "Int64" || atype == "UInt8" || atype == "UInt16" || atype == "UInt32" || atype == "UInt64" || (a.type.is_a?(Path) && a.type.resolve? && (a.type.resolve < Enum)) || local_enums.includes?(atype)
+                avtype = 2
+              elsif atype == "Float" || atype == "Float32" || atype == "Float64"
+                avtype = 3
               elsif atype == "String"
                 avtype = 4
+              elsif atype == "Vector2"
+                avtype = 5
+              elsif atype == "Vector2i"
+                avtype = 6
+              elsif atype == "Rect2"
+                avtype = 7
+              elsif atype == "Rect2i"
+                avtype = 8
+              elsif atype == "Vector3"
+                avtype = 9
+              elsif atype == "Vector3i"
+                avtype = 10
+              elsif atype == "Transform2D"
+                avtype = 11
+              elsif atype == "Vector4"
+                avtype = 12
+              elsif atype == "Vector4i"
+                avtype = 13
+              elsif atype == "Plane"
+                avtype = 14
+              elsif atype == "Quaternion"
+                avtype = 15
+              elsif atype == "AABB"
+                avtype = 16
+              elsif atype == "Basis"
+                avtype = 17
+              elsif atype == "Transform3D"
+                avtype = 18
+              elsif atype == "Projection"
+                avtype = 19
+              elsif atype == "Color"
+                avtype = 20
+              elsif atype == "StringName"
+                avtype = 21
+              elsif atype == "NodePath"
+                avtype = 22
+              elsif atype == "RID"
+                avtype = 23
+              elsif atype == "Callable"
+                avtype = 25
+              elsif atype == "Signal"
+                avtype = 26
+              elsif atype == "Dictionary"
+                avtype = 27
+              elsif atype == "Array"
+                avtype = 28
+              elsif atype != "Variant"
+                avtype = 24
               end
             %}
             args_{{sig_name.id}} << ::Godot::SignalArgInfo.new("{{a.var.id}}", {{avtype}})
@@ -3649,8 +3925,26 @@ macro gmodule(decl, &block)
       {% for item in props %}
         {% if item[0] == :prop %}
           {% arg = item[1] %}
+          {% anno = item[2] %}
           {% var_name = arg.is_a?(Assign) ? arg.target : arg.var %}
           {%
+            is_nilable_prop = false
+            non_nil_type = nil
+            if arg.is_a?(TypeDeclaration) && arg.type
+              t_node = arg.type
+              if t_node.is_a?(Union)
+                non_nil_types = t_node.types.reject { |ut| ut.stringify == "Nil" || ut.stringify == "::Nil" }
+                if non_nil_types.size < t_node.types.size
+                  is_nilable_prop = true
+                end
+                if non_nil_types.size == 1
+                  non_nil_type = non_nil_types[0]
+                end
+              else
+                non_nil_type = t_node
+              end
+            end
+
             if arg.is_a?(Assign)
               val = arg.value
               if val.is_a?(NumberLiteral)
@@ -3688,6 +3982,27 @@ macro gmodule(decl, &block)
               var_type = arg.type.stringify.gsub(/^(::)?Godot::/, "")
             else
               var_type = "Variant"
+            end
+
+            raw_nn = non_nil_type ? non_nil_type.stringify.gsub(/\?$/, "").strip : ""
+            base_type_str = non_nil_type ? raw_nn.gsub(/^(::)?Godot::/, "") : var_type
+            resolved_obj_type = non_nil_type ? raw_nn.id : nil
+            is_enum_prop = (non_nil_type && non_nil_type.is_a?(Path) && non_nil_type.resolve? && (non_nil_type.resolve < Enum)) || local_enums.includes?(base_type_str)
+            is_obj_prop = false
+            if !is_enum_prop && non_nil_type && non_nil_type.is_a?(Path) && !["Bool", "Int", "Int8", "Int16", "Int32", "Int64", "UInt8", "UInt16", "UInt32", "UInt64", "Float", "Float32", "Float64", "String", "Vector2", "Vector2i", "Rect2", "Rect2i", "Vector3", "Vector3i", "Transform2D", "Vector4", "Vector4i", "Plane", "Quaternion", "AABB", "Basis", "Transform3D", "Projection", "Color", "StringName", "NodePath", "RID", "Callable", "Signal", "Dictionary", "Array", "Variant", "Nil"].includes?(base_type_str)
+              if non_nil_type.resolve?
+                if non_nil_type.resolve <= ::Godot::Object
+                  is_obj_prop = true
+                end
+              elsif !raw_nn.includes?("::") && ::Godot.has_constant?(base_type_str)
+                godot_t_path = parse_type("::Godot::#{base_type_str.id}")
+                if godot_t_path.resolve? && (godot_t_path.resolve <= ::Godot::Object)
+                  is_obj_prop = true
+                  resolved_obj_type = "::Godot::#{base_type_str.id}".id
+                end
+              elsif anno
+                is_obj_prop = true
+              end
             end
           %}
           when "{{var_name.id}}"
@@ -3718,8 +4033,17 @@ macro gmodule(decl, &block)
             {% elsif var_type == "String" %}
               c_str = val_ptr.as(Pointer(UInt8)*).value
               self.{{var_name.id}} = c_str.null? ? "" : String.new(c_str)
-            {% elsif arg.is_a?(TypeDeclaration) && arg.type && arg.type.is_a?(Path) && arg.type.resolve? && (arg.type.resolve < Enum) %}
-              self.{{var_name.id}} = {{arg.type.id}}.from_value?(val_ptr.as(Int64*).value) || self.{{var_name.id}}
+            {% elsif is_enum_prop %}
+              self.{{var_name.id}} = {{non_nil_type.id}}.from_value?(val_ptr.as(Int64*).value) || self.{{var_name.id}}
+            {% elsif is_obj_prop %}
+              raw_obj_ptr = val_ptr.null? ? Pointer(Void).null : val_ptr.as(Void**).value
+              if raw_obj_ptr.null?
+                {% if is_nilable_prop %}
+                  self.{{var_name.id}} = nil
+                {% end %}
+              else
+                self.{{var_name.id}} = ::Godot::Bridge.find_alive_instance(raw_obj_ptr).as?({{resolved_obj_type.id}}) || {{resolved_obj_type.id}}.new(raw_obj_ptr)
+              end
             {% end %}
         {% end %}
       {% end %}
@@ -3733,8 +4057,26 @@ macro gmodule(decl, &block)
       {% for item in props %}
         {% if item[0] == :prop %}
           {% arg = item[1] %}
+          {% anno = item[2] %}
           {% var_name = arg.is_a?(Assign) ? arg.target : arg.var %}
           {%
+            is_nilable_prop = false
+            non_nil_type = nil
+            if arg.is_a?(TypeDeclaration) && arg.type
+              t_node = arg.type
+              if t_node.is_a?(Union)
+                non_nil_types = t_node.types.reject { |ut| ut.stringify == "Nil" || ut.stringify == "::Nil" }
+                if non_nil_types.size < t_node.types.size
+                  is_nilable_prop = true
+                end
+                if non_nil_types.size == 1
+                  non_nil_type = non_nil_types[0]
+                end
+              else
+                non_nil_type = t_node
+              end
+            end
+
             if arg.is_a?(Assign)
               val = arg.value
               if val.is_a?(NumberLiteral)
@@ -3773,6 +4115,27 @@ macro gmodule(decl, &block)
             else
               var_type = "Variant"
             end
+
+            raw_nn = non_nil_type ? non_nil_type.stringify.gsub(/\?$/, "").strip : ""
+            base_type_str = non_nil_type ? raw_nn.gsub(/^(::)?Godot::/, "") : var_type
+            resolved_obj_type = non_nil_type ? raw_nn.id : nil
+            is_enum_prop = (non_nil_type && non_nil_type.is_a?(Path) && non_nil_type.resolve? && (non_nil_type.resolve < Enum)) || local_enums.includes?(base_type_str)
+            is_obj_prop = false
+            if !is_enum_prop && non_nil_type && non_nil_type.is_a?(Path) && !["Bool", "Int", "Int8", "Int16", "Int32", "Int64", "UInt8", "UInt16", "UInt32", "UInt64", "Float", "Float32", "Float64", "String", "Vector2", "Vector2i", "Rect2", "Rect2i", "Vector3", "Vector3i", "Transform2D", "Vector4", "Vector4i", "Plane", "Quaternion", "AABB", "Basis", "Transform3D", "Projection", "Color", "StringName", "NodePath", "RID", "Callable", "Signal", "Dictionary", "Array", "Variant", "Nil"].includes?(base_type_str)
+              if non_nil_type.resolve?
+                if non_nil_type.resolve <= ::Godot::Object
+                  is_obj_prop = true
+                end
+              elsif !raw_nn.includes?("::") && ::Godot.has_constant?(base_type_str)
+                godot_t_path = parse_type("::Godot::#{base_type_str.id}")
+                if godot_t_path.resolve? && (godot_t_path.resolve <= ::Godot::Object)
+                  is_obj_prop = true
+                  resolved_obj_type = "::Godot::#{base_type_str.id}".id
+                end
+              elsif anno
+                is_obj_prop = true
+              end
+            end
           %}
           when "{{var_name.id}}"
             {% if var_type == "Float32" || var_type == "Float64" %}
@@ -3797,8 +4160,14 @@ macro gmodule(decl, &block)
               ret_ptr.as(::Godot::Transform3D*).value = self.{{var_name.id}}
             {% elsif var_type == "String" %}
               ret_ptr.as(Pointer(UInt8)*).value = self.{{var_name.id}}.to_unsafe
-            {% elsif arg.is_a?(TypeDeclaration) && arg.type && arg.type.is_a?(Path) && arg.type.resolve? && (arg.type.resolve < Enum) %}
-              ret_ptr.as(Int64*).value = self.{{var_name.id}}.to_i64
+            {% elsif is_enum_prop %}
+              {% if is_nilable_prop %}
+                ret_ptr.as(Int64*).value = self.{{var_name.id}}.try(&.to_i64) || 0_i64
+              {% else %}
+                ret_ptr.as(Int64*).value = self.{{var_name.id}}.to_i64
+              {% end %}
+            {% elsif is_obj_prop %}
+              ret_ptr.as(Void**).value = self.{{var_name.id}}.try(&.pointer) || Pointer(Void).null
             {% end %}
         {% end %}
       {% end %}

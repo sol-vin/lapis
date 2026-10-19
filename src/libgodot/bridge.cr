@@ -295,6 +295,7 @@ module Godot
 
     # Retain descriptions so their C strings and descriptors stay alive in memory
     @@registered_descs = Array(LibBridge::CrystalClassDesc).new
+    @@registered_desc_ptrs = Array(Pointer(LibBridge::CrystalClassDesc)).new
     # Active instance table rooting living Crystal nodes to protect against premature Boehm GC deallocation
     @@alive_instances = Hash(Void*, Godot::Object).new
     @@alive_instances_by_ptr = Hash(Void*, Godot::Object).new
@@ -347,7 +348,15 @@ module Godot
 
     def self.init(api : LibBridge::BridgeAPI*)
       @@api = api
-      return if @@initialized
+      if @@initialized
+        if !api.null? && !api.value.register_class.pointer.null?
+          @@registered_desc_ptrs.each do |desc_ptr|
+            api.value.register_class.call(desc_ptr)
+          end
+        end
+        Godot::EditorDocRegistry.load_all
+        return
+      end
       @@initialized = true
       debug "[CrystalBridge] Initializing Crystal runtime from game.dll..."
 
@@ -488,7 +497,7 @@ module Godot
         if !crystal_inst.null?
           inst = @@alive_mutex.synchronize { @@alive_instances[crystal_inst]? }
         end
-        {% unless flag?(:release) || flag?(:libgodot_addon) || flag?(:no_editor) %}
+        {% if flag?(:editor) || (!flag?(:release) && !flag?(:libgodot_addon) && !flag?(:no_editor)) %}
           if !inst || !inst.is_a?(Godot::CrystalLanguage)
             if m_name == "_complete_code" || m_name == "complete_code" ||
                m_name == "_lookup_code" || m_name == "lookup_code" ||
@@ -633,6 +642,7 @@ module Godot
         desc_ptr = Pointer(LibBridge::CrystalClassDesc).malloc(1)
         desc_ptr.value = desc
         @@registered_descs << desc
+        @@registered_desc_ptrs << desc_ptr
 
         debug "[CrystalBridge]   Calling api.register_class for #{entry.class_name}..."
         api.value.register_class.call(desc_ptr)
@@ -1034,6 +1044,9 @@ module Godot
         elsif arg.is_a?(Int)
           int_storage[idx] = arg.to_i64
           c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 2, data: (int_storage.to_unsafe + idx).as(Void*))
+        elsif arg.is_a?(Enum)
+          int_storage[idx] = arg.value.to_i64
+          c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 2, data: (int_storage.to_unsafe + idx).as(Void*))
         elsif arg.is_a?(Float)
           float_storage[idx] = arg.to_f64
           c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 3, data: (float_storage.to_unsafe + idx).as(Void*))
@@ -1097,6 +1110,9 @@ module Godot
         elsif arg.is_a?(Int)
           int_storage[idx] = arg.to_i64
           c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 2, data: (int_storage.to_unsafe + idx).as(Void*))
+        elsif arg.is_a?(Enum)
+          int_storage[idx] = arg.value.to_i64
+          c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 2, data: (int_storage.to_unsafe + idx).as(Void*))
         elsif arg.is_a?(Float)
           float_storage[idx] = arg.to_f64
           c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 3, data: (float_storage.to_unsafe + idx).as(Void*))
@@ -1149,6 +1165,9 @@ module Godot
           c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 1, data: (bool_storage.to_unsafe + idx).as(Void*))
         elsif arg.is_a?(Int)
           int_storage[idx] = arg.to_i64
+          c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 2, data: (int_storage.to_unsafe + idx).as(Void*))
+        elsif arg.is_a?(Enum)
+          int_storage[idx] = arg.value.to_i64
           c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 2, data: (int_storage.to_unsafe + idx).as(Void*))
         elsif arg.is_a?(Float)
           float_storage[idx] = arg.to_f64
@@ -1235,6 +1254,9 @@ module Godot
           c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 1, data: (bool_storage.to_unsafe + idx).as(Void*))
         elsif arg.is_a?(Int)
           int_storage[idx] = arg.to_i64
+          c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 2, data: (int_storage.to_unsafe + idx).as(Void*))
+        elsif arg.is_a?(Enum)
+          int_storage[idx] = arg.value.to_i64
           c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 2, data: (int_storage.to_unsafe + idx).as(Void*))
         elsif arg.is_a?(Float)
           float_storage[idx] = arg.to_f64
@@ -1344,10 +1366,10 @@ module Godot
 
     def self.find_alive_instance(godot_obj : Void*) : Godot::Object?
       return nil if godot_obj.null?
-      return nil unless is_object_valid(godot_obj)
+      return nil if !@@api.null? && !is_object_valid(godot_obj)
       @@alive_mutex.synchronize do
         if inst = @@alive_instances_by_ptr[godot_obj]?
-          if inst.destroyed? || (inst.instance_id > 0 && !is_instance_valid(inst.instance_id))
+          if !inst.active? || (inst.instance_id > 0 && !is_instance_valid(inst.instance_id))
             @@alive_instances_by_ptr.delete(godot_obj)
             return nil
           end
@@ -1731,6 +1753,11 @@ fun crystal_godot_init(api : Godot::LibBridge::BridgeAPI*) : Void
   if Godot::Bridge.init_done?
     Godot::Bridge.init(api)
     Godot::ThreadSafety.record_main_thread!
+    {% if flag?(:editor) || (!flag?(:release) && !flag?(:libgodot_addon) && !flag?(:no_editor)) %}
+      Godot::CrystalLanguage.ensure_registered rescue nil
+      Godot::ResourceFormatLoaderCrystal.ensure_registered rescue nil
+      Godot::ResourceFormatSaverCrystal.ensure_registered rescue nil
+    {% end %}
     return
   end
   Godot::Bridge.init_done = true
@@ -1769,7 +1796,7 @@ fun crystal_godot_init(api : Godot::LibBridge::BridgeAPI*) : Void
   {% unless flag?(:release) %}
     Godot::Debugger::Agent.initialize_agent rescue nil
   {% end %}
-  {% unless flag?(:release) || flag?(:libgodot_addon) || flag?(:no_editor) %}
+  {% if flag?(:editor) || (!flag?(:release) && !flag?(:libgodot_addon) && !flag?(:no_editor)) %}
     Godot::CrystalLanguage.ensure_registered rescue nil
     Godot::ResourceFormatLoaderCrystal.ensure_registered rescue nil
     Godot::ResourceFormatSaverCrystal.ensure_registered rescue nil
