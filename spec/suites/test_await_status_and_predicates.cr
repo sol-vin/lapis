@@ -51,6 +51,28 @@ test_suite "AwaitStatus" do
     p1, p2 = s_tuple
     assert_eq p1, 42
     assert_eq p2, "Bonus"
+
+    # Freed / disposed state
+    s_freed = Godot::AwaitStatus(Int32).freed(8888_u64)
+    assert_false s_freed.completed?
+    assert_false s_freed.timed_out?
+    assert_true s_freed.freed?
+    assert_true s_freed.disposed?
+    assert_false s_freed.ok?
+    assert_eq s_freed.status, Godot::AwaitState::Freed
+    assert_eq s_freed.instance_id, 8888_u64
+    assert_nil s_freed.value
+    assert_nil s_freed.value?
+    assert_true (s_freed == :freed)
+    assert_true (s_freed == :disposed)
+
+    caught_freed_error = false
+    begin
+      s_freed.value!
+    rescue ex : Godot::DisposedObjectError
+      caught_freed_error = (ex.instance_id == 8888_u64)
+    end
+    assert_true caught_freed_error, "value! must raise Godot::DisposedObjectError on freed status"
   end
 
   test "Pillar 2: TypedSignal 0-arg await, await!, and await?" do
@@ -80,7 +102,7 @@ test_suite "AwaitStatus" do
     assert_true bang_completed, "0-arg await! must complete successfully"
 
     # 3. await? completion
-    pred_res = false
+    pred_res : Bool? = false
     Godot.spawn do
       pred_res = node.ping.await?
     end
@@ -92,7 +114,7 @@ test_suite "AwaitStatus" do
     # 4. Timeout behavior
     to_st = false
     to_bang_raised = false
-    to_pred_res = true
+    to_pred_res : Bool? = true
 
     Godot.spawn do
       st = node.ping.await(timeout_sec: 0.02)
@@ -312,18 +334,23 @@ test_suite "AwaitStatus" do
   end
 
   test "Pillar 7: Dead-pointer safety invariant on await, await!, and await?" do
-    node = Godot.create(Godot::Node2D)
+    node = Godot.create(AwaitProbeEmitterNode)
     node_id = node.instance_id
 
-    caught_await = false
+    await_freed_flag = false
+    await_value_bang_raised = false
     caught_bang = false
-    caught_pred = false
+    pred_bound_nil = false
+    pred_typed0_nil = false
+    pred_typed1_nil = false
 
     Godot.spawn do
+      st = node.signal("ghost").await
+      await_freed_flag = st.freed? && st.disposed? && (st.instance_id == node_id) && st.value?.nil?
       begin
-        node.signal("ghost").await
+        st.value!
       rescue ex : Godot::DisposedObjectError
-        caught_await = (ex.instance_id == node_id)
+        await_value_bang_raised = (ex.instance_id == node_id)
       end
     end
 
@@ -336,22 +363,59 @@ test_suite "AwaitStatus" do
     end
 
     Godot.spawn do
-      begin
-        node.signal("ghost").await?
-      rescue ex : Godot::DisposedObjectError
-        caught_pred = (ex.instance_id == node_id)
-      end
+      res = node.signal("ghost").await?
+      pred_bound_nil = res.nil?
     end
 
-    3.times { Fiber.yield }
-    # Destroy node while awaiting
+    Godot.spawn do
+      res0 = node.ping.await?
+      pred_typed0_nil = res0.nil?
+    end
+
+    Godot.spawn do
+      res1 = node.scored.await?
+      pred_typed1_nil = res1.nil?
+    end
+
+    10.times { Fiber.yield }
+    # Destroy node while awaiting: should immediately unblock awaiting fibers on the main thread
     node.destroy
     assert_false node.alive?
 
-    50.times { Fiber.yield }
-
-    assert_true caught_await, "await must raise DisposedObjectError when node is destroyed"
+    assert_true await_freed_flag, "await must immediately unblock with freed? == true when node is destroyed"
+    assert_true await_value_bang_raised, "status.value! on freed AwaitStatus must raise DisposedObjectError"
     assert_true caught_bang, "await! must raise DisposedObjectError when node is destroyed"
-    assert_true caught_pred, "await? must raise DisposedObjectError when node is destroyed"
+    assert_true pred_bound_nil, "BoundSignal#await? must return nil when node is destroyed"
+    assert_true pred_typed0_nil, "0-arg TypedSignal#await? must return nil when node is destroyed"
+    assert_true pred_typed1_nil, "1-arg TypedSignal#await? must return nil when node is destroyed"
+
+    # Also verify pre-disposed node behavior (calling await / await! / await? after destroy)
+    pre_st = node.scored.await
+    assert_true pre_st.freed?, "await on already-destroyed node must return freed? status"
+    assert_nil node.scored.await?, "await? on already-destroyed node must return nil"
+    assert_nil node.ping.await?, "0-arg await? on already-destroyed node must return nil"
+    pre_bang_raised = false
+    begin
+      node.scored.await!
+    rescue ex : Godot::DisposedObjectError
+      pre_bang_raised = (ex.instance_id == node_id)
+    end
+    assert_true pre_bang_raised, "await! on already-destroyed node must raise DisposedObjectError"
+
+    # Also verify queue_free immediately unblocks awaiting fibers
+    qnode = Godot.create(AwaitProbeEmitterNode)
+    root.add_child(qnode)
+    q_unblocked_freed = false
+    q_pred_nil = false
+    Godot.spawn do
+      q_unblocked_freed = qnode.ping.await.freed?
+    end
+    Godot.spawn do
+      q_pred_nil = qnode.scored.await?.nil?
+    end
+    10.times { Fiber.yield }
+    qnode.queue_free
+    assert_true q_unblocked_freed, "queue_free must immediately unblock await with freed? == true"
+    assert_true q_pred_nil, "queue_free must immediately unblock await? with nil"
   end
 end

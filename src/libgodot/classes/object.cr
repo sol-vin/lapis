@@ -451,6 +451,25 @@ module Godot
       @destroyed
     end
 
+    # Fast check if this object is queued for deletion (`queue_free`) or already destroyed.
+    def queued_for_deletion_fast? : Bool
+      return true if @destroyed
+      return false if @pointer.null?
+      return true if @instance_id > 0 && !Bridge.is_instance_valid(@instance_id)
+      is_queued_for_deletion?
+    rescue
+      true
+    end
+
+    # Internal helper invoked by Bridge `free_fn` when Godot C++ deallocates a Crystal object.
+    def _mark_destroyed_by_engine! : Void
+      return if @destroyed
+      @destroyed = true
+      @pointer = Pointer(Void).null
+      ::Godot::TombstoneTracker.record_freed(@instance_id, self.class.name)
+      ::Godot::LeakTracker.unregister(@instance_id)
+    end
+
     # Returns true if running inside the Godot Editor
     def editor_hint? : Bool
       Godot.editor_hint?
@@ -476,21 +495,19 @@ module Godot
       @destroyed = true
       ::Godot::TombstoneTracker.record_freed(@instance_id, self.class.name)
       ::Godot::LeakTracker.unregister(@instance_id)
-      Godot.clear_signal_subscriptions(signal_target_id)
+      tid = signal_target_id
       if !@pointer.null?
         target_ptr = @pointer
         inst_id = @instance_id
         @pointer = Pointer(Void).null
         Bridge.unregister_alive_instance_by_ptr(target_ptr)
-        if self.is_a?(RefCounted)
+        if !self.is_a?(RefCounted) && (inst_id == 0 || Bridge.is_instance_valid(inst_id))
           # RefCounted instances are managed by Godot's atomic reference counter;
           # calling memdelete directly corrupts engine memory and causes heap corruption.
-          return
-        end
-        if inst_id == 0 || Bridge.is_instance_valid(inst_id)
           Bridge.object_destroy(target_ptr)
         end
       end
+      Godot.clear_signal_subscriptions(tid, yield_awaiters: true)
     end
 
     # Destroys this Object in the Godot engine (alias to #destroy).

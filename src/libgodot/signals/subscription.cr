@@ -70,11 +70,22 @@ module Godot
     end
 
     getter? unsubscribed : Bool = false
+    getter? freed : Bool = false
+    property waiting_fiber : Fiber? = nil
 
     @[ZeroAllocation]
     @[HotPath]
     @[AlwaysInline]
     def mark_unsubscribed! : Void
+      @unsubscribed = true
+      @static_slot_token = 0_u64
+    end
+
+    @[ZeroAllocation]
+    @[HotPath]
+    @[AlwaysInline]
+    def mark_freed! : Void
+      @freed = true
       @unsubscribed = true
       @static_slot_token = 0_u64
     end
@@ -127,6 +138,46 @@ module Godot
 
   class_getter signal_subs = ::Hash(Tuple(UInt64, String), ::Array(SignalSubscription)).new
   class_getter signal_subs_mutex = ::Thread::Mutex.new
+  class_property awaiting_fiber_count : Int32 = 0
+  @@last_await_pump_frame : Int64 = -1_i64
+  @@pending_freed_wait_subs = ::Array(SignalSubscription).new
+
+  # Yields on the Main Thread until all recently freed awaiting subscriptions have woken up and exited `await`.
+  def self.wake_freed_awaiters! : Void
+    return if @@in_typed_emit
+    cur_fiber = Fiber.current
+    return unless Godot::ThreadSafety.main_thread? && cur_fiber.execution_context?
+    wait_subs : ::Array(SignalSubscription)? = nil
+    signal_subs_mutex.synchronize do
+      unless @@pending_freed_wait_subs.empty?
+        wait_subs = @@pending_freed_wait_subs.dup
+        @@pending_freed_wait_subs.clear
+      end
+    end
+    return unless subs = wait_subs
+    spins = 0
+    while spins < 128 && subs.any? { |s| (wf = s.waiting_fiber) && wf != cur_fiber && !wf.dead? }
+      Fiber.yield
+      spins += 1
+    end
+    3.times { Fiber.yield }
+  end
+
+  # Cooperatively yields once per engine process frame if any fibers are actively awaiting signals.
+  def self.pump_awaiting_fibers_once_per_frame! : Void
+    return if @@awaiting_fiber_count <= 0 && @@pending_freed_wait_subs.empty?
+    return if @@in_typed_emit
+    return unless Godot::ThreadSafety.main_thread? && Fiber.current.execution_context?
+    unless @@pending_freed_wait_subs.empty?
+      wake_freed_awaiters!
+      return
+    end
+    frame = process_frame_count
+    if frame <= 0_i64 || frame != @@last_await_pump_frame
+      @@last_await_pump_frame = frame if frame > 0_i64
+      Fiber.yield
+    end
+  end
 
   # Subscribes an awaiter or callback to a signal on a target object instance ID
   def self.subscribe_signal(
@@ -156,10 +207,12 @@ module Godot
     end
   end
 
-  # Cleans up all signal subscriptions associated with a target instance ID (as emitter or receiver)
-  def self.clear_signal_subscriptions(target_id : UInt64) : Void
+  # Cleans up all signal subscriptions associated with a target instance ID (as emitter or receiver).
+  # Marks emitter subscriptions as freed and optionally yields on the Main Thread so awaiting fibers unblock immediately.
+  def self.clear_signal_subscriptions(target_id : UInt64, yield_awaiters : Bool = true) : Void
     return if target_id == 0
     ::Lapis::Core::StaticSignalTable.global.clear_emitter(target_id)
+    cur_fiber = Fiber.current
     signal_subs_mutex.synchronize do
       signal_subs.each_value do |list|
         list.reject! do |sub|
@@ -173,12 +226,45 @@ module Godot
       end
       signal_subs.reject! do |(tid, _), list|
         if tid == target_id
-          list.each(&.mark_unsubscribed!)
+          list.each do |sub|
+            if (wf = sub.waiting_fiber) && wf != cur_fiber && !wf.dead?
+              @@pending_freed_wait_subs << sub
+            end
+            sub.mark_freed!
+          end
           true
         else
           list.empty?
         end
       end
+    end
+    if yield_awaiters
+      wake_freed_awaiters!
+    end
+  end
+
+  # Marks all non-teardown signal subscriptions on a node queued for deletion (`queue_free`) as freed
+  # and yields on the Main Thread so awaiting fibers unblock immediately without waiting for frame end.
+  def self.notify_object_queued_for_deletion(target_id : UInt64, yield_awaiters : Bool = true) : Void
+    return if target_id == 0
+    cur_fiber = Fiber.current
+    signal_subs_mutex.synchronize do
+      signal_subs.reject! do |(tid, sig_name), list|
+        if tid == target_id && sig_name != "tree_exiting" && sig_name != "tree_exited"
+          list.each do |sub|
+            if (wf = sub.waiting_fiber) && wf != cur_fiber && !wf.dead?
+              @@pending_freed_wait_subs << sub
+            end
+            sub.mark_freed!
+          end
+          true
+        else
+          list.empty?
+        end
+      end
+    end
+    if yield_awaiters
+      wake_freed_awaiters!
     end
   end
 
@@ -295,8 +381,9 @@ module Godot
   enum AwaitState
     Completed
     TimedOut
+    Freed
 
-    # Returns true if the operation completed successfully without timing out.
+    # Returns true if the operation completed successfully without timing out or being freed.
     def completed? : Bool
       self == Completed
     end
@@ -306,6 +393,16 @@ module Godot
       self == TimedOut
     end
 
+    # Returns true if the target object was freed/disposed before or during the wait.
+    def freed? : Bool
+      self == Freed
+    end
+
+    # Alias to `freed?`.
+    def disposed? : Bool
+      self == Freed
+    end
+
     # Alias to `completed?`.
     def ok? : Bool
       self == Completed
@@ -313,16 +410,17 @@ module Godot
   end
 
   # Zero-allocation status wrapper carrying completion state and optional unboxed value.
-  # Provides `.completed?`, `.timed_out?`, `.ok?`, `.status`, `.value`, `.value!`, `.value?`,
+  # Provides `.completed?`, `.timed_out?`, `.freed?`, `.disposed?`, `.ok?`, `.status`, `.value`, `.value!`, `.value?`,
   # and delegates element access and methods to the underlying value.
   struct AwaitStatus(T)
     getter status : AwaitState
     getter value : T?
+    getter instance_id : UInt64
 
-    def initialize(@status : AwaitState, @value : T? = nil)
+    def initialize(@status : AwaitState, @value : T? = nil, @instance_id : UInt64 = 0_u64)
     end
 
-    # Returns true if the operation completed successfully without timing out.
+    # Returns true if the operation completed successfully without timing out or being freed.
     def completed? : Bool
       @status.completed?
     end
@@ -332,20 +430,38 @@ module Godot
       @status.timed_out?
     end
 
+    # Returns true if the target object was freed/disposed before or during the wait.
+    def freed? : Bool
+      @status.freed?
+    end
+
+    # Alias to `freed?`.
+    def disposed? : Bool
+      @status.disposed?
+    end
+
     # Alias to `completed?`.
     def ok? : Bool
       @status.completed?
     end
 
-    # Returns the unwrapped value of type T if completed, or raises Godot::TimeoutError if timed out.
+    # Returns the unwrapped value of type T if completed, or raises `Godot::DisposedObjectError` if freed
+    # or `Godot::TimeoutError` if timed out.
     def value! : T
-      if timed_out?
+      if freed?
+        {% if flag?(:trace_dead_pointers) %}
+          msg = ::Godot::TombstoneTracker.format_disposed_message(@instance_id)
+          raise DisposedObjectError.new(@instance_id, msg)
+        {% else %}
+          raise DisposedObjectError.new(@instance_id, "Target object was destroyed while awaiting signal or timer")
+        {% end %}
+      elsif timed_out?
         raise TimeoutError.new("Timed out while awaiting signal or timer")
       end
       @value.as(T)
     end
 
-    # Returns the value if completed, or nil if timed out.
+    # Returns the value if completed, or nil if timed out or freed.
     def value? : T?
       @value
     end
@@ -359,6 +475,14 @@ module Godot
       new(AwaitState::TimedOut, nil)
     end
 
+    def self.freed(instance_id : UInt64 = 0_u64) : self
+      new(AwaitState::Freed, nil, instance_id)
+    end
+
+    def self.disposed(instance_id : UInt64 = 0_u64) : self
+      new(AwaitState::Freed, nil, instance_id)
+    end
+
     # Equality comparisons for state, symbols, and values
     def ==(other : AwaitState) : Bool
       @status == other
@@ -366,9 +490,10 @@ module Godot
 
     def ==(other : Symbol) : Bool
       case other
-      when :completed then completed?
-      when :timed_out then timed_out?
-      else                 false
+      when :completed        then completed?
+      when :timed_out        then timed_out?
+      when :freed, :disposed then freed?
+      else                        false
       end
     end
 
@@ -395,22 +520,28 @@ module Godot
   end
 
   # Cooperatively awaits until the named signal is emitted on the target object.
-  # Returns an `AwaitStatus(Array(Variant))` indicating completion or timeout.
-  # If the target object is freed while awaiting, raises `Godot::DisposedObjectError`.
+  # Returns an `AwaitStatus(Array(Variant))` indicating completion, timeout, or object disposal (`freed?`).
   def self.await(target : Godot::Object, signal_name : String, timeout_sec : Float64? = nil) : AwaitStatus(::Array(Variant))
-    target.check_alive!
     target_id = target.signal_target_id
+    check_queued_delete = (signal_name != "tree_exiting" && signal_name != "tree_exited")
+    if !target.active? || (check_queued_delete && target.queued_for_deletion_fast?)
+      return AwaitStatus(::Array(Variant)).freed(target_id)
+    end
     sub = subscribe_signal(target_id, signal_name)
+    sub.waiting_fiber = Fiber.current
+    @@awaiting_fiber_count += 1
     if !target.pointer.null? && target.instance_id > 0
       Bridge.object_connect_signal(target.pointer, signal_name)
     end
     start_time = ::Time.instant
     timed_out = false
+    freed = false
     begin
-      while !sub.completed?
-        # Dead-pointer validation: fail fast if target was destroyed
-        if !target.active?
-          raise DisposedObjectError.new(target_id, "Target object was destroyed while awaiting signal '#{signal_name}'")
+      while !sub.completed? && !sub.freed?
+        # Dead-pointer and queue_free validation: unblock immediately if target was destroyed or queued for deletion
+        if !target.active? || (check_queued_delete && Godot::ThreadSafety.main_thread? && target.queued_for_deletion_fast?)
+          freed = true
+          break
         end
         if timeout = timeout_sec
           if (::Time.instant - start_time).total_seconds >= timeout
@@ -420,13 +551,19 @@ module Godot
         end
         Fiber.yield
       end
-      if timed_out
+      if sub.completed?
+        AwaitStatus(::Array(Variant)).completed(sub.args)
+      elsif freed || sub.freed? || !target.active?
+        AwaitStatus(::Array(Variant)).freed(target_id)
+      elsif timed_out
         AwaitStatus(::Array(Variant)).timed_out
       else
         AwaitStatus(::Array(Variant)).completed(sub.args)
       end
     ensure
       unsubscribe_signal(sub)
+      @@awaiting_fiber_count -= 1 if @@awaiting_fiber_count > 0
+      sub.waiting_fiber = nil
     end
   end
 
@@ -435,10 +572,18 @@ module Godot
   end
 
   # Cooperatively awaits until the named signal is emitted on the target object.
-  # Returns the emitted arguments as `Array(Variant)`, or raises `Godot::TimeoutError` if `timeout_sec` expires.
+  # Returns the emitted arguments as `Array(Variant)`, or raises `Godot::DisposedObjectError` if the target is freed,
+  # or `Godot::TimeoutError` if `timeout_sec` expires.
   def self.await!(target : Godot::Object, signal_name : String, timeout_sec : Float64? = nil) : ::Array(Variant)
     status = await(target, signal_name, timeout_sec)
-    if status.timed_out?
+    if status.freed?
+      {% if flag?(:trace_dead_pointers) %}
+        msg = ::Godot::TombstoneTracker.format_disposed_message(status.instance_id)
+        raise DisposedObjectError.new(status.instance_id, msg)
+      {% else %}
+        raise DisposedObjectError.new(status.instance_id, "Target object was destroyed while awaiting signal '#{signal_name}'")
+      {% end %}
+    elsif status.timed_out?
       raise TimeoutError.new("Timed out awaiting signal '#{signal_name}' on #{target.class.name} after #{timeout_sec}s")
     end
     status.value!
@@ -449,7 +594,7 @@ module Godot
   end
 
   # Cooperatively awaits until the named signal is emitted on the target object.
-  # Returns the emitted arguments as `Array(Variant)?`, or `nil` if `timeout_sec` expires.
+  # Returns the emitted arguments as `Array(Variant)?`, or `nil` if `timeout_sec` expires or the target is freed.
   def self.await?(target : Godot::Object, signal_name : String, timeout_sec : Float64? = nil) : ::Array(Variant)?
     status = await(target, signal_name, timeout_sec)
     status.value?

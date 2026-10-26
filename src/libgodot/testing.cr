@@ -45,13 +45,13 @@ module Lapis
     # ===========================================================================
 
     # Asserts that the boolean condition evaluates to true
-    def assert_true(cond : Bool, msg : String = "Expected true, got false", file : String = __FILE__, line : Int32 = __LINE__)
-      raise AssertionError.new(msg, file, line) unless cond
+    def assert_true(cond : Bool?, msg : String = "Expected true, got false", file : String = __FILE__, line : Int32 = __LINE__)
+      raise AssertionError.new(msg, file, line) unless cond == true
     end
 
     # Asserts that the boolean condition evaluates to false
-    def assert_false(cond : Bool, msg : String = "Expected false, got true", file : String = __FILE__, line : Int32 = __LINE__)
-      raise AssertionError.new(msg, file, line) if cond
+    def assert_false(cond : Bool?, msg : String = "Expected false, got true", file : String = __FILE__, line : Int32 = __LINE__)
+      raise AssertionError.new(msg, file, line) unless cond == false
     end
 
     # Asserts that two values are equal using Crystal's == operator

@@ -635,7 +635,9 @@ module Godot
         end
       end
       return if @pointer.null?
+      tid = signal_target_id
       previous_def
+      Godot.notify_object_queued_for_deletion(tid, yield_awaiters: true)
     end
 
     # Explicit cross-thread helper that safely queues deletion via Godot's MessageQueue

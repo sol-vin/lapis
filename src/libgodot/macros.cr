@@ -1819,9 +1819,11 @@ macro node(decl, &block)
           _ready if responds_to?(:_ready)
         when "_process"
           ::Godot::ThreadSafety.flush_main_thread_queue!
+          ::Godot.pump_awaiting_fibers_once_per_frame!
           _process(delta) if responds_to?(:_process)
         when "_physics_process"
           ::Godot::ThreadSafety.flush_main_thread_queue!
+          ::Godot.pump_awaiting_fibers_once_per_frame!
           _physics_process(delta) if responds_to?(:_physics_process)
         else
           {% if is_reopen %}

@@ -68,12 +68,23 @@ end
   target = Godot.create(Godot::Node2D)
   target_id = target.instance_id
 
+  status_freed = false
   caught_disposed_error = false
+  pred_was_nil = false
   fiber_finished = false
 
   Godot.spawn do
+    st = target.signal("nonexistent_event").await
+    status_freed = st.freed? && (st.instance_id == target_id)
+  end
+
+  Godot.spawn do
+    pred_was_nil = target.signal("nonexistent_event").await?.nil?
+  end
+
+  Godot.spawn do
     begin
-      target.signal("nonexistent_event").await
+      target.signal("nonexistent_event").await!
     rescue ex : Godot::DisposedObjectError
       caught_disposed_error = true
       assert_eq ex.instance_id, target_id, "Exception instance ID must match destroyed target"
@@ -82,21 +93,23 @@ end
     end
   end
 
-  # Allow fiber to begin awaiting
+  # Allow fibers to begin awaiting
   3.times { Fiber.yield }
 
-  # Destroy target node in Godot ObjectDB while fiber is in-flight
+  # Destroy target node in Godot ObjectDB while fibers are in-flight
   target.destroy
   assert_false target.alive?, "Target must be dead in ObjectDB"
 
-  # Pump cooperative loop: await loop must detect dead pointer and raise DisposedObjectError
+  # Pump cooperative loop if needed
   50.times do
-    break if fiber_finished
+    break if fiber_finished && status_freed && pred_was_nil
     Fiber.yield
   end
 
   assert_true fiber_finished, "Fiber must not hang when target is destroyed"
-  assert_true caught_disposed_error, "DisposedObjectError must be raised when target node is freed"
+  assert_true status_freed, "await must return AwaitStatus with freed? == true when target node is freed"
+  assert_true pred_was_nil, "await? must return nil when target node is freed"
+  assert_true caught_disposed_error, "await! must raise DisposedObjectError when target node is freed"
 end
 
   test "Cooperative signal await with timeout expiration" do

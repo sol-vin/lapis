@@ -424,10 +424,17 @@ module Godot
 
       free_fn = ->(crystal_inst : Void*) {
         if !crystal_inst.null?
+          inst_to_clear : Godot::Object? = nil
           @@alive_mutex.synchronize do
             if inst = @@alive_instances.delete(crystal_inst)
               @@alive_instances_by_ptr.delete(inst.pointer)
+              inst_to_clear = inst
             end
+          end
+          if inst = inst_to_clear
+            tid = inst.signal_target_id
+            inst._mark_destroyed_by_engine!
+            Godot.clear_signal_subscriptions(tid, yield_awaiters: false)
           end
         end
       }

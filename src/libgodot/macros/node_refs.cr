@@ -530,7 +530,8 @@ end
 # `await` suspends only the calling Crystal fiber, polling Godot cooperatively across frame steps
 # while ensuring:
 # 1. Zero main thread stalling.
-# 2. Dead-pointer protection: if the emitting node is freed while waiting, raises `Godot::DisposedObjectError`.
+# 2. Immediate dead-pointer protection: if the emitting node is freed (`destroy`/`free`/`queue_free`) while waiting,
+#    `await` unblocks immediately with `status.freed? == true` (while `await!` raises `Godot::DisposedObjectError` and `await?` returns `nil`).
 # 3. Optional timeout support with automated timeout cancellation.
 #
 # ### Supported Calling Forms:
@@ -562,7 +563,7 @@ macro await(target, signal_name = nil, timeout_sec = nil)
   {% end %}
 end
 
-# Cooperatively awaits a signal, timer, or duration, raising `Godot::TimeoutError` if timeout expires.
+# Cooperatively awaits a signal, timer, or duration, raising `Godot::DisposedObjectError` if the target is freed or `Godot::TimeoutError` if timeout expires.
 macro await!(target, signal_name = nil, timeout_sec = nil)
   {% if signal_name != nil && timeout_sec != nil %}
     ::Godot.await!({{target}}, {{signal_name}}, timeout_sec: {{timeout_sec}})
@@ -575,7 +576,7 @@ macro await!(target, signal_name = nil, timeout_sec = nil)
   {% end %}
 end
 
-# Cooperatively awaits a signal, timer, or duration, returning nil (or false) if timeout expires.
+# Cooperatively awaits a signal, timer, or duration, returning nil if the target is freed, or nil (or false) if timeout expires.
 macro await?(target, signal_name = nil, timeout_sec = nil)
   {% if signal_name != nil && timeout_sec != nil %}
     ::Godot.await?({{target}}, {{signal_name}}, timeout_sec: {{timeout_sec}})

@@ -170,6 +170,7 @@ module Lapis
   {% end %}
   alias AwaitState = Godot::AwaitState
   alias AwaitStatus = Godot::AwaitStatus
+  alias DisposedObjectError = Godot::DisposedObjectError
 end
 
 # Core math and transform value-type aliases
@@ -191,6 +192,7 @@ alias AABB = Godot::AABB
 alias Bridge = Godot::Bridge
 alias AwaitState = Godot::AwaitState
 alias AwaitStatus = Godot::AwaitStatus
+alias DisposedObjectError = Godot::DisposedObjectError
 
 # Global fluent group query helper
 def group(name : String | Symbol) : Godot::GroupQuery
