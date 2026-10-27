@@ -28,6 +28,18 @@ class SpecCombatListener
     @last_r2 = c
     @last_r3 = d
   end
+
+  getter five_arg_called : Bool = false
+  getter last_r4 : Int32 = 0
+
+  def on_five_args(a : Int32, b : String, c : Float64, d : Bool, e : Int32) : Void
+    @five_arg_called = true
+    @last_r0 = a
+    @last_r1 = b
+    @last_r2 = c
+    @last_r3 = d
+    @last_r4 = e
+  end
 end
 
 describe "Signal Compound Operators (+= and -=)" do
@@ -422,6 +434,64 @@ describe "Signal Compound Operators (+= and -=)" do
       listener.last_r1.should eq("hello")
       listener.last_r2.should be_close(3.14, 0.001)
       listener.last_r3.should be_true
+
+      sub.unsubscribe
+      target_node.destroy
+    end
+
+    it "binds TypedSignal >> Proc to StaticSignalTable fast path (typed_fast_path == true)" do
+      player = SpecPlayer.new
+      listener = SpecCombatListener.new
+
+      handler = ->listener.on_damage(Int32, Int32)
+      sub = (player.health_changed >> handler)
+      sub.typed_fast_path?.should be_true
+      Godot.has_untyped_signal_subscribers?(player.signal_target_id, "health_changed").should be_false
+
+      player.take_damage(20)
+      listener.hit_count.should eq(1)
+      listener.last_hp.should eq(80)
+
+      # Disconnect via method pointer proc
+      player.health_changed -= handler
+      sub.connected?.should be_false
+
+      player.take_damage(10)
+      listener.hit_count.should eq(1)
+    end
+
+    it "supports strict > pipe from TypedSignal to matching Proc" do
+      player = SpecPlayer.new
+      listener = SpecCombatListener.new
+
+      sub = (player.health_changed > ->listener.on_damage(Int32, Int32))
+      sub.typed_fast_path?.should be_true
+      sub.connected?.should be_true
+
+      player.take_damage(35)
+      listener.hit_count.should eq(1)
+      listener.last_hp.should eq(65)
+
+      sub.unsubscribe
+      sub.connected?.should be_false
+    end
+
+    it "pipes 5-argument signal to a 5-argument method pointer proc via variadic >>" do
+      target_node = Godot.create(Godot::Node)
+      listener = SpecCombatListener.new
+
+      sig = target_node.signal("custom_quint_signal")
+      sub = (sig >> ->listener.on_five_args(Int32, String, Float64, Bool, Int32))
+      sub.connected?.should be_true
+
+      sig.emit(7, "quint", 2.718_f64, true, 99)
+
+      listener.five_arg_called.should be_true
+      listener.last_r0.should eq(7)
+      listener.last_r1.should eq("quint")
+      listener.last_r2.should be_close(2.718, 0.001)
+      listener.last_r3.should be_true
+      listener.last_r4.should eq(99)
 
       sub.unsubscribe
       target_node.destroy

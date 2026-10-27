@@ -169,14 +169,13 @@ module Godot
       end
     end
 
-    # Loose pipe (>>) to a 0-argument Proc (adaptive arity trimming)
-    def >>(proc : Proc(R)) : SignalSubscription forall R
-      sub = @target.connect(@name) do
-        proc.call
-      end
-      sub.proc_pointer = proc.pointer
-      sub.proc_closure_data = proc.closure_data
-      sub
+    # Strict pipe (>) to a Proc accepting raw Variant array or 0-arg Proc
+    def >(proc : Proc(::Array(Variant), R)) : SignalSubscription forall R
+      self >> proc
+    end
+
+    def >(proc : Proc(R)) : SignalSubscription forall R
+      self >> proc
     end
 
     # Loose pipe (>>) to a Proc accepting raw Variant array
@@ -189,174 +188,48 @@ module Godot
       sub
     end
 
-    # Loose pipe (>>) to a 1-argument Proc with downcasting support
-    def >>(proc : Proc(U0, R)) : SignalSubscription forall U0, R
-      sub = @target.connect(@name) do |args|
-        if args.size >= 1
-          raw = args[0].raw
-          if raw.is_a?(Godot::Object)
-            if casted = raw.as_a?(U0)
-              proc.call(casted)
+    # Loose pipe (>>) to any N-argument typed Proc(*U, R) with automatic
+    # arity trimming, polymorphic downcasting, and numeric coercion.
+    def >>(proc : Proc(*U, R)) : SignalSubscription forall U, R
+      sub = {% begin %}
+        {% target_size = U.size %}
+        {% if target_size == 0 %}
+          @target.connect(@name) do
+            proc.call
+          end
+        {% else %}
+          @target.connect(@name) do |args|
+            if args.size >= {{ target_size }}
+              {% for i in 0...target_size %}
+                %matched_{{i}} = false
+                %val_{{i}} = nil
+                %raw_{{i}} = args[{{i}}].raw
+                if %raw_{{i}}.is_a?(::Godot::Object) && (%casted_{{i}} = %raw_{{i}}.as_a?({{ U[i] }}))
+                  %val_{{i}} = %casted_{{i}}
+                  %matched_{{i}} = true
+                elsif %raw_{{i}}.is_a?({{ U[i] }})
+                  %val_{{i}} = %raw_{{i}}
+                  %matched_{{i}} = true
+                elsif %raw_{{i}}.is_a?(Int) && (%num_{{i}} = %raw_{{i}}.to_i32.as?({{ U[i] }}) || %raw_{{i}}.to_i64.as?({{ U[i] }}))
+                  %val_{{i}} = %num_{{i}}
+                  %matched_{{i}} = true
+                elsif %raw_{{i}}.is_a?(Float) && (%flt_{{i}} = %raw_{{i}}.to_f32.as?({{ U[i] }}) || %raw_{{i}}.to_f64.as?({{ U[i] }}))
+                  %val_{{i}} = %flt_{{i}}
+                  %matched_{{i}} = true
+                end
+              {% end %}
+
+              if {% for i in 0...target_size %}%matched_{{i}} && {% end %} true
+                proc.call(
+                  {% for i in 0...target_size %}
+                    %val_{{i}}.as({{ U[i] }}),
+                  {% end %}
+                )
+              end
             end
-          elsif raw.is_a?(U0)
-            proc.call(raw)
-          elsif raw.is_a?(Int) && (num = raw.to_i32.as?(U0) || raw.to_i64.as?(U0))
-            proc.call(num)
-          elsif raw.is_a?(Float) && (flt = raw.to_f32.as?(U0) || raw.to_f64.as?(U0))
-            proc.call(flt)
           end
-        end
-      end
-      sub.proc_pointer = proc.pointer
-      sub.proc_closure_data = proc.closure_data
-      sub
-    end
-
-    # Loose pipe (>>) to a 2-argument Proc with downcasting support
-    def >>(proc : Proc(U0, U1, R)) : SignalSubscription forall U0, U1, R
-      sub = @target.connect(@name) do |args|
-        if args.size >= 2
-          c0 : U0? = nil
-          raw0 = args[0].raw
-          if raw0.is_a?(Godot::Object)
-            c0 = raw0.as_a?(U0)
-          elsif raw0.is_a?(U0)
-            c0 = raw0
-          elsif raw0.is_a?(Int)
-            c0 = raw0.to_i32.as?(U0) || raw0.to_i64.as?(U0)
-          elsif raw0.is_a?(Float)
-            c0 = raw0.to_f32.as?(U0) || raw0.to_f64.as?(U0)
-          end
-
-          c1 : U1? = nil
-          raw1 = args[1].raw
-          if raw1.is_a?(Godot::Object)
-            c1 = raw1.as_a?(U1)
-          elsif raw1.is_a?(U1)
-            c1 = raw1
-          elsif raw1.is_a?(Int)
-            c1 = raw1.to_i32.as?(U1) || raw1.to_i64.as?(U1)
-          elsif raw1.is_a?(Float)
-            c1 = raw1.to_f32.as?(U1) || raw1.to_f64.as?(U1)
-          end
-
-          if !c0.nil? && !c1.nil?
-            proc.call(c0, c1)
-          end
-        end
-      end
-      sub.proc_pointer = proc.pointer
-      sub.proc_closure_data = proc.closure_data
-      sub
-    end
-
-    # Loose pipe (>>) to a 3-argument typed Proc with automatic downcasting & arity adaptation
-    def >>(proc : Proc(U0, U1, U2, R)) : SignalSubscription forall U0, U1, U2, R
-      sub = @target.connect(@name) do |args|
-        if args.size >= 3
-          c0 : U0? = nil
-          raw0 = args[0].raw
-          if raw0.is_a?(Godot::Object)
-            c0 = raw0.as_a?(U0)
-          elsif raw0.is_a?(U0)
-            c0 = raw0
-          elsif raw0.is_a?(Int)
-            c0 = raw0.to_i32.as?(U0) || raw0.to_i64.as?(U0)
-          elsif raw0.is_a?(Float)
-            c0 = raw0.to_f32.as?(U0) || raw0.to_f64.as?(U0)
-          end
-
-          c1 : U1? = nil
-          raw1 = args[1].raw
-          if raw1.is_a?(Godot::Object)
-            c1 = raw1.as_a?(U1)
-          elsif raw1.is_a?(U1)
-            c1 = raw1
-          elsif raw1.is_a?(Int)
-            c1 = raw1.to_i32.as?(U1) || raw1.to_i64.as?(U1)
-          elsif raw1.is_a?(Float)
-            c1 = raw1.to_f32.as?(U1) || raw1.to_f64.as?(U1)
-          end
-
-          c2 : U2? = nil
-          raw2 = args[2].raw
-          if raw2.is_a?(Godot::Object)
-            c2 = raw2.as_a?(U2)
-          elsif raw2.is_a?(U2)
-            c2 = raw2
-          elsif raw2.is_a?(Int)
-            c2 = raw2.to_i32.as?(U2) || raw2.to_i64.as?(U2)
-          elsif raw2.is_a?(Float)
-            c2 = raw2.to_f32.as?(U2) || raw2.to_f64.as?(U2)
-          end
-
-          if !c0.nil? && !c1.nil? && !c2.nil?
-            proc.call(c0, c1, c2)
-          end
-        end
-      end
-      sub.proc_pointer = proc.pointer
-      sub.proc_closure_data = proc.closure_data
-      sub
-    end
-
-    # Loose pipe (>>) to a 4-argument typed Proc with automatic downcasting & arity adaptation
-    def >>(proc : Proc(U0, U1, U2, U3, R)) : SignalSubscription forall U0, U1, U2, U3, R
-      sub = @target.connect(@name) do |args|
-        if args.size >= 4
-          c0 : U0? = nil
-          raw0 = args[0].raw
-          if raw0.is_a?(Godot::Object)
-            c0 = raw0.as_a?(U0)
-          elsif raw0.is_a?(U0)
-            c0 = raw0
-          elsif raw0.is_a?(Int)
-            c0 = raw0.to_i32.as?(U0) || raw0.to_i64.as?(U0)
-          elsif raw0.is_a?(Float)
-            c0 = raw0.to_f32.as?(U0) || raw0.to_f64.as?(U0)
-          end
-
-          c1 : U1? = nil
-          raw1 = args[1].raw
-          if raw1.is_a?(Godot::Object)
-            c1 = raw1.as_a?(U1)
-          elsif raw1.is_a?(U1)
-            c1 = raw1
-          elsif raw1.is_a?(Int)
-            c1 = raw1.to_i32.as?(U1) || raw1.to_i64.as?(U1)
-          elsif raw1.is_a?(Float)
-            c1 = raw1.to_f32.as?(U1) || raw1.to_f64.as?(U1)
-          end
-
-          c2 : U2? = nil
-          raw2 = args[2].raw
-          if raw2.is_a?(Godot::Object)
-            c2 = raw2.as_a?(U2)
-          elsif raw2.is_a?(U2)
-            c2 = raw2
-          elsif raw2.is_a?(Int)
-            c2 = raw2.to_i32.as?(U2) || raw2.to_i64.as?(U2)
-          elsif raw2.is_a?(Float)
-            c2 = raw2.to_f32.as?(U2) || raw2.to_f64.as?(U2)
-          end
-
-          c3 : U3? = nil
-          raw3 = args[3].raw
-          if raw3.is_a?(Godot::Object)
-            c3 = raw3.as_a?(U3)
-          elsif raw3.is_a?(U3)
-            c3 = raw3
-          elsif raw3.is_a?(Int)
-            c3 = raw3.to_i32.as?(U3) || raw3.to_i64.as?(U3)
-          elsif raw3.is_a?(Float)
-            c3 = raw3.to_f32.as?(U3) || raw3.to_f64.as?(U3)
-          end
-
-          if !c0.nil? && !c1.nil? && !c2.nil? && !c3.nil?
-            proc.call(c0, c1, c2, c3)
-          end
-        end
-      end
+        {% end %}
+      {% end %}
       sub.proc_pointer = proc.pointer
       sub.proc_closure_data = proc.closure_data
       sub
@@ -498,6 +371,70 @@ module Godot
                 target_obj.emit_signal(target_name, {% for i in 0...T.size %}arg{{i}},{% end %})
               end
             end
+          {% end %}
+        {% end %}
+      end
+
+      # Strict pipe (>): Exact signature match required at compile-time;
+      # binds directly to StaticSignalTable without wrapper closure.
+      def >(proc : Proc(*T, R)) : SignalSubscription forall R
+        bind(proc)
+      end
+
+      # Loose pipe (>>) to a Proc accepting raw Variant array
+      def >>(proc : Proc(::Array(Variant), R)) : SignalSubscription forall R
+        super(proc)
+      end
+
+      # Loose / adaptive pipe (>>) to any N-argument Proc(*U, R):
+      # - If T == U: binds directly to StaticSignalTable via `bind(proc)`.
+      # - If T.size >= U.size: connects via `TypedSignal#connect` (StaticSignalTable fast path)
+      #   with arity trimming and polymorphic downcasting.
+      def >>(proc : Proc(*U, R)) : SignalSubscription forall U, R
+        {% begin %}
+          {% target_size = U.size %}
+          {% if T == U %}
+            bind(proc)
+          {% elsif T.size < target_size %}
+            {% raise "Cannot loosely pipe signal with #{T.size} arguments to Proc requiring #{target_size} arguments (#{T} to #{U})" %}
+          {% elsif T.size == 0 %}
+            bind(proc)
+          {% else %}
+            sub = connect do |{% for i in 0...T.size %}arg{{i}},{% end %}|
+              {% if target_size == 0 %}
+                proc.call
+              {% else %}
+                {% for i in 0...target_size %}
+                  %matched_{{i}} = false
+                  %val_{{i}} = nil
+                  %raw_{{i}} = arg{{i}}
+                  if %raw_{{i}}.is_a?(::Godot::Object) && (%casted_{{i}} = %raw_{{i}}.as_a?({{ U[i] }}))
+                    %val_{{i}} = %casted_{{i}}
+                    %matched_{{i}} = true
+                  elsif %raw_{{i}}.is_a?({{ U[i] }})
+                    %val_{{i}} = %raw_{{i}}
+                    %matched_{{i}} = true
+                  elsif %raw_{{i}}.is_a?(Int) && (%num_{{i}} = %raw_{{i}}.to_i32.as?({{ U[i] }}) || %raw_{{i}}.to_i64.as?({{ U[i] }}))
+                    %val_{{i}} = %num_{{i}}
+                    %matched_{{i}} = true
+                  elsif %raw_{{i}}.is_a?(Float) && (%flt_{{i}} = %raw_{{i}}.to_f32.as?({{ U[i] }}) || %raw_{{i}}.to_f64.as?({{ U[i] }}))
+                    %val_{{i}} = %flt_{{i}}
+                    %matched_{{i}} = true
+                  end
+                {% end %}
+
+                if {% for i in 0...target_size %}%matched_{{i}} && {% end %} true
+                  proc.call(
+                    {% for i in 0...target_size %}
+                      %val_{{i}}.as({{ U[i] }}),
+                    {% end %}
+                  )
+                end
+              {% end %}
+            end
+            sub.proc_pointer = proc.pointer
+            sub.proc_closure_data = proc.closure_data
+            sub
           {% end %}
         {% end %}
       end

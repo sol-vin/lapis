@@ -20,6 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Immediate (ASAP) Fiber Unblocking on Object Disposal**:
   - Hooked `Object#destroy`, `Node#queue_free`, and the GDExtension C++ `free_fn` destructor to mark active awaiting `SignalSubscription` instances as `freed` and immediately wake waiting fibers on the Main Thread (`Godot.wake_freed_awaiters!`) or at the start of the next frame tick (`Godot.pump_awaiting_fibers_once_per_frame!`), returning control to awaiting nodes without frame starvation.
 
+#### Variadic `Proc(*U, R)` Signal Piping (`>>` and `>`) on `TypedSignal` & `BoundSignal`
+- **Fast-Path `TypedSignal#>>` & Strict `TypedSignal#>` Proc Piping (`src/lapis/extras/operators.cr`)**:
+  - Replaced fixed-arity `0..4`-argument `Proc` overloads on `BoundSignal` with a single variadic `def >>(proc : Proc(*U, R)) : SignalSubscription forall U, R` supporting arbitrary `0..N` argument arities with automatic arity trimming, polymorphic downcasting (`as_a?`), and numeric coercion.
+  - Added variadic `TypedSignal(*T)#>>(proc : Proc(*U, R))` and strict `TypedSignal(*T)#>(proc : Proc(*T, R))` overloads that bind directly to `Lapis::Core::StaticSignalTable` via `bind(proc)` on exact signature matches and keep adaptive/trimmed pipes on the `StaticSignalTable` fast path (`typed_fast_path? == true`).
+
 #### `Object` / `Resource` `@[Export]` Marshalling, Rich Signal Arguments, & `suffix:` Export Support
 - **Typed `Object`, `Resource`, and `Node` Exports & Signal Marshalling**:
   - Unboxed and boxed `Object`, `Resource`, and `Node` (including nilable `T?`) properties in `_godot_set_property` and `_godot_get_property` across `node`, `gmodule`, and `Object.inherited` macros, guarding null `GDExtensionObjectPtr` pointers in `bridge_variant_from_type`.
