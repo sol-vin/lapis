@@ -2565,12 +2565,6 @@ module Lapis
           self.class.check_external_game_dll_update
         end
 
-        @@link_check_accum += delta
-        if @@link_check_accum >= 1.0_f64
-          @@link_check_accum = 0.0_f64
-          self.class.link_scripts_in_edited_scene
-        end
-
         @@hl_check_accum += delta
         if @@hl_check_accum >= 0.5_f64
           @@hl_check_accum = 0.0_f64

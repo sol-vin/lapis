@@ -19,6 +19,26 @@ module Godot
     ret != 0_u8
   end
 
+  # Returns true if running inside the Godot Editor and a text input control
+  # (`LineEdit`, `TextEdit`, or `CodeEdit`, such as an active `EditorSpinSlider`
+  # numeric input or Inspector string field) currently holds GUI keyboard focus.
+  # Useful for `@[Tool]` scripts to avoid rebuilding heavy geometry or resources
+  # mid-keystroke while the user is typing a value in the Inspector.
+  def self.editor_text_input_focused? : Bool
+    return false unless editor_hint?
+    ei_ptr = Bridge.get_singleton("EditorInterface")
+    return false if ei_ptr.null?
+    base_ptr = Bridge.object_call_ret_object(ei_ptr, "get_base_control") rescue Pointer(Void).null
+    return false if base_ptr.null?
+    vp_ptr = Bridge.object_call_ret_object(base_ptr, "get_viewport") rescue Pointer(Void).null
+    return false if vp_ptr.null?
+    focus_ptr = Bridge.object_call_ret_object(vp_ptr, "gui_get_focus_owner") rescue Pointer(Void).null
+    return false if focus_ptr.null?
+    return true if (Bridge.object_is_class(focus_ptr, "LineEdit") rescue false)
+    return true if (Bridge.object_is_class(focus_ptr, "TextEdit") rescue false)
+    false
+  end
+
   # Converts any filesystem or relative path to a normalized Godot res:// path
   def self.to_godot_res_path(path : String) : String
     return "" if path.empty?

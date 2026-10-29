@@ -7,6 +7,7 @@ module Godot
     getter? destroyed : Bool = false
     @_bound_signal_cache : ::Hash(String, ::Godot::BoundSignal)? = nil
     @_static_signals_bound_tid : UInt64 = 0_u64
+    @_script_linked : Bool = false
 
     def initialize(@pointer : Void* = Pointer(Void).null)
       if !@pointer.null?
@@ -592,7 +593,7 @@ module Godot
     # Automatically links this node's registered CrystalScript resource if running inside the Godot Editor
     def link_class_script : Void
       return unless Godot.editor_hint?
-      return if @pointer.null?
+      return if @pointer.null? || @_script_linked
       return if self.is_a?(Godot::Script) || self.class.name.includes?("Script") || self.class.name.includes?("Plugin")
 
       # Guard against linking script to nodes that are not inside the active scene tree (prevents 'Cannot get path of node' error)
@@ -600,6 +601,8 @@ module Godot
       if is_node
         return unless (self.call_bool("is_inside_tree") rescue false)
       end
+
+      @_script_linked = true
 
       curr_script = self.get_script
       return if !curr_script.null?
@@ -619,26 +622,26 @@ module Godot
                    end
       return if target_cls.empty? || target_cls.includes?("Script") || target_cls.includes?("Plugin") || target_cls == "Node" || target_cls == "Object"
 
-      path = entry.try(&.script_path) || ""
-      parent_name = entry.try(&.parent_name) || ""
-      is_tool = entry.try(&.is_tool) || false
-
-      if path.empty? || path == "res://" || path == "res:///"
-        path = Godot::Object.find_script_path_for_class(target_cls)
+      # Native GDExtension classes registered in ClassRegistry or ClassDB expose their properties
+      # and virtual methods directly via ClassDB (`_instance_create` returns null for native classes).
+      # Calling `set_script` on them causes Godot's `Object::set_script` to reject the null script instance
+      # and emit `notify_property_list_changed()`, which tears down active Inspector input fields.
+      return if entry
+      cdb_ptr = Bridge.get_singleton("ClassDB")
+      if !cdb_ptr.null?
+        return if (Bridge.object_call_ret_bool(cdb_ptr, "class_exists", target_cls) rescue false)
       end
+
+      path = Godot::Object.find_script_path_for_class(target_cls)
       return if path.empty? || path == "res://" || path == "res:///"
 
-      if parent_name.empty?
-        cdb_ptr = Bridge.get_singleton("ClassDB")
-        if !cdb_ptr.null?
-          cdb = Godot::ClassDB.new(cdb_ptr)
-          parent_name = cdb.get_parent_class(target_cls) rescue "Node"
-        else
-          parent_name = "Node"
-        end
+      parent_name = "Node"
+      if !cdb_ptr.null?
+        cdb = Godot::ClassDB.new(cdb_ptr)
+        parent_name = cdb.get_parent_class(target_cls) rescue "Node"
       end
 
-      if script = ClassRegistry.get_or_load_script(path, target_cls, parent_name, is_tool)
+      if script = ClassRegistry.get_or_load_script(path, target_cls, parent_name, false)
         self.call("set_script", script)
         self.call("update_configuration_warnings") rescue nil
       end
