@@ -513,6 +513,7 @@ macro node(decl, &block)
     has_enter_tree = false
     has_exit_tree = false
     has_build = false
+    has_draw = false
     has_input = false
     has_unhandled_input = false
     has_unhandled_key_input = false
@@ -1081,6 +1082,8 @@ macro node(decl, &block)
         {% has_exit_tree = true %}
       {% elsif stmt.name.stringify == "_build" %}
         {% has_build = true %}
+      {% elsif stmt.name.stringify == "_draw" %}
+        {% has_draw = true %}
       {% elsif stmt.name.stringify == "_input" %}
         {% has_input = true %}
       {% elsif stmt.name.stringify == "_unhandled_input" %}
@@ -1811,6 +1814,10 @@ macro node(decl, &block)
         when "_build"
           _build if responds_to?(:_build)
         {% end %}
+        {% if has_draw %}
+        when "_draw", "draw"
+          _draw if responds_to?(:_draw)
+        {% end %}
         when "_ready"
           {% if node_groups.size > 0 %}
             {% for grp in node_groups %}
@@ -1848,13 +1855,17 @@ macro node(decl, &block)
       end
     end
 
-    {% if !has_custom_virtual_with_data && (has_input || has_unhandled_input || has_unhandled_key_input || has_shortcut_input || has_gui_input || user_methods.size > 0) %}
+    {% if !has_custom_virtual_with_data && (has_draw || has_input || has_unhandled_input || has_unhandled_key_input || has_shortcut_input || has_gui_input || user_methods.size > 0) %}
     def _godot_call_virtual_with_data(method_name : String, args : Void**, ret : Void*) : Void
       ::Godot::NodeContext.scope(self) do
         case method_name
         {% for m in user_methods %}
         when {{m.stringify}}
           {{m.id}}
+        {% end %}
+        {% if has_draw %}
+        when "_draw", "draw"
+          _draw if responds_to?(:_draw)
         {% end %}
         {% if has_input %}
         when "_input", "input"
