@@ -96,5 +96,9 @@ module Godot
     FLIP_X   = Transform3D.new(Basis::FLIP_X, Vector3.new(0.0_f32, 0.0_f32, 0.0_f32))
     FLIP_Y   = Transform3D.new(Basis::FLIP_Y, Vector3.new(0.0_f32, 0.0_f32, 0.0_f32))
     FLIP_Z   = Transform3D.new(Basis::FLIP_Z, Vector3.new(0.0_f32, 0.0_f32, 0.0_f32))
+
+    def self.identity : Transform3D
+      IDENTITY
+    end
   end
 end

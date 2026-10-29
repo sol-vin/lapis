@@ -1096,7 +1096,7 @@ macro node(decl, &block)
         {% has_gui_input = true %}
       {% elsif stmt.name.stringify == "_godot_call_virtual_with_data" %}
         {% has_custom_virtual_with_data = true %}
-      {% elsif !stmt.name.stringify.starts_with?("_") && stmt.args.size == 0 %}
+      {% elsif !stmt.name.stringify.starts_with?("_") && stmt.args.size == 0 && (stmt.block_arg.is_a?(Nop) || !stmt.block_arg) && !stmt.accepts_block? %}
         {% user_methods << stmt.name %}
       {% end %}
       {% if last_anno && last_anno.name.stringify == "RPC" %}

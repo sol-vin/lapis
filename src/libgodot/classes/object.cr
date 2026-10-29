@@ -838,11 +838,86 @@ module Godot
     # node.set_meta(:enemy_tier, 3)
     # node.set_meta("spawner_id", "wave_01")
     # ```
-    def set_meta(key : String | Symbol, value : String | Int32 | Int64 | Float32 | Float64 | Bool | Symbol) : Void
+    def set_meta(key : String | Symbol, value : String | Int32 | Int64 | Float32 | Float64 | Bool | Symbol | Vector2 | Vector2i | Vector3 | Vector3i | Color | Transform3D | Basis | AABB | Quaternion | Plane | Rect2) : Void
       check_alive!
-      if !@pointer.null?
+      if !@pointer.null? && Bridge.init_done?
         call("set_meta", key.to_s, value)
       end
+    end
+
+    def set_meta(key : String | Symbol, value : Variant) : Void
+      check_alive!
+      if !@pointer.null? && Bridge.init_done?
+        call("set_meta", [Variant.new(key.to_s), value])
+      end
+    end
+
+    def get_meta_vector2(key : String | Symbol) : Vector2
+      return Vector2.zero if @pointer.null? || !Bridge.init_done?
+      check_alive!
+      godot_bind(@@mb_get_meta, "Object", "get_meta", 3990617847_i64)
+      sn_0 = Bridge.make_string_name(key.to_s)
+      val_1 = Pointer(Void).null
+      arg_1 = pointerof(val_1).as(Void*)
+      args = StaticArray[sn_0, arg_1]
+      ret_var = StaticArray(UInt8, 24).new(0_u8)
+      godot_ptrcall(@@mb_get_meta, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
+      v2 = Vector2.zero
+      Bridge.type_from_variant(5, pointerof(v2).as(Void*), ret_var.to_unsafe.as(Void*))
+      v2
+    ensure
+      Bridge.free_string_name(sn_0) if sn_0
+    end
+
+    def get_meta_vector3(key : String | Symbol) : Vector3
+      return Vector3.zero if @pointer.null? || !Bridge.init_done?
+      check_alive!
+      godot_bind(@@mb_get_meta, "Object", "get_meta", 3990617847_i64)
+      sn_0 = Bridge.make_string_name(key.to_s)
+      val_1 = Pointer(Void).null
+      arg_1 = pointerof(val_1).as(Void*)
+      args = StaticArray[sn_0, arg_1]
+      ret_var = StaticArray(UInt8, 24).new(0_u8)
+      godot_ptrcall(@@mb_get_meta, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
+      v3 = Vector3.zero
+      Bridge.type_from_variant(9, pointerof(v3).as(Void*), ret_var.to_unsafe.as(Void*))
+      v3
+    ensure
+      Bridge.free_string_name(sn_0) if sn_0
+    end
+
+    def get_meta_transform3d(key : String | Symbol) : Transform3D
+      return Transform3D.identity if @pointer.null? || !Bridge.init_done?
+      check_alive!
+      godot_bind(@@mb_get_meta, "Object", "get_meta", 3990617847_i64)
+      sn_0 = Bridge.make_string_name(key.to_s)
+      val_1 = Pointer(Void).null
+      arg_1 = pointerof(val_1).as(Void*)
+      args = StaticArray[sn_0, arg_1]
+      ret_var = StaticArray(UInt8, 24).new(0_u8)
+      godot_ptrcall(@@mb_get_meta, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
+      xf = Transform3D.identity
+      Bridge.type_from_variant(18, pointerof(xf).as(Void*), ret_var.to_unsafe.as(Void*))
+      xf
+    ensure
+      Bridge.free_string_name(sn_0) if sn_0
+    end
+
+    def get_meta_color(key : String | Symbol) : Color
+      return Color::WHITE if @pointer.null? || !Bridge.init_done?
+      check_alive!
+      godot_bind(@@mb_get_meta, "Object", "get_meta", 3990617847_i64)
+      sn_0 = Bridge.make_string_name(key.to_s)
+      val_1 = Pointer(Void).null
+      arg_1 = pointerof(val_1).as(Void*)
+      args = StaticArray[sn_0, arg_1]
+      ret_var = StaticArray(UInt8, 24).new(0_u8)
+      godot_ptrcall(@@mb_get_meta, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
+      col = Color::WHITE
+      Bridge.type_from_variant(20, pointerof(col).as(Void*), ret_var.to_unsafe.as(Void*))
+      col
+    ensure
+      Bridge.free_string_name(sn_0) if sn_0
     end
 
     # Retrieves string metadata stored on this object.

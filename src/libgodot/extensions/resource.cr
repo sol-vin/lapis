@@ -369,6 +369,84 @@ module Godot
       get_material.as_a?(T)
     end
   end
+
+  class MeshInstance3D < GeometryInstance3D
+    def set_mesh(mesh : Nil) : Void
+      set_mesh(Mesh.new(Pointer(Void).null))
+    end
+
+    def set_skin(skin : Nil) : Void
+      set_skin(Skin.new(Pointer(Void).null))
+    end
+  end
+
+  class GeometryInstance3D < VisualInstance3D
+    def set_material_override(material : Nil) : Void
+      set_material_override(Material.new(Pointer(Void).null))
+    end
+
+    def set_material_overlay(material : Nil) : Void
+      set_material_overlay(Material.new(Pointer(Void).null))
+    end
+  end
+
+  class ArrayMesh < Mesh
+    def surface_set_material(surf_idx : Int, material : Nil) : Void
+      surface_set_material(surf_idx, Material.new(Pointer(Void).null))
+    end
+
+    def add_surface_from_arrays(primitive : Mesh::PrimitiveType | Int, arrays : Pointer(Void)) : Void
+      add_surface_from_arrays(primitive, arrays, Pointer(Void).null, Pointer(Void).null, 0)
+    end
+  end
+
+  class CollisionShape3D < Node3D
+    def set_shape(shape : Nil) : Void
+      set_shape(Shape3D.new(Pointer(Void).null))
+    end
+  end
+
+  class ConvexPolygonShape3D < Shape3D
+    def set_points(points : PackedVector3Array) : Void
+      return if @pointer.null? || !Bridge.init_done?
+      call("set_points", points)
+    end
+  end
+
+  class EditorNode3DGizmo < Node3DGizmo
+    def add_mesh(mesh : Mesh, material : Material?, transform : Transform3D, skeleton : Nil) : Void
+      mat_arg = material || Material.new(Pointer(Void).null)
+      skel_arg = SkinReference.new(Pointer(Void).null)
+      add_mesh(mesh, mat_arg, transform, skel_arg)
+    end
+  end
+
+  class OptionButton < Button
+    def selected : Int64
+      get_selected
+    end
+
+    def selected=(idx : Int) : Void
+      select_val(idx.to_i64)
+    end
+  end
+
+  class ShaderMaterial < Material
+    def set_shader_parameter(param : String | Symbol, value : String | Int32 | Int64 | Float32 | Float64 | Bool | Vector2 | Vector2i | Vector3 | Vector3i | Color | Transform3D | Basis | Object) : Void
+      return if @pointer.null? || !Bridge.init_done?
+      call("set_shader_parameter", param.to_s, value)
+    end
+
+    def set_shader_parameter(param : String | Symbol, value : Nil) : Void
+      return if @pointer.null? || !Bridge.init_done?
+      call("set_shader_parameter", param.to_s, nil)
+    end
+
+    def set_shader_parameter(param : String | Symbol, value : Variant) : Void
+      return if @pointer.null? || !Bridge.init_done?
+      call("set_shader_parameter", param.to_s, value)
+    end
+  end
 end
 
 

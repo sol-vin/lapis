@@ -246,9 +246,9 @@ module Godot
       @store.clear
     end
 
-    def each(&block : Tuple(Variant, Variant) -> Void) : Void
+    def each(& : Tuple(Variant, Variant) ->) : Void
       @store.each do |k, v|
-        block.call({k, v})
+        yield({k, v})
       end
     end
 
@@ -354,8 +354,8 @@ module Godot
       @store.clear
     end
 
-    def each(&block : T -> Void) : Void
-      @store.each(&block)
+    def each(& : T ->) : Void
+      @store.each { |item| yield item }
     end
 
     def filter_as(type : U.class) : ::Array(U) forall U
@@ -464,8 +464,78 @@ module Godot
         append(value)
       end
 
+      def push_back(value : {{elem_type}}) : self
+        append(value)
+      end
+
       def <<(value : {{elem_type}}) : self
         append(value)
+      end
+
+      def append_array(other : {{name}} | ::Array({{elem_type}})) : self
+        other.each { |v| @store << v }
+        self
+      end
+
+      def insert(index : Int, value : {{elem_type}}) : self
+        @store.insert(index.to_i32, value)
+        self
+      end
+
+      def remove_at(index : Int) : {{elem_type}}
+        @store.delete_at(index.to_i32)
+      end
+
+      def fill(value : {{elem_type}}) : self
+        @store.fill(value)
+        self
+      end
+
+      def reverse : self
+        @store.reverse!
+        self
+      end
+
+      def reverse! : self
+        @store.reverse!
+        self
+      end
+
+      def dup : {{name}}
+        {{name}}.new(@store.dup)
+      end
+
+      def duplicate : {{name}}
+        dup
+      end
+
+      def slice(begin_idx : Int, end_idx : Int = @store.size) : {{name}}
+        n = @store.size
+        return {{name}}.new if n == 0
+        b = begin_idx.to_i32
+        e = end_idx.to_i32
+        b += n if b < 0
+        e += n if e < 0
+        b = b.clamp(0, n)
+        e = e.clamp(0, n)
+        return {{name}}.new if b >= e
+        {{name}}.new(@store[b...e])
+      end
+
+      def has(value : {{elem_type}}) : Bool
+        @store.includes?(value)
+      end
+
+      def find(value : {{elem_type}}, from : Int = 0) : Int64
+        (@store.index(value, from.to_i32) || -1).to_i64
+      end
+
+      def count(value : {{elem_type}}) : Int64
+        @store.count(value).to_i64
+      end
+
+      def ==(other : {{name}}) : Bool
+        @store == other.@store
       end
 
       def resize(new_size : Int) : Void
@@ -481,8 +551,8 @@ module Godot
         @store.clear
       end
 
-      def each(&block : {{elem_type}} -> Void) : Void
-        @store.each(&block)
+      def each(& : {{elem_type}} ->) : Void
+        @store.each { |item| yield item }
       end
 
       def to_a : ::Array({{elem_type}})
@@ -500,6 +570,77 @@ module Godot
   define_packed_array(PackedVector2Array, Vector2, Vector2.new)
   define_packed_array(PackedVector3Array, Vector3, Vector3.new)
   define_packed_array(PackedColorArray, Color, Color.new)
+  define_packed_array(PackedVector4Array, Vector4, Vector4.new)
+
+  class PackedByteArray
+    def append(value : Int) : self
+      append(value.to_u8)
+    end
+
+    def push_back(value : Int) : self
+      append(value.to_u8)
+    end
+
+    def fill(value : Int) : self
+      fill(value.to_u8)
+    end
+  end
+
+  class PackedInt32Array
+    def append(value : Int) : self
+      append(value.to_i32)
+    end
+
+    def push_back(value : Int) : self
+      append(value.to_i32)
+    end
+
+    def fill(value : Int) : self
+      fill(value.to_i32)
+    end
+  end
+
+  class PackedInt64Array
+    def append(value : Int) : self
+      append(value.to_i64)
+    end
+
+    def push_back(value : Int) : self
+      append(value.to_i64)
+    end
+
+    def fill(value : Int) : self
+      fill(value.to_i64)
+    end
+  end
+
+  class PackedFloat32Array
+    def append(value : Number) : self
+      append(value.to_f32)
+    end
+
+    def push_back(value : Number) : self
+      append(value.to_f32)
+    end
+
+    def fill(value : Number) : self
+      fill(value.to_f32)
+    end
+  end
+
+  class PackedFloat64Array
+    def append(value : Number) : self
+      append(value.to_f64)
+    end
+
+    def push_back(value : Number) : self
+      append(value.to_f64)
+    end
+
+    def fill(value : Number) : self
+      fill(value.to_f64)
+    end
+  end
 end
 
 # Crystal Standard Library Extensions for Godot Collections
