@@ -168,11 +168,12 @@ module Lapis
           scripts_dir = proj_dir.join("scripts")
           FileUtils.mkdir_p(scripts_dir)
           dump_script = scripts_dir.join("dump_project_nodes.gd")
+          is_engine_repo = File.exists?(proj_dir.join("tools/api_generator/dump_project_nodes.gd"))
           dump_script_created = false
 
-          unless File.exists?(dump_script)
+          if !is_engine_repo || !File.exists?(dump_script)
             File.write(dump_script, DUMP_SCRIPT_CONTENT)
-            dump_script_created = true
+            dump_script_created = !is_engine_repo
           end
 
           godot_exe = Core::GodotFinder.resolve
@@ -244,7 +245,7 @@ module Lapis
                     cr_file.includes?("/godot-src/") || cr_file.includes?("\\godot-src\\")
             begin
               File.each_line(cr_file) do |line|
-                if line =~ /^\s*(?:node|node2d|node3d|gdclass|class|struct)\s+([A-Za-z0-9_]+)/
+                if line =~ /^\s*(?:node|node2d|node3d|resource|gdclass|class|struct)\s+([A-Za-z0-9_]+)/
                   local_crystal_classes << $1
                 end
               end

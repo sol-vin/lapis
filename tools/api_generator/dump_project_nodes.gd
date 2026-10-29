@@ -323,7 +323,7 @@ func find_gdscripts_recursive(dir_path: String, include_addons: bool = false) ->
 	if not include_addons:
 		skip_dirs.append("addons")
 	while file_name != "":
-		if file_name.begins_with(".") or file_name in skip_dirs or file_name.ends_with("dump_project_nodes.gd"):
+		if file_name.begins_with(".") or file_name in skip_dirs or file_name.ends_with("dump_project_nodes.gd") or dir.is_link(file_name):
 			file_name = dir.get_next()
 			continue
 
@@ -346,9 +346,9 @@ func find_files_recursive(dir_path: String, ext: String) -> Array:
 
 	dir.list_dir_begin()
 	var file_name = dir.get_next()
-	var skip_dirs = ["bin", "export", "dist", "godot-src", "examples", "template", "template-addon", "scratch", "docs"]
+	var skip_dirs = ["bin", "addons", "export", "dist", "godot-src", "examples", "template", "template-addon", "scratch", "docs"]
 	while file_name != "":
-		if file_name.begins_with(".") or file_name in skip_dirs:
+		if file_name.begins_with(".") or file_name in skip_dirs or dir.is_link(file_name):
 			file_name = dir.get_next()
 			continue
 
@@ -370,7 +370,7 @@ func find_local_crystal_classes() -> Dictionary:
 	var classes = {}
 	var cr_files = find_files_recursive("res://", ".cr")
 	var regex = RegEx.new()
-	if regex.compile("^\\s*(?:node|node2d|node3d|gdclass|class|struct)\\s+([A-Za-z0-9_]+)") != OK:
+	if regex.compile("^\\s*(?:node|node2d|node3d|resource|gdclass|class|struct)\\s+([A-Za-z0-9_]+)") != OK:
 		return classes
 
 	for f in cr_files:
