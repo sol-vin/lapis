@@ -17,9 +17,10 @@ module Lapis
         proj_dir = entry.parent
         proj_dir = proj_dir.parent if proj_dir.basename == "src"
 
-        # Check for .gd files excluding addons, .godot, tools
+        # Check for .gd files excluding addons, lib, .godot, tools
         gd_files = Dir.glob(proj_dir.to_s.gsub('\\', '/') + "/**/*.gd").reject do |f|
           f.includes?("/addons/") || f.includes?("\\addons\\") ||
+            f.includes?("/lib/") || f.includes?("\\lib\\") ||
             f.includes?("/.godot/") || f.includes?("\\.godot\\") ||
             f.includes?("/tools/") || f.includes?("\\tools\\") ||
             File.basename(f) == "dump_project_nodes.gd"

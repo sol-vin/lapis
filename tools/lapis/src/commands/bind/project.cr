@@ -233,19 +233,18 @@ module Lapis
           parent_map = Hash(String, String?).new
           custom_class_names = Set(String).new
 
-          # Scan project's own Crystal source files to exclude locally defined classes
+          # Scan project's own Crystal source files (and installed Crystal shards/addons) to exclude classes already defined in Crystal
           local_crystal_classes = Set(String).new
           Dir.glob(proj_dir.to_s.gsub('\\', '/') + "/**/*.cr").each do |cr_file|
             next if cr_file.includes?("/generated/") || cr_file.includes?("\\generated\\") ||
+                    cr_file.includes?("/lib/lapis/") || cr_file.includes?("\\lib\\lapis\\") ||
                     cr_file.includes?("/.godot/") || cr_file.includes?("\\.godot\\") ||
-                    cr_file.includes?("/addons/") || cr_file.includes?("\\addons\\") ||
-                    cr_file.includes?("/lib/") || cr_file.includes?("\\lib\\") ||
                     cr_file.includes?("/scratch/") || cr_file.includes?("\\scratch\\") ||
                     cr_file.includes?("/bin/") || cr_file.includes?("\\bin\\") ||
                     cr_file.includes?("/godot-src/") || cr_file.includes?("\\godot-src\\")
             begin
               File.each_line(cr_file) do |line|
-                if line =~ /^\s*(?:node|class|struct)\s+([A-Za-z0-9_]+)/
+                if line =~ /^\s*(?:node|node2d|node3d|gdclass|class|struct)\s+([A-Za-z0-9_]+)/
                   local_crystal_classes << $1
                 end
               end

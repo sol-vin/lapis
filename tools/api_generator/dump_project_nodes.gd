@@ -346,7 +346,7 @@ func find_files_recursive(dir_path: String, ext: String) -> Array:
 
 	dir.list_dir_begin()
 	var file_name = dir.get_next()
-	var skip_dirs = ["bin", "lib", "export", "dist", "godot-src", "examples", "template", "template-addon", "scratch", "docs"]
+	var skip_dirs = ["bin", "export", "dist", "godot-src", "examples", "template", "template-addon", "scratch", "docs"]
 	while file_name != "":
 		if file_name.begins_with(".") or file_name in skip_dirs:
 			file_name = dir.get_next()
@@ -354,6 +354,9 @@ func find_files_recursive(dir_path: String, ext: String) -> Array:
 
 		var full_path = dir_path.path_join(file_name)
 		if dir.current_is_dir():
+			if full_path.ends_with("/lib/lapis"):
+				file_name = dir.get_next()
+				continue
 			files.append_array(find_files_recursive(full_path, ext))
 		elif file_name.ends_with(ext):
 			files.append(full_path)
@@ -367,11 +370,11 @@ func find_local_crystal_classes() -> Dictionary:
 	var classes = {}
 	var cr_files = find_files_recursive("res://", ".cr")
 	var regex = RegEx.new()
-	if regex.compile("^\\s*(?:node|class|struct)\\s+([A-Za-z0-9_]+)") != OK:
+	if regex.compile("^\\s*(?:node|node2d|node3d|gdclass|class|struct)\\s+([A-Za-z0-9_]+)") != OK:
 		return classes
 
 	for f in cr_files:
-		if f.contains("/generated/") or f.contains("/.godot/") or f.contains("/addons/"):
+		if f.contains("/generated/") or f.contains("/.godot/") or f.contains("/lib/lapis/"):
 			continue
 		var fa = FileAccess.open(f, FileAccess.READ)
 		if fa:
