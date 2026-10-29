@@ -51,15 +51,35 @@ module Godot
       node
     end
 
+    # Returns true if Godot currently has this parent node locked (`data.blocked > 0`) while propagating
+    # `_enter_tree` or `_ready` to its descendants, during which synchronous `add_child` fails in Godot.
+    def busy_setting_up_children? : Bool
+      return false if @pointer.null?
+      return false unless (is_inside_tree rescue false)
+      curr = ::Godot::NodeContext.current?
+      return false if curr && curr.pointer == @pointer
+      return true unless (is_node_ready rescue true)
+      if curr && !curr.pointer.null? && !(curr.is_node_ready rescue true)
+        return (is_ancestor_of(curr) rescue false)
+      end
+      false
+    end
+
     # Adds a child node. Falls back to local children array when running standalone.
     # Enforces thread-safety: off-thread calls raise ThreadAffinityError when attached to SceneTree.
     # Returns concrete instance type T for seamless chaining and assignment.
     def add_child(node : T, force_readable_name : Bool = false, internal : InternalMode | Int = 0) : T forall T
       Godot::ThreadSafety.assert_main_thread!("add_child", "Node", self, node)
-      children << node.as(Node)
-      STANDALONE_PARENTS[node.object_id] = self if @pointer.null?
-      return node if @pointer.null?
-      engine_add_child(node.as(Node), force_readable_name, internal)
+      if @pointer.null?
+        children << node.as(Node)
+        STANDALONE_PARENTS[node.object_id] = self
+        return node
+      end
+      if busy_setting_up_children?
+        defer_add_child(node.as(Node), force_readable_name, internal)
+      else
+        engine_add_child(node.as(Node), force_readable_name, internal)
+      end
       node
     end
 
@@ -139,9 +159,11 @@ module Godot
     # Enforces thread-safety: off-thread calls raise ThreadAffinityError when attached to SceneTree.
     def remove_child(node : Node) : Void
       Godot::ThreadSafety.assert_main_thread!("remove_child", "Node", self, node)
-      children.delete(node)
-      STANDALONE_PARENTS.delete(node.object_id) if @pointer.null?
-      return if @pointer.null?
+      if @pointer.null?
+        children.delete(node)
+        STANDALONE_PARENTS.delete(node.object_id)
+        return
+      end
       previous_def(node)
     end
 
@@ -218,7 +240,11 @@ module Godot
         end
         return sibling
       end
-      engine_add_sibling(sibling.as(Node), force_readable_name)
+      if (p = get_parent?) && p.busy_setting_up_children?
+        call_deferred("add_sibling", sibling.as(Node), force_readable_name)
+      else
+        engine_add_sibling(sibling.as(Node), force_readable_name)
+      end
       sibling
     end
 

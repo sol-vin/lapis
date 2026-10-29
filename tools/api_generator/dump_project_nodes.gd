@@ -15,6 +15,7 @@ func _init():
 	var out_path = "project_nodes.json"
 	var engine_api_path = ""
 	var scan_local_scripts = true
+	var include_addons = false
 	
 	for i in range(args.size()):
 		if args[i] == "--output" and i + 1 < args.size():
@@ -23,6 +24,8 @@ func _init():
 			engine_api_path = args[i + 1]
 		elif args[i] == "--no-local-scripts":
 			scan_local_scripts = false
+		elif args[i] == "--include-addons":
+			include_addons = true
 
 	if not out_path.begins_with("res://") and not out_path.begins_with("user://") and not out_path.is_absolute_path():
 		out_path = "res://".path_join(out_path)
@@ -66,6 +69,8 @@ func _init():
 		var script_path = c["path"]
 		if not script_path.ends_with(".gd"):
 			continue
+		if not include_addons and (script_path.begins_with("res://addons/") or script_path.contains("/addons/")):
+			continue
 		processed_script_paths[script_path] = true
 		var cls_info = inspect_gdscript(c["class"], script_path, c.get("base", "Node"))
 		if cls_info != null:
@@ -73,7 +78,7 @@ func _init():
 
 	# 2. Local GDScript files (without global class_name)
 	if scan_local_scripts:
-		var all_scripts = find_gdscripts_recursive("res://")
+		var all_scripts = find_gdscripts_recursive("res://", include_addons)
 		var is_engine_repo = ProjectSettings.get_setting("application/config/name", "") == "LibGodot Test Suite"
 		for script_path in all_scripts:
 			if processed_script_paths.has(script_path):
@@ -306,7 +311,7 @@ func inspect_gdscript(cls_name: String, script_path: String, base_hint: String) 
 
 	return info
 
-func find_gdscripts_recursive(dir_path: String) -> Array:
+func find_gdscripts_recursive(dir_path: String, include_addons: bool = false) -> Array:
 	var scripts = []
 	var dir = DirAccess.open(dir_path)
 	if not dir:
@@ -314,7 +319,9 @@ func find_gdscripts_recursive(dir_path: String) -> Array:
 
 	dir.list_dir_begin()
 	var file_name = dir.get_next()
-	var skip_dirs = ["addons", "bin", "lib", "export", "dist", "godot-src", "benchmarks", "examples", "template", "template-addon", "scratch", "docs"]
+	var skip_dirs = ["bin", "lib", "export", "dist", "godot-src", "benchmarks", "examples", "template", "template-addon", "scratch", "docs"]
+	if not include_addons:
+		skip_dirs.append("addons")
 	while file_name != "":
 		if file_name.begins_with(".") or file_name in skip_dirs or file_name.ends_with("dump_project_nodes.gd"):
 			file_name = dir.get_next()
@@ -322,7 +329,7 @@ func find_gdscripts_recursive(dir_path: String) -> Array:
 
 		var full_path = dir_path.path_join(file_name)
 		if dir.current_is_dir():
-			scripts.append_array(find_gdscripts_recursive(full_path))
+			scripts.append_array(find_gdscripts_recursive(full_path, include_addons))
 		elif file_name.ends_with(".gd"):
 			scripts.append(full_path)
 

@@ -280,10 +280,17 @@ module Lapis
         end
         ret.as(Int32*).value = 0_i32 # OK
       when "_instance_create"
-        owner_ptr = args[0]
+        raw_arg = (!args.null? && !args[0].null?) ? args[0] : Pointer(Void).null
+        owner_ptr = if raw_arg.null?
+                      Pointer(Void).null
+                    elsif Bridge.find_alive_instance(raw_arg)
+                      raw_arg
+                    else
+                      raw_arg.as(Void**).value
+                    end
         # If running in game and owner is already a native registered Crystal class instance,
         # return null so Godot directly dispatches virtual methods on the native GDExtension object
-        if !Godot.editor_hint? && !owner_ptr.null? && Bridge.find_alive_instance(owner_ptr)
+        if !Godot.editor_hint? || (!owner_ptr.null? && (Bridge.find_alive_instance(owner_ptr) || (!@script_class_name.empty? && ClassRegistry.find(@script_class_name))))
           ret.as(Void**).value = Pointer(Void).null
           return
         end
@@ -296,9 +303,17 @@ module Lapis
           ret.as(Void**).value = Pointer(Void).null
         end
       when "_placeholder_instance_create"
+        raw_arg = (!args.null? && !args[0].null?) ? args[0] : Pointer(Void).null
+        owner_ptr = if raw_arg.null?
+                      Pointer(Void).null
+                    elsif Bridge.find_alive_instance(raw_arg)
+                      raw_arg
+                    else
+                      raw_arg.as(Void**).value
+                    end
         lang = CrystalLanguage.singleton_instance
         if !lang.pointer.null?
-          inst = Bridge.placeholder_script_instance_create(lang.pointer, @pointer, args[0])
+          inst = Bridge.placeholder_script_instance_create(lang.pointer, @pointer, owner_ptr)
           ret.as(Void**).value = inst
         else
           ret.as(Void**).value = Pointer(Void).null

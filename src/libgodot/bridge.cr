@@ -1373,10 +1373,9 @@ module Godot
 
     def self.find_alive_instance(godot_obj : Void*) : Godot::Object?
       return nil if godot_obj.null?
-      return nil if !@@api.null? && !is_object_valid(godot_obj)
       @@alive_mutex.synchronize do
         if inst = @@alive_instances_by_ptr[godot_obj]?
-          if !inst.active? || (inst.instance_id > 0 && !is_instance_valid(inst.instance_id))
+          if !inst.active? || (inst.instance_id > 0 && !is_instance_valid(inst.instance_id)) || (!@@api.null? && !is_object_valid(godot_obj))
             @@alive_instances_by_ptr.delete(godot_obj)
             return nil
           end

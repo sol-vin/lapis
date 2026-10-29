@@ -28,6 +28,7 @@ Project Options:
   -p, --path=DIR         Project root containing project.godot (default: current directory)
   -o, --output=DIR       Output directory (default: <project>/src/generated/project_nodes)
   -j, --json=PATH        Output JSON metadata path
+  --include-addons       Include GDScript classes inside addons/ (skipped by default)
 
 Global Options:
   -h, --help             Show this help screen
@@ -68,12 +69,14 @@ HELP
         project_path : Path? = nil
         output_dir : Path? = nil
         json_path : Path? = nil
+        include_addons = false
 
         parser = OptionParser.new do |opts|
           opts.banner = "Usage: lapis bind project [PATH] [options]"
           opts.on("-p DIR", "--path=DIR", "Target project directory") { |d| project_path = Path.new(d) }
           opts.on("-o DIR", "--output=DIR", "Output directory for wrappers") { |d| output_dir = Path.new(d) }
           opts.on("-j PATH", "--json=PATH", "Output JSON metadata path") { |j| json_path = Path.new(j) }
+          opts.on("--include-addons", "Include GDScript classes inside addons/") { include_addons = true }
           opts.on("-h", "--help", "Show help") { print_help; exit 0 }
         end
 
@@ -90,7 +93,8 @@ HELP
         Project.generate(
           project_path: project_path,
           output_dir: output_dir,
-          json_path: json_path
+          json_path: json_path,
+          include_addons: include_addons
         )
       end
 

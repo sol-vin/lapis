@@ -414,7 +414,7 @@ module Lapis
         valid_res = !res_ptr.null? && Bridge.is_object_valid(res_ptr)
 
         inst = valid_res ? Bridge.find_alive_instance(res_ptr) : nil
-        if inst.nil? && !args.null? && !args[0].null? && Bridge.is_object_valid(args[0])
+        if inst.nil? && res_ptr.null? && !args.null? && !args[0].null?
           inst = Bridge.find_alive_instance(args[0])
           res_ptr = args[0] if inst
           valid_res = true if inst
@@ -443,14 +443,6 @@ module Lapis
         end
         if code.empty? && valid_res
           code = Bridge.object_call_ret_string(res_ptr, "get_source_code")
-          resolved_script = true unless code.empty?
-        end
-        if code.empty? && !args.null? && !args[0].null? && Bridge.is_object_valid(args[0])
-          code = Bridge.script_get_source_code(args[0])
-          resolved_script = true unless code.empty?
-        end
-        if code.empty? && !args.null? && !args[0].null? && Bridge.is_object_valid(args[0])
-          code = Bridge.object_call_ret_string(args[0], "get_source_code")
           resolved_script = true unless code.empty?
         end
 

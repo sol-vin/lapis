@@ -72,6 +72,14 @@ module Godot
       as_a(type)
     end
 
+    def godot_as?(type : T.class) : T? forall T
+      as_a?(type)
+    end
+
+    def godot_as(type : T.class) : T forall T
+      as_a(type)
+    end
+
     # Configures this existing object in-place using with-yield semantics
     def configure(& : self ->) : self
       with self yield self

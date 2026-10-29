@@ -24,6 +24,11 @@ module Godot
       @@current_node
     end
 
+    # Nilable alias for `NodeContext.current`.
+    def self.current? : Node?
+      @@current_node
+    end
+
     # Sets the currently executing `Godot::Node`.
     #
     # Prefer using `NodeContext.scope` instead of setting this directly to ensure

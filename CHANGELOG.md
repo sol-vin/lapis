@@ -30,6 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Unboxed and boxed `Object`, `Resource`, and `Node` (including nilable `T?`) properties in `_godot_set_property` and `_godot_get_property` across `node`, `gmodule`, and `Object.inherited` macros, guarding null `GDExtensionObjectPtr` pointers in `bridge_variant_from_type`.
   - Added `Enum`, `Vector2`, `Vector3`, `Color`, and `Object` type support across `SignalArgInfo`, `Bridge.emit_signal`, `Bridge.object_call`, `Bridge.pack_args`, `Variant`, and `TypedSignal`.
   - Added `suffix:` keyword argument support on `@[Export]` and `@[ExportRange]` annotations and expanded `CrystalScript` validator diagnostics.
+- **Ergonomic Polymorphic Downcasting Aliases (`Godot::Object#godot_as?`, `Godot::Object#godot_as`)**:
+  - Added `godot_as?(type : T.class) : T?` and `godot_as(type : T.class) : T` on `Godot::Object` delegating to `as_a?` and `as_a` alongside `as_g?` and `as_g`.
 
 ### Changed
 
@@ -48,6 +50,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Resolved GDExtension hot-reload ClassDB re-registration and crash issues across `classdb_registry.hpp`, `extension_instance.hpp`, and `module_loader.hpp`.
   - Fixed `uid://a` scene resource UID collisions and improved standalone project sync isolation in `lapis sync`, `lapis build`, and `lapis clean`.
   - Updated `lapis setup` and GitHub Actions CI workflows (`test.yml`, `release.yml`, `build-lapis-game`, `build-lapis-addon`, and `template`/`template-addon` workflows) to support Godot `4.8-beta1` macOS split archives and `shard.override.yml` local path resolution.
+- **GDExtension Pointer Safety, Busy-Parent `add_child` Deferral, & `lapis bind project` Keyword Sanitization**:
+  - **`Bridge.find_alive_instance` Fast-Path Lookup (`src/libgodot/bridge.cr`)**: Checked `@@alive_instances_by_ptr[godot_obj]?` before calling `is_object_valid(godot_obj)`, preventing `ObjectDB::get_instance` (`Condition "slot >= slot_max" is true`) errors on unboxed/stack pointers and eliminating redundant FFI calls for non-Crystal Godot objects.
+  - **`CrystalScript` Virtual Callback Unmarshaling (`src/libgodot/script/script.cr`, `src/bridge/dispatch_signals.hpp`)**: Dereferenced `args[0]` (`Object**` on the C++ stack) in `_instance_create` and `_placeholder_instance_create`, returned `null` in game mode (`!Godot.editor_hint?`) for native GDExtension dispatch, and guarded `bridge_placeholder_script_instance_create` against double-dereferencing valid `Object*` pointers.
+  - **`ResourceFormatSaverCrystal` `_save` Stack Pointer Guard (`src/libgodot/script/resource_format.cr`)**: Avoided calling `Bridge.is_object_valid(args[0])` on raw `const Ref<Resource>*` stack addresses during resource saving.
+  - **Busy-Parent `add_child` / `add_sibling` Deferral & $O(1)$ FFI Dispatch (`src/libgodot/extensions/node.cr`)**: Added `Node#busy_setting_up_children?` to automatically defer `add_child` and `add_sibling` when an ancestor node is locked propagating `_enter_tree` or `_ready`, and guarded standalone `children` array mutations behind `if @pointer.null?` to avoid $O(N)$ `get_children` FFI allocations on in-engine calls.
+  - **`lapis bind project` Keyword Sanitization & `addons/` Filtering (`tools/api_generator/`, `tools/lapis/src/commands/bind/`)**: Sanitized all Crystal reserved keywords in GDScript parameter names (`alias` -> `alias_arg`, etc.) and excluded `res://addons/` global GDScript classes by default unless `--include-addons` is specified.
 
 ## [0.1.0] - 2026-10-16
 

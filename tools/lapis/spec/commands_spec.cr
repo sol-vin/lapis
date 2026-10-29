@@ -386,4 +386,20 @@ describe "Lapis Subcommands" do
       end
     end
   end
+
+  describe "bind project keyword sanitization" do
+    it "sanitizes Crystal reserved keywords in GDScript parameters and supports --include-addons" do
+      Lapis::Commands::Bind::Project.sanitize_ident("alias").should eq("alias_arg")
+      Lapis::Commands::Bind::Project.sanitize_ident("def").should eq("def_arg")
+      Lapis::Commands::Bind::Project.sanitize_ident("module").should eq("module_arg")
+      Lapis::Commands::Bind::Project.sanitize_ident("include").should eq("include_arg")
+      Lapis::Commands::Bind::Project.sanitize_ident("type").should eq("type_id")
+      Lapis::Commands::Bind::Project.sanitize_ident("end").should eq("end_val")
+      Lapis::Commands::Bind::Project.sanitize_ident("normal_param").should eq("normal_param")
+
+      res_help = LapisSpecHelper.run_lapis(["bind", "--help"])
+      res_help.success?.should be_true
+      res_help.output.should contain("--include-addons")
+    end
+  end
 end

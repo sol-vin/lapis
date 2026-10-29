@@ -71,11 +71,28 @@ module Lapis
           "false"   => "false_val",
         }
 
-        private def self.sanitize_ident(name : String) : String
+        CRYSTAL_RESERVED_WORDS = Set{
+          "alias", "def", "end", "class", "module", "struct", "enum", "lib", "fun",
+          "macro", "in", "out", "begin", "rescue", "ensure", "next", "break", "return",
+          "yield", "self", "super", "nil", "true", "false", "abstract", "private",
+          "protected", "asm", "forall", "typeof", "sizeof", "instance_sizeof",
+          "offsetof", "pointerof", "uninitialized", "with", "verbatim", "when",
+          "select", "then", "type", "include", "extend", "require", "case", "if",
+          "else", "elsif", "unless", "until", "while", "do", "for", "of", "as",
+          "is_a?", "nil?", "responds_to?",
+        }
+
+        def self.sanitize_ident(name : String) : String
           clean = name.gsub(/[^a-zA-Z0-9_]/, "_").underscore
           clean = "arg_#{clean}" if clean.starts_with?(/[0-9]/)
           clean = "arg" if clean.empty?
-          KEYWORDS[clean]? || clean
+          if mapped = KEYWORDS[clean]?
+            mapped
+          elsif CRYSTAL_RESERVED_WORDS.includes?(clean)
+            "#{clean}_arg"
+          else
+            clean
+          end
         end
 
         private def self.resolve_crystal_return_type(type_id : Int64, class_name : String?) : String
@@ -142,6 +159,7 @@ module Lapis
           project_path : Path? = nil,
           output_dir : Path? = nil,
           json_path : Path? = nil,
+          include_addons : Bool = false,
         ) : Int32
           root = Core::Env::ROOT_DIR
           proj_dir = (project_path || Path.new(Dir.current)).expand
@@ -173,9 +191,11 @@ module Lapis
           rel_json = out_json.relative_to(proj_dir).to_s.gsub('\\', '/')
 
           begin
+            dump_args = ["--headless", "--path", proj_dir.to_s, "-s", "res://scripts/dump_project_nodes.gd", "--", "--output", rel_json]
+            dump_args << "--include-addons" if include_addons
             res = Core::ProcessRunner.run(
               godot_exe,
-              ["--headless", "--path", proj_dir.to_s, "-s", "res://scripts/dump_project_nodes.gd", "--", "--output", rel_json],
+              dump_args,
               chdir: proj_dir.to_s,
               env: {"GODOT_HEADLESS" => "1"}
             )
@@ -242,11 +262,14 @@ module Lapis
             all_classes.concat(p_classes)
           end
 
-          # Filter out locally defined classes, dummy test addons, and test runners
+          # Filter out locally defined classes, dummy test addons, and test runners (and addons/ unless include_addons)
           filtered_classes = all_classes.reject do |c|
             raw_name = c["name"]?.try(&.as_s) || ""
             clean = raw_name.gsub(/[^a-zA-Z0-9_]/, "")
+            script_path = c["path"]?.try(&.as_s) || ""
+            is_addon_script = script_path.starts_with?("res://addons/") || script_path.includes?("/addons/") || script_path.starts_with?("addons/")
             clean.empty? ||
+              (!include_addons && is_addon_script) ||
               local_crystal_classes.includes?(clean) ||
               clean.starts_with?("Dummy") ||
               clean.starts_with?("TestRunner") ||

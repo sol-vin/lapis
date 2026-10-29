@@ -2063,9 +2063,13 @@ inline void* bridge_placeholder_script_instance_create(void* p_language, void* p
     if (!gd_placeholder_script_instance_create) return nullptr;
     GDExtensionObjectPtr owner = nullptr;
     if (p_owner_arg) {
-        owner = *(GDExtensionObjectPtr*)p_owner_arg;
-        if (!owner) {
+        if (bridge_is_object_valid((void*)p_owner_arg)) {
             owner = (GDExtensionObjectPtr)p_owner_arg;
+        } else {
+            owner = *(GDExtensionObjectPtr*)p_owner_arg;
+            if (!owner) {
+                owner = (GDExtensionObjectPtr)p_owner_arg;
+            }
         }
     }
     return gd_placeholder_script_instance_create((GDExtensionObjectPtr)p_language, (GDExtensionObjectPtr)p_script, owner);
