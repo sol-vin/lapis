@@ -60,6 +60,7 @@ module Lapis
     @signal_defs : Array(ScriptSignal) = [] of ScriptSignal
     @methods : Array(String) = [] of String
     @doc_comments : Hash(String, String) = {} of String => String
+    @last_disk_mtime : ::Time? = nil
 
     def script_path : String
       @script_path
@@ -233,11 +234,14 @@ module Lapis
         @source_code = new_code
         parse_source_metadata
       when "_get_instance_base_type"
+        ensure_metadata_loaded if @script_base_type.empty? || @script_class_name.empty?
         b_type = @script_base_type.empty? ? "Node" : @script_base_type
         Bridge.ret_string_name(ret, b_type)
       when "_get_global_name"
+        ensure_metadata_loaded if @script_class_name.empty?
         Bridge.ret_string_name(ret, @script_class_name)
       when "_is_tool"
+        ensure_metadata_loaded if @script_class_name.empty?
         ret.as(UInt8*).value = @is_tool_script ? 1_u8 : 0_u8
       when "_is_valid"
         ret.as(UInt8*).value = 1_u8
@@ -247,6 +251,7 @@ module Lapis
         lang = CrystalLanguage.singleton_instance
         Bridge.ret_object(ret, lang.pointer)
       when "_has_method"
+        ensure_metadata_loaded if @methods.empty?
         m_name = Bridge.arg_to_string_name(args[0])
         has_m = @methods.includes?(m_name)
         ret.as(UInt8*).value = has_m ? 1_u8 : 0_u8
@@ -262,7 +267,7 @@ module Lapis
         ret.as(UInt8*).value = 0_u8
       when "_has_script_signal"
         s_name = Bridge.arg_to_string_name(args[0])
-        sync_class_metadata if @signals.empty? && @signal_defs.empty?
+        ensure_metadata_loaded if @signals.empty? && @signal_defs.empty?
         has_s = @signals.includes?(s_name) || @signal_defs.any? { |s| s.name == s_name }
         ret.as(UInt8*).value = has_s ? 1_u8 : 0_u8
       when "_has_property_default_value"
@@ -270,7 +275,7 @@ module Lapis
       when "_get_property_default_value"
         Bridge.ret_variant_nil(ret)
       when "_update_exports"
-        # No-op
+        ensure_metadata_loaded
       when "_editor_can_reload_from_file"
         ret.as(UInt8*).value = 1_u8
       when "_reload"
@@ -288,9 +293,9 @@ module Lapis
                     else
                       raw_arg.as(Void**).value
                     end
-        # If running in game and owner is already a native registered Crystal class instance,
-        # return null so Godot directly dispatches virtual methods on the native GDExtension object
-        if !Godot.editor_hint? || (!owner_ptr.null? && (Bridge.find_alive_instance(owner_ptr) || (!@script_class_name.empty? && ClassRegistry.find(@script_class_name))))
+        # If running in game or owner is already a native registered Crystal class instance (in local ClassRegistry or global ClassDB),
+        # return null so Godot directly dispatches virtual methods and Inspector properties on the native GDExtension object
+        if !Godot.editor_hint? || native_class_registered?(owner_ptr)
           ret.as(Void**).value = Pointer(Void).null
           return
         end
@@ -311,6 +316,10 @@ module Lapis
                     else
                       raw_arg.as(Void**).value
                     end
+        if !Godot.editor_hint? || native_class_registered?(owner_ptr)
+          ret.as(Void**).value = Pointer(Void).null
+          return
+        end
         lang = CrystalLanguage.singleton_instance
         if !lang.pointer.null?
           inst = Bridge.placeholder_script_instance_create(lang.pointer, @pointer, owner_ptr)
@@ -323,13 +332,14 @@ module Lapis
       when "_get_documentation"
         Bridge.ret_array_empty(ret)
       when "_get_doc_class_name"
+        ensure_metadata_loaded if @script_class_name.empty?
         Bridge.ret_string_name(ret, @script_class_name)
       when "_placeholder_erased"
         return
       when "_get_class_icon_path"
         Bridge.ret_string(ret, "res://addons/crystal_integration/crystal_icon.svg")
       when "_get_script_signal_list"
-        sync_class_metadata if @signal_defs.empty?
+        ensure_metadata_loaded if @signal_defs.empty?
         if @signal_defs.empty? && !@signals.empty?
           @signals.each do |sname|
             @signal_defs << ScriptSignal.new(sname) unless @signal_defs.any? { |s| s.name == sname }
@@ -360,7 +370,7 @@ module Lapis
           Bridge.ret_signal_list(ret, c_descs)
         end
       when "_get_script_property_list"
-        sync_class_metadata if @properties.empty?
+        ensure_metadata_loaded
         if @properties.empty?
           Bridge.ret_array_empty(ret)
         else
@@ -402,6 +412,42 @@ module Lapis
       0 # OK
     end
 
+    def ensure_metadata_loaded : Void
+      if @script_path.empty? && !@pointer.null?
+        p = call_str("get_path") rescue ""
+        @script_path = p unless p.empty?
+      end
+      if !@script_path.empty?
+        resolved = ResourceFormatLoaderCrystal.resolve_file_path(@script_path)
+        if !resolved.empty? && File.exists?(resolved)
+          mtime = File.info(resolved).modification_time rescue nil
+          if @source_code.empty? || (mtime && mtime != @last_disk_mtime)
+            @last_disk_mtime = mtime
+            @source_code = File.read(resolved) rescue @source_code
+            parse_source_metadata
+            return
+          end
+        end
+      end
+      sync_class_metadata if @properties.empty? || @script_class_name.empty?
+    end
+
+    def native_class_registered?(owner_ptr : Void* = Pointer(Void).null) : Bool
+      ensure_metadata_loaded if @script_class_name.empty?
+      return true if !owner_ptr.null? && Bridge.find_alive_instance(owner_ptr)
+      if !@script_class_name.empty?
+        return true if ClassRegistry.find(@script_class_name)
+        if !owner_ptr.null? && Bridge.object_class_name(owner_ptr) == @script_class_name
+          return true
+        end
+        cdb_ptr = Bridge.get_singleton("ClassDB")
+        if !cdb_ptr.null?
+          return true if (Bridge.object_call_ret_bool(cdb_ptr, "class_exists", @script_class_name) rescue false)
+        end
+      end
+      false
+    end
+
     # Fast, pure-Crystal AST scanner to extract class name, base type,
     # exported properties, signals, and doc comments directly from .cr source.
     def parse_source_metadata : Void
@@ -414,10 +460,37 @@ module Lapis
       lines = @source_code.split("\n")
       current_doc = ""
       in_node = false
+      skip_current_node = false
+      file_stem = @script_path.empty? ? "" : File.basename(@script_path, ".cr").downcase
       pending_export_args = ""
+      local_enums = {} of String => Array(String)
+      current_enum_name = ""
+      current_enum_idx = 0
 
       lines.each do |line|
         trimmed = line.strip
+
+        # Track local enum declarations for generic @[ExportEnum(EnumType)] resolution
+        if !current_enum_name.empty?
+          if trimmed == "end"
+            current_enum_name = ""
+          elsif !trimmed.starts_with?("#") && !trimmed.empty?
+            if trimmed =~ /^([A-Z][A-Za-z0-9_]*)(?:\s*=\s*(-?[0-9]+))?/
+              e_member = $1
+              if $2?
+                current_enum_idx = $2.to_i
+              end
+              local_enums[current_enum_name] << "#{e_member}:#{current_enum_idx}"
+              current_enum_idx += 1
+            end
+          end
+          next
+        elsif trimmed =~ /^enum\s+([A-Za-z0-9_]+)/
+          current_enum_name = $1
+          current_enum_idx = 0
+          local_enums[current_enum_name] = [] of String
+          next
+        end
 
         # Doc comments
         if trimmed.starts_with?("#") && !trimmed.starts_with?("#!")
@@ -430,9 +503,18 @@ module Lapis
           next
         end
 
-        # Standalone @[Export(...)] annotation on preceding line
-        if trimmed =~ /^@\[Export(?:\(([^\]]*)\))?\]$/
-          pending_export_args = $1? || ""
+        # Standalone @[Export(...)] / @[ExportRange(...)] / @[ExportEnum(...)] annotation on preceding line
+        if trimmed == "@[Export]"
+          pending_export_args = ""
+          next
+        elsif trimmed =~ /^@\[Export\((.*)\)\]$/
+          pending_export_args = $1
+          next
+        elsif trimmed =~ /^@\[ExportRange\((.*)\)\]$/
+          pending_export_args = "ExportRange(#{$1})"
+          next
+        elsif trimmed =~ /^@\[ExportEnum\((.*)\)\]$/
+          pending_export_args = "ExportEnum(#{$1})"
           next
         end
 
@@ -443,17 +525,29 @@ module Lapis
 
         # Node declaration: node ClassName < BaseName do
         if trimmed =~ /(?:^|\s)node\s+([A-Za-z0-9_]+)(?:\s*<\s*([A-Za-z0-9_:]+))?\s+do/
-          @script_class_name = $1
-          if $2? && !$2.empty?
-            @script_base_type = $2.split("::").last
+          cand_name = $1
+          cand_base = ($2? && !$2.empty?) ? $2.split("::").last : "Node"
+          if !@script_class_name.empty? && !file_stem.empty? && @script_class_name.underscore.downcase == file_stem && cand_name.underscore.downcase != file_stem
+            skip_current_node = true
           else
-            @script_base_type = "Node"
+            if !@script_class_name.empty?
+              @properties.clear
+              @signals.clear
+              @signal_defs.clear
+              @methods.clear
+              @doc_comments.clear
+            end
+            @script_class_name = cand_name
+            @script_base_type = cand_base
+            skip_current_node = false
           end
           in_node = true
           current_doc = ""
           pending_export_args = ""
           next
         end
+
+        next if skip_current_node
 
         # Signal declaration: signal name(args...)
         if trimmed =~ /(?:^|\s)signal\s+([A-Za-z0-9_]+)(?:\s*\(([^)]*)\))?/
@@ -493,8 +587,28 @@ module Lapis
           next
         end
 
+        # Generic export_string_enum macro: export_string_enum(name [= default], "a,b,c")
+        if trimmed =~ /^export_string_enum[\s\(]+([A-Za-z0-9_]+)(?:\s*=\s*([^,]+))?\s*,\s*"([^"]*)"\s*\)?/
+          p_name = $1
+          p_default = ($2? || "\"\"").strip
+          p_hint_str = $3
+          pending_export_args = ""
+          @properties << ScriptProperty.new(
+            name: p_name,
+            type_name: "String",
+            variant_type: 4, # STRING
+            hint: 2,         # PROPERTY_HINT_ENUM
+            hint_string: p_hint_str,
+            usage: 6, # PROPERTY_USAGE_DEFAULT
+            default_value: p_default
+          )
+          @doc_comments[p_name] = current_doc unless current_doc.empty?
+          current_doc = ""
+          next
+        end
+
         # Exported property: @[Export...] property name [: Type] [= default]
-        if trimmed =~ /(?:@\[Export(?:\(([^\]]*)\))?\]\s*)?(?:property|getter|setter)\s+([A-Za-z0-9_]+)(?:\s*:\s*([A-Za-z0-9_:]+))?(?:\s*=\s*(.+))?/
+        if trimmed =~ /(?:@\[Export(?:\((.*)\))?\]\s*)?(?:property|getter|setter)\s+([A-Za-z0-9_]+)(?:\s*:\s*([A-Za-z0-9_:]+))?(?:\s*=\s*(.+))?/
           inline_args = $1?
           export_args = inline_args ? inline_args : pending_export_args
           pending_export_args = ""
@@ -522,14 +636,35 @@ module Lapis
           hint = 0
           hint_str = ""
 
-          # Parse Export hints like range: 1..100, step: 1
-          if export_args.includes?("range:")
+          # Parse Export hints
+          if export_args.starts_with?("ExportRange(") && export_args.ends_with?(")")
+            hint = 1 # PROPERTY_HINT_RANGE
+            inner = export_args[12..-2]
+            parts = inner.split(",").map { |pt| pt.strip.sub(/_[a-zA-Z0-9]+$/, "") }.reject(&.empty?)
+            hint_str = parts.join(",")
+          elsif export_args.starts_with?("ExportEnum(") && export_args.ends_with?(")")
+            hint = 2 # PROPERTY_HINT_ENUM
+            inner = export_args[11..-2].strip
+            enum_key = inner.split("::").last
+            if local_enums.has_key?(enum_key)
+              hint_str = local_enums[enum_key].join(",")
+            else
+              parts = inner.split(",").map { |pt| pt.strip.gsub(/^"|"$/, "") }.reject(&.empty?)
+              hint_str = parts.join(",")
+            end
+          elsif export_args.includes?("range:")
             hint = 1 # PROPERTY_HINT_RANGE
             if export_args =~ /range:\s*([0-9.]+)(?:_[a-z0-9]+)?\.\.([0-9.]+)(?:_[a-z0-9]+)?(?:,\s*step:\s*([0-9.]+)(?:_[a-z0-9]+)?)?/
               min_v = $1
               max_v = $2
               step_v = $3? ? ",#{$3}" : ""
               hint_str = "#{min_v},#{max_v}#{step_v}"
+            end
+          elsif export_args.includes?("enum:")
+            hint = 2 # PROPERTY_HINT_ENUM
+            if export_args =~ /enum:\s*\[([^\]]*)\]/
+              items = $1.split(",").map { |item| item.strip.gsub(/^"|"$/, "") }.reject(&.empty?)
+              hint_str = items.join(",")
             end
           end
 

@@ -4,6 +4,8 @@ require "./macros/signals"
 require "./macros/match"
 
 module Godot
+  CUSTOM_EXPORT_MACROS = {} of StringLiteral => ASTNode
+
   struct PropertyInfo
     getter name : String
     getter type_name : String
@@ -1312,6 +1314,17 @@ macro node(decl, &block)
       {% end %}
       {% pending_on_signal_annos = [] of ASTNode %}
       {% last_anno = nil %}
+    {% elsif stmt.is_a?(Call) && ::Godot::CUSTOM_EXPORT_MACROS[stmt.name.stringify] %}
+      {%
+        ce_arg = stmt.args[0]
+        ce_var = ce_arg.is_a?(Assign) ? ce_arg.target : (ce_arg.is_a?(TypeDeclaration) ? ce_arg.var : ce_arg)
+        ce_name_str = ce_var.stringify
+        ce_doc = extracted_prop_docs[ce_name_str] || ""
+        ce_hint_str = ::Godot::CUSTOM_EXPORT_MACROS[stmt.name.stringify]
+      %}
+      {% props << {:custom_string_enum, ce_var, ce_hint_str, ce_doc} %}
+      {% pending_on_signal_annos = [] of ASTNode %}
+      {% last_anno = nil %}
     {% elsif stmt.is_a?(Call) && stmt.name.id == "signal" %}
       {%
         s_item = stmt.args[0]
@@ -2021,6 +2034,10 @@ macro node(decl, &block)
                 self.{{var_name.id}} = ::Godot::Bridge.find_alive_instance(obj_ptr).as?({{resolved_obj_type}}) || {{resolved_obj_type}}.new(obj_ptr)
               end
             {% end %}
+        {% elsif item[0] == :custom_string_enum %}
+          when "{{item[1].id}}"
+            c_str = val_ptr.as(Pointer(UInt8)*).value
+            self.{{item[1].id}} = c_str.null? ? "" : String.new(c_str)
         {% end %}
       {% end %}
       else
@@ -2135,6 +2152,9 @@ macro node(decl, &block)
             {% elsif is_obj_prop %}
               ret_ptr.as(Void**).value = self.{{var_name.id}}.try(&.pointer) || Pointer(Void).null
             {% end %}
+        {% elsif item[0] == :custom_string_enum %}
+          when "{{item[1].id}}"
+            ret_ptr.as(Pointer(UInt8)*).value = self.{{item[1].id}}.to_unsafe
         {% end %}
       {% end %}
       else
@@ -2234,6 +2254,15 @@ macro node(decl, &block)
         39_u32,
         "{{item[2].id}}",
         4_u32
+      )
+    {% elsif item[0] == :custom_string_enum %}
+      properties_{{class_name}} << ::Godot::PropertyInfo.new(
+        "{{item[1].id}}",
+        "String",
+        4,
+        2_u32,
+        {{item[2]}},
+        6_u32
       )
     {% elsif item[0] == :prop %}
       {% arg = item[1] %}
@@ -2998,6 +3027,12 @@ macro node(decl, &block)
         io << "    <member name=\"{{var_name.id}}\" type=\"{{gtype.id}}\" setter=\"\" getter=\"\">"
         {% if p_doc && p_doc != "" %}
           io << ::Godot::XML.escape({{p_doc}})
+        {% end %}
+        io << "</member>\n"
+      {% elsif item[0] == :custom_string_enum %}
+        io << "    <member name=\"{{item[1].id}}\" type=\"String\" setter=\"\" getter=\"\">"
+        {% if item[3] && item[3] != "" %}
+          io << ::Godot::XML.escape({{item[3]}})
         {% end %}
         io << "</member>\n"
       {% end %}
@@ -4326,6 +4361,44 @@ end
 
 macro godot_module(decl)
   gmodule {{decl}} do
+  end
+end
+
+# Defines a custom export macro `macro_name` that declares an exported `String` property
+# with `PROPERTY_HINT_ENUM` (`2_u32`) and `hint_string` in the Godot Inspector.
+macro define_string_enum_export(macro_name, hint_string, default_fallback = "")
+  {% ::Godot::CUSTOM_EXPORT_MACROS[macro_name.id.stringify] = hint_string %}
+  macro {{macro_name.id}}(decl)
+    \{% begin %}
+      \{%
+        if decl.is_a?(Assign)
+          var_name = decl.target
+          raw_val = decl.value
+        elsif decl.is_a?(TypeDeclaration)
+          var_name = decl.var
+          raw_val = decl.value
+        else
+          var_name = decl
+          raw_val = nil
+        end
+
+        val_str = {{default_fallback}}
+        if raw_val
+          if raw_val.is_a?(StringLiteral)
+            val_str = raw_val
+          elsif raw_val.is_a?(SymbolLiteral)
+            val_str = raw_val.id.stringify.downcase
+          elsif raw_val.is_a?(Call)
+            val_str = raw_val.name.stringify.downcase
+          elsif raw_val.is_a?(Path)
+            val_str = raw_val.names.last.stringify.downcase
+          else
+            val_str = raw_val.id.stringify.downcase
+          end
+        end
+      %}
+      property \{{var_name.id}} : String = \{{val_str}}
+    \{% end %}
   end
 end
 

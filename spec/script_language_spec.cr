@@ -351,5 +351,52 @@ describe "Crystal Script Language & LSP Intelligence (Ring 1 Specs)" do
       script.variant_type_from_string("Dictionary").should eq(27)
       script.variant_type_from_string("Array").should eq(28)
     end
+
+    it "parses export_string_enum, @[Export(enum: [...])], @[ExportEnum], @[ExportRange], and multi-node files" do
+      src = <<-CRYSTAL
+      require "lapis"
+
+      enum RenderMode
+        ON
+        DISTANCE
+        OFF
+      end
+
+      node HelperNode < Node3D do
+        @[Export]
+        property helper_flag : Bool = false
+      end
+
+      node TargetWidget < StaticBody3D do
+        export_string_enum(theme_color = "red", "red,green,blue")
+
+        @[Export(enum: ["small", "medium", "large"])]
+        property size_preset : String = "medium"
+
+        @[ExportEnum(RenderMode)]
+        property render_mode : Int32 = 1
+
+        @[ExportRange(0.0, 1.0, 0.05)]
+        property opacity : Float32 = 0.75_f32
+      end
+      CRYSTAL
+      cs = Lapis::CrystalScript.new("res://src/ui/target_widget.cr", src)
+      cs.class_name.should eq("TargetWidget")
+      sp_color = cs.properties.find { |prop| prop.name == "theme_color" }.not_nil!
+      sp_color.hint.should eq(2_u32)
+      sp_color.hint_string.should eq("red,green,blue")
+
+      sp_size = cs.properties.find { |prop| prop.name == "size_preset" }.not_nil!
+      sp_size.hint.should eq(2_u32)
+      sp_size.hint_string.should eq("small,medium,large")
+
+      sp_mode = cs.properties.find { |prop| prop.name == "render_mode" }.not_nil!
+      sp_mode.hint.should eq(2_u32)
+      sp_mode.hint_string.should eq("ON:0,DISTANCE:1,OFF:2")
+
+      sp_op = cs.properties.find { |prop| prop.name == "opacity" }.not_nil!
+      sp_op.hint.should eq(1_u32)
+      sp_op.hint_string.should eq("0.0,1.0,0.05")
+    end
   end
 end
