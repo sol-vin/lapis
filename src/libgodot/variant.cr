@@ -7,7 +7,18 @@ module Godot
   class Dictionary
   end
 
-  alias VariantValue = Nil | Bool | Int64 | Float64 | String | Vector2 | Vector2i | Rect2 | Rect2i | Vector3 | Vector3i | Vector4 | Vector4i | Color | Transform2D | Transform3D | Basis | Quaternion | Plane | AABB | Godot::Object | Godot::Dictionary
+  class PackedByteArray; end
+  class PackedInt32Array; end
+  class PackedInt64Array; end
+  class PackedFloat32Array; end
+  class PackedFloat64Array; end
+  class PackedStringArray; end
+  class PackedVector2Array; end
+  class PackedVector3Array; end
+  class PackedColorArray; end
+  class PackedVector4Array; end
+
+  alias VariantValue = Nil | Bool | Int64 | Float64 | String | Vector2 | Vector2i | Rect2 | Rect2i | Vector3 | Vector3i | Vector4 | Vector4i | Color | Transform2D | Transform3D | Basis | Quaternion | Plane | AABB | Godot::Object | Godot::Dictionary | PackedByteArray | PackedInt32Array | PackedInt64Array | PackedFloat32Array | PackedFloat64Array | PackedStringArray | PackedVector2Array | PackedVector3Array | PackedColorArray | PackedVector4Array
 
   # Represents a dynamically typed Godot Variant value in Crystal with zero-allocation
   # unboxing for primitive and engine math types.
@@ -294,6 +305,8 @@ module Godot
         end
       {% elsif T < Enum %}
         T.from_value?(as_i64) || T.from_value?(0) || T.values.first
+      {% elsif T == Pointer(Void) %}
+        to_arg[1]
       {% else %}
         @raw.as(T)
       {% end %}
@@ -343,6 +356,8 @@ module Godot
         T.new
       {% elsif T < Enum %}
         T.from_value?(0) || T.values.first
+      {% elsif T == Pointer(Void) %}
+        Pointer(Void).null
       {% else %}
         raise "No default constructor for #{T}"
       {% end %}
@@ -385,9 +400,112 @@ module Godot
             new(Godot::Object.new(ptr))
           end
         end
+      when 29
+        new(PackedByteArray.from_raw(arg.ptr_val, arg.int_val))
+      when 30
+        new(PackedInt32Array.from_raw(arg.ptr_val, arg.int_val))
+      when 31
+        new(PackedInt64Array.from_raw(arg.ptr_val, arg.int_val))
+      when 32
+        new(PackedFloat32Array.from_raw(arg.ptr_val, arg.int_val))
+      when 33
+        new(PackedFloat64Array.from_raw(arg.ptr_val, arg.int_val))
+      when 34
+        new(PackedStringArray.from_raw(arg.ptr_val, arg.int_val))
+      when 35
+        new(PackedVector2Array.from_raw(arg.ptr_val, arg.int_val))
+      when 36
+        new(PackedVector3Array.from_raw(arg.ptr_val, arg.int_val))
+      when 37
+        new(PackedColorArray.from_raw(arg.ptr_val, arg.int_val))
+      when 38
+        new(PackedVector4Array.from_raw(arg.ptr_val, arg.int_val))
       else
         str = arg.ptr_val.null? ? "" : String.new(arg.ptr_val.as(LibC::Char*))
         new(str)
+      end
+    end
+
+    def to_arg : LibBridge::VariantArg
+      Variant.value_to_arg(@raw)
+    end
+
+    def self.value_to_arg(val) : LibBridge::VariantArg
+      case val
+      when Variant
+        val.to_arg
+      when Nil
+        LibBridge::VariantArg.new(type: 0)
+      when Bool
+        LibBridge::VariantArg.new(type: 1, int_val: val ? 1_i64 : 0_i64, float_val: val ? 1.0 : 0.0)
+      when Int
+        LibBridge::VariantArg.new(type: 2, int_val: val.to_i64, float_val: val.to_f64)
+      when Enum
+        LibBridge::VariantArg.new(type: 2, int_val: val.value.to_i64, float_val: val.value.to_f64)
+      when Float
+        LibBridge::VariantArg.new(type: 3, float_val: val.to_f64, int_val: val.to_i64)
+      when String
+        LibBridge::VariantArg.new(type: 4, ptr_val: val.to_unsafe.as(Void*))
+      when Vector2
+        arg = LibBridge::VariantArg.new(type: 5)
+        arg.vec_val[0] = val.x
+        arg.vec_val[1] = val.y
+        arg
+      when Vector2i
+        arg = LibBridge::VariantArg.new(type: 6, int_val: val.x.to_i64, instance_id: val.y.to_u64!)
+        arg.vec_val[0] = val.x.to_f32
+        arg.vec_val[1] = val.y.to_f32
+        arg
+      when Rect2
+        arg = LibBridge::VariantArg.new(type: 7)
+        arg.vec_val[0] = val.position.x
+        arg.vec_val[1] = val.position.y
+        arg.vec_val[2] = val.size.x
+        arg.vec_val[3] = val.size.y
+        arg
+      when Vector3
+        arg = LibBridge::VariantArg.new(type: 9)
+        arg.vec_val[0] = val.x
+        arg.vec_val[1] = val.y
+        arg.vec_val[2] = val.z
+        arg
+      when Vector3i
+        arg = LibBridge::VariantArg.new(type: 10)
+        arg.vec_val[0] = val.x.to_f32
+        arg.vec_val[1] = val.y.to_f32
+        arg.vec_val[2] = val.z.to_f32
+        arg
+      when Color
+        arg = LibBridge::VariantArg.new(type: 20)
+        arg.vec_val[0] = val.r
+        arg.vec_val[1] = val.g
+        arg.vec_val[2] = val.b
+        arg.vec_val[3] = val.a
+        arg
+      when Godot::Object
+        LibBridge::VariantArg.new(type: 24, ptr_val: val.pointer, instance_id: val.instance_id)
+      when PackedByteArray
+        LibBridge::VariantArg.new(type: 29, ptr_val: val.to_unsafe.as(Void*), int_val: val.size)
+      when PackedInt32Array
+        LibBridge::VariantArg.new(type: 30, ptr_val: val.to_unsafe.as(Void*), int_val: val.size)
+      when PackedInt64Array
+        LibBridge::VariantArg.new(type: 31, ptr_val: val.to_unsafe.as(Void*), int_val: val.size)
+      when PackedFloat32Array
+        LibBridge::VariantArg.new(type: 32, ptr_val: val.to_unsafe.as(Void*), int_val: val.size)
+      when PackedFloat64Array
+        LibBridge::VariantArg.new(type: 33, ptr_val: val.to_unsafe.as(Void*), int_val: val.size)
+      when PackedStringArray
+        LibBridge::VariantArg.new(type: 34, ptr_val: val.cstr_array_ptr.as(Void*), int_val: val.size)
+      when PackedVector2Array
+        LibBridge::VariantArg.new(type: 35, ptr_val: val.to_unsafe.as(Void*), int_val: val.size)
+      when PackedVector3Array
+        LibBridge::VariantArg.new(type: 36, ptr_val: val.to_unsafe.as(Void*), int_val: val.size)
+      when PackedColorArray
+        LibBridge::VariantArg.new(type: 37, ptr_val: val.to_unsafe.as(Void*), int_val: val.size)
+      when PackedVector4Array
+        LibBridge::VariantArg.new(type: 38, ptr_val: val.to_unsafe.as(Void*), int_val: val.size)
+      else
+        LibBridge::VariantArg.new(type: 0)
       end
     end
 

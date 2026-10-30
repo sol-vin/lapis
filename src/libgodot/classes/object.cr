@@ -171,6 +171,10 @@ module Godot
                     self.\{{ ivar.name.id }} = val_ptr.as(::Godot::Vector3*).value
                   \{% elsif ivar_type == "Color" %}
                     self.\{{ ivar.name.id }} = val_ptr.as(::Godot::Color*).value
+                  \{% elsif ["PackedByteArray", "PackedInt32Array", "PackedInt64Array", "PackedFloat32Array", "PackedFloat64Array", "PackedStringArray", "PackedVector2Array", "PackedVector3Array", "PackedColorArray", "PackedVector4Array"].includes?(ivar_type) %}
+                    self.\{{ ivar.name.id }} = ::Godot::\{{ ivar_type.id }}.from_bridge_payload(val_ptr)
+                  \{% elsif ivar_type == "Dictionary" || ivar_type == "GodotDictionary" %}
+                    self.\{{ ivar.name.id }} = ::Godot::Dictionary.from_bridge_payload(val_ptr)
                   \{% elsif non_nil_t < Enum %}
                     self.\{{ ivar.name.id }} = \{{ non_nil_t }}.from_value?(val_ptr.as(Int64*).value) || self.\{{ ivar.name.id }}
                   \{% elsif non_nil_t <= ::Godot::Object %}
@@ -212,6 +216,8 @@ module Godot
                     ret_ptr.as(::Godot::Vector3*).value = self.\{{ ivar.name.id }}
                   \{% elsif ivar_type == "Color" %}
                     ret_ptr.as(::Godot::Color*).value = self.\{{ ivar.name.id }}
+                  \{% elsif ["PackedByteArray", "PackedInt32Array", "PackedInt64Array", "PackedFloat32Array", "PackedFloat64Array", "PackedStringArray", "PackedVector2Array", "PackedVector3Array", "PackedColorArray", "PackedVector4Array", "Dictionary", "GodotDictionary"].includes?(ivar_type) %}
+                    self.\{{ ivar.name.id }}.write_bridge_payload(ret_ptr)
                   \{% elsif non_nil_t < Enum %}
                     ret_ptr.as(Int64*).value = self.\{{ ivar.name.id }}.try(&.to_i64) || 0_i64
                   \{% elsif non_nil_t <= ::Godot::Object %}
@@ -248,6 +254,28 @@ module Godot
                     vtype = 9
                   elsif ivar_type == "Color"
                     vtype = 20
+                  elsif ivar_type == "Dictionary" || ivar_type == "GodotDictionary"
+                    vtype = 27
+                  elsif ivar_type == "PackedByteArray"
+                    vtype = 29
+                  elsif ivar_type == "PackedInt32Array"
+                    vtype = 30
+                  elsif ivar_type == "PackedInt64Array"
+                    vtype = 31
+                  elsif ivar_type == "PackedFloat32Array"
+                    vtype = 32
+                  elsif ivar_type == "PackedFloat64Array"
+                    vtype = 33
+                  elsif ivar_type == "PackedStringArray"
+                    vtype = 34
+                  elsif ivar_type == "PackedVector2Array"
+                    vtype = 35
+                  elsif ivar_type == "PackedVector3Array"
+                    vtype = 36
+                  elsif ivar_type == "PackedColorArray"
+                    vtype = 37
+                  elsif ivar_type == "PackedVector4Array"
+                    vtype = 38
                   elsif non_nil_t < Enum
                     vtype = 2
                     hint = 2_u32

@@ -156,4 +156,61 @@ end
     node.destroy
   end
 
+  test "Collection export properties round-trip through Godot ResourceSaver and ResourceLoader (.tres)" do
+    mesh_res = Godot.create(CollectionExportMeshResource)
+    face = Godot.create(CollectionExportFaceResource)
+
+    verts = Godot::PackedInt32Array.new
+    verts.push_back(10_i64)
+    verts.push_back(20_i64)
+    face.vertices = verts
+
+    uvs = Godot::PackedVector2Array.new
+    uvs.push_back(Godot::Vector2.new(0.25_f32, 0.75_f32))
+    face.uv_coords = uvs
+
+    colors = Godot::PackedColorArray.new
+    colors.push_back(Godot::Color.new(0.1_f32, 0.5_f32, 0.9_f32, 1.0_f32))
+    face.color_corners = colors
+
+    mesh_res.faces = [face]
+
+    positions = Godot::PackedVector3Array.new
+    positions.push_back(Godot::Vector3.new(1.0_f32, 2.0_f32, 3.0_f32))
+    positions.push_back(Godot::Vector3.new(4.0_f32, 5.0_f32, 6.0_f32))
+    mesh_res.positions = positions
+
+    spec = Godot::Dictionary.new
+    spec["surface_id"] = 42_i64
+    spec["label"] = "north_wall"
+    mesh_res.shape_spec = spec
+
+    save_path = "user://test_collection_export_roundtrip.tres"
+    err = Godot::ResourceSaver.instance.save(mesh_res, save_path, Godot::ResourceSaver::SaverFlags::FlagNone)
+    assert_eq err.value, Godot::Error::Ok.value
+
+    loaded_res = Godot::ResourceLoader.instance.load(save_path, "", Godot::ResourceLoader::CacheMode::CacheModeIgnore)
+    assert_not_nil loaded_res
+    loaded_mesh = loaded_res.as?(CollectionExportMeshResource)
+    assert_not_nil loaded_mesh
+    lm = loaded_mesh.not_nil!
+
+    assert_eq lm.positions.size, 2_i64
+    assert_approx_eq lm.positions[0].x, 1.0_f32, 0.001
+    assert_approx_eq lm.positions[1].z, 6.0_f32, 0.001
+
+    assert_eq lm.shape_spec["surface_id"].as_i, 42_i64
+    assert_eq lm.shape_spec["label"].as_s, "north_wall"
+
+    assert_eq lm.faces.size, 1
+    lf = lm.faces[0]
+    assert_eq lf.vertices.size, 2_i64
+    assert_eq lf.vertices[0], 10_i64
+    assert_eq lf.vertices[1], 20_i64
+    assert_eq lf.uv_coords.size, 1_i64
+    assert_approx_eq lf.uv_coords[0].x, 0.25_f32, 0.001
+    assert_eq lf.color_corners.size, 1_i64
+    assert_approx_eq lf.color_corners[0].b, 0.9_f32, 0.001
+  end
+
 end

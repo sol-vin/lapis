@@ -12,19 +12,36 @@ require "option_parser"
 module Lapis
   module Commands
     module Build
+      SKIP_GD_SCAN_DIRS = Set{"addons", "lib", ".godot", ".git", "tools", "bin", "docs", "dist"}
+
+      private def self.find_custom_gd_files(dir : Path, out_files : Array(String) = [] of String) : Array(String)
+        return out_files unless Dir.exists?(dir)
+        Dir.each_child(dir.to_s) do |entry|
+          next if SKIP_GD_SCAN_DIRS.includes?(entry)
+          child = dir.join(entry)
+          info = File.info?(child.to_s, follow_symlinks: false)
+          next unless info
+          next if info.symlink?
+          if info.directory?
+            find_custom_gd_files(child, out_files)
+          elsif entry.ends_with?(".gd") && entry != "dump_project_nodes.gd"
+            out_files << child.to_s
+          end
+        end
+        out_files
+      rescue
+        out_files
+      end
+
       # Automatically dump and generate project GDScript bindings if project contains custom .gd files
       def self.check_and_generate_project_bindings(entry : Path, root : Path)
         proj_dir = entry.parent
         proj_dir = proj_dir.parent if proj_dir.basename == "src"
+        return if proj_dir.to_s.gsub('\\', '/').includes?("/addons/")
+        return unless File.exists?(proj_dir.join("project.godot"))
 
-        # Check for .gd files excluding addons, lib, .godot, tools
-        gd_files = Dir.glob(proj_dir.to_s.gsub('\\', '/') + "/**/*.gd").reject do |f|
-          f.includes?("/addons/") || f.includes?("\\addons\\") ||
-            f.includes?("/lib/") || f.includes?("\\lib\\") ||
-            f.includes?("/.godot/") || f.includes?("\\.godot\\") ||
-            f.includes?("/tools/") || f.includes?("\\tools\\") ||
-            File.basename(f) == "dump_project_nodes.gd"
-        end
+        # Check for .gd files excluding addons, lib, .godot, tools, bin
+        gd_files = find_custom_gd_files(proj_dir)
 
         return if gd_files.empty?
 

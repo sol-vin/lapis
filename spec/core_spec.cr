@@ -314,5 +314,52 @@ describe "LibGodot Core & Node DSL" do
       count.should eq(1)
     end
   end
+
+  describe "Collection @[Export] Bridge Payload Round-Trips" do
+    it "round-trips Packed*Array, Dictionary, and Array(Resource) via _godot_get_property and _godot_set_property" do
+      src_face = CollectionExportFaceResource.new
+      src_face.vertices = PackedInt32Array.new([0_i32, 1_i32, 2_i32, 3_i32])
+      src_face.uv_coords = PackedVector2Array.new([Vector2.new(0.0_f32, 0.0_f32), Vector2.new(1.0_f32, 0.0_f32)])
+      src_face.color_corners = PackedColorArray.new([Color.new(1.0_f32, 0.5_f32, 0.25_f32, 1.0_f32)])
+
+      dst_face = CollectionExportFaceResource.new
+      payload_buf = StaticArray(UInt8, 16).new(0_u8)
+
+      src_face._godot_get_property("vertices", payload_buf.to_unsafe.as(Void*))
+      dst_face._godot_set_property("vertices", payload_buf.to_unsafe.as(Void*))
+      dst_face.vertices.to_a.should eq([0_i32, 1_i32, 2_i32, 3_i32])
+
+      src_face._godot_get_property("uv_coords", payload_buf.to_unsafe.as(Void*))
+      dst_face._godot_set_property("uv_coords", payload_buf.to_unsafe.as(Void*))
+      dst_face.uv_coords.size.should eq(2)
+      dst_face.uv_coords[1].should eq(Vector2.new(1.0_f32, 0.0_f32))
+
+      src_face._godot_get_property("color_corners", payload_buf.to_unsafe.as(Void*))
+      dst_face._godot_set_property("color_corners", payload_buf.to_unsafe.as(Void*))
+      dst_face.color_corners.size.should eq(1)
+      dst_face.color_corners[0].r.should eq(1.0_f32)
+
+      src_mesh = CollectionExportMeshResource.new
+      src_mesh.positions = PackedVector3Array.new([Vector3.new(1.0_f32, 2.0_f32, 3.0_f32), Vector3.new(4.0_f32, 5.0_f32, 6.0_f32)])
+      src_mesh.faces = [src_face]
+      spec = Dictionary.new
+      spec["kind"] = "box"
+      spec["uv2_meta"] = PackedVector2Array.new([Vector2.new(0.618_f32, 12.0_f32)])
+      src_mesh.shape_spec = spec
+
+      dst_mesh = CollectionExportMeshResource.new
+      src_mesh._godot_get_property("positions", payload_buf.to_unsafe.as(Void*))
+      dst_mesh._godot_set_property("positions", payload_buf.to_unsafe.as(Void*))
+      dst_mesh.positions.size.should eq(2)
+      dst_mesh.positions[1].should eq(Vector3.new(4.0_f32, 5.0_f32, 6.0_f32))
+
+      src_mesh._godot_get_property("shape_spec", payload_buf.to_unsafe.as(Void*))
+      dst_mesh._godot_set_property("shape_spec", payload_buf.to_unsafe.as(Void*))
+      dst_mesh.shape_spec["kind"].to_s.should eq("box")
+      uv2_meta = dst_mesh.shape_spec.get?("uv2_meta", as: PackedVector2Array)
+      uv2_meta.should_not be_nil
+      uv2_meta.not_nil![0].y.should eq(12.0_f32)
+    end
+  end
 end
 

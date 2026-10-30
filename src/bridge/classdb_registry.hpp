@@ -291,7 +291,7 @@ inline void do_classdb_register(CrystalClassDesc *desc) {
         GDExtensionPropertyInfo pinfo = {};
         pinfo.type = (GDExtensionVariantType)p.variant_type;
         pinfo.name = make_string_name(p.name);
-        pinfo.class_name = make_string_name(cname.c_str());
+        pinfo.class_name = make_string_name(p.variant_type == 24 ? cname.c_str() : "");
         pinfo.hint = prop_hint;
         pinfo.hint_string = hint_str;
         pinfo.usage = p.usage ? p.usage : 6; // PROPERTY_USAGE_DEFAULT

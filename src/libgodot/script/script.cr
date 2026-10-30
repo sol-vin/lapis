@@ -293,9 +293,9 @@ module Lapis
                     else
                       raw_arg.as(Void**).value
                     end
-        # If running in game or owner is already a native registered Crystal class instance (in local ClassRegistry or global ClassDB),
+        # If running in editor and owner is already a native registered Crystal class instance (in local ClassRegistry or global ClassDB),
         # return null so Godot directly dispatches virtual methods and Inspector properties on the native GDExtension object
-        if !Godot.editor_hint? || native_class_registered?(owner_ptr)
+        if Godot.editor_hint? && native_class_registered?(owner_ptr)
           ret.as(Void**).value = Pointer(Void).null
           return
         end
@@ -316,7 +316,7 @@ module Lapis
                     else
                       raw_arg.as(Void**).value
                     end
-        if !Godot.editor_hint? || native_class_registered?(owner_ptr)
+        if Godot.editor_hint? && native_class_registered?(owner_ptr)
           ret.as(Void**).value = Pointer(Void).null
           return
         end

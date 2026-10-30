@@ -1544,14 +1544,19 @@ inline GDExtensionBool generic_class_set(GDExtensionClassInstancePtr p_instance,
             if (strcmp(prop_name_buf, curr->properties[i].name) == 0) {
                 // --- Segment 3: Variant Unmarshaling & Crystal Setter Dispatch ---
                 ensure_gc_thread_registered();
-                alignas(void*) char raw_buf[128] = {};
-                bridge_type_from_variant(curr->properties[i].variant_type, raw_buf, p_value);
+                int vtype = curr->properties[i].variant_type;
+                if (vtype >= 27 && vtype <= 38) {
+                    bridge_set_collection_property(inst->desc, inst->crystal_instance, curr->properties[i].name, vtype, p_value);
+                } else {
+                    alignas(void*) char raw_buf[128] = {};
+                    bridge_type_from_variant(vtype, raw_buf, p_value);
+                    inst->desc->set_property(inst->crystal_instance, curr->properties[i].name, raw_buf);
+                }
                 if (is_bridge_verbose()) {
                     char buf[256];
                     snprintf(buf, sizeof(buf), "  [GenericExtensionInstance] Set %s::%s", curr->name ? curr->name : "Object", curr->properties[i].name);
                     godot_log_verbose(buf);
                 }
-                inst->desc->set_property(inst->crystal_instance, curr->properties[i].name, raw_buf);
                 return 1;
             }
         }
@@ -1598,9 +1603,14 @@ inline GDExtensionBool generic_class_get(GDExtensionClassInstancePtr p_instance,
                 }
                 // --- Segment 3: Crystal Getter Dispatch & Variant Marshaling ---
                 ensure_gc_thread_registered();
-                alignas(void*) char raw_buf[128] = {};
-                inst->desc->get_property(inst->crystal_instance, curr->properties[i].name, raw_buf);
-                bridge_variant_from_type(curr->properties[i].variant_type, r_ret, raw_buf);
+                int vtype = curr->properties[i].variant_type;
+                if (vtype >= 27 && vtype <= 38) {
+                    bridge_get_collection_property(inst->desc, inst->crystal_instance, curr->properties[i].name, vtype, r_ret);
+                } else {
+                    alignas(void*) char raw_buf[128] = {};
+                    inst->desc->get_property(inst->crystal_instance, curr->properties[i].name, raw_buf);
+                    bridge_variant_from_type(vtype, r_ret, raw_buf);
+                }
                 if (is_bridge_verbose()) {
                     char buf[256];
                     snprintf(buf, sizeof(buf), "  [GenericExtensionInstance] Get %s::%s", curr->name ? curr->name : "Object", curr->properties[i].name);

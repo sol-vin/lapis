@@ -1959,7 +1959,7 @@ macro node(decl, &block)
                 var_type = "Bool"
               elsif val.is_a?(Call)
                 rec = val.receiver ? val.receiver.stringify.gsub(/^(::)?Godot::/, "") : val.name.stringify.gsub(/^(::)?Godot::/, "")
-                if ["Vector2", "Vector2i", "Vector3", "Vector3i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis"].includes?(rec)
+                if ["Vector2", "Vector2i", "Vector3", "Vector3i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis", "Dictionary", "GodotDictionary", "PackedByteArray", "PackedInt32Array", "PackedInt64Array", "PackedFloat32Array", "PackedFloat64Array", "PackedStringArray", "PackedVector2Array", "PackedVector3Array", "PackedColorArray", "PackedVector4Array"].includes?(rec)
                   var_type = rec
                 elsif ["Proc", "proc", "lambda", "Callable"].includes?(rec)
                   var_type = "Callable"
@@ -1985,9 +1985,12 @@ macro node(decl, &block)
             else
               var_type = "Variant"
             end
+            is_std_array = non_nil_type && non_nil_type.is_a?(Generic) && (non_nil_type.name.stringify == "Array" || non_nil_type.name.stringify == "::Array")
+            is_godot_array = non_nil_type && non_nil_type.is_a?(Generic) && (non_nil_type.name.stringify.ends_with?("GodotArray") || non_nil_type.name.stringify.ends_with?("GArray"))
+            array_elem_type = (is_std_array || is_godot_array) ? non_nil_type.type_vars[0] : nil
             is_enum_prop = non_nil_type && non_nil_type.is_a?(Path) && ((non_nil_type.resolve? && (non_nil_type.resolve < Enum)) || local_enums[base_type_str])
             is_obj_prop = false
-            if !is_enum_prop && non_nil_type && non_nil_type.is_a?(Path) && !["Float32", "Float64", "Int32", "Int64", "Int8", "Int16", "UInt8", "UInt16", "UInt32", "UInt64", "Bool", "String", "Symbol", "Vector2", "Vector2i", "Vector3", "Vector3i", "Vector4", "Vector4i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis", "Projection", "Variant", "Callable", "Signal", "Dictionary", "Array", "RID", "NodePath", "StringName", "Nil"].includes?(base_type_str) && !base_type_str.starts_with?("Array(") && !base_type_str.starts_with?("Dictionary(") && !base_type_str.starts_with?("Packed") && !base_type_str.starts_with?("Proc(")
+            if !is_enum_prop && non_nil_type && non_nil_type.is_a?(Path) && !["Float32", "Float64", "Int32", "Int64", "Int8", "Int16", "UInt8", "UInt16", "UInt32", "UInt64", "Bool", "String", "Symbol", "Vector2", "Vector2i", "Vector3", "Vector3i", "Vector4", "Vector4i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis", "Projection", "Variant", "Callable", "Signal", "Dictionary", "GodotDictionary", "Array", "PackedByteArray", "PackedInt32Array", "PackedInt64Array", "PackedFloat32Array", "PackedFloat64Array", "PackedStringArray", "PackedVector2Array", "PackedVector3Array", "PackedColorArray", "PackedVector4Array", "RID", "NodePath", "StringName", "Nil"].includes?(base_type_str) && !base_type_str.starts_with?("Array(") && !base_type_str.starts_with?("::Array(") && !base_type_str.starts_with?("GodotArray(") && !base_type_str.starts_with?("GArray(") && !base_type_str.starts_with?("Dictionary(") && !base_type_str.starts_with?("Packed") && !base_type_str.starts_with?("Proc(")
               if non_nil_type.resolve?
                 if non_nil_type.resolve <= ::Godot::Object
                   is_obj_prop = true
@@ -2031,6 +2034,14 @@ macro node(decl, &block)
             {% elsif var_type == "String" %}
               c_str = val_ptr.as(Pointer(UInt8)*).value
               self.{{var_name.id}} = c_str.null? ? "" : String.new(c_str)
+            {% elsif ["PackedByteArray", "PackedInt32Array", "PackedInt64Array", "PackedFloat32Array", "PackedFloat64Array", "PackedStringArray", "PackedVector2Array", "PackedVector3Array", "PackedColorArray", "PackedVector4Array"].includes?(var_type) %}
+              self.{{var_name.id}} = ::Godot::{{var_type.id}}.from_bridge_payload(val_ptr)
+            {% elsif var_type == "Dictionary" || var_type == "GodotDictionary" %}
+              self.{{var_name.id}} = ::Godot::Dictionary.from_bridge_payload(val_ptr)
+            {% elsif is_std_array %}
+              self.{{var_name.id}} = ::Godot::Bridge.array_from_bridge_payload(val_ptr, {{array_elem_type}})
+            {% elsif is_godot_array %}
+              self.{{var_name.id}} = ::Godot::GodotArray({{array_elem_type}}).from_bridge_payload(val_ptr)
             {% elsif is_enum_prop %}
               self.{{var_name.id}} = {{non_nil_type.id}}.from_value?(val_ptr.as(Int64*).value) || self.{{var_name.id}}
             {% elsif is_obj_prop %}
@@ -2091,7 +2102,7 @@ macro node(decl, &block)
                 var_type = "Bool"
               elsif val.is_a?(Call)
                 rec = val.receiver ? val.receiver.stringify.gsub(/^(::)?Godot::/, "") : val.name.stringify.gsub(/^(::)?Godot::/, "")
-                if ["Vector2", "Vector2i", "Vector3", "Vector3i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis"].includes?(rec)
+                if ["Vector2", "Vector2i", "Vector3", "Vector3i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis", "Dictionary", "GodotDictionary", "PackedByteArray", "PackedInt32Array", "PackedInt64Array", "PackedFloat32Array", "PackedFloat64Array", "PackedStringArray", "PackedVector2Array", "PackedVector3Array", "PackedColorArray", "PackedVector4Array"].includes?(rec)
                   var_type = rec
                 elsif ["Proc", "proc", "lambda", "Callable"].includes?(rec)
                   var_type = "Callable"
@@ -2117,9 +2128,11 @@ macro node(decl, &block)
             else
               var_type = "Variant"
             end
+            is_std_array = non_nil_type && non_nil_type.is_a?(Generic) && (non_nil_type.name.stringify == "Array" || non_nil_type.name.stringify == "::Array")
+            is_godot_array = non_nil_type && non_nil_type.is_a?(Generic) && (non_nil_type.name.stringify.ends_with?("GodotArray") || non_nil_type.name.stringify.ends_with?("GArray"))
             is_enum_prop = non_nil_type && non_nil_type.is_a?(Path) && ((non_nil_type.resolve? && (non_nil_type.resolve < Enum)) || local_enums[base_type_str])
             is_obj_prop = false
-            if !is_enum_prop && non_nil_type && non_nil_type.is_a?(Path) && !["Float32", "Float64", "Int32", "Int64", "Int8", "Int16", "UInt8", "UInt16", "UInt32", "UInt64", "Bool", "String", "Symbol", "Vector2", "Vector2i", "Vector3", "Vector3i", "Vector4", "Vector4i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis", "Projection", "Variant", "Callable", "Signal", "Dictionary", "Array", "RID", "NodePath", "StringName", "Nil"].includes?(base_type_str) && !base_type_str.starts_with?("Array(") && !base_type_str.starts_with?("Dictionary(") && !base_type_str.starts_with?("Packed") && !base_type_str.starts_with?("Proc(")
+            if !is_enum_prop && non_nil_type && non_nil_type.is_a?(Path) && !["Float32", "Float64", "Int32", "Int64", "Int8", "Int16", "UInt8", "UInt16", "UInt32", "UInt64", "Bool", "String", "Symbol", "Vector2", "Vector2i", "Vector3", "Vector3i", "Vector4", "Vector4i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis", "Projection", "Variant", "Callable", "Signal", "Dictionary", "GodotDictionary", "Array", "PackedByteArray", "PackedInt32Array", "PackedInt64Array", "PackedFloat32Array", "PackedFloat64Array", "PackedStringArray", "PackedVector2Array", "PackedVector3Array", "PackedColorArray", "PackedVector4Array", "RID", "NodePath", "StringName", "Nil"].includes?(base_type_str) && !base_type_str.starts_with?("Array(") && !base_type_str.starts_with?("::Array(") && !base_type_str.starts_with?("GodotArray(") && !base_type_str.starts_with?("GArray(") && !base_type_str.starts_with?("Dictionary(") && !base_type_str.starts_with?("Packed") && !base_type_str.starts_with?("Proc(")
               if non_nil_type.resolve?
                 if non_nil_type.resolve <= ::Godot::Object
                   is_obj_prop = true
@@ -2158,6 +2171,10 @@ macro node(decl, &block)
               ret_ptr.as(::Godot::Transform3D*).value = self.{{var_name.id}}
             {% elsif var_type == "String" %}
               ret_ptr.as(Pointer(UInt8)*).value = self.{{var_name.id}}.to_unsafe
+            {% elsif ["PackedByteArray", "PackedInt32Array", "PackedInt64Array", "PackedFloat32Array", "PackedFloat64Array", "PackedStringArray", "PackedVector2Array", "PackedVector3Array", "PackedColorArray", "PackedVector4Array", "Dictionary", "GodotDictionary"].includes?(var_type) || is_godot_array %}
+              self.{{var_name.id}}.write_bridge_payload(ret_ptr)
+            {% elsif is_std_array %}
+              ::Godot::Bridge.write_array_bridge_payload(self.{{var_name.id}}, ret_ptr)
             {% elsif is_enum_prop %}
               ret_ptr.as(Int64*).value = self.{{var_name.id}}.try(&.to_i64) || 0_i64
             {% elsif is_obj_prop %}
@@ -2299,7 +2316,7 @@ macro node(decl, &block)
             var_type = "Bool"
           elsif val.is_a?(Call)
             rec = val.receiver ? val.receiver.stringify.gsub(/^(::)?Godot::/, "") : val.name.stringify.gsub(/^(::)?Godot::/, "")
-            if ["Vector2", "Vector2i", "Vector3", "Vector3i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis"].includes?(rec)
+            if ["Vector2", "Vector2i", "Vector3", "Vector3i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis", "Dictionary", "GodotDictionary", "PackedByteArray", "PackedInt32Array", "PackedInt64Array", "PackedFloat32Array", "PackedFloat64Array", "PackedStringArray", "PackedVector2Array", "PackedVector3Array", "PackedColorArray", "PackedVector4Array"].includes?(rec)
               var_type = rec
             elsif ["Proc", "proc", "lambda", "Callable"].includes?(rec)
               var_type = "Callable"
@@ -2380,10 +2397,37 @@ macro node(decl, &block)
           vtype = 25
         elsif var_type == "Signal"
           vtype = 26
-        elsif var_type == "Dictionary"
+        elsif var_type == "Dictionary" || var_type == "GodotDictionary"
           vtype = 27
-        elsif var_type == "Array"
+        elsif var_type == "Array" || var_type.starts_with?("Array(") || var_type.starts_with?("::Array(") || var_type.starts_with?("GodotArray(") || var_type.starts_with?("GArray(")
           vtype = 28
+          if arg.is_a?(TypeDeclaration) && arg.type && arg.type.is_a?(Generic) && arg.type.type_vars.size == 1
+            elem_clean = arg.type.type_vars[0].stringify.split("|")[0].gsub(/\?/, "").gsub(/[\(\)]/, "").strip.gsub(/^(::)?Godot::/, "").gsub(/^::/, "")
+            if !["Bool", "Int", "Int8", "Int16", "Int32", "Int64", "UInt8", "UInt16", "UInt32", "UInt64", "Float", "Float32", "Float64", "String", "Vector2", "Vector2i", "Rect2", "Rect2i", "Vector3", "Vector3i", "Transform2D", "Vector4", "Vector4i", "Plane", "Quaternion", "AABB", "Basis", "Transform3D", "Projection", "Color", "StringName", "NodePath", "RID", "Callable", "Signal", "Dictionary", "Array", "Variant", "Object", "Node", "RefCounted", "Nil"].includes?(elem_clean)
+              hint = 23
+              hint_str = "24/17:#{elem_clean.id}"
+            end
+          end
+        elsif var_type == "PackedByteArray"
+          vtype = 29
+        elsif var_type == "PackedInt32Array"
+          vtype = 30
+        elsif var_type == "PackedInt64Array"
+          vtype = 31
+        elsif var_type == "PackedFloat32Array"
+          vtype = 32
+        elsif var_type == "PackedFloat64Array"
+          vtype = 33
+        elsif var_type == "PackedStringArray"
+          vtype = 34
+        elsif var_type == "PackedVector2Array"
+          vtype = 35
+        elsif var_type == "PackedVector3Array"
+          vtype = 36
+        elsif var_type == "PackedColorArray"
+          vtype = 37
+        elsif var_type == "PackedVector4Array"
+          vtype = 38
         else
           vtype = 24
         end
@@ -3680,10 +3724,30 @@ macro gmodule(decl, &block)
               vtype = 25
             elsif var_type == "Signal"
               vtype = 26
-            elsif var_type == "Dictionary"
+            elsif var_type == "Dictionary" || var_type == "GodotDictionary"
               vtype = 27
-            elsif var_type == "Array"
+            elsif var_type == "Array" || var_type.starts_with?("Array(") || var_type.starts_with?("::Array(") || var_type.starts_with?("GodotArray(") || var_type.starts_with?("GArray(")
               vtype = 28
+            elsif var_type == "PackedByteArray"
+              vtype = 29
+            elsif var_type == "PackedInt32Array"
+              vtype = 30
+            elsif var_type == "PackedInt64Array"
+              vtype = 31
+            elsif var_type == "PackedFloat32Array"
+              vtype = 32
+            elsif var_type == "PackedFloat64Array"
+              vtype = 33
+            elsif var_type == "PackedStringArray"
+              vtype = 34
+            elsif var_type == "PackedVector2Array"
+              vtype = 35
+            elsif var_type == "PackedVector3Array"
+              vtype = 36
+            elsif var_type == "PackedColorArray"
+              vtype = 37
+            elsif var_type == "PackedVector4Array"
+              vtype = 38
             else
               vtype = 24
             end
@@ -4035,9 +4099,12 @@ macro gmodule(decl, &block)
             raw_nn = non_nil_type ? non_nil_type.stringify.gsub(/\?$/, "").strip : ""
             base_type_str = non_nil_type ? raw_nn.gsub(/^(::)?Godot::/, "") : var_type
             resolved_obj_type = non_nil_type ? raw_nn.id : nil
+            is_std_array = non_nil_type && non_nil_type.is_a?(Generic) && (non_nil_type.name.stringify == "Array" || non_nil_type.name.stringify == "::Array")
+            is_godot_array = non_nil_type && non_nil_type.is_a?(Generic) && (non_nil_type.name.stringify.ends_with?("GodotArray") || non_nil_type.name.stringify.ends_with?("GArray"))
+            array_elem_type = (is_std_array || is_godot_array) ? non_nil_type.type_vars[0] : nil
             is_enum_prop = (non_nil_type && non_nil_type.is_a?(Path) && non_nil_type.resolve? && (non_nil_type.resolve < Enum)) || local_enums.includes?(base_type_str)
             is_obj_prop = false
-            if !is_enum_prop && non_nil_type && non_nil_type.is_a?(Path) && !["Bool", "Int", "Int8", "Int16", "Int32", "Int64", "UInt8", "UInt16", "UInt32", "UInt64", "Float", "Float32", "Float64", "String", "Vector2", "Vector2i", "Rect2", "Rect2i", "Vector3", "Vector3i", "Transform2D", "Vector4", "Vector4i", "Plane", "Quaternion", "AABB", "Basis", "Transform3D", "Projection", "Color", "StringName", "NodePath", "RID", "Callable", "Signal", "Dictionary", "Array", "Variant", "Nil"].includes?(base_type_str)
+            if !is_enum_prop && non_nil_type && non_nil_type.is_a?(Path) && !["Bool", "Int", "Int8", "Int16", "Int32", "Int64", "UInt8", "UInt16", "UInt32", "UInt64", "Float", "Float32", "Float64", "String", "Vector2", "Vector2i", "Rect2", "Rect2i", "Vector3", "Vector3i", "Transform2D", "Vector4", "Vector4i", "Plane", "Quaternion", "AABB", "Basis", "Transform3D", "Projection", "Color", "StringName", "NodePath", "RID", "Callable", "Signal", "Dictionary", "GodotDictionary", "Array", "PackedByteArray", "PackedInt32Array", "PackedInt64Array", "PackedFloat32Array", "PackedFloat64Array", "PackedStringArray", "PackedVector2Array", "PackedVector3Array", "PackedColorArray", "PackedVector4Array", "Variant", "Nil"].includes?(base_type_str)
               if non_nil_type.resolve?
                 if non_nil_type.resolve <= ::Godot::Object
                   is_obj_prop = true
@@ -4081,6 +4148,14 @@ macro gmodule(decl, &block)
             {% elsif var_type == "String" %}
               c_str = val_ptr.as(Pointer(UInt8)*).value
               self.{{var_name.id}} = c_str.null? ? "" : String.new(c_str)
+            {% elsif ["PackedByteArray", "PackedInt32Array", "PackedInt64Array", "PackedFloat32Array", "PackedFloat64Array", "PackedStringArray", "PackedVector2Array", "PackedVector3Array", "PackedColorArray", "PackedVector4Array"].includes?(var_type) %}
+              self.{{var_name.id}} = ::Godot::{{var_type.id}}.from_bridge_payload(val_ptr)
+            {% elsif var_type == "Dictionary" || var_type == "GodotDictionary" %}
+              self.{{var_name.id}} = ::Godot::Dictionary.from_bridge_payload(val_ptr)
+            {% elsif is_std_array %}
+              self.{{var_name.id}} = ::Godot::Bridge.array_from_bridge_payload(val_ptr, {{array_elem_type}})
+            {% elsif is_godot_array %}
+              self.{{var_name.id}} = ::Godot::GodotArray({{array_elem_type}}).from_bridge_payload(val_ptr)
             {% elsif is_enum_prop %}
               self.{{var_name.id}} = {{non_nil_type.id}}.from_value?(val_ptr.as(Int64*).value) || self.{{var_name.id}}
             {% elsif is_obj_prop %}
@@ -4167,9 +4242,11 @@ macro gmodule(decl, &block)
             raw_nn = non_nil_type ? non_nil_type.stringify.gsub(/\?$/, "").strip : ""
             base_type_str = non_nil_type ? raw_nn.gsub(/^(::)?Godot::/, "") : var_type
             resolved_obj_type = non_nil_type ? raw_nn.id : nil
+            is_std_array = non_nil_type && non_nil_type.is_a?(Generic) && (non_nil_type.name.stringify == "Array" || non_nil_type.name.stringify == "::Array")
+            is_godot_array = non_nil_type && non_nil_type.is_a?(Generic) && (non_nil_type.name.stringify.ends_with?("GodotArray") || non_nil_type.name.stringify.ends_with?("GArray"))
             is_enum_prop = (non_nil_type && non_nil_type.is_a?(Path) && non_nil_type.resolve? && (non_nil_type.resolve < Enum)) || local_enums.includes?(base_type_str)
             is_obj_prop = false
-            if !is_enum_prop && non_nil_type && non_nil_type.is_a?(Path) && !["Bool", "Int", "Int8", "Int16", "Int32", "Int64", "UInt8", "UInt16", "UInt32", "UInt64", "Float", "Float32", "Float64", "String", "Vector2", "Vector2i", "Rect2", "Rect2i", "Vector3", "Vector3i", "Transform2D", "Vector4", "Vector4i", "Plane", "Quaternion", "AABB", "Basis", "Transform3D", "Projection", "Color", "StringName", "NodePath", "RID", "Callable", "Signal", "Dictionary", "Array", "Variant", "Nil"].includes?(base_type_str)
+            if !is_enum_prop && non_nil_type && non_nil_type.is_a?(Path) && !["Bool", "Int", "Int8", "Int16", "Int32", "Int64", "UInt8", "UInt16", "UInt32", "UInt64", "Float", "Float32", "Float64", "String", "Vector2", "Vector2i", "Rect2", "Rect2i", "Vector3", "Vector3i", "Transform2D", "Vector4", "Vector4i", "Plane", "Quaternion", "AABB", "Basis", "Transform3D", "Projection", "Color", "StringName", "NodePath", "RID", "Callable", "Signal", "Dictionary", "GodotDictionary", "Array", "PackedByteArray", "PackedInt32Array", "PackedInt64Array", "PackedFloat32Array", "PackedFloat64Array", "PackedStringArray", "PackedVector2Array", "PackedVector3Array", "PackedColorArray", "PackedVector4Array", "Variant", "Nil"].includes?(base_type_str)
               if non_nil_type.resolve?
                 if non_nil_type.resolve <= ::Godot::Object
                   is_obj_prop = true
@@ -4208,6 +4285,10 @@ macro gmodule(decl, &block)
               ret_ptr.as(::Godot::Transform3D*).value = self.{{var_name.id}}
             {% elsif var_type == "String" %}
               ret_ptr.as(Pointer(UInt8)*).value = self.{{var_name.id}}.to_unsafe
+            {% elsif ["PackedByteArray", "PackedInt32Array", "PackedInt64Array", "PackedFloat32Array", "PackedFloat64Array", "PackedStringArray", "PackedVector2Array", "PackedVector3Array", "PackedColorArray", "PackedVector4Array", "Dictionary", "GodotDictionary"].includes?(var_type) || is_godot_array %}
+              self.{{var_name.id}}.write_bridge_payload(ret_ptr)
+            {% elsif is_std_array %}
+              ::Godot::Bridge.write_array_bridge_payload(self.{{var_name.id}}, ret_ptr)
             {% elsif is_enum_prop %}
               {% if is_nilable_prop %}
                 ret_ptr.as(Int64*).value = self.{{var_name.id}}.try(&.to_i64) || 0_i64

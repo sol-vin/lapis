@@ -269,6 +269,45 @@ module Godot
       end
       io << "}"
     end
+
+    def dup : Dictionary
+      d = Dictionary.new
+      @store.each { |k, v| d[k] = v }
+      d
+    end
+
+    def duplicate(deep : Bool = false) : Dictionary
+      dup
+    end
+
+    @@_kv_args_keepalive = ::Array(LibBridge::VariantArg).new
+
+    def self.from_bridge_payload(payload_ptr : Void*) : Dictionary
+      d = new
+      return d if payload_ptr.null?
+      data_ptr = payload_ptr.as(Void**).value
+      count = (payload_ptr.as(UInt8*) + 8).as(Int64*).value
+      if !data_ptr.null? && count > 0
+        kv = data_ptr.as(Pointer(LibBridge::VariantArg))
+        count.times do |i|
+          k = Variant.from_arg(kv[i * 2])
+          v = Variant.from_arg(kv[i * 2 + 1])
+          d[k] = v
+        end
+      end
+      d
+    end
+
+    def write_bridge_payload(ret_ptr : Void*) : Void
+      return if ret_ptr.null?
+      @@_kv_args_keepalive.clear
+      @store.each do |k, v|
+        @@_kv_args_keepalive << k.to_arg
+        @@_kv_args_keepalive << v.to_arg
+      end
+      ret_ptr.as(Void**).value = @@_kv_args_keepalive.empty? ? Pointer(Void).null : @@_kv_args_keepalive.to_unsafe.as(Void*)
+      (ret_ptr.as(UInt8*) + 8).as(Int64*).value = @store.size.to_i64
+    end
   end
 
   alias GodotDictionary = Dictionary
@@ -399,6 +438,14 @@ module Godot
         io << item.inspect
       end
       io << "]"
+    end
+
+    def self.from_bridge_payload(payload_ptr : Void*) : GodotArray(T)
+      new(Bridge.array_from_bridge_payload(payload_ptr, T))
+    end
+
+    def write_bridge_payload(ret_ptr : Void*) : Void
+      Bridge.write_array_bridge_payload(@store, ret_ptr)
     end
   end
 
@@ -558,6 +605,64 @@ module Godot
       def to_a : ::Array({{elem_type}})
         @store.dup
       end
+
+      def to_unsafe : Pointer({{elem_type}})
+        @store.to_unsafe
+      end
+
+      {% if elem_type.stringify == "String" %}
+        @@_cstr_keepalive = ::Array(Pointer(UInt8)).new
+
+        def cstr_array_ptr : Pointer(Pointer(UInt8))
+          @@_cstr_keepalive.clear
+          @store.each { |s| @@_cstr_keepalive << s.to_unsafe }
+          @@_cstr_keepalive.to_unsafe
+        end
+
+        def self.from_raw(data_ptr : Void*, count : Int64) : {{name}}
+          return new if data_ptr.null? || count <= 0
+          c_strs = data_ptr.as(Pointer(Pointer(UInt8)))
+          items = ::Array(String).new(count.to_i32) do |i|
+            p = c_strs[i]
+            p.null? ? "" : String.new(p)
+          end
+          new(items)
+        end
+
+        def self.from_bridge_payload(payload_ptr : Void*) : {{name}}
+          return new if payload_ptr.null?
+          data_ptr = payload_ptr.as(Void**).value
+          count = (payload_ptr.as(UInt8*) + 8).as(Int64*).value
+          from_raw(data_ptr, count)
+        end
+
+        def write_bridge_payload(ret_ptr : Void*) : Void
+          return if ret_ptr.null?
+          ptr = cstr_array_ptr
+          ret_ptr.as(Void**).value = @store.empty? ? Pointer(Void).null : ptr.as(Void*)
+          (ret_ptr.as(UInt8*) + 8).as(Int64*).value = @store.size.to_i64
+        end
+      {% else %}
+        def self.from_raw(data_ptr : Void*, count : Int64) : {{name}}
+          return new if data_ptr.null? || count <= 0
+          slice = Slice({{elem_type}}).new(data_ptr.as(Pointer({{elem_type}})), count.to_i32)
+          items = ::Array({{elem_type}}).new(count.to_i32) { |i| slice[i] }
+          new(items)
+        end
+
+        def self.from_bridge_payload(payload_ptr : Void*) : {{name}}
+          return new if payload_ptr.null?
+          data_ptr = payload_ptr.as(Void**).value
+          count = (payload_ptr.as(UInt8*) + 8).as(Int64*).value
+          from_raw(data_ptr, count)
+        end
+
+        def write_bridge_payload(ret_ptr : Void*) : Void
+          return if ret_ptr.null?
+          ret_ptr.as(Void**).value = @store.empty? ? Pointer(Void).null : @store.to_unsafe.as(Void*)
+          (ret_ptr.as(UInt8*) + 8).as(Int64*).value = @store.size.to_i64
+        end
+      {% end %}
     end
   end
 

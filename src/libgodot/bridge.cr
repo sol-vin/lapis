@@ -1252,6 +1252,7 @@ module Godot
       v3_storage = StaticArray(Godot::Vector3, 16).new(Godot::Vector3.new)
       color_storage = StaticArray(Godot::Color, 16).new(Godot::Color.new)
       obj_storage = StaticArray(Void*, 16).new(Pointer(Void).null)
+      buf_storage = StaticArray(Tuple(Void*, Int64), 16).new({Pointer(Void).null, 0_i64})
 
       count = [args.size, 16].min
       args.each_with_index do |arg, idx|
@@ -1282,9 +1283,110 @@ module Godot
         elsif arg.is_a?(Godot::Color)
           color_storage[idx] = arg
           c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 8, data: (color_storage.to_unsafe + idx).as(Void*))
+        elsif arg.is_a?(Godot::PackedByteArray)
+          arg.write_bridge_payload((buf_storage.to_unsafe + idx).as(Void*))
+          c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 29, data: (buf_storage.to_unsafe + idx).as(Void*))
+        elsif arg.is_a?(Godot::PackedInt32Array)
+          arg.write_bridge_payload((buf_storage.to_unsafe + idx).as(Void*))
+          c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 30, data: (buf_storage.to_unsafe + idx).as(Void*))
+        elsif arg.is_a?(Godot::PackedInt64Array)
+          arg.write_bridge_payload((buf_storage.to_unsafe + idx).as(Void*))
+          c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 31, data: (buf_storage.to_unsafe + idx).as(Void*))
+        elsif arg.is_a?(Godot::PackedFloat32Array)
+          arg.write_bridge_payload((buf_storage.to_unsafe + idx).as(Void*))
+          c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 32, data: (buf_storage.to_unsafe + idx).as(Void*))
+        elsif arg.is_a?(Godot::PackedFloat64Array)
+          arg.write_bridge_payload((buf_storage.to_unsafe + idx).as(Void*))
+          c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 33, data: (buf_storage.to_unsafe + idx).as(Void*))
+        elsif arg.is_a?(Godot::PackedStringArray)
+          arg.write_bridge_payload((buf_storage.to_unsafe + idx).as(Void*))
+          c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 34, data: (buf_storage.to_unsafe + idx).as(Void*))
+        elsif arg.is_a?(Godot::PackedVector2Array)
+          arg.write_bridge_payload((buf_storage.to_unsafe + idx).as(Void*))
+          c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 35, data: (buf_storage.to_unsafe + idx).as(Void*))
+        elsif arg.is_a?(Godot::PackedVector3Array)
+          arg.write_bridge_payload((buf_storage.to_unsafe + idx).as(Void*))
+          c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 36, data: (buf_storage.to_unsafe + idx).as(Void*))
+        elsif arg.is_a?(Godot::PackedColorArray)
+          arg.write_bridge_payload((buf_storage.to_unsafe + idx).as(Void*))
+          c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 37, data: (buf_storage.to_unsafe + idx).as(Void*))
+        elsif arg.is_a?(Godot::PackedVector4Array)
+          arg.write_bridge_payload((buf_storage.to_unsafe + idx).as(Void*))
+          c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 38, data: (buf_storage.to_unsafe + idx).as(Void*))
         end
       end
       yield c_args.to_unsafe, count
+    end
+
+    @@_array_args_keepalive = ::Array(LibBridge::VariantArg).new
+
+    def self.array_from_bridge_payload(payload_ptr : Void*, _elem_type : T.class) : ::Array(T) forall T
+      return ::Array(T).new if payload_ptr.null?
+      data_ptr = payload_ptr.as(Void**).value
+      count = (payload_ptr.as(UInt8*) + 8).as(Int64*).value
+      return ::Array(T).new if data_ptr.null? || count <= 0
+      {% begin %}
+        {% is_nilable = T.nilable? %}
+        {% non_nil_t = T.nilable? ? T.union_types.reject { |ut| ut == Nil }[0] : T %}
+        res = ::Array(T).new(count.to_i32)
+        elems = data_ptr.as(Pointer(LibBridge::VariantArg))
+        count.times do |i|
+          arg = elems[i]
+          {% if T == Variant %}
+            res << Variant.from_arg(arg)
+          {% elsif non_nil_t <= Godot::Object %}
+            ptr = arg.ptr_val
+            if ptr.null?
+              {% if is_nilable %}
+                res << nil
+              {% else %}
+                res << {{non_nil_t}}.new(Pointer(Void).null)
+              {% end %}
+            else
+              inst = find_alive_instance(ptr).as?({{non_nil_t}}) || {{non_nil_t}}.new(ptr)
+              res << inst
+            end
+          {% elsif non_nil_t == Int32 %}
+            res << arg.int_val.to_i32
+          {% elsif non_nil_t == Int64 %}
+            res << arg.int_val
+          {% elsif non_nil_t == Float32 %}
+            res << arg.float_val.to_f32
+          {% elsif non_nil_t == Float64 %}
+            res << arg.float_val
+          {% elsif non_nil_t == Bool %}
+            res << (arg.int_val != 0)
+          {% elsif non_nil_t == String %}
+            res << (arg.ptr_val.null? ? "" : String.new(arg.ptr_val.as(LibC::Char*)))
+          {% elsif non_nil_t == Godot::Vector2 %}
+            res << Godot::Vector2.new(arg.vec_val[0], arg.vec_val[1])
+          {% elsif non_nil_t == Godot::Vector2i %}
+            res << Godot::Vector2i.new(arg.vec_val[0].to_i32, arg.vec_val[1].to_i32)
+          {% elsif non_nil_t == Godot::Vector3 %}
+            res << Godot::Vector3.new(arg.vec_val[0], arg.vec_val[1], arg.vec_val[2])
+          {% elsif non_nil_t == Godot::Vector3i %}
+            res << Godot::Vector3i.new(arg.vec_val[0].to_i32, arg.vec_val[1].to_i32, arg.vec_val[2].to_i32)
+          {% elsif non_nil_t == Godot::Color %}
+            res << Godot::Color.new(arg.vec_val[0], arg.vec_val[1], arg.vec_val[2], arg.vec_val[3])
+          {% else %}
+            v = Variant.from_arg(arg)
+            if casted = v.raw.as?(T)
+              res << casted
+            end
+          {% end %}
+        end
+        res
+      {% end %}
+    end
+
+    def self.write_array_bridge_payload(arr : ::Array(T), ret_ptr : Void*) : Void forall T
+      return if ret_ptr.null?
+      @@_array_args_keepalive.clear
+      arr.each do |item|
+        @@_array_args_keepalive << Variant.value_to_arg(item)
+      end
+      ret_ptr.as(Void**).value = @@_array_args_keepalive.empty? ? Pointer(Void).null : @@_array_args_keepalive.to_unsafe.as(Void*)
+      (ret_ptr.as(UInt8*) + 8).as(Int64*).value = arr.size.to_i64
     end
 
     def self.object_call(godot_obj : Void*, method_name : String, *args) : Void
