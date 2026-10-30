@@ -797,6 +797,8 @@ macro node(decl, &block)
   {% if base_godot_name == "EditorPlugin" || parent_name.stringify.includes?("EditorPlugin") %}
     {% is_tool_class = true %}
   {% end %}
+  {% has_custom_self_create = false %}
+  {% has_custom_self_build = false %}
 
   {% for item_entry in stmts_items %}
     {% if item_entry[0] == :category_start %}
@@ -1225,6 +1227,14 @@ macro node(decl, &block)
         {% methods_doc << {stmt.name, stmt.args, stmt.return_type, m_doc.stringify} %}
       {% end %}
       {% last_anno = nil %}
+    {% elsif stmt.is_a?(Def) && stmt.receiver && stmt.receiver.stringify == "self" %}
+      {% if stmt.name.stringify == "create" %}
+        {% has_custom_self_create = true %}
+      {% elsif stmt.name.stringify == "build" %}
+        {% has_custom_self_build = true %}
+      {% end %}
+      {% pending_on_signal_annos = [] of ASTNode %}
+      {% last_anno = nil %}
     {% elsif stmt.is_a?(Call) && stmt.name.id == "property" %}
       {%
         p_arg = stmt.args[0]
@@ -1429,13 +1439,17 @@ macro node(decl, &block)
       {{base_godot_name}}
     end
 
-    macro create(**kwargs, &block)
-      ::create(\{{@type}}, \{{kwargs.double_splat}}) \{{block}}
-    end
+    {% unless has_custom_self_create %}
+      macro create(**kwargs, &block)
+        ::create(\{{@type}}, \{{kwargs.double_splat}}) \{{block}}
+      end
+    {% end %}
 
-    macro build(**kwargs, &block)
-      ::create(\{{@type}}, \{{kwargs.double_splat}}) \{{block}}
-    end
+    {% unless has_custom_self_build %}
+      macro build(**kwargs, &block)
+        ::create(\{{@type}}, \{{kwargs.double_splat}}) \{{block}}
+      end
+    {% end %}
 
     def self.new(&block : self ->) : self
       inst = ::Godot.create(self)
