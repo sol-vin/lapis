@@ -204,6 +204,8 @@ end
 
     assert_eq lm.faces.size, 1
     lf = lm.faces[0]
+    assert_true lf.alive?
+    assert_true lf.get_reference_count >= 1_i64
     assert_eq lf.vertices.size, 2_i64
     assert_eq lf.vertices[0], 10_i64
     assert_eq lf.vertices[1], 20_i64
@@ -211,6 +213,13 @@ end
     assert_approx_eq lf.uv_coords[0].x, 0.25_f32, 0.001
     assert_eq lf.color_corners.size, 1_i64
     assert_approx_eq lf.color_corners[0].b, 0.9_f32, 0.001
+
+    # Verify clone/dup on Godot collections
+    cloned_verts = lf.vertices.clone
+    assert_eq cloned_verts.size, 2_i64
+    assert_eq cloned_verts[0], 10_i64
+    cloned_spec = lm.shape_spec.clone
+    assert_eq cloned_spec["surface_id"].as_i, 42_i64
   end
 
 end

@@ -276,6 +276,10 @@ module Godot
       d
     end
 
+    def clone : Dictionary
+      dup
+    end
+
     def duplicate(deep : Bool = false) : Dictionary
       dup
     end
@@ -429,6 +433,18 @@ module Godot
 
     def to_array : ::Array(T)
       @store.dup
+    end
+
+    def dup : GodotArray(T)
+      GodotArray(T).new(@store.dup)
+    end
+
+    def clone : GodotArray(T)
+      GodotArray(T).new(@store.dup)
+    end
+
+    def duplicate(deep : Bool = false) : GodotArray(T)
+      GodotArray(T).new(@store.dup)
     end
 
     def to_s(io : IO) : Void
@@ -604,6 +620,10 @@ module Godot
 
       def to_a : ::Array({{elem_type}})
         @store.dup
+      end
+
+      def clone : {{name}}
+        dup
       end
 
       def to_unsafe : Pointer({{elem_type}})

@@ -3149,6 +3149,9 @@ inline void bridge_unpack_variant_to_arg(const void *var_ptr, VariantArg &arg, s
         }
         case GDEXTENSION_VARIANT_TYPE_OBJECT: {
             GDExtensionObjectPtr obj = bridge_object_from_variant(var_ptr);
+            if (obj && bridge_is_object_refcounted(obj)) {
+                refcounted_init_ref(obj);
+            }
             arg.ptr_val = obj;
             arg.instance_id = obj ? bridge_object_get_instance_id(obj) : 0;
             break;
@@ -3238,6 +3241,9 @@ inline void bridge_pack_arg_to_variant(const VariantArg &arg, void *out_var) {
         }
         case GDEXTENSION_VARIANT_TYPE_OBJECT: {
             GDExtensionObjectPtr obj = (GDExtensionObjectPtr)arg.ptr_val;
+            if (arg.instance_id != 0 && !bridge_is_instance_valid(arg.instance_id)) {
+                obj = nullptr;
+            }
             bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_OBJECT, out_var, &obj);
             break;
         }

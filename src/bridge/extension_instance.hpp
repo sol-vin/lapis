@@ -1550,6 +1550,12 @@ inline GDExtensionBool generic_class_set(GDExtensionClassInstancePtr p_instance,
                 } else {
                     alignas(void*) char raw_buf[128] = {};
                     bridge_type_from_variant(vtype, raw_buf, p_value);
+                    if (vtype == GDEXTENSION_VARIANT_TYPE_OBJECT) {
+                        GDExtensionObjectPtr obj = *(GDExtensionObjectPtr*)raw_buf;
+                        if (obj && bridge_is_object_refcounted(obj)) {
+                            refcounted_init_ref(obj);
+                        }
+                    }
                     inst->desc->set_property(inst->crystal_instance, curr->properties[i].name, raw_buf);
                 }
                 if (is_bridge_verbose()) {
