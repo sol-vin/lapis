@@ -39,7 +39,7 @@
     end
 
     def self.setup_crash_handler
-      LibC.AddVectoredExceptionHandler(1, ->(exception_info) do
+      LibC.AddVectoredExceptionHandler(0, ->(exception_info) do
         case exception_info.value.exceptionRecord.value.exceptionCode
         when LibC::EXCEPTION_ACCESS_VIOLATION
           if Exception::CallStack.in_crash_handler?

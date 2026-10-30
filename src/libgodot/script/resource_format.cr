@@ -7,6 +7,10 @@ module Lapis
     @@registered : Bool = false
     @@created_by_us : Bool = false
 
+    def self.created_by_us? : Bool
+      @@created_by_us
+    end
+
     def self.ensure_registered : Void
       return if @@registered
       if Bridge.is_loader_registered?
@@ -222,7 +226,8 @@ module Lapis
 
     def self.ensure_registered : Void
       return if @@registered
-      if Bridge.is_saver_registered?
+      if Bridge.is_saver_registered? || !ResourceFormatLoaderCrystal.created_by_us?
+        Bridge.set_saver_registered(true)
         @@registered = true
         @@created_by_us = false
         return

@@ -196,6 +196,14 @@ inline void do_classdb_register(CrystalClassDesc *desc) {
 
     // --- Segment 3: Native Engine ClassDB Registration ---
     if (!pcd || !pcd->is_registered_in_classdb) {
+        if (is_class_registered_in_engine(desc->name)) {
+            if (cinfo.icon_path) {
+                free_string((void*)cinfo.icon_path);
+            }
+            free_string_name(class_sn);
+            free_string_name(parent_sn);
+            return;
+        }
         gd_classdb_register_extension_class6(g_library, class_sn, parent_sn, &cinfo);
         if (pcd) {
             pcd->is_registered_in_classdb = true;
@@ -539,6 +547,12 @@ inline int bridge_register_class(const CrystalClassDesc *p_desc) {
             pcd->registered_method_names.clear();
         }
     } else {
+        if (is_class_registered_in_engine(p_desc->name)) {
+            char log_buf[256];
+            snprintf(log_buf, sizeof(log_buf), "  [ClassDB] Class '%s' already registered by engine or another extension; skipping duplicate registration.", p_desc->name);
+            godot_log_verbose(log_buf);
+            return 0;
+        }
         // Allocate persistent descriptor whose address will remain invariant for Godot ClassDB
         pcd = new PersistentClassDesc();
         pcd->update_from(p_desc);
@@ -637,6 +651,9 @@ inline bool ensure_persistent_class_registered(const char *name) {
     if (it != g_persistent_class_descs.end() && it->second) {
         PersistentClassDesc *pcd = it->second;
         if (!pcd->is_registered_in_classdb && g_library) {
+            if (is_class_registered_in_engine(name)) {
+                return true;
+            }
             if (is_editor_class(&pcd->desc) && !is_editor_active()) {
                 return false;
             }

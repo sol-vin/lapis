@@ -221,7 +221,8 @@ module Godot
                   \{% elsif non_nil_t < Enum %}
                     ret_ptr.as(Int64*).value = self.\{{ ivar.name.id }}.try(&.to_i64) || 0_i64
                   \{% elsif non_nil_t <= ::Godot::Object %}
-                    ret_ptr.as(Void**).value = self.\{{ ivar.name.id }}.try(&.pointer) || Pointer(Void).null
+                    obj_val = self.\{{ ivar.name.id }}
+                    ret_ptr.as(Void**).value = (obj_val && obj_val.alive?) ? obj_val.pointer : Pointer(Void).null
                   \{% end %}
                   return
                 end
