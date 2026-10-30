@@ -81,7 +81,7 @@ module Godot
   def self.create(type : T.class) : T forall T
     class_name = {{ T.name.stringify.split("::").last }}
     ptr = Bridge.construct_object(class_name)
-    if inst = Bridge.find_alive_instance(ptr)
+    if !ptr.null? && (inst = Bridge.find_alive_instance(ptr))
       if casted = inst.as?(T)
         if casted.is_a?(RefCounted) && casted.get_reference_count == 0
           casted.init_ref
@@ -90,7 +90,7 @@ module Godot
       end
     end
     res = T.new(ptr)
-    if res.is_a?(RefCounted) && res.get_reference_count == 0
+    if !ptr.null? && res.is_a?(RefCounted) && res.get_reference_count == 0
       res.init_ref
     end
     Bridge.register_alive_instance_by_ptr(ptr, res) if !ptr.null?

@@ -2297,6 +2297,9 @@ macro node(decl, &block)
       {% anno = item[2] %}
       {% var_name = arg.is_a?(Assign) ? arg.target : arg.var %}
       {%
+        non_nil_type = nil
+        raw_nn = ""
+        base_type_str = ""
         if arg.is_a?(Assign)
           val = arg.value
           if val.is_a?(NumberLiteral)
@@ -2332,6 +2335,12 @@ macro node(decl, &block)
           end
         elsif arg.type
           var_type = arg.type.stringify.gsub(/^(::)?Godot::/, "")
+          non_nil_type = arg.type.is_a?(Union) ? arg.type.types.reject { |sub_t| sub_t.stringify == "Nil" || sub_t.stringify == "::Nil" }[0] : arg.type
+          if non_nil_type
+            raw_nn = non_nil_type.stringify.gsub(/\?$/, "").strip
+            base_type_str = raw_nn.gsub(/^(::)?Godot::/, "")
+            var_type = base_type_str
+          end
         else
           var_type = "Variant"
         end
@@ -2341,12 +2350,14 @@ macro node(decl, &block)
         hint = 0
         hint_str = ""
         is_enum = false
-        if arg.is_a?(TypeDeclaration) && arg.type && arg.type.is_a?(Path) && arg.type.resolve? && (arg.type.resolve < Enum)
+        if non_nil_type && non_nil_type.is_a?(Path) && ((non_nil_type.resolve? && (non_nil_type.resolve < Enum)) || local_enums[base_type_str])
           is_enum = true
           vtype = 2
           hint = 2
-          enum_res = arg.type.resolve
-          hint_str = enum_res.constants.map { |c| "#{c.id}:#{enum_res.constant(c).id}" }.join(",")
+          enum_res = non_nil_type.resolve? || parse_type("#{class_name.id}::#{base_type_str.id}").resolve?
+          if enum_res && (enum_res < Enum)
+            hint_str = enum_res.constants.map { |c| "#{c.id}:#{enum_res.constant(c).id}" }.join(",")
+          end
         elsif var_type == "Bool"
           vtype = 1
         elsif var_type == "Int32" || var_type == "Int64"
@@ -2813,11 +2824,31 @@ macro node(decl, &block)
         clean_t = parts[0].gsub(/\?/, "").gsub(/[\(\)]/, "").strip.gsub(/^(::)?Godot::/, "")
         final_hint = hint || 0
         final_hint_str = hint_str || ""
+        is_obj_prop = false
+        if vtype == 24
+          if !is_enum && non_nil_type && non_nil_type.is_a?(Path)
+            if non_nil_type.resolve?
+              if non_nil_type.resolve <= ::Godot::Object
+                is_obj_prop = true
+              end
+            elsif !raw_nn.includes?("::") && ::Godot.has_constant?(base_type_str)
+              godot_t_path = parse_type("::Godot::#{base_type_str.id}")
+              if godot_t_path.resolve? && (godot_t_path.resolve <= ::Godot::Object)
+                is_obj_prop = true
+              end
+            elsif anno
+              is_obj_prop = true
+            end
+          elsif clean_t == "Object" || clean_t == "Variant" || anno != nil
+            is_obj_prop = true
+          end
+        end
         if vtype == 24 && final_hint == 0 && !clean_t.empty? && clean_t != "Object" && clean_t != "Variant" && clean_t != "Node" && clean_t != "RefCounted"
           final_hint = 17
           final_hint_str = clean_t
         end
       %}
+      {% if vtype != 24 || is_obj_prop %}
       properties_{{class_name}} << ::Godot::PropertyInfo.new(
         "{{var_name.id}}",
         "{{hint == 39 ? "Callable".id : clean_t.id}}",
@@ -2826,6 +2857,7 @@ macro node(decl, &block)
         "{{final_hint_str.id}}",
         {{prop_usage || 6}}_u32
       )
+      {% end %}
     {% end %}
   {% end %}
 
@@ -3624,6 +3656,9 @@ macro gmodule(decl, &block)
           {% anno = item[2] %}
           {% var_name = arg.is_a?(Assign) ? arg.target : arg.var %}
           {%
+            non_nil_type = nil
+            raw_nn = ""
+            base_type_str = ""
             if arg.is_a?(Assign)
               val = arg.value
               if val.is_a?(NumberLiteral)
@@ -3659,6 +3694,12 @@ macro gmodule(decl, &block)
               end
             elsif arg.type
               var_type = arg.type.stringify.gsub(/^(::)?Godot::/, "")
+              non_nil_type = arg.type.is_a?(Union) ? arg.type.types.reject { |sub_t| sub_t.stringify == "Nil" || sub_t.stringify == "::Nil" }[0] : arg.type
+              if non_nil_type
+                raw_nn = non_nil_type.stringify.gsub(/\?$/, "").strip
+                base_type_str = raw_nn.gsub(/^(::)?Godot::/, "")
+                var_type = base_type_str
+              end
             else
               var_type = "Variant"
             end
@@ -3668,12 +3709,14 @@ macro gmodule(decl, &block)
             hint = 0
             hint_str = ""
             is_enum = false
-            if arg.is_a?(TypeDeclaration) && arg.type && arg.type.is_a?(Path) && arg.type.resolve? && (arg.type.resolve < Enum)
+            if non_nil_type && non_nil_type.is_a?(Path) && ((non_nil_type.resolve? && (non_nil_type.resolve < Enum)) || local_enums.includes?(base_type_str))
               is_enum = true
               vtype = 2
               hint = 2
-              enum_res = arg.type.resolve
-              hint_str = enum_res.constants.map { |c| "#{c.id}:#{enum_res.constant(c).id}" }.join(",")
+              enum_res = non_nil_type.resolve? || parse_type("#{module_name.id}::#{base_type_str.id}").resolve?
+              if enum_res && (enum_res < Enum)
+                hint_str = enum_res.constants.map { |c| "#{c.id}:#{enum_res.constant(c).id}" }.join(",")
+              end
             elsif var_type == "Bool"
               vtype = 1
             elsif var_type == "Int32" || var_type == "Int64"
@@ -3879,11 +3922,31 @@ macro gmodule(decl, &block)
             clean_t = parts[0].gsub(/\?/, "").gsub(/[\(\)]/, "").strip.gsub(/^(::)?Godot::/, "")
             final_hint = hint || 0
             final_hint_str = hint_str || ""
+            is_obj_prop = false
+            if vtype == 24
+              if !is_enum && non_nil_type && non_nil_type.is_a?(Path)
+                if non_nil_type.resolve?
+                  if non_nil_type.resolve <= ::Godot::Object
+                    is_obj_prop = true
+                  end
+                elsif !raw_nn.includes?("::") && ::Godot.has_constant?(base_type_str)
+                  godot_t_path = parse_type("::Godot::#{base_type_str.id}")
+                  if godot_t_path.resolve? && (godot_t_path.resolve <= ::Godot::Object)
+                    is_obj_prop = true
+                  end
+                elsif anno
+                  is_obj_prop = true
+                end
+              elsif clean_t == "Object" || clean_t == "Variant" || anno != nil
+                is_obj_prop = true
+              end
+            end
             if vtype == 24 && final_hint == 0 && !clean_t.empty? && clean_t != "Object" && clean_t != "Variant" && clean_t != "Node" && clean_t != "RefCounted"
               final_hint = 17
               final_hint_str = clean_t
             end
           %}
+          {% if vtype != 24 || is_obj_prop %}
           properties_{{module_name.id}} << ::Godot::PropertyInfo.new(
             "{{var_name.id}}",
             "{{hint == 39 ? "Callable".id : clean_t.id}}",
@@ -3892,6 +3955,7 @@ macro gmodule(decl, &block)
             "{{final_hint_str.id}}",
             {{prop_usage || 6}}_u32
           )
+          {% end %}
         {% end %}
       {% end %}
       {% if parent_module %}

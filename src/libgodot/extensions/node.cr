@@ -316,10 +316,14 @@ module Godot
 
     # Moves child node to a new index in the parent's child list.
     # Enforces thread-safety: off-thread calls raise ThreadAffinityError when attached to SceneTree.
-    def move_child(child_node : Node, to_index : Int | Int64) : Void
+    def move_child(child_node : Node, to_index : Int64) : Void
       Godot::ThreadSafety.assert_main_thread!("move_child", "Node", self, child_node)
       return if @pointer.null?
-      previous_def(child_node, to_index.to_i64)
+      previous_def(child_node, to_index)
+    end
+
+    def move_child(child_node : Node, to_index : Int) : Void
+      move_child(child_node, to_index.to_i64)
     end
 
     # Adds this node to the specified group (with default non-persistent flag)

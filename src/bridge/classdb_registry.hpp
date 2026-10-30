@@ -565,8 +565,8 @@ inline int bridge_register_class(const CrystalClassDesc *p_desc) {
     // --- Segment 3: Engine Pre-Registration Duplicate Check ---
     if (!is_our_class && is_class_registered_in_engine(p_desc->name)) {
         char log_buf[256];
-        snprintf(log_buf, sizeof(log_buf), "[CrystalBridge] Error: Class '%s' already registered by engine or another extension. Skipping duplicate registration.", p_desc->name);
-        godot_log_warning(log_buf, nullptr, "bridge_register_class", __FILE__, __LINE__);
+        snprintf(log_buf, sizeof(log_buf), "  [ClassDB] Class '%s' already registered by engine or another extension; skipping duplicate registration.", p_desc->name);
+        godot_log_verbose(log_buf);
         return 0;
     }
 
@@ -611,6 +611,15 @@ inline void register_deferred_editor_classes() {
     if (!g_deferred_editor_classes.empty()) {
         godot_log_verbose("[CrystalBridge] Registering deferred Editor classes at EDITOR level...");
         for (auto &pair : g_deferred_editor_classes) {
+            if (!pair.second || !pair.second->name) continue;
+            auto pcd_it = g_persistent_class_descs.find(pair.second->name);
+            bool is_reg = (pcd_it != g_persistent_class_descs.end() && pcd_it->second && pcd_it->second->is_registered_in_classdb);
+            if (!is_reg && is_class_registered_in_engine(pair.second->name)) {
+                char log_buf[256];
+                snprintf(log_buf, sizeof(log_buf), "  [ClassDB] Deferred editor class '%s' already registered by another extension; skipping.", pair.second->name);
+                godot_log_verbose(log_buf);
+                continue;
+            }
             g_library = pair.first;
             do_classdb_register(pair.second);
         }
