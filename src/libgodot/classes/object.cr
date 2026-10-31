@@ -1213,6 +1213,10 @@ module Godot
     def to_s(io : IO) : Void
       io << "<Godot::" << self.class.name << " #" << @instance_id << " @" << @pointer << ">"
     end
+
+    def inspect(io : IO) : Void
+      to_s(io)
+    end
   end
 
   # Base class for reference-counted engine objects.
