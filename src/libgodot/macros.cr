@@ -3000,7 +3000,6 @@ macro node(decl, &block)
       {{base_godot_name}},
       ->(godot_ptr : Void*) {
         _inst_{{class_name.id}} = {{class_name}}.new
-        _inst_{{class_name.id}}.pointer = godot_ptr
         _inst_{{class_name.id}}.as(::Godot::Object)
       },
       {{is_tool_class}},

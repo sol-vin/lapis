@@ -410,12 +410,12 @@ module Godot
         if entry = Godot::ClassRegistry.find(class_name)
           inst = entry.create_proc.call(godot_obj)
           Godot.log_internal("Bridge", "[create_fn] inst=#{inst.class.name} (#{inst}) for class_name='#{class_name}'")
-          inst.pointer = godot_obj
           boxed = Box(Godot::Object).box(inst)
           @@alive_mutex.synchronize do
             @@alive_instances[boxed] = inst
             @@alive_instances_by_ptr[godot_obj] = inst
           end
+          inst.pointer = godot_obj
           return boxed
         end
         Godot.printerr("[create_fn] FAILED: class '#{class_name}' not found in ClassRegistry!")
