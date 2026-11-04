@@ -7,6 +7,10 @@ module Lapis
     @@registered : Bool = false
     @@created_by_us : Bool = false
 
+    def self.created_by_us? : Bool
+      @@created_by_us
+    end
+
     def self.ensure_registered : Void
       return if @@registered
       if Bridge.is_loader_registered?
@@ -135,10 +139,14 @@ module Lapis
       end
     end
 
+    def _get_resource_uid(path : String) : Int64
+      -1_i64
+    end
+
     def self._godot_has_virtual_method(method_name : String) : Bool
       norm = method_name.starts_with?('_') ? method_name : "_#{method_name}"
       case norm
-      when "_get_recognized_extensions", "_recognize_path", "_handles_type", "_get_resource_type", "_get_resource_script_class", "_load"
+      when "_get_recognized_extensions", "_recognize_path", "_handles_type", "_get_resource_type", "_get_resource_uid", "_get_resource_script_class", "_load"
         true
       else
         false
@@ -218,7 +226,8 @@ module Lapis
 
     def self.ensure_registered : Void
       return if @@registered
-      if Bridge.is_saver_registered?
+      if Bridge.is_saver_registered? || !ResourceFormatLoaderCrystal.created_by_us?
+        Bridge.set_saver_registered(true)
         @@registered = true
         @@created_by_us = false
         return
@@ -410,7 +419,7 @@ module Lapis
         valid_res = !res_ptr.null? && Bridge.is_object_valid(res_ptr)
 
         inst = valid_res ? Bridge.find_alive_instance(res_ptr) : nil
-        if inst.nil? && !args.null? && !args[0].null? && Bridge.is_object_valid(args[0])
+        if inst.nil? && res_ptr.null? && !args.null? && !args[0].null?
           inst = Bridge.find_alive_instance(args[0])
           res_ptr = args[0] if inst
           valid_res = true if inst
@@ -439,14 +448,6 @@ module Lapis
         end
         if code.empty? && valid_res
           code = Bridge.object_call_ret_string(res_ptr, "get_source_code")
-          resolved_script = true unless code.empty?
-        end
-        if code.empty? && !args.null? && !args[0].null? && Bridge.is_object_valid(args[0])
-          code = Bridge.script_get_source_code(args[0])
-          resolved_script = true unless code.empty?
-        end
-        if code.empty? && !args.null? && !args[0].null? && Bridge.is_object_valid(args[0])
-          code = Bridge.object_call_ret_string(args[0], "get_source_code")
           resolved_script = true unless code.empty?
         end
 

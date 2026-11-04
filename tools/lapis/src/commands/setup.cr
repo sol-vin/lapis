@@ -18,7 +18,7 @@ module Lapis
 Usage: lapis setup [templates] [version] [options]
 
 Options:
-  -v, --version=TAG     Target Godot version (e.g. 4.8-dev6, default from godot-version.yml)
+  -v, --version=TAG     Target Godot version (e.g. 4.8-beta1, default from godot-version.yml)
   -t, --templates       Download and install Godot export templates
   -o, --output=PATH     Package export templates into specified zip
   -f, --force           Force download even if godot executable exists
@@ -29,7 +29,7 @@ Options:
 
 Examples:
   lapis setup
-  lapis setup 4.8-dev6
+  lapis setup 4.8-beta1
   lapis setup templates
   lapis setup templates -o bin/export-templates.zip
   lapis setup --force
@@ -79,7 +79,8 @@ HELP
             Compress::Zip::Reader.open(f) do |zip|
               zip.each_entry do |entry|
                 name = entry.filename
-                if name.ends_with?(".exe") || (!Core::Env.windows? && !name.includes?("."))
+                next if name.ends_with?("/") || name.ends_with?("\\")
+                if name.ends_with?(".exe") || name.ends_with?("/Contents/MacOS/Godot") || (!Core::Env.windows? && !name.includes?("."))
                   next if name.includes?("console")
                   File.open(dest_exe, "w") do |out_io|
                     IO.copy(entry.io, out_io)
@@ -94,6 +95,28 @@ HELP
         ensure
           File.delete(zip_temp) if File.exists?(zip_temp)
         end
+      end
+
+      def self.platform_suffixes : Array(String)
+        if Core::Env.windows?
+          ["win64.exe.zip"]
+        elsif Core::Env.macos?
+          {% if flag?(:aarch64) %}
+            ["macos.arm64.zip", "macos.universal.zip", "macos.x86_64.zip"]
+          {% else %}
+            ["macos.x86_64.zip", "macos.universal.zip", "macos.arm64.zip"]
+          {% end %}
+        else
+          ["linux.x86_64.zip"]
+        end
+      end
+
+      def self.download_godot_for_version(target_version : String, dest_exe : Path) : Bool
+        platform_suffixes.each do |suffix|
+          url = "https://github.com/godotengine/godot-builds/releases/download/#{target_version}/Godot_v#{target_version}_#{suffix}"
+          return true if download_and_extract(url, dest_exe)
+        end
+        false
       end
 
       def self.download_to_file(url : String, dest_file : Path, max_retries : Int32 = 3) : Bool
@@ -176,7 +199,7 @@ HELP
           "https://github.com/sol-vin/lapis/releases/download/#{target_version}/godot-crystal-export-templates-#{target_version}.zip",
           "https://github.com/godotengine/godot-builds/releases/download/#{target_version}/Godot_v#{target_version}_export_templates.tpz",
           "https://github.com/sol-vin/lapis/releases/download/latest/godot-crystal-export-templates-#{target_version}.zip",
-          "https://github.com/sol-vin/lapis/releases/download/4.8-dev6/godot-crystal-export-templates-4.8-dev6.zip",
+          "https://github.com/godotengine/godot/releases/download/#{target_version}/Godot_v#{target_version}_export_templates.tpz",
         ]
 
         temp_tpz = target_dir.parent.join("templates_temp_#{Time.utc.to_unix_ms}.zip")
@@ -415,16 +438,7 @@ HELP
         if File.exists?(dest_exe) && !force
           Core::Logger.info("Godot binary already exists at #{dest_exe}. Use --force to re-download.")
         else
-          platform_suffix = if Core::Env.windows?
-                              "win64.exe.zip"
-                            elsif Core::Env.macos?
-                              "macos.universal.zip"
-                            else
-                              "linux.x86_64.zip"
-                            end
-
-          url = "https://github.com/godotengine/godot-builds/releases/download/#{target_version}/Godot_v#{target_version}_#{platform_suffix}"
-          success = download_and_extract(url, dest_exe)
+          success = download_godot_for_version(target_version, dest_exe)
           unless success
             Core::Logger.error("Failed to download Godot binary for version #{target_version}")
             return 1

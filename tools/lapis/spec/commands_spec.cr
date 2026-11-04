@@ -326,4 +326,197 @@ describe "Lapis Subcommands" do
       res.output.should contain("find")
     end
   end
+
+  describe "sync and clean standalone project isolation" do
+    it "never creates template, template-addon, performance, or bin/addons in standalone projects and purges stray ones" do
+      LapisSpecHelper.with_temp_dir("standalone_sync_isolation") do |dir|
+        game_dir = dir.join("afterlife_test")
+        res_new = LapisSpecHelper.run_lapis(["new", "game", "afterlife_test", "-t", game_dir.to_s, "--skip-godot"])
+        res_new.success?.should be_true
+
+        # Verify scaffolded project has no .uid files or stray monorepo directories
+        Dir.glob(game_dir.join("**/*.uid").to_s.gsub('\\', '/')).should be_empty
+        Dir.exists?(game_dir.join("template")).should be_false
+        Dir.exists?(game_dir.join("template-addon")).should be_false
+        Dir.exists?(game_dir.join("performance")).should be_false
+        Dir.exists?(game_dir.join("bin/addons")).should be_false
+
+        # Simulate prior polluted state: stray monorepo dirs and polluted .godot/extension_list.cfg
+        FileUtils.mkdir_p(game_dir.join("template/addons/crystal_integration"))
+        FileUtils.mkdir_p(game_dir.join("template-addon/addons/crystal_integration"))
+        FileUtils.mkdir_p(game_dir.join("performance/addons/crystal_integration"))
+        FileUtils.mkdir_p(game_dir.join("bin/addons/crystal_integration"))
+        FileUtils.mkdir_p(game_dir.join(".godot"))
+        File.write(game_dir.join(".godot/extension_list.cfg"), [
+          "res://addons/crystal_integration/crystal.gdextension",
+          "res://performance/addons/crystal_integration/crystal.gdextension",
+          "res://template/addons/crystal_integration/crystal.gdextension",
+          "res://template-addon/addons/crystal_integration/crystal.gdextension",
+        ].join("\n") + "\n")
+
+        # Run lapis sync inside the standalone game directory
+        res_sync = LapisSpecHelper.run_lapis(["sync"], chdir: game_dir)
+        res_sync.success?.should be_true
+
+        # Verify all stray directories were purged and not recreated
+        Dir.exists?(game_dir.join("template")).should be_false
+        Dir.exists?(game_dir.join("template-addon")).should be_false
+        Dir.exists?(game_dir.join("performance")).should be_false
+        Dir.exists?(game_dir.join("bin/addons")).should be_false
+
+        # Verify .godot/extension_list.cfg was sanitized
+        ext_list = File.read(game_dir.join(".godot/extension_list.cfg")).lines.map(&.strip).reject(&.empty?)
+        ext_list.should eq(["res://addons/crystal_integration/crystal.gdextension"])
+
+        # Verify lapis sync -t bin --bins-only also keeps standalone project clean
+        res_bins = LapisSpecHelper.run_lapis(["sync", "-t", game_dir.join("bin").to_s, "--bins-only"], chdir: game_dir)
+        res_bins.success?.should be_true
+        Dir.exists?(game_dir.join("template")).should be_false
+        Dir.exists?(game_dir.join("template-addon")).should be_false
+        Dir.exists?(game_dir.join("performance")).should be_false
+        Dir.exists?(game_dir.join("bin/addons")).should be_false
+
+        # Verify lapis clean also purges stray monorepo folders in standalone projects
+        FileUtils.mkdir_p(game_dir.join("template/bin"))
+        FileUtils.mkdir_p(game_dir.join("template-addon/bin"))
+        res_clean = LapisSpecHelper.run_lapis(["clean"], chdir: game_dir)
+        res_clean.success?.should be_true
+        Dir.exists?(game_dir.join("template")).should be_false
+        Dir.exists?(game_dir.join("template-addon")).should be_false
+      end
+    end
+  end
+
+  describe "bind project keyword sanitization" do
+    it "sanitizes Crystal reserved keywords in GDScript parameters and supports --include-addons" do
+      Lapis::Commands::Bind::Project.sanitize_ident("alias").should eq("alias_arg")
+      Lapis::Commands::Bind::Project.sanitize_ident("def").should eq("def_arg")
+      Lapis::Commands::Bind::Project.sanitize_ident("module").should eq("module_arg")
+      Lapis::Commands::Bind::Project.sanitize_ident("include").should eq("include_arg")
+      Lapis::Commands::Bind::Project.sanitize_ident("type").should eq("type_id")
+      Lapis::Commands::Bind::Project.sanitize_ident("end").should eq("end_val")
+      Lapis::Commands::Bind::Project.sanitize_ident("normal_param").should eq("normal_param")
+
+      res_help = LapisSpecHelper.run_lapis(["bind", "--help"])
+      res_help.success?.should be_true
+      res_help.output.should contain("--include-addons")
+    end
+
+    it "extracts GDScript interface signatures ignoring method body implementation changes" do
+      LapisSpecHelper.with_temp_dir("bind_sig_test") do |dir|
+        gd_file = dir.join("scripts/enemy.gd")
+        FileUtils.mkdir_p(gd_file.parent)
+
+        File.write(gd_file, <<-GDSCRIPT)
+        class_name EnemyActor
+        extends CharacterBody3D
+
+        signal defeated(score: int)
+
+        @export_range(1, 100)
+        var max_hp: int = 50
+
+        func take_damage(amount: int) -> void:
+            var remaining = max_hp - amount
+            print("Took damage: ", remaining)
+        GDSCRIPT
+
+        sig_v1 = Lapis::Commands::Bind::Project.extract_gd_interface_signature(gd_file)
+        digest_v1 = Lapis::Commands::Bind::Project.compute_interface_digest(dir)
+
+        # Modify only function body and comments
+        File.write(gd_file, <<-GDSCRIPT)
+        class_name EnemyActor
+        extends CharacterBody3D
+
+        # Updated internal comment
+        signal defeated(score: int)
+
+        @export_range(1, 100)
+        var max_hp: int = 50
+
+        func take_damage(amount: int) -> void:
+            var multiplier = 2
+            var remaining = max_hp - (amount * multiplier)
+            if remaining <= 0:
+                emit_signal("defeated", 100)
+        GDSCRIPT
+
+        sig_v2 = Lapis::Commands::Bind::Project.extract_gd_interface_signature(gd_file)
+        digest_v2 = Lapis::Commands::Bind::Project.compute_interface_digest(dir)
+
+        sig_v2.should eq(sig_v1)
+        digest_v2.should eq(digest_v1)
+
+        # Modify exported property or function signature -> digest must change
+        File.write(gd_file, <<-GDSCRIPT)
+        class_name EnemyActor
+        extends CharacterBody3D
+
+        signal defeated(score: int)
+
+        @export_range(1, 100)
+        var max_hp: int = 50
+        @export var armor: float = 10.0
+
+        func take_damage(amount: int, critical: bool = false) -> void:
+            pass
+        GDSCRIPT
+
+        digest_v3 = Lapis::Commands::Bind::Project.compute_interface_digest(dir)
+        digest_v3.should_not eq(digest_v1)
+      end
+    end
+
+    it "fast-paths zero-GDScript projects and caches bind manifest without invoking Godot" do
+      LapisSpecHelper.with_temp_dir("bind_zero_gd_test") do |dir|
+        File.write(dir.join("project.godot"), "; Engine configuration file\nconfig_version=5\n")
+        # Stray .gd files inside lib/ and addons/ should be ignored by default
+        FileUtils.mkdir_p(dir.join("lib/lapis/scripts"))
+        File.write(dir.join("lib/lapis/scripts/ignored.gd"), "class_name IgnoredLibNode\nextends Node\n")
+        FileUtils.mkdir_p(dir.join("addons/crystal_integration"))
+        File.write(dir.join("addons/crystal_integration/plugin.gd"), "@tool\nextends EditorPlugin\n")
+
+        Lapis::Commands::Bind::Project.find_custom_gd_files(dir).should be_empty
+
+        rc = Lapis::Commands::Bind::Project.generate(project_path: dir)
+        rc.should eq(0)
+
+        out_dir = dir.join("src/generated/project_nodes")
+        File.exists?(out_dir.join("all_project_nodes.cr")).should be_true
+        File.exists?(out_dir.join(".bind_manifest.json")).should be_true
+        Lapis::Commands::Bind::Project.up_to_date?(dir, out_dir).should be_true
+      end
+    end
+  end
+
+  describe "build manifest up-to-date detection" do
+    it "detects unchanged Crystal sources and invalidates when sources or flags change" do
+      LapisSpecHelper.with_temp_dir("build_manifest_test") do |dir|
+        src_dir = dir.join("src")
+        bin_dir = dir.join("bin")
+        FileUtils.mkdir_p(src_dir)
+        FileUtils.mkdir_p(bin_dir)
+
+        main_cr = src_dir.join("main.cr")
+        out_dll = bin_dir.join("game.dll")
+        File.write(main_cr, "puts 1\n")
+        File.write(out_dll, "dummy_binary")
+
+        args_v1 = ["build", "src/main.cr", "-o", "bin/game.dll"]
+        Lapis::Commands::Build.binary_up_to_date?(dir, main_cr, out_dll, args_v1, "lib").should be_false
+
+        Lapis::Commands::Build.save_build_manifest(dir, main_cr, out_dll, args_v1, "lib")
+        Lapis::Commands::Build.binary_up_to_date?(dir, main_cr, out_dll, args_v1, "lib").should be_true
+
+        # Changing compiler flags invalidates manifest
+        args_v2 = ["build", "src/main.cr", "-o", "bin/game.dll", "--release"]
+        Lapis::Commands::Build.binary_up_to_date?(dir, main_cr, out_dll, args_v2, "lib").should be_false
+
+        # Modifying source file invalidates manifest
+        File.write(main_cr, "puts 222\n")
+        Lapis::Commands::Build.binary_up_to_date?(dir, main_cr, out_dll, args_v1, "lib").should be_false
+      end
+    end
+  end
 end

@@ -114,7 +114,7 @@ module Godot
                 .strip
             }}
   TARGET_GODOT_VERSION = {{
-                           (read_file?("#{__DIR__}/../godot-version.yml") || "version: 4.8.dev6")
+                           (read_file?("#{__DIR__}/../godot-version.yml") || "version: 4.8-beta1")
                              .split("\n")
                              .find(&.includes?("version:"))
                              .split(":")[1]
@@ -170,6 +170,7 @@ module Lapis
   {% end %}
   alias AwaitState = Godot::AwaitState
   alias AwaitStatus = Godot::AwaitStatus
+  alias DisposedObjectError = Godot::DisposedObjectError
 end
 
 # Core math and transform value-type aliases
@@ -191,6 +192,19 @@ alias AABB = Godot::AABB
 alias Bridge = Godot::Bridge
 alias AwaitState = Godot::AwaitState
 alias AwaitStatus = Godot::AwaitStatus
+alias DisposedObjectError = Godot::DisposedObjectError
+alias Dictionary = Godot::Dictionary
+alias Variant = Godot::Variant
+alias PackedByteArray = Godot::PackedByteArray
+alias PackedInt32Array = Godot::PackedInt32Array
+alias PackedInt64Array = Godot::PackedInt64Array
+alias PackedFloat32Array = Godot::PackedFloat32Array
+alias PackedFloat64Array = Godot::PackedFloat64Array
+alias PackedStringArray = Godot::PackedStringArray
+alias PackedVector2Array = Godot::PackedVector2Array
+alias PackedVector3Array = Godot::PackedVector3Array
+alias PackedColorArray = Godot::PackedColorArray
+alias PackedVector4Array = Godot::PackedVector4Array
 
 # Global fluent group query helper
 def group(name : String | Symbol) : Godot::GroupQuery
@@ -202,4 +216,16 @@ end
 def on_main_thread(&block : -> Void) : Void
   Godot.on_main_thread(&block)
 end
+
+{% unless flag?(:release) || flag?(:libgodot_addon) || flag?(:no_editor) %}
+  require "./libgodot/editor/toolchain"
+  require "./libgodot/editor/async_command_runner"
+  require "./editor/benchmark_graph_control"
+  require "./editor/crystal_console_dock"
+  require "./editor/crystal_panel"
+  require "./editor/debugger/debugger_session_tab"
+  require "./editor/debugger/session_controller"
+  require "./editor/debugger/crystal_debugger_plugin"
+  require "./editor/script_create_dialog"
+{% end %}
 {% end %}

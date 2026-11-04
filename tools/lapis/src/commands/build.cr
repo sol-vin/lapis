@@ -8,24 +8,147 @@ require "./bind/project"
 require "./sync"
 require "file_utils"
 require "option_parser"
+require "digest/sha256"
+require "json"
 
 module Lapis
   module Commands
     module Build
+      SKIP_GD_SCAN_DIRS = Bind::Project::SKIP_SCAN_DIRS
+      SKIP_CR_SCAN_DIRS = Set{".godot", ".git", "bin", "docs", "dist", "scratch"}
+
+      @@cached_base_crystal_path : String? = nil
+
+      def self.base_crystal_path : String
+        if cached = @@cached_base_crystal_path
+          return cached
+        end
+        val = Core::ProcessRunner.capture("crystal", ["env", "CRYSTAL_PATH"])[:output].strip
+        @@cached_base_crystal_path = val
+        val
+      end
+
+      # Recursively scans a directory for .cr files and updates the SHA-256 digest with relative paths, sizes, and mtimes.
+      private def self.hash_cr_tree(ctx : Digest::SHA256, base_dir : Path, current_dir : Path = base_dir) : Nil
+        return unless Dir.exists?(current_dir)
+        entries = Dir.children(current_dir.to_s).sort!
+        entries.each do |entry|
+          next if SKIP_CR_SCAN_DIRS.includes?(entry)
+          child = current_dir.join(entry)
+          info = File.info?(child.to_s, follow_symlinks: false)
+          next unless info
+          next if info.symlink?
+          if info.directory?
+            hash_cr_tree(ctx, base_dir, child)
+          elsif entry.ends_with?(".cr") || entry == "shard.yml" || entry == "shard.lock"
+            rel = child.relative_to(base_dir).to_s.gsub('\\', '/') rescue entry
+            ctx.update("#{rel}:#{info.size}:#{info.modification_time.to_unix_ms}\n")
+          end
+        end
+      rescue
+      end
+
+      # Computes a fast fingerprint of all Crystal sources, shard manifests, and compiler flags affecting a binary build.
+      def self.compute_source_digest(
+        working_dir : Path,
+        entry_path : Path,
+        src_dir : Path,
+        cmd_args : Array(String),
+        full_crystal_path : String,
+      ) : String
+        Digest::SHA256.hexdigest do |ctx|
+          ctx.update("v1|args=#{cmd_args.join(" ")}|cpath=#{full_crystal_path}\n")
+          if File.exists?(entry_path)
+            if info = File.info?(entry_path.to_s)
+              ctx.update("entry:#{info.size}:#{info.modification_time.to_unix_ms}\n")
+            end
+          end
+          ["shard.yml", "shard.lock"].each do |manifest|
+            m_path = working_dir.join(manifest)
+            if info = File.info?(m_path.to_s)
+              ctx.update("#{manifest}:#{info.size}:#{info.modification_time.to_unix_ms}\n")
+            end
+          end
+          hash_cr_tree(ctx, working_dir, working_dir.join("src"))
+          hash_cr_tree(ctx, working_dir, working_dir.join("spec"))
+          hash_cr_tree(ctx, working_dir, working_dir.join("lib"))
+          if src_dir != working_dir.join("src") && !src_dir.to_s.starts_with?(working_dir.to_s)
+            hash_cr_tree(ctx, src_dir, src_dir)
+          end
+        end
+      end
+
+      def self.build_manifest_path(output_path : Path) : Path
+        output_path.parent.join(".lapis_build_#{output_path.basename}.json")
+      end
+
+      def self.binary_up_to_date?(
+        working_dir : Path,
+        entry_path : Path,
+        output_path : Path,
+        cmd_args : Array(String),
+        full_crystal_path : String,
+      ) : Bool
+        digest = compute_source_digest(working_dir, entry_path, working_dir.join("src"), cmd_args, full_crystal_path)
+        binary_up_to_date?(output_path, digest)
+      end
+
+      def self.binary_up_to_date?(output_path : Path, expected_digest : String) : Bool
+        return false unless File.exists?(output_path)
+        out_info = File.info?(output_path.to_s)
+        return false unless out_info && out_info.size > 0
+
+        manifest_file = build_manifest_path(output_path)
+        return false unless File.exists?(manifest_file)
+
+        begin
+          data = ::JSON.parse(File.read(manifest_file))
+          saved_digest = data["digest"]?.try(&.as_s)
+          return false unless saved_digest == expected_digest
+          true
+        rescue
+          false
+        end
+      end
+
+      def self.save_build_manifest(
+        working_dir : Path,
+        entry_path : Path,
+        output_path : Path,
+        cmd_args : Array(String),
+        full_crystal_path : String,
+      ) : Nil
+        digest = compute_source_digest(working_dir, entry_path, working_dir.join("src"), cmd_args, full_crystal_path)
+        save_build_manifest(output_path, digest)
+      end
+
+      def self.save_build_manifest(output_path : Path, digest : String) : Nil
+        return unless File.exists?(output_path)
+        manifest_file = build_manifest_path(output_path)
+        payload = {
+          "version" => 1,
+          "output"  => output_path.basename,
+          "digest"  => digest,
+          "mtime"   => (File.info?(output_path.to_s).try(&.modification_time.to_unix_ms) || 0_i64),
+        }.to_json
+        File.write(manifest_file, payload)
+      rescue
+      end
+
       # Automatically dump and generate project GDScript bindings if project contains custom .gd files
+      # whose ClassDB/script interface signatures have changed.
       def self.check_and_generate_project_bindings(entry : Path, root : Path)
         proj_dir = entry.parent
         proj_dir = proj_dir.parent if proj_dir.basename == "src"
+        return if proj_dir.to_s.gsub('\\', '/').includes?("/addons/")
+        return unless File.exists?(proj_dir.join("project.godot"))
 
-        # Check for .gd files excluding addons, .godot, tools
-        gd_files = Dir.glob(proj_dir.to_s.gsub('\\', '/') + "/**/*.gd").reject do |f|
-          f.includes?("/addons/") || f.includes?("\\addons\\") ||
-            f.includes?("/.godot/") || f.includes?("\\.godot\\") ||
-            f.includes?("/tools/") || f.includes?("\\tools\\") ||
-            File.basename(f) == "dump_project_nodes.gd"
-        end
-
+        gd_files = Bind::Project.find_custom_gd_files(proj_dir)
         return if gd_files.empty?
+
+        # Fast signature check: if GDScript interface signatures (class_name, extends, @export, signal, func headers)
+        # have not changed since the last bind, skip booting headless Godot!
+        return if Bind::Project.up_to_date?(proj_dir)
 
         # Ensure that if bin/game.dll already exists, addons/crystal_integration/bin/game.dll is synced before Godot boots.
         # If bin/game.dll does not exist yet, remove any stale orphan in addons/crystal_integration/bin.
@@ -44,17 +167,7 @@ module Lapis
           File.delete(addon_game) rescue nil
         end
 
-        out_json = proj_dir.join("src", "generated", "project_nodes.json")
-        out_manifest = proj_dir.join("src", "generated", "project_nodes", "all_project_nodes.cr")
-        if File.exists?(out_json) && File.exists?(out_manifest)
-          json_mtime = File.info(out_json).modification_time
-          newest_gd = gd_files.map { |f| File.info(f).modification_time rescue ::Time.unix(0) }.max?
-          if newest_gd && newest_gd <= json_mtime
-            return
-          end
-        end
-
-        Core::Logger.info("Detected custom GDScript files in #{proj_dir.basename}, generating project bindings...")
+        Core::Logger.info("Detected modified GDScript interface signatures in #{proj_dir.basename}, generating project bindings...")
         Bind::Project.generate(project_path: proj_dir)
       end
 
@@ -68,29 +181,78 @@ module Lapis
         source_path : String? = nil,
         single_module : Bool? = nil,
         without_benchmarks : Bool = false,
+        force : Bool = false,
       ) : Int32
         root = Core::Env::ROOT_DIR
         FileUtils.mkdir_p(output_path.parent) unless Dir.exists?(output_path.parent)
 
         check_and_generate_project_bindings(entry_path, root)
 
+        entry_parent = entry_path.parent
+        proj_dir = (entry_parent.basename == "src" ? entry_parent.parent : entry_parent)
+        proj_lib = proj_dir.join("lib")
+
+        # Self-heal standalone projects missing embedded lib/lapis, lib/cradare2, or lib/opal
+        if !Core::BakedFileSystem.engine_libs_present?(proj_dir) &&
+           !Core::Env.is_libgodot_repo?(root) &&
+           !Core::Env.is_libgodot_repo?(proj_dir) &&
+           (File.exists?(proj_dir.join("shard.yml")) || File.exists?(proj_dir.join("project.godot"))) &&
+           Core::BakedFileSystem.files_with_prefix("src").size > 0
+          Core::BakedFileSystem.extract_engine_lib(proj_lib.join("lapis"), overwrite: false)
+        end
+
         src_dir = if sp = source_path
                     Path.new(sp).expand
+                  elsif Dir.exists?(proj_lib.join("lapis/src"))
+                    proj_lib.join("lapis/src")
+                  elsif Dir.exists?(proj_lib.join("libgodot/src"))
+                    proj_lib.join("libgodot/src")
+                  elsif Dir.exists?(root.join("src")) && (File.exists?(root.join("src/libgodot.cr")) || File.exists?(root.join("src/lapis.cr")))
+                    root.join("src")
+                  elsif (global = Core::Env.global_libgodot_path) && Dir.exists?(global.join("src"))
+                    global.join("src")
                   else
                     root.join("src")
                   end
-        base_crystal_path = Core::ProcessRunner.capture("crystal", ["env", "CRYSTAL_PATH"])[:output].strip
-        entry_parent = entry_path.parent
-        proj_lib = (entry_parent.basename == "src" ? entry_parent.parent : entry_parent).join("lib")
 
         path_parts = [src_dir.to_s]
+        path_parts << proj_dir.join("src").to_s if Dir.exists?(proj_dir.join("src")) && proj_dir.join("src") != src_dir
         path_parts << proj_lib.to_s if Dir.exists?(proj_lib)
         path_parts << root.join("lib").to_s if Dir.exists?(root.join("lib")) && root.join("lib") != proj_lib
+        if (global = Core::Env.global_libgodot_path) && Dir.exists?(global.join("lib"))
+          glib = global.join("lib")
+          path_parts << glib.to_s if glib != proj_lib && glib != root.join("lib")
+        end
         path_parts << root.join("addons").to_s if Dir.exists?(root.join("addons"))
-        path_parts << base_crystal_path unless base_crystal_path.empty?
-        full_crystal_path = path_parts.join(Core::Env.path_sep)
+        std_cpath = base_crystal_path
+        path_parts << std_cpath unless std_cpath.empty?
+        full_crystal_path = path_parts.uniq.join(Core::Env.path_sep)
 
-        cmd_args = ["build", entry_path.to_s, "-o", output_path.to_s]
+        working_dir = if entry_path.to_s.starts_with?("src/") || entry_path.to_s.starts_with?("src\\")
+                        root
+                      elsif entry_path.parent.basename == "src"
+                        entry_path.parent.parent
+                      else
+                        entry_path.parent
+                      end
+
+        # Normalize entry and output paths relative to working_dir when inside working_dir
+        # so CLI builds (`make` / `lapis build`) and Editor builds (`F5`) share the exact same Crystal cache directory.
+        norm_entry_arg = begin
+          rel_e = entry_path.expand.relative_to(working_dir.expand).to_s.gsub('\\', '/')
+          rel_e.starts_with?("../") ? entry_path.to_s : rel_e
+        rescue
+          entry_path.to_s
+        end
+
+        norm_output_arg = begin
+          rel_o = output_path.expand.relative_to(working_dir.expand).to_s.gsub('\\', '/')
+          rel_o.starts_with?("../") ? output_path.to_s : rel_o
+        rescue
+          output_path.to_s
+        end
+
+        cmd_args = ["build", norm_entry_arg, "-o", norm_output_arg]
         if release
           cmd_args << "--release"
         else
@@ -132,14 +294,23 @@ module Lapis
         cmd_args << "-Dno_crash_handler" if ENV["NO_CRASH_HANDLER"]? == "1" && !cmd_args.includes?("-Dno_crash_handler")
 
         # Determine whether to use --single-module:
-        # 1. If explicitly specified, respect that choice.
-        # 2. Otherwise, auto-enable for shared libraries (.so, .dll, .dylib or -shared / /DLL / -dynamiclib).
-        # On Linux ELF targets, Crystal's symbol mangling generates characters like '@' (e.g. Type@Module#method)
-        # which modern linkers (lld, mold) interpret as ELF symbol versioning in multi-module builds, causing link failure.
-        # --single-module generates a single LLVM translation unit where non-exported methods receive internal linkage.
+        # 1. If explicitly specified via CLI or SINGLE_MODULE env var, respect that choice.
+        # 2. Otherwise, only auto-enable for shared libraries on Linux ELF targets where Crystal's '@' symbol
+        #    mangling triggers ELF symbol versioning errors in lld/mold.
+        #    On Windows (MSVC link.exe) and macOS (ld64), multi-module builds link cleanly, enabling multi-core
+        #    LLVM compilation and incremental .o/.obj caching across builds.
         is_shared_lib = [".so", ".dll", ".dylib"].includes?(output_path.extension) ||
                         (link_flags && (link_flags.includes?("-shared") || link_flags.includes?("/DLL") || link_flags.includes?("-dynamiclib")))
-        should_single_module = single_module.nil? ? is_shared_lib : single_module
+        env_single = ENV["SINGLE_MODULE"]?
+        should_single_module = if !single_module.nil?
+                                 single_module
+                               elsif env_single == "1"
+                                 true
+                               elsif env_single == "0"
+                                 false
+                               else
+                                 Core::Env.linux? && is_shared_lib
+                               end
 
         if should_single_module && !release
           cmd_args << "--single-module"
@@ -189,15 +360,26 @@ module Lapis
           cmd_args << "-Dlibgodot_addon"
         end
 
-        env = {"CRYSTAL_PATH" => full_crystal_path}
+        effective_force = force || ENV["FORCE"]? == "1" || ENV["LAPIS_FORCE_BUILD"]? == "1"
+        source_digest = compute_source_digest(working_dir.expand, entry_path.expand, src_dir.expand, cmd_args, full_crystal_path)
 
-        working_dir = if entry_path.to_s.starts_with?("src/") || entry_path.to_s.starts_with?("src\\")
-                        root
-                      elsif entry_path.parent.basename == "src"
-                        entry_path.parent.parent
-                      else
-                        entry_path.parent
-                      end
+        if !effective_force && binary_up_to_date?(output_path.expand, source_digest)
+          if output_path.basename == Core::Env.game_file
+            addon_bin = working_dir.join("addons/crystal_integration/bin")
+            if Dir.exists?(addon_bin)
+              Commands::Sync.safe_copy(output_path, addon_bin.join(output_path.basename))
+              if Core::Env.windows?
+                src_pdb = Path.new(output_path.to_s.sub(/\.dll$/, ".pdb"))
+                dst_pdb = addon_bin.join(output_path.basename.to_s.sub(/\.dll$/, ".pdb"))
+                Commands::Sync.safe_copy(src_pdb, dst_pdb) if File.exists?(src_pdb)
+              end
+            end
+          end
+          Core::Logger.success("#{output_path.basename} is up to date (0.0s — no source changes).")
+          return 0
+        end
+
+        env = {"CRYSTAL_PATH" => full_crystal_path}
 
         Core::Logger.step("Build", "Compiling #{output_path.basename}...")
         t0 = Time.instant
@@ -212,6 +394,7 @@ module Lapis
         elapsed = (Time.instant - t0).total_seconds
 
         if status.success?
+          save_build_manifest(output_path.expand, source_digest)
           Core::Logger.success("#{output_path.basename} built successfully in #{elapsed.round(2)}s!")
           # If output is a game library, also sync to addons/crystal_integration/bin if present
           if output_path.basename == Core::Env.game_file
@@ -269,9 +452,11 @@ module Lapis
 
       def self.build_addons(args : Array(String)) : Int32
         release = false
+        force = false
         parser = OptionParser.new do |opts|
           opts.banner = "Usage: lapis build addons [options]"
           opts.on("-r", "--release", "Compile in release mode with optimizations") { release = true }
+          opts.on("-F", "--force", "Force rebuild even if sources are unchanged") { force = true }
           opts.on("-h", "--help", "Show help") do
             puts opts
             exit 0
@@ -326,7 +511,8 @@ module Lapis
             output_path: out_lib,
             link_flags: link_flags,
             flags: "-Dlibgodot_addon",
-            release: release
+            release: release,
+            force: force
           )
           failed += 1 if code != 0
         end
@@ -343,11 +529,13 @@ module Lapis
       def self.build_examples(args : Array(String)) : Int32
         release = false
         exe = false
+        force = false
 
         parser = OptionParser.new do |opts|
           opts.banner = "Usage: lapis build examples [options]"
           opts.on("-r", "--release", "Compile in release mode with optimizations") { release = true }
           opts.on("-x", "--exe", "Compile standalone executable target (game_exe)") { exe = true }
+          opts.on("-F", "--force", "Force rebuild even if sources are unchanged") { force = true }
           opts.on("-h", "--help", "Show help") do
             puts opts
             exit 0
@@ -369,6 +557,7 @@ module Lapis
             target = exe ? "game_exe" : "all"
             make_args = [target]
             make_args << "RELEASE=1" if release
+            make_args << "FORCE=1" if force
 
             Core::Logger.step("Examples", "Building #{target} for #{name}...")
             status = Core::ProcessRunner.run("make", make_args, chdir: ex_dir.to_s)
@@ -388,7 +577,8 @@ module Lapis
               entry_path: ex_dir.join("src/main.cr"),
               output_path: out_file,
               link_flags: link_flags,
-              release: release
+              release: release,
+              force: force
             )
             failed += 1 if code != 0
           end
@@ -412,11 +602,13 @@ module Lapis
         link_flags : String? = nil
         flags : String? = nil
         without_benchmarks = false
+        force = false
 
         parser = OptionParser.new do |opts|
           opts.banner = "Usage: lapis build game [options]"
           opts.on("-p PATH", "--path=PATH", "Game project directory (default: current project)") { |v| proj_path = v }
           opts.on("-r", "--release", "Compile in release mode with optimizations (-O3)") { release = true }
+          opts.on("-F", "--force", "Force rebuild even if sources are unchanged") { force = true }
           opts.on("--without-benchmarks", "Exclude benchmark definitions from compiled binary") { without_benchmarks = true }
           opts.on("--with-benchmarks", "Include benchmark definitions in compiled binary") { without_benchmarks = false }
           opts.on("-m", "--single-module", "Generate a single LLVM module") { single_module = true }
@@ -511,12 +703,12 @@ module Lapis
                     proj_dir.join("src").to_s
                   end
 
-        # If lib/lapis is missing and engine source is baked into BakedFileSystem, extract it directly!
-        if !Dir.exists?(proj_dir.join("lib/lapis/src")) && !File.exists?(Path.new(src_dir).join("libgodot.cr")) && !File.exists?(Path.new(src_dir).join("lapis.cr"))
+        # If lib/lapis, lib/cradare2, or lib/opal is missing and engine source is baked into BakedFileSystem, extract it directly!
+        if !Core::BakedFileSystem.engine_libs_present?(proj_dir) && !Core::Env.is_libgodot_repo?(root) && !Core::Env.is_libgodot_repo?(proj_dir)
           if Core::BakedFileSystem.files_with_prefix("src").size > 0
             Core::Logger.step("Deps", "Extracting embedded Lapis engine library into lib/lapis...")
-            Core::BakedFileSystem.extract_engine_lib(proj_dir.join("lib/lapis"))
-            src_dir = proj_dir.join("lib/lapis/src").to_s
+            Core::BakedFileSystem.extract_engine_lib(proj_dir.join("lib/lapis"), overwrite: false)
+            src_dir = proj_dir.join("lib/lapis/src").to_s if Dir.exists?(proj_dir.join("lib/lapis/src"))
           end
         end
 
@@ -542,7 +734,8 @@ module Lapis
           release: release,
           source_path: src_dir,
           single_module: single_module,
-          without_benchmarks: without_benchmarks
+          without_benchmarks: without_benchmarks,
+          force: force
         )
 
         return code if code != 0
@@ -598,9 +791,10 @@ Subcommands:
 Options for game library build ('lapis build' or 'lapis build game'):
   -p, --path=PATH       Game project directory (default: current project)
   -r, --release         Compile in release mode with optimizations (-O3)
+  -F, --force           Force rebuild even if Crystal sources are unchanged
       --without-benchmarks Exclude benchmark definitions from compiled binary
       --with-benchmarks Include benchmark definitions in compiled binary
-  -m, --single-module   Generate a single LLVM module (auto-enabled for shared libraries)
+  -m, --single-module   Generate a single LLVM module (auto-enabled on Linux shared libraries)
       --no-single-module Disable single LLVM module generation
   -s, --source-path=DIR Source path prepended to CRYSTAL_PATH
   -l, --link-flags=FLAGS Linker flags passed to crystal build
@@ -617,7 +811,8 @@ Options for single binary build:
   -e, --entry=PATH      Entry source file (.cr) [Required for direct build]
   -o, --output=PATH     Output binary path (.dll, .so, .dylib, or .exe) [Required for direct build]
   -r, --release         Compile in release mode with optimizations (-O3)
-  -m, --single-module   Generate a single LLVM module (auto-enabled for shared libraries)
+  -F, --force           Force rebuild even if Crystal sources are unchanged
+  -m, --single-module   Generate a single LLVM module (auto-enabled on Linux shared libraries)
       --no-single-module Disable single LLVM module generation
   -l, --link-flags=FLAGS Linker flags passed to crystal build
   -f, --flags=FLAGS     Extra Crystal compiler flags (e.g. -Dlibgodot_addon)
@@ -691,6 +886,7 @@ HELP
         single_module : Bool? = nil
         source_path : String? = nil
         without_benchmarks = false
+        force = false
 
         parser = OptionParser.new do |opts|
           opts.banner = "Usage: lapis build --entry <path> --output <path> [options]"
@@ -699,9 +895,10 @@ HELP
           opts.on("-l FLAGS", "--link-flags=FLAGS", "Linker flags") { |v| link_flags = v }
           opts.on("-f FLAGS", "--flags=FLAGS", "Extra Crystal compiler flags") { |v| flags = v }
           opts.on("-r", "--release", "Compile in release mode with optimizations") { release = true }
+          opts.on("-F", "--force", "Force rebuild even if Crystal sources are unchanged") { force = true }
           opts.on("--without-benchmarks", "Exclude benchmark definitions from compiled binary") { without_benchmarks = true }
           opts.on("--with-benchmarks", "Include benchmark definitions in compiled binary") { without_benchmarks = false }
-          opts.on("-m", "--single-module", "Generate a single LLVM module (auto-enabled for shared libraries)") { single_module = true }
+          opts.on("-m", "--single-module", "Generate a single LLVM module (auto-enabled on Linux shared libraries)") { single_module = true }
           opts.on("--no-single-module", "Disable single LLVM module generation") { single_module = false }
           opts.on("-s PATH", "--source-path=PATH", "Source path for CRYSTAL_PATH") { |v| source_path = v }
           opts.on("--no-log", "Strip all logging statements from compiled binary at compile-time (-Dno_log)") { flags = "#{flags} -Dno_log" }
@@ -736,7 +933,8 @@ HELP
           release: release,
           source_path: source_path,
           single_module: single_module,
-          without_benchmarks: without_benchmarks
+          without_benchmarks: without_benchmarks,
+          force: force
         )
       end
     end

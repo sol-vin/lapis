@@ -209,3 +209,28 @@ node AutoloadTreeOnlyTarget < Godot::Node do
   property tree_only_flag : Bool = true
 end
 
+@[Tool]
+resource CollectionExportFaceResource < Godot::Resource do
+  @[Export]
+  property vertices : Godot::PackedInt32Array = Godot::PackedInt32Array.new
+
+  @[Export]
+  property uv_coords : Godot::PackedVector2Array = Godot::PackedVector2Array.new
+
+  @[Export]
+  property color_corners : Godot::PackedColorArray = Godot::PackedColorArray.new
+end
+
+@[Tool]
+resource CollectionExportMeshResource < Godot::Resource do
+  @[Export]
+  property positions : Godot::PackedVector3Array = Godot::PackedVector3Array.new
+
+  @[Export]
+  property faces : ::Array(CollectionExportFaceResource) = [] of CollectionExportFaceResource
+
+  @[Export]
+  property shape_spec : Godot::Dictionary = Godot::Dictionary.new
+end
+
+

@@ -14,9 +14,17 @@ module Lapis
   include Godot
 
   module EditorScriptCreation
-    ID_CRYSTAL_SCRIPT        = 889901_i64
-    ID_SCENE_ATTACH          = 889902_i64
-    ID_SCENE_DETACH_CONVERT  = 889903_i64
+    ID_CRYSTAL_SCRIPT                   = 889901_i64
+    ID_SCENE_ATTACH                     = 889902_i64
+    ID_SCENE_DETACH_CONVERT             = 889903_i64
+    BUTTON_ID_OPEN_CRYSTAL_SCRIPT_BASE  =  99000_i64
+
+    alias ScriptLocationInfo = NamedTuple(path: String, line: Int32, class_name: String, parent_name: String, is_tool: Bool)
+    @@script_button_id_map = Hash(Int64, ScriptLocationInfo).new
+    @@script_key_to_button_id = Hash(String, Int64).new
+    @@next_script_button_id : Int64 = BUTTON_ID_OPEN_CRYSTAL_SCRIPT_BASE + 1_i64
+    @@cached_scene_dock : Node? = nil
+    @@cached_script_button_icon : Texture2D? = nil
 
     COMMON_BASE_TYPES = [
       "Node",
@@ -487,9 +495,71 @@ module Lapis
       Godot.print("[EditorScriptCreation] Notice fix_script_create_dialog: #{ex.message}")
     end
 
+    def self.find_scene_tree_dock(base_ctrl : Control) : Node?
+      if cached = @@cached_scene_dock
+        if !cached.pointer.null? && cached.alive? && (cached.call_bool("is_inside_tree") rescue false)
+          return cached
+        end
+        @@cached_scene_dock = nil
+      end
+      if dock = (base_ctrl.call_obj("find_child", "SceneTreeDock", true, false) rescue nil)
+        if !dock.pointer.null?
+          @@cached_scene_dock = dock
+          return dock
+        end
+      end
+      if dock = (base_ctrl.call_obj("find_child", "Scene", true, false) rescue nil)
+        if !dock.pointer.null? && (dock.call_str("get_class") rescue "").includes?("SceneTree")
+          @@cached_scene_dock = dock
+          return dock
+        end
+      end
+      docks = find_all_children(base_ctrl, "SceneTreeDock")
+      if !docks.empty?
+        @@cached_scene_dock = docks.first
+        return docks.first
+      end
+      editors = find_all_children(base_ctrl, "SceneTreeEditor")
+      if !editors.empty?
+        @@cached_scene_dock = editors.first
+        return editors.first
+      end
+      nil
+    rescue
+      nil
+    end
+
+    def self.get_script_button_icon(ed_iface : EditorInterface) : Texture2D?
+      if cached = @@cached_script_button_icon
+        if !cached.pointer.null? && cached.alive?
+          return cached
+        end
+        @@cached_script_button_icon = nil
+      end
+      if theme = (ed_iface.get_editor_theme rescue nil)
+        if !theme.pointer.null?
+          icon = theme.call_obj("get_icon", "Script", "EditorIcons") rescue nil
+          if icon && !icon.pointer.null?
+            tex = Godot::Texture2D.new(icon.pointer)
+            @@cached_script_button_icon = tex
+            return tex
+          end
+        end
+      end
+      if tex = CrystalIntegrationPlugin.get_crystal_icon_texture
+        if !tex.pointer.null?
+          @@cached_script_button_icon = tex
+          return tex
+        end
+      end
+      nil
+    rescue
+      nil
+    end
+
     # 3. SceneTree Dock Node Context Menu ("Attach/New Crystal Script...") & Detach Script Protection
     def self.setup_scene_tree_dock_menus(ed_iface : EditorInterface, base_ctrl : Control) : Void
-      if scene_dock = base_ctrl.call_obj("find_child", "SceneTreeDock", true, false)
+      if scene_dock = find_scene_tree_dock(base_ctrl)
         popups = find_all_children(scene_dock, "PopupMenu")
         popups.each do |popup_node|
           popup = Godot::PopupMenu.new(popup_node.pointer)
@@ -577,9 +647,141 @@ module Lapis
             end
           end
         end
+
+        sync_scene_tree_script_buttons(ed_iface, base_ctrl)
       end
     rescue ex
       Godot.print("[EditorScriptCreation] Notice scene tree dock menus setup: #{ex.message}")
+    end
+
+    def self.register_script_button_info(info : ScriptLocationInfo) : Int64
+      key = "#{info[:path]}:#{info[:line]}:#{info[:class_name]}"
+      if existing = @@script_key_to_button_id[key]?
+        @@script_button_id_map[existing] = info
+        return existing
+      end
+      btn_id = @@next_script_button_id
+      @@next_script_button_id += 1_i64
+      @@script_key_to_button_id[key] = btn_id
+      @@script_button_id_map[btn_id] = info
+      btn_id
+    end
+
+    # Opens the given Crystal script in Godot's ScriptEditor at the specified 1-based line number and switches to the Script tab
+    def self.open_crystal_script_info(ed_iface : EditorInterface, info : ScriptLocationInfo) : Void
+      CrystalIntegrationPlugin.ensure_highlighter_registered
+      script = ClassRegistry.get_or_load_script(info[:path], info[:class_name], info[:parent_name], info[:is_tool])
+      if script.nil? || script.pointer.null?
+        if !Godot::ResourceLoader.singleton_ptr.null?
+          rl = Godot::ResourceLoader.new(Godot::ResourceLoader.singleton_ptr)
+          loaded = rl.call_obj("load", info[:path], "Script", 1_i64) rescue nil
+          if loaded && !loaded.pointer.null?
+            script = Godot::Script.new(loaded.pointer)
+          end
+        end
+      end
+      return if script.nil? || script.pointer.null?
+
+      line_1based = info[:line] > 0 ? info[:line].to_i64 : 1_i64
+      ed_iface.call("set_main_screen_editor", "Script") rescue nil
+      ed_iface.call("edit_script", script, line_1based, 0_i64, true) rescue nil
+      ed_iface.call("edit_resource", script) rescue nil
+
+      if se = (ed_iface.get_script_editor rescue nil)
+        if !se.pointer.null?
+          se.call("edit", script, line_1based - 1_i64, 0_i64, true) rescue nil
+          se.call("goto_line", line_1based - 1_i64) rescue nil
+        end
+      end
+
+      CrystalIntegrationPlugin.apply_highlighter_if_needed
+    rescue ex
+      Godot.print("[EditorScriptCreation] Notice open_crystal_script_info: #{ex.message}")
+    end
+
+    # Synchronizes "Open Script" icon buttons next to custom Crystal nodes and resources in the SceneTreeDock
+    def self.sync_scene_tree_script_buttons(ed_iface : EditorInterface, base_ctrl : Control) : Void
+      scene_root = ed_iface.call_obj("get_edited_scene_root") rescue nil
+      return if scene_root.nil? || scene_root.pointer.null?
+      return unless (scene_root.call_bool("is_inside_tree") rescue false)
+
+      scene_dock = find_scene_tree_dock(base_ctrl)
+      return if scene_dock.nil? || scene_dock.pointer.null?
+
+      script_icon = get_script_button_icon(ed_iface)
+      return if script_icon.nil? || script_icon.pointer.null?
+
+      trees = find_all_children(scene_dock, "Tree")
+      trees.each do |tree_node|
+        tree = Godot::Tree.new(tree_node.pointer)
+        unless @@hooked_popups.includes?(tree.signal_target_id)
+          @@hooked_popups << tree.signal_target_id
+          tree.connect("button_clicked") do |args|
+            btn_id = (args && args.size > 2 ? args[2].as_i64 : -1_i64) rescue -1_i64
+            if info = @@script_button_id_map[btn_id]?
+              if !Godot::EditorInterface.singleton_ptr.null?
+                ei = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
+                open_crystal_script_info(ei, info)
+              end
+            end
+          end
+        end
+
+        root_item = tree.call_obj("get_root") rescue nil
+        if root_item && !root_item.pointer.null?
+          root_text = (root_item.call_str("get_text", 0_i64) rescue "").strip
+          scene_root_name = (scene_root.call_str("get_name") rescue "").strip
+          if !root_text.empty? && root_text == scene_root_name
+            sync_tree_item_buttons_recursive(root_item, Godot::Node.new(scene_root.pointer), "", script_icon)
+          end
+        end
+      end
+    rescue
+    end
+
+    def self.sync_tree_item_buttons_recursive(item : Godot::Object, scene_root : Godot::Node, rel_path : String, script_icon : Godot::Texture2D) : Void
+      return if item.pointer.null?
+
+      # Resolve the edited scene Node corresponding to this TreeItem
+      target_node : Godot::Node? = nil
+      if rel_path.empty?
+        target_node = scene_root
+      else
+        n = scene_root.get_node_or_null(rel_path) rescue nil
+        if n && !n.pointer.null?
+          target_node = n
+        else
+          item_name = (item.call_str("get_text", 0_i64) rescue "").strip
+          if !item_name.empty?
+            found_ptr = Bridge.node_find_child(scene_root.pointer, item_name, true, false)
+            if !found_ptr.null?
+              target_node = Godot::Node.new(found_ptr)
+            end
+          end
+        end
+      end
+
+      if target_node && !target_node.pointer.null?
+        if info = Godot::Object.find_script_info_for_node(target_node)
+          btn_id = register_script_button_info(info)
+          # Avoid adding if Godot's own BUTTON_SCRIPT (id 2) or our button is already present on column 0
+          has_godot_script_btn = (item.call_i64("get_button_by_id", 0_i64, 2_i64) rescue -1_i64) >= 0
+          has_our_btn = (item.call_i64("get_button_by_id", 0_i64, btn_id) rescue -1_i64) >= 0
+          if !has_godot_script_btn && !has_our_btn
+            tooltip = "Open Script: #{info[:path]} (Line #{info[:line]})"
+            item.call("add_button", 0_i64, script_icon, btn_id, false, tooltip) rescue nil
+          end
+        end
+      end
+
+      child = item.call_obj("get_first_child") rescue nil
+      while child && !child.pointer.null?
+        child_text = (child.call_str("get_text", 0_i64) rescue "").strip
+        next_rel = rel_path.empty? ? child_text : "#{rel_path}/#{child_text}"
+        sync_tree_item_buttons_recursive(child, scene_root, next_rel, script_icon)
+        child = child.call_obj("get_next") rescue nil
+      end
+    rescue
     end
 
     def self.show_detach_convert_dialog(node : Node, parent_type : String, ed_iface : EditorInterface, base_ctrl : Control) : Void
@@ -982,6 +1184,8 @@ module Lapis
       end
       @@hooked_create_dialogs.clear
       @@intercept_crystal_resource = false
+      @@cached_scene_dock = nil
+      @@cached_script_button_icon = nil
     end
 
     def self.cleanup_on_shutdown : Void

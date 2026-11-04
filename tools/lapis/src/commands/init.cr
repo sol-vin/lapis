@@ -185,9 +185,9 @@ CR
         FileUtils.mkdir_p(lib_dir) unless Dir.exists?(lib_dir)
         File.write(lib_dir.join(".gdignore"), "") unless File.exists?(lib_dir.join(".gdignore"))
 
-        # 6b. Extract embedded Lapis engine library into lib/lapis
+        # 6b. Extract embedded Lapis engine library into lib/lapis and runtime dependencies (lib/cradare2, lib/opal)
         target_lib = target_dir.join("lib/lapis")
-        if !Dir.exists?(target_lib.join("src")) && Core::BakedFileSystem.files_with_prefix("src").size > 0
+        if !Core::BakedFileSystem.engine_libs_present?(target_dir) && Core::BakedFileSystem.files_with_prefix("src").size > 0
           Core::BakedFileSystem.extract_engine_lib(target_lib)
         end
 

@@ -140,3 +140,7 @@ crash_dump.log
 # Shard overrides for local development
 shard.override.yml
 **/shard.override.yml
+
+# Build & bind incremental manifest caches
+**/.bind_manifest.json
+**/.lapis_build_*.json

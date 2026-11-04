@@ -5,7 +5,59 @@ All notable changes to the Lapis for Crystal framework are documented in this fi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.0.311] - 2026-10-13
+## [4.8-beta1] - 2026-10-26
+
+### Added
+
+#### `await` Object Disposal Flags (`AwaitState::Freed`, `AwaitStatus#freed?`), `DisposedObjectError` Propagation, & Immediate Fiber Unblocking
+- **`AwaitState::Freed` & `AwaitStatus(T)` Disposal Predicates**:
+  - Added `Freed` state to `Godot::AwaitState` (`#freed?`, `#disposed?`) and extended `Godot::AwaitStatus(T)` with `instance_id : UInt64`, `#freed? : Bool`, `#disposed? : Bool`, `AwaitStatus.freed(instance_id)`, `AwaitStatus.disposed(instance_id)`, and symbol comparison (`status == :freed` / `status == :disposed`).
+  - Updated `AwaitStatus(T)#value!` to raise `Godot::DisposedObjectError` when called on a freed status, and exported `DisposedObjectError` in `Lapis` and at top-level (`src/lapis.cr`).
+- **Consistent Disposal Semantics Across `await`, `await!`, and `await?`**:
+  - `await`: Returns `AwaitStatus(T).freed(target_id)` (`status.freed? == true`, `status.ok? == false`, `status.timed_out? == false`) without raising when the target object or `SceneTreeTimer` is already disposed or freed mid-wait.
+  - `await!`: Raises `Godot::DisposedObjectError` when the target object or `SceneTreeTimer` is already disposed or becomes disposed during the wait.
+  - `await?`: Returns `nil` when the target object or `SceneTreeTimer` is disposed (including 0-arg `TypedSignal#await?` and `SceneTreeTimer` `await?`, which return `Bool?`: `true` on emission, `false` on timeout, `nil` on disposal).
+- **Immediate (ASAP) Fiber Unblocking on Object Disposal**:
+  - Hooked `Object#destroy`, `Node#queue_free`, and the GDExtension C++ `free_fn` destructor to mark active awaiting `SignalSubscription` instances as `freed` and immediately wake waiting fibers on the Main Thread (`Godot.wake_freed_awaiters!`) or at the start of the next frame tick (`Godot.pump_awaiting_fibers_once_per_frame!`), returning control to awaiting nodes without frame starvation.
+
+#### Variadic `Proc(*U, R)` Signal Piping (`>>` and `>`) on `TypedSignal` & `BoundSignal`
+- **Fast-Path `TypedSignal#>>` & Strict `TypedSignal#>` Proc Piping (`src/lapis/extras/operators.cr`)**:
+  - Replaced fixed-arity `0..4`-argument `Proc` overloads on `BoundSignal` with a single variadic `def >>(proc : Proc(*U, R)) : SignalSubscription forall U, R` supporting arbitrary `0..N` argument arities with automatic arity trimming, polymorphic downcasting (`as_a?`), and numeric coercion.
+  - Added variadic `TypedSignal(*T)#>>(proc : Proc(*U, R))` and strict `TypedSignal(*T)#>(proc : Proc(*T, R))` overloads that bind directly to `Lapis::Core::StaticSignalTable` via `bind(proc)` on exact signature matches and keep adaptive/trimmed pipes on the `StaticSignalTable` fast path (`typed_fast_path? == true`).
+
+#### `Object` / `Resource` `@[Export]` Marshalling, Rich Signal Arguments, & `suffix:` Export Support
+- **Typed `Object`, `Resource`, and `Node` Exports & Signal Marshalling**:
+  - Unboxed and boxed `Object`, `Resource`, and `Node` (including nilable `T?`) properties in `_godot_set_property` and `_godot_get_property` across `node`, `gmodule`, and `Object.inherited` macros, guarding null `GDExtensionObjectPtr` pointers in `bridge_variant_from_type`.
+  - Added `Enum`, `Vector2`, `Vector3`, `Color`, and `Object` type support across `SignalArgInfo`, `Bridge.emit_signal`, `Bridge.object_call`, `Bridge.pack_args`, `Variant`, and `TypedSignal`.
+  - Added `suffix:` keyword argument support on `@[Export]` and `@[ExportRange]` annotations and expanded `CrystalScript` validator diagnostics.
+- **Ergonomic Polymorphic Downcasting Aliases (`Godot::Object#godot_as?`, `Godot::Object#godot_as`)**:
+  - Added `godot_as?(type : T.class) : T?` and `godot_as(type : T.class) : T` on `Godot::Object` delegating to `as_a?` and `as_a` alongside `as_g?` and `as_g`.
+
+### Changed
+
+#### Godot Engine 4.8-beta1 Upgrade & API Binding Regeneration
+- **Godot 4.8-beta1 (`v4.8.beta1.official.4d10419ca`)**:
+  - Upgraded target Godot Engine version to `4.8-beta1` across `godot-version.yml`, `src/bridge/godot_version.h`, `src/lapis.cr`, `Dockerfile.test`, CI/CD workflows, and starter templates.
+  - Regenerated `extension_api.json` (`rsrc/extension_api.json`) and 1,069 typed Crystal classes (`src/libgodot/generated/classes/classes_part1..6.cr`) for Godot 4.8-beta1, including new `SubMenuButton` class, `Performance::Monitor` / `DisplayServer::Feature` / `RenderingServer` enum additions, and updated `AudioServer`, `GraphEdit`, `CodeEdit`, and `WebXRInterface` signatures.
+  - Enhanced C++ bridge version matching (`bridge_version_matches` in `src/bridge/crystal_bridge.cpp`) and `Lapis::Commands::ExportTemplates` to support `alpha`, `beta`, and `rc` stage prefixes alongside `dev`.
+  - Updated `tools/api_generator/generate_bindings.cr` and `tools/lapis/src/commands/bind/engine.cr` so `Godot::Object#initialize` automatically preserves `LeakTracker.register` and `_godot_bind_static_signals` across binding regenerations.
+  - Added re-entrancy guard to `Godot::CrashHandler` on Windows so secondary faults during process teardown exit cleanly.
+
+### Fixed
+
+#### GDExtension Hot-Reload Stability, `uid://a` Collisions, & Standalone CI Workflows
+- **Hot-Reload ClassDB Safety & Standalone Template CI**:
+  - Resolved GDExtension hot-reload ClassDB re-registration and crash issues across `classdb_registry.hpp`, `extension_instance.hpp`, and `module_loader.hpp`.
+  - Fixed `uid://a` scene resource UID collisions and improved standalone project sync isolation in `lapis sync`, `lapis build`, and `lapis clean`.
+  - Updated `lapis setup` and GitHub Actions CI workflows (`test.yml`, `release.yml`, `build-lapis-game`, `build-lapis-addon`, and `template`/`template-addon` workflows) to support Godot `4.8-beta1` macOS split archives and `shard.override.yml` local path resolution.
+- **GDExtension Pointer Safety, Busy-Parent `add_child` Deferral, & `lapis bind project` Keyword Sanitization**:
+  - **`Bridge.find_alive_instance` Fast-Path Lookup (`src/libgodot/bridge.cr`)**: Checked `@@alive_instances_by_ptr[godot_obj]?` before calling `is_object_valid(godot_obj)`, preventing `ObjectDB::get_instance` (`Condition "slot >= slot_max" is true`) errors on unboxed/stack pointers and eliminating redundant FFI calls for non-Crystal Godot objects.
+  - **`CrystalScript` Virtual Callback Unmarshaling (`src/libgodot/script/script.cr`, `src/bridge/dispatch_signals.hpp`)**: Dereferenced `args[0]` (`Object**` on the C++ stack) in `_instance_create` and `_placeholder_instance_create`, returned `null` in game mode (`!Godot.editor_hint?`) for native GDExtension dispatch, and guarded `bridge_placeholder_script_instance_create` against double-dereferencing valid `Object*` pointers.
+  - **`ResourceFormatSaverCrystal` `_save` Stack Pointer Guard (`src/libgodot/script/resource_format.cr`)**: Avoided calling `Bridge.is_object_valid(args[0])` on raw `const Ref<Resource>*` stack addresses during resource saving.
+  - **Busy-Parent `add_child` / `add_sibling` Deferral & $O(1)$ FFI Dispatch (`src/libgodot/extensions/node.cr`)**: Added `Node#busy_setting_up_children?` to automatically defer `add_child` and `add_sibling` when an ancestor node is locked propagating `_enter_tree` or `_ready`, and guarded standalone `children` array mutations behind `if @pointer.null?` to avoid $O(N)$ `get_children` FFI allocations on in-engine calls.
+  - **`lapis bind project` Keyword Sanitization & `addons/` Filtering (`tools/api_generator/`, `tools/lapis/src/commands/bind/`)**: Sanitized all Crystal reserved keywords in GDScript parameter names (`alias` -> `alias_arg`, etc.) and excluded `res://addons/` global GDScript classes by default unless `--include-addons` is specified.
+
+## [0.1.0] - 2026-10-16
 
 ### Added
 

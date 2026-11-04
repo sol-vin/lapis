@@ -157,7 +157,8 @@ HELP
         shadows_only = args.includes?("-s") || args.includes?("--shadows")
         clean_docs = purge_all || args.includes?("--docs")
 
-        root = Core::Env::ROOT_DIR
+        root = Core::Env.find_root
+        is_monorepo = Core::Env.is_libgodot_repo?(root)
         tracker = CleanTracker.new(dry_run)
 
         action_word = dry_run ? "Analyzing" : "Cleaning"
@@ -165,9 +166,9 @@ HELP
         Core::Logger.step("Clean", "#{action_word} #{target_desc} across workspace...")
 
         # 1. Clean bin directories across root and consumers
-        target_dirs = (Core::Env.collect_target_bin_dirs(root) + [
-          root.join("template-addon/dist"),
-        ]).uniq
+        target_dirs = Core::Env.collect_target_bin_dirs(root)
+        target_dirs << root.join("template-addon/dist") if is_monorepo
+        target_dirs.uniq!
 
         # Only clean generated documentation if explicitly requested (--docs or --all)
         if clean_docs
@@ -200,17 +201,37 @@ HELP
           end
         end
 
+        # In standalone consumer projects, also remove accidental monorepo addon-sync shells
+        unless is_monorepo
+          ["template", "template-addon", "performance"].each do |dir_name|
+            sub = root.join(dir_name)
+            if Dir.exists?(sub) && !File.exists?(sub.join("project.godot")) && !File.exists?(sub.join("shard.yml"))
+              size = dir_size(sub)
+              tracker.record(sub, size, is_dir: true)
+              FileUtils.rm_rf(sub) unless dry_run rescue nil
+            end
+          end
+          bin_addons = root.join("bin/addons")
+          if Dir.exists?(bin_addons)
+            size = dir_size(bin_addons)
+            tracker.record(bin_addons, size, is_dir: true)
+            FileUtils.rm_rf(bin_addons) unless dry_run rescue nil
+          end
+        end
+
         # 3. Prune stray crash logs and temporary files in consumer directories
-        consumer_roots = [
+        consumer_roots = is_monorepo ? [
           root,
           root.join("test"),
           root.join("template"),
           root.join("template-addon"),
           root.join("performance"),
-        ]
-        examples_dir = root.join("examples")
-        if Dir.exists?(examples_dir)
-          Dir.each_child(examples_dir) { |c| consumer_roots << examples_dir.join(c) if Dir.exists?(examples_dir.join(c)) }
+        ] : [root]
+        if is_monorepo
+          examples_dir = root.join("examples")
+          if Dir.exists?(examples_dir)
+            Dir.each_child(examples_dir) { |c| consumer_roots << examples_dir.join(c) if Dir.exists?(examples_dir.join(c)) }
+          end
         end
 
         consumer_roots.each do |c_root|
@@ -240,7 +261,8 @@ HELP
         if purge_all
           action_desc = dry_run ? "Scanning .godot/.crystal caches and scratch/..." : "Purging .godot/.crystal caches and scratch/..."
           Core::Logger.step("Clean", action_desc)
-          [root, root.join("test"), root.join("template"), root.join("template-addon"), root.join("performance")].each do |proj|
+          cache_projs = is_monorepo ? [root, root.join("test"), root.join("template"), root.join("template-addon"), root.join("performance")] : [root]
+          cache_projs.each do |proj|
             clean_project_caches(proj, dry_run, tracker)
           end
 

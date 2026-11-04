@@ -273,7 +273,9 @@ module Lapis
             io.puts "    def initialize(@pointer : Void* = Pointer(Void).null)"
             io.puts "      if !@pointer.null?"
             io.puts "        @instance_id = Bridge.object_get_instance_id(@pointer)"
+            io.puts "        ::Godot::LeakTracker.register(@instance_id, self.class.name, __FILE__, __LINE__)"
             io.puts "      end"
+            io.puts "      _godot_bind_static_signals"
             io.puts "    end\n"
           else
             io.puts "  class #{name} < #{parent_type}"
@@ -640,13 +642,15 @@ module Lapis
             dump_res = Core::ProcessRunner.run(
               godot_exe,
               ["--headless", "--dump-extension-api"],
-              chdir: root.to_s
+              chdir: root.to_s,
+              env: {"LAPIS_SKIP_VERSION_CHECK" => "1"}
             )
-            if dump_res != 0
+            dumped_path = root.join("extension_api.json")
+            unless dump_res.success? || File.exists?(dumped_path)
               Core::Logger.error("Failed to dump extension_api.json from Godot engine.")
               return 1
             end
-            api_file = root.join("extension_api.json")
+            api_file = dumped_path
           end
 
           unless File.exists?(api_file)

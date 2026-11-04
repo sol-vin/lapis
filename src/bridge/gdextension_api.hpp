@@ -74,6 +74,8 @@ static GDExtensionVariantGetInternalPtrFunc gd_variant_get_internal_ptr_object =
 
 // Library handle passed to GDExtension at initialization, required for class registration
 static GDExtensionClassLibraryPtr g_library = nullptr;
+static GDExtensionClassLibraryPtr g_primary_library = nullptr;
+static bool s_loading_plugin_module = false;
 static GDExtensionInitializationLevel g_current_init_level = GDEXTENSION_INITIALIZATION_SCENE;
 
 // Custom Callable and Signal Interfaces

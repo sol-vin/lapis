@@ -65,9 +65,14 @@ jobs:
       - name: Setup Godot Engine
         shell: powershell
         run: |
+          $ver = "4.8-beta1"
+          if (Test-Path "godot-version.yml") {
+            $match = Select-String -Path "godot-version.yml" -Pattern '^\s*version:\s*"?([^"\s#]+)"?'
+            if ($match) { $ver = $match.Matches[0].Groups[1].Value }
+          }
           if (-not (Test-Path "godot.exe")) {
-            Write-Host "Downloading Godot 4.8-dev6..."
-            Invoke-WebRequest -Uri "https://github.com/godotengine/godot-builds/releases/download/4.8-dev6/Godot_v4.8-dev6_win64.exe.zip" -OutFile "godot.zip"
+            Write-Host "Downloading Godot $ver..."
+            Invoke-WebRequest -Uri "https://github.com/godotengine/godot-builds/releases/download/$ver/Godot_v${ver}_win64.exe.zip" -OutFile "godot.zip"
             Expand-Archive -Path "godot.zip" -DestinationPath "." -Force
             $exe = Get-ChildItem -Filter "Godot*.exe" | Select-Object -First 1
             if ($exe) {
@@ -129,31 +134,75 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     permissions:
-      contents: read
+      contents: write
       pages: write
       id-token: write
 
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
       - name: Download Benchmark Reports Artifact
         uses: actions/download-artifact@v4
         with:
           name: benchmark-reports
           path: ./docs
 
-      - name: Ensure Staged Layout
+      - name: Stage Multi-Version Benchmarks into gh-pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          GODOT_VER=$(grep 'version:' godot-version.yml | cut -d: -f2 | tr -d ' "\r\n\t')
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
+          REF_NAME="${{ github.ref_name }}"
+
           mkdir -p ./docs/benchmarks
           if [ -f "./docs/benchmarks.html" ] && [ ! -f "./docs/benchmarks/index.html" ]; then
             cp "./docs/benchmarks.html" "./docs/benchmarks/index.html"
           fi
           touch ./docs/.nojekyll
+
+          rm -rf _gh_pages
+          if git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
+            git clone --depth 1 --branch gh-pages "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" _gh_pages
+          else
+            mkdir -p _gh_pages
+            (
+              cd _gh_pages
+              git init
+              git checkout -b gh-pages
+              git remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+            )
+          fi
+
+          mkdir -p "_gh_pages/${GODOT_VER}"
+          cp -r ./docs/. "_gh_pages/${GODOT_VER}/"
+          touch "_gh_pages/${GODOT_VER}/.nojekyll"
+          if [ "$REF_NAME" = "master" ] || [ "$REF_NAME" = "main" ]; then
+            cp -r ./docs/. "_gh_pages/"
+          fi
+          touch "_gh_pages/.nojekyll"
+
+          (
+            cd _gh_pages
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -A
+            if ! git diff --cached --quiet; then
+              git commit -m "docs: deploy benchmarks for ${GODOT_VER}"
+              git push origin HEAD:refs/heads/gh-pages --force
+            fi
+            rm -rf .git
+          )
+
           echo "Files staged for GitHub Pages deployment:"
-          ls -la ./docs
+          ls -la ./_gh_pages
+          ls -la "./_gh_pages/${GODOT_VER}"
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./docs
+          path: ./_gh_pages
 
       - name: Deploy to GitHub Pages
         id: deployment

@@ -50,6 +50,9 @@ describe "Lapis Standalone Executable" do
       File.exists?(game_dir.join("src/main.cr")).should be_true
       File.exists?(game_dir.join("scenes/main.tscn")).should be_true
       File.exists?(game_dir.join("godot-version.yml")).should be_true
+      File.exists?(game_dir.join("lib/lapis/src/lapis.cr")).should be_true
+      File.exists?(game_dir.join("lib/cradare2/src/cradare2.cr")).should be_true
+      File.exists?(game_dir.join("lib/opal/src/opal.cr")).should be_true
 
       # Verify customized project name inside project.godot
       godot_proj = File.read(game_dir.join("project.godot"))
@@ -86,6 +89,9 @@ describe "Lapis Standalone Executable" do
       File.exists?(target_addon.join("my_standalone_addon.gdextension")).should be_true
       File.exists?(target_addon.join("shard.yml")).should be_true
       File.exists?(target_addon.join("src/main.cr")).should be_true
+      File.exists?(target_addon.join("lib/lapis/src/lapis.cr")).should be_true
+      File.exists?(target_addon.join("lib/cradare2/src/cradare2.cr")).should be_true
+      File.exists?(target_addon.join("lib/opal/src/opal.cr")).should be_true
     end
   end
 end

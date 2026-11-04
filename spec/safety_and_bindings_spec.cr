@@ -254,4 +254,42 @@ abort "Failed: null_shape.get_collider? should be nil" unless null_shape.get_col
 
 puts "  ✓ Engine identity equality (==), hashing, and null safety verified!"
 
+# -----------------------------------------------------------------------------
+# [Spec 6] Bridge.find_alive_instance, CrystalScript Virtual Unmarshaling,
+#          Node#busy_setting_up_children?, and Object#godot_as? / godot_as
+# -----------------------------------------------------------------------------
+puts "[Spec 6] Verifying Bridge.find_alive_instance, CrystalScript virtual args, Node#busy_setting_up_children?, and godot_as?..."
+
+# 1. Bridge.find_alive_instance safely returns nil for stack/foreign pointers
+stack_val = 0xDEADBEEF_u64
+stack_ptr = pointerof(stack_val).as(Void*)
+abort "Failed: find_alive_instance on stack_ptr should be nil" unless Godot::Bridge.find_alive_instance(stack_ptr).nil?
+
+# 2. CrystalScript _instance_create dereferences Void** stack arg and returns null in game mode
+script_inst = Lapis::CrystalScript.new
+owner_slot = Pointer(Void).new(0x12345678_u64)
+arg0_ptr = pointerof(owner_slot).as(Void*)
+args_buf = StaticArray(Void*, 1).new(arg0_ptr)
+ret_slot = Pointer(Void).new(0xCAFEBABE_u64)
+script_inst._godot_call_virtual_with_data("_instance_create", args_buf.to_unsafe, pointerof(ret_slot).as(Void*))
+abort "Failed: _instance_create in game mode should set ret to null" unless ret_slot.null?
+
+# 3. Node#busy_setting_up_children?, standalone add_child/remove_child
+standalone_parent = Godot::Node.new
+standalone_child = Godot::Node.new
+abort "Failed: standalone busy_setting_up_children? should be false" if standalone_parent.busy_setting_up_children?
+standalone_parent.add_child(standalone_child)
+abort "Failed: standalone_parent.children should include child" unless standalone_parent.children.includes?(standalone_child)
+standalone_parent.remove_child(standalone_child)
+abort "Failed: standalone_parent.children should not include removed child" if standalone_parent.children.includes?(standalone_child)
+
+# 4. Object#godot_as? and Object#godot_as aliases
+node2d = Godot::Node2D.new
+as_node = node2d.godot_as?(Godot::Node)
+abort "Failed: node2d.godot_as?(Godot::Node) should succeed" if as_node.nil?
+strict_node = node2d.godot_as(Godot::Node)
+abort "Failed: node2d.godot_as(Godot::Node) should return Node" unless strict_node.is_a?(Godot::Node)
+
+puts "  ✓ Bridge.find_alive_instance, CrystalScript virtual args, Node#busy_setting_up_children?, and godot_as? verified!"
+
 puts "All safety, memory, and dynamic binding specifications passed cleanly!"

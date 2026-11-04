@@ -2,16 +2,27 @@ require "./spec_helper"
 
 describe "AwaitState and AwaitStatus(T)" do
   describe "AwaitState" do
-    it "exposes completed?, timed_out?, and ok?" do
+    it "exposes completed?, timed_out?, freed?, disposed?, and ok?" do
       c = Godot::AwaitState::Completed
       c.completed?.should be_true
       c.timed_out?.should be_false
+      c.freed?.should be_false
+      c.disposed?.should be_false
       c.ok?.should be_true
 
       t = Godot::AwaitState::TimedOut
       t.completed?.should be_false
       t.timed_out?.should be_true
+      t.freed?.should be_false
+      t.disposed?.should be_false
       t.ok?.should be_false
+
+      f = Godot::AwaitState::Freed
+      f.completed?.should be_false
+      f.timed_out?.should be_false
+      f.freed?.should be_true
+      f.disposed?.should be_true
+      f.ok?.should be_false
     end
   end
 
@@ -20,6 +31,8 @@ describe "AwaitState and AwaitStatus(T)" do
       status = Godot::AwaitStatus(Int32).completed(42)
       status.completed?.should be_true
       status.timed_out?.should be_false
+      status.freed?.should be_false
+      status.disposed?.should be_false
       status.ok?.should be_true
       status.status.should eq(Godot::AwaitState::Completed)
       status.value.should eq(42)
@@ -29,6 +42,8 @@ describe "AwaitState and AwaitStatus(T)" do
       # Symbol and value equality
       (status == :completed).should be_true
       (status == :timed_out).should be_false
+      (status == :freed).should be_false
+      (status == :disposed).should be_false
       (status == Godot::AwaitState::Completed).should be_true
       (status == 42).should be_true
     end
@@ -37,6 +52,8 @@ describe "AwaitState and AwaitStatus(T)" do
       status = Godot::AwaitStatus(Int32).timed_out
       status.completed?.should be_false
       status.timed_out?.should be_true
+      status.freed?.should be_false
+      status.disposed?.should be_false
       status.ok?.should be_false
       status.status.should eq(Godot::AwaitState::TimedOut)
       status.value.should be_nil
@@ -44,6 +61,7 @@ describe "AwaitState and AwaitStatus(T)" do
 
       (status == :timed_out).should be_true
       (status == :completed).should be_false
+      (status == :freed).should be_false
       (status == Godot::AwaitState::TimedOut).should be_true
 
       expect_raises(Godot::TimeoutError) do
@@ -51,10 +69,35 @@ describe "AwaitState and AwaitStatus(T)" do
       end
     end
 
+    it "handles freed/disposed state and raises DisposedObjectError on value!" do
+      status = Godot::AwaitStatus(Int32).freed(12345_u64)
+      status.completed?.should be_false
+      status.timed_out?.should be_false
+      status.freed?.should be_true
+      status.disposed?.should be_true
+      status.ok?.should be_false
+      status.status.should eq(Godot::AwaitState::Freed)
+      status.instance_id.should eq(12345_u64)
+      status.value.should be_nil
+      status.value?.should be_nil
+
+      (status == :freed).should be_true
+      (status == :disposed).should be_true
+      (status == :completed).should be_false
+      (status == :timed_out).should be_false
+      (status == Godot::AwaitState::Freed).should be_true
+
+      ex = expect_raises(Godot::DisposedObjectError) do
+        status.value!
+      end
+      ex.instance_id.should eq(12345_u64)
+    end
+
     it "handles AwaitStatus(Nil)" do
       status = Godot::AwaitStatus(Nil).completed
       status.completed?.should be_true
       status.timed_out?.should be_false
+      status.freed?.should be_false
       status.value.should be_nil
       status.value!.should be_nil
       status.value?.should be_nil
@@ -64,6 +107,16 @@ describe "AwaitState and AwaitStatus(T)" do
       timed_out_status.timed_out?.should be_true
       expect_raises(Godot::TimeoutError) do
         timed_out_status.value!
+      end
+
+      freed_status = Godot::AwaitStatus(Nil).freed(999_u64)
+      freed_status.completed?.should be_false
+      freed_status.timed_out?.should be_false
+      freed_status.freed?.should be_true
+      freed_status.disposed?.should be_true
+      freed_status.value?.should be_nil
+      expect_raises(Godot::DisposedObjectError) do
+        freed_status.value!
       end
     end
 

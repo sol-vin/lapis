@@ -1,4 +1,177 @@
 module Godot
+  class RefCounted < Object
+    @_ref_initialized : Bool = false
+
+    # Idempotently calls `#init_ref` at most once on this `RefCounted` wrapper so
+    # stack-temporary `Ref<T>` conversions inside Godot `ptrcall` do not free it on return.
+    def ensure_ref_initialized! : Void
+      return if @_ref_initialized || @pointer.null?
+      @_ref_initialized = true
+      init_ref
+    end
+  end
+
+  # ===========================================================================
+  # Transient Physics Query & Collision RefCounted Ownership Protection
+  # ===========================================================================
+  # Godot C++ methods taking transient `const Ref<T> &` parameters (such as
+  # `PhysicsBody3D::test_move(..., r_collision)`, `intersect_ray_into(query, result)`,
+  # `intersect_shape_into(query, result)`) construct a stack-temporary `Ref<T>` inside
+  # `MethodBind::ptrcall` and do NOT store `Ref<T>` in a member variable.
+  # Calling `#ensure_ref_initialized!` upon creation transitions `refcount_init` from 1 -> 0 (`refcount == 1`),
+  # so `ptrcall`'s temporary `Ref<T>` increments `refcount` to 2 during the call and
+  # decrements it back to 1 on return instead of `memdelete`-ing the object mid-call.
+  {% for cls in [
+       KinematicCollision2D,
+       KinematicCollision3D,
+       PhysicsRayQueryParameters2D,
+       PhysicsRayQueryParameters3D,
+       PhysicsShapeQueryParameters2D,
+       PhysicsShapeQueryParameters3D,
+       PhysicsPointQueryParameters2D,
+       PhysicsPointQueryParameters3D,
+       PhysicsTestMotionParameters2D,
+       PhysicsTestMotionParameters3D,
+       PhysicsTestMotionResult2D,
+       PhysicsTestMotionResult3D,
+       PhysicsIntersectRayResult2D,
+       PhysicsIntersectRayResult3D,
+       PhysicsIntersectPointResult2D,
+       PhysicsIntersectPointResult3D,
+       PhysicsIntersectShapeResult2D,
+       PhysicsIntersectShapeResult3D,
+       PhysicsCastMotionResult2D,
+       PhysicsCastMotionResult3D,
+       PhysicsCollideShapeResult2D,
+       PhysicsCollideShapeResult3D,
+       PhysicsGetRestInfoResult2D,
+       PhysicsGetRestInfoResult3D,
+     ] %}
+    class {{cls.id}}
+      def self.create : self
+        inst = ::Godot.create(self)
+        inst.ensure_ref_initialized!
+        inst
+      end
+    end
+  {% end %}
+
+  class PhysicsBody2D < CollisionObject2D
+    def test_move(from : Transform2D, motion : Vector2, collision : KinematicCollision2D? = nil, safe_margin : Float64 = 0.08_f64, recovery_as_collision : Bool = false) : Bool
+      collision.try(&.ensure_ref_initialized!)
+      godot_bind(@@mb_test_move, "PhysicsBody2D", "test_move", 3322999442_i64)
+      val_0 = from
+      arg_0 = pointerof(val_0).as(Void*)
+      val_1 = motion
+      arg_1 = pointerof(val_1).as(Void*)
+      arg_ptr_2 = collision ? collision.pointer : Pointer(Void).null
+      arg_2 = pointerof(arg_ptr_2).as(Void*)
+      val_3 = safe_margin.to_f64
+      arg_3 = pointerof(val_3).as(Void*)
+      val_4 = recovery_as_collision
+      arg_4 = pointerof(val_4).as(Void*)
+      args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
+      godot_ptrcall_bool(@@mb_test_move, @pointer, args.to_unsafe.as(Void**))
+    end
+  end
+
+  class PhysicsBody3D < CollisionObject3D
+    def test_move(from : Transform3D, motion : Vector3, collision : KinematicCollision3D? = nil, safe_margin : Float64 = 0.001_f64, recovery_as_collision : Bool = false, max_collisions : Int64 = 1_i64) : Bool
+      collision.try(&.ensure_ref_initialized!)
+      godot_bind(@@mb_test_move, "PhysicsBody3D", "test_move", 2481691619_i64)
+      val_0 = from
+      arg_0 = pointerof(val_0).as(Void*)
+      val_1 = motion
+      arg_1 = pointerof(val_1).as(Void*)
+      arg_ptr_2 = collision ? collision.pointer : Pointer(Void).null
+      arg_2 = pointerof(arg_ptr_2).as(Void*)
+      val_3 = safe_margin.to_f64
+      arg_3 = pointerof(val_3).as(Void*)
+      val_4 = recovery_as_collision
+      arg_4 = pointerof(val_4).as(Void*)
+      val_5 = max_collisions.to_i64
+      arg_5 = pointerof(val_5).as(Void*)
+      args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5]
+      godot_ptrcall_bool(@@mb_test_move, @pointer, args.to_unsafe.as(Void**))
+    end
+  end
+
+  class PhysicsDirectSpaceState2D < Godot::Object
+    def intersect_ray_into(parameters : PhysicsRayQueryParameters2D, result : PhysicsIntersectRayResult2D) : Bool
+      parameters.ensure_ref_initialized!
+      result.ensure_ref_initialized!
+      godot_bind(@@mb_intersect_ray_into, "PhysicsDirectSpaceState2D", "intersect_ray_into", 2480877099_i64)
+      arg_ptr_0 = parameters ? parameters.pointer : Pointer(Void).null
+      arg_0 = pointerof(arg_ptr_0).as(Void*)
+      arg_ptr_1 = result ? result.pointer : Pointer(Void).null
+      arg_1 = pointerof(arg_ptr_1).as(Void*)
+      args = StaticArray[arg_0, arg_1]
+      godot_ptrcall_bool(@@mb_intersect_ray_into, @pointer, args.to_unsafe.as(Void**))
+    end
+
+    def intersect_point_into(parameters : PhysicsPointQueryParameters2D, result : PhysicsIntersectPointResult2D) : Bool
+      parameters.ensure_ref_initialized!
+      result.ensure_ref_initialized!
+      godot_bind(@@mb_intersect_point_into, "PhysicsDirectSpaceState2D", "intersect_point_into", 2338147429_i64)
+      arg_ptr_0 = parameters ? parameters.pointer : Pointer(Void).null
+      arg_0 = pointerof(arg_ptr_0).as(Void*)
+      arg_ptr_1 = result ? result.pointer : Pointer(Void).null
+      arg_1 = pointerof(arg_ptr_1).as(Void*)
+      args = StaticArray[arg_0, arg_1]
+      godot_ptrcall_bool(@@mb_intersect_point_into, @pointer, args.to_unsafe.as(Void**))
+    end
+
+    def intersect_shape_into(parameters : PhysicsShapeQueryParameters2D, result : PhysicsIntersectShapeResult2D) : Bool
+      parameters.ensure_ref_initialized!
+      result.ensure_ref_initialized!
+      godot_bind(@@mb_intersect_shape_into, "PhysicsDirectSpaceState2D", "intersect_shape_into", 1052395953_i64)
+      arg_ptr_0 = parameters ? parameters.pointer : Pointer(Void).null
+      arg_0 = pointerof(arg_ptr_0).as(Void*)
+      arg_ptr_1 = result ? result.pointer : Pointer(Void).null
+      arg_1 = pointerof(arg_ptr_1).as(Void*)
+      args = StaticArray[arg_0, arg_1]
+      godot_ptrcall_bool(@@mb_intersect_shape_into, @pointer, args.to_unsafe.as(Void**))
+    end
+  end
+
+  class PhysicsDirectSpaceState3D < Godot::Object
+    def intersect_ray_into(parameters : PhysicsRayQueryParameters3D, result : PhysicsIntersectRayResult3D) : Bool
+      parameters.ensure_ref_initialized!
+      result.ensure_ref_initialized!
+      godot_bind(@@mb_intersect_ray_into, "PhysicsDirectSpaceState3D", "intersect_ray_into", 1101524092_i64)
+      arg_ptr_0 = parameters ? parameters.pointer : Pointer(Void).null
+      arg_0 = pointerof(arg_ptr_0).as(Void*)
+      arg_ptr_1 = result ? result.pointer : Pointer(Void).null
+      arg_1 = pointerof(arg_ptr_1).as(Void*)
+      args = StaticArray[arg_0, arg_1]
+      godot_ptrcall_bool(@@mb_intersect_ray_into, @pointer, args.to_unsafe.as(Void**))
+    end
+
+    def intersect_point_into(parameters : PhysicsPointQueryParameters3D, result : PhysicsIntersectPointResult3D) : Bool
+      parameters.ensure_ref_initialized!
+      result.ensure_ref_initialized!
+      godot_bind(@@mb_intersect_point_into, "PhysicsDirectSpaceState3D", "intersect_point_into", 4224456912_i64)
+      arg_ptr_0 = parameters ? parameters.pointer : Pointer(Void).null
+      arg_0 = pointerof(arg_ptr_0).as(Void*)
+      arg_ptr_1 = result ? result.pointer : Pointer(Void).null
+      arg_1 = pointerof(arg_ptr_1).as(Void*)
+      args = StaticArray[arg_0, arg_1]
+      godot_ptrcall_bool(@@mb_intersect_point_into, @pointer, args.to_unsafe.as(Void**))
+    end
+
+    def intersect_shape_into(parameters : PhysicsShapeQueryParameters3D, result : PhysicsIntersectShapeResult3D) : Bool
+      parameters.ensure_ref_initialized!
+      result.ensure_ref_initialized!
+      godot_bind(@@mb_intersect_shape_into, "PhysicsDirectSpaceState3D", "intersect_shape_into", 2386936143_i64)
+      arg_ptr_0 = parameters ? parameters.pointer : Pointer(Void).null
+      arg_0 = pointerof(arg_ptr_0).as(Void*)
+      arg_ptr_1 = result ? result.pointer : Pointer(Void).null
+      arg_1 = pointerof(arg_ptr_1).as(Void*)
+      args = StaticArray[arg_0, arg_1]
+      godot_ptrcall_bool(@@mb_intersect_shape_into, @pointer, args.to_unsafe.as(Void**))
+    end
+  end
+
   # ===========================================================================
   # RayCast & ShapeCast Query Extensions
   # ===========================================================================
@@ -256,32 +429,41 @@ module Godot
       return nil if space.pointer.null?
 
       start_pos = from_pos || global_position
-      params = PhysicsRayQueryParameters2D.new
-      params.set_from(start_pos)
-      params.set_to(target_pos)
-      params.set_collision_mask(mask.to_i64)
-      params.set_collide_with_areas(collide_with_areas)
-      params.set_collide_with_bodies(collide_with_bodies)
+      params = PhysicsRayQueryParameters2D.create
+      return nil if params.pointer.null?
+      result = PhysicsIntersectRayResult2D.create
+      if result.pointer.null?
+        params.destroy
+        return nil
+      end
+      begin
+        params.set_from(start_pos)
+        params.set_to(target_pos)
+        params.set_collision_mask(mask.to_i64)
+        params.set_collide_with_areas(collide_with_areas)
+        params.set_collide_with_bodies(collide_with_bodies)
 
-      result = Godot.create(PhysicsIntersectRayResult2D)
-      return nil if result.pointer.null?
-      has_hit = space.intersect_ray_into(params, result)
-      return nil unless has_hit
+        has_hit = space.intersect_ray_into(params, result)
+        return nil unless has_hit
 
-      col = result.get_collider
-      valid_col = (col.nil? || col.pointer.null? || !col.alive?) ? nil : col
+        col = result.get_collider
+        valid_col = (col.nil? || col.pointer.null? || !col.alive?) ? nil : col
 
-      if exclude && !exclude.empty?
-        exclude.each do |ex|
-          if ex.is_a?(Godot::Object)
-            return nil if valid_col && ex.alive? && ex.object_id == valid_col.object_id
-          elsif ex.is_a?(Godot::RID)
-            return nil if ex.id == result.get_collider_rid.to_u64
+        if exclude && !exclude.empty?
+          exclude.each do |ex|
+            if ex.is_a?(Godot::Object)
+              return nil if valid_col && ex.alive? && ex.object_id == valid_col.object_id
+            elsif ex.is_a?(Godot::RID)
+              return nil if ex.id == result.get_collider_rid.to_u64
+            end
           end
         end
-      end
 
-      PhysicsHit2D.new(result.get_position, result.get_normal, valid_col, RID.new(result.get_collider_rid), result.get_collider_shape.to_i32)
+        PhysicsHit2D.new(result.get_position, result.get_normal, valid_col, RID.new(result.get_collider_rid), result.get_collider_shape.to_i32)
+      ensure
+        params.destroy
+        result.destroy
+      end
     end
 
     # Performs a direct 2D raycast in the given direction and distance.
@@ -307,32 +489,41 @@ module Godot
       return nil if space.pointer.null?
 
       start_pos = from_pos || global_position
-      params = PhysicsRayQueryParameters3D.new
-      params.set_from(start_pos)
-      params.set_to(target_pos)
-      params.set_collision_mask(mask.to_i64)
-      params.set_collide_with_areas(collide_with_areas)
-      params.set_collide_with_bodies(collide_with_bodies)
+      params = PhysicsRayQueryParameters3D.create
+      return nil if params.pointer.null?
+      result = PhysicsIntersectRayResult3D.create
+      if result.pointer.null?
+        params.destroy
+        return nil
+      end
+      begin
+        params.set_from(start_pos)
+        params.set_to(target_pos)
+        params.set_collision_mask(mask.to_i64)
+        params.set_collide_with_areas(collide_with_areas)
+        params.set_collide_with_bodies(collide_with_bodies)
 
-      result = Godot.create(PhysicsIntersectRayResult3D)
-      return nil if result.pointer.null?
-      has_hit = space.intersect_ray_into(params, result)
-      return nil unless has_hit
+        has_hit = space.intersect_ray_into(params, result)
+        return nil unless has_hit
 
-      col = result.get_collider
-      valid_col = (col.nil? || col.pointer.null? || !col.alive?) ? nil : col
+        col = result.get_collider
+        valid_col = (col.nil? || col.pointer.null? || !col.alive?) ? nil : col
 
-      if exclude && !exclude.empty?
-        exclude.each do |ex|
-          if ex.is_a?(Godot::Object)
-            return nil if valid_col && ex.alive? && ex.object_id == valid_col.object_id
-          elsif ex.is_a?(Godot::RID)
-            return nil if ex.id == result.get_collider_rid.to_u64
+        if exclude && !exclude.empty?
+          exclude.each do |ex|
+            if ex.is_a?(Godot::Object)
+              return nil if valid_col && ex.alive? && ex.object_id == valid_col.object_id
+            elsif ex.is_a?(Godot::RID)
+              return nil if ex.id == result.get_collider_rid.to_u64
+            end
           end
         end
-      end
 
-      PhysicsHit3D.new(result.get_position, result.get_normal, valid_col, RID.new(result.get_collider_rid), result.get_collider_shape.to_i32)
+        PhysicsHit3D.new(result.get_position, result.get_normal, valid_col, RID.new(result.get_collider_rid), result.get_collider_shape.to_i32)
+      ensure
+        params.destroy
+        result.destroy
+      end
     end
 
     # Performs a direct 3D raycast in the given direction and distance.

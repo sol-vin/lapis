@@ -35,8 +35,16 @@ module Lapis
         end
       end
 
-      # Extracts the lean embedded Lapis engine library into target directory (lib/lapis).
-      # Uses the isolated :engine volume exclusively, guaranteeing zero non-code bloat.
+      # Returns true if the target project directory already has lib/lapis, lib/cradare2, and lib/opal extracted.
+      def self.engine_libs_present?(project_dir : Path) : Bool
+        Dir.exists?(project_dir.join("lib/lapis/src")) &&
+          Dir.exists?(project_dir.join("lib/cradare2/src")) &&
+          Dir.exists?(project_dir.join("lib/opal/src"))
+      end
+
+      # Extracts the lean embedded Lapis engine library into target directory (lib/lapis)
+      # along with required runtime shard dependencies (lib/cradare2, lib/opal).
+      # Uses the isolated :engine, :cradare2, and :opal volumes exclusively, guaranteeing zero non-code bloat.
       def self.extract_engine_lib(target_lapis_dir : Path | String, overwrite : Bool = true) : Bool
         dest_lapis = Path.new(target_lapis_dir)
         engine_vol = fs.volume?(:engine)
@@ -44,6 +52,20 @@ module Lapis
 
         # Extract only genuine engine source files directly from :engine volume
         extract_volume(:engine, dest_lapis, overwrite: overwrite)
+
+        # Extract embedded cradare2 dependency into sibling lib/cradare2 directory
+        dest_cradare2 = dest_lapis.parent.join("cradare2")
+        if (cradare2_vol = fs.volume?(:cradare2)) && !cradare2_vol.empty?
+          extract_volume(:cradare2, dest_cradare2, overwrite: overwrite)
+          File.write(dest_cradare2.join(".gdignore"), "") unless File.exists?(dest_cradare2.join(".gdignore"))
+        end
+
+        # Extract embedded opal dependency into sibling lib/opal directory
+        dest_opal = dest_lapis.parent.join("opal")
+        if (opal_vol = fs.volume?(:opal)) && !opal_vol.empty?
+          extract_volume(:opal, dest_opal, overwrite: overwrite)
+          File.write(dest_opal.join(".gdignore"), "") unless File.exists?(dest_opal.join(".gdignore"))
+        end
 
         # Ensure .gdignore is present at both lib/ and lib/lapis/
         FileUtils.mkdir_p(dest_lapis.parent) unless Dir.exists?(dest_lapis.parent)

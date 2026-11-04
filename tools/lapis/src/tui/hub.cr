@@ -204,7 +204,7 @@ module Lapis
         in_project = File.exists?(curr.join("project.godot"))
         proj_name = in_project ? curr.basename : "Workspace Root (#{root.basename})"
         godot_exe = Core::GodotFinder.resolve(nil)
-        godot_ver = godot_exe ? (Core::GodotFinder.get_version(godot_exe) || "4.8-dev") : "Not Found"
+        godot_ver = godot_exe ? (Core::GodotFinder.get_version(godot_exe) || Core::GodotFinder::EMBEDDED_GODOT_VERSION) : "Not Found"
         platform_name = Core::Env.current_platform
         git_branch = Core::ProcessRunner.capture("git", ["branch", "--show-current"])[:output].strip rescue "main"
         git_branch = "main" if git_branch.empty?

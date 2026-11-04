@@ -584,6 +584,14 @@ HELP
               ]
               augmented_paths << sys_path unless sys_path.empty?
               spec_env["CRYSTAL_PATH"] = augmented_paths.join(sep)
+              if Core::Env.windows?
+                bin_paths = [
+                  target_dir.join("bin").to_s,
+                  root.join("bin").to_s,
+                  ENV["PATH"]? || "",
+                ].reject(&.empty?)
+                spec_env["PATH"] = bin_paths.join(sep)
+              end
 
               res = Core::ProcessRunner.run_with_capture(
                 "crystal",

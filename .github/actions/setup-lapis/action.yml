@@ -12,7 +12,7 @@ inputs:
     required: false
     default: "1.21.0"
   godot-version:
-    description: "Target Godot Engine version (resolved from godot-version.yml or defaults to 4.8-dev7)"
+    description: "Target Godot Engine version (resolved from godot-version.yml or defaults to 4.8-beta1)"
     required: false
     default: ""
 
@@ -37,7 +37,7 @@ runs:
         if [ -z "$GODOT_VER" ] && [ -f "godot-version.yml" ]; then
           GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' "godot-version.yml" | tr -d '\r\n[:space:]')
         fi
-        [ -z "$GODOT_VER" ] && GODOT_VER="4.8-dev7"
+        [ -z "$GODOT_VER" ] && GODOT_VER="4.8-beta1"
         echo "godot_version=$GODOT_VER" >> "$GITHUB_OUTPUT"
         echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
 

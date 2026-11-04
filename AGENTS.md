@@ -58,10 +58,10 @@ libgodot/
    - New examples must be scaffolded using `make new-example NAME=<name> [DIR=<path>]` (or `bin/lapis scaffold example <name>`).
    - New addons must be scaffolded using `make new-addon NAME=<name> [DIR=<path>] [AUTHOR="..."] [DESC="..."]` (or `bin/lapis scaffold addon <name>`).
    - All examples are compiled via `make examples`.
-5. **Git Branching & Master Branch Protection Invariant**:
-   - **NEVER Push to `master` Without Explicit Major Release Instruction**: The repository default branch (`master`) is strictly reserved for ceremonializing major stable releases.
-   - For all development milestones (`X.Y-devN`), alphas (`X.Y-alphaN`), betas (`X.Y-betaN`), and release candidates (`X.Y-rcN`), agents must **ONLY** push to the specific milestone branch (e.g. `git push origin 4.8-dev7`).
-   - Under no circumstances should `master` or floating release tags (`latest`) be pushed, fast-forwarded, or force-updated during intermediate milestone work or branch squashes unless the user explicitly and verbatim commands a major stable release.
+5. **Git Branching, Versioned GitHub Pages & Milestone Finalization Invariant**:
+   - **Active Milestone Branches (`X.Y-devN`, `X.Y-alphaN`, `X.Y-betaN`, `X.Y-rcN`)**: Ongoing development for the active Godot version lives on its corresponding version branch (e.g. `4.8-beta2`), which automatically deploys versioned documentation and benchmarks to `https://sol-vin.github.io/lapis/<version>/` (e.g. `https://sol-vin.github.io/lapis/4.8-beta2/`).
+   - **Finalizing the Previous Milestone into `master` on Version Upgrades**: Whenever upgrading `lapis` from a previous Godot version (`<PREV_VERSION>`, e.g. `4.8-beta1`) to a new Godot version (`<NEW_VERSION>`, e.g. `4.8-beta2`), agents **MUST FIRST pull/fast-forward `<PREV_VERSION>` into `master`** (`git checkout master && git merge --ff-only <PREV_VERSION>`), push `master` (`git push origin master`), and verify that the release and CI pass on `master` (updating both the finalized `<PREV_VERSION>` release, the `latest` release, and root docs at `https://sol-vin.github.io/lapis/`).
+   - **Branching the New Version from Finalized `master`**: Only after `<PREV_VERSION>` is pulled into `master` should `<NEW_VERSION>` be branched off `master`, pushed to `origin/<NEW_VERSION>`, and verified that its full CI, release, and versioned GitHub Pages deployment (`https://sol-vin.github.io/lapis/<NEW_VERSION>/`) pass 100%.
 
 ---
 

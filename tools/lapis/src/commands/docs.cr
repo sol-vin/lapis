@@ -39,6 +39,7 @@ Options:
   --generate-only           Compile YAML docs to Crystal classes without running crystal docs
   --skip-generate           Only apply CSS/JS patches to existing docs in output directory
   --github[=REPO]           Add GitHub source links (default: sol-vin/lapis)
+  --ref=REF                 Git branch/tag ref for GitHub source links (default: godot-version or master)
   --tui                     Launch interactive TUI documentation explorer
   -h, --help                Show this help screen
 
@@ -261,12 +262,15 @@ HELP
         skip_generate = args.includes?("--skip-generate")
         generate_only = args.includes?("--generate-only")
         github_repo : String? = nil
+        github_ref : String? = nil
         clean_args = [] of String
         args.each do |a|
           if a == "--github"
             github_repo = "sol-vin/lapis"
           elsif a.starts_with?("--github=")
             github_repo = a["--github=".size..-1]
+          elsif a.starts_with?("--ref=")
+            github_ref = a["--ref=".size..-1]
           else
             clean_args << a
           end
@@ -281,6 +285,7 @@ HELP
           opts.on("--generate-only", "Compile YAML docs to Crystal classes without running crystal docs") { generate_only = true }
           opts.on("--skip-generate", "Only patch existing docs") { skip_generate = true }
           opts.on("--github", "Add GitHub source links (default: sol-vin/lapis)") { }
+          opts.on("--ref=REF", "Git branch/tag ref for GitHub source links") { |r| github_ref = r }
           opts.on("-h", "--help", "Show help") { print_help; exit 0 }
         end
         parser.parse(clean_args)
@@ -343,7 +348,18 @@ HELP
           Core::Logger.step("Docs", "Generating HTML documentation from #{entry_file} -> #{docs_dir}...")
           docs_args = ["docs", entry_file, "-o", docs_dir.to_s]
           if repo = github_repo
-            docs_args << "--source-url-pattern=https://github.com/#{repo}/blob/master/%{path}#L%{line}"
+            ref_name = github_ref
+            if ref_name.nil? || ref_name.empty?
+              ver_file = root.join("godot-version.yml")
+              if File.exists?(ver_file)
+                if line = File.read_lines(ver_file).find(&.includes?("version:"))
+                  parsed_ver = line.split(":", 2)[1].gsub(/["'\r\n\t]/, "").strip
+                  ref_name = parsed_ver unless parsed_ver.empty?
+                end
+              end
+            end
+            ref_name = "master" if ref_name.nil? || ref_name.empty?
+            docs_args << "--source-url-pattern=https://github.com/#{repo}/blob/#{ref_name}/%{path}#L%{line}"
           end
 
           res = Core::ProcessRunner.run(

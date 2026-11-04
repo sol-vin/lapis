@@ -295,6 +295,7 @@ module Godot
 
     # Retain descriptions so their C strings and descriptors stay alive in memory
     @@registered_descs = Array(LibBridge::CrystalClassDesc).new
+    @@registered_desc_ptrs = Array(Pointer(LibBridge::CrystalClassDesc)).new
     # Active instance table rooting living Crystal nodes to protect against premature Boehm GC deallocation
     @@alive_instances = Hash(Void*, Godot::Object).new
     @@alive_instances_by_ptr = Hash(Void*, Godot::Object).new
@@ -347,7 +348,15 @@ module Godot
 
     def self.init(api : LibBridge::BridgeAPI*)
       @@api = api
-      return if @@initialized
+      if @@initialized
+        if !api.null? && !api.value.register_class.pointer.null?
+          @@registered_desc_ptrs.each do |desc_ptr|
+            api.value.register_class.call(desc_ptr)
+          end
+        end
+        Godot::EditorDocRegistry.load_all
+        return
+      end
       @@initialized = true
       debug "[CrystalBridge] Initializing Crystal runtime from game.dll..."
 
@@ -401,12 +410,12 @@ module Godot
         if entry = Godot::ClassRegistry.find(class_name)
           inst = entry.create_proc.call(godot_obj)
           Godot.log_internal("Bridge", "[create_fn] inst=#{inst.class.name} (#{inst}) for class_name='#{class_name}'")
-          inst.pointer = godot_obj
           boxed = Box(Godot::Object).box(inst)
           @@alive_mutex.synchronize do
             @@alive_instances[boxed] = inst
             @@alive_instances_by_ptr[godot_obj] = inst
           end
+          inst.pointer = godot_obj
           return boxed
         end
         Godot.printerr("[create_fn] FAILED: class '#{class_name}' not found in ClassRegistry!")
@@ -415,21 +424,24 @@ module Godot
 
       free_fn = ->(crystal_inst : Void*) {
         if !crystal_inst.null?
+          inst_to_clear : Godot::Object? = nil
           @@alive_mutex.synchronize do
             if inst = @@alive_instances.delete(crystal_inst)
               @@alive_instances_by_ptr.delete(inst.pointer)
+              inst_to_clear = inst
             end
+          end
+          if inst = inst_to_clear
+            tid = inst.signal_target_id
+            inst._mark_destroyed_by_engine!
+            Godot.clear_signal_subscriptions(tid, yield_awaiters: false)
           end
         end
       }
 
       virtual_fn = ->(crystal_inst : Void*, method_name : LibC::Char*, delta : Float64) {
         if !crystal_inst.null?
-          inst = if @@alive_mutex.synchronize { @@alive_instances.has_key?(crystal_inst) }
-                   @@alive_mutex.synchronize { @@alive_instances[crystal_inst]? }
-                 else
-                   Box(Godot::Object).unbox(crystal_inst) rescue nil
-                 end
+          inst = @@alive_mutex.synchronize { @@alive_instances[crystal_inst]? }
           if inst && inst.alive?
             m = String.new(method_name)
             if (m == "_ready" || m == "_enter_tree")
@@ -460,11 +472,7 @@ module Godot
 
       set_prop_fn = ->(crystal_inst : Void*, prop_name : LibC::Char*, val_ptr : Void*) {
         if !crystal_inst.null?
-          inst = if @@alive_mutex.synchronize { @@alive_instances.has_key?(crystal_inst) }
-                   @@alive_mutex.synchronize { @@alive_instances[crystal_inst]? }
-                 else
-                   Box(Godot::Object).unbox(crystal_inst) rescue nil
-                 end
+          inst = @@alive_mutex.synchronize { @@alive_instances[crystal_inst]? }
           if inst && inst.alive?
             inst._godot_set_property(String.new(prop_name), val_ptr)
           end
@@ -473,11 +481,7 @@ module Godot
 
       get_prop_fn = ->(crystal_inst : Void*, prop_name : LibC::Char*, ret_ptr : Void*) {
         if !crystal_inst.null?
-          inst = if @@alive_mutex.synchronize { @@alive_instances.has_key?(crystal_inst) }
-                   @@alive_mutex.synchronize { @@alive_instances[crystal_inst]? }
-                 else
-                   Box(Godot::Object).unbox(crystal_inst) rescue nil
-                 end
+          inst = @@alive_mutex.synchronize { @@alive_instances[crystal_inst]? }
           if inst && inst.alive?
             inst._godot_get_property(String.new(prop_name), ret_ptr)
           end
@@ -498,13 +502,9 @@ module Godot
         m_name = String.new(method_name)
         inst : Godot::Object? = nil
         if !crystal_inst.null?
-          inst = if @@alive_mutex.synchronize { @@alive_instances.has_key?(crystal_inst) }
-                   @@alive_mutex.synchronize { @@alive_instances[crystal_inst]? }
-                 else
-                   Box(Godot::Object).unbox(crystal_inst) rescue nil
-                 end
+          inst = @@alive_mutex.synchronize { @@alive_instances[crystal_inst]? }
         end
-        {% unless flag?(:release) || flag?(:libgodot_addon) || flag?(:no_editor) %}
+        {% if flag?(:editor) || (!flag?(:release) && !flag?(:libgodot_addon) && !flag?(:no_editor)) %}
           if !inst || !inst.is_a?(Godot::CrystalLanguage)
             if m_name == "_complete_code" || m_name == "complete_code" ||
                m_name == "_lookup_code" || m_name == "lookup_code" ||
@@ -535,11 +535,7 @@ module Godot
 
       call_tool_button_fn = ->(crystal_inst : Void*, btn_name : LibC::Char*) {
         if !crystal_inst.null?
-          inst = if @@alive_mutex.synchronize { @@alive_instances.has_key?(crystal_inst) }
-                   @@alive_mutex.synchronize { @@alive_instances[crystal_inst]? }
-                 else
-                   Box(Godot::Object).unbox(crystal_inst) rescue nil
-                 end
+          inst = @@alive_mutex.synchronize { @@alive_instances[crystal_inst]? }
           if inst && inst.alive?
             b_name = String.new(btn_name)
             begin
@@ -653,6 +649,7 @@ module Godot
         desc_ptr = Pointer(LibBridge::CrystalClassDesc).malloc(1)
         desc_ptr.value = desc
         @@registered_descs << desc
+        @@registered_desc_ptrs << desc_ptr
 
         debug "[CrystalBridge]   Calling api.register_class for #{entry.class_name}..."
         api.value.register_class.call(desc_ptr)
@@ -1054,6 +1051,9 @@ module Godot
         elsif arg.is_a?(Int)
           int_storage[idx] = arg.to_i64
           c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 2, data: (int_storage.to_unsafe + idx).as(Void*))
+        elsif arg.is_a?(Enum)
+          int_storage[idx] = arg.value.to_i64
+          c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 2, data: (int_storage.to_unsafe + idx).as(Void*))
         elsif arg.is_a?(Float)
           float_storage[idx] = arg.to_f64
           c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 3, data: (float_storage.to_unsafe + idx).as(Void*))
@@ -1117,6 +1117,9 @@ module Godot
         elsif arg.is_a?(Int)
           int_storage[idx] = arg.to_i64
           c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 2, data: (int_storage.to_unsafe + idx).as(Void*))
+        elsif arg.is_a?(Enum)
+          int_storage[idx] = arg.value.to_i64
+          c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 2, data: (int_storage.to_unsafe + idx).as(Void*))
         elsif arg.is_a?(Float)
           float_storage[idx] = arg.to_f64
           c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 3, data: (float_storage.to_unsafe + idx).as(Void*))
@@ -1169,6 +1172,9 @@ module Godot
           c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 1, data: (bool_storage.to_unsafe + idx).as(Void*))
         elsif arg.is_a?(Int)
           int_storage[idx] = arg.to_i64
+          c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 2, data: (int_storage.to_unsafe + idx).as(Void*))
+        elsif arg.is_a?(Enum)
+          int_storage[idx] = arg.value.to_i64
           c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 2, data: (int_storage.to_unsafe + idx).as(Void*))
         elsif arg.is_a?(Float)
           float_storage[idx] = arg.to_f64
@@ -1246,6 +1252,7 @@ module Godot
       v3_storage = StaticArray(Godot::Vector3, 16).new(Godot::Vector3.new)
       color_storage = StaticArray(Godot::Color, 16).new(Godot::Color.new)
       obj_storage = StaticArray(Void*, 16).new(Pointer(Void).null)
+      buf_storage = StaticArray(Tuple(Void*, Int64), 16).new({Pointer(Void).null, 0_i64})
 
       count = [args.size, 16].min
       args.each_with_index do |arg, idx|
@@ -1255,6 +1262,9 @@ module Godot
           c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 1, data: (bool_storage.to_unsafe + idx).as(Void*))
         elsif arg.is_a?(Int)
           int_storage[idx] = arg.to_i64
+          c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 2, data: (int_storage.to_unsafe + idx).as(Void*))
+        elsif arg.is_a?(Enum)
+          int_storage[idx] = arg.value.to_i64
           c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 2, data: (int_storage.to_unsafe + idx).as(Void*))
         elsif arg.is_a?(Float)
           float_storage[idx] = arg.to_f64
@@ -1273,9 +1283,110 @@ module Godot
         elsif arg.is_a?(Godot::Color)
           color_storage[idx] = arg
           c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 8, data: (color_storage.to_unsafe + idx).as(Void*))
+        elsif arg.is_a?(Godot::PackedByteArray)
+          arg.write_bridge_payload((buf_storage.to_unsafe + idx).as(Void*))
+          c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 29, data: (buf_storage.to_unsafe + idx).as(Void*))
+        elsif arg.is_a?(Godot::PackedInt32Array)
+          arg.write_bridge_payload((buf_storage.to_unsafe + idx).as(Void*))
+          c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 30, data: (buf_storage.to_unsafe + idx).as(Void*))
+        elsif arg.is_a?(Godot::PackedInt64Array)
+          arg.write_bridge_payload((buf_storage.to_unsafe + idx).as(Void*))
+          c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 31, data: (buf_storage.to_unsafe + idx).as(Void*))
+        elsif arg.is_a?(Godot::PackedFloat32Array)
+          arg.write_bridge_payload((buf_storage.to_unsafe + idx).as(Void*))
+          c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 32, data: (buf_storage.to_unsafe + idx).as(Void*))
+        elsif arg.is_a?(Godot::PackedFloat64Array)
+          arg.write_bridge_payload((buf_storage.to_unsafe + idx).as(Void*))
+          c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 33, data: (buf_storage.to_unsafe + idx).as(Void*))
+        elsif arg.is_a?(Godot::PackedStringArray)
+          arg.write_bridge_payload((buf_storage.to_unsafe + idx).as(Void*))
+          c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 34, data: (buf_storage.to_unsafe + idx).as(Void*))
+        elsif arg.is_a?(Godot::PackedVector2Array)
+          arg.write_bridge_payload((buf_storage.to_unsafe + idx).as(Void*))
+          c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 35, data: (buf_storage.to_unsafe + idx).as(Void*))
+        elsif arg.is_a?(Godot::PackedVector3Array)
+          arg.write_bridge_payload((buf_storage.to_unsafe + idx).as(Void*))
+          c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 36, data: (buf_storage.to_unsafe + idx).as(Void*))
+        elsif arg.is_a?(Godot::PackedColorArray)
+          arg.write_bridge_payload((buf_storage.to_unsafe + idx).as(Void*))
+          c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 37, data: (buf_storage.to_unsafe + idx).as(Void*))
+        elsif arg.is_a?(Godot::PackedVector4Array)
+          arg.write_bridge_payload((buf_storage.to_unsafe + idx).as(Void*))
+          c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 38, data: (buf_storage.to_unsafe + idx).as(Void*))
         end
       end
       yield c_args.to_unsafe, count
+    end
+
+    @@_array_args_keepalive = ::Array(LibBridge::VariantArg).new
+
+    def self.array_from_bridge_payload(payload_ptr : Void*, _elem_type : T.class) : ::Array(T) forall T
+      return ::Array(T).new if payload_ptr.null?
+      data_ptr = payload_ptr.as(Void**).value
+      count = (payload_ptr.as(UInt8*) + 8).as(Int64*).value
+      return ::Array(T).new if data_ptr.null? || count <= 0
+      {% begin %}
+        {% is_nilable = T.nilable? %}
+        {% non_nil_t = T.nilable? ? T.union_types.reject { |ut| ut == Nil }[0] : T %}
+        res = ::Array(T).new(count.to_i32)
+        elems = data_ptr.as(Pointer(LibBridge::VariantArg))
+        count.times do |i|
+          arg = elems[i]
+          {% if T == Variant %}
+            res << Variant.from_arg(arg)
+          {% elsif non_nil_t <= Godot::Object %}
+            ptr = arg.ptr_val
+            if ptr.null?
+              {% if is_nilable %}
+                res << nil
+              {% else %}
+                res << {{non_nil_t}}.new(Pointer(Void).null)
+              {% end %}
+            else
+              inst = find_alive_instance(ptr).as?({{non_nil_t}}) || {{non_nil_t}}.new(ptr)
+              res << inst
+            end
+          {% elsif non_nil_t == Int32 %}
+            res << arg.int_val.to_i32
+          {% elsif non_nil_t == Int64 %}
+            res << arg.int_val
+          {% elsif non_nil_t == Float32 %}
+            res << arg.float_val.to_f32
+          {% elsif non_nil_t == Float64 %}
+            res << arg.float_val
+          {% elsif non_nil_t == Bool %}
+            res << (arg.int_val != 0)
+          {% elsif non_nil_t == String %}
+            res << (arg.ptr_val.null? ? "" : String.new(arg.ptr_val.as(LibC::Char*)))
+          {% elsif non_nil_t == Godot::Vector2 %}
+            res << Godot::Vector2.new(arg.vec_val[0], arg.vec_val[1])
+          {% elsif non_nil_t == Godot::Vector2i %}
+            res << Godot::Vector2i.new(arg.vec_val[0].to_i32, arg.vec_val[1].to_i32)
+          {% elsif non_nil_t == Godot::Vector3 %}
+            res << Godot::Vector3.new(arg.vec_val[0], arg.vec_val[1], arg.vec_val[2])
+          {% elsif non_nil_t == Godot::Vector3i %}
+            res << Godot::Vector3i.new(arg.vec_val[0].to_i32, arg.vec_val[1].to_i32, arg.vec_val[2].to_i32)
+          {% elsif non_nil_t == Godot::Color %}
+            res << Godot::Color.new(arg.vec_val[0], arg.vec_val[1], arg.vec_val[2], arg.vec_val[3])
+          {% else %}
+            v = Variant.from_arg(arg)
+            if casted = v.raw.as?(T)
+              res << casted
+            end
+          {% end %}
+        end
+        res
+      {% end %}
+    end
+
+    def self.write_array_bridge_payload(arr : ::Array(T), ret_ptr : Void*) : Void forall T
+      return if ret_ptr.null?
+      @@_array_args_keepalive.clear
+      arr.each do |item|
+        @@_array_args_keepalive << Variant.value_to_arg(item)
+      end
+      ret_ptr.as(Void**).value = @@_array_args_keepalive.empty? ? Pointer(Void).null : @@_array_args_keepalive.to_unsafe.as(Void*)
+      (ret_ptr.as(UInt8*) + 8).as(Int64*).value = arr.size.to_i64
     end
 
     def self.object_call(godot_obj : Void*, method_name : String, *args) : Void
@@ -1364,10 +1475,9 @@ module Godot
 
     def self.find_alive_instance(godot_obj : Void*) : Godot::Object?
       return nil if godot_obj.null?
-      return nil unless is_object_valid(godot_obj)
       @@alive_mutex.synchronize do
         if inst = @@alive_instances_by_ptr[godot_obj]?
-          if inst.destroyed? || (inst.instance_id > 0 && !is_instance_valid(inst.instance_id))
+          if !inst.active? || (inst.instance_id > 0 && !is_instance_valid(inst.instance_id)) || (!@@api.null? && !is_object_valid(godot_obj))
             @@alive_instances_by_ptr.delete(godot_obj)
             return nil
           end
@@ -1751,6 +1861,11 @@ fun crystal_godot_init(api : Godot::LibBridge::BridgeAPI*) : Void
   if Godot::Bridge.init_done?
     Godot::Bridge.init(api)
     Godot::ThreadSafety.record_main_thread!
+    {% if flag?(:editor) || (!flag?(:release) && !flag?(:libgodot_addon) && !flag?(:no_editor)) %}
+      Godot::CrystalLanguage.ensure_registered rescue nil
+      Godot::ResourceFormatLoaderCrystal.ensure_registered rescue nil
+      Godot::ResourceFormatSaverCrystal.ensure_registered rescue nil
+    {% end %}
     return
   end
   Godot::Bridge.init_done = true
@@ -1789,7 +1904,7 @@ fun crystal_godot_init(api : Godot::LibBridge::BridgeAPI*) : Void
   {% unless flag?(:release) %}
     Godot::Debugger::Agent.initialize_agent rescue nil
   {% end %}
-  {% unless flag?(:release) || flag?(:libgodot_addon) || flag?(:no_editor) %}
+  {% if flag?(:editor) || (!flag?(:release) && !flag?(:libgodot_addon) && !flag?(:no_editor)) %}
     Godot::CrystalLanguage.ensure_registered rescue nil
     Godot::ResourceFormatLoaderCrystal.ensure_registered rescue nil
     Godot::ResourceFormatSaverCrystal.ensure_registered rescue nil

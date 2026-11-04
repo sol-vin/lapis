@@ -64,10 +64,10 @@ To keep repository history clean and prevent GitHub from reporting "200+ commits
 2. **Active milestone branches may accumulate iterative commits during development**:
    - Granular commits are permitted while features and fixes are actively being verified on CI.
    - Upon finalization and tagging, all iterative commits are squashed down into the single milestone commit.
-3. **Branch & Tag Isolation**:
-   - The milestone branch (e.g. `4.8-dev7`) and its release tag point to the exact same squashed commit hash.
-   - **`master` Branch Protection**: The repository default branch (`master`) is strictly reserved for ceremonializing major stable releases. NEVER push, fast-forward, or force-update `master` or the `latest` tag during regular development milestone squashes (`dev`, `alpha`, `beta`, `rc`).
-   - Only update `master` when the user explicitly instructs that a major stable release is being published.
+3. **Branch, Tag & `master` Finalization Lifecycle**:
+   - The milestone branch (e.g. `4.8-beta2`) and its release tag point to the exact same squashed commit hash.
+   - Committing to a milestone branch automatically builds and deploys version-isolated documentation and benchmarks to `https://sol-vin.github.io/lapis/<VERSION>/` (e.g. `https://sol-vin.github.io/lapis/4.8-beta2/`).
+   - **`master` Finalization on Version Upgrade**: While a milestone is active, day-to-day commits stay on the active milestone branch (`<VERSION>`). When upgrading `lapis` to the *next* Godot version (`<NEW_VERSION>`), you **MUST FIRST pull/fast-forward the completed `<PREVIOUS_VERSION>` branch into `master`** (`git checkout master && git merge --ff-only <PREVIOUS_VERSION>`), push `origin/master`, and verify that CI and the release pass on `master` before cutting `<NEW_VERSION>` from `master`.
 
 ```mermaid
 gitGraph
@@ -200,28 +200,32 @@ git diff ORIG_HEAD HEAD
 # Expected: (empty)
 ```
 
-### Step 6: Push to Remote & Tags
-Force-push the finalized milestone branch and its release tag to GitHub (do NOT push to `master`):
+### Step 6: Push to Remote & Verify CI / Versioned Docs
+Force-push the milestone branch and its release tag to GitHub, then verify the `Release` workflow and versioned GitHub Pages (`https://sol-vin.github.io/lapis/<VERSION>/`) pass:
 ```powershell
 git push -f origin <VERSION>
 git push -f origin refs/tags/<VERSION>
-
-# IMPORTANT: NEVER push to master or latest tag!
-# master is strictly reserved for ceremonializing major stable releases.
 ```
 
 ---
 
-## 4. Starting a New Milestone Branch
+## 4. Upgrading to a New Milestone Version (Finalizing Previous Milestone on `master`)
 
-When transitioning from a finalized milestone (e.g. `4.8-dev7`) to the next milestone (e.g. `4.8-alpha1` or `4.8-dev8`):
+When transitioning from a completed milestone (e.g. `4.8-beta1`) to the next Godot version (e.g. `4.8-beta2`):
 
-1. **Check Out from Previous Finalized Milestone**:
+1. **Pull the Previous Milestone into `master` to Finalize It**:
    ```powershell
-   git checkout -b <NEW_VERSION> <PREVIOUS_VERSION>
+   git checkout master
+   git merge --ff-only <PREVIOUS_VERSION>
+   git push origin master
    ```
-2. **Update Version Configuration**:
-   - Update `godot-version.yml`:
+   - Wait for and verify that the `Release` workflow on `master` passes 100%, publishing the finalized `<PREVIOUS_VERSION>` / `latest` release and deploying root docs (`https://sol-vin.github.io/lapis/`) and `https://sol-vin.github.io/lapis/<PREVIOUS_VERSION>/`.
+2. **Check Out the New Milestone Branch from `master`**:
+   ```powershell
+   git checkout -b <NEW_VERSION> master
+   ```
+3. **Update Version Configuration**:
+   - Update `godot-version.yml`, `template/godot-version.yml`, and `template-addon/godot-version.yml`:
      ```yaml
      version: "<NEW_VERSION>"
      ```
@@ -229,16 +233,21 @@ When transitioning from a finalized milestone (e.g. `4.8-dev7`) to the next mile
      ```c
      #define LIBGODOT_TARGET_VERSION "<NEW_VERSION>"
      ```
-   - If Lapis CLI has a new release, bump `version` in `tools/lapis/shard.yml` and `tools/lapis/src/version.cr`.
-3. **Verify Version Alignment**:
+   - Update default `godot-version` and `lapis-ref` in `.github/workflows/reusable-lapis-ci.yml`, `.github/workflows/build-addon.yml`, `.github/workflows/build-game.yml`, `.github/actions/*/action.yml`, and `tools/lapis/src/ci/dsl.cr`.
+4. **Verify Version Alignment & Specs**:
    ```powershell
    crystal run spec/godot_version_verification_spec.cr
+   crystal spec tools/lapis/spec/
    ```
-4. **Create Initial Milestone Commit & Push Tracking Branch**:
+5. **Create Single Milestone Commit, Push & Verify CI**:
    ```powershell
-   git commit -am "chore: start <NEW_VERSION> development cycle"
+   git add -A
+   git commit -m "feat: Godot <NEW_VERSION> release"
+   git tag -f <NEW_VERSION> HEAD
    git push -u origin <NEW_VERSION>
+   git push -f origin refs/tags/<NEW_VERSION>
    ```
+   - Verify that the `Release` workflow on `<NEW_VERSION>` passes 100% and deploys `https://sol-vin.github.io/lapis/<NEW_VERSION>/`.
 
 ---
 

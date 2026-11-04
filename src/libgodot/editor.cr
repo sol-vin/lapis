@@ -159,6 +159,8 @@ module Lapis
         Lapis::Editor::StatePreserver.restore_edited_scene
 
         unless self.class.headless_suppressed?
+          self.class.prune_orphaned_script_tabs
+          self.class.sanitize_script_editor_cache
           self.class.ensure_highlighter_registered
           self.class.setup_toolbar_button
           self.class.setup_new_script_button
@@ -168,7 +170,13 @@ module Lapis
           self.class.link_scripts_in_edited_scene
           self.class.refresh_inspector_deferred
           connect("scene_changed") do |_args|
+            self.class.prune_orphaned_script_tabs
+            self.class.sanitize_script_editor_cache
             self.class.link_scripts_in_edited_scene
+          end
+          connect("scene_saved") do |_args|
+            self.class.prune_orphaned_script_tabs
+            self.class.sanitize_script_editor_cache
           end
         end
         self.call("set_process", true) rescue nil
@@ -420,9 +428,151 @@ module Lapis
 
     CRYSTAL_ICON_SVG = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 193.2 206.7' width='16' height='16'><path fill='#e0e0e0' d='m165.4 122-50 49.9c-.2.2-.5.3-.7.2l-68.3-18.3c-.3-.1-.5-.3-.5-.5L27.5 85.1c-.1-.3 0-.5.2-.7l50-49.9c.2-.2.5-.3.7-.2l68.3 18.3c.3.1.5.3.5.5l18.3 68.2c.2.3.1.5-.1.7zm-67-54.3L31.3 85.6c-.1 0-.2.2-.1.3l49.1 49c.1.1.3.1.3-.1l18-67c.1 0-.1-.2-.2-.1z'/></svg>"
 
+    # Checks whether a script resource path (including built-in scene sub-resources like res://scene.tscn::GDScript_xxx) still exists on disk
+    def self.script_path_valid?(proj_root : String, res_path : String) : Bool
+      return false if res_path.empty?
+      if res_path.includes?("::")
+        parts = res_path.split("::", 2)
+        scene_res = parts[0]
+        sub_id = parts[1]? || ""
+        return false if scene_res.empty? || sub_id.empty?
+        disk_scene = "#{proj_root}/#{scene_res.sub(/^res:\/\//, "")}"
+        return false unless File.exists?(disk_scene)
+        scene_content = File.read(disk_scene) rescue ""
+        return scene_content.includes?("id=\"#{sub_id}\"") || scene_content.includes?("id='#{sub_id}'")
+      elsif res_path.starts_with?("res://")
+        disk_path = "#{proj_root}/#{res_path.sub(/^res:\/\//, "")}"
+        return File.exists?(disk_path)
+      end
+      true
+    rescue
+      true
+    end
+
+    # Clears resource_path on any in-memory ScriptEditor open scripts whose backing file or ::GDScript_* sub-resource no longer exists,
+    # preventing GDScriptLanguage::reload_scripts (gdscript.cpp:2564) from failing with `Condition "fresh.is_null()" is true`.
+    def self.prune_orphaned_script_tabs : Void
+      return if headless_suppressed?
+      return if Godot::ProjectSettings.singleton_ptr.null? || Godot::EditorInterface.singleton_ptr.null?
+      ps = Godot::ProjectSettings.new(Godot::ProjectSettings.singleton_ptr)
+      proj_root = ps.call_str("globalize_path", "res://").gsub('\\', '/').chomp('/')
+      return if proj_root.empty?
+
+      ed_interface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
+      script_editor = ed_interface.get_script_editor rescue nil
+      return unless script_editor && !script_editor.pointer.null?
+
+      open_scripts = script_editor.call_obj("get_open_scripts") rescue nil
+      return unless open_scripts && !open_scripts.pointer.null?
+
+      count = open_scripts.call_i64("size") rescue 0_i64
+      count.times do |i|
+        scr = open_scripts.call_obj("get", i) rescue nil
+        next unless scr && !scr.pointer.null?
+        rpath = (scr.call_str("get_path") rescue "").strip
+        next if rpath.empty?
+        unless script_path_valid?(proj_root, rpath)
+          scr.call("set_path", "") rescue nil
+          Godot.log_debug("Editor", "[CrystalIntegrationPlugin] Detached orphaned script path '#{rpath}' from live Script resource.")
+        end
+      end
+    rescue
+    end
+
+    # Rewrites any cached "syntax_highlighter": "Plain Text" / "Standard" entries for .cr files in script_editor_cache.cfg
+    # and removes orphaned script entries (such as deleted scripts or removed ::GDScript_* sub-resources) from editor cache files.
+    def self.sanitize_script_editor_cache : Void
+      return if Godot::ProjectSettings.singleton_ptr.null?
+      ps = Godot::ProjectSettings.new(Godot::ProjectSettings.singleton_ptr)
+      proj_root = ps.call_str("globalize_path", "res://").gsub('\\', '/').chomp('/')
+      return if proj_root.empty?
+
+      cache_file = "#{proj_root}/.godot/editor/script_editor_cache.cfg"
+      if File.exists?(cache_file)
+        content = File.read(cache_file) rescue ""
+        unless content.empty?
+          in_cr_section = false
+          skip_section = false
+          modified = false
+          new_lines = [] of String
+          content.each_line do |line|
+            trimmed = line.strip
+            if trimmed.starts_with?("[") && trimmed.ends_with?("]")
+              sec_path = trimmed[1...-1].strip
+              if !script_path_valid?(proj_root, sec_path)
+                skip_section = true
+                modified = true
+                next
+              else
+                skip_section = false
+                in_cr_section = sec_path.ends_with?(".cr")
+              end
+            elsif skip_section
+              next
+            elsif in_cr_section && trimmed.includes?("\"syntax_highlighter\":")
+              if trimmed.includes?("\"Plain Text\"") || trimmed.includes?("\"Standard\"")
+                modified = true
+                line = line.gsub("\"Plain Text\"", "\"Crystal\"").gsub("\"Standard\"", "\"Crystal\"")
+              end
+            end
+            new_lines << line
+          end
+          if modified
+            File.write(cache_file, new_lines.join("\n") + "\n") rescue nil
+          end
+        end
+      end
+
+      layout_file = "#{proj_root}/.godot/editor/editor_layout.cfg"
+      if File.exists?(layout_file)
+        lcontent = File.read(layout_file) rescue ""
+        unless lcontent.empty?
+          lmodified = false
+          in_script_editor = false
+          valid_first_script = ""
+          lnew_lines = lcontent.lines.map do |line|
+            trimmed = line.strip
+            if trimmed.starts_with?("[") && trimmed.ends_with?("]")
+              in_script_editor = (trimmed == "[ScriptEditor]")
+              line
+            elsif in_script_editor && trimmed.starts_with?("open_scripts=[") && trimmed.ends_with?("]")
+              inner = trimmed["open_scripts=[".size...-1]
+              items = inner.split(',').map(&.strip).reject(&.empty?)
+              kept = [] of String
+              items.each do |raw_item|
+                unquoted = raw_item.strip('"')
+                if script_path_valid?(proj_root, unquoted)
+                  kept << raw_item
+                  valid_first_script = unquoted if valid_first_script.empty?
+                else
+                  lmodified = true
+                end
+              end
+              "open_scripts=[#{kept.join(", ")}]"
+            elsif in_script_editor && trimmed.starts_with?("selected_script=\"") && trimmed.ends_with?("\"")
+              sel_path = trimmed["selected_script=\"".size...-1]
+              if !sel_path.empty? && !script_path_valid?(proj_root, sel_path)
+                lmodified = true
+                "selected_script=\"#{valid_first_script}\""
+              else
+                line
+              end
+            else
+              line
+            end
+          end
+          if lmodified
+            File.write(layout_file, lnew_lines.join("\n") + "\n") rescue nil
+          end
+        end
+      end
+    rescue
+    end
+
     # Ensures syntax highlighter is registered with ScriptEditor
     def self.ensure_highlighter_registered : Void
       return if headless_suppressed?
+      return if @@building || @@reload_pending || @@cleaning_up || Godot::Bridge.reloading?
       if (h = @@crystal_highlighter)
         if !h.pointer.null? && h.alive? && Bridge.is_object_valid(h.pointer)
           return
@@ -430,11 +580,19 @@ module Lapis
           @@crystal_highlighter = nil
         end
       end
+      cdb_ptr = Bridge.get_singleton("ClassDB")
+      return if cdb_ptr.null?
+      cdb = Godot::ClassDB.new(cdb_ptr)
+      return unless (cdb.class_exists("CrystalHighlighter") rescue false)
+
+      sanitize_script_editor_cache
+
       if !Godot::EditorInterface.singleton_ptr.null?
         ed_interface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
         script_editor = ed_interface.get_script_editor rescue nil
         if script_editor && !script_editor.pointer.null?
-          if highlighter = Godot.create(Godot::CrystalHighlighter)
+          highlighter = Godot.create(Godot::CrystalHighlighter) rescue nil
+          if highlighter && !highlighter.pointer.null? && highlighter.alive? && Bridge.is_object_valid(highlighter.pointer)
             @@crystal_highlighter = highlighter
             script_editor.register_syntax_highlighter(highlighter) rescue nil
             apply_highlighter_if_needed
@@ -697,6 +855,7 @@ module Lapis
            "_get_plugin_name", "get_plugin_name",
            "_get_plugin_icon", "get_plugin_icon",
            "_make_visible", "make_visible",
+           "_save_external_data", "save_external_data",
            "_build", "build"
         true
       else
@@ -722,6 +881,9 @@ module Lapis
       when "_make_visible", "make_visible"
         visible = !args.null? && !args[0].null? && (args[0].as(UInt8*).value != 0_u8)
         make_crystal_panel_visible(visible)
+      when "_save_external_data", "save_external_data"
+        self.class.prune_orphaned_script_tabs
+        self.class.sanitize_script_editor_cache
       when "_build", "build"
         return if ret.null?
         success = _build
@@ -801,6 +963,10 @@ module Lapis
     end
 
     def self.reset_toolbar_button : Void
+      @@building = false
+      @@reload_pending = false
+      @@reload_watchdog = 0.0_f64
+      Godot::Bridge.set_reloading(false)
       return if headless_suppressed?
       return unless has_editor_interface?
       return if Godot::EditorInterface.singleton_ptr.null?
@@ -812,10 +978,6 @@ module Lapis
       if existing && !existing.pointer.null?
         btn = Godot::Button.new(existing.pointer)
         @@compile_button = btn
-        @@building = false
-        @@reload_pending = false
-        @@reload_watchdog = 0.0_f64
-        Godot::Bridge.set_reloading(false)
         btn.call("set_disabled", false) rescue nil
         btn.call("set_text", "Build") rescue nil
         Godot.clear_signal_subscriptions(btn.signal_target_id)
@@ -2088,6 +2250,49 @@ module Lapis
       end
     end
 
+    @@cached_base_crystal_path : String? = nil
+    SKIP_GD_SCAN_DIRS = Set{"addons", "lib", ".godot", ".git", "tools", "bin", "docs", "dist", "benchmarks", "scratch", "examples", "template", "template-addon", "performance", "test"}
+
+    # Recursively finds custom .gd files in the project, excluding lib/, addons/, .godot/, tools/, bin/, etc.
+    def self.find_custom_gd_files(dir : String = ".", out_files : Array(String) = [] of String) : Array(String)
+      return out_files unless Dir.exists?(dir)
+      Dir.each_child(dir) do |entry|
+        next if SKIP_GD_SCAN_DIRS.includes?(entry)
+        child = dir == "." ? entry : File.join(dir, entry)
+        info = File.info?(child, follow_symlinks: false)
+        next unless info
+        next if info.symlink?
+        if info.directory?
+          find_custom_gd_files(child, out_files)
+        elsif entry.ends_with?(".gd") && entry != "dump_project_nodes.gd"
+          out_files << child.gsub('\\', '/')
+        end
+      end
+      out_files
+    rescue
+      out_files
+    end
+
+    # Copies src to dst only if dst does not exist or differs in size/modification_time
+    def self.copy_if_changed(src : String, dst : String) : Bool
+      return false unless File.exists?(src)
+      return true if File.expand_path(src) == File.expand_path(dst)
+      src_info = File.info?(src)
+      return false unless src_info
+      if File.exists?(dst)
+        if dst_info = File.info?(dst)
+          if src_info.size == dst_info.size && src_info.modification_time <= dst_info.modification_time
+            return false
+          end
+        end
+      end
+      File.copy(src, dst)
+      File.touch(dst, src_info.modification_time) rescue nil
+      true
+    rescue
+      false
+    end
+
     # Builds an environment Hash with properly configured CRYSTAL_PATH
     # ensuring libgodot and local shards can be resolved from anywhere.
     def self.build_compiler_env : Hash(String, String)
@@ -2121,12 +2326,17 @@ module Lapis
         end
       end
 
-      # 3. Query base CRYSTAL_PATH from crystal compiler if not already present
+      # 3. Query base CRYSTAL_PATH from crystal compiler once and cache in memory
       base_crystal_path = env["CRYSTAL_PATH"]?
       if base_crystal_path.nil? || base_crystal_path.empty?
-        io = IO::Memory.new
-        if (Process.run("crystal", ["env", "CRYSTAL_PATH"], output: io) rescue nil).try(&.success?)
-          base_crystal_path = io.to_s.strip
+        if cached = @@cached_base_crystal_path
+          base_crystal_path = cached
+        else
+          io = IO::Memory.new
+          if (Process.run("crystal", ["env", "CRYSTAL_PATH"], output: io) rescue nil).try(&.success?)
+            base_crystal_path = io.to_s.strip
+            @@cached_base_crystal_path = base_crystal_path unless base_crystal_path.empty?
+          end
         end
       end
 
@@ -2180,7 +2390,7 @@ module Lapis
         # Check if any .cr file inside the addon was modified after target_bin
         needs_recompile = !File.exists?(target_bin)
         unless needs_recompile
-          Dir.glob(File.join(addon_path, "**", "*.cr").gsub('\\', '/')).each do |src_file|
+          Dir.glob(File.join(addon_path, "src", "**", "*.cr").gsub('\\', '/')).each do |src_file|
             if File.info(src_file).modification_time > target_mtime
               needs_recompile = true
               break
@@ -2205,7 +2415,10 @@ module Lapis
                      Godot.print("[CrystalIntegrationPlugin] Running: #{lapis_bin} #{lapis_args.join(" ")}")
                      Process.run(File.expand_path(lapis_bin), lapis_args, env: compiler_env, output: out_io, error: err_io)
                    else
-                     args = ["build", "--single-module", "--link-flags", link_flags]
+                     args = ["build", "--link-flags", link_flags]
+                     {% if flag?(:linux) %}
+                       args << "--single-module"
+                     {% end %}
                      {% unless flag?(:windows) %}
                        args << "-Dwithout_mt"
                      {% end %}
@@ -2250,22 +2463,14 @@ module Lapis
         out_json = "src/generated/project_nodes.json"
         out_dir = "src/generated/project_nodes"
 
-        gd_files = [] of String
-        Dir.glob("**/*.gd").each do |f|
-          clean_f = f.gsub('\\', '/')
-          next if clean_f.starts_with?(".godot/")
-          next if clean_f.starts_with?("addons/")
-          next if clean_f.starts_with?("tools/")
-          next if clean_f == "scripts/dump_project_nodes.gd"
-          gd_files << clean_f
-        end
+        gd_files = find_custom_gd_files(".")
 
         if gd_files.empty?
-          # Clean out any stale generated bindings if no GDScript files remain
+          # Clean out any stale generated bindings if no GDScript files remain, preserving all_project_nodes.cr mtime
           if Dir.exists?(out_dir)
             cleaned = false
             Dir.each_child(out_dir) do |child|
-              next if child == "all_project_nodes.cr"
+              next if child == "all_project_nodes.cr" || child == ".bind_manifest.json"
               child_path = File.join(out_dir, child)
               begin
                 if File.file?(child_path)
@@ -2279,11 +2484,9 @@ module Lapis
               end
             end
             manifest_path = File.join(out_dir, "all_project_nodes.cr")
-            if File.exists?(manifest_path)
-              File.write(manifest_path, "# Generated All Project Custom Nodes Manifest\n")
-            end
-            if File.exists?(out_json)
-              File.delete(out_json) rescue nil
+            expected_manifest = "# Generated All Project Custom Nodes Manifest\n"
+            if !File.exists?(manifest_path) || (cleaned && (File.read(manifest_path) rescue "") != expected_manifest)
+              File.write(manifest_path, expected_manifest)
             end
             if cleaned
               Godot.print("[CrystalIntegrationPlugin] Cleaned stale generated bindings in #{out_dir} (no project GDScript files found).")
@@ -2292,7 +2495,8 @@ module Lapis
           return
         end
 
-        # Fast cache check: skip redundant headless Godot dump and Crystal run if bindings are up to date
+        # Fast cache check: if .bind_manifest.json exists, let `lapis bind project` handle signature digest verification;
+        # or if newest .gd mtime <= out_json mtime, return immediately without spawning any process.
         manifest_path = File.join(out_dir, "all_project_nodes.cr")
         if File.exists?(out_json) && File.exists?(manifest_path)
           json_mtime = File.info(out_json).modification_time
@@ -2300,6 +2504,16 @@ module Lapis
           if newest_gd && newest_gd <= json_mtime
             return
           end
+        end
+
+        lapis_candidates = [
+          "bin/lapis.exe", "bin/lapis",
+          "../bin/lapis.exe", "../bin/lapis",
+          "../../bin/lapis.exe", "../../bin/lapis",
+        ]
+        if lapis_bin = (lapis_candidates.find { |p| File.exists?(p) } || Process.find_executable("lapis"))
+          Process.run(File.expand_path(lapis_bin), ["bind", "project", "-p", "."], output: Process::Redirect::Close, error: Process::Redirect::Close) rescue nil
+          return
         end
 
         dump_script = ["scripts/dump_project_nodes.gd", "tools/api_generator/dump_project_nodes.gd", "../tools/api_generator/dump_project_nodes.gd"].find { |p| File.exists?(p) }
@@ -2320,23 +2534,7 @@ module Lapis
 
         Godot.print("[CrystalIntegrationPlugin] Updating project GDScript bindings for #{gd_files.size} script(s)...")
         Dir.mkdir_p("src/generated") unless Dir.exists?("src/generated")
-
-        # Clean out old generated bindings folder before regen
-        if Dir.exists?(out_dir)
-          Dir.each_child(out_dir) do |child|
-            child_path = File.join(out_dir, child)
-            begin
-              if File.file?(child_path)
-                File.delete(child_path)
-              elsif File.directory?(child_path)
-                FileUtils.rm_rf(child_path)
-              end
-            rescue
-            end
-          end
-        else
-          Dir.mkdir_p(out_dir)
-        end
+        Dir.mkdir_p(out_dir) unless Dir.exists?(out_dir)
 
         Process.run(godot_exe, ["--headless", "-s", "res://scripts/dump_project_nodes.gd", "--", "--output", out_json], output: Process::Redirect::Close, error: Process::Redirect::Close) rescue nil
 
@@ -2349,7 +2547,6 @@ module Lapis
         end
 
         # Guarantee manifest exists even if generation was empty
-        manifest_path = File.join(out_dir, "all_project_nodes.cr")
         if !File.exists?(manifest_path)
           File.write(manifest_path, "# Generated All Project Custom Nodes Manifest\n")
         end
@@ -2417,7 +2614,9 @@ module Lapis
                  if is_release
                    args << "--release"
                  else
-                   args << "--single-module"
+                   {% if flag?(:linux) %}
+                     args << "--single-module"
+                   {% end %}
                  end
                  args << entry_file
                  args << "-o"
@@ -2436,18 +2635,14 @@ module Lapis
         end
         Godot.print("[CrystalIntegrationPlugin] Crystal build succeeded: #{out_dll}")
         if File.directory?("../bin")
-          begin
-            File.copy(out_dll, "../bin/#{File.basename(out_dll)}")
+          if copy_if_changed(out_dll, "../bin/#{File.basename(out_dll)}")
             Godot.print("[CrystalIntegrationPlugin] Synced DLL to root: ../bin/#{File.basename(out_dll)}")
-          rescue
           end
         end
         addon_bin_target = "addons/crystal_integration/bin/#{File.basename(out_dll)}"
         if File.directory?("addons/crystal_integration/bin")
-          begin
-            File.copy(out_dll, addon_bin_target)
+          if copy_if_changed(out_dll, addon_bin_target)
             Godot.print("[CrystalIntegrationPlugin] Synced DLL to addon: #{addon_bin_target}")
-          rescue
           end
         end
         if File.exists?(out_dll)
@@ -2558,16 +2753,11 @@ module Lapis
           self.class.check_external_game_dll_update
         end
 
-        @@link_check_accum += delta
-        if @@link_check_accum >= 1.0_f64
-          @@link_check_accum = 0.0_f64
-          self.class.link_scripts_in_edited_scene
-        end
-
         @@hl_check_accum += delta
         if @@hl_check_accum >= 0.5_f64
           @@hl_check_accum = 0.0_f64
           self.class.apply_highlighter_if_needed
+          self.class.sync_scene_tree_buttons_if_needed
         end
       end
     end
@@ -2576,7 +2766,30 @@ module Lapis
       self.class.apply_highlighter_if_needed
     end
 
+    def self.apply_crystal_highlighter_to_editor(script_ed : Godot::Object, hl : Godot::Object) : Void
+      return if script_ed.pointer.null?
+      script_ed.call("add_syntax_highlighter", hl) rescue nil
+      base_ed = script_ed.call_obj("get_base_editor") rescue nil
+      if base_ed && !base_ed.pointer.null?
+        existing_hl = base_ed.call_obj("get_syntax_highlighter") rescue nil
+        existing_cls = (existing_hl && !existing_hl.pointer.null?) ? (existing_hl.call_str("get_class") rescue "") : ""
+        if existing_cls != "CrystalHighlighter"
+          tab_hl = (hl.call_obj("_create") rescue nil)
+          actual_hl = (tab_hl && !tab_hl.pointer.null? && tab_hl.alive? && Bridge.is_object_valid(tab_hl.pointer)) ? tab_hl : hl
+          if !actual_hl.pointer.null? && actual_hl.alive? && Bridge.is_object_valid(actual_hl.pointer)
+            base_ed.call("set_syntax_highlighter", actual_hl) rescue nil
+            actual_hl.call("clear_highlighting_cache") rescue nil
+            base_ed.call("queue_redraw") rescue nil
+          end
+        end
+        base_ed.call("set_code_completion_enabled", true) rescue nil
+      end
+    rescue
+    end
+
     def self.apply_highlighter_if_needed : Void
+      return if headless_suppressed?
+      return if @@building || @@reload_pending || @@cleaning_up || Godot::Bridge.reloading?
       return if Godot::EditorInterface.singleton_ptr.null?
       ensure_highlighter_registered
       hl = @@crystal_highlighter
@@ -2586,30 +2799,51 @@ module Lapis
       se = ed_iface.get_script_editor rescue nil
       return if se.nil? || se.pointer.null?
 
+      # 1. Check currently active script editor
       curr_script = se.get_current_script rescue nil
       if curr_script && !curr_script.pointer.null?
         path = curr_script.call_str("get_path") rescue ""
         path = (curr_script.call_str("get_resource_path") rescue "") if path.empty?
         cls = curr_script.call_str("get_class") rescue ""
-        is_cr = path.ends_with?(".cr") || cls == "CrystalScript"
-        if is_cr
-          curr_ed = se.call_obj("get_current_editor") rescue nil
-          if curr_ed && !curr_ed.pointer.null?
-            curr_ed.call("add_syntax_highlighter", hl) rescue nil
-            base_ed = curr_ed.call_obj("get_base_editor") rescue nil
-            if base_ed && !base_ed.pointer.null?
-              existing_hl = base_ed.call_obj("get_syntax_highlighter") rescue nil
-              if existing_hl.nil? || existing_hl.pointer.null?
-                tab_hl = (hl.call_obj("_create") rescue nil)
-                actual_hl = (tab_hl && !tab_hl.pointer.null?) ? tab_hl : hl
-                base_ed.call("set_syntax_highlighter", actual_hl) rescue nil
-                base_ed.call("queue_redraw") rescue nil
-              end
-              base_ed.call("set_code_completion_enabled", true) rescue nil
+        if path.ends_with?(".cr") || cls == "CrystalScript"
+          if curr_ed = (se.call_obj("get_current_editor") rescue nil)
+            apply_crystal_highlighter_to_editor(curr_ed, hl)
+          end
+        end
+      end
+
+      # 2. Check all open script editors in case tabs were restored from session cache with Plain Text highlighter
+      open_scripts = se.call_obj("get_open_scripts") rescue nil
+      open_editors = se.call_obj("get_open_script_editors") rescue nil
+      if open_scripts && !open_scripts.pointer.null? && open_editors && !open_editors.pointer.null?
+        s_count = open_scripts.call_i64("size") rescue 0_i64
+        e_count = open_editors.call_i64("size") rescue 0_i64
+        count = s_count < e_count ? s_count : e_count
+        count.times do |i|
+          scr = open_scripts.call_obj("get", i) rescue nil
+          ed = open_editors.call_obj("get", i) rescue nil
+          if scr && !scr.pointer.null? && ed && !ed.pointer.null?
+            p = scr.call_str("get_path") rescue ""
+            p = (scr.call_str("get_resource_path") rescue "") if p.empty?
+            c = scr.call_str("get_class") rescue ""
+            if p.ends_with?(".cr") || c == "CrystalScript"
+              apply_crystal_highlighter_to_editor(ed, hl)
             end
           end
         end
       end
+    rescue
+    end
+
+    def self.sync_scene_tree_buttons_if_needed : Void
+      return if headless_suppressed?
+      return if @@building || @@reload_pending || @@cleaning_up || Godot::Bridge.reloading?
+      return if Godot::EditorInterface.singleton_ptr.null?
+      ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
+      base_ctrl = ed_iface.get_base_control rescue nil
+      return if base_ctrl.nil? || base_ctrl.pointer.null?
+      return unless (base_ctrl.call_bool("is_inside_tree") rescue false)
+      EditorScriptCreation.sync_scene_tree_script_buttons(ed_iface, base_ctrl)
     rescue
     end
 
@@ -2639,6 +2873,7 @@ module Lapis
       if scene_root && !scene_root.pointer.null?
         link_scripts_recursive(scene_root)
       end
+      sync_scene_tree_buttons_if_needed
     rescue ex
       Godot.print("[CrystalIntegrationPlugin] Note: link_scripts_in_edited_scene: #{ex.message}")
     end

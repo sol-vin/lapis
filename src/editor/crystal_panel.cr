@@ -1381,12 +1381,7 @@ module Lapis
         log_info("Build or reload already in progress, skipping duplicate request.")
         return
       end
-      gd_ext_mgr = Godot::GDExtensionManager.new(Godot::GDExtensionManager.singleton_ptr)
-      ext_path = "res://addons/crystal_integration/crystal.gdextension"
-      if gd_ext_mgr.is_extension_loaded(ext_path)
-        Godot::CrystalIntegrationPlugin.reload_pending = true
-        Godot::Bridge.set_reloading(true)
-        gd_ext_mgr.call_deferred("reload_extension", ext_path)
+      if Godot::CrystalIntegrationPlugin.trigger_extension_reload
         log_info("Scheduled deferred GDExtension reload.")
       else
         log_info("GDExtension not dynamically reloadable or loaded under another path.")

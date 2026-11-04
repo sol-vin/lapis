@@ -205,7 +205,17 @@ module Godot
 
     def await(timeout_sec : Float64? = nil)
       status = Godot.await(@target, @name, timeout_sec)
-      if status.timed_out?
+      if status.freed?
+        {% begin %}
+          {% if T.size == 0 %}
+            AwaitStatus(Nil).freed(status.instance_id)
+          {% elsif T.size == 1 %}
+            AwaitStatus({{ T[0] }}).freed(status.instance_id)
+          {% else %}
+            AwaitStatus(Tuple({{ T.splat }})).freed(status.instance_id)
+          {% end %}
+        {% end %}
+      elsif status.timed_out?
         {% begin %}
           {% if T.size == 0 %}
             AwaitStatus(Nil).timed_out
@@ -248,10 +258,18 @@ module Godot
     end
 
     # Cooperatively awaits this signal, returning the unwrapped value,
-    # or raising Godot::TimeoutError if timeout_sec expires.
+    # or raising `Godot::DisposedObjectError` if the target is freed,
+    # or `Godot::TimeoutError` if `timeout_sec` expires.
     def await!(timeout_sec : Float64? = nil)
       status = await(timeout_sec)
-      if status.timed_out?
+      if status.freed?
+        {% if flag?(:trace_dead_pointers) %}
+          msg = ::Godot::TombstoneTracker.format_disposed_message(status.instance_id)
+          raise DisposedObjectError.new(status.instance_id, msg)
+        {% else %}
+          raise DisposedObjectError.new(status.instance_id, "Target object was destroyed while awaiting signal '#{@name}'")
+        {% end %}
+      elsif status.timed_out?
         raise TimeoutError.new("Timed out awaiting typed signal '#{@name}' on #{@target.class.name} after #{timeout_sec}s")
       end
       {% begin %}
@@ -267,11 +285,13 @@ module Godot
       await!(timeout_sec.to_f64)
     end
 
-    # Cooperatively awaits this signal, returning the value or nil if timeout_sec expires.
-    # For 0-argument signals, returns true if completed or false if timed out.
+    # Cooperatively awaits this signal, returning the value or nil if `timeout_sec` expires or the target is freed.
+    # For 0-argument signals, returns true if completed, false if timed out, or nil if the target is freed.
     def await?(timeout_sec : Float64? = nil)
       status = await(timeout_sec)
-      if status.timed_out?
+      if status.freed?
+        nil
+      elsif status.timed_out?
         {% begin %}
           {% if T.size == 0 %}
             false

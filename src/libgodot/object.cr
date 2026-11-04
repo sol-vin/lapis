@@ -19,6 +19,26 @@ module Godot
     ret != 0_u8
   end
 
+  # Returns true if running inside the Godot Editor and a text input control
+  # (`LineEdit`, `TextEdit`, or `CodeEdit`, such as an active `EditorSpinSlider`
+  # numeric input or Inspector string field) currently holds GUI keyboard focus.
+  # Useful for `@[Tool]` scripts to avoid rebuilding heavy geometry or resources
+  # mid-keystroke while the user is typing a value in the Inspector.
+  def self.editor_text_input_focused? : Bool
+    return false unless editor_hint?
+    ei_ptr = Bridge.get_singleton("EditorInterface")
+    return false if ei_ptr.null?
+    base_ptr = Bridge.object_call_ret_object(ei_ptr, "get_base_control") rescue Pointer(Void).null
+    return false if base_ptr.null?
+    vp_ptr = Bridge.object_call_ret_object(base_ptr, "get_viewport") rescue Pointer(Void).null
+    return false if vp_ptr.null?
+    focus_ptr = Bridge.object_call_ret_object(vp_ptr, "gui_get_focus_owner") rescue Pointer(Void).null
+    return false if focus_ptr.null?
+    return true if (Bridge.object_is_class(focus_ptr, "LineEdit") rescue false)
+    return true if (Bridge.object_is_class(focus_ptr, "TextEdit") rescue false)
+    false
+  end
+
   # Converts any filesystem or relative path to a normalized Godot res:// path
   def self.to_godot_res_path(path : String) : String
     return "" if path.empty?
@@ -31,13 +51,15 @@ module Godot
       return localized if localized.starts_with?("res://") && localized != "res://" && localized != "res:///"
     end
 
-    if idx = p.index("/src/")
+    if lib_idx = p.index("/lib/")
+      return "res:/" + p[lib_idx..-1]
+    elsif idx = p.rindex("/src/")
       return "res:/" + p[idx..-1]
-    elsif idx = p.index("/addons/")
+    elsif idx = p.rindex("/addons/")
       return "res:/" + p[idx..-1]
-    elsif idx = p.index("/scripts/")
+    elsif idx = p.rindex("/scripts/")
       return "res:/" + p[idx..-1]
-    elsif p.starts_with?("src/") || p.starts_with?("addons/") || p.starts_with?("scripts/")
+    elsif p.starts_with?("src/") || p.starts_with?("addons/") || p.starts_with?("scripts/") || p.starts_with?("lib/")
       return "res://#{p}"
     end
 
@@ -61,7 +83,7 @@ module Godot
   def self.create(type : T.class) : T forall T
     class_name = {{ T.name.stringify.split("::").last }}
     ptr = Bridge.construct_object(class_name)
-    if inst = Bridge.find_alive_instance(ptr)
+    if !ptr.null? && (inst = Bridge.find_alive_instance(ptr))
       if casted = inst.as?(T)
         if casted.is_a?(RefCounted) && casted.get_reference_count == 0
           casted.init_ref
@@ -70,7 +92,7 @@ module Godot
       end
     end
     res = T.new(ptr)
-    if res.is_a?(RefCounted) && res.get_reference_count == 0
+    if !ptr.null? && res.is_a?(RefCounted) && res.get_reference_count == 0
       res.init_ref
     end
     Bridge.register_alive_instance_by_ptr(ptr, res) if !ptr.null?

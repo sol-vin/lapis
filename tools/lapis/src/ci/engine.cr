@@ -24,9 +24,9 @@ module Lapis
         @working_directory : String = ".",
         @addon_name : String = "",
         @entry_point : String = "",
-        @godot_version : String = "4.8-dev7",
+        @godot_version : String = "4.8-beta1",
         @crystal_version : String = "1.21.0",
-        @lapis_ref : String = "4.8-dev7",
+        @lapis_ref : String = "4.8-beta1",
         @release : Bool = false,
         @run_specs : Bool = true,
         @run_headless : Bool = true,
@@ -186,7 +186,7 @@ module Lapis
         )
       end
 
-      def self.resolve_godot_version(project_dir : Path, fallback : String = "4.8-dev7") : String
+      def self.resolve_godot_version(project_dir : Path, fallback : String = "4.8-beta1") : String
         candidates = [
           project_dir.join("godot-version.yml"),
           project_dir.parent.join("godot-version.yml"),
@@ -358,9 +358,9 @@ module Lapis
         @working_directory : String = ".",
         @game_name : String = "",
         @entry_point : String = "src/main.cr",
-        @godot_version : String = "4.8-dev7",
+        @godot_version : String = "4.8-beta1",
         @crystal_version : String = "1.21.0",
-        @lapis_ref : String = "4.8-dev7",
+        @lapis_ref : String = "4.8-beta1",
         @release : Bool = false,
         @package_game : Bool = true,
         @embed_pck : Bool = true,

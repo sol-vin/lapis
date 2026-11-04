@@ -67,6 +67,55 @@ module Math
   def self.is_zero_approx(a : Float64, tolerance : Float64 = 0.00001) : Bool
     a.abs <= tolerance
   end
+
+  # Mixed Float32 / Float64 min and max overloads to prevent Float32 | Float64 union inference
+  def self.max(a : Float64, b : Float32) : Float64
+    b_f64 = b.to_f64
+    a >= b_f64 ? a : b_f64
+  end
+
+  def self.max(a : Float32, b : Float64) : Float64
+    a_f64 = a.to_f64
+    a_f64 >= b ? a_f64 : b
+  end
+
+  def self.min(a : Float64, b : Float32) : Float64
+    b_f64 = b.to_f64
+    a <= b_f64 ? a : b_f64
+  end
+
+  def self.min(a : Float32, b : Float64) : Float64
+    a_f64 = a.to_f64
+    a_f64 <= b ? a_f64 : b
+  end
+end
+
+struct Float32
+  def clamp(min : Float64, max : Float64) : Float64
+    to_f64.clamp(min, max)
+  end
+
+  def clamp(min : Float32, max : Float64) : Float64
+    to_f64.clamp(min.to_f64, max)
+  end
+
+  def clamp(min : Float64, max : Float32) : Float64
+    to_f64.clamp(min, max.to_f64)
+  end
+end
+
+struct Float64
+  def clamp(min : Float32, max : Float32) : Float64
+    clamp(min.to_f64, max.to_f64)
+  end
+
+  def clamp(min : Float32, max : Float64) : Float64
+    clamp(min.to_f64, max)
+  end
+
+  def clamp(min : Float64, max : Float32) : Float64
+    clamp(min, max.to_f64)
+  end
 end
 
 # Top-level math constructors

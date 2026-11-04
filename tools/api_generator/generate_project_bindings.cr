@@ -12,8 +12,10 @@ require "file_utils"
 #   crystal run tools/api_generator/generate_project_bindings.cr -- <json_file> <out_dir>
 # =============================================================================
 
-json_path = ARGV[0]? || "project_nodes.json"
-out_dir = ARGV[1]? || "src/generated/project_nodes"
+include_addons = ARGV.includes?("--include-addons")
+pos_args = ARGV.reject(&.starts_with?("-"))
+json_path = pos_args[0]? || "project_nodes.json"
+out_dir = pos_args[1]? || "src/generated/project_nodes"
 
 unless File.exists?(json_path)
   STDERR.puts "Error: Project nodes JSON not found at #{json_path}"
@@ -101,11 +103,28 @@ KEYWORDS = {
   "false"   => "false_val",
 }
 
+CRYSTAL_RESERVED_WORDS = Set{
+  "alias", "def", "end", "class", "module", "struct", "enum", "lib", "fun",
+  "macro", "in", "out", "begin", "rescue", "ensure", "next", "break", "return",
+  "yield", "self", "super", "nil", "true", "false", "abstract", "private",
+  "protected", "asm", "forall", "typeof", "sizeof", "instance_sizeof",
+  "offsetof", "pointerof", "uninitialized", "with", "verbatim", "when",
+  "select", "then", "type", "include", "extend", "require", "case", "if",
+  "else", "elsif", "unless", "until", "while", "do", "for", "of", "as",
+  "is_a?", "nil?", "responds_to?",
+}
+
 def sanitize_ident(name : String) : String
   clean = name.gsub(/[^a-zA-Z0-9_]/, "_").underscore
   clean = "arg_#{clean}" if clean.starts_with?(/[0-9]/)
   clean = "arg" if clean.empty?
-  KEYWORDS[clean]? || clean
+  if mapped = KEYWORDS[clean]?
+    mapped
+  elsif CRYSTAL_RESERVED_WORDS.includes?(clean)
+    "#{clean}_arg"
+  else
+    clean
+  end
 end
 
 def resolve_crystal_return_type(type_id : Int64, class_name : String?) : String
@@ -157,6 +176,8 @@ parent_map = Hash(String, String?).new
 custom_class_names = Set(String).new
 if gdscript_classes = data["gdscript_classes"]?.try(&.as_a)
   gdscript_classes.each do |c|
+    script_path = c["path"]?.try(&.as_s) || ""
+    next if !include_addons && (script_path.starts_with?("res://addons/") || script_path.includes?("/addons/") || script_path.starts_with?("addons/"))
     if raw_name = c["name"]?.try(&.as_s)
       clean = raw_name.gsub(/[^a-zA-Z0-9_]/, "")
       custom_class_names << clean unless clean.empty?
@@ -169,6 +190,8 @@ end
 # =============================================================================
 if gdscript_classes = data["gdscript_classes"]?.try(&.as_a)
   gdscript_classes.each do |c|
+    script_path = c["path"]?.try(&.as_s) || ""
+    next if !include_addons && (script_path.starts_with?("res://addons/") || script_path.includes?("/addons/") || script_path.starts_with?("addons/"))
     raw_name = c["name"]?.try(&.as_s) || ""
     clean_class_name = raw_name.gsub(/[^a-zA-Z0-9_]/, "")
     next if clean_class_name.empty?
@@ -182,7 +205,6 @@ if gdscript_classes = data["gdscript_classes"]?.try(&.as_a)
     else
       inherits_type = inherits_name.starts_with?("Godot::") ? inherits_name : "Godot::#{inherits_name}"
     end
-    script_path = c["path"]?.try(&.as_s) || ""
 
     file_basename = "#{clean_class_name.underscore}.cr"
     target_path = File.join(out_dir, file_basename)

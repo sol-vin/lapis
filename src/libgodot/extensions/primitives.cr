@@ -1,4 +1,37 @@
 module Godot
+  class Object
+    # Overrides auto-generated raw `Pointer(Void)` metadata setter so `value` is stored safely
+    # as a 64-bit integer address via `Variant::INT` rather than passing an 8-byte stack `Void*`
+    # to `godot_ptrcall_void` expecting a 24-byte `Variant`.
+    def set_meta(name : String, value : Pointer(Void)) : Void
+      check_alive!
+      if !@pointer.null? && Bridge.init_done?
+        call("set_meta", name, value.address.to_i64)
+      end
+    end
+
+    def set_meta(key : Symbol, value : Pointer(Void)) : Void
+      set_meta(key.to_s, value)
+    end
+
+    # Overrides auto-generated raw `Pointer(Void)` metadata getter to avoid passing an 8-byte
+    # stack `Void*` as a 24-byte `Variant` default argument in `godot_ptrcall`.
+    def get_meta(name : String, default : Pointer(Void)? = nil) : Pointer(Void)
+      fallback = default || Pointer(Void).null
+      return fallback if @pointer.null? || !Bridge.init_done?
+      check_alive!
+      return fallback unless has_meta(name)
+      addr = call_i64("get_meta", name)
+      return Pointer(Void).new(addr.to_u64) if addr != 0_i64
+      ptr = Bridge.object_call_ret_object(@pointer, "get_meta", name)
+      !ptr.null? ? ptr : fallback
+    end
+
+    def get_meta(key : Symbol, default : Pointer(Void)? = nil) : Pointer(Void)
+      get_meta(key.to_s, default)
+    end
+  end
+
   # ===========================================================================
   # TreeItem Extensions
   # ===========================================================================
@@ -71,4 +104,3 @@ struct Nil
     nil
   end
 end
-

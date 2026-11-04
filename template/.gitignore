@@ -16,3 +16,6 @@ shard.override.yml
 benchmarks/bin/
 benchmarks/reports/
 benchmarks/results/
+
+**/.bind_manifest.json
+**/.lapis_build_*.json

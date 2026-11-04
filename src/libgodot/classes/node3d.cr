@@ -34,7 +34,7 @@ module Godot
 
     def global_position : Vector3
       if !@pointer.null?
-        get_global_position
+        is_inside_tree ? get_global_position : global_transform.origin
       else
         @global_position
       end
@@ -44,7 +44,13 @@ module Godot
       @global_position = v
       @has_explicit_global_pos = true
       if !@pointer.null?
-        set_global_position(v)
+        if is_inside_tree
+          set_global_position(v)
+        elsif !is_set_as_top_level && (p = get_parent.try(&.godot_as?(Node3D)))
+          set_position(p.global_transform.affine_inverse * v)
+        else
+          set_position(v)
+        end
       end
     end
 
@@ -80,7 +86,7 @@ module Godot
 
     def global_rotation : Vector3
       if !@pointer.null?
-        get_global_rotation
+        is_inside_tree ? get_global_rotation : get_rotation
       else
         @global_rotation
       end
@@ -89,13 +95,17 @@ module Godot
     def global_rotation=(v : Vector3)
       @global_rotation = v
       if !@pointer.null?
-        set_global_rotation(v)
+        if is_inside_tree
+          set_global_rotation(v)
+        else
+          set_rotation(v)
+        end
       end
     end
 
     def global_rotation_degrees : Vector3
       if !@pointer.null?
-        get_global_rotation_degrees
+        is_inside_tree ? get_global_rotation_degrees : get_rotation_degrees
       else
         @global_rotation_degrees
       end
@@ -104,7 +114,11 @@ module Godot
     def global_rotation_degrees=(v : Vector3)
       @global_rotation_degrees = v
       if !@pointer.null?
-        set_global_rotation_degrees(v)
+        if is_inside_tree
+          set_global_rotation_degrees(v)
+        else
+          set_rotation_degrees(v)
+        end
       end
     end
 
@@ -140,7 +154,13 @@ module Godot
 
     def global_transform : Transform3D
       if !@pointer.null?
-        get_global_transform
+        if is_inside_tree
+          get_global_transform
+        elsif !is_set_as_top_level && (p = get_parent.try(&.godot_as?(Node3D)))
+          p.global_transform * get_transform
+        else
+          get_transform
+        end
       else
         @global_transform
       end
@@ -149,7 +169,13 @@ module Godot
     def global_transform=(v : Transform3D)
       @global_transform = v
       if !@pointer.null?
-        set_global_transform(v)
+        if is_inside_tree
+          set_global_transform(v)
+        elsif !is_set_as_top_level && (p = get_parent.try(&.godot_as?(Node3D)))
+          set_transform(p.global_transform.affine_inverse * v)
+        else
+          set_transform(v)
+        end
       end
     end
 
@@ -170,7 +196,7 @@ module Godot
 
     def global_basis : Basis
       if !@pointer.null?
-        get_global_basis
+        is_inside_tree ? get_global_basis : global_transform.basis
       else
         @global_basis
       end
@@ -179,7 +205,13 @@ module Godot
     def global_basis=(v : Basis)
       @global_basis = v
       if !@pointer.null?
-        set_global_basis(v)
+        if is_inside_tree
+          set_global_basis(v)
+        elsif !is_set_as_top_level && (p = get_parent.try(&.godot_as?(Node3D)))
+          set_basis(p.global_basis.inverse * v)
+        else
+          set_basis(v)
+        end
       end
     end
 

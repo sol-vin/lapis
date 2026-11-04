@@ -246,9 +246,9 @@ module Godot
       @store.clear
     end
 
-    def each(&block : Tuple(Variant, Variant) -> Void) : Void
+    def each(& : Tuple(Variant, Variant) ->) : Void
       @store.each do |k, v|
-        block.call({k, v})
+        yield({k, v})
       end
     end
 
@@ -268,6 +268,49 @@ module Godot
         io << k.inspect << ": " << v.inspect
       end
       io << "}"
+    end
+
+    def dup : Dictionary
+      d = Dictionary.new
+      @store.each { |k, v| d[k] = v }
+      d
+    end
+
+    def clone : Dictionary
+      dup
+    end
+
+    def duplicate(deep : Bool = false) : Dictionary
+      dup
+    end
+
+    @@_kv_args_keepalive = ::Array(LibBridge::VariantArg).new
+
+    def self.from_bridge_payload(payload_ptr : Void*) : Dictionary
+      d = new
+      return d if payload_ptr.null?
+      data_ptr = payload_ptr.as(Void**).value
+      count = (payload_ptr.as(UInt8*) + 8).as(Int64*).value
+      if !data_ptr.null? && count > 0
+        kv = data_ptr.as(Pointer(LibBridge::VariantArg))
+        count.times do |i|
+          k = Variant.from_arg(kv[i * 2])
+          v = Variant.from_arg(kv[i * 2 + 1])
+          d[k] = v
+        end
+      end
+      d
+    end
+
+    def write_bridge_payload(ret_ptr : Void*) : Void
+      return if ret_ptr.null?
+      @@_kv_args_keepalive.clear
+      @store.each do |k, v|
+        @@_kv_args_keepalive << k.to_arg
+        @@_kv_args_keepalive << v.to_arg
+      end
+      ret_ptr.as(Void**).value = @@_kv_args_keepalive.empty? ? Pointer(Void).null : @@_kv_args_keepalive.to_unsafe.as(Void*)
+      (ret_ptr.as(UInt8*) + 8).as(Int64*).value = @store.size.to_i64
     end
   end
 
@@ -354,8 +397,8 @@ module Godot
       @store.clear
     end
 
-    def each(&block : T -> Void) : Void
-      @store.each(&block)
+    def each(& : T ->) : Void
+      @store.each { |item| yield item }
     end
 
     def filter_as(type : U.class) : ::Array(U) forall U
@@ -392,6 +435,18 @@ module Godot
       @store.dup
     end
 
+    def dup : GodotArray(T)
+      GodotArray(T).new(@store.dup)
+    end
+
+    def clone : GodotArray(T)
+      GodotArray(T).new(@store.dup)
+    end
+
+    def duplicate(deep : Bool = false) : GodotArray(T)
+      GodotArray(T).new(@store.dup)
+    end
+
     def to_s(io : IO) : Void
       io << "Godot::GodotArray["
       @store.each_with_index do |item, i|
@@ -399,6 +454,14 @@ module Godot
         io << item.inspect
       end
       io << "]"
+    end
+
+    def self.from_bridge_payload(payload_ptr : Void*) : GodotArray(T)
+      new(Bridge.array_from_bridge_payload(payload_ptr, T))
+    end
+
+    def write_bridge_payload(ret_ptr : Void*) : Void
+      Bridge.write_array_bridge_payload(@store, ret_ptr)
     end
   end
 
@@ -464,8 +527,78 @@ module Godot
         append(value)
       end
 
+      def push_back(value : {{elem_type}}) : self
+        append(value)
+      end
+
       def <<(value : {{elem_type}}) : self
         append(value)
+      end
+
+      def append_array(other : {{name}} | ::Array({{elem_type}})) : self
+        other.each { |v| @store << v }
+        self
+      end
+
+      def insert(index : Int, value : {{elem_type}}) : self
+        @store.insert(index.to_i32, value)
+        self
+      end
+
+      def remove_at(index : Int) : {{elem_type}}
+        @store.delete_at(index.to_i32)
+      end
+
+      def fill(value : {{elem_type}}) : self
+        @store.fill(value)
+        self
+      end
+
+      def reverse : self
+        @store.reverse!
+        self
+      end
+
+      def reverse! : self
+        @store.reverse!
+        self
+      end
+
+      def dup : {{name}}
+        {{name}}.new(@store.dup)
+      end
+
+      def duplicate : {{name}}
+        dup
+      end
+
+      def slice(begin_idx : Int, end_idx : Int = @store.size) : {{name}}
+        n = @store.size
+        return {{name}}.new if n == 0
+        b = begin_idx.to_i32
+        e = end_idx.to_i32
+        b += n if b < 0
+        e += n if e < 0
+        b = b.clamp(0, n)
+        e = e.clamp(0, n)
+        return {{name}}.new if b >= e
+        {{name}}.new(@store[b...e])
+      end
+
+      def has(value : {{elem_type}}) : Bool
+        @store.includes?(value)
+      end
+
+      def find(value : {{elem_type}}, from : Int = 0) : Int64
+        (@store.index(value, from.to_i32) || -1).to_i64
+      end
+
+      def count(value : {{elem_type}}) : Int64
+        @store.count(value).to_i64
+      end
+
+      def ==(other : {{name}}) : Bool
+        @store == other.@store
       end
 
       def resize(new_size : Int) : Void
@@ -481,13 +614,75 @@ module Godot
         @store.clear
       end
 
-      def each(&block : {{elem_type}} -> Void) : Void
-        @store.each(&block)
+      def each(& : {{elem_type}} ->) : Void
+        @store.each { |item| yield item }
       end
 
       def to_a : ::Array({{elem_type}})
         @store.dup
       end
+
+      def clone : {{name}}
+        dup
+      end
+
+      def to_unsafe : Pointer({{elem_type}})
+        @store.to_unsafe
+      end
+
+      {% if elem_type.stringify == "String" %}
+        @@_cstr_keepalive = ::Array(Pointer(UInt8)).new
+
+        def cstr_array_ptr : Pointer(Pointer(UInt8))
+          @@_cstr_keepalive.clear
+          @store.each { |s| @@_cstr_keepalive << s.to_unsafe }
+          @@_cstr_keepalive.to_unsafe
+        end
+
+        def self.from_raw(data_ptr : Void*, count : Int64) : {{name}}
+          return new if data_ptr.null? || count <= 0
+          c_strs = data_ptr.as(Pointer(Pointer(UInt8)))
+          items = ::Array(String).new(count.to_i32) do |i|
+            p = c_strs[i]
+            p.null? ? "" : String.new(p)
+          end
+          new(items)
+        end
+
+        def self.from_bridge_payload(payload_ptr : Void*) : {{name}}
+          return new if payload_ptr.null?
+          data_ptr = payload_ptr.as(Void**).value
+          count = (payload_ptr.as(UInt8*) + 8).as(Int64*).value
+          from_raw(data_ptr, count)
+        end
+
+        def write_bridge_payload(ret_ptr : Void*) : Void
+          return if ret_ptr.null?
+          ptr = cstr_array_ptr
+          ret_ptr.as(Void**).value = @store.empty? ? Pointer(Void).null : ptr.as(Void*)
+          (ret_ptr.as(UInt8*) + 8).as(Int64*).value = @store.size.to_i64
+        end
+      {% else %}
+        def self.from_raw(data_ptr : Void*, count : Int64) : {{name}}
+          return new if data_ptr.null? || count <= 0
+          slice = Slice({{elem_type}}).new(data_ptr.as(Pointer({{elem_type}})), count.to_i32)
+          items = ::Array({{elem_type}}).new(count.to_i32) { |i| slice[i] }
+          new(items)
+        end
+
+        def self.from_bridge_payload(payload_ptr : Void*) : {{name}}
+          return new if payload_ptr.null?
+          data_ptr = payload_ptr.as(Void**).value
+          count = (payload_ptr.as(UInt8*) + 8).as(Int64*).value
+          from_raw(data_ptr, count)
+        end
+
+        def write_bridge_payload(ret_ptr : Void*) : Void
+          return if ret_ptr.null?
+          ret_ptr.as(Void**).value = @store.empty? ? Pointer(Void).null : @store.to_unsafe.as(Void*)
+          (ret_ptr.as(UInt8*) + 8).as(Int64*).value = @store.size.to_i64
+        end
+      {% end %}
     end
   end
 
@@ -500,6 +695,77 @@ module Godot
   define_packed_array(PackedVector2Array, Vector2, Vector2.new)
   define_packed_array(PackedVector3Array, Vector3, Vector3.new)
   define_packed_array(PackedColorArray, Color, Color.new)
+  define_packed_array(PackedVector4Array, Vector4, Vector4.new)
+
+  class PackedByteArray
+    def append(value : Int) : self
+      append(value.to_u8)
+    end
+
+    def push_back(value : Int) : self
+      append(value.to_u8)
+    end
+
+    def fill(value : Int) : self
+      fill(value.to_u8)
+    end
+  end
+
+  class PackedInt32Array
+    def append(value : Int) : self
+      append(value.to_i32)
+    end
+
+    def push_back(value : Int) : self
+      append(value.to_i32)
+    end
+
+    def fill(value : Int) : self
+      fill(value.to_i32)
+    end
+  end
+
+  class PackedInt64Array
+    def append(value : Int) : self
+      append(value.to_i64)
+    end
+
+    def push_back(value : Int) : self
+      append(value.to_i64)
+    end
+
+    def fill(value : Int) : self
+      fill(value.to_i64)
+    end
+  end
+
+  class PackedFloat32Array
+    def append(value : Number) : self
+      append(value.to_f32)
+    end
+
+    def push_back(value : Number) : self
+      append(value.to_f32)
+    end
+
+    def fill(value : Number) : self
+      fill(value.to_f32)
+    end
+  end
+
+  class PackedFloat64Array
+    def append(value : Number) : self
+      append(value.to_f64)
+    end
+
+    def push_back(value : Number) : self
+      append(value.to_f64)
+    end
+
+    def fill(value : Number) : self
+      fill(value.to_f64)
+    end
+  end
 end
 
 # Crystal Standard Library Extensions for Godot Collections

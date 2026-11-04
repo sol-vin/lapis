@@ -13322,6 +13322,7 @@ module Godot
       FeatureAccessibilityScreenReader = 34_i64
       FeatureHdrOutput = 35_i64
       FeaturePipMode = 36_i64
+      FeatureEmbedded = 37_i64
     end
     enum AccessibilityRole : Int64
       RoleUnknown = 0_i64
@@ -15797,6 +15798,20 @@ module Godot
     # Class-level singleton delegator for `window_set_ime_position`
     def self.window_set_ime_position(position : Vector2i, window_id : Int64 = 0_i64) : Void
       instance.window_set_ime_position(position, window_id)
+    end
+    @@mb_window_set_ime_rect : Void* = Pointer(Void).null
+    def window_set_ime_rect(rect : Rect2i, window_id : Int64 = 0_i64) : Void
+      godot_bind(@@mb_window_set_ime_rect, "DisplayServer", "window_set_ime_rect", 2829673102_i64)
+      val_0 = rect
+      arg_0 = pointerof(val_0).as(Void*)
+      val_1 = window_id.to_i64
+      arg_1 = pointerof(val_1).as(Void*)
+      args = StaticArray[arg_0, arg_1]
+      godot_ptrcall_void(@@mb_window_set_ime_rect, @pointer, args.to_unsafe.as(Void**))
+    end
+    # Class-level singleton delegator for `window_set_ime_rect`
+    def self.window_set_ime_rect(rect : Rect2i, window_id : Int64 = 0_i64) : Void
+      instance.window_set_ime_rect(rect, window_id)
     end
     @@mb_window_set_vsync_mode : Void* = Pointer(Void).null
     def window_set_vsync_mode(vsync_mode : VSyncMode | Int, window_id : Int64 = 0_i64) : Void

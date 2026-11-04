@@ -20,7 +20,7 @@ module Godot
     end
 
     def to_i64 : Int64
-      @id.to_i64
+      @id.to_i64!
     end
 
     def to_u64 : UInt64

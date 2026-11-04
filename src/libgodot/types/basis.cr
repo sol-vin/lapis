@@ -12,6 +12,13 @@ module Godot
     )
     end
 
+    def initialize(axis : Vector3, angle : Number)
+      b = Basis.from_axis_angle(axis, angle)
+      @x = b.x
+      @y = b.y
+      @z = b.z
+    end
+
     def initialize(pointer : Void*)
       if pointer.null?
         @x = Vector3.new(1.0_f32, 0.0_f32, 0.0_f32)
@@ -206,5 +213,9 @@ module Godot
     FLIP_X   = Basis.new(Vector3.new(-1.0_f32, 0.0_f32, 0.0_f32), Vector3.new(0.0_f32, 1.0_f32, 0.0_f32), Vector3.new(0.0_f32, 0.0_f32, 1.0_f32))
     FLIP_Y   = Basis.new(Vector3.new(1.0_f32, 0.0_f32, 0.0_f32), Vector3.new(0.0_f32, -1.0_f32, 0.0_f32), Vector3.new(0.0_f32, 0.0_f32, 1.0_f32))
     FLIP_Z   = Basis.new(Vector3.new(1.0_f32, 0.0_f32, 0.0_f32), Vector3.new(0.0_f32, 1.0_f32, 0.0_f32), Vector3.new(0.0_f32, 0.0_f32, -1.0_f32))
+
+    def self.identity : Basis
+      IDENTITY
+    end
   end
 end

@@ -100,8 +100,11 @@ This operational skill governs the automated and manual procedures for executing
 When upgrading the Godot engine binary or when requested via `/upgrade godot`:
 
 ### Step-by-Step Workflow:
-1. **Identify Target Godot Version**:
-   - Determine target version (e.g. Godot `4.3-stable` or `4.4-stable`).
+1. **Finalize Previous Godot Milestone into `master` First**:
+   - Before upgrading `lapis` from `<PREVIOUS_VERSION>` (e.g. `4.8-beta1`) to `<NEW_VERSION>` (e.g. `4.8-beta2`), pull `<PREVIOUS_VERSION>` into `master` (`git checkout master && git merge --ff-only <PREVIOUS_VERSION> && git push origin master`) and ensure the `master` release and CI pass.
+   - Then create the new milestone branch from `master` (`git checkout -b <NEW_VERSION> master`).
+2. **Identify Target Godot Version**:
+   - Determine target version (e.g. Godot `4.8-beta2`).
 2. **Download or Relocate Godot Binary**:
    - Automated via `make setup-dev GODOT_VERSION=<version>`:
      ```powershell

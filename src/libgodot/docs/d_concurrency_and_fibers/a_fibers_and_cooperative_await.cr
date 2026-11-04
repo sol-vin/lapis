@@ -109,6 +109,7 @@ module Lapis
         #       <th>Paradigm</th>
         #       <th>On Success</th>
         #       <th>On Timeout</th>
+        #       <th>On Object Disposed</th>
         #       <th>Primary Use Case</th>
         #     </tr>
         #   </thead>
@@ -117,18 +118,21 @@ module Lapis
         #       <td><code>await(...)</code></td>
         #       <td><code>AwaitStatus(T).completed(val)</code></td>
         #       <td><code>AwaitStatus(T).timed_out</code></td>
-        #       <td>Inspection via <code>status.completed?</code> or <code>status.timed_out?</code> without raising exceptions</td>
+        #       <td><code>AwaitStatus(T).freed(id)</code> (<code>status.freed?</code>)</td>
+        #       <td>Inspection via <code>status.completed?</code>, <code>status.timed_out?</code>, or <code>status.freed?</code> without raising exceptions</td>
         #     </tr>
         #     <tr>
         #       <td><code>await!(...)</code></td>
         #       <td>Unwrapped <code>T</code> directly</td>
         #       <td>Raises <code>Godot::TimeoutError</code></td>
+        #       <td>Raises <code>Godot::DisposedObjectError</code></td>
         #       <td>Fail-fast operations, strict handshakes, and turn-based RPC sequences</td>
         #     </tr>
         #     <tr>
         #       <td><code>await?(...)</code></td>
         #       <td><code>val</code> (or <code>true</code> for 0-arg/timers)</td>
         #       <td><code>nil</code> (or <code>false</code> for 0-arg/timers)</td>
+        #       <td><code>nil</code></td>
         #       <td>Quick-time events (QTEs), guard checks, and non-raising optional reactions</td>
         #     </tr>
         #   </tbody>
@@ -139,6 +143,8 @@ module Lapis
         # status = await(boss.phase_changed, timeout_sec: 5.0)
         # if status.completed?
         #   Godot.print("Boss entered phase: #{status.value!}")
+        # elsif status.freed?
+        #   Godot.print("Boss was destroyed while waiting!")
         # else
         #   Godot.print("Phase change timed out!")
         # end
@@ -146,7 +152,7 @@ module Lapis
         #
         # #### 2. Fail-Fast Unwrapping (`await!`):
         # ```crystal
-        # # Returns unwrapped tuple directly or raises Godot::TimeoutError
+        # # Returns unwrapped tuple directly, or raises Godot::DisposedObjectError / Godot::TimeoutError
         # score, bonus = node.level_scored.await!(timeout_sec: 10.0)
         # ```
         #

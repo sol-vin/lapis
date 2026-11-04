@@ -30,21 +30,23 @@ module Lapis
     COLOR_ANNOTATION   = {0.95_f32, 0.55_f32, 0.80_f32, 1.0_f32} # Pink / Gold
 
     KEYWORDS_DEF = Set{
-      "node", "resource", "gdclass", "class", "module", "struct", "def", "end", "property", "getter",
+      "node", "node2d", "node3d", "resource", "resource_card", "gdclass", "gmodule", "autoload",
+      "class", "module", "struct", "def", "end", "property", "getter",
       "setter", "signal", "alias", "enum", "lib", "fun", "macro", "onready",
-      "abstract_class", "static_unload",
+      "abstract", "private", "protected", "abstract_class", "static_unload",
+      "palette_export", "gradient_export", "define_string_enum_export",
     }
 
     KEYWORDS_CONTROL = Set{
       "if", "else", "elsif", "unless", "while", "until", "for", "in",
       "case", "when", "then", "return", "break", "next", "yield",
-      "begin", "rescue", "ensure", "raise", "do", "select",
+      "begin", "rescue", "ensure", "raise", "do", "select", "match", "is",
     }
 
     KEYWORDS_SPECIAL = Set{
       "self", "super", "nil", "true", "false", "as", "as?", "is_a?",
       "responds_to?", "sizeof", "instance_sizeof", "typeof", "require",
-      "include", "extend", "spawn",
+      "include", "extend", "spawn", "await", "tween",
     }
 
     def self._godot_has_virtual_method(method_name : String) : Bool
@@ -109,17 +111,19 @@ module Lapis
       ["Crystal", "cr", "CrystalScript"]
     end
 
-    # Tokenizes a single line of Crystal source code into an array of SyntaxSpans
+    # Tokenizes a single line of Crystal source code into an array of SyntaxSpans.
+    # Uses character (codepoint) column indexing to match Godot's UTF-32 TextEdit columns.
     def self.highlight_line(line : String) : Array(SyntaxSpan)
       spans = [] of SyntaxSpan
-      len = line.bytesize
+      return spans if line.empty?
+
+      chars = line.chars
+      len = chars.size
       return spans if len == 0
 
       i = 0
-      bytes = line.to_slice
-
       while i < len
-        c = bytes[i].chr
+        c = chars[i]
 
         # Whitespace
         if c == ' ' || c == '\t' || c == '\r' || c == '\n'
@@ -134,17 +138,17 @@ module Lapis
           break
         end
 
-        # Annotation: @[...] or property: @ident
+        # Annotation: @[...] or instance/class variable: @ident / @@ident
         if c == '@'
           start_col = i
-          if i + 1 < len && bytes[i + 1].chr == '['
+          if i + 1 < len && chars[i + 1] == '['
             # Annotation @[...]
             i += 2
             bracket_depth = 1
             while i < len && bracket_depth > 0
-              if bytes[i].chr == '['
+              if chars[i] == '['
                 bracket_depth += 1
-              elsif bytes[i].chr == ']'
+              elsif chars[i] == ']'
                 bracket_depth -= 1
               end
               i += 1
@@ -153,9 +157,10 @@ module Lapis
             add_span(spans, i, COLOR_DEFAULT)
             next
           else
-            # Instance variable or attribute like @pointer
+            # Instance variable @pointer or class variable @@instance
             i += 1
-            while i < len && (bytes[i].chr.alphanumeric? || bytes[i].chr == '_')
+            i += 1 if i < len && chars[i] == '@'
+            while i < len && (chars[i].alphanumeric? || chars[i] == '_')
               i += 1
             end
             add_span(spans, start_col, COLOR_SPECIAL)
@@ -171,7 +176,7 @@ module Lapis
           i += 1
           escaped = false
           while i < len
-            curr = bytes[i].chr
+            curr = chars[i]
             if escaped
               escaped = false
             elsif curr == '\\'
@@ -187,11 +192,11 @@ module Lapis
           next
         end
 
-        # Symbols: :symbol_name
-        if c == ':' && i + 1 < len && (bytes[i + 1].chr.ascii_letter? || bytes[i + 1].chr == '_')
+        # Symbols: :symbol_name (avoiding :: scope resolution operator)
+        if c == ':' && i + 1 < len && (chars[i + 1].ascii_letter? || chars[i + 1] == '_') && (i == 0 || chars[i - 1] != ':')
           start_col = i
           i += 1
-          while i < len && (bytes[i].chr.alphanumeric? || bytes[i].chr == '_')
+          while i < len && (chars[i].alphanumeric? || chars[i] == '_' || chars[i] == '?' || chars[i] == '!')
             i += 1
           end
           add_span(spans, start_col, COLOR_SYMBOL)
@@ -200,27 +205,27 @@ module Lapis
         end
 
         # Numbers: 123, 0xFF, 0b10, 3.14_f32, etc.
-        if c.ascii_number? || (c == '-' && i + 1 < len && bytes[i + 1].chr.ascii_number?)
+        if c.ascii_number? || (c == '-' && i + 1 < len && chars[i + 1].ascii_number?)
           start_col = i
           i += 1 if c == '-'
-          if i + 1 < len && bytes[i].chr == '0' && (bytes[i + 1].chr == 'x' || bytes[i + 1].chr == 'X')
+          if i + 1 < len && chars[i] == '0' && (chars[i + 1] == 'x' || chars[i + 1] == 'X')
             i += 2
-            while i < len && (bytes[i].chr.ascii_number? || ('a'..'f').includes?(bytes[i].chr.downcase) || bytes[i].chr == '_')
+            while i < len && (chars[i].ascii_number? || ('a'..'f').includes?(chars[i].downcase) || chars[i] == '_')
               i += 1
             end
-          elsif i + 1 < len && bytes[i].chr == '0' && (bytes[i + 1].chr == 'b' || bytes[i + 1].chr == 'B')
+          elsif i + 1 < len && chars[i] == '0' && (chars[i + 1] == 'b' || chars[i + 1] == 'B')
             i += 2
-            while i < len && (bytes[i].chr == '0' || bytes[i].chr == '1' || bytes[i].chr == '_')
+            while i < len && (chars[i] == '0' || chars[i] == '1' || chars[i] == '_')
               i += 1
             end
           else
-            while i < len && (bytes[i].chr.ascii_number? || bytes[i].chr == '.' || bytes[i].chr == '_')
+            while i < len && (chars[i].ascii_number? || chars[i] == '.' || chars[i] == '_')
               i += 1
             end
-            # Check for float suffix like _f32, _f64, _i32, _i64, _u32
-            if i < len && bytes[i].chr == '_'
+            # Check for float/int suffix like _f32, _f64, _i32, _i64, _u32
+            if i < len && chars[i] == '_'
               i += 1
-              while i < len && bytes[i].chr.alphanumeric?
+              while i < len && chars[i].alphanumeric?
                 i += 1
               end
             end
@@ -233,10 +238,10 @@ module Lapis
         # Identifiers & Keywords
         if c.ascii_letter? || c == '_'
           start_col = i
-          while i < len && (bytes[i].chr.alphanumeric? || bytes[i].chr == '_' || bytes[i].chr == '?' || bytes[i].chr == '!')
+          while i < len && (chars[i].alphanumeric? || chars[i] == '_' || chars[i] == '?' || chars[i] == '!')
             i += 1
           end
-          word = line[start_col...i]
+          word = line[start_col, i - start_col]
 
           if KEYWORDS_DEF.includes?(word)
             add_span(spans, start_col, COLOR_KEYWORD)

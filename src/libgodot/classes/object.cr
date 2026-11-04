@@ -7,6 +7,7 @@ module Godot
     getter? destroyed : Bool = false
     @_bound_signal_cache : ::Hash(String, ::Godot::BoundSignal)? = nil
     @_static_signals_bound_tid : UInt64 = 0_u64
+    @_script_linked : Bool = false
 
     def initialize(@pointer : Void* = Pointer(Void).null)
       if !@pointer.null?
@@ -72,6 +73,14 @@ module Godot
       as_a(type)
     end
 
+    def godot_as?(type : T.class) : T? forall T
+      as_a?(type)
+    end
+
+    def godot_as(type : T.class) : T forall T
+      as_a(type)
+    end
+
     # Configures this existing object in-place using with-yield semantics
     def configure(& : self ->) : self
       with self yield self
@@ -98,7 +107,7 @@ module Godot
     end
 
     macro inherited
-      {% if @type.annotation(::GodotClass) %}
+      {% if @type.annotation(::GodotClass) && !@type.annotation(::GodotClass)[:from_node_macro] %}
         {% unless @type.class.methods.map(&.name.stringify).includes?("godot_class_name") %}
           def self.godot_class_name : String
             {{ @type.name.stringify.split("::").last }}
@@ -141,7 +150,8 @@ module Godot
             \{% for ivar in @type.instance_vars %}
               \{% if ivar.annotation(::Export) %}
                 if prop_name == \{{ ivar.name.stringify }}
-                  \{% ivar_type = ivar.type.stringify.gsub(/^(::)?Godot::/, "") %}
+                  \{% non_nil_t = ivar.type.nilable? ? ivar.type.union_types.reject { |ut| ut.stringify == "Nil" || ut.stringify == "::Nil" }[0] : ivar.type %}
+                  \{% ivar_type = non_nil_t.stringify.gsub(/^(::)?Godot::/, "") %}
                   \{% if ivar_type == "Float32" %}
                     self.\{{ ivar.name.id }} = val_ptr.as(Float64*).value.to_f32
                   \{% elsif ivar_type == "Float64" %}
@@ -161,6 +171,23 @@ module Godot
                     self.\{{ ivar.name.id }} = val_ptr.as(::Godot::Vector3*).value
                   \{% elsif ivar_type == "Color" %}
                     self.\{{ ivar.name.id }} = val_ptr.as(::Godot::Color*).value
+                  \{% elsif ["PackedByteArray", "PackedInt32Array", "PackedInt64Array", "PackedFloat32Array", "PackedFloat64Array", "PackedStringArray", "PackedVector2Array", "PackedVector3Array", "PackedColorArray", "PackedVector4Array"].includes?(ivar_type) %}
+                    self.\{{ ivar.name.id }} = ::Godot::\{{ ivar_type.id }}.from_bridge_payload(val_ptr)
+                  \{% elsif ivar_type == "Dictionary" || ivar_type == "GodotDictionary" %}
+                    self.\{{ ivar.name.id }} = ::Godot::Dictionary.from_bridge_payload(val_ptr)
+                  \{% elsif non_nil_t < Enum %}
+                    self.\{{ ivar.name.id }} = \{{ non_nil_t }}.from_value?(val_ptr.as(Int64*).value) || self.\{{ ivar.name.id }}
+                  \{% elsif non_nil_t <= ::Godot::Object %}
+                    obj_ptr = val_ptr.as(Void**).value
+                    if obj_ptr.null?
+                      \{% if ivar.type.nilable? %}
+                        self.\{{ ivar.name.id }} = nil
+                      \{% else %}
+                        self.\{{ ivar.name.id }} = \{{ non_nil_t }}.new(Pointer(Void).null)
+                      \{% end %}
+                    else
+                      self.\{{ ivar.name.id }} = ::Godot::Bridge.find_alive_instance(obj_ptr).as?(\{{ non_nil_t }}) || \{{ non_nil_t }}.new(obj_ptr)
+                    end
                   \{% end %}
                   return
                 end
@@ -173,7 +200,8 @@ module Godot
             \{% for ivar in @type.instance_vars %}
               \{% if ivar.annotation(::Export) %}
                 if prop_name == \{{ ivar.name.stringify }}
-                  \{% ivar_type = ivar.type.stringify.gsub(/^(::)?Godot::/, "") %}
+                  \{% non_nil_t = ivar.type.nilable? ? ivar.type.union_types.reject { |ut| ut.stringify == "Nil" || ut.stringify == "::Nil" }[0] : ivar.type %}
+                  \{% ivar_type = non_nil_t.stringify.gsub(/^(::)?Godot::/, "") %}
                   \{% if ivar_type == "Float32" || ivar_type == "Float64" %}
                     ret_ptr.as(Float64*).value = self.\{{ ivar.name.id }}.to_f64
                   \{% elsif ivar_type == "Int32" || ivar_type == "Int64" %}
@@ -188,6 +216,13 @@ module Godot
                     ret_ptr.as(::Godot::Vector3*).value = self.\{{ ivar.name.id }}
                   \{% elsif ivar_type == "Color" %}
                     ret_ptr.as(::Godot::Color*).value = self.\{{ ivar.name.id }}
+                  \{% elsif ["PackedByteArray", "PackedInt32Array", "PackedInt64Array", "PackedFloat32Array", "PackedFloat64Array", "PackedStringArray", "PackedVector2Array", "PackedVector3Array", "PackedColorArray", "PackedVector4Array", "Dictionary", "GodotDictionary"].includes?(ivar_type) %}
+                    self.\{{ ivar.name.id }}.write_bridge_payload(ret_ptr)
+                  \{% elsif non_nil_t < Enum %}
+                    ret_ptr.as(Int64*).value = self.\{{ ivar.name.id }}.try(&.to_i64) || 0_i64
+                  \{% elsif non_nil_t <= ::Godot::Object %}
+                    obj_val = self.\{{ ivar.name.id }}
+                    ret_ptr.as(Void**).value = (obj_val && obj_val.alive?) ? obj_val.pointer : Pointer(Void).null
                   \{% end %}
                   return
                 end
@@ -200,9 +235,12 @@ module Godot
             props = ::Array(::Godot::PropertyInfo).new
             \{% for ivar in @type.instance_vars %}
               \{% if ivar.annotation(::Export) && !(@type.superclass && @type.superclass.instance_vars.map(&.name.stringify).includes?(ivar.name.stringify)) %}
-                \{% ivar_type = ivar.type.stringify.gsub(/^(::)?Godot::/, "") %}
+                \{% non_nil_t = ivar.type.nilable? ? ivar.type.union_types.reject { |ut| ut.stringify == "Nil" || ut.stringify == "::Nil" }[0] : ivar.type %}
+                \{% ivar_type = non_nil_t.stringify.gsub(/^(::)?Godot::/, "") %}
                 \{%
                   vtype = 0
+                  hint = 0_u32
+                  hint_str = ""
                   if ivar_type == "Bool"
                     vtype = 1
                   elsif ivar_type == "Int32" || ivar_type == "Int64"
@@ -217,14 +255,56 @@ module Godot
                     vtype = 9
                   elsif ivar_type == "Color"
                     vtype = 20
+                  elsif ivar_type == "Dictionary" || ivar_type == "GodotDictionary"
+                    vtype = 27
+                  elsif ivar_type == "PackedByteArray"
+                    vtype = 29
+                  elsif ivar_type == "PackedInt32Array"
+                    vtype = 30
+                  elsif ivar_type == "PackedInt64Array"
+                    vtype = 31
+                  elsif ivar_type == "PackedFloat32Array"
+                    vtype = 32
+                  elsif ivar_type == "PackedFloat64Array"
+                    vtype = 33
+                  elsif ivar_type == "PackedStringArray"
+                    vtype = 34
+                  elsif ivar_type == "PackedVector2Array"
+                    vtype = 35
+                  elsif ivar_type == "PackedVector3Array"
+                    vtype = 36
+                  elsif ivar_type == "PackedColorArray"
+                    vtype = 37
+                  elsif ivar_type == "PackedVector4Array"
+                    vtype = 38
+                  elsif non_nil_t < Enum
+                    vtype = 2
+                    hint = 2_u32
+                    hint_str = non_nil_t.constants.map { |c| "#{c.id}:#{non_nil_t.constant(c).id}" }.join(",")
+                  elsif non_nil_t <= ::Godot::Node
+                    vtype = 24
+                    hint = 34_u32
+                    hint_str = ivar_type
+                  elsif non_nil_t <= ::Godot::Object
+                    vtype = 24
+                    if ivar_type != "Object" && ivar_type != "RefCounted"
+                      hint = 17_u32
+                      hint_str = ivar_type
+                    end
+                  end
+                  exp_anno = ivar.annotation(::Export)
+                  if exp_anno && exp_anno[:suffix]
+                    raw_sfx = exp_anno[:suffix].id.stringify
+                    sfx = raw_sfx.starts_with?("suffix:") ? raw_sfx : "suffix:#{raw_sfx.id}"
+                    hint_str = hint_str.empty? ? sfx : "#{hint_str.id},#{sfx.id}"
                   end
                 %}
                 props << ::Godot::PropertyInfo.new(
                   \{{ ivar.name.stringify }},
                   \{{ ivar_type }},
                   \{{ vtype }},
-                  0_u32,
-                  "",
+                  \{{ hint }},
+                  \{{ hint_str }},
                   6_u32
                 )
               \{% end %}
@@ -413,6 +493,25 @@ module Godot
       @destroyed
     end
 
+    # Fast check if this object is queued for deletion (`queue_free`) or already destroyed.
+    def queued_for_deletion_fast? : Bool
+      return true if @destroyed
+      return false if @pointer.null?
+      return true if @instance_id > 0 && !Bridge.is_instance_valid(@instance_id)
+      is_queued_for_deletion?
+    rescue
+      true
+    end
+
+    # Internal helper invoked by Bridge `free_fn` when Godot C++ deallocates a Crystal object.
+    def _mark_destroyed_by_engine! : Void
+      return if @destroyed
+      @destroyed = true
+      @pointer = Pointer(Void).null
+      ::Godot::TombstoneTracker.record_freed(@instance_id, self.class.name)
+      ::Godot::LeakTracker.unregister(@instance_id)
+    end
+
     # Returns true if running inside the Godot Editor
     def editor_hint? : Bool
       Godot.editor_hint?
@@ -438,21 +537,19 @@ module Godot
       @destroyed = true
       ::Godot::TombstoneTracker.record_freed(@instance_id, self.class.name)
       ::Godot::LeakTracker.unregister(@instance_id)
-      Godot.clear_signal_subscriptions(signal_target_id)
+      tid = signal_target_id
       if !@pointer.null?
         target_ptr = @pointer
         inst_id = @instance_id
         @pointer = Pointer(Void).null
         Bridge.unregister_alive_instance_by_ptr(target_ptr)
-        if self.is_a?(RefCounted)
+        if !self.is_a?(RefCounted) && (inst_id == 0 || Bridge.is_instance_valid(inst_id))
           # RefCounted instances are managed by Godot's atomic reference counter;
           # calling memdelete directly corrupts engine memory and causes heap corruption.
-          return
-        end
-        if inst_id == 0 || Bridge.is_instance_valid(inst_id)
           Bridge.object_destroy(target_ptr)
         end
       end
+      Godot.clear_signal_subscriptions(tid, yield_awaiters: true)
     end
 
     # Destroys this Object in the Godot engine (alias to #destroy).
@@ -466,26 +563,65 @@ module Godot
     end
 
     @@discovered_script_paths = Hash(String, String).new
+    @@discovered_script_locations = Hash(String, Tuple(String, Int32)).new
 
-    # Discovers a .cr source file corresponding to a custom node/class
-    def self.find_script_path_for_class(target_cls : String) : String
-      return "" if target_cls.empty?
-      if cached = @@discovered_script_paths[target_cls]?
+    # Returns true if the given class name is a built-in engine class, internal Lapis class, or UniBuilder brush class
+    def self.is_internal_or_brush_class?(cls_name : String) : Bool
+      return true if cls_name.empty? || cls_name == "Node" || cls_name == "Node2D" || cls_name == "Node3D" || cls_name == "Object"
+      return true if cls_name.starts_with?("Crystal") || cls_name.starts_with?("UB") || cls_name.includes?("Plugin") || cls_name.starts_with?("ResourceFormat")
+      false
+    end
+
+    # Discovers the .cr source file and 1-based line number corresponding to a custom node/resource class
+    def self.find_script_location_for_class(target_cls : String) : Tuple(String, Int32)
+      return {"", 1} if is_internal_or_brush_class?(target_cls)
+      if cached = @@discovered_script_locations[target_cls]?
         return cached
       end
 
-      src_dir = if !Godot::ProjectSettings.singleton_ptr.null?
-                  ps = Godot::ProjectSettings.new(Godot::ProjectSettings.singleton_ptr)
-                  glob = ps.call_str("globalize_path", "res://src").gsub('\\', '/')
-                  Dir.exists?(glob) ? glob : (Dir.exists?("src") ? "src" : "")
-                else
-                  Dir.exists?("src") ? "src" : ""
+      proj_root = if !Godot::ProjectSettings.singleton_ptr.null?
+                    ps = Godot::ProjectSettings.new(Godot::ProjectSettings.singleton_ptr)
+                    ps.call_str("globalize_path", "res://").gsub('\\', '/').chomp('/')
+                  else
+                    ""
+                  end
+
+      decl_regex = /^\s*(?:node|node2d|node3d|resource|resource_card|gdclass|autoload|class)\s+#{Regex.escape(target_cls)}\b/m
+
+      # 1. Check ClassRegistry if script_path points to a valid project/addon file (not internal lapis/unibuilder)
+      if entry = ClassRegistry.find(target_cls)
+        sp = entry.script_path
+        if !sp.empty? && !sp.includes?("/lib/") && !sp.includes?("libgodot") && !sp.includes?("unibuilder") && !sp.includes?("crystal_integration")
+          rel = sp.sub(/^res:\/\//, "")
+          fs_path = !proj_root.empty? ? "#{proj_root}/#{rel}" : rel
+          if File.exists?(fs_path)
+            line_num = 1
+            begin
+              idx = 0
+              File.each_line(fs_path) do |l|
+                idx += 1
+                if l =~ decl_regex
+                  line_num = idx
+                  break
                 end
+              end
+            rescue
+            end
+            res = {sp.starts_with?("res://") ? sp : "res://#{rel}", line_num}
+            @@discovered_script_locations[target_cls] = res
+            @@discovered_script_paths[target_cls] = res[0]
+            return res
+          end
+        end
+      end
+
+      src_dir = !proj_root.empty? && Dir.exists?("#{proj_root}/src") ? "#{proj_root}/src" : (Dir.exists?("src") ? "src" : "")
 
       snake = target_cls.underscore
       candidates = [
         "src/#{snake}.cr",
         "src/#{snake.sub(/_node$/, "")}.cr",
+        "src/#{snake.sub(/_mesh$/, "")}.cr",
         "src/#{snake.sub(/^my_/, "")}.cr",
         "src/#{snake.sub(/^my_/, "").sub(/_node$/, "")}.cr",
         "src/#{snake.gsub("_crystal_", "_")}.cr",
@@ -494,42 +630,137 @@ module Godot
       candidates.each do |c|
         rel_c = c.sub(/^src\//, "")
         fs_path = !src_dir.empty? ? "#{src_dir}/#{rel_c}" : c
-        if File.exists?(fs_path) || File.exists?(c)
+        actual_fs = File.exists?(fs_path) ? fs_path : (File.exists?(c) ? c : "")
+        if !actual_fs.empty? && !actual_fs.includes?("libgodot")
+          line_num = 1
+          begin
+            idx = 0
+            File.each_line(actual_fs) do |l|
+              idx += 1
+              if l =~ decl_regex
+                line_num = idx
+                break
+              end
+            end
+          rescue
+          end
           path = "res://#{c}"
+          res = {path, line_num}
+          @@discovered_script_locations[target_cls] = res
           @@discovered_script_paths[target_cls] = path
-          return path
+          return res
         end
       end
 
-      # Scan src/**/*.cr for node/class definition matching target_cls
-      begin
-        search_dir = !src_dir.empty? ? src_dir : "src"
-        if Dir.exists?(search_dir)
-          Dir.glob("#{search_dir}/**/*.cr") do |file|
+      # Scan src/**/*.cr and addons/**/*.cr (excluding crystal_integration and unibuilder) for definition matching target_cls
+      search_dirs = [] of Tuple(String, String)
+      if !src_dir.empty? && Dir.exists?(src_dir)
+        search_dirs << {src_dir, "res://src"}
+      end
+      addons_dir = !proj_root.empty? && Dir.exists?("#{proj_root}/addons") ? "#{proj_root}/addons" : (Dir.exists?("addons") ? "addons" : "")
+      if !addons_dir.empty? && Dir.exists?(addons_dir)
+        search_dirs << {addons_dir, "res://addons"}
+      end
+
+      search_dirs.each do |(s_dir, res_prefix)|
+        begin
+          Dir.glob("#{s_dir}/**/*.cr") do |file|
+            norm = file.gsub('\\', '/')
+            next if norm.includes?("/libgodot/") || norm.includes?("/crystal_integration/") || norm.includes?("/unibuilder/")
             content = File.read(file) rescue ""
-            if content =~ /(?:node|class)\s+#{Regex.escape(target_cls)}\b/
-              norm = file.gsub('\\', '/')
-              res_path = if !src_dir.empty? && norm.starts_with?(src_dir)
-                           "res://src" + norm[src_dir.size..-1]
+            if content =~ decl_regex
+              line_num = 1
+              content.each_line.with_index(1) do |l, idx|
+                if l =~ decl_regex
+                  line_num = idx
+                  break
+                end
+              end
+              res_path = if norm.starts_with?(s_dir)
+                           res_prefix + norm[s_dir.size..-1]
                          else
                            "res://#{norm.sub(/^\.\//, "")}"
                          end
+              res = {res_path, line_num}
+              @@discovered_script_locations[target_cls] = res
               @@discovered_script_paths[target_cls] = res_path
-              return res_path
+              return res
+            end
+          end
+        rescue
+        end
+      end
+
+      @@discovered_script_locations[target_cls] = {"", 1}
+      @@discovered_script_paths[target_cls] = ""
+      {"", 1}
+    end
+
+    # Discovers a .cr source file corresponding to a custom node/class
+    def self.find_script_path_for_class(target_cls : String) : String
+      find_script_location_for_class(target_cls)[0]
+    end
+
+    # Resolves the Crystal script path, 1-based line number, class name, parent class, and tool flag for a SceneTree node
+    def self.find_script_info_for_node(node : Godot::Object) : NamedTuple(path: String, line: Int32, class_name: String, parent_name: String, is_tool: Bool)?
+      return nil if node.pointer.null?
+      cdb_ptr = Bridge.get_singleton("ClassDB")
+      cdb = !cdb_ptr.null? ? Godot::ClassDB.new(cdb_ptr) : nil
+
+      # 1. Check the node's own Godot class
+      cls_name = node.call_str("get_class") rescue ""
+      if !is_internal_or_brush_class?(cls_name)
+        loc = find_script_location_for_class(cls_name)
+        if !loc[0].empty?
+          entry = ClassRegistry.find(cls_name)
+          parent_name = entry ? entry.parent_name : (cdb ? (cdb.get_parent_class(cls_name) rescue "Node") : "Node")
+          is_tool = entry ? entry.is_tool : false
+          return {path: loc[0], line: loc[1], class_name: cls_name, parent_name: parent_name, is_tool: is_tool}
+        end
+      end
+
+      # 2. If it's a MeshInstance3D, check if its .mesh resource is a custom Crystal resource class (e.g. VaseMesh on Vase/Vase2)
+      if (node.call_bool("is_class", "MeshInstance3D") rescue false)
+        if mesh_obj = (node.call_obj("get_mesh") rescue nil)
+          if !mesh_obj.pointer.null?
+            mesh_cls = mesh_obj.call_str("get_class") rescue ""
+            if !is_internal_or_brush_class?(mesh_cls)
+              loc = find_script_location_for_class(mesh_cls)
+              if !loc[0].empty?
+                entry = ClassRegistry.find(mesh_cls)
+                parent_name = entry ? entry.parent_name : (cdb ? (cdb.get_parent_class(mesh_cls) rescue "Resource") : "Resource")
+                is_tool = entry ? entry.is_tool : true
+                return {path: loc[0], line: loc[1], class_name: mesh_cls, parent_name: parent_name, is_tool: is_tool}
+              end
             end
           end
         end
-      rescue
+
+        # Also check if node's base name (stripping trailing digits, e.g. "Vase2" -> "Vase") matches "<BaseName>Mesh"
+        node_name = (node.call_str("get_name") rescue "").sub(/\d+$/, "").strip
+        if !node_name.empty?
+          candidate_mesh_cls = "#{node_name}Mesh"
+          if !is_internal_or_brush_class?(candidate_mesh_cls)
+            loc = find_script_location_for_class(candidate_mesh_cls)
+            if !loc[0].empty?
+              entry = ClassRegistry.find(candidate_mesh_cls)
+              parent_name = entry ? entry.parent_name : (cdb ? (cdb.get_parent_class(candidate_mesh_cls) rescue "Resource") : "Resource")
+              is_tool = entry ? entry.is_tool : true
+              return {path: loc[0], line: loc[1], class_name: candidate_mesh_cls, parent_name: parent_name, is_tool: is_tool}
+            end
+          end
+        end
       end
 
-      @@discovered_script_paths[target_cls] = ""
-      ""
+      nil
+    rescue
+      nil
     end
 
     # Automatically links this node's registered CrystalScript resource if running inside the Godot Editor
     def link_class_script : Void
       return unless Godot.editor_hint?
-      return if @pointer.null?
+      return if @pointer.null? || @_script_linked
       return if self.is_a?(Godot::Script) || self.class.name.includes?("Script") || self.class.name.includes?("Plugin")
 
       # Guard against linking script to nodes that are not inside the active scene tree (prevents 'Cannot get path of node' error)
@@ -537,6 +768,8 @@ module Godot
       if is_node
         return unless (self.call_bool("is_inside_tree") rescue false)
       end
+
+      @_script_linked = true
 
       curr_script = self.get_script
       return if !curr_script.null?
@@ -556,26 +789,26 @@ module Godot
                    end
       return if target_cls.empty? || target_cls.includes?("Script") || target_cls.includes?("Plugin") || target_cls == "Node" || target_cls == "Object"
 
-      path = entry.try(&.script_path) || ""
-      parent_name = entry.try(&.parent_name) || ""
-      is_tool = entry.try(&.is_tool) || false
-
-      if path.empty? || path == "res://" || path == "res:///"
-        path = Godot::Object.find_script_path_for_class(target_cls)
+      # Native GDExtension classes registered in ClassRegistry or ClassDB expose their properties
+      # and virtual methods directly via ClassDB (`_instance_create` returns null for native classes).
+      # Calling `set_script` on them causes Godot's `Object::set_script` to reject the null script instance
+      # and emit `notify_property_list_changed()`, which tears down active Inspector input fields.
+      return if entry
+      cdb_ptr = Bridge.get_singleton("ClassDB")
+      if !cdb_ptr.null?
+        return if (Bridge.object_call_ret_bool(cdb_ptr, "class_exists", target_cls) rescue false)
       end
+
+      path = Godot::Object.find_script_path_for_class(target_cls)
       return if path.empty? || path == "res://" || path == "res:///"
 
-      if parent_name.empty?
-        cdb_ptr = Bridge.get_singleton("ClassDB")
-        if !cdb_ptr.null?
-          cdb = Godot::ClassDB.new(cdb_ptr)
-          parent_name = cdb.get_parent_class(target_cls) rescue "Node"
-        else
-          parent_name = "Node"
-        end
+      parent_name = "Node"
+      if !cdb_ptr.null?
+        cdb = Godot::ClassDB.new(cdb_ptr)
+        parent_name = cdb.get_parent_class(target_cls) rescue "Node"
       end
 
-      if script = ClassRegistry.get_or_load_script(path, target_cls, parent_name, is_tool)
+      if script = ClassRegistry.get_or_load_script(path, target_cls, parent_name, false)
         self.call("set_script", script)
         self.call("update_configuration_warnings") rescue nil
       end
@@ -772,11 +1005,119 @@ module Godot
     # node.set_meta(:enemy_tier, 3)
     # node.set_meta("spawner_id", "wave_01")
     # ```
-    def set_meta(key : String | Symbol, value : String | Int32 | Int64 | Float32 | Float64 | Bool | Symbol) : Void
+    def set_meta(key : String | Symbol, value : String | Int32 | Int64 | Float32 | Float64 | Bool | Symbol | Vector2 | Vector2i | Vector3 | Vector3i | Color | Transform3D | Basis | AABB | Quaternion | Plane | Rect2) : Void
       check_alive!
-      if !@pointer.null?
+      if !@pointer.null? && Bridge.init_done?
         call("set_meta", key.to_s, value)
       end
+    end
+
+    def set_meta(key : String | Symbol, value : Godot::Object) : Void
+      check_alive!
+      if !@pointer.null? && Bridge.init_done?
+        Bridge.object_call(@pointer, "set_meta", key.to_s, value)
+      end
+    end
+
+    def set_meta(name : String, value : Pointer(Void)) : Void
+      check_alive!
+      if !@pointer.null? && Bridge.init_done?
+        call("set_meta", name, value.address.to_i64)
+      end
+    end
+
+    def set_meta(key : Symbol, value : Pointer(Void)) : Void
+      set_meta(key.to_s, value)
+    end
+
+    def set_meta(key : String | Symbol, value : Variant) : Void
+      check_alive!
+      if !@pointer.null? && Bridge.init_done?
+        call("set_meta", [Variant.new(key.to_s), value])
+      end
+    end
+
+    def get_meta(name : String, default : Pointer(Void)? = nil) : Pointer(Void)
+      fallback = default || Pointer(Void).null
+      return fallback if @pointer.null? || !Bridge.init_done?
+      check_alive!
+      return fallback unless has_meta(name)
+      addr = call_i64("get_meta", name)
+      return Pointer(Void).new(addr.to_u64) if addr != 0_i64
+      ptr = Bridge.object_call_ret_object(@pointer, "get_meta", name)
+      !ptr.null? ? ptr : fallback
+    end
+
+    def get_meta(key : Symbol, default : Pointer(Void)? = nil) : Pointer(Void)
+      get_meta(key.to_s, default)
+    end
+
+    def get_meta_vector2(key : String | Symbol) : Vector2
+      return Vector2.zero if @pointer.null? || !Bridge.init_done?
+      check_alive!
+      godot_bind(@@mb_get_meta, "Object", "get_meta", 3990617847_i64)
+      sn_0 = Bridge.make_string_name(key.to_s)
+      def_var = StaticArray(UInt8, 24).new(0_u8)
+      arg_1 = def_var.to_unsafe.as(Void*)
+      args = StaticArray[sn_0, arg_1]
+      ret_var = StaticArray(UInt8, 24).new(0_u8)
+      godot_ptrcall(@@mb_get_meta, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
+      v2 = Vector2.zero
+      Bridge.type_from_variant(5, pointerof(v2).as(Void*), ret_var.to_unsafe.as(Void*))
+      v2
+    ensure
+      Bridge.free_string_name(sn_0) if sn_0
+    end
+
+    def get_meta_vector3(key : String | Symbol) : Vector3
+      return Vector3.zero if @pointer.null? || !Bridge.init_done?
+      check_alive!
+      godot_bind(@@mb_get_meta, "Object", "get_meta", 3990617847_i64)
+      sn_0 = Bridge.make_string_name(key.to_s)
+      def_var = StaticArray(UInt8, 24).new(0_u8)
+      arg_1 = def_var.to_unsafe.as(Void*)
+      args = StaticArray[sn_0, arg_1]
+      ret_var = StaticArray(UInt8, 24).new(0_u8)
+      godot_ptrcall(@@mb_get_meta, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
+      v3 = Vector3.zero
+      Bridge.type_from_variant(9, pointerof(v3).as(Void*), ret_var.to_unsafe.as(Void*))
+      v3
+    ensure
+      Bridge.free_string_name(sn_0) if sn_0
+    end
+
+    def get_meta_transform3d(key : String | Symbol) : Transform3D
+      return Transform3D.identity if @pointer.null? || !Bridge.init_done?
+      check_alive!
+      godot_bind(@@mb_get_meta, "Object", "get_meta", 3990617847_i64)
+      sn_0 = Bridge.make_string_name(key.to_s)
+      def_var = StaticArray(UInt8, 24).new(0_u8)
+      arg_1 = def_var.to_unsafe.as(Void*)
+      args = StaticArray[sn_0, arg_1]
+      ret_var = StaticArray(UInt8, 24).new(0_u8)
+      godot_ptrcall(@@mb_get_meta, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
+      xf = Transform3D.identity
+      Bridge.type_from_variant(18, pointerof(xf).as(Void*), ret_var.to_unsafe.as(Void*))
+      xf
+    ensure
+      Bridge.free_string_name(sn_0) if sn_0
+    end
+
+    def get_meta_color(key : String | Symbol) : Color
+      return Color::WHITE if @pointer.null? || !Bridge.init_done?
+      check_alive!
+      godot_bind(@@mb_get_meta, "Object", "get_meta", 3990617847_i64)
+      sn_0 = Bridge.make_string_name(key.to_s)
+      def_var = StaticArray(UInt8, 24).new(0_u8)
+      arg_1 = def_var.to_unsafe.as(Void*)
+      args = StaticArray[sn_0, arg_1]
+      ret_var = StaticArray(UInt8, 24).new(0_u8)
+      godot_ptrcall(@@mb_get_meta, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
+      col = Color::WHITE
+      Bridge.type_from_variant(20, pointerof(col).as(Void*), ret_var.to_unsafe.as(Void*))
+      col
+    ensure
+      Bridge.free_string_name(sn_0) if sn_0
     end
 
     # Retrieves string metadata stored on this object.
@@ -1042,6 +1383,10 @@ module Godot
 
     def to_s(io : IO) : Void
       io << "<Godot::" << self.class.name << " #" << @instance_id << " @" << @pointer << ">"
+    end
+
+    def inspect(io : IO) : Void
+      to_s(io)
     end
   end
 

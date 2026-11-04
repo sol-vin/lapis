@@ -19022,8 +19022,8 @@ module Godot
       MeshAlignmentMax = 2_i64
     end
     enum TilingMode : Int64
-      TilingModeUnit = 0_i64
-      TilingModeLength = 1_i64
+      TilingModeStretch = 0_i64
+      TilingModeTile = 1_i64
       TilingMax = 2_i64
     end
     enum MaterialMode : Int64

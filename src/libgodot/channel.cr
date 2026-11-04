@@ -353,15 +353,13 @@ module Godot
     def call(method : String, *args) : Void*
       case method
       when "send"
-        if args.size > 0
-          arg_val = args[0].to_s
-          send(arg_val)
+        if first_arg = args[0]?
+          send(first_arg.to_s)
         end
         Pointer(Void).null
       when "try_send"
-        if args.size > 0
-          arg_val = args[0].to_s
-          try_send(arg_val)
+        if first_arg = args[0]?
+          try_send(first_arg.to_s)
         end
         Pointer(Void).null
       when "receive"

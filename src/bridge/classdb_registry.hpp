@@ -80,10 +80,71 @@ inline bool is_class_registered_in_engine(const char *name) {
     return (ret != 0);
 }
 
-inline void register_channel_methods(void *class_sn) {
+/**
+ * Checks whether a class name (either registered in Crystal's persistent descriptor DAG
+ * or native Godot ClassDB) inherits from Godot::Node.
+ */
+inline bool is_node_class_in_engine(const std::string &cname) {
+    if (cname.empty() || cname == "Object" || cname == "Variant" || cname == "RefCounted" || cname == "Resource") {
+        return false;
+    }
+    if (cname == "Node" || cname == "Node2D" || cname == "Node3D" || cname == "Control" ||
+        cname == "CanvasItem" || cname == "Viewport" || cname == "SubViewport" || cname == "Window") {
+        return true;
+    }
+
+    std::string cur = cname;
+    int depth = 0;
+    while (!cur.empty() && depth++ < 32) {
+        if (cur == "Node" || cur == "Node2D" || cur == "Node3D" || cur == "Control" ||
+            cur == "CanvasItem" || cur == "Viewport" || cur == "SubViewport" || cur == "Window") {
+            return true;
+        }
+        if (cur == "Resource" || cur == "RefCounted" || cur == "Object") {
+            return false;
+        }
+        auto it = g_persistent_class_descs.find(cur);
+        if (it != g_persistent_class_descs.end() && it->second && !it->second->parent_name.empty()) {
+            cur = it->second->parent_name;
+        } else {
+            break;
+        }
+    }
+
+    if (!cur.empty() && gd_global_get_singleton && gd_classdb_get_method_bind && gd_object_method_bind_ptrcall) {
+        void *sn_cdb = make_string_name("ClassDB");
+        GDExtensionObjectPtr cdb = gd_global_get_singleton(sn_cdb);
+        free_string_name(sn_cdb);
+        if (cdb) {
+            static GDExtensionMethodBindPtr mb_is_parent = nullptr;
+            if (!mb_is_parent) {
+                void *sn_c = make_string_name("ClassDB");
+                void *sn_m = make_string_name("is_parent_class");
+                mb_is_parent = gd_classdb_get_method_bind(sn_c, sn_m, 471820014ULL);
+                free_string_name(sn_c); free_string_name(sn_m);
+            }
+            if (mb_is_parent) {
+                void *sn_cur = make_string_name(cur.c_str());
+                void *sn_node = make_string_name("Node");
+                const void *args[2] = { sn_cur, sn_node };
+                uint8_t ret = 0;
+                gd_object_method_bind_ptrcall(mb_is_parent, cdb, args, &ret);
+                free_string_name(sn_cur);
+                free_string_name(sn_node);
+                if (ret != 0) return true;
+            }
+        }
+    }
+    return false;
+}
+
+inline void register_channel_methods(void *class_sn, PersistentClassDesc *pcd = nullptr) {
     if (!gd_classdb_register_extension_class_method || !g_library) return;
 
     auto reg_method = [&](const char *name, int ret_type, int arg_count, const char *arg_name, int arg_type) {
+        if (pcd && pcd->registered_method_names.count(name) > 0) {
+            return;
+        }
         void *sn_name = make_string_name(name);
         std::string ret_name = std::string(name) + "_ret";
         GDExtensionPropertyInfo ret_info = {};
@@ -121,6 +182,9 @@ inline void register_channel_methods(void *class_sn) {
         minfo.default_arguments = nullptr;
 
         gd_classdb_register_extension_class_method(g_library, class_sn, &minfo);
+        if (pcd) {
+            pcd->registered_method_names.insert(name);
+        }
 
         free_string_name(sn_name);
         free_string_name(ret_info.name);
@@ -190,6 +254,14 @@ inline void do_classdb_register(CrystalClassDesc *desc) {
 
     // --- Segment 3: Native Engine ClassDB Registration ---
     if (!pcd || !pcd->is_registered_in_classdb) {
+        if (is_class_registered_in_engine(desc->name)) {
+            if (cinfo.icon_path) {
+                free_string((void*)cinfo.icon_path);
+            }
+            free_string_name(class_sn);
+            free_string_name(parent_sn);
+            return;
+        }
         gd_classdb_register_extension_class6(g_library, class_sn, parent_sn, &cinfo);
         if (pcd) {
             pcd->is_registered_in_classdb = true;
@@ -198,6 +270,13 @@ inline void do_classdb_register(CrystalClassDesc *desc) {
         if (std::find(g_registered_class_order.begin(), g_registered_class_order.end(), std::string(desc->name)) == g_registered_class_order.end()) {
             g_registered_class_order.push_back(std::string(desc->name));
         }
+    } else if (pcd->registered_library && pcd->registered_library != g_library) {
+        if (cinfo.icon_path) {
+            free_string((void*)cinfo.icon_path);
+        }
+        free_string_name(class_sn);
+        free_string_name(parent_sn);
+        return;
     }
 
     if (cinfo.icon_path) {
@@ -266,19 +345,27 @@ inline void do_classdb_register(CrystalClassDesc *desc) {
         while (!prop_hint_string.empty() && (prop_hint_string.back() == ' ' || prop_hint_string.back() == '\t' || prop_hint_string.back() == ')')) prop_hint_string.pop_back();
         while (!prop_hint_string.empty() && (prop_hint_string.front() == ' ' || prop_hint_string.front() == '\t' || prop_hint_string.front() == '(')) prop_hint_string.erase(0, 1);
 
-        // If it's an Object/Resource without an explicit hint, auto-assign PROPERTY_HINT_RESOURCE_TYPE (17)
-        // so the Godot Editor inspector restricts the picker strictly to this resource type.
-        if (p.variant_type == 24 /* GDEXTENSION_VARIANT_TYPE_OBJECT */ && prop_hint == 0 &&
-            !cname.empty() && cname != "Object" && cname != "Variant" && cname != "Node" && cname != "RefCounted") {
-            prop_hint = 17; // PROPERTY_HINT_RESOURCE_TYPE
-            prop_hint_string = cname;
+        // If it's an Object/Node/Resource without an explicit hint, auto-assign PROPERTY_HINT_NODE_TYPE (34)
+        // for Node subclasses or PROPERTY_HINT_RESOURCE_TYPE (17) for Resources so the Godot Editor inspector
+        // displays the SceneTree Node Picker or Resource Picker respectively.
+        if (p.variant_type == 24 /* GDEXTENSION_VARIANT_TYPE_OBJECT */ &&
+            !cname.empty() && cname != "Object" && cname != "Variant" && cname != "RefCounted") {
+            if (is_node_class_in_engine(cname)) {
+                if (prop_hint == 0 || prop_hint == 17) {
+                    prop_hint = 34; // PROPERTY_HINT_NODE_TYPE
+                    prop_hint_string = cname;
+                }
+            } else if (prop_hint == 0) {
+                prop_hint = 17; // PROPERTY_HINT_RESOURCE_TYPE
+                prop_hint_string = cname;
+            }
         }
 
         ScopedString hint_str(prop_hint_string.c_str());
         GDExtensionPropertyInfo pinfo = {};
         pinfo.type = (GDExtensionVariantType)p.variant_type;
         pinfo.name = make_string_name(p.name);
-        pinfo.class_name = make_string_name(cname.c_str());
+        pinfo.class_name = make_string_name(p.variant_type == 24 ? cname.c_str() : "");
         pinfo.hint = prop_hint;
         pinfo.hint_string = hint_str;
         pinfo.usage = p.usage ? p.usage : 6; // PROPERTY_USAGE_DEFAULT
@@ -371,7 +458,31 @@ inline void do_classdb_register(CrystalClassDesc *desc) {
     if (gd_classdb_register_extension_class_method) {
         for (int i = 0; i < desc->method_count; i++) {
             const CrystalMethodDesc &m = desc->methods[i];
-            if (!m.name || (pcd && pcd->registered_method_names.count(m.name) > 0)) {
+            if (!m.name || (pcd && (pcd->registered_method_names.count(m.name) > 0 ||
+                                    pcd->registered_property_names.count(m.name) > 0 ||
+                                    pcd->registered_signal_names.count(m.name) > 0 ||
+                                    pcd->registered_constant_names.count(m.name) > 0))) {
+                continue;
+            }
+
+            // Prevent duplicate or colliding method registration across ancestor classes
+            bool method_in_ancestor = false;
+            std::string cur_m_parent = pcd ? pcd->parent_name : "";
+            while (!cur_m_parent.empty()) {
+                auto pit = g_persistent_class_descs.find(cur_m_parent);
+                if (pit != g_persistent_class_descs.end()) {
+                    if (pit->second->registered_method_names.count(m.name) > 0 ||
+                        pit->second->registered_property_names.count(m.name) > 0 ||
+                        pit->second->registered_signal_names.count(m.name) > 0) {
+                        method_in_ancestor = true;
+                        break;
+                    }
+                    cur_m_parent = pit->second->parent_name;
+                } else {
+                    break;
+                }
+            }
+            if (method_in_ancestor) {
                 continue;
             }
 
@@ -401,7 +512,7 @@ inline void do_classdb_register(CrystalClassDesc *desc) {
 
     // --- Segment 7: GodotChannel Method Registration & Class Tracking ---
     if (strcmp(desc->name, "GodotChannel") == 0) {
-        register_channel_methods(class_sn);
+        register_channel_methods(class_sn, pcd);
     }
 
     char log_buf[128];
@@ -449,7 +560,7 @@ inline int bridge_register_class(const CrystalClassDesc *p_desc) {
     if (!p_desc || !p_desc->name || !g_library) return 0;
 
     std::string cname = p_desc->name;
-    if (g_classes_registered_in_current_cycle.count(cname) > 0) {
+    if (!s_loading_plugin_module && g_classes_registered_in_current_cycle.count(cname) > 0) {
         return 1;
     }
 
@@ -457,19 +568,61 @@ inline int bridge_register_class(const CrystalClassDesc *p_desc) {
     bool is_our_class = (it != g_persistent_class_descs.end());
     PersistentClassDesc *pcd = nullptr;
     if (is_our_class) {
+        pcd = it->second;
+        // Preserve classes owned by plugin.dll so game.dll never overwrites live editor plugin/language callbacks
+        if (!s_loading_plugin_module && pcd->owned_by_plugin) {
+            g_classes_registered_in_current_cycle.insert(cname);
+            if (!pcd->is_registered_in_classdb) {
+                if (is_editor_class(&pcd->desc)) {
+                    if (!is_editor_active()) {
+                        return 1;
+                    }
+                    if (g_current_init_level < GDEXTENSION_INITIALIZATION_EDITOR && pcd->desc.parent_name && !is_class_registered_in_engine(pcd->desc.parent_name)) {
+                        bool already_deferred = false;
+                        for (const auto &dep : g_deferred_editor_classes) {
+                            if (dep.second && dep.second->name && strcmp(dep.second->name, pcd->desc.name) == 0) {
+                                already_deferred = true;
+                                break;
+                            }
+                        }
+                        if (!already_deferred) {
+                            g_deferred_editor_classes.push_back({g_library, &pcd->desc});
+                        }
+                        return 1;
+                    }
+                }
+                do_classdb_register(&pcd->desc);
+            }
+            return 1;
+        }
+        // Prevent secondary GDExtension libraries from overwriting or re-registering members on an already registered class
+        if (pcd->is_registered_in_classdb && pcd->registered_library && pcd->registered_library != g_library) {
+            g_classes_registered_in_current_cycle.insert(cname);
+            return 1;
+        }
         // Class was registered previously. Update persistent descriptor in-place
         // so runtime dispatches invoke the newly compiled Crystal DLL.
-        pcd = it->second;
         pcd->update_from(p_desc);
-        if (s_is_reloading) {
+        if (s_loading_plugin_module) {
+            pcd->owned_by_plugin = true;
+        }
+        if (s_is_reloading && !pcd->is_registered_in_classdb) {
             pcd->registered_property_names.clear();
             pcd->registered_signal_names.clear();
             pcd->registered_constant_names.clear();
+            pcd->registered_method_names.clear();
         }
     } else {
+        if (is_class_registered_in_engine(p_desc->name)) {
+            char log_buf[256];
+            snprintf(log_buf, sizeof(log_buf), "  [ClassDB] Class '%s' already registered by engine or another extension; skipping duplicate registration.", p_desc->name);
+            godot_log_verbose(log_buf);
+            return 0;
+        }
         // Allocate persistent descriptor whose address will remain invariant for Godot ClassDB
         pcd = new PersistentClassDesc();
         pcd->update_from(p_desc);
+        pcd->owned_by_plugin = s_loading_plugin_module;
         g_persistent_class_descs[cname] = pcd;
         g_all_registered_class_names.insert(cname);
     }
@@ -492,8 +645,8 @@ inline int bridge_register_class(const CrystalClassDesc *p_desc) {
     // --- Segment 3: Engine Pre-Registration Duplicate Check ---
     if (!is_our_class && is_class_registered_in_engine(p_desc->name)) {
         char log_buf[256];
-        snprintf(log_buf, sizeof(log_buf), "[CrystalBridge] Error: Class '%s' already registered by engine or another extension. Skipping duplicate registration.", p_desc->name);
-        godot_log_warning(log_buf, nullptr, "bridge_register_class", __FILE__, __LINE__);
+        snprintf(log_buf, sizeof(log_buf), "  [ClassDB] Class '%s' already registered by engine or another extension; skipping duplicate registration.", p_desc->name);
+        godot_log_verbose(log_buf);
         return 0;
     }
 
@@ -538,9 +691,46 @@ inline void register_deferred_editor_classes() {
     if (!g_deferred_editor_classes.empty()) {
         godot_log_verbose("[CrystalBridge] Registering deferred Editor classes at EDITOR level...");
         for (auto &pair : g_deferred_editor_classes) {
+            if (!pair.second || !pair.second->name) continue;
+            auto pcd_it = g_persistent_class_descs.find(pair.second->name);
+            bool is_reg = (pcd_it != g_persistent_class_descs.end() && pcd_it->second && pcd_it->second->is_registered_in_classdb);
+            if (!is_reg && is_class_registered_in_engine(pair.second->name)) {
+                char log_buf[256];
+                snprintf(log_buf, sizeof(log_buf), "  [ClassDB] Deferred editor class '%s' already registered by another extension; skipping.", pair.second->name);
+                godot_log_verbose(log_buf);
+                continue;
+            }
             g_library = pair.first;
             do_classdb_register(pair.second);
         }
         g_deferred_editor_classes.clear();
     }
 }
+
+/**
+ * Ensures that if `name` is a known persistent extension class, it is registered in ClassDB
+ * before attempting construction via `gd_classdb_construct_object`.
+ */
+inline bool ensure_persistent_class_registered(const char *name) {
+    if (!name) return false;
+    auto it = g_persistent_class_descs.find(name);
+    if (it != g_persistent_class_descs.end() && it->second) {
+        PersistentClassDesc *pcd = it->second;
+        if (!pcd->is_registered_in_classdb && g_library) {
+            if (is_class_registered_in_engine(name)) {
+                return true;
+            }
+            if (is_editor_class(&pcd->desc) && !is_editor_active()) {
+                return false;
+            }
+            if (is_editor_class(&pcd->desc) && g_current_init_level < GDEXTENSION_INITIALIZATION_EDITOR &&
+                pcd->desc.parent_name && !is_class_registered_in_engine(pcd->desc.parent_name)) {
+                return false;
+            }
+            do_classdb_register(&pcd->desc);
+        }
+        return pcd->is_registered_in_classdb;
+    }
+    return true;
+}
+

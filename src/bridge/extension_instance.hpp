@@ -98,6 +98,9 @@ inline bool is_refcounted_desc(const CrystalClassDesc *desc) {
 static std::unordered_map<void*, GenericExtensionInstance*> s_object_to_extension_instance;
 static std::mutex s_object_to_ext_mutex;
 
+static std::unordered_map<GenericExtensionInstance*, std::unordered_map<std::string, std::string>> s_pending_node_paths;
+static std::mutex s_pending_node_paths_mutex;
+
 static std::unordered_map<void*, std::string> s_script_source_code;
 static std::unordered_map<void*, std::string> s_script_paths;
 static std::mutex s_script_source_mutex;
@@ -181,23 +184,24 @@ inline GDExtensionObjectPtr generic_class_create(void *p_class_userdata, GDExten
     }
 
     // --- Segment 4: Wrapper Allocation & Crystal Host Instance Creation ---
-    // Allocate the GenericExtensionInstance bridge tracking struct, then invoke Crystal's
-    // `create_instance` callback so Crystal allocates its GC wrapper and captures the Object pointer.
+    // Allocate the GenericExtensionInstance bridge tracking struct, bind it to Godot's C++ object
+    // via gd_object_set_instance, and record the mapping in s_object_to_extension_instance BEFORE
+    // invoking Crystal's `create_instance` callback so any re-entrant C++ virtual call or property
+    // access during `create_instance` (such as `pointer=`) resolves a fully initialized `inst`.
     GenericExtensionInstance *inst = new GenericExtensionInstance();
     inst->godot_object = obj;
     inst->desc = desc;
-    if (desc->create_instance) {
-        inst->crystal_instance = desc->create_instance(desc, obj);
-    } else {
-        inst->crystal_instance = nullptr;
-    }
-
+    inst->crystal_instance = nullptr;
+    inst->owner_create_fn = desc->create_instance ? (void*)desc->create_instance : nullptr;
 
     // --- Segment 5: Instance Association & Global Map Registration ---
-    // Bind the GenericExtensionInstance to Godot's C++ object via gd_object_set_instance,
-    // and record the mapping in s_object_to_extension_instance for fast O(1) thread-safe lookups.
     gd_object_set_instance(obj, class_sn, (GDExtensionClassInstancePtr)inst);
     register_extension_instance(obj, inst);
+
+    if (desc->create_instance) {
+        inst->crystal_instance = desc->create_instance(desc, obj);
+        inst->owner_create_fn = (void*)desc->create_instance;
+    }
 
     if (is_bridge_verbose()) {
         char buf[256];
@@ -247,8 +251,10 @@ inline GDExtensionClassInstancePtr generic_class_recreate(void *p_class_userdata
     // --- Segment 2: Crystal Host Reconnection ---
     if (desc->create_instance) {
         inst->crystal_instance = desc->create_instance(desc, p_object);
+        inst->owner_create_fn = (void*)desc->create_instance;
     } else {
         inst->crystal_instance = nullptr;
+        inst->owner_create_fn = nullptr;
     }
 
 
@@ -298,8 +304,13 @@ inline void generic_class_free(void *p_class_userdata, GDExtensionClassInstanceP
         if (inst->godot_object) {
             unregister_extension_instance(inst->godot_object);
         }
+        {
+            std::lock_guard<std::mutex> lock(s_pending_node_paths_mutex);
+            s_pending_node_paths.erase(inst);
+        }
         // --- Segment 3: Invoke Crystal Teardown & Delete Wrapper ---
-        if (inst->desc && inst->desc->free_instance && inst->crystal_instance) {
+        if (inst->desc && inst->desc->free_instance && inst->crystal_instance &&
+            inst->owner_create_fn == (void*)inst->desc->create_instance) {
             inst->desc->free_instance(inst->crystal_instance);
         }
         delete inst;
@@ -315,10 +326,36 @@ inline bool match_virtual_method(const char *name, const char *target) {
     return false;
 }
 
+/** Resolves any deferred NodePath property assignments once the node is in the scene tree */
+inline void resolve_pending_node_paths(GenericExtensionInstance *inst) {
+    if (!inst || !inst->godot_object || !inst->desc || !inst->desc->set_property || !inst->crystal_instance) return;
+    std::unordered_map<std::string, std::string> pending;
+    {
+        std::lock_guard<std::mutex> lock(s_pending_node_paths_mutex);
+        auto it = s_pending_node_paths.find(inst);
+        if (it == s_pending_node_paths.end() || it->second.empty()) return;
+        pending = it->second;
+    }
+    ensure_gc_thread_registered();
+    for (const auto &kv : pending) {
+        GDExtensionObjectPtr resolved = bridge_node_get_node(inst->godot_object, kv.second.c_str());
+        if (resolved) {
+            alignas(void*) char raw_buf[128] = {};
+            *(GDExtensionObjectPtr*)raw_buf = resolved;
+            inst->desc->set_property(inst->crystal_instance, kv.first.c_str(), raw_buf);
+            std::lock_guard<std::mutex> lock(s_pending_node_paths_mutex);
+            s_pending_node_paths[inst].erase(kv.first);
+        }
+    }
+}
+
 /** Unified helper for dispatching lifecycle virtual calls into Crystal */
 inline void generic_dispatch_lifecycle(GenericExtensionInstance *inst, const char *method_name, double delta = 0.0) {
-    if (!inst || !inst->desc || !inst->desc->call_virtual || !inst->crystal_instance) return;
+    if (!inst || !inst->desc || !inst->desc->call_virtual) return;
     if (is_editor_active() && !is_tool_desc(inst->desc)) return;
+    ensure_instance_current(inst);
+    if (!inst->crystal_instance) return;
+    resolve_pending_node_paths(inst);
     inst->desc->call_virtual(inst->crystal_instance, method_name, delta);
 }
 
@@ -364,7 +401,9 @@ inline void generic_virtual_build(GDExtensionClassInstancePtr p_instance, const 
     (void)p_args;
     ensure_gc_thread_registered();
     GenericExtensionInstance *inst = (GenericExtensionInstance*)p_instance;
-    if (!inst || !inst->desc || !inst->crystal_instance) return;
+    if (!inst || !inst->desc) return;
+    ensure_instance_current(inst);
+    if (!inst->crystal_instance) return;
     if (r_ret) *(uint8_t*)r_ret = 1;
     if (inst->desc->call_virtual) inst->desc->call_virtual(inst->crystal_instance, "_build", 0.0);
 }
@@ -740,14 +779,17 @@ inline void generic_class_call_virtual_with_data(
     // --- Segment 3: Engine Lifecycle Virtuals & Editor @[Tool] Filtering ---
     if (match_virtual_method(method_name, "_ready")) {
         if (is_editor_active() && !is_tool_desc(inst->desc)) return;
+        ensure_instance_current(inst);
         if (inst->crystal_instance && inst->desc->call_virtual) {
             ensure_gc_thread_registered();
+            resolve_pending_node_paths(inst);
             inst->desc->call_virtual(inst->crystal_instance, "_ready", 0.0);
         }
         return;
     }
     if (match_virtual_method(method_name, "_process")) {
         if (is_editor_active() && !is_tool_desc(inst->desc)) return;
+        ensure_instance_current(inst);
         double delta = (p_args && p_args[0]) ? *(const double*)p_args[0] : 0.016666666666666666;
         if (inst->crystal_instance && inst->desc->call_virtual) {
             ensure_gc_thread_registered();
@@ -757,6 +799,7 @@ inline void generic_class_call_virtual_with_data(
     }
     if (match_virtual_method(method_name, "_physics_process")) {
         if (is_editor_active() && !is_tool_desc(inst->desc)) return;
+        ensure_instance_current(inst);
         double delta = (p_args && p_args[0]) ? *(const double*)p_args[0] : 0.016666666666666666;
         if (inst->crystal_instance && inst->desc->call_virtual) {
             ensure_gc_thread_registered();
@@ -765,14 +808,17 @@ inline void generic_class_call_virtual_with_data(
         return;
     }
     if (match_virtual_method(method_name, "_enter_tree")) {
+        ensure_instance_current(inst);
         if (inst->crystal_instance && inst->desc->call_virtual) {
             ensure_gc_thread_registered();
+            resolve_pending_node_paths(inst);
             inst->desc->call_virtual(inst->crystal_instance, "_enter_tree", 0.0);
         }
         return;
     }
     if (match_virtual_method(method_name, "_exit_tree")) {
         if (is_editor_active() && !is_tool_desc(inst->desc)) return;
+        ensure_instance_current(inst);
         if (inst->crystal_instance && inst->desc->call_virtual) {
             ensure_gc_thread_registered();
             inst->desc->call_virtual(inst->crystal_instance, "_exit_tree", 0.0);
@@ -785,6 +831,7 @@ inline void generic_class_call_virtual_with_data(
         match_virtual_method(method_name, "_shortcut_input") ||
         match_virtual_method(method_name, "_gui_input")) {
         if (is_editor_active() && !is_tool_desc(inst->desc)) return;
+        ensure_instance_current(inst);
         if (inst->crystal_instance && inst->desc->call_virtual_with_data) {
             ensure_gc_thread_registered();
             void *event_obj = (p_args && p_args[0]) ? bridge_ref_get_object(p_args[0]) : nullptr;
@@ -802,6 +849,7 @@ inline void generic_class_call_virtual_with_data(
     }
     if (strcmp(method_name, "_build") == 0 || strcmp(method_name, "build") == 0) {
         if (r_ret) *(uint8_t*)r_ret = 1;
+        ensure_instance_current(inst);
         if (inst->crystal_instance && inst->desc->call_virtual_with_data) {
             ensure_gc_thread_registered();
             inst->desc->call_virtual_with_data(inst->crystal_instance, "_build", nullptr, r_ret);
@@ -961,6 +1009,7 @@ inline void generic_class_call_virtual_with_data(
                     bridge_ret_dictionary_empty(r_ret);
                     return;
                 }
+                ensure_instance_current(inst);
                 if (inst->crystal_instance && inst->desc->call_virtual_with_data) {
                     ensure_gc_thread_registered();
                     inst->desc->call_virtual_with_data(inst->crystal_instance, method_name, (const void**)p_args, (void*)r_ret);
@@ -970,8 +1019,8 @@ inline void generic_class_call_virtual_with_data(
                 return;
             }
             if (strcmp(method_name, "_complete_code") == 0 || strcmp(method_name, "complete_code") == 0) {
-
-                if (inst->desc && inst->desc->call_virtual_with_data) {
+                ensure_instance_current(inst);
+                if (inst->crystal_instance && inst->desc && inst->desc->call_virtual_with_data) {
                     ensure_gc_thread_registered();
                     inst->desc->call_virtual_with_data(inst->crystal_instance, "_complete_code", (const void**)p_args, (void*)r_ret);
                 } else {
@@ -980,7 +1029,8 @@ inline void generic_class_call_virtual_with_data(
                 return;
             }
             if (strcmp(method_name, "_lookup_code") == 0 || strcmp(method_name, "lookup_code") == 0) {
-                if (inst->desc && inst->desc->call_virtual_with_data) {
+                ensure_instance_current(inst);
+                if (inst->crystal_instance && inst->desc && inst->desc->call_virtual_with_data) {
                     ensure_gc_thread_registered();
                     inst->desc->call_virtual_with_data(inst->crystal_instance, "_lookup_code", (const void**)p_args, (void*)r_ret);
                 } else {
@@ -991,6 +1041,30 @@ inline void generic_class_call_virtual_with_data(
         }
         // --- Segment 5: Resource Loader & Saver Mechanics (.cr Scripts & Serialization) ---
         else if (strcmp(inst->desc->name, "ResourceFormatLoaderCrystal") == 0) {
+            if (strcmp(method_name, "_get_resource_uid") == 0 || strcmp(method_name, "get_resource_uid") == 0) {
+                if (r_ret) *(int64_t*)r_ret = -1; // ResourceUID::INVALID_ID (-1)
+                return;
+            }
+            if (strcmp(method_name, "_exists") == 0 || strcmp(method_name, "exists") == 0) {
+                bool ok = false;
+                if (p_args && p_args[0]) {
+                    char path_buf[1024] = {0};
+                    bridge_arg_to_string(p_args[0], path_buf, sizeof(path_buf));
+                    if (has_cr_extension(path_buf)) {
+                        std::string fs_path = bridge_globalize_path(path_buf);
+                        if (fs_path.empty()) {
+                            if (strncmp(path_buf, "res://", 6) == 0) fs_path = path_buf + 6;
+                            else if (strncmp(path_buf, "user://", 7) == 0) fs_path = path_buf + 7;
+                            else fs_path = path_buf;
+                        }
+                        if (!fs_path.empty() && bridge_file_exists(fs_path.c_str())) {
+                            ok = true;
+                        }
+                    }
+                }
+                if (r_ret) *(uint8_t*)r_ret = ok ? 1 : 0;
+                return;
+            }
             if (strcmp(method_name, "_get_recognized_extensions") == 0 || strcmp(method_name, "get_recognized_extensions") == 0) {
                 const char *exts[] = { "cr" };
                 bridge_ret_packed_string_array(r_ret, exts, 1);
@@ -1098,6 +1172,7 @@ inline void generic_class_call_virtual_with_data(
 
                     // Populate the Crystal instance directly
                     GenericExtensionInstance *ext = find_extension_instance(script_obj);
+                    if (ext) ensure_instance_current(ext);
                     if (ext && ext->crystal_instance && ext->desc && ext->desc->call_virtual_with_data) {
                         ensure_gc_thread_registered();
                         alignas(void*) char src_str[8] = {0};
@@ -1220,6 +1295,7 @@ inline void generic_class_call_virtual_with_data(
                     if (code.empty()) {
                         // Fast path: if res_obj is a CrystalScript, query the Crystal instance directly
                         GenericExtensionInstance *ext = find_extension_instance(res_obj);
+                        if (ext) ensure_instance_current(ext);
                         if (ext && ext->crystal_instance && ext->desc && ext->desc->call_virtual_with_data) {
                             ensure_gc_thread_registered();
                             alignas(void*) char ret_str[8] = {0};
@@ -1305,6 +1381,7 @@ inline void generic_class_call_virtual_with_data(
                 return;
             }
             if (strcmp(method_name, "_get_plugin_icon") == 0) {
+                ensure_instance_current(inst);
                 if (inst->crystal_instance && inst->desc->call_virtual_with_data) {
                     ensure_gc_thread_registered();
                     inst->desc->call_virtual_with_data(inst->crystal_instance, "_get_plugin_icon", nullptr, r_ret);
@@ -1314,6 +1391,7 @@ inline void generic_class_call_virtual_with_data(
                 return;
             }
             if (strcmp(method_name, "_make_visible") == 0) {
+                ensure_instance_current(inst);
                 if (inst->crystal_instance && inst->desc->call_virtual_with_data) {
                     ensure_gc_thread_registered();
                     inst->desc->call_virtual_with_data(inst->crystal_instance, "_make_visible", (const void**)p_args, r_ret);
@@ -1321,6 +1399,14 @@ inline void generic_class_call_virtual_with_data(
                 return;
             }
         } else if (strcmp(inst->desc->name, "CrystalScript") == 0) {
+            if (strcmp(method_name, "_is_abstract") == 0 || strcmp(method_name, "is_abstract") == 0) {
+                if (r_ret) *(uint8_t*)r_ret = 0;
+                return;
+            }
+            if (strcmp(method_name, "_is_placeholder_fallback_enabled") == 0 || strcmp(method_name, "is_placeholder_fallback_enabled") == 0) {
+                if (r_ret) *(uint8_t*)r_ret = 0;
+                return;
+            }
             if (strcmp(method_name, "_has_source_code") == 0 || strcmp(method_name, "has_source_code") == 0) {
                 if (r_ret) *(uint8_t*)r_ret = 1;
                 return;
@@ -1350,6 +1436,7 @@ inline void generic_class_call_virtual_with_data(
                     }
                 }
                 if (code.empty() && inst->crystal_instance && inst->desc->call_virtual_with_data) {
+                    ensure_instance_current(inst);
                     ensure_gc_thread_registered();
                     alignas(void*) char ret_str[8] = {0};
                     inst->desc->call_virtual_with_data(inst->crystal_instance, "_get_source_code", nullptr, ret_str);
@@ -1411,6 +1498,7 @@ inline void generic_class_call_virtual_with_data(
                     std::lock_guard<std::mutex> lock(s_script_source_mutex);
                     s_script_source_code[inst->godot_object] = new_code;
                 }
+                ensure_instance_current(inst);
                 if (inst->crystal_instance && inst->desc->call_virtual_with_data) {
                     ensure_gc_thread_registered();
                     inst->desc->call_virtual_with_data(inst->crystal_instance, method_name, (const void**)p_args, (void*)r_ret);
@@ -1428,6 +1516,10 @@ inline void generic_class_call_virtual_with_data(
                 return;
             }
             if (strcmp(method_name, "_create") == 0 || strcmp(method_name, "create") == 0) {
+                if (s_is_reloading || !ensure_persistent_class_registered("CrystalHighlighter")) {
+                    bridge_ret_ref(r_ret, nullptr);
+                    return;
+                }
                 void *hl_sn = make_string_name("CrystalHighlighter");
                 GDExtensionObjectPtr hl_obj = gd_classdb_construct_object(hl_sn);
                 free_string_name(hl_sn);
@@ -1439,6 +1531,7 @@ inline void generic_class_call_virtual_with_data(
                 return;
             }
             if (strcmp(method_name, "_get_line_syntax_highlighting") == 0 || strcmp(method_name, "get_line_syntax_highlighting") == 0) {
+                ensure_instance_current(inst);
                 if (inst->crystal_instance && inst->desc->call_virtual_with_data) {
                     ensure_gc_thread_registered();
                     inst->desc->call_virtual_with_data(inst->crystal_instance, "_get_line_syntax_highlighting", (const void**)p_args, (void*)r_ret);
@@ -1453,6 +1546,7 @@ inline void generic_class_call_virtual_with_data(
     // --- Segment 7: Fallback Dynamic Dispatch into Crystal ---
     // If not handled by fast-paths, forward the method invocation, argument array, and return buffer
     // directly to the Crystal class instance via its call_virtual_with_data function pointer.
+    ensure_instance_current(inst);
     if (inst->crystal_instance && inst->desc->call_virtual_with_data) {
         ensure_gc_thread_registered();
         inst->desc->call_virtual_with_data(inst->crystal_instance, method_name, (const void**)p_args, (void*)r_ret);
@@ -1477,7 +1571,9 @@ inline void generic_class_call_virtual_with_data(
 inline GDExtensionBool generic_class_set(GDExtensionClassInstancePtr p_instance, GDExtensionConstStringNamePtr p_name, GDExtensionConstVariantPtr p_value) {
     // --- Segment 1: Thread Registration & Property Name Resolution ---
     GenericExtensionInstance *inst = (GenericExtensionInstance*)p_instance;
-    if (!inst || !inst->desc || !inst->desc->set_property || !inst->crystal_instance) return 0;
+    if (!inst || !inst->desc || !inst->desc->set_property) return 0;
+    ensure_instance_current(inst);
+    if (!inst->crystal_instance) return 0;
 
     char prop_name_buf[128];
     if (!string_name_to_cstr(p_name, prop_name_buf, sizeof(prop_name_buf))) return 0;
@@ -1491,14 +1587,57 @@ inline GDExtensionBool generic_class_set(GDExtensionClassInstancePtr p_instance,
             if (strcmp(prop_name_buf, curr->properties[i].name) == 0) {
                 // --- Segment 3: Variant Unmarshaling & Crystal Setter Dispatch ---
                 ensure_gc_thread_registered();
-                alignas(void*) char raw_buf[128] = {};
-                bridge_type_from_variant(curr->properties[i].variant_type, raw_buf, p_value);
+                int vtype = curr->properties[i].variant_type;
+                if (vtype >= 27 && vtype <= 38) {
+                    bridge_set_collection_property(inst->desc, inst->crystal_instance, curr->properties[i].name, vtype, p_value);
+                } else {
+                    alignas(void*) char raw_buf[128] = {};
+                    bridge_type_from_variant(vtype, raw_buf, p_value);
+                    if (vtype == GDEXTENSION_VARIANT_TYPE_OBJECT) {
+                        GDExtensionObjectPtr obj = *(GDExtensionObjectPtr*)raw_buf;
+                        if (!obj && p_value && gd_variant_get_type) {
+                            GDExtensionVariantType actual_vt = gd_variant_get_type(p_value);
+                            if ((actual_vt == GDEXTENSION_VARIANT_TYPE_NODE_PATH || actual_vt == GDEXTENSION_VARIANT_TYPE_STRING) &&
+                                gd_variant_stringify && gd_string_to_utf8_chars && gd_string_destroy) {
+                                alignas(void*) char gd_str[8] = {};
+                                gd_variant_stringify(p_value, gd_str);
+                                GDExtensionInt len = gd_string_to_utf8_chars(gd_str, nullptr, 0);
+                                std::string np_str(len > 0 ? len : 0, '\0');
+                                if (len > 0) gd_string_to_utf8_chars(gd_str, &np_str[0], len);
+                                gd_string_destroy(gd_str);
+                                if (!np_str.empty()) {
+                                    if (inst->godot_object) {
+                                        obj = bridge_node_get_node(inst->godot_object, np_str.c_str());
+                                    }
+                                    if (obj) {
+                                        *(GDExtensionObjectPtr*)raw_buf = obj;
+                                        std::lock_guard<std::mutex> lock(s_pending_node_paths_mutex);
+                                        s_pending_node_paths[inst].erase(curr->properties[i].name);
+                                    } else {
+                                        std::lock_guard<std::mutex> lock(s_pending_node_paths_mutex);
+                                        s_pending_node_paths[inst][curr->properties[i].name] = np_str;
+                                        return 1;
+                                    }
+                                }
+                            } else if (actual_vt == GDEXTENSION_VARIANT_TYPE_NIL) {
+                                std::lock_guard<std::mutex> lock(s_pending_node_paths_mutex);
+                                s_pending_node_paths[inst].erase(curr->properties[i].name);
+                            }
+                        } else if (obj) {
+                            std::lock_guard<std::mutex> lock(s_pending_node_paths_mutex);
+                            s_pending_node_paths[inst].erase(curr->properties[i].name);
+                        }
+                        if (obj && bridge_is_object_refcounted(obj)) {
+                            refcounted_init_ref(obj);
+                        }
+                    }
+                    inst->desc->set_property(inst->crystal_instance, curr->properties[i].name, raw_buf);
+                }
                 if (is_bridge_verbose()) {
                     char buf[256];
                     snprintf(buf, sizeof(buf), "  [GenericExtensionInstance] Set %s::%s", curr->name ? curr->name : "Object", curr->properties[i].name);
                     godot_log_verbose(buf);
                 }
-                inst->desc->set_property(inst->crystal_instance, curr->properties[i].name, raw_buf);
                 return 1;
             }
         }
@@ -1525,7 +1664,10 @@ inline GDExtensionBool generic_class_set(GDExtensionClassInstancePtr p_instance,
 inline GDExtensionBool generic_class_get(GDExtensionClassInstancePtr p_instance, GDExtensionConstStringNamePtr p_name, GDExtensionVariantPtr r_ret) {
     // --- Segment 1: Thread Registration & Property Name Resolution ---
     GenericExtensionInstance *inst = (GenericExtensionInstance*)p_instance;
-    if (!inst || !inst->desc || !inst->desc->get_property || !inst->crystal_instance) return 0;
+    if (!inst || !inst->desc || !inst->desc->get_property) return 0;
+    ensure_instance_current(inst);
+    if (!inst->crystal_instance) return 0;
+    resolve_pending_node_paths(inst);
 
     char prop_name_buf[128];
     if (!string_name_to_cstr(p_name, prop_name_buf, sizeof(prop_name_buf))) return 0;
@@ -1543,9 +1685,14 @@ inline GDExtensionBool generic_class_get(GDExtensionClassInstancePtr p_instance,
                 }
                 // --- Segment 3: Crystal Getter Dispatch & Variant Marshaling ---
                 ensure_gc_thread_registered();
-                alignas(void*) char raw_buf[128] = {};
-                inst->desc->get_property(inst->crystal_instance, curr->properties[i].name, raw_buf);
-                bridge_variant_from_type(curr->properties[i].variant_type, r_ret, raw_buf);
+                int vtype = curr->properties[i].variant_type;
+                if (vtype >= 27 && vtype <= 38) {
+                    bridge_get_collection_property(inst->desc, inst->crystal_instance, curr->properties[i].name, vtype, r_ret);
+                } else {
+                    alignas(void*) char raw_buf[128] = {};
+                    inst->desc->get_property(inst->crystal_instance, curr->properties[i].name, raw_buf);
+                    bridge_variant_from_type(vtype, r_ret, raw_buf);
+                }
                 if (is_bridge_verbose()) {
                     char buf[256];
                     snprintf(buf, sizeof(buf), "  [GenericExtensionInstance] Get %s::%s", curr->name ? curr->name : "Object", curr->properties[i].name);
@@ -1586,7 +1733,12 @@ inline void channel_method_call(
     // --- Segment 1: GC Thread Registration & Instance Validation ---
     ensure_gc_thread_registered();
     GenericExtensionInstance *inst = (GenericExtensionInstance*)p_instance;
-    if (!inst || !inst->desc || !inst->crystal_instance || !inst->desc->call_virtual_with_data) {
+    if (!inst || !inst->desc || !inst->desc->call_virtual_with_data) {
+        if (r_error) r_error->error = GDEXTENSION_CALL_ERROR_INSTANCE_IS_NULL;
+        return;
+    }
+    ensure_instance_current(inst);
+    if (!inst->crystal_instance) {
         if (r_error) r_error->error = GDEXTENSION_CALL_ERROR_INSTANCE_IS_NULL;
         return;
     }
@@ -1643,7 +1795,12 @@ inline void generic_class_user_method_call(
 ) {
     ensure_gc_thread_registered();
     GenericExtensionInstance *inst = (GenericExtensionInstance*)p_instance;
-    if (!inst || !inst->desc || !inst->crystal_instance || !inst->desc->call_virtual_with_data) {
+    if (!inst || !inst->desc || !inst->desc->call_virtual_with_data) {
+        if (r_error) r_error->error = GDEXTENSION_CALL_ERROR_INSTANCE_IS_NULL;
+        return;
+    }
+    ensure_instance_current(inst);
+    if (!inst->crystal_instance) {
         if (r_error) r_error->error = GDEXTENSION_CALL_ERROR_INSTANCE_IS_NULL;
         return;
     }

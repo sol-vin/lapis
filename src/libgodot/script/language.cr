@@ -860,9 +860,17 @@ module Lapis
 
       lines.each_with_index do |line, idx|
         stripped = line.strip
+        macro_inner = if stripped.starts_with?("{%") && stripped.ends_with?("%}")
+                        stripped[2...-2].strip
+                      else
+                        ""
+                      end
+
         if stripped.starts_with?("end") || stripped.starts_with?("else") ||
            stripped.starts_with?("elsif") || stripped.starts_with?("rescue") ||
-           stripped.starts_with?("ensure") || stripped.starts_with?("when")
+           stripped.starts_with?("ensure") || stripped.starts_with?("when") ||
+           macro_inner == "end" || macro_inner.starts_with?("end ") ||
+           macro_inner == "else" || macro_inner.starts_with?("elsif ")
           indent_level = Math.max(0, indent_level - 1)
         end
 
@@ -872,12 +880,20 @@ module Lapis
           result << line
         end
 
+        macro_opens = !macro_inner.empty? &&
+                      !macro_inner.ends_with?(" end") && !macro_inner.includes?("; end") &&
+                      (macro_inner.starts_with?("if ") || macro_inner.starts_with?("unless ") ||
+                       macro_inner.starts_with?("for ") || macro_inner == "begin" ||
+                       macro_inner.starts_with?("begin ") || macro_inner == "else" ||
+                       macro_inner.starts_with?("elsif "))
+
         if stripped.ends_with?(" do") || stripped.starts_with?("def ") ||
            stripped.starts_with?("class ") || stripped.starts_with?("module ") ||
            stripped.starts_with?("struct ") || stripped.starts_with?("if ") ||
            stripped.starts_with?("unless ") || stripped.starts_with?("while ") ||
            stripped.starts_with?("case ") || stripped.starts_with?("begin") ||
-           stripped.starts_with?("else") || stripped.starts_with?("elsif ")
+           stripped.starts_with?("else") || stripped.starts_with?("elsif ") ||
+           macro_opens
           indent_level += 1
         end
       end

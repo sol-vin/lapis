@@ -24,7 +24,7 @@ on:
         type: string
         default: "1.21.0"
       godot-version:
-        description: "Target Godot Engine version (resolved from godot-version.yml or defaults to 4.8-dev7)"
+        description: "Target Godot Engine version (resolved from godot-version.yml or defaults to 4.8-beta1)"
         required: false
         type: string
         default: ""
@@ -32,7 +32,7 @@ on:
         description: "Git branch or ref of sol-vin/lapis to stage composite actions from"
         required: false
         type: string
-        default: "4.8-dev7"
+        default: "4.8-beta1"
       os-matrix:
         description: "JSON array of runner OS images"
         required: false
@@ -101,7 +101,7 @@ jobs:
         if: hashFiles('.github/actions/build-lapis-addon/action.yml') == ''
         shell: bash
         run: |
-          LAPIS_REF="${{ inputs.lapis-ref || '4.8-dev7' }}"
+          LAPIS_REF="${{ inputs.lapis-ref || '4.8-beta1' }}"
           STAGE_TMP="$RUNNER_TEMP/lapis-ci-actions"
           rm -rf "$STAGE_TMP"
           echo "Staging build-lapis-addon composite action from sol-vin/lapis (${LAPIS_REF})..."
@@ -155,7 +155,7 @@ jobs:
           if [ -z "$GODOT_VER" ] && [ -f "godot-version.yml" ]; then
             GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' "godot-version.yml" | tr -d '\r\n[:space:]')
           fi
-          [ -z "$GODOT_VER" ] && GODOT_VER="4.8-dev7"
+          [ -z "$GODOT_VER" ] && GODOT_VER="4.8-beta1"
 
           cd "$WORK_DIR"
           manifest=$(find addons -name "*.gdextension" ! -path "*/crystal_integration/*" 2>/dev/null | head -n 1)

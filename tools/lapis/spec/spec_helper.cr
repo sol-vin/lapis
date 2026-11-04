@@ -45,13 +45,15 @@ module LapisSpecHelper
 
     if needs_recompile
       FileUtils.mkdir_p(bin_path.parent)
-      res = Process.run("crystal", ["build", src_entry.to_s, "-o", bin_path.to_s], chdir: repo_root.to_s)
+      build_flags = ["build"]
+      build_flags << "--static" if Lapis::Core::Env.windows?
+      res = Process.run("crystal", build_flags + [src_entry.to_s, "-o", bin_path.to_s], chdir: repo_root.to_s)
       unless res.success?
         # On Windows, if lapis.exe is currently running (e.g. `lapis test`),
         # the binary is locked by the OS. Compile to a shadow test binary.
         shadow_name = "lapis_test_#{Process.pid}#{Lapis::Core::Env.windows? ? ".exe" : ""}"
         shadow_path = repo_root.join("bin", shadow_name)
-        res2 = Process.run("crystal", ["build", src_entry.to_s, "-o", shadow_path.to_s], chdir: repo_root.to_s)
+        res2 = Process.run("crystal", build_flags + [src_entry.to_s, "-o", shadow_path.to_s], chdir: repo_root.to_s)
         if res2.success?
           at_exit { File.delete(shadow_path) rescue nil }
           bin_path = shadow_path
