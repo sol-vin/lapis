@@ -1,0 +1,260 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 1749" width="1040" height="1749">
+  <defs>
+    <linearGradient id="crGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#00D2FF"/><stop offset="100%" stop-color="#0077B6"/></linearGradient>
+    <linearGradient id="edGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#D2A8FF"/><stop offset="100%" stop-color="#A371F7"/></linearGradient>
+    <linearGradient id="gdGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#FF9900"/><stop offset="100%" stop-color="#CC5500"/></linearGradient>
+  </defs>
+  <rect width="1040" height="1749" rx="12" fill="#0D1117"/>
+  <rect width="1040" height="1749" rx="12" fill="none" stroke="#30363D" stroke-width="1.5"/>
+  <text x="32" y="40" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif" font-size="20" font-weight="bold" fill="#F0F3F6">Lapis Benchmark Suite: Performance Comparison</text>
+  <text x="32" y="60" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif" font-size="12" fill="#8B949E">Execution time in milliseconds (shorter is faster) &bull; Crystal Native vs GDScript</text>
+  <text x="170" y="111" text-anchor="end" font-family="sans-serif" font-size="13" font-weight="bold" fill="#F0F3F6">AStar2D</text>
+  <rect x="185" y="85" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="85" width="4" height="14" rx="3" fill="url(#crGrad)"/>
+  <text x="197" y="95" font-family="sans-serif" font-size="11" font-weight="600" fill="#00D2FF">0.03 ms (Crystal)</text>
+  <rect x="185" y="103" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="103" width="610" height="14" rx="3" fill="url(#gdGrad)"/>
+  <text x="785" y="113" text-anchor="end" font-family="sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">118.51 ms (GDScript)</text>
+  <rect x="920" y="95" width="95" height="24" rx="12" fill="#238636" fill-opacity="0.2" stroke="#238636" stroke-width="1"/>
+  <text x="967" y="111" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="#3FB950">3950.3x faster</text>
+  <text x="170" y="169" text-anchor="end" font-family="sans-serif" font-size="13" font-weight="bold" fill="#F0F3F6">Base64</text>
+  <rect x="185" y="143" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="143" width="44" height="14" rx="3" fill="url(#crGrad)"/>
+  <text x="237" y="153" font-family="sans-serif" font-size="11" font-weight="600" fill="#00D2FF">7.48 ms (Crystal)</text>
+  <rect x="185" y="161" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="161" width="610" height="14" rx="3" fill="url(#gdGrad)"/>
+  <text x="785" y="171" text-anchor="end" font-family="sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">102.7 ms (GDScript)</text>
+  <rect x="920" y="153" width="95" height="24" rx="12" fill="#238636" fill-opacity="0.2" stroke="#238636" stroke-width="1"/>
+  <text x="967" y="169" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="#3FB950">13.7x faster</text>
+  <text x="170" y="227" text-anchor="end" font-family="sans-serif" font-size="13" font-weight="bold" fill="#F0F3F6">BinaryTrees</text>
+  <rect x="185" y="201" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="201" width="14" height="14" rx="3" fill="url(#crGrad)"/>
+  <text x="207" y="211" font-family="sans-serif" font-size="11" font-weight="600" fill="#00D2FF">22.57 ms (Crystal)</text>
+  <rect x="185" y="219" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="219" width="610" height="14" rx="3" fill="url(#gdGrad)"/>
+  <text x="785" y="229" text-anchor="end" font-family="sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">1014.02 ms (GDScript)</text>
+  <rect x="920" y="211" width="95" height="24" rx="12" fill="#238636" fill-opacity="0.2" stroke="#238636" stroke-width="1"/>
+  <text x="967" y="227" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="#3FB950">44.9x faster</text>
+  <text x="170" y="285" text-anchor="end" font-family="sans-serif" font-size="13" font-weight="bold" fill="#F0F3F6">Brainfuck</text>
+  <rect x="185" y="259" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="259" width="4" height="14" rx="3" fill="url(#crGrad)"/>
+  <text x="197" y="269" font-family="sans-serif" font-size="11" font-weight="600" fill="#00D2FF">85.02 ms (Crystal)</text>
+  <rect x="185" y="277" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="277" width="610" height="14" rx="3" fill="url(#gdGrad)"/>
+  <text x="785" y="287" text-anchor="end" font-family="sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">13160.62 ms (GDScript)</text>
+  <rect x="920" y="269" width="95" height="24" rx="12" fill="#238636" fill-opacity="0.2" stroke="#238636" stroke-width="1"/>
+  <text x="967" y="285" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="#3FB950">154.8x faster</text>
+  <text x="170" y="343" text-anchor="end" font-family="sans-serif" font-size="13" font-weight="bold" fill="#F0F3F6">CellularNoise</text>
+  <rect x="185" y="317" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="317" width="5" height="14" rx="3" fill="url(#crGrad)"/>
+  <text x="198" y="327" font-family="sans-serif" font-size="11" font-weight="600" fill="#00D2FF">0.27 ms (Crystal)</text>
+  <rect x="185" y="335" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="335" width="610" height="14" rx="3" fill="url(#gdGrad)"/>
+  <text x="785" y="345" text-anchor="end" font-family="sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">35.98 ms (GDScript)</text>
+  <rect x="920" y="327" width="95" height="24" rx="12" fill="#238636" fill-opacity="0.2" stroke="#238636" stroke-width="1"/>
+  <text x="967" y="343" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="#3FB950">133.3x faster</text>
+  <text x="170" y="401" text-anchor="end" font-family="sans-serif" font-size="13" font-weight="bold" fill="#F0F3F6">CompileTimes</text>
+  <rect x="185" y="375" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="375" width="610" height="14" rx="3" fill="url(#crGrad)"/>
+  <text x="785" y="385" text-anchor="end" font-family="sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">6427.42 ms (Crystal)</text>
+  <rect x="920" y="379" width="95" height="24" rx="12" fill="#00D2FF" fill-opacity="0.15" stroke="#00D2FF" stroke-width="1"/>
+  <text x="967" y="395" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="#00D2FF">Native</text>
+  <text x="170" y="459" text-anchor="end" font-family="sans-serif" font-size="13" font-weight="bold" fill="#F0F3F6">ConfigFileOps</text>
+  <rect x="185" y="433" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="433" width="5" height="14" rx="3" fill="url(#crGrad)"/>
+  <text x="198" y="443" font-family="sans-serif" font-size="11" font-weight="600" fill="#00D2FF">0.04 ms (Crystal)</text>
+  <rect x="185" y="451" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="451" width="610" height="14" rx="3" fill="url(#gdGrad)"/>
+  <text x="785" y="461" text-anchor="end" font-family="sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">4.62 ms (GDScript)</text>
+  <rect x="920" y="443" width="95" height="24" rx="12" fill="#238636" fill-opacity="0.2" stroke="#238636" stroke-width="1"/>
+  <text x="967" y="459" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="#3FB950">115.5x faster</text>
+  <text x="170" y="517" text-anchor="end" font-family="sans-serif" font-size="13" font-weight="bold" fill="#F0F3F6">DictionaryOps</text>
+  <rect x="185" y="491" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="491" width="182" height="14" rx="3" fill="url(#crGrad)"/>
+  <text x="357" y="501" text-anchor="end" font-family="sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">15.58 ms (Crystal)</text>
+  <rect x="185" y="509" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="509" width="610" height="14" rx="3" fill="url(#gdGrad)"/>
+  <text x="785" y="519" text-anchor="end" font-family="sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">52.28 ms (GDScript)</text>
+  <rect x="920" y="501" width="95" height="24" rx="12" fill="#238636" fill-opacity="0.2" stroke="#238636" stroke-width="1"/>
+  <text x="967" y="517" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="#3FB950">3.4x faster</text>
+  <text x="170" y="575" text-anchor="end" font-family="sans-serif" font-size="13" font-weight="bold" fill="#F0F3F6">ImageProcessing</text>
+  <rect x="185" y="549" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="549" width="29" height="14" rx="3" fill="url(#crGrad)"/>
+  <text x="222" y="559" font-family="sans-serif" font-size="11" font-weight="600" fill="#00D2FF">2.16 ms (Crystal)</text>
+  <rect x="185" y="567" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="567" width="610" height="14" rx="3" fill="url(#gdGrad)"/>
+  <text x="785" y="577" text-anchor="end" font-family="sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">44.7 ms (GDScript)</text>
+  <rect x="920" y="559" width="95" height="24" rx="12" fill="#238636" fill-opacity="0.2" stroke="#238636" stroke-width="1"/>
+  <text x="967" y="575" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="#3FB950">20.7x faster</text>
+  <text x="170" y="633" text-anchor="end" font-family="sans-serif" font-size="13" font-weight="bold" fill="#F0F3F6">JSON</text>
+  <rect x="185" y="607" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="607" width="218" height="14" rx="3" fill="url(#crGrad)"/>
+  <text x="393" y="617" text-anchor="end" font-family="sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">6.53 ms (Crystal)</text>
+  <rect x="185" y="625" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="625" width="610" height="14" rx="3" fill="url(#gdGrad)"/>
+  <text x="785" y="635" text-anchor="end" font-family="sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">18.28 ms (GDScript)</text>
+  <rect x="920" y="617" width="95" height="24" rx="12" fill="#238636" fill-opacity="0.2" stroke="#238636" stroke-width="1"/>
+  <text x="967" y="633" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="#3FB950">2.8x faster</text>
+  <text x="170" y="691" text-anchor="end" font-family="sans-serif" font-size="13" font-weight="bold" fill="#F0F3F6">Mandelbrot</text>
+  <rect x="185" y="665" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="665" width="13" height="14" rx="3" fill="url(#crGrad)"/>
+  <text x="206" y="675" font-family="sans-serif" font-size="11" font-weight="600" fill="#00D2FF">12.56 ms (Crystal)</text>
+  <rect x="185" y="683" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="683" width="610" height="14" rx="3" fill="url(#gdGrad)"/>
+  <text x="785" y="693" text-anchor="end" font-family="sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">589.47 ms (GDScript)</text>
+  <rect x="920" y="675" width="95" height="24" rx="12" fill="#238636" fill-opacity="0.2" stroke="#238636" stroke-width="1"/>
+  <text x="967" y="691" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="#3FB950">46.9x faster</text>
+  <text x="170" y="749" text-anchor="end" font-family="sans-serif" font-size="13" font-weight="bold" fill="#F0F3F6">MaterialResources</text>
+  <rect x="185" y="723" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="723" width="4" height="14" rx="3" fill="url(#crGrad)"/>
+  <text x="197" y="733" font-family="sans-serif" font-size="11" font-weight="600" fill="#00D2FF">1.4 ms (Crystal)</text>
+  <rect x="185" y="741" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="741" width="610" height="14" rx="3" fill="url(#gdGrad)"/>
+  <text x="785" y="751" text-anchor="end" font-family="sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">518.67 ms (GDScript)</text>
+  <rect x="920" y="733" width="95" height="24" rx="12" fill="#238636" fill-opacity="0.2" stroke="#238636" stroke-width="1"/>
+  <text x="967" y="749" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="#3FB950">370.5x faster</text>
+  <text x="170" y="807" text-anchor="end" font-family="sans-serif" font-size="13" font-weight="bold" fill="#F0F3F6">Matmul</text>
+  <rect x="185" y="781" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="781" width="9" height="14" rx="3" fill="url(#crGrad)"/>
+  <text x="202" y="791" font-family="sans-serif" font-size="11" font-weight="600" fill="#00D2FF">14.51 ms (Crystal)</text>
+  <rect x="185" y="799" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="799" width="610" height="14" rx="3" fill="url(#gdGrad)"/>
+  <text x="785" y="809" text-anchor="end" font-family="sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">969.92 ms (GDScript)</text>
+  <rect x="920" y="791" width="95" height="24" rx="12" fill="#238636" fill-opacity="0.2" stroke="#238636" stroke-width="1"/>
+  <text x="967" y="807" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="#3FB950">66.8x faster</text>
+  <text x="170" y="865" text-anchor="end" font-family="sans-serif" font-size="13" font-weight="bold" fill="#F0F3F6">NBody</text>
+  <rect x="185" y="839" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="839" width="5" height="14" rx="3" fill="url(#crGrad)"/>
+  <text x="198" y="849" font-family="sans-serif" font-size="11" font-weight="600" fill="#00D2FF">2.28 ms (Crystal)</text>
+  <rect x="185" y="857" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="857" width="610" height="14" rx="3" fill="url(#gdGrad)"/>
+  <text x="785" y="867" text-anchor="end" font-family="sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">304.37 ms (GDScript)</text>
+  <rect x="920" y="849" width="95" height="24" rx="12" fill="#238636" fill-opacity="0.2" stroke="#238636" stroke-width="1"/>
+  <text x="967" y="865" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="#3FB950">133.5x faster</text>
+  <text x="170" y="923" text-anchor="end" font-family="sans-serif" font-size="13" font-weight="bold" fill="#F0F3F6">NodeGroups</text>
+  <rect x="185" y="897" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="897" width="101" height="14" rx="3" fill="url(#crGrad)"/>
+  <text x="294" y="907" font-family="sans-serif" font-size="11" font-weight="600" fill="#00D2FF">1.64 ms (Crystal)</text>
+  <rect x="185" y="915" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="915" width="610" height="14" rx="3" fill="url(#gdGrad)"/>
+  <text x="785" y="925" text-anchor="end" font-family="sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">9.89 ms (GDScript)</text>
+  <rect x="920" y="907" width="95" height="24" rx="12" fill="#238636" fill-opacity="0.2" stroke="#238636" stroke-width="1"/>
+  <text x="967" y="923" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="#3FB950">6.0x faster</text>
+  <text x="170" y="981" text-anchor="end" font-family="sans-serif" font-size="13" font-weight="bold" fill="#F0F3F6">NodeLifecycle</text>
+  <rect x="185" y="955" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="955" width="108" height="14" rx="3" fill="url(#crGrad)"/>
+  <text x="301" y="965" font-family="sans-serif" font-size="11" font-weight="600" fill="#00D2FF">2.82 ms (Crystal)</text>
+  <rect x="185" y="973" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="973" width="610" height="14" rx="3" fill="url(#gdGrad)"/>
+  <text x="785" y="983" text-anchor="end" font-family="sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">15.95 ms (GDScript)</text>
+  <rect x="920" y="965" width="95" height="24" rx="12" fill="#238636" fill-opacity="0.2" stroke="#238636" stroke-width="1"/>
+  <text x="967" y="981" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="#3FB950">5.7x faster</text>
+  <text x="170" y="1039" text-anchor="end" font-family="sans-serif" font-size="13" font-weight="bold" fill="#F0F3F6">PerlinNoise</text>
+  <rect x="185" y="1013" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="1013" width="7" height="14" rx="3" fill="url(#crGrad)"/>
+  <text x="200" y="1023" font-family="sans-serif" font-size="11" font-weight="600" fill="#00D2FF">0.24 ms (Crystal)</text>
+  <rect x="185" y="1031" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="1031" width="610" height="14" rx="3" fill="url(#gdGrad)"/>
+  <text x="785" y="1041" text-anchor="end" font-family="sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">20.34 ms (GDScript)</text>
+  <rect x="920" y="1023" width="95" height="24" rx="12" fill="#238636" fill-opacity="0.2" stroke="#238636" stroke-width="1"/>
+  <text x="967" y="1039" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="#3FB950">84.8x faster</text>
+  <text x="170" y="1097" text-anchor="end" font-family="sans-serif" font-size="13" font-weight="bold" fill="#F0F3F6">Primes</text>
+  <rect x="185" y="1071" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="1071" width="21" height="14" rx="3" fill="url(#crGrad)"/>
+  <text x="214" y="1081" font-family="sans-serif" font-size="11" font-weight="600" fill="#00D2FF">12.18 ms (Crystal)</text>
+  <rect x="185" y="1089" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="1089" width="610" height="14" rx="3" fill="url(#gdGrad)"/>
+  <text x="785" y="1099" text-anchor="end" font-family="sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">348.32 ms (GDScript)</text>
+  <rect x="920" y="1081" width="95" height="24" rx="12" fill="#238636" fill-opacity="0.2" stroke="#238636" stroke-width="1"/>
+  <text x="967" y="1097" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="#3FB950">28.6x faster</text>
+  <text x="170" y="1155" text-anchor="end" font-family="sans-serif" font-size="13" font-weight="bold" fill="#F0F3F6">ShaderCompilation</text>
+  <rect x="185" y="1129" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="1129" width="4" height="14" rx="3" fill="url(#crGrad)"/>
+  <text x="197" y="1139" font-family="sans-serif" font-size="11" font-weight="600" fill="#00D2FF">0.22 ms (Crystal)</text>
+  <rect x="185" y="1147" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="1147" width="610" height="14" rx="3" fill="url(#gdGrad)"/>
+  <text x="785" y="1157" text-anchor="end" font-family="sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">48.94 ms (GDScript)</text>
+  <rect x="920" y="1139" width="95" height="24" rx="12" fill="#238636" fill-opacity="0.2" stroke="#238636" stroke-width="1"/>
+  <text x="967" y="1155" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="#3FB950">222.5x faster</text>
+  <text x="170" y="1213" text-anchor="end" font-family="sans-serif" font-size="13" font-weight="bold" fill="#F0F3F6">ShaderUniforms</text>
+  <rect x="185" y="1187" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="1187" width="4" height="14" rx="3" fill="url(#crGrad)"/>
+  <text x="197" y="1197" font-family="sans-serif" font-size="11" font-weight="600" fill="#00D2FF">0.07 ms (Crystal)</text>
+  <rect x="185" y="1205" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="1205" width="610" height="14" rx="3" fill="url(#gdGrad)"/>
+  <text x="785" y="1215" text-anchor="end" font-family="sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">9.66 ms (GDScript)</text>
+  <rect x="920" y="1197" width="95" height="24" rx="12" fill="#238636" fill-opacity="0.2" stroke="#238636" stroke-width="1"/>
+  <text x="967" y="1213" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="#3FB950">138.0x faster</text>
+  <text x="170" y="1271" text-anchor="end" font-family="sans-serif" font-size="13" font-weight="bold" fill="#F0F3F6">Signals</text>
+  <rect x="185" y="1245" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="1245" width="118" height="14" rx="3" fill="url(#crGrad)"/>
+  <text x="311" y="1255" font-family="sans-serif" font-size="11" font-weight="600" fill="#00D2FF">1.62 ms (Crystal)</text>
+  <rect x="185" y="1263" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="1263" width="610" height="14" rx="3" fill="url(#gdGrad)"/>
+  <text x="785" y="1273" text-anchor="end" font-family="sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">8.37 ms (GDScript)</text>
+  <rect x="920" y="1255" width="95" height="24" rx="12" fill="#238636" fill-opacity="0.2" stroke="#238636" stroke-width="1"/>
+  <text x="967" y="1271" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="#3FB950">5.2x faster</text>
+  <text x="170" y="1329" text-anchor="end" font-family="sans-serif" font-size="13" font-weight="bold" fill="#F0F3F6">SimplexNoise</text>
+  <rect x="185" y="1303" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="1303" width="13" height="14" rx="3" fill="url(#crGrad)"/>
+  <text x="206" y="1313" font-family="sans-serif" font-size="11" font-weight="600" fill="#00D2FF">0.27 ms (Crystal)</text>
+  <rect x="185" y="1321" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="1321" width="610" height="14" rx="3" fill="url(#gdGrad)"/>
+  <text x="785" y="1331" text-anchor="end" font-family="sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">12.7 ms (GDScript)</text>
+  <rect x="920" y="1313" width="95" height="24" rx="12" fill="#238636" fill-opacity="0.2" stroke="#238636" stroke-width="1"/>
+  <text x="967" y="1329" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="#3FB950">47.0x faster</text>
+  <text x="170" y="1387" text-anchor="end" font-family="sans-serif" font-size="13" font-weight="bold" fill="#F0F3F6">SurfaceTool</text>
+  <rect x="185" y="1361" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="1361" width="4" height="14" rx="3" fill="url(#crGrad)"/>
+  <text x="197" y="1371" font-family="sans-serif" font-size="11" font-weight="600" fill="#00D2FF">0.06 ms (Crystal)</text>
+  <rect x="185" y="1379" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="1379" width="610" height="14" rx="3" fill="url(#gdGrad)"/>
+  <text x="785" y="1389" text-anchor="end" font-family="sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">8.43 ms (GDScript)</text>
+  <rect x="920" y="1371" width="95" height="24" rx="12" fill="#238636" fill-opacity="0.2" stroke="#238636" stroke-width="1"/>
+  <text x="967" y="1387" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="#3FB950">140.5x faster</text>
+  <text x="170" y="1445" text-anchor="end" font-family="sans-serif" font-size="13" font-weight="bold" fill="#F0F3F6">TransformHierarchy</text>
+  <rect x="185" y="1419" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="1419" width="4" height="14" rx="3" fill="url(#crGrad)"/>
+  <text x="197" y="1429" font-family="sans-serif" font-size="11" font-weight="600" fill="#00D2FF">0.1 ms (Crystal)</text>
+  <rect x="185" y="1437" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="1437" width="610" height="14" rx="3" fill="url(#gdGrad)"/>
+  <text x="785" y="1447" text-anchor="end" font-family="sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">64.15 ms (GDScript)</text>
+  <rect x="920" y="1429" width="95" height="24" rx="12" fill="#238636" fill-opacity="0.2" stroke="#238636" stroke-width="1"/>
+  <text x="967" y="1445" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="#3FB950">641.5x faster</text>
+  <text x="170" y="1503" text-anchor="end" font-family="sans-serif" font-size="13" font-weight="bold" fill="#F0F3F6">TransformMath</text>
+  <rect x="185" y="1477" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="1477" width="33" height="14" rx="3" fill="url(#crGrad)"/>
+  <text x="226" y="1487" font-family="sans-serif" font-size="11" font-weight="600" fill="#00D2FF">1.71 ms (Crystal)</text>
+  <rect x="185" y="1495" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="1495" width="610" height="14" rx="3" fill="url(#gdGrad)"/>
+  <text x="785" y="1505" text-anchor="end" font-family="sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">31.97 ms (GDScript)</text>
+  <rect x="920" y="1487" width="95" height="24" rx="12" fill="#238636" fill-opacity="0.2" stroke="#238636" stroke-width="1"/>
+  <text x="967" y="1503" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="#3FB950">18.7x faster</text>
+  <text x="170" y="1561" text-anchor="end" font-family="sans-serif" font-size="13" font-weight="bold" fill="#F0F3F6">TreeTraversal</text>
+  <rect x="185" y="1535" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="1535" width="24" height="14" rx="3" fill="url(#crGrad)"/>
+  <text x="217" y="1545" font-family="sans-serif" font-size="11" font-weight="600" fill="#00D2FF">0.42 ms (Crystal)</text>
+  <rect x="185" y="1553" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="1553" width="610" height="14" rx="3" fill="url(#gdGrad)"/>
+  <text x="785" y="1563" text-anchor="end" font-family="sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">10.51 ms (GDScript)</text>
+  <rect x="920" y="1545" width="95" height="24" rx="12" fill="#238636" fill-opacity="0.2" stroke="#238636" stroke-width="1"/>
+  <text x="967" y="1561" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="#3FB950">25.0x faster</text>
+  <text x="170" y="1619" text-anchor="end" font-family="sans-serif" font-size="13" font-weight="bold" fill="#F0F3F6">VectorMath2D</text>
+  <rect x="185" y="1593" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="1593" width="16" height="14" rx="3" fill="url(#crGrad)"/>
+  <text x="209" y="1603" font-family="sans-serif" font-size="11" font-weight="600" fill="#00D2FF">1.92 ms (Crystal)</text>
+  <rect x="185" y="1611" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="1611" width="610" height="14" rx="3" fill="url(#gdGrad)"/>
+  <text x="785" y="1621" text-anchor="end" font-family="sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">72.67 ms (GDScript)</text>
+  <rect x="920" y="1603" width="95" height="24" rx="12" fill="#238636" fill-opacity="0.2" stroke="#238636" stroke-width="1"/>
+  <text x="967" y="1619" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="#3FB950">37.8x faster</text>
+  <text x="170" y="1677" text-anchor="end" font-family="sans-serif" font-size="13" font-weight="bold" fill="#F0F3F6">VisualShader</text>
+  <rect x="185" y="1651" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="1651" width="4" height="14" rx="3" fill="url(#crGrad)"/>
+  <text x="197" y="1661" font-family="sans-serif" font-size="11" font-weight="600" fill="#00D2FF">0.03 ms (Crystal)</text>
+  <rect x="185" y="1669" width="610" height="14" rx="3" fill="#21262D"/>
+  <rect x="185" y="1669" width="610" height="14" rx="3" fill="url(#gdGrad)"/>
+  <text x="785" y="1679" text-anchor="end" font-family="sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">4.22 ms (GDScript)</text>
+  <rect x="920" y="1661" width="95" height="24" rx="12" fill="#238636" fill-opacity="0.2" stroke="#238636" stroke-width="1"/>
+  <text x="967" y="1677" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="#3FB950">140.7x faster</text>
+</svg>
