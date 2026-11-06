@@ -21,3 +21,30 @@ require "./extensions/timer"
 require "./extensions/tween"
 require "./extensions/viewport"
 require "./extensions/audio_server"
+
+
+module Godot
+  class Object
+    def set_meta(name : String, value : Pointer(Void)) : Void
+      check_alive!
+      if !@pointer.null? && Bridge.init_done?
+        if value.null?
+          remove_meta(name)
+        else
+          call("set_meta", name, value.address.to_i64)
+        end
+      end
+    end
+
+    def get_meta(name : String, default : Pointer(Void)? = nil) : Pointer(Void)
+      fallback = default || Pointer(Void).null
+      return fallback if @pointer.null? || !Bridge.init_done?
+      check_alive!
+      return fallback unless has_meta(name)
+      addr = call_i64("get_meta", name)
+      return Pointer(Void).new(addr.to_u64) if addr != 0_i64
+      ptr = Bridge.object_call_ret_object(@pointer, "get_meta", name)
+      !ptr.null? ? ptr : fallback
+    end
+  end
+end

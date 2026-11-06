@@ -23,27 +23,27 @@ This skill provides procedures for running and troubleshooting the complete LibG
     <tr>
       <td><a href="#running-the-automated-test-suite"><strong>Running the Automated Test Suite</strong></a></td>
       <td>To run all automated verification suites in one command:</td>
-      <td align="center"><code>L53–L65</code></td>
+      <td align="center"><code>L53–L69</code></td>
     </tr>
     <tr>
       <td><a href="#the-4-test-tiers"><strong>The 4 Test Tiers</strong></a></td>
       <td>### 1.</td>
-      <td align="center"><code>L66–L150</code></td>
+      <td align="center"><code>L70–L154</code></td>
     </tr>
     <tr>
       <td><a href="#test-artifacts-and-logs"><strong>Test Artifacts and Logs</strong></a></td>
       <td>After test execution, inspect:</td>
-      <td align="center"><code>L151–L160</code></td>
+      <td align="center"><code>L155–L164</code></td>
     </tr>
     <tr>
       <td><a href="#quantitative-zero-leak-verification"><strong>Quantitative Zero-Leak Verification</strong></a></td>
       <td>LibGodot verifies zero memory leaks using Godot's Performance singleton monitors:</td>
-      <td align="center"><code>L161–L174</code></td>
+      <td align="center"><code>L165–L178</code></td>
     </tr>
     <tr>
       <td><a href="#radare2-cradare2-diagnostic-debugging-workflow"><strong>radare2 & `cradare2` Diagnostic & Debugging Workflow</strong></a></td>
       <td>When encountering segmentation faults (0xC0000005), invalid parameter crashes, or mysterious exits:</td>
-      <td align="center"><code>L175–L203</code></td>
+      <td align="center"><code>L179–L207</code></td>
     </tr>
   </tbody>
 </table>

@@ -145,4 +145,48 @@ else
   puts "  - No local Godot binary found to query directly"
 end
 
+# -------------------------------------------------------------
+# [Spec 6] Lapis Milestone Version & Branch Commit Parity
+# -------------------------------------------------------------
+puts "[Spec 6] Verifying Lapis shard.yml version and milestone minor bump..."
+repo_root = File.expand_path("..", __DIR__)
+root_shard_ver = File.read(File.join(repo_root, "shard.yml"))[/^version:\s*["']?(\d+\.\d+\.\d+)["']?/m, 1]
+cli_shard_ver = File.read(File.join(repo_root, "tools/lapis/shard.yml"))[/^version:\s*["']?(\d+\.\d+\.\d+)["']?/m, 1]
+if root_shard_ver != cli_shard_ver
+  abort "ERROR: Root shard.yml (#{root_shard_ver}) and tools/lapis/shard.yml (#{cli_shard_ver}) versions do not match!"
+end
+
+readme_content = File.read(File.join(repo_root, "README.md"))
+unless readme_content.includes?("badge/Lapis-#{root_shard_ver}-blueviolet.svg")
+  abort "ERROR: README.md Lapis badge does not match shard.yml version '#{root_shard_ver}'!"
+end
+
+ver_parts = root_shard_ver.split(".").map(&.to_i)
+curr_maj, curr_min, curr_cmt = ver_parts[0], ver_parts[1], ver_parts[2]
+
+master_godot_out = IO::Memory.new
+if Process.run("git", ["-C", repo_root, "show", "master:godot-version.yml"], output: master_godot_out, error: Process::Redirect::Close).success?
+  master_godot_ver = master_godot_out.to_s[/version:\s*["']?([^"'\r\n]+)["']?/, 1]?.try(&.strip) || ""
+  master_shard_out = IO::Memory.new
+  if Process.run("git", ["-C", repo_root, "show", "master:shard.yml"], output: master_shard_out, error: Process::Redirect::Close).success?
+    if m_ver = master_shard_out.to_s[/^version:\s*["']?(\d+\.\d+\.\d+)["']?/m, 1]?
+      m_parts = m_ver.split(".").map(&.to_i)
+      m_maj, m_min = m_parts[0], m_parts[1]
+      if expected_target_ver != master_godot_ver
+        if {curr_maj, curr_min} <= {m_maj, m_min}
+          abort "ERROR: Godot version upgraded (#{master_godot_ver} -> #{expected_target_ver}) but Lapis version (#{root_shard_ver}) did not bump minor version above master (#{m_ver})!"
+        end
+        cnt_out = IO::Memory.new
+        if Process.run("git", ["-C", repo_root, "rev-list", "--count", "master..HEAD"], output: cnt_out, error: Process::Redirect::Close).success?
+          branch_commits = cnt_out.to_s.strip.to_i? || 0
+          if branch_commits > 0 && curr_cmt < branch_commits
+            abort "ERROR: Lapis version (#{root_shard_ver}) commit number (#{curr_cmt}) is less than branch commit count (#{branch_commits})!"
+          end
+        end
+      end
+    end
+  end
+end
+puts "  ✓ Lapis version '#{root_shard_ver}' is synchronized and milestone-aligned"
+
 puts "=== All Godot Engine Version Verification Specifications Passed! ==="

@@ -25252,12 +25252,9 @@ module Godot
     def control_state
       get_control_state
     end
-    def control_state?
-      control_state
-    end
     # Property `control_state` setter
-    def control_state=(val)
-      set_control_state(val)
+    def control_state=(val : Int | Enum)
+      set_control_state(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `hide_slider` getter
     def hide_slider

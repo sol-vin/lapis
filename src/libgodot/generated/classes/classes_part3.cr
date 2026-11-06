@@ -17763,6 +17763,7 @@ module Godot
       BakeErrorTextureSizeTooSmall = 9_i64
       BakeErrorLightmapTooSmall = 10_i64
       BakeErrorAtlasTooSmall = 11_i64
+      BakeErrorTextureExceedsDeviceLimit = 12_i64
     end
     enum EnvironmentMode : Int64
       EnvironmentModeDisabled = 0_i64

@@ -107,6 +107,7 @@ LIBGODOT_DLL     = $(LIBGODOT_LIB)
 # Compile Lapis CLI toolchain if not present or source changed
 $(LAPIS): $(wildcard tools/lapis/src/**/*.cr) $(wildcard tools/lapis/src/*.cr) $(wildcard tools/lapis/*.yml) $(wildcard src/*.cr) $(wildcard src/lapis/*.cr) $(wildcard src/lapis/**/*.cr) $(wildcard src/libgodot/*.cr) $(wildcard src/libgodot/**/*.cr) $(wildcard template/*) $(wildcard template/**/*) $(wildcard template-addon/*) $(wildcard template-addon/**/*) $(wildcard addons/crystal_integration/*) $(wildcard addons/crystal_integration/*/*) shard.yml godot-version.yml
 	@echo "[Lapis] Compiling Lapis toolchain $(LAPIS)..."
+	@git config core.hooksPath .githooks || true
 	@shards update --skip-postinstall || shards install --skip-postinstall || true
 	@(cd tools/lapis && (shards update --skip-postinstall || shards install --skip-postinstall)) || true
 ifeq ($(PLATFORM),windows)

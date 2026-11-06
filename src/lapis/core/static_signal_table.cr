@@ -14,7 +14,7 @@
 #
 # Work Order: WO-064 ([AS-1])
 # Specialist: Gamma (Godot Lead Engineer)
-# Target Branch: 4.8-beta1
+# Target Branch: 4.8-beta2
 # =============================================================================
 
 require "./frame_arena"

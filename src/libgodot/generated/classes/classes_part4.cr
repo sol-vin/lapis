@@ -5235,10 +5235,6 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_disable_shortcuts, @pointer, args.to_unsafe.as(Void**))
     end
-    # Property `selected` getter
-    def selected
-      get_selected
-    end
     # Property `fit_to_longest_item` getter
     def fit_to_longest_item
       is_fit_to_longest_item

@@ -3,6 +3,7 @@ require "../core/logger"
 require "../core/process_runner"
 require "./get"
 require "./deps"
+require "./build"
 require "./bind/project"
 require "./shard_manager"
 require "file_utils"
@@ -145,13 +146,16 @@ module Lapis
             shard_content = File.read(shard_file)
             in_deps = false
             shard_content.each_line do |line|
-              if line.starts_with?("dependencies:")
+              if line =~ /^version:\s*(.+)$/
+                s_ver = $1.strip.gsub(/^["']|["']$/, "")
+                version = s_ver if !s_ver.empty? && version == "0.1.0"
+              elsif line.starts_with?("dependencies:")
                 in_deps = true
                 next
               elsif in_deps && line =~ /^[a-zA-Z]/
                 in_deps = false
               end
-              if in_deps && line =~ /^\s+([a-zA-Z0-9_\-]+):/
+              if in_deps && line =~ /^  ([a-zA-Z0-9_\-]+):\s*$/
                 dep_key = $1
                 dependencies << dep_key unless ["libgodot", "lapis"].includes?(dep_key) || dependencies.includes?(dep_key)
               end
@@ -189,12 +193,11 @@ module Lapis
                           if bin_files.empty?
                             "Missing binary"
                           else
-                            main_cr = dir.join("src", "main.cr")
-                            src_target = File.exists?(main_cr) ? main_cr : (Dir.glob(dir.join("src/**/*.cr").to_s.gsub('\\', '/')).first? ? Path.new(Dir.glob(dir.join("src/**/*.cr").to_s.gsub('\\', '/')).first) : nil)
-                            if src_target && File.exists?(src_target)
-                              src_time = File.info(src_target).modification_time
-                              bin_time = File.info(dir.join("bin", bin_files[0])).modification_time
-                              if src_time > bin_time
+                            cr_files = Dir.glob(dir.join("src/**/*.cr").to_s.gsub('\\', '/'))
+                            if !cr_files.empty?
+                              newest_src = cr_files.compact_map { |f| File.info?(f).try(&.modification_time) }.max?
+                              newest_bin = bin_files.compact_map { |f| File.info?(dir.join("bin", f)).try(&.modification_time) }.max?
+                              if newest_src && newest_bin && newest_src > newest_bin
                                 "Needs recompile"
                               else
                                 "Up-to-date"
@@ -594,37 +597,63 @@ module Lapis
         nil
       end
 
+      # Copies all children from `src_dir` into `dst_dir` without nesting `src_dir.basename` inside `dst_dir`
+      private def self.copy_dir_contents(src_dir : Path, dst_dir : Path) : Void
+        return unless Dir.exists?(src_dir)
+        FileUtils.mkdir_p(dst_dir)
+        Dir.each_child(src_dir) do |child|
+          next if child == ".git"
+          s = src_dir.join(child)
+          d = dst_dir.join(child)
+          if Dir.exists?(s)
+            copy_dir_contents(s, d)
+          elsif File.file?(s)
+            FileUtils.mkdir_p(d.parent)
+            FileUtils.cp(s, d)
+          end
+        end
+      end
+
       # Copies or extracts an addon from a local cloned or unpacked directory
       def self.extract_addon_from_folder(source_dir : Path, project_root : Path, addon_name : String) : Void
-        target_addon = project_root.join("addons", addon_name)
-        FileUtils.mkdir_p(target_addon)
+        alt_name = addon_name.gsub('-', '_')
+        src_addons = source_dir.join("addons")
 
-        # Check if source_dir contains addons/<addon_name>
-        candidate = source_dir.join("addons", addon_name)
-        if Dir.exists?(candidate)
-          FileUtils.cp_r(candidate.to_s, target_addon.to_s)
+        matched_sub : Path? = nil
+        if Dir.exists?(source_dir.join("addons", addon_name))
+          matched_sub = source_dir.join("addons", addon_name)
+        elsif Dir.exists?(source_dir.join("addons", alt_name))
+          matched_sub = source_dir.join("addons", alt_name)
+        elsif Dir.exists?(src_addons)
+          if first_sub = Dir.children(src_addons).find { |c| c != "crystal_integration" && Dir.exists?(src_addons.join(c)) }
+            matched_sub = src_addons.join(first_sub)
+          end
+        end
+
+        if sub = matched_sub
+          actual_name = sub.basename
+          target_addon = project_root.join("addons", actual_name)
+          copy_dir_contents(sub, target_addon)
+
+          # Also preserve top-level Crystal source (`src/`) and manifest (`shard.yml`) inside `addons/<actual_name>/`
+          if Dir.exists?(source_dir.join("src"))
+            copy_dir_contents(source_dir.join("src"), target_addon.join("src"))
+          end
+          ["shard.yml", "shard.lock", "Makefile", "README.md", "LICENSE"].each do |meta_file|
+            src_meta = source_dir.join(meta_file)
+            dst_meta = target_addon.join(meta_file)
+            if File.file?(src_meta) && !File.exists?(dst_meta)
+              FileUtils.cp(src_meta, dst_meta)
+            end
+          end
+          Commands::Build.ensure_addon_library_entrypoint(target_addon, actual_name)
           return
         end
 
-        # Check if source_dir contains addons/<any>
-        src_addons = source_dir.join("addons")
-        if Dir.exists?(src_addons)
-          if first_sub = Dir.children(src_addons).find { |c| Dir.exists?(src_addons.join(c)) }
-            FileUtils.cp_r(src_addons.join(first_sub).to_s, target_addon.to_s)
-            return
-          end
-        end
-
-        # Otherwise copy root files (excluding .git)
-        Dir.each_child(source_dir) do |child|
-          next if child == ".git"
-          src_item = source_dir.join(child)
-          if File.file?(src_item)
-            FileUtils.cp(src_item, target_addon.join(child))
-          elsif Dir.exists?(src_item)
-            FileUtils.cp_r(src_item.to_s, target_addon.join(child).to_s)
-          end
-        end
+        # Otherwise copy root files (excluding .git) into addons/<addon_name>
+        target_addon = project_root.join("addons", addon_name)
+        copy_dir_contents(source_dir, target_addon)
+        Commands::Build.ensure_addon_library_entrypoint(target_addon, addon_name)
       end
 
       # Registers and enables plugin in project.godot under [editor_plugins]
@@ -780,24 +809,35 @@ module Lapis
 
         has_addons_folder = false
         root_dir_prefix : String? = nil
+        detected_addon_sub : String? = nil
 
-        # Pre-scan zip entries to determine structure
+        # Pre-scan zip entries to determine structure and actual addon subfolder name
         File.open(zip_path.to_s) do |f|
           Compress::Zip::Reader.open(f) do |zip|
             zip.each_entry do |entry|
               clean_name = entry.filename.gsub('\\', '/')
               if clean_name.starts_with?("addons/") || clean_name.includes?("/addons/")
                 has_addons_folder = true
-                if clean_name.includes?("/addons/") && !clean_name.starts_with?("addons/")
-                  parts = clean_name.split("/addons/", 2)
-                  root_dir_prefix = "#{parts[0]}/"
+                rel_after_addons = if clean_name.includes?("/addons/") && !clean_name.starts_with?("addons/")
+                                     parts = clean_name.split("/addons/", 2)
+                                     root_dir_prefix ||= "#{parts[0]}/"
+                                     parts[1]
+                                   else
+                                     clean_name["addons/".size..]
+                                   end
+                sub_parts = rel_after_addons.split('/', 2)
+                sub_cand = sub_parts[0]
+                if !sub_cand.empty? && sub_cand != "crystal_integration"
+                  if detected_addon_sub.nil? || sub_cand == addon_name || sub_cand == addon_name.gsub('-', '_')
+                    detected_addon_sub = sub_cand
+                  end
                 end
-                break
               end
             end
           end
         end
 
+        target_sub = detected_addon_sub || addon_name
         file_count = 0
         File.open(zip_path.to_s) do |f|
           Compress::Zip::Reader.open(f) do |zip|
@@ -818,8 +858,11 @@ module Lapis
                            next unless addon_name == "crystal_integration"
                          end
                          project_root.join(clean_name)
+                       elsif clean_name == "src" || clean_name.starts_with?("src/") ||
+                             ["shard.yml", "shard.lock", "Makefile", "README.md", "LICENSE"].includes?(clean_name)
+                         # Preserve top-level Crystal source (`src/`) and manifest (`shard.yml`) inside `addons/<target_sub>/`
+                         project_root.join("addons", target_sub, clean_name)
                        else
-                         # Skip unrelated top-level repo files (like README, src/) when installing from repo source
                          next
                        end
                      else
@@ -845,7 +888,8 @@ module Lapis
           end
         end
 
-        Core::Logger.success("Extracted #{file_count} files for addon '#{addon_name}'.")
+        Commands::Build.ensure_addon_library_entrypoint(project_root.join("addons", target_sub), target_sub)
+        Core::Logger.success("Extracted #{file_count} files for addon '#{target_sub}'.")
         true
       rescue ex
         Core::Logger.error("Failed to extract addon archive #{zip_path}: #{ex.message}")
@@ -905,8 +949,7 @@ module Lapis
               return 1
             end
             Core::Logger.step("Install:Addon", "Installing from local directory #{local_path}...")
-            FileUtils.mkdir_p(target_addon_dir)
-            FileUtils.cp_r(local_path.to_s, target_addon_dir.to_s)
+            extract_addon_from_folder(local_path, project_dir, addon_name)
 
           when :git
             git_url = spec.path || spec.raw.sub(/^git:/, "")
@@ -1048,6 +1091,12 @@ module Lapis
             end
           end
 
+          # Normalize target_addon_dir if archive extracted under underscore-normalized folder (e.g. succ-cr -> addons/succ_cr)
+          if !Dir.exists?(target_addon_dir) && Dir.exists?(project_dir.join("addons", addon_name.gsub('-', '_')))
+            addon_name = addon_name.gsub('-', '_')
+            target_addon_dir = project_dir.join("addons", addon_name)
+          end
+
           # Post-Install Step 1: Stage GDExtension runtime dependencies if needed
           if Dir.exists?(target_addon_dir)
             stage_addon_dependencies(target_addon_dir)
@@ -1063,7 +1112,7 @@ module Lapis
               # Search for any plugin.cfg inside target_addon_dir or project_dir/addons
               cfgs = Dir.glob(target_addon_dir.join("**/*.plugin.cfg").to_s.gsub('\\', '/')) + Dir.glob(target_addon_dir.join("**/plugin.cfg").to_s.gsub('\\', '/'))
               if cfgs.empty?
-                cfgs = Dir.glob(project_dir.join("addons/**/plugin.cfg").to_s.gsub('\\', '/'))
+                cfgs = Dir.glob(project_dir.join("addons/**/plugin.cfg").to_s.gsub('\\', '/')).reject(&.includes?("crystal_integration"))
               end
               if first_cfg = cfgs.first?
                 rel_cfg = Path.new(first_cfg).relative_to(project_dir).to_s.gsub('\\', '/')
@@ -1080,6 +1129,16 @@ module Lapis
 
           # Ensure GDExtension is registered in .godot/extension_list.cfg for immediate ClassDB discovery
           register_in_extension_list(project_dir, target_addon_dir)
+
+          # Post-Install Step 2a: If this is a source-included addon with src/main.cr, ensure library entrypoint and compile if needed
+          if File.exists?(target_addon_dir.join("src", "main.cr"))
+            Commands::Build.ensure_addon_library_entrypoint(target_addon_dir, addon_name)
+            info_check = inspect_addon(target_addon_dir)
+            if prefer_source || info_check.binary_status != "Up-to-date"
+              Core::Logger.step("Addon:Build", "Compiling source-included addon '#{addon_name}' from #{target_addon_dir.join("src/main.cr")}...")
+              Commands::Build.compile_addon_dir(target_addon_dir, project_dir, force: prefer_source || force)
+            end
+          end
 
           # Post-Install Step 2b: Recursive Addon Dependency Resolution
           addon_info = inspect_addon(target_addon_dir)
@@ -1107,6 +1166,11 @@ module Lapis
             end
           end
 
+          effective_path_override = path_override
+          if effective_path_override.nil? && prefer_source && Dir.exists?(target_addon_dir.join("src")) && File.exists?(target_addon_dir.join("shard.yml"))
+            effective_path_override = "addons/#{addon_name}"
+          end
+
           # Post-Install Step 3: Track addon in shard.yml under addons: key
           ShardManager.add_addon(
             project_dir,
@@ -1115,7 +1179,7 @@ module Lapis
             branch: (spec.type == :git ? spec.tag : nil),
             tag: spec.tag,
             version: spec.tag,
-            path_override: path_override
+            path_override: effective_path_override
           )
 
           # Post-Install Step 3b: If also_shard requested, also track in dependencies:
@@ -1125,9 +1189,9 @@ module Lapis
               project_dir,
               addon_name,
               spec,
-              path_override: path_override
+              path_override: effective_path_override
             )
-            ShardManager.run_shards_install(project_dir)
+            ShardManager.run_shards_install(project_dir) unless effective_path_override
           end
 
           # Post-Install Step 3c: Run AddonNegotiator to ensure version deduplication
