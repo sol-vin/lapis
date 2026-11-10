@@ -257,7 +257,7 @@ module Lapis
         end
 
         private def self.resolve_crystal_return_type(type_id : Int64, class_name : String?) : String
-          if !class_name.nil? && !class_name.empty?
+          if type_id == 24 && !class_name.nil? && !class_name.empty? && !class_name.includes?(".")
             clean_class = class_name.gsub(/[^a-zA-Z0-9_]/, "")
             if clean_class == "Node" || clean_class == "Object" || clean_class == "Resource"
               return "Godot::#{clean_class}?"
@@ -281,7 +281,7 @@ module Lapis
         end
 
         private def self.resolve_crystal_param_type(type_id : Int64, class_name : String?) : String?
-          if !class_name.nil? && !class_name.empty?
+          if type_id == 24 && !class_name.nil? && !class_name.empty? && !class_name.includes?(".")
             clean_class = class_name.gsub(/[^a-zA-Z0-9_]/, "")
             if clean_class.starts_with?("Godot::")
               return clean_class
@@ -395,6 +395,16 @@ module Lapis
             return 1
           end
 
+          generate_wrappers_from_json(proj_dir, out_json, out_dir, include_addons, current_digest)
+        end
+
+        def self.generate_wrappers_from_json(
+          proj_dir : Path,
+          out_json : Path,
+          out_dir : Path,
+          include_addons : Bool = false,
+          current_digest : String = "",
+        ) : Int32
           # 2. Parse JSON and generate wrapper classes in memory (write-if-changed to preserve mtimes)
           Core::Logger.step("Bind:Project", "Generating typed Crystal wrappers -> #{out_dir}...")
           data = ::JSON.parse(File.read(out_json))
@@ -437,8 +447,12 @@ module Lapis
             raw_name = c["name"]?.try(&.as_s) || ""
             clean = raw_name.gsub(/[^a-zA-Z0-9_]/, "")
             script_path = c["path"]?.try(&.as_s) || ""
+            inherits_str = c["inherits"]?.try(&.as_s) || ""
+            has_class_name = c["has_class_name"]?.try(&.as_bool) != false
+            is_cli_script = (inherits_str == "SceneTree" || inherits_str == "MainLoop") && !has_class_name
             is_addon_script = script_path.starts_with?("res://addons/") || script_path.includes?("/addons/") || script_path.starts_with?("addons/")
             clean.empty? ||
+              is_cli_script ||
               (!include_addons && is_addon_script) ||
               local_crystal_classes.includes?(clean) ||
               clean.starts_with?("Dummy") ||
@@ -489,15 +503,29 @@ module Lapis
               io.puts "      new(node.pointer)"
               io.puts "    end\n"
 
+              method_names = Set(String).new
+              if methods = c["methods"]?.try(&.as_a)
+                methods.each do |m|
+                  m_name = m["name"]?.try(&.as_s) || ""
+                  next if m_name.empty? || m_name.starts_with?("@") || m_name == "get" || m_name == "set"
+                  method_names << sanitize_ident(m_name)
+                end
+              end
+
               # Properties
+              emitted_props = Set(String).new
               if props = c["properties"]?.try(&.as_a)
                 props.each do |p|
                   prop_name = p["name"]?.try(&.as_s) || ""
                   next if prop_name.empty? || prop_name.starts_with?("@")
                   prop_type_id = p["type"]?.try(&.as_i64) || 0_i64
+                  prop_usage = p["usage"]?.try(&.as_i64) || 0_i64
+                  next if prop_type_id == 0_i64 || (prop_usage & (64_i64 | 128_i64 | 256_i64)) != 0_i64
                   prop_class = p["class_name"]?.try(&.as_s)
                   c_type = resolve_crystal_return_type(prop_type_id, prop_class)
                   clean_getter = sanitize_ident(prop_name)
+                  next if method_names.includes?(clean_getter) || emitted_props.includes?(clean_getter)
+                  emitted_props << clean_getter
                   clean_setter = "#{clean_getter}="
 
                   io.puts "    # Property `#{prop_name}` (#{c_type})"
@@ -505,7 +533,12 @@ module Lapis
                   when 1
                     io.puts "    def #{clean_getter} : Bool\n      call_bool(\"get\", \"#{prop_name}\")\n    end"
                   when 2
-                    io.puts "    def #{clean_getter} : Int64\n      call_i64(\"get\", \"#{prop_name}\")\n    end"
+                    if c_type != "Int64" && c_type.ends_with?("?")
+                      base_t = c_type.rstrip('?')
+                      io.puts "    def #{clean_getter} : #{c_type}\n      #{base_t}.from_value?(call_i64(\"get\", \"#{prop_name}\"))\n    end"
+                    else
+                      io.puts "    def #{clean_getter} : Int64\n      call_i64(\"get\", \"#{prop_name}\")\n    end"
+                    end
                   when 3
                     io.puts "    def #{clean_getter} : Float64\n      call_f64(\"get\", \"#{prop_name}\")\n    end"
                   when 4
@@ -522,11 +555,14 @@ module Lapis
               end
 
               # Methods
+              emitted_methods = Set(String).new
               if methods = c["methods"]?.try(&.as_a)
                 methods.each do |m|
                   m_name = m["name"]?.try(&.as_s) || ""
                   next if m_name.empty? || m_name.starts_with?("@") || m_name == "get" || m_name == "set"
                   clean_m_name = sanitize_ident(m_name)
+                  next if emitted_methods.includes?(clean_m_name)
+                  emitted_methods << clean_m_name
                   ret_type_id = m["return_type"]?.try(&.as_i64) || 0_i64
                   ret_class = m["return_class_name"]?.try(&.as_s)
                   ret_c_type = resolve_crystal_return_type(ret_type_id, ret_class)
@@ -559,7 +595,12 @@ module Lapis
                   when 1
                     io.puts "      call_bool(\"#{m_name}\"#{args_pass_str})"
                   when 2
-                    io.puts "      call_i64(\"#{m_name}\"#{args_pass_str})"
+                    if ret_c_type != "Int64" && ret_c_type.ends_with?("?")
+                      base_t = ret_c_type.rstrip('?')
+                      io.puts "      #{base_t}.from_value?(call_i64(\"#{m_name}\"#{args_pass_str}))"
+                    else
+                      io.puts "      call_i64(\"#{m_name}\"#{args_pass_str})"
+                    end
                   when 3
                     io.puts "      call_f64(\"#{m_name}\"#{args_pass_str})"
                   when 4

@@ -568,10 +568,12 @@ def generate_class_code(io : IO, c : JSON::Any, keywords : Hash(String, String),
       args.each_with_index do |a, idx|
         raw_a_name = a["name"].as_s
         a_name = sanitize_name(raw_a_name, keywords)
-        t_info = resolve_type_info(a["type"].as_s, name, type_map)
+        godot_a_type = a["type"].as_s
+        t_info = resolve_type_info(godot_a_type, name, type_map)
         crystal_type = t_info[:crystal_type]
+        is_obj_arg = class_names.includes?(godot_a_type) || godot_a_type.starts_with?("Godot::") || ["Node", "Resource", "SceneTree", "Object", "Mesh"].includes?(godot_a_type)
         def_val = (idx > first_non_default_idx) ? defaults[idx] : nil
-        if def_val == "nil" && !crystal_type.ends_with?("?")
+        if (def_val == "nil" || is_obj_arg) && !crystal_type.ends_with?("?")
           crystal_type = "#{crystal_type}?"
         end
         if def_val

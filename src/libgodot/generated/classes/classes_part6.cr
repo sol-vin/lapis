@@ -49,7 +49,7 @@ module Godot
       godot_ptrcall_obj(@@mb_get_device, @pointer, args.to_unsafe.as(Void**), UPNPDevice)
     end
     @@mb_add_device : Void* = Pointer(Void).null
-    def add_device(device : UPNPDevice) : Void
+    def add_device(device : UPNPDevice?) : Void
       godot_bind(@@mb_add_device, "UPNP", "add_device", 986715920_i64)
       arg_ptr_0 = device ? device.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -57,7 +57,7 @@ module Godot
       godot_ptrcall_void(@@mb_add_device, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_set_device : Void* = Pointer(Void).null
-    def set_device(index : Int64, device : UPNPDevice) : Void
+    def set_device(index : Int64, device : UPNPDevice?) : Void
       godot_bind(@@mb_set_device, "UPNP", "set_device", 3015133723_i64)
       val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
@@ -471,7 +471,7 @@ module Godot
       godot_ptrcall_void(@@mb_add_undo_method, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_add_do_property : Void* = Pointer(Void).null
-    def add_do_property(object : Godot::Object, property : String, value : Pointer(Void)) : Void
+    def add_do_property(object : Godot::Object?, property : String, value : Pointer(Void)) : Void
       godot_bind(@@mb_add_do_property, "UndoRedo", "add_do_property", 1017172818_i64)
       arg_ptr_0 = object ? object.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -485,7 +485,7 @@ module Godot
       Bridge.free_string_name(sn_1)
     end
     @@mb_add_undo_property : Void* = Pointer(Void).null
-    def add_undo_property(object : Godot::Object, property : String, value : Pointer(Void)) : Void
+    def add_undo_property(object : Godot::Object?, property : String, value : Pointer(Void)) : Void
       godot_bind(@@mb_add_undo_property, "UndoRedo", "add_undo_property", 1017172818_i64)
       arg_ptr_0 = object ? object.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -499,7 +499,7 @@ module Godot
       Bridge.free_string_name(sn_1)
     end
     @@mb_add_do_reference : Void* = Pointer(Void).null
-    def add_do_reference(object : Godot::Object) : Void
+    def add_do_reference(object : Godot::Object?) : Void
       godot_bind(@@mb_add_do_reference, "UndoRedo", "add_do_reference", 3975164845_i64)
       arg_ptr_0 = object ? object.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -507,7 +507,7 @@ module Godot
       godot_ptrcall_void(@@mb_add_do_reference, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_add_undo_reference : Void* = Pointer(Void).null
-    def add_undo_reference(object : Godot::Object) : Void
+    def add_undo_reference(object : Godot::Object?) : Void
       godot_bind(@@mb_add_undo_reference, "UndoRedo", "add_undo_reference", 3975164845_i64)
       arg_ptr_0 = object ? object.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -1142,7 +1142,7 @@ module Godot
       super(pointer)
     end
     @@mb_set_stream : Void* = Pointer(Void).null
-    def set_stream(stream : VideoStream) : Void
+    def set_stream(stream : VideoStream?) : Void
       godot_bind(@@mb_set_stream, "VideoStreamPlayer", "set_stream", 2317102564_i64)
       arg_ptr_0 = stream ? stream.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -2018,7 +2018,7 @@ module Godot
       godot_ptrcall_void(@@mb_set_mode, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_add_node : Void* = Pointer(Void).null
-    def add_node(get_type : Type | Int, node : VisualShaderNode, position : Vector2, id : Int64) : Void
+    def add_node(get_type : Type | Int, node : VisualShaderNode?, position : Vector2, id : Int64) : Void
       godot_bind(@@mb_add_node, "VisualShader", "add_node", 1560769431_i64)
       val_0 = get_type.is_a?(Int) ? get_type.to_i64 : get_type.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
@@ -2475,7 +2475,7 @@ module Godot
       godot_ptrcall_enum(@@mb_get_output_port_type, @pointer, args.to_unsafe.as(Void**), Godot::VisualShaderNode::PortType)
     end
     @@mb_add_node : Void* = Pointer(Void).null
-    def add_node(node : VisualShaderNode, position : Vector2, id : Int64) : Void
+    def add_node(node : VisualShaderNode?, position : Vector2, id : Int64) : Void
       godot_bind(@@mb_add_node, "VisualShaderGroup", "add_node", 3625527446_i64)
       arg_ptr_0 = node ? node.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -3559,7 +3559,7 @@ module Godot
       godot_ptrcall_enum(@@mb_get_source, @pointer, Pointer(Pointer(Void)).null, Source)
     end
     @@mb_set_cube_map : Void* = Pointer(Void).null
-    def set_cube_map(value : TextureLayered) : Void
+    def set_cube_map(value : TextureLayered?) : Void
       godot_bind(@@mb_set_cube_map, "VisualShaderNodeCubemap", "set_cube_map", 1278366092_i64)
       arg_ptr_0 = value ? value.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -3765,7 +3765,7 @@ module Godot
       super(pointer)
     end
     @@mb_set_texture : Void* = Pointer(Void).null
-    def set_texture(texture : CurveTexture) : Void
+    def set_texture(texture : CurveTexture?) : Void
       godot_bind(@@mb_set_texture, "VisualShaderNodeCurveTexture", "set_texture", 181872837_i64)
       arg_ptr_0 = texture ? texture.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -3791,7 +3791,7 @@ module Godot
       super(pointer)
     end
     @@mb_set_texture : Void* = Pointer(Void).null
-    def set_texture(texture : CurveXYZTexture) : Void
+    def set_texture(texture : CurveXYZTexture?) : Void
       godot_bind(@@mb_set_texture, "VisualShaderNodeCurveXYZTexture", "set_texture", 8031783_i64)
       arg_ptr_0 = texture ? texture.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -4484,7 +4484,7 @@ module Godot
       super(pointer)
     end
     @@mb_set_group : Void* = Pointer(Void).null
-    def set_group(group : VisualShaderGroup) : Void
+    def set_group(group : VisualShaderGroup?) : Void
       godot_bind(@@mb_set_group, "VisualShaderNodeGroup", "set_group", 3093265740_i64)
       arg_ptr_0 = group ? group.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -5080,7 +5080,7 @@ module Godot
       super(pointer)
     end
     @@mb_set_mesh : Void* = Pointer(Void).null
-    def set_mesh(mesh : Mesh) : Void
+    def set_mesh(mesh : Mesh?) : Void
       godot_bind(@@mb_set_mesh, "VisualShaderNodeParticleMeshEmitter", "set_mesh", 194775623_i64)
       arg_ptr_0 = mesh ? mesh.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -5493,7 +5493,7 @@ module Godot
       godot_ptrcall_enum(@@mb_get_source, @pointer, Pointer(Pointer(Void)).null, Source)
     end
     @@mb_set_texture : Void* = Pointer(Void).null
-    def set_texture(value : Texture2D) : Void
+    def set_texture(value : Texture2D?) : Void
       godot_bind(@@mb_set_texture, "VisualShaderNodeTexture", "set_texture", 4051416890_i64)
       arg_ptr_0 = value ? value.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -5548,7 +5548,7 @@ module Godot
       super(pointer)
     end
     @@mb_set_texture_array : Void* = Pointer(Void).null
-    def set_texture_array(value : TextureLayered) : Void
+    def set_texture_array(value : TextureLayered?) : Void
       godot_bind(@@mb_set_texture_array, "VisualShaderNodeTexture2DArray", "set_texture_array", 1278366092_i64)
       arg_ptr_0 = value ? value.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -5584,7 +5584,7 @@ module Godot
       super(pointer)
     end
     @@mb_set_texture : Void* = Pointer(Void).null
-    def set_texture(value : Texture3D) : Void
+    def set_texture(value : Texture3D?) : Void
       godot_bind(@@mb_set_texture, "VisualShaderNodeTexture3D", "set_texture", 1188404210_i64)
       arg_ptr_0 = value ? value.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -6454,7 +6454,7 @@ module Godot
       SubdivMax = 4_i64
     end
     @@mb_set_probe_data : Void* = Pointer(Void).null
-    def set_probe_data(data : VoxelGIData) : Void
+    def set_probe_data(data : VoxelGIData?) : Void
       godot_bind(@@mb_set_probe_data, "VoxelGI", "set_probe_data", 1637849675_i64)
       arg_ptr_0 = data ? data.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -6493,7 +6493,7 @@ module Godot
       godot_ptrcall_val(@@mb_get_size, @pointer, Pointer(Pointer(Void)).null, Vector3)
     end
     @@mb_set_camera_attributes : Void* = Pointer(Void).null
-    def set_camera_attributes(camera_attributes : CameraAttributes) : Void
+    def set_camera_attributes(camera_attributes : CameraAttributes?) : Void
       godot_bind(@@mb_set_camera_attributes, "VoxelGI", "set_camera_attributes", 2817810567_i64)
       arg_ptr_0 = camera_attributes ? camera_attributes.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -6948,7 +6948,7 @@ module Godot
       godot_ptrcall_enum(@@mb_create_mesh, @pointer, args.to_unsafe.as(Void**), Godot::Error)
     end
     @@mb_add_peer : Void* = Pointer(Void).null
-    def add_peer(peer : WebRTCPeerConnection, peer_id : Int64, unreliable_lifetime : Int64 = 1_i64) : Godot::Error
+    def add_peer(peer : WebRTCPeerConnection?, peer_id : Int64, unreliable_lifetime : Int64 = 1_i64) : Godot::Error
       godot_bind(@@mb_add_peer, "WebRTCMultiplayerPeer", "add_peer", 4078953270_i64)
       arg_ptr_0 = peer ? peer.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -7348,7 +7348,7 @@ module Godot
       Bridge.free_string(str_0)
     end
     @@mb_accept_stream : Void* = Pointer(Void).null
-    def accept_stream(stream : StreamPeer) : Godot::Error
+    def accept_stream(stream : StreamPeer?) : Godot::Error
       godot_bind(@@mb_accept_stream, "WebSocketPeer", "accept_stream", 255125695_i64)
       arg_ptr_0 = stream ? stream.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -8028,7 +8028,7 @@ module Godot
       godot_ptrcall_int(@@mb_get_scenario, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_set_environment : Void* = Pointer(Void).null
-    def set_environment(env : Environment) : Void
+    def set_environment(env : Environment?) : Void
       godot_bind(@@mb_set_environment, "World3D", "set_environment", 4143518816_i64)
       arg_ptr_0 = env ? env.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -8041,7 +8041,7 @@ module Godot
       godot_ptrcall_obj(@@mb_get_environment, @pointer, Pointer(Pointer(Void)).null, Environment)
     end
     @@mb_set_fallback_environment : Void* = Pointer(Void).null
-    def set_fallback_environment(env : Environment) : Void
+    def set_fallback_environment(env : Environment?) : Void
       godot_bind(@@mb_set_fallback_environment, "World3D", "set_fallback_environment", 4143518816_i64)
       arg_ptr_0 = env ? env.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -8054,7 +8054,7 @@ module Godot
       godot_ptrcall_obj(@@mb_get_fallback_environment, @pointer, Pointer(Pointer(Void)).null, Environment)
     end
     @@mb_set_camera_attributes : Void* = Pointer(Void).null
-    def set_camera_attributes(attributes : CameraAttributes) : Void
+    def set_camera_attributes(attributes : CameraAttributes?) : Void
       godot_bind(@@mb_set_camera_attributes, "World3D", "set_camera_attributes", 2817810567_i64)
       arg_ptr_0 = attributes ? attributes.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -8190,7 +8190,7 @@ module Godot
       super(pointer)
     end
     @@mb_set_environment : Void* = Pointer(Void).null
-    def set_environment(env : Environment) : Void
+    def set_environment(env : Environment?) : Void
       godot_bind(@@mb_set_environment, "WorldEnvironment", "set_environment", 4143518816_i64)
       arg_ptr_0 = env ? env.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -8203,7 +8203,7 @@ module Godot
       godot_ptrcall_obj(@@mb_get_environment, @pointer, Pointer(Pointer(Void)).null, Environment)
     end
     @@mb_set_camera_attributes : Void* = Pointer(Void).null
-    def set_camera_attributes(camera_attributes : CameraAttributes) : Void
+    def set_camera_attributes(camera_attributes : CameraAttributes?) : Void
       godot_bind(@@mb_set_camera_attributes, "WorldEnvironment", "set_camera_attributes", 2817810567_i64)
       arg_ptr_0 = camera_attributes ? camera_attributes.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -8216,7 +8216,7 @@ module Godot
       godot_ptrcall_obj(@@mb_get_camera_attributes, @pointer, Pointer(Pointer(Void)).null, CameraAttributes)
     end
     @@mb_set_compositor : Void* = Pointer(Void).null
-    def set_compositor(compositor : Compositor) : Void
+    def set_compositor(compositor : Compositor?) : Void
       godot_bind(@@mb_set_compositor, "WorldEnvironment", "set_compositor", 1586754307_i64)
       arg_ptr_0 = compositor ? compositor.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -9832,7 +9832,7 @@ module Godot
       instance.camera_locked_to_origin?()
     end
     @@mb_add_interface : Void* = Pointer(Void).null
-    def add_interface(interface : XRInterface) : Void
+    def add_interface(interface : XRInterface?) : Void
       godot_bind(@@mb_add_interface, "XRServer", "add_interface", 1898711491_i64)
       arg_ptr_0 = interface ? interface.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -9840,7 +9840,7 @@ module Godot
       godot_ptrcall_void(@@mb_add_interface, @pointer, args.to_unsafe.as(Void**))
     end
     # Class-level singleton delegator for `add_interface`
-    def self.add_interface(interface : XRInterface) : Void
+    def self.add_interface(interface : XRInterface?) : Void
       instance.add_interface(interface)
     end
     @@mb_get_interface_count : Void* = Pointer(Void).null
@@ -9853,7 +9853,7 @@ module Godot
       instance.get_interface_count()
     end
     @@mb_remove_interface : Void* = Pointer(Void).null
-    def remove_interface(interface : XRInterface) : Void
+    def remove_interface(interface : XRInterface?) : Void
       godot_bind(@@mb_remove_interface, "XRServer", "remove_interface", 1898711491_i64)
       arg_ptr_0 = interface ? interface.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -9861,7 +9861,7 @@ module Godot
       godot_ptrcall_void(@@mb_remove_interface, @pointer, args.to_unsafe.as(Void**))
     end
     # Class-level singleton delegator for `remove_interface`
-    def self.remove_interface(interface : XRInterface) : Void
+    def self.remove_interface(interface : XRInterface?) : Void
       instance.remove_interface(interface)
     end
     @@mb_get_interface : Void* = Pointer(Void).null
@@ -9902,7 +9902,7 @@ module Godot
       instance.find_interface(name)
     end
     @@mb_add_tracker : Void* = Pointer(Void).null
-    def add_tracker(tracker : XRTracker) : Void
+    def add_tracker(tracker : XRTracker?) : Void
       godot_bind(@@mb_add_tracker, "XRServer", "add_tracker", 684804553_i64)
       arg_ptr_0 = tracker ? tracker.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -9910,11 +9910,11 @@ module Godot
       godot_ptrcall_void(@@mb_add_tracker, @pointer, args.to_unsafe.as(Void**))
     end
     # Class-level singleton delegator for `add_tracker`
-    def self.add_tracker(tracker : XRTracker) : Void
+    def self.add_tracker(tracker : XRTracker?) : Void
       instance.add_tracker(tracker)
     end
     @@mb_remove_tracker : Void* = Pointer(Void).null
-    def remove_tracker(tracker : XRTracker) : Void
+    def remove_tracker(tracker : XRTracker?) : Void
       godot_bind(@@mb_remove_tracker, "XRServer", "remove_tracker", 684804553_i64)
       arg_ptr_0 = tracker ? tracker.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -9922,7 +9922,7 @@ module Godot
       godot_ptrcall_void(@@mb_remove_tracker, @pointer, args.to_unsafe.as(Void**))
     end
     # Class-level singleton delegator for `remove_tracker`
-    def self.remove_tracker(tracker : XRTracker) : Void
+    def self.remove_tracker(tracker : XRTracker?) : Void
       instance.remove_tracker(tracker)
     end
     @@mb_get_trackers : Void* = Pointer(Void).null
@@ -10001,7 +10001,7 @@ module Godot
       instance.get_primary_interface()
     end
     @@mb_set_primary_interface : Void* = Pointer(Void).null
-    def set_primary_interface(interface : XRInterface) : Void
+    def set_primary_interface(interface : XRInterface?) : Void
       godot_bind(@@mb_set_primary_interface, "XRServer", "set_primary_interface", 1898711491_i64)
       arg_ptr_0 = interface ? interface.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -10009,7 +10009,7 @@ module Godot
       godot_ptrcall_void(@@mb_set_primary_interface, @pointer, args.to_unsafe.as(Void**))
     end
     # Class-level singleton delegator for `set_primary_interface`
-    def self.set_primary_interface(interface : XRInterface) : Void
+    def self.set_primary_interface(interface : XRInterface?) : Void
       instance.set_primary_interface(interface)
     end
     # Property `world_scale` getter

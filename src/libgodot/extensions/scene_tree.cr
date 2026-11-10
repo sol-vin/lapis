@@ -78,7 +78,7 @@ module Godot
 
     # Changes running scene to specified PackedScene.
     # Enforces thread-safety: off-thread calls raise ThreadAffinityError.
-    def change_scene_to_packed(packed_scene : PackedScene) : Godot::Error
+    def change_scene_to_packed(packed_scene : PackedScene?) : Godot::Error
       Godot::ThreadSafety.assert_main_thread!("change_scene_to_packed", "SceneTree")
       return Godot::Error::Ok if @pointer.null?
       previous_def(packed_scene)
@@ -86,7 +86,7 @@ module Godot
 
     # Changes running scene to specified Node.
     # Enforces thread-safety: off-thread calls raise ThreadAffinityError.
-    def change_scene_to_node(node : Node) : Godot::Error
+    def change_scene_to_node(node : Node?) : Godot::Error
       Godot::ThreadSafety.assert_main_thread!("change_scene_to_node", "SceneTree")
       return Godot::Error::Ok if @pointer.null?
       previous_def(node)

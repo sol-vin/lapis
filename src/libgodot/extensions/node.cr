@@ -157,7 +157,8 @@ module Godot
 
     # Removes a child node. Falls back to local children array when running standalone.
     # Enforces thread-safety: off-thread calls raise ThreadAffinityError when attached to SceneTree.
-    def remove_child(node : Node) : Void
+    def remove_child(node : Node?) : Void
+      return unless node
       Godot::ThreadSafety.assert_main_thread!("remove_child", "Node", self, node)
       if @pointer.null?
         children.delete(node)
@@ -179,7 +180,8 @@ module Godot
 
     # Reparents this node to a new parent.
     # Enforces thread-safety: off-thread calls raise ThreadAffinityError when attached to SceneTree.
-    def reparent(new_parent : Node, keep_global_transform : Bool = true) : Void
+    def reparent(new_parent : Node?, keep_global_transform : Bool = true) : Void
+      return unless new_parent
       Godot::ThreadSafety.assert_main_thread!("reparent", "Node", self, new_parent)
       if @pointer.null?
         if lp = STANDALONE_PARENTS[object_id]?
@@ -211,7 +213,8 @@ module Godot
 
     # Replaces this node with another node in the tree.
     # Enforces thread-safety: off-thread calls raise ThreadAffinityError when attached to SceneTree.
-    def replace_by(node : Node, keep_groups : Bool = false) : Void
+    def replace_by(node : Node?, keep_groups : Bool = false) : Void
+      return unless node
       Godot::ThreadSafety.assert_main_thread!("replace_by", "Node", self, node)
       return if @pointer.null?
       previous_def(node, keep_groups)
@@ -316,13 +319,14 @@ module Godot
 
     # Moves child node to a new index in the parent's child list.
     # Enforces thread-safety: off-thread calls raise ThreadAffinityError when attached to SceneTree.
-    def move_child(child_node : Node, to_index : Int64) : Void
+    def move_child(child_node : Node?, to_index : Int64) : Void
+      return unless child_node
       Godot::ThreadSafety.assert_main_thread!("move_child", "Node", self, child_node)
       return if @pointer.null?
       previous_def(child_node, to_index)
     end
 
-    def move_child(child_node : Node, to_index : Int) : Void
+    def move_child(child_node : Node?, to_index : Int) : Void
       move_child(child_node, to_index.to_i64)
     end
 
@@ -821,6 +825,225 @@ module Godot
         with node yield node
         node
       end
+    end
+
+    # Resolves the effective scene root owner for dynamically spawned children:
+    # checks `get_owner`, then `get_tree.get_edited_scene_root` (in editor), then `get_tree.get_current_scene`.
+    def effective_scene_owner : Node?
+      return nil if @pointer.null?
+      owner_node = get_owner
+      return owner_node if owner_node && !owner_node.pointer.null? && owner_node.alive?
+      if is_inside_tree && (tree = get_tree?)
+        edited = tree.get_edited_scene_root
+        return edited if edited && !edited.pointer.null? && edited.alive?
+        curr_scene = tree.get_current_scene
+        return curr_scene if curr_scene && !curr_scene.pointer.null? && curr_scene.alive?
+      end
+      nil
+    end
+
+    # Finds an existing alive child node with `name` of type `T` (including across hot-reloads),
+    # or creates, names, adds it as a child, and optionally sets its `owner` to `effective_scene_owner`.
+    def ensure_child(name : String, type : T.class, set_owner : Bool = false, internal : InternalMode | Int = 0) : T forall T
+      if !@pointer.null?
+        if existing = get_node_or_null(NodePath.new(name))
+          if !existing.pointer.null? && existing.alive? && !existing.is_queued_for_deletion?
+            if casted = existing.godot_as?(T)
+              if set_owner && (own = effective_scene_owner) && own.pointer != casted.pointer
+                casted.set_owner(own)
+              end
+              return casted
+            else
+              remove_child(existing)
+              existing.queue_free
+            end
+          end
+        end
+      else
+        children.each do |c|
+          if c.name == name && (casted = c.as?(T))
+            return casted
+          end
+        end
+      end
+
+      child = ::Godot.create(type)
+      child.name = name
+      add_child(child, false, internal)
+      if set_owner && !@pointer.null? && (own = effective_scene_owner) && own.pointer != child.pointer
+        child.set_owner(own)
+      end
+      child
+    end
+
+    def ensure_child(name : String, type : T.class, set_owner : Bool = false, internal : InternalMode | Int = 0, &block : T -> Void) : T forall T
+      child = ensure_child(name, type, set_owner: set_owner, internal: internal)
+      with child yield child
+      child
+    end
+
+    # Removes and frees all direct children (or only those whose name starts with `prefix`).
+    def clear_children!(prefix : String? = nil) : Void
+      if @pointer.null?
+        if pfx = prefix
+          children.reject! { |c| c.name.starts_with?(pfx) }
+        else
+          children.clear
+        end
+        return
+      end
+      cnt = get_child_count
+      (cnt - 1).downto(0) do |i|
+        c = get_child(i)
+        next if c.pointer.null? || !c.alive?
+        if pfx = prefix
+          next unless c.name.starts_with?(pfx)
+        end
+        remove_child(c)
+        c.queue_free
+      end
+    end
+  end
+
+  # ===========================================================================
+  # Procedural Geometry, MultiMesh & Collision Helpers
+  # ===========================================================================
+  class CollisionObject3D < Node3D
+    # Ensures a `CollisionShape3D` child with a `BoxShape3D` of `size` and local `position` exists on this body.
+    # If `!enabled`, disables an existing collider if present and returns nil.
+    def ensure_box_collider!(name : String, size : Vector3, position : Vector3 = Vector3.zero, enabled : Bool = true) : CollisionShape3D?
+      if !enabled
+        if !@pointer.null? && (existing = get_node_or_null(NodePath.new(name))) && !existing.pointer.null?
+          if cs = existing.godot_as?(CollisionShape3D)
+            cs.set_disabled(true)
+          end
+        end
+        return nil
+      end
+      cs = ensure_child(name, CollisionShape3D)
+      box = cs.get_shape.try(&.godot_as?(BoxShape3D)) || ::Godot.create(BoxShape3D)
+      box.set_size(size)
+      cs.set_shape(box)
+      cs.position = position
+      cs.set_disabled(false)
+      cs
+    end
+
+    # Ensures a `CollisionShape3D` child with a `CylinderShape3D` of `radius` and `height` exists on this body.
+    def ensure_cylinder_collider!(name : String, radius : Float32, height : Float32, position : Vector3 = Vector3.zero, enabled : Bool = true) : CollisionShape3D?
+      if !enabled
+        if !@pointer.null? && (existing = get_node_or_null(NodePath.new(name))) && !existing.pointer.null?
+          if cs = existing.godot_as?(CollisionShape3D)
+            cs.set_disabled(true)
+          end
+        end
+        return nil
+      end
+      cs = ensure_child(name, CollisionShape3D)
+      cyl = cs.get_shape.try(&.godot_as?(CylinderShape3D)) || ::Godot.create(CylinderShape3D)
+      cyl.set_radius(radius.to_f64)
+      cyl.set_height(height.to_f64)
+      cs.set_shape(cyl)
+      cs.position = position
+      cs.set_disabled(false)
+      cs
+    end
+
+    # Ensures a `CollisionShape3D` child with a `ConvexPolygonShape3D` exists on this body.
+    def ensure_convex_collider!(name : String, points : PackedVector3Array, position : Vector3 = Vector3.zero, enabled : Bool = true) : CollisionShape3D?
+      if !enabled
+        if !@pointer.null? && (existing = get_node_or_null(NodePath.new(name))) && !existing.pointer.null?
+          if cs = existing.godot_as?(CollisionShape3D)
+            cs.set_disabled(true)
+          end
+        end
+        return nil
+      end
+      cs = ensure_child(name, CollisionShape3D)
+      conv = cs.get_shape.try(&.godot_as?(ConvexPolygonShape3D)) || ::Godot.create(ConvexPolygonShape3D)
+      conv.set_points(points)
+      cs.set_shape(conv)
+      cs.position = position
+      cs.set_disabled(false)
+      cs
+    end
+  end
+
+  class SurfaceTool < RefCounted
+    # Block-scoped `SurfaceTool` builder that calls `begin(primitive)`, yields the `SurfaceTool`,
+    # commits to `target` (or a new `ArrayMesh`), and returns the resulting `ArrayMesh`.
+    def self.build(primitive : Mesh::PrimitiveType = Mesh::PrimitiveType::PrimitiveTriangles, target : ArrayMesh? = nil, &block : SurfaceTool -> Void) : ArrayMesh
+      st = ::Godot.create(SurfaceTool)
+      st.begin(primitive)
+      yield st
+      mesh = target || ::Godot.create(ArrayMesh)
+      st.commit(mesh)
+      mesh
+    end
+  end
+
+  class MeshDataTool < RefCounted
+    # Block-scoped `MeshDataTool` helper that loads `surface` from `array_mesh` and yields the tool if `Error::Ok`.
+    def self.with_surface(array_mesh : ArrayMesh, surface : Int = 0, &block : MeshDataTool -> Void) : Bool
+      mdt = ::Godot.create(MeshDataTool)
+      err = mdt.create_from_surface(array_mesh, surface.to_i64)
+      return false unless err == Error::Ok
+      yield mdt
+      true
+    end
+  end
+
+  class MultiMeshInstance3D < GeometryInstance3D
+    # Populates this `MultiMeshInstance3D` with 3D `transforms` (and optional per-instance `colors`),
+    # automatically configuring `transform_format`, `instance_count`, and `custom_aabb`.
+    def populate_3d!(
+      mesh : Mesh,
+      transforms : Indexable(Transform3D),
+      colors : Indexable(Color)? = nil,
+      padding : Float32 = 0.5_f32
+    ) : AABB
+      mm = get_multimesh
+      if mm.pointer.null? || !mm.alive?
+        mm = ::Godot.create(MultiMesh)
+        mm.set_transform_format(MultiMesh::TransformFormat::Transform3d)
+        mm.set_use_colors(!colors.nil?)
+        set_multimesh(mm)
+      else
+        mm.set_instance_count(0_i64)
+        mm.set_transform_format(MultiMesh::TransformFormat::Transform3d)
+        mm.set_use_colors(!colors.nil?)
+      end
+      mm.set_mesh(mesh)
+      count = transforms.size
+      mm.set_instance_count(count.to_i64)
+      return AABB.new if count == 0
+
+      first_p = transforms[0].origin
+      min_x = first_p.x; max_x = first_p.x
+      min_y = first_p.y; max_y = first_p.y
+      min_z = first_p.z; max_z = first_p.z
+
+      count.times do |i|
+        xf = transforms[i]
+        mm.set_instance_transform(i.to_i64, xf)
+        if cols = colors
+          mm.set_instance_color(i.to_i64, cols[i]) if i < cols.size
+        end
+        p = xf.origin
+        min_x = p.x if p.x < min_x; max_x = p.x if p.x > max_x
+        min_y = p.y if p.y < min_y; max_y = p.y if p.y > max_y
+        min_z = p.z if p.z < min_z; max_z = p.z if p.z > max_z
+      end
+
+      aabb_pos = Vector3.new(min_x - padding, min_y - padding, min_z - padding)
+      aabb_size = Vector3.new(
+        (max_x - min_x) + padding * 2.0_f32,
+        (max_y - min_y) + padding * 2.0_f32,
+        (max_z - min_z) + padding * 2.0_f32
+      )
+      bounds = AABB.new(aabb_pos, aabb_size)
+      set_custom_aabb(bounds)
+      bounds
     end
   end
 

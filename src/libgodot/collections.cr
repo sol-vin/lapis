@@ -83,29 +83,72 @@ module Godot
       value
     end
 
-    # Generic typed getter with default value
+    # Generic typed getter with default value (supports scalar/vector string coercion)
     def get(key : String | Symbol | Variant, as type : T.class, default : T) : T forall T
       v_key = key.is_a?(Variant) ? key : Variant.new(key.to_s)
       if v = @store[v_key]?
-        if raw = v.raw
-          {% if T == Int32 %}
-            return raw.is_a?(Number) ? raw.to_i32 : default
-          {% elsif T == Int64 %}
-            return raw.is_a?(Number) ? raw.to_i64 : default
-          {% elsif T == Float32 %}
-            return raw.is_a?(Number) ? raw.to_f32 : default
-          {% elsif T == Float64 %}
-            return raw.is_a?(Number) ? raw.to_f64 : default
-          {% elsif T == String %}
-            return raw.to_s
-          {% elsif T == Bool %}
-            return raw.is_a?(Bool) ? raw : default
-          {% else %}
+        return default if v.is_nil?
+        {% if T == Int32 %}
+          return v.as_i32(default)
+        {% elsif T == Int64 %}
+          return v.as_i64(default)
+        {% elsif T == Float32 %}
+          return v.as_f32(default)
+        {% elsif T == Float64 %}
+          return v.as_f64(default)
+        {% elsif T == String %}
+          return v.as_s(default)
+        {% elsif T == Bool %}
+          return v.as_bool(default)
+        {% elsif T == Vector2 %}
+          return v.as_v2(default)
+        {% elsif T == Vector3 %}
+          return v.as_v3(default)
+        {% elsif T == Color %}
+          return v.as_color(default)
+        {% else %}
+          if raw = v.raw
             return raw.as?(T) || default
-          {% end %}
-        end
+          end
+        {% end %}
       end
       default
+    end
+
+    def fetch_f32(key : String | Symbol | Variant, default : Float32 = 0.0_f32) : Float32
+      get(key, as: Float32, default: default)
+    end
+
+    def fetch_f64(key : String | Symbol | Variant, default : Float64 = 0.0_f64) : Float64
+      get(key, as: Float64, default: default)
+    end
+
+    def fetch_i32(key : String | Symbol | Variant, default : Int32 = 0_i32) : Int32
+      get(key, as: Int32, default: default)
+    end
+
+    def fetch_i64(key : String | Symbol | Variant, default : Int64 = 0_i64) : Int64
+      get(key, as: Int64, default: default)
+    end
+
+    def fetch_bool(key : String | Symbol | Variant, default : Bool = false) : Bool
+      get(key, as: Bool, default: default)
+    end
+
+    def fetch_str(key : String | Symbol | Variant, default : String = "") : String
+      get(key, as: String, default: default)
+    end
+
+    def fetch_v2(key : String | Symbol | Variant, default : Vector2 = Vector2.zero) : Vector2
+      get(key, as: Vector2, default: default)
+    end
+
+    def fetch_v3(key : String | Symbol | Variant, default : Vector3 = Vector3.zero) : Vector3
+      get(key, as: Vector3, default: default)
+    end
+
+    def fetch_color(key : String | Symbol | Variant, default : Color = Color::WHITE) : Color
+      get(key, as: Color, default: default)
     end
 
     # Generic safe typed getter returning nil on missing or type mismatch

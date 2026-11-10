@@ -344,6 +344,57 @@ describe "Godot Math & Spatial Primitives" do
       scaled = t.scaled(Vector3.new(2.0_f32, 2.0_f32, 2.0_f32))
       (scaled * Vector3.new(1.0_f32, 0.0_f32, 0.0_f32)).should eq(Vector3.new(7.0_f32, 0.0_f32, 0.0_f32))
     end
+
+    it "provides Basis column axes (col_x/col_y/col_z, axis_x/axis_y/axis_z), from_axes, from_scale, and xform/xform_inv" do
+      cx = Vector3.new(0.0_f32, 0.0_f32, -1.0_f32)
+      cy = Vector3.new(0.0_f32, 1.0_f32, 0.0_f32)
+      cz = Vector3.new(1.0_f32, 0.0_f32, 0.0_f32)
+      b = Basis.from_axes(cx, cy, cz)
+      b.col_x.should eq(cx)
+      b.col_y.should eq(cy)
+      b.col_z.should eq(cz)
+      b.axis_x.should eq(cx)
+      b.axis_y.should eq(cy)
+      b.axis_z.should eq(cz)
+
+      # Verify column-axis transformation: b * (1, 0, 0) == col_x
+      b.xform(Vector3.new(1.0_f32, 0.0_f32, 0.0_f32)).should eq(cx)
+      b.xform_inv(cx).should eq(Vector3.new(1.0_f32, 0.0_f32, 0.0_f32))
+
+      b2 = Basis.new
+      b2.col_x = cx
+      b2.col_y = cy
+      b2.col_z = cz
+      b2.should eq(b)
+
+      bs = Basis.from_scale(Vector3.new(2.0_f32, 3.0_f32, 4.0_f32))
+      bs.xform(Vector3.new(1.0_f32, 1.0_f32, 1.0_f32)).should eq(Vector3.new(2.0_f32, 3.0_f32, 4.0_f32))
+    end
+
+    it "round-trips Basis and Quaternion conversions and supports Transform3D#xform / xform_inv" do
+      rot_b = Basis.from_axis_angle(Vector3::UP, Math::PI / 3.0)
+      q = rot_b.to_quaternion
+      q.is_normalized?.should be_true
+      reconstructed = q.to_basis
+      v = Vector3.new(1.5_f32, -2.0_f32, 3.5_f32)
+      v_rot1 = rot_b * v
+      v_rot2 = reconstructed * v
+      v_rot1.distance_to(v_rot2).should be < 0.0005_f32
+
+      euler = Vector3.new(0.2_f32, -0.5_f32, 0.35_f32)
+      q_euler = Quaternion.from_euler(euler)
+      euler_back = q_euler.get_euler
+      euler_back.distance_to(euler).should be < 0.0005_f32
+
+      t = Transform3D.new(rot_b, Vector3.new(4.0_f32, -2.0_f32, 8.0_f32))
+      world_pt = t.xform(v)
+      world_pt.should eq(t * v)
+      local_pt = t.xform_inv(world_pt)
+      local_pt.distance_to(v).should be < 0.0005_f32
+
+      t_mid = Transform3D.new.interpolate_with(t, 0.5_f32)
+      t_mid.origin.distance_to(Vector3.new(2.0_f32, -1.0_f32, 4.0_f32)).should be < 0.0005_f32
+    end
   end
 
   describe "Spatial Structs (Quaternion, Plane, AABB, Vector4)" do

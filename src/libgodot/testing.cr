@@ -144,10 +144,60 @@ module Lapis
     end
 
     # Asserts that a numeric value is within delta of the expected value
-    def assert_in_delta(actual : Number, expected : Number, delta : Number, msg : String = "", file : String = __FILE__, line : Int32 = __LINE__)
+    def assert_in_delta(actual : Number, expected : Number, delta : Number = 0.001, msg : String = "", file : String = __FILE__, line : Int32 = __LINE__)
       diff = (actual - expected).abs
       if diff > delta
         detail = msg.empty? ? "Expected #{actual} to be within #{delta} of #{expected} (diff #{diff})" : "#{msg} (Expected #{actual} within #{delta} of #{expected})"
+        raise AssertionError.new(detail, file, line)
+      end
+    end
+
+    # Alias for `assert_in_delta`
+    def assert_close(actual : Number, expected : Number, delta : Number = 0.001, msg : String = "", file : String = __FILE__, line : Int32 = __LINE__)
+      assert_in_delta(actual, expected, delta, msg, file, line)
+    end
+
+    # Alias for `assert_in_delta`
+    def assert_approx(actual : Number, expected : Number, delta : Number = 0.001, msg : String = "", file : String = __FILE__, line : Int32 = __LINE__)
+      assert_in_delta(actual, expected, delta, msg, file, line)
+    end
+
+    # Asserts that two Vector2 values are component-wise within delta
+    def assert_vec_approx(actual : Godot::Vector2, expected : Godot::Vector2, delta : Number = 0.001, msg : String = "", file : String = __FILE__, line : Int32 = __LINE__)
+      if (actual.x - expected.x).abs > delta || (actual.y - expected.y).abs > delta
+        detail = msg.empty? ? "Expected Vector2 #{actual} to be within #{delta} of #{expected}" : "#{msg} (Expected #{actual} ~ #{expected})"
+        raise AssertionError.new(detail, file, line)
+      end
+    end
+
+    # Asserts that two Vector3 values are component-wise within delta
+    def assert_vec_approx(actual : Godot::Vector3, expected : Godot::Vector3, delta : Number = 0.001, msg : String = "", file : String = __FILE__, line : Int32 = __LINE__)
+      if (actual.x - expected.x).abs > delta || (actual.y - expected.y).abs > delta || (actual.z - expected.z).abs > delta
+        detail = msg.empty? ? "Expected Vector3 #{actual} to be within #{delta} of #{expected}" : "#{msg} (Expected #{actual} ~ #{expected})"
+        raise AssertionError.new(detail, file, line)
+      end
+    end
+
+    # Asserts that two Vector4 values are component-wise within delta
+    def assert_vec_approx(actual : Godot::Vector4, expected : Godot::Vector4, delta : Number = 0.001, msg : String = "", file : String = __FILE__, line : Int32 = __LINE__)
+      if (actual.x - expected.x).abs > delta || (actual.y - expected.y).abs > delta || (actual.z - expected.z).abs > delta || (actual.w - expected.w).abs > delta
+        detail = msg.empty? ? "Expected Vector4 #{actual} to be within #{delta} of #{expected}" : "#{msg} (Expected #{actual} ~ #{expected})"
+        raise AssertionError.new(detail, file, line)
+      end
+    end
+
+    # Asserts that two Color values are channel-wise within delta
+    def assert_vec_approx(actual : Godot::Color, expected : Godot::Color, delta : Number = 0.001, msg : String = "", file : String = __FILE__, line : Int32 = __LINE__)
+      if (actual.r - expected.r).abs > delta || (actual.g - expected.g).abs > delta || (actual.b - expected.b).abs > delta || (actual.a - expected.a).abs > delta
+        detail = msg.empty? ? "Expected Color #{actual} to be within #{delta} of #{expected}" : "#{msg} (Expected #{actual} ~ #{expected})"
+        raise AssertionError.new(detail, file, line)
+      end
+    end
+
+    # Asserts that two Quaternion values are component-wise within delta
+    def assert_vec_approx(actual : Godot::Quaternion, expected : Godot::Quaternion, delta : Number = 0.001, msg : String = "", file : String = __FILE__, line : Int32 = __LINE__)
+      if (actual.x - expected.x).abs > delta || (actual.y - expected.y).abs > delta || (actual.z - expected.z).abs > delta || (actual.w - expected.w).abs > delta
+        detail = msg.empty? ? "Expected Quaternion #{actual} to be within #{delta} of #{expected}" : "#{msg} (Expected #{actual} ~ #{expected})"
         raise AssertionError.new(detail, file, line)
       end
     end

@@ -5,6 +5,7 @@ require "./macros/match"
 
 module Godot
   CUSTOM_EXPORT_MACROS = {} of StringLiteral => ASTNode
+  CUSTOM_MATERIAL_SLOT_MACROS = {} of StringLiteral => ASTNode
 
   struct PropertyInfo
     getter name : String
@@ -41,6 +42,57 @@ module Godot
     getter? is_bitfield : Bool
 
     def initialize(@enum_name : String, @name : String, @value : Int64, @is_bitfield : Bool = false)
+    end
+  end
+
+  # Mixin module providing debounced config-hash change detection for `@[Tool]` procedural nodes.
+  module ToolRebuildable
+    @last_export_config_hash : UInt64 = 0_u64
+    @pending_export_config_hash : UInt64 = 0_u64
+    @tool_rebuild_elapsed : Float32 = -1.0_f32
+
+    def tool_rebuild_debounce : Float32
+      0.08_f32
+    end
+
+    def current_config_hash : UInt64
+      export_config_hash
+    end
+
+    def request_rebuild : Void
+      @last_export_config_hash = 0_u64
+      @pending_export_config_hash = 0_u64
+      @tool_rebuild_elapsed = -1.0_f32
+    end
+
+    def check_tool_rebuild(delta : Float64) : Bool
+      h = current_config_hash
+      if @last_export_config_hash == 0_u64 && @pending_export_config_hash == 0_u64
+        @last_export_config_hash = h
+        @pending_export_config_hash = h
+        return true
+      end
+      if h != @pending_export_config_hash
+        @pending_export_config_hash = h
+        @tool_rebuild_elapsed = 0.0_f32
+        if tool_rebuild_debounce <= 0.0_f32
+          @last_export_config_hash = h
+          @tool_rebuild_elapsed = -1.0_f32
+          return true
+        end
+        return false
+      end
+      if @tool_rebuild_elapsed >= 0.0_f32
+        @tool_rebuild_elapsed += delta.to_f32
+        if @tool_rebuild_elapsed >= tool_rebuild_debounce
+          @tool_rebuild_elapsed = -1.0_f32
+          if @pending_export_config_hash != @last_export_config_hash
+            @last_export_config_hash = @pending_export_config_hash
+            return true
+          end
+        end
+      end
+      false
     end
   end
 
@@ -538,6 +590,16 @@ macro node3d(decl, &block)
   {% end %}
 end
 
+# Enables automatic debounced config-hash change detection and `rebuild_geometry` invocation
+# on a `@[Tool]` node.
+macro tool_rebuild(debounce = 0.08_f32)
+  include ::Godot::ToolRebuildable
+
+  def tool_rebuild_debounce : Float32
+    ({{debounce}}).to_f32
+  end
+end
+
 macro node(decl)
   node {{decl}} do
   end
@@ -567,7 +629,10 @@ macro node(decl, &block)
 
   {%
     has_ready = false
+    has_ready_def = false
     has_process = false
+    has_process_def = false
+    has_tool_rebuild = false
     has_physics_process = false
     has_enter_tree = false
     has_exit_tree = false
@@ -611,6 +676,11 @@ macro node(decl, &block)
     rpc_methods = [] of Nil
     node_groups = [] of Nil
     user_methods = [] of Nil
+    callable_method_names = [] of StringLiteral
+    callable_methods_0 = [] of StringLiteral
+    callable_methods_1 = [] of TupleLiteral
+    callable_methods_2 = [] of TupleLiteral
+    shader_uniforms = [] of Nil
     tool_buttons = [] of Nil
     class_constants = [] of Nil
     included_modules = [] of Nil
@@ -1013,8 +1083,17 @@ macro node(decl, &block)
       {% for g in stmt.args %}
         {% node_groups << (g.is_a?(StringLiteral) ? g : g.id.stringify) %}
       {% end %}
+    {% elsif stmt.is_a?(Call) && stmt.name.stringify == "tool_rebuild" %}
+      {% has_tool_rebuild = true %}
+      {% has_ready = true %}
+      {% has_process = true %}
     {% elsif stmt.is_a?(Include) %}
       {% included_modules << stmt.name %}
+      {% if stmt.name.stringify.ends_with?("ToolRebuildable") %}
+        {% has_tool_rebuild = true %}
+        {% has_ready = true %}
+        {% has_process = true %}
+      {% end %}
     {% elsif stmt.is_a?(Call) && (stmt.name.stringify == "onready" || stmt.name.stringify == "node_ref" || stmt.name.stringify == "unique_node_ref" || stmt.name.stringify == "unique_node") %}
       {% is_unique_call = (stmt.name.stringify == "unique_node_ref" || stmt.name.stringify == "unique_node") %}
       {% if stmt.args.size == 1 %}
@@ -1140,8 +1219,10 @@ macro node(decl, &block)
     {% elsif stmt.is_a?(Def) && (stmt.receiver.is_a?(Nop) || !stmt.receiver) %}
       {% if stmt.name.stringify == "_ready" %}
         {% has_ready = true %}
+        {% has_ready_def = true %}
       {% elsif stmt.name.stringify == "_process" %}
         {% has_process = true %}
+        {% has_process_def = true %}
       {% elsif stmt.name.stringify == "_physics_process" %}
         {% has_physics_process = true %}
       {% elsif stmt.name.stringify == "_enter_tree" %}
@@ -1164,9 +1245,40 @@ macro node(decl, &block)
         {% has_gui_input = true %}
       {% elsif stmt.name.stringify == "_godot_call_virtual_with_data" %}
         {% has_custom_virtual_with_data = true %}
-      {% elsif !stmt.name.stringify.starts_with?("_") && stmt.args.size == 0 && (stmt.block_arg.is_a?(Nop) || !stmt.block_arg) && !stmt.accepts_block? %}
+      {% elsif (!stmt.name.stringify.starts_with?("_") || (last_anno && last_anno.name.stringify == "BindMethod") || stmt.name.stringify.starts_with?("_func_godot_")) && stmt.args.size == 0 && (stmt.block_arg.is_a?(Nop) || !stmt.block_arg) && !stmt.accepts_block? %}
         {% user_methods << stmt.name %}
       {% end %}
+      {%
+        m_name_s = stmt.name.stringify
+        is_std_virtual = ["initialize", "finalize", "_ready", "_process", "_physics_process", "_enter_tree", "_exit_tree", "_build", "_draw", "_input", "_unhandled_input", "_unhandled_key_input", "_shortcut_input", "_gui_input", "_godot_call_virtual", "_godot_call_virtual_with_data", "_godot_set_property", "_godot_get_property", "_godot_call_tool_button", "_godot_has_crystal_method?", "_godot_dispatch_crystal_0", "_godot_dispatch_crystal_1", "_godot_dispatch_crystal_2", "export_config_hash", "apply_dictionary_properties!"].includes?(m_name_s)
+        supported_arg_types = ["Int32", "Int64", "Float32", "Float64", "Bool", "String", "Vector2", "Vector2i", "Vector3", "Vector3i", "Color", "Dictionary", "GodotDictionary", "Variant"]
+        if !is_std_virtual && !m_name_s.ends_with?("=") && (!m_name_s.starts_with?("_") || (last_anno && last_anno.name.stringify == "BindMethod") || m_name_s.starts_with?("_func_godot_") || m_name_s.starts_with?("_on_")) && (stmt.block_arg.is_a?(Nop) || !stmt.block_arg) && !stmt.accepts_block? && (stmt.splat_index.is_a?(Nop) || !stmt.splat_index) && (stmt.double_splat.is_a?(Nop) || !stmt.double_splat)
+          if stmt.args.size == 0
+            callable_method_names << m_name_s unless callable_method_names.includes?(m_name_s)
+            callable_methods_0 << m_name_s unless callable_methods_0.includes?(m_name_s)
+          elsif stmt.args.size == 1
+            a0 = stmt.args[0]
+            if a0.restriction && !a0.restriction.is_a?(Nop)
+              t0_s = a0.restriction.stringify.gsub(/^(::)?Godot::/, "")
+              if supported_arg_types.includes?(t0_s)
+                callable_method_names << m_name_s unless callable_method_names.includes?(m_name_s)
+                callable_methods_1 << {m_name_s, t0_s}
+              end
+            end
+          elsif stmt.args.size == 2
+            a0 = stmt.args[0]
+            a1 = stmt.args[1]
+            if a0.restriction && !a0.restriction.is_a?(Nop) && a1.restriction && !a1.restriction.is_a?(Nop)
+              t0_s = a0.restriction.stringify.gsub(/^(::)?Godot::/, "")
+              t1_s = a1.restriction.stringify.gsub(/^(::)?Godot::/, "")
+              if supported_arg_types.includes?(t0_s) && supported_arg_types.includes?(t1_s)
+                callable_method_names << m_name_s unless callable_method_names.includes?(m_name_s)
+                callable_methods_2 << {m_name_s, t0_s, t1_s}
+              end
+            end
+          end
+        end
+      %}
       {% if last_anno && last_anno.name.stringify == "RPC" %}
         {%
           r_mode = 2
@@ -1382,6 +1494,21 @@ macro node(decl, &block)
               tb_kind = :proc_property
             %}
             {% tool_buttons << {p_var_name, "", tb_kind} %}
+          {% elsif a_name == "ShaderUniform" %}
+            {%
+              u_name = p_name_str
+              if last_anno.args.size > 0
+                u_name = (last_anno.args[0].is_a?(StringLiteral) ? last_anno.args[0] : last_anno.args[0].id.stringify).gsub(/^\"|\"$/, "")
+              end
+            %}
+            {% if last_anno.named_args %}
+              {% for k, v in last_anno.named_args %}
+                {% if k.stringify == "name" || k.stringify == "uniform" %}
+                  {% u_name = (v.is_a?(StringLiteral) ? v : v.id.stringify).gsub(/^\"|\"$/, "") %}
+                {% end %}
+              {% end %}
+            {% end %}
+            {% shader_uniforms << {p_var_name, u_name} %}
           {% end %}
           {% for key, val in last_anno.named_args %}
             {% if key.stringify == "doc" %}
@@ -1402,6 +1529,18 @@ macro node(decl, &block)
         ce_hint_str = ::Godot::CUSTOM_EXPORT_MACROS[stmt.name.stringify]
       %}
       {% props << {:custom_string_enum, ce_var, ce_hint_str, ce_doc} %}
+      {% pending_on_signal_annos = [] of ASTNode %}
+      {% last_anno = nil %}
+    {% elsif stmt.is_a?(Call) && ::Godot::CUSTOM_MATERIAL_SLOT_MACROS[stmt.name.stringify] %}
+      {%
+        ms_arg = stmt.args[0]
+        ms_slot = ms_arg.id
+        ms_mat_var = "#{ms_slot}_material".id
+        ms_col_var = "#{ms_slot}_color".id
+        ms_hint_str = ::Godot::CUSTOM_MATERIAL_SLOT_MACROS[stmt.name.stringify]
+      %}
+      {% props << {:custom_material_prop, ms_mat_var, ""} %}
+      {% props << {:custom_string_enum, ms_col_var, ms_hint_str, ""} %}
       {% pending_on_signal_annos = [] of ASTNode %}
       {% last_anno = nil %}
     {% elsif stmt.is_a?(Call) && stmt.name.id == "signal" %}
@@ -1726,6 +1865,46 @@ macro node(decl, &block)
     # Macro block containing fields, signals, and methods
     {{ yield }}
 
+    {% if shader_uniforms.size > 0 %}
+      {% for u in shader_uniforms %}
+        def {{u[0].id}}=(val)
+          @{{u[0].id}} = val
+          if !@pointer.null? && ::Godot::Bridge.init_done? && responds_to?(:set_shader_parameter)
+            set_shader_parameter({{u[1]}}, val)
+          end
+          val
+        end
+      {% end %}
+
+      def sync_shader_uniforms : Void
+        return if @pointer.null? || !::Godot::Bridge.init_done?
+        if responds_to?(:set_shader_parameter)
+          {% for u in shader_uniforms %}
+            set_shader_parameter({{u[1]}}, @{{u[0].id}})
+          {% end %}
+        end
+      end
+    {% end %}
+
+    {% if has_tool_rebuild %}
+      {% if !has_ready_def %}
+        def _ready : Void
+          if responds_to?(:current_config_hash)
+            @last_export_config_hash = current_config_hash
+            @pending_export_config_hash = @last_export_config_hash
+          end
+          rebuild_geometry if responds_to?(:rebuild_geometry)
+        end
+      {% end %}
+      {% if !has_process_def %}
+        def _process(delta : Float64) : Void
+          if check_tool_rebuild(delta)
+            rebuild_geometry if responds_to?(:rebuild_geometry)
+          end
+        end
+      {% end %}
+    {% end %}
+
     {% if self_static_signals.size > 0 %}
       @[ZeroAllocation]
       def _godot_bind_static_signals_impl(tid : UInt64) : Void
@@ -1917,9 +2096,20 @@ macro node(decl, &block)
             _godot_setup_rpc_configs
           {% end %}
           _ready if responds_to?(:_ready)
+          {% if has_tool_rebuild && has_ready_def %}
+            if responds_to?(:current_config_hash) && @last_export_config_hash == 0_u64
+              @last_export_config_hash = current_config_hash
+              @pending_export_config_hash = @last_export_config_hash
+            end
+          {% end %}
         when "_process"
           ::Godot::ThreadSafety.flush_main_thread_queue!
           ::Godot.pump_awaiting_fibers_once_per_frame!
+          {% if has_tool_rebuild && has_process_def %}
+            if check_tool_rebuild(delta)
+              rebuild_geometry if responds_to?(:rebuild_geometry)
+            end
+          {% end %}
           _process(delta) if responds_to?(:_process)
         when "_physics_process"
           ::Godot::ThreadSafety.flush_main_thread_queue!
@@ -1988,25 +2178,394 @@ macro node(decl, &block)
     end
     {% end %}
 
-    {% if user_methods.size > 0 %}
-    def call(method : String, *args) : Void*
+    {% if callable_method_names.size > 0 %}
+    def _godot_has_crystal_method?(method : String) : Bool
+      case method
+      {% for m_name in callable_method_names %}
+      when {{m_name}}
+        true
+      {% end %}
+      else
+        {% if is_reopen %}
+          previous_def(method)
+        {% else %}
+          super(method)
+        {% end %}
+      end
+    end
+    {% end %}
+
+    {% if callable_methods_0.size > 0 %}
+    def _godot_dispatch_crystal_0(method : String) : Bool
       ::Godot::NodeContext.scope(self) do
         case method
-        {% for m in user_methods %}
-        when {{m.stringify}}
-          {{m.id}}
-          Pointer(Void).null
+        {% for m_name in callable_methods_0 %}
+        when {{m_name}}
+          {{m_name.id}}
+          true
         {% end %}
         else
           {% if is_reopen %}
-            previous_def
+            previous_def(method)
           {% else %}
-            super
+            super(method)
           {% end %}
         end
       end
     end
     {% end %}
+
+    {% if callable_methods_1.size > 0 %}
+    def _godot_dispatch_crystal_1(method : String, a0 : ::Godot::Variant) : Bool
+      ::Godot::NodeContext.scope(self) do
+        case method
+        {% for item in callable_methods_1 %}
+        {% m_name = item[0] %}
+        {% t0 = item[1] %}
+        {%
+          unbox0 = if t0 == "Int32"
+                     "a0.as_i32"
+                   elsif t0 == "Int64"
+                     "a0.as_i64"
+                   elsif t0 == "Float32"
+                     "a0.as_f32"
+                   elsif t0 == "Float64"
+                     "a0.as_f64"
+                   elsif t0 == "Bool"
+                     "a0.as_bool"
+                   elsif t0 == "String"
+                     "a0.as_s"
+                   elsif t0 == "Vector2"
+                     "a0.as_v2"
+                   elsif t0 == "Vector2i"
+                     "a0.as_v2i"
+                   elsif t0 == "Vector3"
+                     "a0.as_v3"
+                   elsif t0 == "Vector3i"
+                     "a0.as_v3i"
+                   elsif t0 == "Color"
+                     "a0.as_color"
+                   elsif t0 == "Dictionary" || t0 == "GodotDictionary"
+                     "a0.as_dict"
+                   else
+                     "a0"
+                   end
+        %}
+        when {{m_name}}
+          {{m_name.id}}({{unbox0.id}})
+          true
+        {% end %}
+        else
+          {% if is_reopen %}
+            previous_def(method, a0)
+          {% else %}
+            super(method, a0)
+          {% end %}
+        end
+      end
+    end
+    {% end %}
+
+    {% if callable_methods_2.size > 0 %}
+    def _godot_dispatch_crystal_2(method : String, a0 : ::Godot::Variant, a1 : ::Godot::Variant) : Bool
+      ::Godot::NodeContext.scope(self) do
+        case method
+        {% for item in callable_methods_2 %}
+        {% m_name = item[0] %}
+        {% t0 = item[1] %}
+        {% t1 = item[2] %}
+        {%
+          unbox0 = if t0 == "Int32"
+                     "a0.as_i32"
+                   elsif t0 == "Int64"
+                     "a0.as_i64"
+                   elsif t0 == "Float32"
+                     "a0.as_f32"
+                   elsif t0 == "Float64"
+                     "a0.as_f64"
+                   elsif t0 == "Bool"
+                     "a0.as_bool"
+                   elsif t0 == "String"
+                     "a0.as_s"
+                   elsif t0 == "Vector2"
+                     "a0.as_v2"
+                   elsif t0 == "Vector2i"
+                     "a0.as_v2i"
+                   elsif t0 == "Vector3"
+                     "a0.as_v3"
+                   elsif t0 == "Vector3i"
+                     "a0.as_v3i"
+                   elsif t0 == "Color"
+                     "a0.as_color"
+                   elsif t0 == "Dictionary" || t0 == "GodotDictionary"
+                     "a0.as_dict"
+                   else
+                     "a0"
+                   end
+          unbox1 = if t1 == "Int32"
+                     "a1.as_i32"
+                   elsif t1 == "Int64"
+                     "a1.as_i64"
+                   elsif t1 == "Float32"
+                     "a1.as_f32"
+                   elsif t1 == "Float64"
+                     "a1.as_f64"
+                   elsif t1 == "Bool"
+                     "a1.as_bool"
+                   elsif t1 == "String"
+                     "a1.as_s"
+                   elsif t1 == "Vector2"
+                     "a1.as_v2"
+                   elsif t1 == "Vector2i"
+                     "a1.as_v2i"
+                   elsif t1 == "Vector3"
+                     "a1.as_v3"
+                   elsif t1 == "Vector3i"
+                     "a1.as_v3i"
+                   elsif t1 == "Color"
+                     "a1.as_color"
+                   elsif t1 == "Dictionary" || t1 == "GodotDictionary"
+                     "a1.as_dict"
+                   else
+                     "a1"
+                   end
+        %}
+        when {{m_name}}
+          {{m_name.id}}({{unbox0.id}}, {{unbox1.id}})
+          true
+        {% end %}
+        else
+          {% if is_reopen %}
+            previous_def(method, a0, a1)
+          {% else %}
+            super(method, a0, a1)
+          {% end %}
+        end
+      end
+    end
+    {% end %}
+
+    def export_config_hash : UInt64
+      hasher = Crystal::Hasher.new
+      {% if is_reopen %}
+        hasher = previous_def.hash(hasher)
+      {% else %}
+        hasher = super.hash(hasher)
+      {% end %}
+      {% for item in props %}
+        {% if item[0] == :prop %}
+          {% arg = item[1] %}
+          {% anno = item[2] %}
+          {% var_name = arg.is_a?(Assign) ? arg.target : arg.var %}
+          {% if anno && anno.name.stringify != "ExportToolButton" %}
+            {%
+              non_nil_type = nil
+              base_type_str = ""
+              raw_nn = ""
+              if arg.is_a?(Assign)
+                val = arg.value
+                if val.is_a?(NumberLiteral)
+                  var_type = "Float64"
+                elsif val.is_a?(StringLiteral)
+                  var_type = "String"
+                elsif val.is_a?(BoolLiteral)
+                  var_type = "Bool"
+                elsif val.is_a?(Call)
+                  rec = val.receiver ? val.receiver.stringify.gsub(/^(::)?Godot::/, "") : val.name.stringify.gsub(/^(::)?Godot::/, "")
+                  var_type = rec
+                elsif val.is_a?(Path)
+                  var_type = val.stringify.gsub(/^(::)?Godot::/, "")
+                else
+                  var_type = "Variant"
+                end
+              elsif arg.type
+                var_type = arg.type.stringify.gsub(/^(::)?Godot::/, "")
+                non_nil_type = arg.type.is_a?(Union) ? arg.type.types.reject { |sub_t| sub_t.stringify == "Nil" || sub_t.stringify == "::Nil" }[0] : arg.type
+                if non_nil_type
+                  raw_nn = non_nil_type.stringify.gsub(/\?$/, "").strip
+                  base_type_str = raw_nn.gsub(/^(::)?Godot::/, "")
+                end
+              else
+                var_type = "Variant"
+              end
+              is_enum_prop = non_nil_type && non_nil_type.is_a?(Path) && ((non_nil_type.resolve? && (non_nil_type.resolve < Enum)) || local_enums[base_type_str])
+              is_obj_prop = false
+              if !is_enum_prop && non_nil_type && non_nil_type.is_a?(Path) && !["Float32", "Float64", "Int32", "Int64", "Int8", "Int16", "UInt8", "UInt16", "UInt32", "UInt64", "Bool", "String", "Symbol", "Vector2", "Vector2i", "Vector3", "Vector3i", "Vector4", "Vector4i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Plane", "Quaternion", "AABB", "Basis", "Projection", "Variant", "Callable", "Signal", "Dictionary", "GodotDictionary", "Array", "PackedByteArray", "PackedInt32Array", "PackedInt64Array", "PackedFloat32Array", "PackedFloat64Array", "PackedStringArray", "PackedVector2Array", "PackedVector3Array", "PackedColorArray", "PackedVector4Array", "RID", "NodePath", "StringName", "Nil"].includes?(base_type_str) && !base_type_str.starts_with?("Array(") && !base_type_str.starts_with?("::Array(") && !base_type_str.starts_with?("GodotArray(") && !base_type_str.starts_with?("GArray(") && !base_type_str.starts_with?("Dictionary(") && !base_type_str.starts_with?("Packed") && !base_type_str.starts_with?("Proc(")
+                if non_nil_type.resolve?
+                  if non_nil_type.resolve <= ::Godot::Object
+                    is_obj_prop = true
+                  end
+                elsif !raw_nn.includes?("::") && ::Godot.has_constant?(base_type_str)
+                  godot_t_path = parse_type("::Godot::#{base_type_str.id}")
+                  if godot_t_path.resolve? && (godot_t_path.resolve <= ::Godot::Object)
+                    is_obj_prop = true
+                  end
+                elsif anno
+                  is_obj_prop = true
+                end
+              end
+            %}
+            {% if is_obj_prop %}
+              hasher = (self.{{var_name.id}}.try(&.instance_id) || 0_u64).hash(hasher)
+            {% else %}
+              hasher = self.{{var_name.id}}.hash(hasher)
+            {% end %}
+          {% end %}
+        {% elsif item[0] == :custom_string_enum %}
+          hasher = self.{{item[1].id}}.hash(hasher)
+        {% elsif item[0] == :custom_material_prop %}
+          hasher = (self.{{item[1].id}}.try(&.instance_id) || 0_u64).hash(hasher)
+        {% end %}
+      {% end %}
+      hasher.result
+    end
+
+    def apply_dictionary_properties!(dict : ::Godot::Dictionary) : Void
+      {% if is_reopen %}
+        previous_def(dict)
+      {% else %}
+        super(dict)
+      {% end %}
+      {% for item in props %}
+        {% if item[0] == :prop %}
+          {% arg = item[1] %}
+          {% anno = item[2] %}
+          {% var_name = arg.is_a?(Assign) ? arg.target : arg.var %}
+          {% if anno && anno.name.stringify != "ExportToolButton" %}
+            {%
+              non_nil_type = nil
+              base_type_str = ""
+              if arg.is_a?(Assign)
+                val = arg.value
+                if val.is_a?(NumberLiteral)
+                  k = val.kind.stringify
+                  if k == ":f32" || k == "f32"
+                    var_type = "Float32"
+                  elsif k.includes?("f") || val.stringify.includes?(".")
+                    var_type = "Float64"
+                  elsif k.includes?("i64") || k.includes?("u64")
+                    var_type = "Int64"
+                  else
+                    var_type = "Int32"
+                  end
+                elsif val.is_a?(StringLiteral)
+                  var_type = "String"
+                elsif val.is_a?(BoolLiteral)
+                  var_type = "Bool"
+                elsif val.is_a?(Call)
+                  rec = val.receiver ? val.receiver.stringify.gsub(/^(::)?Godot::/, "") : val.name.stringify.gsub(/^(::)?Godot::/, "")
+                  var_type = rec
+                elsif val.is_a?(Path)
+                  var_type = val.stringify.gsub(/^(::)?Godot::/, "")
+                else
+                  var_type = "Variant"
+                end
+              elsif arg.type
+                var_type = arg.type.stringify.gsub(/^(::)?Godot::/, "")
+                non_nil_type = arg.type.is_a?(Union) ? arg.type.types.reject { |sub_t| sub_t.stringify == "Nil" || sub_t.stringify == "::Nil" }[0] : arg.type
+                if non_nil_type
+                  raw_nn = non_nil_type.stringify.gsub(/\?$/, "").strip
+                  base_type_str = raw_nn.gsub(/^(::)?Godot::/, "")
+                  var_type = base_type_str
+                end
+              else
+                var_type = "Variant"
+              end
+              is_enum_prop = non_nil_type && non_nil_type.is_a?(Path) && ((non_nil_type.resolve? && (non_nil_type.resolve < Enum)) || local_enums[base_type_str])
+
+              prop_keys = [var_name.stringify]
+              min_bound = nil
+              max_bound = nil
+              a_name = anno.name.is_a?(Path) ? anno.name.names.last.stringify : anno.name.stringify
+              if a_name == "ExportRange" && anno.args.size > 0
+                if anno.args[0].is_a?(RangeLiteral)
+                  min_bound = anno.args[0].begin
+                  max_bound = anno.args[0].end
+                elsif anno.args.size >= 2
+                  min_bound = anno.args[0]
+                  max_bound = anno.args[1]
+                end
+              end
+            %}
+            {% if anno.named_args %}
+              {% for k, v in anno.named_args %}
+                {% k_s = k.stringify %}
+                {% if k_s == "aliases" && v.is_a?(ArrayLiteral) %}
+                  {% for al_item in v %}
+                    {% al_str = (al_item.is_a?(StringLiteral) ? al_item : al_item.id.stringify).gsub(/^\"|\"$/, "") %}
+                    {% prop_keys << al_str unless prop_keys.includes?(al_str) %}
+                  {% end %}
+                {% elsif k_s == "alias" %}
+                  {% al_str = (v.is_a?(StringLiteral) ? v : v.id.stringify).gsub(/^\"|\"$/, "") %}
+                  {% prop_keys << al_str unless prop_keys.includes?(al_str) %}
+                {% elsif k_s == "range" && v.is_a?(RangeLiteral) %}
+                  {% min_bound = v.begin %}
+                  {% max_bound = v.end %}
+                {% end %}
+              {% end %}
+            {% end %}
+            raw_v_{{var_name.id}} : ::Godot::Variant? = nil
+            {% for pk in prop_keys %}
+              if raw_v_{{var_name.id}}.nil? && dict.has_key?({{pk}})
+                raw_v_{{var_name.id}} = dict[{{pk}}]
+              end
+            {% end %}
+            if v_{{var_name.id}} = raw_v_{{var_name.id}}
+              {% if var_type == "Float32" %}
+                val_{{var_name.id}} = v_{{var_name.id}}.as_f32(self.{{var_name.id}})
+                {% if min_bound && max_bound %}
+                  val_{{var_name.id}} = val_{{var_name.id}}.clamp(({{min_bound}}).to_f32, ({{max_bound}}).to_f32)
+                {% end %}
+                self.{{var_name.id}} = val_{{var_name.id}}
+              {% elsif var_type == "Float64" %}
+                val_{{var_name.id}} = v_{{var_name.id}}.as_f64(self.{{var_name.id}})
+                {% if min_bound && max_bound %}
+                  val_{{var_name.id}} = val_{{var_name.id}}.clamp(({{min_bound}}).to_f64, ({{max_bound}}).to_f64)
+                {% end %}
+                self.{{var_name.id}} = val_{{var_name.id}}
+              {% elsif var_type == "Int32" %}
+                val_{{var_name.id}} = v_{{var_name.id}}.as_i32(self.{{var_name.id}})
+                {% if min_bound && max_bound %}
+                  val_{{var_name.id}} = val_{{var_name.id}}.clamp(({{min_bound}}).to_i32, ({{max_bound}}).to_i32)
+                {% end %}
+                self.{{var_name.id}} = val_{{var_name.id}}
+              {% elsif var_type == "Int64" %}
+                val_{{var_name.id}} = v_{{var_name.id}}.as_i64(self.{{var_name.id}})
+                {% if min_bound && max_bound %}
+                  val_{{var_name.id}} = val_{{var_name.id}}.clamp(({{min_bound}}).to_i64, ({{max_bound}}).to_i64)
+                {% end %}
+                self.{{var_name.id}} = val_{{var_name.id}}
+              {% elsif var_type == "Bool" %}
+                self.{{var_name.id}} = v_{{var_name.id}}.as_bool(self.{{var_name.id}})
+              {% elsif var_type == "String" %}
+                self.{{var_name.id}} = v_{{var_name.id}}.as_s(self.{{var_name.id}})
+              {% elsif var_type == "Vector2" %}
+                self.{{var_name.id}} = v_{{var_name.id}}.as_v2(self.{{var_name.id}})
+              {% elsif var_type == "Vector3" %}
+                self.{{var_name.id}} = v_{{var_name.id}}.as_v3(self.{{var_name.id}})
+              {% elsif var_type == "Color" %}
+                self.{{var_name.id}} = v_{{var_name.id}}.as_color(self.{{var_name.id}})
+              {% elsif is_enum_prop %}
+                if v_{{var_name.id}}.variant_type == ::Godot::Variant::Type::STRING
+                  s_enum_{{var_name.id}} = v_{{var_name.id}}.as_s.downcase
+                  {{non_nil_type.id}}.each do |e_val, _|
+                    if e_val.to_s.downcase == s_enum_{{var_name.id}} || e_val.to_s.underscore == s_enum_{{var_name.id}}
+                      self.{{var_name.id}} = e_val
+                    end
+                  end
+                else
+                  self.{{var_name.id}} = {{non_nil_type.id}}.from_value?(v_{{var_name.id}}.as_i64(self.{{var_name.id}}.to_i64)) || self.{{var_name.id}}
+                end
+              {% end %}
+            end
+          {% end %}
+        {% elsif item[0] == :custom_string_enum %}
+          if dict.has_key?("{{item[1].id}}")
+            self.{{item[1].id}} = dict["{{item[1].id}}"].as_s(self.{{item[1].id}})
+          end
+        {% end %}
+      {% end %}
+    end
 
     def _godot_set_property(prop_name : String, val_ptr : Void*) : Void
       case prop_name
@@ -2140,6 +2699,14 @@ macro node(decl, &block)
           when "{{item[1].id}}"
             c_str = val_ptr.as(Pointer(UInt8)*).value
             self.{{item[1].id}} = c_str.null? ? "" : String.new(c_str)
+        {% elsif item[0] == :custom_material_prop %}
+          when "{{item[1].id}}"
+            obj_ptr = val_ptr.null? ? Pointer(Void).null : val_ptr.as(Void**).value
+            if obj_ptr.null?
+              self.{{item[1].id}} = nil
+            else
+              self.{{item[1].id}} = ::Godot::Bridge.find_alive_instance(obj_ptr).as?(::Godot::Material) || ::Godot::Material.new(obj_ptr)
+            end
         {% end %}
       {% end %}
       else
@@ -2263,6 +2830,9 @@ macro node(decl, &block)
         {% elsif item[0] == :custom_string_enum %}
           when "{{item[1].id}}"
             ret_ptr.as(Pointer(UInt8)*).value = self.{{item[1].id}}.to_unsafe
+        {% elsif item[0] == :custom_material_prop %}
+          when "{{item[1].id}}"
+            ret_ptr.as(Void**).value = @{{item[1].id}}.try(&.pointer) || Pointer(Void).null
         {% end %}
       {% end %}
       else
@@ -2372,8 +2942,17 @@ macro node(decl, &block)
         "{{item[1].id}}",
         "String",
         4,
-        2_u32,
+        ({{item[2]}}.empty? ? 0_u32 : 2_u32),
         {{item[2]}},
+        6_u32
+      )
+    {% elsif item[0] == :custom_material_prop %}
+      properties_{{class_name}} << ::Godot::PropertyInfo.new(
+        "{{item[1].id}}",
+        "Material",
+        24,
+        17_u32,
+        "Material",
         6_u32
       )
     {% elsif item[0] == :prop %}
@@ -3053,21 +3632,27 @@ macro node(decl, &block)
 
   {% for inc in included_modules %}
     {% if inc.resolve.methods.map(&.name.stringify).includes?("_godot_module_properties") %}
-      properties_{{class_name}}.concat({{inc}}._godot_module_properties)
+      {{inc}}._godot_module_properties.each do |mp|
+        properties_{{class_name}} << mp unless !mp.name.empty? && properties_{{class_name}}.any? { |ep| ep.name == mp.name }
+      end
     {% end %}
     {% if inc.resolve.methods.map(&.name.stringify).includes?("_godot_module_constants") %}
-      constants_{{class_name}}.concat({{inc}}._godot_module_constants)
+      {{inc}}._godot_module_constants.each do |mc|
+        constants_{{class_name}} << mc unless constants_{{class_name}}.any? { |ec| ec.name == mc.name }
+      end
     {% end %}
     {% if inc.resolve.methods.map(&.name.stringify).includes?("_godot_module_signals") %}
-      signals_{{class_name}}.concat({{inc}}._godot_module_signals)
+      {{inc}}._godot_module_signals.each do |ms|
+        signals_{{class_name}} << ms unless signals_{{class_name}}.any? { |es| es.name == ms.name }
+      end
     {% end %}
   {% end %}
 
-  {% if parent_name.is_a?(Path) && parent_name.resolve? %}
+  {% if parent_name.is_a?(Path) && parent_name.resolve? && !parent_name.resolve.annotation(::GodotClass) %}
     {% for anc in parent_name.resolve.ancestors %}
       {% if anc.annotation(::GodotModule) %}
         {{anc}}._godot_module_properties.each do |mp|
-          properties_{{class_name}} << mp unless properties_{{class_name}}.any? { |ep| ep.name == mp.name }
+          properties_{{class_name}} << mp unless !mp.name.empty? && properties_{{class_name}}.any? { |ep| ep.name == mp.name }
         end
         {{anc}}._godot_module_constants.each do |mc|
           constants_{{class_name}} << mc unless constants_{{class_name}}.any? { |ec| ec.name == mc.name }
@@ -3226,6 +3811,8 @@ macro node(decl, &block)
           io << ::Godot::XML.escape({{item[3]}})
         {% end %}
         io << "</member>\n"
+      {% elsif item[0] == :custom_material_prop %}
+        io << "    <member name=\"{{item[1].id}}\" type=\"Material\" setter=\"\" getter=\"\"></member>\n"
       {% end %}
     {% end %}
     io << "  </members>\n"
@@ -3548,6 +4135,7 @@ macro gmodule(decl, &block)
     virtual_methods = [] of Nil
     user_methods = [] of Nil
     local_enums = [] of StringLiteral
+    included_modules = [] of ASTNode
 
     raw_stmts = if block.is_a?(Nop)
                   [] of Nil
@@ -3670,11 +4258,32 @@ macro gmodule(decl, &block)
             is_flags = (last_anno && last_anno.name.stringify == "ExportFlags") || enum_target.annotation(Flags) || enum_target.annotation(::Flags)
             enum_target.constants.each do |c_item|
               if !is_flags || (c_item.stringify != "None" && c_item.stringify != "All")
-                class_constants << {enum_target.name.stringify, c_item.stringify, enum_target.name, c_item, is_flags}
+                class_constants << {enum_target.name.stringify, c_item.stringify, enum_target.name, c_item, is_flags ? true : false}
               end
             end
           end
           props << {:prop, stmt.args[0], last_anno, ""}
+          pending_on_signal_annos = [] of ASTNode
+          last_anno = nil
+        elsif stmt.is_a?(Call) && ::Godot::CUSTOM_EXPORT_MACROS[stmt.name.stringify]
+          ce_arg = stmt.args[0]
+          ce_var = ce_arg.is_a?(Assign) ? ce_arg.target : (ce_arg.is_a?(TypeDeclaration) ? ce_arg.var : ce_arg)
+          ce_hint_str = ::Godot::CUSTOM_EXPORT_MACROS[stmt.name.stringify]
+          props << {:custom_string_enum, ce_var, ce_hint_str, ""}
+          pending_on_signal_annos = [] of ASTNode
+          last_anno = nil
+        elsif stmt.is_a?(Call) && ::Godot::CUSTOM_MATERIAL_SLOT_MACROS[stmt.name.stringify]
+          ms_arg = stmt.args[0]
+          ms_slot = ms_arg.id
+          ms_mat_var = "#{ms_slot}_material".id
+          ms_col_var = "#{ms_slot}_color".id
+          ms_hint_str = ::Godot::CUSTOM_MATERIAL_SLOT_MACROS[stmt.name.stringify]
+          props << {:custom_material_prop, ms_mat_var, ""}
+          props << {:custom_string_enum, ms_col_var, ms_hint_str, ""}
+          pending_on_signal_annos = [] of ASTNode
+          last_anno = nil
+        elsif stmt.is_a?(Include)
+          included_modules << stmt.name
           pending_on_signal_annos = [] of ASTNode
           last_anno = nil
         elsif stmt.is_a?(Call) && stmt.name.id == "signal"
@@ -3759,6 +4368,24 @@ macro gmodule(decl, &block)
         {% elsif item[0] == :tool_button %}
           properties_{{module_name.id}} << ::Godot::PropertyInfo.new(
             "{{item[1].id}}", "Callable", 25, 39_u32, "{{item[2].id}}", 4_u32
+          )
+        {% elsif item[0] == :custom_string_enum %}
+          properties_{{module_name.id}} << ::Godot::PropertyInfo.new(
+            "{{item[1].id}}",
+            "String",
+            4,
+            ({{item[2]}}.empty? ? 0_u32 : 2_u32),
+            {{item[2]}},
+            6_u32
+          )
+        {% elsif item[0] == :custom_material_prop %}
+          properties_{{module_name.id}} << ::Godot::PropertyInfo.new(
+            "{{item[1].id}}",
+            "Material",
+            24,
+            17_u32,
+            "Material",
+            6_u32
           )
         {% elsif item[0] == :prop %}
           {% arg = item[1] %}
@@ -4083,7 +4710,16 @@ macro gmodule(decl, &block)
         {% end %}
       {% end %}
       {% if parent_module %}
-        properties_{{module_name.id}}.concat({{parent_module}}._godot_module_properties)
+        {{parent_module}}._godot_module_properties.each do |mp|
+          properties_{{module_name.id}} << mp unless !mp.name.empty? && properties_{{module_name.id}}.any? { |ep| ep.name == mp.name }
+        end
+      {% end %}
+      {% for inc in included_modules %}
+        {% if inc.resolve.methods.map(&.name.stringify).includes?("_godot_module_properties") %}
+          {{inc}}._godot_module_properties.each do |mp|
+            properties_{{module_name.id}} << mp unless !mp.name.empty? && properties_{{module_name.id}}.any? { |ep| ep.name == mp.name }
+          end
+        {% end %}
       {% end %}
       properties_{{module_name.id}}
     end
@@ -4356,6 +4992,18 @@ macro gmodule(decl, &block)
                 self.{{var_name.id}} = ::Godot::Bridge.find_alive_instance(raw_obj_ptr).as?({{resolved_obj_type.id}}) || {{resolved_obj_type.id}}.new(raw_obj_ptr)
               end
             {% end %}
+        {% elsif item[0] == :custom_string_enum %}
+          when "{{item[1].id}}"
+            c_str = val_ptr.as(Pointer(UInt8)*).value
+            self.{{item[1].id}} = c_str.null? ? "" : String.new(c_str)
+        {% elsif item[0] == :custom_material_prop %}
+          when "{{item[1].id}}"
+            obj_ptr = val_ptr.null? ? Pointer(Void).null : val_ptr.as(Void**).value
+            if obj_ptr.null?
+              self.{{item[1].id}} = nil
+            else
+              self.{{item[1].id}} = ::Godot::Bridge.find_alive_instance(obj_ptr).as?(::Godot::Material) || ::Godot::Material.new(obj_ptr)
+            end
         {% end %}
       {% end %}
       else
@@ -4486,6 +5134,12 @@ macro gmodule(decl, &block)
             {% elsif is_obj_prop %}
               ret_ptr.as(Void**).value = @{{var_name.id}}.try(&.pointer) || Pointer(Void).null
             {% end %}
+        {% elsif item[0] == :custom_string_enum %}
+          when "{{item[1].id}}"
+            ret_ptr.as(Pointer(UInt8)*).value = self.{{item[1].id}}.to_unsafe
+        {% elsif item[0] == :custom_material_prop %}
+          when "{{item[1].id}}"
+            ret_ptr.as(Void**).value = @{{item[1].id}}.try(&.pointer) || Pointer(Void).null
         {% end %}
       {% end %}
       else
@@ -4645,8 +5299,8 @@ macro godot_module(decl)
 end
 
 # Defines a custom export macro `macro_name` that declares an exported `String` property
-# with `PROPERTY_HINT_ENUM` (`2_u32`) and `hint_string` in the Godot Inspector.
-macro define_string_enum_export(macro_name, hint_string, default_fallback = "")
+# with `PROPERTY_HINT_ENUM` (`2_u32`) when `hint_string` is non-empty, or `PROPERTY_HINT_NONE` (`0_u32`) when empty.
+macro define_string_enum_export(macro_name, hint_string = "", default_fallback = "")
   {% ::Godot::CUSTOM_EXPORT_MACROS[macro_name.id.stringify] = hint_string %}
   macro {{macro_name.id}}(decl)
     \{% begin %}
@@ -4680,6 +5334,12 @@ macro define_string_enum_export(macro_name, hint_string, default_fallback = "")
       property \{{var_name.id}} : String = \{{val_str}}
     \{% end %}
   end
+end
+
+# Defines a custom export macro `macro_name` that declares an exported `String` property
+# with `PROPERTY_HINT_NONE` (`0_u32`) when `hint_string` is empty, or `PROPERTY_HINT_ENUM` (`2_u32`) when non-empty.
+macro define_custom_export(macro_name, hint_string = "", default_fallback = "")
+  define_string_enum_export({{macro_name}}, {{hint_string}}, {{default_fallback}})
 end
 
 macro finished

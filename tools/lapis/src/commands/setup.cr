@@ -18,7 +18,7 @@ module Lapis
 Usage: lapis setup [templates] [version] [options]
 
 Options:
-  -v, --version=TAG     Target Godot version (e.g. 4.8-beta1, default from godot-version.yml)
+  -v, --version=TAG     Target Godot version (e.g. 4.8-beta2, default from godot-version.yml)
   -t, --templates       Download and install Godot export templates
   -o, --output=PATH     Package export templates into specified zip
   -f, --force           Force download even if godot executable exists
@@ -29,7 +29,7 @@ Options:
 
 Examples:
   lapis setup
-  lapis setup 4.8-beta1
+  lapis setup 4.8-beta2
   lapis setup templates
   lapis setup templates -o bin/export-templates.zip
   lapis setup --force
@@ -48,6 +48,96 @@ HELP
         end
 
         Core::GodotFinder::EMBEDDED_GODOT_VERSION
+      end
+
+      # When upgrading the Lapis repository to a new Godot version (e.g. 4.8-beta1 -> 4.8-beta2),
+      # synchronizes godot-version.yml, template manifests, C++ bridge header, badges.yml, README.md,
+      # and automatically bumps the Lapis minor version (0.X.0) in shard.yml and tools/lapis/shard.yml.
+      def self.sync_repo_version_on_godot_upgrade(root : Path, target_version : String) : Void
+        return unless Core::Env.is_libgodot_repo?(root)
+        version_file = root.join("godot-version.yml")
+        return unless File.exists?(version_file)
+
+        old_godot_ver = ""
+        if File.read(version_file) =~ /version:\s*["']?([^"'\r\n]+)["']?/
+          old_godot_ver = $1.strip
+        end
+
+        master_godot_ver = old_godot_ver
+        master_res = Core::ProcessRunner.capture("git", ["-C", root.to_s, "show", "master:godot-version.yml"])
+        if master_res[:status].success? && (master_res[:output] =~ /version:\s*["']?([^"'\r\n]+)["']?/)
+          master_godot_ver = $1.strip
+        end
+
+        if target_version != old_godot_ver
+          [
+            root.join("godot-version.yml"),
+            root.join("template/godot-version.yml"),
+            root.join("template-addon/godot-version.yml"),
+          ].each do |vf|
+            File.write(vf, "version: \"#{target_version}\"\n") if File.exists?(vf)
+          end
+
+          bridge_hdr = root.join("src/bridge/godot_version.h")
+          if File.exists?(bridge_hdr)
+            File.write(bridge_hdr, <<-CPP
+// Auto-generated target Godot version for C++ GDExtension loader bridge
+#pragma once
+
+#ifndef LIBGODOT_TARGET_VERSION
+#define LIBGODOT_TARGET_VERSION "#{target_version}"
+#endif
+CPP
+            )
+          end
+
+          badges_yml = root.join("badges.yml")
+          if File.exists?(badges_yml)
+            bc = File.read(badges_yml).gsub(/(label:\s*"Godot"\r?\n\s*message:\s*")[^"]+(")/, "\\1#{target_version}\\2")
+            File.write(badges_yml, bc)
+          end
+
+          readme_md = root.join("README.md")
+          if File.exists?(readme_md)
+            escaped_badge = target_version.gsub("-", "--")
+            rc = File.read(readme_md).gsub(%r{(badge/Godot-)[A-Za-z0-9.\-_]+(-blue\.svg)}, "\\1#{escaped_badge}\\2")
+            File.write(readme_md, rc)
+          end
+        end
+
+        # Ensure Lapis minor version is bumped (0.X.0) when target_version differs from master or old_godot_ver
+        if target_version != master_godot_ver || target_version != old_godot_ver
+          shard_yml = root.join("shard.yml")
+          return unless File.exists?(shard_yml)
+          shard_text = File.read(shard_yml)
+          return unless shard_text =~ /^version:\s*["']?(\d+)\.(\d+)\.(\d+)["']?/m
+          curr_maj = $1.to_i
+          curr_min = $2.to_i
+
+          base_maj = curr_maj
+          base_min = curr_min
+          m_shard = Core::ProcessRunner.capture("git", ["-C", root.to_s, "show", "master:shard.yml"])
+          if m_shard[:status].success? && (m_shard[:output] =~ /^version:\s*["']?(\d+)\.(\d+)\.(\d+)["']?/m)
+            base_maj = $1.to_i
+            base_min = $2.to_i
+          end
+
+          if curr_maj == base_maj && curr_min == base_min
+            new_min = base_min + 1
+            new_lapis_ver = "#{base_maj}.#{new_min}.0"
+            [root.join("shard.yml"), root.join("tools/lapis/shard.yml")].each do |sf|
+              next unless File.exists?(sf)
+              updated = File.read(sf).sub(/^(version:\s*["']?)\d+\.\d+\.\d+(["']?)/m, "\\1#{new_lapis_ver}\\2")
+              File.write(sf, updated)
+            end
+            readme_md = root.join("README.md")
+            if File.exists?(readme_md)
+              rc = File.read(readme_md).gsub(%r{(badge/Lapis-)\d+\.\d+\.\d+(-blueviolet\.svg)}, "\\1#{new_lapis_ver}\\2")
+              File.write(readme_md, rc)
+            end
+            Core::Logger.step("Setup", "Bumped Lapis milestone version to #{new_lapis_ver} for Godot #{target_version}")
+          end
+        end
       end
 
       def self.download_and_extract(url : String, dest_exe : Path) : Bool
@@ -432,6 +522,10 @@ HELP
         end
 
         dest_exe = root.join("godot#{Core::Env.exe_ext}")
+
+        if cli_ver || !remaining.empty?
+          sync_repo_version_on_godot_upgrade(root, target_version)
+        end
 
         Core::Logger.step("Setup", "Godot Engine Setup: version #{target_version} at #{dest_exe}...")
 

@@ -82,14 +82,10 @@ module Godot
       @mutex.synchronize do
         ensure_open
         unless @fp.null?
-          line = record.to_formatted_string(include_location: true)
-          LibSystemIO.fwrite(line.to_unsafe.as(Void*), 1_u64, line.bytesize.to_u64, @fp)
-          newline = "\n"
-          LibSystemIO.fwrite(newline.to_unsafe.as(Void*), 1_u64, 1_u64, @fp)
-          @bytes_written += line.bytesize + 1
-          if record.level <= LogLevel::Warn
-            LibSystemIO.fflush(@fp)
-          end
+          full_line = "#{record.to_formatted_string(include_location: true)}\n"
+          LibSystemIO.fwrite(full_line.to_unsafe.as(Void*), 1_u64, full_line.bytesize.to_u64, @fp)
+          LibSystemIO.fflush(@fp)
+          @bytes_written += full_line.bytesize
 
           # Simple log rotation check (rotate to .1 if capped)
           if @bytes_written >= @max_bytes

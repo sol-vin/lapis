@@ -113,8 +113,8 @@ func _init():
 				continue
 			# Derive a PascalCase class name from the file name
 			var inferred_name = to_pascal_case(file_name)
-			var cls_info = inspect_gdscript(inferred_name, script_path, "")
-			if cls_info != null:
+			var cls_info = inspect_gdscript(inferred_name, script_path, "", false)
+			if cls_info != null and not cls_info.is_empty():
 				result["gdscript_classes"].append(cls_info)
 
 	# 3. Compiled GDExtension Plugin Nodes (registered in ClassDB)
@@ -155,15 +155,18 @@ func _init():
 
 			# ClassDB properties (declared by this class only)
 			for p in ClassDB.class_get_property_list(cls_name, true):
-				if p["name"].ends_with(".gd"):
+				var p_usage = p.get("usage", 0)
+				var p_type = p.get("type", 0)
+				if p["name"].ends_with(".gd") or p["name"].begins_with("@") or (p_usage & (64 | 128 | 256)) != 0 or p_type == 0:
 					continue
 				ext_info["properties"].append({
 					"name": p["name"],
-					"type": p["type"],
-					"type_name": type_string(p["type"]),
+					"type": p_type,
+					"type_name": type_string(p_type),
 					"class_name": p.get("class_name", ""),
 					"hint": p["hint"],
-					"hint_string": p["hint_string"]
+					"hint_string": p["hint_string"],
+					"usage": p_usage
 				})
 
 			# ClassDB methods (declared by this class only)
@@ -226,7 +229,7 @@ func _init():
 
 	quit(0)
 
-func inspect_gdscript(cls_name: String, script_path: String, base_hint: String) -> Dictionary:
+func inspect_gdscript(cls_name: String, script_path: String, base_hint: String, has_explicit_class_name: bool = true) -> Dictionary:
 	var script_res = load(script_path) as GDScript
 	if not script_res:
 		return {}
@@ -234,13 +237,15 @@ func inspect_gdscript(cls_name: String, script_path: String, base_hint: String) 
 	var global_name = script_res.get_global_name()
 	if not global_name.is_empty():
 		cls_name = global_name
+		has_explicit_class_name = true
 	else:
 		var src = script_res.get_source_code()
 		var regex = RegEx.new()
-		if regex.compile("class_name\\s+([A-Za-z0-9_]+)") == OK:
+		if regex.compile("(?m)^class_name\\s+([A-Za-z0-9_]+)") == OK:
 			var match = regex.search(src)
 			if match:
 				cls_name = match.get_string(1)
+				has_explicit_class_name = true
 
 	var base_type = script_res.get_instance_base_type()
 	if base_type.is_empty():
@@ -248,11 +253,16 @@ func inspect_gdscript(cls_name: String, script_path: String, base_hint: String) 
 	if base_type.is_empty():
 		base_type = "Node"
 
+	# Skip standalone SceneTree / MainLoop CLI scripts that do not declare a global class_name
+	if not has_explicit_class_name and (base_type == "SceneTree" or base_type == "MainLoop"):
+		return {}
+
 	var info = {
 		"name": cls_name,
 		"language": "GDScript",
 		"path": script_path,
 		"inherits": base_type,
+		"has_class_name": has_explicit_class_name,
 		"properties": [],
 		"methods": [],
 		"signals": [],
@@ -260,15 +270,18 @@ func inspect_gdscript(cls_name: String, script_path: String, base_hint: String) 
 	}
 
 	for p in script_res.get_script_property_list():
-		if p["name"].ends_with(".gd") or p["name"].begins_with("@"):
+		var p_usage = p.get("usage", 0)
+		var p_type = p.get("type", 0)
+		if p["name"].ends_with(".gd") or p["name"].begins_with("@") or (p_usage & (64 | 128 | 256)) != 0 or p_type == 0:
 			continue
 		info["properties"].append({
 			"name": p["name"],
-			"type": p["type"],
-			"type_name": type_string(p["type"]),
+			"type": p_type,
+			"type_name": type_string(p_type),
 			"class_name": p.get("class_name", ""),
 			"hint": p["hint"],
-			"hint_string": p["hint_string"]
+			"hint_string": p["hint_string"],
+			"usage": p_usage
 		})
 
 	for m in script_res.get_script_method_list():

@@ -412,6 +412,105 @@ describe "LibGodot Features & Reflection" do
       ep.responds_to?(:select_editor_node).should be_true
       ep.over_floating_control?([] of Godot::Control?).should be_false
     end
+
+    it "supports define_custom_export with empty hint_string (PROPERTY_HINT_NONE), export_config_hash, tool_rebuild, and 1-arg/2-arg call dispatch" do
+      entry = Godot::ClassRegistry.find("SpecProceduralRebuildNode").not_nil!
+      free_tag_prop = entry.properties.find { |p| p.name == "free_tag" }.not_nil!
+      free_tag_prop.hint.should eq(0_u32)
+      free_tag_prop.hint_string.should eq("")
+
+      enum_tag_prop = entry.properties.find { |p| p.name == "preset_tag" }.not_nil!
+      enum_tag_prop.hint.should eq(2_u32)
+      enum_tag_prop.hint_string.should eq("stone,metal")
+
+      n = SpecProceduralRebuildNode.new
+      h1 = n.export_config_hash
+      n.span_width = 8.5_f32
+      h2 = n.export_config_hash
+      h2.should_not eq(h1)
+
+      # Verify tool_rebuild debounce lifecycle
+      n._ready
+      n.rebuild_count.should eq(1)
+      n._process(0.05)
+      n.rebuild_count.should eq(1)
+      n.span_width = 12.0_f32
+      n._process(0.02) # starts debounce timer (0.05s)
+      n.rebuild_count.should eq(1)
+      n._process(0.03)
+      n.rebuild_count.should eq(1)
+      n._process(0.04) # exceeds 0.05s debounce -> triggers rebuild!
+      n.rebuild_count.should eq(2)
+
+      # Verify 0-arg, 1-arg, and 2-arg custom method discovery and call dispatch
+      n.has_method("_func_godot_build_complete").should be_true
+      n.has_method("apply_damage").should be_true
+      n.has_method("combine_coords").should be_true
+      n.has_method("non_existent_method_xyz").should be_false
+
+      n.call("_func_godot_build_complete")
+      n.build_completed.should be_true
+
+      n.call("apply_damage", 25_i32)
+      n.last_damage.should eq(25_i32)
+
+      n.call("combine_coords", 3_i32, 7_i32)
+      n.last_damage.should eq(10_i32)
+    end
+
+    it "supports out-of-tree Node3D#to_global, to_local, global_rotation, PhysicsBody3D#test_move, and Lapis::Test float/vector assertions" do
+      n3 = Godot::Node3D.new
+      n3.to_global(Vector3.new(1.0_f32, 2.0_f32, 3.0_f32)).should eq(Vector3.new(1.0_f32, 2.0_f32, 3.0_f32))
+      n3.to_local(Vector3.new(1.0_f32, 2.0_f32, 3.0_f32)).should eq(Vector3.new(1.0_f32, 2.0_f32, 3.0_f32))
+      n3.global_rotation.should eq(Vector3::ZERO)
+      n3.global_rotation_degrees.should eq(Vector3::ZERO)
+
+      cb = Godot::CharacterBody3D.new
+      cb.test_move(Transform3D.new, Vector3.new(0.0_f32, -1.0_f32, 0.0_f32)).should be_false
+
+      Godot::Engine.responds_to?(:singleton).should be_true
+      Godot::RenderingServer.responds_to?(:singleton).should be_true
+
+      Lapis::Test.assert_in_delta(1.0001_f32, 1.0_f32)
+      Lapis::Test.assert_close(2.0002_f32, 2.0_f32)
+      Lapis::Test.assert_approx(3.0003_f32, 3.0_f32)
+      Lapis::Test.assert_vec_approx(Vector3.new(1.0_f32, 2.0_f32, 3.0_f32), Vector3.new(1.0001_f32, 2.0001_f32, 3.0001_f32))
+      Lapis::Test.assert_vec_approx(Color.new(0.5_f32, 0.5_f32, 0.5_f32, 1.0_f32), Color.new(0.5001_f32, 0.5_f32, 0.5_f32, 1.0_f32))
+    end
+  end
+end
+
+define_custom_export :spec_free_string_export, "", "default_tag"
+define_custom_export :spec_preset_enum_export, "stone,metal", "stone"
+
+@[Tool]
+node SpecProceduralRebuildNode < Node3D do
+  tool_rebuild(debounce: 0.05_f32)
+
+  @[Export(range: 1.0_f32..50.0_f32, aliases: ["width", "size_x"])]
+  property span_width : Float32 = 4.0_f32
+
+  spec_free_string_export free_tag = "alpha"
+  spec_preset_enum_export preset_tag = "stone"
+
+  property rebuild_count : Int32 = 0
+  property build_completed : Bool = false
+  property last_damage : Int32 = 0
+
+  def rebuild_geometry : Void
+    @rebuild_count += 1
+  end
+
+  def _func_godot_build_complete : Void
+    @build_completed = true
+  end
+
+  def apply_damage(amount : Int32) : Void
+    @last_damage = amount
+  end
+
+  def combine_coords(x : Int32, y : Int32) : Void
+    @last_damage = x + y
   end
 end
 

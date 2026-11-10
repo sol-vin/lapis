@@ -344,3 +344,11 @@ annotation GodotModule; end
 # end
 # ```
 annotation OnSignal; end
+
+# Binds an exported property on a `ShaderMaterial` subclass to a shader uniform parameter,
+# automatically calling `set_shader_parameter` when the property is modified.
+annotation ShaderUniform; end
+
+# Marks an instance method on a `node` or `gdclass` as dynamically callable via `Object#call`
+# and discoverable via `Object#has_method`.
+annotation BindMethod; end

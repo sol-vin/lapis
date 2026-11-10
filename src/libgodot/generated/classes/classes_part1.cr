@@ -1639,7 +1639,7 @@ module Godot
       self.class.get_orphan_node_ids()
     end
     @@mb_add_sibling : Void* = Pointer(Void).null
-    def engine_add_sibling(sibling : Node, force_readable_name : Bool = false) : Void
+    def engine_add_sibling(sibling : Node?, force_readable_name : Bool = false) : Void
       godot_bind(@@mb_add_sibling, "Node", "add_sibling", 2570952461_i64)
       arg_ptr_0 = sibling ? sibling.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -1664,7 +1664,7 @@ module Godot
       godot_call_str("get_name")
     end
     @@mb_add_child : Void* = Pointer(Void).null
-    def engine_add_child(node : Node, force_readable_name : Bool = false, internal : InternalMode | Int = 0) : Void
+    def engine_add_child(node : Node?, force_readable_name : Bool = false, internal : InternalMode | Int = 0) : Void
       godot_bind(@@mb_add_child, "Node", "add_child", 3863233950_i64)
       arg_ptr_0 = node ? node.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -1676,7 +1676,7 @@ module Godot
       godot_ptrcall_void(@@mb_add_child, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_remove_child : Void* = Pointer(Void).null
-    def remove_child(node : Node) : Void
+    def remove_child(node : Node?) : Void
       godot_bind(@@mb_remove_child, "Node", "remove_child", 1078189570_i64)
       arg_ptr_0 = node ? node.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -1684,7 +1684,7 @@ module Godot
       godot_ptrcall_void(@@mb_remove_child, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_reparent : Void* = Pointer(Void).null
-    def reparent(new_parent : Node, keep_global_transform : Bool = true) : Void
+    def reparent(new_parent : Node?, keep_global_transform : Bool = true) : Void
       godot_bind(@@mb_reparent, "Node", "reparent", 3685795103_i64)
       arg_ptr_0 = new_parent ? new_parent.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -1856,7 +1856,7 @@ module Godot
       is_part_of_edited_scene()
     end
     @@mb_is_ancestor_of : Void* = Pointer(Void).null
-    def is_ancestor_of(node : Node) : Bool
+    def is_ancestor_of(node : Node?) : Bool
       godot_bind(@@mb_is_ancestor_of, "Node", "is_ancestor_of", 3093956946_i64)
       arg_ptr_0 = node ? node.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -1864,15 +1864,15 @@ module Godot
       godot_ptrcall_bool(@@mb_is_ancestor_of, @pointer, args.to_unsafe.as(Void**))
     end
     # Predicate alias for `is_ancestor_of`
-    def is_ancestor_of?(node : Node) : Bool
+    def is_ancestor_of?(node : Node?) : Bool
       is_ancestor_of(node)
     end
     # Predicate alias for `is_ancestor_of`
-    def ancestor_of?(node : Node) : Bool
+    def ancestor_of?(node : Node?) : Bool
       is_ancestor_of(node)
     end
     @@mb_is_greater_than : Void* = Pointer(Void).null
-    def is_greater_than(node : Node) : Bool
+    def is_greater_than(node : Node?) : Bool
       godot_bind(@@mb_is_greater_than, "Node", "is_greater_than", 3093956946_i64)
       arg_ptr_0 = node ? node.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -1880,11 +1880,11 @@ module Godot
       godot_ptrcall_bool(@@mb_is_greater_than, @pointer, args.to_unsafe.as(Void**))
     end
     # Predicate alias for `is_greater_than`
-    def is_greater_than?(node : Node) : Bool
+    def is_greater_than?(node : Node?) : Bool
       is_greater_than(node)
     end
     # Predicate alias for `is_greater_than`
-    def greater_than?(node : Node) : Bool
+    def greater_than?(node : Node?) : Bool
       is_greater_than(node)
     end
     @@mb_get_path : Void* = Pointer(Void).null
@@ -1893,7 +1893,7 @@ module Godot
       NodePath.new(godot_call_str("get_path"))
     end
     @@mb_get_path_to : Void* = Pointer(Void).null
-    def get_path_to(node : Node, use_unique_path : Bool = false) : NodePath
+    def get_path_to(node : Node?, use_unique_path : Bool = false) : NodePath
       godot_bind(@@mb_get_path_to, "Node", "get_path_to", 498846349_i64)
       arg_ptr_0 = node ? node.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -1939,7 +1939,7 @@ module Godot
       is_in_group(group)
     end
     @@mb_move_child : Void* = Pointer(Void).null
-    def move_child(child_node : Node, to_index : Int64) : Void
+    def move_child(child_node : Node?, to_index : Int64) : Void
       godot_bind(@@mb_move_child, "Node", "move_child", 3315886247_i64)
       arg_ptr_0 = child_node ? child_node.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -1956,7 +1956,7 @@ module Godot
       ret_ptr
     end
     @@mb_set_owner : Void* = Pointer(Void).null
-    def set_owner(owner : Node) : Void
+    def set_owner(owner : Node?) : Void
       godot_bind(@@mb_set_owner, "Node", "set_owner", 1078189570_i64)
       arg_ptr_0 = owner ? owner.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -2429,13 +2429,15 @@ module Godot
       godot_ptrcall_obj(@@mb_duplicate, @pointer, args.to_unsafe.as(Void**), Node)
     end
     @@mb_replace_by : Void* = Pointer(Void).null
-    def replace_by(node : Node, keep_groups : Bool = false) : Void
-      godot_bind(@@mb_replace_by, "Node", "replace_by", 2570952461_i64)
+    def replace_by(node : Node?, keep_groups : Bool = false, keep_owned_children : Bool = true) : Void
+      godot_bind(@@mb_replace_by, "Node", "replace_by", 4170434404_i64)
       arg_ptr_0 = node ? node.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
       val_1 = keep_groups
       arg_1 = pointerof(val_1).as(Void*)
-      args = StaticArray[arg_0, arg_1]
+      val_2 = keep_owned_children
+      arg_2 = pointerof(val_2).as(Void*)
+      args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_replace_by, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_set_scene_instance_load_placeholder : Void* = Pointer(Void).null
@@ -2456,7 +2458,7 @@ module Godot
       get_scene_instance_load_placeholder()
     end
     @@mb_set_editable_instance : Void* = Pointer(Void).null
-    def set_editable_instance(node : Node, is_editable : Bool) : Void
+    def set_editable_instance(node : Node?, is_editable : Bool) : Void
       godot_bind(@@mb_set_editable_instance, "Node", "set_editable_instance", 2731852923_i64)
       arg_ptr_0 = node ? node.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -2466,7 +2468,7 @@ module Godot
       godot_ptrcall_void(@@mb_set_editable_instance, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_is_editable_instance : Void* = Pointer(Void).null
-    def is_editable_instance(node : Node) : Bool
+    def is_editable_instance(node : Node?) : Bool
       godot_bind(@@mb_is_editable_instance, "Node", "is_editable_instance", 3093956946_i64)
       arg_ptr_0 = node ? node.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -2474,11 +2476,11 @@ module Godot
       godot_ptrcall_bool(@@mb_is_editable_instance, @pointer, args.to_unsafe.as(Void**))
     end
     # Predicate alias for `is_editable_instance`
-    def is_editable_instance?(node : Node) : Bool
+    def is_editable_instance?(node : Node?) : Bool
       is_editable_instance(node)
     end
     # Predicate alias for `is_editable_instance`
-    def editable_instance?(node : Node) : Bool
+    def editable_instance?(node : Node?) : Bool
       is_editable_instance(node)
     end
     @@mb_get_viewport : Void* = Pointer(Void).null
@@ -2907,7 +2909,7 @@ module Godot
       VrsUpdateMax = 3_i64
     end
     @@mb_set_world_2d : Void* = Pointer(Void).null
-    def set_world_2d(world_2d : World2D) : Void
+    def set_world_2d(world_2d : World2D?) : Void
       godot_bind(@@mb_set_world_2d, "Viewport", "set_world_2d", 2736080068_i64)
       arg_ptr_0 = world_2d ? world_2d.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -3244,7 +3246,7 @@ module Godot
       Bridge.free_string(str_0)
     end
     @@mb_push_input : Void* = Pointer(Void).null
-    def push_input(event : InputEvent, in_local_coords : Bool = false) : Void
+    def push_input(event : InputEvent?, in_local_coords : Bool = false) : Void
       godot_bind(@@mb_push_input, "Viewport", "push_input", 3644664830_i64)
       arg_ptr_0 = event ? event.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -3254,7 +3256,7 @@ module Godot
       godot_ptrcall_void(@@mb_push_input, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_push_unhandled_input : Void* = Pointer(Void).null
-    def push_unhandled_input(event : InputEvent, in_local_coords : Bool = false) : Void
+    def push_unhandled_input(event : InputEvent?, in_local_coords : Bool = false) : Void
       godot_bind(@@mb_push_unhandled_input, "Viewport", "push_unhandled_input", 3644664830_i64)
       arg_ptr_0 = event ? event.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -3697,7 +3699,7 @@ module Godot
       godot_ptrcall_obj(@@mb_get_camera_2d, @pointer, Pointer(Pointer(Void)).null, Camera2D)
     end
     @@mb_set_world_3d : Void* = Pointer(Void).null
-    def set_world_3d(world_3d : World3D) : Void
+    def set_world_3d(world_3d : World3D?) : Void
       godot_bind(@@mb_set_world_3d, "Viewport", "set_world_3d", 1400875337_i64)
       arg_ptr_0 = world_3d ? world_3d.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -3896,7 +3898,7 @@ module Godot
       godot_ptrcall_enum(@@mb_get_vrs_update_mode, @pointer, Pointer(Pointer(Void)).null, VRSUpdateMode)
     end
     @@mb_set_vrs_texture : Void* = Pointer(Void).null
-    def set_vrs_texture(texture : Texture2D) : Void
+    def set_vrs_texture(texture : Texture2D?) : Void
       godot_bind(@@mb_set_vrs_texture, "Viewport", "set_vrs_texture", 4051416890_i64)
       arg_ptr_0 = texture ? texture.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -5005,7 +5007,7 @@ module Godot
       godot_ptrcall_void(@@mb_child_controls_changed, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_set_theme : Void* = Pointer(Void).null
-    def set_theme(theme : Theme) : Void
+    def set_theme(theme : Theme?) : Void
       godot_bind(@@mb_set_theme, "Window", "set_theme", 2326690814_i64)
       arg_ptr_0 = theme ? theme.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -5043,7 +5045,7 @@ module Godot
       godot_ptrcall_void(@@mb_end_bulk_theme_override, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_add_theme_icon_override : Void* = Pointer(Void).null
-    def add_theme_icon_override(name : String, texture : Texture2D) : Void
+    def add_theme_icon_override(name : String, texture : Texture2D?) : Void
       godot_bind(@@mb_add_theme_icon_override, "Window", "add_theme_icon_override", 1373065600_i64)
       sn_0 = Bridge.make_string_name(name)
       arg_0 = sn_0
@@ -5055,7 +5057,7 @@ module Godot
       Bridge.free_string_name(sn_0)
     end
     @@mb_add_theme_stylebox_override : Void* = Pointer(Void).null
-    def add_theme_stylebox_override(name : String, stylebox : StyleBox) : Void
+    def add_theme_stylebox_override(name : String, stylebox : StyleBox?) : Void
       godot_bind(@@mb_add_theme_stylebox_override, "Window", "add_theme_stylebox_override", 4188838905_i64)
       sn_0 = Bridge.make_string_name(name)
       arg_0 = sn_0
@@ -5067,7 +5069,7 @@ module Godot
       Bridge.free_string_name(sn_0)
     end
     @@mb_add_theme_font_override : Void* = Pointer(Void).null
-    def add_theme_font_override(name : String, font : Font) : Void
+    def add_theme_font_override(name : String, font : Font?) : Void
       godot_bind(@@mb_add_theme_font_override, "Window", "add_theme_font_override", 3518018674_i64)
       sn_0 = Bridge.make_string_name(name)
       arg_0 = sn_0
@@ -5115,7 +5117,7 @@ module Godot
       Bridge.free_string_name(sn_0)
     end
     @@mb_add_theme_sound_override : Void* = Pointer(Void).null
-    def add_theme_sound_override(name : String, sound : AudioStream) : Void
+    def add_theme_sound_override(name : String, sound : AudioStream?) : Void
       godot_bind(@@mb_add_theme_sound_override, "Window", "add_theme_sound_override", 3407455952_i64)
       sn_0 = Bridge.make_string_name(name)
       arg_0 = sn_0
@@ -5674,7 +5676,7 @@ module Godot
       godot_ptrcall_void(@@mb_popup_centered_clamped, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_popup_exclusive : Void* = Pointer(Void).null
-    def popup_exclusive(from_node : Node, rect : Rect2i) : Void
+    def popup_exclusive(from_node : Node?, rect : Rect2i) : Void
       godot_bind(@@mb_popup_exclusive, "Window", "popup_exclusive", 2134721627_i64)
       arg_ptr_0 = from_node ? from_node.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -5684,7 +5686,7 @@ module Godot
       godot_ptrcall_void(@@mb_popup_exclusive, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_popup_exclusive_on_parent : Void* = Pointer(Void).null
-    def popup_exclusive_on_parent(from_node : Node, parent_rect : Rect2i) : Void
+    def popup_exclusive_on_parent(from_node : Node?, parent_rect : Rect2i) : Void
       godot_bind(@@mb_popup_exclusive_on_parent, "Window", "popup_exclusive_on_parent", 2344671043_i64)
       arg_ptr_0 = from_node ? from_node.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -5694,7 +5696,7 @@ module Godot
       godot_ptrcall_void(@@mb_popup_exclusive_on_parent, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_popup_exclusive_centered : Void* = Pointer(Void).null
-    def popup_exclusive_centered(from_node : Node, minsize : Vector2i = Vector2i.new(0.to_i32, 0.to_i32)) : Void
+    def popup_exclusive_centered(from_node : Node?, minsize : Vector2i = Vector2i.new(0.to_i32, 0.to_i32)) : Void
       godot_bind(@@mb_popup_exclusive_centered, "Window", "popup_exclusive_centered", 3357594017_i64)
       arg_ptr_0 = from_node ? from_node.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -5704,7 +5706,7 @@ module Godot
       godot_ptrcall_void(@@mb_popup_exclusive_centered, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_popup_exclusive_centered_ratio : Void* = Pointer(Void).null
-    def popup_exclusive_centered_ratio(from_node : Node, ratio : Float64 = 0.8_f64) : Void
+    def popup_exclusive_centered_ratio(from_node : Node?, ratio : Float64 = 0.8_f64) : Void
       godot_bind(@@mb_popup_exclusive_centered_ratio, "Window", "popup_exclusive_centered_ratio", 2284776287_i64)
       arg_ptr_0 = from_node ? from_node.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -5714,7 +5716,7 @@ module Godot
       godot_ptrcall_void(@@mb_popup_exclusive_centered_ratio, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_popup_exclusive_centered_clamped : Void* = Pointer(Void).null
-    def popup_exclusive_centered_clamped(from_node : Node, minsize : Vector2i = Vector2i.new(0.to_i32, 0.to_i32), fallback_ratio : Float64 = 0.75_f64) : Void
+    def popup_exclusive_centered_clamped(from_node : Node?, minsize : Vector2i = Vector2i.new(0.to_i32, 0.to_i32), fallback_ratio : Float64 = 0.75_f64) : Void
       godot_bind(@@mb_popup_exclusive_centered_clamped, "Window", "popup_exclusive_centered_clamped", 2612708785_i64)
       arg_ptr_0 = from_node ? from_node.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -6203,7 +6205,7 @@ module Godot
       Bridge.free_string(str_0)
     end
     @@mb_remove_button : Void* = Pointer(Void).null
-    def remove_button(button : Button) : Void
+    def remove_button(button : Button?) : Void
       godot_bind(@@mb_remove_button, "AcceptDialog", "remove_button", 2068354942_i64)
       arg_ptr_0 = button ? button.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -6211,7 +6213,7 @@ module Godot
       godot_ptrcall_void(@@mb_remove_button, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_register_text_enter : Void* = Pointer(Void).null
-    def register_text_enter(line_edit : LineEdit) : Void
+    def register_text_enter(line_edit : LineEdit?) : Void
       godot_bind(@@mb_register_text_enter, "AcceptDialog", "register_text_enter", 3714008017_i64)
       arg_ptr_0 = line_edit ? line_edit.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -7852,7 +7854,7 @@ module Godot
       godot_ptrcall_void(@@mb_update_gizmos, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_add_gizmo : Void* = Pointer(Void).null
-    def add_gizmo(gizmo : Node3DGizmo) : Void
+    def add_gizmo(gizmo : Node3DGizmo?) : Void
       godot_bind(@@mb_add_gizmo, "Node3D", "add_gizmo", 1544533845_i64)
       arg_ptr_0 = gizmo ? gizmo.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -7872,7 +7874,7 @@ module Godot
       godot_ptrcall_void(@@mb_clear_gizmos, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_set_subgizmo_selection : Void* = Pointer(Void).null
-    def set_subgizmo_selection(gizmo : Node3DGizmo, id : Int64, transform : Transform3D) : Void
+    def set_subgizmo_selection(gizmo : Node3DGizmo?, id : Int64, transform : Transform3D) : Void
       godot_bind(@@mb_set_subgizmo_selection, "Node3D", "set_subgizmo_selection", 3317607635_i64)
       arg_ptr_0 = gizmo ? gizmo.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -8960,7 +8962,7 @@ module Godot
       godot_ptrcall_void(@@mb_draw_ellipse, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_draw_texture : Void* = Pointer(Void).null
-    def draw_texture(texture : Texture2D, position : Vector2, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32)) : Void
+    def draw_texture(texture : Texture2D?, position : Vector2, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32)) : Void
       godot_bind(@@mb_draw_texture, "CanvasItem", "draw_texture", 520200117_i64)
       arg_ptr_0 = texture ? texture.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -8972,7 +8974,7 @@ module Godot
       godot_ptrcall_void(@@mb_draw_texture, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_draw_texture_rect : Void* = Pointer(Void).null
-    def draw_texture_rect(texture : Texture2D, rect : Rect2, tile : Bool, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32), transpose : Bool = false) : Void
+    def draw_texture_rect(texture : Texture2D?, rect : Rect2, tile : Bool, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32), transpose : Bool = false) : Void
       godot_bind(@@mb_draw_texture_rect, "CanvasItem", "draw_texture_rect", 3832805018_i64)
       arg_ptr_0 = texture ? texture.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -8988,7 +8990,7 @@ module Godot
       godot_ptrcall_void(@@mb_draw_texture_rect, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_draw_texture_rect_region : Void* = Pointer(Void).null
-    def draw_texture_rect_region(texture : Texture2D, rect : Rect2, src_rect : Rect2, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32), transpose : Bool = false, clip_uv : Bool = true) : Void
+    def draw_texture_rect_region(texture : Texture2D?, rect : Rect2, src_rect : Rect2, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32), transpose : Bool = false, clip_uv : Bool = true) : Void
       godot_bind(@@mb_draw_texture_rect_region, "CanvasItem", "draw_texture_rect_region", 3883821411_i64)
       arg_ptr_0 = texture ? texture.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -9006,7 +9008,7 @@ module Godot
       godot_ptrcall_void(@@mb_draw_texture_rect_region, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_draw_msdf_texture_rect_region : Void* = Pointer(Void).null
-    def draw_msdf_texture_rect_region(texture : Texture2D, rect : Rect2, src_rect : Rect2, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32), outline : Float64 = 0.0_f64, pixel_range : Float64 = 4.0_f64, scale : Float64 = 1.0_f64) : Void
+    def draw_msdf_texture_rect_region(texture : Texture2D?, rect : Rect2, src_rect : Rect2, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32), outline : Float64 = 0.0_f64, pixel_range : Float64 = 4.0_f64, scale : Float64 = 1.0_f64) : Void
       godot_bind(@@mb_draw_msdf_texture_rect_region, "CanvasItem", "draw_msdf_texture_rect_region", 4219163252_i64)
       arg_ptr_0 = texture ? texture.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -9026,7 +9028,7 @@ module Godot
       godot_ptrcall_void(@@mb_draw_msdf_texture_rect_region, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_draw_lcd_texture_rect_region : Void* = Pointer(Void).null
-    def draw_lcd_texture_rect_region(texture : Texture2D, rect : Rect2, src_rect : Rect2, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32)) : Void
+    def draw_lcd_texture_rect_region(texture : Texture2D?, rect : Rect2, src_rect : Rect2, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32)) : Void
       godot_bind(@@mb_draw_lcd_texture_rect_region, "CanvasItem", "draw_lcd_texture_rect_region", 3212350954_i64)
       arg_ptr_0 = texture ? texture.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -9040,7 +9042,7 @@ module Godot
       godot_ptrcall_void(@@mb_draw_lcd_texture_rect_region, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_draw_style_box : Void* = Pointer(Void).null
-    def draw_style_box(style_box : StyleBox, rect : Rect2) : Void
+    def draw_style_box(style_box : StyleBox?, rect : Rect2) : Void
       godot_bind(@@mb_draw_style_box, "CanvasItem", "draw_style_box", 388176283_i64)
       arg_ptr_0 = style_box ? style_box.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -9092,7 +9094,7 @@ module Godot
       godot_ptrcall_void(@@mb_draw_colored_polygon, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_draw_string : Void* = Pointer(Void).null
-    def draw_string(font : Font, pos : Vector2, text : String, alignment : Godot::HorizontalAlignment | Int = 0, width : Float64 = -1.0_f64, font_size : Int64 = 16_i64, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32), justification_flags : Godot::TextServer::JustificationFlag | Int = 3, direction : Godot::TextServer::Direction | Int = 0, orientation : Godot::TextServer::Orientation | Int = 0, oversampling : Float64 = 0.0_f64) : Void
+    def draw_string(font : Font?, pos : Vector2, text : String, alignment : Godot::HorizontalAlignment | Int = 0, width : Float64 = -1.0_f64, font_size : Int64 = 16_i64, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32), justification_flags : Godot::TextServer::JustificationFlag | Int = 3, direction : Godot::TextServer::Direction | Int = 0, orientation : Godot::TextServer::Orientation | Int = 0, oversampling : Float64 = 0.0_f64) : Void
       godot_bind(@@mb_draw_string, "CanvasItem", "draw_string", 719605945_i64)
       arg_ptr_0 = font ? font.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -9122,7 +9124,7 @@ module Godot
       Bridge.free_string(str_2)
     end
     @@mb_draw_multiline_string : Void* = Pointer(Void).null
-    def draw_multiline_string(font : Font, pos : Vector2, text : String, alignment : Godot::HorizontalAlignment | Int = 0, width : Float64 = -1.0_f64, font_size : Int64 = 16_i64, max_lines : Int64 = -1_i64, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32), brk_flags : Godot::TextServer::LineBreakFlag | Int = 3, justification_flags : Godot::TextServer::JustificationFlag | Int = 3, direction : Godot::TextServer::Direction | Int = 0, orientation : Godot::TextServer::Orientation | Int = 0, oversampling : Float64 = 0.0_f64) : Void
+    def draw_multiline_string(font : Font?, pos : Vector2, text : String, alignment : Godot::HorizontalAlignment | Int = 0, width : Float64 = -1.0_f64, font_size : Int64 = 16_i64, max_lines : Int64 = -1_i64, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32), brk_flags : Godot::TextServer::LineBreakFlag | Int = 3, justification_flags : Godot::TextServer::JustificationFlag | Int = 3, direction : Godot::TextServer::Direction | Int = 0, orientation : Godot::TextServer::Orientation | Int = 0, oversampling : Float64 = 0.0_f64) : Void
       godot_bind(@@mb_draw_multiline_string, "CanvasItem", "draw_multiline_string", 2341488182_i64)
       arg_ptr_0 = font ? font.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -9156,7 +9158,7 @@ module Godot
       Bridge.free_string(str_2)
     end
     @@mb_draw_string_outline : Void* = Pointer(Void).null
-    def draw_string_outline(font : Font, pos : Vector2, text : String, alignment : Godot::HorizontalAlignment | Int = 0, width : Float64 = -1.0_f64, font_size : Int64 = 16_i64, size : Int64 = 1_i64, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32), justification_flags : Godot::TextServer::JustificationFlag | Int = 3, direction : Godot::TextServer::Direction | Int = 0, orientation : Godot::TextServer::Orientation | Int = 0, oversampling : Float64 = 0.0_f64) : Void
+    def draw_string_outline(font : Font?, pos : Vector2, text : String, alignment : Godot::HorizontalAlignment | Int = 0, width : Float64 = -1.0_f64, font_size : Int64 = 16_i64, size : Int64 = 1_i64, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32), justification_flags : Godot::TextServer::JustificationFlag | Int = 3, direction : Godot::TextServer::Direction | Int = 0, orientation : Godot::TextServer::Orientation | Int = 0, oversampling : Float64 = 0.0_f64) : Void
       godot_bind(@@mb_draw_string_outline, "CanvasItem", "draw_string_outline", 707403449_i64)
       arg_ptr_0 = font ? font.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -9188,7 +9190,7 @@ module Godot
       Bridge.free_string(str_2)
     end
     @@mb_draw_multiline_string_outline : Void* = Pointer(Void).null
-    def draw_multiline_string_outline(font : Font, pos : Vector2, text : String, alignment : Godot::HorizontalAlignment | Int = 0, width : Float64 = -1.0_f64, font_size : Int64 = 16_i64, max_lines : Int64 = -1_i64, size : Int64 = 1_i64, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32), brk_flags : Godot::TextServer::LineBreakFlag | Int = 3, justification_flags : Godot::TextServer::JustificationFlag | Int = 3, direction : Godot::TextServer::Direction | Int = 0, orientation : Godot::TextServer::Orientation | Int = 0, oversampling : Float64 = 0.0_f64) : Void
+    def draw_multiline_string_outline(font : Font?, pos : Vector2, text : String, alignment : Godot::HorizontalAlignment | Int = 0, width : Float64 = -1.0_f64, font_size : Int64 = 16_i64, max_lines : Int64 = -1_i64, size : Int64 = 1_i64, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32), brk_flags : Godot::TextServer::LineBreakFlag | Int = 3, justification_flags : Godot::TextServer::JustificationFlag | Int = 3, direction : Godot::TextServer::Direction | Int = 0, orientation : Godot::TextServer::Orientation | Int = 0, oversampling : Float64 = 0.0_f64) : Void
       godot_bind(@@mb_draw_multiline_string_outline, "CanvasItem", "draw_multiline_string_outline", 3050414441_i64)
       arg_ptr_0 = font ? font.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -9224,7 +9226,7 @@ module Godot
       Bridge.free_string(str_2)
     end
     @@mb_draw_char : Void* = Pointer(Void).null
-    def draw_char(font : Font, pos : Vector2, char : String, font_size : Int64 = 16_i64, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32), oversampling : Float64 = 0.0_f64) : Void
+    def draw_char(font : Font?, pos : Vector2, char : String, font_size : Int64 = 16_i64, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32), oversampling : Float64 = 0.0_f64) : Void
       godot_bind(@@mb_draw_char, "CanvasItem", "draw_char", 1336210142_i64)
       arg_ptr_0 = font ? font.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -9244,7 +9246,7 @@ module Godot
       Bridge.free_string(str_2)
     end
     @@mb_draw_char_outline : Void* = Pointer(Void).null
-    def draw_char_outline(font : Font, pos : Vector2, char : String, font_size : Int64 = 16_i64, size : Int64 = -1_i64, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32), oversampling : Float64 = 0.0_f64) : Void
+    def draw_char_outline(font : Font?, pos : Vector2, char : String, font_size : Int64 = 16_i64, size : Int64 = -1_i64, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32), oversampling : Float64 = 0.0_f64) : Void
       godot_bind(@@mb_draw_char_outline, "CanvasItem", "draw_char_outline", 1846384149_i64)
       arg_ptr_0 = font ? font.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -9266,7 +9268,7 @@ module Godot
       Bridge.free_string(str_2)
     end
     @@mb_draw_mesh : Void* = Pointer(Void).null
-    def draw_mesh(mesh : Mesh, texture : Texture2D, transform : Transform2D, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32)) : Void
+    def draw_mesh(mesh : Mesh?, texture : Texture2D?, transform : Transform2D, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32)) : Void
       godot_bind(@@mb_draw_mesh, "CanvasItem", "draw_mesh", 153818295_i64)
       arg_ptr_0 = mesh ? mesh.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -9280,7 +9282,7 @@ module Godot
       godot_ptrcall_void(@@mb_draw_mesh, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_draw_multimesh : Void* = Pointer(Void).null
-    def draw_multimesh(multimesh : MultiMesh, texture : Texture2D) : Void
+    def draw_multimesh(multimesh : MultiMesh?, texture : Texture2D?) : Void
       godot_bind(@@mb_draw_multimesh, "CanvasItem", "draw_multimesh", 937992368_i64)
       arg_ptr_0 = multimesh ? multimesh.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -9389,7 +9391,7 @@ module Godot
       godot_ptrcall_obj(@@mb_get_world_2d, @pointer, Pointer(Pointer(Void)).null, World2D)
     end
     @@mb_set_material : Void* = Pointer(Void).null
-    def set_material(material : Material) : Void
+    def set_material(material : Material?) : Void
       godot_bind(@@mb_set_material, "CanvasItem", "set_material", 2757459619_i64)
       arg_ptr_0 = material ? material.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -9500,7 +9502,7 @@ module Godot
       godot_ptrcall_val(@@mb_make_canvas_position_local, @pointer, args.to_unsafe.as(Void**), Vector2)
     end
     @@mb_make_input_local : Void* = Pointer(Void).null
-    def make_input_local(event : InputEvent) : InputEvent
+    def make_input_local(event : InputEvent?) : InputEvent
       godot_bind(@@mb_make_input_local, "CanvasItem", "make_input_local", 811130057_i64)
       arg_ptr_0 = event ? event.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -9973,7 +9975,7 @@ module Godot
       godot_ptrcall_val(@@mb_to_global, @pointer, args.to_unsafe.as(Void**), Vector2)
     end
     @@mb_get_relative_transform_to_parent : Void* = Pointer(Void).null
-    def get_relative_transform_to_parent(parent : Node) : Transform2D
+    def get_relative_transform_to_parent(parent : Node?) : Transform2D
       godot_bind(@@mb_get_relative_transform_to_parent, "Node2D", "get_relative_transform_to_parent", 904556875_i64)
       arg_ptr_0 = parent ? parent.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -10113,7 +10115,7 @@ module Godot
       is_pickable()
     end
     @@mb_create_shape_owner : Void* = Pointer(Void).null
-    def create_shape_owner(owner : Godot::Object) : Int64
+    def create_shape_owner(owner : Godot::Object?) : Int64
       godot_bind(@@mb_create_shape_owner, "CollisionObject2D", "create_shape_owner", 3429307534_i64)
       arg_ptr_0 = owner ? owner.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -10250,7 +10252,7 @@ module Godot
       godot_ptrcall_void(@@mb_shape_owner_set_one_way_collision_direction, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_shape_owner_add_shape : Void* = Pointer(Void).null
-    def shape_owner_add_shape(owner_id : Int64, shape : Shape2D) : Void
+    def shape_owner_add_shape(owner_id : Int64, shape : Shape2D?) : Void
       godot_bind(@@mb_shape_owner_add_shape, "CollisionObject2D", "shape_owner_add_shape", 2077425081_i64)
       val_0 = owner_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
@@ -10413,7 +10415,7 @@ module Godot
       ret_ptr
     end
     @@mb_add_collision_exception_with : Void* = Pointer(Void).null
-    def add_collision_exception_with(body : Node) : Void
+    def add_collision_exception_with(body : Node?) : Void
       godot_bind(@@mb_add_collision_exception_with, "PhysicsBody2D", "add_collision_exception_with", 1078189570_i64)
       arg_ptr_0 = body ? body.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -10421,7 +10423,7 @@ module Godot
       godot_ptrcall_void(@@mb_add_collision_exception_with, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_remove_collision_exception_with : Void* = Pointer(Void).null
-    def remove_collision_exception_with(body : Node) : Void
+    def remove_collision_exception_with(body : Node?) : Void
       godot_bind(@@mb_remove_collision_exception_with, "PhysicsBody2D", "remove_collision_exception_with", 1078189570_i64)
       arg_ptr_0 = body ? body.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -10460,7 +10462,7 @@ module Godot
       godot_ptrcall_float(@@mb_get_constant_angular_velocity, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_set_physics_material_override : Void* = Pointer(Void).null
-    def set_physics_material_override(physics_material_override : PhysicsMaterial) : Void
+    def set_physics_material_override(physics_material_override : PhysicsMaterial?) : Void
       godot_bind(@@mb_set_physics_material_override, "StaticBody2D", "set_physics_material_override", 1784508650_i64)
       arg_ptr_0 = physics_material_override ? physics_material_override.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -10683,7 +10685,7 @@ module Godot
       godot_ptrcall_int(@@mb_get_rid, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_create_shape_owner : Void* = Pointer(Void).null
-    def create_shape_owner(owner : Godot::Object) : Int64
+    def create_shape_owner(owner : Godot::Object?) : Int64
       godot_bind(@@mb_create_shape_owner, "CollisionObject3D", "create_shape_owner", 3429307534_i64)
       arg_ptr_0 = owner ? owner.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -10758,7 +10760,7 @@ module Godot
       is_shape_owner_disabled(owner_id)
     end
     @@mb_shape_owner_add_shape : Void* = Pointer(Void).null
-    def shape_owner_add_shape(owner_id : Int64, shape : Shape3D) : Void
+    def shape_owner_add_shape(owner_id : Int64, shape : Shape3D?) : Void
       godot_bind(@@mb_shape_owner_add_shape, "CollisionObject3D", "shape_owner_add_shape", 2566676345_i64)
       val_0 = owner_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
@@ -10956,7 +10958,7 @@ module Godot
       ret_ptr
     end
     @@mb_add_collision_exception_with : Void* = Pointer(Void).null
-    def add_collision_exception_with(body : Node) : Void
+    def add_collision_exception_with(body : Node?) : Void
       godot_bind(@@mb_add_collision_exception_with, "PhysicsBody3D", "add_collision_exception_with", 1078189570_i64)
       arg_ptr_0 = body ? body.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -10964,7 +10966,7 @@ module Godot
       godot_ptrcall_void(@@mb_add_collision_exception_with, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_remove_collision_exception_with : Void* = Pointer(Void).null
-    def remove_collision_exception_with(body : Node) : Void
+    def remove_collision_exception_with(body : Node?) : Void
       godot_bind(@@mb_remove_collision_exception_with, "PhysicsBody3D", "remove_collision_exception_with", 1078189570_i64)
       arg_ptr_0 = body ? body.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -11069,7 +11071,7 @@ module Godot
       godot_ptrcall_val(@@mb_get_constant_angular_velocity, @pointer, Pointer(Pointer(Void)).null, Vector3)
     end
     @@mb_set_physics_material_override : Void* = Pointer(Void).null
-    def set_physics_material_override(physics_material_override : PhysicsMaterial) : Void
+    def set_physics_material_override(physics_material_override : PhysicsMaterial?) : Void
       godot_bind(@@mb_set_physics_material_override, "StaticBody3D", "set_physics_material_override", 1784508650_i64)
       arg_ptr_0 = physics_material_override ? physics_material_override.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -11148,7 +11150,7 @@ module Godot
       super(pointer)
     end
     @@mb_set_sprite_frames : Void* = Pointer(Void).null
-    def set_sprite_frames(sprite_frames : SpriteFrames) : Void
+    def set_sprite_frames(sprite_frames : SpriteFrames?) : Void
       godot_bind(@@mb_set_sprite_frames, "AnimatedSprite2D", "set_sprite_frames", 905781144_i64)
       arg_ptr_0 = sprite_frames ? sprite_frames.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -11608,7 +11610,7 @@ module Godot
       VisibilityRangeFadeDependencies = 2_i64
     end
     @@mb_set_material_override : Void* = Pointer(Void).null
-    def set_material_override(material : Material) : Void
+    def set_material_override(material : Material?) : Void
       godot_bind(@@mb_set_material_override, "GeometryInstance3D", "set_material_override", 2757459619_i64)
       arg_ptr_0 = material ? material.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -11621,7 +11623,7 @@ module Godot
       godot_ptrcall_obj(@@mb_get_material_override, @pointer, Pointer(Pointer(Void)).null, Material)
     end
     @@mb_set_material_overlay : Void* = Pointer(Void).null
-    def set_material_overlay(material : Material) : Void
+    def set_material_overlay(material : Material?) : Void
       godot_bind(@@mb_set_material_overlay, "GeometryInstance3D", "set_material_overlay", 2757459619_i64)
       arg_ptr_0 = material ? material.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -12437,7 +12439,7 @@ module Godot
       super(pointer)
     end
     @@mb_set_sprite_frames : Void* = Pointer(Void).null
-    def set_sprite_frames(sprite_frames : SpriteFrames) : Void
+    def set_sprite_frames(sprite_frames : SpriteFrames?) : Void
       godot_bind(@@mb_set_sprite_frames, "AnimatedSprite3D", "set_sprite_frames", 905781144_i64)
       arg_ptr_0 = sprite_frames ? sprite_frames.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -12816,7 +12818,7 @@ module Godot
       godot_ptrcall_obj(@@mb_duplicate_deep, @pointer, args.to_unsafe.as(Void**), Resource)
     end
     @@mb_copy_from_resource : Void* = Pointer(Void).null
-    def copy_from_resource(resource : Resource) : Godot::Error
+    def copy_from_resource(resource : Resource?) : Godot::Error
       godot_bind(@@mb_copy_from_resource, "Resource", "copy_from_resource", 3338311164_i64)
       arg_ptr_0 = resource ? resource.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -13052,7 +13054,7 @@ module Godot
       godot_ptrcall_float(@@mb_get_speed_scale, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_set_frame_texture : Void* = Pointer(Void).null
-    def set_frame_texture(frame : Int64, texture : Texture2D) : Void
+    def set_frame_texture(frame : Int64, texture : Texture2D?) : Void
       godot_bind(@@mb_set_frame_texture, "AnimatedTexture", "set_frame_texture", 666127730_i64)
       val_0 = frame.to_i64
       arg_0 = pointerof(val_0).as(Void*)
@@ -13750,7 +13752,7 @@ module Godot
       godot_ptrcall_float(@@mb_bezier_track_interpolate, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_audio_track_insert_key : Void* = Pointer(Void).null
-    def audio_track_insert_key(track_idx : Int64, time : Float64, stream : Resource, start_offset : Float64 = 0.0_f64, end_offset : Float64 = 0.0_f64) : Int64
+    def audio_track_insert_key(track_idx : Int64, time : Float64, stream : Resource?, start_offset : Float64 = 0.0_f64, end_offset : Float64 = 0.0_f64) : Int64
       godot_bind(@@mb_audio_track_insert_key, "Animation", "audio_track_insert_key", 4021027286_i64)
       val_0 = track_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
@@ -13766,7 +13768,7 @@ module Godot
       godot_ptrcall_int(@@mb_audio_track_insert_key, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_audio_track_set_key_stream : Void* = Pointer(Void).null
-    def audio_track_set_key_stream(track_idx : Int64, key_idx : Int64, stream : Resource) : Void
+    def audio_track_set_key_stream(track_idx : Int64, key_idx : Int64, stream : Resource?) : Void
       godot_bind(@@mb_audio_track_set_key_stream, "Animation", "audio_track_set_key_stream", 3886397084_i64)
       val_0 = track_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
@@ -14035,7 +14037,7 @@ module Godot
       godot_ptrcall_void(@@mb_clear, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_copy_track : Void* = Pointer(Void).null
-    def copy_track(track_idx : Int64, to_animation : Animation) : Void
+    def copy_track(track_idx : Int64, to_animation : Animation?) : Void
       godot_bind(@@mb_copy_track, "Animation", "copy_track", 148001024_i64)
       val_0 = track_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
@@ -14115,7 +14117,7 @@ module Godot
       super(pointer)
     end
     @@mb_add_animation : Void* = Pointer(Void).null
-    def add_animation(name : String, animation : Animation) : Godot::Error
+    def add_animation(name : String, animation : Animation?) : Godot::Error
       godot_bind(@@mb_add_animation, "AnimationLibrary", "add_animation", 1811855551_i64)
       sn_0 = Bridge.make_string_name(name)
       arg_0 = sn_0
@@ -14209,7 +14211,7 @@ module Godot
       AnimationCallbackModeDiscreteForceContinuous = 2_i64
     end
     @@mb_add_animation_library : Void* = Pointer(Void).null
-    def add_animation_library(name : String, library : AnimationLibrary) : Godot::Error
+    def add_animation_library(name : String, library : AnimationLibrary?) : Godot::Error
       godot_bind(@@mb_add_animation_library, "AnimationMixer", "add_animation_library", 618909818_i64)
       sn_0 = Bridge.make_string_name(name)
       arg_0 = sn_0
@@ -14531,7 +14533,7 @@ module Godot
       is_reset_on_save_enabled()
     end
     @@mb_find_animation : Void* = Pointer(Void).null
-    def find_animation(animation : Animation) : String
+    def find_animation(animation : Animation?) : String
       godot_bind(@@mb_find_animation, "AnimationMixer", "find_animation", 1559484580_i64)
       arg_ptr_0 = animation ? animation.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -14539,7 +14541,7 @@ module Godot
       godot_call_str("find_animation", animation)
     end
     @@mb_find_animation_library : Void* = Pointer(Void).null
-    def find_animation_library(animation : Animation) : String
+    def find_animation_library(animation : Animation?) : String
       godot_bind(@@mb_find_animation_library, "AnimationMixer", "find_animation_library", 1559484580_i64)
       arg_ptr_0 = animation ? animation.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -14800,7 +14802,7 @@ module Godot
       Bridge.free_string_name(sn_0)
     end
     @@mb_blend_node : Void* = Pointer(Void).null
-    def blend_node(name : String, node : AnimationNode, time : Float64, seek : Bool, is_external_seeking : Bool, blend : Float64, filter : FilterAction | Int = 0, sync : Bool = true, test_only : Bool = false) : Float64
+    def blend_node(name : String, node : AnimationNode?, time : Float64, seek : Bool, is_external_seeking : Bool, blend : Float64, filter : FilterAction | Int = 0, sync : Bool = true, test_only : Bool = false) : Float64
       godot_bind(@@mb_blend_node, "AnimationNode", "blend_node", 1746075988_i64)
       sn_0 = Bridge.make_string_name(name)
       arg_0 = sn_0
@@ -15181,7 +15183,7 @@ module Godot
       SyncModeCyclicConstant = 3_i64
     end
     @@mb_add_blend_point : Void* = Pointer(Void).null
-    def add_blend_point(node : AnimationRootNode, pos : Float64, at_index : Int64 = -1_i64, name : String = "") : Void
+    def add_blend_point(node : AnimationRootNode?, pos : Float64, at_index : Int64 = -1_i64, name : String = "") : Void
       godot_bind(@@mb_add_blend_point, "AnimationNodeBlendSpace1D", "add_blend_point", 398361042_i64)
       arg_ptr_0 = node ? node.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -15215,7 +15217,7 @@ module Godot
       godot_ptrcall_float(@@mb_get_blend_point_position, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_set_blend_point_node : Void* = Pointer(Void).null
-    def set_blend_point_node(point : Int64, node : AnimationRootNode) : Void
+    def set_blend_point_node(point : Int64, node : AnimationRootNode?) : Void
       godot_bind(@@mb_set_blend_point_node, "AnimationNodeBlendSpace1D", "set_blend_point_node", 4240341528_i64)
       val_0 = point.to_i64
       arg_0 = pointerof(val_0).as(Void*)
@@ -15483,7 +15485,7 @@ module Godot
       SyncModeCyclicConstant = 3_i64
     end
     @@mb_add_blend_point : Void* = Pointer(Void).null
-    def add_blend_point(node : AnimationRootNode, pos : Vector2, at_index : Int64 = -1_i64, name : String = "") : Void
+    def add_blend_point(node : AnimationRootNode?, pos : Vector2, at_index : Int64 = -1_i64, name : String = "") : Void
       godot_bind(@@mb_add_blend_point, "AnimationNodeBlendSpace2D", "add_blend_point", 768750458_i64)
       arg_ptr_0 = node ? node.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -15517,7 +15519,7 @@ module Godot
       godot_ptrcall_val(@@mb_get_blend_point_position, @pointer, args.to_unsafe.as(Void**), Vector2)
     end
     @@mb_set_blend_point_node : Void* = Pointer(Void).null
-    def set_blend_point_node(point : Int64, node : AnimationRootNode) : Void
+    def set_blend_point_node(point : Int64, node : AnimationRootNode?) : Void
       godot_bind(@@mb_set_blend_point_node, "AnimationNodeBlendSpace2D", "set_blend_point_node", 4240341528_i64)
       val_0 = point.to_i64
       arg_0 = pointerof(val_0).as(Void*)
@@ -15870,7 +15872,7 @@ module Godot
     CONNECTION_ERROR_CONNECTION_EXISTS = 5_i64
 
     @@mb_add_node : Void* = Pointer(Void).null
-    def add_node(name : String, node : AnimationNode, position : Vector2 = Vector2.new(0.to_f32, 0.to_f32)) : Void
+    def add_node(name : String, node : AnimationNode?, position : Vector2 = Vector2.new(0.to_f32, 0.to_f32)) : Void
       godot_bind(@@mb_add_node, "AnimationNodeBlendTree", "add_node", 1980270704_i64)
       sn_0 = Bridge.make_string_name(name)
       arg_0 = sn_0
@@ -16111,7 +16113,7 @@ module Godot
       godot_ptrcall_float(@@mb_get_fadein_time, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_set_fadein_curve : Void* = Pointer(Void).null
-    def set_fadein_curve(curve : Curve) : Void
+    def set_fadein_curve(curve : Curve?) : Void
       godot_bind(@@mb_set_fadein_curve, "AnimationNodeOneShot", "set_fadein_curve", 270443179_i64)
       arg_ptr_0 = curve ? curve.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -16137,7 +16139,7 @@ module Godot
       godot_ptrcall_float(@@mb_get_fadeout_time, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_set_fadeout_curve : Void* = Pointer(Void).null
-    def set_fadeout_curve(curve : Curve) : Void
+    def set_fadeout_curve(curve : Curve?) : Void
       godot_bind(@@mb_set_fadeout_curve, "AnimationNodeOneShot", "set_fadeout_curve", 270443179_i64)
       arg_ptr_0 = curve ? curve.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -16352,7 +16354,7 @@ module Godot
       StateMachineTypeGrouped = 2_i64
     end
     @@mb_add_node : Void* = Pointer(Void).null
-    def add_node(name : String, node : AnimationNode, position : Vector2 = Vector2.new(0.to_f32, 0.to_f32)) : Void
+    def add_node(name : String, node : AnimationNode?, position : Vector2 = Vector2.new(0.to_f32, 0.to_f32)) : Void
       godot_bind(@@mb_add_node, "AnimationNodeStateMachine", "add_node", 1980270704_i64)
       sn_0 = Bridge.make_string_name(name)
       arg_0 = sn_0
@@ -16366,7 +16368,7 @@ module Godot
       Bridge.free_string_name(sn_0)
     end
     @@mb_replace_node : Void* = Pointer(Void).null
-    def replace_node(name : String, node : AnimationNode) : Void
+    def replace_node(name : String, node : AnimationNode?) : Void
       godot_bind(@@mb_replace_node, "AnimationNodeStateMachine", "replace_node", 2559412862_i64)
       sn_0 = Bridge.make_string_name(name)
       arg_0 = sn_0
@@ -16425,7 +16427,7 @@ module Godot
       has_node(name)
     end
     @@mb_get_node_name : Void* = Pointer(Void).null
-    def get_node_name(node : AnimationNode) : String
+    def get_node_name(node : AnimationNode?) : String
       godot_bind(@@mb_get_node_name, "AnimationNodeStateMachine", "get_node_name", 739213945_i64)
       arg_ptr_0 = node ? node.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -16479,7 +16481,7 @@ module Godot
       has_transition(from, to)
     end
     @@mb_add_transition : Void* = Pointer(Void).null
-    def add_transition(from : String, to : String, transition : AnimationNodeStateMachineTransition) : Void
+    def add_transition(from : String, to : String, transition : AnimationNodeStateMachineTransition?) : Void
       godot_bind(@@mb_add_transition, "AnimationNodeStateMachine", "add_transition", 795486887_i64)
       sn_0 = Bridge.make_string_name(from)
       arg_0 = sn_0
@@ -16809,7 +16811,7 @@ module Godot
       godot_ptrcall_float(@@mb_get_xfade_time, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_set_xfade_curve : Void* = Pointer(Void).null
-    def set_xfade_curve(curve : Curve) : Void
+    def set_xfade_curve(curve : Curve?) : Void
       godot_bind(@@mb_set_xfade_curve, "AnimationNodeStateMachineTransition", "set_xfade_curve", 270443179_i64)
       arg_ptr_0 = curve ? curve.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -17116,7 +17118,7 @@ module Godot
       godot_ptrcall_float(@@mb_get_xfade_time, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_set_xfade_curve : Void* = Pointer(Void).null
-    def set_xfade_curve(curve : Curve) : Void
+    def set_xfade_curve(curve : Curve?) : Void
       godot_bind(@@mb_set_xfade_curve, "AnimationNodeTransition", "set_xfade_curve", 270443179_i64)
       arg_ptr_0 = curve ? curve.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -17839,7 +17841,7 @@ module Godot
       AnimationProcessManual = 2_i64
     end
     @@mb_set_tree_root : Void* = Pointer(Void).null
-    def set_tree_root(animation_node : AnimationRootNode) : Void
+    def set_tree_root(animation_node : AnimationRootNode?) : Void
       godot_bind(@@mb_set_tree_root, "AnimationTree", "set_tree_root", 2581683800_i64)
       arg_ptr_0 = animation_node ? animation_node.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -18157,7 +18159,7 @@ module Godot
       has_overlapping_areas()
     end
     @@mb_overlaps_body : Void* = Pointer(Void).null
-    def overlaps_body(body : Node) : Bool
+    def overlaps_body(body : Node?) : Bool
       godot_bind(@@mb_overlaps_body, "Area2D", "overlaps_body", 3093956946_i64)
       arg_ptr_0 = body ? body.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -18165,11 +18167,11 @@ module Godot
       godot_ptrcall_bool(@@mb_overlaps_body, @pointer, args.to_unsafe.as(Void**))
     end
     # Predicate alias for `overlaps_body`
-    def overlaps_body?(body : Node) : Bool
+    def overlaps_body?(body : Node?) : Bool
       overlaps_body(body)
     end
     @@mb_overlaps_area : Void* = Pointer(Void).null
-    def overlaps_area(area : Node) : Bool
+    def overlaps_area(area : Node?) : Bool
       godot_bind(@@mb_overlaps_area, "Area2D", "overlaps_area", 3093956946_i64)
       arg_ptr_0 = area ? area.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -18177,7 +18179,7 @@ module Godot
       godot_ptrcall_bool(@@mb_overlaps_area, @pointer, args.to_unsafe.as(Void**))
     end
     # Predicate alias for `overlaps_area`
-    def overlaps_area?(area : Node) : Bool
+    def overlaps_area?(area : Node?) : Bool
       overlaps_area(area)
     end
     @@mb_set_audio_bus_name : Void* = Pointer(Void).null
@@ -18629,7 +18631,7 @@ module Godot
       has_overlapping_areas()
     end
     @@mb_overlaps_body : Void* = Pointer(Void).null
-    def overlaps_body(body : Node) : Bool
+    def overlaps_body(body : Node?) : Bool
       godot_bind(@@mb_overlaps_body, "Area3D", "overlaps_body", 3093956946_i64)
       arg_ptr_0 = body ? body.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -18637,11 +18639,11 @@ module Godot
       godot_ptrcall_bool(@@mb_overlaps_body, @pointer, args.to_unsafe.as(Void**))
     end
     # Predicate alias for `overlaps_body`
-    def overlaps_body?(body : Node) : Bool
+    def overlaps_body?(body : Node?) : Bool
       overlaps_body(body)
     end
     @@mb_overlaps_area : Void* = Pointer(Void).null
-    def overlaps_area(area : Node) : Bool
+    def overlaps_area(area : Node?) : Bool
       godot_bind(@@mb_overlaps_area, "Area3D", "overlaps_area", 3093956946_i64)
       arg_ptr_0 = area ? area.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -18649,7 +18651,7 @@ module Godot
       godot_ptrcall_bool(@@mb_overlaps_area, @pointer, args.to_unsafe.as(Void**))
     end
     # Predicate alias for `overlaps_area`
-    def overlaps_area?(area : Node) : Bool
+    def overlaps_area?(area : Node?) : Bool
       overlaps_area(area)
     end
     @@mb_set_audio_bus_override : Void* = Pointer(Void).null
@@ -19202,7 +19204,7 @@ module Godot
       godot_ptrcall_enum(@@mb_get_bake_mode, @pointer, Pointer(Pointer(Void)).null, BakeMode)
     end
     @@mb_set_projector : Void* = Pointer(Void).null
-    def set_projector(projector : Texture2D) : Void
+    def set_projector(projector : Texture2D?) : Void
       godot_bind(@@mb_set_projector, "Light3D", "set_projector", 4051416890_i64)
       arg_ptr_0 = projector ? projector.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -19482,7 +19484,7 @@ module Godot
       super(pointer)
     end
     @@mb_set_area_texture : Void* = Pointer(Void).null
-    def set_area_texture(texture : Texture2D) : Void
+    def set_area_texture(texture : Texture2D?) : Void
       godot_bind(@@mb_set_area_texture, "AreaLight3D", "set_area_texture", 4051416890_i64)
       arg_ptr_0 = texture ? texture.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -19695,7 +19697,7 @@ module Godot
       ret_ptr
     end
     @@mb_surface_set_material : Void* = Pointer(Void).null
-    def surface_set_material(surf_idx : Int64, material : Material) : Void
+    def surface_set_material(surf_idx : Int64, material : Material?) : Void
       godot_bind(@@mb_surface_set_material, "Mesh", "surface_set_material", 3671737478_i64)
       val_0 = surf_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
@@ -19967,7 +19969,7 @@ module Godot
       godot_ptrcall_val(@@mb_get_custom_aabb, @pointer, Pointer(Pointer(Void)).null, AABB)
     end
     @@mb_set_shadow_mesh : Void* = Pointer(Void).null
-    def set_shadow_mesh(mesh : ArrayMesh) : Void
+    def set_shadow_mesh(mesh : ArrayMesh?) : Void
       godot_bind(@@mb_set_shadow_mesh, "ArrayMesh", "set_shadow_mesh", 3377897901_i64)
       arg_ptr_0 = mesh ? mesh.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -20589,7 +20591,7 @@ module Godot
       godot_ptrcall_obj(@@mb_find_valid_focus_neighbor, @pointer, args.to_unsafe.as(Void**), Control)
     end
     @@mb_play_theme_sound : Void* = Pointer(Void).null
-    def play_theme_sound(stream : AudioStream) : Void
+    def play_theme_sound(stream : AudioStream?) : Void
       godot_bind(@@mb_play_theme_sound, "Control", "play_theme_sound", 2210767741_i64)
       arg_ptr_0 = stream ? stream.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -20756,7 +20758,7 @@ module Godot
       is_offset_transform_visual_only()
     end
     @@mb_set_theme : Void* = Pointer(Void).null
-    def set_theme(theme : Theme) : Void
+    def set_theme(theme : Theme?) : Void
       godot_bind(@@mb_set_theme, "Control", "set_theme", 2326690814_i64)
       arg_ptr_0 = theme ? theme.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -20794,7 +20796,7 @@ module Godot
       godot_ptrcall_void(@@mb_end_bulk_theme_override, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_add_theme_icon_override : Void* = Pointer(Void).null
-    def add_theme_icon_override(name : String, texture : Texture2D) : Void
+    def add_theme_icon_override(name : String, texture : Texture2D?) : Void
       godot_bind(@@mb_add_theme_icon_override, "Control", "add_theme_icon_override", 1373065600_i64)
       sn_0 = Bridge.make_string_name(name)
       arg_0 = sn_0
@@ -20806,7 +20808,7 @@ module Godot
       Bridge.free_string_name(sn_0)
     end
     @@mb_add_theme_stylebox_override : Void* = Pointer(Void).null
-    def add_theme_stylebox_override(name : String, stylebox : StyleBox) : Void
+    def add_theme_stylebox_override(name : String, stylebox : StyleBox?) : Void
       godot_bind(@@mb_add_theme_stylebox_override, "Control", "add_theme_stylebox_override", 4188838905_i64)
       sn_0 = Bridge.make_string_name(name)
       arg_0 = sn_0
@@ -20818,7 +20820,7 @@ module Godot
       Bridge.free_string_name(sn_0)
     end
     @@mb_add_theme_font_override : Void* = Pointer(Void).null
-    def add_theme_font_override(name : String, font : Font) : Void
+    def add_theme_font_override(name : String, font : Font?) : Void
       godot_bind(@@mb_add_theme_font_override, "Control", "add_theme_font_override", 3518018674_i64)
       sn_0 = Bridge.make_string_name(name)
       arg_0 = sn_0
@@ -20866,7 +20868,7 @@ module Godot
       Bridge.free_string_name(sn_0)
     end
     @@mb_add_theme_sound_override : Void* = Pointer(Void).null
-    def add_theme_sound_override(name : String, audio : AudioStream) : Void
+    def add_theme_sound_override(name : String, audio : AudioStream?) : Void
       godot_bind(@@mb_add_theme_sound_override, "Control", "add_theme_sound_override", 3407455952_i64)
       sn_0 = Bridge.make_string_name(name)
       arg_0 = sn_0
@@ -21424,7 +21426,7 @@ module Godot
       NodePath.new(godot_call_str("get_focus_previous"))
     end
     @@mb_force_drag : Void* = Pointer(Void).null
-    def force_drag(data : Pointer(Void), preview : Control) : Void
+    def force_drag(data : Pointer(Void), preview : Control?) : Void
       godot_bind(@@mb_force_drag, "Control", "force_drag", 3191844692_i64)
       val_0 = data
       arg_0 = pointerof(val_0).as(Void*)
@@ -21637,7 +21639,7 @@ module Godot
       godot_ptrcall_void(@@mb_set_drag_forwarding, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_set_drag_preview : Void* = Pointer(Void).null
-    def set_drag_preview(control : Control) : Void
+    def set_drag_preview(control : Control?) : Void
       godot_bind(@@mb_set_drag_preview, "Control", "set_drag_preview", 1496901182_i64)
       arg_ptr_0 = control ? control.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -21666,7 +21668,7 @@ module Godot
       godot_ptrcall_void(@@mb_warp_mouse, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_set_shortcut_context : Void* = Pointer(Void).null
-    def set_shortcut_context(node : Node) : Void
+    def set_shortcut_context(node : Node?) : Void
       godot_bind(@@mb_set_shortcut_context, "Control", "set_shortcut_context", 1078189570_i64)
       arg_ptr_0 = node ? node.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -22243,7 +22245,7 @@ module Godot
       godot_ptrcall_void(@@mb_queue_sort, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_fit_child_in_rect : Void* = Pointer(Void).null
-    def fit_child_in_rect(child : Control, rect : Rect2) : Void
+    def fit_child_in_rect(child : Control?, rect : Rect2) : Void
       godot_bind(@@mb_fit_child_in_rect, "Container", "fit_child_in_rect", 1993438598_i64)
       arg_ptr_0 = child ? child.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -22389,7 +22391,7 @@ module Godot
       super(pointer)
     end
     @@mb_set_atlas : Void* = Pointer(Void).null
-    def set_atlas(atlas : Texture2D) : Void
+    def set_atlas(atlas : Texture2D?) : Void
       godot_bind(@@mb_set_atlas, "AtlasTexture", "set_atlas", 4051416890_i64)
       arg_ptr_0 = atlas ? atlas.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -24708,7 +24710,7 @@ module Godot
       instance.bus_bypassing_effects?(bus_idx)
     end
     @@mb_add_bus_effect : Void* = Pointer(Void).null
-    def add_bus_effect(bus_idx : Int64, effect : AudioEffect, at_position : Int64 = -1_i64) : Void
+    def add_bus_effect(bus_idx : Int64, effect : AudioEffect?, at_position : Int64 = -1_i64) : Void
       godot_bind(@@mb_add_bus_effect, "AudioServer", "add_bus_effect", 4068819785_i64)
       val_0 = bus_idx.to_i64
       arg_0 = pointerof(val_0).as(Void*)
@@ -24720,7 +24722,7 @@ module Godot
       godot_ptrcall_void(@@mb_add_bus_effect, @pointer, args.to_unsafe.as(Void**))
     end
     # Class-level singleton delegator for `add_bus_effect`
-    def self.add_bus_effect(bus_idx : Int64, effect : AudioEffect, at_position : Int64 = -1_i64) : Void
+    def self.add_bus_effect(bus_idx : Int64, effect : AudioEffect?, at_position : Int64 = -1_i64) : Void
       instance.add_bus_effect(bus_idx, effect, at_position)
     end
     @@mb_remove_bus_effect : Void* = Pointer(Void).null
@@ -25084,7 +25086,7 @@ module Godot
       instance.get_input_frames(frames)
     end
     @@mb_set_bus_layout : Void* = Pointer(Void).null
-    def set_bus_layout(bus_layout : AudioBusLayout) : Void
+    def set_bus_layout(bus_layout : AudioBusLayout?) : Void
       godot_bind(@@mb_set_bus_layout, "AudioServer", "set_bus_layout", 3319058824_i64)
       arg_ptr_0 = bus_layout ? bus_layout.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -25092,7 +25094,7 @@ module Godot
       godot_ptrcall_void(@@mb_set_bus_layout, @pointer, args.to_unsafe.as(Void**))
     end
     # Class-level singleton delegator for `set_bus_layout`
-    def self.set_bus_layout(bus_layout : AudioBusLayout) : Void
+    def self.set_bus_layout(bus_layout : AudioBusLayout?) : Void
       instance.set_bus_layout(bus_layout)
     end
     @@mb_generate_bus_layout : Void* = Pointer(Void).null
@@ -25117,7 +25119,7 @@ module Godot
       instance.set_enable_tagging_used_audio_streams(enable)
     end
     @@mb_is_stream_registered_as_sample : Void* = Pointer(Void).null
-    def is_stream_registered_as_sample(stream : AudioStream) : Bool
+    def is_stream_registered_as_sample(stream : AudioStream?) : Bool
       godot_bind(@@mb_is_stream_registered_as_sample, "AudioServer", "is_stream_registered_as_sample", 500225754_i64)
       arg_ptr_0 = stream ? stream.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -25125,27 +25127,27 @@ module Godot
       godot_ptrcall_bool(@@mb_is_stream_registered_as_sample, @pointer, args.to_unsafe.as(Void**))
     end
     # Class-level singleton delegator for `is_stream_registered_as_sample`
-    def self.is_stream_registered_as_sample(stream : AudioStream) : Bool
+    def self.is_stream_registered_as_sample(stream : AudioStream?) : Bool
       instance.is_stream_registered_as_sample(stream)
     end
     # Predicate alias for `is_stream_registered_as_sample`
-    def is_stream_registered_as_sample?(stream : AudioStream) : Bool
+    def is_stream_registered_as_sample?(stream : AudioStream?) : Bool
       is_stream_registered_as_sample(stream)
     end
     # Class-level singleton predicate delegator for `is_stream_registered_as_sample?`
-    def self.is_stream_registered_as_sample?(stream : AudioStream) : Bool
+    def self.is_stream_registered_as_sample?(stream : AudioStream?) : Bool
       instance.is_stream_registered_as_sample?(stream)
     end
     # Predicate alias for `is_stream_registered_as_sample`
-    def stream_registered_as_sample?(stream : AudioStream) : Bool
+    def stream_registered_as_sample?(stream : AudioStream?) : Bool
       is_stream_registered_as_sample(stream)
     end
     # Class-level singleton predicate delegator for `stream_registered_as_sample?`
-    def self.stream_registered_as_sample?(stream : AudioStream) : Bool
+    def self.stream_registered_as_sample?(stream : AudioStream?) : Bool
       instance.stream_registered_as_sample?(stream)
     end
     @@mb_register_stream_as_sample : Void* = Pointer(Void).null
-    def register_stream_as_sample(stream : AudioStream) : Void
+    def register_stream_as_sample(stream : AudioStream?) : Void
       godot_bind(@@mb_register_stream_as_sample, "AudioServer", "register_stream_as_sample", 2210767741_i64)
       arg_ptr_0 = stream ? stream.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -25153,7 +25155,7 @@ module Godot
       godot_ptrcall_void(@@mb_register_stream_as_sample, @pointer, args.to_unsafe.as(Void**))
     end
     # Class-level singleton delegator for `register_stream_as_sample`
-    def self.register_stream_as_sample(stream : AudioStream) : Void
+    def self.register_stream_as_sample(stream : AudioStream?) : Void
       instance.register_stream_as_sample(stream)
     end
     # Property `bus_count` getter
@@ -25350,7 +25352,7 @@ module Godot
       super(pointer)
     end
     @@mb_set_sample_playback : Void* = Pointer(Void).null
-    def set_sample_playback(playback_sample : AudioSamplePlayback) : Void
+    def set_sample_playback(playback_sample : AudioSamplePlayback?) : Void
       godot_bind(@@mb_set_sample_playback, "AudioStreamPlayback", "set_sample_playback", 3195455091_i64)
       arg_ptr_0 = playback_sample ? playback_sample.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -25561,7 +25563,7 @@ module Godot
       godot_call_str("get_clip_name", clip_index)
     end
     @@mb_set_clip_stream : Void* = Pointer(Void).null
-    def set_clip_stream(clip_index : Int64, stream : AudioStream) : Void
+    def set_clip_stream(clip_index : Int64, stream : AudioStream?) : Void
       godot_bind(@@mb_set_clip_stream, "AudioStreamInteractive", "set_clip_stream", 111075094_i64)
       val_0 = clip_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
@@ -25974,7 +25976,7 @@ module Godot
       self.class.load_from_file(path)
     end
     @@mb_set_packet_sequence : Void* = Pointer(Void).null
-    def set_packet_sequence(packet_sequence : OggPacketSequence) : Void
+    def set_packet_sequence(packet_sequence : OggPacketSequence?) : Void
       godot_bind(@@mb_set_packet_sequence, "AudioStreamOggVorbis", "set_packet_sequence", 438882457_i64)
       arg_ptr_0 = packet_sequence ? packet_sequence.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -26175,7 +26177,7 @@ module Godot
     INVALID_ID = -1_i64
 
     @@mb_play_stream : Void* = Pointer(Void).null
-    def play_stream(stream : AudioStream, from_offset : Float64 = 0.0_f64, volume_db : Float64 = 0.0_f64, pitch_scale : Float64 = 1.0_f64, playback_type : Godot::AudioServer::PlaybackType | Int = 0, bus : String = "Master") : Int64
+    def play_stream(stream : AudioStream?, from_offset : Float64 = 0.0_f64, volume_db : Float64 = 0.0_f64, pitch_scale : Float64 = 1.0_f64, playback_type : Godot::AudioServer::PlaybackType | Int = 0, bus : String = "Master") : Int64
       godot_bind(@@mb_play_stream, "AudioStreamPlaybackPolyphonic", "play_stream", 1846744803_i64)
       arg_ptr_0 = stream ? stream.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -26254,7 +26256,7 @@ module Godot
       MixTargetCenter = 2_i64
     end
     @@mb_set_stream : Void* = Pointer(Void).null
-    def set_stream(stream : AudioStream) : Void
+    def set_stream(stream : AudioStream?) : Void
       godot_bind(@@mb_set_stream, "AudioStreamPlayer", "set_stream", 2210767741_i64)
       arg_ptr_0 = stream ? stream.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -26559,7 +26561,7 @@ module Godot
       super(pointer)
     end
     @@mb_set_stream : Void* = Pointer(Void).null
-    def set_stream(stream : AudioStream) : Void
+    def set_stream(stream : AudioStream?) : Void
       godot_bind(@@mb_set_stream, "AudioStreamPlayer2D", "set_stream", 2210767741_i64)
       arg_ptr_0 = stream ? stream.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -26938,7 +26940,7 @@ module Godot
       DopplerTrackingPhysicsStep = 2_i64
     end
     @@mb_set_stream : Void* = Pointer(Void).null
-    def set_stream(stream : AudioStream) : Void
+    def set_stream(stream : AudioStream?) : Void
       godot_bind(@@mb_set_stream, "AudioStreamPlayer3D", "set_stream", 2210767741_i64)
       arg_ptr_0 = stream ? stream.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -27502,7 +27504,7 @@ module Godot
       godot_ptrcall_float(@@mb_get_bpm, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_set_list_stream : Void* = Pointer(Void).null
-    def set_list_stream(stream_index : Int64, audio_stream : AudioStream) : Void
+    def set_list_stream(stream_index : Int64, audio_stream : AudioStream?) : Void
       godot_bind(@@mb_set_list_stream, "AudioStreamPlaylist", "set_list_stream", 111075094_i64)
       val_0 = stream_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
@@ -28153,7 +28155,7 @@ module Godot
       PlaybackSequential = 2_i64
     end
     @@mb_add_stream : Void* = Pointer(Void).null
-    def add_stream(index : Int64, stream : AudioStream, weight : Float64 = 1.0_f64) : Void
+    def add_stream(index : Int64, stream : AudioStream?, weight : Float64 = 1.0_f64) : Void
       godot_bind(@@mb_add_stream, "AudioStreamRandomizer", "add_stream", 1892018854_i64)
       val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
@@ -28183,7 +28185,7 @@ module Godot
       godot_ptrcall_void(@@mb_remove_stream, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_set_stream : Void* = Pointer(Void).null
-    def set_stream(index : Int64, stream : AudioStream) : Void
+    def set_stream(index : Int64, stream : AudioStream?) : Void
       godot_bind(@@mb_set_stream, "AudioStreamRandomizer", "set_stream", 111075094_i64)
       val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
@@ -28344,7 +28346,7 @@ module Godot
       godot_ptrcall_int(@@mb_get_stream_count, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_set_sync_stream : Void* = Pointer(Void).null
-    def set_sync_stream(stream_index : Int64, audio_stream : AudioStream) : Void
+    def set_sync_stream(stream_index : Int64, audio_stream : AudioStream?) : Void
       godot_bind(@@mb_set_sync_stream, "AudioStreamSynchronized", "set_sync_stream", 111075094_i64)
       val_0 = stream_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
@@ -28895,7 +28897,7 @@ module Godot
       is_shortcut_feedback()
     end
     @@mb_set_shortcut : Void* = Pointer(Void).null
-    def set_shortcut(shortcut : Shortcut) : Void
+    def set_shortcut(shortcut : Shortcut?) : Void
       godot_bind(@@mb_set_shortcut, "BaseButton", "set_shortcut", 857163497_i64)
       arg_ptr_0 = shortcut ? shortcut.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -28908,7 +28910,7 @@ module Godot
       godot_ptrcall_obj(@@mb_get_shortcut, @pointer, Pointer(Pointer(Void)).null, Shortcut)
     end
     @@mb_set_button_group : Void* = Pointer(Void).null
-    def set_button_group(button_group : ButtonGroup) : Void
+    def set_button_group(button_group : ButtonGroup?) : Void
       godot_bind(@@mb_set_button_group, "BaseButton", "set_button_group", 1794463739_i64)
       arg_ptr_0 = button_group ? button_group.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -29019,7 +29021,7 @@ module Godot
     RENDER_PRIORITY_MIN = -128_i64
 
     @@mb_set_next_pass : Void* = Pointer(Void).null
-    def set_next_pass(next_pass : Material) : Void
+    def set_next_pass(next_pass : Material?) : Void
       godot_bind(@@mb_set_next_pass, "Material", "set_next_pass", 2757459619_i64)
       arg_ptr_0 = next_pass ? next_pass.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -29723,7 +29725,7 @@ module Godot
       get_feature(feature)
     end
     @@mb_set_texture : Void* = Pointer(Void).null
-    def set_texture(param : TextureParam | Int, texture : Texture2D) : Void
+    def set_texture(param : TextureParam | Int, texture : Texture2D?) : Void
       godot_bind(@@mb_set_texture, "BaseMaterial3D", "set_texture", 464208135_i64)
       val_0 = param.is_a?(Int) ? param.to_i64 : param.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
@@ -31511,7 +31513,7 @@ module Godot
       godot_ptrcall_void(@@mb_create, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_create_from_image_alpha : Void* = Pointer(Void).null
-    def create_from_image_alpha(image : Image, threshold : Float64 = 0.1_f64) : Void
+    def create_from_image_alpha(image : Image?, threshold : Float64 = 0.1_f64) : Void
       godot_bind(@@mb_create_from_image_alpha, "BitMap", "create_from_image_alpha", 106271684_i64)
       arg_ptr_0 = image ? image.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -31898,7 +31900,7 @@ module Godot
       godot_ptrcall_obj(@@mb_get_profile, @pointer, Pointer(Pointer(Void)).null, SkeletonProfile)
     end
     @@mb_set_profile : Void* = Pointer(Void).null
-    def set_profile(profile : SkeletonProfile) : Void
+    def set_profile(profile : SkeletonProfile?) : Void
       godot_bind(@@mb_set_profile, "BoneMap", "set_profile", 3870374136_i64)
       arg_ptr_0 = profile ? profile.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -32359,7 +32361,7 @@ module Godot
       godot_ptrcall_float(@@mb_get_weight_position, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_set_damping_curve : Void* = Pointer(Void).null
-    def set_damping_curve(index : Int64, curve : Curve) : Void
+    def set_damping_curve(index : Int64, curve : Curve?) : Void
       godot_bind(@@mb_set_damping_curve, "BoneTwistDisperser3D", "set_damping_curve", 1447180063_i64)
       val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
@@ -32548,7 +32550,7 @@ module Godot
       super(pointer)
     end
     @@mb_set_material : Void* = Pointer(Void).null
-    def set_material(material : Material) : Void
+    def set_material(material : Material?) : Void
       godot_bind(@@mb_set_material, "PrimitiveMesh", "set_material", 2757459619_i64)
       arg_ptr_0 = material ? material.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -32951,7 +32953,7 @@ module Godot
       godot_call_str("get_language")
     end
     @@mb_set_button_icon : Void* = Pointer(Void).null
-    def set_button_icon(texture : Texture2D) : Void
+    def set_button_icon(texture : Texture2D?) : Void
       godot_bind(@@mb_set_button_icon, "Button", "set_button_icon", 4051416890_i64)
       arg_ptr_0 = texture ? texture.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -33576,7 +33578,7 @@ module Godot
       godot_ptrcall_val(@@mb_get_joint_rotation_axis_vector, @pointer, args.to_unsafe.as(Void**), Vector3)
     end
     @@mb_set_joint_limitation : Void* = Pointer(Void).null
-    def set_joint_limitation(index : Int64, joint : Int64, limitation : JointLimitation3D) : Void
+    def set_joint_limitation(index : Int64, joint : Int64, limitation : JointLimitation3D?) : Void
       godot_bind(@@mb_set_joint_limitation, "IterateIK3D", "set_joint_limitation", 1194636955_i64)
       val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
@@ -34008,7 +34010,7 @@ module Godot
       godot_ptrcall_enum(@@mb_get_draw_order, @pointer, Pointer(Pointer(Void)).null, DrawOrder)
     end
     @@mb_set_texture : Void* = Pointer(Void).null
-    def set_texture(texture : Texture2D) : Void
+    def set_texture(texture : Texture2D?) : Void
       godot_bind(@@mb_set_texture, "CPUParticles2D", "set_texture", 4051416890_i64)
       arg_ptr_0 = texture ? texture.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -34091,7 +34093,7 @@ module Godot
       godot_ptrcall_float(@@mb_get_param_max, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_set_param_curve : Void* = Pointer(Void).null
-    def set_param_curve(param : Parameter | Int, curve : Curve) : Void
+    def set_param_curve(param : Parameter | Int, curve : Curve?) : Void
       godot_bind(@@mb_set_param_curve, "CPUParticles2D", "set_param_curve", 2959350143_i64)
       val_0 = param.is_a?(Int) ? param.to_i64 : param.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
@@ -34122,7 +34124,7 @@ module Godot
       godot_ptrcall_val(@@mb_get_color, @pointer, Pointer(Pointer(Void)).null, Color)
     end
     @@mb_set_color_ramp : Void* = Pointer(Void).null
-    def set_color_ramp(ramp : Gradient) : Void
+    def set_color_ramp(ramp : Gradient?) : Void
       godot_bind(@@mb_set_color_ramp, "CPUParticles2D", "set_color_ramp", 2756054477_i64)
       arg_ptr_0 = ramp ? ramp.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -34135,7 +34137,7 @@ module Godot
       godot_ptrcall_obj(@@mb_get_color_ramp, @pointer, Pointer(Pointer(Void)).null, Gradient)
     end
     @@mb_set_color_initial_ramp : Void* = Pointer(Void).null
-    def set_color_initial_ramp(ramp : Gradient) : Void
+    def set_color_initial_ramp(ramp : Gradient?) : Void
       godot_bind(@@mb_set_color_initial_ramp, "CPUParticles2D", "set_color_initial_ramp", 2756054477_i64)
       arg_ptr_0 = ramp ? ramp.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -34315,7 +34317,7 @@ module Godot
       godot_ptrcall_obj(@@mb_get_scale_curve_x, @pointer, Pointer(Pointer(Void)).null, Curve)
     end
     @@mb_set_scale_curve_x : Void* = Pointer(Void).null
-    def set_scale_curve_x(scale_curve : Curve) : Void
+    def set_scale_curve_x(scale_curve : Curve?) : Void
       godot_bind(@@mb_set_scale_curve_x, "CPUParticles2D", "set_scale_curve_x", 270443179_i64)
       arg_ptr_0 = scale_curve ? scale_curve.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -34328,7 +34330,7 @@ module Godot
       godot_ptrcall_obj(@@mb_get_scale_curve_y, @pointer, Pointer(Pointer(Void)).null, Curve)
     end
     @@mb_set_scale_curve_y : Void* = Pointer(Void).null
-    def set_scale_curve_y(scale_curve : Curve) : Void
+    def set_scale_curve_y(scale_curve : Curve?) : Void
       godot_bind(@@mb_set_scale_curve_y, "CPUParticles2D", "set_scale_curve_y", 270443179_i64)
       arg_ptr_0 = scale_curve ? scale_curve.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -34336,7 +34338,7 @@ module Godot
       godot_ptrcall_void(@@mb_set_scale_curve_y, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_convert_from_particles : Void* = Pointer(Void).null
-    def convert_from_particles(particles : Node) : Void
+    def convert_from_particles(particles : Node?) : Void
       godot_bind(@@mb_convert_from_particles, "CPUParticles2D", "convert_from_particles", 1078189570_i64)
       arg_ptr_0 = particles ? particles.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -35158,7 +35160,7 @@ module Godot
       godot_ptrcall_enum(@@mb_get_draw_order, @pointer, Pointer(Pointer(Void)).null, DrawOrder)
     end
     @@mb_set_mesh : Void* = Pointer(Void).null
-    def set_mesh(mesh : Mesh) : Void
+    def set_mesh(mesh : Mesh?) : Void
       godot_bind(@@mb_set_mesh, "CPUParticles3D", "set_mesh", 194775623_i64)
       arg_ptr_0 = mesh ? mesh.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -35299,7 +35301,7 @@ module Godot
       godot_ptrcall_float(@@mb_get_param_max, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_set_param_curve : Void* = Pointer(Void).null
-    def set_param_curve(param : Parameter | Int, curve : Curve) : Void
+    def set_param_curve(param : Parameter | Int, curve : Curve?) : Void
       godot_bind(@@mb_set_param_curve, "CPUParticles3D", "set_param_curve", 4044142537_i64)
       val_0 = param.is_a?(Int) ? param.to_i64 : param.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
@@ -35330,7 +35332,7 @@ module Godot
       godot_ptrcall_val(@@mb_get_color, @pointer, Pointer(Pointer(Void)).null, Color)
     end
     @@mb_set_color_ramp : Void* = Pointer(Void).null
-    def set_color_ramp(ramp : Gradient) : Void
+    def set_color_ramp(ramp : Gradient?) : Void
       godot_bind(@@mb_set_color_ramp, "CPUParticles3D", "set_color_ramp", 2756054477_i64)
       arg_ptr_0 = ramp ? ramp.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -35343,7 +35345,7 @@ module Godot
       godot_ptrcall_obj(@@mb_get_color_ramp, @pointer, Pointer(Pointer(Void)).null, Gradient)
     end
     @@mb_set_color_initial_ramp : Void* = Pointer(Void).null
-    def set_color_initial_ramp(ramp : Gradient) : Void
+    def set_color_initial_ramp(ramp : Gradient?) : Void
       godot_bind(@@mb_set_color_initial_ramp, "CPUParticles3D", "set_color_initial_ramp", 2756054477_i64)
       arg_ptr_0 = ramp ? ramp.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -35562,7 +35564,7 @@ module Godot
       godot_ptrcall_obj(@@mb_get_scale_curve_x, @pointer, Pointer(Pointer(Void)).null, Curve)
     end
     @@mb_set_scale_curve_x : Void* = Pointer(Void).null
-    def set_scale_curve_x(scale_curve : Curve) : Void
+    def set_scale_curve_x(scale_curve : Curve?) : Void
       godot_bind(@@mb_set_scale_curve_x, "CPUParticles3D", "set_scale_curve_x", 270443179_i64)
       arg_ptr_0 = scale_curve ? scale_curve.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -35575,7 +35577,7 @@ module Godot
       godot_ptrcall_obj(@@mb_get_scale_curve_y, @pointer, Pointer(Pointer(Void)).null, Curve)
     end
     @@mb_set_scale_curve_y : Void* = Pointer(Void).null
-    def set_scale_curve_y(scale_curve : Curve) : Void
+    def set_scale_curve_y(scale_curve : Curve?) : Void
       godot_bind(@@mb_set_scale_curve_y, "CPUParticles3D", "set_scale_curve_y", 270443179_i64)
       arg_ptr_0 = scale_curve ? scale_curve.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -35588,7 +35590,7 @@ module Godot
       godot_ptrcall_obj(@@mb_get_scale_curve_z, @pointer, Pointer(Pointer(Void)).null, Curve)
     end
     @@mb_set_scale_curve_z : Void* = Pointer(Void).null
-    def set_scale_curve_z(scale_curve : Curve) : Void
+    def set_scale_curve_z(scale_curve : Curve?) : Void
       godot_bind(@@mb_set_scale_curve_z, "CPUParticles3D", "set_scale_curve_z", 270443179_i64)
       arg_ptr_0 = scale_curve ? scale_curve.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -35596,7 +35598,7 @@ module Godot
       godot_ptrcall_void(@@mb_set_scale_curve_z, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_convert_from_particles : Void* = Pointer(Void).null
-    def convert_from_particles(particles : Node) : Void
+    def convert_from_particles(particles : Node?) : Void
       godot_bind(@@mb_convert_from_particles, "CPUParticles3D", "convert_from_particles", 1078189570_i64)
       arg_ptr_0 = particles ? particles.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -36599,7 +36601,7 @@ module Godot
       godot_ptrcall_val(@@mb_get_size, @pointer, Pointer(Pointer(Void)).null, Vector3)
     end
     @@mb_set_material : Void* = Pointer(Void).null
-    def set_material(material : Material) : Void
+    def set_material(material : Material?) : Void
       godot_bind(@@mb_set_material, "CSGBox3D", "set_material", 2757459619_i64)
       arg_ptr_0 = material ? material.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -36698,7 +36700,7 @@ module Godot
       is_cone()
     end
     @@mb_set_material : Void* = Pointer(Void).null
-    def set_material(material : Material) : Void
+    def set_material(material : Material?) : Void
       godot_bind(@@mb_set_material, "CSGCylinder3D", "set_material", 2757459619_i64)
       arg_ptr_0 = material ? material.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -36784,7 +36786,7 @@ module Godot
       super(pointer)
     end
     @@mb_set_mesh : Void* = Pointer(Void).null
-    def set_mesh(mesh : Mesh) : Void
+    def set_mesh(mesh : Mesh?) : Void
       godot_bind(@@mb_set_mesh, "CSGMesh3D", "set_mesh", 194775623_i64)
       arg_ptr_0 = mesh ? mesh.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -36797,7 +36799,7 @@ module Godot
       godot_ptrcall_obj(@@mb_get_mesh, @pointer, Pointer(Pointer(Void)).null, Mesh)
     end
     @@mb_set_material : Void* = Pointer(Void).null
-    def set_material(material : Material) : Void
+    def set_material(material : Material?) : Void
       godot_bind(@@mb_set_material, "CSGMesh3D", "set_material", 2757459619_i64)
       arg_ptr_0 = material ? material.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -37072,7 +37074,7 @@ module Godot
       is_path_joined()
     end
     @@mb_set_material : Void* = Pointer(Void).null
-    def set_material(material : Material) : Void
+    def set_material(material : Material?) : Void
       godot_bind(@@mb_set_material, "CSGPolygon3D", "set_material", 2757459619_i64)
       arg_ptr_0 = material ? material.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -37305,7 +37307,7 @@ module Godot
       get_smooth_faces()
     end
     @@mb_set_material : Void* = Pointer(Void).null
-    def set_material(material : Material) : Void
+    def set_material(material : Material?) : Void
       godot_bind(@@mb_set_material, "CSGSphere3D", "set_material", 2757459619_i64)
       arg_ptr_0 = material ? material.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -37418,7 +37420,7 @@ module Godot
       godot_ptrcall_int(@@mb_get_ring_sides, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_set_material : Void* = Pointer(Void).null
-    def set_material(material : Material) : Void
+    def set_material(material : Material?) : Void
       godot_bind(@@mb_set_material, "CSGTorus3D", "set_material", 2757459619_i64)
       arg_ptr_0 = material ? material.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -37798,7 +37800,7 @@ module Godot
       godot_ptrcall_val(@@mb_get_zoom, @pointer, Pointer(Pointer(Void)).null, Vector2)
     end
     @@mb_set_custom_viewport : Void* = Pointer(Void).null
-    def set_custom_viewport(viewport : Node) : Void
+    def set_custom_viewport(viewport : Node?) : Void
       godot_bind(@@mb_set_custom_viewport, "Camera2D", "set_custom_viewport", 1078189570_i64)
       arg_ptr_0 = viewport ? viewport.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -38468,7 +38470,7 @@ module Godot
       godot_ptrcall_int(@@mb_get_cull_mask, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_set_environment : Void* = Pointer(Void).null
-    def set_environment(env : Environment) : Void
+    def set_environment(env : Environment?) : Void
       godot_bind(@@mb_set_environment, "Camera3D", "set_environment", 4143518816_i64)
       arg_ptr_0 = env ? env.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -38481,7 +38483,7 @@ module Godot
       godot_ptrcall_obj(@@mb_get_environment, @pointer, Pointer(Pointer(Void)).null, Environment)
     end
     @@mb_set_attributes : Void* = Pointer(Void).null
-    def set_attributes(env : CameraAttributes) : Void
+    def set_attributes(env : CameraAttributes?) : Void
       godot_bind(@@mb_set_attributes, "Camera3D", "set_attributes", 2817810567_i64)
       arg_ptr_0 = env ? env.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -38494,7 +38496,7 @@ module Godot
       godot_ptrcall_obj(@@mb_get_attributes, @pointer, Pointer(Pointer(Void)).null, CameraAttributes)
     end
     @@mb_set_compositor : Void* = Pointer(Void).null
-    def set_compositor(compositor : Compositor) : Void
+    def set_compositor(compositor : Compositor?) : Void
       godot_bind(@@mb_set_compositor, "Camera3D", "set_compositor", 1586754307_i64)
       arg_ptr_0 = compositor ? compositor.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -39266,7 +39268,7 @@ module Godot
       godot_ptrcall_void(@@mb_set_transform, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_set_rgb_image : Void* = Pointer(Void).null
-    def set_rgb_image(rgb_image : Image) : Void
+    def set_rgb_image(rgb_image : Image?) : Void
       godot_bind(@@mb_set_rgb_image, "CameraFeed", "set_rgb_image", 532598488_i64)
       arg_ptr_0 = rgb_image ? rgb_image.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -39274,7 +39276,7 @@ module Godot
       godot_ptrcall_void(@@mb_set_rgb_image, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_set_ycbcr_image : Void* = Pointer(Void).null
-    def set_ycbcr_image(ycbcr_image : Image) : Void
+    def set_ycbcr_image(ycbcr_image : Image?) : Void
       godot_bind(@@mb_set_ycbcr_image, "CameraFeed", "set_ycbcr_image", 532598488_i64)
       arg_ptr_0 = ycbcr_image ? ycbcr_image.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -39282,7 +39284,7 @@ module Godot
       godot_ptrcall_void(@@mb_set_ycbcr_image, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_set_ycbcr_images : Void* = Pointer(Void).null
-    def set_ycbcr_images(y_image : Image, cbcr_image : Image) : Void
+    def set_ycbcr_images(y_image : Image?, cbcr_image : Image?) : Void
       godot_bind(@@mb_set_ycbcr_images, "CameraFeed", "set_ycbcr_images", 1986484629_i64)
       arg_ptr_0 = y_image ? y_image.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -39441,7 +39443,7 @@ module Godot
       instance.feeds()
     end
     @@mb_add_feed : Void* = Pointer(Void).null
-    def add_feed(feed : CameraFeed) : Void
+    def add_feed(feed : CameraFeed?) : Void
       godot_bind(@@mb_add_feed, "CameraServer", "add_feed", 3204782488_i64)
       arg_ptr_0 = feed ? feed.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -39449,11 +39451,11 @@ module Godot
       godot_ptrcall_void(@@mb_add_feed, @pointer, args.to_unsafe.as(Void**))
     end
     # Class-level singleton delegator for `add_feed`
-    def self.add_feed(feed : CameraFeed) : Void
+    def self.add_feed(feed : CameraFeed?) : Void
       instance.add_feed(feed)
     end
     @@mb_remove_feed : Void* = Pointer(Void).null
-    def remove_feed(feed : CameraFeed) : Void
+    def remove_feed(feed : CameraFeed?) : Void
       godot_bind(@@mb_remove_feed, "CameraServer", "remove_feed", 3204782488_i64)
       arg_ptr_0 = feed ? feed.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -39461,7 +39463,7 @@ module Godot
       godot_ptrcall_void(@@mb_remove_feed, @pointer, args.to_unsafe.as(Void**))
     end
     # Class-level singleton delegator for `remove_feed`
-    def self.remove_feed(feed : CameraFeed) : Void
+    def self.remove_feed(feed : CameraFeed?) : Void
       instance.remove_feed(feed)
     end
     # Property `monitoring_feeds` getter

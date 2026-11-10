@@ -58,6 +58,7 @@ module Godot
 
   class PhysicsBody2D < CollisionObject2D
     def test_move(from : Transform2D, motion : Vector2, collision : KinematicCollision2D? = nil, safe_margin : Float64 = 0.08_f64, recovery_as_collision : Bool = false) : Bool
+      return false if @pointer.null? || !is_inside_tree
       collision.try(&.ensure_ref_initialized!)
       godot_bind(@@mb_test_move, "PhysicsBody2D", "test_move", 3322999442_i64)
       val_0 = from
@@ -77,6 +78,7 @@ module Godot
 
   class PhysicsBody3D < CollisionObject3D
     def test_move(from : Transform3D, motion : Vector3, collision : KinematicCollision3D? = nil, safe_margin : Float64 = 0.001_f64, recovery_as_collision : Bool = false, max_collisions : Int64 = 1_i64) : Bool
+      return false if @pointer.null? || !is_inside_tree
       collision.try(&.ensure_ref_initialized!)
       godot_bind(@@mb_test_move, "PhysicsBody3D", "test_move", 2481691619_i64)
       val_0 = from

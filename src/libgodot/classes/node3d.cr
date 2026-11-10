@@ -86,7 +86,7 @@ module Godot
 
     def global_rotation : Vector3
       if !@pointer.null?
-        is_inside_tree ? get_global_rotation : get_rotation
+        is_inside_tree ? get_global_rotation : global_transform.basis.get_euler
       else
         @global_rotation
       end
@@ -97,6 +97,9 @@ module Godot
       if !@pointer.null?
         if is_inside_tree
           set_global_rotation(v)
+        elsif !is_set_as_top_level && (p = get_parent.try(&.godot_as?(Node3D)))
+          local_basis = p.global_basis.inverse * Basis.from_euler(v).scaled(get_scale)
+          set_basis(local_basis)
         else
           set_rotation(v)
         end
@@ -105,7 +108,13 @@ module Godot
 
     def global_rotation_degrees : Vector3
       if !@pointer.null?
-        is_inside_tree ? get_global_rotation_degrees : get_rotation_degrees
+        if is_inside_tree
+          get_global_rotation_degrees
+        else
+          rad = global_rotation
+          rad2deg = (180.0 / Math::PI).to_f32
+          Vector3.new(rad.x * rad2deg, rad.y * rad2deg, rad.z * rad2deg)
+        end
       else
         @global_rotation_degrees
       end
@@ -117,7 +126,8 @@ module Godot
         if is_inside_tree
           set_global_rotation_degrees(v)
         else
-          set_rotation_degrees(v)
+          deg2rad = (Math::PI / 180.0).to_f32
+          self.global_rotation = Vector3.new(v.x * deg2rad, v.y * deg2rad, v.z * deg2rad)
         end
       end
     end

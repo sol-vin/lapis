@@ -475,6 +475,52 @@ module Godot
       as_a?(type)
     end
 
+    # Alias for as_a?(T) used in gameplay codebases
+    def godot_as?(type : T.class) : T? forall T
+      as_a?(type)
+    end
+
+    # Alias for as_a(T) used in gameplay codebases
+    def godot_as(type : T.class) : T forall T
+      as_a(type)
+    end
+
+    # Resolves the live Crystal subclass instance registered for this native pointer, or returns self.
+    def live_instance : Godot::Object
+      if !@pointer.null?
+        if alive = Bridge.find_alive_instance(@pointer)
+          return alive
+        end
+      end
+      self
+    end
+
+    # Internal hooks overridden by Lapis `node`/`gdclass`/`resource` classes to expose Crystal-defined methods.
+    def _godot_has_crystal_method?(method : String) : Bool
+      false
+    end
+
+    def _godot_dispatch_crystal_0(method : String) : Bool
+      false
+    end
+
+    def _godot_dispatch_crystal_1(method : String, a0 : Variant) : Bool
+      false
+    end
+
+    def _godot_dispatch_crystal_2(method : String, a0 : Variant, a1 : Variant) : Bool
+      false
+    end
+
+    # Computes a deterministic 64-bit hash of all `@[Export]` properties on this object.
+    def export_config_hash : UInt64
+      0_u64
+    end
+
+    # Populates `@[Export]` properties on this object from a `Godot::Dictionary`.
+    def apply_dictionary_properties!(dict : ::Godot::Dictionary) : Void
+    end
+
     # Class-level casting helper
     def self.cast_to?(obj : Object, type : T.class) : T? forall T
       obj.as_a?(type)
@@ -702,51 +748,72 @@ module Godot
     end
 
     # Resolves the Crystal script path, 1-based line number, class name, parent class, and tool flag for a SceneTree node
+    @@class_script_info_cache = Hash(String, NamedTuple(path: String, line: Int32, class_name: String, parent_name: String, is_tool: Bool)?).new
+
+    def self.clear_script_info_cache! : Void
+      @@class_script_info_cache.clear
+      @@discovered_script_locations.clear
+      @@discovered_script_paths.clear
+    end
+
+    def self.resolve_cached_class_script_info(cls_name : String, default_parent : String = "Node", default_tool : Bool = false) : NamedTuple(path: String, line: Int32, class_name: String, parent_name: String, is_tool: Bool)?
+      return nil if is_internal_or_brush_class?(cls_name)
+      if @@class_script_info_cache.has_key?(cls_name)
+        return @@class_script_info_cache[cls_name]
+      end
+      entry = ClassRegistry.find(cls_name)
+      # Fast-path built-in Godot engine classes that are not in ClassRegistry and have no discovered script
+      if entry.nil? && !@@discovered_script_locations.has_key?(cls_name)
+        cdb_ptr = Bridge.get_singleton("ClassDB")
+        if !cdb_ptr.null?
+          cdb = Godot::ClassDB.new(cdb_ptr)
+          if (cdb.class_exists(cls_name) rescue false)
+            @@class_script_info_cache[cls_name] = nil
+            return nil
+          end
+        end
+      end
+      loc = find_script_location_for_class(cls_name)
+      if !loc[0].empty?
+        cdb_ptr = Bridge.get_singleton("ClassDB")
+        cdb = !cdb_ptr.null? ? Godot::ClassDB.new(cdb_ptr) : nil
+        parent_name = entry ? entry.parent_name : (cdb ? (cdb.get_parent_class(cls_name) rescue default_parent) : default_parent)
+        is_tool = entry ? entry.is_tool : default_tool
+        info = {path: loc[0], line: loc[1], class_name: cls_name, parent_name: parent_name, is_tool: is_tool}
+        @@class_script_info_cache[cls_name] = info
+        return info
+      end
+      @@class_script_info_cache[cls_name] = nil
+      nil
+    end
+
     def self.find_script_info_for_node(node : Godot::Object) : NamedTuple(path: String, line: Int32, class_name: String, parent_name: String, is_tool: Bool)?
       return nil if node.pointer.null?
-      cdb_ptr = Bridge.get_singleton("ClassDB")
-      cdb = !cdb_ptr.null? ? Godot::ClassDB.new(cdb_ptr) : nil
 
       # 1. Check the node's own Godot class
       cls_name = node.call_str("get_class") rescue ""
-      if !is_internal_or_brush_class?(cls_name)
-        loc = find_script_location_for_class(cls_name)
-        if !loc[0].empty?
-          entry = ClassRegistry.find(cls_name)
-          parent_name = entry ? entry.parent_name : (cdb ? (cdb.get_parent_class(cls_name) rescue "Node") : "Node")
-          is_tool = entry ? entry.is_tool : false
-          return {path: loc[0], line: loc[1], class_name: cls_name, parent_name: parent_name, is_tool: is_tool}
-        end
+      if info = resolve_cached_class_script_info(cls_name, "Node", false)
+        return info
       end
 
       # 2. If it's a MeshInstance3D, check if its .mesh resource is a custom Crystal resource class (e.g. VaseMesh on Vase/Vase2)
-      if (node.call_bool("is_class", "MeshInstance3D") rescue false)
+      if cls_name == "MeshInstance3D" || (node.call_bool("is_class", "MeshInstance3D") rescue false)
         if mesh_obj = (node.call_obj("get_mesh") rescue nil)
           if !mesh_obj.pointer.null?
             mesh_cls = mesh_obj.call_str("get_class") rescue ""
-            if !is_internal_or_brush_class?(mesh_cls)
-              loc = find_script_location_for_class(mesh_cls)
-              if !loc[0].empty?
-                entry = ClassRegistry.find(mesh_cls)
-                parent_name = entry ? entry.parent_name : (cdb ? (cdb.get_parent_class(mesh_cls) rescue "Resource") : "Resource")
-                is_tool = entry ? entry.is_tool : true
-                return {path: loc[0], line: loc[1], class_name: mesh_cls, parent_name: parent_name, is_tool: is_tool}
-              end
+            if info = resolve_cached_class_script_info(mesh_cls, "Resource", true)
+              return info
             end
           end
         end
 
-        # Also check if node's base name (stripping trailing digits, e.g. "Vase2" -> "Vase") matches "<BaseName>Mesh"
+        # Also check if node's base name (stripping trailing digits, e.g. "Vase2" -> "Vase") matches "<BaseName>Mesh" in ClassRegistry
         node_name = (node.call_str("get_name") rescue "").sub(/\d+$/, "").strip
         if !node_name.empty?
           candidate_mesh_cls = "#{node_name}Mesh"
-          if !is_internal_or_brush_class?(candidate_mesh_cls)
-            loc = find_script_location_for_class(candidate_mesh_cls)
-            if !loc[0].empty?
-              entry = ClassRegistry.find(candidate_mesh_cls)
-              parent_name = entry ? entry.parent_name : (cdb ? (cdb.get_parent_class(candidate_mesh_cls) rescue "Resource") : "Resource")
-              is_tool = entry ? entry.is_tool : true
-              return {path: loc[0], line: loc[1], class_name: candidate_mesh_cls, parent_name: parent_name, is_tool: is_tool}
+          if ClassRegistry.find(candidate_mesh_cls) || @@discovered_script_locations.has_key?(candidate_mesh_cls)
+            if info = resolve_cached_class_script_info(candidate_mesh_cls, "Resource", true)
+              return info
             end
           end
         end
@@ -963,8 +1030,21 @@ module Godot
     end
 
     # Calls the named method on the object with variable arguments.
+    # If this wrapper points to a live Crystal subclass instance, dispatches polymorphically through it.
     def call(method : String, *args) : Void*
       check_alive!
+      target = (!@pointer.null? && (alive = Bridge.find_alive_instance(@pointer))) ? alive : self
+      if args.size == 0
+        return Pointer(Void).null if target._godot_dispatch_crystal_0(method)
+      elsif args.size == 1
+        if (v0 = Variant.from_any?(args[0]?)) && target._godot_dispatch_crystal_1(method, v0)
+          return Pointer(Void).null
+        end
+      elsif args.size == 2
+        if (v0 = Variant.from_any?(args[0]?)) && (v1 = Variant.from_any?(args[1]?)) && target._godot_dispatch_crystal_2(method, v0, v1)
+          return Pointer(Void).null
+        end
+      end
       Bridge.object_call(@pointer, method, *args)
       Pointer(Void).null
     end
@@ -1052,9 +1132,10 @@ module Godot
       get_meta(key.to_s, default)
     end
 
-    def get_meta_vector2(key : String | Symbol) : Vector2
-      return Vector2.zero if @pointer.null? || !Bridge.init_done?
+    def get_meta_vector2(key : String | Symbol, default : Vector2 = Vector2.zero) : Vector2
+      return default if @pointer.null? || !Bridge.init_done?
       check_alive!
+      return default unless has_meta(key)
       godot_bind(@@mb_get_meta, "Object", "get_meta", 3990617847_i64)
       sn_0 = Bridge.make_string_name(key.to_s)
       def_var = StaticArray(UInt8, 24).new(0_u8)
@@ -1062,16 +1143,17 @@ module Godot
       args = StaticArray[sn_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_meta, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      v2 = Vector2.zero
+      v2 = default
       Bridge.type_from_variant(5, pointerof(v2).as(Void*), ret_var.to_unsafe.as(Void*))
       v2
     ensure
       Bridge.free_string_name(sn_0) if sn_0
     end
 
-    def get_meta_vector3(key : String | Symbol) : Vector3
-      return Vector3.zero if @pointer.null? || !Bridge.init_done?
+    def get_meta_vector3(key : String | Symbol, default : Vector3 = Vector3.zero) : Vector3
+      return default if @pointer.null? || !Bridge.init_done?
       check_alive!
+      return default unless has_meta(key)
       godot_bind(@@mb_get_meta, "Object", "get_meta", 3990617847_i64)
       sn_0 = Bridge.make_string_name(key.to_s)
       def_var = StaticArray(UInt8, 24).new(0_u8)
@@ -1079,16 +1161,17 @@ module Godot
       args = StaticArray[sn_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_meta, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      v3 = Vector3.zero
+      v3 = default
       Bridge.type_from_variant(9, pointerof(v3).as(Void*), ret_var.to_unsafe.as(Void*))
       v3
     ensure
       Bridge.free_string_name(sn_0) if sn_0
     end
 
-    def get_meta_transform3d(key : String | Symbol) : Transform3D
-      return Transform3D.identity if @pointer.null? || !Bridge.init_done?
+    def get_meta_transform3d(key : String | Symbol, default : Transform3D = Transform3D.identity) : Transform3D
+      return default if @pointer.null? || !Bridge.init_done?
       check_alive!
+      return default unless has_meta(key)
       godot_bind(@@mb_get_meta, "Object", "get_meta", 3990617847_i64)
       sn_0 = Bridge.make_string_name(key.to_s)
       def_var = StaticArray(UInt8, 24).new(0_u8)
@@ -1096,16 +1179,17 @@ module Godot
       args = StaticArray[sn_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_meta, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      xf = Transform3D.identity
+      xf = default
       Bridge.type_from_variant(18, pointerof(xf).as(Void*), ret_var.to_unsafe.as(Void*))
       xf
     ensure
       Bridge.free_string_name(sn_0) if sn_0
     end
 
-    def get_meta_color(key : String | Symbol) : Color
-      return Color::WHITE if @pointer.null? || !Bridge.init_done?
+    def get_meta_color(key : String | Symbol, default : Color = Color::WHITE) : Color
+      return default if @pointer.null? || !Bridge.init_done?
       check_alive!
+      return default unless has_meta(key)
       godot_bind(@@mb_get_meta, "Object", "get_meta", 3990617847_i64)
       sn_0 = Bridge.make_string_name(key.to_s)
       def_var = StaticArray(UInt8, 24).new(0_u8)
@@ -1113,44 +1197,113 @@ module Godot
       args = StaticArray[sn_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_meta, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      col = Color::WHITE
+      col = default
       Bridge.type_from_variant(20, pointerof(col).as(Void*), ret_var.to_unsafe.as(Void*))
       col
     ensure
       Bridge.free_string_name(sn_0) if sn_0
     end
 
-    # Retrieves string metadata stored on this object.
+    # Retrieves boolean metadata stored on this object, or `default` if not set.
+    def get_meta_bool(key : String | Symbol, default : Bool = false) : Bool
+      return default if @pointer.null? || !Bridge.init_done?
+      check_alive!
+      return default unless has_meta(key)
+      call_bool("get_meta", key.to_s)
+    end
+
+    # Retrieves string metadata stored on this object, or `default` if not set.
     #
     # ### Example:
     # ```crystal
     # id = node.get_meta_str(:spawner_id)
     # ```
-    def get_meta_str(key : String | Symbol) : String
+    def get_meta_str(key : String | Symbol, default : String = "") : String
+      return default if @pointer.null? || !Bridge.init_done?
       check_alive!
+      return default unless has_meta(key)
       call_str("get_meta", key.to_s)
     end
 
-    # Retrieves integer metadata stored on this object as an `Int64`.
+    # Retrieves integer metadata stored on this object as an `Int64`, or `default` if not set.
     #
     # ### Example:
     # ```crystal
     # tier = node.get_meta_i64(:enemy_tier)
     # ```
-    def get_meta_i64(key : String | Symbol) : Int64
+    def get_meta_i64(key : String | Symbol, default : Int64 = 0_i64) : Int64
+      return default if @pointer.null? || !Bridge.init_done?
       check_alive!
+      return default unless has_meta(key)
       call_i64("get_meta", key.to_s)
     end
 
-    # Retrieves floating-point metadata stored on this object as a `Float64`.
+    # Retrieves integer metadata stored on this object as an `Int32`, or `default` if not set.
+    def get_meta_i32(key : String | Symbol, default : Int32 = 0_i32) : Int32
+      get_meta_i64(key, default.to_i64).to_i32
+    end
+
+    # Retrieves floating-point metadata stored on this object as a `Float64`, or `default` if not set.
     #
     # ### Example:
     # ```crystal
     # multiplier = node.get_meta_f64(:difficulty_multiplier)
     # ```
-    def get_meta_f64(key : String | Symbol) : Float64
+    def get_meta_f64(key : String | Symbol, default : Float64 = 0.0) : Float64
+      return default if @pointer.null? || !Bridge.init_done?
       check_alive!
+      return default unless has_meta(key)
       call_f64("get_meta", key.to_s)
+    end
+
+    # Retrieves floating-point metadata stored on this object as a `Float32`, or `default` if not set.
+    def get_meta_f32(key : String | Symbol, default : Float32 = 0.0_f32) : Float32
+      get_meta_f64(key, default.to_f64).to_f32
+    end
+
+    # Safely stores a reference to a `Godot::Object` in metadata using its monotonic 64-bit ObjectDB `instance_id`.
+    # Passing `nil` or a disposed object removes the metadata entry.
+    def set_meta_object(key : String | Symbol, obj : Godot::Object?) : Void
+      check_alive!
+      return if @pointer.null? || !Bridge.init_done?
+      if obj.nil? || !obj.alive?
+        remove_meta(key.to_s) if has_meta(key.to_s)
+      else
+        iid = obj.instance_id > 0_u64 ? obj.instance_id : Bridge.get_instance_id(obj.pointer)
+        set_meta(key.to_s, iid.to_i64)
+      end
+    end
+
+    # Safely retrieves a `Godot::Object` from metadata by validating its 64-bit ObjectDB `instance_id`
+    # (or direct object Variant) and resolving any live Crystal subclass instance.
+    def get_meta_object(key : String | Symbol, type : T.class = Godot::Object) : T? forall T
+      return nil if @pointer.null? || !Bridge.init_done?
+      check_alive!
+      return nil unless has_meta(key.to_s)
+      raw_id = call_i64("get_meta", key.to_s)
+      if raw_id != 0_i64
+        u_id = raw_id.to_u64
+        if Bridge.is_instance_valid(u_id)
+          ptr = Bridge.instance_from_id(u_id)
+          if !ptr.null?
+            if alive = Bridge.find_alive_instance(ptr)
+              return alive.as?(T) || alive.as_a?(T)
+            end
+            return T.new(ptr)
+          end
+        end
+        ptr = Pointer(Void).new(u_id)
+        if alive = Bridge.find_alive_instance(ptr)
+          return alive.as?(T) if alive.alive?
+        end
+        return nil
+      end
+      ptr = Bridge.object_call_ret_object(@pointer, "get_meta", key.to_s)
+      return nil if ptr.null?
+      if alive = Bridge.find_alive_instance(ptr)
+        return alive.as?(T) || alive.as_a?(T)
+      end
+      T.new(ptr)
     end
 
     # Returns `true` if this object has metadata stored under `key`.
@@ -1162,6 +1315,7 @@ module Godot
     # end
     # ```
     def has_meta(key : String | Symbol) : Bool
+      return false if @pointer.null? || !Bridge.init_done?
       check_alive!
       call_bool("has_meta", key.to_s)
     end
@@ -1183,7 +1337,13 @@ module Godot
     def call_obj(method : String, *args) : Node?
       check_alive!
       ptr = Bridge.object_call_ret_object(@pointer, method, *args)
-      ptr.null? ? nil : Node.new(ptr)
+      return nil if ptr.null?
+      if inst = Bridge.find_alive_instance(ptr)
+        if node = inst.as?(Node)
+          return node
+        end
+      end
+      Node.new(ptr)
     end
 
     # Calls the named method and returns the result cast to T (or nil if null)

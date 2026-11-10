@@ -370,39 +370,195 @@ module Godot
     end
   end
 
-  class MeshInstance3D < GeometryInstance3D
-    def set_mesh(mesh : Nil) : Void
-      set_mesh(Mesh.new(Pointer(Void).null))
+  module ResourcePath
+    # Resolves a Godot virtual path (`res://...` or `uid://...`) to a filesystem path.
+    # Works seamlessly both inside the running Godot engine and in standalone headless Crystal specs.
+    def self.resolve(path : String) : String
+      return path if path.empty?
+      resolved = path
+      if resolved.starts_with?("uid://") && Bridge.init_done?
+        uid_id = ResourceUID.text_to_id(resolved)
+        if uid_id != -1_i64 && ResourceUID.has_id(uid_id)
+          uid_path = ResourceUID.id_to_path(uid_id)
+          resolved = uid_path unless uid_path.empty?
+        end
+      end
+      if resolved.starts_with?("res://")
+        if Bridge.init_done?
+          glob = ProjectSettings.globalize_path(resolved)
+          return glob if !glob.empty? && !glob.starts_with?("res://")
+        end
+        rel = resolved.lchop("res://")
+        return ::File.expand_path(rel, ::Dir.current)
+      elsif resolved.starts_with?("user://") && Bridge.init_done?
+        glob = ProjectSettings.globalize_path(resolved)
+        return glob unless glob.empty?
+      end
+      resolved
+    end
+  end
+
+  def self.resolve_path(path : String) : String
+    ResourcePath.resolve(path)
+  end
+
+  alias ShaderParameterValue = String | Symbol | Int32 | Int64 | UInt32 | UInt64 | Float32 | Float64 | Bool | Vector2 | Vector2i | Vector3 | Vector3i | Vector4 | Vector4i | Color | Rect2 | Rect2i | Transform2D | Transform3D | Basis | Quaternion | Plane | AABB | Object | Variant | PackedByteArray | PackedInt32Array | PackedInt64Array | PackedFloat32Array | PackedFloat64Array | PackedStringArray | PackedVector2Array | PackedVector3Array | PackedColorArray | Nil
+
+  # Internal helper to unpack a 24-byte Godot Variant buffer into target Crystal type T
+  protected def self._unpack_variant_buf(ret_var : StaticArray(UInt8, 24), type : T.class, default : T? = nil) : T forall T
+    {% if T == Bool %}
+      val = 0_u8
+      Bridge.type_from_variant(1, pointerof(val).as(Void*), ret_var.to_unsafe.as(Void*))
+      val != 0_u8
+    {% elsif T == Int64 %}
+      val = default || 0_i64
+      Bridge.type_from_variant(2, pointerof(val).as(Void*), ret_var.to_unsafe.as(Void*))
+      val
+    {% elsif T == Int32 %}
+      val = (default || 0_i32).to_i64
+      Bridge.type_from_variant(2, pointerof(val).as(Void*), ret_var.to_unsafe.as(Void*))
+      val.to_i32
+    {% elsif T == Float64 %}
+      val = default || 0.0_f64
+      Bridge.type_from_variant(3, pointerof(val).as(Void*), ret_var.to_unsafe.as(Void*))
+      val
+    {% elsif T == Float32 %}
+      val = (default || 0.0_f32).to_f64
+      Bridge.type_from_variant(3, pointerof(val).as(Void*), ret_var.to_unsafe.as(Void*))
+      val.to_f32
+    {% elsif T == Vector2 %}
+      val = default || Vector2.zero
+      Bridge.type_from_variant(5, pointerof(val).as(Void*), ret_var.to_unsafe.as(Void*))
+      val
+    {% elsif T == Vector2i %}
+      val = default || Vector2i.new(0, 0)
+      Bridge.type_from_variant(6, pointerof(val).as(Void*), ret_var.to_unsafe.as(Void*))
+      val
+    {% elsif T == Rect2 %}
+      val = default || Rect2.new
+      Bridge.type_from_variant(7, pointerof(val).as(Void*), ret_var.to_unsafe.as(Void*))
+      val
+    {% elsif T == Rect2i %}
+      val = default || Rect2i.new
+      Bridge.type_from_variant(8, pointerof(val).as(Void*), ret_var.to_unsafe.as(Void*))
+      val
+    {% elsif T == Vector3 %}
+      val = default || Vector3.zero
+      Bridge.type_from_variant(9, pointerof(val).as(Void*), ret_var.to_unsafe.as(Void*))
+      val
+    {% elsif T == Vector3i %}
+      val = default || Vector3i.new(0, 0, 0)
+      Bridge.type_from_variant(10, pointerof(val).as(Void*), ret_var.to_unsafe.as(Void*))
+      val
+    {% elsif T == Transform2D %}
+      val = default || Transform2D.new
+      Bridge.type_from_variant(11, pointerof(val).as(Void*), ret_var.to_unsafe.as(Void*))
+      val
+    {% elsif T == Vector4 %}
+      val = default || Vector4.new(0.0_f32, 0.0_f32, 0.0_f32, 0.0_f32)
+      Bridge.type_from_variant(12, pointerof(val).as(Void*), ret_var.to_unsafe.as(Void*))
+      val
+    {% elsif T == Vector4i %}
+      val = default || Vector4i.new(0, 0, 0, 0)
+      Bridge.type_from_variant(13, pointerof(val).as(Void*), ret_var.to_unsafe.as(Void*))
+      val
+    {% elsif T == Plane %}
+      val = default || Plane.new
+      Bridge.type_from_variant(14, pointerof(val).as(Void*), ret_var.to_unsafe.as(Void*))
+      val
+    {% elsif T == Quaternion %}
+      val = default || Quaternion.identity
+      Bridge.type_from_variant(15, pointerof(val).as(Void*), ret_var.to_unsafe.as(Void*))
+      val
+    {% elsif T == AABB %}
+      val = default || AABB.new
+      Bridge.type_from_variant(16, pointerof(val).as(Void*), ret_var.to_unsafe.as(Void*))
+      val
+    {% elsif T == Basis %}
+      val = default || Basis.identity
+      Bridge.type_from_variant(17, pointerof(val).as(Void*), ret_var.to_unsafe.as(Void*))
+      val
+    {% elsif T == Transform3D %}
+      val = default || Transform3D.identity
+      Bridge.type_from_variant(18, pointerof(val).as(Void*), ret_var.to_unsafe.as(Void*))
+      val
+    {% elsif T == Color %}
+      val = default || Color::WHITE
+      Bridge.type_from_variant(20, pointerof(val).as(Void*), ret_var.to_unsafe.as(Void*))
+      val
+    {% elsif T <= Godot::Object %}
+      ret_ptr = Pointer(Void).null
+      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
+      if !ret_ptr.null?
+        if alive = Bridge.find_alive_instance(ret_ptr)
+          if typed = alive.as?(T)
+            return typed
+          end
+        end
+      end
+      T.new(ret_ptr)
+    {% else %}
+      raise ArgumentError.new("Unsupported Variant unpack target type: #{T}")
+    {% end %}
+  end
+
+  class CanvasItem < Node
+    def set_instance_shader_parameter(name : String | Symbol, value : ShaderParameterValue) : Void
+      return if @pointer.null? || !Bridge.init_done?
+      call("set_instance_shader_parameter", name.to_s, value)
     end
 
-    def set_skin(skin : Nil) : Void
-      set_skin(Skin.new(Pointer(Void).null))
+    def get_instance_shader_parameter(name : String | Symbol, as type : T.class, default : T? = nil) : T forall T
+      if @pointer.null? || !Bridge.init_done?
+        return default || Variant.default_for(T)
+      end
+      {% if T == String %}
+        return call_str("get_instance_shader_parameter", name.to_s)
+      {% else %}
+        godot_bind(@@mb_get_instance_shader_parameter, "CanvasItem", "get_instance_shader_parameter", 2760726917_i64)
+        sn_0 = Bridge.make_string_name(name.to_s)
+        args = StaticArray[sn_0]
+        ret_var = StaticArray(UInt8, 24).new(0_u8)
+        godot_ptrcall(@@mb_get_instance_shader_parameter, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
+        Godot._unpack_variant_buf(ret_var, T, default)
+      ensure
+        Bridge.free_string_name(sn_0) if sn_0
+      {% end %}
     end
   end
 
   class GeometryInstance3D < VisualInstance3D
-    def set_material_override(material : Nil) : Void
-      set_material_override(Material.new(Pointer(Void).null))
+    def set_instance_shader_parameter(name : String | Symbol, value : ShaderParameterValue) : Void
+      return if @pointer.null? || !Bridge.init_done?
+      call("set_instance_shader_parameter", name.to_s, value)
     end
 
-    def set_material_overlay(material : Nil) : Void
-      set_material_overlay(Material.new(Pointer(Void).null))
+    def get_instance_shader_parameter(name : String | Symbol, as type : T.class, default : T? = nil) : T forall T
+      if @pointer.null? || !Bridge.init_done?
+        return default || Variant.default_for(T)
+      end
+      {% if T == String %}
+        return call_str("get_instance_shader_parameter", name.to_s)
+      {% else %}
+        godot_bind(@@mb_get_instance_shader_parameter, "GeometryInstance3D", "get_instance_shader_parameter", 2760726917_i64)
+        sn_0 = Bridge.make_string_name(name.to_s)
+        args = StaticArray[sn_0]
+        ret_var = StaticArray(UInt8, 24).new(0_u8)
+        godot_ptrcall(@@mb_get_instance_shader_parameter, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
+        Godot._unpack_variant_buf(ret_var, T, default)
+      ensure
+        Bridge.free_string_name(sn_0) if sn_0
+      {% end %}
     end
   end
 
   class ArrayMesh < Mesh
-    def surface_set_material(surf_idx : Int, material : Nil) : Void
-      surface_set_material(surf_idx, Material.new(Pointer(Void).null))
+    def surface_set_material(surf_idx : Int, material : Material?) : Void
+      surface_set_material(surf_idx.to_i64, material)
     end
 
     def add_surface_from_arrays(primitive : Mesh::PrimitiveType | Int, arrays : Pointer(Void)) : Void
       add_surface_from_arrays(primitive, arrays, Pointer(Void).null, Pointer(Void).null, 0)
-    end
-  end
-
-  class CollisionShape3D < Node3D
-    def set_shape(shape : Nil) : Void
-      set_shape(Shape3D.new(Pointer(Void).null))
     end
   end
 
@@ -415,9 +571,7 @@ module Godot
 
   class EditorNode3DGizmo < Node3DGizmo
     def add_mesh(mesh : Mesh, material : Material?, transform : Transform3D, skeleton : Nil) : Void
-      mat_arg = material || Material.new(Pointer(Void).null)
-      skel_arg = SkinReference.new(Pointer(Void).null)
-      add_mesh(mesh, mat_arg, transform, skel_arg)
+      add_mesh(mesh, material, transform, nil)
     end
   end
 
@@ -432,19 +586,118 @@ module Godot
   end
 
   class ShaderMaterial < Material
-    def set_shader_parameter(param : String | Symbol, value : String | Int32 | Int64 | Float32 | Float64 | Bool | Vector2 | Vector2i | Vector3 | Vector3i | Color | Transform3D | Basis | Object) : Void
+    def set_shader_parameter(param : String | Symbol, value : ShaderParameterValue) : Void
       return if @pointer.null? || !Bridge.init_done?
       call("set_shader_parameter", param.to_s, value)
     end
 
-    def set_shader_parameter(param : String | Symbol, value : Nil) : Void
-      return if @pointer.null? || !Bridge.init_done?
-      call("set_shader_parameter", param.to_s, nil)
+    def get_shader_parameter(param : String | Symbol, as type : T.class, default : T? = nil) : T forall T
+      if @pointer.null? || !Bridge.init_done?
+        return default || Variant.default_for(T)
+      end
+      {% if T == String %}
+        return call_str("get_shader_parameter", param.to_s)
+      {% else %}
+        godot_bind(@@mb_get_shader_parameter, "ShaderMaterial", "get_shader_parameter", 2760726917_i64)
+        sn_0 = Bridge.make_string_name(param.to_s)
+        args = StaticArray[sn_0]
+        ret_var = StaticArray(UInt8, 24).new(0_u8)
+        godot_ptrcall(@@mb_get_shader_parameter, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
+        Godot._unpack_variant_buf(ret_var, T, default)
+      ensure
+        Bridge.free_string_name(sn_0) if sn_0
+      {% end %}
     end
 
-    def set_shader_parameter(param : String | Symbol, value : Variant) : Void
+    def get_shader_parameter(param : String | Symbol, type : T.class) : T forall T
+      get_shader_parameter(param, as: T)
+    end
+
+    def get_shader_parameter_bool(param : String | Symbol, default : Bool = false) : Bool
+      get_shader_parameter(param, as: Bool, default: default)
+    end
+
+    def get_shader_parameter_i64(param : String | Symbol, default : Int64 = 0_i64) : Int64
+      get_shader_parameter(param, as: Int64, default: default)
+    end
+
+    def get_shader_parameter_i32(param : String | Symbol, default : Int32 = 0_i32) : Int32
+      get_shader_parameter(param, as: Int32, default: default)
+    end
+
+    def get_shader_parameter_f64(param : String | Symbol, default : Float64 = 0.0_f64) : Float64
+      get_shader_parameter(param, as: Float64, default: default)
+    end
+
+    def get_shader_parameter_f32(param : String | Symbol, default : Float32 = 0.0_f32) : Float32
+      get_shader_parameter(param, as: Float32, default: default)
+    end
+
+    def get_shader_parameter_vec2(param : String | Symbol, default : Vector2 = Vector2.zero) : Vector2
+      get_shader_parameter(param, as: Vector2, default: default)
+    end
+
+    def get_shader_parameter_vec3(param : String | Symbol, default : Vector3 = Vector3.zero) : Vector3
+      get_shader_parameter(param, as: Vector3, default: default)
+    end
+
+    def get_shader_parameter_vec4(param : String | Symbol, default : Vector4 = Vector4.new(0.0_f32, 0.0_f32, 0.0_f32, 0.0_f32)) : Vector4
+      get_shader_parameter(param, as: Vector4, default: default)
+    end
+
+    def get_shader_parameter_color(param : String | Symbol, default : Color = Color::WHITE) : Color
+      get_shader_parameter(param, as: Color, default: default)
+    end
+
+    def get_shader_parameter_transform3d(param : String | Symbol, default : Transform3D = Transform3D.identity) : Transform3D
+      get_shader_parameter(param, as: Transform3D, default: default)
+    end
+
+    def get_shader_parameter_obj(param : String | Symbol, type : T.class = Godot::Object) : T? forall T
+      obj = get_shader_parameter(param, as: T)
+      obj.pointer.null? ? nil : obj
+    end
+  end
+
+  class RenderingServer < Object
+    def global_shader_parameter_set(name : String | Symbol, value : ShaderParameterValue) : Void
       return if @pointer.null? || !Bridge.init_done?
-      call("set_shader_parameter", param.to_s, value)
+      call("global_shader_parameter_set", name.to_s, value)
+    end
+
+    def self.global_shader_parameter_set(name : String | Symbol, value : ShaderParameterValue) : Void
+      instance.global_shader_parameter_set(name, value)
+    end
+
+    def global_shader_parameter_set_override(name : String | Symbol, value : ShaderParameterValue) : Void
+      return if @pointer.null? || !Bridge.init_done?
+      call("global_shader_parameter_set_override", name.to_s, value)
+    end
+
+    def self.global_shader_parameter_set_override(name : String | Symbol, value : ShaderParameterValue) : Void
+      instance.global_shader_parameter_set_override(name, value)
+    end
+
+    def global_shader_parameter_get(name : String | Symbol, as type : T.class, default : T? = nil) : T forall T
+      if @pointer.null? || !Bridge.init_done?
+        return default || Variant.default_for(T)
+      end
+      {% if T == String %}
+        return call_str("global_shader_parameter_get", name.to_s)
+      {% else %}
+        godot_bind(@@mb_global_shader_parameter_get, "RenderingServer", "global_shader_parameter_get", 2760726917_i64)
+        sn_0 = Bridge.make_string_name(name.to_s)
+        args = StaticArray[sn_0]
+        ret_var = StaticArray(UInt8, 24).new(0_u8)
+        godot_ptrcall(@@mb_global_shader_parameter_get, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
+        Godot._unpack_variant_buf(ret_var, T, default)
+      ensure
+        Bridge.free_string_name(sn_0) if sn_0
+      {% end %}
+    end
+
+    def self.global_shader_parameter_get(name : String | Symbol, as type : T.class, default : T? = nil) : T forall T
+      instance.global_shader_parameter_get(name, as: type, default: default)
     end
   end
 end
@@ -556,4 +809,11 @@ macro preload?(path)
     end
   %}
   ::Godot::PreloadCache.get_or_load?({{path}}, {{target_type.id}})
+end
+
+struct ::Path
+  # Resolves a Godot virtual path (`res://...` or `uid://...`) to a filesystem path.
+  def self.resolve(path : String) : String
+    ::Godot::ResourcePath.resolve(path)
+  end
 end

@@ -376,7 +376,7 @@ module Godot
       godot_ptrcall_float(@@mb_get_follow_viewport_scale, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_set_custom_viewport : Void* = Pointer(Void).null
-    def set_custom_viewport(viewport : Node) : Void
+    def set_custom_viewport(viewport : Node?) : Void
       godot_bind(@@mb_set_custom_viewport, "CanvasLayer", "set_custom_viewport", 1078189570_i64)
       arg_ptr_0 = viewport ? viewport.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -501,7 +501,7 @@ module Godot
       super(pointer)
     end
     @@mb_set_diffuse_texture : Void* = Pointer(Void).null
-    def set_diffuse_texture(texture : Texture2D) : Void
+    def set_diffuse_texture(texture : Texture2D?) : Void
       godot_bind(@@mb_set_diffuse_texture, "CanvasTexture", "set_diffuse_texture", 4051416890_i64)
       arg_ptr_0 = texture ? texture.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -514,7 +514,7 @@ module Godot
       godot_ptrcall_obj(@@mb_get_diffuse_texture, @pointer, Pointer(Pointer(Void)).null, Texture2D)
     end
     @@mb_set_normal_texture : Void* = Pointer(Void).null
-    def set_normal_texture(texture : Texture2D) : Void
+    def set_normal_texture(texture : Texture2D?) : Void
       godot_bind(@@mb_set_normal_texture, "CanvasTexture", "set_normal_texture", 4051416890_i64)
       arg_ptr_0 = texture ? texture.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -527,7 +527,7 @@ module Godot
       godot_ptrcall_obj(@@mb_get_normal_texture, @pointer, Pointer(Pointer(Void)).null, Texture2D)
     end
     @@mb_set_specular_texture : Void* = Pointer(Void).null
-    def set_specular_texture(texture : Texture2D) : Void
+    def set_specular_texture(texture : Texture2D?) : Void
       godot_bind(@@mb_set_specular_texture, "CanvasTexture", "set_specular_texture", 4051416890_i64)
       arg_ptr_0 = texture ? texture.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -755,7 +755,7 @@ module Godot
       godot_ptrcall_float(@@mb_get_custom_solver_bias, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_collide : Void* = Pointer(Void).null
-    def collide(local_xform : Transform2D, with_shape : Shape2D, shape_xform : Transform2D) : Bool
+    def collide(local_xform : Transform2D, with_shape : Shape2D?, shape_xform : Transform2D) : Bool
       godot_bind(@@mb_collide, "Shape2D", "collide", 3709843132_i64)
       val_0 = local_xform
       arg_0 = pointerof(val_0).as(Void*)
@@ -767,11 +767,11 @@ module Godot
       godot_ptrcall_bool(@@mb_collide, @pointer, args.to_unsafe.as(Void**))
     end
     # Predicate alias for `collide`
-    def collide?(local_xform : Transform2D, with_shape : Shape2D, shape_xform : Transform2D) : Bool
+    def collide?(local_xform : Transform2D, with_shape : Shape2D?, shape_xform : Transform2D) : Bool
       collide(local_xform, with_shape, shape_xform)
     end
     @@mb_collide_with_motion : Void* = Pointer(Void).null
-    def collide_with_motion(local_xform : Transform2D, local_motion : Vector2, with_shape : Shape2D, shape_xform : Transform2D, shape_motion : Vector2) : Bool
+    def collide_with_motion(local_xform : Transform2D, local_motion : Vector2, with_shape : Shape2D?, shape_xform : Transform2D, shape_motion : Vector2) : Bool
       godot_bind(@@mb_collide_with_motion, "Shape2D", "collide_with_motion", 2869556801_i64)
       val_0 = local_xform
       arg_0 = pointerof(val_0).as(Void*)
@@ -787,11 +787,11 @@ module Godot
       godot_ptrcall_bool(@@mb_collide_with_motion, @pointer, args.to_unsafe.as(Void**))
     end
     # Predicate alias for `collide_with_motion`
-    def collide_with_motion?(local_xform : Transform2D, local_motion : Vector2, with_shape : Shape2D, shape_xform : Transform2D, shape_motion : Vector2) : Bool
+    def collide_with_motion?(local_xform : Transform2D, local_motion : Vector2, with_shape : Shape2D?, shape_xform : Transform2D, shape_motion : Vector2) : Bool
       collide_with_motion(local_xform, local_motion, with_shape, shape_xform, shape_motion)
     end
     @@mb_collide_and_get_contacts : Void* = Pointer(Void).null
-    def collide_and_get_contacts(local_xform : Transform2D, with_shape : Shape2D, shape_xform : Transform2D) : Pointer(Void)
+    def collide_and_get_contacts(local_xform : Transform2D, with_shape : Shape2D?, shape_xform : Transform2D) : Pointer(Void)
       godot_bind(@@mb_collide_and_get_contacts, "Shape2D", "collide_and_get_contacts", 3056932662_i64)
       val_0 = local_xform
       arg_0 = pointerof(val_0).as(Void*)
@@ -805,7 +805,7 @@ module Godot
       ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_collide_with_motion_and_get_contacts : Void* = Pointer(Void).null
-    def collide_with_motion_and_get_contacts(local_xform : Transform2D, local_motion : Vector2, with_shape : Shape2D, shape_xform : Transform2D, shape_motion : Vector2) : Pointer(Void)
+    def collide_with_motion_and_get_contacts(local_xform : Transform2D, local_motion : Vector2, with_shape : Shape2D?, shape_xform : Transform2D, shape_motion : Vector2) : Pointer(Void)
       godot_bind(@@mb_collide_with_motion_and_get_contacts, "Shape2D", "collide_with_motion_and_get_contacts", 3620351573_i64)
       val_0 = local_xform
       arg_0 = pointerof(val_0).as(Void*)
@@ -2548,7 +2548,7 @@ module Godot
       instance.class_get_property_setter(godot_class, property)
     end
     @@mb_class_get_property : Void* = Pointer(Void).null
-    def class_get_property(object : Godot::Object, property : String) : Pointer(Void)
+    def class_get_property(object : Godot::Object?, property : String) : Pointer(Void)
       godot_bind(@@mb_class_get_property, "ClassDB", "class_get_property", 2498641674_i64)
       arg_ptr_0 = object ? object.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -2564,11 +2564,11 @@ module Godot
       Bridge.free_string_name(sn_1)
     end
     # Class-level singleton delegator for `class_get_property`
-    def self.class_get_property(object : Godot::Object, property : String) : Pointer(Void)
+    def self.class_get_property(object : Godot::Object?, property : String) : Pointer(Void)
       instance.class_get_property(object, property)
     end
     @@mb_class_set_property : Void* = Pointer(Void).null
-    def class_set_property(object : Godot::Object, property : String, value : Pointer(Void)) : Godot::Error
+    def class_set_property(object : Godot::Object?, property : String, value : Pointer(Void)) : Godot::Error
       godot_bind(@@mb_class_set_property, "ClassDB", "class_set_property", 1690314931_i64)
       arg_ptr_0 = object ? object.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -2582,7 +2582,7 @@ module Godot
       Bridge.free_string_name(sn_1)
     end
     # Class-level singleton delegator for `class_set_property`
-    def self.class_set_property(object : Godot::Object, property : String, value : Pointer(Void)) : Godot::Error
+    def self.class_set_property(object : Godot::Object?, property : String, value : Pointer(Void)) : Godot::Error
       instance.class_set_property(object, property, value)
     end
     @@mb_class_get_property_default_value : Void* = Pointer(Void).null
@@ -5011,7 +5011,7 @@ module Godot
       godot_call_str("get_line_gutter_text", line, gutter)
     end
     @@mb_set_line_gutter_icon : Void* = Pointer(Void).null
-    def set_line_gutter_icon(line : Int64, gutter : Int64, icon : Texture2D) : Void
+    def set_line_gutter_icon(line : Int64, gutter : Int64, icon : Texture2D?) : Void
       godot_bind(@@mb_set_line_gutter_icon, "TextEdit", "set_line_gutter_icon", 176101966_i64)
       val_0 = line.to_i64
       arg_0 = pointerof(val_0).as(Void*)
@@ -5103,7 +5103,7 @@ module Godot
       godot_ptrcall_val(@@mb_get_line_background_color, @pointer, args.to_unsafe.as(Void**), Color)
     end
     @@mb_set_syntax_highlighter : Void* = Pointer(Void).null
-    def set_syntax_highlighter(syntax_highlighter : SyntaxHighlighter) : Void
+    def set_syntax_highlighter(syntax_highlighter : SyntaxHighlighter?) : Void
       godot_bind(@@mb_set_syntax_highlighter, "TextEdit", "set_syntax_highlighter", 2765644541_i64)
       arg_ptr_0 = syntax_highlighter ? syntax_highlighter.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -7657,7 +7657,7 @@ module Godot
       super(pointer)
     end
     @@mb_set_shape : Void* = Pointer(Void).null
-    def set_shape(shape : Shape2D) : Void
+    def set_shape(shape : Shape2D?) : Void
       godot_bind(@@mb_set_shape, "CollisionShape2D", "set_shape", 771364740_i64)
       arg_ptr_0 = shape ? shape.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -7807,7 +7807,7 @@ module Godot
       super(pointer)
     end
     @@mb_resource_changed : Void* = Pointer(Void).null
-    def resource_changed(resource : Resource) : Void
+    def resource_changed(resource : Resource?) : Void
       godot_bind(@@mb_resource_changed, "CollisionShape3D", "resource_changed", 968641751_i64)
       arg_ptr_0 = resource ? resource.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -7815,7 +7815,7 @@ module Godot
       godot_ptrcall_void(@@mb_resource_changed, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_set_shape : Void* = Pointer(Void).null
-    def set_shape(shape : Shape3D) : Void
+    def set_shape(shape : Shape3D?) : Void
       godot_bind(@@mb_set_shape, "CollisionShape3D", "set_shape", 1549710052_i64)
       arg_ptr_0 = shape ? shape.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -10119,7 +10119,7 @@ module Godot
       godot_ptrcall_obj(@@mb_generate_rsa, @pointer, args.to_unsafe.as(Void**), CryptoKey)
     end
     @@mb_generate_self_signed_certificate : Void* = Pointer(Void).null
-    def generate_self_signed_certificate(key : CryptoKey, issuer_name : String = "CN=myserver,O=myorganisation,C=IT", not_before : String = "20140101000000", not_after : String = "20340101000000") : X509Certificate
+    def generate_self_signed_certificate(key : CryptoKey?, issuer_name : String = "CN=myserver,O=myorganisation,C=IT", not_before : String = "20140101000000", not_after : String = "20340101000000") : X509Certificate
       godot_bind(@@mb_generate_self_signed_certificate, "Crypto", "generate_self_signed_certificate", 492266173_i64)
       arg_ptr_0 = key ? key.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -10137,7 +10137,7 @@ module Godot
       Bridge.free_string(str_3)
     end
     @@mb_sign : Void* = Pointer(Void).null
-    def sign(hash_type : Godot::HashingContext::HashType | Int, hash : Pointer(Void), key : CryptoKey) : Pointer(Void)
+    def sign(hash_type : Godot::HashingContext::HashType | Int, hash : Pointer(Void), key : CryptoKey?) : Pointer(Void)
       godot_bind(@@mb_sign, "Crypto", "sign", 1673662703_i64)
       val_0 = hash_type.is_a?(Int) ? hash_type.to_i64 : hash_type.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
@@ -10151,7 +10151,7 @@ module Godot
       ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_verify : Void* = Pointer(Void).null
-    def verify(hash_type : Godot::HashingContext::HashType | Int, hash : Pointer(Void), signature : Pointer(Void), key : CryptoKey) : Bool
+    def verify(hash_type : Godot::HashingContext::HashType | Int, hash : Pointer(Void), signature : Pointer(Void), key : CryptoKey?) : Bool
       godot_bind(@@mb_verify, "Crypto", "verify", 2805902225_i64)
       val_0 = hash_type.is_a?(Int) ? hash_type.to_i64 : hash_type.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
@@ -10165,11 +10165,11 @@ module Godot
       godot_ptrcall_bool(@@mb_verify, @pointer, args.to_unsafe.as(Void**))
     end
     # Predicate alias for `verify`
-    def verify?(hash_type : Godot::HashingContext::HashType | Int, hash : Pointer(Void), signature : Pointer(Void), key : CryptoKey) : Bool
+    def verify?(hash_type : Godot::HashingContext::HashType | Int, hash : Pointer(Void), signature : Pointer(Void), key : CryptoKey?) : Bool
       verify(hash_type, hash, signature, key)
     end
     @@mb_encrypt : Void* = Pointer(Void).null
-    def encrypt(key : CryptoKey, plaintext : Pointer(Void)) : Pointer(Void)
+    def encrypt(key : CryptoKey?, plaintext : Pointer(Void)) : Pointer(Void)
       godot_bind(@@mb_encrypt, "Crypto", "encrypt", 2361793670_i64)
       arg_ptr_0 = key ? key.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -10181,7 +10181,7 @@ module Godot
       ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_decrypt : Void* = Pointer(Void).null
-    def decrypt(key : CryptoKey, ciphertext : Pointer(Void)) : Pointer(Void)
+    def decrypt(key : CryptoKey?, ciphertext : Pointer(Void)) : Pointer(Void)
       godot_bind(@@mb_decrypt, "Crypto", "decrypt", 2361793670_i64)
       arg_ptr_0 = key ? key.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -10296,7 +10296,7 @@ module Godot
       godot_ptrcall_enum(@@mb_create_from_images, @pointer, args.to_unsafe.as(Void**), Godot::Error)
     end
     @@mb_update_layer : Void* = Pointer(Void).null
-    def update_layer(image : Image, layer : Int64) : Void
+    def update_layer(image : Image?, layer : Int64) : Void
       godot_bind(@@mb_update_layer, "ImageTextureLayered", "update_layer", 3331733361_i64)
       arg_ptr_0 = image ? image.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -11184,7 +11184,7 @@ module Godot
       godot_ptrcall_void(@@mb_set_width, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_set_curve : Void* = Pointer(Void).null
-    def set_curve(curve : Curve) : Void
+    def set_curve(curve : Curve?) : Void
       godot_bind(@@mb_set_curve, "CurveTexture", "set_curve", 270443179_i64)
       arg_ptr_0 = curve ? curve.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -11247,7 +11247,7 @@ module Godot
       godot_ptrcall_void(@@mb_set_width, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_set_curve_x : Void* = Pointer(Void).null
-    def set_curve_x(curve : Curve) : Void
+    def set_curve_x(curve : Curve?) : Void
       godot_bind(@@mb_set_curve_x, "CurveXYZTexture", "set_curve_x", 270443179_i64)
       arg_ptr_0 = curve ? curve.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -11260,7 +11260,7 @@ module Godot
       godot_ptrcall_obj(@@mb_get_curve_x, @pointer, Pointer(Pointer(Void)).null, Curve)
     end
     @@mb_set_curve_y : Void* = Pointer(Void).null
-    def set_curve_y(curve : Curve) : Void
+    def set_curve_y(curve : Curve?) : Void
       godot_bind(@@mb_set_curve_y, "CurveXYZTexture", "set_curve_y", 270443179_i64)
       arg_ptr_0 = curve ? curve.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -11273,7 +11273,7 @@ module Godot
       godot_ptrcall_obj(@@mb_get_curve_y, @pointer, Pointer(Pointer(Void)).null, Curve)
     end
     @@mb_set_curve_z : Void* = Pointer(Void).null
-    def set_curve_z(curve : Curve) : Void
+    def set_curve_z(curve : Curve?) : Void
       godot_bind(@@mb_set_curve_z, "CurveXYZTexture", "set_curve_z", 270443179_i64)
       arg_ptr_0 = curve ? curve.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -11712,7 +11712,7 @@ module Godot
       super(pointer)
     end
     @@mb_setup : Void* = Pointer(Void).null
-    def setup(server_options : TLSOptions) : Godot::Error
+    def setup(server_options : TLSOptions?) : Godot::Error
       godot_bind(@@mb_setup, "DTLSServer", "setup", 1262296096_i64)
       arg_ptr_0 = server_options ? server_options.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -11720,7 +11720,7 @@ module Godot
       godot_ptrcall_enum(@@mb_setup, @pointer, args.to_unsafe.as(Void**), Godot::Error)
     end
     @@mb_take_connection : Void* = Pointer(Void).null
-    def take_connection(udp_peer : PacketPeerUDP) : PacketPeerDTLS
+    def take_connection(udp_peer : PacketPeerUDP?) : PacketPeerDTLS
       godot_bind(@@mb_take_connection, "DTLSServer", "take_connection", 3946580474_i64)
       arg_ptr_0 = udp_peer ? udp_peer.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -11947,7 +11947,7 @@ module Godot
       godot_ptrcall_val(@@mb_get_size, @pointer, Pointer(Pointer(Void)).null, Vector3)
     end
     @@mb_set_texture : Void* = Pointer(Void).null
-    def set_texture(get_type : DecalTexture | Int, texture : Texture2D) : Void
+    def set_texture(get_type : DecalTexture | Int, texture : Texture2D?) : Void
       godot_bind(@@mb_set_texture, "Decal", "set_texture", 2086764391_i64)
       val_0 = get_type.is_a?(Int) ? get_type.to_i64 : get_type.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
@@ -13721,7 +13721,7 @@ module Godot
       instance.global_menu_add_check_item(menu_root, label, callback, key_callback, tag, accelerator, index)
     end
     @@mb_global_menu_add_icon_item : Void* = Pointer(Void).null
-    def global_menu_add_icon_item(menu_root : String, icon : Texture2D, label : String, callback : Pointer(Void), key_callback : Pointer(Void), tag : Pointer(Void)? = nil, accelerator : Godot::Key | Int = 0, index : Int64 = -1_i64) : Int64
+    def global_menu_add_icon_item(menu_root : String, icon : Texture2D?, label : String, callback : Pointer(Void), key_callback : Pointer(Void), tag : Pointer(Void)? = nil, accelerator : Godot::Key | Int = 0, index : Int64 = -1_i64) : Int64
       godot_bind(@@mb_global_menu_add_icon_item, "DisplayServer", "global_menu_add_icon_item", 3867083847_i64)
       str_0 = Bridge.make_string(menu_root)
       arg_0 = str_0
@@ -13746,11 +13746,11 @@ module Godot
       Bridge.free_string(str_2)
     end
     # Class-level singleton delegator for `global_menu_add_icon_item`
-    def self.global_menu_add_icon_item(menu_root : String, icon : Texture2D, label : String, callback : Pointer(Void), key_callback : Pointer(Void), tag : Pointer(Void)? = nil, accelerator : Godot::Key | Int = 0, index : Int64 = -1_i64) : Int64
+    def self.global_menu_add_icon_item(menu_root : String, icon : Texture2D?, label : String, callback : Pointer(Void), key_callback : Pointer(Void), tag : Pointer(Void)? = nil, accelerator : Godot::Key | Int = 0, index : Int64 = -1_i64) : Int64
       instance.global_menu_add_icon_item(menu_root, icon, label, callback, key_callback, tag, accelerator, index)
     end
     @@mb_global_menu_add_icon_check_item : Void* = Pointer(Void).null
-    def global_menu_add_icon_check_item(menu_root : String, icon : Texture2D, label : String, callback : Pointer(Void), key_callback : Pointer(Void), tag : Pointer(Void)? = nil, accelerator : Godot::Key | Int = 0, index : Int64 = -1_i64) : Int64
+    def global_menu_add_icon_check_item(menu_root : String, icon : Texture2D?, label : String, callback : Pointer(Void), key_callback : Pointer(Void), tag : Pointer(Void)? = nil, accelerator : Godot::Key | Int = 0, index : Int64 = -1_i64) : Int64
       godot_bind(@@mb_global_menu_add_icon_check_item, "DisplayServer", "global_menu_add_icon_check_item", 3867083847_i64)
       str_0 = Bridge.make_string(menu_root)
       arg_0 = str_0
@@ -13775,7 +13775,7 @@ module Godot
       Bridge.free_string(str_2)
     end
     # Class-level singleton delegator for `global_menu_add_icon_check_item`
-    def self.global_menu_add_icon_check_item(menu_root : String, icon : Texture2D, label : String, callback : Pointer(Void), key_callback : Pointer(Void), tag : Pointer(Void)? = nil, accelerator : Godot::Key | Int = 0, index : Int64 = -1_i64) : Int64
+    def self.global_menu_add_icon_check_item(menu_root : String, icon : Texture2D?, label : String, callback : Pointer(Void), key_callback : Pointer(Void), tag : Pointer(Void)? = nil, accelerator : Godot::Key | Int = 0, index : Int64 = -1_i64) : Int64
       instance.global_menu_add_icon_check_item(menu_root, icon, label, callback, key_callback, tag, accelerator, index)
     end
     @@mb_global_menu_add_radio_check_item : Void* = Pointer(Void).null
@@ -13806,7 +13806,7 @@ module Godot
       instance.global_menu_add_radio_check_item(menu_root, label, callback, key_callback, tag, accelerator, index)
     end
     @@mb_global_menu_add_icon_radio_check_item : Void* = Pointer(Void).null
-    def global_menu_add_icon_radio_check_item(menu_root : String, icon : Texture2D, label : String, callback : Pointer(Void), key_callback : Pointer(Void), tag : Pointer(Void)? = nil, accelerator : Godot::Key | Int = 0, index : Int64 = -1_i64) : Int64
+    def global_menu_add_icon_radio_check_item(menu_root : String, icon : Texture2D?, label : String, callback : Pointer(Void), key_callback : Pointer(Void), tag : Pointer(Void)? = nil, accelerator : Godot::Key | Int = 0, index : Int64 = -1_i64) : Int64
       godot_bind(@@mb_global_menu_add_icon_radio_check_item, "DisplayServer", "global_menu_add_icon_radio_check_item", 3867083847_i64)
       str_0 = Bridge.make_string(menu_root)
       arg_0 = str_0
@@ -13831,7 +13831,7 @@ module Godot
       Bridge.free_string(str_2)
     end
     # Class-level singleton delegator for `global_menu_add_icon_radio_check_item`
-    def self.global_menu_add_icon_radio_check_item(menu_root : String, icon : Texture2D, label : String, callback : Pointer(Void), key_callback : Pointer(Void), tag : Pointer(Void)? = nil, accelerator : Godot::Key | Int = 0, index : Int64 = -1_i64) : Int64
+    def self.global_menu_add_icon_radio_check_item(menu_root : String, icon : Texture2D?, label : String, callback : Pointer(Void), key_callback : Pointer(Void), tag : Pointer(Void)? = nil, accelerator : Godot::Key | Int = 0, index : Int64 = -1_i64) : Int64
       instance.global_menu_add_icon_radio_check_item(menu_root, icon, label, callback, key_callback, tag, accelerator, index)
     end
     @@mb_global_menu_add_multistate_item : Void* = Pointer(Void).null
@@ -14492,7 +14492,7 @@ module Godot
       instance.global_menu_set_item_max_states(menu_root, idx, max_states)
     end
     @@mb_global_menu_set_item_icon : Void* = Pointer(Void).null
-    def global_menu_set_item_icon(menu_root : String, idx : Int64, icon : Texture2D) : Void
+    def global_menu_set_item_icon(menu_root : String, idx : Int64, icon : Texture2D?) : Void
       godot_bind(@@mb_global_menu_set_item_icon, "DisplayServer", "global_menu_set_item_icon", 3201338066_i64)
       str_0 = Bridge.make_string(menu_root)
       arg_0 = str_0
@@ -14506,7 +14506,7 @@ module Godot
       Bridge.free_string(str_0)
     end
     # Class-level singleton delegator for `global_menu_set_item_icon`
-    def self.global_menu_set_item_icon(menu_root : String, idx : Int64, icon : Texture2D) : Void
+    def self.global_menu_set_item_icon(menu_root : String, idx : Int64, icon : Texture2D?) : Void
       instance.global_menu_set_item_icon(menu_root, idx, icon)
     end
     @@mb_global_menu_set_item_indentation_level : Void* = Pointer(Void).null
@@ -15612,7 +15612,7 @@ module Godot
       instance.window_get_flag?(flag, window_id)
     end
     @@mb_window_set_icon : Void* = Pointer(Void).null
-    def window_set_icon(icon : Image, window_id : Int64 = 0_i64) : Void
+    def window_set_icon(icon : Image?, window_id : Int64 = 0_i64) : Void
       godot_bind(@@mb_window_set_icon, "DisplayServer", "window_set_icon", 2457502155_i64)
       arg_ptr_0 = icon ? icon.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -15622,7 +15622,7 @@ module Godot
       godot_ptrcall_void(@@mb_window_set_icon, @pointer, args.to_unsafe.as(Void**))
     end
     # Class-level singleton delegator for `window_set_icon`
-    def self.window_set_icon(icon : Image, window_id : Int64 = 0_i64) : Void
+    def self.window_set_icon(icon : Image?, window_id : Int64 = 0_i64) : Void
       instance.window_set_icon(icon, window_id)
     end
     @@mb_window_set_window_buttons_offset : Void* = Pointer(Void).null
@@ -17312,7 +17312,7 @@ module Godot
       instance.cursor_get_shape()
     end
     @@mb_cursor_set_custom_image : Void* = Pointer(Void).null
-    def cursor_set_custom_image(cursor : Resource, shape : CursorShape | Int = 0, hotspot : Vector2 = Vector2.new(0.to_f32, 0.to_f32)) : Void
+    def cursor_set_custom_image(cursor : Resource?, shape : CursorShape | Int = 0, hotspot : Vector2 = Vector2.new(0.to_f32, 0.to_f32)) : Void
       godot_bind(@@mb_cursor_set_custom_image, "DisplayServer", "cursor_set_custom_image", 1816663697_i64)
       arg_ptr_0 = cursor ? cursor.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -17324,11 +17324,11 @@ module Godot
       godot_ptrcall_void(@@mb_cursor_set_custom_image, @pointer, args.to_unsafe.as(Void**))
     end
     # Class-level singleton delegator for `cursor_set_custom_image`
-    def self.cursor_set_custom_image(cursor : Resource, shape : CursorShape | Int = 0, hotspot : Vector2 = Vector2.new(0.to_f32, 0.to_f32)) : Void
+    def self.cursor_set_custom_image(cursor : Resource?, shape : CursorShape | Int = 0, hotspot : Vector2 = Vector2.new(0.to_f32, 0.to_f32)) : Void
       instance.cursor_set_custom_image(cursor, shape, hotspot)
     end
     @@mb_send_toast_notification : Void* = Pointer(Void).null
-    def send_toast_notification(title : String, text : String, image : Texture2D, callback : Pointer(Void)) : Int64
+    def send_toast_notification(title : String, text : String, image : Texture2D?, callback : Pointer(Void)) : Int64
       godot_bind(@@mb_send_toast_notification, "DisplayServer", "send_toast_notification", 3914862447_i64)
       str_0 = Bridge.make_string(title)
       arg_0 = str_0
@@ -17345,7 +17345,7 @@ module Godot
       Bridge.free_string(str_1)
     end
     # Class-level singleton delegator for `send_toast_notification`
-    def self.send_toast_notification(title : String, text : String, image : Texture2D, callback : Pointer(Void)) : Int64
+    def self.send_toast_notification(title : String, text : String, image : Texture2D?, callback : Pointer(Void)) : Int64
       instance.send_toast_notification(title, text, image, callback)
     end
     @@mb_hide_toast_notification : Void* = Pointer(Void).null
@@ -17646,7 +17646,7 @@ module Godot
       instance.set_native_icon(filename)
     end
     @@mb_set_icon : Void* = Pointer(Void).null
-    def set_icon(image : Image) : Void
+    def set_icon(image : Image?) : Void
       godot_bind(@@mb_set_icon, "DisplayServer", "set_icon", 532598488_i64)
       arg_ptr_0 = image ? image.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -17654,11 +17654,11 @@ module Godot
       godot_ptrcall_void(@@mb_set_icon, @pointer, args.to_unsafe.as(Void**))
     end
     # Class-level singleton delegator for `set_icon`
-    def self.set_icon(image : Image) : Void
+    def self.set_icon(image : Image?) : Void
       instance.set_icon(image)
     end
     @@mb_create_status_indicator : Void* = Pointer(Void).null
-    def create_status_indicator(icon : Texture2D, tooltip : String, callback : Pointer(Void)) : Int64
+    def create_status_indicator(icon : Texture2D?, tooltip : String, callback : Pointer(Void)) : Int64
       godot_bind(@@mb_create_status_indicator, "DisplayServer", "create_status_indicator", 1904285171_i64)
       arg_ptr_0 = icon ? icon.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -17672,11 +17672,11 @@ module Godot
       Bridge.free_string(str_1)
     end
     # Class-level singleton delegator for `create_status_indicator`
-    def self.create_status_indicator(icon : Texture2D, tooltip : String, callback : Pointer(Void)) : Int64
+    def self.create_status_indicator(icon : Texture2D?, tooltip : String, callback : Pointer(Void)) : Int64
       instance.create_status_indicator(icon, tooltip, callback)
     end
     @@mb_status_indicator_set_icon : Void* = Pointer(Void).null
-    def status_indicator_set_icon(id : Int64, icon : Texture2D) : Void
+    def status_indicator_set_icon(id : Int64, icon : Texture2D?) : Void
       godot_bind(@@mb_status_indicator_set_icon, "DisplayServer", "status_indicator_set_icon", 666127730_i64)
       val_0 = id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
@@ -17686,7 +17686,7 @@ module Godot
       godot_ptrcall_void(@@mb_status_indicator_set_icon, @pointer, args.to_unsafe.as(Void**))
     end
     # Class-level singleton delegator for `status_indicator_set_icon`
-    def self.status_indicator_set_icon(id : Int64, icon : Texture2D) : Void
+    def self.status_indicator_set_icon(id : Int64, icon : Texture2D?) : Void
       instance.status_indicator_set_icon(id, icon)
     end
     @@mb_status_indicator_set_tooltip : Void* = Pointer(Void).null
@@ -17827,7 +17827,7 @@ module Godot
       instance.window_transparency_available?()
     end
     @@mb_register_additional_output : Void* = Pointer(Void).null
-    def register_additional_output(object : Godot::Object) : Void
+    def register_additional_output(object : Godot::Object?) : Void
       godot_bind(@@mb_register_additional_output, "DisplayServer", "register_additional_output", 3975164845_i64)
       arg_ptr_0 = object ? object.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -17835,11 +17835,11 @@ module Godot
       godot_ptrcall_void(@@mb_register_additional_output, @pointer, args.to_unsafe.as(Void**))
     end
     # Class-level singleton delegator for `register_additional_output`
-    def self.register_additional_output(object : Godot::Object) : Void
+    def self.register_additional_output(object : Godot::Object?) : Void
       instance.register_additional_output(object)
     end
     @@mb_unregister_additional_output : Void* = Pointer(Void).null
-    def unregister_additional_output(object : Godot::Object) : Void
+    def unregister_additional_output(object : Godot::Object?) : Void
       godot_bind(@@mb_unregister_additional_output, "DisplayServer", "unregister_additional_output", 3975164845_i64)
       arg_ptr_0 = object ? object.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -17847,7 +17847,7 @@ module Godot
       godot_ptrcall_void(@@mb_unregister_additional_output, @pointer, args.to_unsafe.as(Void**))
     end
     # Class-level singleton delegator for `unregister_additional_output`
-    def self.unregister_additional_output(object : Godot::Object) : Void
+    def self.unregister_additional_output(object : Godot::Object?) : Void
       instance.unregister_additional_output(object)
     end
     @@mb_has_additional_outputs : Void* = Pointer(Void).null
@@ -17991,7 +17991,7 @@ module Godot
       godot_ptrcall_void(@@mb_setup, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_blit_rect : Void* = Pointer(Void).null
-    def blit_rect(rect : Rect2i, source : Texture2D, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32), mipmap : Int64 = 0_i64, material : Material? = nil) : Void
+    def blit_rect(rect : Rect2i, source : Texture2D?, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32), mipmap : Int64 = 0_i64, material : Material? = nil) : Void
       godot_bind(@@mb_blit_rect, "DrawableTexture2D", "blit_rect", 319217173_i64)
       val_0 = rect
       arg_0 = pointerof(val_0).as(Void*)
@@ -18163,7 +18163,7 @@ module Godot
       godot_ptrcall_void(@@mb_compress, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_dtls_server_setup : Void* = Pointer(Void).null
-    def dtls_server_setup(server_options : TLSOptions) : Godot::Error
+    def dtls_server_setup(server_options : TLSOptions?) : Godot::Error
       godot_bind(@@mb_dtls_server_setup, "ENetConnection", "dtls_server_setup", 1262296096_i64)
       arg_ptr_0 = server_options ? server_options.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -18517,7 +18517,7 @@ module Godot
       godot_ptrcall_enum(@@mb_create_mesh, @pointer, args.to_unsafe.as(Void**), Godot::Error)
     end
     @@mb_add_mesh_peer : Void* = Pointer(Void).null
-    def add_mesh_peer(peer_id : Int64, host : ENetConnection) : Godot::Error
+    def add_mesh_peer(peer_id : Int64, host : ENetConnection?) : Godot::Error
       godot_bind(@@mb_add_mesh_peer, "ENetMultiplayerPeer", "add_mesh_peer", 1293458335_i64)
       val_0 = peer_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
@@ -18765,7 +18765,7 @@ module Godot
       ContextSlotInspectorProperty = 7_i64
     end
     @@mb_add_menu_shortcut : Void* = Pointer(Void).null
-    def add_menu_shortcut(shortcut : Shortcut, callback : Pointer(Void)) : Void
+    def add_menu_shortcut(shortcut : Shortcut?, callback : Pointer(Void)) : Void
       godot_bind(@@mb_add_menu_shortcut, "EditorContextMenuPlugin", "add_menu_shortcut", 851596305_i64)
       arg_ptr_0 = shortcut ? shortcut.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -18789,7 +18789,7 @@ module Godot
       Bridge.free_string(str_0)
     end
     @@mb_add_context_menu_item_from_shortcut : Void* = Pointer(Void).null
-    def add_context_menu_item_from_shortcut(name : String, shortcut : Shortcut, icon : Texture2D? = nil) : Void
+    def add_context_menu_item_from_shortcut(name : String, shortcut : Shortcut?, icon : Texture2D? = nil) : Void
       godot_bind(@@mb_add_context_menu_item_from_shortcut, "EditorContextMenuPlugin", "add_context_menu_item_from_shortcut", 3799546916_i64)
       str_0 = Bridge.make_string(name)
       arg_0 = str_0
@@ -18803,7 +18803,7 @@ module Godot
       Bridge.free_string(str_0)
     end
     @@mb_add_context_submenu_item : Void* = Pointer(Void).null
-    def add_context_submenu_item(name : String, menu : PopupMenu, icon : Texture2D? = nil) : Void
+    def add_context_submenu_item(name : String, menu : PopupMenu?, icon : Texture2D? = nil) : Void
       godot_bind(@@mb_add_context_submenu_item, "EditorContextMenuPlugin", "add_context_submenu_item", 1994674995_i64)
       str_0 = Bridge.make_string(name)
       arg_0 = str_0
@@ -18907,7 +18907,7 @@ module Godot
       is_active()
     end
     @@mb_add_session_tab : Void* = Pointer(Void).null
-    def add_session_tab(control : Control) : Void
+    def add_session_tab(control : Control?) : Void
       godot_bind(@@mb_add_session_tab, "EditorDebuggerSession", "add_session_tab", 1496901182_i64)
       arg_ptr_0 = control ? control.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -18915,7 +18915,7 @@ module Godot
       godot_ptrcall_void(@@mb_add_session_tab, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_remove_session_tab : Void* = Pointer(Void).null
-    def remove_session_tab(control : Control) : Void
+    def remove_session_tab(control : Control?) : Void
       godot_bind(@@mb_remove_session_tab, "EditorDebuggerSession", "remove_session_tab", 1496901182_i64)
       arg_ptr_0 = control ? control.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -19118,7 +19118,7 @@ module Godot
       godot_call_str("get_icon_name")
     end
     @@mb_set_dock_icon : Void* = Pointer(Void).null
-    def set_dock_icon(icon : Texture2D) : Void
+    def set_dock_icon(icon : Texture2D?) : Void
       godot_bind(@@mb_set_dock_icon, "EditorDock", "set_dock_icon", 4051416890_i64)
       arg_ptr_0 = icon ? icon.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -19161,7 +19161,7 @@ module Godot
       godot_ptrcall_val(@@mb_get_title_color, @pointer, Pointer(Pointer(Void)).null, Color)
     end
     @@mb_set_dock_shortcut : Void* = Pointer(Void).null
-    def set_dock_shortcut(shortcut : Shortcut) : Void
+    def set_dock_shortcut(shortcut : Shortcut?) : Void
       godot_bind(@@mb_set_dock_shortcut, "EditorDock", "set_dock_shortcut", 857163497_i64)
       arg_ptr_0 = shortcut ? shortcut.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -19356,7 +19356,7 @@ module Godot
       ret_ptr
     end
     @@mb_save_pack : Void* = Pointer(Void).null
-    def save_pack(preset : EditorExportPreset, debug : Bool, path : String, embed : Bool = false) : Pointer(Void)
+    def save_pack(preset : EditorExportPreset?, debug : Bool, path : String, embed : Bool = false) : Pointer(Void)
       godot_bind(@@mb_save_pack, "EditorExportPlatform", "save_pack", 3420080977_i64)
       arg_ptr_0 = preset ? preset.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -19374,7 +19374,7 @@ module Godot
       Bridge.free_string(str_2)
     end
     @@mb_save_zip : Void* = Pointer(Void).null
-    def save_zip(preset : EditorExportPreset, debug : Bool, path : String) : Pointer(Void)
+    def save_zip(preset : EditorExportPreset?, debug : Bool, path : String) : Pointer(Void)
       godot_bind(@@mb_save_zip, "EditorExportPlatform", "save_zip", 1485052307_i64)
       arg_ptr_0 = preset ? preset.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -19390,7 +19390,7 @@ module Godot
       Bridge.free_string(str_2)
     end
     @@mb_save_pack_patch : Void* = Pointer(Void).null
-    def save_pack_patch(preset : EditorExportPreset, debug : Bool, path : String) : Pointer(Void)
+    def save_pack_patch(preset : EditorExportPreset?, debug : Bool, path : String) : Pointer(Void)
       godot_bind(@@mb_save_pack_patch, "EditorExportPlatform", "save_pack_patch", 1485052307_i64)
       arg_ptr_0 = preset ? preset.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -19406,7 +19406,7 @@ module Godot
       Bridge.free_string(str_2)
     end
     @@mb_save_zip_patch : Void* = Pointer(Void).null
-    def save_zip_patch(preset : EditorExportPreset, debug : Bool, path : String) : Pointer(Void)
+    def save_zip_patch(preset : EditorExportPreset?, debug : Bool, path : String) : Pointer(Void)
       godot_bind(@@mb_save_zip_patch, "EditorExportPlatform", "save_zip_patch", 1485052307_i64)
       arg_ptr_0 = preset ? preset.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -19432,7 +19432,7 @@ module Godot
       ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_export_project_files : Void* = Pointer(Void).null
-    def export_project_files(preset : EditorExportPreset, debug : Bool, save_cb : Pointer(Void), shared_cb : Pointer(Void)) : Godot::Error
+    def export_project_files(preset : EditorExportPreset?, debug : Bool, save_cb : Pointer(Void), shared_cb : Pointer(Void)) : Godot::Error
       godot_bind(@@mb_export_project_files, "EditorExportPlatform", "export_project_files", 1063735070_i64)
       arg_ptr_0 = preset ? preset.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -19446,7 +19446,7 @@ module Godot
       godot_ptrcall_enum(@@mb_export_project_files, @pointer, args.to_unsafe.as(Void**), Godot::Error)
     end
     @@mb_export_project : Void* = Pointer(Void).null
-    def export_project(preset : EditorExportPreset, debug : Bool, path : String, flags : DebugFlags | Int = 0, notify : Bool = true) : Godot::Error
+    def export_project(preset : EditorExportPreset?, debug : Bool, path : String, flags : DebugFlags | Int = 0, notify : Bool = true) : Godot::Error
       godot_bind(@@mb_export_project, "EditorExportPlatform", "export_project", 1201906210_i64)
       arg_ptr_0 = preset ? preset.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -19464,7 +19464,7 @@ module Godot
       Bridge.free_string(str_2)
     end
     @@mb_export_pack : Void* = Pointer(Void).null
-    def export_pack(preset : EditorExportPreset, debug : Bool, path : String, flags : DebugFlags | Int = 0) : Godot::Error
+    def export_pack(preset : EditorExportPreset?, debug : Bool, path : String, flags : DebugFlags | Int = 0) : Godot::Error
       godot_bind(@@mb_export_pack, "EditorExportPlatform", "export_pack", 3879521245_i64)
       arg_ptr_0 = preset ? preset.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -19480,7 +19480,7 @@ module Godot
       Bridge.free_string(str_2)
     end
     @@mb_export_zip : Void* = Pointer(Void).null
-    def export_zip(preset : EditorExportPreset, debug : Bool, path : String, flags : DebugFlags | Int = 0) : Godot::Error
+    def export_zip(preset : EditorExportPreset?, debug : Bool, path : String, flags : DebugFlags | Int = 0) : Godot::Error
       godot_bind(@@mb_export_zip, "EditorExportPlatform", "export_zip", 3879521245_i64)
       arg_ptr_0 = preset ? preset.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -19496,7 +19496,7 @@ module Godot
       Bridge.free_string(str_2)
     end
     @@mb_export_pack_patch : Void* = Pointer(Void).null
-    def export_pack_patch(preset : EditorExportPreset, debug : Bool, path : String, patches : Pointer(Void), flags : DebugFlags | Int = 0) : Godot::Error
+    def export_pack_patch(preset : EditorExportPreset?, debug : Bool, path : String, patches : Pointer(Void), flags : DebugFlags | Int = 0) : Godot::Error
       godot_bind(@@mb_export_pack_patch, "EditorExportPlatform", "export_pack_patch", 608021658_i64)
       arg_ptr_0 = preset ? preset.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -19514,7 +19514,7 @@ module Godot
       Bridge.free_string(str_2)
     end
     @@mb_export_zip_patch : Void* = Pointer(Void).null
-    def export_zip_patch(preset : EditorExportPreset, debug : Bool, path : String, patches : Pointer(Void), flags : DebugFlags | Int = 0) : Godot::Error
+    def export_zip_patch(preset : EditorExportPreset?, debug : Bool, path : String, patches : Pointer(Void), flags : DebugFlags | Int = 0) : Godot::Error
       godot_bind(@@mb_export_zip_patch, "EditorExportPlatform", "export_zip_patch", 608021658_i64)
       arg_ptr_0 = preset ? preset.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -19649,7 +19649,7 @@ module Godot
       Bridge.free_string(str_4)
     end
     @@mb_get_internal_export_files : Void* = Pointer(Void).null
-    def get_internal_export_files(preset : EditorExportPreset, debug : Bool) : Pointer(Void)
+    def get_internal_export_files(preset : EditorExportPreset?, debug : Bool) : Pointer(Void)
       godot_bind(@@mb_get_internal_export_files, "EditorExportPlatform", "get_internal_export_files", 89550086_i64)
       arg_ptr_0 = preset ? preset.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -21116,7 +21116,7 @@ module Godot
       super(pointer)
     end
     @@mb_add_side_menu : Void* = Pointer(Void).null
-    def add_side_menu(menu : Control, title : String = "") : Void
+    def add_side_menu(menu : Control?, title : String = "") : Void
       godot_bind(@@mb_add_side_menu, "EditorFileDialog", "add_side_menu", 402368861_i64)
       arg_ptr_0 = menu ? menu.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -21603,7 +21603,7 @@ module Godot
       godot_ptrcall_obj(@@mb_get_v_scroll_bar, @pointer, Pointer(Pointer(Void)).null, VScrollBar)
     end
     @@mb_ensure_control_visible : Void* = Pointer(Void).null
-    def ensure_control_visible(control : Control) : Void
+    def ensure_control_visible(control : Control?) : Void
       godot_bind(@@mb_ensure_control_visible, "ScrollContainer", "ensure_control_visible", 1496901182_i64)
       arg_ptr_0 = control ? control.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -21740,7 +21740,7 @@ module Godot
       super(pointer)
     end
     @@mb_edit : Void* = Pointer(Void).null
-    def edit(object : Godot::Object) : Void
+    def edit(object : Godot::Object?) : Void
       godot_bind(@@mb_edit, "EditorInspector", "edit", 3975164845_i64)
       arg_ptr_0 = object ? object.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -21773,7 +21773,7 @@ module Godot
       godot_ptrcall_void(@@mb_expand_revertable, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_instantiate_property_editor : Void* = Pointer(Void).null
-    def self.instantiate_property_editor(object : Godot::Object, get_type : Godot::Variant::Type | Int, path : String, hint : Godot::PropertyHint | Int, hint_text : String, usage : Int64, wide : Bool = false) : EditorProperty
+    def self.instantiate_property_editor(object : Godot::Object?, get_type : Godot::Variant::Type | Int, path : String, hint : Godot::PropertyHint | Int, hint_text : String, usage : Int64, wide : Bool = false) : EditorProperty
       godot_bind(@@mb_instantiate_property_editor, "EditorInspector", "instantiate_property_editor", 1429914152_i64)
       arg_ptr_0 = object ? object.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -21796,7 +21796,7 @@ module Godot
       Bridge.free_string(str_4)
     end
     # Instance convenience delegator for static method `instantiate_property_editor`
-    def instantiate_property_editor(object : Godot::Object, get_type : Godot::Variant::Type | Int, path : String, hint : Godot::PropertyHint | Int, hint_text : String, usage : Int64, wide : Bool = false) : EditorProperty
+    def instantiate_property_editor(object : Godot::Object?, get_type : Godot::Variant::Type | Int, path : String, hint : Godot::PropertyHint | Int, hint_text : String, usage : Int64, wide : Bool = false) : EditorProperty
       self.class.instantiate_property_editor(object, get_type, path, hint, hint_text, usage, wide)
     end
     @@mb_create_default_inspector : Void* = Pointer(Void).null
@@ -21851,7 +21851,7 @@ module Godot
       super(pointer)
     end
     @@mb_add_custom_control : Void* = Pointer(Void).null
-    def add_custom_control(control : Control) : Void
+    def add_custom_control(control : Control?) : Void
       godot_bind(@@mb_add_custom_control, "EditorInspectorPlugin", "add_custom_control", 1496901182_i64)
       arg_ptr_0 = control ? control.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -21859,7 +21859,7 @@ module Godot
       godot_ptrcall_void(@@mb_add_custom_control, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_add_property_editor : Void* = Pointer(Void).null
-    def add_property_editor(property : String, editor : Control, add_to_end : Bool = false, label : String = "") : Void
+    def add_property_editor(property : String, editor : Control?, add_to_end : Bool = false, label : String = "") : Void
       godot_bind(@@mb_add_property_editor, "EditorInspectorPlugin", "add_property_editor", 2042698479_i64)
       str_0 = Bridge.make_string(property)
       arg_0 = str_0
@@ -21876,7 +21876,7 @@ module Godot
       Bridge.free_string(str_3)
     end
     @@mb_add_property_editor_for_multiple_properties : Void* = Pointer(Void).null
-    def add_property_editor_for_multiple_properties(label : String, properties : Pointer(Void), editor : Control) : Void
+    def add_property_editor_for_multiple_properties(label : String, properties : Pointer(Void), editor : Control?) : Void
       godot_bind(@@mb_add_property_editor_for_multiple_properties, "EditorInspectorPlugin", "add_property_editor_for_multiple_properties", 788598683_i64)
       str_0 = Bridge.make_string(label)
       arg_0 = str_0
@@ -22292,7 +22292,7 @@ module Godot
       instance.get_node_3d_scale_snap()
     end
     @@mb_popup_dialog : Void* = Pointer(Void).null
-    def popup_dialog(dialog : Window, rect : Rect2i) : Void
+    def popup_dialog(dialog : Window?, rect : Rect2i) : Void
       godot_bind(@@mb_popup_dialog, "EditorInterface", "popup_dialog", 2015770942_i64)
       arg_ptr_0 = dialog ? dialog.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -22302,11 +22302,11 @@ module Godot
       godot_ptrcall_void(@@mb_popup_dialog, @pointer, args.to_unsafe.as(Void**))
     end
     # Class-level singleton delegator for `popup_dialog`
-    def self.popup_dialog(dialog : Window, rect : Rect2i) : Void
+    def self.popup_dialog(dialog : Window?, rect : Rect2i) : Void
       instance.popup_dialog(dialog, rect)
     end
     @@mb_popup_dialog_centered : Void* = Pointer(Void).null
-    def popup_dialog_centered(dialog : Window, minsize : Vector2i = Vector2i.new(0.to_i32, 0.to_i32)) : Void
+    def popup_dialog_centered(dialog : Window?, minsize : Vector2i = Vector2i.new(0.to_i32, 0.to_i32)) : Void
       godot_bind(@@mb_popup_dialog_centered, "EditorInterface", "popup_dialog_centered", 346557367_i64)
       arg_ptr_0 = dialog ? dialog.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -22316,11 +22316,11 @@ module Godot
       godot_ptrcall_void(@@mb_popup_dialog_centered, @pointer, args.to_unsafe.as(Void**))
     end
     # Class-level singleton delegator for `popup_dialog_centered`
-    def self.popup_dialog_centered(dialog : Window, minsize : Vector2i = Vector2i.new(0.to_i32, 0.to_i32)) : Void
+    def self.popup_dialog_centered(dialog : Window?, minsize : Vector2i = Vector2i.new(0.to_i32, 0.to_i32)) : Void
       instance.popup_dialog_centered(dialog, minsize)
     end
     @@mb_popup_dialog_centered_ratio : Void* = Pointer(Void).null
-    def popup_dialog_centered_ratio(dialog : Window, ratio : Float64 = 0.8_f64) : Void
+    def popup_dialog_centered_ratio(dialog : Window?, ratio : Float64 = 0.8_f64) : Void
       godot_bind(@@mb_popup_dialog_centered_ratio, "EditorInterface", "popup_dialog_centered_ratio", 2093669136_i64)
       arg_ptr_0 = dialog ? dialog.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -22330,11 +22330,11 @@ module Godot
       godot_ptrcall_void(@@mb_popup_dialog_centered_ratio, @pointer, args.to_unsafe.as(Void**))
     end
     # Class-level singleton delegator for `popup_dialog_centered_ratio`
-    def self.popup_dialog_centered_ratio(dialog : Window, ratio : Float64 = 0.8_f64) : Void
+    def self.popup_dialog_centered_ratio(dialog : Window?, ratio : Float64 = 0.8_f64) : Void
       instance.popup_dialog_centered_ratio(dialog, ratio)
     end
     @@mb_popup_dialog_centered_clamped : Void* = Pointer(Void).null
-    def popup_dialog_centered_clamped(dialog : Window, minsize : Vector2i = Vector2i.new(0.to_i32, 0.to_i32), fallback_ratio : Float64 = 0.75_f64) : Void
+    def popup_dialog_centered_clamped(dialog : Window?, minsize : Vector2i = Vector2i.new(0.to_i32, 0.to_i32), fallback_ratio : Float64 = 0.75_f64) : Void
       godot_bind(@@mb_popup_dialog_centered_clamped, "EditorInterface", "popup_dialog_centered_clamped", 3763385571_i64)
       arg_ptr_0 = dialog ? dialog.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -22346,7 +22346,7 @@ module Godot
       godot_ptrcall_void(@@mb_popup_dialog_centered_clamped, @pointer, args.to_unsafe.as(Void**))
     end
     # Class-level singleton delegator for `popup_dialog_centered_clamped`
-    def self.popup_dialog_centered_clamped(dialog : Window, minsize : Vector2i = Vector2i.new(0.to_i32, 0.to_i32), fallback_ratio : Float64 = 0.75_f64) : Void
+    def self.popup_dialog_centered_clamped(dialog : Window?, minsize : Vector2i = Vector2i.new(0.to_i32, 0.to_i32), fallback_ratio : Float64 = 0.75_f64) : Void
       instance.popup_dialog_centered_clamped(dialog, minsize, fallback_ratio)
     end
     @@mb_get_current_feature_profile : Void* = Pointer(Void).null
@@ -22389,7 +22389,7 @@ module Godot
       instance.popup_node_selector(callback, valid_types, current_value)
     end
     @@mb_popup_property_selector : Void* = Pointer(Void).null
-    def popup_property_selector(object : Godot::Object, callback : Pointer(Void), type_filter : Pointer(Void), current_value : String = "") : Void
+    def popup_property_selector(object : Godot::Object?, callback : Pointer(Void), type_filter : Pointer(Void), current_value : String = "") : Void
       godot_bind(@@mb_popup_property_selector, "EditorInterface", "popup_property_selector", 2955609011_i64)
       arg_ptr_0 = object ? object.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -22405,11 +22405,11 @@ module Godot
       Bridge.free_string(str_3)
     end
     # Class-level singleton delegator for `popup_property_selector`
-    def self.popup_property_selector(object : Godot::Object, callback : Pointer(Void), type_filter : Pointer(Void), current_value : String = "") : Void
+    def self.popup_property_selector(object : Godot::Object?, callback : Pointer(Void), type_filter : Pointer(Void), current_value : String = "") : Void
       instance.popup_property_selector(object, callback, type_filter, current_value)
     end
     @@mb_popup_method_selector : Void* = Pointer(Void).null
-    def popup_method_selector(object : Godot::Object, callback : Pointer(Void), current_value : String = "") : Void
+    def popup_method_selector(object : Godot::Object?, callback : Pointer(Void), current_value : String = "") : Void
       godot_bind(@@mb_popup_method_selector, "EditorInterface", "popup_method_selector", 3585505226_i64)
       arg_ptr_0 = object ? object.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -22423,7 +22423,7 @@ module Godot
       Bridge.free_string(str_2)
     end
     # Class-level singleton delegator for `popup_method_selector`
-    def self.popup_method_selector(object : Godot::Object, callback : Pointer(Void), current_value : String = "") : Void
+    def self.popup_method_selector(object : Godot::Object?, callback : Pointer(Void), current_value : String = "") : Void
       instance.popup_method_selector(object, callback, current_value)
     end
     @@mb_popup_quick_open : Void* = Pointer(Void).null
@@ -22526,7 +22526,7 @@ module Godot
       instance.get_inspector()
     end
     @@mb_inspect_object : Void* = Pointer(Void).null
-    def inspect_object(object : Godot::Object, for_property : String = "", inspector_only : Bool = false) : Void
+    def inspect_object(object : Godot::Object?, for_property : String = "", inspector_only : Bool = false) : Void
       godot_bind(@@mb_inspect_object, "EditorInterface", "inspect_object", 127962172_i64)
       arg_ptr_0 = object ? object.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -22540,11 +22540,11 @@ module Godot
       Bridge.free_string(str_1)
     end
     # Class-level singleton delegator for `inspect_object`
-    def self.inspect_object(object : Godot::Object, for_property : String = "", inspector_only : Bool = false) : Void
+    def self.inspect_object(object : Godot::Object?, for_property : String = "", inspector_only : Bool = false) : Void
       instance.inspect_object(object, for_property, inspector_only)
     end
     @@mb_edit_resource : Void* = Pointer(Void).null
-    def edit_resource(resource : Resource) : Void
+    def edit_resource(resource : Resource?) : Void
       godot_bind(@@mb_edit_resource, "EditorInterface", "edit_resource", 968641751_i64)
       arg_ptr_0 = resource ? resource.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -22552,11 +22552,11 @@ module Godot
       godot_ptrcall_void(@@mb_edit_resource, @pointer, args.to_unsafe.as(Void**))
     end
     # Class-level singleton delegator for `edit_resource`
-    def self.edit_resource(resource : Resource) : Void
+    def self.edit_resource(resource : Resource?) : Void
       instance.edit_resource(resource)
     end
     @@mb_edit_node : Void* = Pointer(Void).null
-    def edit_node(node : Node) : Void
+    def edit_node(node : Node?) : Void
       godot_bind(@@mb_edit_node, "EditorInterface", "edit_node", 1078189570_i64)
       arg_ptr_0 = node ? node.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -22564,11 +22564,11 @@ module Godot
       godot_ptrcall_void(@@mb_edit_node, @pointer, args.to_unsafe.as(Void**))
     end
     # Class-level singleton delegator for `edit_node`
-    def self.edit_node(node : Node) : Void
+    def self.edit_node(node : Node?) : Void
       instance.edit_node(node)
     end
     @@mb_edit_script : Void* = Pointer(Void).null
-    def edit_script(script : Script, line : Int64 = -1_i64, column : Int64 = 0_i64, grab_focus : Bool = true) : Void
+    def edit_script(script : Script?, line : Int64 = -1_i64, column : Int64 = 0_i64, grab_focus : Bool = true) : Void
       godot_bind(@@mb_edit_script, "EditorInterface", "edit_script", 219829402_i64)
       arg_ptr_0 = script ? script.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -22582,7 +22582,7 @@ module Godot
       godot_ptrcall_void(@@mb_edit_script, @pointer, args.to_unsafe.as(Void**))
     end
     # Class-level singleton delegator for `edit_script`
-    def self.edit_script(script : Script, line : Int64 = -1_i64, column : Int64 = 0_i64, grab_focus : Bool = true) : Void
+    def self.edit_script(script : Script?, line : Int64 = -1_i64, column : Int64 = 0_i64, grab_focus : Bool = true) : Void
       instance.edit_script(script, line, column, grab_focus)
     end
     @@mb_open_scene_from_path : Void* = Pointer(Void).null
@@ -22616,7 +22616,7 @@ module Godot
       instance.reload_scene_from_path(scene_filepath)
     end
     @@mb_set_object_edited : Void* = Pointer(Void).null
-    def set_object_edited(object : Godot::Object, edited : Bool) : Void
+    def set_object_edited(object : Godot::Object?, edited : Bool) : Void
       godot_bind(@@mb_set_object_edited, "EditorInterface", "set_object_edited", 1462101905_i64)
       arg_ptr_0 = object ? object.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -22626,11 +22626,11 @@ module Godot
       godot_ptrcall_void(@@mb_set_object_edited, @pointer, args.to_unsafe.as(Void**))
     end
     # Class-level singleton delegator for `set_object_edited`
-    def self.set_object_edited(object : Godot::Object, edited : Bool) : Void
+    def self.set_object_edited(object : Godot::Object?, edited : Bool) : Void
       instance.set_object_edited(object, edited)
     end
     @@mb_is_object_edited : Void* = Pointer(Void).null
-    def is_object_edited(object : Godot::Object) : Bool
+    def is_object_edited(object : Godot::Object?) : Bool
       godot_bind(@@mb_is_object_edited, "EditorInterface", "is_object_edited", 397768994_i64)
       arg_ptr_0 = object ? object.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -22638,23 +22638,23 @@ module Godot
       godot_ptrcall_bool(@@mb_is_object_edited, @pointer, args.to_unsafe.as(Void**))
     end
     # Class-level singleton delegator for `is_object_edited`
-    def self.is_object_edited(object : Godot::Object) : Bool
+    def self.is_object_edited(object : Godot::Object?) : Bool
       instance.is_object_edited(object)
     end
     # Predicate alias for `is_object_edited`
-    def is_object_edited?(object : Godot::Object) : Bool
+    def is_object_edited?(object : Godot::Object?) : Bool
       is_object_edited(object)
     end
     # Class-level singleton predicate delegator for `is_object_edited?`
-    def self.is_object_edited?(object : Godot::Object) : Bool
+    def self.is_object_edited?(object : Godot::Object?) : Bool
       instance.is_object_edited?(object)
     end
     # Predicate alias for `is_object_edited`
-    def object_edited?(object : Godot::Object) : Bool
+    def object_edited?(object : Godot::Object?) : Bool
       is_object_edited(object)
     end
     # Class-level singleton predicate delegator for `object_edited?`
-    def self.object_edited?(object : Godot::Object) : Bool
+    def self.object_edited?(object : Godot::Object?) : Bool
       instance.object_edited?(object)
     end
     @@mb_get_open_scenes : Void* = Pointer(Void).null
@@ -22700,7 +22700,7 @@ module Godot
       instance.get_edited_scene_root()
     end
     @@mb_add_root_node : Void* = Pointer(Void).null
-    def add_root_node(node : Node) : Void
+    def add_root_node(node : Node?) : Void
       godot_bind(@@mb_add_root_node, "EditorInterface", "add_root_node", 1078189570_i64)
       arg_ptr_0 = node ? node.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -22708,7 +22708,7 @@ module Godot
       godot_ptrcall_void(@@mb_add_root_node, @pointer, args.to_unsafe.as(Void**))
     end
     # Class-level singleton delegator for `add_root_node`
-    def self.add_root_node(node : Node) : Void
+    def self.add_root_node(node : Node?) : Void
       instance.add_root_node(node)
     end
     @@mb_save_scene : Void* = Pointer(Void).null
@@ -22920,7 +22920,7 @@ module Godot
       super(pointer)
     end
     @@mb_add_lines : Void* = Pointer(Void).null
-    def add_lines(lines : Pointer(Void), material : Material, billboard : Bool = false, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32)) : Void
+    def add_lines(lines : Pointer(Void), material : Material?, billboard : Bool = false, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32)) : Void
       godot_bind(@@mb_add_lines, "EditorNode3DGizmo", "add_lines", 2910971437_i64)
       val_0 = lines
       arg_0 = pointerof(val_0).as(Void*)
@@ -22934,7 +22934,7 @@ module Godot
       godot_ptrcall_void(@@mb_add_lines, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_add_mesh : Void* = Pointer(Void).null
-    def add_mesh(mesh : Mesh, material : Material, transform : Transform3D, skeleton : SkinReference? = nil) : Void
+    def add_mesh(mesh : Mesh?, material : Material?, transform : Transform3D, skeleton : SkinReference? = nil) : Void
       godot_bind(@@mb_add_mesh, "EditorNode3DGizmo", "add_mesh", 1579955111_i64)
       arg_ptr_0 = mesh ? mesh.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -22956,7 +22956,7 @@ module Godot
       godot_ptrcall_void(@@mb_add_collision_segments, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_add_collision_triangles : Void* = Pointer(Void).null
-    def add_collision_triangles(triangles : TriangleMesh) : Void
+    def add_collision_triangles(triangles : TriangleMesh?) : Void
       godot_bind(@@mb_add_collision_triangles, "EditorNode3DGizmo", "add_collision_triangles", 54901064_i64)
       arg_ptr_0 = triangles ? triangles.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -22964,7 +22964,7 @@ module Godot
       godot_ptrcall_void(@@mb_add_collision_triangles, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_add_unscaled_billboard : Void* = Pointer(Void).null
-    def add_unscaled_billboard(material : Material, default_scale : Float64 = 1.0_f64, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32)) : Void
+    def add_unscaled_billboard(material : Material?, default_scale : Float64 = 1.0_f64, modulate : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32)) : Void
       godot_bind(@@mb_add_unscaled_billboard, "EditorNode3DGizmo", "add_unscaled_billboard", 520007164_i64)
       arg_ptr_0 = material ? material.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -22976,7 +22976,7 @@ module Godot
       godot_ptrcall_void(@@mb_add_unscaled_billboard, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_add_handles : Void* = Pointer(Void).null
-    def add_handles(handles : Pointer(Void), material : Material, ids : Pointer(Void), billboard : Bool = false, secondary : Bool = false) : Void
+    def add_handles(handles : Pointer(Void), material : Material?, ids : Pointer(Void), billboard : Bool = false, secondary : Bool = false) : Void
       godot_bind(@@mb_add_handles, "EditorNode3DGizmo", "add_handles", 2254560097_i64)
       val_0 = handles
       arg_0 = pointerof(val_0).as(Void*)
@@ -22992,7 +22992,7 @@ module Godot
       godot_ptrcall_void(@@mb_add_handles, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_set_node_3d : Void* = Pointer(Void).null
-    def set_node_3d(node : Node) : Void
+    def set_node_3d(node : Node?) : Void
       godot_bind(@@mb_set_node_3d, "EditorNode3DGizmo", "set_node_3d", 1078189570_i64)
       arg_ptr_0 = node ? node.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -23082,7 +23082,7 @@ module Godot
       Bridge.free_string(str_0)
     end
     @@mb_create_icon_material : Void* = Pointer(Void).null
-    def create_icon_material(name : String, texture : Texture2D, on_top : Bool = false, color : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32)) : Void
+    def create_icon_material(name : String, texture : Texture2D?, on_top : Bool = false, color : Color = Color.new(1.to_f32, 1.to_f32, 1.to_f32, 1.to_f32)) : Void
       godot_bind(@@mb_create_icon_material, "EditorNode3DGizmoPlugin", "create_icon_material", 3804976916_i64)
       str_0 = Bridge.make_string(name)
       arg_0 = str_0
@@ -23112,7 +23112,7 @@ module Godot
       Bridge.free_string(str_0)
     end
     @@mb_add_material : Void* = Pointer(Void).null
-    def add_material(name : String, material : StandardMaterial3D) : Void
+    def add_material(name : String, material : StandardMaterial3D?) : Void
       godot_bind(@@mb_add_material, "EditorNode3DGizmoPlugin", "add_material", 1374068695_i64)
       str_0 = Bridge.make_string(name)
       arg_0 = str_0
@@ -23216,7 +23216,7 @@ module Godot
       AfterGuiInputCustom = 2_i64
     end
     @@mb_add_dock : Void* = Pointer(Void).null
-    def add_dock(dock : EditorDock) : Void
+    def add_dock(dock : EditorDock?) : Void
       godot_bind(@@mb_add_dock, "EditorPlugin", "add_dock", 158651717_i64)
       arg_ptr_0 = dock ? dock.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -23224,7 +23224,7 @@ module Godot
       godot_ptrcall_void(@@mb_add_dock, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_remove_dock : Void* = Pointer(Void).null
-    def remove_dock(dock : EditorDock) : Void
+    def remove_dock(dock : EditorDock?) : Void
       godot_bind(@@mb_remove_dock, "EditorPlugin", "remove_dock", 158651717_i64)
       arg_ptr_0 = dock ? dock.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -23232,7 +23232,7 @@ module Godot
       godot_ptrcall_void(@@mb_remove_dock, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_add_control_to_container : Void* = Pointer(Void).null
-    def add_control_to_container(container : CustomControlContainer | Int, control : Control) : Void
+    def add_control_to_container(container : CustomControlContainer | Int, control : Control?) : Void
       godot_bind(@@mb_add_control_to_container, "EditorPlugin", "add_control_to_container", 3092750152_i64)
       val_0 = container.is_a?(Int) ? container.to_i64 : container.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
@@ -23242,7 +23242,7 @@ module Godot
       godot_ptrcall_void(@@mb_add_control_to_container, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_remove_control_from_container : Void* = Pointer(Void).null
-    def remove_control_from_container(container : CustomControlContainer | Int, control : Control) : Void
+    def remove_control_from_container(container : CustomControlContainer | Int, control : Control?) : Void
       godot_bind(@@mb_remove_control_from_container, "EditorPlugin", "remove_control_from_container", 3092750152_i64)
       val_0 = container.is_a?(Int) ? container.to_i64 : container.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
@@ -23264,7 +23264,7 @@ module Godot
       Bridge.free_string(str_0)
     end
     @@mb_add_tool_submenu_item : Void* = Pointer(Void).null
-    def add_tool_submenu_item(name : String, submenu : PopupMenu) : Void
+    def add_tool_submenu_item(name : String, submenu : PopupMenu?) : Void
       godot_bind(@@mb_add_tool_submenu_item, "EditorPlugin", "add_tool_submenu_item", 1019428915_i64)
       str_0 = Bridge.make_string(name)
       arg_0 = str_0
@@ -23291,7 +23291,7 @@ module Godot
       godot_ptrcall_obj(@@mb_get_export_as_menu, @pointer, Pointer(Pointer(Void)).null, PopupMenu)
     end
     @@mb_add_custom_type : Void* = Pointer(Void).null
-    def add_custom_type(get_type : String, base : String, script : Script, icon : Texture2D) : Void
+    def add_custom_type(get_type : String, base : String, script : Script?, icon : Texture2D?) : Void
       godot_bind(@@mb_add_custom_type, "EditorPlugin", "add_custom_type", 1986814599_i64)
       str_0 = Bridge.make_string(get_type)
       arg_0 = str_0
@@ -23318,7 +23318,7 @@ module Godot
       Bridge.free_string(str_0)
     end
     @@mb_add_control_to_dock : Void* = Pointer(Void).null
-    def add_control_to_dock(slot : DockSlot | Int, control : Control, shortcut : Shortcut? = nil) : Void
+    def add_control_to_dock(slot : DockSlot | Int, control : Control?, shortcut : Shortcut? = nil) : Void
       godot_bind(@@mb_add_control_to_dock, "EditorPlugin", "add_control_to_dock", 2994930786_i64)
       val_0 = slot.is_a?(Int) ? slot.to_i64 : slot.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
@@ -23330,7 +23330,7 @@ module Godot
       godot_ptrcall_void(@@mb_add_control_to_dock, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_remove_control_from_docks : Void* = Pointer(Void).null
-    def remove_control_from_docks(control : Control) : Void
+    def remove_control_from_docks(control : Control?) : Void
       godot_bind(@@mb_remove_control_from_docks, "EditorPlugin", "remove_control_from_docks", 1496901182_i64)
       arg_ptr_0 = control ? control.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -23338,7 +23338,7 @@ module Godot
       godot_ptrcall_void(@@mb_remove_control_from_docks, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_set_dock_tab_icon : Void* = Pointer(Void).null
-    def set_dock_tab_icon(control : Control, icon : Texture2D) : Void
+    def set_dock_tab_icon(control : Control?, icon : Texture2D?) : Void
       godot_bind(@@mb_set_dock_tab_icon, "EditorPlugin", "set_dock_tab_icon", 3450529724_i64)
       arg_ptr_0 = control ? control.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -23348,7 +23348,7 @@ module Godot
       godot_ptrcall_void(@@mb_set_dock_tab_icon, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_add_control_to_bottom_panel : Void* = Pointer(Void).null
-    def add_control_to_bottom_panel(control : Control, title : String, shortcut : Shortcut? = nil) : Button
+    def add_control_to_bottom_panel(control : Control?, title : String, shortcut : Shortcut? = nil) : Button
       godot_bind(@@mb_add_control_to_bottom_panel, "EditorPlugin", "add_control_to_bottom_panel", 111032269_i64)
       arg_ptr_0 = control ? control.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -23362,7 +23362,7 @@ module Godot
       Bridge.free_string(str_1)
     end
     @@mb_remove_control_from_bottom_panel : Void* = Pointer(Void).null
-    def remove_control_from_bottom_panel(control : Control) : Void
+    def remove_control_from_bottom_panel(control : Control?) : Void
       godot_bind(@@mb_remove_control_from_bottom_panel, "EditorPlugin", "remove_control_from_bottom_panel", 1496901182_i64)
       arg_ptr_0 = control ? control.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -23398,7 +23398,7 @@ module Godot
       godot_ptrcall_int(@@mb_update_overlays, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_make_bottom_panel_item_visible : Void* = Pointer(Void).null
-    def make_bottom_panel_item_visible(item : Control) : Void
+    def make_bottom_panel_item_visible(item : Control?) : Void
       godot_bind(@@mb_make_bottom_panel_item_visible, "EditorPlugin", "make_bottom_panel_item_visible", 1496901182_i64)
       arg_ptr_0 = item ? item.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -23437,7 +23437,7 @@ module Godot
       godot_ptrcall_void(@@mb_queue_save_layout, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_add_translation_parser_plugin : Void* = Pointer(Void).null
-    def add_translation_parser_plugin(parser : EditorTranslationParserPlugin) : Void
+    def add_translation_parser_plugin(parser : EditorTranslationParserPlugin?) : Void
       godot_bind(@@mb_add_translation_parser_plugin, "EditorPlugin", "add_translation_parser_plugin", 3116463128_i64)
       arg_ptr_0 = parser ? parser.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -23445,7 +23445,7 @@ module Godot
       godot_ptrcall_void(@@mb_add_translation_parser_plugin, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_remove_translation_parser_plugin : Void* = Pointer(Void).null
-    def remove_translation_parser_plugin(parser : EditorTranslationParserPlugin) : Void
+    def remove_translation_parser_plugin(parser : EditorTranslationParserPlugin?) : Void
       godot_bind(@@mb_remove_translation_parser_plugin, "EditorPlugin", "remove_translation_parser_plugin", 3116463128_i64)
       arg_ptr_0 = parser ? parser.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -23453,7 +23453,7 @@ module Godot
       godot_ptrcall_void(@@mb_remove_translation_parser_plugin, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_add_import_plugin : Void* = Pointer(Void).null
-    def add_import_plugin(importer : EditorImportPlugin, first_priority : Bool = false) : Void
+    def add_import_plugin(importer : EditorImportPlugin?, first_priority : Bool = false) : Void
       godot_bind(@@mb_add_import_plugin, "EditorPlugin", "add_import_plugin", 3113975762_i64)
       arg_ptr_0 = importer ? importer.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -23463,7 +23463,7 @@ module Godot
       godot_ptrcall_void(@@mb_add_import_plugin, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_remove_import_plugin : Void* = Pointer(Void).null
-    def remove_import_plugin(importer : EditorImportPlugin) : Void
+    def remove_import_plugin(importer : EditorImportPlugin?) : Void
       godot_bind(@@mb_remove_import_plugin, "EditorPlugin", "remove_import_plugin", 2312482773_i64)
       arg_ptr_0 = importer ? importer.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -23471,7 +23471,7 @@ module Godot
       godot_ptrcall_void(@@mb_remove_import_plugin, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_add_export_plugin : Void* = Pointer(Void).null
-    def add_export_plugin(plugin : EditorExportPlugin) : Void
+    def add_export_plugin(plugin : EditorExportPlugin?) : Void
       godot_bind(@@mb_add_export_plugin, "EditorPlugin", "add_export_plugin", 4095952207_i64)
       arg_ptr_0 = plugin ? plugin.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -23479,7 +23479,7 @@ module Godot
       godot_ptrcall_void(@@mb_add_export_plugin, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_remove_export_plugin : Void* = Pointer(Void).null
-    def remove_export_plugin(plugin : EditorExportPlugin) : Void
+    def remove_export_plugin(plugin : EditorExportPlugin?) : Void
       godot_bind(@@mb_remove_export_plugin, "EditorPlugin", "remove_export_plugin", 4095952207_i64)
       arg_ptr_0 = plugin ? plugin.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -23487,7 +23487,7 @@ module Godot
       godot_ptrcall_void(@@mb_remove_export_plugin, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_add_export_platform : Void* = Pointer(Void).null
-    def add_export_platform(platform : EditorExportPlatform) : Void
+    def add_export_platform(platform : EditorExportPlatform?) : Void
       godot_bind(@@mb_add_export_platform, "EditorPlugin", "add_export_platform", 3431312373_i64)
       arg_ptr_0 = platform ? platform.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -23495,7 +23495,7 @@ module Godot
       godot_ptrcall_void(@@mb_add_export_platform, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_remove_export_platform : Void* = Pointer(Void).null
-    def remove_export_platform(platform : EditorExportPlatform) : Void
+    def remove_export_platform(platform : EditorExportPlatform?) : Void
       godot_bind(@@mb_remove_export_platform, "EditorPlugin", "remove_export_platform", 3431312373_i64)
       arg_ptr_0 = platform ? platform.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -23503,7 +23503,7 @@ module Godot
       godot_ptrcall_void(@@mb_remove_export_platform, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_add_inspector_plugin : Void* = Pointer(Void).null
-    def add_inspector_plugin(plugin : EditorInspectorPlugin) : Void
+    def add_inspector_plugin(plugin : EditorInspectorPlugin?) : Void
       godot_bind(@@mb_add_inspector_plugin, "EditorPlugin", "add_inspector_plugin", 546395733_i64)
       arg_ptr_0 = plugin ? plugin.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -23511,7 +23511,7 @@ module Godot
       godot_ptrcall_void(@@mb_add_inspector_plugin, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_remove_inspector_plugin : Void* = Pointer(Void).null
-    def remove_inspector_plugin(plugin : EditorInspectorPlugin) : Void
+    def remove_inspector_plugin(plugin : EditorInspectorPlugin?) : Void
       godot_bind(@@mb_remove_inspector_plugin, "EditorPlugin", "remove_inspector_plugin", 546395733_i64)
       arg_ptr_0 = plugin ? plugin.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -23519,7 +23519,7 @@ module Godot
       godot_ptrcall_void(@@mb_remove_inspector_plugin, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_add_resource_conversion_plugin : Void* = Pointer(Void).null
-    def add_resource_conversion_plugin(plugin : EditorResourceConversionPlugin) : Void
+    def add_resource_conversion_plugin(plugin : EditorResourceConversionPlugin?) : Void
       godot_bind(@@mb_add_resource_conversion_plugin, "EditorPlugin", "add_resource_conversion_plugin", 2124849111_i64)
       arg_ptr_0 = plugin ? plugin.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -23527,7 +23527,7 @@ module Godot
       godot_ptrcall_void(@@mb_add_resource_conversion_plugin, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_remove_resource_conversion_plugin : Void* = Pointer(Void).null
-    def remove_resource_conversion_plugin(plugin : EditorResourceConversionPlugin) : Void
+    def remove_resource_conversion_plugin(plugin : EditorResourceConversionPlugin?) : Void
       godot_bind(@@mb_remove_resource_conversion_plugin, "EditorPlugin", "remove_resource_conversion_plugin", 2124849111_i64)
       arg_ptr_0 = plugin ? plugin.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -23545,7 +23545,7 @@ module Godot
       godot_ptrcall_void(@@mb_set_force_draw_over_forwarding_enabled, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_add_context_menu_plugin : Void* = Pointer(Void).null
-    def add_context_menu_plugin(slot : Godot::EditorContextMenuPlugin::ContextMenuSlot | Int, plugin : EditorContextMenuPlugin) : Void
+    def add_context_menu_plugin(slot : Godot::EditorContextMenuPlugin::ContextMenuSlot | Int, plugin : EditorContextMenuPlugin?) : Void
       godot_bind(@@mb_add_context_menu_plugin, "EditorPlugin", "add_context_menu_plugin", 1904221872_i64)
       val_0 = slot.is_a?(Int) ? slot.to_i64 : slot.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
@@ -23555,7 +23555,7 @@ module Godot
       godot_ptrcall_void(@@mb_add_context_menu_plugin, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_remove_context_menu_plugin : Void* = Pointer(Void).null
-    def remove_context_menu_plugin(plugin : EditorContextMenuPlugin) : Void
+    def remove_context_menu_plugin(plugin : EditorContextMenuPlugin?) : Void
       godot_bind(@@mb_remove_context_menu_plugin, "EditorPlugin", "remove_context_menu_plugin", 2281511854_i64)
       arg_ptr_0 = plugin ? plugin.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -23563,7 +23563,7 @@ module Godot
       godot_ptrcall_void(@@mb_remove_context_menu_plugin, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_add_node_3d_gizmo_plugin : Void* = Pointer(Void).null
-    def add_node_3d_gizmo_plugin(plugin : EditorNode3DGizmoPlugin) : Void
+    def add_node_3d_gizmo_plugin(plugin : EditorNode3DGizmoPlugin?) : Void
       godot_bind(@@mb_add_node_3d_gizmo_plugin, "EditorPlugin", "add_node_3d_gizmo_plugin", 1541015022_i64)
       arg_ptr_0 = plugin ? plugin.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -23571,7 +23571,7 @@ module Godot
       godot_ptrcall_void(@@mb_add_node_3d_gizmo_plugin, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_remove_node_3d_gizmo_plugin : Void* = Pointer(Void).null
-    def remove_node_3d_gizmo_plugin(plugin : EditorNode3DGizmoPlugin) : Void
+    def remove_node_3d_gizmo_plugin(plugin : EditorNode3DGizmoPlugin?) : Void
       godot_bind(@@mb_remove_node_3d_gizmo_plugin, "EditorPlugin", "remove_node_3d_gizmo_plugin", 1541015022_i64)
       arg_ptr_0 = plugin ? plugin.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -23579,7 +23579,7 @@ module Godot
       godot_ptrcall_void(@@mb_remove_node_3d_gizmo_plugin, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_add_scene_format_importer_plugin : Void* = Pointer(Void).null
-    def add_scene_format_importer_plugin(scene_format_importer : EditorSceneFormatImporter, first_priority : Bool = false) : Void
+    def add_scene_format_importer_plugin(scene_format_importer : EditorSceneFormatImporter?, first_priority : Bool = false) : Void
       godot_bind(@@mb_add_scene_format_importer_plugin, "EditorPlugin", "add_scene_format_importer_plugin", 2764104752_i64)
       arg_ptr_0 = scene_format_importer ? scene_format_importer.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -23589,7 +23589,7 @@ module Godot
       godot_ptrcall_void(@@mb_add_scene_format_importer_plugin, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_remove_scene_format_importer_plugin : Void* = Pointer(Void).null
-    def remove_scene_format_importer_plugin(scene_format_importer : EditorSceneFormatImporter) : Void
+    def remove_scene_format_importer_plugin(scene_format_importer : EditorSceneFormatImporter?) : Void
       godot_bind(@@mb_remove_scene_format_importer_plugin, "EditorPlugin", "remove_scene_format_importer_plugin", 2637776123_i64)
       arg_ptr_0 = scene_format_importer ? scene_format_importer.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -23597,7 +23597,7 @@ module Godot
       godot_ptrcall_void(@@mb_remove_scene_format_importer_plugin, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_add_scene_post_import_plugin : Void* = Pointer(Void).null
-    def add_scene_post_import_plugin(scene_import_plugin : EditorScenePostImportPlugin, first_priority : Bool = false) : Void
+    def add_scene_post_import_plugin(scene_import_plugin : EditorScenePostImportPlugin?, first_priority : Bool = false) : Void
       godot_bind(@@mb_add_scene_post_import_plugin, "EditorPlugin", "add_scene_post_import_plugin", 3492436322_i64)
       arg_ptr_0 = scene_import_plugin ? scene_import_plugin.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -23607,7 +23607,7 @@ module Godot
       godot_ptrcall_void(@@mb_add_scene_post_import_plugin, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_remove_scene_post_import_plugin : Void* = Pointer(Void).null
-    def remove_scene_post_import_plugin(scene_import_plugin : EditorScenePostImportPlugin) : Void
+    def remove_scene_post_import_plugin(scene_import_plugin : EditorScenePostImportPlugin?) : Void
       godot_bind(@@mb_remove_scene_post_import_plugin, "EditorPlugin", "remove_scene_post_import_plugin", 3045178206_i64)
       arg_ptr_0 = scene_import_plugin ? scene_import_plugin.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -23625,7 +23625,7 @@ module Godot
       godot_ptrcall_obj(@@mb_get_script_create_dialog, @pointer, Pointer(Pointer(Void)).null, ScriptCreateDialog)
     end
     @@mb_add_debugger_plugin : Void* = Pointer(Void).null
-    def add_debugger_plugin(script : EditorDebuggerPlugin) : Void
+    def add_debugger_plugin(script : EditorDebuggerPlugin?) : Void
       godot_bind(@@mb_add_debugger_plugin, "EditorPlugin", "add_debugger_plugin", 3749880309_i64)
       arg_ptr_0 = script ? script.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -23633,7 +23633,7 @@ module Godot
       godot_ptrcall_void(@@mb_add_debugger_plugin, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_remove_debugger_plugin : Void* = Pointer(Void).null
-    def remove_debugger_plugin(script : EditorDebuggerPlugin) : Void
+    def remove_debugger_plugin(script : EditorDebuggerPlugin?) : Void
       godot_bind(@@mb_remove_debugger_plugin, "EditorPlugin", "remove_debugger_plugin", 3749880309_i64)
       arg_ptr_0 = script ? script.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -23855,7 +23855,7 @@ module Godot
       godot_ptrcall_void(@@mb_update_property, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_add_focusable : Void* = Pointer(Void).null
-    def add_focusable(control : Control) : Void
+    def add_focusable(control : Control?) : Void
       godot_bind(@@mb_add_focusable, "EditorProperty", "add_focusable", 1496901182_i64)
       arg_ptr_0 = control ? control.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -23863,7 +23863,7 @@ module Godot
       godot_ptrcall_void(@@mb_add_focusable, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_set_bottom_editor : Void* = Pointer(Void).null
-    def set_bottom_editor(editor : Control) : Void
+    def set_bottom_editor(editor : Control?) : Void
       godot_bind(@@mb_set_bottom_editor, "EditorProperty", "set_bottom_editor", 1496901182_i64)
       arg_ptr_0 = editor ? editor.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -23952,7 +23952,7 @@ module Godot
       godot_ptrcall_void(@@mb_select, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_set_object_and_property : Void* = Pointer(Void).null
-    def set_object_and_property(object : Godot::Object, property : String) : Void
+    def set_object_and_property(object : Godot::Object?, property : String) : Void
       godot_bind(@@mb_set_object_and_property, "EditorProperty", "set_object_and_property", 4157606280_i64)
       arg_ptr_0 = object ? object.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -23964,7 +23964,7 @@ module Godot
       Bridge.free_string_name(sn_1)
     end
     @@mb_set_label_reference : Void* = Pointer(Void).null
-    def set_label_reference(control : Control) : Void
+    def set_label_reference(control : Control?) : Void
       godot_bind(@@mb_set_label_reference, "EditorProperty", "set_label_reference", 1496901182_i64)
       arg_ptr_0 = control ? control.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -24138,7 +24138,7 @@ module Godot
       ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_set_edited_resource : Void* = Pointer(Void).null
-    def set_edited_resource(resource : Resource) : Void
+    def set_edited_resource(resource : Resource?) : Void
       godot_bind(@@mb_set_edited_resource, "EditorResourcePicker", "set_edited_resource", 968641751_i64)
       arg_ptr_0 = resource ? resource.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -24239,7 +24239,7 @@ module Godot
       super(pointer)
     end
     @@mb_queue_resource_preview : Void* = Pointer(Void).null
-    def queue_resource_preview(path : String, receiver : Godot::Object, receiver_func : String, userdata : Pointer(Void)) : Void
+    def queue_resource_preview(path : String, receiver : Godot::Object?, receiver_func : String, userdata : Pointer(Void)) : Void
       godot_bind(@@mb_queue_resource_preview, "EditorResourcePreview", "queue_resource_preview", 233177534_i64)
       str_0 = Bridge.make_string(path)
       arg_0 = str_0
@@ -24256,7 +24256,7 @@ module Godot
       Bridge.free_string_name(sn_2)
     end
     @@mb_queue_edited_resource_preview : Void* = Pointer(Void).null
-    def queue_edited_resource_preview(resource : Resource, receiver : Godot::Object, receiver_func : String, userdata : Pointer(Void)) : Void
+    def queue_edited_resource_preview(resource : Resource?, receiver : Godot::Object?, receiver_func : String, userdata : Pointer(Void)) : Void
       godot_bind(@@mb_queue_edited_resource_preview, "EditorResourcePreview", "queue_edited_resource_preview", 1608376650_i64)
       arg_ptr_0 = resource ? resource.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -24272,7 +24272,7 @@ module Godot
       Bridge.free_string_name(sn_2)
     end
     @@mb_add_preview_generator : Void* = Pointer(Void).null
-    def add_preview_generator(generator : EditorResourcePreviewGenerator) : Void
+    def add_preview_generator(generator : EditorResourcePreviewGenerator?) : Void
       godot_bind(@@mb_add_preview_generator, "EditorResourcePreview", "add_preview_generator", 332288124_i64)
       arg_ptr_0 = generator ? generator.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -24280,7 +24280,7 @@ module Godot
       godot_ptrcall_void(@@mb_add_preview_generator, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_remove_preview_generator : Void* = Pointer(Void).null
-    def remove_preview_generator(generator : EditorResourcePreviewGenerator) : Void
+    def remove_preview_generator(generator : EditorResourcePreviewGenerator?) : Void
       godot_bind(@@mb_remove_preview_generator, "EditorResourcePreview", "remove_preview_generator", 332288124_i64)
       arg_ptr_0 = generator ? generator.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -24317,7 +24317,7 @@ module Godot
       super(pointer)
     end
     @@mb_request_thumbnail : Void* = Pointer(Void).null
-    def request_thumbnail(path : String, control : TextureRect) : Void
+    def request_thumbnail(path : String, control : TextureRect?) : Void
       godot_bind(@@mb_request_thumbnail, "EditorResourceTooltipPlugin", "request_thumbnail", 3245519720_i64)
       str_0 = Bridge.make_string(path)
       arg_0 = str_0
@@ -24473,7 +24473,7 @@ module Godot
       super(pointer)
     end
     @@mb_add_root_node : Void* = Pointer(Void).null
-    def add_root_node(node : Node) : Void
+    def add_root_node(node : Node?) : Void
       godot_bind(@@mb_add_root_node, "EditorScript", "add_root_node", 1078189570_i64)
       arg_ptr_0 = node ? node.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -24496,7 +24496,7 @@ module Godot
       super(pointer)
     end
     @@mb_set_script_owner : Void* = Pointer(Void).null
-    def set_script_owner(owner_node : Node) : Void
+    def set_script_owner(owner_node : Node?) : Void
       godot_bind(@@mb_set_script_owner, "EditorScriptPicker", "set_script_owner", 1078189570_i64)
       arg_ptr_0 = owner_node ? owner_node.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -24527,7 +24527,7 @@ module Godot
       godot_ptrcall_void(@@mb_clear, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_add_node : Void* = Pointer(Void).null
-    def add_node(node : Node) : Void
+    def add_node(node : Node?) : Void
       godot_bind(@@mb_add_node, "EditorSelection", "add_node", 1078189570_i64)
       arg_ptr_0 = node ? node.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -24535,7 +24535,7 @@ module Godot
       godot_ptrcall_void(@@mb_add_node, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_remove_node : Void* = Pointer(Void).null
-    def remove_node(node : Node) : Void
+    def remove_node(node : Node?) : Void
       godot_bind(@@mb_remove_node, "EditorSelection", "remove_node", 1078189570_i64)
       arg_ptr_0 = node ? node.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -24720,7 +24720,7 @@ module Godot
       Bridge.free_string(str_0)
     end
     @@mb_add_shortcut : Void* = Pointer(Void).null
-    def add_shortcut(path : String, shortcut : Shortcut) : Void
+    def add_shortcut(path : String, shortcut : Shortcut?) : Void
       godot_bind(@@mb_add_shortcut, "EditorSettings", "add_shortcut", 4124020929_i64)
       str_0 = Bridge.make_string(path)
       arg_0 = str_0
@@ -24742,7 +24742,7 @@ module Godot
       Bridge.free_string(str_0)
     end
     @@mb_is_shortcut : Void* = Pointer(Void).null
-    def is_shortcut(path : String, event : InputEvent) : Bool
+    def is_shortcut(path : String, event : InputEvent?) : Bool
       godot_bind(@@mb_is_shortcut, "EditorSettings", "is_shortcut", 699917945_i64)
       str_0 = Bridge.make_string(path)
       arg_0 = str_0
@@ -24754,11 +24754,11 @@ module Godot
       Bridge.free_string(str_0)
     end
     # Predicate alias for `is_shortcut`
-    def is_shortcut?(path : String, event : InputEvent) : Bool
+    def is_shortcut?(path : String, event : InputEvent?) : Bool
       is_shortcut(path, event)
     end
     # Predicate alias for `is_shortcut`
-    def shortcut?(path : String, event : InputEvent) : Bool
+    def shortcut?(path : String, event : InputEvent?) : Bool
       is_shortcut(path, event)
     end
     @@mb_has_shortcut : Void* = Pointer(Void).null
@@ -25000,7 +25000,7 @@ module Godot
       is_lesser_allowed()
     end
     @@mb_share : Void* = Pointer(Void).null
-    def share(with_val : Node) : Void
+    def share(with_val : Node?) : Void
       godot_bind(@@mb_share, "Range", "share", 1078189570_i64)
       arg_ptr_0 = with_val ? with_val.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -25252,12 +25252,9 @@ module Godot
     def control_state
       get_control_state
     end
-    def control_state?
-      control_state
-    end
     # Property `control_state` setter
-    def control_state=(val)
-      set_control_state(val)
+    def control_state=(val : Int | Enum)
+      set_control_state(val.is_a?(Enum) ? val.value.to_i64 : val.to_i64)
     end
     # Property `hide_slider` getter
     def hide_slider
@@ -25384,7 +25381,7 @@ module Godot
       godot_ptrcall_void(@@mb_force_fixed_history, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_add_do_property : Void* = Pointer(Void).null
-    def add_do_property(object : Godot::Object, property : String, value : Pointer(Void)) : Void
+    def add_do_property(object : Godot::Object?, property : String, value : Pointer(Void)) : Void
       godot_bind(@@mb_add_do_property, "EditorUndoRedoManager", "add_do_property", 1017172818_i64)
       arg_ptr_0 = object ? object.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -25398,7 +25395,7 @@ module Godot
       Bridge.free_string_name(sn_1)
     end
     @@mb_add_undo_property : Void* = Pointer(Void).null
-    def add_undo_property(object : Godot::Object, property : String, value : Pointer(Void)) : Void
+    def add_undo_property(object : Godot::Object?, property : String, value : Pointer(Void)) : Void
       godot_bind(@@mb_add_undo_property, "EditorUndoRedoManager", "add_undo_property", 1017172818_i64)
       arg_ptr_0 = object ? object.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -25412,7 +25409,7 @@ module Godot
       Bridge.free_string_name(sn_1)
     end
     @@mb_add_do_reference : Void* = Pointer(Void).null
-    def add_do_reference(object : Godot::Object) : Void
+    def add_do_reference(object : Godot::Object?) : Void
       godot_bind(@@mb_add_do_reference, "EditorUndoRedoManager", "add_do_reference", 3975164845_i64)
       arg_ptr_0 = object ? object.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -25420,7 +25417,7 @@ module Godot
       godot_ptrcall_void(@@mb_add_do_reference, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_add_undo_reference : Void* = Pointer(Void).null
-    def add_undo_reference(object : Godot::Object) : Void
+    def add_undo_reference(object : Godot::Object?) : Void
       godot_bind(@@mb_add_undo_reference, "EditorUndoRedoManager", "add_undo_reference", 3975164845_i64)
       arg_ptr_0 = object ? object.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -25428,7 +25425,7 @@ module Godot
       godot_ptrcall_void(@@mb_add_undo_reference, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_get_object_history_id : Void* = Pointer(Void).null
-    def get_object_history_id(object : Godot::Object) : Int64
+    def get_object_history_id(object : Godot::Object?) : Int64
       godot_bind(@@mb_get_object_history_id, "EditorUndoRedoManager", "get_object_history_id", 1107568780_i64)
       arg_ptr_0 = object ? object.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -25920,7 +25917,7 @@ module Godot
       instance.get_singleton(name)
     end
     @@mb_register_singleton : Void* = Pointer(Void).null
-    def register_singleton(name : String, instance : Godot::Object) : Void
+    def register_singleton(name : String, instance : Godot::Object?) : Void
       godot_bind(@@mb_register_singleton, "Engine", "register_singleton", 965313290_i64)
       sn_0 = Bridge.make_string_name(name)
       arg_0 = sn_0
@@ -25932,7 +25929,7 @@ module Godot
       Bridge.free_string_name(sn_0)
     end
     # Class-level singleton delegator for `register_singleton`
-    def self.register_singleton(name : String, instance : Godot::Object) : Void
+    def self.register_singleton(name : String, instance : Godot::Object?) : Void
       instance.register_singleton(name, instance)
     end
     @@mb_unregister_singleton : Void* = Pointer(Void).null
@@ -25961,7 +25958,7 @@ module Godot
       instance.get_singleton_list()
     end
     @@mb_register_script_language : Void* = Pointer(Void).null
-    def register_script_language(language : ScriptLanguage) : Godot::Error
+    def register_script_language(language : ScriptLanguage?) : Godot::Error
       godot_bind(@@mb_register_script_language, "Engine", "register_script_language", 1850254898_i64)
       arg_ptr_0 = language ? language.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -25969,11 +25966,11 @@ module Godot
       godot_ptrcall_enum(@@mb_register_script_language, @pointer, args.to_unsafe.as(Void**), Godot::Error)
     end
     # Class-level singleton delegator for `register_script_language`
-    def self.register_script_language(language : ScriptLanguage) : Godot::Error
+    def self.register_script_language(language : ScriptLanguage?) : Godot::Error
       instance.register_script_language(language)
     end
     @@mb_unregister_script_language : Void* = Pointer(Void).null
-    def unregister_script_language(language : ScriptLanguage) : Godot::Error
+    def unregister_script_language(language : ScriptLanguage?) : Godot::Error
       godot_bind(@@mb_unregister_script_language, "Engine", "unregister_script_language", 1850254898_i64)
       arg_ptr_0 = language ? language.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -25981,7 +25978,7 @@ module Godot
       godot_ptrcall_enum(@@mb_unregister_script_language, @pointer, args.to_unsafe.as(Void**), Godot::Error)
     end
     # Class-level singleton delegator for `unregister_script_language`
-    def self.unregister_script_language(language : ScriptLanguage) : Godot::Error
+    def self.unregister_script_language(language : ScriptLanguage?) : Godot::Error
       instance.unregister_script_language(language)
     end
     @@mb_get_script_language_count : Void* = Pointer(Void).null
@@ -26293,7 +26290,7 @@ module Godot
       instance.active?()
     end
     @@mb_register_profiler : Void* = Pointer(Void).null
-    def register_profiler(name : String, profiler : EngineProfiler) : Void
+    def register_profiler(name : String, profiler : EngineProfiler?) : Void
       godot_bind(@@mb_register_profiler, "EngineDebugger", "register_profiler", 3651669560_i64)
       sn_0 = Bridge.make_string_name(name)
       arg_0 = sn_0
@@ -26305,7 +26302,7 @@ module Godot
       Bridge.free_string_name(sn_0)
     end
     # Class-level singleton delegator for `register_profiler`
-    def self.register_profiler(name : String, profiler : EngineProfiler) : Void
+    def self.register_profiler(name : String, profiler : EngineProfiler?) : Void
       instance.register_profiler(name, profiler)
     end
     @@mb_unregister_profiler : Void* = Pointer(Void).null
@@ -26500,7 +26497,7 @@ module Godot
       instance.debug(can_continue, is_error_breakpoint)
     end
     @@mb_script_debug : Void* = Pointer(Void).null
-    def script_debug(language : ScriptLanguage, can_continue : Bool = true, is_error_breakpoint : Bool = false) : Void
+    def script_debug(language : ScriptLanguage?, can_continue : Bool = true, is_error_breakpoint : Bool = false) : Void
       godot_bind(@@mb_script_debug, "EngineDebugger", "script_debug", 2442343672_i64)
       arg_ptr_0 = language ? language.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -26512,7 +26509,7 @@ module Godot
       godot_ptrcall_void(@@mb_script_debug, @pointer, args.to_unsafe.as(Void**))
     end
     # Class-level singleton delegator for `script_debug`
-    def self.script_debug(language : ScriptLanguage, can_continue : Bool = true, is_error_breakpoint : Bool = false) : Void
+    def self.script_debug(language : ScriptLanguage?, can_continue : Bool = true, is_error_breakpoint : Bool = false) : Void
       instance.script_debug(language, can_continue, is_error_breakpoint)
     end
     @@mb_set_lines_left : Void* = Pointer(Void).null
@@ -26722,7 +26719,7 @@ module Godot
       godot_ptrcall_enum(@@mb_get_background, @pointer, Pointer(Pointer(Void)).null, BGMode)
     end
     @@mb_set_sky : Void* = Pointer(Void).null
-    def set_sky(sky : Sky) : Void
+    def set_sky(sky : Sky?) : Void
       godot_bind(@@mb_set_sky, "Environment", "set_sky", 3336722921_i64)
       arg_ptr_0 = sky ? sky.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -27584,7 +27581,7 @@ module Godot
       godot_ptrcall_float(@@mb_get_glow_map_strength, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_set_glow_map : Void* = Pointer(Void).null
-    def set_glow_map(mode : Texture) : Void
+    def set_glow_map(mode : Texture?) : Void
       godot_bind(@@mb_set_glow_map, "Environment", "set_glow_map", 1790811099_i64)
       arg_ptr_0 = mode ? mode.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -28019,7 +28016,7 @@ module Godot
       godot_ptrcall_float(@@mb_get_adjustment_saturation, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_set_adjustment_color_correction : Void* = Pointer(Void).null
-    def set_adjustment_color_correction(color_correction : Texture) : Void
+    def set_adjustment_color_correction(color_correction : Texture?) : Void
       godot_bind(@@mb_set_adjustment_color_correction, "Environment", "set_adjustment_color_correction", 1790811099_i64)
       arg_ptr_0 = color_correction ? color_correction.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -28990,7 +28987,7 @@ module Godot
       godot_ptrcall_enum(@@mb_get_visibility_mode, @pointer, Pointer(Pointer(Void)).null, VisibilityMode)
     end
     @@mb_append_from_file : Void* = Pointer(Void).null
-    def append_from_file(path : String, state : GLTFState, flags : Int64 = 0_i64, base_path : String = "") : Godot::Error
+    def append_from_file(path : String, state : GLTFState?, flags : Int64 = 0_i64, base_path : String = "") : Godot::Error
       godot_bind(@@mb_append_from_file, "GLTFDocument", "append_from_file", 866380864_i64)
       str_0 = Bridge.make_string(path)
       arg_0 = str_0
@@ -29007,7 +29004,7 @@ module Godot
       Bridge.free_string(str_3)
     end
     @@mb_append_from_buffer : Void* = Pointer(Void).null
-    def append_from_buffer(bytes : Pointer(Void), base_path : String, state : GLTFState, flags : Int64 = 0_i64) : Godot::Error
+    def append_from_buffer(bytes : Pointer(Void), base_path : String, state : GLTFState?, flags : Int64 = 0_i64) : Godot::Error
       godot_bind(@@mb_append_from_buffer, "GLTFDocument", "append_from_buffer", 1616081266_i64)
       val_0 = bytes
       arg_0 = pointerof(val_0).as(Void*)
@@ -29023,7 +29020,7 @@ module Godot
       Bridge.free_string(str_1)
     end
     @@mb_append_from_scene : Void* = Pointer(Void).null
-    def append_from_scene(node : Node, state : GLTFState, flags : Int64 = 0_i64) : Godot::Error
+    def append_from_scene(node : Node?, state : GLTFState?, flags : Int64 = 0_i64) : Godot::Error
       godot_bind(@@mb_append_from_scene, "GLTFDocument", "append_from_scene", 1622574258_i64)
       arg_ptr_0 = node ? node.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -29035,7 +29032,7 @@ module Godot
       godot_ptrcall_enum(@@mb_append_from_scene, @pointer, args.to_unsafe.as(Void**), Godot::Error)
     end
     @@mb_generate_scene : Void* = Pointer(Void).null
-    def generate_scene(state : GLTFState, bake_fps : Float64 = 30.0_f64, trimming : Bool = false, remove_immutable_tracks : Bool = true) : Node
+    def generate_scene(state : GLTFState?, bake_fps : Float64 = 30.0_f64, trimming : Bool = false, remove_immutable_tracks : Bool = true) : Node
       godot_bind(@@mb_generate_scene, "GLTFDocument", "generate_scene", 596118388_i64)
       arg_ptr_0 = state ? state.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -29049,7 +29046,7 @@ module Godot
       godot_ptrcall_obj(@@mb_generate_scene, @pointer, args.to_unsafe.as(Void**), Node)
     end
     @@mb_generate_buffer : Void* = Pointer(Void).null
-    def generate_buffer(state : GLTFState) : Pointer(Void)
+    def generate_buffer(state : GLTFState?) : Pointer(Void)
       godot_bind(@@mb_generate_buffer, "GLTFDocument", "generate_buffer", 741783455_i64)
       arg_ptr_0 = state ? state.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -29059,7 +29056,7 @@ module Godot
       ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
     end
     @@mb_write_to_filesystem : Void* = Pointer(Void).null
-    def write_to_filesystem(state : GLTFState, path : String) : Godot::Error
+    def write_to_filesystem(state : GLTFState?, path : String) : Godot::Error
       godot_bind(@@mb_write_to_filesystem, "GLTFDocument", "write_to_filesystem", 1784551478_i64)
       arg_ptr_0 = state ? state.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -29071,7 +29068,7 @@ module Godot
       Bridge.free_string(str_1)
     end
     @@mb_import_object_model_property : Void* = Pointer(Void).null
-    def self.import_object_model_property(state : GLTFState, json_pointer : String) : GLTFObjectModelProperty
+    def self.import_object_model_property(state : GLTFState?, json_pointer : String) : GLTFObjectModelProperty
       godot_bind(@@mb_import_object_model_property, "GLTFDocument", "import_object_model_property", 1206708632_i64)
       arg_ptr_0 = state ? state.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -29083,11 +29080,11 @@ module Godot
       Bridge.free_string(str_1)
     end
     # Instance convenience delegator for static method `import_object_model_property`
-    def import_object_model_property(state : GLTFState, json_pointer : String) : GLTFObjectModelProperty
+    def import_object_model_property(state : GLTFState?, json_pointer : String) : GLTFObjectModelProperty
       self.class.import_object_model_property(state, json_pointer)
     end
     @@mb_export_object_model_property : Void* = Pointer(Void).null
-    def self.export_object_model_property(state : GLTFState, node_path : NodePath | String, godot_node : Node, gltf_node_index : Int64) : GLTFObjectModelProperty
+    def self.export_object_model_property(state : GLTFState?, node_path : NodePath | String, godot_node : Node?, gltf_node_index : Int64) : GLTFObjectModelProperty
       godot_bind(@@mb_export_object_model_property, "GLTFDocument", "export_object_model_property", 314209806_i64)
       arg_ptr_0 = state ? state.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -29103,11 +29100,11 @@ module Godot
       Bridge.free_nodepath(np_1)
     end
     # Instance convenience delegator for static method `export_object_model_property`
-    def export_object_model_property(state : GLTFState, node_path : NodePath | String, godot_node : Node, gltf_node_index : Int64) : GLTFObjectModelProperty
+    def export_object_model_property(state : GLTFState?, node_path : NodePath | String, godot_node : Node?, gltf_node_index : Int64) : GLTFObjectModelProperty
       self.class.export_object_model_property(state, node_path, godot_node, gltf_node_index)
     end
     @@mb_register_gltf_document_extension : Void* = Pointer(Void).null
-    def self.register_gltf_document_extension(extension : GLTFDocumentExtension, first_priority : Bool = false) : Void
+    def self.register_gltf_document_extension(extension : GLTFDocumentExtension?, first_priority : Bool = false) : Void
       godot_bind(@@mb_register_gltf_document_extension, "GLTFDocument", "register_gltf_document_extension", 3752678331_i64)
       arg_ptr_0 = extension ? extension.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -29117,11 +29114,11 @@ module Godot
       godot_ptrcall_void(@@mb_register_gltf_document_extension, Pointer(Void).null, args.to_unsafe.as(Void**))
     end
     # Instance convenience delegator for static method `register_gltf_document_extension`
-    def register_gltf_document_extension(extension : GLTFDocumentExtension, first_priority : Bool = false) : Void
+    def register_gltf_document_extension(extension : GLTFDocumentExtension?, first_priority : Bool = false) : Void
       self.class.register_gltf_document_extension(extension, first_priority)
     end
     @@mb_unregister_gltf_document_extension : Void* = Pointer(Void).null
-    def self.unregister_gltf_document_extension(extension : GLTFDocumentExtension) : Void
+    def self.unregister_gltf_document_extension(extension : GLTFDocumentExtension?) : Void
       godot_bind(@@mb_unregister_gltf_document_extension, "GLTFDocument", "unregister_gltf_document_extension", 2684415758_i64)
       arg_ptr_0 = extension ? extension.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -29129,7 +29126,7 @@ module Godot
       godot_ptrcall_void(@@mb_unregister_gltf_document_extension, Pointer(Void).null, args.to_unsafe.as(Void**))
     end
     # Instance convenience delegator for static method `unregister_gltf_document_extension`
-    def unregister_gltf_document_extension(extension : GLTFDocumentExtension) : Void
+    def unregister_gltf_document_extension(extension : GLTFDocumentExtension?) : Void
       self.class.unregister_gltf_document_extension(extension)
     end
     @@mb_get_supported_gltf_extensions : Void* = Pointer(Void).null
@@ -29243,7 +29240,7 @@ module Godot
       godot_ptrcall_int(@@mb_append_data_to_buffers, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_append_gltf_node : Void* = Pointer(Void).null
-    def append_gltf_node(gltf_node : GLTFNode, godot_scene_node : Node, parent_node_index : Int64) : Int64
+    def append_gltf_node(gltf_node : GLTFNode?, godot_scene_node : Node?, parent_node_index : Int64) : Int64
       godot_bind(@@mb_append_gltf_node, "GLTFState", "append_gltf_node", 3562288551_i64)
       arg_ptr_0 = gltf_node ? gltf_node.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -29701,7 +29698,7 @@ module Godot
       godot_ptrcall_obj(@@mb_get_scene_node, @pointer, args.to_unsafe.as(Void**), Node)
     end
     @@mb_get_node_index : Void* = Pointer(Void).null
-    def get_node_index(scene_node : Node) : Int64
+    def get_node_index(scene_node : Node?) : Int64
       godot_bind(@@mb_get_node_index, "GLTFState", "get_node_index", 3810805390_i64)
       arg_ptr_0 = scene_node ? scene_node.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -31545,7 +31542,7 @@ module Godot
       Bridge.free_string(str_0)
     end
     @@mb_add_resource_tooltip_plugin : Void* = Pointer(Void).null
-    def add_resource_tooltip_plugin(plugin : EditorResourceTooltipPlugin) : Void
+    def add_resource_tooltip_plugin(plugin : EditorResourceTooltipPlugin?) : Void
       godot_bind(@@mb_add_resource_tooltip_plugin, "FileSystemDock", "add_resource_tooltip_plugin", 2258356838_i64)
       arg_ptr_0 = plugin ? plugin.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -31553,7 +31550,7 @@ module Godot
       godot_ptrcall_void(@@mb_add_resource_tooltip_plugin, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_remove_resource_tooltip_plugin : Void* = Pointer(Void).null
-    def remove_resource_tooltip_plugin(plugin : EditorResourceTooltipPlugin) : Void
+    def remove_resource_tooltip_plugin(plugin : EditorResourceTooltipPlugin?) : Void
       godot_bind(@@mb_remove_resource_tooltip_plugin, "FileSystemDock", "remove_resource_tooltip_plugin", 2258356838_i64)
       arg_ptr_0 = plugin ? plugin.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -31761,7 +31758,7 @@ module Godot
       godot_ptrcall_float(@@mb_get_edge_fade, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_set_density_texture : Void* = Pointer(Void).null
-    def set_density_texture(density_texture : Texture3D) : Void
+    def set_density_texture(density_texture : Texture3D?) : Void
       godot_bind(@@mb_set_density_texture, "FogMaterial", "set_density_texture", 1188404210_i64)
       arg_ptr_0 = density_texture ? density_texture.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -31853,7 +31850,7 @@ module Godot
       godot_ptrcall_enum(@@mb_get_shape, @pointer, Pointer(Pointer(Void)).null, Godot::RenderingServer::FogVolumeShape)
     end
     @@mb_set_material : Void* = Pointer(Void).null
-    def set_material(material : Material) : Void
+    def set_material(material : Material?) : Void
       godot_bind(@@mb_set_material, "FogVolume", "set_material", 2757459619_i64)
       arg_ptr_0 = material ? material.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -31930,7 +31927,7 @@ module Godot
       is_folded()
     end
     @@mb_set_foldable_group : Void* = Pointer(Void).null
-    def set_foldable_group(button_group : FoldableGroup) : Void
+    def set_foldable_group(button_group : FoldableGroup?) : Void
       godot_bind(@@mb_set_foldable_group, "FoldableContainer", "set_foldable_group", 3001390597_i64)
       arg_ptr_0 = button_group ? button_group.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -32025,7 +32022,7 @@ module Godot
       godot_ptrcall_enum(@@mb_get_title_position, @pointer, Pointer(Pointer(Void)).null, TitlePosition)
     end
     @@mb_add_title_bar_control : Void* = Pointer(Void).null
-    def add_title_bar_control(control : Control) : Void
+    def add_title_bar_control(control : Control?) : Void
       godot_bind(@@mb_add_title_bar_control, "FoldableContainer", "add_title_bar_control", 1496901182_i64)
       arg_ptr_0 = control ? control.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -32046,7 +32043,7 @@ module Godot
       godot_ptrcall_int(@@mb_get_title_bar_control_count, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_remove_title_bar_control : Void* = Pointer(Void).null
-    def remove_title_bar_control(control : Control) : Void
+    def remove_title_bar_control(control : Control?) : Void
       godot_bind(@@mb_remove_title_bar_control, "FoldableContainer", "remove_title_bar_control", 1496901182_i64)
       arg_ptr_0 = control ? control.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -33274,7 +33271,7 @@ module Godot
       godot_ptrcall_void(@@mb_remove_texture, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_set_texture_image : Void* = Pointer(Void).null
-    def set_texture_image(cache_index : Int64, size : Vector2i, texture_index : Int64, image : Image) : Void
+    def set_texture_image(cache_index : Int64, size : Vector2i, texture_index : Int64, image : Image?) : Void
       godot_bind(@@mb_set_texture_image, "FontFile", "set_texture_image", 4157974066_i64)
       val_0 = cache_index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
@@ -33891,7 +33888,7 @@ module Godot
       super(pointer)
     end
     @@mb_set_base_font : Void* = Pointer(Void).null
-    def set_base_font(font : Font) : Void
+    def set_base_font(font : Font?) : Void
       godot_bind(@@mb_set_base_font, "FontVariation", "set_base_font", 1262170328_i64)
       arg_ptr_0 = font ? font.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -34763,7 +34760,7 @@ module Godot
       ret_ptr
     end
     @@mb_instance_has : Void* = Pointer(Void).null
-    def instance_has(base_object : Godot::Object) : Bool
+    def instance_has(base_object : Godot::Object?) : Bool
       godot_bind(@@mb_instance_has, "Script", "instance_has", 397768994_i64)
       arg_ptr_0 = base_object ? base_object.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -34771,7 +34768,7 @@ module Godot
       godot_ptrcall_bool(@@mb_instance_has, @pointer, args.to_unsafe.as(Void**))
     end
     # Predicate alias for `instance_has`
-    def instance_has?(base_object : Godot::Object) : Bool
+    def instance_has?(base_object : Godot::Object?) : Bool
       instance_has(base_object)
     end
     # Property `source_code` getter
@@ -35229,7 +35226,7 @@ module Godot
       super(pointer)
     end
     @@mb_apply_new_signal : Void* = Pointer(Void).null
-    def apply_new_signal(obj : Godot::Object, function : String, args : Pointer(Void)) : Void
+    def apply_new_signal(obj : Godot::Object?, function : String, args : Pointer(Void)) : Void
       godot_bind(@@mb_apply_new_signal, "GDScriptWorkspace", "apply_new_signal", 3682583557_i64)
       arg_ptr_0 = obj ? obj.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -35768,7 +35765,7 @@ module Godot
       super(pointer)
     end
     @@mb_load_buffer_view_data : Void* = Pointer(Void).null
-    def load_buffer_view_data(state : GLTFState) : Pointer(Void)
+    def load_buffer_view_data(state : GLTFState?) : Pointer(Void)
       godot_bind(@@mb_load_buffer_view_data, "GLTFBufferView", "load_buffer_view_data", 3945446907_i64)
       arg_ptr_0 = state ? state.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -35942,7 +35939,7 @@ module Godot
       super(pointer)
     end
     @@mb_from_node : Void* = Pointer(Void).null
-    def self.from_node(camera_node : Camera3D) : GLTFCamera
+    def self.from_node(camera_node : Camera3D?) : GLTFCamera
       godot_bind(@@mb_from_node, "GLTFCamera", "from_node", 237784_i64)
       arg_ptr_0 = camera_node ? camera_node.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
@@ -35950,7 +35947,7 @@ module Godot
       godot_ptrcall_obj(@@mb_from_node, Pointer(Void).null, args.to_unsafe.as(Void**), GLTFCamera)
     end
     # Instance convenience delegator for static method `from_node`
-    def from_node(camera_node : Camera3D) : GLTFCamera
+    def from_node(camera_node : Camera3D?) : GLTFCamera
       self.class.from_node(camera_node)
     end
     @@mb_to_node : Void* = Pointer(Void).null

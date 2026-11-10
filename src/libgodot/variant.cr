@@ -56,6 +56,20 @@ module Godot
       new(val.value.to_i64)
     end
 
+    def self.from_any?(val) : Variant?
+      if val.is_a?(Variant)
+        val
+      elsif val.is_a?(VariantValue)
+        new(val)
+      elsif val.is_a?(Int32 | UInt32 | UInt64 | Float32 | Symbol)
+        new(val)
+      elsif val.is_a?(Enum)
+        new(val)
+      else
+        nil
+      end
+    end
+
     def is_nil? : Bool
       @raw.nil?
     end
@@ -80,81 +94,111 @@ module Godot
       @raw.is_a?(Godot::Object)
     end
 
-    def as_bool : Bool
+    def as_bool(default : Bool = false) : Bool
       case v = @raw
-      when Bool   then v
-      when Int64  then v != 0
-      when String then v == "true" || v == "1"
-      else             !is_nil?
+      when Bool    then v
+      when Int64   then v != 0
+      when Float64 then v != 0.0
+      when String
+        s = v.strip.downcase
+        return true if s == "true" || s == "1" || s == "yes" || s == "on"
+        return false if s == "false" || s == "0" || s == "no" || s == "off" || s.empty?
+        default
+      when Nil
+        default
+      else
+        !is_nil?
       end
     end
 
-    def as_i32 : Int32
-      as_i64.to_i32
+    def as_bool? : Bool?
+      return nil if @raw.nil?
+      as_bool
     end
 
-    def as_i : Int32
-      as_i32
+    def as_i32(default : Int32 = 0_i32) : Int32
+      as_i64(default.to_i64).to_i32
     end
 
-    def as_i64 : Int64
+    def as_i(default : Int32 = 0_i32) : Int32
+      as_i32(default)
+    end
+
+    def as_i64(default : Int64 = 0_i64) : Int64
       case v = @raw
       when Int64   then v
       when Float64 then v.to_i64
       when Bool    then v ? 1_i64 : 0_i64
-      when String  then v.to_i64? || 0_i64
-      else              0_i64
+      when String  then v.strip.to_i64? || v.strip.to_f64?.try(&.to_i64) || default
+      else              default
       end
     end
 
-    def as_u32 : UInt32
-      as_i64.to_u32
+    def as_u32(default : UInt32 = 0_u32) : UInt32
+      as_i64(default.to_i64).to_u32
     end
 
-    def as_u64 : UInt64
-      as_i64.to_u64
+    def as_u64(default : UInt64 = 0_u64) : UInt64
+      as_i64(default.to_i64).to_u64
     end
 
-    def as_f32 : Float32
-      as_f64.to_f32
+    def as_f32(default : Float32 = 0.0_f32) : Float32
+      as_f64(default.to_f64).to_f32
     end
 
-    def as_f : Float32
-      as_f32
+    def as_f(default : Float32 = 0.0_f32) : Float32
+      as_f32(default)
     end
 
-    def as_f64 : Float64
+    def as_f64(default : Float64 = 0.0_f64) : Float64
       case v = @raw
       when Float64 then v
       when Int64   then v.to_f64
       when Bool    then v ? 1.0 : 0.0
-      when String  then v.to_f64? || 0.0
-      else              0.0
+      when String  then v.strip.to_f64? || default
+      else              default
       end
     end
 
-    def as_s : String
-      to_s
+    def as_s(default : String = "") : String
+      @raw.nil? ? default : to_s
     end
 
-    def as_str : String
-      to_s
+    def as_s? : String?
+      @raw.nil? ? nil : to_s
+    end
+
+    def as_str(default : String = "") : String
+      as_s(default)
     end
 
     def empty? : Bool
       to_s.empty?
     end
 
-    def as_v2 : Vector2
+    def as_v2(default : Vector2 = Vector2.new) : Vector2
       case v = @raw
       when Vector2  then v
       when Vector2i then Vector2.new(v.x.to_f32, v.y.to_f32)
-      else               Vector2.new
+      when String
+        parts = v.strip.tr(",()", "   ").split(/\s+/, remove_empty: true)
+        if parts.size >= 2
+          x = parts[0].to_f32?
+          y = parts[1].to_f32?
+          return Vector2.new(x, y) if x && y
+        end
+        default
+      else
+        default
       end
     end
 
-    def as_vector2 : Vector2
-      as_v2
+    def as_v2_coerce(default : Vector2 = Vector2.new) : Vector2
+      as_v2(default)
+    end
+
+    def as_vector2(default : Vector2 = Vector2.new) : Vector2
+      as_v2(default)
     end
 
     def as_v2i : Vector2i
@@ -177,16 +221,30 @@ module Godot
       @raw.as?(Rect2i) || Rect2i.new
     end
 
-    def as_v3 : Vector3
+    def as_v3(default : Vector3 = Vector3.new) : Vector3
       case v = @raw
       when Vector3  then v
       when Vector3i then Vector3.new(v.x.to_f32, v.y.to_f32, v.z.to_f32)
-      else               Vector3.new
+      when String
+        parts = v.strip.tr(",()", "   ").split(/\s+/, remove_empty: true)
+        if parts.size >= 3
+          x = parts[0].to_f32?
+          y = parts[1].to_f32?
+          z = parts[2].to_f32?
+          return Vector3.new(x, y, z) if x && y && z
+        end
+        default
+      else
+        default
       end
     end
 
-    def as_vector3 : Vector3
-      as_v3
+    def as_v3_coerce(default : Vector3 = Vector3.new) : Vector3
+      as_v3(default)
+    end
+
+    def as_vector3(default : Vector3 = Vector3.new) : Vector3
+      as_v3(default)
     end
 
     def as_v3i : Vector3i
@@ -209,8 +267,38 @@ module Godot
       @raw.as?(Vector4i) || Vector4i.new
     end
 
-    def as_color : Color
-      @raw.as?(Color) || Color.new
+    def as_color(default : Color = Color.new) : Color
+      case v = @raw
+      when Color   then v
+      when Vector3 then Color.new(v.x, v.y, v.z, 1.0_f32)
+      when Vector4 then Color.new(v.x, v.y, v.z, v.w)
+      when String
+        s = v.strip
+        if s.starts_with?("#")
+          return Color.from_html(s) rescue default
+        end
+        parts = s.tr(",()", "   ").split(/\s+/, remove_empty: true)
+        if parts.size >= 3
+          r = parts[0].to_f32?
+          g = parts[1].to_f32?
+          b = parts[2].to_f32?
+          a = parts.size >= 4 ? (parts[3].to_f32? || 1.0_f32) : 1.0_f32
+          if r && g && b
+            if r > 1.0_f32 || g > 1.0_f32 || b > 1.0_f32
+              return Color.new(r / 255.0_f32, g / 255.0_f32, b / 255.0_f32, a > 1.0_f32 ? a / 255.0_f32 : a)
+            else
+              return Color.new(r, g, b, a)
+            end
+          end
+        end
+        default
+      else
+        default
+      end
+    end
+
+    def as_color_coerce(default : Color = Color.new) : Color
+      as_color(default)
     end
 
     def as_transform2d : Transform2D

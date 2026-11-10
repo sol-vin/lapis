@@ -28,6 +28,16 @@ module Godot
     end
 
     @[AlwaysInline]
+    def xform(vec : Vector3) : Vector3
+      self * vec
+    end
+
+    @[AlwaysInline]
+    def xform_inv(vec : Vector3) : Vector3
+      affine_inverse * vec
+    end
+
+    @[AlwaysInline]
     def *(other : Transform3D) : Transform3D
       Transform3D.new(@basis * other.basis, self * other.origin)
     end

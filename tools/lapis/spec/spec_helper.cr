@@ -16,6 +16,7 @@ require "../src/commands/clean"
 require "../src/commands/scaffold"
 require "../src/commands/package"
 require "../src/commands/install"
+require "../src/commands/bind/project"
 require "../src/tui/tui"
 
 module LapisSpecHelper

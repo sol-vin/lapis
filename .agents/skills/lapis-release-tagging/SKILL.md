@@ -32,22 +32,22 @@ This operational skill governs Git repository hygiene, branch management, and re
     <tr>
       <td><a href="#3-milestone-squashing-release-runbook"><strong>3. Milestone Squashing & Release Runbook</strong></a></td>
       <td>Follow these exact steps when finalizing a release milestone:</td>
-      <td align="center"><code>L135–L214</code></td>
+      <td align="center"><code>L135–L211</code></td>
     </tr>
     <tr>
-      <td><a href="#4-starting-a-new-milestone-branch"><strong>4. Starting a New Milestone Branch</strong></a></td>
-      <td>When transitioning from a finalized milestone (e.g.</td>
-      <td align="center"><code>L215–L244</code></td>
+      <td><a href="#4-upgrading-to-a-new-milestone-version-finalizing-previous-milestone-on-master"><strong>4. Upgrading to a New Milestone Version (Finalizing Previous Milestone on `master`)</strong></a></td>
+      <td>When transitioning from a completed milestone (e.g.</td>
+      <td align="center"><code>L212–L254</code></td>
     </tr>
     <tr>
       <td><a href="#5-auditing-diagnostic-commands"><strong>5. Auditing & Diagnostic Commands</strong></a></td>
       <td>Use these commands to verify repository health and diagnose commit inflation:</td>
-      <td align="center"><code>L245–L287</code></td>
+      <td align="center"><code>L255–L297</code></td>
     </tr>
     <tr>
       <td><a href="#6-disaster-recovery-rollback-protocol"><strong>6. Disaster Recovery / Rollback Protocol</strong></a></td>
       <td>If a squash or reset was performed erroneously before pushing:</td>
-      <td align="center"><code>L288–L300</code></td>
+      <td align="center"><code>L298–L310</code></td>
     </tr>
   </tbody>
 </table>
@@ -152,8 +152,8 @@ crystal run spec/godot_version_verification_spec.cr
 bin/lapis doctor
 ```
 
-### Step 2: Commit All Working Tree Changes
-Ensure all uncommitted modifications are committed to the active milestone branch:
+### Step 2: Synchronize Milestone Version (`0.Y.X`) & Commit Working Tree Changes
+Ensure `shard.yml`, `tools/lapis/shard.yml`, and `README.md` reflect `0.Y.X` where `0.Y` is the minor version for this Godot milestone (bumped from `0.(Y-1)` when branching off `master`) and `X` is the number of commits in the current branch (`git rev-list --count master..HEAD`):
 ```powershell
 git add -A
 git commit -m "chore: prepare final release assets for <STAGE-VERSION>"
@@ -224,7 +224,8 @@ When transitioning from a completed milestone (e.g. `4.8-beta1`) to the next God
    ```powershell
    git checkout -b <NEW_VERSION> master
    ```
-3. **Update Version Configuration**:
+3. **Update Version Configuration & Bump Lapis Minor Version (`0.Y.0`)**:
+   - Bump Lapis minor version and reset commit counter to `0` (`0.(Y-1).Z` -> `0.Y.0`, e.g. `0.1.19` -> `0.2.0`) in `shard.yml`, `tools/lapis/shard.yml`, and `README.md` (performed automatically by `lapis setup <NEW_VERSION>` and `.githooks/pre-commit`).
    - Update `godot-version.yml`, `template/godot-version.yml`, and `template-addon/godot-version.yml`:
      ```yaml
      version: "<NEW_VERSION>"

@@ -488,6 +488,90 @@ describe "Lapis Subcommands" do
         Lapis::Commands::Bind::Project.up_to_date?(dir, out_dir).should be_true
       end
     end
+
+    it "filters pseudo-properties, deduplicates methods, handles enum class_name, and skips CLI scripts" do
+      LapisSpecHelper.with_temp_dir("bind_project_codegen_fixes") do |dir|
+        out_json = dir.join("src/generated/project_nodes.json")
+        out_dir = dir.join("src/generated/project_nodes")
+        FileUtils.mkdir_p(out_json.parent)
+        FileUtils.mkdir_p(out_dir)
+
+        payload = {
+          "gdscript_classes" => [
+            {
+              "name"           => "FuncGodotMapLike",
+              "inherits"       => "Node3D",
+              "path"           => "res://addons/func_godot/fgd_map.gd",
+              "has_class_name" => true,
+              "properties"     => [
+                {"name" => "Map", "type" => 0, "usage" => 64},
+                {"name" => "Build Flags", "type" => 0, "usage" => 128},
+                {"name" => "local_map_file", "type" => 4, "usage" => 6},
+                {"name" => "verify_and_build", "type" => 1, "usage" => 6},
+                {"name" => "target_editor", "type" => 2, "class_name" => "FuncGodotFGDFile.FuncGodotTargetMapEditors", "usage" => 6},
+              ],
+              "methods" => [
+                {
+                  "name"        => "verify_and_build",
+                  "return_type" => 0,
+                  "args"        => [] of Hash(String, String | Int32),
+                },
+                {
+                  "name"        => "verify_and_build",
+                  "return_type" => 0,
+                  "args"        => [] of Hash(String, String | Int32),
+                },
+                {
+                  "name"              => "configure_editor",
+                  "return_type"       => 2,
+                  "return_class_name" => "FuncGodotFGDFile.FuncGodotTargetMapEditors",
+                  "args"              => [
+                    {"name" => "alias", "type" => 4, "class_name" => ""},
+                    {"name" => "mode", "type" => 2, "class_name" => "FuncGodotFGDFile.FuncGodotTargetMapEditors"},
+                  ],
+                },
+              ],
+              "signals" => [] of Hash(String, String),
+            },
+            {
+              "name"           => "BuildTestScript",
+              "inherits"       => "SceneTree",
+              "path"           => "res://scripts/build_test.gd",
+              "has_class_name" => false,
+              "properties"     => [] of Hash(String, String | Int32),
+              "methods"        => [] of Hash(String, String | Int32),
+              "signals"        => [] of Hash(String, String),
+            },
+          ],
+          "plugin_classes" => [] of Hash(String, String),
+        }
+
+        File.write(out_json, payload.to_pretty_json)
+        rc = Lapis::Commands::Bind::Project.generate_wrappers_from_json(dir, out_json, out_dir, include_addons: true)
+        rc.should eq(0)
+
+        # CLI script inheriting SceneTree without class_name should be excluded
+        File.exists?(out_dir.join("build_test_script.cr")).should be_false
+
+        wrapper_path = out_dir.join("func_godot_map_like.cr")
+        File.exists?(wrapper_path).should be_true
+        code = File.read(wrapper_path)
+
+        # Group/category pseudo-properties with type 0 or spaces should not be emitted
+        code.should_not contain("def map :")
+        code.should_not contain("build_flags")
+
+        # Valid property should be emitted
+        code.should contain("def local_map_file : String")
+
+        # Property colliding with method `verify_and_build` should only emit the method once
+        code.scan(/def verify_and_build\b/).size.should eq(1)
+
+        # Enum with dotted class_name and type 2 should resolve to Int64, not Godot::Object?
+        code.should contain("def target_editor : Int64")
+        code.should contain("def configure_editor(alias_arg : String, mode : Int64) : Int64")
+      end
+    end
   end
 
   describe "build manifest up-to-date detection" do

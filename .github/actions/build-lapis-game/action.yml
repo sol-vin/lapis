@@ -20,7 +20,7 @@ inputs:
     required: false
     default: "1.21.0"
   godot-version:
-    description: "Target Godot Engine version (resolved from godot-version.yml or defaults to 4.8-beta1)"
+    description: "Target Godot Engine version (resolved from godot-version.yml or defaults to 4.8-beta2)"
     required: false
     default: ""
   release:
@@ -113,7 +113,7 @@ runs:
           GODOT_VER=$(sed -n 's/.*version:[[:space:]]*["'"'"']\?\([^"'"'"']\+\)["'"'"']\?.*/\1/p' "godot-version.yml" | tr -d '\r\n[:space:]')
         fi
         if [ -z "$GODOT_VER" ]; then
-          GODOT_VER="4.8-beta1"
+          GODOT_VER="4.8-beta2"
         fi
         if [ ! -f "$WORK_DIR/godot-version.yml" ]; then
           echo "version: \"$GODOT_VER\"" > "$WORK_DIR/godot-version.yml"
@@ -239,7 +239,7 @@ runs:
       run: |
         WORK_DIR="${{ steps.meta.outputs.work_dir }}"
         GODOT_VER="${{ steps.meta.outputs.godot_version }}"
-        if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta1"; fi
+        if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta2"; fi
         if [ "$WORK_DIR" != "." ] && [ -f "shard.yml" ] && [ -f "src/lapis.cr" ]; then
           shards install --skip-postinstall || true
           mkdir -p "$WORK_DIR/lib" "$WORK_DIR/lib/lapis" "$WORK_DIR/addons/crystal_integration/bin"
@@ -261,7 +261,7 @@ runs:
             rm -rf "$WORK_DIR/lib/lapis"
             mkdir -p "$WORK_DIR/lib"
             git clone --depth 1 --branch "$GODOT_VER" https://github.com/sol-vin/lapis.git "$WORK_DIR/lib/lapis" 2>/dev/null || \
-            git clone --depth 1 --branch 4.8-beta1 https://github.com/sol-vin/lapis.git "$WORK_DIR/lib/lapis" 2>/dev/null || \
+            git clone --depth 1 --branch 4.8-beta2 https://github.com/sol-vin/lapis.git "$WORK_DIR/lib/lapis" 2>/dev/null || \
             git clone --depth 1 https://github.com/sol-vin/lapis.git "$WORK_DIR/lib/lapis"
             (cd "$WORK_DIR/lib/lapis" && (shards install --skip-postinstall || shards install || true))
             if [ -d "$WORK_DIR/lib/lapis/lib" ]; then

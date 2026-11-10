@@ -81,7 +81,7 @@ module Lapis
       @source_code = v
       parse_source_metadata
       if !@pointer.null?
-        call("set_source_code", v) rescue nil
+        Bridge.object_call(@pointer, "set_source_code", v) rescue nil
       end
     end
 
@@ -183,6 +183,9 @@ module Lapis
     def set_source_code(code : String) : Void
       @source_code = code
       parse_source_metadata
+      if !@pointer.null?
+        Bridge.object_call(@pointer, "set_source_code", code) rescue nil
+      end
     end
 
     def self._godot_has_virtual_method(method_name : String) : Bool

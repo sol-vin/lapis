@@ -368,6 +368,10 @@ macro godot_singleton(cls_name, godot_name, parent_type = Godot::Object)
     def self.instance : {{cls_name.id}}
       @@typed_instance ||= {{cls_name.id}}.new(singleton_ptr)
     end
+
+    def self.singleton : {{cls_name.id}}
+      instance
+    end
   end
 end
 

@@ -30,6 +30,13 @@ module Godot
     def get_meta(key : Symbol, default : Pointer(Void)? = nil) : Pointer(Void)
       get_meta(key.to_s, default)
     end
+
+    # Checks both Crystal-defined methods on the live instance and native Godot methods.
+    def has_method(method : String) : Bool
+      return true if live_instance._godot_has_crystal_method?(method)
+      return false if @pointer.null? || !Bridge.init_done?
+      previous_def(method)
+    end
   end
 
   # ===========================================================================
@@ -48,6 +55,52 @@ module Godot
         children << child unless child.pointer.null?
       end
       children
+    end
+  end
+
+  # ===========================================================================
+  # Time Extensions (Crystal stdlib ::Time compatibility when `include Godot` is active)
+  # ===========================================================================
+  class Time
+    alias Instant = ::Time::Instant
+    alias Span = ::Time::Span
+    alias Format = ::Time::Format
+    alias Location = ::Time::Location
+
+    def self.instant : ::Time::Instant
+      ::Time.instant
+    end
+
+    def self.monotonic : ::Time::Span
+      ::Time.monotonic
+    end
+
+    def self.utc : ::Time
+      ::Time.utc
+    end
+
+    def self.utc(*args, **kwargs) : ::Time
+      ::Time.utc(*args, **kwargs)
+    end
+
+    def self.local : ::Time
+      ::Time.local
+    end
+
+    def self.local(*args, **kwargs) : ::Time
+      ::Time.local(*args, **kwargs)
+    end
+
+    def self.unix(seconds : Int) : ::Time
+      ::Time.unix(seconds)
+    end
+
+    def self.unix_ms(milliseconds : Int) : ::Time
+      ::Time.unix_ms(milliseconds)
+    end
+
+    def self.measure(&block) : ::Time::Span
+      ::Time.measure { yield }
     end
   end
 end

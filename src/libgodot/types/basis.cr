@@ -19,6 +19,184 @@ module Godot
       @z = b.z
     end
 
+    def initialize(q : Quaternion)
+      b = Basis.from_quaternion(q)
+      @x = b.x
+      @y = b.y
+      @z = b.z
+    end
+
+    # Returns column 0 (local X / Right axis), matching GDScript's `basis.x`
+    @[AlwaysInline]
+    def col_x : Vector3
+      Vector3.new(@x.x, @y.x, @z.x)
+    end
+
+    @[AlwaysInline]
+    def axis_x : Vector3
+      col_x
+    end
+
+    def col_x=(v : Vector3) : Vector3
+      @x = Vector3.new(v.x, @x.y, @x.z)
+      @y = Vector3.new(v.y, @y.y, @y.z)
+      @z = Vector3.new(v.z, @z.y, @z.z)
+      v
+    end
+
+    def axis_x=(v : Vector3) : Vector3
+      self.col_x = v
+    end
+
+    # Returns column 1 (local Y / Up axis), matching GDScript's `basis.y`
+    @[AlwaysInline]
+    def col_y : Vector3
+      Vector3.new(@x.y, @y.y, @z.y)
+    end
+
+    @[AlwaysInline]
+    def axis_y : Vector3
+      col_y
+    end
+
+    def col_y=(v : Vector3) : Vector3
+      @x = Vector3.new(@x.x, v.x, @x.z)
+      @y = Vector3.new(@y.x, v.y, @y.z)
+      @z = Vector3.new(@z.x, v.z, @z.z)
+      v
+    end
+
+    def axis_y=(v : Vector3) : Vector3
+      self.col_y = v
+    end
+
+    # Returns column 2 (local Z / Back axis), matching GDScript's `basis.z`
+    @[AlwaysInline]
+    def col_z : Vector3
+      Vector3.new(@x.z, @y.z, @z.z)
+    end
+
+    @[AlwaysInline]
+    def axis_z : Vector3
+      col_z
+    end
+
+    def col_z=(v : Vector3) : Vector3
+      @x = Vector3.new(@x.x, @x.y, v.x)
+      @y = Vector3.new(@y.x, @y.y, v.y)
+      @z = Vector3.new(@z.x, @z.y, v.z)
+      v
+    end
+
+    def axis_z=(v : Vector3) : Vector3
+      self.col_z = v
+    end
+
+    # Constructs a Basis from 3 column basis vectors (Right, Up, Back).
+    @[AlwaysInline]
+    def self.from_axes(col_x : Vector3, col_y : Vector3, col_z : Vector3) : Basis
+      Basis.new(
+        Vector3.new(col_x.x, col_y.x, col_z.x),
+        Vector3.new(col_x.y, col_y.y, col_z.y),
+        Vector3.new(col_x.z, col_y.z, col_z.z)
+      )
+    end
+
+    # Constructs a pure scaling Basis from a Vector3 scale factor.
+    @[AlwaysInline]
+    def self.from_scale(scale : Vector3) : Basis
+      Basis.new(
+        Vector3.new(scale.x, 0.0_f32, 0.0_f32),
+        Vector3.new(0.0_f32, scale.y, 0.0_f32),
+        Vector3.new(0.0_f32, 0.0_f32, scale.z)
+      )
+    end
+
+    # Constructs a rotation Basis from a Quaternion.
+    def self.from_quaternion(q : Quaternion) : Basis
+      d = q.length_squared
+      return IDENTITY if d == 0.0_f32
+      s = 2.0_f32 / d
+      xs = q.x * s
+      ys = q.y * s
+      zs = q.z * s
+      wx = q.w * xs
+      wy = q.w * ys
+      wz = q.w * zs
+      xx = q.x * xs
+      xy = q.x * ys
+      xz = q.x * zs
+      yy = q.y * ys
+      yz = q.y * zs
+      zz = q.z * zs
+
+      Basis.new(
+        Vector3.new(1.0_f32 - (yy + zz), xy - wz, xz + wy),
+        Vector3.new(xy + wz, 1.0_f32 - (xx + zz), yz - wx),
+        Vector3.new(xz - wy, yz + wx, 1.0_f32 - (xx + yy))
+      )
+    end
+
+    # Converts this Basis's rotation into a unit Quaternion (Shepperd's method).
+    def to_quaternion : Quaternion
+      ortho = orthonormalized
+      r0 = ortho.x
+      r1 = ortho.y
+      r2 = ortho.z
+      trace = r0.x + r1.y + r2.z
+      if trace > 0.0_f32
+        s = Math.sqrt(trace + 1.0_f32).to_f32 * 2.0_f32
+        Quaternion.new(
+          (r2.y - r1.z) / s,
+          (r0.z - r2.x) / s,
+          (r1.x - r0.y) / s,
+          0.25_f32 * s
+        )
+      elsif r0.x > r1.y && r0.x > r2.z
+        s = Math.sqrt(1.0_f32 + r0.x - r1.y - r2.z).to_f32 * 2.0_f32
+        Quaternion.new(
+          0.25_f32 * s,
+          (r0.y + r1.x) / s,
+          (r0.z + r2.x) / s,
+          (r2.y - r1.z) / s
+        )
+      elsif r1.y > r2.z
+        s = Math.sqrt(1.0_f32 + r1.y - r0.x - r2.z).to_f32 * 2.0_f32
+        Quaternion.new(
+          (r0.y + r1.x) / s,
+          0.25_f32 * s,
+          (r1.z + r2.y) / s,
+          (r0.z - r2.x) / s
+        )
+      else
+        s = Math.sqrt(1.0_f32 + r2.z - r0.x - r1.y).to_f32 * 2.0_f32
+        Quaternion.new(
+          (r0.z + r2.x) / s,
+          (r1.z + r2.y) / s,
+          0.25_f32 * s,
+          (r1.x - r0.y) / s
+        )
+      end
+    end
+
+    def get_rotation_quaternion : Quaternion
+      to_quaternion
+    end
+
+    def slerp(to : Basis, weight : Number) : Basis
+      Basis.from_quaternion(to_quaternion.slerp(to.to_quaternion, weight))
+    end
+
+    @[AlwaysInline]
+    def xform(v : Vector3) : Vector3
+      self * v
+    end
+
+    @[AlwaysInline]
+    def xform_inv(v : Vector3) : Vector3
+      Vector3.new(tdotx(v), tdoty(v), tdotz(v))
+    end
+
     def initialize(pointer : Void*)
       if pointer.null?
         @x = Vector3.new(1.0_f32, 0.0_f32, 0.0_f32)
@@ -167,26 +345,35 @@ module Godot
     end
 
     def self.from_euler(euler : Vector3) : Basis
-      c = Vector3.new(Math.cos(euler.x), Math.cos(euler.y), Math.cos(euler.z))
-      s = Vector3.new(Math.sin(euler.x), Math.sin(euler.y), Math.sin(euler.z))
+      c_x = Math.cos(euler.x.to_f32)
+      s_x = Math.sin(euler.x.to_f32)
+      c_y = Math.cos(euler.y.to_f32)
+      s_y = Math.sin(euler.y.to_f32)
+      c_z = Math.cos(euler.z.to_f32)
+      s_z = Math.sin(euler.z.to_f32)
 
       Basis.new(
-        Vector3.new(c.y * c.z, -c.y * s.z, s.y),
-        Vector3.new(s.x * s.y * c.z + c.x * s.z, -s.x * s.y * s.z + c.x * c.z, -s.x * c.y),
-        Vector3.new(-c.x * s.y * c.z + s.x * s.z, c.x * s.y * s.z + s.x * c.z, c.x * c.y)
+        Vector3.new(c_y * c_z + s_y * s_x * s_z, -c_y * s_z + s_y * s_x * c_z, s_y * c_x),
+        Vector3.new(c_x * s_z, c_x * c_z, -s_x),
+        Vector3.new(-s_y * c_z + c_y * s_x * s_z, s_y * s_z + c_y * s_x * c_z, c_y * c_x)
       )
     end
 
     def get_euler : Vector3
-      pitch = Math.asin(@x.z.clamp(-1.0_f32, 1.0_f32))
-      if (@x.z.abs - 1.0_f32).abs > 0.00001_f32
-        yaw = Math.atan2(-@y.z, @z.z)
-        roll = Math.atan2(-@x.y, @x.x)
+      m12 = @y.z
+      if m12 < 0.999999_f32
+        if m12 > -0.999999_f32
+          Vector3.new(
+            Math.asin(-m12.clamp(-1.0_f32, 1.0_f32)).to_f32,
+            Math.atan2(@x.z, @z.z).to_f32,
+            Math.atan2(@y.x, @y.y).to_f32
+          )
+        else
+          Vector3.new((Math::PI * 0.5).to_f32, Math.atan2(@x.y, @x.x).to_f32, 0.0_f32)
+        end
       else
-        yaw = 0.0_f32
-        roll = Math.atan2(@y.x, @y.y)
+        Vector3.new((-Math::PI * 0.5).to_f32, -Math.atan2(@x.y, @x.x).to_f32, 0.0_f32)
       end
-      Vector3.new(yaw, pitch, roll)
     end
 
     def rotated(axis : Vector3, angle : Number) : Basis

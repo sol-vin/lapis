@@ -240,23 +240,6 @@ module Lapis
                 @spy.capture_r2_forensics!("Exception dispatching RPC '#{m_str}' on #{node.name}: #{ex.message}")
               end
             end
-
-            # Method dispatch fallback for custom Crystal methods with arguments
-            if node.responds_to?(:apply_damage) && m_str == "apply_damage" && args.size > 0
-              if val = args[0].as?(Int32)
-                node.apply_damage(val)
-              elsif val = args[0].as?(Int64)
-                node.apply_damage(val.to_i32)
-              end
-            elsif node.responds_to?(:sync_counter_step) && m_str == "sync_counter_step" && args.size > 0
-              if val = args[0].as?(Int32)
-                node.sync_counter_step(val)
-              elsif val = args[0].as?(Int64)
-                node.sync_counter_step(val.to_i32)
-              end
-            elsif node.responds_to?(:broadcast_message) && m_str == "broadcast_message" && args.size > 0
-              node.broadcast_message(args[0].to_s)
-            end
           end
         end
       end

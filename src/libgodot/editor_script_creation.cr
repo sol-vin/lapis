@@ -24,7 +24,14 @@ module Lapis
     @@script_key_to_button_id = Hash(String, Int64).new
     @@next_script_button_id : Int64 = BUTTON_ID_OPEN_CRYSTAL_SCRIPT_BASE + 1_i64
     @@cached_scene_dock : Node? = nil
+    @@cached_scene_dock_trees : Array(Node)? = nil
     @@cached_script_button_icon : Texture2D? = nil
+    @@last_scene_tree_sync_sig : UInt64 = 0_u64
+
+    def self.mark_scene_tree_buttons_dirty! : Void
+      @@last_scene_tree_sync_sig = 0_u64
+      Godot::Object.clear_script_info_cache!
+    end
 
     COMMON_BASE_TYPES = [
       "Node",
@@ -648,6 +655,7 @@ module Lapis
           end
         end
 
+        mark_scene_tree_buttons_dirty!
         sync_scene_tree_script_buttons(ed_iface, base_ctrl)
       end
     rescue ex
@@ -711,8 +719,14 @@ module Lapis
       script_icon = get_script_button_icon(ed_iface)
       return if script_icon.nil? || script_icon.pointer.null?
 
-      trees = find_all_children(scene_dock, "Tree")
+      trees = @@cached_scene_dock_trees
+      if trees.nil? || trees.empty? || trees.any? { |t| t.pointer.null? || !t.alive? }
+        trees = find_all_children(scene_dock, "Tree")
+        @@cached_scene_dock_trees = trees
+      end
+
       trees.each do |tree_node|
+        next if tree_node.pointer.null?
         tree = Godot::Tree.new(tree_node.pointer)
         unless @@hooked_popups.includes?(tree.signal_target_id)
           @@hooked_popups << tree.signal_target_id
@@ -732,7 +746,26 @@ module Lapis
           root_text = (root_item.call_str("get_text", 0_i64) rescue "").strip
           scene_root_name = (scene_root.call_str("get_name") rescue "").strip
           if !root_text.empty? && root_text == scene_root_name
+            first_ch = root_item.call_obj("get_first_child") rescue nil
+            first_ch_addr = (first_ch && !first_ch.pointer.null?) ? first_ch.pointer.address : 0_u64
+            root_btn_cnt = (root_item.call_i64("get_button_count", 0_i64) rescue 0_i64).to_u64!
+            child_cnt = (scene_root.call_i64("get_child_count") rescue 0_i64).to_u64!
+            sig = scene_root.pointer.address &* 1099511628211_u64
+            sig = (sig ^ root_item.pointer.address) &* 1099511628211_u64
+            sig = (sig ^ first_ch_addr) &* 1099511628211_u64
+            sig = (sig ^ child_cnt) &* 1099511628211_u64
+            sig = (sig ^ root_btn_cnt ^ ClassRegistry.entries.size.to_u64!)
+            if sig != 0_u64 && sig == @@last_scene_tree_sync_sig
+              next
+            end
             sync_tree_item_buttons_recursive(root_item, Godot::Node.new(scene_root.pointer), "", script_icon)
+            root_btn_cnt_after = (root_item.call_i64("get_button_count", 0_i64) rescue 0_i64).to_u64!
+            sig_after = scene_root.pointer.address &* 1099511628211_u64
+            sig_after = (sig_after ^ root_item.pointer.address) &* 1099511628211_u64
+            sig_after = (sig_after ^ first_ch_addr) &* 1099511628211_u64
+            sig_after = (sig_after ^ child_cnt) &* 1099511628211_u64
+            sig_after = (sig_after ^ root_btn_cnt_after ^ ClassRegistry.entries.size.to_u64!)
+            @@last_scene_tree_sync_sig = sig_after
           end
         end
       end

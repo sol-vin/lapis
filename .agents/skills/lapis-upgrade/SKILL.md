@@ -27,27 +27,27 @@ This operational skill governs the automated and manual procedures for executing
     <tr>
       <td><a href="#2-upgrade-godot-procedure"><strong>2. `/upgrade godot` Procedure</strong></a></td>
       <td>When upgrading the Godot engine binary or when requested via /upgrade godot:</td>
-      <td align="center"><code>L98–L137</code></td>
+      <td align="center"><code>L98–L140</code></td>
     </tr>
     <tr>
       <td><a href="#3-upgrade-cradare2-procedure"><strong>3. `/upgrade cradare2` Procedure</strong></a></td>
       <td>When upgrading the Cradare2 Crystal shard or native Radare2 debugger:</td>
-      <td align="center"><code>L138–L180</code></td>
+      <td align="center"><code>L141–L183</code></td>
     </tr>
     <tr>
       <td><a href="#4-upgrade-opal-procedure"><strong>4. `/upgrade opal` Procedure</strong></a></td>
       <td>The Opal terminal toolkit (Documents/Github/opal) powers the interactive Lapis TUI dashboard, test runner,...</td>
-      <td align="center"><code>L181–L234</code></td>
+      <td align="center"><code>L184–L237</code></td>
     </tr>
     <tr>
       <td><a href="#5-upgrade-lapis-procedure"><strong>5. `/upgrade lapis` Procedure</strong></a></td>
       <td>When upgrading the core Lapis engine framework and toolchain:</td>
-      <td align="center"><code>L235–L277</code></td>
+      <td align="center"><code>L238–L280</code></td>
     </tr>
     <tr>
       <td><a href="#6-post-upgrade-verification-checklist"><strong>6. Post-Upgrade Verification Checklist</strong></a></td>
       <td>After running any upgrade procedure, ensure the following checklist is completed:</td>
-      <td align="center"><code>L278–L318</code></td>
+      <td align="center"><code>L281–L321</code></td>
     </tr>
   </tbody>
 </table>
@@ -100,9 +100,9 @@ This operational skill governs the automated and manual procedures for executing
 When upgrading the Godot engine binary or when requested via `/upgrade godot`:
 
 ### Step-by-Step Workflow:
-1. **Finalize Previous Godot Milestone into `master` First**:
+1. **Finalize Previous Godot Milestone into `master` First & Bump Minor Version**:
    - Before upgrading `lapis` from `<PREVIOUS_VERSION>` (e.g. `4.8-beta1`) to `<NEW_VERSION>` (e.g. `4.8-beta2`), pull `<PREVIOUS_VERSION>` into `master` (`git checkout master && git merge --ff-only <PREVIOUS_VERSION> && git push origin master`) and ensure the `master` release and CI pass.
-   - Then create the new milestone branch from `master` (`git checkout -b <NEW_VERSION> master`).
+   - Then create the new milestone branch from `master` (`git checkout -b <NEW_VERSION> master`) and bump Lapis's minor version in `shard.yml` and `tools/lapis/shard.yml` (`0.1.x` -> `0.2.0`), advancing `0.2.X` where `X` is the number of commits on the new milestone branch.
 2. **Identify Target Godot Version**:
    - Determine target version (e.g. Godot `4.8-beta2`).
 2. **Download or Relocate Godot Binary**:

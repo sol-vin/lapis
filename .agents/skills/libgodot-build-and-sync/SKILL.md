@@ -25,32 +25,37 @@ This skill provides step-by-step instructions for compiling, hot-reloading, and 
     <tr>
       <td><a href="#1-cardinal-rule-always-use-make-all"><strong>1. Cardinal Rule: Always Use `make all`</strong></a></td>
       <td>Never compile subprojects or individual targets in isolation (make bridge, make test_project, or make game_...</td>
-      <td align="center"><code>L60–L89</code></td>
+      <td align="center"><code>L65–L94</code></td>
+    </tr>
+    <tr>
+      <td><a href="#11-mandatory-rule-always-monitor-make-all-and-background-tasks-with-timers"><strong>1.1 Mandatory Rule: Always Monitor `make all` and Background Tasks with Timers</strong></a></td>
+      <td>Whenever invoking make all or any command that runs as a background task:</td>
+      <td align="center"><code>L95–L115</code></td>
     </tr>
     <tr>
       <td><a href="#2-multi-target-build-lifecycle-dependency-dag"><strong>2. Multi-Target Build Lifecycle & Dependency DAG</strong></a></td>
       <td>flowchart TD</td>
-      <td align="center"><code>L90–L118</code></td>
+      <td align="center"><code>L116–L144</code></td>
     </tr>
     <tr>
       <td><a href="#3-windows-shadow-copying-hot-reload-mechanics"><strong>3. Windows Shadow Copying & Hot-Reload Mechanics</strong></a></td>
       <td>On Windows, the Win32 LoadLibraryA / LoadLibraryExW system call places a shared read lock on the loaded DLL file on disk.</td>
-      <td align="center"><code>L119–L142</code></td>
+      <td align="center"><code>L145–L168</code></td>
     </tr>
     <tr>
       <td><a href="#4-build-targets-reference"><strong>4. Build Targets Reference</strong></a></td>
       <td><table></td>
-      <td align="center"><code>L143–L198</code></td>
+      <td align="center"><code>L169–L224</code></td>
     </tr>
     <tr>
       <td><a href="#5-environment-variables-compiler-flags"><strong>5. Environment Variables & Compiler Flags</strong></a></td>
       <td><table></td>
-      <td align="center"><code>L199–L239</code></td>
+      <td align="center"><code>L225–L265</code></td>
     </tr>
     <tr>
       <td><a href="#6-post-build-verification-checklist"><strong>6. Post-Build Verification Checklist</strong></a></td>
       <td>Always verify after running make all:</td>
-      <td align="center"><code>L240–L246</code></td>
+      <td align="center"><code>L266–L272</code></td>
     </tr>
   </tbody>
 </table>

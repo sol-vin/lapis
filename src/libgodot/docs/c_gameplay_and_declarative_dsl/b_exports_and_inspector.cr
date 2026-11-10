@@ -43,6 +43,11 @@ module Lapis
       #       <td><code>.topic_03_file_and_asset_pickers</code></td>
       #       <td>Exposing resource path selectors with filter extensions.</td>
       #     </tr>
+      #     <tr>
+      #       <td><strong>Procedural Rebuild, Dictionary Ingestion & Shader Uniforms</strong></td>
+      #       <td><code>.topic_04_procedural_and_shader_exports</code></td>
+      #       <td>Using <code>export_config_hash</code>, <code>tool_rebuild</code>, <code>apply_dictionary_properties!</code>, <code>@[ShaderUniform]</code>, and <code>define_custom_export</code>.</td>
+      #     </tr>
       #   </tbody>
       # </table>
       #
@@ -128,6 +133,47 @@ module Lapis
         # ```
         #
         def self.topic_03_file_and_asset_pickers : Nil; end
+
+        # **Procedural Rebuild, Dictionary Ingestion & Shader Uniforms**: Using `export_config_hash`, `tool_rebuild`, `apply_dictionary_properties!`, `@[ShaderUniform]`, and `define_custom_export`.
+        #
+        # <table>
+        #   <thead>
+        #     <tr>
+        #       <th>Feature</th>
+        #       <th>Usage</th>
+        #       <th>Description</th>
+        #     </tr>
+        #   </thead>
+        #   <tbody>
+        #     <tr>
+        #       <td><code>#export_config_hash</code></td>
+        #       <td><code>node.export_config_hash : UInt64</code></td>
+        #       <td>Auto-generated deterministic 64-bit hash of all <code>@[Export]</code> properties (using monotonic <code>instance_id</code> for <code>Object</code>/<code>Resource</code> references).</td>
+        #     </tr>
+        #     <tr>
+        #       <td><code>tool_rebuild</code></td>
+        #       <td><code>tool_rebuild(debounce: 0.08_f32)</code></td>
+        #       <td>Includes <code>Godot::ToolRebuildable</code> and triggers <code>rebuild_geometry</code> on <code>_ready</code> and after debounced Inspector edits in <code>_process</code>.</td>
+        #     </tr>
+        #     <tr>
+        #       <td><code>#apply_dictionary_properties!</code></td>
+        #       <td><code>node.apply_dictionary_properties!(dict)</code></td>
+        #       <td>Populates all <code>@[Export]</code> properties from a <code>Godot::Dictionary</code>, supporting <code>aliases: [...]</code> and automatic <code>range: min..max</code> clamping.</td>
+        #     </tr>
+        #     <tr>
+        #       <td><code>@[ShaderUniform]</code></td>
+        #       <td><code>@[ShaderUniform("u_tint")]</code></td>
+        #       <td>Automatically forwards property assignments on a <code>ShaderMaterial</code> subclass to <code>set_shader_parameter</code> and generates <code>#sync_shader_uniforms</code>.</td>
+        #     </tr>
+        #     <tr>
+        #       <td><code>define_custom_export</code></td>
+        #       <td><code>define_custom_export :tag, "", "default"</code></td>
+        #       <td>Defines a custom string export macro using <code>PROPERTY_HINT_NONE</code> (<code>0_u32</code>) when <code>hint_string</code> is empty or <code>PROPERTY_HINT_ENUM</code> (<code>2_u32</code>) when non-empty.</td>
+        #     </tr>
+        #   </tbody>
+        # </table>
+        #
+        def self.topic_04_procedural_and_shader_exports : Nil; end
       end
     end
   end

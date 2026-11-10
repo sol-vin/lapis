@@ -40,6 +40,34 @@ module Godot
       end
     end
 
+    def initialize(b : Basis)
+      q = b.to_quaternion
+      @x = q.x
+      @y = q.y
+      @z = q.z
+      @w = q.w
+    end
+
+    def self.from_basis(b : Basis) : Quaternion
+      b.to_quaternion
+    end
+
+    def to_basis : Basis
+      Basis.from_quaternion(self)
+    end
+
+    def self.from_euler(euler : Vector3) : Quaternion
+      Basis.from_euler(euler).to_quaternion
+    end
+
+    def get_euler : Vector3
+      to_basis.get_euler
+    end
+
+    def self.identity : Quaternion
+      IDENTITY
+    end
+
     def - : Quaternion
       Quaternion.new(-@x, -@y, -@z, -@w)
     end

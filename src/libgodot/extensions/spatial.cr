@@ -145,6 +145,60 @@ module Godot
     def direction_to(point : Vector3) : Vector3
       global_position.direction_to(point)
     end
+
+    # Out-of-tree safe override for `to_global` (avoids Godot C++ `!is_inside_tree()` error spam)
+    def to_global(local_point : Vector3) : Vector3
+      if !@pointer.null? && is_inside_tree
+        previous_def(local_point)
+      else
+        global_transform * local_point
+      end
+    end
+
+    # Out-of-tree safe override for `to_local` (avoids Godot C++ `!is_inside_tree()` error spam)
+    def to_local(global_point : Vector3) : Vector3
+      if !@pointer.null? && is_inside_tree
+        previous_def(global_point)
+      else
+        global_transform.affine_inverse * global_point
+      end
+    end
+
+    # Computes the accumulated transform of `self` relative to `ancestor` by walking parent links.
+    # Safe to call both inside and outside the SceneTree.
+    def relative_transform_to(ancestor : Node?) : Transform3D
+      return Transform3D.identity if ancestor && ancestor.pointer == @pointer
+      xf = transform
+      curr = get_parent
+      depth = 0
+      while curr && !curr.pointer.null? && depth < 64
+        break if ancestor && curr.pointer == ancestor.pointer
+        if p3d = curr.godot_as?(Node3D)
+          xf = p3d.transform * xf
+        end
+        curr = curr.get_parent
+        depth += 1
+      end
+      xf
+    end
+
+    # Reparents this `Node3D` to `new_parent` while preserving its world/relative `Transform3D`
+    # even when outside the SceneTree, and optionally assigns `owner`.
+    def reparent_preserving_transform(new_parent : Node, owner : Node? = nil) : Void
+      saved_global = global_transform
+      if old_parent = get_parent
+        if !old_parent.pointer.null? && old_parent.pointer != new_parent.pointer
+          old_parent.remove_child(self)
+        end
+      end
+      if get_parent.nil? || get_parent.try(&.pointer) != new_parent.pointer
+        new_parent.add_child(self)
+      end
+      self.global_transform = saved_global
+      if target_owner = owner
+        set_owner(target_owner) if !target_owner.pointer.null? && target_owner.pointer != @pointer
+      end
+    end
   end
 
   # ===========================================================================
