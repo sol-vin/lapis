@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Crystal Docs 1.20.3">
-<meta name="crystal_docs.project_version" content="4.8-beta1-dev">
+<meta name="crystal_docs.project_version" content="4.8-beta2-dev">
 <meta name="crystal_docs.project_name" content="lapis">
 
 
@@ -14,7 +14,7 @@
 <script type="text/javascript" src="js/doc.js"></script>
 
   <meta name="repository-name" content="lapis">
-  <title>Top Level Namespace - lapis 4.8-beta1-dev</title>
+  <title>Top Level Namespace - lapis 4.8-beta2-dev</title>
   <script type="text/javascript">
     CrystalDocs.base_path = "";
   </script>
@@ -45,7 +45,7 @@
       </h1>
 
       <span class="project-version">
-        4.8-beta1-dev
+        4.8-beta2-dev
       </span>
     </div>
   </div>
@@ -104,6 +104,11 @@
   
   <li class=" " data-id="lapis/Basis" data-name="basis">
       <a href="Basis.html">Basis</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/BindMethod" data-name="bindmethod">
+      <a href="BindMethod.html">BindMethod</a>
       
     </li>
   
@@ -8372,6 +8377,11 @@
       
     </li>
   
+  <li class=" " data-id="lapis/Godot/ResourcePath" data-name="godot::resourcepath">
+      <a href="Godot/ResourcePath.html">ResourcePath</a>
+      
+    </li>
+  
   <li class=" " data-id="lapis/Godot/ResourcePreloader" data-name="godot::resourcepreloader">
       <a href="Godot/ResourcePreloader.html">ResourcePreloader</a>
       
@@ -8774,6 +8784,11 @@
   
   <li class=" " data-id="lapis/Godot/ShaderMaterial" data-name="godot::shadermaterial">
       <a href="Godot/ShaderMaterial.html">ShaderMaterial</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/ShaderParameterValue" data-name="godot::shaderparametervalue">
+      <a href="Godot/ShaderParameterValue.html">ShaderParameterValue</a>
       
     </li>
   
@@ -9897,8 +9912,28 @@
       
         <ul>
   
+  <li class=" " data-id="lapis/Godot/Time/Format" data-name="godot::time::format">
+      <a href="Godot/Time/Format.html">Format</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/Time/Instant" data-name="godot::time::instant">
+      <a href="Godot/Time/Instant.html">Instant</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/Time/Location" data-name="godot::time::location">
+      <a href="Godot/Time/Location.html">Location</a>
+      
+    </li>
+  
   <li class=" " data-id="lapis/Godot/Time/Month" data-name="godot::time::month">
       <a href="Godot/Time/Month.html">Month</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/Time/Span" data-name="godot::time::span">
+      <a href="Godot/Time/Span.html">Span</a>
       
     </li>
   
@@ -9954,6 +9989,11 @@
   
 </ul>
 
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/ToolRebuildable" data-name="godot::toolrebuildable">
+      <a href="Godot/ToolRebuildable.html">ToolRebuildable</a>
       
     </li>
   
@@ -13412,6 +13452,11 @@
       
     </li>
   
+  <li class=" " data-id="lapis/Path" data-name="path">
+      <a href="Path.html">Path</a>
+      
+    </li>
+  
   <li class=" " data-id="lapis/Plane" data-name="plane">
       <a href="Plane.html">Plane</a>
       
@@ -13479,6 +13524,11 @@
   
   <li class=" " data-id="lapis/ScriptProperty" data-name="scriptproperty">
       <a href="ScriptProperty.html">ScriptProperty</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/ShaderUniform" data-name="shaderuniform">
+      <a href="ShaderUniform.html">ShaderUniform</a>
       
     </li>
   
@@ -13837,6 +13887,13 @@
       </li>
     
       <li class="entry-summary">
+        <a href="#define_custom_export%28macro_name%2Chint_string%3D%22%22%2Cdefault_fallback%3D%22%22%29-macro" class="signature"><strong>define_custom_export</strong>(macro_name, hint_string = <span class="s">&quot;&quot;</span>, default_fallback = <span class="s">&quot;&quot;</span>)</a>
+        
+          <div class="summary"><p>Defines a custom export macro <code>macro_name</code> that declares an exported <code><a href="String.html">String</a></code> property with <code>PROPERTY_HINT_NONE</code> (<code>0_u32</code>) when <code>hint_string</code> is empty, or <code>PROPERTY_HINT_ENUM</code> (<code>2_u32</code>) when non-empty.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#define_log_filter%28name%2C%2A%2Aopts%29-macro" class="signature"><strong>define_log_filter</strong>(name, **opts)</a>
         
       </li>
@@ -13847,9 +13904,9 @@
       </li>
     
       <li class="entry-summary">
-        <a href="#define_string_enum_export%28macro_name%2Chint_string%2Cdefault_fallback%3D%22%22%29-macro" class="signature"><strong>define_string_enum_export</strong>(macro_name, hint_string, default_fallback = <span class="s">&quot;&quot;</span>)</a>
+        <a href="#define_string_enum_export%28macro_name%2Chint_string%3D%22%22%2Cdefault_fallback%3D%22%22%29-macro" class="signature"><strong>define_string_enum_export</strong>(macro_name, hint_string = <span class="s">&quot;&quot;</span>, default_fallback = <span class="s">&quot;&quot;</span>)</a>
         
-          <div class="summary"><p>Defines a custom export macro <code>macro_name</code> that declares an exported <code><a href="String.html">String</a></code> property with <code>PROPERTY_HINT_ENUM</code> (<code>2_u32</code>) and <code>hint_string</code> in the Godot Inspector.</p></div>
+          <div class="summary"><p>Defines a custom export macro <code>macro_name</code> that declares an exported <code><a href="String.html">String</a></code> property with <code>PROPERTY_HINT_ENUM</code> (<code>2_u32</code>) when <code>hint_string</code> is non-empty, or <code>PROPERTY_HINT_NONE</code> (<code>0_u32</code>) when empty.</p></div>
         
       </li>
     
@@ -14341,6 +14398,13 @@
       </li>
     
       <li class="entry-summary">
+        <a href="#tool_rebuild%28debounce%3D0.08_f32%29-macro" class="signature"><strong>tool_rebuild</strong>(debounce = <span class="n">0.08_f32</span>)</a>
+        
+          <div class="summary"><p>Enables automatic debounced config-hash change detection and <code>rebuild_geometry</code> invocation on a <code>@[<a href="Tool.html">Tool</a>]</code> node.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#tween%28target%2C%26block%29-macro" class="signature"><strong>tween</strong>(target, &block)</a>
         
           <div class="summary"><p>Block-based tween DSL targeting specified node with compile-time type verification (e.g.</p></div>
@@ -14457,6 +14521,11 @@
     assert_alive</a>, 
     
   
+    <a href="Lapis/Test.html#assert_approx%28actual%3ANumber%2Cexpected%3ANumber%2Cdelta%3ANumber%3D0.001%2Cmsg%3AString%3D%22%22%2Cfile%3AString%3D__FILE__%2Cline%3AInt32%3D__LINE__%29-instance-method" class="tooltip">
+      <span>assert_approx(actual : Number, expected : Number, delta : Number = <span class="n">0.001</span>, msg : String = <span class="s">&quot;&quot;</span>, file : String = __FILE__, line : Int32 = __LINE__)</span>
+    assert_approx</a>, 
+    
+  
     <a href="Lapis/Test.html#assert_approx_eq%28actual%3AFloat32%7CFloat64%2Cexpected%3AFloat32%7CFloat64%2Cepsilon%3AFloat64%3D0.001%2Cmsg%3AString%3D%22%22%2Cfile%3AString%3D__FILE__%2Cline%3AInt32%3D__LINE__%29-instance-method" class="tooltip">
       <span>assert_approx_eq(actual : Float32 | Float64, expected : Float32 | Float64, epsilon : Float64 = <span class="n">0.001</span>, msg : String = <span class="s">&quot;&quot;</span>, file : String = __FILE__, line : Int32 = __LINE__)</span>
     assert_approx_eq</a>, 
@@ -14475,6 +14544,11 @@
     <a href="Lapis/Test.html#assert_child_count%28node%3AGodot%3A%3ANode%2Cexpected%3AInt32%2Cmsg%3AString%3D%22%22%2Cfile%3AString%3D__FILE__%2Cline%3AInt32%3D__LINE__%29%3AVoid-instance-method" class="tooltip">
       <span>assert_child_count(node : Godot::Node, expected : Int32, msg : String = <span class="s">&quot;&quot;</span>, file : String = __FILE__, line : Int32 = __LINE__) : Void</span>
     assert_child_count</a>, 
+    
+  
+    <a href="Lapis/Test.html#assert_close%28actual%3ANumber%2Cexpected%3ANumber%2Cdelta%3ANumber%3D0.001%2Cmsg%3AString%3D%22%22%2Cfile%3AString%3D__FILE__%2Cline%3AInt32%3D__LINE__%29-instance-method" class="tooltip">
+      <span>assert_close(actual : Number, expected : Number, delta : Number = <span class="n">0.001</span>, msg : String = <span class="s">&quot;&quot;</span>, file : String = __FILE__, line : Int32 = __LINE__)</span>
+    assert_close</a>, 
     
   
     <a href="Lapis/Test.html#assert_connected%28emitter%3AGodot%3A%3AObject%2Csignal_name%3AString%2Cmsg%3AString%3D%22%22%2Cfile%3AString%3D__FILE__%2Cline%3AInt32%3D__LINE__%29-instance-method" class="tooltip">
@@ -14562,8 +14636,8 @@
     assert_has_signal</a>, 
     
   
-    <a href="Lapis/Test.html#assert_in_delta%28actual%3ANumber%2Cexpected%3ANumber%2Cdelta%3ANumber%2Cmsg%3AString%3D%22%22%2Cfile%3AString%3D__FILE__%2Cline%3AInt32%3D__LINE__%29-instance-method" class="tooltip">
-      <span>assert_in_delta(actual : Number, expected : Number, delta : Number, msg : String = <span class="s">&quot;&quot;</span>, file : String = __FILE__, line : Int32 = __LINE__)</span>
+    <a href="Lapis/Test.html#assert_in_delta%28actual%3ANumber%2Cexpected%3ANumber%2Cdelta%3ANumber%3D0.001%2Cmsg%3AString%3D%22%22%2Cfile%3AString%3D__FILE__%2Cline%3AInt32%3D__LINE__%29-instance-method" class="tooltip">
+      <span>assert_in_delta(actual : Number, expected : Number, delta : Number = <span class="n">0.001</span>, msg : String = <span class="s">&quot;&quot;</span>, file : String = __FILE__, line : Int32 = __LINE__)</span>
     assert_in_delta</a>, 
     
   
@@ -14730,6 +14804,11 @@
     <a href="Lapis/Test.html#assert_valid_id%28instance_id%3AUInt64%7CInt64%2Cmsg%3AString%3D%22%22%2Cfile%3AString%3D__FILE__%2Cline%3AInt32%3D__LINE__%29-instance-method" class="tooltip">
       <span>assert_valid_id(instance_id : UInt64 | Int64, msg : String = <span class="s">&quot;&quot;</span>, file : String = __FILE__, line : Int32 = __LINE__)</span>
     assert_valid_id</a>, 
+    
+  
+    <a href="Lapis/Test.html#assert_vec_approx%28actual%3AGodot%3A%3AVector2%2Cexpected%3AGodot%3A%3AVector2%2Cdelta%3ANumber%3D0.001%2Cmsg%3AString%3D%22%22%2Cfile%3AString%3D__FILE__%2Cline%3AInt32%3D__LINE__%29-instance-method" class="tooltip">
+      <span>assert_vec_approx(actual : Godot::Vector2, expected : Godot::Vector2, delta : Number = <span class="n">0.001</span>, msg : String = <span class="s">&quot;&quot;</span>, file : String = __FILE__, line : Int32 = __LINE__)<br/>assert_vec_approx(actual : Godot::Vector3, expected : Godot::Vector3, delta : Number = <span class="n">0.001</span>, msg : String = <span class="s">&quot;&quot;</span>, file : String = __FILE__, line : Int32 = __LINE__)<br/>assert_vec_approx(actual : Godot::Vector4, expected : Godot::Vector4, delta : Number = <span class="n">0.001</span>, msg : String = <span class="s">&quot;&quot;</span>, file : String = __FILE__, line : Int32 = __LINE__)<br/>assert_vec_approx(actual : Godot::Color, expected : Godot::Color, delta : Number = <span class="n">0.001</span>, msg : String = <span class="s">&quot;&quot;</span>, file : String = __FILE__, line : Int32 = __LINE__)<br/>assert_vec_approx(actual : Godot::Quaternion, expected : Godot::Quaternion, delta : Number = <span class="n">0.001</span>, msg : String = <span class="s">&quot;&quot;</span>, file : String = __FILE__, line : Int32 = __LINE__)</span>
+    assert_vec_approx</a>, 
     
   
     <a href="Lapis/Test.html#assert_vector_approx%28actual%3AGodot%3A%3AVector2%2Cexpected%3AGodot%3A%3AVector2%2Cepsilon%3AFloat64%3D0.001%2Cmsg%3AString%3D%22%22%2Cfile%3AString%3D__FILE__%2Cline%3AInt32%3D__LINE__%29-instance-method" class="tooltip">
@@ -15384,6 +15463,26 @@ parameter which raises <code><a href="Godot/TimeoutError.html">Godot::TimeoutErr
       </div>
     </div>
   
+    <div class="entry-detail" id="define_custom_export(macro_name,hint_string=&quot;&quot;,default_fallback=&quot;&quot;)-macro">
+      <div class="signature">
+        
+        macro <strong>define_custom_export</strong>(macro_name, hint_string = <span class="s">&quot;&quot;</span>, default_fallback = <span class="s">&quot;&quot;</span>)
+
+        <a class="method-permalink" href="#define_custom_export%28macro_name%2Chint_string%3D%22%22%2Cdefault_fallback%3D%22%22%29-macro">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Defines a custom export macro <code>macro_name</code> that declares an exported <code><a href="String.html">String</a></code> property
+with <code>PROPERTY_HINT_NONE</code> (<code>0_u32</code>) when <code>hint_string</code> is empty, or <code>PROPERTY_HINT_ENUM</code> (<code>2_u32</code>) when non-empty.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
     <div class="entry-detail" id="define_log_filter(name,**opts)-macro">
       <div class="signature">
         
@@ -15412,18 +15511,18 @@ parameter which raises <code><a href="Godot/TimeoutError.html">Godot::TimeoutErr
       </div>
     </div>
   
-    <div class="entry-detail" id="define_string_enum_export(macro_name,hint_string,default_fallback=&quot;&quot;)-macro">
+    <div class="entry-detail" id="define_string_enum_export(macro_name,hint_string=&quot;&quot;,default_fallback=&quot;&quot;)-macro">
       <div class="signature">
         
-        macro <strong>define_string_enum_export</strong>(macro_name, hint_string, default_fallback = <span class="s">&quot;&quot;</span>)
+        macro <strong>define_string_enum_export</strong>(macro_name, hint_string = <span class="s">&quot;&quot;</span>, default_fallback = <span class="s">&quot;&quot;</span>)
 
-        <a class="method-permalink" href="#define_string_enum_export%28macro_name%2Chint_string%2Cdefault_fallback%3D%22%22%29-macro">#</a>
+        <a class="method-permalink" href="#define_string_enum_export%28macro_name%2Chint_string%3D%22%22%2Cdefault_fallback%3D%22%22%29-macro">#</a>
       </div>
       
         <div class="doc">
           
           <p>Defines a custom export macro <code>macro_name</code> that declares an exported <code><a href="String.html">String</a></code> property
-with <code>PROPERTY_HINT_ENUM</code> (<code>2_u32</code>) and <code>hint_string</code> in the Godot Inspector.</p>
+with <code>PROPERTY_HINT_ENUM</code> (<code>2_u32</code>) when <code>hint_string</code> is non-empty, or <code>PROPERTY_HINT_NONE</code> (<code>0_u32</code>) when empty.</p>
         </div>
       
       <br/>
@@ -17121,6 +17220,26 @@ and data containers (e.g. inventory items, ability cards, weapon stats).</p>
         <div class="doc">
           
           <p>Declarative suite macro allowing grouped tests, parameterized tests, and suite/case lifecycle hooks</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="tool_rebuild(debounce=0.08_f32)-macro">
+      <div class="signature">
+        
+        macro <strong>tool_rebuild</strong>(debounce = <span class="n">0.08_f32</span>)
+
+        <a class="method-permalink" href="#tool_rebuild%28debounce%3D0.08_f32%29-macro">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Enables automatic debounced config-hash change detection and <code>rebuild_geometry</code> invocation
+on a <code>@[<a href="Tool.html">Tool</a>]</code> node.</p>
         </div>
       
       <br/>

@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Crystal Docs 1.20.3">
-<meta name="crystal_docs.project_version" content="4.8-beta1-dev">
+<meta name="crystal_docs.project_version" content="4.8-beta2-dev">
 <meta name="crystal_docs.project_name" content="lapis">
 
 
@@ -14,7 +14,7 @@
 <script type="text/javascript" src="../js/doc.js"></script>
 
   <meta name="repository-name" content="lapis">
-  <title>Godot::Variant - lapis 4.8-beta1-dev</title>
+  <title>Godot::Variant - lapis 4.8-beta2-dev</title>
   <script type="text/javascript">
     CrystalDocs.base_path = "../";
   </script>
@@ -45,7 +45,7 @@
       </h1>
 
       <span class="project-version">
-        4.8-beta1-dev
+        4.8-beta2-dev
       </span>
     </div>
   </div>
@@ -104,6 +104,11 @@
   
   <li class=" " data-id="lapis/Basis" data-name="basis">
       <a href="../Basis.html">Basis</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/BindMethod" data-name="bindmethod">
+      <a href="../BindMethod.html">BindMethod</a>
       
     </li>
   
@@ -8372,6 +8377,11 @@
       
     </li>
   
+  <li class=" " data-id="lapis/Godot/ResourcePath" data-name="godot::resourcepath">
+      <a href="../Godot/ResourcePath.html">ResourcePath</a>
+      
+    </li>
+  
   <li class=" " data-id="lapis/Godot/ResourcePreloader" data-name="godot::resourcepreloader">
       <a href="../Godot/ResourcePreloader.html">ResourcePreloader</a>
       
@@ -8774,6 +8784,11 @@
   
   <li class=" " data-id="lapis/Godot/ShaderMaterial" data-name="godot::shadermaterial">
       <a href="../Godot/ShaderMaterial.html">ShaderMaterial</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/ShaderParameterValue" data-name="godot::shaderparametervalue">
+      <a href="../Godot/ShaderParameterValue.html">ShaderParameterValue</a>
       
     </li>
   
@@ -9897,8 +9912,28 @@
       
         <ul>
   
+  <li class=" " data-id="lapis/Godot/Time/Format" data-name="godot::time::format">
+      <a href="../Godot/Time/Format.html">Format</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/Time/Instant" data-name="godot::time::instant">
+      <a href="../Godot/Time/Instant.html">Instant</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/Time/Location" data-name="godot::time::location">
+      <a href="../Godot/Time/Location.html">Location</a>
+      
+    </li>
+  
   <li class=" " data-id="lapis/Godot/Time/Month" data-name="godot::time::month">
       <a href="../Godot/Time/Month.html">Month</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/Time/Span" data-name="godot::time::span">
+      <a href="../Godot/Time/Span.html">Span</a>
       
     </li>
   
@@ -9954,6 +9989,11 @@
   
 </ul>
 
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/ToolRebuildable" data-name="godot::toolrebuildable">
+      <a href="../Godot/ToolRebuildable.html">ToolRebuildable</a>
       
     </li>
   
@@ -13412,6 +13452,11 @@
       
     </li>
   
+  <li class=" " data-id="lapis/Path" data-name="path">
+      <a href="../Path.html">Path</a>
+      
+    </li>
+  
   <li class=" " data-id="lapis/Plane" data-name="plane">
       <a href="../Plane.html">Plane</a>
       
@@ -13479,6 +13524,11 @@
   
   <li class=" " data-id="lapis/ScriptProperty" data-name="scriptproperty">
       <a href="../ScriptProperty.html">ScriptProperty</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/ShaderUniform" data-name="shaderuniform">
+      <a href="../ShaderUniform.html">ShaderUniform</a>
       
     </li>
   
@@ -13734,6 +13784,11 @@ unboxing for primitive and engine math types.</p>
       </li>
     
       <li class="entry-summary">
+        <a href="#from_any%3F%28val%29%3AVariant%7CNil-class-method" class="signature"><strong>.from_any?</strong>(val) : Variant | Nil</a>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#value_to_arg%28val%29%3ALibBridge%3A%3AVariantArg-class-method" class="signature"><strong>.value_to_arg</strong>(val) : LibBridge::VariantArg</a>
         
       </li>
@@ -13790,42 +13845,52 @@ unboxing for primitive and engine math types.</p>
       </li>
     
       <li class="entry-summary">
-        <a href="#as_bool%3ABool-instance-method" class="signature"><strong>#as_bool</strong> : Bool</a>
+        <a href="#as_bool%28default%3ABool%3Dfalse%29%3ABool-instance-method" class="signature"><strong>#as_bool</strong>(default : Bool = <span class="n">false</span>) : Bool</a>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#as_color%3AColor-instance-method" class="signature"><strong>#as_color</strong> : Color</a>
+        <a href="#as_bool%3F%3ABool%7CNil-instance-method" class="signature"><strong>#as_bool?</strong> : Bool | Nil</a>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#as_f%3AFloat32-instance-method" class="signature"><strong>#as_f</strong> : Float32</a>
+        <a href="#as_color%28default%3AColor%3DColor.new%29%3AColor-instance-method" class="signature"><strong>#as_color</strong>(default : Color = <span class="t">Color</span>.new) : Color</a>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#as_f32%3AFloat32-instance-method" class="signature"><strong>#as_f32</strong> : Float32</a>
+        <a href="#as_color_coerce%28default%3AColor%3DColor.new%29%3AColor-instance-method" class="signature"><strong>#as_color_coerce</strong>(default : Color = <span class="t">Color</span>.new) : Color</a>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#as_f64%3AFloat64-instance-method" class="signature"><strong>#as_f64</strong> : Float64</a>
+        <a href="#as_f%28default%3AFloat32%3D0.0_f32%29%3AFloat32-instance-method" class="signature"><strong>#as_f</strong>(default : Float32 = <span class="n">0.0_f32</span>) : Float32</a>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#as_i%3AInt32-instance-method" class="signature"><strong>#as_i</strong> : Int32</a>
+        <a href="#as_f32%28default%3AFloat32%3D0.0_f32%29%3AFloat32-instance-method" class="signature"><strong>#as_f32</strong>(default : Float32 = <span class="n">0.0_f32</span>) : Float32</a>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#as_i32%3AInt32-instance-method" class="signature"><strong>#as_i32</strong> : Int32</a>
+        <a href="#as_f64%28default%3AFloat64%3D0.0%29%3AFloat64-instance-method" class="signature"><strong>#as_f64</strong>(default : Float64 = <span class="n">0.0</span>) : Float64</a>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#as_i64%3AInt64-instance-method" class="signature"><strong>#as_i64</strong> : Int64</a>
+        <a href="#as_i%28default%3AInt32%3D0%29%3AInt32-instance-method" class="signature"><strong>#as_i</strong>(default : Int32 = <span class="n">0</span>) : Int32</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#as_i32%28default%3AInt32%3D0%29%3AInt32-instance-method" class="signature"><strong>#as_i32</strong>(default : Int32 = <span class="n">0</span>) : Int32</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#as_i64%28default%3AInt64%3D0_i64%29%3AInt64-instance-method" class="signature"><strong>#as_i64</strong>(default : Int64 = <span class="n">0_i64</span>) : Int64</a>
         
       </li>
     
@@ -13860,12 +13925,17 @@ unboxing for primitive and engine math types.</p>
       </li>
     
       <li class="entry-summary">
-        <a href="#as_s%3AString-instance-method" class="signature"><strong>#as_s</strong> : String</a>
+        <a href="#as_s%28default%3AString%3D%22%22%29%3AString-instance-method" class="signature"><strong>#as_s</strong>(default : String = <span class="s">&quot;&quot;</span>) : String</a>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#as_str%3AString-instance-method" class="signature"><strong>#as_str</strong> : String</a>
+        <a href="#as_s%3F%3AString%7CNil-instance-method" class="signature"><strong>#as_s?</strong> : String | Nil</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#as_str%28default%3AString%3D%22%22%29%3AString-instance-method" class="signature"><strong>#as_str</strong>(default : String = <span class="s">&quot;&quot;</span>) : String</a>
         
       </li>
     
@@ -13887,17 +13957,22 @@ unboxing for primitive and engine math types.</p>
       </li>
     
       <li class="entry-summary">
-        <a href="#as_u32%3AUInt32-instance-method" class="signature"><strong>#as_u32</strong> : UInt32</a>
+        <a href="#as_u32%28default%3AUInt32%3D0_u32%29%3AUInt32-instance-method" class="signature"><strong>#as_u32</strong>(default : UInt32 = <span class="n">0_u32</span>) : UInt32</a>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#as_u64%3AUInt64-instance-method" class="signature"><strong>#as_u64</strong> : UInt64</a>
+        <a href="#as_u64%28default%3AUInt64%3D0_u64%29%3AUInt64-instance-method" class="signature"><strong>#as_u64</strong>(default : UInt64 = <span class="n">0_u64</span>) : UInt64</a>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#as_v2%3AVector2-instance-method" class="signature"><strong>#as_v2</strong> : Vector2</a>
+        <a href="#as_v2%28default%3AVector2%3DVector2.new%29%3AVector2-instance-method" class="signature"><strong>#as_v2</strong>(default : Vector2 = <span class="t">Vector2</span>.new) : Vector2</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#as_v2_coerce%28default%3AVector2%3DVector2.new%29%3AVector2-instance-method" class="signature"><strong>#as_v2_coerce</strong>(default : Vector2 = <span class="t">Vector2</span>.new) : Vector2</a>
         
       </li>
     
@@ -13907,7 +13982,12 @@ unboxing for primitive and engine math types.</p>
       </li>
     
       <li class="entry-summary">
-        <a href="#as_v3%3AVector3-instance-method" class="signature"><strong>#as_v3</strong> : Vector3</a>
+        <a href="#as_v3%28default%3AVector3%3DVector3.new%29%3AVector3-instance-method" class="signature"><strong>#as_v3</strong>(default : Vector3 = <span class="t">Vector3</span>.new) : Vector3</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#as_v3_coerce%28default%3AVector3%3DVector3.new%29%3AVector3-instance-method" class="signature"><strong>#as_v3_coerce</strong>(default : Vector3 = <span class="t">Vector3</span>.new) : Vector3</a>
         
       </li>
     
@@ -13927,7 +14007,7 @@ unboxing for primitive and engine math types.</p>
       </li>
     
       <li class="entry-summary">
-        <a href="#as_vector2%3AVector2-instance-method" class="signature"><strong>#as_vector2</strong> : Vector2</a>
+        <a href="#as_vector2%28default%3AVector2%3DVector2.new%29%3AVector2-instance-method" class="signature"><strong>#as_vector2</strong>(default : Vector2 = <span class="t">Vector2</span>.new) : Vector2</a>
         
       </li>
     
@@ -13937,7 +14017,7 @@ unboxing for primitive and engine math types.</p>
       </li>
     
       <li class="entry-summary">
-        <a href="#as_vector3%3AVector3-instance-method" class="signature"><strong>#as_vector3</strong> : Vector3</a>
+        <a href="#as_vector3%28default%3AVector3%3DVector3.new%29%3AVector3-instance-method" class="signature"><strong>#as_vector3</strong>(default : Vector3 = <span class="t">Vector3</span>.new) : Vector3</a>
         
       </li>
     
@@ -14226,6 +14306,20 @@ unboxing for primitive and engine math types.</p>
       </div>
     </div>
   
+    <div class="entry-detail" id="from_any?(val):Variant|Nil-class-method">
+      <div class="signature">
+        
+        def self.<strong>from_any?</strong>(val) : <a href="../Godot/Variant.html">Variant</a> | <a href="../Nil.html">Nil</a>
+
+        <a class="method-permalink" href="#from_any%3F%28val%29%3AVariant%7CNil-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
     <div class="entry-detail" id="value_to_arg(val):LibBridge::VariantArg-class-method">
       <div class="signature">
         
@@ -14352,12 +14446,12 @@ unboxing for primitive and engine math types.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="as_bool:Bool-instance-method">
+    <div class="entry-detail" id="as_bool(default:Bool=false):Bool-instance-method">
       <div class="signature">
         
-        def <strong>as_bool</strong> : Bool
+        def <strong>as_bool</strong>(default : Bool = <span class="n">false</span>) : Bool
 
-        <a class="method-permalink" href="#as_bool%3ABool-instance-method">#</a>
+        <a class="method-permalink" href="#as_bool%28default%3ABool%3Dfalse%29%3ABool-instance-method">#</a>
       </div>
       
       <br/>
@@ -14366,12 +14460,12 @@ unboxing for primitive and engine math types.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="as_color:Color-instance-method">
+    <div class="entry-detail" id="as_bool?:Bool|Nil-instance-method">
       <div class="signature">
         
-        def <strong>as_color</strong> : <a href="../Godot/Color.html">Color</a>
+        def <strong>as_bool?</strong> : Bool | <a href="../Nil.html">Nil</a>
 
-        <a class="method-permalink" href="#as_color%3AColor-instance-method">#</a>
+        <a class="method-permalink" href="#as_bool%3F%3ABool%7CNil-instance-method">#</a>
       </div>
       
       <br/>
@@ -14380,12 +14474,12 @@ unboxing for primitive and engine math types.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="as_f:Float32-instance-method">
+    <div class="entry-detail" id="as_color(default:Color=Color.new):Color-instance-method">
       <div class="signature">
         
-        def <strong>as_f</strong> : <a href="../Float32.html">Float32</a>
+        def <strong>as_color</strong>(default : <a href="../Godot/Color.html">Color</a> = <span class="t">Color</span>.new) : <a href="../Godot/Color.html">Color</a>
 
-        <a class="method-permalink" href="#as_f%3AFloat32-instance-method">#</a>
+        <a class="method-permalink" href="#as_color%28default%3AColor%3DColor.new%29%3AColor-instance-method">#</a>
       </div>
       
       <br/>
@@ -14394,12 +14488,12 @@ unboxing for primitive and engine math types.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="as_f32:Float32-instance-method">
+    <div class="entry-detail" id="as_color_coerce(default:Color=Color.new):Color-instance-method">
       <div class="signature">
         
-        def <strong>as_f32</strong> : <a href="../Float32.html">Float32</a>
+        def <strong>as_color_coerce</strong>(default : <a href="../Godot/Color.html">Color</a> = <span class="t">Color</span>.new) : <a href="../Godot/Color.html">Color</a>
 
-        <a class="method-permalink" href="#as_f32%3AFloat32-instance-method">#</a>
+        <a class="method-permalink" href="#as_color_coerce%28default%3AColor%3DColor.new%29%3AColor-instance-method">#</a>
       </div>
       
       <br/>
@@ -14408,12 +14502,12 @@ unboxing for primitive and engine math types.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="as_f64:Float64-instance-method">
+    <div class="entry-detail" id="as_f(default:Float32=0.0_f32):Float32-instance-method">
       <div class="signature">
         
-        def <strong>as_f64</strong> : <a href="../Float64.html">Float64</a>
+        def <strong>as_f</strong>(default : <a href="../Float32.html">Float32</a> = <span class="n">0.0_f32</span>) : <a href="../Float32.html">Float32</a>
 
-        <a class="method-permalink" href="#as_f64%3AFloat64-instance-method">#</a>
+        <a class="method-permalink" href="#as_f%28default%3AFloat32%3D0.0_f32%29%3AFloat32-instance-method">#</a>
       </div>
       
       <br/>
@@ -14422,12 +14516,12 @@ unboxing for primitive and engine math types.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="as_i:Int32-instance-method">
+    <div class="entry-detail" id="as_f32(default:Float32=0.0_f32):Float32-instance-method">
       <div class="signature">
         
-        def <strong>as_i</strong> : Int32
+        def <strong>as_f32</strong>(default : <a href="../Float32.html">Float32</a> = <span class="n">0.0_f32</span>) : <a href="../Float32.html">Float32</a>
 
-        <a class="method-permalink" href="#as_i%3AInt32-instance-method">#</a>
+        <a class="method-permalink" href="#as_f32%28default%3AFloat32%3D0.0_f32%29%3AFloat32-instance-method">#</a>
       </div>
       
       <br/>
@@ -14436,12 +14530,12 @@ unboxing for primitive and engine math types.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="as_i32:Int32-instance-method">
+    <div class="entry-detail" id="as_f64(default:Float64=0.0):Float64-instance-method">
       <div class="signature">
         
-        def <strong>as_i32</strong> : Int32
+        def <strong>as_f64</strong>(default : <a href="../Float64.html">Float64</a> = <span class="n">0.0</span>) : <a href="../Float64.html">Float64</a>
 
-        <a class="method-permalink" href="#as_i32%3AInt32-instance-method">#</a>
+        <a class="method-permalink" href="#as_f64%28default%3AFloat64%3D0.0%29%3AFloat64-instance-method">#</a>
       </div>
       
       <br/>
@@ -14450,12 +14544,40 @@ unboxing for primitive and engine math types.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="as_i64:Int64-instance-method">
+    <div class="entry-detail" id="as_i(default:Int32=0):Int32-instance-method">
       <div class="signature">
         
-        def <strong>as_i64</strong> : Int64
+        def <strong>as_i</strong>(default : Int32 = <span class="n">0</span>) : Int32
 
-        <a class="method-permalink" href="#as_i64%3AInt64-instance-method">#</a>
+        <a class="method-permalink" href="#as_i%28default%3AInt32%3D0%29%3AInt32-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="as_i32(default:Int32=0):Int32-instance-method">
+      <div class="signature">
+        
+        def <strong>as_i32</strong>(default : Int32 = <span class="n">0</span>) : Int32
+
+        <a class="method-permalink" href="#as_i32%28default%3AInt32%3D0%29%3AInt32-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="as_i64(default:Int64=0_i64):Int64-instance-method">
+      <div class="signature">
+        
+        def <strong>as_i64</strong>(default : Int64 = <span class="n">0_i64</span>) : Int64
+
+        <a class="method-permalink" href="#as_i64%28default%3AInt64%3D0_i64%29%3AInt64-instance-method">#</a>
       </div>
       
       <br/>
@@ -14548,12 +14670,12 @@ unboxing for primitive and engine math types.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="as_s:String-instance-method">
+    <div class="entry-detail" id="as_s(default:String=&quot;&quot;):String-instance-method">
       <div class="signature">
         
-        def <strong>as_s</strong> : <a href="../String.html">String</a>
+        def <strong>as_s</strong>(default : <a href="../String.html">String</a> = <span class="s">&quot;&quot;</span>) : <a href="../String.html">String</a>
 
-        <a class="method-permalink" href="#as_s%3AString-instance-method">#</a>
+        <a class="method-permalink" href="#as_s%28default%3AString%3D%22%22%29%3AString-instance-method">#</a>
       </div>
       
       <br/>
@@ -14562,12 +14684,26 @@ unboxing for primitive and engine math types.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="as_str:String-instance-method">
+    <div class="entry-detail" id="as_s?:String|Nil-instance-method">
       <div class="signature">
         
-        def <strong>as_str</strong> : <a href="../String.html">String</a>
+        def <strong>as_s?</strong> : <a href="../String.html">String</a> | <a href="../Nil.html">Nil</a>
 
-        <a class="method-permalink" href="#as_str%3AString-instance-method">#</a>
+        <a class="method-permalink" href="#as_s%3F%3AString%7CNil-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="as_str(default:String=&quot;&quot;):String-instance-method">
+      <div class="signature">
+        
+        def <strong>as_str</strong>(default : <a href="../String.html">String</a> = <span class="s">&quot;&quot;</span>) : <a href="../String.html">String</a>
+
+        <a class="method-permalink" href="#as_str%28default%3AString%3D%22%22%29%3AString-instance-method">#</a>
       </div>
       
       <br/>
@@ -14623,12 +14759,12 @@ unboxing for primitive and engine math types.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="as_u32:UInt32-instance-method">
+    <div class="entry-detail" id="as_u32(default:UInt32=0_u32):UInt32-instance-method">
       <div class="signature">
         
-        def <strong>as_u32</strong> : UInt32
+        def <strong>as_u32</strong>(default : UInt32 = <span class="n">0_u32</span>) : UInt32
 
-        <a class="method-permalink" href="#as_u32%3AUInt32-instance-method">#</a>
+        <a class="method-permalink" href="#as_u32%28default%3AUInt32%3D0_u32%29%3AUInt32-instance-method">#</a>
       </div>
       
       <br/>
@@ -14637,12 +14773,12 @@ unboxing for primitive and engine math types.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="as_u64:UInt64-instance-method">
+    <div class="entry-detail" id="as_u64(default:UInt64=0_u64):UInt64-instance-method">
       <div class="signature">
         
-        def <strong>as_u64</strong> : UInt64
+        def <strong>as_u64</strong>(default : UInt64 = <span class="n">0_u64</span>) : UInt64
 
-        <a class="method-permalink" href="#as_u64%3AUInt64-instance-method">#</a>
+        <a class="method-permalink" href="#as_u64%28default%3AUInt64%3D0_u64%29%3AUInt64-instance-method">#</a>
       </div>
       
       <br/>
@@ -14651,12 +14787,26 @@ unboxing for primitive and engine math types.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="as_v2:Vector2-instance-method">
+    <div class="entry-detail" id="as_v2(default:Vector2=Vector2.new):Vector2-instance-method">
       <div class="signature">
         
-        def <strong>as_v2</strong> : <a href="../Godot/Vector2.html">Vector2</a>
+        def <strong>as_v2</strong>(default : <a href="../Godot/Vector2.html">Vector2</a> = <span class="t">Vector2</span>.new) : <a href="../Godot/Vector2.html">Vector2</a>
 
-        <a class="method-permalink" href="#as_v2%3AVector2-instance-method">#</a>
+        <a class="method-permalink" href="#as_v2%28default%3AVector2%3DVector2.new%29%3AVector2-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="as_v2_coerce(default:Vector2=Vector2.new):Vector2-instance-method">
+      <div class="signature">
+        
+        def <strong>as_v2_coerce</strong>(default : <a href="../Godot/Vector2.html">Vector2</a> = <span class="t">Vector2</span>.new) : <a href="../Godot/Vector2.html">Vector2</a>
+
+        <a class="method-permalink" href="#as_v2_coerce%28default%3AVector2%3DVector2.new%29%3AVector2-instance-method">#</a>
       </div>
       
       <br/>
@@ -14679,12 +14829,26 @@ unboxing for primitive and engine math types.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="as_v3:Vector3-instance-method">
+    <div class="entry-detail" id="as_v3(default:Vector3=Vector3.new):Vector3-instance-method">
       <div class="signature">
         
-        def <strong>as_v3</strong> : <a href="../Godot/Vector3.html">Vector3</a>
+        def <strong>as_v3</strong>(default : <a href="../Godot/Vector3.html">Vector3</a> = <span class="t">Vector3</span>.new) : <a href="../Godot/Vector3.html">Vector3</a>
 
-        <a class="method-permalink" href="#as_v3%3AVector3-instance-method">#</a>
+        <a class="method-permalink" href="#as_v3%28default%3AVector3%3DVector3.new%29%3AVector3-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="as_v3_coerce(default:Vector3=Vector3.new):Vector3-instance-method">
+      <div class="signature">
+        
+        def <strong>as_v3_coerce</strong>(default : <a href="../Godot/Vector3.html">Vector3</a> = <span class="t">Vector3</span>.new) : <a href="../Godot/Vector3.html">Vector3</a>
+
+        <a class="method-permalink" href="#as_v3_coerce%28default%3AVector3%3DVector3.new%29%3AVector3-instance-method">#</a>
       </div>
       
       <br/>
@@ -14735,12 +14899,12 @@ unboxing for primitive and engine math types.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="as_vector2:Vector2-instance-method">
+    <div class="entry-detail" id="as_vector2(default:Vector2=Vector2.new):Vector2-instance-method">
       <div class="signature">
         
-        def <strong>as_vector2</strong> : <a href="../Godot/Vector2.html">Vector2</a>
+        def <strong>as_vector2</strong>(default : <a href="../Godot/Vector2.html">Vector2</a> = <span class="t">Vector2</span>.new) : <a href="../Godot/Vector2.html">Vector2</a>
 
-        <a class="method-permalink" href="#as_vector2%3AVector2-instance-method">#</a>
+        <a class="method-permalink" href="#as_vector2%28default%3AVector2%3DVector2.new%29%3AVector2-instance-method">#</a>
       </div>
       
       <br/>
@@ -14763,12 +14927,12 @@ unboxing for primitive and engine math types.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="as_vector3:Vector3-instance-method">
+    <div class="entry-detail" id="as_vector3(default:Vector3=Vector3.new):Vector3-instance-method">
       <div class="signature">
         
-        def <strong>as_vector3</strong> : <a href="../Godot/Vector3.html">Vector3</a>
+        def <strong>as_vector3</strong>(default : <a href="../Godot/Vector3.html">Vector3</a> = <span class="t">Vector3</span>.new) : <a href="../Godot/Vector3.html">Vector3</a>
 
-        <a class="method-permalink" href="#as_vector3%3AVector3-instance-method">#</a>
+        <a class="method-permalink" href="#as_vector3%28default%3AVector3%3DVector3.new%29%3AVector3-instance-method">#</a>
       </div>
       
       <br/>

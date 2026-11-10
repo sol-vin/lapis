@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Crystal Docs 1.20.3">
-<meta name="crystal_docs.project_version" content="4.8-beta1-dev">
+<meta name="crystal_docs.project_version" content="4.8-beta2-dev">
 <meta name="crystal_docs.project_name" content="lapis">
 
 
@@ -14,7 +14,7 @@
 <script type="text/javascript" src="../../js/doc.js"></script>
 
   <meta name="repository-name" content="lapis">
-  <title>Lapis::Benchmark::Context - lapis 4.8-beta1-dev</title>
+  <title>Lapis::Benchmark::Context - lapis 4.8-beta2-dev</title>
   <script type="text/javascript">
     CrystalDocs.base_path = "../../";
   </script>
@@ -45,7 +45,7 @@
       </h1>
 
       <span class="project-version">
-        4.8-beta1-dev
+        4.8-beta2-dev
       </span>
     </div>
   </div>
@@ -104,6 +104,11 @@
   
   <li class=" " data-id="lapis/Basis" data-name="basis">
       <a href="../../Basis.html">Basis</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/BindMethod" data-name="bindmethod">
+      <a href="../../BindMethod.html">BindMethod</a>
       
     </li>
   
@@ -8372,6 +8377,11 @@
       
     </li>
   
+  <li class=" " data-id="lapis/Godot/ResourcePath" data-name="godot::resourcepath">
+      <a href="../../Godot/ResourcePath.html">ResourcePath</a>
+      
+    </li>
+  
   <li class=" " data-id="lapis/Godot/ResourcePreloader" data-name="godot::resourcepreloader">
       <a href="../../Godot/ResourcePreloader.html">ResourcePreloader</a>
       
@@ -8774,6 +8784,11 @@
   
   <li class=" " data-id="lapis/Godot/ShaderMaterial" data-name="godot::shadermaterial">
       <a href="../../Godot/ShaderMaterial.html">ShaderMaterial</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/ShaderParameterValue" data-name="godot::shaderparametervalue">
+      <a href="../../Godot/ShaderParameterValue.html">ShaderParameterValue</a>
       
     </li>
   
@@ -9897,8 +9912,28 @@
       
         <ul>
   
+  <li class=" " data-id="lapis/Godot/Time/Format" data-name="godot::time::format">
+      <a href="../../Godot/Time/Format.html">Format</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/Time/Instant" data-name="godot::time::instant">
+      <a href="../../Godot/Time/Instant.html">Instant</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/Time/Location" data-name="godot::time::location">
+      <a href="../../Godot/Time/Location.html">Location</a>
+      
+    </li>
+  
   <li class=" " data-id="lapis/Godot/Time/Month" data-name="godot::time::month">
       <a href="../../Godot/Time/Month.html">Month</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/Time/Span" data-name="godot::time::span">
+      <a href="../../Godot/Time/Span.html">Span</a>
       
     </li>
   
@@ -9954,6 +9989,11 @@
   
 </ul>
 
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/ToolRebuildable" data-name="godot::toolrebuildable">
+      <a href="../../Godot/ToolRebuildable.html">ToolRebuildable</a>
       
     </li>
   
@@ -13412,6 +13452,11 @@
       
     </li>
   
+  <li class=" " data-id="lapis/Path" data-name="path">
+      <a href="../../Path.html">Path</a>
+      
+    </li>
+  
   <li class=" " data-id="lapis/Plane" data-name="plane">
       <a href="../../Plane.html">Plane</a>
       
@@ -13479,6 +13524,11 @@
   
   <li class=" " data-id="lapis/ScriptProperty" data-name="scriptproperty">
       <a href="../../ScriptProperty.html">ScriptProperty</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/ShaderUniform" data-name="shaderuniform">
+      <a href="../../ShaderUniform.html">ShaderUniform</a>
       
     </li>
   
@@ -13806,7 +13856,7 @@
     <div class="entry-detail" id="new(is_ci:Bool=false,enabled_features:Set(Symbol)=Set(Symbol).new,base_dir:Path=Path.new(&quot;.&quot;),iterations:Int32=3,metadata:Hash(String,String)=Hash(String,String).new)-class-method">
       <div class="signature">
         
-        def self.<strong>new</strong>(is_ci : Bool = <span class="n">false</span>, enabled_features : Set(Symbol) = <span class="t">Set</span>(<span class="t">Symbol</span>).new, base_dir : Path = <span class="t">Path</span>.new(<span class="s">&quot;.&quot;</span>), iterations : Int32 = <span class="n">3</span>, metadata : <a href="../../Hash.html">Hash</a>(<a href="../../String.html">String</a>, <a href="../../String.html">String</a>) = <span class="t">Hash</span>(<span class="t">String</span>, <span class="t">String</span>).new)
+        def self.<strong>new</strong>(is_ci : Bool = <span class="n">false</span>, enabled_features : Set(Symbol) = <span class="t">Set</span>(<span class="t">Symbol</span>).new, base_dir : <a href="../../Path.html">Path</a> = <span class="t">Path</span>.new(<span class="s">&quot;.&quot;</span>), iterations : Int32 = <span class="n">3</span>, metadata : <a href="../../Hash.html">Hash</a>(<a href="../../String.html">String</a>, <a href="../../String.html">String</a>) = <span class="t">Hash</span>(<span class="t">String</span>, <span class="t">String</span>).new)
 
         <a class="method-permalink" href="#new%28is_ci%3ABool%3Dfalse%2Cenabled_features%3ASet%28Symbol%29%3DSet%28Symbol%29.new%2Cbase_dir%3APath%3DPath.new%28%22.%22%29%2Citerations%3AInt32%3D3%2Cmetadata%3AHash%28String%2CString%29%3DHash%28String%2CString%29.new%29-class-method">#</a>
       </div>
@@ -13836,7 +13886,7 @@
     <div class="entry-detail" id="base_dir:Path-instance-method">
       <div class="signature">
         
-        def <strong>base_dir</strong> : Path
+        def <strong>base_dir</strong> : <a href="../../Path.html">Path</a>
 
         <a class="method-permalink" href="#base_dir%3APath-instance-method">#</a>
       </div>
@@ -13850,7 +13900,7 @@
     <div class="entry-detail" id="base_dir=(base_dir:Path)-instance-method">
       <div class="signature">
         
-        def <strong>base_dir=</strong>(base_dir : Path)
+        def <strong>base_dir=</strong>(base_dir : <a href="../../Path.html">Path</a>)
 
         <a class="method-permalink" href="#base_dir%3D%28base_dir%3APath%29-instance-method">#</a>
       </div>

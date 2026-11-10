@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Crystal Docs 1.20.3">
-<meta name="crystal_docs.project_version" content="4.8-beta1-dev">
+<meta name="crystal_docs.project_version" content="4.8-beta2-dev">
 <meta name="crystal_docs.project_name" content="lapis">
 
 
@@ -14,7 +14,7 @@
 <script type="text/javascript" src="js/doc.js"></script>
 
   <meta name="repository-name" content="lapis">
-  <title>Godot - lapis 4.8-beta1-dev</title>
+  <title>Godot - lapis 4.8-beta2-dev</title>
   <script type="text/javascript">
     CrystalDocs.base_path = "";
   </script>
@@ -45,7 +45,7 @@
       </h1>
 
       <span class="project-version">
-        4.8-beta1-dev
+        4.8-beta2-dev
       </span>
     </div>
   </div>
@@ -104,6 +104,11 @@
   
   <li class=" " data-id="lapis/Basis" data-name="basis">
       <a href="Basis.html">Basis</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/BindMethod" data-name="bindmethod">
+      <a href="BindMethod.html">BindMethod</a>
       
     </li>
   
@@ -8372,6 +8377,11 @@
       
     </li>
   
+  <li class=" " data-id="lapis/Godot/ResourcePath" data-name="godot::resourcepath">
+      <a href="Godot/ResourcePath.html">ResourcePath</a>
+      
+    </li>
+  
   <li class=" " data-id="lapis/Godot/ResourcePreloader" data-name="godot::resourcepreloader">
       <a href="Godot/ResourcePreloader.html">ResourcePreloader</a>
       
@@ -8774,6 +8784,11 @@
   
   <li class=" " data-id="lapis/Godot/ShaderMaterial" data-name="godot::shadermaterial">
       <a href="Godot/ShaderMaterial.html">ShaderMaterial</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/ShaderParameterValue" data-name="godot::shaderparametervalue">
+      <a href="Godot/ShaderParameterValue.html">ShaderParameterValue</a>
       
     </li>
   
@@ -9897,8 +9912,28 @@
       
         <ul>
   
+  <li class=" " data-id="lapis/Godot/Time/Format" data-name="godot::time::format">
+      <a href="Godot/Time/Format.html">Format</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/Time/Instant" data-name="godot::time::instant">
+      <a href="Godot/Time/Instant.html">Instant</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/Time/Location" data-name="godot::time::location">
+      <a href="Godot/Time/Location.html">Location</a>
+      
+    </li>
+  
   <li class=" " data-id="lapis/Godot/Time/Month" data-name="godot::time::month">
       <a href="Godot/Time/Month.html">Month</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/Time/Span" data-name="godot::time::span">
+      <a href="Godot/Time/Span.html">Span</a>
       
     </li>
   
@@ -9954,6 +9989,11 @@
   
 </ul>
 
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/ToolRebuildable" data-name="godot::toolrebuildable">
+      <a href="Godot/ToolRebuildable.html">ToolRebuildable</a>
       
     </li>
   
@@ -13412,6 +13452,11 @@
       
     </li>
   
+  <li class=" " data-id="lapis/Path" data-name="path">
+      <a href="Path.html">Path</a>
+      
+    </li>
+  
   <li class=" " data-id="lapis/Plane" data-name="plane">
       <a href="Plane.html">Plane</a>
       
@@ -13479,6 +13524,11 @@
   
   <li class=" " data-id="lapis/ScriptProperty" data-name="scriptproperty">
       <a href="ScriptProperty.html">ScriptProperty</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/ShaderUniform" data-name="shaderuniform">
+      <a href="ShaderUniform.html">ShaderUniform</a>
       
     </li>
   
@@ -14037,6 +14087,11 @@ node <span class="t">Player</span> <span class="o">&lt;</span> <span class="t">C
     <br/>
   
     
+      libgodot/extensions.cr
+    
+    <br/>
+  
+    
       libgodot/extensions/audio_server.cr
     
     <br/>
@@ -14371,6 +14426,11 @@ node <span class="t">Player</span> <span class="o">&lt;</span> <span class="t">C
       </dt>
       
     
+      <dt class="entry-const" id="CUSTOM_MATERIAL_SLOT_MACROS">
+        <strong>CUSTOM_MATERIAL_SLOT_MACROS</strong> = <code>{} <span class="k">of</span> <span class="t">StringLiteral</span> <span class="o">=&gt;</span> <span class="t">ASTNode</span></code>
+      </dt>
+      
+    
       <dt class="entry-const" id="EMPTY_VARIANT_ARGS">
         <strong>EMPTY_VARIANT_ARGS</strong> = <code><span class="o">[]</span> <span class="k">of</span> <span class="t">Variant</span></code>
       </dt>
@@ -14391,12 +14451,12 @@ node <span class="t">Player</span> <span class="o">&lt;</span> <span class="t">C
       
     
       <dt class="entry-const" id="TARGET_GODOT_VERSION">
-        <strong>TARGET_GODOT_VERSION</strong> = <code><span class="s">&quot;4.8-beta1&quot;</span></code>
+        <strong>TARGET_GODOT_VERSION</strong> = <code><span class="s">&quot;4.8-beta2&quot;</span></code>
       </dt>
       
     
       <dt class="entry-const" id="VERSION">
-        <strong>VERSION</strong> = <code><span class="s">&quot;0.1.19&quot;</span></code>
+        <strong>VERSION</strong> = <code><span class="s">&quot;0.2.5&quot;</span></code>
       </dt>
       
     
@@ -15235,6 +15295,11 @@ node <span class="t">Player</span> <span class="o">&lt;</span> <span class="t">C
     
       <li class="entry-summary">
         <a href="#rendering_server%3ARenderingServer-class-method" class="signature"><strong>.rendering_server</strong> : RenderingServer</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#resolve_path%28path%3AString%29%3AString-class-method" class="signature"><strong>.resolve_path</strong>(path : String) : String</a>
         
       </li>
     
@@ -17774,6 +17839,20 @@ Includes an optional timeout (default: 5.0s) to prevent deadlock if physics fram
         def self.<strong>rendering_server</strong> : <a href="Godot/RenderingServer.html">RenderingServer</a>
 
         <a class="method-permalink" href="#rendering_server%3ARenderingServer-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="resolve_path(path:String):String-class-method">
+      <div class="signature">
+        
+        def self.<strong>resolve_path</strong>(path : <a href="String.html">String</a>) : <a href="String.html">String</a>
+
+        <a class="method-permalink" href="#resolve_path%28path%3AString%29%3AString-class-method">#</a>
       </div>
       
       <br/>

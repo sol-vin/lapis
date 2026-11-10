@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Crystal Docs 1.20.3">
-<meta name="crystal_docs.project_version" content="4.8-beta1-dev">
+<meta name="crystal_docs.project_version" content="4.8-beta2-dev">
 <meta name="crystal_docs.project_name" content="lapis">
 
 
@@ -14,7 +14,7 @@
 <script type="text/javascript" src="../js/doc.js"></script>
 
   <meta name="repository-name" content="lapis">
-  <title>Godot::EditorInterface - lapis 4.8-beta1-dev</title>
+  <title>Godot::EditorInterface - lapis 4.8-beta2-dev</title>
   <script type="text/javascript">
     CrystalDocs.base_path = "../";
   </script>
@@ -45,7 +45,7 @@
       </h1>
 
       <span class="project-version">
-        4.8-beta1-dev
+        4.8-beta2-dev
       </span>
     </div>
   </div>
@@ -104,6 +104,11 @@
   
   <li class=" " data-id="lapis/Basis" data-name="basis">
       <a href="../Basis.html">Basis</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/BindMethod" data-name="bindmethod">
+      <a href="../BindMethod.html">BindMethod</a>
       
     </li>
   
@@ -8372,6 +8377,11 @@
       
     </li>
   
+  <li class=" " data-id="lapis/Godot/ResourcePath" data-name="godot::resourcepath">
+      <a href="../Godot/ResourcePath.html">ResourcePath</a>
+      
+    </li>
+  
   <li class=" " data-id="lapis/Godot/ResourcePreloader" data-name="godot::resourcepreloader">
       <a href="../Godot/ResourcePreloader.html">ResourcePreloader</a>
       
@@ -8774,6 +8784,11 @@
   
   <li class=" " data-id="lapis/Godot/ShaderMaterial" data-name="godot::shadermaterial">
       <a href="../Godot/ShaderMaterial.html">ShaderMaterial</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/ShaderParameterValue" data-name="godot::shaderparametervalue">
+      <a href="../Godot/ShaderParameterValue.html">ShaderParameterValue</a>
       
     </li>
   
@@ -9897,8 +9912,28 @@
       
         <ul>
   
+  <li class=" " data-id="lapis/Godot/Time/Format" data-name="godot::time::format">
+      <a href="../Godot/Time/Format.html">Format</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/Time/Instant" data-name="godot::time::instant">
+      <a href="../Godot/Time/Instant.html">Instant</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/Time/Location" data-name="godot::time::location">
+      <a href="../Godot/Time/Location.html">Location</a>
+      
+    </li>
+  
   <li class=" " data-id="lapis/Godot/Time/Month" data-name="godot::time::month">
       <a href="../Godot/Time/Month.html">Month</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/Time/Span" data-name="godot::time::span">
+      <a href="../Godot/Time/Span.html">Span</a>
       
     </li>
   
@@ -9954,6 +9989,11 @@
   
 </ul>
 
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/ToolRebuildable" data-name="godot::toolrebuildable">
+      <a href="../Godot/ToolRebuildable.html">ToolRebuildable</a>
       
     </li>
   
@@ -13412,6 +13452,11 @@
       
     </li>
   
+  <li class=" " data-id="lapis/Path" data-name="path">
+      <a href="../Path.html">Path</a>
+      
+    </li>
+  
   <li class=" " data-id="lapis/Plane" data-name="plane">
       <a href="../Plane.html">Plane</a>
       
@@ -13479,6 +13524,11 @@
   
   <li class=" " data-id="lapis/ScriptProperty" data-name="scriptproperty">
       <a href="../ScriptProperty.html">ScriptProperty</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/ShaderUniform" data-name="shaderuniform">
+      <a href="../ShaderUniform.html">ShaderUniform</a>
       
     </li>
   
@@ -13679,6 +13729,11 @@
         
       </li>
     
+      <li class="entry-summary">
+        <a href="#singleton%3AEditorInterface-class-method" class="signature"><strong>.singleton</strong> : EditorInterface</a>
+        
+      </li>
+    
   </ul>
 
 
@@ -13694,9 +13749,9 @@
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#add_root_node%28node%3ANode%29%3AVoid-class-method" class="signature"><strong>.add_root_node</strong>(node : Node) : Void</a>
+        <a href="#add_root_node%28node%3ANode%7CNil%29%3AVoid-class-method" class="signature"><strong>.add_root_node</strong>(node : Node | Nil) : Void</a>
         
-          <div class="summary"><p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#add_root_node%28node%3ANode%29%3AVoid-instance-method">#add_root_node</a></code></p></div>
+          <div class="summary"><p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#add_root_node%28node%3ANode%7CNil%29%3AVoid-instance-method">#add_root_node</a></code></p></div>
         
       </li>
     
@@ -13730,23 +13785,23 @@
       </li>
     
       <li class="entry-summary">
-        <a href="#edit_node%28node%3ANode%29%3AVoid-class-method" class="signature"><strong>.edit_node</strong>(node : Node) : Void</a>
+        <a href="#edit_node%28node%3ANode%7CNil%29%3AVoid-class-method" class="signature"><strong>.edit_node</strong>(node : Node | Nil) : Void</a>
         
-          <div class="summary"><p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#edit_node%28node%3ANode%29%3AVoid-instance-method">#edit_node</a></code></p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#edit_resource%28resource%3AResource%29%3AVoid-class-method" class="signature"><strong>.edit_resource</strong>(resource : Resource) : Void</a>
-        
-          <div class="summary"><p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#edit_resource%28resource%3AResource%29%3AVoid-instance-method">#edit_resource</a></code></p></div>
+          <div class="summary"><p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#edit_node%28node%3ANode%7CNil%29%3AVoid-instance-method">#edit_node</a></code></p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#edit_script%28script%3AScript%2Cline%3AInt64%3D-1_i64%2Ccolumn%3AInt64%3D0_i64%2Cgrab_focus%3ABool%3Dtrue%29%3AVoid-class-method" class="signature"><strong>.edit_script</strong>(script : Script, line : Int64 = <span class="n">-1_i64</span>, column : Int64 = <span class="n">0_i64</span>, grab_focus : Bool = <span class="n">true</span>) : Void</a>
+        <a href="#edit_resource%28resource%3AResource%7CNil%29%3AVoid-class-method" class="signature"><strong>.edit_resource</strong>(resource : Resource | Nil) : Void</a>
         
-          <div class="summary"><p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#edit_script%28script%3AScript%2Cline%3AInt64%3D-1_i64%2Ccolumn%3AInt64%3D0_i64%2Cgrab_focus%3ABool%3Dtrue%29%3AVoid-instance-method">#edit_script</a></code></p></div>
+          <div class="summary"><p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#edit_resource%28resource%3AResource%7CNil%29%3AVoid-instance-method">#edit_resource</a></code></p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#edit_script%28script%3AScript%7CNil%2Cline%3AInt64%3D-1_i64%2Ccolumn%3AInt64%3D0_i64%2Cgrab_focus%3ABool%3Dtrue%29%3AVoid-class-method" class="signature"><strong>.edit_script</strong>(script : Script | Nil, line : Int64 = <span class="n">-1_i64</span>, column : Int64 = <span class="n">0_i64</span>, grab_focus : Bool = <span class="n">true</span>) : Void</a>
+        
+          <div class="summary"><p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#edit_script%28script%3AScript%7CNil%2Cline%3AInt64%3D-1_i64%2Ccolumn%3AInt64%3D0_i64%2Cgrab_focus%3ABool%3Dtrue%29%3AVoid-instance-method">#edit_script</a></code></p></div>
         
       </li>
     
@@ -13982,9 +14037,9 @@
       </li>
     
       <li class="entry-summary">
-        <a href="#inspect_object%28object%3AGodot%3A%3AObject%2Cfor_property%3AString%3D%22%22%2Cinspector_only%3ABool%3Dfalse%29%3AVoid-class-method" class="signature"><strong>.inspect_object</strong>(object : Godot::Object, for_property : String = <span class="s">&quot;&quot;</span>, inspector_only : Bool = <span class="n">false</span>) : Void</a>
+        <a href="#inspect_object%28object%3AGodot%3A%3AObject%7CNil%2Cfor_property%3AString%3D%22%22%2Cinspector_only%3ABool%3Dfalse%29%3AVoid-class-method" class="signature"><strong>.inspect_object</strong>(object : Godot::Object | Nil, for_property : String = <span class="s">&quot;&quot;</span>, inspector_only : Bool = <span class="n">false</span>) : Void</a>
         
-          <div class="summary"><p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#inspect_object%28object%3AGodot%3A%3AObject%2Cfor_property%3AString%3D%22%22%2Cinspector_only%3ABool%3Dfalse%29%3AVoid-instance-method">#inspect_object</a></code></p></div>
+          <div class="summary"><p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#inspect_object%28object%3AGodot%3A%3AObject%7CNil%2Cfor_property%3AString%3D%22%22%2Cinspector_only%3ABool%3Dfalse%29%3AVoid-instance-method">#inspect_object</a></code></p></div>
         
       </li>
     
@@ -14059,16 +14114,16 @@
       </li>
     
       <li class="entry-summary">
-        <a href="#is_object_edited%28object%3AGodot%3A%3AObject%29%3ABool-class-method" class="signature"><strong>.is_object_edited</strong>(object : Godot::Object) : Bool</a>
+        <a href="#is_object_edited%28object%3AGodot%3A%3AObject%7CNil%29%3ABool-class-method" class="signature"><strong>.is_object_edited</strong>(object : Godot::Object | Nil) : Bool</a>
         
-          <div class="summary"><p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#is_object_edited%28object%3AGodot%3A%3AObject%29%3ABool-instance-method">#is_object_edited</a></code></p></div>
+          <div class="summary"><p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#is_object_edited%28object%3AGodot%3A%3AObject%7CNil%29%3ABool-instance-method">#is_object_edited</a></code></p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#is_object_edited%3F%28object%3AGodot%3A%3AObject%29%3ABool-class-method" class="signature"><strong>.is_object_edited?</strong>(object : Godot::Object) : Bool</a>
+        <a href="#is_object_edited%3F%28object%3AGodot%3A%3AObject%7CNil%29%3ABool-class-method" class="signature"><strong>.is_object_edited?</strong>(object : Godot::Object | Nil) : Bool</a>
         
-          <div class="summary"><p>Class-level singleton predicate delegator for <code><a href="../Godot/EditorInterface.html#is_object_edited%3F%28object%3AGodot%3A%3AObject%29%3ABool-instance-method">#is_object_edited?</a></code></p></div>
+          <div class="summary"><p>Class-level singleton predicate delegator for <code><a href="../Godot/EditorInterface.html#is_object_edited%3F%28object%3AGodot%3A%3AObject%7CNil%29%3ABool-instance-method">#is_object_edited?</a></code></p></div>
         
       </li>
     
@@ -14146,9 +14201,9 @@
       </li>
     
       <li class="entry-summary">
-        <a href="#object_edited%3F%28object%3AGodot%3A%3AObject%29%3ABool-class-method" class="signature"><strong>.object_edited?</strong>(object : Godot::Object) : Bool</a>
+        <a href="#object_edited%3F%28object%3AGodot%3A%3AObject%7CNil%29%3ABool-class-method" class="signature"><strong>.object_edited?</strong>(object : Godot::Object | Nil) : Bool</a>
         
-          <div class="summary"><p>Class-level singleton predicate delegator for <code><a href="../Godot/EditorInterface.html#object_edited%3F%28object%3AGodot%3A%3AObject%29%3ABool-instance-method">#object_edited?</a></code></p></div>
+          <div class="summary"><p>Class-level singleton predicate delegator for <code><a href="../Godot/EditorInterface.html#object_edited%3F%28object%3AGodot%3A%3AObject%7CNil%29%3ABool-instance-method">#object_edited?</a></code></p></div>
         
       </li>
     
@@ -14202,37 +14257,37 @@
       </li>
     
       <li class="entry-summary">
-        <a href="#popup_dialog%28dialog%3AWindow%2Crect%3ARect2i%29%3AVoid-class-method" class="signature"><strong>.popup_dialog</strong>(dialog : Window, rect : Rect2i) : Void</a>
+        <a href="#popup_dialog%28dialog%3AWindow%7CNil%2Crect%3ARect2i%29%3AVoid-class-method" class="signature"><strong>.popup_dialog</strong>(dialog : Window | Nil, rect : Rect2i) : Void</a>
         
-          <div class="summary"><p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#popup_dialog%28dialog%3AWindow%2Crect%3ARect2i%29%3AVoid-instance-method">#popup_dialog</a></code></p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#popup_dialog_centered%28dialog%3AWindow%2Cminsize%3AVector2i%3DVector2i.new%280.to_i32%2C0.to_i32%29%29%3AVoid-class-method" class="signature"><strong>.popup_dialog_centered</strong>(dialog : Window, minsize : Vector2i = <span class="t">Vector2i</span>.new(<span class="n">0</span>.to_i32, <span class="n">0</span>.to_i32)) : Void</a>
-        
-          <div class="summary"><p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#popup_dialog_centered%28dialog%3AWindow%2Cminsize%3AVector2i%3DVector2i.new%280.to_i32%2C0.to_i32%29%29%3AVoid-instance-method">#popup_dialog_centered</a></code></p></div>
+          <div class="summary"><p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#popup_dialog%28dialog%3AWindow%7CNil%2Crect%3ARect2i%29%3AVoid-instance-method">#popup_dialog</a></code></p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#popup_dialog_centered_clamped%28dialog%3AWindow%2Cminsize%3AVector2i%3DVector2i.new%280.to_i32%2C0.to_i32%29%2Cfallback_ratio%3AFloat64%3D0.75%29%3AVoid-class-method" class="signature"><strong>.popup_dialog_centered_clamped</strong>(dialog : Window, minsize : Vector2i = <span class="t">Vector2i</span>.new(<span class="n">0</span>.to_i32, <span class="n">0</span>.to_i32), fallback_ratio : Float64 = <span class="n">0.75</span>) : Void</a>
+        <a href="#popup_dialog_centered%28dialog%3AWindow%7CNil%2Cminsize%3AVector2i%3DVector2i.new%280.to_i32%2C0.to_i32%29%29%3AVoid-class-method" class="signature"><strong>.popup_dialog_centered</strong>(dialog : Window | Nil, minsize : Vector2i = <span class="t">Vector2i</span>.new(<span class="n">0</span>.to_i32, <span class="n">0</span>.to_i32)) : Void</a>
         
-          <div class="summary"><p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#popup_dialog_centered_clamped%28dialog%3AWindow%2Cminsize%3AVector2i%3DVector2i.new%280.to_i32%2C0.to_i32%29%2Cfallback_ratio%3AFloat64%3D0.75%29%3AVoid-instance-method">#popup_dialog_centered_clamped</a></code></p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#popup_dialog_centered_ratio%28dialog%3AWindow%2Cratio%3AFloat64%3D0.8%29%3AVoid-class-method" class="signature"><strong>.popup_dialog_centered_ratio</strong>(dialog : Window, ratio : Float64 = <span class="n">0.8</span>) : Void</a>
-        
-          <div class="summary"><p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#popup_dialog_centered_ratio%28dialog%3AWindow%2Cratio%3AFloat64%3D0.8%29%3AVoid-instance-method">#popup_dialog_centered_ratio</a></code></p></div>
+          <div class="summary"><p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#popup_dialog_centered%28dialog%3AWindow%7CNil%2Cminsize%3AVector2i%3DVector2i.new%280.to_i32%2C0.to_i32%29%29%3AVoid-instance-method">#popup_dialog_centered</a></code></p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#popup_method_selector%28object%3AGodot%3A%3AObject%2Ccallback%3APointer%28Void%29%2Ccurrent_value%3AString%3D%22%22%29%3AVoid-class-method" class="signature"><strong>.popup_method_selector</strong>(object : Godot::Object, callback : Pointer(Void), current_value : String = <span class="s">&quot;&quot;</span>) : Void</a>
+        <a href="#popup_dialog_centered_clamped%28dialog%3AWindow%7CNil%2Cminsize%3AVector2i%3DVector2i.new%280.to_i32%2C0.to_i32%29%2Cfallback_ratio%3AFloat64%3D0.75%29%3AVoid-class-method" class="signature"><strong>.popup_dialog_centered_clamped</strong>(dialog : Window | Nil, minsize : Vector2i = <span class="t">Vector2i</span>.new(<span class="n">0</span>.to_i32, <span class="n">0</span>.to_i32), fallback_ratio : Float64 = <span class="n">0.75</span>) : Void</a>
         
-          <div class="summary"><p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#popup_method_selector%28object%3AGodot%3A%3AObject%2Ccallback%3APointer%28Void%29%2Ccurrent_value%3AString%3D%22%22%29%3AVoid-instance-method">#popup_method_selector</a></code></p></div>
+          <div class="summary"><p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#popup_dialog_centered_clamped%28dialog%3AWindow%7CNil%2Cminsize%3AVector2i%3DVector2i.new%280.to_i32%2C0.to_i32%29%2Cfallback_ratio%3AFloat64%3D0.75%29%3AVoid-instance-method">#popup_dialog_centered_clamped</a></code></p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#popup_dialog_centered_ratio%28dialog%3AWindow%7CNil%2Cratio%3AFloat64%3D0.8%29%3AVoid-class-method" class="signature"><strong>.popup_dialog_centered_ratio</strong>(dialog : Window | Nil, ratio : Float64 = <span class="n">0.8</span>) : Void</a>
+        
+          <div class="summary"><p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#popup_dialog_centered_ratio%28dialog%3AWindow%7CNil%2Cratio%3AFloat64%3D0.8%29%3AVoid-instance-method">#popup_dialog_centered_ratio</a></code></p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#popup_method_selector%28object%3AGodot%3A%3AObject%7CNil%2Ccallback%3APointer%28Void%29%2Ccurrent_value%3AString%3D%22%22%29%3AVoid-class-method" class="signature"><strong>.popup_method_selector</strong>(object : Godot::Object | Nil, callback : Pointer(Void), current_value : String = <span class="s">&quot;&quot;</span>) : Void</a>
+        
+          <div class="summary"><p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#popup_method_selector%28object%3AGodot%3A%3AObject%7CNil%2Ccallback%3APointer%28Void%29%2Ccurrent_value%3AString%3D%22%22%29%3AVoid-instance-method">#popup_method_selector</a></code></p></div>
         
       </li>
     
@@ -14244,9 +14299,9 @@
       </li>
     
       <li class="entry-summary">
-        <a href="#popup_property_selector%28object%3AGodot%3A%3AObject%2Ccallback%3APointer%28Void%29%2Ctype_filter%3APointer%28Void%29%2Ccurrent_value%3AString%3D%22%22%29%3AVoid-class-method" class="signature"><strong>.popup_property_selector</strong>(object : Godot::Object, callback : Pointer(Void), type_filter : Pointer(Void), current_value : String = <span class="s">&quot;&quot;</span>) : Void</a>
+        <a href="#popup_property_selector%28object%3AGodot%3A%3AObject%7CNil%2Ccallback%3APointer%28Void%29%2Ctype_filter%3APointer%28Void%29%2Ccurrent_value%3AString%3D%22%22%29%3AVoid-class-method" class="signature"><strong>.popup_property_selector</strong>(object : Godot::Object | Nil, callback : Pointer(Void), type_filter : Pointer(Void), current_value : String = <span class="s">&quot;&quot;</span>) : Void</a>
         
-          <div class="summary"><p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#popup_property_selector%28object%3AGodot%3A%3AObject%2Ccallback%3APointer%28Void%29%2Ctype_filter%3APointer%28Void%29%2Ccurrent_value%3AString%3D%22%22%29%3AVoid-instance-method">#popup_property_selector</a></code></p></div>
+          <div class="summary"><p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#popup_property_selector%28object%3AGodot%3A%3AObject%7CNil%2Ccallback%3APointer%28Void%29%2Ctype_filter%3APointer%28Void%29%2Ccurrent_value%3AString%3D%22%22%29%3AVoid-instance-method">#popup_property_selector</a></code></p></div>
         
       </li>
     
@@ -14328,9 +14383,9 @@
       </li>
     
       <li class="entry-summary">
-        <a href="#set_object_edited%28object%3AGodot%3A%3AObject%2Cedited%3ABool%29%3AVoid-class-method" class="signature"><strong>.set_object_edited</strong>(object : Godot::Object, edited : Bool) : Void</a>
+        <a href="#set_object_edited%28object%3AGodot%3A%3AObject%7CNil%2Cedited%3ABool%29%3AVoid-class-method" class="signature"><strong>.set_object_edited</strong>(object : Godot::Object | Nil, edited : Bool) : Void</a>
         
-          <div class="summary"><p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#set_object_edited%28object%3AGodot%3A%3AObject%2Cedited%3ABool%29%3AVoid-instance-method">#set_object_edited</a></code></p></div>
+          <div class="summary"><p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#set_object_edited%28object%3AGodot%3A%3AObject%7CNil%2Cedited%3ABool%29%3AVoid-instance-method">#set_object_edited</a></code></p></div>
         
       </li>
     
@@ -14370,7 +14425,7 @@
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#add_root_node%28node%3ANode%29%3AVoid-instance-method" class="signature"><strong>#add_root_node</strong>(node : Node) : Void</a>
+        <a href="#add_root_node%28node%3ANode%7CNil%29%3AVoid-instance-method" class="signature"><strong>#add_root_node</strong>(node : Node | Nil) : Void</a>
         
       </li>
     
@@ -14406,17 +14461,17 @@
       </li>
     
       <li class="entry-summary">
-        <a href="#edit_node%28node%3ANode%29%3AVoid-instance-method" class="signature"><strong>#edit_node</strong>(node : Node) : Void</a>
+        <a href="#edit_node%28node%3ANode%7CNil%29%3AVoid-instance-method" class="signature"><strong>#edit_node</strong>(node : Node | Nil) : Void</a>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#edit_resource%28resource%3AResource%29%3AVoid-instance-method" class="signature"><strong>#edit_resource</strong>(resource : Resource) : Void</a>
+        <a href="#edit_resource%28resource%3AResource%7CNil%29%3AVoid-instance-method" class="signature"><strong>#edit_resource</strong>(resource : Resource | Nil) : Void</a>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#edit_script%28script%3AScript%2Cline%3AInt64%3D-1_i64%2Ccolumn%3AInt64%3D0_i64%2Cgrab_focus%3ABool%3Dtrue%29%3AVoid-instance-method" class="signature"><strong>#edit_script</strong>(script : Script, line : Int64 = <span class="n">-1_i64</span>, column : Int64 = <span class="n">0_i64</span>, grab_focus : Bool = <span class="n">true</span>) : Void</a>
+        <a href="#edit_script%28script%3AScript%7CNil%2Cline%3AInt64%3D-1_i64%2Ccolumn%3AInt64%3D0_i64%2Cgrab_focus%3ABool%3Dtrue%29%3AVoid-instance-method" class="signature"><strong>#edit_script</strong>(script : Script | Nil, line : Int64 = <span class="n">-1_i64</span>, column : Int64 = <span class="n">0_i64</span>, grab_focus : Bool = <span class="n">true</span>) : Void</a>
         
       </li>
     
@@ -14588,7 +14643,7 @@
       </li>
     
       <li class="entry-summary">
-        <a href="#inspect_object%28object%3AGodot%3A%3AObject%2Cfor_property%3AString%3D%22%22%2Cinspector_only%3ABool%3Dfalse%29%3AVoid-instance-method" class="signature"><strong>#inspect_object</strong>(object : Godot::Object, for_property : String = <span class="s">&quot;&quot;</span>, inspector_only : Bool = <span class="n">false</span>) : Void</a>
+        <a href="#inspect_object%28object%3AGodot%3A%3AObject%7CNil%2Cfor_property%3AString%3D%22%22%2Cinspector_only%3ABool%3Dfalse%29%3AVoid-instance-method" class="signature"><strong>#inspect_object</strong>(object : Godot::Object | Nil, for_property : String = <span class="s">&quot;&quot;</span>, inspector_only : Bool = <span class="n">false</span>) : Void</a>
         
       </li>
     
@@ -14653,14 +14708,14 @@
       </li>
     
       <li class="entry-summary">
-        <a href="#is_object_edited%28object%3AGodot%3A%3AObject%29%3ABool-instance-method" class="signature"><strong>#is_object_edited</strong>(object : Godot::Object) : Bool</a>
+        <a href="#is_object_edited%28object%3AGodot%3A%3AObject%7CNil%29%3ABool-instance-method" class="signature"><strong>#is_object_edited</strong>(object : Godot::Object | Nil) : Bool</a>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#is_object_edited%3F%28object%3AGodot%3A%3AObject%29%3ABool-instance-method" class="signature"><strong>#is_object_edited?</strong>(object : Godot::Object) : Bool</a>
+        <a href="#is_object_edited%3F%28object%3AGodot%3A%3AObject%7CNil%29%3ABool-instance-method" class="signature"><strong>#is_object_edited?</strong>(object : Godot::Object | Nil) : Bool</a>
         
-          <div class="summary"><p>Predicate alias for <code><a href="../Godot/EditorInterface.html#is_object_edited%28object%3AGodot%3A%3AObject%29%3ABool-instance-method">#is_object_edited</a></code></p></div>
+          <div class="summary"><p>Predicate alias for <code><a href="../Godot/EditorInterface.html#is_object_edited%28object%3AGodot%3A%3AObject%7CNil%29%3ABool-instance-method">#is_object_edited</a></code></p></div>
         
       </li>
     
@@ -14734,9 +14789,9 @@
       </li>
     
       <li class="entry-summary">
-        <a href="#object_edited%3F%28object%3AGodot%3A%3AObject%29%3ABool-instance-method" class="signature"><strong>#object_edited?</strong>(object : Godot::Object) : Bool</a>
+        <a href="#object_edited%3F%28object%3AGodot%3A%3AObject%7CNil%29%3ABool-instance-method" class="signature"><strong>#object_edited?</strong>(object : Godot::Object | Nil) : Bool</a>
         
-          <div class="summary"><p>Predicate alias for <code><a href="../Godot/EditorInterface.html#is_object_edited%28object%3AGodot%3A%3AObject%29%3ABool-instance-method">#is_object_edited</a></code></p></div>
+          <div class="summary"><p>Predicate alias for <code><a href="../Godot/EditorInterface.html#is_object_edited%28object%3AGodot%3A%3AObject%7CNil%29%3ABool-instance-method">#is_object_edited</a></code></p></div>
         
       </li>
     
@@ -14780,27 +14835,27 @@
       </li>
     
       <li class="entry-summary">
-        <a href="#popup_dialog%28dialog%3AWindow%2Crect%3ARect2i%29%3AVoid-instance-method" class="signature"><strong>#popup_dialog</strong>(dialog : Window, rect : Rect2i) : Void</a>
+        <a href="#popup_dialog%28dialog%3AWindow%7CNil%2Crect%3ARect2i%29%3AVoid-instance-method" class="signature"><strong>#popup_dialog</strong>(dialog : Window | Nil, rect : Rect2i) : Void</a>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#popup_dialog_centered%28dialog%3AWindow%2Cminsize%3AVector2i%3DVector2i.new%280.to_i32%2C0.to_i32%29%29%3AVoid-instance-method" class="signature"><strong>#popup_dialog_centered</strong>(dialog : Window, minsize : Vector2i = <span class="t">Vector2i</span>.new(<span class="n">0</span>.to_i32, <span class="n">0</span>.to_i32)) : Void</a>
+        <a href="#popup_dialog_centered%28dialog%3AWindow%7CNil%2Cminsize%3AVector2i%3DVector2i.new%280.to_i32%2C0.to_i32%29%29%3AVoid-instance-method" class="signature"><strong>#popup_dialog_centered</strong>(dialog : Window | Nil, minsize : Vector2i = <span class="t">Vector2i</span>.new(<span class="n">0</span>.to_i32, <span class="n">0</span>.to_i32)) : Void</a>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#popup_dialog_centered_clamped%28dialog%3AWindow%2Cminsize%3AVector2i%3DVector2i.new%280.to_i32%2C0.to_i32%29%2Cfallback_ratio%3AFloat64%3D0.75%29%3AVoid-instance-method" class="signature"><strong>#popup_dialog_centered_clamped</strong>(dialog : Window, minsize : Vector2i = <span class="t">Vector2i</span>.new(<span class="n">0</span>.to_i32, <span class="n">0</span>.to_i32), fallback_ratio : Float64 = <span class="n">0.75</span>) : Void</a>
+        <a href="#popup_dialog_centered_clamped%28dialog%3AWindow%7CNil%2Cminsize%3AVector2i%3DVector2i.new%280.to_i32%2C0.to_i32%29%2Cfallback_ratio%3AFloat64%3D0.75%29%3AVoid-instance-method" class="signature"><strong>#popup_dialog_centered_clamped</strong>(dialog : Window | Nil, minsize : Vector2i = <span class="t">Vector2i</span>.new(<span class="n">0</span>.to_i32, <span class="n">0</span>.to_i32), fallback_ratio : Float64 = <span class="n">0.75</span>) : Void</a>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#popup_dialog_centered_ratio%28dialog%3AWindow%2Cratio%3AFloat64%3D0.8%29%3AVoid-instance-method" class="signature"><strong>#popup_dialog_centered_ratio</strong>(dialog : Window, ratio : Float64 = <span class="n">0.8</span>) : Void</a>
+        <a href="#popup_dialog_centered_ratio%28dialog%3AWindow%7CNil%2Cratio%3AFloat64%3D0.8%29%3AVoid-instance-method" class="signature"><strong>#popup_dialog_centered_ratio</strong>(dialog : Window | Nil, ratio : Float64 = <span class="n">0.8</span>) : Void</a>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#popup_method_selector%28object%3AGodot%3A%3AObject%2Ccallback%3APointer%28Void%29%2Ccurrent_value%3AString%3D%22%22%29%3AVoid-instance-method" class="signature"><strong>#popup_method_selector</strong>(object : Godot::Object, callback : Pointer(Void), current_value : String = <span class="s">&quot;&quot;</span>) : Void</a>
+        <a href="#popup_method_selector%28object%3AGodot%3A%3AObject%7CNil%2Ccallback%3APointer%28Void%29%2Ccurrent_value%3AString%3D%22%22%29%3AVoid-instance-method" class="signature"><strong>#popup_method_selector</strong>(object : Godot::Object | Nil, callback : Pointer(Void), current_value : String = <span class="s">&quot;&quot;</span>) : Void</a>
         
       </li>
     
@@ -14810,7 +14865,7 @@
       </li>
     
       <li class="entry-summary">
-        <a href="#popup_property_selector%28object%3AGodot%3A%3AObject%2Ccallback%3APointer%28Void%29%2Ctype_filter%3APointer%28Void%29%2Ccurrent_value%3AString%3D%22%22%29%3AVoid-instance-method" class="signature"><strong>#popup_property_selector</strong>(object : Godot::Object, callback : Pointer(Void), type_filter : Pointer(Void), current_value : String = <span class="s">&quot;&quot;</span>) : Void</a>
+        <a href="#popup_property_selector%28object%3AGodot%3A%3AObject%7CNil%2Ccallback%3APointer%28Void%29%2Ctype_filter%3APointer%28Void%29%2Ccurrent_value%3AString%3D%22%22%29%3AVoid-instance-method" class="signature"><strong>#popup_property_selector</strong>(object : Godot::Object | Nil, callback : Pointer(Void), type_filter : Pointer(Void), current_value : String = <span class="s">&quot;&quot;</span>) : Void</a>
         
       </li>
     
@@ -14870,7 +14925,7 @@
       </li>
     
       <li class="entry-summary">
-        <a href="#set_object_edited%28object%3AGodot%3A%3AObject%2Cedited%3ABool%29%3AVoid-instance-method" class="signature"><strong>#set_object_edited</strong>(object : Godot::Object, edited : Bool) : Void</a>
+        <a href="#set_object_edited%28object%3AGodot%3A%3AObject%7CNil%2Cedited%3ABool%29%3AVoid-instance-method" class="signature"><strong>#set_object_edited</strong>(object : Godot::Object | Nil, edited : Bool) : Void</a>
         
       </li>
     
@@ -14935,9 +14990,29 @@
     _godot_call_virtual_with_data</a>, 
     
   
+    <a href="../Godot/Object.html#_godot_dispatch_crystal_0%28method%3AString%29%3ABool-instance-method" class="tooltip">
+      <span>_godot_dispatch_crystal_0(method : String) : Bool</span>
+    _godot_dispatch_crystal_0</a>, 
+    
+  
+    <a href="../Godot/Object.html#_godot_dispatch_crystal_1%28method%3AString%2Ca0%3AVariant%29%3ABool-instance-method" class="tooltip">
+      <span>_godot_dispatch_crystal_1(method : String, a0 : Variant) : Bool</span>
+    _godot_dispatch_crystal_1</a>, 
+    
+  
+    <a href="../Godot/Object.html#_godot_dispatch_crystal_2%28method%3AString%2Ca0%3AVariant%2Ca1%3AVariant%29%3ABool-instance-method" class="tooltip">
+      <span>_godot_dispatch_crystal_2(method : String, a0 : Variant, a1 : Variant) : Bool</span>
+    _godot_dispatch_crystal_2</a>, 
+    
+  
     <a href="../Godot/Object.html#_godot_get_property%28prop_name%3AString%2Cret_ptr%3APointer%28Void%29%29%3AVoid-instance-method" class="tooltip">
       <span>_godot_get_property(prop_name : String, ret_ptr : Pointer(Void)) : Void</span>
     _godot_get_property</a>, 
+    
+  
+    <a href="../Godot/Object.html#_godot_has_crystal_method%3F%28method%3AString%29%3ABool-instance-method" class="tooltip">
+      <span>_godot_has_crystal_method?(method : String) : Bool</span>
+    _godot_has_crystal_method?</a>, 
     
   
     <a href="../Godot/Object.html#_godot_set_property%28prop_name%3AString%2Cval_ptr%3APointer%28Void%29%29%3AVoid-instance-method" class="tooltip">
@@ -14983,6 +15058,11 @@
     <a href="../Godot/Object.html#alive%3F%3ABool-instance-method" class="tooltip">
       <span>alive? : Bool</span>
     alive?</a>, 
+    
+  
+    <a href="../Godot/Object.html#apply_dictionary_properties%21%28dict%3AGodot%3A%3ADictionary%29%3AVoid-instance-method" class="tooltip">
+      <span>apply_dictionary_properties!(dict : Godot::Dictionary) : Void</span>
+    apply_dictionary_properties!</a>, 
     
   
     <a href="../Godot/Object.html#as_a%28type%3AT.class%29%3ATforallT-instance-method" class="tooltip">
@@ -15210,6 +15290,11 @@
     explicitly_freed?</a>, 
     
   
+    <a href="../Godot/Object.html#export_config_hash%3AUInt64-instance-method" class="tooltip">
+      <span>export_config_hash : UInt64</span>
+    export_config_hash</a>, 
+    
+  
     <a href="../Godot/Object.html#frame_arena%3ALapis%3A%3ACore%3A%3AFrameArena-instance-method" class="tooltip">
       <span>frame_arena : Lapis::Core::FrameArena</span>
     frame_arena</a>, 
@@ -15261,22 +15346,37 @@
     
   
     <a href="../Godot/Object.html#get_meta%28name%3AString%2Cdefault%3APointer%28Void%29%7CNil%3Dnil%29%3APointer%28Void%29-instance-method" class="tooltip">
-      <span>get_meta(name : String, default : Pointer(Void) | Nil = <span class="n">nil</span>) : Pointer(Void)<br/>get_meta(key : Symbol, default : Pointer(Void) | Nil = <span class="n">nil</span>) : Pointer(Void)<br/>get_meta(name : String, default : Pointer(Void) | Nil = <span class="n">nil</span>) : Pointer(Void)<br/>get_meta(name : String, default : Pointer(Void) | Nil = <span class="n">nil</span>) : Pointer(Void)<br/>get_meta(key : Symbol, default : Pointer(Void) | Nil = <span class="n">nil</span>) : Pointer(Void)</span>
+      <span>get_meta(name : String, default : Pointer(Void) | Nil = <span class="n">nil</span>) : Pointer(Void)<br/>get_meta(key : Symbol, default : Pointer(Void) | Nil = <span class="n">nil</span>) : Pointer(Void)<br/>get_meta(name : String, default : Pointer(Void) | Nil = <span class="n">nil</span>) : Pointer(Void)<br/>get_meta(name : String, default : Pointer(Void) | Nil = <span class="n">nil</span>) : Pointer(Void)<br/>get_meta(key : Symbol, default : Pointer(Void) | Nil = <span class="n">nil</span>) : Pointer(Void)<br/>get_meta(name : String, default : Pointer(Void) | Nil = <span class="n">nil</span>) : Pointer(Void)</span>
     get_meta</a>, 
     
   
-    <a href="../Godot/Object.html#get_meta_color%28key%3AString%7CSymbol%29%3AColor-instance-method" class="tooltip">
-      <span>get_meta_color(key : String | Symbol) : Color</span>
+    <a href="../Godot/Object.html#get_meta_bool%28key%3AString%7CSymbol%2Cdefault%3ABool%3Dfalse%29%3ABool-instance-method" class="tooltip">
+      <span>get_meta_bool(key : String | Symbol, default : Bool = <span class="n">false</span>) : Bool</span>
+    get_meta_bool</a>, 
+    
+  
+    <a href="../Godot/Object.html#get_meta_color%28key%3AString%7CSymbol%2Cdefault%3AColor%3DColor%3A%3AWHITE%29%3AColor-instance-method" class="tooltip">
+      <span>get_meta_color(key : String | Symbol, default : Color = <span class="t">Color</span><span class="t">::</span><span class="t">WHITE</span>) : Color</span>
     get_meta_color</a>, 
     
   
-    <a href="../Godot/Object.html#get_meta_f64%28key%3AString%7CSymbol%29%3AFloat64-instance-method" class="tooltip">
-      <span>get_meta_f64(key : String | Symbol) : Float64</span>
+    <a href="../Godot/Object.html#get_meta_f32%28key%3AString%7CSymbol%2Cdefault%3AFloat32%3D0.0_f32%29%3AFloat32-instance-method" class="tooltip">
+      <span>get_meta_f32(key : String | Symbol, default : Float32 = <span class="n">0.0_f32</span>) : Float32</span>
+    get_meta_f32</a>, 
+    
+  
+    <a href="../Godot/Object.html#get_meta_f64%28key%3AString%7CSymbol%2Cdefault%3AFloat64%3D0.0%29%3AFloat64-instance-method" class="tooltip">
+      <span>get_meta_f64(key : String | Symbol, default : Float64 = <span class="n">0.0</span>) : Float64</span>
     get_meta_f64</a>, 
     
   
-    <a href="../Godot/Object.html#get_meta_i64%28key%3AString%7CSymbol%29%3AInt64-instance-method" class="tooltip">
-      <span>get_meta_i64(key : String | Symbol) : Int64</span>
+    <a href="../Godot/Object.html#get_meta_i32%28key%3AString%7CSymbol%2Cdefault%3AInt32%3D0%29%3AInt32-instance-method" class="tooltip">
+      <span>get_meta_i32(key : String | Symbol, default : Int32 = <span class="n">0</span>) : Int32</span>
+    get_meta_i32</a>, 
+    
+  
+    <a href="../Godot/Object.html#get_meta_i64%28key%3AString%7CSymbol%2Cdefault%3AInt64%3D0_i64%29%3AInt64-instance-method" class="tooltip">
+      <span>get_meta_i64(key : String | Symbol, default : Int64 = <span class="n">0_i64</span>) : Int64</span>
     get_meta_i64</a>, 
     
   
@@ -15285,23 +15385,28 @@
     get_meta_list</a>, 
     
   
-    <a href="../Godot/Object.html#get_meta_str%28key%3AString%7CSymbol%29%3AString-instance-method" class="tooltip">
-      <span>get_meta_str(key : String | Symbol) : String</span>
+    <a href="../Godot/Object.html#get_meta_object%28key%3AString%7CSymbol%2Ctype%3AT.class%3DGodot%3A%3AObject%29%3AT%7CNilforallT-instance-method" class="tooltip">
+      <span>get_meta_object(key : String | Symbol, type : <span class="t">T</span>.<span class="k">class</span> = <span class="t">Godot</span><span class="t">::</span><span class="t">Object</span>) : T | Nil forall T</span>
+    get_meta_object</a>, 
+    
+  
+    <a href="../Godot/Object.html#get_meta_str%28key%3AString%7CSymbol%2Cdefault%3AString%3D%22%22%29%3AString-instance-method" class="tooltip">
+      <span>get_meta_str(key : String | Symbol, default : String = <span class="s">&quot;&quot;</span>) : String</span>
     get_meta_str</a>, 
     
   
-    <a href="../Godot/Object.html#get_meta_transform3d%28key%3AString%7CSymbol%29%3ATransform3D-instance-method" class="tooltip">
-      <span>get_meta_transform3d(key : String | Symbol) : Transform3D</span>
+    <a href="../Godot/Object.html#get_meta_transform3d%28key%3AString%7CSymbol%2Cdefault%3ATransform3D%3DTransform3D.identity%29%3ATransform3D-instance-method" class="tooltip">
+      <span>get_meta_transform3d(key : String | Symbol, default : Transform3D = <span class="t">Transform3D</span>.identity) : Transform3D</span>
     get_meta_transform3d</a>, 
     
   
-    <a href="../Godot/Object.html#get_meta_vector2%28key%3AString%7CSymbol%29%3AVector2-instance-method" class="tooltip">
-      <span>get_meta_vector2(key : String | Symbol) : Vector2</span>
+    <a href="../Godot/Object.html#get_meta_vector2%28key%3AString%7CSymbol%2Cdefault%3AVector2%3DVector2.zero%29%3AVector2-instance-method" class="tooltip">
+      <span>get_meta_vector2(key : String | Symbol, default : Vector2 = <span class="t">Vector2</span>.zero) : Vector2</span>
     get_meta_vector2</a>, 
     
   
-    <a href="../Godot/Object.html#get_meta_vector3%28key%3AString%7CSymbol%29%3AVector3-instance-method" class="tooltip">
-      <span>get_meta_vector3(key : String | Symbol) : Vector3</span>
+    <a href="../Godot/Object.html#get_meta_vector3%28key%3AString%7CSymbol%2Cdefault%3AVector3%3DVector3.zero%29%3AVector3-instance-method" class="tooltip">
+      <span>get_meta_vector3(key : String | Symbol, default : Vector3 = <span class="t">Vector3</span>.zero) : Vector3</span>
     get_meta_vector3</a>, 
     
   
@@ -15470,6 +15575,11 @@
     link_class_script</a>, 
     
   
+    <a href="../Godot/Object.html#live_instance%3AGodot%3A%3AObject-instance-method" class="tooltip">
+      <span>live_instance : Godot::Object</span>
+    live_instance</a>, 
+    
+  
     <a href="../Godot/Object.html#not_null%3F%3ABool-instance-method" class="tooltip">
       <span>not_null? : Bool</span>
     not_null?</a>, 
@@ -15625,6 +15735,11 @@
     set_meta</a>, 
     
   
+    <a href="../Godot/Object.html#set_meta_object%28key%3AString%7CSymbol%2Cobj%3AGodot%3A%3AObject%7CNil%29%3AVoid-instance-method" class="tooltip">
+      <span>set_meta_object(key : String | Symbol, obj : Godot::Object | Nil) : Void</span>
+    set_meta_object</a>, 
+    
+  
     <a href="../Godot/Object.html#set_script%28script%3APointer%28Void%29%29%3AVoid-instance-method" class="tooltip">
       <span>set_script(script : Pointer(Void)) : Void</span>
     set_script</a>, 
@@ -15744,6 +15859,11 @@
     cast_to?</a>, 
     
   
+    <a href="../Godot/Object.html#clear_script_info_cache%21%3AVoid-class-method" class="tooltip">
+      <span>clear_script_info_cache! : Void</span>
+    clear_script_info_cache!</a>, 
+    
+  
     <a href="../Godot/Object.html#find_script_info_for_node%28node%3AGodot%3A%3AObject%29%3ANamedTuple%28path%3AString%2Cline%3AInt32%2Cclass_name%3AString%2Cparent_name%3AString%2Cis_tool%3ABool%29%7CNil-class-method" class="tooltip">
       <span>find_script_info_for_node(node : Godot::Object) : NamedTuple(path: String, line: Int32, class_name: String, parent_name: String, is_tool: Bool) | Nil</span>
     find_script_info_for_node</a>, 
@@ -15766,7 +15886,12 @@
   
     <a href="../Godot/Object.html#is_internal_or_brush_class%3F%28cls_name%3AString%29%3ABool-class-method" class="tooltip">
       <span>is_internal_or_brush_class?(cls_name : String) : Bool</span>
-    is_internal_or_brush_class?</a>
+    is_internal_or_brush_class?</a>, 
+    
+  
+    <a href="../Godot/Object.html#resolve_cached_class_script_info%28cls_name%3AString%2Cdefault_parent%3AString%3D%22Node%22%2Cdefault_tool%3ABool%3Dfalse%29%3ANamedTuple%28path%3AString%2Cline%3AInt32%2Cclass_name%3AString%2Cparent_name%3AString%2Cis_tool%3ABool%29%7CNil-class-method" class="tooltip">
+      <span>resolve_cached_class_script_info(cls_name : String, default_parent : String = <span class="s">&quot;Node&quot;</span>, default_tool : Bool = <span class="n">false</span>) : NamedTuple(path: String, line: Int32, class_name: String, parent_name: String, is_tool: Bool) | Nil</span>
+    resolve_cached_class_script_info</a>
     
   
 
@@ -15850,6 +15975,20 @@
       </div>
     </div>
   
+    <div class="entry-detail" id="singleton:EditorInterface-class-method">
+      <div class="signature">
+        
+        def self.<strong>singleton</strong> : <a href="../Godot/EditorInterface.html">EditorInterface</a>
+
+        <a class="method-permalink" href="#singleton%3AEditorInterface-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
 
 
   
@@ -15862,17 +16001,17 @@
     Class Method Detail
   </h2>
   
-    <div class="entry-detail" id="add_root_node(node:Node):Void-class-method">
+    <div class="entry-detail" id="add_root_node(node:Node|Nil):Void-class-method">
       <div class="signature">
         
-        def self.<strong>add_root_node</strong>(node : <a href="../Godot/Node.html">Node</a>) : Void
+        def self.<strong>add_root_node</strong>(node : <a href="../Godot/Node.html">Node</a> | <a href="../Nil.html">Nil</a>) : Void
 
-        <a class="method-permalink" href="#add_root_node%28node%3ANode%29%3AVoid-class-method">#</a>
+        <a class="method-permalink" href="#add_root_node%28node%3ANode%7CNil%29%3AVoid-class-method">#</a>
       </div>
       
         <div class="doc">
           
-          <p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#add_root_node%28node%3ANode%29%3AVoid-instance-method">#add_root_node</a></code></p>
+          <p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#add_root_node%28node%3ANode%7CNil%29%3AVoid-instance-method">#add_root_node</a></code></p>
         </div>
       
       <br/>
@@ -15961,17 +16100,17 @@
       </div>
     </div>
   
-    <div class="entry-detail" id="edit_node(node:Node):Void-class-method">
+    <div class="entry-detail" id="edit_node(node:Node|Nil):Void-class-method">
       <div class="signature">
         
-        def self.<strong>edit_node</strong>(node : <a href="../Godot/Node.html">Node</a>) : Void
+        def self.<strong>edit_node</strong>(node : <a href="../Godot/Node.html">Node</a> | <a href="../Nil.html">Nil</a>) : Void
 
-        <a class="method-permalink" href="#edit_node%28node%3ANode%29%3AVoid-class-method">#</a>
+        <a class="method-permalink" href="#edit_node%28node%3ANode%7CNil%29%3AVoid-class-method">#</a>
       </div>
       
         <div class="doc">
           
-          <p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#edit_node%28node%3ANode%29%3AVoid-instance-method">#edit_node</a></code></p>
+          <p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#edit_node%28node%3ANode%7CNil%29%3AVoid-instance-method">#edit_node</a></code></p>
         </div>
       
       <br/>
@@ -15980,17 +16119,17 @@
       </div>
     </div>
   
-    <div class="entry-detail" id="edit_resource(resource:Resource):Void-class-method">
+    <div class="entry-detail" id="edit_resource(resource:Resource|Nil):Void-class-method">
       <div class="signature">
         
-        def self.<strong>edit_resource</strong>(resource : <a href="../Godot/Resource.html">Resource</a>) : Void
+        def self.<strong>edit_resource</strong>(resource : <a href="../Godot/Resource.html">Resource</a> | <a href="../Nil.html">Nil</a>) : Void
 
-        <a class="method-permalink" href="#edit_resource%28resource%3AResource%29%3AVoid-class-method">#</a>
+        <a class="method-permalink" href="#edit_resource%28resource%3AResource%7CNil%29%3AVoid-class-method">#</a>
       </div>
       
         <div class="doc">
           
-          <p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#edit_resource%28resource%3AResource%29%3AVoid-instance-method">#edit_resource</a></code></p>
+          <p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#edit_resource%28resource%3AResource%7CNil%29%3AVoid-instance-method">#edit_resource</a></code></p>
         </div>
       
       <br/>
@@ -15999,17 +16138,17 @@
       </div>
     </div>
   
-    <div class="entry-detail" id="edit_script(script:Script,line:Int64=-1_i64,column:Int64=0_i64,grab_focus:Bool=true):Void-class-method">
+    <div class="entry-detail" id="edit_script(script:Script|Nil,line:Int64=-1_i64,column:Int64=0_i64,grab_focus:Bool=true):Void-class-method">
       <div class="signature">
         
-        def self.<strong>edit_script</strong>(script : <a href="../Godot/Script.html">Script</a>, line : Int64 = <span class="n">-1_i64</span>, column : Int64 = <span class="n">0_i64</span>, grab_focus : Bool = <span class="n">true</span>) : Void
+        def self.<strong>edit_script</strong>(script : <a href="../Godot/Script.html">Script</a> | <a href="../Nil.html">Nil</a>, line : Int64 = <span class="n">-1_i64</span>, column : Int64 = <span class="n">0_i64</span>, grab_focus : Bool = <span class="n">true</span>) : Void
 
-        <a class="method-permalink" href="#edit_script%28script%3AScript%2Cline%3AInt64%3D-1_i64%2Ccolumn%3AInt64%3D0_i64%2Cgrab_focus%3ABool%3Dtrue%29%3AVoid-class-method">#</a>
+        <a class="method-permalink" href="#edit_script%28script%3AScript%7CNil%2Cline%3AInt64%3D-1_i64%2Ccolumn%3AInt64%3D0_i64%2Cgrab_focus%3ABool%3Dtrue%29%3AVoid-class-method">#</a>
       </div>
       
         <div class="doc">
           
-          <p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#edit_script%28script%3AScript%2Cline%3AInt64%3D-1_i64%2Ccolumn%3AInt64%3D0_i64%2Cgrab_focus%3ABool%3Dtrue%29%3AVoid-instance-method">#edit_script</a></code></p>
+          <p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#edit_script%28script%3AScript%7CNil%2Cline%3AInt64%3D-1_i64%2Ccolumn%3AInt64%3D0_i64%2Cgrab_focus%3ABool%3Dtrue%29%3AVoid-instance-method">#edit_script</a></code></p>
         </div>
       
       <br/>
@@ -16645,17 +16784,17 @@
       </div>
     </div>
   
-    <div class="entry-detail" id="inspect_object(object:Godot::Object,for_property:String=&quot;&quot;,inspector_only:Bool=false):Void-class-method">
+    <div class="entry-detail" id="inspect_object(object:Godot::Object|Nil,for_property:String=&quot;&quot;,inspector_only:Bool=false):Void-class-method">
       <div class="signature">
         
-        def self.<strong>inspect_object</strong>(object : <a href="../Godot/Object.html">Godot::Object</a>, for_property : <a href="../String.html">String</a> = <span class="s">&quot;&quot;</span>, inspector_only : Bool = <span class="n">false</span>) : Void
+        def self.<strong>inspect_object</strong>(object : <a href="../Godot/Object.html">Godot::Object</a> | <a href="../Nil.html">Nil</a>, for_property : <a href="../String.html">String</a> = <span class="s">&quot;&quot;</span>, inspector_only : Bool = <span class="n">false</span>) : Void
 
-        <a class="method-permalink" href="#inspect_object%28object%3AGodot%3A%3AObject%2Cfor_property%3AString%3D%22%22%2Cinspector_only%3ABool%3Dfalse%29%3AVoid-class-method">#</a>
+        <a class="method-permalink" href="#inspect_object%28object%3AGodot%3A%3AObject%7CNil%2Cfor_property%3AString%3D%22%22%2Cinspector_only%3ABool%3Dfalse%29%3AVoid-class-method">#</a>
       </div>
       
         <div class="doc">
           
-          <p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#inspect_object%28object%3AGodot%3A%3AObject%2Cfor_property%3AString%3D%22%22%2Cinspector_only%3ABool%3Dfalse%29%3AVoid-instance-method">#inspect_object</a></code></p>
+          <p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#inspect_object%28object%3AGodot%3A%3AObject%7CNil%2Cfor_property%3AString%3D%22%22%2Cinspector_only%3ABool%3Dfalse%29%3AVoid-instance-method">#inspect_object</a></code></p>
         </div>
       
       <br/>
@@ -16854,17 +16993,17 @@
       </div>
     </div>
   
-    <div class="entry-detail" id="is_object_edited(object:Godot::Object):Bool-class-method">
+    <div class="entry-detail" id="is_object_edited(object:Godot::Object|Nil):Bool-class-method">
       <div class="signature">
         
-        def self.<strong>is_object_edited</strong>(object : <a href="../Godot/Object.html">Godot::Object</a>) : Bool
+        def self.<strong>is_object_edited</strong>(object : <a href="../Godot/Object.html">Godot::Object</a> | <a href="../Nil.html">Nil</a>) : Bool
 
-        <a class="method-permalink" href="#is_object_edited%28object%3AGodot%3A%3AObject%29%3ABool-class-method">#</a>
+        <a class="method-permalink" href="#is_object_edited%28object%3AGodot%3A%3AObject%7CNil%29%3ABool-class-method">#</a>
       </div>
       
         <div class="doc">
           
-          <p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#is_object_edited%28object%3AGodot%3A%3AObject%29%3ABool-instance-method">#is_object_edited</a></code></p>
+          <p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#is_object_edited%28object%3AGodot%3A%3AObject%7CNil%29%3ABool-instance-method">#is_object_edited</a></code></p>
         </div>
       
       <br/>
@@ -16873,17 +17012,17 @@
       </div>
     </div>
   
-    <div class="entry-detail" id="is_object_edited?(object:Godot::Object):Bool-class-method">
+    <div class="entry-detail" id="is_object_edited?(object:Godot::Object|Nil):Bool-class-method">
       <div class="signature">
         
-        def self.<strong>is_object_edited?</strong>(object : <a href="../Godot/Object.html">Godot::Object</a>) : Bool
+        def self.<strong>is_object_edited?</strong>(object : <a href="../Godot/Object.html">Godot::Object</a> | <a href="../Nil.html">Nil</a>) : Bool
 
-        <a class="method-permalink" href="#is_object_edited%3F%28object%3AGodot%3A%3AObject%29%3ABool-class-method">#</a>
+        <a class="method-permalink" href="#is_object_edited%3F%28object%3AGodot%3A%3AObject%7CNil%29%3ABool-class-method">#</a>
       </div>
       
         <div class="doc">
           
-          <p>Class-level singleton predicate delegator for <code><a href="../Godot/EditorInterface.html#is_object_edited%3F%28object%3AGodot%3A%3AObject%29%3ABool-instance-method">#is_object_edited?</a></code></p>
+          <p>Class-level singleton predicate delegator for <code><a href="../Godot/EditorInterface.html#is_object_edited%3F%28object%3AGodot%3A%3AObject%7CNil%29%3ABool-instance-method">#is_object_edited?</a></code></p>
         </div>
       
       <br/>
@@ -17091,17 +17230,17 @@
       </div>
     </div>
   
-    <div class="entry-detail" id="object_edited?(object:Godot::Object):Bool-class-method">
+    <div class="entry-detail" id="object_edited?(object:Godot::Object|Nil):Bool-class-method">
       <div class="signature">
         
-        def self.<strong>object_edited?</strong>(object : <a href="../Godot/Object.html">Godot::Object</a>) : Bool
+        def self.<strong>object_edited?</strong>(object : <a href="../Godot/Object.html">Godot::Object</a> | <a href="../Nil.html">Nil</a>) : Bool
 
-        <a class="method-permalink" href="#object_edited%3F%28object%3AGodot%3A%3AObject%29%3ABool-class-method">#</a>
+        <a class="method-permalink" href="#object_edited%3F%28object%3AGodot%3A%3AObject%7CNil%29%3ABool-class-method">#</a>
       </div>
       
         <div class="doc">
           
-          <p>Class-level singleton predicate delegator for <code><a href="../Godot/EditorInterface.html#object_edited%3F%28object%3AGodot%3A%3AObject%29%3ABool-instance-method">#object_edited?</a></code></p>
+          <p>Class-level singleton predicate delegator for <code><a href="../Godot/EditorInterface.html#object_edited%3F%28object%3AGodot%3A%3AObject%7CNil%29%3ABool-instance-method">#object_edited?</a></code></p>
         </div>
       
       <br/>
@@ -17243,17 +17382,17 @@
       </div>
     </div>
   
-    <div class="entry-detail" id="popup_dialog(dialog:Window,rect:Rect2i):Void-class-method">
+    <div class="entry-detail" id="popup_dialog(dialog:Window|Nil,rect:Rect2i):Void-class-method">
       <div class="signature">
         
-        def self.<strong>popup_dialog</strong>(dialog : <a href="../Godot/Window.html">Window</a>, rect : <a href="../Godot/Rect2i.html">Rect2i</a>) : Void
+        def self.<strong>popup_dialog</strong>(dialog : <a href="../Godot/Window.html">Window</a> | <a href="../Nil.html">Nil</a>, rect : <a href="../Godot/Rect2i.html">Rect2i</a>) : Void
 
-        <a class="method-permalink" href="#popup_dialog%28dialog%3AWindow%2Crect%3ARect2i%29%3AVoid-class-method">#</a>
+        <a class="method-permalink" href="#popup_dialog%28dialog%3AWindow%7CNil%2Crect%3ARect2i%29%3AVoid-class-method">#</a>
       </div>
       
         <div class="doc">
           
-          <p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#popup_dialog%28dialog%3AWindow%2Crect%3ARect2i%29%3AVoid-instance-method">#popup_dialog</a></code></p>
+          <p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#popup_dialog%28dialog%3AWindow%7CNil%2Crect%3ARect2i%29%3AVoid-instance-method">#popup_dialog</a></code></p>
         </div>
       
       <br/>
@@ -17262,17 +17401,17 @@
       </div>
     </div>
   
-    <div class="entry-detail" id="popup_dialog_centered(dialog:Window,minsize:Vector2i=Vector2i.new(0.to_i32,0.to_i32)):Void-class-method">
+    <div class="entry-detail" id="popup_dialog_centered(dialog:Window|Nil,minsize:Vector2i=Vector2i.new(0.to_i32,0.to_i32)):Void-class-method">
       <div class="signature">
         
-        def self.<strong>popup_dialog_centered</strong>(dialog : <a href="../Godot/Window.html">Window</a>, minsize : <a href="../Godot/Vector2i.html">Vector2i</a> = <span class="t">Vector2i</span>.new(<span class="n">0</span>.to_i32, <span class="n">0</span>.to_i32)) : Void
+        def self.<strong>popup_dialog_centered</strong>(dialog : <a href="../Godot/Window.html">Window</a> | <a href="../Nil.html">Nil</a>, minsize : <a href="../Godot/Vector2i.html">Vector2i</a> = <span class="t">Vector2i</span>.new(<span class="n">0</span>.to_i32, <span class="n">0</span>.to_i32)) : Void
 
-        <a class="method-permalink" href="#popup_dialog_centered%28dialog%3AWindow%2Cminsize%3AVector2i%3DVector2i.new%280.to_i32%2C0.to_i32%29%29%3AVoid-class-method">#</a>
+        <a class="method-permalink" href="#popup_dialog_centered%28dialog%3AWindow%7CNil%2Cminsize%3AVector2i%3DVector2i.new%280.to_i32%2C0.to_i32%29%29%3AVoid-class-method">#</a>
       </div>
       
         <div class="doc">
           
-          <p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#popup_dialog_centered%28dialog%3AWindow%2Cminsize%3AVector2i%3DVector2i.new%280.to_i32%2C0.to_i32%29%29%3AVoid-instance-method">#popup_dialog_centered</a></code></p>
+          <p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#popup_dialog_centered%28dialog%3AWindow%7CNil%2Cminsize%3AVector2i%3DVector2i.new%280.to_i32%2C0.to_i32%29%29%3AVoid-instance-method">#popup_dialog_centered</a></code></p>
         </div>
       
       <br/>
@@ -17281,17 +17420,17 @@
       </div>
     </div>
   
-    <div class="entry-detail" id="popup_dialog_centered_clamped(dialog:Window,minsize:Vector2i=Vector2i.new(0.to_i32,0.to_i32),fallback_ratio:Float64=0.75):Void-class-method">
+    <div class="entry-detail" id="popup_dialog_centered_clamped(dialog:Window|Nil,minsize:Vector2i=Vector2i.new(0.to_i32,0.to_i32),fallback_ratio:Float64=0.75):Void-class-method">
       <div class="signature">
         
-        def self.<strong>popup_dialog_centered_clamped</strong>(dialog : <a href="../Godot/Window.html">Window</a>, minsize : <a href="../Godot/Vector2i.html">Vector2i</a> = <span class="t">Vector2i</span>.new(<span class="n">0</span>.to_i32, <span class="n">0</span>.to_i32), fallback_ratio : <a href="../Float64.html">Float64</a> = <span class="n">0.75</span>) : Void
+        def self.<strong>popup_dialog_centered_clamped</strong>(dialog : <a href="../Godot/Window.html">Window</a> | <a href="../Nil.html">Nil</a>, minsize : <a href="../Godot/Vector2i.html">Vector2i</a> = <span class="t">Vector2i</span>.new(<span class="n">0</span>.to_i32, <span class="n">0</span>.to_i32), fallback_ratio : <a href="../Float64.html">Float64</a> = <span class="n">0.75</span>) : Void
 
-        <a class="method-permalink" href="#popup_dialog_centered_clamped%28dialog%3AWindow%2Cminsize%3AVector2i%3DVector2i.new%280.to_i32%2C0.to_i32%29%2Cfallback_ratio%3AFloat64%3D0.75%29%3AVoid-class-method">#</a>
+        <a class="method-permalink" href="#popup_dialog_centered_clamped%28dialog%3AWindow%7CNil%2Cminsize%3AVector2i%3DVector2i.new%280.to_i32%2C0.to_i32%29%2Cfallback_ratio%3AFloat64%3D0.75%29%3AVoid-class-method">#</a>
       </div>
       
         <div class="doc">
           
-          <p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#popup_dialog_centered_clamped%28dialog%3AWindow%2Cminsize%3AVector2i%3DVector2i.new%280.to_i32%2C0.to_i32%29%2Cfallback_ratio%3AFloat64%3D0.75%29%3AVoid-instance-method">#popup_dialog_centered_clamped</a></code></p>
+          <p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#popup_dialog_centered_clamped%28dialog%3AWindow%7CNil%2Cminsize%3AVector2i%3DVector2i.new%280.to_i32%2C0.to_i32%29%2Cfallback_ratio%3AFloat64%3D0.75%29%3AVoid-instance-method">#popup_dialog_centered_clamped</a></code></p>
         </div>
       
       <br/>
@@ -17300,17 +17439,17 @@
       </div>
     </div>
   
-    <div class="entry-detail" id="popup_dialog_centered_ratio(dialog:Window,ratio:Float64=0.8):Void-class-method">
+    <div class="entry-detail" id="popup_dialog_centered_ratio(dialog:Window|Nil,ratio:Float64=0.8):Void-class-method">
       <div class="signature">
         
-        def self.<strong>popup_dialog_centered_ratio</strong>(dialog : <a href="../Godot/Window.html">Window</a>, ratio : <a href="../Float64.html">Float64</a> = <span class="n">0.8</span>) : Void
+        def self.<strong>popup_dialog_centered_ratio</strong>(dialog : <a href="../Godot/Window.html">Window</a> | <a href="../Nil.html">Nil</a>, ratio : <a href="../Float64.html">Float64</a> = <span class="n">0.8</span>) : Void
 
-        <a class="method-permalink" href="#popup_dialog_centered_ratio%28dialog%3AWindow%2Cratio%3AFloat64%3D0.8%29%3AVoid-class-method">#</a>
+        <a class="method-permalink" href="#popup_dialog_centered_ratio%28dialog%3AWindow%7CNil%2Cratio%3AFloat64%3D0.8%29%3AVoid-class-method">#</a>
       </div>
       
         <div class="doc">
           
-          <p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#popup_dialog_centered_ratio%28dialog%3AWindow%2Cratio%3AFloat64%3D0.8%29%3AVoid-instance-method">#popup_dialog_centered_ratio</a></code></p>
+          <p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#popup_dialog_centered_ratio%28dialog%3AWindow%7CNil%2Cratio%3AFloat64%3D0.8%29%3AVoid-instance-method">#popup_dialog_centered_ratio</a></code></p>
         </div>
       
       <br/>
@@ -17319,17 +17458,17 @@
       </div>
     </div>
   
-    <div class="entry-detail" id="popup_method_selector(object:Godot::Object,callback:Pointer(Void),current_value:String=&quot;&quot;):Void-class-method">
+    <div class="entry-detail" id="popup_method_selector(object:Godot::Object|Nil,callback:Pointer(Void),current_value:String=&quot;&quot;):Void-class-method">
       <div class="signature">
         
-        def self.<strong>popup_method_selector</strong>(object : <a href="../Godot/Object.html">Godot::Object</a>, callback : Pointer(Void), current_value : <a href="../String.html">String</a> = <span class="s">&quot;&quot;</span>) : Void
+        def self.<strong>popup_method_selector</strong>(object : <a href="../Godot/Object.html">Godot::Object</a> | <a href="../Nil.html">Nil</a>, callback : Pointer(Void), current_value : <a href="../String.html">String</a> = <span class="s">&quot;&quot;</span>) : Void
 
-        <a class="method-permalink" href="#popup_method_selector%28object%3AGodot%3A%3AObject%2Ccallback%3APointer%28Void%29%2Ccurrent_value%3AString%3D%22%22%29%3AVoid-class-method">#</a>
+        <a class="method-permalink" href="#popup_method_selector%28object%3AGodot%3A%3AObject%7CNil%2Ccallback%3APointer%28Void%29%2Ccurrent_value%3AString%3D%22%22%29%3AVoid-class-method">#</a>
       </div>
       
         <div class="doc">
           
-          <p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#popup_method_selector%28object%3AGodot%3A%3AObject%2Ccallback%3APointer%28Void%29%2Ccurrent_value%3AString%3D%22%22%29%3AVoid-instance-method">#popup_method_selector</a></code></p>
+          <p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#popup_method_selector%28object%3AGodot%3A%3AObject%7CNil%2Ccallback%3APointer%28Void%29%2Ccurrent_value%3AString%3D%22%22%29%3AVoid-instance-method">#popup_method_selector</a></code></p>
         </div>
       
       <br/>
@@ -17357,17 +17496,17 @@
       </div>
     </div>
   
-    <div class="entry-detail" id="popup_property_selector(object:Godot::Object,callback:Pointer(Void),type_filter:Pointer(Void),current_value:String=&quot;&quot;):Void-class-method">
+    <div class="entry-detail" id="popup_property_selector(object:Godot::Object|Nil,callback:Pointer(Void),type_filter:Pointer(Void),current_value:String=&quot;&quot;):Void-class-method">
       <div class="signature">
         
-        def self.<strong>popup_property_selector</strong>(object : <a href="../Godot/Object.html">Godot::Object</a>, callback : Pointer(Void), type_filter : Pointer(Void), current_value : <a href="../String.html">String</a> = <span class="s">&quot;&quot;</span>) : Void
+        def self.<strong>popup_property_selector</strong>(object : <a href="../Godot/Object.html">Godot::Object</a> | <a href="../Nil.html">Nil</a>, callback : Pointer(Void), type_filter : Pointer(Void), current_value : <a href="../String.html">String</a> = <span class="s">&quot;&quot;</span>) : Void
 
-        <a class="method-permalink" href="#popup_property_selector%28object%3AGodot%3A%3AObject%2Ccallback%3APointer%28Void%29%2Ctype_filter%3APointer%28Void%29%2Ccurrent_value%3AString%3D%22%22%29%3AVoid-class-method">#</a>
+        <a class="method-permalink" href="#popup_property_selector%28object%3AGodot%3A%3AObject%7CNil%2Ccallback%3APointer%28Void%29%2Ctype_filter%3APointer%28Void%29%2Ccurrent_value%3AString%3D%22%22%29%3AVoid-class-method">#</a>
       </div>
       
         <div class="doc">
           
-          <p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#popup_property_selector%28object%3AGodot%3A%3AObject%2Ccallback%3APointer%28Void%29%2Ctype_filter%3APointer%28Void%29%2Ccurrent_value%3AString%3D%22%22%29%3AVoid-instance-method">#popup_property_selector</a></code></p>
+          <p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#popup_property_selector%28object%3AGodot%3A%3AObject%7CNil%2Ccallback%3APointer%28Void%29%2Ctype_filter%3APointer%28Void%29%2Ccurrent_value%3AString%3D%22%22%29%3AVoid-instance-method">#popup_property_selector</a></code></p>
         </div>
       
       <br/>
@@ -17585,17 +17724,17 @@
       </div>
     </div>
   
-    <div class="entry-detail" id="set_object_edited(object:Godot::Object,edited:Bool):Void-class-method">
+    <div class="entry-detail" id="set_object_edited(object:Godot::Object|Nil,edited:Bool):Void-class-method">
       <div class="signature">
         
-        def self.<strong>set_object_edited</strong>(object : <a href="../Godot/Object.html">Godot::Object</a>, edited : Bool) : Void
+        def self.<strong>set_object_edited</strong>(object : <a href="../Godot/Object.html">Godot::Object</a> | <a href="../Nil.html">Nil</a>, edited : Bool) : Void
 
-        <a class="method-permalink" href="#set_object_edited%28object%3AGodot%3A%3AObject%2Cedited%3ABool%29%3AVoid-class-method">#</a>
+        <a class="method-permalink" href="#set_object_edited%28object%3AGodot%3A%3AObject%7CNil%2Cedited%3ABool%29%3AVoid-class-method">#</a>
       </div>
       
         <div class="doc">
           
-          <p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#set_object_edited%28object%3AGodot%3A%3AObject%2Cedited%3ABool%29%3AVoid-instance-method">#set_object_edited</a></code></p>
+          <p>Class-level singleton delegator for <code><a href="../Godot/EditorInterface.html#set_object_edited%28object%3AGodot%3A%3AObject%7CNil%2Cedited%3ABool%29%3AVoid-instance-method">#set_object_edited</a></code></p>
         </div>
       
       <br/>
@@ -17670,12 +17809,12 @@
     Instance Method Detail
   </h2>
   
-    <div class="entry-detail" id="add_root_node(node:Node):Void-instance-method">
+    <div class="entry-detail" id="add_root_node(node:Node|Nil):Void-instance-method">
       <div class="signature">
         
-        def <strong>add_root_node</strong>(node : <a href="../Godot/Node.html">Node</a>) : Void
+        def <strong>add_root_node</strong>(node : <a href="../Godot/Node.html">Node</a> | <a href="../Nil.html">Nil</a>) : Void
 
-        <a class="method-permalink" href="#add_root_node%28node%3ANode%29%3AVoid-instance-method">#</a>
+        <a class="method-permalink" href="#add_root_node%28node%3ANode%7CNil%29%3AVoid-instance-method">#</a>
       </div>
       
       <br/>
@@ -17769,12 +17908,12 @@
       </div>
     </div>
   
-    <div class="entry-detail" id="edit_node(node:Node):Void-instance-method">
+    <div class="entry-detail" id="edit_node(node:Node|Nil):Void-instance-method">
       <div class="signature">
         
-        def <strong>edit_node</strong>(node : <a href="../Godot/Node.html">Node</a>) : Void
+        def <strong>edit_node</strong>(node : <a href="../Godot/Node.html">Node</a> | <a href="../Nil.html">Nil</a>) : Void
 
-        <a class="method-permalink" href="#edit_node%28node%3ANode%29%3AVoid-instance-method">#</a>
+        <a class="method-permalink" href="#edit_node%28node%3ANode%7CNil%29%3AVoid-instance-method">#</a>
       </div>
       
       <br/>
@@ -17783,12 +17922,12 @@
       </div>
     </div>
   
-    <div class="entry-detail" id="edit_resource(resource:Resource):Void-instance-method">
+    <div class="entry-detail" id="edit_resource(resource:Resource|Nil):Void-instance-method">
       <div class="signature">
         
-        def <strong>edit_resource</strong>(resource : <a href="../Godot/Resource.html">Resource</a>) : Void
+        def <strong>edit_resource</strong>(resource : <a href="../Godot/Resource.html">Resource</a> | <a href="../Nil.html">Nil</a>) : Void
 
-        <a class="method-permalink" href="#edit_resource%28resource%3AResource%29%3AVoid-instance-method">#</a>
+        <a class="method-permalink" href="#edit_resource%28resource%3AResource%7CNil%29%3AVoid-instance-method">#</a>
       </div>
       
       <br/>
@@ -17797,12 +17936,12 @@
       </div>
     </div>
   
-    <div class="entry-detail" id="edit_script(script:Script,line:Int64=-1_i64,column:Int64=0_i64,grab_focus:Bool=true):Void-instance-method">
+    <div class="entry-detail" id="edit_script(script:Script|Nil,line:Int64=-1_i64,column:Int64=0_i64,grab_focus:Bool=true):Void-instance-method">
       <div class="signature">
         
-        def <strong>edit_script</strong>(script : <a href="../Godot/Script.html">Script</a>, line : Int64 = <span class="n">-1_i64</span>, column : Int64 = <span class="n">0_i64</span>, grab_focus : Bool = <span class="n">true</span>) : Void
+        def <strong>edit_script</strong>(script : <a href="../Godot/Script.html">Script</a> | <a href="../Nil.html">Nil</a>, line : Int64 = <span class="n">-1_i64</span>, column : Int64 = <span class="n">0_i64</span>, grab_focus : Bool = <span class="n">true</span>) : Void
 
-        <a class="method-permalink" href="#edit_script%28script%3AScript%2Cline%3AInt64%3D-1_i64%2Ccolumn%3AInt64%3D0_i64%2Cgrab_focus%3ABool%3Dtrue%29%3AVoid-instance-method">#</a>
+        <a class="method-permalink" href="#edit_script%28script%3AScript%7CNil%2Cline%3AInt64%3D-1_i64%2Ccolumn%3AInt64%3D0_i64%2Cgrab_focus%3ABool%3Dtrue%29%3AVoid-instance-method">#</a>
       </div>
       
       <br/>
@@ -18278,12 +18417,12 @@
       </div>
     </div>
   
-    <div class="entry-detail" id="inspect_object(object:Godot::Object,for_property:String=&quot;&quot;,inspector_only:Bool=false):Void-instance-method">
+    <div class="entry-detail" id="inspect_object(object:Godot::Object|Nil,for_property:String=&quot;&quot;,inspector_only:Bool=false):Void-instance-method">
       <div class="signature">
         
-        def <strong>inspect_object</strong>(object : <a href="../Godot/Object.html">Godot::Object</a>, for_property : <a href="../String.html">String</a> = <span class="s">&quot;&quot;</span>, inspector_only : Bool = <span class="n">false</span>) : Void
+        def <strong>inspect_object</strong>(object : <a href="../Godot/Object.html">Godot::Object</a> | <a href="../Nil.html">Nil</a>, for_property : <a href="../String.html">String</a> = <span class="s">&quot;&quot;</span>, inspector_only : Bool = <span class="n">false</span>) : Void
 
-        <a class="method-permalink" href="#inspect_object%28object%3AGodot%3A%3AObject%2Cfor_property%3AString%3D%22%22%2Cinspector_only%3ABool%3Dfalse%29%3AVoid-instance-method">#</a>
+        <a class="method-permalink" href="#inspect_object%28object%3AGodot%3A%3AObject%7CNil%2Cfor_property%3AString%3D%22%22%2Cinspector_only%3ABool%3Dfalse%29%3AVoid-instance-method">#</a>
       </div>
       
       <br/>
@@ -18457,12 +18596,12 @@
       </div>
     </div>
   
-    <div class="entry-detail" id="is_object_edited(object:Godot::Object):Bool-instance-method">
+    <div class="entry-detail" id="is_object_edited(object:Godot::Object|Nil):Bool-instance-method">
       <div class="signature">
         
-        def <strong>is_object_edited</strong>(object : <a href="../Godot/Object.html">Godot::Object</a>) : Bool
+        def <strong>is_object_edited</strong>(object : <a href="../Godot/Object.html">Godot::Object</a> | <a href="../Nil.html">Nil</a>) : Bool
 
-        <a class="method-permalink" href="#is_object_edited%28object%3AGodot%3A%3AObject%29%3ABool-instance-method">#</a>
+        <a class="method-permalink" href="#is_object_edited%28object%3AGodot%3A%3AObject%7CNil%29%3ABool-instance-method">#</a>
       </div>
       
       <br/>
@@ -18471,17 +18610,17 @@
       </div>
     </div>
   
-    <div class="entry-detail" id="is_object_edited?(object:Godot::Object):Bool-instance-method">
+    <div class="entry-detail" id="is_object_edited?(object:Godot::Object|Nil):Bool-instance-method">
       <div class="signature">
         
-        def <strong>is_object_edited?</strong>(object : <a href="../Godot/Object.html">Godot::Object</a>) : Bool
+        def <strong>is_object_edited?</strong>(object : <a href="../Godot/Object.html">Godot::Object</a> | <a href="../Nil.html">Nil</a>) : Bool
 
-        <a class="method-permalink" href="#is_object_edited%3F%28object%3AGodot%3A%3AObject%29%3ABool-instance-method">#</a>
+        <a class="method-permalink" href="#is_object_edited%3F%28object%3AGodot%3A%3AObject%7CNil%29%3ABool-instance-method">#</a>
       </div>
       
         <div class="doc">
           
-          <p>Predicate alias for <code><a href="../Godot/EditorInterface.html#is_object_edited%28object%3AGodot%3A%3AObject%29%3ABool-instance-method">#is_object_edited</a></code></p>
+          <p>Predicate alias for <code><a href="../Godot/EditorInterface.html#is_object_edited%28object%3AGodot%3A%3AObject%7CNil%29%3ABool-instance-method">#is_object_edited</a></code></p>
         </div>
       
       <br/>
@@ -18679,17 +18818,17 @@
       </div>
     </div>
   
-    <div class="entry-detail" id="object_edited?(object:Godot::Object):Bool-instance-method">
+    <div class="entry-detail" id="object_edited?(object:Godot::Object|Nil):Bool-instance-method">
       <div class="signature">
         
-        def <strong>object_edited?</strong>(object : <a href="../Godot/Object.html">Godot::Object</a>) : Bool
+        def <strong>object_edited?</strong>(object : <a href="../Godot/Object.html">Godot::Object</a> | <a href="../Nil.html">Nil</a>) : Bool
 
-        <a class="method-permalink" href="#object_edited%3F%28object%3AGodot%3A%3AObject%29%3ABool-instance-method">#</a>
+        <a class="method-permalink" href="#object_edited%3F%28object%3AGodot%3A%3AObject%7CNil%29%3ABool-instance-method">#</a>
       </div>
       
         <div class="doc">
           
-          <p>Predicate alias for <code><a href="../Godot/EditorInterface.html#is_object_edited%28object%3AGodot%3A%3AObject%29%3ABool-instance-method">#is_object_edited</a></code></p>
+          <p>Predicate alias for <code><a href="../Godot/EditorInterface.html#is_object_edited%28object%3AGodot%3A%3AObject%7CNil%29%3ABool-instance-method">#is_object_edited</a></code></p>
         </div>
       
       <br/>
@@ -18806,12 +18945,12 @@
       </div>
     </div>
   
-    <div class="entry-detail" id="popup_dialog(dialog:Window,rect:Rect2i):Void-instance-method">
+    <div class="entry-detail" id="popup_dialog(dialog:Window|Nil,rect:Rect2i):Void-instance-method">
       <div class="signature">
         
-        def <strong>popup_dialog</strong>(dialog : <a href="../Godot/Window.html">Window</a>, rect : <a href="../Godot/Rect2i.html">Rect2i</a>) : Void
+        def <strong>popup_dialog</strong>(dialog : <a href="../Godot/Window.html">Window</a> | <a href="../Nil.html">Nil</a>, rect : <a href="../Godot/Rect2i.html">Rect2i</a>) : Void
 
-        <a class="method-permalink" href="#popup_dialog%28dialog%3AWindow%2Crect%3ARect2i%29%3AVoid-instance-method">#</a>
+        <a class="method-permalink" href="#popup_dialog%28dialog%3AWindow%7CNil%2Crect%3ARect2i%29%3AVoid-instance-method">#</a>
       </div>
       
       <br/>
@@ -18820,12 +18959,12 @@
       </div>
     </div>
   
-    <div class="entry-detail" id="popup_dialog_centered(dialog:Window,minsize:Vector2i=Vector2i.new(0.to_i32,0.to_i32)):Void-instance-method">
+    <div class="entry-detail" id="popup_dialog_centered(dialog:Window|Nil,minsize:Vector2i=Vector2i.new(0.to_i32,0.to_i32)):Void-instance-method">
       <div class="signature">
         
-        def <strong>popup_dialog_centered</strong>(dialog : <a href="../Godot/Window.html">Window</a>, minsize : <a href="../Godot/Vector2i.html">Vector2i</a> = <span class="t">Vector2i</span>.new(<span class="n">0</span>.to_i32, <span class="n">0</span>.to_i32)) : Void
+        def <strong>popup_dialog_centered</strong>(dialog : <a href="../Godot/Window.html">Window</a> | <a href="../Nil.html">Nil</a>, minsize : <a href="../Godot/Vector2i.html">Vector2i</a> = <span class="t">Vector2i</span>.new(<span class="n">0</span>.to_i32, <span class="n">0</span>.to_i32)) : Void
 
-        <a class="method-permalink" href="#popup_dialog_centered%28dialog%3AWindow%2Cminsize%3AVector2i%3DVector2i.new%280.to_i32%2C0.to_i32%29%29%3AVoid-instance-method">#</a>
+        <a class="method-permalink" href="#popup_dialog_centered%28dialog%3AWindow%7CNil%2Cminsize%3AVector2i%3DVector2i.new%280.to_i32%2C0.to_i32%29%29%3AVoid-instance-method">#</a>
       </div>
       
       <br/>
@@ -18834,12 +18973,12 @@
       </div>
     </div>
   
-    <div class="entry-detail" id="popup_dialog_centered_clamped(dialog:Window,minsize:Vector2i=Vector2i.new(0.to_i32,0.to_i32),fallback_ratio:Float64=0.75):Void-instance-method">
+    <div class="entry-detail" id="popup_dialog_centered_clamped(dialog:Window|Nil,minsize:Vector2i=Vector2i.new(0.to_i32,0.to_i32),fallback_ratio:Float64=0.75):Void-instance-method">
       <div class="signature">
         
-        def <strong>popup_dialog_centered_clamped</strong>(dialog : <a href="../Godot/Window.html">Window</a>, minsize : <a href="../Godot/Vector2i.html">Vector2i</a> = <span class="t">Vector2i</span>.new(<span class="n">0</span>.to_i32, <span class="n">0</span>.to_i32), fallback_ratio : <a href="../Float64.html">Float64</a> = <span class="n">0.75</span>) : Void
+        def <strong>popup_dialog_centered_clamped</strong>(dialog : <a href="../Godot/Window.html">Window</a> | <a href="../Nil.html">Nil</a>, minsize : <a href="../Godot/Vector2i.html">Vector2i</a> = <span class="t">Vector2i</span>.new(<span class="n">0</span>.to_i32, <span class="n">0</span>.to_i32), fallback_ratio : <a href="../Float64.html">Float64</a> = <span class="n">0.75</span>) : Void
 
-        <a class="method-permalink" href="#popup_dialog_centered_clamped%28dialog%3AWindow%2Cminsize%3AVector2i%3DVector2i.new%280.to_i32%2C0.to_i32%29%2Cfallback_ratio%3AFloat64%3D0.75%29%3AVoid-instance-method">#</a>
+        <a class="method-permalink" href="#popup_dialog_centered_clamped%28dialog%3AWindow%7CNil%2Cminsize%3AVector2i%3DVector2i.new%280.to_i32%2C0.to_i32%29%2Cfallback_ratio%3AFloat64%3D0.75%29%3AVoid-instance-method">#</a>
       </div>
       
       <br/>
@@ -18848,12 +18987,12 @@
       </div>
     </div>
   
-    <div class="entry-detail" id="popup_dialog_centered_ratio(dialog:Window,ratio:Float64=0.8):Void-instance-method">
+    <div class="entry-detail" id="popup_dialog_centered_ratio(dialog:Window|Nil,ratio:Float64=0.8):Void-instance-method">
       <div class="signature">
         
-        def <strong>popup_dialog_centered_ratio</strong>(dialog : <a href="../Godot/Window.html">Window</a>, ratio : <a href="../Float64.html">Float64</a> = <span class="n">0.8</span>) : Void
+        def <strong>popup_dialog_centered_ratio</strong>(dialog : <a href="../Godot/Window.html">Window</a> | <a href="../Nil.html">Nil</a>, ratio : <a href="../Float64.html">Float64</a> = <span class="n">0.8</span>) : Void
 
-        <a class="method-permalink" href="#popup_dialog_centered_ratio%28dialog%3AWindow%2Cratio%3AFloat64%3D0.8%29%3AVoid-instance-method">#</a>
+        <a class="method-permalink" href="#popup_dialog_centered_ratio%28dialog%3AWindow%7CNil%2Cratio%3AFloat64%3D0.8%29%3AVoid-instance-method">#</a>
       </div>
       
       <br/>
@@ -18862,12 +19001,12 @@
       </div>
     </div>
   
-    <div class="entry-detail" id="popup_method_selector(object:Godot::Object,callback:Pointer(Void),current_value:String=&quot;&quot;):Void-instance-method">
+    <div class="entry-detail" id="popup_method_selector(object:Godot::Object|Nil,callback:Pointer(Void),current_value:String=&quot;&quot;):Void-instance-method">
       <div class="signature">
         
-        def <strong>popup_method_selector</strong>(object : <a href="../Godot/Object.html">Godot::Object</a>, callback : Pointer(Void), current_value : <a href="../String.html">String</a> = <span class="s">&quot;&quot;</span>) : Void
+        def <strong>popup_method_selector</strong>(object : <a href="../Godot/Object.html">Godot::Object</a> | <a href="../Nil.html">Nil</a>, callback : Pointer(Void), current_value : <a href="../String.html">String</a> = <span class="s">&quot;&quot;</span>) : Void
 
-        <a class="method-permalink" href="#popup_method_selector%28object%3AGodot%3A%3AObject%2Ccallback%3APointer%28Void%29%2Ccurrent_value%3AString%3D%22%22%29%3AVoid-instance-method">#</a>
+        <a class="method-permalink" href="#popup_method_selector%28object%3AGodot%3A%3AObject%7CNil%2Ccallback%3APointer%28Void%29%2Ccurrent_value%3AString%3D%22%22%29%3AVoid-instance-method">#</a>
       </div>
       
       <br/>
@@ -18890,12 +19029,12 @@
       </div>
     </div>
   
-    <div class="entry-detail" id="popup_property_selector(object:Godot::Object,callback:Pointer(Void),type_filter:Pointer(Void),current_value:String=&quot;&quot;):Void-instance-method">
+    <div class="entry-detail" id="popup_property_selector(object:Godot::Object|Nil,callback:Pointer(Void),type_filter:Pointer(Void),current_value:String=&quot;&quot;):Void-instance-method">
       <div class="signature">
         
-        def <strong>popup_property_selector</strong>(object : <a href="../Godot/Object.html">Godot::Object</a>, callback : Pointer(Void), type_filter : Pointer(Void), current_value : <a href="../String.html">String</a> = <span class="s">&quot;&quot;</span>) : Void
+        def <strong>popup_property_selector</strong>(object : <a href="../Godot/Object.html">Godot::Object</a> | <a href="../Nil.html">Nil</a>, callback : Pointer(Void), type_filter : Pointer(Void), current_value : <a href="../String.html">String</a> = <span class="s">&quot;&quot;</span>) : Void
 
-        <a class="method-permalink" href="#popup_property_selector%28object%3AGodot%3A%3AObject%2Ccallback%3APointer%28Void%29%2Ctype_filter%3APointer%28Void%29%2Ccurrent_value%3AString%3D%22%22%29%3AVoid-instance-method">#</a>
+        <a class="method-permalink" href="#popup_property_selector%28object%3AGodot%3A%3AObject%7CNil%2Ccallback%3APointer%28Void%29%2Ctype_filter%3APointer%28Void%29%2Ccurrent_value%3AString%3D%22%22%29%3AVoid-instance-method">#</a>
       </div>
       
       <br/>
@@ -19058,12 +19197,12 @@
       </div>
     </div>
   
-    <div class="entry-detail" id="set_object_edited(object:Godot::Object,edited:Bool):Void-instance-method">
+    <div class="entry-detail" id="set_object_edited(object:Godot::Object|Nil,edited:Bool):Void-instance-method">
       <div class="signature">
         
-        def <strong>set_object_edited</strong>(object : <a href="../Godot/Object.html">Godot::Object</a>, edited : Bool) : Void
+        def <strong>set_object_edited</strong>(object : <a href="../Godot/Object.html">Godot::Object</a> | <a href="../Nil.html">Nil</a>, edited : Bool) : Void
 
-        <a class="method-permalink" href="#set_object_edited%28object%3AGodot%3A%3AObject%2Cedited%3ABool%29%3AVoid-instance-method">#</a>
+        <a class="method-permalink" href="#set_object_edited%28object%3AGodot%3A%3AObject%7CNil%2Cedited%3ABool%29%3AVoid-instance-method">#</a>
       </div>
       
       <br/>

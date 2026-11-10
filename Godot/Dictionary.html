@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Crystal Docs 1.20.3">
-<meta name="crystal_docs.project_version" content="4.8-beta1-dev">
+<meta name="crystal_docs.project_version" content="4.8-beta2-dev">
 <meta name="crystal_docs.project_name" content="lapis">
 
 
@@ -14,7 +14,7 @@
 <script type="text/javascript" src="../js/doc.js"></script>
 
   <meta name="repository-name" content="lapis">
-  <title>Godot::Dictionary - lapis 4.8-beta1-dev</title>
+  <title>Godot::Dictionary - lapis 4.8-beta2-dev</title>
   <script type="text/javascript">
     CrystalDocs.base_path = "../";
   </script>
@@ -45,7 +45,7 @@
       </h1>
 
       <span class="project-version">
-        4.8-beta1-dev
+        4.8-beta2-dev
       </span>
     </div>
   </div>
@@ -104,6 +104,11 @@
   
   <li class=" " data-id="lapis/Basis" data-name="basis">
       <a href="../Basis.html">Basis</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/BindMethod" data-name="bindmethod">
+      <a href="../BindMethod.html">BindMethod</a>
       
     </li>
   
@@ -8372,6 +8377,11 @@
       
     </li>
   
+  <li class=" " data-id="lapis/Godot/ResourcePath" data-name="godot::resourcepath">
+      <a href="../Godot/ResourcePath.html">ResourcePath</a>
+      
+    </li>
+  
   <li class=" " data-id="lapis/Godot/ResourcePreloader" data-name="godot::resourcepreloader">
       <a href="../Godot/ResourcePreloader.html">ResourcePreloader</a>
       
@@ -8774,6 +8784,11 @@
   
   <li class=" " data-id="lapis/Godot/ShaderMaterial" data-name="godot::shadermaterial">
       <a href="../Godot/ShaderMaterial.html">ShaderMaterial</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/ShaderParameterValue" data-name="godot::shaderparametervalue">
+      <a href="../Godot/ShaderParameterValue.html">ShaderParameterValue</a>
       
     </li>
   
@@ -9897,8 +9912,28 @@
       
         <ul>
   
+  <li class=" " data-id="lapis/Godot/Time/Format" data-name="godot::time::format">
+      <a href="../Godot/Time/Format.html">Format</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/Time/Instant" data-name="godot::time::instant">
+      <a href="../Godot/Time/Instant.html">Instant</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/Time/Location" data-name="godot::time::location">
+      <a href="../Godot/Time/Location.html">Location</a>
+      
+    </li>
+  
   <li class=" " data-id="lapis/Godot/Time/Month" data-name="godot::time::month">
       <a href="../Godot/Time/Month.html">Month</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/Time/Span" data-name="godot::time::span">
+      <a href="../Godot/Time/Span.html">Span</a>
       
     </li>
   
@@ -9954,6 +9989,11 @@
   
 </ul>
 
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/ToolRebuildable" data-name="godot::toolrebuildable">
+      <a href="../Godot/ToolRebuildable.html">ToolRebuildable</a>
       
     </li>
   
@@ -13412,6 +13452,11 @@
       
     </li>
   
+  <li class=" " data-id="lapis/Path" data-name="path">
+      <a href="../Path.html">Path</a>
+      
+    </li>
+  
   <li class=" " data-id="lapis/Plane" data-name="plane">
       <a href="../Plane.html">Plane</a>
       
@@ -13479,6 +13524,11 @@
   
   <li class=" " data-id="lapis/ScriptProperty" data-name="scriptproperty">
       <a href="../ScriptProperty.html">ScriptProperty</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/ShaderUniform" data-name="shaderuniform">
+      <a href="../ShaderUniform.html">ShaderUniform</a>
       
     </li>
   
@@ -13859,9 +13909,54 @@ Provides seamless indexing, Enumerable iteration, and conversion to/from Crystal
       </li>
     
       <li class="entry-summary">
+        <a href="#fetch_bool%28key%3AString%7CSymbol%7CVariant%2Cdefault%3ABool%3Dfalse%29%3ABool-instance-method" class="signature"><strong>#fetch_bool</strong>(key : String | Symbol | Variant, default : Bool = <span class="n">false</span>) : Bool</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#fetch_color%28key%3AString%7CSymbol%7CVariant%2Cdefault%3AColor%3DColor%3A%3AWHITE%29%3AColor-instance-method" class="signature"><strong>#fetch_color</strong>(key : String | Symbol | Variant, default : Color = <span class="t">Color</span><span class="t">::</span><span class="t">WHITE</span>) : Color</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#fetch_f32%28key%3AString%7CSymbol%7CVariant%2Cdefault%3AFloat32%3D0.0_f32%29%3AFloat32-instance-method" class="signature"><strong>#fetch_f32</strong>(key : String | Symbol | Variant, default : Float32 = <span class="n">0.0_f32</span>) : Float32</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#fetch_f64%28key%3AString%7CSymbol%7CVariant%2Cdefault%3AFloat64%3D0.0%29%3AFloat64-instance-method" class="signature"><strong>#fetch_f64</strong>(key : String | Symbol | Variant, default : Float64 = <span class="n">0.0</span>) : Float64</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#fetch_i32%28key%3AString%7CSymbol%7CVariant%2Cdefault%3AInt32%3D0%29%3AInt32-instance-method" class="signature"><strong>#fetch_i32</strong>(key : String | Symbol | Variant, default : Int32 = <span class="n">0</span>) : Int32</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#fetch_i64%28key%3AString%7CSymbol%7CVariant%2Cdefault%3AInt64%3D0_i64%29%3AInt64-instance-method" class="signature"><strong>#fetch_i64</strong>(key : String | Symbol | Variant, default : Int64 = <span class="n">0_i64</span>) : Int64</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#fetch_str%28key%3AString%7CSymbol%7CVariant%2Cdefault%3AString%3D%22%22%29%3AString-instance-method" class="signature"><strong>#fetch_str</strong>(key : String | Symbol | Variant, default : String = <span class="s">&quot;&quot;</span>) : String</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#fetch_v2%28key%3AString%7CSymbol%7CVariant%2Cdefault%3AVector2%3DVector2.zero%29%3AVector2-instance-method" class="signature"><strong>#fetch_v2</strong>(key : String | Symbol | Variant, default : Vector2 = <span class="t">Vector2</span>.zero) : Vector2</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#fetch_v3%28key%3AString%7CSymbol%7CVariant%2Cdefault%3AVector3%3DVector3.zero%29%3AVector3-instance-method" class="signature"><strong>#fetch_v3</strong>(key : String | Symbol | Variant, default : Vector3 = <span class="t">Vector3</span>.zero) : Vector3</a>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#get%28key%3AString%7CSymbol%7CVariant%2Castype%3AT.class%2Cdefault%3A%7BGodot%3A%3AVariant%2CGodot%3A%3AVariant%7D%29%3A%7BGodot%3A%3AVariant%2CGodot%3A%3AVariant%7DforallT-instance-method" class="signature"><strong>#get</strong>(key : String | Symbol | Variant, as type : <span class="t">T</span>.<span class="k">class</span>, default : {Godot::Variant, Godot::Variant}) : {Godot::Variant, Godot::Variant} forall T</a>
         
-          <div class="summary"><p>Generic typed getter with default value</p></div>
+          <div class="summary"><p>Generic typed getter with default value (supports scalar/vector string coercion)</p></div>
         
       </li>
     
@@ -14477,6 +14572,132 @@ Provides seamless indexing, Enumerable iteration, and conversion to/from Crystal
       </div>
     </div>
   
+    <div class="entry-detail" id="fetch_bool(key:String|Symbol|Variant,default:Bool=false):Bool-instance-method">
+      <div class="signature">
+        
+        def <strong>fetch_bool</strong>(key : <a href="../String.html">String</a> | Symbol | <a href="../Godot/Variant.html">Variant</a>, default : Bool = <span class="n">false</span>) : Bool
+
+        <a class="method-permalink" href="#fetch_bool%28key%3AString%7CSymbol%7CVariant%2Cdefault%3ABool%3Dfalse%29%3ABool-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="fetch_color(key:String|Symbol|Variant,default:Color=Color::WHITE):Color-instance-method">
+      <div class="signature">
+        
+        def <strong>fetch_color</strong>(key : <a href="../String.html">String</a> | Symbol | <a href="../Godot/Variant.html">Variant</a>, default : <a href="../Godot/Color.html">Color</a> = <span class="t">Color</span><span class="t">::</span><span class="t">WHITE</span>) : <a href="../Godot/Color.html">Color</a>
+
+        <a class="method-permalink" href="#fetch_color%28key%3AString%7CSymbol%7CVariant%2Cdefault%3AColor%3DColor%3A%3AWHITE%29%3AColor-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="fetch_f32(key:String|Symbol|Variant,default:Float32=0.0_f32):Float32-instance-method">
+      <div class="signature">
+        
+        def <strong>fetch_f32</strong>(key : <a href="../String.html">String</a> | Symbol | <a href="../Godot/Variant.html">Variant</a>, default : <a href="../Float32.html">Float32</a> = <span class="n">0.0_f32</span>) : <a href="../Float32.html">Float32</a>
+
+        <a class="method-permalink" href="#fetch_f32%28key%3AString%7CSymbol%7CVariant%2Cdefault%3AFloat32%3D0.0_f32%29%3AFloat32-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="fetch_f64(key:String|Symbol|Variant,default:Float64=0.0):Float64-instance-method">
+      <div class="signature">
+        
+        def <strong>fetch_f64</strong>(key : <a href="../String.html">String</a> | Symbol | <a href="../Godot/Variant.html">Variant</a>, default : <a href="../Float64.html">Float64</a> = <span class="n">0.0</span>) : <a href="../Float64.html">Float64</a>
+
+        <a class="method-permalink" href="#fetch_f64%28key%3AString%7CSymbol%7CVariant%2Cdefault%3AFloat64%3D0.0%29%3AFloat64-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="fetch_i32(key:String|Symbol|Variant,default:Int32=0):Int32-instance-method">
+      <div class="signature">
+        
+        def <strong>fetch_i32</strong>(key : <a href="../String.html">String</a> | Symbol | <a href="../Godot/Variant.html">Variant</a>, default : Int32 = <span class="n">0</span>) : Int32
+
+        <a class="method-permalink" href="#fetch_i32%28key%3AString%7CSymbol%7CVariant%2Cdefault%3AInt32%3D0%29%3AInt32-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="fetch_i64(key:String|Symbol|Variant,default:Int64=0_i64):Int64-instance-method">
+      <div class="signature">
+        
+        def <strong>fetch_i64</strong>(key : <a href="../String.html">String</a> | Symbol | <a href="../Godot/Variant.html">Variant</a>, default : Int64 = <span class="n">0_i64</span>) : Int64
+
+        <a class="method-permalink" href="#fetch_i64%28key%3AString%7CSymbol%7CVariant%2Cdefault%3AInt64%3D0_i64%29%3AInt64-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="fetch_str(key:String|Symbol|Variant,default:String=&quot;&quot;):String-instance-method">
+      <div class="signature">
+        
+        def <strong>fetch_str</strong>(key : <a href="../String.html">String</a> | Symbol | <a href="../Godot/Variant.html">Variant</a>, default : <a href="../String.html">String</a> = <span class="s">&quot;&quot;</span>) : <a href="../String.html">String</a>
+
+        <a class="method-permalink" href="#fetch_str%28key%3AString%7CSymbol%7CVariant%2Cdefault%3AString%3D%22%22%29%3AString-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="fetch_v2(key:String|Symbol|Variant,default:Vector2=Vector2.zero):Vector2-instance-method">
+      <div class="signature">
+        
+        def <strong>fetch_v2</strong>(key : <a href="../String.html">String</a> | Symbol | <a href="../Godot/Variant.html">Variant</a>, default : <a href="../Godot/Vector2.html">Vector2</a> = <span class="t">Vector2</span>.zero) : <a href="../Godot/Vector2.html">Vector2</a>
+
+        <a class="method-permalink" href="#fetch_v2%28key%3AString%7CSymbol%7CVariant%2Cdefault%3AVector2%3DVector2.zero%29%3AVector2-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="fetch_v3(key:String|Symbol|Variant,default:Vector3=Vector3.zero):Vector3-instance-method">
+      <div class="signature">
+        
+        def <strong>fetch_v3</strong>(key : <a href="../String.html">String</a> | Symbol | <a href="../Godot/Variant.html">Variant</a>, default : <a href="../Godot/Vector3.html">Vector3</a> = <span class="t">Vector3</span>.zero) : <a href="../Godot/Vector3.html">Vector3</a>
+
+        <a class="method-permalink" href="#fetch_v3%28key%3AString%7CSymbol%7CVariant%2Cdefault%3AVector3%3DVector3.zero%29%3AVector3-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
     <div class="entry-detail" id="get(key:String|Symbol|Variant,astype:T.class,default:{Godot::Variant,Godot::Variant}):{Godot::Variant,Godot::Variant}forallT-instance-method">
       <div class="signature">
         
@@ -14487,7 +14708,7 @@ Provides seamless indexing, Enumerable iteration, and conversion to/from Crystal
       
         <div class="doc">
           
-          <p>Generic typed getter with default value</p>
+          <p>Generic typed getter with default value (supports scalar/vector string coercion)</p>
         </div>
       
       <br/>

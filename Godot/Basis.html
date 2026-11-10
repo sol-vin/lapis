@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Crystal Docs 1.20.3">
-<meta name="crystal_docs.project_version" content="4.8-beta1-dev">
+<meta name="crystal_docs.project_version" content="4.8-beta2-dev">
 <meta name="crystal_docs.project_name" content="lapis">
 
 
@@ -14,7 +14,7 @@
 <script type="text/javascript" src="../js/doc.js"></script>
 
   <meta name="repository-name" content="lapis">
-  <title>Godot::Basis - lapis 4.8-beta1-dev</title>
+  <title>Godot::Basis - lapis 4.8-beta2-dev</title>
   <script type="text/javascript">
     CrystalDocs.base_path = "../";
   </script>
@@ -45,7 +45,7 @@
       </h1>
 
       <span class="project-version">
-        4.8-beta1-dev
+        4.8-beta2-dev
       </span>
     </div>
   </div>
@@ -104,6 +104,11 @@
   
   <li class=" " data-id="lapis/Basis" data-name="basis">
       <a href="../Basis.html">Basis</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/BindMethod" data-name="bindmethod">
+      <a href="../BindMethod.html">BindMethod</a>
       
     </li>
   
@@ -8372,6 +8377,11 @@
       
     </li>
   
+  <li class=" " data-id="lapis/Godot/ResourcePath" data-name="godot::resourcepath">
+      <a href="../Godot/ResourcePath.html">ResourcePath</a>
+      
+    </li>
+  
   <li class=" " data-id="lapis/Godot/ResourcePreloader" data-name="godot::resourcepreloader">
       <a href="../Godot/ResourcePreloader.html">ResourcePreloader</a>
       
@@ -8774,6 +8784,11 @@
   
   <li class=" " data-id="lapis/Godot/ShaderMaterial" data-name="godot::shadermaterial">
       <a href="../Godot/ShaderMaterial.html">ShaderMaterial</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/ShaderParameterValue" data-name="godot::shaderparametervalue">
+      <a href="../Godot/ShaderParameterValue.html">ShaderParameterValue</a>
       
     </li>
   
@@ -9897,8 +9912,28 @@
       
         <ul>
   
+  <li class=" " data-id="lapis/Godot/Time/Format" data-name="godot::time::format">
+      <a href="../Godot/Time/Format.html">Format</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/Time/Instant" data-name="godot::time::instant">
+      <a href="../Godot/Time/Instant.html">Instant</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/Time/Location" data-name="godot::time::location">
+      <a href="../Godot/Time/Location.html">Location</a>
+      
+    </li>
+  
   <li class=" " data-id="lapis/Godot/Time/Month" data-name="godot::time::month">
       <a href="../Godot/Time/Month.html">Month</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/Time/Span" data-name="godot::time::span">
+      <a href="../Godot/Time/Span.html">Span</a>
       
     </li>
   
@@ -9954,6 +9989,11 @@
   
 </ul>
 
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/ToolRebuildable" data-name="godot::toolrebuildable">
+      <a href="../Godot/ToolRebuildable.html">ToolRebuildable</a>
       
     </li>
   
@@ -13412,6 +13452,11 @@
       
     </li>
   
+  <li class=" " data-id="lapis/Path" data-name="path">
+      <a href="../Path.html">Path</a>
+      
+    </li>
+  
   <li class=" " data-id="lapis/Plane" data-name="plane">
       <a href="../Plane.html">Plane</a>
       
@@ -13479,6 +13524,11 @@
   
   <li class=" " data-id="lapis/ScriptProperty" data-name="scriptproperty">
       <a href="../ScriptProperty.html">ScriptProperty</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/ShaderUniform" data-name="shaderuniform">
+      <a href="../ShaderUniform.html">ShaderUniform</a>
       
     </li>
   
@@ -13699,12 +13749,33 @@
   <ul class="list-summary">
     
       <li class="entry-summary">
+        <a href="#from_axes%28col_x%3AVector3%2Ccol_y%3AVector3%2Ccol_z%3AVector3%29%3ABasis-class-method" class="signature"><strong>.from_axes</strong>(col_x : Vector3, col_y : Vector3, col_z : Vector3) : Basis</a>
+        
+          <div class="summary"><p>Constructs a Basis from 3 column basis vectors (Right, Up, Back).</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#from_axis_angle%28p_axis%3AVector3%2Cp_angle%3ANumber%29%3ABasis-class-method" class="signature"><strong>.from_axis_angle</strong>(p_axis : Vector3, p_angle : Number) : Basis</a>
         
       </li>
     
       <li class="entry-summary">
         <a href="#from_euler%28euler%3AVector3%29%3ABasis-class-method" class="signature"><strong>.from_euler</strong>(euler : Vector3) : Basis</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#from_quaternion%28q%3AQuaternion%29%3ABasis-class-method" class="signature"><strong>.from_quaternion</strong>(q : Quaternion) : Basis</a>
+        
+          <div class="summary"><p>Constructs a rotation Basis from a Quaternion.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#from_scale%28scale%3AVector3%29%3ABasis-class-method" class="signature"><strong>.from_scale</strong>(scale : Vector3) : Basis</a>
+        
+          <div class="summary"><p>Constructs a pure scaling Basis from a Vector3 scale factor.</p></div>
         
       </li>
     
@@ -13730,6 +13801,11 @@
     
       <li class="entry-summary">
         <a href="#new%28pointer%3APointer%28Void%29%29-class-method" class="signature"><strong>.new</strong>(pointer : Pointer(Void))</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#new%28q%3AQuaternion%29-class-method" class="signature"><strong>.new</strong>(q : Quaternion)</a>
         
       </li>
     
@@ -13772,12 +13848,83 @@
       </li>
     
       <li class="entry-summary">
+        <a href="#axis_x%3AVector3-instance-method" class="signature"><strong>#axis_x</strong> : Vector3</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#axis_x%3D%28v%3AVector3%29%3AVector3-instance-method" class="signature"><strong>#axis_x=</strong>(v : Vector3) : Vector3</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#axis_y%3AVector3-instance-method" class="signature"><strong>#axis_y</strong> : Vector3</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#axis_y%3D%28v%3AVector3%29%3AVector3-instance-method" class="signature"><strong>#axis_y=</strong>(v : Vector3) : Vector3</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#axis_z%3AVector3-instance-method" class="signature"><strong>#axis_z</strong> : Vector3</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#axis_z%3D%28v%3AVector3%29%3AVector3-instance-method" class="signature"><strong>#axis_z=</strong>(v : Vector3) : Vector3</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#col_x%3AVector3-instance-method" class="signature"><strong>#col_x</strong> : Vector3</a>
+        
+          <div class="summary"><p>Returns column 0 (local X / Right axis), matching GDScript's <code>basis.x</code></p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#col_x%3D%28v%3AVector3%29%3AVector3-instance-method" class="signature"><strong>#col_x=</strong>(v : Vector3) : Vector3</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#col_y%3AVector3-instance-method" class="signature"><strong>#col_y</strong> : Vector3</a>
+        
+          <div class="summary"><p>Returns column 1 (local Y / Up axis), matching GDScript's <code>basis.y</code></p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#col_y%3D%28v%3AVector3%29%3AVector3-instance-method" class="signature"><strong>#col_y=</strong>(v : Vector3) : Vector3</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#col_z%3AVector3-instance-method" class="signature"><strong>#col_z</strong> : Vector3</a>
+        
+          <div class="summary"><p>Returns column 2 (local Z / Back axis), matching GDScript's <code>basis.z</code></p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#col_z%3D%28v%3AVector3%29%3AVector3-instance-method" class="signature"><strong>#col_z=</strong>(v : Vector3) : Vector3</a>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#determinant%3AFloat32-instance-method" class="signature"><strong>#determinant</strong> : Float32</a>
         
       </li>
     
       <li class="entry-summary">
         <a href="#get_euler%3AVector3-instance-method" class="signature"><strong>#get_euler</strong> : Vector3</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#get_rotation_quaternion%3AQuaternion-instance-method" class="signature"><strong>#get_rotation_quaternion</strong> : Quaternion</a>
         
       </li>
     
@@ -13812,6 +13959,11 @@
       </li>
     
       <li class="entry-summary">
+        <a href="#slerp%28to%3ABasis%2Cweight%3ANumber%29%3ABasis-instance-method" class="signature"><strong>#slerp</strong>(to : Basis, weight : Number) : Basis</a>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#tdotx%28v%3AVector3%29%3AFloat32-instance-method" class="signature"><strong>#tdotx</strong>(v : Vector3) : Float32</a>
         
       </li>
@@ -13823,6 +13975,13 @@
     
       <li class="entry-summary">
         <a href="#tdotz%28v%3AVector3%29%3AFloat32-instance-method" class="signature"><strong>#tdotz</strong>(v : Vector3) : Float32</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#to_quaternion%3AQuaternion-instance-method" class="signature"><strong>#to_quaternion</strong> : Quaternion</a>
+        
+          <div class="summary"><p>Converts this Basis's rotation into a unit Quaternion (Shepperd's method).</p></div>
         
       </li>
     
@@ -13845,6 +14004,16 @@
     
       <li class="entry-summary">
         <a href="#x%3D%28x%3AVector3%29-instance-method" class="signature"><strong>#x=</strong>(x : Vector3)</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#xform%28v%3AVector3%29%3AVector3-instance-method" class="signature"><strong>#xform</strong>(v : Vector3) : Vector3</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#xform_inv%28v%3AVector3%29%3AVector3-instance-method" class="signature"><strong>#xform_inv</strong>(v : Vector3) : Vector3</a>
         
       </li>
     
@@ -13934,6 +14103,25 @@
     Constructor Detail
   </h2>
   
+    <div class="entry-detail" id="from_axes(col_x:Vector3,col_y:Vector3,col_z:Vector3):Basis-class-method">
+      <div class="signature">
+        
+        def self.<strong>from_axes</strong>(col_x : <a href="../Godot/Vector3.html">Vector3</a>, col_y : <a href="../Godot/Vector3.html">Vector3</a>, col_z : <a href="../Godot/Vector3.html">Vector3</a>) : <a href="../Godot/Basis.html">Basis</a>
+
+        <a class="method-permalink" href="#from_axes%28col_x%3AVector3%2Ccol_y%3AVector3%2Ccol_z%3AVector3%29%3ABasis-class-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Constructs a Basis from 3 column basis vectors (Right, Up, Back).</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
     <div class="entry-detail" id="from_axis_angle(p_axis:Vector3,p_angle:Number):Basis-class-method">
       <div class="signature">
         
@@ -13955,6 +14143,44 @@
 
         <a class="method-permalink" href="#from_euler%28euler%3AVector3%29%3ABasis-class-method">#</a>
       </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="from_quaternion(q:Quaternion):Basis-class-method">
+      <div class="signature">
+        
+        def self.<strong>from_quaternion</strong>(q : <a href="../Godot/Quaternion.html">Quaternion</a>) : <a href="../Godot/Basis.html">Basis</a>
+
+        <a class="method-permalink" href="#from_quaternion%28q%3AQuaternion%29%3ABasis-class-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Constructs a rotation Basis from a Quaternion.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="from_scale(scale:Vector3):Basis-class-method">
+      <div class="signature">
+        
+        def self.<strong>from_scale</strong>(scale : <a href="../Godot/Vector3.html">Vector3</a>) : <a href="../Godot/Basis.html">Basis</a>
+
+        <a class="method-permalink" href="#from_scale%28scale%3AVector3%29%3ABasis-class-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Constructs a pure scaling Basis from a Vector3 scale factor.</p>
+        </div>
       
       <br/>
       <div>
@@ -14024,6 +14250,20 @@
         def self.<strong>new</strong>(pointer : Pointer(Void))
 
         <a class="method-permalink" href="#new%28pointer%3APointer%28Void%29%29-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="new(q:Quaternion)-class-method">
+      <div class="signature">
+        
+        def self.<strong>new</strong>(q : <a href="../Godot/Quaternion.html">Quaternion</a>)
+
+        <a class="method-permalink" href="#new%28q%3AQuaternion%29-class-method">#</a>
       </div>
       
       <br/>
@@ -14104,6 +14344,189 @@
       </div>
     </div>
   
+    <div class="entry-detail" id="axis_x:Vector3-instance-method">
+      <div class="signature">
+        
+        def <strong>axis_x</strong> : <a href="../Godot/Vector3.html">Vector3</a>
+
+        <a class="method-permalink" href="#axis_x%3AVector3-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="axis_x=(v:Vector3):Vector3-instance-method">
+      <div class="signature">
+        
+        def <strong>axis_x=</strong>(v : <a href="../Godot/Vector3.html">Vector3</a>) : <a href="../Godot/Vector3.html">Vector3</a>
+
+        <a class="method-permalink" href="#axis_x%3D%28v%3AVector3%29%3AVector3-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="axis_y:Vector3-instance-method">
+      <div class="signature">
+        
+        def <strong>axis_y</strong> : <a href="../Godot/Vector3.html">Vector3</a>
+
+        <a class="method-permalink" href="#axis_y%3AVector3-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="axis_y=(v:Vector3):Vector3-instance-method">
+      <div class="signature">
+        
+        def <strong>axis_y=</strong>(v : <a href="../Godot/Vector3.html">Vector3</a>) : <a href="../Godot/Vector3.html">Vector3</a>
+
+        <a class="method-permalink" href="#axis_y%3D%28v%3AVector3%29%3AVector3-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="axis_z:Vector3-instance-method">
+      <div class="signature">
+        
+        def <strong>axis_z</strong> : <a href="../Godot/Vector3.html">Vector3</a>
+
+        <a class="method-permalink" href="#axis_z%3AVector3-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="axis_z=(v:Vector3):Vector3-instance-method">
+      <div class="signature">
+        
+        def <strong>axis_z=</strong>(v : <a href="../Godot/Vector3.html">Vector3</a>) : <a href="../Godot/Vector3.html">Vector3</a>
+
+        <a class="method-permalink" href="#axis_z%3D%28v%3AVector3%29%3AVector3-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="col_x:Vector3-instance-method">
+      <div class="signature">
+        
+        def <strong>col_x</strong> : <a href="../Godot/Vector3.html">Vector3</a>
+
+        <a class="method-permalink" href="#col_x%3AVector3-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns column 0 (local X / Right axis), matching GDScript's <code>basis.x</code></p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="col_x=(v:Vector3):Vector3-instance-method">
+      <div class="signature">
+        
+        def <strong>col_x=</strong>(v : <a href="../Godot/Vector3.html">Vector3</a>) : <a href="../Godot/Vector3.html">Vector3</a>
+
+        <a class="method-permalink" href="#col_x%3D%28v%3AVector3%29%3AVector3-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="col_y:Vector3-instance-method">
+      <div class="signature">
+        
+        def <strong>col_y</strong> : <a href="../Godot/Vector3.html">Vector3</a>
+
+        <a class="method-permalink" href="#col_y%3AVector3-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns column 1 (local Y / Up axis), matching GDScript's <code>basis.y</code></p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="col_y=(v:Vector3):Vector3-instance-method">
+      <div class="signature">
+        
+        def <strong>col_y=</strong>(v : <a href="../Godot/Vector3.html">Vector3</a>) : <a href="../Godot/Vector3.html">Vector3</a>
+
+        <a class="method-permalink" href="#col_y%3D%28v%3AVector3%29%3AVector3-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="col_z:Vector3-instance-method">
+      <div class="signature">
+        
+        def <strong>col_z</strong> : <a href="../Godot/Vector3.html">Vector3</a>
+
+        <a class="method-permalink" href="#col_z%3AVector3-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns column 2 (local Z / Back axis), matching GDScript's <code>basis.z</code></p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="col_z=(v:Vector3):Vector3-instance-method">
+      <div class="signature">
+        
+        def <strong>col_z=</strong>(v : <a href="../Godot/Vector3.html">Vector3</a>) : <a href="../Godot/Vector3.html">Vector3</a>
+
+        <a class="method-permalink" href="#col_z%3D%28v%3AVector3%29%3AVector3-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
     <div class="entry-detail" id="determinant:Float32-instance-method">
       <div class="signature">
         
@@ -14124,6 +14547,20 @@
         def <strong>get_euler</strong> : <a href="../Godot/Vector3.html">Vector3</a>
 
         <a class="method-permalink" href="#get_euler%3AVector3-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="get_rotation_quaternion:Quaternion-instance-method">
+      <div class="signature">
+        
+        def <strong>get_rotation_quaternion</strong> : <a href="../Godot/Quaternion.html">Quaternion</a>
+
+        <a class="method-permalink" href="#get_rotation_quaternion%3AQuaternion-instance-method">#</a>
       </div>
       
       <br/>
@@ -14216,6 +14653,20 @@
       </div>
     </div>
   
+    <div class="entry-detail" id="slerp(to:Basis,weight:Number):Basis-instance-method">
+      <div class="signature">
+        
+        def <strong>slerp</strong>(to : <a href="../Godot/Basis.html">Basis</a>, weight : <a href="../Number.html">Number</a>) : <a href="../Godot/Basis.html">Basis</a>
+
+        <a class="method-permalink" href="#slerp%28to%3ABasis%2Cweight%3ANumber%29%3ABasis-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
     <div class="entry-detail" id="tdotx(v:Vector3):Float32-instance-method">
       <div class="signature">
         
@@ -14251,6 +14702,25 @@
 
         <a class="method-permalink" href="#tdotz%28v%3AVector3%29%3AFloat32-instance-method">#</a>
       </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="to_quaternion:Quaternion-instance-method">
+      <div class="signature">
+        
+        def <strong>to_quaternion</strong> : <a href="../Godot/Quaternion.html">Quaternion</a>
+
+        <a class="method-permalink" href="#to_quaternion%3AQuaternion-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Converts this Basis's rotation into a unit Quaternion (Shepperd's method).</p>
+        </div>
       
       <br/>
       <div>
@@ -14315,6 +14785,34 @@
         def <strong>x=</strong>(x : <a href="../Godot/Vector3.html">Vector3</a>)
 
         <a class="method-permalink" href="#x%3D%28x%3AVector3%29-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="xform(v:Vector3):Vector3-instance-method">
+      <div class="signature">
+        
+        def <strong>xform</strong>(v : <a href="../Godot/Vector3.html">Vector3</a>) : <a href="../Godot/Vector3.html">Vector3</a>
+
+        <a class="method-permalink" href="#xform%28v%3AVector3%29%3AVector3-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="xform_inv(v:Vector3):Vector3-instance-method">
+      <div class="signature">
+        
+        def <strong>xform_inv</strong>(v : <a href="../Godot/Vector3.html">Vector3</a>) : <a href="../Godot/Vector3.html">Vector3</a>
+
+        <a class="method-permalink" href="#xform_inv%28v%3AVector3%29%3AVector3-instance-method">#</a>
       </div>
       
       <br/>

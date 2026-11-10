@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Crystal Docs 1.20.3">
-<meta name="crystal_docs.project_version" content="4.8-beta1-dev">
+<meta name="crystal_docs.project_version" content="4.8-beta2-dev">
 <meta name="crystal_docs.project_name" content="lapis">
 
 
@@ -14,7 +14,7 @@
 <script type="text/javascript" src="../js/doc.js"></script>
 
   <meta name="repository-name" content="lapis">
-  <title>Godot::Object - lapis 4.8-beta1-dev</title>
+  <title>Godot::Object - lapis 4.8-beta2-dev</title>
   <script type="text/javascript">
     CrystalDocs.base_path = "../";
   </script>
@@ -45,7 +45,7 @@
       </h1>
 
       <span class="project-version">
-        4.8-beta1-dev
+        4.8-beta2-dev
       </span>
     </div>
   </div>
@@ -104,6 +104,11 @@
   
   <li class=" " data-id="lapis/Basis" data-name="basis">
       <a href="../Basis.html">Basis</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/BindMethod" data-name="bindmethod">
+      <a href="../BindMethod.html">BindMethod</a>
       
     </li>
   
@@ -8372,6 +8377,11 @@
       
     </li>
   
+  <li class=" " data-id="lapis/Godot/ResourcePath" data-name="godot::resourcepath">
+      <a href="../Godot/ResourcePath.html">ResourcePath</a>
+      
+    </li>
+  
   <li class=" " data-id="lapis/Godot/ResourcePreloader" data-name="godot::resourcepreloader">
       <a href="../Godot/ResourcePreloader.html">ResourcePreloader</a>
       
@@ -8774,6 +8784,11 @@
   
   <li class=" " data-id="lapis/Godot/ShaderMaterial" data-name="godot::shadermaterial">
       <a href="../Godot/ShaderMaterial.html">ShaderMaterial</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/ShaderParameterValue" data-name="godot::shaderparametervalue">
+      <a href="../Godot/ShaderParameterValue.html">ShaderParameterValue</a>
       
     </li>
   
@@ -9897,8 +9912,28 @@
       
         <ul>
   
+  <li class=" " data-id="lapis/Godot/Time/Format" data-name="godot::time::format">
+      <a href="../Godot/Time/Format.html">Format</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/Time/Instant" data-name="godot::time::instant">
+      <a href="../Godot/Time/Instant.html">Instant</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/Time/Location" data-name="godot::time::location">
+      <a href="../Godot/Time/Location.html">Location</a>
+      
+    </li>
+  
   <li class=" " data-id="lapis/Godot/Time/Month" data-name="godot::time::month">
       <a href="../Godot/Time/Month.html">Month</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/Time/Span" data-name="godot::time::span">
+      <a href="../Godot/Time/Span.html">Span</a>
       
     </li>
   
@@ -9954,6 +9989,11 @@
   
 </ul>
 
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/ToolRebuildable" data-name="godot::toolrebuildable">
+      <a href="../Godot/ToolRebuildable.html">ToolRebuildable</a>
       
     </li>
   
@@ -13412,6 +13452,11 @@
       
     </li>
   
+  <li class=" " data-id="lapis/Path" data-name="path">
+      <a href="../Path.html">Path</a>
+      
+    </li>
+  
   <li class=" " data-id="lapis/Plane" data-name="plane">
       <a href="../Plane.html">Plane</a>
       
@@ -13479,6 +13524,11 @@
   
   <li class=" " data-id="lapis/ScriptProperty" data-name="scriptproperty">
       <a href="../ScriptProperty.html">ScriptProperty</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/ShaderUniform" data-name="shaderuniform">
+      <a href="../ShaderUniform.html">ShaderUniform</a>
       
     </li>
   
@@ -13814,6 +13864,11 @@ Provides identity, lifecycle dispatch hooks, and signal emission functionality.<
     <br/>
   
     
+      libgodot/extensions.cr
+    
+    <br/>
+  
+    
       libgodot/extensions/primitives.cr
     
     <br/>
@@ -13942,9 +13997,12 @@ Provides identity, lifecycle dispatch hooks, and signal emission functionality.<
       </li>
     
       <li class="entry-summary">
-        <a href="#find_script_info_for_node%28node%3AGodot%3A%3AObject%29%3ANamedTuple%28path%3AString%2Cline%3AInt32%2Cclass_name%3AString%2Cparent_name%3AString%2Cis_tool%3ABool%29%7CNil-class-method" class="signature"><strong>.find_script_info_for_node</strong>(node : Godot::Object) : NamedTuple(path: String, line: Int32, class_name: String, parent_name: String, is_tool: Bool) | Nil</a>
+        <a href="#clear_script_info_cache%21%3AVoid-class-method" class="signature"><strong>.clear_script_info_cache!</strong> : Void</a>
         
-          <div class="summary"><p>Resolves the Crystal script path, 1-based line number, class name, parent class, and tool flag for a SceneTree node</p></div>
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#find_script_info_for_node%28node%3AGodot%3A%3AObject%29%3ANamedTuple%28path%3AString%2Cline%3AInt32%2Cclass_name%3AString%2Cparent_name%3AString%2Cis_tool%3ABool%29%7CNil-class-method" class="signature"><strong>.find_script_info_for_node</strong>(node : Godot::Object) : NamedTuple(path: String, line: Int32, class_name: String, parent_name: String, is_tool: Bool) | Nil</a>
         
       </li>
     
@@ -13973,6 +14031,11 @@ Provides identity, lifecycle dispatch hooks, and signal emission functionality.<
         <a href="#is_internal_or_brush_class%3F%28cls_name%3AString%29%3ABool-class-method" class="signature"><strong>.is_internal_or_brush_class?</strong>(cls_name : String) : Bool</a>
         
           <div class="summary"><p>Returns true if the given class name is a built-in engine class, internal Lapis class, or UniBuilder brush class</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#resolve_cached_class_script_info%28cls_name%3AString%2Cdefault_parent%3AString%3D%22Node%22%2Cdefault_tool%3ABool%3Dfalse%29%3ANamedTuple%28path%3AString%2Cline%3AInt32%2Cclass_name%3AString%2Cparent_name%3AString%2Cis_tool%3ABool%29%7CNil-class-method" class="signature"><strong>.resolve_cached_class_script_info</strong>(cls_name : String, default_parent : String = <span class="s">&quot;Node&quot;</span>, default_tool : Bool = <span class="n">false</span>) : NamedTuple(path: String, line: Int32, class_name: String, parent_name: String, is_tool: Bool) | Nil</a>
         
       </li>
     
@@ -14054,9 +14117,31 @@ Provides identity, lifecycle dispatch hooks, and signal emission functionality.<
       </li>
     
       <li class="entry-summary">
+        <a href="#_godot_dispatch_crystal_0%28method%3AString%29%3ABool-instance-method" class="signature"><strong>#_godot_dispatch_crystal_0</strong>(method : String) : Bool</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#_godot_dispatch_crystal_1%28method%3AString%2Ca0%3AVariant%29%3ABool-instance-method" class="signature"><strong>#_godot_dispatch_crystal_1</strong>(method : String, a0 : Variant) : Bool</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#_godot_dispatch_crystal_2%28method%3AString%2Ca0%3AVariant%2Ca1%3AVariant%29%3ABool-instance-method" class="signature"><strong>#_godot_dispatch_crystal_2</strong>(method : String, a0 : Variant, a1 : Variant) : Bool</a>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#_godot_get_property%28prop_name%3AString%2Cret_ptr%3APointer%28Void%29%29%3AVoid-instance-method" class="signature"><strong>#_godot_get_property</strong>(prop_name : String, ret_ptr : Pointer(Void)) : Void</a>
         
           <div class="summary"><p>Invoked by the GDExtension bridge when retrieving an exposed <code>@export</code> property.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#_godot_has_crystal_method%3F%28method%3AString%29%3ABool-instance-method" class="signature"><strong>#_godot_has_crystal_method?</strong>(method : String) : Bool</a>
+        
+          <div class="summary"><p>Internal hooks overridden by Lapis <code><a href="../toplevel.html#node%28decl%2C%26block%29-macro">node</a></code>/<code><a href="../toplevel.html#gdclass%28decl%2C%26block%29-macro">gdclass</a></code>/<code><a href="../toplevel.html#resource%28decl%2C%26block%29-macro">resource</a></code> classes to expose Crystal-defined methods.</p></div>
         
       </li>
     
@@ -14118,6 +14203,13 @@ Provides identity, lifecycle dispatch hooks, and signal emission functionality.<
         <a href="#alive%3F%3ABool-instance-method" class="signature"><strong>#alive?</strong> : Bool</a>
         
           <div class="summary"><p>Returns true if this object instance has a valid engine pointer and is alive in Godot's ObjectDB</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#apply_dictionary_properties%21%28dict%3AGodot%3A%3ADictionary%29%3AVoid-instance-method" class="signature"><strong>#apply_dictionary_properties!</strong>(dict : Godot::Dictionary) : Void</a>
+        
+          <div class="summary"><p>Populates <code>@[<a href="../Export.html">Export</a>]</code> properties on this object from a <code><a href="../Godot/Dictionary.html">Godot::Dictionary</a></code>.</p></div>
         
       </li>
     
@@ -14522,6 +14614,13 @@ Provides identity, lifecycle dispatch hooks, and signal emission functionality.<
       </li>
     
       <li class="entry-summary">
+        <a href="#export_config_hash%3AUInt64-instance-method" class="signature"><strong>#export_config_hash</strong> : UInt64</a>
+        
+          <div class="summary"><p>Computes a deterministic 64-bit hash of all <code>@[<a href="../Export.html">Export</a>]</code> properties on this object.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#frame_arena%3ALapis%3A%3ACore%3A%3AFrameArena-instance-method" class="signature"><strong>#frame_arena</strong> : Lapis::Core::FrameArena</a>
         
           <div class="summary"><p>Returns the active <code><a href="../Lapis/Core/FrameArena.html">Lapis::Core::FrameArena</a></code> scratchpad for the current frame.</p></div>
@@ -14609,21 +14708,47 @@ Provides identity, lifecycle dispatch hooks, and signal emission functionality.<
       </li>
     
       <li class="entry-summary">
-        <a href="#get_meta_color%28key%3AString%7CSymbol%29%3AColor-instance-method" class="signature"><strong>#get_meta_color</strong>(key : String | Symbol) : Color</a>
+        <a href="#get_meta%28name%3AString%2Cdefault%3APointer%28Void%29%7CNil%3Dnil%29%3APointer%28Void%29-instance-method" class="signature"><strong>#get_meta</strong>(name : String, default : Pointer(Void) | Nil = <span class="n">nil</span>) : Pointer(Void)</a>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#get_meta_f64%28key%3AString%7CSymbol%29%3AFloat64-instance-method" class="signature"><strong>#get_meta_f64</strong>(key : String | Symbol) : Float64</a>
+        <a href="#get_meta_bool%28key%3AString%7CSymbol%2Cdefault%3ABool%3Dfalse%29%3ABool-instance-method" class="signature"><strong>#get_meta_bool</strong>(key : String | Symbol, default : Bool = <span class="n">false</span>) : Bool</a>
         
-          <div class="summary"><p>Retrieves floating-point metadata stored on this object as a <code><a href="../Float64.html">Float64</a></code>.</p></div>
+          <div class="summary"><p>Retrieves boolean metadata stored on this object, or <code>default</code> if not set.</p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#get_meta_i64%28key%3AString%7CSymbol%29%3AInt64-instance-method" class="signature"><strong>#get_meta_i64</strong>(key : String | Symbol) : Int64</a>
+        <a href="#get_meta_color%28key%3AString%7CSymbol%2Cdefault%3AColor%3DColor%3A%3AWHITE%29%3AColor-instance-method" class="signature"><strong>#get_meta_color</strong>(key : String | Symbol, default : Color = <span class="t">Color</span><span class="t">::</span><span class="t">WHITE</span>) : Color</a>
         
-          <div class="summary"><p>Retrieves integer metadata stored on this object as an <code>Int64</code>.</p></div>
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#get_meta_f32%28key%3AString%7CSymbol%2Cdefault%3AFloat32%3D0.0_f32%29%3AFloat32-instance-method" class="signature"><strong>#get_meta_f32</strong>(key : String | Symbol, default : Float32 = <span class="n">0.0_f32</span>) : Float32</a>
+        
+          <div class="summary"><p>Retrieves floating-point metadata stored on this object as a <code><a href="../Float32.html">Float32</a></code>, or <code>default</code> if not set.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#get_meta_f64%28key%3AString%7CSymbol%2Cdefault%3AFloat64%3D0.0%29%3AFloat64-instance-method" class="signature"><strong>#get_meta_f64</strong>(key : String | Symbol, default : Float64 = <span class="n">0.0</span>) : Float64</a>
+        
+          <div class="summary"><p>Retrieves floating-point metadata stored on this object as a <code><a href="../Float64.html">Float64</a></code>, or <code>default</code> if not set.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#get_meta_i32%28key%3AString%7CSymbol%2Cdefault%3AInt32%3D0%29%3AInt32-instance-method" class="signature"><strong>#get_meta_i32</strong>(key : String | Symbol, default : Int32 = <span class="n">0</span>) : Int32</a>
+        
+          <div class="summary"><p>Retrieves integer metadata stored on this object as an <code>Int32</code>, or <code>default</code> if not set.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#get_meta_i64%28key%3AString%7CSymbol%2Cdefault%3AInt64%3D0_i64%29%3AInt64-instance-method" class="signature"><strong>#get_meta_i64</strong>(key : String | Symbol, default : Int64 = <span class="n">0_i64</span>) : Int64</a>
+        
+          <div class="summary"><p>Retrieves integer metadata stored on this object as an <code>Int64</code>, or <code>default</code> if not set.</p></div>
         
       </li>
     
@@ -14633,24 +14758,31 @@ Provides identity, lifecycle dispatch hooks, and signal emission functionality.<
       </li>
     
       <li class="entry-summary">
-        <a href="#get_meta_str%28key%3AString%7CSymbol%29%3AString-instance-method" class="signature"><strong>#get_meta_str</strong>(key : String | Symbol) : String</a>
+        <a href="#get_meta_object%28key%3AString%7CSymbol%2Ctype%3AT.class%3DGodot%3A%3AObject%29%3AT%7CNilforallT-instance-method" class="signature"><strong>#get_meta_object</strong>(key : String | Symbol, type : <span class="t">T</span>.<span class="k">class</span> = <span class="t">Godot</span><span class="t">::</span><span class="t">Object</span>) : T | Nil forall T</a>
         
-          <div class="summary"><p>Retrieves string metadata stored on this object.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#get_meta_transform3d%28key%3AString%7CSymbol%29%3ATransform3D-instance-method" class="signature"><strong>#get_meta_transform3d</strong>(key : String | Symbol) : Transform3D</a>
+          <div class="summary"><p>Safely retrieves a <code><a href="../Godot/Object.html">Godot::Object</a></code> from metadata by validating its 64-bit ObjectDB <code><a href="../Godot/Object.html#instance_id%3AUInt64-instance-method">#instance_id</a></code> (or direct object Variant) and resolving any live Crystal subclass instance.</p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#get_meta_vector2%28key%3AString%7CSymbol%29%3AVector2-instance-method" class="signature"><strong>#get_meta_vector2</strong>(key : String | Symbol) : Vector2</a>
+        <a href="#get_meta_str%28key%3AString%7CSymbol%2Cdefault%3AString%3D%22%22%29%3AString-instance-method" class="signature"><strong>#get_meta_str</strong>(key : String | Symbol, default : String = <span class="s">&quot;&quot;</span>) : String</a>
+        
+          <div class="summary"><p>Retrieves string metadata stored on this object, or <code>default</code> if not set.</p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#get_meta_vector3%28key%3AString%7CSymbol%29%3AVector3-instance-method" class="signature"><strong>#get_meta_vector3</strong>(key : String | Symbol) : Vector3</a>
+        <a href="#get_meta_transform3d%28key%3AString%7CSymbol%2Cdefault%3ATransform3D%3DTransform3D.identity%29%3ATransform3D-instance-method" class="signature"><strong>#get_meta_transform3d</strong>(key : String | Symbol, default : Transform3D = <span class="t">Transform3D</span>.identity) : Transform3D</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#get_meta_vector2%28key%3AString%7CSymbol%2Cdefault%3AVector2%3DVector2.zero%29%3AVector2-instance-method" class="signature"><strong>#get_meta_vector2</strong>(key : String | Symbol, default : Vector2 = <span class="t">Vector2</span>.zero) : Vector2</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#get_meta_vector3%28key%3AString%7CSymbol%2Cdefault%3AVector3%3DVector3.zero%29%3AVector3-instance-method" class="signature"><strong>#get_meta_vector3</strong>(key : String | Symbol, default : Vector3 = <span class="t">Vector3</span>.zero) : Vector3</a>
         
       </li>
     
@@ -14692,10 +14824,14 @@ Provides identity, lifecycle dispatch hooks, and signal emission functionality.<
       <li class="entry-summary">
         <a href="#godot_as%28type%3AT.class%29%3ATforallT-instance-method" class="signature"><strong>#godot_as</strong>(type : <span class="t">T</span>.<span class="k">class</span>) : T forall T</a>
         
+          <div class="summary"><p>Alias for as_a(T) used in gameplay codebases</p></div>
+        
       </li>
     
       <li class="entry-summary">
         <a href="#godot_as%3F%28type%3AT.class%29%3AT%7CNilforallT-instance-method" class="signature"><strong>#godot_as?</strong>(type : <span class="t">T</span>.<span class="k">class</span>) : T | Nil forall T</a>
+        
+          <div class="summary"><p>Alias for as_a?(T) used in gameplay codebases</p></div>
         
       </li>
     
@@ -14732,6 +14868,8 @@ Provides identity, lifecycle dispatch hooks, and signal emission functionality.<
     
       <li class="entry-summary">
         <a href="#has_method%28method%3AString%29%3ABool-instance-method" class="signature"><strong>#has_method</strong>(method : String) : Bool</a>
+        
+          <div class="summary"><p>Checks both Crystal-defined methods on the live instance and native Godot methods.</p></div>
         
       </li>
     
@@ -14849,6 +14987,13 @@ Provides identity, lifecycle dispatch hooks, and signal emission functionality.<
         <a href="#link_class_script%3AVoid-instance-method" class="signature"><strong>#link_class_script</strong> : Void</a>
         
           <div class="summary"><p>Automatically links this node's registered CrystalScript resource if running inside the Godot Editor</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#live_instance%3AGodot%3A%3AObject-instance-method" class="signature"><strong>#live_instance</strong> : Godot::Object</a>
+        
+          <div class="summary"><p>Resolves the live Crystal subclass instance registered for this native pointer, or returns self.</p></div>
         
       </li>
     
@@ -15064,6 +15209,13 @@ Provides identity, lifecycle dispatch hooks, and signal emission functionality.<
     
       <li class="entry-summary">
         <a href="#set_meta%28key%3AString%7CSymbol%2Cvalue%3AVariant%29%3AVoid-instance-method" class="signature"><strong>#set_meta</strong>(key : String | Symbol, value : Variant) : Void</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#set_meta_object%28key%3AString%7CSymbol%2Cobj%3AGodot%3A%3AObject%7CNil%29%3AVoid-instance-method" class="signature"><strong>#set_meta_object</strong>(key : String | Symbol, obj : Godot::Object | Nil) : Void</a>
+        
+          <div class="summary"><p>Safely stores a reference to a <code><a href="../Godot/Object.html">Godot::Object</a></code> in metadata using its monotonic 64-bit ObjectDB <code><a href="../Godot/Object.html#instance_id%3AUInt64-instance-method">#instance_id</a></code>.</p></div>
         
       </li>
     
@@ -15415,6 +15567,20 @@ Provides identity, lifecycle dispatch hooks, and signal emission functionality.<
       </div>
     </div>
   
+    <div class="entry-detail" id="clear_script_info_cache!:Void-class-method">
+      <div class="signature">
+        
+        def self.<strong>clear_script_info_cache!</strong> : Void
+
+        <a class="method-permalink" href="#clear_script_info_cache%21%3AVoid-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
     <div class="entry-detail" id="find_script_info_for_node(node:Godot::Object):NamedTuple(path:String,line:Int32,class_name:String,parent_name:String,is_tool:Bool)|Nil-class-method">
       <div class="signature">
         
@@ -15422,11 +15588,6 @@ Provides identity, lifecycle dispatch hooks, and signal emission functionality.<
 
         <a class="method-permalink" href="#find_script_info_for_node%28node%3AGodot%3A%3AObject%29%3ANamedTuple%28path%3AString%2Cline%3AInt32%2Cclass_name%3AString%2Cparent_name%3AString%2Cis_tool%3ABool%29%7CNil-class-method">#</a>
       </div>
-      
-        <div class="doc">
-          
-          <p>Resolves the Crystal script path, 1-based line number, class name, parent class, and tool flag for a SceneTree node</p>
-        </div>
       
       <br/>
       <div>
@@ -15503,6 +15664,20 @@ Provides identity, lifecycle dispatch hooks, and signal emission functionality.<
           
           <p>Returns true if the given class name is a built-in engine class, internal Lapis class, or UniBuilder brush class</p>
         </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="resolve_cached_class_script_info(cls_name:String,default_parent:String=&quot;Node&quot;,default_tool:Bool=false):NamedTuple(path:String,line:Int32,class_name:String,parent_name:String,is_tool:Bool)|Nil-class-method">
+      <div class="signature">
+        
+        def self.<strong>resolve_cached_class_script_info</strong>(cls_name : <a href="../String.html">String</a>, default_parent : <a href="../String.html">String</a> = <span class="s">&quot;Node&quot;</span>, default_tool : Bool = <span class="n">false</span>) : NamedTuple(path: <a href="../String.html">String</a>, line: Int32, class_name: <a href="../String.html">String</a>, parent_name: <a href="../String.html">String</a>, is_tool: Bool) | <a href="../Nil.html">Nil</a>
+
+        <a class="method-permalink" href="#resolve_cached_class_script_info%28cls_name%3AString%2Cdefault_parent%3AString%3D%22Node%22%2Cdefault_tool%3ABool%3Dfalse%29%3ANamedTuple%28path%3AString%2Cline%3AInt32%2Cclass_name%3AString%2Cparent_name%3AString%2Cis_tool%3ABool%29%7CNil-class-method">#</a>
+      </div>
       
       <br/>
       <div>
@@ -15692,6 +15867,48 @@ Delta timestep is received with 64-bit precision (<code><a href="../Float64.html
       </div>
     </div>
   
+    <div class="entry-detail" id="_godot_dispatch_crystal_0(method:String):Bool-instance-method">
+      <div class="signature">
+        
+        def <strong>_godot_dispatch_crystal_0</strong>(method : <a href="../String.html">String</a>) : Bool
+
+        <a class="method-permalink" href="#_godot_dispatch_crystal_0%28method%3AString%29%3ABool-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="_godot_dispatch_crystal_1(method:String,a0:Variant):Bool-instance-method">
+      <div class="signature">
+        
+        def <strong>_godot_dispatch_crystal_1</strong>(method : <a href="../String.html">String</a>, a0 : <a href="../Godot/Variant.html">Variant</a>) : Bool
+
+        <a class="method-permalink" href="#_godot_dispatch_crystal_1%28method%3AString%2Ca0%3AVariant%29%3ABool-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="_godot_dispatch_crystal_2(method:String,a0:Variant,a1:Variant):Bool-instance-method">
+      <div class="signature">
+        
+        def <strong>_godot_dispatch_crystal_2</strong>(method : <a href="../String.html">String</a>, a0 : <a href="../Godot/Variant.html">Variant</a>, a1 : <a href="../Godot/Variant.html">Variant</a>) : Bool
+
+        <a class="method-permalink" href="#_godot_dispatch_crystal_2%28method%3AString%2Ca0%3AVariant%2Ca1%3AVariant%29%3ABool-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
     <div class="entry-detail" id="_godot_get_property(prop_name:String,ret_ptr:Pointer(Void)):Void-instance-method">
       <div class="signature">
         
@@ -15703,6 +15920,25 @@ Delta timestep is received with 64-bit precision (<code><a href="../Float64.html
         <div class="doc">
           
           <p>Invoked by the GDExtension bridge when retrieving an exposed <code>@export</code> property.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="_godot_has_crystal_method?(method:String):Bool-instance-method">
+      <div class="signature">
+        
+        def <strong>_godot_has_crystal_method?</strong>(method : <a href="../String.html">String</a>) : Bool
+
+        <a class="method-permalink" href="#_godot_has_crystal_method%3F%28method%3AString%29%3ABool-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Internal hooks overridden by Lapis <code><a href="../toplevel.html#node%28decl%2C%26block%29-macro">node</a></code>/<code><a href="../toplevel.html#gdclass%28decl%2C%26block%29-macro">gdclass</a></code>/<code><a href="../toplevel.html#resource%28decl%2C%26block%29-macro">resource</a></code> classes to expose Crystal-defined methods.</p>
         </div>
       
       <br/>
@@ -15869,6 +16105,25 @@ Delta timestep is received with 64-bit precision (<code><a href="../Float64.html
         <div class="doc">
           
           <p>Returns true if this object instance has a valid engine pointer and is alive in Godot's ObjectDB</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="apply_dictionary_properties!(dict:Godot::Dictionary):Void-instance-method">
+      <div class="signature">
+        
+        def <strong>apply_dictionary_properties!</strong>(dict : <a href="../Godot/Dictionary.html">Godot::Dictionary</a>) : Void
+
+        <a class="method-permalink" href="#apply_dictionary_properties%21%28dict%3AGodot%3A%3ADictionary%29%3AVoid-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Populates <code>@[<a href="../Export.html">Export</a>]</code> properties on this object from a <code><a href="../Godot/Dictionary.html">Godot::Dictionary</a></code>.</p>
         </div>
       
       <br/>
@@ -16249,7 +16504,8 @@ Returns <code><a href="../Godot/AwaitStatus.html">AwaitStatus</a>(<a href="../Ar
       
         <div class="doc">
           
-          <p>Calls the named method on the object with variable arguments.</p>
+          <p>Calls the named method on the object with variable arguments.
+If this wrapper points to a live Crystal subclass instance, dispatches polymorphically through it.</p>
         </div>
       
       <br/>
@@ -16974,6 +17230,25 @@ Raises <code><a href="../Godot/DisposedObjectError.html">DisposedObjectError</a>
       </div>
     </div>
   
+    <div class="entry-detail" id="export_config_hash:UInt64-instance-method">
+      <div class="signature">
+        
+        def <strong>export_config_hash</strong> : UInt64
+
+        <a class="method-permalink" href="#export_config_hash%3AUInt64-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Computes a deterministic 64-bit hash of all <code>@[<a href="../Export.html">Export</a>]</code> properties on this object.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
     <div class="entry-detail" id="frame_arena:Lapis::Core::FrameArena-instance-method">
       <div class="signature">
         
@@ -17216,12 +17491,12 @@ stack <code>Void*</code> as a 24-byte <code><a href="../Godot/Variant.html">Vari
       </div>
     </div>
   
-    <div class="entry-detail" id="get_meta_color(key:String|Symbol):Color-instance-method">
+    <div class="entry-detail" id="get_meta(name:String,default:Pointer(Void)|Nil=nil):Pointer(Void)-instance-method">
       <div class="signature">
         
-        def <strong>get_meta_color</strong>(key : <a href="../String.html">String</a> | Symbol) : <a href="../Godot/Color.html">Color</a>
+        def <strong>get_meta</strong>(name : <a href="../String.html">String</a>, default : Pointer(Void) | <a href="../Nil.html">Nil</a> = <span class="n">nil</span>) : Pointer(Void)
 
-        <a class="method-permalink" href="#get_meta_color%28key%3AString%7CSymbol%29%3AColor-instance-method">#</a>
+        <a class="method-permalink" href="#get_meta%28name%3AString%2Cdefault%3APointer%28Void%29%7CNil%3Dnil%29%3APointer%28Void%29-instance-method">#</a>
       </div>
       
       <br/>
@@ -17230,17 +17505,69 @@ stack <code>Void*</code> as a 24-byte <code><a href="../Godot/Variant.html">Vari
       </div>
     </div>
   
-    <div class="entry-detail" id="get_meta_f64(key:String|Symbol):Float64-instance-method">
+    <div class="entry-detail" id="get_meta_bool(key:String|Symbol,default:Bool=false):Bool-instance-method">
       <div class="signature">
         
-        def <strong>get_meta_f64</strong>(key : <a href="../String.html">String</a> | Symbol) : <a href="../Float64.html">Float64</a>
+        def <strong>get_meta_bool</strong>(key : <a href="../String.html">String</a> | Symbol, default : Bool = <span class="n">false</span>) : Bool
 
-        <a class="method-permalink" href="#get_meta_f64%28key%3AString%7CSymbol%29%3AFloat64-instance-method">#</a>
+        <a class="method-permalink" href="#get_meta_bool%28key%3AString%7CSymbol%2Cdefault%3ABool%3Dfalse%29%3ABool-instance-method">#</a>
       </div>
       
         <div class="doc">
           
-          <p>Retrieves floating-point metadata stored on this object as a <code><a href="../Float64.html">Float64</a></code>.</p>
+          <p>Retrieves boolean metadata stored on this object, or <code>default</code> if not set.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="get_meta_color(key:String|Symbol,default:Color=Color::WHITE):Color-instance-method">
+      <div class="signature">
+        
+        def <strong>get_meta_color</strong>(key : <a href="../String.html">String</a> | Symbol, default : <a href="../Godot/Color.html">Color</a> = <span class="t">Color</span><span class="t">::</span><span class="t">WHITE</span>) : <a href="../Godot/Color.html">Color</a>
+
+        <a class="method-permalink" href="#get_meta_color%28key%3AString%7CSymbol%2Cdefault%3AColor%3DColor%3A%3AWHITE%29%3AColor-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="get_meta_f32(key:String|Symbol,default:Float32=0.0_f32):Float32-instance-method">
+      <div class="signature">
+        
+        def <strong>get_meta_f32</strong>(key : <a href="../String.html">String</a> | Symbol, default : <a href="../Float32.html">Float32</a> = <span class="n">0.0_f32</span>) : <a href="../Float32.html">Float32</a>
+
+        <a class="method-permalink" href="#get_meta_f32%28key%3AString%7CSymbol%2Cdefault%3AFloat32%3D0.0_f32%29%3AFloat32-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Retrieves floating-point metadata stored on this object as a <code><a href="../Float32.html">Float32</a></code>, or <code>default</code> if not set.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="get_meta_f64(key:String|Symbol,default:Float64=0.0):Float64-instance-method">
+      <div class="signature">
+        
+        def <strong>get_meta_f64</strong>(key : <a href="../String.html">String</a> | Symbol, default : <a href="../Float64.html">Float64</a> = <span class="n">0.0</span>) : <a href="../Float64.html">Float64</a>
+
+        <a class="method-permalink" href="#get_meta_f64%28key%3AString%7CSymbol%2Cdefault%3AFloat64%3D0.0%29%3AFloat64-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Retrieves floating-point metadata stored on this object as a <code><a href="../Float64.html">Float64</a></code>, or <code>default</code> if not set.</p>
 <h3><a id="example" class="anchor" href="#example">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
@@ -17255,17 +17582,36 @@ stack <code>Void*</code> as a 24-byte <code><a href="../Godot/Variant.html">Vari
       </div>
     </div>
   
-    <div class="entry-detail" id="get_meta_i64(key:String|Symbol):Int64-instance-method">
+    <div class="entry-detail" id="get_meta_i32(key:String|Symbol,default:Int32=0):Int32-instance-method">
       <div class="signature">
         
-        def <strong>get_meta_i64</strong>(key : <a href="../String.html">String</a> | Symbol) : Int64
+        def <strong>get_meta_i32</strong>(key : <a href="../String.html">String</a> | Symbol, default : Int32 = <span class="n">0</span>) : Int32
 
-        <a class="method-permalink" href="#get_meta_i64%28key%3AString%7CSymbol%29%3AInt64-instance-method">#</a>
+        <a class="method-permalink" href="#get_meta_i32%28key%3AString%7CSymbol%2Cdefault%3AInt32%3D0%29%3AInt32-instance-method">#</a>
       </div>
       
         <div class="doc">
           
-          <p>Retrieves integer metadata stored on this object as an <code>Int64</code>.</p>
+          <p>Retrieves integer metadata stored on this object as an <code>Int32</code>, or <code>default</code> if not set.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="get_meta_i64(key:String|Symbol,default:Int64=0_i64):Int64-instance-method">
+      <div class="signature">
+        
+        def <strong>get_meta_i64</strong>(key : <a href="../String.html">String</a> | Symbol, default : Int64 = <span class="n">0_i64</span>) : Int64
+
+        <a class="method-permalink" href="#get_meta_i64%28key%3AString%7CSymbol%2Cdefault%3AInt64%3D0_i64%29%3AInt64-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Retrieves integer metadata stored on this object as an <code>Int64</code>, or <code>default</code> if not set.</p>
 <h3><a id="example" class="anchor" href="#example">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
@@ -17294,17 +17640,37 @@ stack <code>Void*</code> as a 24-byte <code><a href="../Godot/Variant.html">Vari
       </div>
     </div>
   
-    <div class="entry-detail" id="get_meta_str(key:String|Symbol):String-instance-method">
+    <div class="entry-detail" id="get_meta_object(key:String|Symbol,type:T.class=Godot::Object):T|NilforallT-instance-method">
       <div class="signature">
         
-        def <strong>get_meta_str</strong>(key : <a href="../String.html">String</a> | Symbol) : <a href="../String.html">String</a>
+        def <strong>get_meta_object</strong>(key : <a href="../String.html">String</a> | Symbol, type : <span class="t">T</span>.<span class="k">class</span> = <span class="t">Godot</span><span class="t">::</span><span class="t">Object</span>) : T | <a href="../Nil.html">Nil</a> forall T
 
-        <a class="method-permalink" href="#get_meta_str%28key%3AString%7CSymbol%29%3AString-instance-method">#</a>
+        <a class="method-permalink" href="#get_meta_object%28key%3AString%7CSymbol%2Ctype%3AT.class%3DGodot%3A%3AObject%29%3AT%7CNilforallT-instance-method">#</a>
       </div>
       
         <div class="doc">
           
-          <p>Retrieves string metadata stored on this object.</p>
+          <p>Safely retrieves a <code><a href="../Godot/Object.html">Godot::Object</a></code> from metadata by validating its 64-bit ObjectDB <code><a href="../Godot/Object.html#instance_id%3AUInt64-instance-method">#instance_id</a></code>
+(or direct object Variant) and resolving any live Crystal subclass instance.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="get_meta_str(key:String|Symbol,default:String=&quot;&quot;):String-instance-method">
+      <div class="signature">
+        
+        def <strong>get_meta_str</strong>(key : <a href="../String.html">String</a> | Symbol, default : <a href="../String.html">String</a> = <span class="s">&quot;&quot;</span>) : <a href="../String.html">String</a>
+
+        <a class="method-permalink" href="#get_meta_str%28key%3AString%7CSymbol%2Cdefault%3AString%3D%22%22%29%3AString-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Retrieves string metadata stored on this object, or <code>default</code> if not set.</p>
 <h3><a id="example" class="anchor" href="#example">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
@@ -17319,12 +17685,12 @@ stack <code>Void*</code> as a 24-byte <code><a href="../Godot/Variant.html">Vari
       </div>
     </div>
   
-    <div class="entry-detail" id="get_meta_transform3d(key:String|Symbol):Transform3D-instance-method">
+    <div class="entry-detail" id="get_meta_transform3d(key:String|Symbol,default:Transform3D=Transform3D.identity):Transform3D-instance-method">
       <div class="signature">
         
-        def <strong>get_meta_transform3d</strong>(key : <a href="../String.html">String</a> | Symbol) : <a href="../Godot/Transform3D.html">Transform3D</a>
+        def <strong>get_meta_transform3d</strong>(key : <a href="../String.html">String</a> | Symbol, default : <a href="../Godot/Transform3D.html">Transform3D</a> = <span class="t">Transform3D</span>.identity) : <a href="../Godot/Transform3D.html">Transform3D</a>
 
-        <a class="method-permalink" href="#get_meta_transform3d%28key%3AString%7CSymbol%29%3ATransform3D-instance-method">#</a>
+        <a class="method-permalink" href="#get_meta_transform3d%28key%3AString%7CSymbol%2Cdefault%3ATransform3D%3DTransform3D.identity%29%3ATransform3D-instance-method">#</a>
       </div>
       
       <br/>
@@ -17333,12 +17699,12 @@ stack <code>Void*</code> as a 24-byte <code><a href="../Godot/Variant.html">Vari
       </div>
     </div>
   
-    <div class="entry-detail" id="get_meta_vector2(key:String|Symbol):Vector2-instance-method">
+    <div class="entry-detail" id="get_meta_vector2(key:String|Symbol,default:Vector2=Vector2.zero):Vector2-instance-method">
       <div class="signature">
         
-        def <strong>get_meta_vector2</strong>(key : <a href="../String.html">String</a> | Symbol) : <a href="../Godot/Vector2.html">Vector2</a>
+        def <strong>get_meta_vector2</strong>(key : <a href="../String.html">String</a> | Symbol, default : <a href="../Godot/Vector2.html">Vector2</a> = <span class="t">Vector2</span>.zero) : <a href="../Godot/Vector2.html">Vector2</a>
 
-        <a class="method-permalink" href="#get_meta_vector2%28key%3AString%7CSymbol%29%3AVector2-instance-method">#</a>
+        <a class="method-permalink" href="#get_meta_vector2%28key%3AString%7CSymbol%2Cdefault%3AVector2%3DVector2.zero%29%3AVector2-instance-method">#</a>
       </div>
       
       <br/>
@@ -17347,12 +17713,12 @@ stack <code>Void*</code> as a 24-byte <code><a href="../Godot/Variant.html">Vari
       </div>
     </div>
   
-    <div class="entry-detail" id="get_meta_vector3(key:String|Symbol):Vector3-instance-method">
+    <div class="entry-detail" id="get_meta_vector3(key:String|Symbol,default:Vector3=Vector3.zero):Vector3-instance-method">
       <div class="signature">
         
-        def <strong>get_meta_vector3</strong>(key : <a href="../String.html">String</a> | Symbol) : <a href="../Godot/Vector3.html">Vector3</a>
+        def <strong>get_meta_vector3</strong>(key : <a href="../String.html">String</a> | Symbol, default : <a href="../Godot/Vector3.html">Vector3</a> = <span class="t">Vector3</span>.zero) : <a href="../Godot/Vector3.html">Vector3</a>
 
-        <a class="method-permalink" href="#get_meta_vector3%28key%3AString%7CSymbol%29%3AVector3-instance-method">#</a>
+        <a class="method-permalink" href="#get_meta_vector3%28key%3AString%7CSymbol%2Cdefault%3AVector3%3DVector3.zero%29%3AVector3-instance-method">#</a>
       </div>
       
       <br/>
@@ -17467,6 +17833,11 @@ stack <code>Void*</code> as a 24-byte <code><a href="../Godot/Variant.html">Vari
         <a class="method-permalink" href="#godot_as%28type%3AT.class%29%3ATforallT-instance-method">#</a>
       </div>
       
+        <div class="doc">
+          
+          <p>Alias for as_a(T) used in gameplay codebases</p>
+        </div>
+      
       <br/>
       <div>
         
@@ -17480,6 +17851,11 @@ stack <code>Void*</code> as a 24-byte <code><a href="../Godot/Variant.html">Vari
 
         <a class="method-permalink" href="#godot_as%3F%28type%3AT.class%29%3AT%7CNilforallT-instance-method">#</a>
       </div>
+      
+        <div class="doc">
+          
+          <p>Alias for as_a?(T) used in gameplay codebases</p>
+        </div>
       
       <br/>
       <div>
@@ -17587,6 +17963,11 @@ stack <code>Void*</code> as a 24-byte <code><a href="../Godot/Variant.html">Vari
 
         <a class="method-permalink" href="#has_method%28method%3AString%29%3ABool-instance-method">#</a>
       </div>
+      
+        <div class="doc">
+          
+          <p>Checks both Crystal-defined methods on the live instance and native Godot methods.</p>
+        </div>
       
       <br/>
       <div>
@@ -17919,6 +18300,25 @@ and the values of all instance variables.</p>
         <div class="doc">
           
           <p>Automatically links this node's registered CrystalScript resource if running inside the Godot Editor</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="live_instance:Godot::Object-instance-method">
+      <div class="signature">
+        
+        def <strong>live_instance</strong> : <a href="../Godot/Object.html">Godot::Object</a>
+
+        <a class="method-permalink" href="#live_instance%3AGodot%3A%3AObject-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Resolves the live Crystal subclass instance registered for this native pointer, or returns self.</p>
         </div>
       
       <br/>
@@ -18529,6 +18929,26 @@ to <code><a href="../toplevel.html#godot_ptrcall_void%28mb%2Ctarget_ptr%2Cargs_s
 
         <a class="method-permalink" href="#set_meta%28key%3AString%7CSymbol%2Cvalue%3AVariant%29%3AVoid-instance-method">#</a>
       </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="set_meta_object(key:String|Symbol,obj:Godot::Object|Nil):Void-instance-method">
+      <div class="signature">
+        
+        def <strong>set_meta_object</strong>(key : <a href="../String.html">String</a> | Symbol, obj : <a href="../Godot/Object.html">Godot::Object</a> | <a href="../Nil.html">Nil</a>) : Void
+
+        <a class="method-permalink" href="#set_meta_object%28key%3AString%7CSymbol%2Cobj%3AGodot%3A%3AObject%7CNil%29%3AVoid-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Safely stores a reference to a <code><a href="../Godot/Object.html">Godot::Object</a></code> in metadata using its monotonic 64-bit ObjectDB <code><a href="../Godot/Object.html#instance_id%3AUInt64-instance-method">#instance_id</a></code>.
+Passing <code>nil</code> or a disposed object removes the metadata entry.</p>
+        </div>
       
       <br/>
       <div>

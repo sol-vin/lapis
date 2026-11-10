@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<benchmarks version="0.2.5" tag="4.8-beta2" mode="comparative" timestamp="2026-11-10T20:08:38Z" platform="linux" godot="4.8-beta2" iterations="2">
+  <summary total="28" speedup_geomean="39.42" compute_geomean="32.65" engine_geomean="54.67" />
+  <case name="AStar2D" category="EngineCore" chart_types="bar,speedup,ratio,log">
+    <description>AStar2D pathfinding on 100x100 grid (10k points, 500 queries)</description>
+    <crystal ms="0.08" />
+    <gdscript ms="184.63" />
+    <speedup ratio="2307.88" />
+  </case>
+  <case name="Base64" category="Compute" chart_types="bar,speedup,ratio,log">
+    <description>Base64 strict encode &amp; decode loop (64 KiB, 100 iter)</description>
+    <crystal ms="11.62" />
+    <gdscript ms="152.72" />
+    <speedup ratio="13.14" />
+  </case>
+  <case name="BinaryTrees" category="Compute" group="BinaryTrees" chart_types="bar,speedup,ratio,log">
+    <description>GC pressure, bottom-up binary tree allocation &amp; depth traversal</description>
+    <crystal ms="36.61" />
+    <gdscript ms="1502.88" />
+    <speedup ratio="41.05" />
+    <cpp ms="37.5" />
+    <csharp ms="56.49" />
+    <rust ms="36.76" />
+  </case>
+  <case name="Brainfuck" category="Compute" chart_types="bar,speedup,ratio,log">
+    <description>Brainfuck AST interpreter + dynamic tape (bench_quick.b)</description>
+    <crystal ms="164.93" />
+    <gdscript ms="18586.33" />
+    <speedup ratio="112.69" />
+  </case>
+  <case name="CellularNoise" category="EngineCore" group="ProceduralNoise" chart_types="bar,speedup,ratio,log">
+    <description>FastNoiseLite 2D Cellular Voronoi noise across 500x500 grid (250k samples)</description>
+    <crystal ms="0.46" />
+    <gdscript ms="55.86" />
+    <speedup ratio="121.43" />
+  </case>
+  <case name="CompileTimes" category="Toolchain" group="CompileTime" chart_types="bar,speedup,ratio,log">
+    <description>Compilation latency and output binary size across Crystal, C++, C#, Rust (Debug vs Release)</description>
+    <crystal ms="9954.16" />
+    <metric key="cr_debug_ms" value="1444.93" />
+    <metric key="cr_release_ms" value="1208.91" />
+    <metric key="cr_debug_bytes" value="2503928.0" />
+    <metric key="cr_release_bytes" value="1208344.0" />
+    <metric key="crystal_debug_compile_ms" value="1444.93" />
+    <metric key="crystal_release_compile_ms" value="1208.91" />
+    <metric key="crystal_debug_size_kb" value="2445.2" />
+    <metric key="crystal_release_size_kb" value="1180.0" />
+    <metric key="cpp_debug_ms" value="452.01" />
+    <metric key="cpp_release_ms" value="565.24" />
+    <metric key="cpp_debug_bytes" value="51088.0" />
+    <metric key="cpp_release_bytes" value="22600.0" />
+    <metric key="cpp_debug_compile_ms" value="452.01" />
+    <metric key="cpp_release_compile_ms" value="565.24" />
+    <metric key="cpp_debug_size_kb" value="49.9" />
+    <metric key="cpp_release_size_kb" value="22.1" />
+    <metric key="cs_debug_ms" value="1095.77" />
+    <metric key="cs_release_ms" value="1133.41" />
+    <metric key="cs_debug_bytes" value="0.0" />
+    <metric key="cs_release_bytes" value="0.0" />
+    <metric key="csharp_debug_compile_ms" value="1095.77" />
+    <metric key="csharp_release_compile_ms" value="1133.41" />
+    <metric key="csharp_debug_size_kb" value="0.0" />
+    <metric key="csharp_release_size_kb" value="0.0" />
+    <metric key="rs_debug_ms" value="88.04" />
+    <metric key="rs_release_ms" value="205.12" />
+    <metric key="rs_debug_bytes" value="4609984.0" />
+    <metric key="rs_release_bytes" value="4583416.0" />
+    <metric key="rust_debug_compile_ms" value="88.04" />
+    <metric key="rust_release_compile_ms" value="205.12" />
+    <metric key="rust_debug_size_kb" value="4501.9" />
+    <metric key="rust_release_size_kb" value="4476.0" />
+  </case>
+  <case name="ConfigFileOps" category="EngineCore" chart_types="bar,speedup,ratio,log">
+    <description>ConfigFile parsing, querying and encoding 1,000 section INI config</description>
+    <crystal ms="0.07" />
+    <gdscript ms="6.16" />
+    <speedup ratio="88.0" />
+  </case>
+  <case name="DictionaryOps" category="EngineCore" chart_types="bar,speedup,ratio,log">
+    <description>Godot Dictionary 50,000 insertions and random access lookups</description>
+    <crystal ms="28.25" />
+    <gdscript ms="77.93" />
+    <speedup ratio="2.76" />
+  </case>
+  <case name="ImageProcessing" category="EngineCore" chart_types="bar,speedup,ratio,log">
+    <description>512x512 Image procedural pixel computation and gamma blending (262k px)</description>
+    <crystal ms="3.9" />
+    <gdscript ms="70.81" />
+    <speedup ratio="18.16" />
+  </case>
+  <case name="JSON" category="Compute" chart_types="bar,speedup,ratio,log">
+    <description>JSON parse &amp; 3D coordinate aggregation (10k items)</description>
+    <crystal ms="9.72" />
+    <gdscript ms="26.58" />
+    <speedup ratio="2.73" />
+  </case>
+  <case name="Mandelbrot" category="Compute" group="Mandelbrot" chart_types="bar,speedup,ratio,log">
+    <description>2D coordinate escape-time fractal rasterization (500x500)</description>
+    <crystal ms="18.04" />
+    <gdscript ms="1017.25" />
+    <speedup ratio="56.39" />
+    <cpp ms="17.02" />
+    <csharp ms="21.75" />
+    <rust ms="18.51" />
+  </case>
+  <case name="MaterialResources" category="EngineCore" chart_types="bar,speedup,ratio,log">
+    <description>StandardMaterial3D allocation, properties, duplication, refcounting (10k)</description>
+    <crystal ms="1.98" />
+    <gdscript ms="788.06" />
+    <speedup ratio="398.01" />
+  </case>
+  <case name="Matmul" category="Compute" group="MatrixMultiplication" chart_types="bar,speedup,ratio,log">
+    <description>Dense 2D matrix multiplication (N=300, float64)</description>
+    <crystal ms="18.62" />
+    <gdscript ms="1514.34" />
+    <speedup ratio="81.33" />
+    <cpp ms="15.25" />
+    <csharp ms="21.7" />
+    <rust ms="22.78" />
+  </case>
+  <case name="NBody" category="Compute" group="NBody" chart_types="bar,speedup,ratio,log">
+    <description>3D orbital dynamics physics integration (Velocity-Verlet, 50k steps)</description>
+    <crystal ms="3.2" />
+    <gdscript ms="439.65" />
+    <speedup ratio="137.39" />
+    <cpp ms="2.72" />
+    <csharp ms="8.51" />
+    <rust ms="3.07" />
+  </case>
+  <case name="NodeGroups" category="EngineCore" group="SceneGraph" chart_types="bar,speedup,ratio,log">
+    <description>20,000 nodes partitioned into 10 groups, group assignment &amp; queries</description>
+    <crystal ms="2.92" />
+    <gdscript ms="13.81" />
+    <speedup ratio="4.73" />
+  </case>
+  <case name="NodeLifecycle" category="EngineCore" group="SceneGraph" chart_types="bar,speedup,ratio,log">
+    <description>Node2D allocation, property mutation, add_child, remove_child, free (20k)</description>
+    <crystal ms="4.88" />
+    <gdscript ms="23.74" />
+    <speedup ratio="4.86" />
+  </case>
+  <case name="PerlinNoise" category="EngineCore" group="ProceduralNoise" chart_types="bar,speedup,ratio,log">
+    <description>FastNoiseLite 2D Perlin noise across 500x500 grid (250k samples)</description>
+    <crystal ms="0.46" />
+    <gdscript ms="32.35" />
+    <speedup ratio="70.33" />
+  </case>
+  <case name="Primes" category="Compute" group="PrimeSieve" chart_types="bar,speedup,ratio,log">
+    <description>Sieve of Atkin + Prefix Trie search (Limit=500k)</description>
+    <crystal ms="18.86" />
+    <gdscript ms="516.18" />
+    <speedup ratio="27.37" />
+    <cpp ms="19.9" />
+    <csharp ms="28.68" />
+    <rust ms="16.27" />
+  </case>
+  <case name="ShaderCompilation" category="EngineCore" group="Shaders" chart_types="bar,speedup,ratio,log">
+    <description>Shader compilation throughput across 1,000 permutations</description>
+    <crystal ms="0.31" />
+    <gdscript ms="74.98" />
+    <speedup ratio="241.87" />
+    <metric key="shaders_per_sec" value="14192.2" />
+  </case>
+  <case name="ShaderUniforms" category="EngineCore" group="Shaders" chart_types="bar,speedup,ratio,log">
+    <description>High-frequency uniform parameter dispatch (50k updates)</description>
+    <crystal ms="0.16" />
+    <gdscript ms="14.92" />
+    <speedup ratio="93.25" />
+    <metric key="uniform_updates_per_sec" value="13407521.6" />
+  </case>
+  <case name="Signals" category="EngineCore" chart_types="bar,speedup,ratio,log">
+    <description>Signal connection, argument marshalling &amp; dynamic emission (50k calls)</description>
+    <crystal ms="2.58" />
+    <gdscript ms="11.41" />
+    <speedup ratio="4.42" />
+  </case>
+  <case name="SimplexNoise" category="EngineCore" group="ProceduralNoise" chart_types="bar,speedup,ratio,log">
+    <description>FastNoiseLite 3D Simplex Smooth noise across 100k samples</description>
+    <crystal ms="0.23" />
+    <gdscript ms="19.32" />
+    <speedup ratio="84.0" />
+  </case>
+  <case name="SurfaceTool" category="EngineCore" chart_types="bar,speedup,ratio,log">
+    <description>SurfaceTool procedural mesh generation with normals/UVs (10k triangles)</description>
+    <crystal ms="0.16" />
+    <gdscript ms="11.9" />
+    <speedup ratio="74.38" />
+  </case>
+  <case name="TransformHierarchy" category="EngineCore" chart_types="bar,speedup,ratio,log">
+    <description>15,000 Node3D hierarchy transformations &amp; global position resolution</description>
+    <crystal ms="0.36" />
+    <gdscript ms="73.87" />
+    <speedup ratio="205.19" />
+  </case>
+  <case name="TransformMath" category="Compute" chart_types="bar,speedup,ratio,log">
+    <description>Transform3D translations, rotations &amp; Vector3 projections (200k ops)</description>
+    <crystal ms="2.81" />
+    <gdscript ms="40.77" />
+    <speedup ratio="14.51" />
+  </case>
+  <case name="TreeTraversal" category="EngineCore" group="SceneGraph" chart_types="bar,speedup,ratio,log">
+    <description>Scene tree recursive traversal &amp; property inspection (20k nodes)</description>
+    <crystal ms="0.67" />
+    <gdscript ms="10.29" />
+    <speedup ratio="15.36" />
+  </case>
+  <case name="VectorMath2D" category="Compute" chart_types="bar,speedup,ratio,log">
+    <description>Vector2 lerp, dot, distance, and normalization across 500k ops</description>
+    <crystal ms="3.14" />
+    <gdscript ms="103.97" />
+    <speedup ratio="33.11" />
+  </case>
+  <case name="VisualShader" category="EngineCore" group="Shaders" chart_types="bar,speedup,ratio,log">
+    <description>VisualShader node graph creation and connection (200 graphs)</description>
+    <crystal ms="0.03" />
+    <gdscript ms="6.68" />
+    <speedup ratio="222.67" />
+    <metric key="vs_nodes_per_sec" value="89847.3" />
+  </case>
+</benchmarks>

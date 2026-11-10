@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Crystal Docs 1.20.3">
-<meta name="crystal_docs.project_version" content="4.8-beta1-dev">
+<meta name="crystal_docs.project_version" content="4.8-beta2-dev">
 <meta name="crystal_docs.project_name" content="lapis">
 
 
@@ -14,7 +14,7 @@
 <script type="text/javascript" src="../js/doc.js"></script>
 
   <meta name="repository-name" content="lapis">
-  <title>Godot::RenderingServer - lapis 4.8-beta1-dev</title>
+  <title>Godot::RenderingServer - lapis 4.8-beta2-dev</title>
   <script type="text/javascript">
     CrystalDocs.base_path = "../";
   </script>
@@ -45,7 +45,7 @@
       </h1>
 
       <span class="project-version">
-        4.8-beta1-dev
+        4.8-beta2-dev
       </span>
     </div>
   </div>
@@ -104,6 +104,11 @@
   
   <li class=" " data-id="lapis/Basis" data-name="basis">
       <a href="../Basis.html">Basis</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/BindMethod" data-name="bindmethod">
+      <a href="../BindMethod.html">BindMethod</a>
       
     </li>
   
@@ -8372,6 +8377,11 @@
       
     </li>
   
+  <li class=" " data-id="lapis/Godot/ResourcePath" data-name="godot::resourcepath">
+      <a href="../Godot/ResourcePath.html">ResourcePath</a>
+      
+    </li>
+  
   <li class=" " data-id="lapis/Godot/ResourcePreloader" data-name="godot::resourcepreloader">
       <a href="../Godot/ResourcePreloader.html">ResourcePreloader</a>
       
@@ -8774,6 +8784,11 @@
   
   <li class=" " data-id="lapis/Godot/ShaderMaterial" data-name="godot::shadermaterial">
       <a href="../Godot/ShaderMaterial.html">ShaderMaterial</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/ShaderParameterValue" data-name="godot::shaderparametervalue">
+      <a href="../Godot/ShaderParameterValue.html">ShaderParameterValue</a>
       
     </li>
   
@@ -9897,8 +9912,28 @@
       
         <ul>
   
+  <li class=" " data-id="lapis/Godot/Time/Format" data-name="godot::time::format">
+      <a href="../Godot/Time/Format.html">Format</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/Time/Instant" data-name="godot::time::instant">
+      <a href="../Godot/Time/Instant.html">Instant</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/Time/Location" data-name="godot::time::location">
+      <a href="../Godot/Time/Location.html">Location</a>
+      
+    </li>
+  
   <li class=" " data-id="lapis/Godot/Time/Month" data-name="godot::time::month">
       <a href="../Godot/Time/Month.html">Month</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/Time/Span" data-name="godot::time::span">
+      <a href="../Godot/Time/Span.html">Span</a>
       
     </li>
   
@@ -9954,6 +9989,11 @@
   
 </ul>
 
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/ToolRebuildable" data-name="godot::toolrebuildable">
+      <a href="../Godot/ToolRebuildable.html">ToolRebuildable</a>
       
     </li>
   
@@ -13412,6 +13452,11 @@
       
     </li>
   
+  <li class=" " data-id="lapis/Path" data-name="path">
+      <a href="../Path.html">Path</a>
+      
+    </li>
+  
   <li class=" " data-id="lapis/Plane" data-name="plane">
       <a href="../Plane.html">Plane</a>
       
@@ -13479,6 +13524,11 @@
   
   <li class=" " data-id="lapis/ScriptProperty" data-name="scriptproperty">
       <a href="../ScriptProperty.html">ScriptProperty</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/ShaderUniform" data-name="shaderuniform">
+      <a href="../ShaderUniform.html">ShaderUniform</a>
       
     </li>
   
@@ -13644,6 +13694,11 @@
   </h2>
   
     
+      libgodot/extensions/resource.cr
+    
+    <br/>
+  
+    
       libgodot/generated/classes/classes_part5.cr
     
     <br/>
@@ -13780,6 +13835,11 @@
     
       <li class="entry-summary">
         <a href="#new%28pointer%3APointer%28Void%29%3DPointer%28Void%29.null%29-class-method" class="signature"><strong>.new</strong>(pointer : Pointer(Void) = <span class="t">Pointer</span>(<span class="t">Void</span>).null)</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#singleton%3ARenderingServer-class-method" class="signature"><strong>.singleton</strong> : RenderingServer</a>
         
       </li>
     
@@ -15163,9 +15223,14 @@
       </li>
     
       <li class="entry-summary">
+        <a href="#global_shader_parameter_get%28name%3AString%7CSymbol%2Castype%3AT.class%2Cdefault%3AT%7CNil%3Dnil%29%3ATforallT-class-method" class="signature"><strong>.global_shader_parameter_get</strong>(name : String | Symbol, as type : <span class="t">T</span>.<span class="k">class</span>, default : T | Nil = <span class="n">nil</span>) : T forall T</a>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#global_shader_parameter_get%28name%3AString%29%3APointer%28Void%29-class-method" class="signature"><strong>.global_shader_parameter_get</strong>(name : String) : Pointer(Void)</a>
         
-          <div class="summary"><p>Class-level singleton delegator for <code><a href="../Godot/RenderingServer.html#global_shader_parameter_get%28name%3AString%29%3APointer%28Void%29-instance-method">#global_shader_parameter_get</a></code></p></div>
+          <div class="summary"><p>Class-level singleton delegator for <code><a href="../Godot/RenderingServer.html#global_shader_parameter_get%28name%3AString%7CSymbol%2Castype%3AT.class%2Cdefault%3AT%7CNil%3Dnil%29%3ATforallT-instance-method">#global_shader_parameter_get</a></code></p></div>
         
       </li>
     
@@ -15198,9 +15263,19 @@
       </li>
     
       <li class="entry-summary">
+        <a href="#global_shader_parameter_set%28name%3AString%7CSymbol%2Cvalue%3AShaderParameterValue%29%3AVoid-class-method" class="signature"><strong>.global_shader_parameter_set</strong>(name : String | Symbol, value : ShaderParameterValue) : Void</a>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#global_shader_parameter_set_override%28name%3AString%2Cvalue%3APointer%28Void%29%29%3AVoid-class-method" class="signature"><strong>.global_shader_parameter_set_override</strong>(name : String, value : Pointer(Void)) : Void</a>
         
           <div class="summary"><p>Class-level singleton delegator for <code><a href="../Godot/RenderingServer.html#global_shader_parameter_set_override%28name%3AString%2Cvalue%3APointer%28Void%29%29%3AVoid-instance-method">#global_shader_parameter_set_override</a></code></p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#global_shader_parameter_set_override%28name%3AString%7CSymbol%2Cvalue%3AShaderParameterValue%29%3AVoid-class-method" class="signature"><strong>.global_shader_parameter_set_override</strong>(name : String | Symbol, value : ShaderParameterValue) : Void</a>
         
       </li>
     
@@ -16762,16 +16837,16 @@
       </li>
     
       <li class="entry-summary">
-        <a href="#set_boot_image%28image%3AImage%2Ccolor%3AColor%2Cscale%3ABool%2Cuse_filter%3ABool%3Dtrue%29%3AVoid-class-method" class="signature"><strong>.set_boot_image</strong>(image : Image, color : Color, scale : Bool, use_filter : Bool = <span class="n">true</span>) : Void</a>
+        <a href="#set_boot_image%28image%3AImage%7CNil%2Ccolor%3AColor%2Cscale%3ABool%2Cuse_filter%3ABool%3Dtrue%29%3AVoid-class-method" class="signature"><strong>.set_boot_image</strong>(image : Image | Nil, color : Color, scale : Bool, use_filter : Bool = <span class="n">true</span>) : Void</a>
         
-          <div class="summary"><p>Class-level singleton delegator for <code><a href="../Godot/RenderingServer.html#set_boot_image%28image%3AImage%2Ccolor%3AColor%2Cscale%3ABool%2Cuse_filter%3ABool%3Dtrue%29%3AVoid-instance-method">#set_boot_image</a></code></p></div>
+          <div class="summary"><p>Class-level singleton delegator for <code><a href="../Godot/RenderingServer.html#set_boot_image%28image%3AImage%7CNil%2Ccolor%3AColor%2Cscale%3ABool%2Cuse_filter%3ABool%3Dtrue%29%3AVoid-instance-method">#set_boot_image</a></code></p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#set_boot_image_with_stretch%28image%3AImage%2Ccolor%3AColor%2Cstretch_mode%3ASplashStretchMode%7CInt%2Cuse_filter%3ABool%3Dtrue%29%3AVoid-class-method" class="signature"><strong>.set_boot_image_with_stretch</strong>(image : Image, color : Color, stretch_mode : SplashStretchMode | Int, use_filter : Bool = <span class="n">true</span>) : Void</a>
+        <a href="#set_boot_image_with_stretch%28image%3AImage%7CNil%2Ccolor%3AColor%2Cstretch_mode%3ASplashStretchMode%7CInt%2Cuse_filter%3ABool%3Dtrue%29%3AVoid-class-method" class="signature"><strong>.set_boot_image_with_stretch</strong>(image : Image | Nil, color : Color, stretch_mode : SplashStretchMode | Int, use_filter : Bool = <span class="n">true</span>) : Void</a>
         
-          <div class="summary"><p>Class-level singleton delegator for <code><a href="../Godot/RenderingServer.html#set_boot_image_with_stretch%28image%3AImage%2Ccolor%3AColor%2Cstretch_mode%3ASplashStretchMode%7CInt%2Cuse_filter%3ABool%3Dtrue%29%3AVoid-instance-method">#set_boot_image_with_stretch</a></code></p></div>
+          <div class="summary"><p>Class-level singleton delegator for <code><a href="../Godot/RenderingServer.html#set_boot_image_with_stretch%28image%3AImage%7CNil%2Ccolor%3AColor%2Cstretch_mode%3ASplashStretchMode%7CInt%2Cuse_filter%3ABool%3Dtrue%29%3AVoid-instance-method">#set_boot_image_with_stretch</a></code></p></div>
         
       </li>
     
@@ -16963,9 +17038,9 @@
       </li>
     
       <li class="entry-summary">
-        <a href="#texture_2d_create%28image%3AImage%29%3AInt64-class-method" class="signature"><strong>.texture_2d_create</strong>(image : Image) : Int64</a>
+        <a href="#texture_2d_create%28image%3AImage%7CNil%29%3AInt64-class-method" class="signature"><strong>.texture_2d_create</strong>(image : Image | Nil) : Int64</a>
         
-          <div class="summary"><p>Class-level singleton delegator for <code><a href="../Godot/RenderingServer.html#texture_2d_create%28image%3AImage%29%3AInt64-instance-method">#texture_2d_create</a></code></p></div>
+          <div class="summary"><p>Class-level singleton delegator for <code><a href="../Godot/RenderingServer.html#texture_2d_create%28image%3AImage%7CNil%29%3AInt64-instance-method">#texture_2d_create</a></code></p></div>
         
       </li>
     
@@ -17005,9 +17080,9 @@
       </li>
     
       <li class="entry-summary">
-        <a href="#texture_2d_update%28texture%3AInt64%2Cimage%3AImage%2Clayer%3AInt64%29%3AVoid-class-method" class="signature"><strong>.texture_2d_update</strong>(texture : Int64, image : Image, layer : Int64) : Void</a>
+        <a href="#texture_2d_update%28texture%3AInt64%2Cimage%3AImage%7CNil%2Clayer%3AInt64%29%3AVoid-class-method" class="signature"><strong>.texture_2d_update</strong>(texture : Int64, image : Image | Nil, layer : Int64) : Void</a>
         
-          <div class="summary"><p>Class-level singleton delegator for <code><a href="../Godot/RenderingServer.html#texture_2d_update%28texture%3AInt64%2Cimage%3AImage%2Clayer%3AInt64%29%3AVoid-instance-method">#texture_2d_update</a></code></p></div>
+          <div class="summary"><p>Class-level singleton delegator for <code><a href="../Godot/RenderingServer.html#texture_2d_update%28texture%3AInt64%2Cimage%3AImage%7CNil%2Clayer%3AInt64%29%3AVoid-instance-method">#texture_2d_update</a></code></p></div>
         
       </li>
     
@@ -18735,6 +18810,11 @@
       </li>
     
       <li class="entry-summary">
+        <a href="#global_shader_parameter_get%28name%3AString%7CSymbol%2Castype%3AT.class%2Cdefault%3AT%7CNil%3Dnil%29%3ATforallT-instance-method" class="signature"><strong>#global_shader_parameter_get</strong>(name : String | Symbol, as type : <span class="t">T</span>.<span class="k">class</span>, default : T | Nil = <span class="n">nil</span>) : T forall T</a>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#global_shader_parameter_get%28name%3AString%29%3APointer%28Void%29-instance-method" class="signature"><strong>#global_shader_parameter_get</strong>(name : String) : Pointer(Void)</a>
         
       </li>
@@ -18760,7 +18840,17 @@
       </li>
     
       <li class="entry-summary">
+        <a href="#global_shader_parameter_set%28name%3AString%7CSymbol%2Cvalue%3AShaderParameterValue%29%3AVoid-instance-method" class="signature"><strong>#global_shader_parameter_set</strong>(name : String | Symbol, value : ShaderParameterValue) : Void</a>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#global_shader_parameter_set_override%28name%3AString%2Cvalue%3APointer%28Void%29%29%3AVoid-instance-method" class="signature"><strong>#global_shader_parameter_set_override</strong>(name : String, value : Pointer(Void)) : Void</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#global_shader_parameter_set_override%28name%3AString%7CSymbol%2Cvalue%3AShaderParameterValue%29%3AVoid-instance-method" class="signature"><strong>#global_shader_parameter_set_override</strong>(name : String | Symbol, value : ShaderParameterValue) : Void</a>
         
       </li>
     
@@ -19902,12 +19992,12 @@
       </li>
     
       <li class="entry-summary">
-        <a href="#set_boot_image%28image%3AImage%2Ccolor%3AColor%2Cscale%3ABool%2Cuse_filter%3ABool%3Dtrue%29%3AVoid-instance-method" class="signature"><strong>#set_boot_image</strong>(image : Image, color : Color, scale : Bool, use_filter : Bool = <span class="n">true</span>) : Void</a>
+        <a href="#set_boot_image%28image%3AImage%7CNil%2Ccolor%3AColor%2Cscale%3ABool%2Cuse_filter%3ABool%3Dtrue%29%3AVoid-instance-method" class="signature"><strong>#set_boot_image</strong>(image : Image | Nil, color : Color, scale : Bool, use_filter : Bool = <span class="n">true</span>) : Void</a>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#set_boot_image_with_stretch%28image%3AImage%2Ccolor%3AColor%2Cstretch_mode%3ASplashStretchMode%7CInt%2Cuse_filter%3ABool%3Dtrue%29%3AVoid-instance-method" class="signature"><strong>#set_boot_image_with_stretch</strong>(image : Image, color : Color, stretch_mode : SplashStretchMode | Int, use_filter : Bool = <span class="n">true</span>) : Void</a>
+        <a href="#set_boot_image_with_stretch%28image%3AImage%7CNil%2Ccolor%3AColor%2Cstretch_mode%3ASplashStretchMode%7CInt%2Cuse_filter%3ABool%3Dtrue%29%3AVoid-instance-method" class="signature"><strong>#set_boot_image_with_stretch</strong>(image : Image | Nil, color : Color, stretch_mode : SplashStretchMode | Int, use_filter : Bool = <span class="n">true</span>) : Void</a>
         
       </li>
     
@@ -20042,7 +20132,7 @@
       </li>
     
       <li class="entry-summary">
-        <a href="#texture_2d_create%28image%3AImage%29%3AInt64-instance-method" class="signature"><strong>#texture_2d_create</strong>(image : Image) : Int64</a>
+        <a href="#texture_2d_create%28image%3AImage%7CNil%29%3AInt64-instance-method" class="signature"><strong>#texture_2d_create</strong>(image : Image | Nil) : Int64</a>
         
       </li>
     
@@ -20072,7 +20162,7 @@
       </li>
     
       <li class="entry-summary">
-        <a href="#texture_2d_update%28texture%3AInt64%2Cimage%3AImage%2Clayer%3AInt64%29%3AVoid-instance-method" class="signature"><strong>#texture_2d_update</strong>(texture : Int64, image : Image, layer : Int64) : Void</a>
+        <a href="#texture_2d_update%28texture%3AInt64%2Cimage%3AImage%7CNil%2Clayer%3AInt64%29%3AVoid-instance-method" class="signature"><strong>#texture_2d_update</strong>(texture : Int64, image : Image | Nil, layer : Int64) : Void</a>
         
       </li>
     
@@ -20617,9 +20707,29 @@
     _godot_call_virtual_with_data</a>, 
     
   
+    <a href="../Godot/Object.html#_godot_dispatch_crystal_0%28method%3AString%29%3ABool-instance-method" class="tooltip">
+      <span>_godot_dispatch_crystal_0(method : String) : Bool</span>
+    _godot_dispatch_crystal_0</a>, 
+    
+  
+    <a href="../Godot/Object.html#_godot_dispatch_crystal_1%28method%3AString%2Ca0%3AVariant%29%3ABool-instance-method" class="tooltip">
+      <span>_godot_dispatch_crystal_1(method : String, a0 : Variant) : Bool</span>
+    _godot_dispatch_crystal_1</a>, 
+    
+  
+    <a href="../Godot/Object.html#_godot_dispatch_crystal_2%28method%3AString%2Ca0%3AVariant%2Ca1%3AVariant%29%3ABool-instance-method" class="tooltip">
+      <span>_godot_dispatch_crystal_2(method : String, a0 : Variant, a1 : Variant) : Bool</span>
+    _godot_dispatch_crystal_2</a>, 
+    
+  
     <a href="../Godot/Object.html#_godot_get_property%28prop_name%3AString%2Cret_ptr%3APointer%28Void%29%29%3AVoid-instance-method" class="tooltip">
       <span>_godot_get_property(prop_name : String, ret_ptr : Pointer(Void)) : Void</span>
     _godot_get_property</a>, 
+    
+  
+    <a href="../Godot/Object.html#_godot_has_crystal_method%3F%28method%3AString%29%3ABool-instance-method" class="tooltip">
+      <span>_godot_has_crystal_method?(method : String) : Bool</span>
+    _godot_has_crystal_method?</a>, 
     
   
     <a href="../Godot/Object.html#_godot_set_property%28prop_name%3AString%2Cval_ptr%3APointer%28Void%29%29%3AVoid-instance-method" class="tooltip">
@@ -20665,6 +20775,11 @@
     <a href="../Godot/Object.html#alive%3F%3ABool-instance-method" class="tooltip">
       <span>alive? : Bool</span>
     alive?</a>, 
+    
+  
+    <a href="../Godot/Object.html#apply_dictionary_properties%21%28dict%3AGodot%3A%3ADictionary%29%3AVoid-instance-method" class="tooltip">
+      <span>apply_dictionary_properties!(dict : Godot::Dictionary) : Void</span>
+    apply_dictionary_properties!</a>, 
     
   
     <a href="../Godot/Object.html#as_a%28type%3AT.class%29%3ATforallT-instance-method" class="tooltip">
@@ -20892,6 +21007,11 @@
     explicitly_freed?</a>, 
     
   
+    <a href="../Godot/Object.html#export_config_hash%3AUInt64-instance-method" class="tooltip">
+      <span>export_config_hash : UInt64</span>
+    export_config_hash</a>, 
+    
+  
     <a href="../Godot/Object.html#frame_arena%3ALapis%3A%3ACore%3A%3AFrameArena-instance-method" class="tooltip">
       <span>frame_arena : Lapis::Core::FrameArena</span>
     frame_arena</a>, 
@@ -20943,22 +21063,37 @@
     
   
     <a href="../Godot/Object.html#get_meta%28name%3AString%2Cdefault%3APointer%28Void%29%7CNil%3Dnil%29%3APointer%28Void%29-instance-method" class="tooltip">
-      <span>get_meta(name : String, default : Pointer(Void) | Nil = <span class="n">nil</span>) : Pointer(Void)<br/>get_meta(key : Symbol, default : Pointer(Void) | Nil = <span class="n">nil</span>) : Pointer(Void)<br/>get_meta(name : String, default : Pointer(Void) | Nil = <span class="n">nil</span>) : Pointer(Void)<br/>get_meta(name : String, default : Pointer(Void) | Nil = <span class="n">nil</span>) : Pointer(Void)<br/>get_meta(key : Symbol, default : Pointer(Void) | Nil = <span class="n">nil</span>) : Pointer(Void)</span>
+      <span>get_meta(name : String, default : Pointer(Void) | Nil = <span class="n">nil</span>) : Pointer(Void)<br/>get_meta(key : Symbol, default : Pointer(Void) | Nil = <span class="n">nil</span>) : Pointer(Void)<br/>get_meta(name : String, default : Pointer(Void) | Nil = <span class="n">nil</span>) : Pointer(Void)<br/>get_meta(name : String, default : Pointer(Void) | Nil = <span class="n">nil</span>) : Pointer(Void)<br/>get_meta(key : Symbol, default : Pointer(Void) | Nil = <span class="n">nil</span>) : Pointer(Void)<br/>get_meta(name : String, default : Pointer(Void) | Nil = <span class="n">nil</span>) : Pointer(Void)</span>
     get_meta</a>, 
     
   
-    <a href="../Godot/Object.html#get_meta_color%28key%3AString%7CSymbol%29%3AColor-instance-method" class="tooltip">
-      <span>get_meta_color(key : String | Symbol) : Color</span>
+    <a href="../Godot/Object.html#get_meta_bool%28key%3AString%7CSymbol%2Cdefault%3ABool%3Dfalse%29%3ABool-instance-method" class="tooltip">
+      <span>get_meta_bool(key : String | Symbol, default : Bool = <span class="n">false</span>) : Bool</span>
+    get_meta_bool</a>, 
+    
+  
+    <a href="../Godot/Object.html#get_meta_color%28key%3AString%7CSymbol%2Cdefault%3AColor%3DColor%3A%3AWHITE%29%3AColor-instance-method" class="tooltip">
+      <span>get_meta_color(key : String | Symbol, default : Color = <span class="t">Color</span><span class="t">::</span><span class="t">WHITE</span>) : Color</span>
     get_meta_color</a>, 
     
   
-    <a href="../Godot/Object.html#get_meta_f64%28key%3AString%7CSymbol%29%3AFloat64-instance-method" class="tooltip">
-      <span>get_meta_f64(key : String | Symbol) : Float64</span>
+    <a href="../Godot/Object.html#get_meta_f32%28key%3AString%7CSymbol%2Cdefault%3AFloat32%3D0.0_f32%29%3AFloat32-instance-method" class="tooltip">
+      <span>get_meta_f32(key : String | Symbol, default : Float32 = <span class="n">0.0_f32</span>) : Float32</span>
+    get_meta_f32</a>, 
+    
+  
+    <a href="../Godot/Object.html#get_meta_f64%28key%3AString%7CSymbol%2Cdefault%3AFloat64%3D0.0%29%3AFloat64-instance-method" class="tooltip">
+      <span>get_meta_f64(key : String | Symbol, default : Float64 = <span class="n">0.0</span>) : Float64</span>
     get_meta_f64</a>, 
     
   
-    <a href="../Godot/Object.html#get_meta_i64%28key%3AString%7CSymbol%29%3AInt64-instance-method" class="tooltip">
-      <span>get_meta_i64(key : String | Symbol) : Int64</span>
+    <a href="../Godot/Object.html#get_meta_i32%28key%3AString%7CSymbol%2Cdefault%3AInt32%3D0%29%3AInt32-instance-method" class="tooltip">
+      <span>get_meta_i32(key : String | Symbol, default : Int32 = <span class="n">0</span>) : Int32</span>
+    get_meta_i32</a>, 
+    
+  
+    <a href="../Godot/Object.html#get_meta_i64%28key%3AString%7CSymbol%2Cdefault%3AInt64%3D0_i64%29%3AInt64-instance-method" class="tooltip">
+      <span>get_meta_i64(key : String | Symbol, default : Int64 = <span class="n">0_i64</span>) : Int64</span>
     get_meta_i64</a>, 
     
   
@@ -20967,23 +21102,28 @@
     get_meta_list</a>, 
     
   
-    <a href="../Godot/Object.html#get_meta_str%28key%3AString%7CSymbol%29%3AString-instance-method" class="tooltip">
-      <span>get_meta_str(key : String | Symbol) : String</span>
+    <a href="../Godot/Object.html#get_meta_object%28key%3AString%7CSymbol%2Ctype%3AT.class%3DGodot%3A%3AObject%29%3AT%7CNilforallT-instance-method" class="tooltip">
+      <span>get_meta_object(key : String | Symbol, type : <span class="t">T</span>.<span class="k">class</span> = <span class="t">Godot</span><span class="t">::</span><span class="t">Object</span>) : T | Nil forall T</span>
+    get_meta_object</a>, 
+    
+  
+    <a href="../Godot/Object.html#get_meta_str%28key%3AString%7CSymbol%2Cdefault%3AString%3D%22%22%29%3AString-instance-method" class="tooltip">
+      <span>get_meta_str(key : String | Symbol, default : String = <span class="s">&quot;&quot;</span>) : String</span>
     get_meta_str</a>, 
     
   
-    <a href="../Godot/Object.html#get_meta_transform3d%28key%3AString%7CSymbol%29%3ATransform3D-instance-method" class="tooltip">
-      <span>get_meta_transform3d(key : String | Symbol) : Transform3D</span>
+    <a href="../Godot/Object.html#get_meta_transform3d%28key%3AString%7CSymbol%2Cdefault%3ATransform3D%3DTransform3D.identity%29%3ATransform3D-instance-method" class="tooltip">
+      <span>get_meta_transform3d(key : String | Symbol, default : Transform3D = <span class="t">Transform3D</span>.identity) : Transform3D</span>
     get_meta_transform3d</a>, 
     
   
-    <a href="../Godot/Object.html#get_meta_vector2%28key%3AString%7CSymbol%29%3AVector2-instance-method" class="tooltip">
-      <span>get_meta_vector2(key : String | Symbol) : Vector2</span>
+    <a href="../Godot/Object.html#get_meta_vector2%28key%3AString%7CSymbol%2Cdefault%3AVector2%3DVector2.zero%29%3AVector2-instance-method" class="tooltip">
+      <span>get_meta_vector2(key : String | Symbol, default : Vector2 = <span class="t">Vector2</span>.zero) : Vector2</span>
     get_meta_vector2</a>, 
     
   
-    <a href="../Godot/Object.html#get_meta_vector3%28key%3AString%7CSymbol%29%3AVector3-instance-method" class="tooltip">
-      <span>get_meta_vector3(key : String | Symbol) : Vector3</span>
+    <a href="../Godot/Object.html#get_meta_vector3%28key%3AString%7CSymbol%2Cdefault%3AVector3%3DVector3.zero%29%3AVector3-instance-method" class="tooltip">
+      <span>get_meta_vector3(key : String | Symbol, default : Vector3 = <span class="t">Vector3</span>.zero) : Vector3</span>
     get_meta_vector3</a>, 
     
   
@@ -21152,6 +21292,11 @@
     link_class_script</a>, 
     
   
+    <a href="../Godot/Object.html#live_instance%3AGodot%3A%3AObject-instance-method" class="tooltip">
+      <span>live_instance : Godot::Object</span>
+    live_instance</a>, 
+    
+  
     <a href="../Godot/Object.html#not_null%3F%3ABool-instance-method" class="tooltip">
       <span>not_null? : Bool</span>
     not_null?</a>, 
@@ -21307,6 +21452,11 @@
     set_meta</a>, 
     
   
+    <a href="../Godot/Object.html#set_meta_object%28key%3AString%7CSymbol%2Cobj%3AGodot%3A%3AObject%7CNil%29%3AVoid-instance-method" class="tooltip">
+      <span>set_meta_object(key : String | Symbol, obj : Godot::Object | Nil) : Void</span>
+    set_meta_object</a>, 
+    
+  
     <a href="../Godot/Object.html#set_script%28script%3APointer%28Void%29%29%3AVoid-instance-method" class="tooltip">
       <span>set_script(script : Pointer(Void)) : Void</span>
     set_script</a>, 
@@ -21426,6 +21576,11 @@
     cast_to?</a>, 
     
   
+    <a href="../Godot/Object.html#clear_script_info_cache%21%3AVoid-class-method" class="tooltip">
+      <span>clear_script_info_cache! : Void</span>
+    clear_script_info_cache!</a>, 
+    
+  
     <a href="../Godot/Object.html#find_script_info_for_node%28node%3AGodot%3A%3AObject%29%3ANamedTuple%28path%3AString%2Cline%3AInt32%2Cclass_name%3AString%2Cparent_name%3AString%2Cis_tool%3ABool%29%7CNil-class-method" class="tooltip">
       <span>find_script_info_for_node(node : Godot::Object) : NamedTuple(path: String, line: Int32, class_name: String, parent_name: String, is_tool: Bool) | Nil</span>
     find_script_info_for_node</a>, 
@@ -21448,7 +21603,12 @@
   
     <a href="../Godot/Object.html#is_internal_or_brush_class%3F%28cls_name%3AString%29%3ABool-class-method" class="tooltip">
       <span>is_internal_or_brush_class?(cls_name : String) : Bool</span>
-    is_internal_or_brush_class?</a>
+    is_internal_or_brush_class?</a>, 
+    
+  
+    <a href="../Godot/Object.html#resolve_cached_class_script_info%28cls_name%3AString%2Cdefault_parent%3AString%3D%22Node%22%2Cdefault_tool%3ABool%3Dfalse%29%3ANamedTuple%28path%3AString%2Cline%3AInt32%2Cclass_name%3AString%2Cparent_name%3AString%2Cis_tool%3ABool%29%7CNil-class-method" class="tooltip">
+      <span>resolve_cached_class_script_info(cls_name : String, default_parent : String = <span class="s">&quot;Node&quot;</span>, default_tool : Bool = <span class="n">false</span>) : NamedTuple(path: String, line: Int32, class_name: String, parent_name: String, is_tool: Bool) | Nil</span>
+    resolve_cached_class_script_info</a>
     
   
 
@@ -21524,6 +21684,20 @@
         def self.<strong>new</strong>(pointer : Pointer(Void) = <span class="t">Pointer</span>(<span class="t">Void</span>).null)
 
         <a class="method-permalink" href="#new%28pointer%3APointer%28Void%29%3DPointer%28Void%29.null%29-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="singleton:RenderingServer-class-method">
+      <div class="signature">
+        
+        def self.<strong>singleton</strong> : <a href="../Godot/RenderingServer.html">RenderingServer</a>
+
+        <a class="method-permalink" href="#singleton%3ARenderingServer-class-method">#</a>
       </div>
       
       <br/>
@@ -25249,6 +25423,20 @@
       </div>
     </div>
   
+    <div class="entry-detail" id="global_shader_parameter_get(name:String|Symbol,astype:T.class,default:T|Nil=nil):TforallT-class-method">
+      <div class="signature">
+        
+        def self.<strong>global_shader_parameter_get</strong>(name : <a href="../String.html">String</a> | Symbol, as type : <span class="t">T</span>.<span class="k">class</span>, default : T | <a href="../Nil.html">Nil</a> = <span class="n">nil</span>) : T forall T
+
+        <a class="method-permalink" href="#global_shader_parameter_get%28name%3AString%7CSymbol%2Castype%3AT.class%2Cdefault%3AT%7CNil%3Dnil%29%3ATforallT-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
     <div class="entry-detail" id="global_shader_parameter_get(name:String):Pointer(Void)-class-method">
       <div class="signature">
         
@@ -25259,7 +25447,7 @@
       
         <div class="doc">
           
-          <p>Class-level singleton delegator for <code><a href="../Godot/RenderingServer.html#global_shader_parameter_get%28name%3AString%29%3APointer%28Void%29-instance-method">#global_shader_parameter_get</a></code></p>
+          <p>Class-level singleton delegator for <code><a href="../Godot/RenderingServer.html#global_shader_parameter_get%28name%3AString%7CSymbol%2Castype%3AT.class%2Cdefault%3AT%7CNil%3Dnil%29%3ATforallT-instance-method">#global_shader_parameter_get</a></code></p>
         </div>
       
       <br/>
@@ -25344,6 +25532,20 @@
       </div>
     </div>
   
+    <div class="entry-detail" id="global_shader_parameter_set(name:String|Symbol,value:ShaderParameterValue):Void-class-method">
+      <div class="signature">
+        
+        def self.<strong>global_shader_parameter_set</strong>(name : <a href="../String.html">String</a> | Symbol, value : <a href="../Godot/ShaderParameterValue.html">ShaderParameterValue</a>) : Void
+
+        <a class="method-permalink" href="#global_shader_parameter_set%28name%3AString%7CSymbol%2Cvalue%3AShaderParameterValue%29%3AVoid-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
     <div class="entry-detail" id="global_shader_parameter_set_override(name:String,value:Pointer(Void)):Void-class-method">
       <div class="signature">
         
@@ -25356,6 +25558,20 @@
           
           <p>Class-level singleton delegator for <code><a href="../Godot/RenderingServer.html#global_shader_parameter_set_override%28name%3AString%2Cvalue%3APointer%28Void%29%29%3AVoid-instance-method">#global_shader_parameter_set_override</a></code></p>
         </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="global_shader_parameter_set_override(name:String|Symbol,value:ShaderParameterValue):Void-class-method">
+      <div class="signature">
+        
+        def self.<strong>global_shader_parameter_set_override</strong>(name : <a href="../String.html">String</a> | Symbol, value : <a href="../Godot/ShaderParameterValue.html">ShaderParameterValue</a>) : Void
+
+        <a class="method-permalink" href="#global_shader_parameter_set_override%28name%3AString%7CSymbol%2Cvalue%3AShaderParameterValue%29%3AVoid-class-method">#</a>
+      </div>
       
       <br/>
       <div>
@@ -29590,17 +29806,17 @@
       </div>
     </div>
   
-    <div class="entry-detail" id="set_boot_image(image:Image,color:Color,scale:Bool,use_filter:Bool=true):Void-class-method">
+    <div class="entry-detail" id="set_boot_image(image:Image|Nil,color:Color,scale:Bool,use_filter:Bool=true):Void-class-method">
       <div class="signature">
         
-        def self.<strong>set_boot_image</strong>(image : <a href="../Godot/Image.html">Image</a>, color : <a href="../Godot/Color.html">Color</a>, scale : Bool, use_filter : Bool = <span class="n">true</span>) : Void
+        def self.<strong>set_boot_image</strong>(image : <a href="../Godot/Image.html">Image</a> | <a href="../Nil.html">Nil</a>, color : <a href="../Godot/Color.html">Color</a>, scale : Bool, use_filter : Bool = <span class="n">true</span>) : Void
 
-        <a class="method-permalink" href="#set_boot_image%28image%3AImage%2Ccolor%3AColor%2Cscale%3ABool%2Cuse_filter%3ABool%3Dtrue%29%3AVoid-class-method">#</a>
+        <a class="method-permalink" href="#set_boot_image%28image%3AImage%7CNil%2Ccolor%3AColor%2Cscale%3ABool%2Cuse_filter%3ABool%3Dtrue%29%3AVoid-class-method">#</a>
       </div>
       
         <div class="doc">
           
-          <p>Class-level singleton delegator for <code><a href="../Godot/RenderingServer.html#set_boot_image%28image%3AImage%2Ccolor%3AColor%2Cscale%3ABool%2Cuse_filter%3ABool%3Dtrue%29%3AVoid-instance-method">#set_boot_image</a></code></p>
+          <p>Class-level singleton delegator for <code><a href="../Godot/RenderingServer.html#set_boot_image%28image%3AImage%7CNil%2Ccolor%3AColor%2Cscale%3ABool%2Cuse_filter%3ABool%3Dtrue%29%3AVoid-instance-method">#set_boot_image</a></code></p>
         </div>
       
       <br/>
@@ -29609,17 +29825,17 @@
       </div>
     </div>
   
-    <div class="entry-detail" id="set_boot_image_with_stretch(image:Image,color:Color,stretch_mode:SplashStretchMode|Int,use_filter:Bool=true):Void-class-method">
+    <div class="entry-detail" id="set_boot_image_with_stretch(image:Image|Nil,color:Color,stretch_mode:SplashStretchMode|Int,use_filter:Bool=true):Void-class-method">
       <div class="signature">
         
-        def self.<strong>set_boot_image_with_stretch</strong>(image : <a href="../Godot/Image.html">Image</a>, color : <a href="../Godot/Color.html">Color</a>, stretch_mode : <a href="../Godot/RenderingServer/SplashStretchMode.html">SplashStretchMode</a> | <a href="../Int.html">Int</a>, use_filter : Bool = <span class="n">true</span>) : Void
+        def self.<strong>set_boot_image_with_stretch</strong>(image : <a href="../Godot/Image.html">Image</a> | <a href="../Nil.html">Nil</a>, color : <a href="../Godot/Color.html">Color</a>, stretch_mode : <a href="../Godot/RenderingServer/SplashStretchMode.html">SplashStretchMode</a> | <a href="../Int.html">Int</a>, use_filter : Bool = <span class="n">true</span>) : Void
 
-        <a class="method-permalink" href="#set_boot_image_with_stretch%28image%3AImage%2Ccolor%3AColor%2Cstretch_mode%3ASplashStretchMode%7CInt%2Cuse_filter%3ABool%3Dtrue%29%3AVoid-class-method">#</a>
+        <a class="method-permalink" href="#set_boot_image_with_stretch%28image%3AImage%7CNil%2Ccolor%3AColor%2Cstretch_mode%3ASplashStretchMode%7CInt%2Cuse_filter%3ABool%3Dtrue%29%3AVoid-class-method">#</a>
       </div>
       
         <div class="doc">
           
-          <p>Class-level singleton delegator for <code><a href="../Godot/RenderingServer.html#set_boot_image_with_stretch%28image%3AImage%2Ccolor%3AColor%2Cstretch_mode%3ASplashStretchMode%7CInt%2Cuse_filter%3ABool%3Dtrue%29%3AVoid-instance-method">#set_boot_image_with_stretch</a></code></p>
+          <p>Class-level singleton delegator for <code><a href="../Godot/RenderingServer.html#set_boot_image_with_stretch%28image%3AImage%7CNil%2Ccolor%3AColor%2Cstretch_mode%3ASplashStretchMode%7CInt%2Cuse_filter%3ABool%3Dtrue%29%3AVoid-instance-method">#set_boot_image_with_stretch</a></code></p>
         </div>
       
       <br/>
@@ -30136,17 +30352,17 @@
       </div>
     </div>
   
-    <div class="entry-detail" id="texture_2d_create(image:Image):Int64-class-method">
+    <div class="entry-detail" id="texture_2d_create(image:Image|Nil):Int64-class-method">
       <div class="signature">
         
-        def self.<strong>texture_2d_create</strong>(image : <a href="../Godot/Image.html">Image</a>) : Int64
+        def self.<strong>texture_2d_create</strong>(image : <a href="../Godot/Image.html">Image</a> | <a href="../Nil.html">Nil</a>) : Int64
 
-        <a class="method-permalink" href="#texture_2d_create%28image%3AImage%29%3AInt64-class-method">#</a>
+        <a class="method-permalink" href="#texture_2d_create%28image%3AImage%7CNil%29%3AInt64-class-method">#</a>
       </div>
       
         <div class="doc">
           
-          <p>Class-level singleton delegator for <code><a href="../Godot/RenderingServer.html#texture_2d_create%28image%3AImage%29%3AInt64-instance-method">#texture_2d_create</a></code></p>
+          <p>Class-level singleton delegator for <code><a href="../Godot/RenderingServer.html#texture_2d_create%28image%3AImage%7CNil%29%3AInt64-instance-method">#texture_2d_create</a></code></p>
         </div>
       
       <br/>
@@ -30250,17 +30466,17 @@
       </div>
     </div>
   
-    <div class="entry-detail" id="texture_2d_update(texture:Int64,image:Image,layer:Int64):Void-class-method">
+    <div class="entry-detail" id="texture_2d_update(texture:Int64,image:Image|Nil,layer:Int64):Void-class-method">
       <div class="signature">
         
-        def self.<strong>texture_2d_update</strong>(texture : Int64, image : <a href="../Godot/Image.html">Image</a>, layer : Int64) : Void
+        def self.<strong>texture_2d_update</strong>(texture : Int64, image : <a href="../Godot/Image.html">Image</a> | <a href="../Nil.html">Nil</a>, layer : Int64) : Void
 
-        <a class="method-permalink" href="#texture_2d_update%28texture%3AInt64%2Cimage%3AImage%2Clayer%3AInt64%29%3AVoid-class-method">#</a>
+        <a class="method-permalink" href="#texture_2d_update%28texture%3AInt64%2Cimage%3AImage%7CNil%2Clayer%3AInt64%29%3AVoid-class-method">#</a>
       </div>
       
         <div class="doc">
           
-          <p>Class-level singleton delegator for <code><a href="../Godot/RenderingServer.html#texture_2d_update%28texture%3AInt64%2Cimage%3AImage%2Clayer%3AInt64%29%3AVoid-instance-method">#texture_2d_update</a></code></p>
+          <p>Class-level singleton delegator for <code><a href="../Godot/RenderingServer.html#texture_2d_update%28texture%3AInt64%2Cimage%3AImage%7CNil%2Clayer%3AInt64%29%3AVoid-instance-method">#texture_2d_update</a></code></p>
         </div>
       
       <br/>
@@ -35005,6 +35221,20 @@
       </div>
     </div>
   
+    <div class="entry-detail" id="global_shader_parameter_get(name:String|Symbol,astype:T.class,default:T|Nil=nil):TforallT-instance-method">
+      <div class="signature">
+        
+        def <strong>global_shader_parameter_get</strong>(name : <a href="../String.html">String</a> | Symbol, as type : <span class="t">T</span>.<span class="k">class</span>, default : T | <a href="../Nil.html">Nil</a> = <span class="n">nil</span>) : T forall T
+
+        <a class="method-permalink" href="#global_shader_parameter_get%28name%3AString%7CSymbol%2Castype%3AT.class%2Cdefault%3AT%7CNil%3Dnil%29%3ATforallT-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
     <div class="entry-detail" id="global_shader_parameter_get(name:String):Pointer(Void)-instance-method">
       <div class="signature">
         
@@ -35075,12 +35305,40 @@
       </div>
     </div>
   
+    <div class="entry-detail" id="global_shader_parameter_set(name:String|Symbol,value:ShaderParameterValue):Void-instance-method">
+      <div class="signature">
+        
+        def <strong>global_shader_parameter_set</strong>(name : <a href="../String.html">String</a> | Symbol, value : <a href="../Godot/ShaderParameterValue.html">ShaderParameterValue</a>) : Void
+
+        <a class="method-permalink" href="#global_shader_parameter_set%28name%3AString%7CSymbol%2Cvalue%3AShaderParameterValue%29%3AVoid-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
     <div class="entry-detail" id="global_shader_parameter_set_override(name:String,value:Pointer(Void)):Void-instance-method">
       <div class="signature">
         
         def <strong>global_shader_parameter_set_override</strong>(name : <a href="../String.html">String</a>, value : Pointer(Void)) : Void
 
         <a class="method-permalink" href="#global_shader_parameter_set_override%28name%3AString%2Cvalue%3APointer%28Void%29%29%3AVoid-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="global_shader_parameter_set_override(name:String|Symbol,value:ShaderParameterValue):Void-instance-method">
+      <div class="signature">
+        
+        def <strong>global_shader_parameter_set_override</strong>(name : <a href="../String.html">String</a> | Symbol, value : <a href="../Godot/ShaderParameterValue.html">ShaderParameterValue</a>) : Void
+
+        <a class="method-permalink" href="#global_shader_parameter_set_override%28name%3AString%7CSymbol%2Cvalue%3AShaderParameterValue%29%3AVoid-instance-method">#</a>
       </div>
       
       <br/>
@@ -38266,12 +38524,12 @@
       </div>
     </div>
   
-    <div class="entry-detail" id="set_boot_image(image:Image,color:Color,scale:Bool,use_filter:Bool=true):Void-instance-method">
+    <div class="entry-detail" id="set_boot_image(image:Image|Nil,color:Color,scale:Bool,use_filter:Bool=true):Void-instance-method">
       <div class="signature">
         
-        def <strong>set_boot_image</strong>(image : <a href="../Godot/Image.html">Image</a>, color : <a href="../Godot/Color.html">Color</a>, scale : Bool, use_filter : Bool = <span class="n">true</span>) : Void
+        def <strong>set_boot_image</strong>(image : <a href="../Godot/Image.html">Image</a> | <a href="../Nil.html">Nil</a>, color : <a href="../Godot/Color.html">Color</a>, scale : Bool, use_filter : Bool = <span class="n">true</span>) : Void
 
-        <a class="method-permalink" href="#set_boot_image%28image%3AImage%2Ccolor%3AColor%2Cscale%3ABool%2Cuse_filter%3ABool%3Dtrue%29%3AVoid-instance-method">#</a>
+        <a class="method-permalink" href="#set_boot_image%28image%3AImage%7CNil%2Ccolor%3AColor%2Cscale%3ABool%2Cuse_filter%3ABool%3Dtrue%29%3AVoid-instance-method">#</a>
       </div>
       
       <br/>
@@ -38280,12 +38538,12 @@
       </div>
     </div>
   
-    <div class="entry-detail" id="set_boot_image_with_stretch(image:Image,color:Color,stretch_mode:SplashStretchMode|Int,use_filter:Bool=true):Void-instance-method">
+    <div class="entry-detail" id="set_boot_image_with_stretch(image:Image|Nil,color:Color,stretch_mode:SplashStretchMode|Int,use_filter:Bool=true):Void-instance-method">
       <div class="signature">
         
-        def <strong>set_boot_image_with_stretch</strong>(image : <a href="../Godot/Image.html">Image</a>, color : <a href="../Godot/Color.html">Color</a>, stretch_mode : <a href="../Godot/RenderingServer/SplashStretchMode.html">SplashStretchMode</a> | <a href="../Int.html">Int</a>, use_filter : Bool = <span class="n">true</span>) : Void
+        def <strong>set_boot_image_with_stretch</strong>(image : <a href="../Godot/Image.html">Image</a> | <a href="../Nil.html">Nil</a>, color : <a href="../Godot/Color.html">Color</a>, stretch_mode : <a href="../Godot/RenderingServer/SplashStretchMode.html">SplashStretchMode</a> | <a href="../Int.html">Int</a>, use_filter : Bool = <span class="n">true</span>) : Void
 
-        <a class="method-permalink" href="#set_boot_image_with_stretch%28image%3AImage%2Ccolor%3AColor%2Cstretch_mode%3ASplashStretchMode%7CInt%2Cuse_filter%3ABool%3Dtrue%29%3AVoid-instance-method">#</a>
+        <a class="method-permalink" href="#set_boot_image_with_stretch%28image%3AImage%7CNil%2Ccolor%3AColor%2Cstretch_mode%3ASplashStretchMode%7CInt%2Cuse_filter%3ABool%3Dtrue%29%3AVoid-instance-method">#</a>
       </div>
       
       <br/>
@@ -38658,12 +38916,12 @@
       </div>
     </div>
   
-    <div class="entry-detail" id="texture_2d_create(image:Image):Int64-instance-method">
+    <div class="entry-detail" id="texture_2d_create(image:Image|Nil):Int64-instance-method">
       <div class="signature">
         
-        def <strong>texture_2d_create</strong>(image : <a href="../Godot/Image.html">Image</a>) : Int64
+        def <strong>texture_2d_create</strong>(image : <a href="../Godot/Image.html">Image</a> | <a href="../Nil.html">Nil</a>) : Int64
 
-        <a class="method-permalink" href="#texture_2d_create%28image%3AImage%29%3AInt64-instance-method">#</a>
+        <a class="method-permalink" href="#texture_2d_create%28image%3AImage%7CNil%29%3AInt64-instance-method">#</a>
       </div>
       
       <br/>
@@ -38742,12 +39000,12 @@
       </div>
     </div>
   
-    <div class="entry-detail" id="texture_2d_update(texture:Int64,image:Image,layer:Int64):Void-instance-method">
+    <div class="entry-detail" id="texture_2d_update(texture:Int64,image:Image|Nil,layer:Int64):Void-instance-method">
       <div class="signature">
         
-        def <strong>texture_2d_update</strong>(texture : Int64, image : <a href="../Godot/Image.html">Image</a>, layer : Int64) : Void
+        def <strong>texture_2d_update</strong>(texture : Int64, image : <a href="../Godot/Image.html">Image</a> | <a href="../Nil.html">Nil</a>, layer : Int64) : Void
 
-        <a class="method-permalink" href="#texture_2d_update%28texture%3AInt64%2Cimage%3AImage%2Clayer%3AInt64%29%3AVoid-instance-method">#</a>
+        <a class="method-permalink" href="#texture_2d_update%28texture%3AInt64%2Cimage%3AImage%7CNil%2Clayer%3AInt64%29%3AVoid-instance-method">#</a>
       </div>
       
       <br/>
