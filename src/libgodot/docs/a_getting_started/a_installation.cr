@@ -96,7 +96,7 @@ module Lapis
         #     </tr>
         #     <tr>
         #       <td><strong>Godot Engine</strong></td>
-        #       <td>4.8-beta2</td>
+        #       <td>4.8-beta3</td>
         #       <td>Target game engine executable</td>
         #       <td><a href="https://godotengine.org">godotengine.org</a></td>
         #     </tr>
@@ -216,7 +216,7 @@ module Lapis
         #
         # - **Warning**: Running with Crystal < 1.20.0 will cause compilation errors due to missing ExecutionContext APIs.
         # - **Warning**: Missing g++ on Windows: ensure MinGW-w64 is in your system PATH (test with `g++ --version`).
-        # - **Warning**: Godot binary mismatch: Lapis targets Godot 4.8-beta2; using 4.2 or 4.3 will trigger GDExtension ABI incompatibilities.
+        # - **Warning**: Godot binary mismatch: Lapis targets Godot 4.8-beta3; using 4.2 or 4.3 will trigger GDExtension ABI incompatibilities.
         #
         # #### Frequently Asked Questions (FAQ)
         #

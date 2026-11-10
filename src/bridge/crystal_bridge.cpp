@@ -248,7 +248,7 @@ deinitialize_crystal_module(void *p_userdata,
  * Validates semantic version compatibility between target engine and runtime
  * engine.
  *
- * @param expected Null-terminated target semver string (e.g. "4.8-beta2").
+ * @param expected Null-terminated target semver string (e.g. "4.8-beta3").
  * @param actual Null-terminated active Godot version string (e.g.
  * "4.8.beta1.official").
  * @return True if all expected version tokens match the active engine string.

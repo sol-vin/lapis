@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: 'Release Tag Name (e.g. 4.8-beta2 or latest)'
+        description: 'Release Tag Name (e.g. 4.8-beta3 or latest)'
         required: false
         default: ''
 
@@ -52,7 +52,7 @@ jobs:
         shell: bash
         run: |
           GODOT_VER=$(grep 'version:' godot-version.yml | cut -d: -f2 | tr -d ' "\r\n\t')
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta2"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta3"; fi
           echo "godot_version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "Resolved Godot Version: $GODOT_VER"
 
@@ -338,7 +338,7 @@ jobs:
           if [ -z "$GODOT_VER" ] && [ -f "godot-version.yml" ]; then
             GODOT_VER=$(grep 'version:' godot-version.yml | cut -d: -f2 | tr -d ' "\r\n\t')
           fi
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta2"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta3"; fi
           echo "Resolved Godot Version: $GODOT_VER"
           echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
@@ -509,7 +509,7 @@ jobs:
         id: godot-version
         shell: pwsh
         run: |
-          $ver = "4.8-beta2"
+          $ver = "4.8-beta3"
           if (Test-Path "godot-version.yml") {
             $content = Get-Content "godot-version.yml" -Raw
             if ($content -match 'version:\s*[''"]?([^''"\r\n]+)[''"]?') {
@@ -670,7 +670,7 @@ jobs:
         shell: bash
         run: |
           GODOT_VER=$(grep 'version:' godot-version.yml | cut -d: -f2 | tr -d ' "\r\n\t')
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta2"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta3"; fi
           echo "Resolved Godot Version: $GODOT_VER"
           echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
@@ -817,7 +817,7 @@ jobs:
         shell: bash
         run: |
           GODOT_VER=$(grep 'version:' godot-version.yml | cut -d: -f2 | tr -d ' "\r\n\t')
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta2"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta3"; fi
           echo "Resolved Godot Version: $GODOT_VER"
           echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
@@ -996,7 +996,7 @@ jobs:
         id: godot-version
         shell: pwsh
         run: |
-          $ver = "4.8-beta2"
+          $ver = "4.8-beta3"
           if (Test-Path "godot-version.yml") {
             $content = Get-Content "godot-version.yml" -Raw
             if ($content -match 'version:\s*[''"]?([^''"\r\n]+)[''"]?') {
@@ -1199,7 +1199,7 @@ jobs:
         shell: bash
         run: |
           GODOT_VER=$(grep 'version:' godot-version.yml | cut -d: -f2 | tr -d ' "\r\n\t')
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta2"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta3"; fi
           echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
 
@@ -1383,7 +1383,7 @@ jobs:
         shell: bash
         run: |
           GODOT_VER=$(grep 'version:' godot-version.yml | cut -d: -f2 | tr -d ' "\r\n\t')
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta2"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta3"; fi
           echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
 
@@ -1595,7 +1595,7 @@ jobs:
         id: godot-version
         shell: pwsh
         run: |
-          $ver = "4.8-beta2"
+          $ver = "4.8-beta3"
           if (Test-Path "godot-version.yml") {
             $content = Get-Content "godot-version.yml" -Raw
             if ($content -match 'version:\s*[''"]?([^''"\r\n]+)[''"]?') {
@@ -1730,7 +1730,7 @@ jobs:
         shell: bash
         run: |
           GODOT_VER=$(grep 'version:' godot-version.yml | cut -d: -f2 | tr -d ' "\r\n\t')
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta2"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta3"; fi
           echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
 
@@ -1873,7 +1873,7 @@ jobs:
         shell: bash
         run: |
           GODOT_VER=$(grep 'version:' godot-version.yml | cut -d: -f2 | tr -d ' "\r\n\t')
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta2"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta3"; fi
           echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
 
@@ -2887,7 +2887,7 @@ jobs:
           if [ -z "$GODOT_VER" ] && [ -f "godot-version.yml" ]; then
             GODOT_VER=$(grep 'version:' godot-version.yml | cut -d: -f2 | tr -d ' "\r\n\t')
           fi
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta2"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta3"; fi
           cat << 'EOF' > release_body.md
           ## LibGodot Crystal Release Notes (${GODOT_VER})
 
@@ -3086,7 +3086,7 @@ jobs:
         shell: bash
         run: |
           GODOT_VER="${{ needs.init-release.outputs.godot_version }}"
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta2"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta3"; fi
           if [ -n "$GODOT4" ] && [ -f "$GODOT4" ] && file -b "$GODOT4" | grep -q "ELF.*x86-64"; then
             cp "$GODOT4" ./godot
             chmod +x ./godot
@@ -3130,7 +3130,7 @@ jobs:
         run: |
           echo "Executing Multi-Language & Crystal vs GDScript benchmarks via Lapis CLI..."
           TAG_NAME="${{ needs.init-release.outputs.godot_version }}"
-          if [ -z "$TAG_NAME" ]; then TAG_NAME="${GITHUB_REF_NAME:-4.8-beta2}"; fi
+          if [ -z "$TAG_NAME" ]; then TAG_NAME="${GITHUB_REF_NAME:-4.8-beta3}"; fi
           ./bin/lapis benchmarks run html --all-languages --ci --tag "$TAG_NAME" -i 2 || ./bin/lapis benchmarks run html --tag "$TAG_NAME" -i 1 || true
 
       - name: Compare Benchmarks Against Previous Release
@@ -3138,14 +3138,14 @@ jobs:
         run: |
           echo "Comparing current benchmark against previous baseline..."
           TAG_NAME="${{ needs.init-release.outputs.godot_version }}"
-          if [ -z "$TAG_NAME" ]; then TAG_NAME="${GITHUB_REF_NAME:-4.8-beta2}"; fi
+          if [ -z "$TAG_NAME" ]; then TAG_NAME="${GITHUB_REF_NAME:-4.8-beta3}"; fi
           ./bin/lapis benchmarks compare html --tag "$TAG_NAME" || true
 
       - name: Generate Crystal API Documentation & Embed Benchmarks
         shell: bash
         run: |
           GODOT_VER="${{ needs.init-release.outputs.godot_version }}"
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="${GITHUB_REF_NAME:-4.8-beta2}"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="${GITHUB_REF_NAME:-4.8-beta3}"; fi
           shards install || true
           ./bin/lapis docs --github --ref="$GODOT_VER"
           touch docs/.nojekyll
@@ -3156,7 +3156,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           GODOT_VER="${{ needs.init-release.outputs.godot_version }}"
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="${GITHUB_REF_NAME:-4.8-beta2}"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="${GITHUB_REF_NAME:-4.8-beta3}"; fi
           REF_NAME="${{ github.ref_name }}"
 
           mkdir -p docs/benchmarks/history
@@ -3192,7 +3192,7 @@ jobs:
             )
           fi
 
-          # 1. Always stage current version under /<GODOT_VER>/ (e.g. /4.8-beta2/)
+          # 1. Always stage current version under /<GODOT_VER>/ (e.g. /4.8-beta3/)
           rm -rf "_gh_pages/${GODOT_VER}"
           mkdir -p "_gh_pages/${GODOT_VER}"
           cp -r docs/. "_gh_pages/${GODOT_VER}/"
@@ -3252,7 +3252,7 @@ jobs:
         shell: bash
         run: |
           GODOT_VER="${{ needs.init-release.outputs.godot_version }}"
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="${GITHUB_REF_NAME:-4.8-beta2}"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="${GITHUB_REF_NAME:-4.8-beta3}"; fi
           BASE_URL="${{ steps.deployment.outputs.page_url }}"
           if [ -z "$BASE_URL" ]; then BASE_URL="https://sol-vin.github.io/lapis/"; fi
           if [ -n "$GITHUB_STEP_SUMMARY" ]; then

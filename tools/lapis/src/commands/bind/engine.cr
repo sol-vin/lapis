@@ -641,16 +641,31 @@ module Lapis
             end
 
             Core::Logger.step("Bind:Engine", "Dumping GDExtension API from #{godot_exe}...")
-            dump_res = Core::ProcessRunner.run(
-              godot_exe,
-              ["--headless", "--dump-extension-api"],
-              chdir: root.to_s,
-              env: {"LAPIS_SKIP_VERSION_CHECK" => "1"}
-            )
+            temp_dump_dir = Path.new(Dir.tempdir, "lapis_api_dump_#{Process.pid}")
+            FileUtils.mkdir_p(temp_dump_dir)
             dumped_path = root.join("extension_api.json")
-            unless dump_res.success? || File.exists?(dumped_path)
-              Core::Logger.error("Failed to dump extension_api.json from Godot engine.")
-              return 1
+            begin
+              isolated_exe = temp_dump_dir.join(File.basename(godot_exe))
+              FileUtils.cp(godot_exe, isolated_exe.to_s)
+              File.chmod(isolated_exe, 0o755) unless Core::Env.windows?
+              dump_res = Core::ProcessRunner.run(
+                isolated_exe.to_s,
+                ["--headless", "--dump-extension-api"],
+                chdir: temp_dump_dir.to_s,
+                env: {"LAPIS_SKIP_VERSION_CHECK" => "1"}
+              )
+              temp_dumped = temp_dump_dir.join("extension_api.json")
+              if File.exists?(temp_dumped)
+                FileUtils.cp(temp_dumped.to_s, dumped_path.to_s)
+                rsrc_api = root.join("rsrc/extension_api.json")
+                FileUtils.cp(temp_dumped.to_s, rsrc_api.to_s) if File.exists?(rsrc_api)
+              end
+              unless dump_res.success? || File.exists?(dumped_path)
+                Core::Logger.error("Failed to dump extension_api.json from Godot engine.")
+                return 1
+              end
+            ensure
+              FileUtils.rm_rf(temp_dump_dir) if Dir.exists?(temp_dump_dir)
             end
             api_file = dumped_path
           end

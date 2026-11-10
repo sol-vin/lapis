@@ -2429,15 +2429,13 @@ module Godot
       godot_ptrcall_obj(@@mb_duplicate, @pointer, args.to_unsafe.as(Void**), Node)
     end
     @@mb_replace_by : Void* = Pointer(Void).null
-    def replace_by(node : Node?, keep_groups : Bool = false, keep_owned_children : Bool = true) : Void
-      godot_bind(@@mb_replace_by, "Node", "replace_by", 4170434404_i64)
+    def replace_by(node : Node?, keep_groups : Bool = false) : Void
+      godot_bind(@@mb_replace_by, "Node", "replace_by", 2570952461_i64)
       arg_ptr_0 = node ? node.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
       val_1 = keep_groups
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = keep_owned_children
-      arg_2 = pointerof(val_2).as(Void*)
-      args = StaticArray[arg_0, arg_1, arg_2]
+      args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_replace_by, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_set_scene_instance_load_placeholder : Void* = Pointer(Void).null

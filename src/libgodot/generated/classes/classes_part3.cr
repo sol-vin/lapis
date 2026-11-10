@@ -19013,7 +19013,7 @@ module Godot
       set_antialiased(val)
     end
   end
-  class Line3D < Godot::GeometryInstance3D
+  class LineBase3D < Godot::GeometryInstance3D
     def initialize(pointer : Void* = Pointer(Void).null)
       super(pointer)
     end

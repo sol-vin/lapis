@@ -18,7 +18,7 @@ module Lapis
 Usage: lapis setup [templates] [version] [options]
 
 Options:
-  -v, --version=TAG     Target Godot version (e.g. 4.8-beta2, default from godot-version.yml)
+  -v, --version=TAG     Target Godot version (e.g. 4.8-beta3, default from godot-version.yml)
   -t, --templates       Download and install Godot export templates
   -o, --output=PATH     Package export templates into specified zip
   -f, --force           Force download even if godot executable exists
@@ -29,7 +29,7 @@ Options:
 
 Examples:
   lapis setup
-  lapis setup 4.8-beta2
+  lapis setup 4.8-beta3
   lapis setup templates
   lapis setup templates -o bin/export-templates.zip
   lapis setup --force
@@ -50,7 +50,7 @@ HELP
         Core::GodotFinder::EMBEDDED_GODOT_VERSION
       end
 
-      # When upgrading the Lapis repository to a new Godot version (e.g. 4.8-beta1 -> 4.8-beta2),
+      # When upgrading the Lapis repository to a new Godot version (e.g. 4.8-beta1 -> 4.8-beta3),
       # synchronizes godot-version.yml, template manifests, C++ bridge header, badges.yml, README.md,
       # and automatically bumps the Lapis minor version (0.X.0) in shard.yml and tools/lapis/shard.yml.
       def self.sync_repo_version_on_godot_upgrade(root : Path, target_version : String) : Void
@@ -70,11 +70,16 @@ HELP
         end
 
         if target_version != old_godot_ver
-          [
+          version_files = [
             root.join("godot-version.yml"),
+            root.join("test/godot-version.yml"),
             root.join("template/godot-version.yml"),
             root.join("template-addon/godot-version.yml"),
-          ].each do |vf|
+          ]
+          Dir.glob(root.join("examples/*/godot-version.yml").to_s.gsub('\\', '/')).each do |ef|
+            version_files << Path.new(ef)
+          end
+          version_files.each do |vf|
             File.write(vf, "version: \"#{target_version}\"\n") if File.exists?(vf)
           end
 

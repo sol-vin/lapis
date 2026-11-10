@@ -39987,7 +39987,7 @@ module Godot
     godot_signal pressed
     godot_signal released
   end
-  class Trail3D < Godot::Line3D
+  class Trail3D < Godot::LineBase3D
     def initialize(pointer : Void* = Pointer(Void).null)
       super(pointer)
     end
@@ -40070,17 +40070,17 @@ module Godot
       godot_ptrcall_obj(@@mb_get_color_gradient, @pointer, Pointer(Pointer(Void)).null, Gradient)
     end
     @@mb_set_material_mode : Void* = Pointer(Void).null
-    def set_material_mode(material_mode : Godot::Line3D::MaterialMode | Int) : Void
-      godot_bind(@@mb_set_material_mode, "Trail3D", "set_material_mode", 2165032565_i64)
+    def set_material_mode(material_mode : Godot::LineBase3D::MaterialMode | Int) : Void
+      godot_bind(@@mb_set_material_mode, "Trail3D", "set_material_mode", 838352442_i64)
       val_0 = material_mode.is_a?(Int) ? material_mode.to_i64 : material_mode.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_material_mode, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_get_material_mode : Void* = Pointer(Void).null
-    def get_material_mode() : Godot::Line3D::MaterialMode
-      godot_bind(@@mb_get_material_mode, "Trail3D", "get_material_mode", 3629890196_i64)
-      godot_ptrcall_enum(@@mb_get_material_mode, @pointer, Pointer(Pointer(Void)).null, Godot::Line3D::MaterialMode)
+    def get_material_mode() : Godot::LineBase3D::MaterialMode
+      godot_bind(@@mb_get_material_mode, "Trail3D", "get_material_mode", 3506372543_i64)
+      godot_ptrcall_enum(@@mb_get_material_mode, @pointer, Pointer(Pointer(Void)).null, Godot::LineBase3D::MaterialMode)
     end
     @@mb_set_material : Void* = Pointer(Void).null
     def set_material(material : ShaderMaterial?) : Void
@@ -40096,17 +40096,17 @@ module Godot
       godot_ptrcall_obj(@@mb_get_material, @pointer, Pointer(Pointer(Void)).null, ShaderMaterial)
     end
     @@mb_set_mesh_alignment : Void* = Pointer(Void).null
-    def set_mesh_alignment(alignment : Godot::Line3D::MeshAlignment | Int) : Void
-      godot_bind(@@mb_set_mesh_alignment, "Trail3D", "set_mesh_alignment", 3254932473_i64)
+    def set_mesh_alignment(alignment : Godot::LineBase3D::MeshAlignment | Int) : Void
+      godot_bind(@@mb_set_mesh_alignment, "Trail3D", "set_mesh_alignment", 1728914772_i64)
       val_0 = alignment.is_a?(Int) ? alignment.to_i64 : alignment.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_mesh_alignment, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_get_mesh_alignment : Void* = Pointer(Void).null
-    def get_mesh_alignment() : Godot::Line3D::MeshAlignment
-      godot_bind(@@mb_get_mesh_alignment, "Trail3D", "get_mesh_alignment", 603151927_i64)
-      godot_ptrcall_enum(@@mb_get_mesh_alignment, @pointer, Pointer(Pointer(Void)).null, Godot::Line3D::MeshAlignment)
+    def get_mesh_alignment() : Godot::LineBase3D::MeshAlignment
+      godot_bind(@@mb_get_mesh_alignment, "Trail3D", "get_mesh_alignment", 1842977196_i64)
+      godot_ptrcall_enum(@@mb_get_mesh_alignment, @pointer, Pointer(Pointer(Void)).null, Godot::LineBase3D::MeshAlignment)
     end
     @@mb_set_tiling_multiplier : Void* = Pointer(Void).null
     def set_tiling_multiplier(tiling_multiplier : Float64) : Void
@@ -40122,17 +40122,17 @@ module Godot
       godot_ptrcall_float(@@mb_get_tiling_multiplier, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_set_tiling_mode : Void* = Pointer(Void).null
-    def set_tiling_mode(tiling_mode : Godot::Line3D::TilingMode | Int) : Void
-      godot_bind(@@mb_set_tiling_mode, "Trail3D", "set_tiling_mode", 3698560511_i64)
+    def set_tiling_mode(tiling_mode : Godot::LineBase3D::TilingMode | Int) : Void
+      godot_bind(@@mb_set_tiling_mode, "Trail3D", "set_tiling_mode", 3386846958_i64)
       val_0 = tiling_mode.is_a?(Int) ? tiling_mode.to_i64 : tiling_mode.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_tiling_mode, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_get_tiling_mode : Void* = Pointer(Void).null
-    def get_tiling_mode() : Godot::Line3D::TilingMode
-      godot_bind(@@mb_get_tiling_mode, "Trail3D", "get_tiling_mode", 1009472955_i64)
-      godot_ptrcall_enum(@@mb_get_tiling_mode, @pointer, Pointer(Pointer(Void)).null, Godot::Line3D::TilingMode)
+    def get_tiling_mode() : Godot::LineBase3D::TilingMode
+      godot_bind(@@mb_get_tiling_mode, "Trail3D", "get_tiling_mode", 73744199_i64)
+      godot_ptrcall_enum(@@mb_get_tiling_mode, @pointer, Pointer(Pointer(Void)).null, Godot::LineBase3D::TilingMode)
     end
     @@mb_clear : Void* = Pointer(Void).null
     def clear() : Void

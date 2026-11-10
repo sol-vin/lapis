@@ -218,7 +218,7 @@ EXPLAIN
         FileUtils.mkdir_p(target_dir)
 
         # Download URL for official Godot export templates .tpz
-        # e.g., https://github.com/godotengine/godot-builds/releases/download/4.8-beta2/Godot_v4.8-beta2_export_templates.tpz
+        # e.g., https://github.com/godotengine/godot-builds/releases/download/4.8-beta3/Godot_v4.8-beta3_export_templates.tpz
         # Format tag for Godot GitHub release (convert last '.' before stage token to '-')
         gh_tag = version.sub(/\.(stable|dev\d*|alpha\d*|beta\d*|rc\d*)$/, "-\\1")
         tpz_url = "https://github.com/godotengine/godot-builds/releases/download/#{gh_tag}/Godot_v#{gh_tag}_export_templates.tpz"
