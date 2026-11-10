@@ -485,6 +485,25 @@ describe "LibGodot Features & Reflection" do
       Lapis::Test.assert_vec_approx(Vector3.new(1.0_f32, 2.0_f32, 3.0_f32), Vector3.new(1.0001_f32, 2.0001_f32, 3.0001_f32))
       Lapis::Test.assert_vec_approx(Color.new(0.5_f32, 0.5_f32, 0.5_f32, 1.0_f32), Color.new(0.5001_f32, 0.5_f32, 0.5_f32, 1.0_f32))
     end
+
+    it "dispatches Mesh/ArrayMesh#surface_set_material and EditorNode3DGizmo#add_mesh overloads without subclass self-recursion" do
+      arr_mesh = Godot::ArrayMesh.new
+      mat = Godot::StandardMaterial3D.new
+
+      arr_mesh.surface_set_material(0, mat)
+      arr_mesh.surface_set_material(0, nil)
+      arr_mesh.surface_set_material(0_i64, mat)
+      arr_mesh.surface_set_material(0_i64, nil)
+      arr_mesh.surface_get_material(0).pointer.null?.should be_true
+      arr_mesh.surface_get_material(0_i64).pointer.null?.should be_true
+
+      gizmo = Godot::EditorNode3DGizmo.new
+      gizmo.add_mesh(arr_mesh)
+      gizmo.add_mesh(arr_mesh, mat)
+      gizmo.add_mesh(arr_mesh, mat, Transform3D.identity)
+      gizmo.add_mesh(arr_mesh, mat, Transform3D.identity, nil)
+      gizmo.add_mesh(arr_mesh, nil, Transform3D.identity, nil)
+    end
   end
 end
 

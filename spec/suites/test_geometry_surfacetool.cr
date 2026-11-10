@@ -80,8 +80,15 @@ end
   mesh = st.commit(target_mesh, 0_i64)
   assert_eq mesh.get_surface_count, 1_i64
 
-  # Surface naming
+  # Surface naming & material assignment (Int32 and Int64 indices, Material and nil)
   mesh.surface_set_name(0_i64, "ProceduralQuadSurface")
+  surf_mat = Godot.create(Godot::StandardMaterial3D)
+  mesh.surface_set_material(0_i64, surf_mat)
+  assert_eq mesh.surface_get_material(0_i64).pointer, surf_mat.pointer
+  mesh.surface_set_material(0, nil)
+  assert_true mesh.surface_get_material(0).pointer.null?
+  mesh.surface_set_material(0, surf_mat)
+  assert_eq mesh.surface_get_material(0, as: Godot::StandardMaterial3D).pointer, surf_mat.pointer
 
   # Verify ArrayType enum constants are correctly mapped in ClassDB
   assert_eq Godot::Mesh::ArrayType::ArrayVertex.value, 0_i64

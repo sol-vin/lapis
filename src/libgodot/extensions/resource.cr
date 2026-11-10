@@ -322,6 +322,16 @@ module Godot
   end
 
   class Mesh < Resource
+    # Assigns `material` (or `nil`) to `surf_idx`, accepting any `Int` index (`Int32`, `Int64`, etc.).
+    def surface_set_material(surf_idx : Int, material : Material?) : Void
+      surface_set_material(surf_idx.to_i64, material)
+    end
+
+    # Returns the `Material` assigned to `surf_idx`, accepting any `Int` index (`Int32`, `Int64`, etc.).
+    def surface_get_material(surf_idx : Int) : Material
+      surface_get_material(surf_idx.to_i64)
+    end
+
     # Returns the material for the given surface index, downcast to target type T.
     def surface_get_material(surf_idx : Int, *, as type : T.class) : T forall T
       surface_get_material(surf_idx.to_i64).as_a(T)
@@ -553,10 +563,6 @@ module Godot
   end
 
   class ArrayMesh < Mesh
-    def surface_set_material(surf_idx : Int, material : Material?) : Void
-      surface_set_material(surf_idx.to_i64, material)
-    end
-
     def add_surface_from_arrays(primitive : Mesh::PrimitiveType | Int, arrays : Pointer(Void)) : Void
       add_surface_from_arrays(primitive, arrays, Pointer(Void).null, Pointer(Void).null, 0)
     end
@@ -570,8 +576,8 @@ module Godot
   end
 
   class EditorNode3DGizmo < Node3DGizmo
-    def add_mesh(mesh : Mesh, material : Material?, transform : Transform3D, skeleton : Nil) : Void
-      add_mesh(mesh, material, transform, nil)
+    def add_mesh(mesh : Mesh?, material : Material? = nil) : Void
+      add_mesh(mesh, material, Transform3D.identity, nil)
     end
   end
 
