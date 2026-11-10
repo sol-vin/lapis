@@ -65,6 +65,13 @@ module Godot
       @tool_rebuild_elapsed = -1.0_f32
     end
 
+    def seed_tool_rebuild_hash!(only_if_zero : Bool = false) : Void
+      return if only_if_zero && @last_export_config_hash != 0_u64
+      h = current_config_hash
+      @last_export_config_hash = h
+      @pending_export_config_hash = h
+    end
+
     def check_tool_rebuild(delta : Float64) : Bool
       h = current_config_hash
       if @last_export_config_hash == 0_u64 && @pending_export_config_hash == 0_u64
@@ -679,7 +686,9 @@ macro node(decl, &block)
     callable_method_names = [] of StringLiteral
     callable_methods_0 = [] of StringLiteral
     callable_methods_1 = [] of TupleLiteral
+    callable_methods_1_names = [] of StringLiteral
     callable_methods_2 = [] of TupleLiteral
+    callable_methods_2_names = [] of StringLiteral
     shader_uniforms = [] of Nil
     tool_buttons = [] of Nil
     class_constants = [] of Nil
@@ -1089,7 +1098,7 @@ macro node(decl, &block)
       {% has_process = true %}
     {% elsif stmt.is_a?(Include) %}
       {% included_modules << stmt.name %}
-      {% if stmt.name.stringify.ends_with?("ToolRebuildable") %}
+      {% if (stmt.name.stringify == "Godot::ToolRebuildable" || stmt.name.stringify == "::Godot::ToolRebuildable") || (stmt.name.stringify == "ToolRebuildable" && !(::ToolRebuildable.resolve? && ::ToolRebuildable.resolve != ::Godot::ToolRebuildable)) %}
         {% has_tool_rebuild = true %}
         {% has_ready = true %}
         {% has_process = true %}
@@ -1260,8 +1269,9 @@ macro node(decl, &block)
             a0 = stmt.args[0]
             if a0.restriction && !a0.restriction.is_a?(Nop)
               t0_s = a0.restriction.stringify.gsub(/^(::)?Godot::/, "")
-              if supported_arg_types.includes?(t0_s)
+              if supported_arg_types.includes?(t0_s) && !callable_methods_1_names.includes?(m_name_s)
                 callable_method_names << m_name_s unless callable_method_names.includes?(m_name_s)
+                callable_methods_1_names << m_name_s
                 callable_methods_1 << {m_name_s, t0_s}
               end
             end
@@ -1271,8 +1281,9 @@ macro node(decl, &block)
             if a0.restriction && !a0.restriction.is_a?(Nop) && a1.restriction && !a1.restriction.is_a?(Nop)
               t0_s = a0.restriction.stringify.gsub(/^(::)?Godot::/, "")
               t1_s = a1.restriction.stringify.gsub(/^(::)?Godot::/, "")
-              if supported_arg_types.includes?(t0_s) && supported_arg_types.includes?(t1_s)
+              if supported_arg_types.includes?(t0_s) && supported_arg_types.includes?(t1_s) && !callable_methods_2_names.includes?(m_name_s)
                 callable_method_names << m_name_s unless callable_method_names.includes?(m_name_s)
+                callable_methods_2_names << m_name_s
                 callable_methods_2 << {m_name_s, t0_s, t1_s}
               end
             end
@@ -1889,16 +1900,13 @@ macro node(decl, &block)
     {% if has_tool_rebuild %}
       {% if !has_ready_def %}
         def _ready : Void
-          if responds_to?(:current_config_hash)
-            @last_export_config_hash = current_config_hash
-            @pending_export_config_hash = @last_export_config_hash
-          end
+          seed_tool_rebuild_hash! if responds_to?(:seed_tool_rebuild_hash!)
           rebuild_geometry if responds_to?(:rebuild_geometry)
         end
       {% end %}
       {% if !has_process_def %}
         def _process(delta : Float64) : Void
-          if check_tool_rebuild(delta)
+          if responds_to?(:check_tool_rebuild) && check_tool_rebuild(delta)
             rebuild_geometry if responds_to?(:rebuild_geometry)
           end
         end
@@ -2097,16 +2105,13 @@ macro node(decl, &block)
           {% end %}
           _ready if responds_to?(:_ready)
           {% if has_tool_rebuild && has_ready_def %}
-            if responds_to?(:current_config_hash) && @last_export_config_hash == 0_u64
-              @last_export_config_hash = current_config_hash
-              @pending_export_config_hash = @last_export_config_hash
-            end
+            seed_tool_rebuild_hash!(true) if responds_to?(:seed_tool_rebuild_hash!)
           {% end %}
         when "_process"
           ::Godot::ThreadSafety.flush_main_thread_queue!
           ::Godot.pump_awaiting_fibers_once_per_frame!
           {% if has_tool_rebuild && has_process_def %}
-            if check_tool_rebuild(delta)
+            if responds_to?(:check_tool_rebuild) && check_tool_rebuild(delta)
               rebuild_geometry if responds_to?(:rebuild_geometry)
             end
           {% end %}
