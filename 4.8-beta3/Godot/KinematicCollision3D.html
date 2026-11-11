@@ -13737,6 +13737,13 @@
   <ul class="list-summary">
     
       <li class="entry-summary">
+        <a href="#_needs_eager_ref_init%3F%3ABool-instance-method" class="signature"><strong>#_needs_eager_ref_init?</strong> : Bool</a>
+        
+          <div class="summary"><p>Returns true for RefCounted subclasses whose raw ClassDB construction should eagerly invoke <code>#ensure_ref_initialized!</code> so stack-temporary <code>Ref&lt;T&gt;</code> wrappers inside transient Godot C++ methods do not <code>memdelete</code> the instance mid-call.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#get_angle%28collision_index%3AInt64%3D0_i64%2Cup_direction%3AVector3%3DVector3.new%280.to_f32%2C1.to_f32%2C0.to_f32%29%29%3AFloat64-instance-method" class="signature"><strong>#get_angle</strong>(collision_index : Int64 = <span class="n">0_i64</span>, up_direction : Vector3 = <span class="t">Vector3</span>.new(<span class="n">0</span>.to_f32, <span class="n">1</span>.to_f32, <span class="n">0</span>.to_f32)) : Float64</a>
         
       </li>
@@ -13816,6 +13823,11 @@
 
   <h3>Instance methods inherited from class <code><a href="../Godot/RefCounted.html">Godot::RefCounted</a></code></h3>
   
+  
+    <a href="../Godot/RefCounted.html#_needs_eager_ref_init%3F%3ABool-instance-method" class="tooltip">
+      <span>_needs_eager_ref_init? : Bool</span>
+    _needs_eager_ref_init?</a>, 
+    
   
     <a href="../Godot/RefCounted.html#destroy%3AVoid-instance-method" class="tooltip">
       <span>destroy : Void</span>
@@ -14928,6 +14940,31 @@
 </a>
     Instance Method Detail
   </h2>
+  
+    <div class="entry-detail" id="_needs_eager_ref_init?:Bool-instance-method">
+      <div class="signature">
+        
+        def <strong>_needs_eager_ref_init?</strong> : Bool
+
+        <a class="method-permalink" href="#_needs_eager_ref_init%3F%3ABool-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+            <div class="doc-inherited">
+              Description copied from class <a href="../Godot/RefCounted.html">Godot::RefCounted</a>
+            </div>
+          
+          <p>Returns true for RefCounted subclasses whose raw ClassDB construction should
+eagerly invoke <code>#ensure_ref_initialized!</code> so stack-temporary <code>Ref&lt;T&gt;</code> wrappers
+inside transient Godot C++ methods do not <code>memdelete</code> the instance mid-call.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
   
     <div class="entry-detail" id="get_angle(collision_index:Int64=0_i64,up_direction:Vector3=Vector3.new(0.to_f32,1.to_f32,0.to_f32)):Float64-instance-method">
       <div class="signature">

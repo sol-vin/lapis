@@ -13753,6 +13753,13 @@ Image Extensions</h1>
       </li>
     
       <li class="entry-summary">
+        <a href="#create%3Aself-class-method" class="signature"><strong>.create</strong> : <span class="k">self</span></a>
+        
+          <div class="summary"><p>0-arg constructor returning an initialized empty <code><a href="../Godot/Image.html">Image</a></code> instance.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#create_empty%28width%3AInt64%2Cheight%3AInt64%2Cuse_mipmaps%3ABool%2Cformat%3AFormat%7CInt%29%3AImage-class-method" class="signature"><strong>.create_empty</strong>(width : Int64, height : Int64, use_mipmaps : Bool, format : Format | Int) : Image</a>
         
       </li>
@@ -13796,6 +13803,13 @@ Image Extensions</h1>
     Instance Method Summary
   </h2>
   <ul class="list-summary">
+    
+      <li class="entry-summary">
+        <a href="#_needs_eager_ref_init%3F%3ABool-instance-method" class="signature"><strong>#_needs_eager_ref_init?</strong> : Bool</a>
+        
+          <div class="summary"><p>Raw ClassDB-constructed Images (<code><a href="../Godot.html#create%28class_name%3AString%29%3ANode%7CNil-class-method">Godot.create(Godot::Image)</a></code> / <code><a href="../Godot/Image.html#create%3Aself-class-method">Image.create</a></code>) are frequently passed into transient <code>const Ref&lt;<a href="../Godot/Image.html">Image</a>&gt; &amp;</code> C++ methods such as <code><a href="../Godot/ImageTexture.html#set_image%28image%3AImage%7CNil%29%3AVoid-instance-method">ImageTexture#set_image</a></code>, <code><a href="../Godot/ImageTexture.html#update%28image%3AImage%7CNil%29%3AVoid-instance-method">ImageTexture#update</a></code>, and <code><a href="../Godot/Image.html#blit_rect%28src%3AImage%7CNil%2Csrc_rect%3ARect2i%2Cdst%3AVector2i%29%3AVoid-instance-method">Image#blit_rect</a></code> that do not retain the <code>Ref&lt;<a href="../Godot/Image.html">Image</a>&gt;</code> after uploading or blitting pixels.</p></div>
+        
+      </li>
     
       <li class="entry-summary">
         <a href="#adjust_bcs%28brightness%3AFloat64%2Ccontrast%3AFloat64%2Csaturation%3AFloat64%29%3AVoid-instance-method" class="signature"><strong>#adjust_bcs</strong>(brightness : Float64, contrast : Float64, saturation : Float64) : Void</a>
@@ -14578,6 +14592,11 @@ Image Extensions</h1>
 
   <h3>Instance methods inherited from class <code><a href="../Godot/RefCounted.html">Godot::RefCounted</a></code></h3>
   
+  
+    <a href="../Godot/RefCounted.html#_needs_eager_ref_init%3F%3ABool-instance-method" class="tooltip">
+      <span>_needs_eager_ref_init? : Bool</span>
+    _needs_eager_ref_init?</a>, 
+    
   
     <a href="../Godot/RefCounted.html#destroy%3AVoid-instance-method" class="tooltip">
       <span>destroy : Void</span>
@@ -15661,6 +15680,25 @@ Image Extensions</h1>
       </div>
     </div>
   
+    <div class="entry-detail" id="create:self-class-method">
+      <div class="signature">
+        
+        def self.<strong>create</strong> : <span class="k">self</span>
+
+        <a class="method-permalink" href="#create%3Aself-class-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>0-arg constructor returning an initialized empty <code><a href="../Godot/Image.html">Image</a></code> instance.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
     <div class="entry-detail" id="create_empty(width:Int64,height:Int64,use_mipmaps:Bool,format:Format|Int):Image-class-method">
       <div class="signature">
         
@@ -15751,6 +15789,30 @@ Image Extensions</h1>
 </a>
     Instance Method Detail
   </h2>
+  
+    <div class="entry-detail" id="_needs_eager_ref_init?:Bool-instance-method">
+      <div class="signature">
+        
+        def <strong>_needs_eager_ref_init?</strong> : Bool
+
+        <a class="method-permalink" href="#_needs_eager_ref_init%3F%3ABool-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Raw ClassDB-constructed Images (<code><a href="../Godot.html#create%28class_name%3AString%29%3ANode%7CNil-class-method">Godot.create(Godot::Image)</a></code> / <code><a href="../Godot/Image.html#create%3Aself-class-method">Image.create</a></code>)
+are frequently passed into transient <code>const Ref&lt;<a href="../Godot/Image.html">Image</a>&gt; &amp;</code> C++ methods such as
+<code><a href="../Godot/ImageTexture.html#set_image%28image%3AImage%7CNil%29%3AVoid-instance-method">ImageTexture#set_image</a></code>, <code><a href="../Godot/ImageTexture.html#update%28image%3AImage%7CNil%29%3AVoid-instance-method">ImageTexture#update</a></code>, and <code><a href="../Godot/Image.html#blit_rect%28src%3AImage%7CNil%2Csrc_rect%3ARect2i%2Cdst%3AVector2i%29%3AVoid-instance-method">Image#blit_rect</a></code> that do
+not retain the <code>Ref&lt;<a href="../Godot/Image.html">Image</a>&gt;</code> after uploading or blitting pixels. Eagerly calling
+<code>#ensure_ref_initialized!</code> prevents stack-temporary <code>Ref&lt;<a href="../Godot/Image.html">Image</a>&gt;</code> wrappers inside
+<code>MethodBind::ptrcall</code> from <code>memdelete</code>-ing the <code><a href="../Godot/Image.html">Image</a></code> mid-call.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
   
     <div class="entry-detail" id="adjust_bcs(brightness:Float64,contrast:Float64,saturation:Float64):Void-instance-method">
       <div class="signature">

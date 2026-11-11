@@ -13998,11 +13998,6 @@
     <br/>
   
     
-      libgodot/extensions/physics.cr
-    
-    <br/>
-  
-    
       libgodot/generated/classes/classes_part1.cr
     
     <br/>
@@ -14045,6 +14040,13 @@
     Instance Method Summary
   </h2>
   <ul class="list-summary">
+    
+      <li class="entry-summary">
+        <a href="#_needs_eager_ref_init%3F%3ABool-instance-method" class="signature"><strong>#_needs_eager_ref_init?</strong> : Bool</a>
+        
+          <div class="summary"><p>Returns true for RefCounted subclasses whose raw ClassDB construction should eagerly invoke <code><a href="../Godot/RefCounted.html#ensure_ref_initialized%21%3AVoid-instance-method">#ensure_ref_initialized!</a></code> so stack-temporary <code>Ref&lt;T&gt;</code> wrappers inside transient Godot C++ methods do not <code>memdelete</code> the instance mid-call.</p></div>
+        
+      </li>
     
       <li class="entry-summary">
         <a href="#destroy%3AVoid-instance-method" class="signature"><strong>#destroy</strong> : Void</a>
@@ -15138,6 +15140,27 @@
 </a>
     Instance Method Detail
   </h2>
+  
+    <div class="entry-detail" id="_needs_eager_ref_init?:Bool-instance-method">
+      <div class="signature">
+        
+        def <strong>_needs_eager_ref_init?</strong> : Bool
+
+        <a class="method-permalink" href="#_needs_eager_ref_init%3F%3ABool-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns true for RefCounted subclasses whose raw ClassDB construction should
+eagerly invoke <code><a href="../Godot/RefCounted.html#ensure_ref_initialized%21%3AVoid-instance-method">#ensure_ref_initialized!</a></code> so stack-temporary <code>Ref&lt;T&gt;</code> wrappers
+inside transient Godot C++ methods do not <code>memdelete</code> the instance mid-call.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
   
     <div class="entry-detail" id="destroy:Void-instance-method">
       <div class="signature">
