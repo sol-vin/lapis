@@ -2,6 +2,7 @@ require "../core/env"
 require "../core/logger"
 require "../core/process_runner"
 require "./install_addon"
+require "./sync"
 require "file_utils"
 require "option_parser"
 require "yaml"
@@ -553,6 +554,7 @@ YAML
         if shards_bin = Process.find_executable("shards")
           Core::Logger.step("Shards", "Resolving Crystal dependencies in #{project_dir}...")
           res = Core::ProcessRunner.capture(shards_bin, ["install"], chdir: project_dir.to_s)
+          Commands::Sync.purge_recursive_shard_symlinks(project_dir)
           if res[:status].success?
             Core::Logger.success("Dependencies resolved successfully with 'shards install'.")
             return true
@@ -595,6 +597,7 @@ YAML
 
                   # Retry shards install with the override in place
                   retry_res = Core::ProcessRunner.capture(shards_bin, ["install"], chdir: project_dir.to_s)
+                  Commands::Sync.purge_recursive_shard_symlinks(project_dir)
                   if retry_res[:status].success?
                     Core::Logger.success("Dependencies resolved successfully with local override.")
                     return true
@@ -623,6 +626,7 @@ YAML
         if shards_bin = Process.find_executable("shards")
           Core::Logger.step("Shards", "Pruning unused dependencies in #{project_dir}...")
           res = Core::ProcessRunner.capture(shards_bin, ["prune"], chdir: project_dir.to_s)
+          Commands::Sync.purge_recursive_shard_symlinks(project_dir)
           return res[:status].success?
         else
           # Fallback: remove lib/<name> directly

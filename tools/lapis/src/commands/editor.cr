@@ -163,6 +163,10 @@ HELP
           end
         end
 
+        # Pre-flight check: purge recursive lib/<shard>/lib symlinks so external editors (e.g. TrenchBroom)
+        # invoked from the project directory never hit MAX_PATH cycles on Windows.
+        Commands::Sync.purge_recursive_shard_symlinks(target_dir)
+
         # Pre-flight check: ensure GDExtension bridge & editor plugin binaries are present and up to date in target project
         addon_bin = target_dir.join("addons/crystal_integration/bin")
         proj_bin = target_dir.join("bin")
