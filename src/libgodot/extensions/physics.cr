@@ -1,16 +1,4 @@
 module Godot
-  class RefCounted < Object
-    @_ref_initialized : Bool = false
-
-    # Idempotently calls `#init_ref` at most once on this `RefCounted` wrapper so
-    # stack-temporary `Ref<T>` conversions inside Godot `ptrcall` do not free it on return.
-    def ensure_ref_initialized! : Void
-      return if @_ref_initialized || @pointer.null?
-      @_ref_initialized = true
-      init_ref
-    end
-  end
-
   # ===========================================================================
   # Transient Physics Query & Collision RefCounted Ownership Protection
   # ===========================================================================
@@ -48,6 +36,10 @@ module Godot
        PhysicsGetRestInfoResult3D,
      ] %}
     class {{cls.id}}
+      def _needs_eager_ref_init? : Bool
+        true
+      end
+
       def self.create : self
         inst = ::Godot.create(self)
         inst.ensure_ref_initialized!

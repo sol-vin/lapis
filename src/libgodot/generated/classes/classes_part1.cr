@@ -530,38 +530,6 @@ module Godot
     def initialize(pointer : Void* = Pointer(Void).null)
       super(pointer)
     end
-    @@mb_init_ref : Void* = Pointer(Void).null
-    def init_ref() : Bool
-      godot_bind(@@mb_init_ref, "RefCounted", "init_ref", 2240911060_i64)
-      godot_ptrcall_bool(@@mb_init_ref, @pointer, Pointer(Pointer(Void)).null)
-    end
-    # Predicate alias for `init_ref`
-    def init_ref?() : Bool
-      init_ref()
-    end
-    @@mb_reference : Void* = Pointer(Void).null
-    def reference() : Bool
-      godot_bind(@@mb_reference, "RefCounted", "reference", 2240911060_i64)
-      godot_ptrcall_bool(@@mb_reference, @pointer, Pointer(Pointer(Void)).null)
-    end
-    # Predicate alias for `reference`
-    def reference?() : Bool
-      reference()
-    end
-    @@mb_unreference : Void* = Pointer(Void).null
-    def unreference() : Bool
-      godot_bind(@@mb_unreference, "RefCounted", "unreference", 2240911060_i64)
-      godot_ptrcall_bool(@@mb_unreference, @pointer, Pointer(Pointer(Void)).null)
-    end
-    # Predicate alias for `unreference`
-    def unreference?() : Bool
-      unreference()
-    end
-    @@mb_get_reference_count : Void* = Pointer(Void).null
-    def get_reference_count() : Int64
-      godot_bind(@@mb_get_reference_count, "RefCounted", "get_reference_count", 3905245786_i64)
-      godot_ptrcall_int(@@mb_get_reference_count, @pointer, Pointer(Pointer(Void)).null)
-    end
   end
   class AESContext < Godot::RefCounted
     def initialize(pointer : Void* = Pointer(Void).null)

@@ -939,7 +939,8 @@ module Lapis
 
     def self.get_crystal_icon_texture : Godot::Texture2D?
       if cached = @@cached_icon_texture
-        return cached if !cached.pointer.null?
+        return cached if !cached.pointer.null? && cached.alive?
+        @@cached_icon_texture = nil
       end
 
       return nil if headless_suppressed?
@@ -947,6 +948,7 @@ module Lapis
       icon_tex : Godot::Texture2D? = nil
       img = Godot.create(Godot::Image)
       if img && !img.pointer.null?
+        img.ensure_ref_initialized!
         err = img.load_svg_from_string(CRYSTAL_ICON_SVG, 1.0_f64)
         if err == 0_i64
           itex = Godot.create(Godot::ImageTexture)

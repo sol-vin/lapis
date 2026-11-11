@@ -311,6 +311,7 @@ module Lapis
               m_name = m["name"].as_s
               next if m["is_virtual"]?.try(&.as_bool)
               next if m["is_vararg"]?.try(&.as_bool)
+              next if name == "RefCounted" && ["init_ref", "reference", "unreference", "get_reference_count"].includes?(m_name)
               hash_val = m["hash"]?.try(&.as_i64) || 0_i64
               sanitized_m_name = sanitize_name(m_name, keywords)
 

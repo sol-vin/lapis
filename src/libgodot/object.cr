@@ -85,15 +85,15 @@ module Godot
     ptr = Bridge.construct_object(class_name)
     if !ptr.null? && (inst = Bridge.find_alive_instance(ptr))
       if casted = inst.as?(T)
-        if casted.is_a?(RefCounted) && casted.get_reference_count == 0
-          casted.init_ref
+        if casted.is_a?(RefCounted) && (casted._needs_eager_ref_init? || casted.get_reference_count == 0)
+          casted.ensure_ref_initialized!
         end
         return casted
       end
     end
     res = T.new(ptr)
-    if !ptr.null? && res.is_a?(RefCounted) && res.get_reference_count == 0
-      res.init_ref
+    if !ptr.null? && res.is_a?(RefCounted) && (res._needs_eager_ref_init? || res.get_reference_count == 0)
+      res.ensure_ref_initialized!
     end
     Bridge.register_alive_instance_by_ptr(ptr, res) if !ptr.null?
     res

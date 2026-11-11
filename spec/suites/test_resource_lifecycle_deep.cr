@@ -56,6 +56,35 @@ end
   assert_false Godot::Object.is_instance_id_valid(img_id)
 end
 
+  test "Raw Godot.create(Image) survives ImageTexture#set_image and unreferences safely without double-free" do
+  svg = %(<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 8 8"><rect width="8" height="8" fill="#ffffff"/></svg>)
+  img = Godot.create(Godot::Image)
+  img_id = img.instance_id
+  assert_true Godot::Object.is_instance_id_valid(img_id)
+
+  err = img.load_svg_from_string(svg, 1.0_f64)
+  assert_eq err, Godot::Error::Ok
+
+  itex = Godot.create(Godot::ImageTexture)
+  itex_id = itex.instance_id
+  itex.set_image(img)
+
+  # Image must still be alive after transient const Ref<Image>& upload
+  assert_true img.alive?
+  assert_true Godot::Object.is_instance_id_valid(img_id)
+
+  # Unreferencing the final reference destroys native Image and nullifies wrapper
+  assert_true img.unreference
+  assert_false img.alive?
+  assert_false Godot::Object.is_instance_id_valid(img_id)
+
+  # Redundant unreference on already-freed RefCounted is a safe no-op returning false
+  assert_false img.unreference
+
+  itex.destroy
+  assert_false Godot::Object.is_instance_id_valid(itex_id)
+end
+
   test "Physics 3D collision shapes allocate and release server RIDs cleanly" do
   shapes = [
     Godot.create(Godot::BoxShape3D).as(Godot::Shape3D),

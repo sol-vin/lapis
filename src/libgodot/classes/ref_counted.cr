@@ -4,17 +4,44 @@ module Godot
     @@mb_ref_reference : Void* = Pointer(Void).null
     @@mb_ref_unreference : Void* = Pointer(Void).null
     @@mb_ref_get_reference_count : Void* = Pointer(Void).null
+    @_ref_initialized : Bool = false
+
+    # Returns true for RefCounted subclasses whose raw ClassDB construction should
+    # eagerly invoke `#ensure_ref_initialized!` so stack-temporary `Ref<T>` wrappers
+    # inside transient Godot C++ methods do not `memdelete` the instance mid-call.
+    def _needs_eager_ref_init? : Bool
+      false
+    end
+
+    # Idempotently calls `#init_ref` at most once on this `RefCounted` wrapper so
+    # stack-temporary `Ref<T>` conversions inside Godot `ptrcall` do not free it on return.
+    def ensure_ref_initialized! : Void
+      return if @_ref_initialized || @pointer.null?
+      @_ref_initialized = true
+      init_ref
+    end
 
     def init_ref : Bool
       check_alive!
+      @_ref_initialized = true
       godot_bind(@@mb_ref_init_ref, "RefCounted", "init_ref", 2240911060_i64)
       godot_ptrcall_bool(@@mb_ref_init_ref, @pointer, Pointer(Pointer(Void)).null)
+    end
+
+    # Predicate alias for `init_ref`
+    def init_ref? : Bool
+      init_ref
     end
 
     def reference : Bool
       check_alive!
       godot_bind(@@mb_ref_reference, "RefCounted", "reference", 2240911060_i64)
       godot_ptrcall_bool(@@mb_ref_reference, @pointer, Pointer(Pointer(Void)).null)
+    end
+
+    # Predicate alias for `reference`
+    def reference? : Bool
+      reference
     end
 
     def unreference : Bool
@@ -33,6 +60,11 @@ module Godot
         end
       end
       should_free
+    end
+
+    # Predicate alias for `unreference`
+    def unreference? : Bool
+      unreference
     end
 
     def get_reference_count : Int64

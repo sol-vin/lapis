@@ -163,9 +163,11 @@ HELP
           end
         end
 
-        # Pre-flight check: ensure GDExtension bridge & runtime binaries are present in target project
+        # Pre-flight check: ensure GDExtension bridge & editor plugin binaries are present and up to date in target project
         addon_bin = target_dir.join("addons/crystal_integration/bin")
+        proj_bin = target_dir.join("bin")
         bridge_file = Core::Env.bridge_file
+        plugin_file = Core::Env.plugin_file
         if !File.exists?(addon_bin.join(bridge_file))
           FileUtils.mkdir_p(addon_bin)
           if Core::BakedFileSystem.has_file?("addons/crystal_integration/bin/#{bridge_file}")
@@ -174,8 +176,20 @@ HELP
           end
         end
 
+        if !Core::Env.is_libgodot_repo?(target_dir) && Dir.exists?(addon_bin)
+          if (global_root = Core::Env.global_libgodot_path) && Dir.exists?(global_root.join("bin"))
+            global_bin = global_root.join("bin")
+            [bridge_file, plugin_file].each do |bin_name|
+              src_global = global_bin.join(bin_name)
+              if File.exists?(src_global)
+                Commands::Deps.safe_copy(src_global, addon_bin.join(bin_name))
+                Commands::Deps.safe_copy(src_global, proj_bin.join(bin_name))
+              end
+            end
+          end
+        end
+
         # Ensure dependencies are copied to target_dir/bin
-        proj_bin = target_dir.join("bin")
         FileUtils.mkdir_p(proj_bin)
         ["crystal_bridge.dll", "crystal_bridge.so", "crystal_bridge.dylib", "gc.dll", "iconv-2.dll", "pcre2-8.dll"].each do |lib_name|
           src_in_addon = addon_bin.join(lib_name)
@@ -253,14 +267,17 @@ HELP
                    Core::ProcessRunner.run(godot_exe, godot_args, env: child_env, chdir: target_dir.to_s, tee_file: godot_log)
                  end
 
-        raw_code = status.normal_exit? ? status.exit_code : -1
-        u32_code = raw_code.to_u32!
-        if (!status.success? || debug_mode) && STDOUT.tty? && (u32_code == 0xC0000005_u32 || status.signal_exit? || debug_mode)
+        u32_code = status.system_exit_status
+        ret_code = status.exit_code? || (u32_code != 0 ? u32_code.to_i32! : 1)
+        if !status.success?
+          Core::Logger.error("Godot process exited abnormally: #{status.exit_reason.description} (0x#{u32_code.to_s(16).upcase}).")
+        end
+        if (!status.success? || debug_mode) && STDOUT.tty? && (status.exit_reason.abnormal? || debug_mode)
           Core::Logger.error("Detected abnormal process exit (0x#{u32_code.to_s(16).upcase}). Swapping to Radare2 Crash Forensics View...")
           TUI::DebuggerView.auto_swap_on_crash(target_dir.join("bin/game.dll").to_s, 0x00007ff624328b40_u64, "Process terminated with exit code 0x#{u32_code.to_s(16).upcase}")
         end
 
-        status.normal_exit? ? status.exit_code : 0
+        status.success? ? 0 : ret_code
       end
     end
   end
