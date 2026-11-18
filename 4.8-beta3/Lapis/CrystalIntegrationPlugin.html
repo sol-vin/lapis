@@ -1657,6 +1657,11 @@
       
     </li>
   
+  <li class=" " data-id="lapis/Godot/Bridge/DeferredUnrefEntry" data-name="godot::bridge::deferredunrefentry">
+      <a href="../Godot/Bridge/DeferredUnrefEntry.html">DeferredUnrefEntry</a>
+      
+    </li>
+  
 </ul>
 
       
@@ -7469,6 +7474,11 @@
   
   <li class=" " data-id="lapis/Godot/RefCounted" data-name="godot::refcounted">
       <a href="../Godot/RefCounted.html">RefCounted</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/RefCountedTLS" data-name="godot::refcountedtls">
+      <a href="../Godot/RefCountedTLS.html">RefCountedTLS</a>
       
     </li>
   
@@ -13791,6 +13801,11 @@
       </li>
     
       <li class="entry-summary">
+        <a href="#cache_main_screen_dock%3AVoid-class-method" class="signature"><strong>.cache_main_screen_dock</strong> : Void</a>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#check_external_game_dll_update%3AVoid-class-method" class="signature"><strong>.check_external_game_dll_update</strong> : Void</a>
         
           <div class="summary"><p>Checks if bin/game.dll was modified outside the editor (e.g., CLI lapis build) and triggers reload</p></div>
@@ -13830,6 +13845,11 @@
         <a href="#copy_if_changed%28src%3AString%2Cdst%3AString%29%3ABool-class-method" class="signature"><strong>.copy_if_changed</strong>(src : String, dst : String) : Bool</a>
         
           <div class="summary"><p>Copies src to dst only if dst does not exist or differs in size/modification_time</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#destroy_orphaned_main_screen_dock%21%3AVoid-class-method" class="signature"><strong>.destroy_orphaned_main_screen_dock!</strong> : Void</a>
         
       </li>
     
@@ -14286,6 +14306,11 @@
         <a href="#bind_ready_in_editor%28once%3ABool%3Dfalse%2C%26block%3A-%3EVoid%29%3AUInt64-instance-method" class="signature"><strong>#bind_ready_in_editor</strong>(once : Bool = <span class="n">false</span>, &block :  -> Void) : UInt64</a>
         
           <div class="summary"><p>Emitted when the Crystal editor plugin finishes initialization</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#cache_main_screen_dock_deferred%3AVoid-instance-method" class="signature"><strong>#cache_main_screen_dock_deferred</strong> : Void</a>
         
       </li>
     
@@ -15029,6 +15054,16 @@
     <a href="../Godot/Node.html#_exit_tree%3AVoid-instance-method" class="tooltip">
       <span>_exit_tree : Void</span>
     _exit_tree</a>, 
+    
+  
+    <a href="../Godot/Node.html#_held_ref%3ARefCounted%7CNil-instance-method" class="tooltip">
+      <span>_held_ref : RefCounted | Nil</span>
+    _held_ref</a>, 
+    
+  
+    <a href="../Godot/Node.html#_held_ref%3D%28_held_ref%3ARefCounted%7CNil%29-instance-method" class="tooltip">
+      <span>_held_ref=(_held_ref : RefCounted | Nil)</span>
+    _held_ref=</a>, 
     
   
     <a href="../Godot/Node.html#_physics_process%28delta%3AFloat64%29%3AVoid-instance-method" class="tooltip">
@@ -17708,6 +17743,11 @@
   <h3>Constructor methods inherited from class <code><a href="../Godot/Object.html">Godot::Object</a></code></h3>
   
   
+    <a href="../Godot/Object.html#_wrap_ptrcall_return%28ptr%3APointer%28Void%29%29%3Aself-class-method" class="tooltip">
+      <span>_wrap_ptrcall_return(ptr : Pointer(Void)) : <span class="k">self</span></span>
+    _wrap_ptrcall_return</a>, 
+    
+  
     <a href="../Godot/Object.html#~%3Aself-class-method" class="tooltip">
       <span>~ : <span class="k">self</span></span>
     ~</a>, 
@@ -17733,6 +17773,11 @@
     <a href="../Godot/Object.html#_godot_has_virtual_method%28method_name%3AString%29%3ABool-class-method" class="tooltip">
       <span>_godot_has_virtual_method(method_name : String) : Bool</span>
     _godot_has_virtual_method</a>, 
+    
+  
+    <a href="../Godot/Object.html#_wrap_ptrcall_return_or_nil%28ptr%3APointer%28Void%29%29%3Aself%7CNil-class-method" class="tooltip">
+      <span>_wrap_ptrcall_return_or_nil(ptr : Pointer(Void)) : <span class="k">self</span> | Nil</span>
+    _wrap_ptrcall_return_or_nil</a>, 
     
   
     <a href="../Godot/Object.html#cast_to%28obj%3AObject%2Ctype%3AT.class%29%3ATforallT-class-method" class="tooltip">
@@ -17982,6 +18027,20 @@ ensuring libgodot and local shards can be resolved from anywhere.</p>
       </div>
     </div>
   
+    <div class="entry-detail" id="cache_main_screen_dock:Void-class-method">
+      <div class="signature">
+        
+        def self.<strong>cache_main_screen_dock</strong> : Void
+
+        <a class="method-permalink" href="#cache_main_screen_dock%3AVoid-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
     <div class="entry-detail" id="check_external_game_dll_update:Void-class-method">
       <div class="signature">
         
@@ -18101,6 +18160,20 @@ ensuring libgodot and local shards can be resolved from anywhere.</p>
           
           <p>Copies src to dst only if dst does not exist or differs in size/modification_time</p>
         </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="destroy_orphaned_main_screen_dock!:Void-class-method">
+      <div class="signature">
+        
+        def self.<strong>destroy_orphaned_main_screen_dock!</strong> : Void
+
+        <a class="method-permalink" href="#destroy_orphaned_main_screen_dock%21%3AVoid-class-method">#</a>
+      </div>
       
       <br/>
       <div>
@@ -19354,6 +19427,20 @@ Delta timestep is received with 64-bit precision (<code><a href="../Float64.html
           
           <p>Emitted when the Crystal editor plugin finishes initialization</p>
         </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="cache_main_screen_dock_deferred:Void-instance-method">
+      <div class="signature">
+        
+        def <strong>cache_main_screen_dock_deferred</strong> : Void
+
+        <a class="method-permalink" href="#cache_main_screen_dock_deferred%3AVoid-instance-method">#</a>
+      </div>
       
       <br/>
       <div>

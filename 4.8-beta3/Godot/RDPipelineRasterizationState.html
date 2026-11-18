@@ -1657,6 +1657,11 @@
       
     </li>
   
+  <li class=" " data-id="lapis/Godot/Bridge/DeferredUnrefEntry" data-name="godot::bridge::deferredunrefentry">
+      <a href="../Godot/Bridge/DeferredUnrefEntry.html">DeferredUnrefEntry</a>
+      
+    </li>
+  
 </ul>
 
       
@@ -7469,6 +7474,11 @@
   
   <li class=" " data-id="lapis/Godot/RefCounted" data-name="godot::refcounted">
       <a href="../Godot/RefCounted.html">RefCounted</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/RefCountedTLS" data-name="godot::refcountedtls">
+      <a href="../Godot/RefCountedTLS.html">RefCountedTLS</a>
       
     </li>
   
@@ -14049,9 +14059,54 @@
   <h3>Instance methods inherited from class <code><a href="../Godot/RefCounted.html">Godot::RefCounted</a></code></h3>
   
   
+    <a href="../Godot/RefCounted.html#_acquire_extension_self_ref%21%3AVoid-instance-method" class="tooltip">
+      <span>_acquire_extension_self_ref! : Void</span>
+    _acquire_extension_self_ref!</a>, 
+    
+  
+    <a href="../Godot/RefCounted.html#_adopt_constructed_extension_ref%21%3AVoid-instance-method" class="tooltip">
+      <span>_adopt_constructed_extension_ref! : Void</span>
+    _adopt_constructed_extension_ref!</a>, 
+    
+  
+    <a href="../Godot/RefCounted.html#_adopt_or_release_returned_extension_ref%21%3AVoid-instance-method" class="tooltip">
+      <span>_adopt_or_release_returned_extension_ref! : Void</span>
+    _adopt_or_release_returned_extension_ref!</a>, 
+    
+  
+    <a href="../Godot/RefCounted.html#_ensure_extension_borrowed_ref%21%3AVoid-instance-method" class="tooltip">
+      <span>_ensure_extension_borrowed_ref! : Void</span>
+    _ensure_extension_borrowed_ref!</a>, 
+    
+  
+    <a href="../Godot/RefCounted.html#_extension_self%3F%3ABool-instance-method" class="tooltip">
+      <span>_extension_self? : Bool</span>
+    _extension_self?</a>, 
+    
+  
+    <a href="../Godot/RefCounted.html#_finalize_unrefs_no_order%21%3AVoid-instance-method" class="tooltip">
+      <span>_finalize_unrefs_no_order! : Void</span>
+    _finalize_unrefs_no_order!</a>, 
+    
+  
+    <a href="../Godot/RefCounted.html#_mark_extension_self%21%3AVoid-instance-method" class="tooltip">
+      <span>_mark_extension_self! : Void</span>
+    _mark_extension_self!</a>, 
+    
+  
     <a href="../Godot/RefCounted.html#_needs_eager_ref_init%3F%3ABool-instance-method" class="tooltip">
       <span>_needs_eager_ref_init? : Bool</span>
     _needs_eager_ref_init?</a>, 
+    
+  
+    <a href="../Godot/RefCounted.html#_owned_refs%3AInt32-instance-method" class="tooltip">
+      <span>_owned_refs : Int32</span>
+    _owned_refs</a>, 
+    
+  
+    <a href="../Godot/RefCounted.html#_release_extension_self_refs%21%3AVoid-instance-method" class="tooltip">
+      <span>_release_extension_self_refs! : Void</span>
+    _release_extension_self_refs!</a>, 
     
   
     <a href="../Godot/RefCounted.html#destroy%3AVoid-instance-method" class="tooltip">
@@ -14106,6 +14161,11 @@
   <h3>Constructor methods inherited from class <code><a href="../Godot/RefCounted.html">Godot::RefCounted</a></code></h3>
   
   
+    <a href="../Godot/RefCounted.html#_wrap_ptrcall_return%28ptr%3APointer%28Void%29%29%3Aself-class-method" class="tooltip">
+      <span>_wrap_ptrcall_return(ptr : Pointer(Void)) : <span class="k">self</span></span>
+    _wrap_ptrcall_return</a>, 
+    
+  
     <a href="../Godot/RefCounted.html#new%28pointer%3APointer%28Void%29%3DPointer%28Void%29.null%29-class-method" class="tooltip">
       <span>new(pointer : Pointer(Void) = <span class="t">Pointer</span>(<span class="t">Void</span>).null)</span>
     new</a>
@@ -14114,6 +14174,40 @@
 
 
       
+
+  <h3>Class methods inherited from class <code><a href="../Godot/RefCounted.html">Godot::RefCounted</a></code></h3>
+  
+  
+    <a href="../Godot/RefCounted.html#_clear_constructed_ptr_if_matches%28ptr%3APointer%28Void%29%29%3AVoid-class-method" class="tooltip">
+      <span>_clear_constructed_ptr_if_matches(ptr : Pointer(Void)) : Void</span>
+    _clear_constructed_ptr_if_matches</a>, 
+    
+  
+    <a href="../Godot/RefCounted.html#_record_constructed_ptr%28ptr%3APointer%28Void%29%29%3AVoid-class-method" class="tooltip">
+      <span>_record_constructed_ptr(ptr : Pointer(Void)) : Void</span>
+    _record_constructed_ptr</a>, 
+    
+  
+    <a href="../Godot/RefCounted.html#_resolve_property_instance%28type%3AT.class%2Cptr%3APointer%28Void%29%29%3ATforallT-class-method" class="tooltip">
+      <span>_resolve_property_instance(type : <span class="t">T</span>.<span class="k">class</span>, ptr : Pointer(Void)) : T forall T</span>
+    _resolve_property_instance</a>, 
+    
+  
+    <a href="../Godot/RefCounted.html#_wrap_ptrcall_return_or_nil%28ptr%3APointer%28Void%29%29%3Aself%7CNil-class-method" class="tooltip">
+      <span>_wrap_ptrcall_return_or_nil(ptr : Pointer(Void)) : <span class="k">self</span> | Nil</span>
+    _wrap_ptrcall_return_or_nil</a>, 
+    
+  
+    <a href="../Godot/RefCounted.html#_wrap_returned_ref%28type%3AT.class%2Cptr%3APointer%28Void%29%29%3ATforallT-class-method" class="tooltip">
+      <span>_wrap_returned_ref(type : <span class="t">T</span>.<span class="k">class</span>, ptr : Pointer(Void)) : T forall T</span>
+    _wrap_returned_ref</a>, 
+    
+  
+    <a href="../Godot/RefCounted.html#_wrap_returned_ref_or_nil%28type%3AT.class%2Cptr%3APointer%28Void%29%29%3AT%7CNilforallT-class-method" class="tooltip">
+      <span>_wrap_returned_ref_or_nil(type : <span class="t">T</span>.<span class="k">class</span>, ptr : Pointer(Void)) : T | Nil forall T</span>
+    _wrap_returned_ref_or_nil</a>
+    
+  
 
 
       
@@ -14997,6 +15091,11 @@
   <h3>Constructor methods inherited from class <code><a href="../Godot/Object.html">Godot::Object</a></code></h3>
   
   
+    <a href="../Godot/Object.html#_wrap_ptrcall_return%28ptr%3APointer%28Void%29%29%3Aself-class-method" class="tooltip">
+      <span>_wrap_ptrcall_return(ptr : Pointer(Void)) : <span class="k">self</span></span>
+    _wrap_ptrcall_return</a>, 
+    
+  
     <a href="../Godot/Object.html#~%3Aself-class-method" class="tooltip">
       <span>~ : <span class="k">self</span></span>
     ~</a>, 
@@ -15022,6 +15121,11 @@
     <a href="../Godot/Object.html#_godot_has_virtual_method%28method_name%3AString%29%3ABool-class-method" class="tooltip">
       <span>_godot_has_virtual_method(method_name : String) : Bool</span>
     _godot_has_virtual_method</a>, 
+    
+  
+    <a href="../Godot/Object.html#_wrap_ptrcall_return_or_nil%28ptr%3APointer%28Void%29%29%3Aself%7CNil-class-method" class="tooltip">
+      <span>_wrap_ptrcall_return_or_nil(ptr : Pointer(Void)) : <span class="k">self</span> | Nil</span>
+    _wrap_ptrcall_return_or_nil</a>, 
     
   
     <a href="../Godot/Object.html#cast_to%28obj%3AObject%2Ctype%3AT.class%29%3ATforallT-class-method" class="tooltip">

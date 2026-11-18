@@ -1657,6 +1657,11 @@
       
     </li>
   
+  <li class=" " data-id="lapis/Godot/Bridge/DeferredUnrefEntry" data-name="godot::bridge::deferredunrefentry">
+      <a href="../Godot/Bridge/DeferredUnrefEntry.html">DeferredUnrefEntry</a>
+      
+    </li>
+  
 </ul>
 
       
@@ -7469,6 +7474,11 @@
   
   <li class=" current" data-id="lapis/Godot/RefCounted" data-name="godot::refcounted">
       <a href="../Godot/RefCounted.html">RefCounted</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/RefCountedTLS" data-name="godot::refcountedtls">
+      <a href="../Godot/RefCountedTLS.html">RefCountedTLS</a>
       
     </li>
   
@@ -14019,6 +14029,11 @@
   <ul class="list-summary">
     
       <li class="entry-summary">
+        <a href="#_wrap_ptrcall_return%28ptr%3APointer%28Void%29%29%3Aself-class-method" class="signature"><strong>._wrap_ptrcall_return</strong>(ptr : Pointer(Void)) : <span class="k">self</span></a>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#new%28pointer%3APointer%28Void%29%3DPointer%28Void%29.null%29-class-method" class="signature"><strong>.new</strong>(pointer : Pointer(Void) = <span class="t">Pointer</span>(<span class="t">Void</span>).null)</a>
         
       </li>
@@ -14027,6 +14042,50 @@
 
 
   
+  <h2>
+    <a id="class-method-summary" class="anchor" href="#class-method-summary">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Class Method Summary
+  </h2>
+  <ul class="list-summary">
+    
+      <li class="entry-summary">
+        <a href="#_clear_constructed_ptr_if_matches%28ptr%3APointer%28Void%29%29%3AVoid-class-method" class="signature"><strong>._clear_constructed_ptr_if_matches</strong>(ptr : Pointer(Void)) : Void</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#_record_constructed_ptr%28ptr%3APointer%28Void%29%29%3AVoid-class-method" class="signature"><strong>._record_constructed_ptr</strong>(ptr : Pointer(Void)) : Void</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#_resolve_property_instance%28type%3AT.class%2Cptr%3APointer%28Void%29%29%3ATforallT-class-method" class="signature"><strong>._resolve_property_instance</strong>(type : <span class="t">T</span>.<span class="k">class</span>, ptr : Pointer(Void)) : T forall T</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#_wrap_ptrcall_return_or_nil%28ptr%3APointer%28Void%29%29%3Aself%7CNil-class-method" class="signature"><strong>._wrap_ptrcall_return_or_nil</strong>(ptr : Pointer(Void)) : <span class="k">self</span> | Nil</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#_wrap_returned_ref%28type%3AT.class%2Cptr%3APointer%28Void%29%29%3ATforallT-class-method" class="signature"><strong>._wrap_returned_ref</strong>(type : <span class="t">T</span>.<span class="k">class</span>, ptr : Pointer(Void)) : T forall T</a>
+        
+          <div class="summary"><p>Wraps a pointer returned by a C++ API that ALREADY transferred +1 strong reference (<code><a href="../toplevel.html#godot_ptrcall_obj%28mb%2Ctarget_ptr%2Cargs_slice%2Cclass_type%29-macro">godot_ptrcall_obj</a></code>, <code><a href="../Godot/Bridge.html#resource_loader_load%28path%3AString%2Ctype_hint%3AString%3D%22%22%2Ccache_mode%3AInt64%3D0_i64%29%3APointer%28Void%29-class-method">Bridge.resource_loader_load</a></code>, <code><a href="../Godot/Bridge.html#object_call_ret_object%28godot_obj%3APointer%28Void%29%2Cmethod_name%3AString%2C%2Aargs%29%3APointer%28Void%29-class-method">Bridge.object_call_ret_object</a></code>).</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#_wrap_returned_ref_or_nil%28type%3AT.class%2Cptr%3APointer%28Void%29%29%3AT%7CNilforallT-class-method" class="signature"><strong>._wrap_returned_ref_or_nil</strong>(type : <span class="t">T</span>.<span class="k">class</span>, ptr : Pointer(Void)) : T | Nil forall T</a>
+        
+      </li>
+    
+  </ul>
+
 
   
 
@@ -14042,6 +14101,53 @@
   <ul class="list-summary">
     
       <li class="entry-summary">
+        <a href="#_acquire_extension_self_ref%21%3AVoid-instance-method" class="signature"><strong>#_acquire_extension_self_ref!</strong> : Void</a>
+        
+          <div class="summary"><p>Ensures the initial single reference for a custom Crystal <code><a href="../Godot/RefCounted.html">RefCounted</a></code> constructed directly from Crystal (<code><a href="../Godot.html#create%28class_name%3AString%29%3ANode%7CNil-class-method">Godot.create(MyResource)</a></code> / <code><a href="../Godot/Channel.html#new%28capacity%3AInt32%3D16%29%3AChannel-class-method">Channel.new</a></code>).</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#_adopt_constructed_extension_ref%21%3AVoid-instance-method" class="signature"><strong>#_adopt_constructed_extension_ref!</strong> : Void</a>
+        
+          <div class="summary"><p>Adopts the +1 reference returned by <code>classdb_construct_object3</code> on a custom Crystal extension RefCounted.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#_adopt_or_release_returned_extension_ref%21%3AVoid-instance-method" class="signature"><strong>#_adopt_or_release_returned_extension_ref!</strong> : Void</a>
+        
+          <div class="summary"><p>Adopts a +1 C++ reference already transferred by ptrcall / ResourceLoader / object_call_ret_object on a custom Crystal extension RefCounted, or releases the redundant extra C++ reference if already owned.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#_ensure_extension_borrowed_ref%21%3AVoid-instance-method" class="signature"><strong>#_ensure_extension_borrowed_ref!</strong> : Void</a>
+        
+          <div class="summary"><p>Ensures a custom Crystal extension RefCounted unpacked into a Crystal property or collection holds at least 1 Crystal-owned C++ reference so transient C++ Variant/Array containers do not free it on scope exit, without inflating refcount on repeated property assignments.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#_extension_self%3F%3ABool-instance-method" class="signature"><strong>#_extension_self?</strong> : Bool</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#_finalize_unrefs_no_order%21%3AVoid-instance-method" class="signature"><strong>#_finalize_unrefs_no_order!</strong> : Void</a>
+        
+          <div class="summary"><p>Lock-free cycle-safe GC finalizer queuing remaining owned references for main-thread release.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#_mark_extension_self%21%3AVoid-instance-method" class="signature"><strong>#_mark_extension_self!</strong> : Void</a>
+        
+          <div class="summary"><p>Marks this instance as a custom Crystal GDExtension instance whose lifetime is mirrored in <code><a href="../Godot/Bridge.html">Bridge</a>.@@alive_instances</code> until Godot invokes <code>free_fn</code>.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#_needs_eager_ref_init%3F%3ABool-instance-method" class="signature"><strong>#_needs_eager_ref_init?</strong> : Bool</a>
         
           <div class="summary"><p>Returns true for RefCounted subclasses whose raw ClassDB construction should eagerly invoke <code><a href="../Godot/RefCounted.html#ensure_ref_initialized%21%3AVoid-instance-method">#ensure_ref_initialized!</a></code> so stack-temporary <code>Ref&lt;T&gt;</code> wrappers inside transient Godot C++ methods do not <code>memdelete</code> the instance mid-call.</p></div>
@@ -14049,9 +14155,21 @@
       </li>
     
       <li class="entry-summary">
+        <a href="#_owned_refs%3AInt32-instance-method" class="signature"><strong>#_owned_refs</strong> : Int32</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#_release_extension_self_refs%21%3AVoid-instance-method" class="signature"><strong>#_release_extension_self_refs!</strong> : Void</a>
+        
+          <div class="summary"><p>Releases any owned C++ references held on a custom Crystal extension RefCounted during shutdown.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#destroy%3AVoid-instance-method" class="signature"><strong>#destroy</strong> : Void</a>
         
-          <div class="summary"><p>Safely destroys or unreferences this RefCounted object.</p></div>
+          <div class="summary"><p>Safely releases references owned by this RefCounted wrapper, destroying the native Godot object only when its total reference count reaches zero.</p></div>
         
       </li>
     
@@ -14986,6 +15104,11 @@
   <h3>Constructor methods inherited from class <code><a href="../Godot/Object.html">Godot::Object</a></code></h3>
   
   
+    <a href="../Godot/Object.html#_wrap_ptrcall_return%28ptr%3APointer%28Void%29%29%3Aself-class-method" class="tooltip">
+      <span>_wrap_ptrcall_return(ptr : Pointer(Void)) : <span class="k">self</span></span>
+    _wrap_ptrcall_return</a>, 
+    
+  
     <a href="../Godot/Object.html#~%3Aself-class-method" class="tooltip">
       <span>~ : <span class="k">self</span></span>
     ~</a>, 
@@ -15011,6 +15134,11 @@
     <a href="../Godot/Object.html#_godot_has_virtual_method%28method_name%3AString%29%3ABool-class-method" class="tooltip">
       <span>_godot_has_virtual_method(method_name : String) : Bool</span>
     _godot_has_virtual_method</a>, 
+    
+  
+    <a href="../Godot/Object.html#_wrap_ptrcall_return_or_nil%28ptr%3APointer%28Void%29%29%3Aself%7CNil-class-method" class="tooltip">
+      <span>_wrap_ptrcall_return_or_nil(ptr : Pointer(Void)) : <span class="k">self</span> | Nil</span>
+    _wrap_ptrcall_return_or_nil</a>, 
     
   
     <a href="../Godot/Object.html#cast_to%28obj%3AObject%2Ctype%3AT.class%29%3ATforallT-class-method" class="tooltip">
@@ -15111,6 +15239,20 @@
     Constructor Detail
   </h2>
   
+    <div class="entry-detail" id="_wrap_ptrcall_return(ptr:Pointer(Void)):self-class-method">
+      <div class="signature">
+        
+        def self.<strong>_wrap_ptrcall_return</strong>(ptr : Pointer(Void)) : <span class="k">self</span>
+
+        <a class="method-permalink" href="#_wrap_ptrcall_return%28ptr%3APointer%28Void%29%29%3Aself-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
     <div class="entry-detail" id="new(pointer:Pointer(Void)=Pointer(Void).null)-class-method">
       <div class="signature">
         
@@ -15128,6 +15270,106 @@
 
 
   
+  <h2>
+    <a id="class-method-detail" class="anchor" href="#class-method-detail">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Class Method Detail
+  </h2>
+  
+    <div class="entry-detail" id="_clear_constructed_ptr_if_matches(ptr:Pointer(Void)):Void-class-method">
+      <div class="signature">
+        
+        def self.<strong>_clear_constructed_ptr_if_matches</strong>(ptr : Pointer(Void)) : Void
+
+        <a class="method-permalink" href="#_clear_constructed_ptr_if_matches%28ptr%3APointer%28Void%29%29%3AVoid-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="_record_constructed_ptr(ptr:Pointer(Void)):Void-class-method">
+      <div class="signature">
+        
+        def self.<strong>_record_constructed_ptr</strong>(ptr : Pointer(Void)) : Void
+
+        <a class="method-permalink" href="#_record_constructed_ptr%28ptr%3APointer%28Void%29%29%3AVoid-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="_resolve_property_instance(type:T.class,ptr:Pointer(Void)):TforallT-class-method">
+      <div class="signature">
+        
+        def self.<strong>_resolve_property_instance</strong>(type : <span class="t">T</span>.<span class="k">class</span>, ptr : Pointer(Void)) : T forall T
+
+        <a class="method-permalink" href="#_resolve_property_instance%28type%3AT.class%2Cptr%3APointer%28Void%29%29%3ATforallT-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="_wrap_ptrcall_return_or_nil(ptr:Pointer(Void)):self|Nil-class-method">
+      <div class="signature">
+        
+        def self.<strong>_wrap_ptrcall_return_or_nil</strong>(ptr : Pointer(Void)) : <span class="k">self</span> | <a href="../Nil.html">Nil</a>
+
+        <a class="method-permalink" href="#_wrap_ptrcall_return_or_nil%28ptr%3APointer%28Void%29%29%3Aself%7CNil-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="_wrap_returned_ref(type:T.class,ptr:Pointer(Void)):TforallT-class-method">
+      <div class="signature">
+        
+        def self.<strong>_wrap_returned_ref</strong>(type : <span class="t">T</span>.<span class="k">class</span>, ptr : Pointer(Void)) : T forall T
+
+        <a class="method-permalink" href="#_wrap_returned_ref%28type%3AT.class%2Cptr%3APointer%28Void%29%29%3ATforallT-class-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Wraps a pointer returned by a C++ API that ALREADY transferred +1 strong reference
+(<code><a href="../toplevel.html#godot_ptrcall_obj%28mb%2Ctarget_ptr%2Cargs_slice%2Cclass_type%29-macro">godot_ptrcall_obj</a></code>, <code><a href="../Godot/Bridge.html#resource_loader_load%28path%3AString%2Ctype_hint%3AString%3D%22%22%2Ccache_mode%3AInt64%3D0_i64%29%3APointer%28Void%29-class-method">Bridge.resource_loader_load</a></code>, <code><a href="../Godot/Bridge.html#object_call_ret_object%28godot_obj%3APointer%28Void%29%2Cmethod_name%3AString%2C%2Aargs%29%3APointer%28Void%29-class-method">Bridge.object_call_ret_object</a></code>).</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="_wrap_returned_ref_or_nil(type:T.class,ptr:Pointer(Void)):T|NilforallT-class-method">
+      <div class="signature">
+        
+        def self.<strong>_wrap_returned_ref_or_nil</strong>(type : <span class="t">T</span>.<span class="k">class</span>, ptr : Pointer(Void)) : T | <a href="../Nil.html">Nil</a> forall T
+
+        <a class="method-permalink" href="#_wrap_returned_ref_or_nil%28type%3AT.class%2Cptr%3APointer%28Void%29%29%3AT%7CNilforallT-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+
 
   
 
@@ -15140,6 +15382,139 @@
 </a>
     Instance Method Detail
   </h2>
+  
+    <div class="entry-detail" id="_acquire_extension_self_ref!:Void-instance-method">
+      <div class="signature">
+        
+        def <strong>_acquire_extension_self_ref!</strong> : Void
+
+        <a class="method-permalink" href="#_acquire_extension_self_ref%21%3AVoid-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Ensures the initial single reference for a custom Crystal <code><a href="../Godot/RefCounted.html">RefCounted</a></code> constructed
+directly from Crystal (<code><a href="../Godot.html#create%28class_name%3AString%29%3ANode%7CNil-class-method">Godot.create(MyResource)</a></code> / <code><a href="../Godot/Channel.html#new%28capacity%3AInt32%3D16%29%3AChannel-class-method">Channel.new</a></code>).</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="_adopt_constructed_extension_ref!:Void-instance-method">
+      <div class="signature">
+        
+        def <strong>_adopt_constructed_extension_ref!</strong> : Void
+
+        <a class="method-permalink" href="#_adopt_constructed_extension_ref%21%3AVoid-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Adopts the +1 reference returned by <code>classdb_construct_object3</code> on a custom Crystal extension RefCounted.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="_adopt_or_release_returned_extension_ref!:Void-instance-method">
+      <div class="signature">
+        
+        def <strong>_adopt_or_release_returned_extension_ref!</strong> : Void
+
+        <a class="method-permalink" href="#_adopt_or_release_returned_extension_ref%21%3AVoid-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Adopts a +1 C++ reference already transferred by ptrcall / ResourceLoader / object_call_ret_object
+on a custom Crystal extension RefCounted, or releases the redundant extra C++ reference if already owned.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="_ensure_extension_borrowed_ref!:Void-instance-method">
+      <div class="signature">
+        
+        def <strong>_ensure_extension_borrowed_ref!</strong> : Void
+
+        <a class="method-permalink" href="#_ensure_extension_borrowed_ref%21%3AVoid-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Ensures a custom Crystal extension RefCounted unpacked into a Crystal property or collection
+holds at least 1 Crystal-owned C++ reference so transient C++ Variant/Array containers
+do not free it on scope exit, without inflating refcount on repeated property assignments.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="_extension_self?:Bool-instance-method">
+      <div class="signature">
+        
+        def <strong>_extension_self?</strong> : Bool
+
+        <a class="method-permalink" href="#_extension_self%3F%3ABool-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="_finalize_unrefs_no_order!:Void-instance-method">
+      <div class="signature">
+        
+        def <strong>_finalize_unrefs_no_order!</strong> : Void
+
+        <a class="method-permalink" href="#_finalize_unrefs_no_order%21%3AVoid-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Lock-free cycle-safe GC finalizer queuing remaining owned references for main-thread release.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="_mark_extension_self!:Void-instance-method">
+      <div class="signature">
+        
+        def <strong>_mark_extension_self!</strong> : Void
+
+        <a class="method-permalink" href="#_mark_extension_self%21%3AVoid-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Marks this instance as a custom Crystal GDExtension instance whose lifetime is
+mirrored in <code><a href="../Godot/Bridge.html">Bridge</a>.@@alive_instances</code> until Godot invokes <code>free_fn</code>.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
   
     <div class="entry-detail" id="_needs_eager_ref_init?:Bool-instance-method">
       <div class="signature">
@@ -15162,6 +15537,39 @@ inside transient Godot C++ methods do not <code>memdelete</code> the instance mi
       </div>
     </div>
   
+    <div class="entry-detail" id="_owned_refs:Int32-instance-method">
+      <div class="signature">
+        
+        def <strong>_owned_refs</strong> : Int32
+
+        <a class="method-permalink" href="#_owned_refs%3AInt32-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="_release_extension_self_refs!:Void-instance-method">
+      <div class="signature">
+        
+        def <strong>_release_extension_self_refs!</strong> : Void
+
+        <a class="method-permalink" href="#_release_extension_self_refs%21%3AVoid-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Releases any owned C++ references held on a custom Crystal extension RefCounted during shutdown.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
     <div class="entry-detail" id="destroy:Void-instance-method">
       <div class="signature">
         
@@ -15172,7 +15580,8 @@ inside transient Godot C++ methods do not <code>memdelete</code> the instance mi
       
         <div class="doc">
           
-          <p>Safely destroys or unreferences this RefCounted object.</p>
+          <p>Safely releases references owned by this RefCounted wrapper, destroying the native
+Godot object only when its total reference count reaches zero.</p>
         </div>
       
       <br/>

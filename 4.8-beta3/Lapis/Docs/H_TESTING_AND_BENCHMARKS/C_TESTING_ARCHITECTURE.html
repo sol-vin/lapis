@@ -1657,6 +1657,11 @@
       
     </li>
   
+  <li class=" " data-id="lapis/Godot/Bridge/DeferredUnrefEntry" data-name="godot::bridge::deferredunrefentry">
+      <a href="../../../Godot/Bridge/DeferredUnrefEntry.html">DeferredUnrefEntry</a>
+      
+    </li>
+  
 </ul>
 
       
@@ -7469,6 +7474,11 @@
   
   <li class=" " data-id="lapis/Godot/RefCounted" data-name="godot::refcounted">
       <a href="../../../Godot/RefCounted.html">RefCounted</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/RefCountedTLS" data-name="godot::refcountedtls">
+      <a href="../../../Godot/RefCountedTLS.html">RefCountedTLS</a>
       
     </li>
   
@@ -14276,7 +14286,7 @@ the Godot engine as a dynamic shared library (<code>libgodot.dll</code> / <code>
           
           <p><strong>Quantitative Zero Memory Leak Verification</strong>: Mathematical leak verification using Godot Performance monitors and Boehm GC.</p>
 <p>Memory leaks are fatal in native game development. Lapis enforces quantitative zero-leak verification
-via <code><a href="../../../Lapis/Test.html#assert_no_leak%28max_delta_objects%3AInt32%3D0%2Cname%3AString%3D%22Operation%22%2Cfile%3AString%3D__FILE__%2Cline%3AInt32%3D__LINE__%2C%26%29-instance-method">Lapis::Test.assert_no_leak</a></code>, leveraging Godot's internal engine performance monitors:</p>
+via <code><a href="../../../Lapis/Test.html#assert_no_leak%28max_delta_objects%3AInt32%3D0%2Cname%3AString%3D%22Operation%22%2Cfile%3AString%3D__FILE__%2Cline%3AInt32%3D__LINE__%2C%26block%3A-%3ET%29forallT-instance-method">Lapis::Test.assert_no_leak</a></code>, leveraging Godot's internal engine performance monitors:</p>
 <pre><code class="language-crystal"><span class="k">def</span> <span class="m">assert_no_leak</span>(max_delta_objects : <span class="t">Int32</span> <span class="o">=</span> <span class="n">0</span>, name : <span class="t">String</span> <span class="o">=</span> <span class="s">&quot;Operation&quot;</span>, <span class="o">&amp;</span>block)
   <span class="n">5</span>.times { <span class="t">Fiber</span>.<span class="k">yield</span> }
   <span class="t">GC</span>.collect

@@ -1657,6 +1657,11 @@
       
     </li>
   
+  <li class=" " data-id="lapis/Godot/Bridge/DeferredUnrefEntry" data-name="godot::bridge::deferredunrefentry">
+      <a href="Godot/Bridge/DeferredUnrefEntry.html">DeferredUnrefEntry</a>
+      
+    </li>
+  
 </ul>
 
       
@@ -7469,6 +7474,11 @@
   
   <li class=" " data-id="lapis/Godot/RefCounted" data-name="godot::refcounted">
       <a href="Godot/RefCounted.html">RefCounted</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/RefCountedTLS" data-name="godot::refcountedtls">
+      <a href="Godot/RefCountedTLS.html">RefCountedTLS</a>
       
     </li>
   
@@ -14337,7 +14347,7 @@ node <span class="t">Player</span> <span class="o">&lt;</span> <span class="t">C
     <br/>
   
     
-      libgodot/timer.cr:222
+      libgodot/timer.cr:233
     
     <br/>
   
@@ -14456,7 +14466,7 @@ node <span class="t">Player</span> <span class="o">&lt;</span> <span class="t">C
       
     
       <dt class="entry-const" id="VERSION">
-        <strong>VERSION</strong> = <code><span class="s">&quot;0.3.5&quot;</span></code>
+        <strong>VERSION</strong> = <code><span class="s">&quot;0.3.6&quot;</span></code>
       </dt>
       
     
@@ -14743,6 +14753,13 @@ node <span class="t">Player</span> <span class="o">&lt;</span> <span class="t">C
     
       <li class="entry-summary">
         <a href="#class_db%3AClassDB-class-method" class="signature"><strong>.class_db</strong> : ClassDB</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#clear_all_signal_subscriptions_on_shutdown%21%3AVoid-class-method" class="signature"><strong>.clear_all_signal_subscriptions_on_shutdown!</strong> : Void</a>
+        
+          <div class="summary"><p>Releases all registered signal subscriptions and static signal closures during engine shutdown so closures capturing RefCounted resources can be reclaimed by Boehm GC before ObjectDB::cleanup().</p></div>
         
       </li>
     
@@ -16303,6 +16320,26 @@ Returns <code>true</code> if the delay completed, or <code>false</code> if <code
 
         <a class="method-permalink" href="#class_db%3AClassDB-class-method">#</a>
       </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="clear_all_signal_subscriptions_on_shutdown!:Void-class-method">
+      <div class="signature">
+        
+        def self.<strong>clear_all_signal_subscriptions_on_shutdown!</strong> : Void
+
+        <a class="method-permalink" href="#clear_all_signal_subscriptions_on_shutdown%21%3AVoid-class-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Releases all registered signal subscriptions and static signal closures during engine shutdown
+so closures capturing RefCounted resources can be reclaimed by Boehm GC before ObjectDB::cleanup().</p>
+        </div>
       
       <br/>
       <div>

@@ -1657,6 +1657,11 @@
       
     </li>
   
+  <li class=" " data-id="lapis/Godot/Bridge/DeferredUnrefEntry" data-name="godot::bridge::deferredunrefentry">
+      <a href="../Godot/Bridge/DeferredUnrefEntry.html">DeferredUnrefEntry</a>
+      
+    </li>
+  
 </ul>
 
       
@@ -7469,6 +7474,11 @@
   
   <li class=" " data-id="lapis/Godot/RefCounted" data-name="godot::refcounted">
       <a href="../Godot/RefCounted.html">RefCounted</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/RefCountedTLS" data-name="godot::refcountedtls">
+      <a href="../Godot/RefCountedTLS.html">RefCountedTLS</a>
       
     </li>
   
@@ -13929,6 +13939,13 @@ Provides identity, lifecycle dispatch hooks, and signal emission functionality.<
   <ul class="list-summary">
     
       <li class="entry-summary">
+        <a href="#_wrap_ptrcall_return%28ptr%3APointer%28Void%29%29%3Aself-class-method" class="signature"><strong>._wrap_ptrcall_return</strong>(ptr : Pointer(Void)) : <span class="k">self</span></a>
+        
+          <div class="summary"><p>Wraps a raw pointer returned by <code><a href="../toplevel.html#godot_ptrcall%28mb%2Ctarget_ptr%2Cargs_slice%2Cret_ptr%29-macro">godot_ptrcall</a></code>, reusing any live extension instance.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#~%3Aself-class-method" class="signature"><strong>.~</strong> : <span class="k">self</span></a>
         
           <div class="summary"><p>Class unary ~ returns typed instance looked up from active NodeContext (by name first, then searching children)</p></div>
@@ -13979,6 +13996,11 @@ Provides identity, lifecycle dispatch hooks, and signal emission functionality.<
         <a href="#_godot_has_virtual_method%28method_name%3AString%29%3ABool-class-method" class="signature"><strong>._godot_has_virtual_method</strong>(method_name : String) : Bool</a>
         
           <div class="summary"><p>Checks if this object class overrides a generic virtual method.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#_wrap_ptrcall_return_or_nil%28ptr%3APointer%28Void%29%29%3Aself%7CNil-class-method" class="signature"><strong>._wrap_ptrcall_return_or_nil</strong>(ptr : Pointer(Void)) : <span class="k">self</span> | Nil</a>
         
       </li>
     
@@ -15408,6 +15430,26 @@ Provides identity, lifecycle dispatch hooks, and signal emission functionality.<
     Constructor Detail
   </h2>
   
+    <div class="entry-detail" id="_wrap_ptrcall_return(ptr:Pointer(Void)):self-class-method">
+      <div class="signature">
+        
+        def self.<strong>_wrap_ptrcall_return</strong>(ptr : Pointer(Void)) : <span class="k">self</span>
+
+        <a class="method-permalink" href="#_wrap_ptrcall_return%28ptr%3APointer%28Void%29%29%3Aself-class-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Wraps a raw pointer returned by <code><a href="../toplevel.html#godot_ptrcall%28mb%2Ctarget_ptr%2Cargs_slice%2Cret_ptr%29-macro">godot_ptrcall</a></code>, reusing any live extension instance.
+Overridden on <code><a href="../Godot/RefCounted.html">Godot::RefCounted</a></code> to adopt the +1 reference returned by <code>PtrToArg&lt;Ref&lt;T&gt;&gt;::encode</code>.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
     <div class="entry-detail" id="~:self-class-method">
       <div class="signature">
         
@@ -15522,6 +15564,20 @@ Provides identity, lifecycle dispatch hooks, and signal emission functionality.<
           
           <p>Checks if this object class overrides a generic virtual method.</p>
         </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="_wrap_ptrcall_return_or_nil(ptr:Pointer(Void)):self|Nil-class-method">
+      <div class="signature">
+        
+        def self.<strong>_wrap_ptrcall_return_or_nil</strong>(ptr : Pointer(Void)) : <span class="k">self</span> | <a href="../Nil.html">Nil</a>
+
+        <a class="method-permalink" href="#_wrap_ptrcall_return_or_nil%28ptr%3APointer%28Void%29%29%3Aself%7CNil-class-method">#</a>
+      </div>
       
       <br/>
       <div>

@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<benchmark_comparison current_version="0.3.5" current_tag="4.8-beta3" previous_version="0.2.5" previous_tag="4.8-beta2" mode="comparative" timestamp="2026-11-11T04:37:41Z">
-  <summary total_cases="28" prev_geomean="39.42" curr_geomean="42.18" diff_pct="7.02" />
+<benchmark_comparison current_version="0.3.6" current_tag="4.8-beta3" previous_version="0.2.5" previous_tag="4.8-beta2" mode="comparative" timestamp="2026-11-18T11:41:55Z">
+  <summary total_cases="28" prev_geomean="39.42" curr_geomean="35.45" diff_pct="-10.08" />
   <case name="AStar2D" category="EngineCore">
     <description>AStar2D pathfinding on 100x100 grid (10k points, 500 queries)</description>
-    <progression prev_speedup="2307.88" curr_speedup="1823.11" diff_pct="-21.0" status="regressed" />
+    <progression prev_speedup="2307.88" curr_speedup="2391.67" diff_pct="3.63" status="improved" />
   </case>
   <case name="Base64" category="Compute">
     <description>Base64 strict encode &amp; decode loop (64 KiB, 100 iter)</description>
-    <progression prev_speedup="13.14" curr_speedup="13.76" diff_pct="4.71" status="improved" />
+    <progression prev_speedup="13.14" curr_speedup="14.25" diff_pct="8.45" status="improved" />
   </case>
   <case name="BinaryTrees" category="Compute">
     <description>GC pressure, bottom-up binary tree allocation &amp; depth traversal</description>
-    <progression prev_speedup="41.05" curr_speedup="39.73" diff_pct="-3.21" status="regressed" />
+    <progression prev_speedup="41.05" curr_speedup="32.85" diff_pct="-19.98" status="regressed" />
   </case>
   <case name="Brainfuck" category="Compute">
     <description>Brainfuck AST interpreter + dynamic tape (bench_quick.b)</description>
-    <progression prev_speedup="112.69" curr_speedup="146.21" diff_pct="29.74" status="improved" />
+    <progression prev_speedup="112.69" curr_speedup="86.11" diff_pct="-23.58" status="regressed" />
   </case>
   <case name="CellularNoise" category="EngineCore">
     <description>FastNoiseLite 2D Cellular Voronoi noise across 500x500 grid (250k samples)</description>
-    <progression prev_speedup="121.43" curr_speedup="160.89" diff_pct="32.5" status="improved" />
+    <progression prev_speedup="121.43" curr_speedup="53.32" diff_pct="-56.09" status="regressed" />
   </case>
   <case name="CompileTimes" category="Toolchain">
     <description>Compilation latency and output binary size across Crystal, C++, C#, Rust (Debug vs Release)</description>
@@ -27,90 +27,90 @@
   </case>
   <case name="ConfigFileOps" category="EngineCore">
     <description>ConfigFile parsing, querying and encoding 1,000 section INI config</description>
-    <progression prev_speedup="88.0" curr_speedup="119.4" diff_pct="35.68" status="improved" />
+    <progression prev_speedup="88.0" curr_speedup="114.5" diff_pct="30.11" status="improved" />
   </case>
   <case name="DictionaryOps" category="EngineCore">
     <description>Godot Dictionary 50,000 insertions and random access lookups</description>
-    <progression prev_speedup="2.76" curr_speedup="3.05" diff_pct="10.35" status="improved" />
+    <progression prev_speedup="2.76" curr_speedup="2.06" diff_pct="-25.45" status="regressed" />
   </case>
   <case name="ImageProcessing" category="EngineCore">
     <description>512x512 Image procedural pixel computation and gamma blending (262k px)</description>
-    <progression prev_speedup="18.16" curr_speedup="16.83" diff_pct="-7.33" status="regressed" />
+    <progression prev_speedup="18.16" curr_speedup="18.34" diff_pct="1.01" status="improved" />
   </case>
   <case name="JSON" category="Compute">
     <description>JSON parse &amp; 3D coordinate aggregation (10k items)</description>
-    <progression prev_speedup="2.73" curr_speedup="2.65" diff_pct="-2.78" status="regressed" />
+    <progression prev_speedup="2.73" curr_speedup="2.36" diff_pct="-13.66" status="regressed" />
   </case>
   <case name="Mandelbrot" category="Compute">
     <description>2D coordinate escape-time fractal rasterization (500x500)</description>
-    <progression prev_speedup="56.39" curr_speedup="44.17" diff_pct="-21.67" status="regressed" />
+    <progression prev_speedup="56.39" curr_speedup="62.24" diff_pct="10.37" status="improved" />
   </case>
   <case name="MaterialResources" category="EngineCore">
     <description>StandardMaterial3D allocation, properties, duplication, refcounting (10k)</description>
-    <progression prev_speedup="398.01" curr_speedup="360.56" diff_pct="-9.41" status="regressed" />
+    <progression prev_speedup="398.01" curr_speedup="342.33" diff_pct="-13.99" status="regressed" />
   </case>
   <case name="Matmul" category="Compute">
     <description>Dense 2D matrix multiplication (N=300, float64)</description>
-    <progression prev_speedup="81.33" curr_speedup="47.27" diff_pct="-41.88" status="regressed" />
+    <progression prev_speedup="81.33" curr_speedup="62.4" diff_pct="-23.27" status="regressed" />
   </case>
   <case name="NBody" category="Compute">
     <description>3D orbital dynamics physics integration (Velocity-Verlet, 50k steps)</description>
-    <progression prev_speedup="137.39" curr_speedup="130.86" diff_pct="-4.75" status="regressed" />
+    <progression prev_speedup="137.39" curr_speedup="123.3" diff_pct="-10.26" status="regressed" />
   </case>
   <case name="NodeGroups" category="EngineCore">
     <description>20,000 nodes partitioned into 10 groups, group assignment &amp; queries</description>
-    <progression prev_speedup="4.73" curr_speedup="4.76" diff_pct="0.59" status="parity" />
+    <progression prev_speedup="4.73" curr_speedup="6.39" diff_pct="35.0" status="improved" />
   </case>
   <case name="NodeLifecycle" category="EngineCore">
     <description>Node2D allocation, property mutation, add_child, remove_child, free (20k)</description>
-    <progression prev_speedup="4.86" curr_speedup="5.78" diff_pct="19.03" status="improved" />
+    <progression prev_speedup="4.86" curr_speedup="4.86" diff_pct="-0.03" status="parity" />
   </case>
   <case name="PerlinNoise" category="EngineCore">
     <description>FastNoiseLite 2D Perlin noise across 500x500 grid (250k samples)</description>
-    <progression prev_speedup="70.33" curr_speedup="91.72" diff_pct="30.42" status="improved" />
+    <progression prev_speedup="70.33" curr_speedup="30.3" diff_pct="-56.92" status="regressed" />
   </case>
   <case name="Primes" category="Compute">
     <description>Sieve of Atkin + Prefix Trie search (Limit=500k)</description>
-    <progression prev_speedup="27.37" curr_speedup="31.82" diff_pct="16.27" status="improved" />
+    <progression prev_speedup="27.37" curr_speedup="25.3" diff_pct="-7.56" status="regressed" />
   </case>
   <case name="ShaderCompilation" category="EngineCore">
     <description>Shader compilation throughput across 1,000 permutations</description>
-    <progression prev_speedup="241.87" curr_speedup="288.69" diff_pct="19.36" status="improved" />
+    <progression prev_speedup="241.87" curr_speedup="157.0" diff_pct="-35.09" status="regressed" />
   </case>
   <case name="ShaderUniforms" category="EngineCore">
     <description>High-frequency uniform parameter dispatch (50k updates)</description>
-    <progression prev_speedup="93.25" curr_speedup="108.0" diff_pct="15.82" status="improved" />
+    <progression prev_speedup="93.25" curr_speedup="62.69" diff_pct="-32.77" status="regressed" />
   </case>
   <case name="Signals" category="EngineCore">
     <description>Signal connection, argument marshalling &amp; dynamic emission (50k calls)</description>
-    <progression prev_speedup="4.42" curr_speedup="4.45" diff_pct="0.61" status="parity" />
+    <progression prev_speedup="4.42" curr_speedup="4.27" diff_pct="-3.43" status="regressed" />
   </case>
   <case name="SimplexNoise" category="EngineCore">
     <description>FastNoiseLite 3D Simplex Smooth noise across 100k samples</description>
-    <progression prev_speedup="84.0" curr_speedup="91.82" diff_pct="9.31" status="improved" />
+    <progression prev_speedup="84.0" curr_speedup="46.26" diff_pct="-44.93" status="regressed" />
   </case>
   <case name="SurfaceTool" category="EngineCore">
     <description>SurfaceTool procedural mesh generation with normals/UVs (10k triangles)</description>
-    <progression prev_speedup="74.38" curr_speedup="114.58" diff_pct="54.05" status="improved" />
+    <progression prev_speedup="74.38" curr_speedup="35.29" diff_pct="-52.56" status="regressed" />
   </case>
   <case name="TransformHierarchy" category="EngineCore">
     <description>15,000 Node3D hierarchy transformations &amp; global position resolution</description>
-    <progression prev_speedup="205.19" curr_speedup="313.58" diff_pct="52.82" status="improved" />
+    <progression prev_speedup="205.19" curr_speedup="621.5" diff_pct="202.89" status="improved" />
   </case>
   <case name="TransformMath" category="Compute">
     <description>Transform3D translations, rotations &amp; Vector3 projections (200k ops)</description>
-    <progression prev_speedup="14.51" curr_speedup="18.36" diff_pct="26.57" status="improved" />
+    <progression prev_speedup="14.51" curr_speedup="23.37" diff_pct="61.1" status="improved" />
   </case>
   <case name="TreeTraversal" category="EngineCore">
     <description>Scene tree recursive traversal &amp; property inspection (20k nodes)</description>
-    <progression prev_speedup="15.36" curr_speedup="18.25" diff_pct="18.82" status="improved" />
+    <progression prev_speedup="15.36" curr_speedup="23.22" diff_pct="51.16" status="improved" />
   </case>
   <case name="VectorMath2D" category="Compute">
     <description>Vector2 lerp, dot, distance, and normalization across 500k ops</description>
-    <progression prev_speedup="33.11" curr_speedup="32.82" diff_pct="-0.89" status="parity" />
+    <progression prev_speedup="33.11" curr_speedup="40.76" diff_pct="23.09" status="improved" />
   </case>
   <case name="VisualShader" category="EngineCore">
     <description>VisualShader node graph creation and connection (200 graphs)</description>
-    <progression prev_speedup="222.67" curr_speedup="210.67" diff_pct="-5.39" status="regressed" />
+    <progression prev_speedup="222.67" curr_speedup="127.0" diff_pct="-42.96" status="regressed" />
   </case>
 </benchmark_comparison>

@@ -1657,6 +1657,11 @@
       
     </li>
   
+  <li class=" " data-id="lapis/Godot/Bridge/DeferredUnrefEntry" data-name="godot::bridge::deferredunrefentry">
+      <a href="../Godot/Bridge/DeferredUnrefEntry.html">DeferredUnrefEntry</a>
+      
+    </li>
+  
 </ul>
 
       
@@ -7469,6 +7474,11 @@
   
   <li class=" " data-id="lapis/Godot/RefCounted" data-name="godot::refcounted">
       <a href="../Godot/RefCounted.html">RefCounted</a>
+      
+    </li>
+  
+  <li class=" " data-id="lapis/Godot/RefCountedTLS" data-name="godot::refcountedtls">
+      <a href="../Godot/RefCountedTLS.html">RefCountedTLS</a>
       
     </li>
   
@@ -13704,6 +13714,11 @@
   <ul class="list-summary">
     
       <li class="entry-summary">
+        <a href="#_set_creating_extension%28val%3ABool%29%3AVoid-class-method" class="signature"><strong>._set_creating_extension</strong>(val : Bool) : Void</a>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#alive_instance_count%3AInt32-class-method" class="signature"><strong>.alive_instance_count</strong> : Int32</a>
         
       </li>
@@ -13756,12 +13771,29 @@
       </li>
     
       <li class="entry-summary">
+        <a href="#creating_extension%3F%3ABool-class-method" class="signature"><strong>.creating_extension?</strong> : Bool</a>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#debug%28msg%3AString%29%3AVoid-class-method" class="signature"><strong>.debug</strong>(msg : String) : Void</a>
         
       </li>
     
       <li class="entry-summary">
         <a href="#deinit%3AVoid-class-method" class="signature"><strong>.deinit</strong> : Void</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#deinitialized%3F%3ABool-class-method" class="signature"><strong>.deinitialized?</strong> : Bool</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#drain_deferred_unrefs%21%28force%3ABool%3Dfalse%29%3AInt32-class-method" class="signature"><strong>.drain_deferred_unrefs!</strong>(force : Bool = <span class="n">false</span>) : Int32</a>
+        
+          <div class="summary"><p>Drains queued RefCounted finalizer unreferences on the main thread.</p></div>
         
       </li>
     
@@ -13777,6 +13809,13 @@
     
       <li class="entry-summary">
         <a href="#emit_signal%28godot_obj%3APointer%28Void%29%2Csignal_name%3AString%2C%2Aargs%29%3AVoid-class-method" class="signature"><strong>.emit_signal</strong>(godot_obj : Pointer(Void), signal_name : String, *args) : Void</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#enqueue_deferred_unref%28ptr%3APointer%28Void%29%2Cinstance_id%3AUInt64%2Ccount%3AInt32%29%3AVoid-class-method" class="signature"><strong>.enqueue_deferred_unref</strong>(ptr : Pointer(Void), instance_id : UInt64, count : Int32) : Void</a>
+        
+          <div class="summary"><p>Lock-free C-heap enqueue safe to invoke from Boehm GC finalizers on any thread.</p></div>
         
       </li>
     
@@ -14060,6 +14099,16 @@
       </li>
     
       <li class="entry-summary">
+        <a href="#on_main_loop_frame%3AVoid-class-method" class="signature"><strong>.on_main_loop_frame</strong> : Void</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#on_main_loop_shutdown%3AVoid-class-method" class="signature"><strong>.on_main_loop_shutdown</strong> : Void</a>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#packed_byte_array_operator_index%28pba%3APointer%28Void%29%2Cindex%3AInt64%29%3APointer%28UInt8%29-class-method" class="signature"><strong>.packed_byte_array_operator_index</strong>(pba : Pointer(Void), index : Int64) : Pointer(UInt8)</a>
         
       </li>
@@ -14086,6 +14135,13 @@
     
       <li class="entry-summary">
         <a href="#printerr%28msg%3AString%29%3AVoid-class-method" class="signature"><strong>.printerr</strong>(msg : String) : Void</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#prune_dead_ptr_instances%21%3AVoid-class-method" class="signature"><strong>.prune_dead_ptr_instances!</strong> : Void</a>
+        
+          <div class="summary"><p>Prunes entries from <code>@@alive_instances_by_ptr</code> whose underlying native engine object has already been freed by Godot (e.g., via <code>queue_free</code> on an ancestor node).</p></div>
         
       </li>
     
@@ -14230,7 +14286,21 @@
       </li>
     
       <li class="entry-summary">
+        <a href="#run_pre_objectdb_teardown%21%3AVoid-class-method" class="signature"><strong>.run_pre_objectdb_teardown!</strong> : Void</a>
+        
+          <div class="summary"><p>Executes all Crystal-side cache, singleton, loader, saver, and RefCounted teardown BEFORE Godot runs <code>ResourceCache::clear()</code> and <code>ObjectDB::cleanup()</code>.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#script_get_source_code%28script_obj%3APointer%28Void%29%29%3AString-class-method" class="signature"><strong>.script_get_source_code</strong>(script_obj : Pointer(Void)) : String</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#scrub_c_stack_for_gc%21%3AVoid-class-method" class="signature"><strong>.scrub_c_stack_for_gc!</strong> : Void</a>
+        
+          <div class="summary"><p>Scrubs residual stack words so conservative Boehm GC does not falsely pin dead wrappers on the stack.</p></div>
         
       </li>
     
@@ -14290,6 +14360,23 @@
       </li>
     
       <li class="entry-summary">
+        <a href="#unpack_variant_return_ptr%28variant_ptr%3APointer%28Void%29%29%3APointer%28Void%29-class-method" class="signature"><strong>.unpack_variant_return_ptr</strong>(variant_ptr : Pointer(Void)) : Pointer(Void)</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#unref_raw_n%28ptr%3APointer%28Void%29%2Cinstance_id%3AUInt64%3D0_u64%2Ccount%3AInt32%3D1%29%3AVoid-class-method" class="signature"><strong>.unref_raw_n</strong>(ptr : Pointer(Void), instance_id : UInt64 = <span class="n">0_u64</span>, count : Int32 = <span class="n">1</span>) : Void</a>
+        
+          <div class="summary"><p>Decrements <code><a href="../Godot/RefCounted.html">RefCounted</a></code> C++ reference count <code>count</code> times, destroying the object if <code>unreference()</code> returns true (<code>should_free</code>).</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#unref_raw_once%28ptr%3APointer%28Void%29%2Cinstance_id%3AUInt64%3D0_u64%29%3AVoid-class-method" class="signature"><strong>.unref_raw_once</strong>(ptr : Pointer(Void), instance_id : UInt64 = <span class="n">0_u64</span>) : Void</a>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#unregister_alive_instance%28boxed%3APointer%28Void%29%29%3AVoid-class-method" class="signature"><strong>.unregister_alive_instance</strong>(boxed : Pointer(Void)) : Void</a>
         
       </li>
@@ -14306,6 +14393,11 @@
     
       <li class="entry-summary">
         <a href="#use_accumulated_input%3D%28enable%3ABool%29%3AVoid-class-method" class="signature"><strong>.use_accumulated_input=</strong>(enable : Bool) : Void</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#variant_destroy%28variant_ptr%3APointer%28Void%29%29%3AVoid-class-method" class="signature"><strong>.variant_destroy</strong>(variant_ptr : Pointer(Void)) : Void</a>
         
       </li>
     
@@ -14380,6 +14472,20 @@
 </a>
     Class Method Detail
   </h2>
+  
+    <div class="entry-detail" id="_set_creating_extension(val:Bool):Void-class-method">
+      <div class="signature">
+        
+        def self.<strong>_set_creating_extension</strong>(val : Bool) : Void
+
+        <a class="method-permalink" href="#_set_creating_extension%28val%3ABool%29%3AVoid-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
   
     <div class="entry-detail" id="alive_instance_count:Int32-class-method">
       <div class="signature">
@@ -14526,6 +14632,20 @@
       </div>
     </div>
   
+    <div class="entry-detail" id="creating_extension?:Bool-class-method">
+      <div class="signature">
+        
+        def self.<strong>creating_extension?</strong> : Bool
+
+        <a class="method-permalink" href="#creating_extension%3F%3ABool-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
     <div class="entry-detail" id="debug(msg:String):Void-class-method">
       <div class="signature">
         
@@ -14547,6 +14667,39 @@
 
         <a class="method-permalink" href="#deinit%3AVoid-class-method">#</a>
       </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="deinitialized?:Bool-class-method">
+      <div class="signature">
+        
+        def self.<strong>deinitialized?</strong> : Bool
+
+        <a class="method-permalink" href="#deinitialized%3F%3ABool-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="drain_deferred_unrefs!(force:Bool=false):Int32-class-method">
+      <div class="signature">
+        
+        def self.<strong>drain_deferred_unrefs!</strong>(force : Bool = <span class="n">false</span>) : Int32
+
+        <a class="method-permalink" href="#drain_deferred_unrefs%21%28force%3ABool%3Dfalse%29%3AInt32-class-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Drains queued RefCounted finalizer unreferences on the main thread.</p>
+        </div>
       
       <br/>
       <div>
@@ -14589,6 +14742,25 @@
 
         <a class="method-permalink" href="#emit_signal%28godot_obj%3APointer%28Void%29%2Csignal_name%3AString%2C%2Aargs%29%3AVoid-class-method">#</a>
       </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="enqueue_deferred_unref(ptr:Pointer(Void),instance_id:UInt64,count:Int32):Void-class-method">
+      <div class="signature">
+        
+        def self.<strong>enqueue_deferred_unref</strong>(ptr : Pointer(Void), instance_id : UInt64, count : Int32) : Void
+
+        <a class="method-permalink" href="#enqueue_deferred_unref%28ptr%3APointer%28Void%29%2Cinstance_id%3AUInt64%2Ccount%3AInt32%29%3AVoid-class-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Lock-free C-heap enqueue safe to invoke from Boehm GC finalizers on any thread.</p>
+        </div>
       
       <br/>
       <div>
@@ -15376,6 +15548,34 @@
       </div>
     </div>
   
+    <div class="entry-detail" id="on_main_loop_frame:Void-class-method">
+      <div class="signature">
+        
+        def self.<strong>on_main_loop_frame</strong> : Void
+
+        <a class="method-permalink" href="#on_main_loop_frame%3AVoid-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="on_main_loop_shutdown:Void-class-method">
+      <div class="signature">
+        
+        def self.<strong>on_main_loop_shutdown</strong> : Void
+
+        <a class="method-permalink" href="#on_main_loop_shutdown%3AVoid-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
     <div class="entry-detail" id="packed_byte_array_operator_index(pba:Pointer(Void),index:Int64):Pointer(UInt8)-class-method">
       <div class="signature">
         
@@ -15453,6 +15653,26 @@
 
         <a class="method-permalink" href="#printerr%28msg%3AString%29%3AVoid-class-method">#</a>
       </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="prune_dead_ptr_instances!:Void-class-method">
+      <div class="signature">
+        
+        def self.<strong>prune_dead_ptr_instances!</strong> : Void
+
+        <a class="method-permalink" href="#prune_dead_ptr_instances%21%3AVoid-class-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Prunes entries from <code>@@alive_instances_by_ptr</code> whose underlying native engine object
+has already been freed by Godot (e.g., via <code>queue_free</code> on an ancestor node).</p>
+        </div>
       
       <br/>
       <div>
@@ -15852,6 +16072,26 @@
       </div>
     </div>
   
+    <div class="entry-detail" id="run_pre_objectdb_teardown!:Void-class-method">
+      <div class="signature">
+        
+        def self.<strong>run_pre_objectdb_teardown!</strong> : Void
+
+        <a class="method-permalink" href="#run_pre_objectdb_teardown%21%3AVoid-class-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Executes all Crystal-side cache, singleton, loader, saver, and RefCounted teardown
+BEFORE Godot runs <code>ResourceCache::clear()</code> and <code>ObjectDB::cleanup()</code>.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
     <div class="entry-detail" id="script_get_source_code(script_obj:Pointer(Void)):String-class-method">
       <div class="signature">
         
@@ -15859,6 +16099,25 @@
 
         <a class="method-permalink" href="#script_get_source_code%28script_obj%3APointer%28Void%29%29%3AString-class-method">#</a>
       </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="scrub_c_stack_for_gc!:Void-class-method">
+      <div class="signature">
+        
+        def self.<strong>scrub_c_stack_for_gc!</strong> : Void
+
+        <a class="method-permalink" href="#scrub_c_stack_for_gc%21%3AVoid-class-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Scrubs residual stack words so conservative Boehm GC does not falsely pin dead wrappers on the stack.</p>
+        </div>
       
       <br/>
       <div>
@@ -16020,6 +16279,54 @@
       </div>
     </div>
   
+    <div class="entry-detail" id="unpack_variant_return_ptr(variant_ptr:Pointer(Void)):Pointer(Void)-class-method">
+      <div class="signature">
+        
+        def self.<strong>unpack_variant_return_ptr</strong>(variant_ptr : Pointer(Void)) : Pointer(Void)
+
+        <a class="method-permalink" href="#unpack_variant_return_ptr%28variant_ptr%3APointer%28Void%29%29%3APointer%28Void%29-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="unref_raw_n(ptr:Pointer(Void),instance_id:UInt64=0_u64,count:Int32=1):Void-class-method">
+      <div class="signature">
+        
+        def self.<strong>unref_raw_n</strong>(ptr : Pointer(Void), instance_id : UInt64 = <span class="n">0_u64</span>, count : Int32 = <span class="n">1</span>) : Void
+
+        <a class="method-permalink" href="#unref_raw_n%28ptr%3APointer%28Void%29%2Cinstance_id%3AUInt64%3D0_u64%2Ccount%3AInt32%3D1%29%3AVoid-class-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Decrements <code><a href="../Godot/RefCounted.html">RefCounted</a></code> C++ reference count <code>count</code> times, destroying the object
+if <code>unreference()</code> returns true (<code>should_free</code>).</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="unref_raw_once(ptr:Pointer(Void),instance_id:UInt64=0_u64):Void-class-method">
+      <div class="signature">
+        
+        def self.<strong>unref_raw_once</strong>(ptr : Pointer(Void), instance_id : UInt64 = <span class="n">0_u64</span>) : Void
+
+        <a class="method-permalink" href="#unref_raw_once%28ptr%3APointer%28Void%29%2Cinstance_id%3AUInt64%3D0_u64%29%3AVoid-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
     <div class="entry-detail" id="unregister_alive_instance(boxed:Pointer(Void)):Void-class-method">
       <div class="signature">
         
@@ -16068,6 +16375,20 @@
         def self.<strong>use_accumulated_input=</strong>(enable : Bool) : Void
 
         <a class="method-permalink" href="#use_accumulated_input%3D%28enable%3ABool%29%3AVoid-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="variant_destroy(variant_ptr:Pointer(Void)):Void-class-method">
+      <div class="signature">
+        
+        def self.<strong>variant_destroy</strong>(variant_ptr : Pointer(Void)) : Void
+
+        <a class="method-permalink" href="#variant_destroy%28variant_ptr%3APointer%28Void%29%29%3AVoid-class-method">#</a>
       </div>
       
       <br/>
