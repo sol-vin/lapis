@@ -18,7 +18,7 @@ node StressPooledLaser < Godot::Node2D do
   end
 end
 
-class StressPoolHost < Godot::Node2D
+node StressPoolHost < Godot::Node2D do
   node_pool lasers : StressPooledLaser, capacity: 50
 end
 

@@ -225,6 +225,10 @@ inline GDExtensionObjectPtr generic_class_create(void *p_class_userdata, GDExten
         gd_object_method_bind_ptrcall(mb_set_process, obj, args, nullptr);
     }
 
+    if (p_notify_postinitialize) {
+        bridge_notify_postinitialize(obj);
+    }
+
     free_string_name(parent_sn);
     free_string_name(class_sn);
     return obj;
@@ -950,6 +954,7 @@ inline void generic_class_call_virtual_with_data(
                 free_string_name(cs_sn);
 
                 if (script_obj) {
+                    bridge_notify_postinitialize(script_obj);
                     char script_source[1024];
                     snprintf(script_source, sizeof(script_source),
                         "require \"lapis\"\n\n# %s node\nnode %s < %s do\n  def _ready : Void\n    Godot.print(\"%s initialized\")\n  end\n\n  def _process(delta : Float64) : Void\n  end\nend\n",
@@ -967,6 +972,7 @@ inline void generic_class_call_virtual_with_data(
                         if (gd_string_destroy) gd_string_destroy(src_str);
                     }
                     bridge_ret_ref(r_ret, script_obj);
+                    refcounted_unreference(script_obj);
                     return;
                 }
             }
@@ -974,7 +980,9 @@ inline void generic_class_call_virtual_with_data(
                 void *cs_sn = make_string_name("CrystalScript");
                 GDExtensionObjectPtr script_obj = gd_classdb_construct_object(cs_sn);
                 free_string_name(cs_sn);
+                if (script_obj) bridge_notify_postinitialize(script_obj);
                 bridge_ret_ref(r_ret, script_obj);
+                if (script_obj) refcounted_unreference(script_obj);
                 return;
             }
             if (strcmp(method_name, "_handles_global_class_type") == 0 || strcmp(method_name, "handles_global_class_type") == 0) {
@@ -1152,6 +1160,7 @@ inline void generic_class_call_virtual_with_data(
                 free_string_name(cs_sn);
 
                 if (script_obj) {
+                    bridge_notify_postinitialize(script_obj);
                     {
                         std::lock_guard<std::mutex> lock(s_script_source_mutex);
                         s_script_source_code[script_obj] = code;
@@ -1199,6 +1208,7 @@ inline void generic_class_call_virtual_with_data(
                     godot_log_verbose(log_msg);
 
                     bridge_ret_variant_object(r_ret, script_obj);
+                    refcounted_unreference(script_obj);
                     return;
                 }
                 bridge_ret_variant_nil(r_ret);
@@ -1523,7 +1533,9 @@ inline void generic_class_call_virtual_with_data(
                 void *hl_sn = make_string_name("CrystalHighlighter");
                 GDExtensionObjectPtr hl_obj = gd_classdb_construct_object(hl_sn);
                 free_string_name(hl_sn);
+                if (hl_obj) bridge_notify_postinitialize(hl_obj);
                 bridge_ret_ref(r_ret, hl_obj);
+                if (hl_obj) refcounted_unreference(hl_obj);
                 return;
             }
             if (strcmp(method_name, "_clear_highlighting_cache") == 0 || strcmp(method_name, "clear_highlighting_cache") == 0 ||
@@ -1626,9 +1638,6 @@ inline GDExtensionBool generic_class_set(GDExtensionClassInstancePtr p_instance,
                         } else if (obj) {
                             std::lock_guard<std::mutex> lock(s_pending_node_paths_mutex);
                             s_pending_node_paths[inst].erase(curr->properties[i].name);
-                        }
-                        if (obj && bridge_is_object_refcounted(obj)) {
-                            refcounted_init_ref(obj);
                         }
                     }
                     inst->desc->set_property(inst->crystal_instance, curr->properties[i].name, raw_buf);

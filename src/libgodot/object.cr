@@ -76,7 +76,17 @@ module Godot
   def self.create(class_name : String) : Node?
     ptr = Bridge.construct_object(class_name)
     return nil if ptr.null?
-    Node.new(ptr)
+    if inst = Bridge.find_alive_instance(ptr)
+      if inst.is_a?(RefCounted)
+        inst._acquire_extension_self_ref!
+      end
+      return inst.as?(Node) || Node.new(ptr)
+    end
+    res = Node.new(ptr)
+    if Bridge.api.null? || !Bridge.object_is_class(ptr, "RefCounted")
+      Bridge.register_alive_instance_by_ptr(ptr, res)
+    end
+    res
   end
 
   # Constructs a new native Godot engine object and wraps it in the given Crystal class
@@ -85,17 +95,18 @@ module Godot
     ptr = Bridge.construct_object(class_name)
     if !ptr.null? && (inst = Bridge.find_alive_instance(ptr))
       if casted = inst.as?(T)
-        if casted.is_a?(RefCounted) && (casted._needs_eager_ref_init? || casted.get_reference_count == 0)
-          casted.ensure_ref_initialized!
+        if casted.is_a?(RefCounted)
+          casted._acquire_extension_self_ref!
         end
         return casted
       end
     end
     res = T.new(ptr)
-    if !ptr.null? && res.is_a?(RefCounted) && (res._needs_eager_ref_init? || res.get_reference_count == 0)
-      res.ensure_ref_initialized!
-    end
-    Bridge.register_alive_instance_by_ptr(ptr, res) if !ptr.null?
+    {% unless T <= ::Godot::RefCounted %}
+      if !ptr.null? && !res.is_a?(RefCounted) && (Bridge.api.null? || !Bridge.object_is_class(ptr, "RefCounted"))
+        Bridge.register_alive_instance_by_ptr(ptr, res)
+      end
+    {% end %}
     res
   end
 

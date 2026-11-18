@@ -23,6 +23,7 @@ module Godot
       getter mount_tree : Bool
       property instance : Godot::Node?
       property mounted : Bool = false
+      property deferred_mount_pending : Bool = false
       def mounted? : Bool; @mounted; end
       getter set_autoload_proc : (Godot::Object? -> Void)?
 
@@ -157,7 +158,7 @@ module Godot
           node = rec.instance
           next unless node && node.alive?
 
-          if rec.mounted || (node.is_inside_tree rescue false) || (node.get_parent? rescue nil)
+          if rec.mounted || rec.deferred_mount_pending || (node.is_inside_tree rescue false) || (node.get_parent? rescue nil)
             rec.mounted = true
             next
           end
@@ -173,11 +174,27 @@ module Godot
           end
 
           rec.mounted = true
-          # When root is setting up children, add_child fails synchronously; call_deferred ensures safe, warning-free attachment
-          begin
-            root.call_deferred("add_child", node)
-            Godot.log_info("AutoloadManager", "Queued autoload node '#{rec.autoload_name}' mounting to SceneTree root (/root/#{rec.autoload_name})")
-          rescue
+          if (root.is_node_ready rescue false)
+            begin
+              rec.deferred_mount_pending = false
+              root.add_child(node)
+              Godot.log_info("AutoloadManager", "Mounted autoload node '#{rec.autoload_name}' to SceneTree root (/root/#{rec.autoload_name})")
+            rescue
+              begin
+                rec.deferred_mount_pending = true
+                root.call_deferred("add_child", node)
+                Godot.log_info("AutoloadManager", "Queued autoload node '#{rec.autoload_name}' mounting to SceneTree root (/root/#{rec.autoload_name})")
+              rescue
+              end
+            end
+          else
+            # When root is setting up children during initial boot, add_child fails synchronously; call_deferred ensures safe attachment
+            begin
+              rec.deferred_mount_pending = true
+              root.call_deferred("add_child", node)
+              Godot.log_info("AutoloadManager", "Queued autoload node '#{rec.autoload_name}' mounting to SceneTree root (/root/#{rec.autoload_name})")
+            rescue
+            end
           end
         end
 
@@ -188,7 +205,7 @@ module Godot
     # Tears down all autoload nodes: unregisters them from Engine,
     # removes them from SceneTree, clears references, and ensures no
     # dead-pointer or DLL unload crashes occur.
-    def teardown_autoloads : Void
+    def teardown_autoloads(immediate : Bool = false) : Void
       @@mutex.synchronize do
         @@records.each_value do |rec|
           if rec.singleton
@@ -203,14 +220,25 @@ module Godot
 
           if node = rec.instance
             if node.alive?
-              parent = begin
-                node.get_parent?
-              rescue
-                nil
-              end
-              if parent && parent.alive?
+              if !immediate && !Bridge.deinitialized? && rec.deferred_mount_pending && !(node.is_inside_tree rescue false)
                 begin
-                  parent.remove_child(node)
+                  node.queue_free
+                rescue
+                end
+              else
+                parent = begin
+                  node.get_parent?
+                rescue
+                  nil
+                end
+                if parent && parent.alive?
+                  begin
+                    parent.remove_child(node)
+                  rescue
+                  end
+                end
+                begin
+                  node.destroy
                 rescue
                 end
               end
@@ -218,6 +246,7 @@ module Godot
           end
 
           rec.set_autoload_proc.try(&.call(nil))
+          rec.deferred_mount_pending = false
           rec.mounted = false
           rec.instance = nil
         end

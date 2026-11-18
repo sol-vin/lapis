@@ -37,6 +37,8 @@ module Lapis
     @@resource_saver : ResourceFormatSaverCrystal? = nil
     @@compile_button : Button? = nil
     @@crystal_panel : Node? = nil
+    @@main_screen_dock : Node? = nil
+    @@main_screen_dock_hooked : Bool = false
     @@cached_icon_texture : Texture2D? = nil
     @@debugger_plugin : EditorDebuggerPlugin? = nil
     @@editor_start_time : ::Time = ::Time.local
@@ -179,6 +181,7 @@ module Lapis
             self.class.sanitize_script_editor_cache
           end
         end
+        self.call_deferred("cache_main_screen_dock_deferred") rescue nil
         self.call("set_process", true) rescue nil
 
         Godot.log_debug("Editor", "[CrystalIntegrationPlugin] First-class .cr script support, language, and syntax highlighter registered in 100% pure Crystal.")
@@ -292,6 +295,53 @@ module Lapis
       # during plugin teardown prematurely unrefs static strings in Godot's static pool.
     end
 
+    def self.cache_main_screen_dock : Void
+      return if @@cleaning_up || @@reload_pending || Godot::Bridge.reloading?
+      unless @@main_screen_dock_hooked
+        @@main_screen_dock_hooked = true
+        Godot::Bridge.register_shutdown_callback do
+          destroy_orphaned_main_screen_dock!
+        end
+      end
+      if (existing = @@main_screen_dock) && !existing.pointer.null? && existing.alive?
+        return
+      end
+      return unless (inst = @@instance) && !inst.pointer.null? && inst.alive? && (inst.call_bool("is_inside_tree") rescue false)
+      return unless has_editor_interface?
+      return if Godot::EditorInterface.singleton_ptr.null?
+      ed_iface = Godot::EditorInterface.new(Godot::EditorInterface.singleton_ptr)
+      base_ctrl = ed_iface.get_base_control rescue nil
+      return unless base_ctrl && !base_ctrl.pointer.null?
+
+      docks = EditorScriptCreation.find_all_children(base_ctrl, "EditorDock")
+      docks.each do |d|
+        next if d.pointer.null? || !d.alive?
+        dname = d.call_str("get_name") rescue ""
+        dtitle = d.call_str("get", "title") rescue ""
+        if dname == "Crystal" || dtitle == "Crystal"
+          @@main_screen_dock = d
+          break
+        end
+      end
+    rescue
+    end
+
+    def self.destroy_orphaned_main_screen_dock! : Void
+      if dock = @@main_screen_dock
+        if !dock.pointer.null? && dock.alive?
+          inside = (dock.call_bool("is_inside_tree") rescue false)
+          unless inside
+            @@main_screen_dock = nil
+            dock.destroy rescue nil
+          end
+        else
+          @@main_screen_dock = nil
+        end
+      end
+    rescue
+      @@main_screen_dock = nil
+    end
+
     def self.cleanup : Void
       return if @@cleaning_up
       @@cleaning_up = true
@@ -311,6 +361,7 @@ module Lapis
             rescue
             end
           end
+          highlighter.destroy rescue nil
           @@crystal_highlighter = nil
         end
 
@@ -328,7 +379,7 @@ module Lapis
                 parent.call("remove_child", btn) rescue nil
               end
             end
-            btn.queue_free rescue nil
+            btn.destroy rescue nil
           end
           @@compile_button = nil
         end
@@ -340,6 +391,9 @@ module Lapis
         clear_theme_icons
 
         Godot.log_internal("Editor", "[Cleanup] Step 5: cached_icon_texture")
+        if icon_tex = @@cached_icon_texture
+          icon_tex.destroy rescue nil
+        end
         @@cached_icon_texture = nil
 
         Godot.log_internal("Editor", "[Cleanup] Step 6: debugger_plugin")
@@ -353,6 +407,7 @@ module Lapis
               if (inst = @@instance) && inst.alive?
                 inst.remove_debugger_plugin(dbg_plug) rescue nil
               end
+              dbg_plug.destroy rescue nil
             rescue ex
               Godot.log_debug("Editor", "[CrystalIntegrationPlugin] Error in debugger cleanup: #{ex.message}")
             end
@@ -360,7 +415,22 @@ module Lapis
           @@debugger_plugin = nil
         end
 
-        Godot.log_internal("Editor", "[Cleanup] Step 7: crystal_panel")
+        Godot.log_internal("Editor", "[Cleanup] Step 7: crystal_panel & console_dock")
+        if dock = @@console_dock
+          if !dock.pointer.null? && dock.alive?
+            if (inst = @@instance) && inst.alive?
+              inst.remove_control_from_bottom_panel(dock) rescue nil
+            end
+            if parent = dock.get_parent
+              if parent.alive?
+                parent.call("remove_child", dock) rescue nil
+              end
+            end
+            dock.destroy rescue nil
+          end
+          @@console_dock = nil
+          @@console_dock_button = nil
+        end
         if panel = @@crystal_panel
           if !panel.pointer.null? && panel.alive?
             if parent = panel.get_parent
@@ -368,7 +438,7 @@ module Lapis
                 parent.call("remove_child", panel) rescue nil
               end
             end
-            panel.queue_free rescue nil
+            panel.destroy rescue nil
           end
           @@crystal_panel = nil
         end
@@ -381,13 +451,15 @@ module Lapis
                 parent.call("remove_child", dlg) rescue nil
               end
             end
-            dlg.queue_free rescue nil
+            dlg.destroy rescue nil
           end
           @@error_dialog = nil
+          @@error_rtl = nil
         end
 
         Godot.log_internal("Editor", "[Cleanup] Step 9: ClassRegistry")
         ClassRegistry.cleanup rescue nil
+        destroy_orphaned_main_screen_dock!
 
         @@building = false
         @@reload_pending = false
@@ -401,6 +473,7 @@ module Lapis
       return if @@cleaning_up
       @@cleaning_up = true
       begin
+        destroy_orphaned_main_screen_dock!
         @@crystal_highlighter = nil
         @@cached_icon_texture = nil
         @@debugger_plugin = nil
@@ -415,6 +488,10 @@ module Lapis
       ensure
         @@cleaning_up = false
       end
+    end
+
+    def cache_main_screen_dock_deferred : Void
+      self.class.cache_main_screen_dock
     end
 
     def _exit_tree : Void
@@ -650,12 +727,16 @@ module Lapis
         Godot.log_debug("Editor", "[CrystalIntegrationPlugin] Tip: radare2 not found in PATH. Install radare2 (e.g. 'scoop install radare2' on Windows, 'apt install radare2' on Linux) for native Crystal in-editor debugging.")
       end
 
-      dbg_plugin = Godot.create("CrystalDebuggerPlugin")
-      if dbg_plugin && !dbg_plugin.pointer.null?
-        plug = Godot::EditorDebuggerPlugin.new(dbg_plugin.pointer)
-        if plug.get_reference_count == 0
-          plug.init_ref
+      dbg_ptr = Bridge.construct_object("CrystalDebuggerPlugin")
+      if !dbg_ptr.null?
+        plug : Godot::EditorDebuggerPlugin? = nil
+        if alive = Bridge.find_alive_instance(dbg_ptr)
+          if alive.is_a?(Godot::RefCounted)
+            alive._acquire_extension_self_ref!
+          end
+          plug = alive.as?(Godot::EditorDebuggerPlugin)
         end
+        plug ||= Godot::EditorDebuggerPlugin.new(dbg_ptr)
         if inst = @@instance
           inst.add_debugger_plugin(plug) rescue nil
         end
@@ -2748,6 +2829,7 @@ module Lapis
         if panel_inst.nil? || panel_inst.pointer.null? || !panel_inst.alive?
           self.class.setup_main_screen_panel
         end
+        self.class.cache_main_screen_dock if @@main_screen_dock.nil?
 
         @@dll_check_accum += delta
         if @@dll_check_accum >= 1.0_f64

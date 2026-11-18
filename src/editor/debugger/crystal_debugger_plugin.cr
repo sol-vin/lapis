@@ -27,6 +27,7 @@ module Godot
       @@instance = self
       cleanup_proc = -> {
         if inst = @@instance
+          @@instance = nil
           inst.cleanup rescue nil
         end
       }

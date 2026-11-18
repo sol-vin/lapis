@@ -544,13 +544,16 @@ module Lapis
         @@cached_script_button_icon = nil
       end
       if theme = (ed_iface.get_editor_theme rescue nil)
-        if !theme.pointer.null?
-          icon = theme.call_obj("get_icon", "Script", "EditorIcons") rescue nil
-          if icon && !icon.pointer.null?
-            tex = Godot::Texture2D.new(icon.pointer)
-            @@cached_script_button_icon = tex
-            return tex
+        begin
+          if !theme.pointer.null?
+            icon = theme.get_icon("Script", "EditorIcons") rescue nil
+            if icon && !icon.pointer.null?
+              @@cached_script_button_icon = icon
+              return icon
+            end
           end
+        ensure
+          theme.unreference rescue nil
         end
       end
       if tex = CrystalIntegrationPlugin.get_crystal_icon_texture
@@ -1184,26 +1187,45 @@ module Lapis
       if btn = @@toolbar_button
         if !btn.pointer.null? && btn.alive?
           if parent = btn.call_obj("get_parent")
-            parent.call("remove_child", btn) rescue nil
+            parent.call("remove_child", btn) rescue nil if parent.alive?
           end
-          btn.queue_free rescue nil
+          btn.destroy rescue nil
         end
         @@toolbar_button = nil
       end
       if dlg = @@dialog
         if !dlg.pointer.null? && dlg.alive?
           if parent = dlg.call_obj("get_parent")
-            parent.call("remove_child", dlg) rescue nil
+            parent.call("remove_child", dlg) rescue nil if parent.alive?
           end
-          dlg.queue_free rescue nil
+          dlg.destroy rescue nil
         end
         @@dialog = nil
       end
+      if ddlg = @@detach_dialog
+        if !ddlg.pointer.null? && ddlg.alive?
+          if parent = ddlg.call_obj("get_parent")
+            parent.call("remove_child", ddlg) rescue nil if parent.alive?
+          end
+          ddlg.destroy rescue nil
+        end
+        @@detach_dialog = nil
+      end
+      if fdlg = @@file_dialog
+        if !fdlg.pointer.null? && fdlg.alive?
+          if parent = fdlg.call_obj("get_parent")
+            parent.call("remove_child", fdlg) rescue nil if parent.alive?
+          end
+          fdlg.destroy rescue nil
+        end
+        @@file_dialog = nil
+      end
+      @@pending_detach_node = nil
+      @@pending_detach_parent_type = ""
       @@class_edit = nil
       @@base_opt = nil
       @@tmpl_opt = nil
       @@path_edit = nil
-      @@file_dialog = nil
       @@hooked_popups.each do |target_id|
         Godot.clear_signal_subscriptions(target_id) rescue nil
       end
@@ -1218,7 +1240,11 @@ module Lapis
       @@hooked_create_dialogs.clear
       @@intercept_crystal_resource = false
       @@cached_scene_dock = nil
-      @@cached_script_button_icon = nil
+      @@cached_scene_dock_trees = nil
+      if sicon = @@cached_script_button_icon
+        @@cached_script_button_icon = nil
+        sicon.destroy rescue nil
+      end
     end
 
     def self.cleanup_on_shutdown : Void

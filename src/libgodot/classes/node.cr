@@ -3,6 +3,7 @@ module Godot
   # Provides hierarchy management, node traversal, and lifecycle hooks (`_ready`, `_process`, `_physics_process`).
   class Node < Object
     @name : String = "Node"
+    property _held_ref : RefCounted? = nil
 
     def name : String
       if @pointer.null?

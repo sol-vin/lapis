@@ -109,6 +109,7 @@ test_suite "Autoload" do
     # Mount explicitly to suite root or global tree
     tree = root.get_tree rescue nil
     Godot::AutoloadManager.mount_to_tree(tree)
+    skip_frames(1)
 
     inst = AutoloadTargetService.instance
     assert_not_nil inst

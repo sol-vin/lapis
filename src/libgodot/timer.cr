@@ -25,9 +25,18 @@ module Godot
       @running = false
       @cancelled = true
       if t = @timer
+        @timer = nil
         if t.active?
+          Godot.clear_signal_subscriptions(t.signal_target_id) rescue nil
           t.stop rescue nil
           t.queue_free rescue nil
+        end
+      end
+      if st = @scene_tree_timer
+        @scene_tree_timer = nil
+        if st.alive?
+          Godot.clear_signal_subscriptions(st.signal_target_id) rescue nil
+          st.destroy rescue nil
         end
       end
     end
@@ -181,12 +190,14 @@ module Godot
       st_timer = tree.create_timer(delay_sec)
       handle = TimerHandle.new(delay_sec, node, scene_tree_timer: st_timer)
       st_timer.timeout.connect do
-        next if handle.cancelled? || handle.paused?
+        was_cancelled = handle.cancelled?
+        was_paused = handle.paused?
+        handle.cancel
+        next if was_cancelled || was_paused
         if node.is_a?(Godot::Node)
           next unless node.active?
         end
         handle.record_tick!
-        handle.cancel
         block.call(handle)
       end
       return handle

@@ -290,12 +290,55 @@ inline void cleanup_old_shadow_dlls(const char *dir) {
  * The OS reclaims all module memory and file locks cleanly when the process terminates,
  * and cleanup_old_shadow_dlls sweeps all unlocked shadow copies on start, reload, and exit.
  */
+typedef void (*CrystalLifecycleFn)();
+static std::unordered_map<std::string, CrystalLifecycleFn> g_module_frame_callbacks;
+static std::unordered_map<std::string, CrystalLifecycleFn> g_module_main_loop_shutdown_callbacks;
+
+inline void bridge_on_main_loop_frame() {
+    for (auto &kv : g_library_frame_callbacks) {
+        for (auto fn : kv.second) {
+            if (fn) {
+                fn();
+            }
+        }
+    }
+    if (g_library_frame_callbacks.empty()) {
+        for (auto &kv : g_module_frame_callbacks) {
+            if (kv.second) {
+                kv.second();
+            }
+        }
+    }
+}
+
+inline void bridge_on_main_loop_shutdown() {
+    for (auto &kv : g_library_main_loop_shutdown_callbacks) {
+        auto &cbs = kv.second;
+        for (auto it = cbs.rbegin(); it != cbs.rend(); ++it) {
+            if (*it) {
+                (*it)();
+            }
+        }
+    }
+    if (g_library_main_loop_shutdown_callbacks.empty()) {
+        for (auto &kv : g_module_main_loop_shutdown_callbacks) {
+            if (kv.second) {
+                kv.second();
+            }
+        }
+    }
+}
+
 inline void unload_crystal_game_library() {
     // Re-sweep all recorded directories where shadow copies were present
     for (const auto &d : g_scanned_shadow_dirs) {
         cleanup_old_shadow_dlls(d.c_str());
     }
 
+    g_library_frame_callbacks.clear();
+    g_library_main_loop_shutdown_callbacks.clear();
+    g_module_frame_callbacks.clear();
+    g_module_main_loop_shutdown_callbacks.clear();
     g_created_shadow_files.clear();
     g_loaded_module_paths.clear();
     g_loaded_modules_map.clear();
@@ -963,6 +1006,14 @@ inline void load_crystal_game_library(GDExtensionClassLibraryPtr p_library = nul
                 s_loading_plugin_module = false;
             } else {
                 godot_log_error("Failed to find 'crystal_godot_init' in loaded library", nullptr, "load_crystal_game_library", __FILE__, __LINE__);
+            }
+            CrystalLifecycleFn frame_fn = (CrystalLifecycleFn)bridge_get_proc(hModule, "crystal_godot_frame");
+            if (frame_fn) {
+                g_module_frame_callbacks[canonical_path] = frame_fn;
+            }
+            CrystalLifecycleFn ml_shutdown_fn = (CrystalLifecycleFn)bridge_get_proc(hModule, "crystal_godot_main_loop_shutdown");
+            if (ml_shutdown_fn) {
+                g_module_main_loop_shutdown_callbacks[canonical_path] = ml_shutdown_fn;
             }
             init_gc_library(hModule);
             ensure_gc_thread_registered();

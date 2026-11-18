@@ -342,8 +342,12 @@ module Lapis
         @clients.each do |c|
           c.spawned_nodes.each { |n| n.destroy if n.alive? }
           c.spawned_nodes.clear
+          c.peer.try { |p| p.destroy if p.alive? }
+          c.multiplayer_api.destroy if c.multiplayer_api.alive?
           c.root_node.destroy if c.root_node.alive?
         end
+        @server.peer.try { |p| p.destroy if p.alive? }
+        @server.multiplayer_api.destroy if @server.multiplayer_api.alive?
         @server.root_node.destroy if @server.root_node.alive?
         @master_root.destroy if @master_root.alive?
       end

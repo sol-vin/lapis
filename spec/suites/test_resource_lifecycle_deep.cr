@@ -148,4 +148,70 @@ end
   assert_true delta <= 0.0, "ObjectDB leaked #{delta} objects after 500-iteration churn loop!"
 end
 
+  test "Dynamic .call and Variant marshaling never inflate RefCounted reference_count" do
+  rc = Godot.create(Godot::StandardMaterial3D)
+  rc_id = rc.instance_id
+  assert_eq rc.get_reference_count, 1_i64
+
+  # Previously bridge_object_call / bridge_variant_from_type called RefCounted::init_ref()
+  # on every call, inflating refcount by +1 per call (e.g. OutlineCompositorEffect rc=29).
+  30.times do |i|
+    _ = rc.call_str("get_class")
+    rc.call("set_meta", "probe_idx", i)
+    v = Godot::Variant.new(rc)
+    _ = v
+  end
+
+  assert_eq rc.get_reference_count, 1_i64
+  rc.destroy
+  assert_false Godot::Object.is_instance_id_valid(rc_id)
+end
+
+  test "GC finalizer and deferred main-thread unref queue reclaim RefCounted objects without manual destroy" do
+  GC.collect
+  Godot::Bridge.drain_deferred_unrefs!
+
+  perf = Godot::Performance.new(Godot::Performance.singleton_ptr)
+  baseline_objs = perf.get_monitor(Godot::Performance::Monitor::ObjectCount.to_i64)
+
+  # Isolate allocations inside a non-inlined proc so stack slots clear before GC.collect
+  alloc_batch = -> : Array(UInt64) {
+    ids = Array(UInt64).new(60)
+    15.times do
+      st = Godot.create(Godot::SurfaceTool)
+      st.begin(Godot::Mesh::PrimitiveType::PrimitiveTriangles)
+      st.add_vertex(Godot::Vector3.new(0.0_f32, 0.0_f32, 0.0_f32))
+      st.add_vertex(Godot::Vector3.new(1.0_f32, 0.0_f32, 0.0_f32))
+      st.add_vertex(Godot::Vector3.new(0.0_f32, 1.0_f32, 0.0_f32))
+      mesh = st.commit
+      ids << st.instance_id
+      ids << mesh.instance_id if !mesh.pointer.null?
+
+      shape = Godot.create(Godot::BoxShape3D)
+      ids << shape.instance_id
+
+      if dir = Godot::DirAccess.open("res://")
+        ids << dir.instance_id if !dir.pointer.null?
+      end
+    end
+    ids
+  }
+
+  tracked_ids = alloc_batch.call
+  assert_true tracked_ids.size >= 45
+
+  3.times do
+    GC.collect
+    Godot::Bridge.drain_deferred_unrefs!
+  end
+
+  still_alive = tracked_ids.count { |id| Godot::Object.is_instance_id_valid(id) }
+  # Conservative stack scanning can occasionally retain at most 1-2 register words,
+  # while >= 95% of unreferenced native RefCounteds must already be reclaimed.
+  assert_true still_alive <= 4, "Expected GC + drain_deferred_unrefs! to reclaim batch, #{still_alive}/#{tracked_ids.size} still alive"
+
+  final_objs = perf.get_monitor(Godot::Performance::Monitor::ObjectCount.to_i64)
+  assert_true (final_objs - baseline_objs) <= 4.0
+end
+
 end

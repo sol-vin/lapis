@@ -16,6 +16,7 @@ static GDExtensionInterfaceStringNameNewWithUtf8Chars gd_string_name_new_with_ut
 static GDExtensionInterfaceStringNewWithUtf8Chars gd_string_new_with_utf8_chars = nullptr;
 static GDExtensionInterfaceVariantDestroy gd_variant_destroy = nullptr;
 static GDExtensionInterfaceClassdbConstructObject gd_classdb_construct_object = nullptr;
+static bool gd_using_construct_object3 = false;
 static GDExtensionInterfaceObjectDestroy gd_object_destroy = nullptr;
 static GDExtensionInterfaceRefSetObject gd_ref_set_object = nullptr;
 static GDExtensionInterfaceRefGetObject gd_ref_get_object = nullptr;
@@ -68,6 +69,7 @@ static GDExtensionInterfaceObjectGetInstanceFromId gd_object_get_instance_from_i
 static GDExtensionInterfaceVariantStringify gd_variant_stringify = nullptr;
 static GDExtensionInterfaceStringToUtf8Chars gd_string_to_utf8_chars = nullptr;
 static GDExtensionInterfaceGetLibraryPath gd_get_library_path = nullptr;
+static GDExtensionInterfaceRegisterMainLoopCallbacks gd_register_main_loop_callbacks = nullptr;
 
 typedef GDExtensionVariantGetInternalPtrFunc (*GDExtensionInterfaceVariantGetPtrInternalGetter)(GDExtensionVariantType p_type);
 static GDExtensionVariantGetInternalPtrFunc gd_variant_get_internal_ptr_object = nullptr;

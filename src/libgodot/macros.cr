@@ -373,6 +373,9 @@ module Godot
 
     def self.cleanup : Void
       {% unless flag?(:release) || flag?(:libgodot_addon) || flag?(:no_editor) %}
+        @@script_cache.each_value do |sc|
+          sc.destroy rescue nil
+        end
         @@script_cache.clear
       {% end %}
     end
@@ -2697,7 +2700,7 @@ macro node(decl, &block)
                   self.{{var_name.id}} = {{resolved_obj_type}}.new(Pointer(Void).null)
                 {% end %}
               else
-                self.{{var_name.id}} = ::Godot::Bridge.find_alive_instance(obj_ptr).as?({{resolved_obj_type}}) || {{resolved_obj_type}}.new(obj_ptr)
+                self.{{var_name.id}} = ::Godot::RefCounted._resolve_property_instance({{resolved_obj_type}}, obj_ptr)
               end
             {% end %}
         {% elsif item[0] == :custom_string_enum %}
@@ -2710,7 +2713,7 @@ macro node(decl, &block)
             if obj_ptr.null?
               self.{{item[1].id}} = nil
             else
-              self.{{item[1].id}} = ::Godot::Bridge.find_alive_instance(obj_ptr).as?(::Godot::Material) || ::Godot::Material.new(obj_ptr)
+              self.{{item[1].id}} = ::Godot::RefCounted._resolve_property_instance(::Godot::Material, obj_ptr)
             end
         {% end %}
       {% end %}
@@ -4994,7 +4997,7 @@ macro gmodule(decl, &block)
                   self.{{var_name.id}} = nil
                 {% end %}
               else
-                self.{{var_name.id}} = ::Godot::Bridge.find_alive_instance(raw_obj_ptr).as?({{resolved_obj_type.id}}) || {{resolved_obj_type.id}}.new(raw_obj_ptr)
+                self.{{var_name.id}} = ::Godot::RefCounted._resolve_property_instance({{resolved_obj_type.id}}, raw_obj_ptr)
               end
             {% end %}
         {% elsif item[0] == :custom_string_enum %}
@@ -5007,7 +5010,7 @@ macro gmodule(decl, &block)
             if obj_ptr.null?
               self.{{item[1].id}} = nil
             else
-              self.{{item[1].id}} = ::Godot::Bridge.find_alive_instance(obj_ptr).as?(::Godot::Material) || ::Godot::Material.new(obj_ptr)
+              self.{{item[1].id}} = ::Godot::RefCounted._resolve_property_instance(::Godot::Material, obj_ptr)
             end
         {% end %}
       {% end %}

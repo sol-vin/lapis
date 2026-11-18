@@ -49,14 +49,14 @@ module Godot
       if !ptr.null?
         if inst = Bridge.find_alive_instance(ptr)
           if ch = inst.as?(Channel)
-            ch.init_ref if ch.get_reference_count == 0
+            ch._acquire_extension_self_ref!
             ch.capacity = capacity
             return ch
           end
         end
         inst = allocate
         inst.initialize(ptr, capacity)
-        inst.init_ref if inst.get_reference_count == 0
+        inst._acquire_extension_self_ref!
         return inst
       end
       inst = allocate
@@ -482,6 +482,7 @@ module Godot
 
     def destroy : Void
       close
+      @channel.destroy
     end
 
     def is_empty : Bool

@@ -123,7 +123,9 @@ static BridgeAPI g_bridge_api = {
     bridge_editor_get_selected_node,
     bridge_image_update_buffer,
     bridge_image_copy_to_buffer,
-    bridge_packed_byte_array_operator_index
+    bridge_packed_byte_array_operator_index,
+    bridge_register_frame_callback,
+    bridge_register_main_loop_shutdown_callback
 };
 
 // ==============================================================================

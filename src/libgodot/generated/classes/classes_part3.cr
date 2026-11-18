@@ -138,9 +138,7 @@ module Godot
       args = StaticArray[arg_0]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_additional_data, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     ensure
       Bridge.free_string_name(sn_0)
     end
@@ -275,9 +273,7 @@ module Godot
       args = StaticArray[arg_0]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_additional_data, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     ensure
       Bridge.free_string_name(sn_0)
     end
@@ -536,9 +532,7 @@ module Godot
       args = StaticArray[arg_0]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_additional_data, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     ensure
       Bridge.free_string_name(sn_0)
     end
@@ -4170,9 +4164,7 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_segment_intersects_segment, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     # Class-level singleton delegator for `segment_intersects_segment`
     def self.segment_intersects_segment(from_a : Vector2, to_a : Vector2, from_b : Vector2, to_b : Vector2) : Pointer(Void)
@@ -4192,9 +4184,7 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_line_intersects_line, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     # Class-level singleton delegator for `line_intersects_line`
     def self.line_intersects_line(from_a : Vector2, dir_a : Vector2, from_b : Vector2, dir_b : Vector2) : Pointer(Void)
@@ -4717,9 +4707,7 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_ray_intersects_triangle, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     # Class-level singleton delegator for `ray_intersects_triangle`
     def self.ray_intersects_triangle(from : Vector3, dir : Vector3, a : Vector3, b : Vector3, c : Vector3) : Pointer(Void)
@@ -4741,9 +4729,7 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_segment_intersects_triangle, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     # Class-level singleton delegator for `segment_intersects_triangle`
     def self.segment_intersects_triangle(from : Vector3, to : Vector3, a : Vector3, b : Vector3, c : Vector3) : Pointer(Void)
@@ -6777,9 +6763,7 @@ module Godot
       args = StaticArray[arg_0]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_slot_metadata_left, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     @@mb_is_slot_enabled_right : Void* = Pointer(Void).null
     def is_slot_enabled_right(slot_index : Int64) : Bool
@@ -6879,9 +6863,7 @@ module Godot
       args = StaticArray[arg_0]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_slot_metadata_right, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     @@mb_is_slot_draw_stylebox : Void* = Pointer(Void).null
     def is_slot_draw_stylebox(slot_index : Int64) : Bool
@@ -14630,9 +14612,7 @@ module Godot
       args = StaticArray[arg_0]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_item_metadata, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     @@mb_set_item_custom_bg_color : Void* = Pointer(Void).null
     def set_item_custom_bg_color(idx : Int64, custom_bg_color : Color) : Void
@@ -15349,9 +15329,7 @@ module Godot
       args = StaticArray[arg_0]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_parse_string, Pointer(Void).null, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     ensure
       Bridge.free_string(str_0)
     end
@@ -15376,9 +15354,7 @@ module Godot
       godot_bind(@@mb_get_data, "JSON", "get_data", 1214101251_i64)
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_data, @pointer, Pointer(Pointer(Void)).null, ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     @@mb_set_data : Void* = Pointer(Void).null
     def set_data(data : Pointer(Void)) : Void
@@ -15413,9 +15389,7 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_from_native, Pointer(Void).null, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     # Instance convenience delegator for static method `from_native`
     def from_native(variant : Pointer(Void), full_objects : Bool = false) : Pointer(Void)
@@ -15431,9 +15405,7 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_to_native, Pointer(Void).null, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     # Instance convenience delegator for static method `to_native`
     def to_native(json : Pointer(Void), allow_objects : Bool = false) : Pointer(Void)
@@ -15585,9 +15557,7 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_eval, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     ensure
       Bridge.free_string(str_0)
     end
@@ -21291,9 +21261,7 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_base64_to_variant, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     ensure
       Bridge.free_string(str_0)
     end
@@ -22233,9 +22201,7 @@ module Godot
       args = StaticArray[arg_0]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_vertex_meta, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     @@mb_get_vertex_edges : Void* = Pointer(Void).null
     def get_vertex_edges(idx : Int64) : Pointer(Void)
@@ -22295,9 +22261,7 @@ module Godot
       args = StaticArray[arg_0]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_edge_meta, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     @@mb_get_face_vertex : Void* = Pointer(Void).null
     def get_face_vertex(idx : Int64, vertex : Int64) : Int64
@@ -22337,9 +22301,7 @@ module Godot
       args = StaticArray[arg_0]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_face_meta, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     @@mb_get_face_normal : Void* = Pointer(Void).null
     def get_face_normal(idx : Int64) : Vector3
@@ -25359,9 +25321,7 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_item_tag, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     # Class-level singleton delegator for `get_item_tag`
     def self.get_item_tag(rid : Int64, idx : Int64) : Pointer(Void)

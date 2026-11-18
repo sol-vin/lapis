@@ -32,6 +32,7 @@ macro signal_bus(name, &block)
     {{yield}}
 
     @@bus_instance : {{name}}? = nil
+    @@bus_shutdown_hooked : Bool = false
     @@bus_mutex : ::Thread::Mutex = ::Thread::Mutex.new
 
     # Retrieves or lazily creates the singleton signal bus instance
@@ -42,6 +43,13 @@ macro signal_bus(name, &block)
             return inst
           else
             @@bus_instance = nil
+          end
+        end
+
+        unless @@bus_shutdown_hooked
+          @@bus_shutdown_hooked = true
+          ::Godot::Bridge.register_shutdown_callback do
+            self.teardown_bus!
           end
         end
 
@@ -76,6 +84,21 @@ macro signal_bus(name, &block)
             inst.queue_free
           end
           @@bus_instance = nil
+        end
+      end
+    end
+
+    # Deterministically destroys the singleton signal bus at engine shutdown
+    def self.teardown_bus! : Void
+      @@bus_mutex.synchronize do
+        if inst = @@bus_instance
+          @@bus_instance = nil
+          if inst.alive?
+            if parent = (inst.get_parent? rescue nil)
+              parent.remove_child(inst) if parent.alive?
+            end
+            inst.destroy rescue nil
+          end
         end
       end
     end

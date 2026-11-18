@@ -15,6 +15,11 @@ module Godot
         ::Godot::LeakTracker.register(@instance_id, self.class.name, __FILE__, __LINE__)
       end
       _godot_bind_static_signals
+      _after_object_init!
+    end
+
+    protected def _after_object_init! : Void
+      RefCounted._clear_constructed_ptr_if_matches(@pointer) unless @pointer.null?
     end
 
     def pointer=(val : Void*)
@@ -26,6 +31,29 @@ module Godot
       else
         @instance_id = 0_u64
       end
+    end
+
+    # Wraps a raw pointer returned by `godot_ptrcall`, reusing any live extension instance.
+    # Overridden on `Godot::RefCounted` to adopt the +1 reference returned by `PtrToArg<Ref<T>>::encode`.
+    def self._wrap_ptrcall_return(ptr : Void*) : self
+      if ptr.null?
+        return new(ptr)
+      end
+      {% if @type == ::Godot::Object %}
+        if Bridge.object_is_class(ptr, "RefCounted")
+          return RefCounted._wrap_returned_ref(RefCounted, ptr).as(self)
+        end
+      {% end %}
+      if alive = Bridge.find_alive_instance(ptr)
+        alive.as?(self) || new(ptr)
+      else
+        new(ptr)
+      end
+    end
+
+    def self._wrap_ptrcall_return_or_nil(ptr : Void*) : self?
+      return nil if ptr.null?
+      _wrap_ptrcall_return(ptr)
     end
 
     # Returns true if the underlying engine pointer is null or invalid
@@ -432,11 +460,7 @@ module Godot
           end
           class_name = {{ T.name.stringify.split("::").last }}
           if Bridge.object_is_class(@pointer, class_name)
-            res = T.new(@pointer)
-            if res.is_a?(RefCounted) && res.get_reference_count == 0
-              res.init_ref
-            end
-            return res
+            return T.new(@pointer)
           end
         end
         nil
@@ -1125,6 +1149,9 @@ module Godot
       addr = call_i64("get_meta", name)
       return Pointer(Void).new(addr.to_u64) if addr != 0_i64
       ptr = Bridge.object_call_ret_object(@pointer, "get_meta", name)
+      if !ptr.null? && Bridge.object_is_class(ptr, "RefCounted")
+        Bridge.unref_raw_once(ptr)
+      end
       !ptr.null? ? ptr : fallback
     end
 
@@ -1147,6 +1174,7 @@ module Godot
       Bridge.type_from_variant(5, pointerof(v2).as(Void*), ret_var.to_unsafe.as(Void*))
       v2
     ensure
+      Bridge.variant_destroy(ret_var.to_unsafe.as(Void*)) if ret_var
       Bridge.free_string_name(sn_0) if sn_0
     end
 
@@ -1165,6 +1193,7 @@ module Godot
       Bridge.type_from_variant(9, pointerof(v3).as(Void*), ret_var.to_unsafe.as(Void*))
       v3
     ensure
+      Bridge.variant_destroy(ret_var.to_unsafe.as(Void*)) if ret_var
       Bridge.free_string_name(sn_0) if sn_0
     end
 
@@ -1183,6 +1212,7 @@ module Godot
       Bridge.type_from_variant(18, pointerof(xf).as(Void*), ret_var.to_unsafe.as(Void*))
       xf
     ensure
+      Bridge.variant_destroy(ret_var.to_unsafe.as(Void*)) if ret_var
       Bridge.free_string_name(sn_0) if sn_0
     end
 
@@ -1201,6 +1231,7 @@ module Godot
       Bridge.type_from_variant(20, pointerof(col).as(Void*), ret_var.to_unsafe.as(Void*))
       col
     ensure
+      Bridge.variant_destroy(ret_var.to_unsafe.as(Void*)) if ret_var
       Bridge.free_string_name(sn_0) if sn_0
     end
 
@@ -1300,10 +1331,22 @@ module Godot
       end
       ptr = Bridge.object_call_ret_object(@pointer, "get_meta", key.to_s)
       return nil if ptr.null?
-      if alive = Bridge.find_alive_instance(ptr)
-        return alive.as?(T) || alive.as_a?(T)
-      end
-      T.new(ptr)
+      {% if T <= ::Godot::RefCounted %}
+        RefCounted._wrap_returned_ref_or_nil(T, ptr)
+      {% elsif T == ::Godot::Object %}
+        if Bridge.object_is_class(ptr, "RefCounted")
+          RefCounted._wrap_returned_ref_or_nil(RefCounted, ptr).try(&.as(T))
+        elsif alive = Bridge.find_alive_instance(ptr)
+          alive.as?(T) || alive.as_a?(T)
+        else
+          T.new(ptr)
+        end
+      {% else %}
+        if alive = Bridge.find_alive_instance(ptr)
+          return alive.as?(T) || alive.as_a?(T)
+        end
+        T.new(ptr)
+      {% end %}
     end
 
     # Returns `true` if this object has metadata stored under `key`.
@@ -1338,6 +1381,12 @@ module Godot
       check_alive!
       ptr = Bridge.object_call_ret_object(@pointer, method, *args)
       return nil if ptr.null?
+      if Bridge.object_is_class(ptr, "RefCounted")
+        rc = RefCounted._wrap_returned_ref(RefCounted, ptr)
+        node = Node.new(ptr)
+        node._held_ref = rc
+        return node
+      end
       if inst = Bridge.find_alive_instance(ptr)
         if node = inst.as?(Node)
           return node
@@ -1351,12 +1400,27 @@ module Godot
       check_alive!
       ptr = Bridge.object_call_ret_object(@pointer, method, *args)
       return nil if ptr.null?
-      if inst = Bridge.find_alive_instance(ptr)
-        if casted = inst.as?(T)
-          return casted
+      {% if T <= ::Godot::RefCounted %}
+        RefCounted._wrap_returned_ref_or_nil(T, ptr)
+      {% elsif T == ::Godot::Object %}
+        if Bridge.object_is_class(ptr, "RefCounted")
+          RefCounted._wrap_returned_ref_or_nil(RefCounted, ptr).try(&.as(T))
+        elsif inst = Bridge.find_alive_instance(ptr)
+          inst.as?(T) || T.new(ptr)
+        else
+          T.new(ptr)
         end
-      end
-      T.new(ptr)
+      {% else %}
+        if Bridge.object_is_class(ptr, "RefCounted")
+          Bridge.unref_raw_once(ptr)
+        end
+        if inst = Bridge.find_alive_instance(ptr)
+          if casted = inst.as?(T)
+            return casted
+          end
+        end
+        T.new(ptr)
+      {% end %}
     end
 
     # Calls the named method and returns the result as Int64

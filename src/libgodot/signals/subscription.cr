@@ -243,6 +243,19 @@ module Godot
     end
   end
 
+  # Releases all registered signal subscriptions and static signal closures during engine shutdown
+  # so closures capturing RefCounted resources can be reclaimed by Boehm GC before ObjectDB::cleanup().
+  def self.clear_all_signal_subscriptions_on_shutdown! : Void
+    ::Lapis::Core::StaticSignalTable.reset_global!
+    signal_subs_mutex.synchronize do
+      signal_subs.each_value do |list|
+        list.each(&.mark_unsubscribed!)
+      end
+      signal_subs.clear
+      @@pending_freed_wait_subs.clear
+    end
+  end
+
   # Marks all non-teardown signal subscriptions on a node queued for deletion (`queue_free`) as freed
   # and yields on the Main Thread so awaiting fibers unblock immediately without waiting for frame end.
   def self.notify_object_queued_for_deletion(target_id : UInt64, yield_awaiters : Bool = true) : Void

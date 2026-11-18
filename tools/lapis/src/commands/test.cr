@@ -389,6 +389,7 @@ HELP
                 "spec/platform_isolation_spec.cr",
                 "spec/safety_and_bindings_spec.cr",
                 "spec/features_spec.cr",
+                "spec/shutdown_zero_leak_spec.cr",
               ]
 
               phase_tag = "[TEST:SPECS:ROOT]"

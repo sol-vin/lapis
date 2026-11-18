@@ -117,30 +117,14 @@ end
 macro godot_ptrcall_obj(mb, target_ptr, args_slice, class_type)
   ret_obj_ptr = Pointer(Void).null
   godot_ptrcall({{mb}}, {{target_ptr}}, {{args_slice}}, pointerof(ret_obj_ptr).as(Void*))
-  if ret_obj_ptr.null?
-    {{class_type.id}}.new(ret_obj_ptr)
-  else
-    if alive = ::Godot::Bridge.find_alive_instance(ret_obj_ptr)
-      alive.as?({{class_type.id}}) || {{class_type.id}}.new(ret_obj_ptr)
-    else
-      {{class_type.id}}.new(ret_obj_ptr)
-    end
-  end
+  {{class_type.id}}._wrap_ptrcall_return(ret_obj_ptr)
 end
 
 # Executes a ptrcall returning a typed object wrapper, or nil if Godot returned nullptr
 macro godot_ptrcall_obj_or_nil(mb, target_ptr, args_slice, class_type)
   ret_obj_ptr = Pointer(Void).null
   godot_ptrcall({{mb}}, {{target_ptr}}, {{args_slice}}, pointerof(ret_obj_ptr).as(Void*))
-  if ret_obj_ptr.null?
-    nil
-  else
-    if alive = ::Godot::Bridge.find_alive_instance(ret_obj_ptr)
-      alive.as?({{class_type.id}}) || {{class_type.id}}.new(ret_obj_ptr)
-    else
-      {{class_type.id}}.new(ret_obj_ptr)
-    end
-  end
+  {{class_type.id}}._wrap_ptrcall_return_or_nil(ret_obj_ptr)
 end
 
 # Executes a ptrcall returning a strongly-typed enum
