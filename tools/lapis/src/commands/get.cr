@@ -1,6 +1,7 @@
 require "../core/env"
 require "../core/logger"
 require "../core/process_runner"
+require "../core/archive_security"
 require "file_utils"
 require "option_parser"
 require "compress/zip"
@@ -193,17 +194,43 @@ HELP
         false
       end
 
-      # Extracts a zip archive to target directory
+      # Extracts a zip archive to target directory with atomic CWE-22 path-traversal validation
       def self.extract_zip(zip_path : Path, target_dir : Path) : Bool
-        FileUtils.mkdir_p(target_dir) unless Dir.exists?(target_dir)
-        count = 0
-        File.open(zip_path.to_s) do |f|
+        # Pass 1: Atomic security pre-scan
+        File.open(zip_path.to_s, "rb") do |f|
           Compress::Zip::Reader.open(f) do |zip|
             zip.each_entry do |entry|
-              name = entry.filename
-              clean_name = name.gsub('\\', '/')
-              dest = target_dir.join(clean_name)
-              if entry.dir? || clean_name.ends_with?('/')
+              val = Core::ArchiveSecurity.validate_entry_path(entry.filename, entry.dir?)
+              unless val.valid?
+                Core::Logger.error("Security Error: Refusing to extract zip archive '#{zip_path.basename}' — unsafe entry '#{entry.filename.scrub}': #{val.reason}")
+                return false
+              end
+            end
+          end
+        end
+
+        target_dir_abs = target_dir.expand(home: false).normalize
+        if Core::ArchiveSecurity.unsafe_existing_node?(target_dir_abs)
+          Core::Logger.error("Security Error: Target directory '#{target_dir_abs}' is a symlink or unsafe reparse point.")
+          return false
+        end
+        FileUtils.mkdir_p(target_dir_abs) unless Dir.exists?(target_dir_abs)
+
+        count = 0
+        File.open(zip_path.to_s, "rb") do |f|
+          Compress::Zip::Reader.open(f) do |zip|
+            zip.each_entry do |entry|
+              val = Core::ArchiveSecurity.validate_entry_path(entry.filename, entry.dir?)
+              return false unless val.valid?
+              next if val.skip?
+
+              dest = Core::ArchiveSecurity.resolve_safe_destination(target_dir_abs, val.clean_path, allow_root_dir: val.is_dir?)
+              unless dest
+                Core::Logger.error("Security Error: Destination path for '#{entry.filename.scrub}' escapes '#{target_dir_abs}'.")
+                return false
+              end
+
+              if val.is_dir?
                 FileUtils.mkdir_p(dest)
               else
                 FileUtils.mkdir_p(dest.parent)
@@ -319,18 +346,44 @@ HELP
           end
 
           Core::Logger.step("Get:Source", "Extracting source archive into #{dest_dir}...")
-          FileUtils.mkdir_p(dest_dir)
-          File.open(temp_zip.to_s) do |f|
+          File.open(temp_zip.to_s, "rb") do |f|
             Compress::Zip::Reader.open(f) do |zip|
               zip.each_entry do |entry|
-                name = entry.filename
+                val = Core::ArchiveSecurity.validate_entry_path(entry.filename, entry.dir?)
+                unless val.valid?
+                  Core::Logger.error("Security Error: Refusing to extract source archive — unsafe entry '#{entry.filename.scrub}': #{val.reason}")
+                  return 1
+                end
+              end
+            end
+          end
+
+          dest_dir_abs = dest_dir.expand(home: false).normalize
+          if Core::ArchiveSecurity.unsafe_existing_node?(dest_dir_abs)
+            Core::Logger.error("Security Error: Destination directory '#{dest_dir_abs}' is a symlink or unsafe reparse point.")
+            return 1
+          end
+          FileUtils.mkdir_p(dest_dir_abs)
+
+          File.open(temp_zip.to_s, "rb") do |f|
+            Compress::Zip::Reader.open(f) do |zip|
+              zip.each_entry do |entry|
+                val = Core::ArchiveSecurity.validate_entry_path(entry.filename, entry.dir?)
+                return 1 unless val.valid?
+                next if val.skip?
+
                 # Strip root prefix (e.g. lapis-master/ or lapis-1.0.0/)
-                parts = name.split('/', 2)
+                parts = val.clean_path.split('/', 2)
                 sub_path = parts.size > 1 ? parts[1] : ""
                 next if sub_path.empty?
 
-                dest = dest_dir.join(sub_path)
-                if entry.dir? || sub_path.ends_with?('/')
+                dest = Core::ArchiveSecurity.resolve_safe_destination(dest_dir_abs, sub_path, allow_root_dir: val.is_dir?)
+                unless dest
+                  Core::Logger.error("Security Error: Destination path for '#{entry.filename.scrub}' escapes '#{dest_dir_abs}'.")
+                  return 1
+                end
+
+                if val.is_dir?
                   FileUtils.mkdir_p(dest)
                 else
                   FileUtils.mkdir_p(dest.parent)

@@ -4,6 +4,7 @@ require "../core/text"
 require "../core/process_runner"
 require "../core/godot_finder"
 require "../core/baked_file_system"
+require "../core/archive_security"
 require "./bind/project"
 require "./sync"
 require "file_utils"
@@ -37,7 +38,7 @@ module Lapis
           child = current_dir.join(entry)
           info = File.info?(child.to_s, follow_symlinks: false)
           next unless info
-          next if info.symlink?
+          next if info.symlink? || Commands::Sync.reparse_point_or_symlink?(child)
           if info.directory?
             hash_cr_tree(ctx, base_dir, child)
           elsif entry.ends_with?(".cr") || entry == "shard.yml" || entry == "shard.lock"
@@ -205,6 +206,9 @@ module Lapis
            Core::BakedFileSystem.files_with_prefix("src").size > 0
           Core::BakedFileSystem.extract_engine_lib(target_lib_for_libs.join("lapis"), overwrite: false)
         end
+
+        Commands::Sync.purge_recursive_shard_symlinks(target_proj_for_libs)
+        Commands::Sync.purge_recursive_shard_symlinks(proj_dir) if proj_dir != target_proj_for_libs
 
         src_dir = if sp = source_path
                     Path.new(sp).expand
@@ -471,7 +475,9 @@ module Lapis
       # Also sanitizes unguarded `require "../spec/editor/**"` in `src/main.cr` when
       # `addons/<name>/spec/editor` does not exist so source-installed addons compile cleanly.
       def self.ensure_addon_library_entrypoint(addon_dir : Path, addon_name : String = addon_dir.basename) : Void
+        return unless Core::ArchiveSecurity.valid_single_name?(addon_name)
         src_dir = addon_dir.join("src")
+        return unless Core::ArchiveSecurity.resolve_safe_destination(addon_dir, "src/#{addon_name}.cr")
         main_cr = src_dir.join("main.cr")
         lib_cr = src_dir.join("#{addon_name}.cr")
         if File.exists?(main_cr)

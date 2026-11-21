@@ -3,6 +3,23 @@ module Godot
   # Image Extensions
   # ===========================================================================
   class Image
+    # Raw ClassDB-constructed Images (`Godot.create(Godot::Image)` / `Image.create`)
+    # are frequently passed into transient `const Ref<Image> &` C++ methods such as
+    # `ImageTexture#set_image`, `ImageTexture#update`, and `Image#blit_rect` that do
+    # not retain the `Ref<Image>` after uploading or blitting pixels. Eagerly calling
+    # `#ensure_ref_initialized!` prevents stack-temporary `Ref<Image>` wrappers inside
+    # `MethodBind::ptrcall` from `memdelete`-ing the `Image` mid-call.
+    def _needs_eager_ref_init? : Bool
+      true
+    end
+
+    # 0-arg constructor returning an initialized empty `Image` instance.
+    def self.create : self
+      inst = ::Godot.create(self)
+      inst.ensure_ref_initialized!
+      inst
+    end
+
     # Returns the format of the image
     def format : Format
       get_format
@@ -31,7 +48,6 @@ module Godot
     # Creates a new Godot Image directly from a raw slice of pixel bytes.
     def self.create_from_buffer(width : Int, height : Int, format : Format | Int, pixels : Slice(UInt8), use_mipmaps : Bool = false) : Image
       img = create_empty(width.to_i64, height.to_i64, use_mipmaps, format.is_a?(Int) ? format.to_i64 : format.value.to_i64)
-      img.reference
       img.update_buffer(width, height, format, pixels, use_mipmaps)
       img
     end

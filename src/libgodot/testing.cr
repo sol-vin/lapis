@@ -500,20 +500,36 @@ module Lapis
     # 3. Quantitative Zero-Leak & Orphan Node Verification
     # ===========================================================================
 
+    @[NoInline]
+    private def _exec_isolated_leak_block(cb : Proc(T)) : Nil forall T
+      cb.call
+      nil
+    end
+
     # Executes the provided block and asserts that Godot ObjectDB object and node counts
     # return to baseline after Boehm GC collection and frame draining.
-    def assert_no_leak(max_delta_objects : Int32 = 0, name : String = "Operation", file : String = __FILE__, line : Int32 = __LINE__, &block)
+    def assert_no_leak(max_delta_objects : Int32 = 0, name : String = "Operation", file : String = __FILE__, line : Int32 = __LINE__, &block : -> T) forall T
+      Godot::Bridge.scrub_c_stack_for_gc!
       GC.collect
+      Godot::Bridge.drain_deferred_unrefs!
       skip_frames(2)
+      Godot::Bridge.drain_deferred_unrefs!
       perf = Godot::Performance.instance
       # Monitor 7 is ObjectCount, 9 is ObjectNodeCount
       baseline_objects = perf.get_monitor(7_i64).to_i64
       baseline_nodes = perf.get_monitor(9_i64).to_i64
 
-      yield
+      _exec_isolated_leak_block(block)
+      Godot::Bridge.prune_dead_ptr_instances!
+      Godot::Bridge.scrub_c_stack_for_gc!
 
       GC.collect
+      Godot::Bridge.drain_deferred_unrefs!
       skip_frames(3)
+      Godot::Bridge.prune_dead_ptr_instances!
+      Godot::Bridge.scrub_c_stack_for_gc!
+      GC.collect
+      Godot::Bridge.drain_deferred_unrefs!
       final_objects = perf.get_monitor(7_i64).to_i64
       final_nodes = perf.get_monitor(9_i64).to_i64
 

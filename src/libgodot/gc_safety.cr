@@ -21,6 +21,11 @@ class Fiber
   end
 end
 
+lib LibGC
+  fun register_finalizer_no_order = GC_register_finalizer_no_order(obj : Void*, fn : Finalizer, cd : Void*, ofn : Finalizer*, ocd : Void**)
+  fun invoke_finalizers = GC_invoke_finalizers : Int32
+end
+
 class Thread
   def self.unsafe_each(&)
     ptr = pointerof(@@threads).as(Pointer(Void*)).value

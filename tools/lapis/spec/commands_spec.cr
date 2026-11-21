@@ -603,4 +603,46 @@ describe "Lapis Subcommands" do
       end
     end
   end
+
+  describe "recursive shard symlink cleanup" do
+    it "purges self-referential lib/<shard>/lib symlinks and junctions while preserving real directories" do
+      LapisSpecHelper.with_temp_dir("recursive_shard_symlink_test") do |dir|
+        lib_dir = dir.join("lib")
+        shard_a = lib_dir.join("alpha")
+        shard_b = lib_dir.join("beta")
+        real_nested = shard_b.join("lib")
+        FileUtils.mkdir_p(shard_a.join("src"))
+        FileUtils.mkdir_p(real_nested)
+        File.write(shard_a.join("src/alpha.cr"), "module Alpha; end\n")
+        File.write(real_nested.join("keep.txt"), "real nested file\n")
+
+        recursive_link = shard_a.join("lib")
+        shard_c = lib_dir.join("gamma")
+        FileUtils.mkdir_p(shard_c.join("src"))
+        recursive_symlink = shard_c.join("lib")
+        expected_purged = 1
+        {% if flag?(:win32) %}
+          Process.run("cmd", ["/c", "mklink", "/J", recursive_link.to_s, lib_dir.to_s]).success?.should be_true
+          begin
+            File.symlink("..", recursive_symlink.to_s)
+            expected_purged = 2
+          rescue
+          end
+        {% else %}
+          File.symlink("..", recursive_link.to_s)
+        {% end %}
+
+        File.info?(recursive_link, follow_symlinks: false).should_not be_nil
+
+        purged = Lapis::Commands::Sync.purge_recursive_shard_symlinks(dir)
+        purged.should eq(expected_purged)
+        File.info?(recursive_link, follow_symlinks: false).should be_nil
+        File.info?(recursive_symlink, follow_symlinks: false).should be_nil
+
+        # Parent lib/ and real non-reparse nested directory remain untouched
+        File.exists?(shard_a.join("src/alpha.cr")).should be_true
+        File.exists?(real_nested.join("keep.txt")).should be_true
+      end
+    end
+  end
 end

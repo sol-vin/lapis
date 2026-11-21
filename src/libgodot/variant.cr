@@ -333,6 +333,14 @@ module Godot
       @raw.as?(Godot::Node)
     end
 
+    def as_dict : Godot::Dictionary
+      @raw.as?(Godot::Dictionary) || Godot::Dictionary.new
+    end
+
+    def as_dictionary : Godot::Dictionary
+      as_dict
+    end
+
     # Unboxes the Variant to target type T at compile time.
     def as_t(type : T.class) : T forall T
       {% if T == Int32 %}
@@ -381,6 +389,8 @@ module Godot
         as_plane
       {% elsif T == Godot::AABB %}
         as_aabb
+      {% elsif T == Godot::Dictionary %}
+        as_dict
       {% elsif T <= Godot::Object %}
         if obj = as_obj
           if casted = obj.as_a?(T)

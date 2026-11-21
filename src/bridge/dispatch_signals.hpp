@@ -38,11 +38,17 @@ inline void free_string_name(void *sn) {
     (void)sn;
 }
 
-/** Cleans up all interned heap-backed Godot StringName instances at engine shutdown (no-op: engine lifetime) */
+/** Cleans up all interned heap-backed Godot StringName instances at final SCENE shutdown */
 inline void bridge_cleanup_string_name_cache() {
-    // StringNames are interned in Godot's static string pool for the process lifetime.
-    // Calling gd_string_name_destroy on them causes "BUG: Unreferenced static string to 0" or use-after-free crashes.
     std::lock_guard<std::mutex> lock(s_string_name_mutex);
+    for (auto &kv : s_string_name_cache) {
+        if (kv.second) {
+            if (gd_string_name_destroy) {
+                gd_string_name_destroy(kv.second);
+            }
+            free(kv.second);
+        }
+    }
     s_string_name_cache.clear();
 }
 
@@ -312,9 +318,50 @@ inline void bridge_type_from_variant(int variant_type, void *dst, const void *va
 inline bool bridge_is_object_refcounted(GDExtensionObjectPtr obj);
 inline void refcounted_init_ref(void *obj);
 
+inline int64_t refcounted_get_reference_count(void *obj) {
+    if (!obj || !gd_classdb_get_method_bind || !gd_object_method_bind_ptrcall) return 0;
+    static GDExtensionMethodBindPtr s_mb_get_rc = nullptr;
+    if (!s_mb_get_rc) {
+        void *class_sn = make_string_name("RefCounted");
+        void *method_sn = make_string_name("get_reference_count");
+        s_mb_get_rc = gd_classdb_get_method_bind(class_sn, method_sn, 3905245786LL);
+        free_string_name(class_sn);
+        free_string_name(method_sn);
+    }
+    if (!s_mb_get_rc) return 0;
+    int64_t rc = 0;
+    gd_object_method_bind_ptrcall(s_mb_get_rc, obj, nullptr, &rc);
+    return rc;
+}
+
 inline void bridge_variant_from_type(int variant_type, void *variant, const void *src) {
-    // --- Segment 1: Parameter Validation ---
-    if (!variant || !src) return;
+    // --- Segment 1: Parameter Validation & Variant Destructor Fast-Paths ---
+    if (!variant) return;
+    if (variant_type == -1) {
+        if (gd_variant_destroy) {
+            gd_variant_destroy((GDExtensionVariantPtr)variant);
+        }
+        memset(variant, 0, 24);
+        return;
+    }
+    if (variant_type == -2) {
+        GDExtensionVariantType vtype = gd_variant_get_type ? gd_variant_get_type((GDExtensionConstVariantPtr)variant) : GDEXTENSION_VARIANT_TYPE_NIL;
+        if (vtype == GDEXTENSION_VARIANT_TYPE_OBJECT) {
+            GDExtensionObjectPtr obj = bridge_object_from_variant(variant);
+            if (obj && bridge_is_object_refcounted(obj) && refcounted_get_reference_count(obj) <= 1) {
+                if (src) *(uint8_t*)src = 1;
+                memset(variant, 0, 24);
+                return;
+            }
+        }
+        if (src) *(uint8_t*)src = 0;
+        if (gd_variant_destroy) {
+            gd_variant_destroy((GDExtensionVariantPtr)variant);
+        }
+        memset(variant, 0, 24);
+        return;
+    }
+    if (!src) return;
 
     // --- Segment 2: String Boxing ---
     if (variant_type == GDEXTENSION_VARIANT_TYPE_STRING) {
@@ -339,7 +386,7 @@ inline void bridge_variant_from_type(int variant_type, void *variant, const void
         }
     }
 
-    // --- Segment 2c: Object Null-Pointer Guard & RefCounted Initialization ---
+    // --- Segment 2c: Object Null-Pointer Guard ---
     if (variant_type == GDEXTENSION_VARIANT_TYPE_OBJECT) {
         GDExtensionObjectPtr obj = *(const GDExtensionObjectPtr*)src;
         if (!obj) {
@@ -349,9 +396,6 @@ inline void bridge_variant_from_type(int variant_type, void *variant, const void
                 memset(variant, 0, GD_VARIANT_SIZE);
             }
             return;
-        }
-        if (bridge_is_object_refcounted(obj)) {
-            refcounted_init_ref(obj);
         }
     }
 
@@ -580,12 +624,33 @@ inline void bridge_call_method_vararg_ret(GDExtensionMethodBindPtr mb, GDExtensi
 
 inline bool ensure_persistent_class_registered(const char *name);
 
+static GDExtensionMethodBindPtr mb_object_notification_postinit = nullptr;
+inline void bridge_notify_postinitialize(GDExtensionObjectPtr obj) {
+    if (!obj || !gd_using_construct_object3 || !gd_classdb_get_method_bind || !gd_object_method_bind_ptrcall) return;
+    if (!mb_object_notification_postinit) {
+        void *sn_obj = make_string_name("Object");
+        void *sn_notif = make_string_name("notification");
+        mb_object_notification_postinit = gd_classdb_get_method_bind(sn_obj, sn_notif, 4023243586ULL);
+        free_string_name(sn_obj);
+        free_string_name(sn_notif);
+    }
+    if (mb_object_notification_postinit) {
+        int64_t what = 0; // NOTIFICATION_POSTINITIALIZE
+        uint8_t reversed = 0;
+        const void *args[2] = { &what, &reversed };
+        gd_object_method_bind_ptrcall(mb_object_notification_postinit, obj, (const GDExtensionConstTypePtr*)args, nullptr);
+    }
+}
+
 inline GDExtensionObjectPtr bridge_classdb_construct_object(const char *class_name) {
     if (!gd_classdb_construct_object || !class_name) return nullptr;
     if (!ensure_persistent_class_registered(class_name)) return nullptr;
     void *sn = make_string_name(class_name);
     GDExtensionObjectPtr obj = gd_classdb_construct_object(sn);
     free_string_name(sn);
+    if (obj) {
+        bridge_notify_postinitialize(obj);
+    }
     return obj;
 }
 
@@ -758,9 +823,6 @@ inline void refcounted_init_ref(void *obj) {
 
 inline void bridge_object_call(GDExtensionObjectPtr instance, const char *method_name, const BridgeSignalArg *args, int arg_count) {
     if (!instance || !bridge_is_object_valid(instance) || !method_name || !gd_classdb_get_method_bind || !gd_object_method_bind_call) return;
-    if (bridge_is_object_refcounted(instance)) {
-        refcounted_init_ref(instance);
-    }
     if (!mb_object_call) {
         mb_object_call = bridge_get_method_bind("Object", "call", 3400424181ULL);
     }
@@ -770,9 +832,6 @@ inline void bridge_object_call(GDExtensionObjectPtr instance, const char *method
 
 inline GDExtensionObjectPtr bridge_object_call_ret_object(GDExtensionObjectPtr instance, const char *method_name, const BridgeSignalArg *args, int arg_count) {
     if (!instance || !bridge_is_object_valid(instance) || !method_name || !gd_classdb_get_method_bind || !gd_object_method_bind_call) return nullptr;
-    if (bridge_is_object_refcounted(instance)) {
-        refcounted_init_ref(instance);
-    }
     if (!mb_object_call) {
         mb_object_call = bridge_get_method_bind("Object", "call", 3400424181ULL);
     }
@@ -801,9 +860,6 @@ inline GDExtensionObjectPtr bridge_object_call_ret_object(GDExtensionObjectPtr i
 template <typename T, GDExtensionVariantType VType>
 inline T bridge_object_call_ret_pod(GDExtensionObjectPtr instance, const char *method_name, const BridgeSignalArg *args, int arg_count, T default_val = T{}) {
     if (!instance || !bridge_is_object_valid(instance) || !method_name || !gd_classdb_get_method_bind || !gd_object_method_bind_call) return default_val;
-    if (bridge_is_object_refcounted(instance)) {
-        refcounted_init_ref(instance);
-    }
     if (!mb_object_call) {
         mb_object_call = bridge_get_method_bind("Object", "call", 3400424181ULL);
     }
@@ -1121,6 +1177,7 @@ inline const char* bridge_node_get_name(GDExtensionObjectPtr node) {
         if (gd_variant_destroy) gd_variant_destroy(var_sn);
     }
 
+    if (gd_string_name_destroy) gd_string_name_destroy(sn_buf);
     return s_name_buf;
 }
 
@@ -1191,6 +1248,7 @@ inline void bridge_ret_object(void *r_ret, void *obj) {
 }
 
 static GDExtensionMethodBindPtr mb_ref_reference = nullptr;
+static GDExtensionMethodBindPtr mb_ref_unreference_helper = nullptr;
 inline void refcounted_reference(void *obj) {
     if (!obj) return;
     if (!mb_ref_reference && gd_classdb_get_method_bind) {
@@ -1203,6 +1261,24 @@ inline void refcounted_reference(void *obj) {
     if (mb_ref_reference && gd_object_method_bind_ptrcall) {
         uint8_t ret = 0;
         gd_object_method_bind_ptrcall(mb_ref_reference, obj, nullptr, &ret);
+    }
+}
+
+inline void refcounted_unreference(void *obj) {
+    if (!obj) return;
+    if (!mb_ref_unreference_helper && gd_classdb_get_method_bind) {
+        void *class_sn = make_string_name("RefCounted");
+        void *method_sn = make_string_name("unreference");
+        mb_ref_unreference_helper = gd_classdb_get_method_bind(class_sn, method_sn, 2240911060LL);
+        free_string_name(class_sn);
+        free_string_name(method_sn);
+    }
+    if (mb_ref_unreference_helper && gd_object_method_bind_ptrcall) {
+        uint8_t should_free = 0;
+        gd_object_method_bind_ptrcall(mb_ref_unreference_helper, obj, nullptr, &should_free);
+        if (should_free && gd_object_destroy) {
+            gd_object_destroy(obj);
+        }
     }
 }
 
@@ -1225,9 +1301,6 @@ inline bool bridge_object_is_class(GDExtensionObjectPtr obj, const char *class_n
 
 inline void bridge_ret_variant_object(void *r_ret, void *obj) {
     if (!r_ret) return;
-    if (obj && bridge_object_is_class(obj, "RefCounted")) {
-        refcounted_init_ref(obj);
-    }
     bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_OBJECT, r_ret, &obj);
 }
 
@@ -1302,15 +1375,17 @@ inline void bridge_object_get_class_name(GDExtensionObjectPtr obj, char *buf, in
     if (gd_object_get_class_name) {
         if (g_library) {
             alignas(void*) char sn[8] = {0};
-            gd_object_get_class_name(obj, g_library, sn);
-            string_name_to_cstr(sn, buf, (size_t)max_len);
-            free_string_name(sn);
-            if (buf[0] != '\0') return;
+            if (gd_object_get_class_name(obj, g_library, sn)) {
+                string_name_to_cstr(sn, buf, (size_t)max_len);
+                if (gd_string_name_destroy) gd_string_name_destroy(sn);
+                if (buf[0] != '\0') return;
+            }
         }
         alignas(void*) char sn_core[8] = {0};
-        gd_object_get_class_name(obj, nullptr, sn_core);
-        string_name_to_cstr(sn_core, buf, (size_t)max_len);
-        free_string_name(sn_core);
+        if (gd_object_get_class_name(obj, nullptr, sn_core)) {
+            string_name_to_cstr(sn_core, buf, (size_t)max_len);
+            if (gd_string_name_destroy) gd_string_name_destroy(sn_core);
+        }
         return;
     }
     static GDExtensionMethodBindPtr mb_get_class = nullptr;
@@ -2344,9 +2419,30 @@ inline void bridge_register_signal_callback(CrystalSignalCallbackFn fn) {
     g_crystal_signal_callbacks.push_back(fn);
 }
 
+static std::unordered_map<GDExtensionClassLibraryPtr, std::vector<CrystalDeinitCallbackFn>> g_library_frame_callbacks;
+static std::unordered_map<GDExtensionClassLibraryPtr, std::vector<CrystalDeinitCallbackFn>> g_library_main_loop_shutdown_callbacks;
+
 inline void bridge_register_deinit_callback(CrystalDeinitCallbackFn fn) {
     if (!fn) return;
     auto &cbs = g_library_deinit_callbacks[g_library];
+    for (auto existing : cbs) {
+        if (existing == fn) return;
+    }
+    cbs.push_back(fn);
+}
+
+inline void bridge_register_frame_callback(CrystalDeinitCallbackFn fn) {
+    if (!fn) return;
+    auto &cbs = g_library_frame_callbacks[g_library];
+    for (auto existing : cbs) {
+        if (existing == fn) return;
+    }
+    cbs.push_back(fn);
+}
+
+inline void bridge_register_main_loop_shutdown_callback(CrystalDeinitCallbackFn fn) {
+    if (!fn) return;
+    auto &cbs = g_library_main_loop_shutdown_callbacks[g_library];
     for (auto existing : cbs) {
         if (existing == fn) return;
     }
@@ -3149,9 +3245,6 @@ inline void bridge_unpack_variant_to_arg(const void *var_ptr, VariantArg &arg, s
         }
         case GDEXTENSION_VARIANT_TYPE_OBJECT: {
             GDExtensionObjectPtr obj = bridge_object_from_variant(var_ptr);
-            if (obj && bridge_is_object_refcounted(obj)) {
-                refcounted_init_ref(obj);
-            }
             arg.ptr_val = obj;
             arg.instance_id = obj ? bridge_object_get_instance_id(obj) : 0;
             break;

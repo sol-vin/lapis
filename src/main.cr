@@ -428,7 +428,9 @@ node RunTesterPanel < Godot::Control do
       end
 
       if should_autorun? && !Godot.editor_hint?
+        Godot::Bridge.scrub_c_stack_for_gc!
         GC.collect
+        Godot::Bridge.drain_deferred_unrefs!(force: true)
         tree = get_tree
         tree.quit(passed == total ? 0_i64 : 1_i64) unless tree.pointer.null?
       end

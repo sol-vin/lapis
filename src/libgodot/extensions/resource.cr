@@ -4,48 +4,58 @@ module Godot
   # ===========================================================================
   def self.load(path : String, type_hint : String = "", cache_mode : Int64 = 0_i64) : Resource
     ptr = Bridge.resource_loader_load(path, type_hint, cache_mode)
-    Resource.new(ptr)
+    RefCounted._wrap_returned_ref(Resource, ptr)
   end
 
   def self.load(path : String, type : T.class, type_hint : String = "", cache_mode : Int64 = 0_i64) : T forall T
-    res = load(path, type_hint, cache_mode)
-    if res.pointer.null?
+    ptr = Bridge.resource_loader_load(path, type_hint, cache_mode)
+    if ptr.null?
       raise NilAssertionError.new("Failed to load resource at '#{path}' as #{T}")
     end
-    if res.is_a?(T)
-      return res
-    elsif alive = Bridge.find_alive_instance(res.pointer)
-      if typed = alive.as?(T)
-        return typed
+    {% if T <= ::Godot::RefCounted %}
+      RefCounted._wrap_returned_ref(T, ptr)
+    {% else %}
+      if alive = Bridge.find_alive_instance(ptr)
+        if typed = alive.as?(T)
+          if alive.is_a?(RefCounted)
+            alive._adopt_or_release_returned_extension_ref!
+          end
+          return typed
+        end
       end
-    end
-    if !res.pointer.null? && Bridge.object_is_class(res.pointer, T.name.split("::").last)
-      return T.new(res.pointer)
-    end
-    T.new(res.pointer)
+      T.new(ptr)
+    {% end %}
   end
 
   # Safe nil-returning resource loader (get_or_null parity)
   def self.load?(path : String, type_hint : String = "", cache_mode : Int64 = 0_i64) : Resource?
     ptr = Bridge.resource_loader_load(path, type_hint, cache_mode)
     return nil if ptr.null?
-    res = Resource.new(ptr)
+    res = RefCounted._wrap_returned_ref(Resource, ptr)
     res.pointer.null? ? nil : res
   end
 
   # Safe nil-returning typed resource loader
   def self.load?(path : String, type : T.class, type_hint : String = "", cache_mode : Int64 = 0_i64) : T? forall T
-    res = load?(path, type_hint, cache_mode)
-    return nil unless res
-    if res.is_a?(T)
-      return res
-    elsif alive = Bridge.find_alive_instance(res.pointer)
+    ptr = Bridge.resource_loader_load(path, type_hint, cache_mode)
+    return nil if ptr.null?
+    if alive = Bridge.find_alive_instance(ptr)
       if typed = alive.as?(T)
+        if alive.is_a?(RefCounted)
+          alive._adopt_or_release_returned_extension_ref!
+        end
         return typed
       end
     end
-    if !res.pointer.null? && Bridge.object_is_class(res.pointer, T.name.split("::").last)
-      return T.new(res.pointer)
+    if Bridge.object_is_class(ptr, T.name.split("::").last)
+      {% if T <= ::Godot::RefCounted %}
+        return RefCounted._wrap_returned_ref(T, ptr)
+      {% else %}
+        return T.new(ptr)
+      {% end %}
+    end
+    if Bridge.object_is_class(ptr, "RefCounted")
+      Bridge.unref_raw_once(ptr)
     end
     nil
   end
@@ -143,6 +153,18 @@ module Godot
       @@mutex.synchronize { @@cache.clear }
     end
 
+    # Deterministically releases all cached resource references during engine shutdown.
+    def self.shutdown! : Void
+      entries : Array(Resource)? = nil
+      @@mutex.synchronize do
+        entries = @@cache.values
+        @@cache.clear
+      end
+      entries.try &.each do |res|
+        res.destroy rescue nil
+      end
+    end
+
     def self.has?(path : String) : Bool
       @@mutex.synchronize { @@cache.has_key?(path) }
     end
@@ -232,14 +254,7 @@ module Godot
       check_alive!
       ptr = Bridge.object_call_ret_object(@pointer, "duplicate", deep)
       return self if ptr.null?
-      if inst = Bridge.find_alive_instance(ptr)
-        if casted = inst.as?(Resource)
-          return casted
-        end
-      end
-      res = Resource.new(ptr)
-      Bridge.register_alive_instance_by_ptr(ptr, res)
-      res
+      RefCounted._wrap_returned_ref(Resource, ptr)
     end
 
     # Returns a duplicate of this resource downcast to requested type T
@@ -247,7 +262,11 @@ module Godot
       check_alive!
       ptr = Bridge.object_call_ret_object(@pointer, "duplicate", deep)
       return self.as(T) if ptr.null?
-      T.new(ptr)
+      {% if T <= ::Godot::RefCounted %}
+        RefCounted._wrap_returned_ref(T, ptr)
+      {% else %}
+        T.new(ptr)
+      {% end %}
     end
   end
 
@@ -266,7 +285,7 @@ module Godot
       check_alive!
       ptr = Bridge.object_call_ret_object(@pointer, "duplicate", deep)
       return self if ptr.null?
-      StandardMaterial3D.new(ptr)
+      RefCounted._wrap_returned_ref(StandardMaterial3D, ptr)
     end
 
     @local_albedo : Color = Color.new(1.0, 1.0, 1.0, 1.0)
@@ -322,6 +341,16 @@ module Godot
   end
 
   class Mesh < Resource
+    # Assigns `material` (or `nil`) to `surf_idx`, accepting any `Int` index (`Int32`, `Int64`, etc.).
+    def surface_set_material(surf_idx : Int, material : Material?) : Void
+      surface_set_material(surf_idx.to_i64, material)
+    end
+
+    # Returns the `Material` assigned to `surf_idx`, accepting any `Int` index (`Int32`, `Int64`, etc.).
+    def surface_get_material(surf_idx : Int) : Material
+      surface_get_material(surf_idx.to_i64)
+    end
+
     # Returns the material for the given surface index, downcast to target type T.
     def surface_get_material(surf_idx : Int, *, as type : T.class) : T forall T
       surface_get_material(surf_idx.to_i64).as_a(T)
@@ -522,6 +551,7 @@ module Godot
         godot_ptrcall(@@mb_get_instance_shader_parameter, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
         Godot._unpack_variant_buf(ret_var, T, default)
       ensure
+        Bridge.variant_destroy(ret_var.to_unsafe.as(Void*)) if ret_var
         Bridge.free_string_name(sn_0) if sn_0
       {% end %}
     end
@@ -547,16 +577,13 @@ module Godot
         godot_ptrcall(@@mb_get_instance_shader_parameter, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
         Godot._unpack_variant_buf(ret_var, T, default)
       ensure
+        Bridge.variant_destroy(ret_var.to_unsafe.as(Void*)) if ret_var
         Bridge.free_string_name(sn_0) if sn_0
       {% end %}
     end
   end
 
   class ArrayMesh < Mesh
-    def surface_set_material(surf_idx : Int, material : Material?) : Void
-      surface_set_material(surf_idx.to_i64, material)
-    end
-
     def add_surface_from_arrays(primitive : Mesh::PrimitiveType | Int, arrays : Pointer(Void)) : Void
       add_surface_from_arrays(primitive, arrays, Pointer(Void).null, Pointer(Void).null, 0)
     end
@@ -570,8 +597,8 @@ module Godot
   end
 
   class EditorNode3DGizmo < Node3DGizmo
-    def add_mesh(mesh : Mesh, material : Material?, transform : Transform3D, skeleton : Nil) : Void
-      add_mesh(mesh, material, transform, nil)
+    def add_mesh(mesh : Mesh?, material : Material? = nil) : Void
+      add_mesh(mesh, material, Transform3D.identity, nil)
     end
   end
 
@@ -605,6 +632,7 @@ module Godot
         godot_ptrcall(@@mb_get_shader_parameter, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
         Godot._unpack_variant_buf(ret_var, T, default)
       ensure
+        Bridge.variant_destroy(ret_var.to_unsafe.as(Void*)) if ret_var
         Bridge.free_string_name(sn_0) if sn_0
       {% end %}
     end
@@ -692,6 +720,7 @@ module Godot
         godot_ptrcall(@@mb_global_shader_parameter_get, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
         Godot._unpack_variant_buf(ret_var, T, default)
       ensure
+        Bridge.variant_destroy(ret_var.to_unsafe.as(Void*)) if ret_var
         Bridge.free_string_name(sn_0) if sn_0
       {% end %}
     end

@@ -299,6 +299,7 @@ module Godot
       if t = @tab
         if !t.pointer.null? && t.alive?
           @session.remove_session_tab(t) rescue nil
+          t.destroy rescue nil
         end
         @tab = nil
       end

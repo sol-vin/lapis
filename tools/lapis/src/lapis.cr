@@ -2,6 +2,7 @@ require "./version"
 require "./core/env"
 require "./core/logger"
 require "./core/text"
+require "./core/archive_security"
 require "opal"
 
 require "./commands/dirs"

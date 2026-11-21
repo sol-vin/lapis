@@ -276,6 +276,7 @@ module Lapis
             io.puts "        ::Godot::LeakTracker.register(@instance_id, self.class.name, __FILE__, __LINE__)"
             io.puts "      end"
             io.puts "      _godot_bind_static_signals"
+            io.puts "      _after_object_init!"
             io.puts "    end\n"
           else
             io.puts "  class #{name} < #{parent_type}"
@@ -311,6 +312,7 @@ module Lapis
               m_name = m["name"].as_s
               next if m["is_virtual"]?.try(&.as_bool)
               next if m["is_vararg"]?.try(&.as_bool)
+              next if name == "RefCounted" && ["init_ref", "reference", "unreference", "get_reference_count"].includes?(m_name)
               hash_val = m["hash"]?.try(&.as_i64) || 0_i64
               sanitized_m_name = sanitize_name(m_name, keywords)
 
@@ -445,9 +447,7 @@ module Lapis
                 if ret_type_godot == "Variant"
                   io.puts "      ret_var = StaticArray(UInt8, 24).new(0_u8)"
                   io.puts "      godot_ptrcall(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr}, ret_var.to_unsafe.as(Void*))"
-                  io.puts "      ret_ptr = Pointer(Void).null"
-                  io.puts "      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))"
-                  io.puts "      ret_ptr"
+                  io.puts "      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))"
                 else
                   io.puts "      ret_ptr = Pointer(Void).null"
                   io.puts "      godot_ptrcall(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr}, pointerof(ret_ptr).as(Void*))"
@@ -641,16 +641,31 @@ module Lapis
             end
 
             Core::Logger.step("Bind:Engine", "Dumping GDExtension API from #{godot_exe}...")
-            dump_res = Core::ProcessRunner.run(
-              godot_exe,
-              ["--headless", "--dump-extension-api"],
-              chdir: root.to_s,
-              env: {"LAPIS_SKIP_VERSION_CHECK" => "1"}
-            )
+            temp_dump_dir = Path.new(Dir.tempdir, "lapis_api_dump_#{Process.pid}")
+            FileUtils.mkdir_p(temp_dump_dir)
             dumped_path = root.join("extension_api.json")
-            unless dump_res.success? || File.exists?(dumped_path)
-              Core::Logger.error("Failed to dump extension_api.json from Godot engine.")
-              return 1
+            begin
+              isolated_exe = temp_dump_dir.join(File.basename(godot_exe))
+              FileUtils.cp(godot_exe, isolated_exe.to_s)
+              File.chmod(isolated_exe, 0o755) unless Core::Env.windows?
+              dump_res = Core::ProcessRunner.run(
+                isolated_exe.to_s,
+                ["--headless", "--dump-extension-api"],
+                chdir: temp_dump_dir.to_s,
+                env: {"LAPIS_SKIP_VERSION_CHECK" => "1"}
+              )
+              temp_dumped = temp_dump_dir.join("extension_api.json")
+              if File.exists?(temp_dumped)
+                FileUtils.cp(temp_dumped.to_s, dumped_path.to_s)
+                rsrc_api = root.join("rsrc/extension_api.json")
+                FileUtils.cp(temp_dumped.to_s, rsrc_api.to_s) if File.exists?(rsrc_api)
+              end
+              unless dump_res.success? || File.exists?(dumped_path)
+                Core::Logger.error("Failed to dump extension_api.json from Godot engine.")
+                return 1
+              end
+            ensure
+              FileUtils.rm_rf(temp_dump_dir) if Dir.exists?(temp_dump_dir)
             end
             api_file = dumped_path
           end

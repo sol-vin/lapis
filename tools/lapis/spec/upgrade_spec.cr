@@ -25,7 +25,7 @@ version: 0.1.0
 dependencies:
   lapis:
     github: sol-vin/lapis
-    tag: 4.8-beta2
+    tag: 4.8-beta3
 
 targets:
   game:

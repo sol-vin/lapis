@@ -18,7 +18,7 @@ badges:
 
   - type: custom
     label: "Godot"
-    message: "4.8-beta2"
+    message: "4.8-beta3"
     color: "blue"
     logo: "godotengine"
     url: "https://godotengine.org"

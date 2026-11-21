@@ -18,7 +18,7 @@ node PoolTestBullet < Godot::Node2D do
   end
 end
 
-class PoolTestArena < Godot::Node2D
+node PoolTestArena < Godot::Node2D do
   node_pool bullets : PoolTestBullet, capacity: 10
 end
 

@@ -44,6 +44,9 @@ module Godot
       addr = call_i64("get_meta", name)
       return Pointer(Void).new(addr.to_u64) if addr != 0_i64
       ptr = Bridge.object_call_ret_object(@pointer, "get_meta", name)
+      if !ptr.null? && Bridge.object_is_class(ptr, "RefCounted")
+        Bridge.unref_raw_once(ptr)
+      end
       !ptr.null? ? ptr : fallback
     end
   end

@@ -106,6 +106,61 @@ module Lapis
         purged
       end
 
+      # Returns true if `path` is a symlink or Windows NTFS reparse point (both `<SYMLINKD>` and `<JUNCTION>`),
+      # without following the link target. Real directories always return false.
+      def self.reparse_point_or_symlink?(path : Path) : Bool
+        info = File.info?(path, follow_symlinks: false)
+        return false unless info
+        return true if info.symlink?
+        {% if flag?(:win32) %}
+          attrs = LibC.GetFileAttributesW(Crystal::System.to_wstr(path.to_s))
+          attrs != LibC::INVALID_FILE_ATTRIBUTES && (attrs & LibC::FILE_ATTRIBUTE_REPARSE_POINT) != 0
+        {% else %}
+          false
+        {% end %}
+      end
+
+      # Remove recursive Crystal shard symlinks (lib/<shard>/lib -> .. and addons/<addon>/lib/<shard>/lib -> ..)
+      # created by `shards install` / `shards update`. On Windows, `<SYMLINKD> lib [..]` and `<JUNCTION> lib [..]` create an infinite
+      # directory cycle (`lib/x/lib/x/...`) that breaks C++ `std::filesystem::recursive_directory_iterator`
+      # in external level editors such as TrenchBroom once paths exceed MAX_PATH.
+      def self.purge_recursive_shard_symlinks(project_dir : Path, dry_run : Bool = false) : Int32
+        purged = 0
+        lib_roots = [project_dir.join("lib")]
+        addons_dir = project_dir.join("addons")
+        if Dir.exists?(addons_dir)
+          Dir.each_child(addons_dir) do |addon_name|
+            addon_lib = addons_dir.join(addon_name, "lib")
+            lib_roots << addon_lib if Dir.exists?(addon_lib)
+          end
+        end
+
+        lib_roots.each do |lib_root|
+          next unless Dir.exists?(lib_root)
+          Dir.each_child(lib_root) do |shard_name|
+            shard_dir = lib_root.join(shard_name)
+            next unless Dir.exists?(shard_dir)
+            nested_lib = shard_dir.join("lib")
+            next unless reparse_point_or_symlink?(nested_lib)
+
+            if dry_run
+              Core::Logger.info("[Dry Run] Would remove recursive shard symlink: #{nested_lib}")
+            else
+              begin
+                File.delete(nested_lib)
+                Core::Logger.debug("Removed recursive shard symlink: #{nested_lib}")
+              rescue ex
+                Core::Logger.debug("Skipped removing recursive shard symlink #{nested_lib}: #{ex.message}")
+                next
+              end
+            end
+            purged += 1
+          end
+        end
+
+        purged
+      end
+
       def self.topological_sort_extensions(
         entries : Array(String),
         addon_for_ext : Hash(String, String),
@@ -500,6 +555,8 @@ HELP
               Core::ProcessRunner.run(shards_exe, ["install"], chdir: proj_dir.to_s) unless dry_run
             end
           end
+
+          purge_recursive_shard_symlinks(proj_dir, dry_run: dry_run)
 
           lib_gd = proj_dir.join("lib/.gdignore")
           if Dir.exists?(proj_dir.join("lib")) && !File.exists?(lib_gd)

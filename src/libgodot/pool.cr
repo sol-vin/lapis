@@ -55,7 +55,7 @@ module Lapis
       @capacity.times do
         node = Godot.create(T)
         deactivate_node(node)
-        @root_node.add_child(node)
+        @root_node.add_child(node) unless @root_node.pointer.null?
         @available << node
       end
     end
@@ -80,13 +80,21 @@ module Lapis
 
       actual = node || begin
         fresh = Godot.create(T)
-        @root_node.add_child(fresh)
+        @root_node.add_child(fresh) unless @root_node.pointer.null?
         fresh
       end
 
       activate_node(actual)
       @active << actual
       actual
+    end
+
+    # Destroys all pooled nodes explicitly (useful if root_node is detached or uninitialized)
+    def destroy_all : Void
+      @active.each { |n| n.destroy if n.alive? }
+      @available.each { |n| n.destroy if n.alive? }
+      @active.clear
+      @available.clear
     end
 
     # Returns an active node back to the pool

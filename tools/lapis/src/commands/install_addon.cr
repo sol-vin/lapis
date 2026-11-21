@@ -1,6 +1,7 @@
 require "../core/env"
 require "../core/logger"
 require "../core/process_runner"
+require "../core/archive_security"
 require "./get"
 require "./deps"
 require "./build"
@@ -30,13 +31,19 @@ module Lapis
         end
 
         def name : String
-          if r = @repo
-            r
-          elsif p = @path
-            Path.new(p).basename.rchop(".zip").rchop(".tar.gz").rchop("-windows").rchop("-linux").rchop("-macos")
-          else
-            "addon"
-          end
+          candidate = if r = @repo
+                        r
+                      elsif p = @path
+                        clean_p = if p.starts_with?("http://") || p.starts_with?("https://")
+                                    (URI.parse(p).path rescue p)
+                                  else
+                                    p
+                                  end
+                        Path.new(clean_p).basename.rchop(".zip").rchop(".tar.gz").rchop("-windows").rchop("-linux").rchop("-macos")
+                      else
+                        "addon"
+                      end
+          Core::ArchiveSecurity.valid_single_name?(candidate) ? candidate : "addon"
         end
       end
 
@@ -288,26 +295,31 @@ module Lapis
         if spec.starts_with?("github:") || spec.starts_with?("gh:")
           repo_part = spec.split(':', 2)[1]
           owner_repo = repo_part.split('/')
-          if owner_repo.size == 2
+          if owner_repo.size == 2 && Core::ArchiveSecurity.valid_single_name?(owner_repo[0]) && Core::ArchiveSecurity.valid_single_name?(owner_repo[1])
             return AddonSpec.new(raw, :github, owner_repo[0], owner_repo[1], tag)
           end
+          return AddonSpec.new(raw, :invalid_path, error_message: "Invalid GitHub addon specifier: '#{raw}'.")
         end
 
         # Check gitlab: or gl: prefix
         if spec.starts_with?("gitlab:") || spec.starts_with?("gl:")
           repo_part = spec.split(':', 2)[1]
           parts = repo_part.split('/')
-          if parts.size >= 2
+          if parts.size >= 2 && parts[0...-1].all? { |p| Core::ArchiveSecurity.valid_single_name?(p) } && Core::ArchiveSecurity.valid_single_name?(parts.last)
             owner = parts[0...-1].join('/')
             repo = parts.last
             return AddonSpec.new(raw, :gitlab, owner, repo, tag)
           end
+          return AddonSpec.new(raw, :invalid_path, error_message: "Invalid GitLab addon specifier: '#{raw}'.")
         end
 
         # Check git: prefix (always assumed to be source code)
         if spec.starts_with?("git:")
           git_url = spec.split(':', 2)[1]
           repo_name = Path.new(git_url.split('/').last).basename.rchop(".git")
+          unless Core::ArchiveSecurity.valid_single_name?(repo_name)
+            return AddonSpec.new(raw, :invalid_path, error_message: "Invalid git repository name in specifier: '#{raw}'.")
+          end
           return AddonSpec.new(raw, :git, repo: repo_name, tag: tag, path: git_url)
         end
 
@@ -319,17 +331,28 @@ module Lapis
             if path_parts.size >= 2
               owner = path_parts[0]
               repo = path_parts[1].rchop(".git")
-              return AddonSpec.new(raw, :github, owner, repo, tag)
+              if Core::ArchiveSecurity.valid_single_name?(owner) && Core::ArchiveSecurity.valid_single_name?(repo)
+                return AddonSpec.new(raw, :github, owner, repo, tag)
+              else
+                return AddonSpec.new(raw, :invalid_path, error_message: "Invalid GitHub repository URL: '#{raw}'.")
+              end
             end
           elsif uri.host == "gitlab.com" || uri.host == "www.gitlab.com"
             path_parts = uri.path.strip('/').split('/')
             if path_parts.size >= 2
-              owner = path_parts[0...-1].join('/')
+              owner_parts = path_parts[0...-1]
               repo = path_parts.last.rchop(".git")
-              return AddonSpec.new(raw, :gitlab, owner, repo, tag)
+              if owner_parts.all? { |p| Core::ArchiveSecurity.valid_single_name?(p) } && Core::ArchiveSecurity.valid_single_name?(repo)
+                return AddonSpec.new(raw, :gitlab, owner_parts.join('/'), repo, tag)
+              else
+                return AddonSpec.new(raw, :invalid_path, error_message: "Invalid GitLab repository URL: '#{raw}'.")
+              end
             end
           elsif spec.ends_with?(".git")
             repo_name = Path.new(spec.split('/').last).basename.rchop(".git")
+            unless Core::ArchiveSecurity.valid_single_name?(repo_name)
+              return AddonSpec.new(raw, :invalid_path, error_message: "Invalid git URL specifier: '#{raw}'.")
+            end
             return AddonSpec.new(raw, :git, repo: repo_name, tag: tag, path: spec)
           end
           return AddonSpec.new(raw, :url, path: spec, tag: tag)
@@ -598,13 +621,18 @@ module Lapis
       end
 
       # Copies all children from `src_dir` into `dst_dir` without nesting `src_dir.basename` inside `dst_dir`
+      # Skips symlinks and unsafe reparse points to prevent directory traversal on cloned or local folders.
       private def self.copy_dir_contents(src_dir : Path, dst_dir : Path) : Void
         return unless Dir.exists?(src_dir)
+        return if Core::ArchiveSecurity.unsafe_existing_node?(src_dir) || Core::ArchiveSecurity.unsafe_existing_node?(dst_dir)
         FileUtils.mkdir_p(dst_dir)
         Dir.each_child(src_dir) do |child|
           next if child == ".git"
+          next unless Core::ArchiveSecurity.valid_single_name?(child)
           s = src_dir.join(child)
+          next if Core::ArchiveSecurity.unsafe_existing_node?(s)
           d = dst_dir.join(child)
+          next if Core::ArchiveSecurity.unsafe_existing_node?(d)
           if Dir.exists?(s)
             copy_dir_contents(s, d)
           elsif File.file?(s)
@@ -616,33 +644,39 @@ module Lapis
 
       # Copies or extracts an addon from a local cloned or unpacked directory
       def self.extract_addon_from_folder(source_dir : Path, project_root : Path, addon_name : String) : Void
+        unless Core::ArchiveSecurity.valid_single_name?(addon_name)
+          Core::Logger.error("Security Error: Invalid addon name '#{addon_name}'.")
+          return
+        end
+
         alt_name = addon_name.gsub('-', '_')
         src_addons = source_dir.join("addons")
+        addons_root = project_root.expand(home: false).join("addons")
 
         matched_sub : Path? = nil
-        if Dir.exists?(source_dir.join("addons", addon_name))
+        if Dir.exists?(source_dir.join("addons", addon_name)) && !Core::ArchiveSecurity.unsafe_existing_node?(source_dir.join("addons", addon_name))
           matched_sub = source_dir.join("addons", addon_name)
-        elsif Dir.exists?(source_dir.join("addons", alt_name))
+        elsif Dir.exists?(source_dir.join("addons", alt_name)) && !Core::ArchiveSecurity.unsafe_existing_node?(source_dir.join("addons", alt_name))
           matched_sub = source_dir.join("addons", alt_name)
-        elsif Dir.exists?(src_addons)
-          if first_sub = Dir.children(src_addons).find { |c| c != "crystal_integration" && Dir.exists?(src_addons.join(c)) }
+        elsif Dir.exists?(src_addons) && !Core::ArchiveSecurity.unsafe_existing_node?(src_addons)
+          if first_sub = Dir.children(src_addons).find { |c| c != "crystal_integration" && Core::ArchiveSecurity.valid_single_name?(c) && !Core::ArchiveSecurity.unsafe_existing_node?(src_addons.join(c)) && Dir.exists?(src_addons.join(c)) }
             matched_sub = src_addons.join(first_sub)
           end
         end
 
         if sub = matched_sub
           actual_name = sub.basename
-          target_addon = project_root.join("addons", actual_name)
+          return unless target_addon = Core::ArchiveSecurity.resolve_safe_destination(addons_root, actual_name)
           copy_dir_contents(sub, target_addon)
 
           # Also preserve top-level Crystal source (`src/`) and manifest (`shard.yml`) inside `addons/<actual_name>/`
-          if Dir.exists?(source_dir.join("src"))
+          if Dir.exists?(source_dir.join("src")) && !Core::ArchiveSecurity.unsafe_existing_node?(source_dir.join("src"))
             copy_dir_contents(source_dir.join("src"), target_addon.join("src"))
           end
           ["shard.yml", "shard.lock", "Makefile", "README.md", "LICENSE"].each do |meta_file|
             src_meta = source_dir.join(meta_file)
             dst_meta = target_addon.join(meta_file)
-            if File.file?(src_meta) && !File.exists?(dst_meta)
+            if File.file?(src_meta) && !Core::ArchiveSecurity.unsafe_existing_node?(src_meta) && !File.exists?(dst_meta)
               FileUtils.cp(src_meta, dst_meta)
             end
           end
@@ -651,7 +685,7 @@ module Lapis
         end
 
         # Otherwise copy root files (excluding .git) into addons/<addon_name>
-        target_addon = project_root.join("addons", addon_name)
+        return unless target_addon = Core::ArchiveSecurity.resolve_safe_destination(addons_root, addon_name)
         copy_dir_contents(source_dir, target_addon)
         Commands::Build.ensure_addon_library_entrypoint(target_addon, addon_name)
       end
@@ -803,31 +837,49 @@ module Lapis
         end
       end
 
-      # Smart extraction of addon archives
+      # Smart extraction of addon archives with atomic CWE-22 path-traversal validation and canonical containment
       def self.extract_addon_zip(zip_path : Path, project_root : Path, addon_name : String) : Bool
-        FileUtils.mkdir_p(project_root) unless Dir.exists?(project_root)
+        unless Core::ArchiveSecurity.valid_single_name?(addon_name)
+          Core::Logger.error("Security Error: Invalid addon name '#{addon_name}'.")
+          return false
+        end
 
         has_addons_folder = false
         root_dir_prefix : String? = nil
         detected_addon_sub : String? = nil
 
-        # Pre-scan zip entries to determine structure and actual addon subfolder name
-        File.open(zip_path.to_s) do |f|
+        # Pass 1: Atomic security pre-scan of all ZIP entries & structure detection
+        File.open(zip_path.to_s, "rb") do |f|
           Compress::Zip::Reader.open(f) do |zip|
             zip.each_entry do |entry|
-              clean_name = entry.filename.gsub('\\', '/')
-              if clean_name.starts_with?("addons/") || clean_name.includes?("/addons/")
+              val = Core::ArchiveSecurity.validate_entry_path(entry.filename, entry.dir?)
+              unless val.valid?
+                Core::Logger.error("Security Error: Refusing to extract addon archive '#{zip_path.basename}' — unsafe entry '#{entry.filename.scrub}': #{val.reason}")
+                return false
+              end
+              next if val.skip?
+
+              clean_name = val.clean_path
+              next if clean_name == "__MACOSX" || clean_name.starts_with?("__MACOSX/")
+
+              if clean_name == "addons" || clean_name.starts_with?("addons/") || clean_name.ends_with?("/addons") || clean_name.includes?("/addons/")
                 has_addons_folder = true
-                rel_after_addons = if clean_name.includes?("/addons/") && !clean_name.starts_with?("addons/")
-                                     parts = clean_name.split("/addons/", 2)
-                                     root_dir_prefix ||= "#{parts[0]}/"
-                                     parts[1]
-                                   else
+                rel_after_addons = if clean_name == "addons"
+                                     ""
+                                   elsif clean_name.starts_with?("addons/")
                                      clean_name["addons/".size..]
+                                   elsif clean_name.ends_with?("/addons")
+                                     prefix_part = clean_name[0...(clean_name.size - "/addons".size)]
+                                     root_dir_prefix ||= "#{prefix_part}/" unless prefix_part.empty?
+                                     ""
+                                   else
+                                     parts = clean_name.split("/addons/", 2)
+                                     root_dir_prefix ||= "#{parts[0]}/" unless parts[0].empty?
+                                     parts[1]
                                    end
                 sub_parts = rel_after_addons.split('/', 2)
                 sub_cand = sub_parts[0]
-                if !sub_cand.empty? && sub_cand != "crystal_integration"
+                if !sub_cand.empty? && sub_cand != "crystal_integration" && Core::ArchiveSecurity.valid_single_name?(sub_cand)
                   if detected_addon_sub.nil? || sub_cand == addon_name || sub_cand == addon_name.gsub('-', '_')
                     detected_addon_sub = sub_cand
                   end
@@ -838,39 +890,79 @@ module Lapis
         end
 
         target_sub = detected_addon_sub || addon_name
+        unless Core::ArchiveSecurity.valid_single_name?(target_sub)
+          Core::Logger.error("Security Error: Invalid resolved addon subdirectory '#{target_sub}'.")
+          return false
+        end
+
+        project_root_abs = project_root.expand(home: false).normalize
+        if Core::ArchiveSecurity.unsafe_existing_node?(project_root_abs)
+          Core::Logger.error("Security Error: Target project root '#{project_root_abs}' is a symlink or unsafe reparse point.")
+          return false
+        end
+        FileUtils.mkdir_p(project_root_abs) unless Dir.exists?(project_root_abs)
+
+        addons_root = project_root_abs.join("addons")
+        if Core::ArchiveSecurity.unsafe_existing_node?(addons_root)
+          Core::Logger.error("Security Error: Target addons directory '#{addons_root}' is a symlink or unsafe reparse point.")
+          return false
+        end
+
         file_count = 0
-        File.open(zip_path.to_s) do |f|
+        File.open(zip_path.to_s, "rb") do |f|
           Compress::Zip::Reader.open(f) do |zip|
             zip.each_entry do |entry|
-              raw_name = entry.filename.gsub('\\', '/')
-              clean_name = raw_name
+              val = Core::ArchiveSecurity.validate_entry_path(entry.filename, entry.dir?)
+              unless val.valid?
+                Core::Logger.error("Security Error: Unsafe entry '#{entry.filename.scrub}' encountered during extraction.")
+                return false
+              end
+              next if val.skip?
+
+              clean_name = val.clean_path
+              is_dir = val.is_dir?
+              next if clean_name == "__MACOSX" || clean_name.starts_with?("__MACOSX/")
 
               # Strip top-level repository prefix (e.g. crshader-master/addons/...)
-              if (prefix = root_dir_prefix) && clean_name.starts_with?(prefix)
-                clean_name = clean_name[prefix.size..]
+              if (prefix = root_dir_prefix)
+                if clean_name == prefix.rchop('/') && is_dir
+                  next
+                elsif clean_name.starts_with?(prefix)
+                  clean_name = clean_name[prefix.size..]
+                end
+              end
+              next if clean_name.empty?
+
+              rel_in_addons = if has_addons_folder
+                                # Archive contains addons/...
+                                if clean_name == "addons"
+                                  next unless is_dir
+                                  ""
+                                elsif clean_name.starts_with?("addons/")
+                                  # Do not leak third-party/unbuilt crystal_integration from addon repos unless crystal_integration is specifically targeted
+                                  if clean_name == "addons/crystal_integration" || clean_name.starts_with?("addons/crystal_integration/")
+                                    next unless addon_name == "crystal_integration"
+                                  end
+                                  clean_name["addons/".size..]
+                                elsif clean_name == "src" || clean_name.starts_with?("src/") ||
+                                      {"shard.yml", "shard.lock", "Makefile", "README.md", "LICENSE"}.includes?(clean_name)
+                                  # Preserve top-level Crystal source (`src/`) and manifest (`shard.yml`) inside `addons/<target_sub>/`
+                                  "#{target_sub}/#{clean_name}"
+                                else
+                                  next
+                                end
+                              else
+                                # Flat archive without addons/ prefix: extract into addons/<addon_name>/
+                                "#{addon_name}/#{clean_name}"
+                              end
+
+              dest = Core::ArchiveSecurity.resolve_safe_destination(addons_root, rel_in_addons, allow_root_dir: is_dir)
+              unless dest
+                Core::Logger.error("Security Error: Destination path for '#{entry.filename.scrub}' escapes '#{addons_root}'.")
+                return false
               end
 
-              dest = if has_addons_folder
-                       # Archive contains addons/...
-                       if clean_name.starts_with?("addons/")
-                         # Do not leak third-party/unbuilt crystal_integration from addon repos unless crystal_integration is specifically targeted
-                         if clean_name.starts_with?("addons/crystal_integration/") || clean_name == "addons/crystal_integration"
-                           next unless addon_name == "crystal_integration"
-                         end
-                         project_root.join(clean_name)
-                       elsif clean_name == "src" || clean_name.starts_with?("src/") ||
-                             ["shard.yml", "shard.lock", "Makefile", "README.md", "LICENSE"].includes?(clean_name)
-                         # Preserve top-level Crystal source (`src/`) and manifest (`shard.yml`) inside `addons/<target_sub>/`
-                         project_root.join("addons", target_sub, clean_name)
-                       else
-                         next
-                       end
-                     else
-                       # Flat archive without addons/ prefix: extract into addons/<addon_name>/
-                       project_root.join("addons", addon_name, clean_name)
-                     end
-
-              if entry.dir? || clean_name.ends_with?('/')
+              if is_dir
                 FileUtils.mkdir_p(dest)
               else
                 FileUtils.mkdir_p(dest.parent)
@@ -888,7 +980,9 @@ module Lapis
           end
         end
 
-        Commands::Build.ensure_addon_library_entrypoint(project_root.join("addons", target_sub), target_sub)
+        if safe_addon_dir = Core::ArchiveSecurity.resolve_safe_destination(addons_root, target_sub, allow_root_dir: false)
+          Commands::Build.ensure_addon_library_entrypoint(safe_addon_dir, target_sub)
+        end
         Core::Logger.success("Extracted #{file_count} files for addon '#{target_sub}'.")
         true
       rescue ex
@@ -1220,7 +1314,17 @@ module Lapis
 
       # Uninstalls an addon from the target Godot project
       def self.uninstall_addon(addon_name : String, project_dir : Path, also_shard : Bool = false) : Int32
-        target_addon_dir = project_dir.join("addons", addon_name)
+        unless Core::ArchiveSecurity.valid_single_name?(addon_name)
+          Core::Logger.error("Security Error: Invalid addon name '#{addon_name}'.")
+          return 1
+        end
+
+        addons_root = project_dir.expand(home: false).join("addons")
+        target_addon_dir = Core::ArchiveSecurity.resolve_safe_destination(addons_root, addon_name)
+        unless target_addon_dir
+          Core::Logger.error("Security Error: Target addon directory for '#{addon_name}' escapes '#{addons_root}'.")
+          return 1
+        end
 
         # Unregister from project.godot
         rel_cfg = Path.new("addons", addon_name, "plugin.cfg").to_s.gsub('\\', '/')

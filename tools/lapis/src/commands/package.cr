@@ -1026,6 +1026,24 @@ CONTROL
           return code if code != 0
         end
 
+        # Ensure freshly compiled game library is synchronized into crystal_integration/bin
+        if File.exists?(game_lib)
+          [
+            proj_dir.join("addons/crystal_integration/bin"),
+            bin_dir.join("addons/crystal_integration/bin"),
+          ].each do |ci_bin|
+            FileUtils.mkdir_p(ci_bin) unless Dir.exists?(ci_bin)
+            safe_copy(game_lib, ci_bin.join(Core::Env.game_file))
+            if release && Dir.exists?(ci_bin)
+              Dir.each_child(ci_bin) do |f|
+                if f.starts_with?("plugin.") || f.includes?("_loaded_") || f.ends_with?(".pdb") || f.ends_with?(".exp") || f.ends_with?(".lib")
+                  File.delete(ci_bin.join(f)) rescue nil
+                end
+              end
+            end
+          end
+        end
+
         # 6. Locate Godot and create playable executable + pack
         godot_exe = Core::GodotFinder.resolve(nil, proj_dir.to_s)
         if godot_exe
@@ -1052,6 +1070,9 @@ CONTROL
                      "Linux"
                    end
 
+          exported_cache = proj_dir.join(".godot/exported")
+          FileUtils.rm_rf(exported_cache) if Dir.exists?(exported_cache)
+
           pck_file = bin_dir.join("#{game_name}.pck")
           pck_path_str = pck_file.expand.to_s.gsub('\\', '/')
           Core::Logger.step("PackageGame", "Generating standalone project pack: #{pck_file.basename}...")
@@ -1071,9 +1092,6 @@ CONTROL
               portable_exe = bin_dir.join("#{game_name}_portable#{Core::Env.exe_ext}")
               if embed_pck_in_executable(named_exe, pck_file, portable_exe)
                 Core::Logger.success("Embedded PCK data into portable binary: #{portable_exe.basename}!")
-              end
-              if embed_pck && !portable
-                # If explicitly asked to embed PCK directly into main exe
                 safe_copy(portable_exe, named_exe)
               end
             end
@@ -1098,7 +1116,79 @@ CONTROL
         if portable
           portable_archive = (td = target_dir) ? td.join("#{game_name}-portable.zip") : bin_dir.join("#{game_name}-portable.zip")
           Core::Logger.step("PackageGame", "Creating portable single-directory game distribution: #{portable_archive.basename}...")
-          zip_directory(bin_dir, portable_archive, strip_prefix: bin_dir, exclude_patterns: [".gdignore", ".log", "~", ".tmp", ".zip"])
+          portable_stage = proj_dir.join("scratch/portable_stage")
+          FileUtils.rm_rf(portable_stage) if Dir.exists?(portable_stage)
+          FileUtils.mkdir_p(portable_stage)
+          begin
+            # 1. Stage single main executable (with embedded PCK; fallback to standalone PCK only if embedding was skipped)
+            main_exe_name = "#{game_name}#{Core::Env.exe_ext}"
+            portable_exe_cand = bin_dir.join("#{game_name}_portable#{Core::Env.exe_ext}")
+            named_exe_cand = bin_dir.join(main_exe_name)
+            fallback_exe_cand = bin_dir.join("game#{Core::Env.exe_ext}")
+            if File.exists?(portable_exe_cand)
+              safe_copy(portable_exe_cand, portable_stage.join(main_exe_name))
+            elsif File.exists?(named_exe_cand)
+              safe_copy(named_exe_cand, portable_stage.join(main_exe_name))
+              pck_cand = bin_dir.join("#{game_name}.pck")
+              safe_copy(pck_cand, portable_stage.join("#{game_name}.pck")) if File.exists?(pck_cand)
+            elsif File.exists?(fallback_exe_cand)
+              safe_copy(fallback_exe_cand, portable_stage.join("game#{Core::Env.exe_ext}"))
+              pck_cand = bin_dir.join("game.pck")
+              safe_copy(pck_cand, portable_stage.join("game.pck")) if File.exists?(pck_cand)
+            end
+
+            # 2. Stage runtime shared libraries (.dll / .so / .dylib) and optional VLC plugins/ directory
+            Dir.each_child(bin_dir) do |item|
+              next if item.starts_with?(".") || item.starts_with?("~") || item.starts_with?("plugin.") || item.includes?("_loaded_")
+              src_item = bin_dir.join(item)
+              if File.file?(src_item)
+                lc = item.downcase
+                is_shared_lib = lc.ends_with?(".dll") || lc.ends_with?(".dylib") || lc.ends_with?(".so") || lc.includes?(".so.")
+                safe_copy(src_item, portable_stage.join(item)) if is_shared_lib
+              elsif item == "plugins" && Dir.exists?(src_item)
+                FileUtils.cp_r(src_item.to_s, portable_stage.join("plugins").to_s)
+              end
+            end
+
+            # 3. Stage .godot/extension_list.cfg
+            ext_cfg = bin_dir.join(".godot/extension_list.cfg")
+            if File.exists?(ext_cfg)
+              FileUtils.mkdir_p(portable_stage.join(".godot"))
+              safe_copy(ext_cfg, portable_stage.join(".godot/extension_list.cfg"))
+            end
+
+            # 4. Stage only runtime GDExtension manifests & native binaries under addons/
+            bin_addons = bin_dir.join("addons")
+            if Dir.exists?(bin_addons)
+              Dir.each_child(bin_addons) do |addon_name|
+                src_ad = bin_addons.join(addon_name)
+                next unless Dir.exists?(src_ad)
+                gdext_files = Dir.children(src_ad).select { |f| f.ends_with?(".gdextension") || f.ends_with?(".sym") }
+                src_ad_bin = src_ad.join("bin")
+                next if gdext_files.empty? && !Dir.exists?(src_ad_bin)
+
+                dst_ad = portable_stage.join("addons", addon_name)
+                FileUtils.mkdir_p(dst_ad)
+                gdext_files.each do |gf|
+                  safe_copy(src_ad.join(gf), dst_ad.join(gf))
+                end
+                if Dir.exists?(src_ad_bin)
+                  dst_ad_bin = dst_ad.join("bin")
+                  FileUtils.mkdir_p(dst_ad_bin)
+                  Dir.each_child(src_ad_bin) do |bf|
+                    next if bf.starts_with?(".") || bf.starts_with?("~") || bf.starts_with?("plugin.") || bf.includes?("_loaded_")
+                    next if bf.ends_with?(".pdb") || bf.ends_with?(".exp") || bf.ends_with?(".lib") || bf.ends_with?(".log")
+                    src_bf = src_ad_bin.join(bf)
+                    safe_copy(src_bf, dst_ad_bin.join(bf)) if File.file?(src_bf)
+                  end
+                end
+              end
+            end
+
+            zip_directory(portable_stage, portable_archive, strip_prefix: portable_stage, exclude_patterns: [".gdignore", ".log", "~", ".tmp", ".zip"])
+          ensure
+            FileUtils.rm_rf(portable_stage) if Dir.exists?(portable_stage)
+          end
           Core::Logger.success("Portable package created: #{portable_archive}!")
         end
 
@@ -1200,6 +1290,9 @@ CONTROL
                  else
                    "Linux"
                  end
+
+        exported_cache = proj_dir.join(".godot/exported")
+        FileUtils.rm_rf(exported_cache) if Dir.exists?(exported_cache)
 
         Core::Logger.step("PackagePCK", "Generating standalone Godot PCK pack for '#{game_name}' -> #{dest_pck.basename}...")
         status = Core::ProcessRunner.run(

@@ -70,6 +70,9 @@ matches = [
   {"4.8.beta.gh.c971f93e7", "4.8-beta1"},
   {"4.8.beta2.official", "4.8-beta2"},
   {"4.8.beta.custom_build", "4.8-beta2"},
+  {"4.8.beta3.official", "4.8-beta3"},
+  {"4.8.beta3.official.c51ff06e8", "4.8-beta3"},
+  {"4.8.beta.custom_build", "4.8-beta3"},
   # RC stage matching
   {"4.8.rc1.official", "4.8-rc1"},
   {"4.8.rc.custom_build", "4.8-rc1"},
@@ -97,6 +100,7 @@ mismatches = [
   # Cross-stage and mismatching numbers
   {"4.8.alpha1.official", "4.8-alpha2"},
   {"4.8.beta1.official", "4.8-beta2"},
+  {"4.8.beta2.official", "4.8-beta3"},
   {"4.8.rc1.official", "4.8-rc2"},
   {"4.8.alpha1.official", "4.8-beta1"},
   {"4.8.beta1.official", "4.8-rc1"},

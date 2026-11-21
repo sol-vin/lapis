@@ -5,6 +5,7 @@ require "file_utils"
 require "./env"
 require "./logger"
 require "./godot_finder"
+require "./archive_security"
 
 module Lapis
   module Core
@@ -222,21 +223,44 @@ module Lapis
       # Extracts a template from the global store into dest_dir
       def self.extract_template(name : String, dest_dir : Path) : Bool
         clean_name = name.strip.downcase.gsub(/[^a-z0-9_-]/, "_")
+        return false unless ArchiveSecurity.valid_single_name?(clean_name)
         zip_path = ensure_store_dir.join(clean_name).join("template.zip")
         return false unless File.exists?(zip_path)
 
-        FileUtils.mkdir_p(dest_dir) unless Dir.exists?(dest_dir)
+        File.open(zip_path.to_s, "rb") do |f|
+          Compress::Zip::Reader.open(f) do |zip|
+            zip.each_entry do |entry|
+              val = ArchiveSecurity.validate_entry_path(entry.filename, entry.dir?)
+              unless val.valid?
+                Logger.error("Security Error: Refusing to extract template '#{name}' — unsafe entry '#{entry.filename.scrub}': #{val.reason}")
+                return false
+              end
+            end
+          end
+        end
 
-        Compress::Zip::Reader.open(zip_path.to_s) do |zip|
-          zip.each_entry do |entry|
-            entry_filename = entry.filename
-            next if entry_filename.empty? || entry_filename.ends_with?("/")
+        dest_dir_abs = dest_dir.expand(home: false).normalize
+        return false if ArchiveSecurity.unsafe_existing_node?(dest_dir_abs)
+        FileUtils.mkdir_p(dest_dir_abs) unless Dir.exists?(dest_dir_abs)
 
-            target_file = dest_dir.join(entry_filename)
-            FileUtils.mkdir_p(target_file.parent) unless Dir.exists?(target_file.parent)
+        File.open(zip_path.to_s, "rb") do |f|
+          Compress::Zip::Reader.open(f) do |zip|
+            zip.each_entry do |entry|
+              val = ArchiveSecurity.validate_entry_path(entry.filename, entry.dir?)
+              return false unless val.valid?
+              next if val.skip? || val.is_dir?
 
-            File.open(target_file.to_s, "w") do |target_io|
-              IO.copy(entry.io, target_io)
+              target_file = ArchiveSecurity.resolve_safe_destination(dest_dir_abs, val.clean_path)
+              unless target_file
+                Logger.error("Security Error: Template entry '#{entry.filename.scrub}' escapes destination '#{dest_dir_abs}'.")
+                return false
+              end
+
+              FileUtils.mkdir_p(target_file.parent) unless Dir.exists?(target_file.parent)
+
+              File.open(target_file.to_s, "wb") do |target_io|
+                IO.copy(entry.io, target_io)
+              end
             end
           end
         end
@@ -328,7 +352,27 @@ module Lapis
       def self.import_template(archive_path : Path, custom_name : String? = nil) : TemplateManifest?
         return nil unless File.exists?(archive_path)
 
-        dest_name = custom_name || archive_path.basename(".zip").strip.downcase.gsub(/[^a-z0-9_-]/, "_")
+        dest_name = (custom_name || archive_path.basename(".zip")).strip.downcase.gsub(/[^a-z0-9_-]/, "_")
+        return nil unless ArchiveSecurity.valid_single_name?(dest_name)
+
+        # Pre-validate all ZIP entries before importing into the global template store
+        begin
+          File.open(archive_path.to_s, "rb") do |f|
+            Compress::Zip::Reader.open(f) do |zip|
+              zip.each_entry do |entry|
+                val = ArchiveSecurity.validate_entry_path(entry.filename, entry.dir?)
+                unless val.valid?
+                  Logger.error("Security Error: Refusing to import template '#{archive_path.basename}' — unsafe entry '#{entry.filename.scrub}': #{val.reason}")
+                  return nil
+                end
+              end
+            end
+          end
+        rescue ex
+          Logger.error("Failed to inspect template archive '#{archive_path}': #{ex.message}")
+          return nil
+        end
+
         target_dir = ensure_store_dir.join(dest_name)
         FileUtils.mkdir_p(target_dir)
 

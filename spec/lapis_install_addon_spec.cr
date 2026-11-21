@@ -190,5 +190,34 @@ CFG
         FileUtils.rm_rf(scratch_dir) if Dir.exists?(scratch_dir)
       end
     end
+
+    it "rejects malicious Zip-Slip addon archives (CWE-22) without writing outside addons/" do
+      scratch_dir = repo_root.join("scratch", "test_addon_zipslip_#{Time.utc.to_unix_ms}")
+      FileUtils.rm_rf(scratch_dir) if Dir.exists?(scratch_dir)
+      FileUtils.mkdir_p(scratch_dir)
+
+      begin
+        project_dir = scratch_dir.join("nested", "victim_project")
+        FileUtils.mkdir_p(project_dir)
+        File.write(project_dir.join("project.godot"), "config_version=5\n")
+
+        malicious_zip = scratch_dir.join("malicious_addon.zip")
+        File.open(malicious_zip.to_s, "wb") do |file|
+          Compress::Zip::Writer.open(file) do |zip|
+            zip.add("addons/evil_addon/plugin.cfg", "[plugin]\nname=\"Evil\"\n")
+            zip.add("addons/../../../mtp/evil.txt", "ESCAPED_BYTES")
+          end
+        end
+
+        Lapis::Commands::InstallAddon.extract_addon_zip(malicious_zip, project_dir, "evil_addon").should be_false
+        File.exists?(scratch_dir.join("mtp", "evil.txt")).should be_false
+        Dir.exists?(project_dir.join("addons", "evil_addon")).should be_false
+
+        spec = Lapis::Commands::InstallAddon.parse_spec(malicious_zip.to_s)
+        Lapis::Commands::InstallAddon.install_addon(spec, project_dir, force: true).should eq(1)
+      ensure
+        FileUtils.rm_rf(scratch_dir) if Dir.exists?(scratch_dir)
+      end
+    end
   end
 end

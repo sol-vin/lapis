@@ -1,6 +1,7 @@
 require "../core/env"
 require "../core/logger"
 require "../core/process_runner"
+require "../core/archive_security"
 require "./bind/engine"
 require "file_utils"
 require "option_parser"
@@ -18,7 +19,7 @@ module Lapis
 Usage: lapis setup [templates] [version] [options]
 
 Options:
-  -v, --version=TAG     Target Godot version (e.g. 4.8-beta2, default from godot-version.yml)
+  -v, --version=TAG     Target Godot version (e.g. 4.8-beta3, default from godot-version.yml)
   -t, --templates       Download and install Godot export templates
   -o, --output=PATH     Package export templates into specified zip
   -f, --force           Force download even if godot executable exists
@@ -29,7 +30,7 @@ Options:
 
 Examples:
   lapis setup
-  lapis setup 4.8-beta2
+  lapis setup 4.8-beta3
   lapis setup templates
   lapis setup templates -o bin/export-templates.zip
   lapis setup --force
@@ -50,7 +51,7 @@ HELP
         Core::GodotFinder::EMBEDDED_GODOT_VERSION
       end
 
-      # When upgrading the Lapis repository to a new Godot version (e.g. 4.8-beta1 -> 4.8-beta2),
+      # When upgrading the Lapis repository to a new Godot version (e.g. 4.8-beta1 -> 4.8-beta3),
       # synchronizes godot-version.yml, template manifests, C++ bridge header, badges.yml, README.md,
       # and automatically bumps the Lapis minor version (0.X.0) in shard.yml and tools/lapis/shard.yml.
       def self.sync_repo_version_on_godot_upgrade(root : Path, target_version : String) : Void
@@ -70,11 +71,16 @@ HELP
         end
 
         if target_version != old_godot_ver
-          [
+          version_files = [
             root.join("godot-version.yml"),
+            root.join("test/godot-version.yml"),
             root.join("template/godot-version.yml"),
             root.join("template-addon/godot-version.yml"),
-          ].each do |vf|
+          ]
+          Dir.glob(root.join("examples/*/godot-version.yml").to_s.gsub('\\', '/')).each do |ef|
+            version_files << Path.new(ef)
+          end
+          version_files.each do |vf|
             File.write(vf, "version: \"#{target_version}\"\n") if File.exists?(vf)
           end
 
@@ -316,16 +322,43 @@ CPP
           end
 
           Core::Logger.step("Setup", "Extracting export templates to #{target_dir}...")
-          File.open(temp_tpz) do |f|
+          File.open(temp_tpz, "rb") do |f|
             Compress::Zip::Reader.open(f) do |zip|
               zip.each_entry do |entry|
-                name = entry.filename
-                clean_name = name.sub(/^templates[\/\\]/, "")
-                next if clean_name.empty? || clean_name.ends_with?("/") || clean_name.ends_with?("\\")
+                val = Core::ArchiveSecurity.validate_entry_path(entry.filename, entry.dir?)
+                unless val.valid?
+                  Core::Logger.error("Security Error: Refusing to extract export templates — unsafe entry '#{entry.filename.scrub}': #{val.reason}")
+                  return 1
+                end
+              end
+            end
+          end
 
-                dest = target_dir.join(clean_name)
+          target_dir_abs = target_dir.expand(home: false).normalize
+          if Core::ArchiveSecurity.unsafe_existing_node?(target_dir_abs)
+            Core::Logger.error("Security Error: Export templates directory '#{target_dir_abs}' is a symlink or unsafe reparse point.")
+            return 1
+          end
+          FileUtils.mkdir_p(target_dir_abs) unless Dir.exists?(target_dir_abs)
+
+          File.open(temp_tpz, "rb") do |f|
+            Compress::Zip::Reader.open(f) do |zip|
+              zip.each_entry do |entry|
+                val = Core::ArchiveSecurity.validate_entry_path(entry.filename, entry.dir?)
+                return 1 unless val.valid?
+                next if val.skip? || val.is_dir?
+
+                clean_name = val.clean_path == "templates" ? "" : val.clean_path.sub(/^templates\//, "")
+                next if clean_name.empty?
+
+                dest = Core::ArchiveSecurity.resolve_safe_destination(target_dir_abs, clean_name)
+                unless dest
+                  Core::Logger.error("Security Error: Export template entry '#{entry.filename.scrub}' escapes '#{target_dir_abs}'.")
+                  return 1
+                end
+
                 FileUtils.mkdir_p(dest.parent)
-                File.open(dest, "w") do |out_io|
+                File.open(dest, "wb") do |out_io|
                   IO.copy(entry.io, out_io)
                 end
               end

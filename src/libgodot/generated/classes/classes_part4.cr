@@ -352,9 +352,7 @@ module Godot
       args = StaticArray[arg_0]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_input, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     ensure
       Bridge.free_string_name(sn_0)
     end
@@ -1837,9 +1835,7 @@ module Godot
       godot_bind(@@mb_get_result_value, "OpenXRFutureResult", "get_result_value", 1214101251_i64)
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_result_value, @pointer, Pointer(Pointer(Void)).null, ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     godot_signal completed, OpenXRFutureResult
   end
@@ -2963,9 +2959,7 @@ module Godot
       godot_bind(@@mb_get_marker_data, "OpenXRMarkerTracker", "get_marker_data", 1214101251_i64)
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_marker_data, @pointer, Pointer(Pointer(Void)).null, ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     # Property `bounds_size` getter
     def bounds_size
@@ -3783,9 +3777,7 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_marker_data, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
   end
   class OpenXRSpatialComponentMesh2DList < Godot::OpenXRSpatialComponentData
@@ -5034,9 +5026,7 @@ module Godot
       args = StaticArray[arg_0]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_item_metadata, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     @@mb_get_item_tooltip : Void* = Pointer(Void).null
     def get_item_tooltip(idx : Int64) : String
@@ -5137,9 +5127,7 @@ module Godot
       godot_bind(@@mb_get_selected_metadata, "OptionButton", "get_selected_metadata", 1214101251_i64)
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_selected_metadata, @pointer, Pointer(Pointer(Void)).null, ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     @@mb_remove_item : Void* = Pointer(Void).null
     def remove_item(idx : Int64) : Void
@@ -8777,9 +8765,7 @@ module Godot
       args = StaticArray[arg_0]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_custom_monitor, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     ensure
       Bridge.free_string_name(sn_0)
     end
@@ -13298,9 +13284,7 @@ module Godot
       args = StaticArray[arg_0]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_shape_get_data, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     # Class-level singleton delegator for `shape_get_data`
     def self.shape_get_data(shape : Int64) : Pointer(Void)
@@ -13650,9 +13634,7 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_area_get_param, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     # Class-level singleton delegator for `area_get_param`
     def self.area_get_param(area : Int64, param : AreaParameter | Int) : Pointer(Void)
@@ -14159,9 +14141,7 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_body_get_param, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     # Class-level singleton delegator for `body_get_param`
     def self.body_get_param(body : Int64, param : BodyParameter | Int) : Pointer(Void)
@@ -14205,9 +14185,7 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_body_get_state, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     # Class-level singleton delegator for `body_get_state`
     def self.body_get_state(body : Int64, state : BodyState | Int) : Pointer(Void)
@@ -15254,9 +15232,7 @@ module Godot
       args = StaticArray[arg_0]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_shape_get_data, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     # Class-level singleton delegator for `shape_get_data`
     def self.shape_get_data(shape : Int64) : Pointer(Void)
@@ -15618,9 +15594,7 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_area_get_param, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     # Class-level singleton delegator for `area_get_param`
     def self.area_get_param(area : Int64, param : AreaParameter | Int) : Pointer(Void)
@@ -16077,9 +16051,7 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_body_get_param, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     # Class-level singleton delegator for `body_get_param`
     def self.body_get_param(body : Int64, param : BodyParameter | Int) : Pointer(Void)
@@ -16123,9 +16095,7 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_body_get_state, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     # Class-level singleton delegator for `body_get_state`
     def self.body_get_state(body : Int64, state : BodyState | Int) : Pointer(Void)
@@ -16716,9 +16686,7 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_soft_body_get_state, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     # Class-level singleton delegator for `soft_body_get_state`
     def self.soft_body_get_state(body : Int64, state : BodyState | Int) : Pointer(Void)
@@ -20414,9 +20382,7 @@ module Godot
       args = StaticArray[arg_0]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_item_metadata, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     @@mb_is_item_disabled : Void* = Pointer(Void).null
     def is_item_disabled(index : Int64) : Bool
@@ -21694,9 +21660,7 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_setting, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     ensure
       Bridge.free_string(str_0)
     end
@@ -21712,9 +21676,7 @@ module Godot
       args = StaticArray[arg_0]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_setting_with_override, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     ensure
       Bridge.free_string_name(sn_0)
     end
@@ -21743,9 +21705,7 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_setting_with_override_and_custom_features, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     ensure
       Bridge.free_string_name(sn_0)
     end
@@ -23984,9 +23944,7 @@ module Godot
       godot_bind(@@mb_get_value, "RDPipelineSpecializationConstant", "get_value", 1214101251_i64)
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_value, @pointer, Pointer(Pointer(Void)).null, ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     @@mb_set_constant_id : Void* = Pointer(Void).null
     def set_constant_id(constant_id : Int64) : Void

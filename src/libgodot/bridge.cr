@@ -211,6 +211,8 @@ module Godot
       image_update_buffer : (Void*, Int32, Int32, UInt8, Int32, UInt8*, Int64 -> Void)
       image_copy_to_buffer : (Void*, UInt8*, Int64 -> Int64)
       packed_byte_array_operator_index : (Void*, Int64 -> UInt8*)
+      register_frame_callback : ((-> Void) -> Void)
+      register_main_loop_shutdown_callback : ((-> Void) -> Void)
     end
 
     struct BridgeGCFunctions
@@ -302,6 +304,8 @@ module Godot
     @@alive_mutex = ::Thread::Mutex.new
     @@native_signal_cb : (UInt64, LibC::Char*, LibBridge::VariantArg*, Int32 -> Void)? = nil
     @@native_deinit_cb : (-> Void)? = nil
+    @@native_frame_cb : (-> Void)? = nil
+    @@native_ml_shutdown_cb : (-> Void)? = nil
 
     # Retrieves the active Crystal instance root table for testing and diagnostics
     def self.alive_instances : Hash(Void*, Godot::Object)
@@ -408,7 +412,16 @@ module Godot
         class_name = String.new(desc.value.name)
         Godot.log_internal("Bridge", "[create_fn] ENTERED: class_name='#{class_name}', godot_obj=#{godot_obj}")
         if entry = Godot::ClassRegistry.find(class_name)
-          inst = entry.create_proc.call(godot_obj)
+          prev_creating = Bridge.creating_extension?
+          Bridge._set_creating_extension(true)
+          inst = begin
+            entry.create_proc.call(godot_obj)
+          ensure
+            Bridge._set_creating_extension(prev_creating)
+          end
+          if inst.is_a?(Godot::RefCounted)
+            inst._mark_extension_self!
+          end
           Godot.log_internal("Bridge", "[create_fn] inst=#{inst.class.name} (#{inst}) for class_name='#{class_name}'")
           boxed = Box(Godot::Object).box(inst)
           @@alive_mutex.synchronize do
@@ -686,6 +699,22 @@ module Godot
         api.value.register_deinit_callback.call(deinit_cb)
       end
 
+      if !api.value.register_frame_callback.pointer.null?
+        frame_cb = -> {
+          Bridge.on_main_loop_frame
+        }
+        @@native_frame_cb = frame_cb
+        api.value.register_frame_callback.call(frame_cb)
+      end
+
+      if !api.value.register_main_loop_shutdown_callback.pointer.null?
+        ml_shutdown_cb = -> {
+          Bridge.on_main_loop_shutdown
+        }
+        @@native_ml_shutdown_cb = ml_shutdown_cb
+        api.value.register_main_loop_shutdown_callback.call(ml_shutdown_cb)
+      end
+
       # Early-register language, loader, and saver so Godot can load .cr files during editor layout restore
       early_register_component("CrystalLanguage")
       early_register_component("ResourceFormatLoaderCrystal")
@@ -709,10 +738,178 @@ module Godot
 
     # Unregisters an engine component during bridge deinitialization if defined in the current compilation unit
     macro unregister_component(class_name, display_name = nil)
-      {% if @top_level.has_constant?("Godot") && @top_level.constant("Godot").has_constant?(class_name) %}
+      {% if @top_level.has_constant?("Lapis") && @top_level.constant("Lapis").has_constant?(class_name) %}
+        Godot.debug("[Bridge.deinit] Unregistering {{ (display_name || class_name).id }}...")
+        Lapis::{{class_name.id}}.unregister rescue nil
+      {% elsif @top_level.has_constant?("Godot") && @top_level.constant("Godot").has_constant?(class_name) %}
         Godot.debug("[Bridge.deinit] Unregistering {{ (display_name || class_name).id }}...")
         Godot::{{class_name.id}}.unregister rescue nil
       {% end %}
+    end
+
+    @[ThreadLocal]
+    @@creating_extension : Bool = false
+
+    def self.creating_extension? : Bool
+      @@creating_extension
+    end
+
+    def self._set_creating_extension(val : Bool) : Void
+      @@creating_extension = val
+    end
+
+    @@mb_ref_unreference_raw : Void* = Pointer(Void).null
+
+    # Decrements `RefCounted` C++ reference count `count` times, destroying the object
+    # if `unreference()` returns true (`should_free`).
+    def self.unref_raw_n(ptr : Void*, instance_id : UInt64 = 0_u64, count : Int32 = 1) : Void
+      return if ptr.null? || count <= 0 || @@api.null?
+      eff_id = instance_id > 0_u64 ? instance_id : object_get_instance_id(ptr)
+      return if eff_id > 0_u64 && !is_instance_valid(eff_id)
+      if @@mb_ref_unreference_raw.null?
+        @@mb_ref_unreference_raw = get_method_bind("RefCounted", "unreference", 2240911060_i64)
+      end
+      return if @@mb_ref_unreference_raw.null?
+
+      count.times do
+        break if eff_id > 0_u64 && !is_instance_valid(eff_id)
+        should_free = 0_u8
+        ptrcall(@@mb_ref_unreference_raw, ptr, Pointer(Pointer(Void)).null, pointerof(should_free).as(Void*))
+        if should_free != 0_u8
+          if eff_id == 0_u64 || is_instance_valid(eff_id)
+            object_destroy(ptr)
+          end
+          break
+        end
+      end
+    end
+
+    def self.unref_raw_once(ptr : Void*, instance_id : UInt64 = 0_u64) : Void
+      unref_raw_n(ptr, instance_id, 1)
+    end
+
+    struct DeferredUnrefEntry
+      property ptr : Void*
+      property instance_id : UInt64
+      property count : Int32
+
+      def initialize(@ptr : Void* = Pointer(Void).null, @instance_id : UInt64 = 0_u64, @count : Int32 = 0)
+      end
+    end
+
+    lib LibCHeap
+      fun malloc(size : LibC::SizeT) : Void*
+      fun realloc(ptr : Void*, size : LibC::SizeT) : Void*
+      fun free(ptr : Void*) : Void
+    end
+
+    @@deferred_unref_lock = Atomic(Int32).new(0)
+    @@deferred_unref_cap : Int32 = 0
+    @@deferred_unref_len : Int32 = 0
+    @@deferred_unref_buf : Pointer(DeferredUnrefEntry) = Pointer(DeferredUnrefEntry).null
+    @@deinit_completed : Bool = false
+
+    # Lock-free C-heap enqueue safe to invoke from Boehm GC finalizers on any thread.
+    def self.enqueue_deferred_unref(ptr : Void*, instance_id : UInt64, count : Int32) : Void
+      return if ptr.null? || count <= 0 || @@deinit_completed || @@api.null?
+      while @@deferred_unref_lock.compare_and_set(0, 1) != {0, true}
+        Intrinsics.pause
+      end
+      begin
+        if @@deferred_unref_buf.null?
+          cap = 4096
+          raw = LibCHeap.malloc(LibC::SizeT.new(cap * sizeof(DeferredUnrefEntry)))
+          if !raw.null?
+            @@deferred_unref_buf = raw.as(Pointer(DeferredUnrefEntry))
+            @@deferred_unref_cap = cap
+          end
+        elsif @@deferred_unref_len >= @@deferred_unref_cap
+          new_cap = @@deferred_unref_cap * 2
+          raw = LibCHeap.realloc(@@deferred_unref_buf.as(Void*), LibC::SizeT.new(new_cap * sizeof(DeferredUnrefEntry)))
+          if !raw.null?
+            @@deferred_unref_buf = raw.as(Pointer(DeferredUnrefEntry))
+            @@deferred_unref_cap = new_cap
+          end
+        end
+        if !@@deferred_unref_buf.null? && @@deferred_unref_len < @@deferred_unref_cap
+          @@deferred_unref_buf[@@deferred_unref_len] = DeferredUnrefEntry.new(ptr, instance_id, count)
+          @@deferred_unref_len += 1
+        end
+      ensure
+        @@deferred_unref_lock.set(0)
+      end
+    end
+
+    # Drains queued RefCounted finalizer unreferences on the main thread.
+    def self.drain_deferred_unrefs!(force : Bool = false) : Int32
+      return 0 if @@api.null?
+      return 0 unless force || Godot::ThreadSafety.main_thread?
+
+      total_drained = 0
+      4.times do
+        LibGC.invoke_finalizers unless @@deinit_completed
+        batch_ptr = Pointer(DeferredUnrefEntry).null
+        batch_len = 0
+        while @@deferred_unref_lock.compare_and_set(0, 1) != {0, true}
+          Intrinsics.pause
+        end
+        begin
+          if !@@deferred_unref_buf.null? && @@deferred_unref_len > 0
+            batch_len = @@deferred_unref_len
+            raw_copy = LibCHeap.malloc(LibC::SizeT.new(batch_len * sizeof(DeferredUnrefEntry)))
+            if !raw_copy.null?
+              batch_ptr = raw_copy.as(Pointer(DeferredUnrefEntry))
+              batch_ptr.copy_from(@@deferred_unref_buf, batch_len)
+              @@deferred_unref_len = 0
+            else
+              batch_len = 0
+            end
+          end
+        ensure
+          @@deferred_unref_lock.set(0)
+        end
+
+        break if batch_len == 0 || batch_ptr.null?
+        begin
+          batch_len.times do |i|
+            entry = batch_ptr[i]
+            unref_raw_n(entry.ptr, entry.instance_id, entry.count)
+          end
+          total_drained += batch_len
+        ensure
+          LibCHeap.free(batch_ptr.as(Void*))
+        end
+      end
+      total_drained
+    end
+
+    @@frame_prune_counter : UInt32 = 0_u32
+
+    # Prunes entries from `@@alive_instances_by_ptr` whose underlying native engine object
+    # has already been freed by Godot (e.g., via `queue_free` on an ancestor node).
+    def self.prune_dead_ptr_instances! : Void
+      @@alive_mutex.synchronize do
+        return if @@alive_instances_by_ptr.empty?
+        @@alive_instances_by_ptr.reject! do |ptr, inst|
+          !inst.active? ||
+            (inst.instance_id > 0 && !is_instance_valid(inst.instance_id)) ||
+            (!@@api.null? && !is_object_valid(ptr))
+        end
+      end
+    end
+
+    def self.on_main_loop_frame : Void
+      return if @@deinitialized || @@deinit_completed
+      drain_deferred_unrefs!(force: true)
+      @@frame_prune_counter &+= 1_u32
+      if (@@frame_prune_counter & 63_u32) == 0_u32
+        prune_dead_ptr_instances!
+      end
+    end
+
+    def self.on_main_loop_shutdown : Void
+      return if @@deinitialized || @@deinit_completed || reloading?
+      run_pre_objectdb_teardown!
     end
 
     @@shutdown_callbacks = [] of (-> Void)
@@ -721,37 +918,126 @@ module Godot
       @@shutdown_callbacks << block
     end
 
+    @@pre_objectdb_torn_down : Bool = false
     @@deinitialized : Bool = false
+
+    # Scrubs residual stack words so conservative Boehm GC does not falsely pin dead wrappers on the stack.
+    @[NoInline]
+    def self.scrub_c_stack_for_gc! : Void
+      zeros = StaticArray(UInt64, 512).new(0_u64)
+      Intrinsics.pause if zeros[0] == 1_u64
+    end
+
+    # Executes all Crystal-side cache, singleton, loader, saver, and RefCounted teardown
+    # BEFORE Godot runs `ResourceCache::clear()` and `ObjectDB::cleanup()`.
+    def self.run_pre_objectdb_teardown! : Void
+      return if @@pre_objectdb_torn_down || reloading?
+      @@pre_objectdb_torn_down = true
+
+      Godot.debug("[Bridge] Cleaning up registered shutdown callbacks...")
+      @@shutdown_callbacks.reverse_each do |cb|
+        begin
+          cb.call
+        rescue ex
+          Godot.debug("[Bridge] Error in shutdown callback: #{ex.message}")
+        end
+      end
+      @@shutdown_callbacks.clear
+
+      {% if @top_level.has_constant?("Godot") && @top_level.constant("Godot").has_constant?("PreloadCache") %}
+        Godot::PreloadCache.shutdown! rescue nil
+      {% end %}
+
+      {% if @top_level.has_constant?("Godot") && @top_level.constant("Godot").has_constant?("AutoloadManager") %}
+        Godot::AutoloadManager.teardown_autoloads(immediate: true) rescue nil
+      {% end %}
+
+      {% if @top_level.has_constant?("Godot") && @top_level.constant("Godot").has_constant?("CrystalIntegrationPlugin") %}
+        Godot::CrystalIntegrationPlugin.cleanup rescue nil
+      {% end %}
+
+      Godot.debug("[Bridge] Cleaning up script cache...")
+      ClassRegistry.cleanup rescue nil
+
+      unregister_component("ResourceFormatLoaderCrystal", "loader")
+      unregister_component("ResourceFormatSaverCrystal", "saver")
+      unregister_component("CrystalLanguage", "language")
+      ClassRegistry.entries.reverse_each do |entry|
+        if proc = entry.deinit_proc
+          proc.call rescue nil
+        end
+      end
+
+      Godot.clear_all_signal_subscriptions_on_shutdown! rescue nil
+      prune_dead_ptr_instances!
+
+      scrub_c_stack_for_gc!
+      3.times do
+        GC.collect
+        drain_deferred_unrefs!(force: true)
+      end
+
+      remaining_ext = @@alive_mutex.synchronize { @@alive_instances.values }
+      remaining_ext.each do |inst|
+        if inst.is_a?(Godot::RefCounted) && inst.alive?
+          inst._release_extension_self_refs! rescue nil
+        end
+      end
+
+      GC.collect
+      drain_deferred_unrefs!(force: true)
+
+      remaining_non_rc = @@alive_mutex.synchronize { @@alive_instances.values }
+      remaining_non_rc.reverse_each do |inst|
+        next if inst.is_a?(Godot::RefCounted)
+        if inst.alive?
+          if inst.is_a?(Godot::Node)
+            if parent = (inst.get_parent? rescue nil)
+              parent.remove_child(inst) rescue nil if parent.alive?
+            end
+          end
+          inst.destroy rescue nil
+        end
+      end
+
+      @@alive_mutex.synchronize do
+        @@alive_instances_by_ptr.clear
+      end
+
+      scrub_c_stack_for_gc!
+      2.times do
+        GC.collect
+        drain_deferred_unrefs!(force: true)
+      end
+    end
 
     def self.deinit : Void
       return if @@deinitialized
       return if reloading?
       @@deinitialized = true
 
-      Godot.debug("[Bridge.deinit] Cleaning up registered shutdown callbacks...")
-      @@shutdown_callbacks.each do |cb|
-        begin
-          cb.call
-        rescue ex
-          Godot.debug("[Bridge.deinit] Error in shutdown callback: #{ex.message}")
-        end
-      end
-      @@shutdown_callbacks.clear
+      run_pre_objectdb_teardown!
 
-      Godot.debug("[Bridge.deinit] Cleaning up script cache...")
-      ClassRegistry.cleanup rescue nil
-      {% if @top_level.has_constant?("Godot") && @top_level.constant("Godot").has_constant?("AutoloadManager") %}
-        Godot::AutoloadManager.teardown_autoloads rescue nil
-      {% end %}
-      unregister_component("ResourceFormatLoaderCrystal", "loader")
-      unregister_component("ResourceFormatSaverCrystal", "saver")
-      unregister_component("CrystalLanguage", "language")
-      # Clean up all registered loaders, savers, or custom components from addons or games
-      ClassRegistry.entries.reverse_each do |entry|
-        if proc = entry.deinit_proc
-          proc.call rescue nil
-        end
+      GC.collect
+      drain_deferred_unrefs!(force: true)
+
+      @@string_name_mutex.synchronize { @@cached_string_names.clear }
+
+      @@deinit_completed = true
+      while @@deferred_unref_lock.compare_and_set(0, 1) != {0, true}
+        Intrinsics.pause
       end
+      begin
+        if !@@deferred_unref_buf.null?
+          LibCHeap.free(@@deferred_unref_buf.as(Void*))
+          @@deferred_unref_buf = Pointer(DeferredUnrefEntry).null
+          @@deferred_unref_cap = 0
+          @@deferred_unref_len = 0
+        end
+      ensure
+        @@deferred_unref_lock.set(0)
+      end
+
       Godot.debug("[Bridge.deinit] Completed successfully!")
     end
 
@@ -1235,9 +1521,23 @@ module Godot
       ptr.null? ? "" : String.new(ptr)
     end
 
+    def self.deinitialized? : Bool
+      @@deinitialized
+    end
+
     def self.construct_object(class_name : String) : Void*
       return Pointer(Void).null if @@api.null? || @@api.value.classdb_construct_object.pointer.null?
-      @@api.value.classdb_construct_object.call(class_name.to_unsafe)
+      ptr = @@api.value.classdb_construct_object.call(class_name.to_unsafe)
+      if !ptr.null?
+        if inst = find_alive_instance(ptr)
+          if inst.is_a?(Godot::RefCounted)
+            inst._adopt_constructed_extension_ref!
+          end
+        else
+          Godot::RefCounted._record_constructed_ptr(ptr)
+        end
+      end
+      ptr
     end
 
     private def self.pack_args(args, &block : Pointer(LibBridge::CrystalSignalArg), Int32 -> T) : T forall T
@@ -1343,7 +1643,7 @@ module Godot
                 res << {{non_nil_t}}.new(Pointer(Void).null)
               {% end %}
             else
-              inst = find_alive_instance(ptr).as?({{non_nil_t}}) || {{non_nil_t}}.new(ptr)
+              inst = Godot::RefCounted._resolve_property_instance({{non_nil_t}}, ptr)
               res << inst
             end
           {% elsif non_nil_t == Int32 %}
@@ -1508,6 +1808,25 @@ module Godot
     def self.variant_from_type(type : Int32, variant_ptr : Void*, src : Void*) : Void
       return if @@api.null? || @@api.value.variant_from_type.pointer.null?
       @@api.value.variant_from_type.call(type, variant_ptr, src)
+    end
+
+    def self.variant_destroy(variant_ptr : Void*) : Void
+      return if variant_ptr.null? || @@api.null? || @@api.value.variant_from_type.pointer.null?
+      @@api.value.variant_from_type.call(-1, variant_ptr, Pointer(Void).null)
+    end
+
+    def self.unpack_variant_return_ptr(variant_ptr : Void*) : Void*
+      return Pointer(Void).null if variant_ptr.null? || @@api.null?
+      ret_ptr = Pointer(Void).null
+      type_from_variant(24, pointerof(ret_ptr).as(Void*), variant_ptr)
+      adopted = 0_u8
+      if !@@api.value.variant_from_type.pointer.null?
+        @@api.value.variant_from_type.call(-2, variant_ptr, pointerof(adopted).as(Void*))
+      end
+      if adopted != 0_u8 && !ret_ptr.null?
+        RefCounted._record_constructed_ptr(ret_ptr)
+      end
+      ret_ptr
     end
 
     def self.ret_string_name(ret : Void*, str : String) : Void

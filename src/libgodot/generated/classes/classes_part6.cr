@@ -2733,9 +2733,7 @@ module Godot
       args = StaticArray[arg_0]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_input_port_default_value, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     @@mb_remove_input_port_default_value : Void* = Pointer(Void).null
     def remove_input_port_default_value(port : Int64) : Void
@@ -6789,9 +6787,7 @@ module Godot
       godot_bind(@@mb_get_ref, "WeakRef", "get_ref", 1214101251_i64)
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_ref, @pointer, Pointer(Pointer(Void)).null, ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
   end
   class WebRTCDataChannel < Godot::PacketPeer
@@ -8901,9 +8897,7 @@ module Godot
       args = StaticArray[arg_0]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_input, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     ensure
       Bridge.free_string_name(sn_0)
     end

@@ -65,7 +65,7 @@ jobs:
       - name: Setup Godot Engine
         shell: powershell
         run: |
-          $ver = "4.8-beta2"
+          $ver = "4.8-beta3"
           if (Test-Path "godot-version.yml") {
             $match = Select-String -Path "godot-version.yml" -Pattern '^\s*version:\s*"?([^"\s#]+)"?'
             if ($match) { $ver = $match.Matches[0].Groups[1].Value }
@@ -153,7 +153,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           GODOT_VER=$(grep 'version:' godot-version.yml | cut -d: -f2 | tr -d ' "\r\n\t')
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta2"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta3"; fi
           REF_NAME="${{ github.ref_name }}"
 
           mkdir -p ./docs/benchmarks

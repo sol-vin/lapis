@@ -5486,9 +5486,7 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_shader_get_parameter_default, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     ensure
       Bridge.free_string_name(sn_1)
     end
@@ -5585,9 +5583,7 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_material_get_param, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     ensure
       Bridge.free_string_name(sn_1)
     end
@@ -10768,9 +10764,7 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_instance_geometry_get_shader_parameter, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     ensure
       Bridge.free_string_name(sn_1)
     end
@@ -10788,9 +10782,7 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_instance_geometry_get_shader_parameter_default_value, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     ensure
       Bridge.free_string_name(sn_1)
     end
@@ -11815,9 +11807,7 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_canvas_item_get_instance_shader_parameter, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     ensure
       Bridge.free_string_name(sn_1)
     end
@@ -11835,9 +11825,7 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_canvas_item_get_instance_shader_parameter_default_value, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     ensure
       Bridge.free_string_name(sn_1)
     end
@@ -12499,9 +12487,7 @@ module Godot
       args = StaticArray[arg_0]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_global_shader_parameter_get, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     ensure
       Bridge.free_string_name(sn_0)
     end
@@ -16995,9 +16981,7 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_node_property_value, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     @@mb_get_connection_count : Void* = Pointer(Void).null
     def get_connection_count() : Int64
@@ -17708,9 +17692,7 @@ module Godot
       args = StaticArray[arg_0]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_global_variable_value, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     @@mb_get_local_variable_count : Void* = Pointer(Void).null
     def get_local_variable_count(frame_index : Int64) : Int64
@@ -17740,9 +17722,7 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_local_variable_value, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     @@mb_get_member_variable_count : Void* = Pointer(Void).null
     def get_member_variable_count(frame_index : Int64) : Int64
@@ -17772,9 +17752,7 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_member_variable_value, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     @@mb_format : Void* = Pointer(Void).null
     def format(indent_all : Int64 = 0_i64, indent_frames : Int64 = 4_i64) : String
@@ -18418,9 +18396,7 @@ module Godot
       args = StaticArray[arg_0]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_shader_parameter, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     ensure
       Bridge.free_string_name(sn_0)
     end
@@ -19402,9 +19378,7 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_bone_meta, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     ensure
       Bridge.free_string_name(sn_1)
     end
@@ -25438,9 +25412,7 @@ module Godot
       args = StaticArray[arg_0]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_var, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     # Property `big_endian` getter
     def big_endian
@@ -27939,9 +27911,7 @@ module Godot
       args = StaticArray[arg_0]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_tab_metadata, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     @@mb_remove_tab : Void* = Pointer(Void).null
     def remove_tab(tab_idx : Int64) : Void
@@ -28682,9 +28652,7 @@ module Godot
       args = StaticArray[arg_0]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_tab_metadata, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     @@mb_set_tab_button_icon : Void* = Pointer(Void).null
     def set_tab_button_icon(tab_idx : Int64, icon : Texture2D?) : Void
@@ -32464,9 +32432,7 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_shaped_get_span_meta, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     @@mb_shaped_get_span_embedded_object : Void* = Pointer(Void).null
     def shaped_get_span_embedded_object(shaped : Int64, index : Int64) : Pointer(Void)
@@ -32478,9 +32444,7 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_shaped_get_span_embedded_object, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     @@mb_shaped_get_span_text : Void* = Pointer(Void).null
     def shaped_get_span_text(shaped : Int64, index : Int64) : String
@@ -32502,9 +32466,7 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_shaped_get_span_object, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     @@mb_shaped_set_span_update_font : Void* = Pointer(Void).null
     def shaped_set_span_update_font(shaped : Int64, index : Int64, fonts : Pointer(Void), size : Int64, opentype_features : Pointer(Void)) : Void
@@ -32610,9 +32572,7 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_shaped_get_run_object, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     @@mb_shaped_text_substr : Void* = Pointer(Void).null
     def shaped_text_substr(shaped : Int64, start : Int64, length : Int64) : Int64
@@ -35106,9 +35066,7 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_theme_item, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     ensure
       Bridge.free_string_name(sn_1)
       Bridge.free_string_name(sn_2)
@@ -35622,9 +35580,7 @@ module Godot
       godot_bind(@@mb_wait_to_finish, "Thread", "wait_to_finish", 1460262497_i64)
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_wait_to_finish, @pointer, Pointer(Pointer(Void)).null, ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     @@mb_set_thread_safety_checks_enabled : Void* = Pointer(Void).null
     def self.set_thread_safety_checks_enabled(enabled : Bool) : Void
@@ -36137,9 +36093,7 @@ module Godot
       args = StaticArray[arg_0]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_custom_data, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     ensure
       Bridge.free_string(str_0)
     end
@@ -36175,9 +36129,7 @@ module Godot
       args = StaticArray[arg_0]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_custom_data_by_layer_id, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     # Property `flip_h` getter
     def flip_h
@@ -39987,7 +39939,7 @@ module Godot
     godot_signal pressed
     godot_signal released
   end
-  class Trail3D < Godot::Line3D
+  class Trail3D < Godot::LineBase3D
     def initialize(pointer : Void* = Pointer(Void).null)
       super(pointer)
     end
@@ -40070,17 +40022,17 @@ module Godot
       godot_ptrcall_obj(@@mb_get_color_gradient, @pointer, Pointer(Pointer(Void)).null, Gradient)
     end
     @@mb_set_material_mode : Void* = Pointer(Void).null
-    def set_material_mode(material_mode : Godot::Line3D::MaterialMode | Int) : Void
-      godot_bind(@@mb_set_material_mode, "Trail3D", "set_material_mode", 2165032565_i64)
+    def set_material_mode(material_mode : Godot::LineBase3D::MaterialMode | Int) : Void
+      godot_bind(@@mb_set_material_mode, "Trail3D", "set_material_mode", 838352442_i64)
       val_0 = material_mode.is_a?(Int) ? material_mode.to_i64 : material_mode.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_material_mode, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_get_material_mode : Void* = Pointer(Void).null
-    def get_material_mode() : Godot::Line3D::MaterialMode
-      godot_bind(@@mb_get_material_mode, "Trail3D", "get_material_mode", 3629890196_i64)
-      godot_ptrcall_enum(@@mb_get_material_mode, @pointer, Pointer(Pointer(Void)).null, Godot::Line3D::MaterialMode)
+    def get_material_mode() : Godot::LineBase3D::MaterialMode
+      godot_bind(@@mb_get_material_mode, "Trail3D", "get_material_mode", 3506372543_i64)
+      godot_ptrcall_enum(@@mb_get_material_mode, @pointer, Pointer(Pointer(Void)).null, Godot::LineBase3D::MaterialMode)
     end
     @@mb_set_material : Void* = Pointer(Void).null
     def set_material(material : ShaderMaterial?) : Void
@@ -40096,17 +40048,17 @@ module Godot
       godot_ptrcall_obj(@@mb_get_material, @pointer, Pointer(Pointer(Void)).null, ShaderMaterial)
     end
     @@mb_set_mesh_alignment : Void* = Pointer(Void).null
-    def set_mesh_alignment(alignment : Godot::Line3D::MeshAlignment | Int) : Void
-      godot_bind(@@mb_set_mesh_alignment, "Trail3D", "set_mesh_alignment", 3254932473_i64)
+    def set_mesh_alignment(alignment : Godot::LineBase3D::MeshAlignment | Int) : Void
+      godot_bind(@@mb_set_mesh_alignment, "Trail3D", "set_mesh_alignment", 1728914772_i64)
       val_0 = alignment.is_a?(Int) ? alignment.to_i64 : alignment.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_mesh_alignment, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_get_mesh_alignment : Void* = Pointer(Void).null
-    def get_mesh_alignment() : Godot::Line3D::MeshAlignment
-      godot_bind(@@mb_get_mesh_alignment, "Trail3D", "get_mesh_alignment", 603151927_i64)
-      godot_ptrcall_enum(@@mb_get_mesh_alignment, @pointer, Pointer(Pointer(Void)).null, Godot::Line3D::MeshAlignment)
+    def get_mesh_alignment() : Godot::LineBase3D::MeshAlignment
+      godot_bind(@@mb_get_mesh_alignment, "Trail3D", "get_mesh_alignment", 1842977196_i64)
+      godot_ptrcall_enum(@@mb_get_mesh_alignment, @pointer, Pointer(Pointer(Void)).null, Godot::LineBase3D::MeshAlignment)
     end
     @@mb_set_tiling_multiplier : Void* = Pointer(Void).null
     def set_tiling_multiplier(tiling_multiplier : Float64) : Void
@@ -40122,17 +40074,17 @@ module Godot
       godot_ptrcall_float(@@mb_get_tiling_multiplier, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_set_tiling_mode : Void* = Pointer(Void).null
-    def set_tiling_mode(tiling_mode : Godot::Line3D::TilingMode | Int) : Void
-      godot_bind(@@mb_set_tiling_mode, "Trail3D", "set_tiling_mode", 3698560511_i64)
+    def set_tiling_mode(tiling_mode : Godot::LineBase3D::TilingMode | Int) : Void
+      godot_bind(@@mb_set_tiling_mode, "Trail3D", "set_tiling_mode", 3386846958_i64)
       val_0 = tiling_mode.is_a?(Int) ? tiling_mode.to_i64 : tiling_mode.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_tiling_mode, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_get_tiling_mode : Void* = Pointer(Void).null
-    def get_tiling_mode() : Godot::Line3D::TilingMode
-      godot_bind(@@mb_get_tiling_mode, "Trail3D", "get_tiling_mode", 1009472955_i64)
-      godot_ptrcall_enum(@@mb_get_tiling_mode, @pointer, Pointer(Pointer(Void)).null, Godot::Line3D::TilingMode)
+    def get_tiling_mode() : Godot::LineBase3D::TilingMode
+      godot_bind(@@mb_get_tiling_mode, "Trail3D", "get_tiling_mode", 73744199_i64)
+      godot_ptrcall_enum(@@mb_get_tiling_mode, @pointer, Pointer(Pointer(Void)).null, Godot::LineBase3D::TilingMode)
     end
     @@mb_clear : Void* = Pointer(Void).null
     def clear() : Void
@@ -42567,9 +42519,7 @@ module Godot
       args = StaticArray[arg_0]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_metadata, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     @@mb_set_custom_draw : Void* = Pointer(Void).null
     def set_custom_draw(column : Int64, object : Godot::Object?, callback : String) : Void
@@ -43867,9 +43817,7 @@ module Godot
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_interpolate_value, Pointer(Void).null, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
-      ret_ptr = Pointer(Void).null
-      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))
-      ret_ptr
+      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     end
     # Instance convenience delegator for static method `interpolate_value`
     def interpolate_value(initial_value : Pointer(Void), delta_value : Pointer(Void), elapsed_time : Float64, duration : Float64, trans_type : TransitionType | Int, ease_type : EaseType | Int) : Pointer(Void)

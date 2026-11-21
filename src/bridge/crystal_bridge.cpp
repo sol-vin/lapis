@@ -165,6 +165,8 @@ deinitialize_crystal_module(void *p_userdata,
         }
         g_library_deinit_callbacks.erase(it);
       }
+      g_library_frame_callbacks.erase(lib);
+      g_library_main_loop_shutdown_callbacks.erase(lib);
       g_library_editor_classes.erase(lib);
       g_library_scene_classes.erase(lib);
 
@@ -240,6 +242,7 @@ deinitialize_crystal_module(void *p_userdata,
       g_registered_class_order.clear();
 
       unload_crystal_game_library();
+      bridge_cleanup_string_name_cache();
     }
   }
 }
@@ -248,7 +251,7 @@ deinitialize_crystal_module(void *p_userdata,
  * Validates semantic version compatibility between target engine and runtime
  * engine.
  *
- * @param expected Null-terminated target semver string (e.g. "4.8-beta2").
+ * @param expected Null-terminated target semver string (e.g. "4.8-beta3").
  * @param actual Null-terminated active Godot version string (e.g.
  * "4.8.beta1.official").
  * @return True if all expected version tokens match the active engine string.
@@ -432,7 +435,15 @@ crystal_library_init(GDExtensionInterfaceGetProcAddress p_get_proc_address,
       (GDExtensionInterfaceVariantDestroy)p_get_proc_address("variant_destroy");
   gd_classdb_construct_object =
       (GDExtensionInterfaceClassdbConstructObject)p_get_proc_address(
-          "classdb_construct_object");
+          "classdb_construct_object3");
+  if (gd_classdb_construct_object) {
+    gd_using_construct_object3 = true;
+  } else {
+    gd_using_construct_object3 = false;
+    gd_classdb_construct_object =
+        (GDExtensionInterfaceClassdbConstructObject)p_get_proc_address(
+            "classdb_construct_object");
+  }
   gd_object_set_instance =
       (GDExtensionInterfaceObjectSetInstance)p_get_proc_address(
           "object_set_instance");
@@ -600,6 +611,18 @@ crystal_library_init(GDExtensionInterfaceGetProcAddress p_get_proc_address,
   if (gd_get_variant_from_type_constructor) {
     gd_variant_from_string =
         gd_get_variant_from_type_constructor(GDEXTENSION_VARIANT_TYPE_STRING);
+  }
+
+  gd_register_main_loop_callbacks =
+      (GDExtensionInterfaceRegisterMainLoopCallbacks)p_get_proc_address(
+          "register_main_loop_callbacks");
+  static bool s_main_loop_callbacks_registered = false;
+  if (gd_register_main_loop_callbacks && p_library &&
+      !s_main_loop_callbacks_registered) {
+    s_main_loop_callbacks_registered = true;
+    static GDExtensionMainLoopCallbacks ml_cbs = {
+        nullptr, bridge_on_main_loop_shutdown, bridge_on_main_loop_frame};
+    gd_register_main_loop_callbacks(p_library, &ml_cbs);
   }
 
   // --- Segment 7: Return Initialization Structure ---

@@ -477,6 +477,7 @@ def generate_class_code(io : IO, c : JSON::Any, keywords : Hash(String, String),
     io.puts "        ::Godot::LeakTracker.register(@instance_id, self.class.name, __FILE__, __LINE__)"
     io.puts "      end"
     io.puts "      _godot_bind_static_signals"
+    io.puts "      _after_object_init!"
     io.puts "    end\n"
   else
     io.puts "  class #{name} < #{parent_type}"
@@ -525,6 +526,7 @@ def generate_class_code(io : IO, c : JSON::Any, keywords : Hash(String, String),
       m_name = m["name"].as_s
       next if m["is_virtual"]?.try(&.as_bool)
       next if m["is_vararg"]?.try(&.as_bool)
+      next if name == "RefCounted" && ["init_ref", "reference", "unreference", "get_reference_count"].includes?(m_name)
       hash_val = m["hash"]?.try(&.as_i64) || 0_i64
       sanitized_m_name = sanitize_name(m_name, keywords)
       if name == "Node" && (m_name == "add_child" || m_name == "add_sibling")
@@ -661,9 +663,7 @@ def generate_class_code(io : IO, c : JSON::Any, keywords : Hash(String, String),
         if ret_type_godot == "Variant"
           io.puts "      ret_var = StaticArray(UInt8, 24).new(0_u8)"
           io.puts "      godot_ptrcall(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr}, ret_var.to_unsafe.as(Void*))"
-          io.puts "      ret_ptr = Pointer(Void).null"
-          io.puts "      Bridge.type_from_variant(24, pointerof(ret_ptr).as(Void*), ret_var.to_unsafe.as(Void*))"
-          io.puts "      ret_ptr"
+          io.puts "      Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))"
         elsif ret_type_godot.starts_with?("Packed") || ["Callable", "Signal"].includes?(ret_type_godot)
           io.puts "      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)"
           io.puts "      godot_ptrcall(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr}, ret_buf.to_unsafe.as(Void*))"

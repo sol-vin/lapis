@@ -456,6 +456,14 @@ describe "LibGodot Features & Reflection" do
 
       n.call("combine_coords", 3_i32, 7_i32)
       n.last_damage.should eq(10_i32)
+
+      props = Godot::Dictionary.new
+      props["damage"] = 42_i32
+      v_dict = Godot::Variant.new(props)
+      v_dict.as_dict["damage"].as_i32.should eq(42_i32)
+      n.has_method("_func_godot_apply_properties").should be_true
+      n.call("_func_godot_apply_properties", props)
+      n.last_damage.should eq(42_i32)
     end
 
     it "supports out-of-tree Node3D#to_global, to_local, global_rotation, PhysicsBody3D#test_move, and Lapis::Test float/vector assertions" do
@@ -476,6 +484,25 @@ describe "LibGodot Features & Reflection" do
       Lapis::Test.assert_approx(3.0003_f32, 3.0_f32)
       Lapis::Test.assert_vec_approx(Vector3.new(1.0_f32, 2.0_f32, 3.0_f32), Vector3.new(1.0001_f32, 2.0001_f32, 3.0001_f32))
       Lapis::Test.assert_vec_approx(Color.new(0.5_f32, 0.5_f32, 0.5_f32, 1.0_f32), Color.new(0.5001_f32, 0.5_f32, 0.5_f32, 1.0_f32))
+    end
+
+    it "dispatches Mesh/ArrayMesh#surface_set_material and EditorNode3DGizmo#add_mesh overloads without subclass self-recursion" do
+      arr_mesh = Godot::ArrayMesh.new
+      mat = Godot::StandardMaterial3D.new
+
+      arr_mesh.surface_set_material(0, mat)
+      arr_mesh.surface_set_material(0, nil)
+      arr_mesh.surface_set_material(0_i64, mat)
+      arr_mesh.surface_set_material(0_i64, nil)
+      arr_mesh.surface_get_material(0).pointer.null?.should be_true
+      arr_mesh.surface_get_material(0_i64).pointer.null?.should be_true
+
+      gizmo = Godot::EditorNode3DGizmo.new
+      gizmo.add_mesh(arr_mesh)
+      gizmo.add_mesh(arr_mesh, mat)
+      gizmo.add_mesh(arr_mesh, mat, Transform3D.identity)
+      gizmo.add_mesh(arr_mesh, mat, Transform3D.identity, nil)
+      gizmo.add_mesh(arr_mesh, nil, Transform3D.identity, nil)
     end
   end
 end
@@ -503,6 +530,12 @@ node SpecProceduralRebuildNode < Node3D do
 
   def _func_godot_build_complete : Void
     @build_completed = true
+  end
+
+  def _func_godot_apply_properties(props : Godot::Dictionary) : Void
+    if props.has_key?("damage")
+      @last_damage = props["damage"].as_i32
+    end
   end
 
   def apply_damage(amount : Int32) : Void
