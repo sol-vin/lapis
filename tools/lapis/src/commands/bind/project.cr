@@ -2,6 +2,7 @@ require "../../core/env"
 require "../../core/logger"
 require "../../core/godot_finder"
 require "../../core/process_runner"
+require "../setup"
 require "json"
 require "file_utils"
 require "digest/sha256"
@@ -362,7 +363,7 @@ module Lapis
             dump_script_created = !is_engine_repo
           end
 
-          godot_exe = Core::GodotFinder.resolve(project_dir: proj_dir.to_s)
+          godot_exe = Commands::Setup.ensure_godot_binary(proj_dir)
           if godot_exe.nil?
             Core::Logger.error("Godot executable not found to dump project custom nodes!")
             return 1

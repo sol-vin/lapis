@@ -407,129 +407,158 @@ module Godot
         debug "[CrystalBridge]   set_use_accumulated_input: #{@@mb_input_set_use_accumulated_input}"
       end
 
-      # Callbacks for C host
+      # Callbacks for C host — every C-ABI callback is wrapped in `begin ... rescue` so Crystal SEH
+      # exceptions (`0xE06D7363`) never unwind across `extern "C"` into `crystal_bridge.dll` / `godot.exe`.
       create_fn = ->(desc : LibBridge::CrystalClassDesc*, godot_obj : Void*) : Void* {
-        class_name = String.new(desc.value.name)
-        Godot.log_internal("Bridge", "[create_fn] ENTERED: class_name='#{class_name}', godot_obj=#{godot_obj}")
-        if entry = Godot::ClassRegistry.find(class_name)
-          prev_creating = Bridge.creating_extension?
-          Bridge._set_creating_extension(true)
-          inst = begin
-            entry.create_proc.call(godot_obj)
-          ensure
-            Bridge._set_creating_extension(prev_creating)
+        begin
+          class_name = String.new(desc.value.name)
+          Godot.log_internal("Bridge", "[create_fn] ENTERED: class_name='#{class_name}', godot_obj=#{godot_obj}")
+          if entry = Godot::ClassRegistry.find(class_name)
+            prev_creating = Bridge.creating_extension?
+            Bridge._set_creating_extension(true)
+            inst = begin
+              entry.create_proc.call(godot_obj)
+            ensure
+              Bridge._set_creating_extension(prev_creating)
+            end
+            if inst.is_a?(Godot::RefCounted)
+              inst._mark_extension_self!
+            end
+            Godot.log_internal("Bridge", "[create_fn] inst=#{inst.class.name} (#{inst}) for class_name='#{class_name}'")
+            boxed = Box(Godot::Object).box(inst)
+            @@alive_mutex.synchronize do
+              @@alive_instances[boxed] = inst
+              @@alive_instances_by_ptr[godot_obj] = inst
+            end
+            inst.pointer = godot_obj
+            return boxed
           end
-          if inst.is_a?(Godot::RefCounted)
-            inst._mark_extension_self!
-          end
-          Godot.log_internal("Bridge", "[create_fn] inst=#{inst.class.name} (#{inst}) for class_name='#{class_name}'")
-          boxed = Box(Godot::Object).box(inst)
-          @@alive_mutex.synchronize do
-            @@alive_instances[boxed] = inst
-            @@alive_instances_by_ptr[godot_obj] = inst
-          end
-          inst.pointer = godot_obj
-          return boxed
+          Godot.printerr("[create_fn] FAILED: class '#{class_name}' not found in ClassRegistry!")
+        rescue ex : Exception
+          Bridge.report_callback_exception("create_instance", ex)
         end
-        Godot.printerr("[create_fn] FAILED: class '#{class_name}' not found in ClassRegistry!")
         Pointer(Void).null
       }
 
       free_fn = ->(crystal_inst : Void*) {
-        if !crystal_inst.null?
-          inst_to_clear : Godot::Object? = nil
-          @@alive_mutex.synchronize do
-            if inst = @@alive_instances.delete(crystal_inst)
-              @@alive_instances_by_ptr.delete(inst.pointer)
-              inst_to_clear = inst
+        begin
+          if !crystal_inst.null?
+            inst_to_clear : Godot::Object? = nil
+            @@alive_mutex.synchronize do
+              if inst = @@alive_instances.delete(crystal_inst)
+                @@alive_instances_by_ptr.delete(inst.pointer)
+                inst_to_clear = inst
+              end
+            end
+            if inst = inst_to_clear
+              tid = inst.signal_target_id
+              inst._mark_destroyed_by_engine!
+              Godot.clear_signal_subscriptions(tid, yield_awaiters: false)
             end
           end
-          if inst = inst_to_clear
-            tid = inst.signal_target_id
-            inst._mark_destroyed_by_engine!
-            Godot.clear_signal_subscriptions(tid, yield_awaiters: false)
-          end
+        rescue ex : Exception
+          Bridge.report_callback_exception("free_instance", ex)
         end
       }
 
       virtual_fn = ->(crystal_inst : Void*, method_name : LibC::Char*, delta : Float64) {
-        if !crystal_inst.null?
-          inst = @@alive_mutex.synchronize { @@alive_instances[crystal_inst]? }
-          if inst && inst.alive?
-            m = String.new(method_name)
-            if (m == "_ready" || m == "_enter_tree")
-              {% if @top_level.has_constant?("Godot") && @top_level.constant("Godot").has_constant?("AutoloadManager") %}
-                unless Godot::AutoloadManager.mounted?
-                  Godot::AutoloadManager.mount_to_tree rescue nil
+        begin
+          if !crystal_inst.null?
+            inst = @@alive_mutex.synchronize { @@alive_instances[crystal_inst]? }
+            if inst && inst.alive?
+              m = String.new(method_name)
+              if (m == "_ready" || m == "_enter_tree")
+                {% if @top_level.has_constant?("Godot") && @top_level.constant("Godot").has_constant?("AutoloadManager") %}
+                  unless Godot::AutoloadManager.mounted?
+                    Godot::AutoloadManager.mount_to_tree rescue nil
+                  end
+                {% end %}
+              end
+              {% unless flag?(:release) %}
+                if (m == "_ready" || m == "_enter_tree") && !Godot::Debugger::Agent.initialized?
+                  Godot::Debugger::Agent.initialize_agent rescue nil
                 end
               {% end %}
-            end
-            {% unless flag?(:release) %}
-              if (m == "_ready" || m == "_enter_tree") && !Godot::Debugger::Agent.initialized?
-                Godot::Debugger::Agent.initialize_agent rescue nil
-              end
-            {% end %}
-            {% if flag?(:profile_dispatches) %}
-              t0 = ::Time.monotonic
-              begin
+              {% if flag?(:profile_dispatches) %}
+                t0 = ::Time.monotonic
+                begin
+                  inst._godot_call_virtual(m, delta)
+                ensure
+                  ::Godot::DispatchProfiler.record(inst.class.name, m, (::Time.monotonic - t0).total_nanoseconds)
+                end
+              {% else %}
                 inst._godot_call_virtual(m, delta)
-              ensure
-                ::Godot::DispatchProfiler.record(inst.class.name, m, (::Time.monotonic - t0).total_nanoseconds)
-              end
-            {% else %}
-              inst._godot_call_virtual(m, delta)
-            {% end %}
+              {% end %}
+            end
           end
+        rescue ex : Exception
+          m_err = method_name.null? ? "<null>" : String.new(method_name)
+          Bridge.report_callback_exception("virtual method '#{m_err}'", ex)
         end
       }
 
       set_prop_fn = ->(crystal_inst : Void*, prop_name : LibC::Char*, val_ptr : Void*) {
-        if !crystal_inst.null?
-          inst = @@alive_mutex.synchronize { @@alive_instances[crystal_inst]? }
-          if inst && inst.alive?
-            inst._godot_set_property(String.new(prop_name), val_ptr)
+        begin
+          if !crystal_inst.null?
+            inst = @@alive_mutex.synchronize { @@alive_instances[crystal_inst]? }
+            if inst && inst.alive?
+              inst._godot_set_property(String.new(prop_name), val_ptr)
+            end
           end
+        rescue ex : Exception
+          p_err = prop_name.null? ? "<null>" : String.new(prop_name)
+          Bridge.report_callback_exception("set_property '#{p_err}'", ex)
         end
       }
 
       get_prop_fn = ->(crystal_inst : Void*, prop_name : LibC::Char*, ret_ptr : Void*) {
-        if !crystal_inst.null?
-          inst = @@alive_mutex.synchronize { @@alive_instances[crystal_inst]? }
-          if inst && inst.alive?
-            inst._godot_get_property(String.new(prop_name), ret_ptr)
+        begin
+          if !crystal_inst.null?
+            inst = @@alive_mutex.synchronize { @@alive_instances[crystal_inst]? }
+            if inst && inst.alive?
+              inst._godot_get_property(String.new(prop_name), ret_ptr)
+            end
           end
+        rescue ex : Exception
+          p_err = prop_name.null? ? "<null>" : String.new(prop_name)
+          Bridge.report_callback_exception("get_property '#{p_err}'", ex)
         end
       }
 
       has_virtual_fn = ->(desc : LibBridge::CrystalClassDesc*, method_name : LibC::Char*) : Int32 {
-        class_name = String.new(desc.value.name)
-        m_name = String.new(method_name)
-        if entry = Godot::ClassRegistry.find(class_name)
-          entry.has_virtual_method?(m_name) ? 1 : 0
-        else
+        begin
+          class_name = String.new(desc.value.name)
+          m_name = String.new(method_name)
+          if entry = Godot::ClassRegistry.find(class_name)
+            entry.has_virtual_method?(m_name) ? 1 : 0
+          else
+            0
+          end
+        rescue ex : Exception
+          Bridge.report_callback_exception("has_virtual_method", ex)
           0
         end
       }
 
       virtual_with_data_fn = ->(crystal_inst : Void*, method_name : LibC::Char*, args : Void**, ret : Void*) {
-        m_name = String.new(method_name)
-        inst : Godot::Object? = nil
-        if !crystal_inst.null?
-          inst = @@alive_mutex.synchronize { @@alive_instances[crystal_inst]? }
-        end
-        {% if flag?(:editor) || (!flag?(:release) && !flag?(:libgodot_addon) && !flag?(:no_editor)) %}
-          if !inst || !inst.is_a?(Godot::CrystalLanguage)
-            if m_name == "_complete_code" || m_name == "complete_code" ||
-               m_name == "_lookup_code" || m_name == "lookup_code" ||
-               m_name == "_make_template" || m_name == "make_template" ||
-               m_name == "_create_script" || m_name == "create_script" ||
-               m_name == "_auto_indent_code" || m_name == "auto_indent_code"
-              inst = Godot::CrystalLanguage.singleton_instance
-            end
+        m_name = method_name.null? ? "<null>" : String.new(method_name)
+        begin
+          inst : Godot::Object? = nil
+          if !crystal_inst.null?
+            inst = @@alive_mutex.synchronize { @@alive_instances[crystal_inst]? }
           end
-        {% end %}
-        if inst && inst.alive?
-          begin
+          {% if flag?(:editor) || (!flag?(:release) && !flag?(:libgodot_addon) && !flag?(:no_editor)) %}
+            if !inst || !inst.is_a?(Godot::CrystalLanguage)
+              if m_name == "_complete_code" || m_name == "complete_code" ||
+                 m_name == "_lookup_code" || m_name == "lookup_code" ||
+                 m_name == "_make_template" || m_name == "make_template" ||
+                 m_name == "_create_script" || m_name == "create_script" ||
+                 m_name == "_auto_indent_code" || m_name == "auto_indent_code"
+                inst = Godot::CrystalLanguage.singleton_instance
+              end
+            end
+          {% end %}
+          if inst && inst.alive?
             {% if flag?(:profile_dispatches) %}
               t0 = ::Time.monotonic
               begin
@@ -540,23 +569,23 @@ module Godot
             {% else %}
               inst._godot_call_virtual_with_data(m_name, args, ret)
             {% end %}
-          rescue ex
-            Godot.printerr("[CrystalBridge] Unhandled exception in virtual method '#{m_name}': #{ex.message}")
           end
+        rescue ex : Exception
+          Bridge.report_callback_exception("virtual method '#{m_name}'", ex)
         end
       }
 
       call_tool_button_fn = ->(crystal_inst : Void*, btn_name : LibC::Char*) {
-        if !crystal_inst.null?
-          inst = @@alive_mutex.synchronize { @@alive_instances[crystal_inst]? }
-          if inst && inst.alive?
-            b_name = String.new(btn_name)
-            begin
+        b_name = btn_name.null? ? "<null>" : String.new(btn_name)
+        begin
+          if !crystal_inst.null?
+            inst = @@alive_mutex.synchronize { @@alive_instances[crystal_inst]? }
+            if inst && inst.alive?
               inst._godot_call_tool_button(b_name)
-            rescue ex
-              Godot.printerr("[CrystalBridge] Unhandled exception in tool button '#{b_name}': #{ex.message}")
             end
           end
+        rescue ex : Exception
+          Bridge.report_callback_exception("tool button '#{b_name}'", ex)
         end
       }
 
@@ -676,15 +705,20 @@ module Godot
       # Register native signal callback from C++ bridge into Crystal signal dispatcher
       if !api.value.register_signal_callback.pointer.null?
         cb = ->(target_id : UInt64, sig_ptr : LibC::Char*, args_ptr : LibBridge::VariantArg*, count : Int32) {
-          return if Godot.in_typed_emit?
-          sig_name = String.new(sig_ptr)
-          arr = Array(Godot::Variant).new(count)
-          if !args_ptr.null? && count > 0
-            count.times do |i|
-              arr << Godot::Variant.from_arg(args_ptr[i])
+          begin
+            return if Godot.in_typed_emit?
+            sig_name = String.new(sig_ptr)
+            arr = Array(Godot::Variant).new(count)
+            if !args_ptr.null? && count > 0
+              count.times do |i|
+                arr << Godot::Variant.from_arg(args_ptr[i])
+              end
             end
+            Godot.notify_signal(target_id, sig_name, arr)
+          rescue ex : Exception
+            sig_err = sig_ptr.null? ? "<null>" : String.new(sig_ptr)
+            Bridge.report_callback_exception("signal callback '#{sig_err}'", ex)
           end
-          Godot.notify_signal(target_id, sig_name, arr)
         }
         @@native_signal_cb = cb
         api.value.register_signal_callback.call(cb)
@@ -693,7 +727,11 @@ module Godot
       # Register deinitialization callback so Godot cleanly unregisters language, loader, and saver
       if !api.value.register_deinit_callback.pointer.null?
         deinit_cb = -> {
-          Bridge.deinit
+          begin
+            Bridge.deinit
+          rescue ex : Exception
+            Bridge.report_callback_exception("deinit", ex)
+          end
         }
         @@native_deinit_cb = deinit_cb
         api.value.register_deinit_callback.call(deinit_cb)
@@ -701,7 +739,11 @@ module Godot
 
       if !api.value.register_frame_callback.pointer.null?
         frame_cb = -> {
-          Bridge.on_main_loop_frame
+          begin
+            Bridge.on_main_loop_frame
+          rescue ex : Exception
+            Bridge.report_callback_exception("main_loop_frame", ex)
+          end
         }
         @@native_frame_cb = frame_cb
         api.value.register_frame_callback.call(frame_cb)
@@ -709,7 +751,11 @@ module Godot
 
       if !api.value.register_main_loop_shutdown_callback.pointer.null?
         ml_shutdown_cb = -> {
-          Bridge.on_main_loop_shutdown
+          begin
+            Bridge.on_main_loop_shutdown
+          rescue ex : Exception
+            Bridge.report_callback_exception("main_loop_shutdown", ex)
+          end
         }
         @@native_ml_shutdown_cb = ml_shutdown_cb
         api.value.register_main_loop_shutdown_callback.call(ml_shutdown_cb)
@@ -1103,6 +1149,22 @@ module Godot
       else
         safe_printerr(msg)
       end
+    end
+
+    # Formats and logs an unhandled Crystal exception caught at a C-ABI callback boundary
+    # (`virtual_fn`, `virtual_with_data_fn`, `set_prop_fn`, `get_prop_fn`, `create_fn`, `free_fn`,
+    # signal/frame/deinit hooks) without ever allowing an exception to escape into C++.
+    def self.report_callback_exception(context : String, ex : Exception) : Void
+      msg = ex.message || ex.class.name
+      {% unless flag?(:release) %}
+        if bt = ex.backtrace?
+          top = bt.first(6).join("\n  ")
+          Godot.printerr("[CrystalBridge] Unhandled exception in #{context}: #{ex.class.name}: #{msg}\n  #{top}")
+          return
+        end
+      {% end %}
+      Godot.printerr("[CrystalBridge] Unhandled exception in #{context}: #{ex.class.name}: #{msg}")
+    rescue
     end
 
     def self.error(desc : String, msg : String = "", func : String = "", file : String = "", line : Int32 = 0) : Void

@@ -3,6 +3,8 @@ require "../core/logger"
 require "../core/process_runner"
 require "../core/godot_finder"
 require "../core/tool_checker"
+require "./shard_manager"
+require "./sync"
 require "option_parser"
 require "opal"
 
@@ -46,19 +48,97 @@ HELP
         items = [] of CheckItem
         has_critical_failure = false
 
-        # 1. Crystal Compiler
+        # 1. Crystal Compiler & CRYSTAL_ENV
         crystal_exe = Process.find_executable("crystal")
         if crystal_exe
           c_ver_out = Core::ProcessRunner.capture("crystal", ["--version"])[:output]
           first_line = c_ver_out.lines.first?.try(&.strip) || "Unknown version"
-          items << CheckItem.new("Crystal Compiler", :pass, first_line)
+          detected_ver = first_line[/Crystal\s+(\d+\.\d+\.\d+)/i, 1]?
+          if detected_ver && !Core::ToolChecker.crystal_version_supported?(detected_ver)
+            has_critical_failure = true
+            items << CheckItem.new(
+              "Crystal Compiler",
+              :fail,
+              "#{first_line} (requires >= #{Core::ToolChecker::MIN_CRYSTAL_VERSION})",
+              "Upgrade Crystal to #{Core::ToolChecker::TARGET_CRYSTAL_VERSION} via 'lapis update crystal' or the Lapis installer."
+            )
+          else
+            items << CheckItem.new("Crystal Compiler", :pass, first_line)
+          end
+
+          # 1b. Crystal Environment (CRYSTAL_ENV & crystal env paths)
+          c_env_out = Core::ProcessRunner.capture("crystal", ["env"])[:output]
+          c_env_map = Hash(String, String).new
+          c_env_out.each_line do |line|
+            if line.includes?('=')
+              k, v = line.split('=', 2)
+              c_env_map[k.strip] = v.strip.gsub(/^"|"$/, "")
+            end
+          end
+
+          crystal_env_val = ENV["CRYSTAL_ENV"]?
+          cpath_val = c_env_map["CRYSTAL_PATH"]? || ENV["CRYSTAL_PATH"]? || ""
+          clib_val = c_env_map["CRYSTAL_LIBRARY_PATH"]? || ENV["CRYSTAL_LIBRARY_PATH"]? || ""
+          cexec_val = c_env_map["CRYSTAL_EXEC_PATH"]? || ENV["CRYSTAL_EXEC_PATH"]? || ""
+
+          if fix && Core::Env.windows? && (crystal_env_val.nil? || crystal_env_val.empty? || ENV["CRYSTAL_PATH"]?.nil? || ENV["CRYSTAL_LIBRARY_PATH"]?.nil?)
+            crystal_root = if !cexec_val.empty? && Dir.exists?(cexec_val)
+                             p = Path.new(cexec_val)
+                             p.basename.downcase == "bin" ? p.parent : p
+                           else
+                             p = Path.new(crystal_exe).parent
+                             p.basename.downcase == "bin" ? p.parent : p
+                           end
+            env_val_to_set = (crystal_env_val && !crystal_env_val.empty?) ? crystal_env_val : "development"
+            cpath_to_set = !cpath_val.empty? ? cpath_val : "lib;#{crystal_root.join("src")}"
+            clib_to_set = !clib_val.empty? ? clib_val : crystal_root.join("lib").to_s
+            ccache_to_set = c_env_map["CRYSTAL_CACHE_DIR"]? || Path.new(ENV["LOCALAPPDATA"]? || Dir.tempdir).join("crystal", "cache").to_s
+
+            ENV["CRYSTAL_ENV"] = env_val_to_set
+            ENV["CRYSTAL_PATH"] = cpath_to_set
+            ENV["CRYSTAL_LIBRARY_PATH"] = clib_to_set
+            ENV["CRYSTAL_CACHE_DIR"] = ccache_to_set
+            ENV["CRYSTAL_EXEC_PATH"] = crystal_root.to_s
+            crystal_env_val = env_val_to_set
+
+            ps_cmd = [
+              "[Environment]::SetEnvironmentVariable('CRYSTAL_ENV', #{env_val_to_set.inspect.gsub('"', '\'')}, 'User')",
+              "[Environment]::SetEnvironmentVariable('CRYSTAL_PATH', #{cpath_to_set.inspect.gsub('"', '\'')}, 'User')",
+              "[Environment]::SetEnvironmentVariable('CRYSTAL_LIBRARY_PATH', #{clib_to_set.inspect.gsub('"', '\'')}, 'User')",
+              "[Environment]::SetEnvironmentVariable('CRYSTAL_CACHE_DIR', #{ccache_to_set.inspect.gsub('"', '\'')}, 'User')",
+              "[Environment]::SetEnvironmentVariable('CRYSTAL_EXEC_PATH', #{crystal_root.to_s.inspect.gsub('"', '\'')}, 'User')",
+            ].join("; ")
+            Core::ProcessRunner.capture("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", ps_cmd]) rescue nil
+            remediations << "Registered CRYSTAL_ENV=#{env_val_to_set} and Crystal toolchain paths in User Environment"
+          end
+
+          stdlib_ok = cpath_val.split(Core::Env.path_sep).any? { |seg| seg != "lib" && !seg.empty? && Dir.exists?(seg) }
+          lib_ok = !Core::Env.windows? || clib_val.split(';').any? { |seg| !seg.empty? && Dir.exists?(seg) }
+          if Core::Env.windows? && (crystal_env_val.nil? || crystal_env_val.empty?)
+            items << CheckItem.new(
+              "Crystal Environment",
+              :warn,
+              "CRYSTAL_ENV is not registered (CRYSTAL_PATH=#{cpath_val})",
+              "Run 'lapis doctor autofix' or re-run the Lapis installer to register CRYSTAL_ENV and Crystal paths."
+            )
+          elsif !stdlib_ok || !lib_ok
+            items << CheckItem.new(
+              "Crystal Environment",
+              :warn,
+              "Incomplete Crystal paths (CRYSTAL_PATH=#{cpath_val})",
+              "Run 'lapis doctor autofix' to configure CRYSTAL_PATH and CRYSTAL_LIBRARY_PATH."
+            )
+          else
+            env_label = (crystal_env_val && !crystal_env_val.empty?) ? "CRYSTAL_ENV=#{crystal_env_val}, " : ""
+            items << CheckItem.new("Crystal Environment", :pass, "#{env_label}CRYSTAL_PATH verified")
+          end
         else
           has_critical_failure = true
           items << CheckItem.new(
             "Crystal Compiler",
             :fail,
             "Crystal compiler not found in PATH",
-            "Install Crystal 1.20+ from https://crystal-lang.org/install/ or run 'lapis update crystal'."
+            "Install Crystal #{Core::ToolChecker::TARGET_CRYSTAL_VERSION} from https://crystal-lang.org/install/ or run 'lapis update crystal'."
           )
         end
 
@@ -236,26 +316,28 @@ HELP
 
           # Apply Automated Remediations if --fix is active
           if fix
-            # 1. Ensure bin/.gdignore exists
-            if File.exists?(curr.join("bin")) && !File.exists?(curr.join("bin/.gdignore"))
+            # 1. Ensure bin/ and bin/.gdignore exist
+            FileUtils.mkdir_p(curr.join("bin")) unless Dir.exists?(curr.join("bin"))
+            if !File.exists?(curr.join("bin/.gdignore"))
               File.write(curr.join("bin/.gdignore"), "") rescue nil
               remediations << "Created missing bin/.gdignore"
               issues.delete("Missing bin/.gdignore (Godot will scan output binaries)")
             end
 
+            # 1b. Ensure shard.yml dependencies are installed in lib/
+            if !Core::Env.is_libgodot_repo?(curr) && File.exists?(curr.join("shard.yml")) && !Commands::ShardManager.missing_dependencies(curr).empty?
+              if Commands::ShardManager.ensure_dependencies(curr)
+                remediations << "Installed missing Crystal shard dependencies into lib/"
+              end
+            end
+
             # 2. Ensure .godot/extension_list.cfg is populated
             if File.exists?(curr.join("project.godot"))
-              dot_godot = curr.join(".godot")
-              ext_cfg = dot_godot.join("extension_list.cfg")
-              manifest_entry = "res://addons/crystal_integration/crystal.gdextension"
-              Dir.mkdir_p(dot_godot) unless Dir.exists?(dot_godot)
-              if !File.exists?(ext_cfg)
-                File.write(ext_cfg, "#{manifest_entry}\n") rescue nil
-                remediations << "Created .godot/extension_list.cfg with crystal.gdextension entry"
+              Commands::Sync.ensure_extension_list(curr)
+              ext_cfg = curr.join(".godot/extension_list.cfg")
+              if File.exists?(ext_cfg) && File.read(ext_cfg).includes?("crystal.gdextension")
+                remediations << "Populated .godot/extension_list.cfg" if issues.includes?("Missing .godot/extension_list.cfg") || issues.includes?("extension_list.cfg missing crystal.gdextension entry")
                 issues.delete("Missing .godot/extension_list.cfg")
-              elsif !File.read(ext_cfg).includes?("crystal.gdextension")
-                File.write(ext_cfg, File.read(ext_cfg) + "\n#{manifest_entry}\n") rescue nil
-                remediations << "Added crystal.gdextension to .godot/extension_list.cfg"
                 issues.delete("extension_list.cfg missing crystal.gdextension entry")
               end
             end
@@ -300,9 +382,14 @@ HELP
         # Apply triage autofixes for engine, runtime libraries, and dev tools if requested
         if fix
           # 1. Godot Engine auto-triage
-          if (godot_exe.nil? || !File.exists?(godot_exe.to_s))
+          if (godot_exe.nil? || !File.exists?(godot_exe.to_s)) && ENV["LAPIS_NO_AUTO_GODOT"]? != "1"
             Core::Logger.step("Doctor:Autofix", "Attempting automatic Godot engine resolution...")
-            if Commands::Setup.run(["--yes"]) == 0
+            resolved_godot = if Core::Env.is_libgodot_repo?(target_dir)
+                               Commands::Setup.run(["--skip-dump", "--yes"]) == 0 ? target_dir.join("godot#{Core::Env.exe_ext}").to_s : nil
+                             else
+                               Commands::Setup.ensure_godot_binary(target_dir, filter_version: false)
+                             end
+            if resolved_godot && File.exists?(resolved_godot)
               remediations << "Downloaded and configured Godot engine binary"
               has_critical_failure = false
             end

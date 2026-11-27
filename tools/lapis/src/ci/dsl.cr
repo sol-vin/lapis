@@ -7,9 +7,9 @@ module Lapis
       @working_directory : String = "."
       @addon_name : String = ""
       @entry_point : String = ""
-      @godot_version : String = "4.8-beta3"
+      @godot_version : String = "4.8-beta4"
       @crystal_version : String = "1.21.0"
-      @lapis_ref : String = "4.8-beta3"
+      @lapis_ref : String = "4.8-beta4"
       @release : Bool = false
       @run_specs : Bool = true
       @run_headless : Bool = true
@@ -130,9 +130,9 @@ module Lapis
       @working_directory : String = "."
       @game_name : String = ""
       @entry_point : String = "src/main.cr"
-      @godot_version : String = "4.8-beta3"
+      @godot_version : String = "4.8-beta4"
       @crystal_version : String = "1.21.0"
-      @lapis_ref : String = "4.8-beta3"
+      @lapis_ref : String = "4.8-beta4"
       @release : Bool = false
       @package_game : Bool = true
       @embed_pck : Bool = true

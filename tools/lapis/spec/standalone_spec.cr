@@ -51,12 +51,30 @@ describe "Lapis Standalone Executable" do
       File.exists?(game_dir.join("scenes/main.tscn")).should be_true
       File.exists?(game_dir.join("godot-version.yml")).should be_true
       File.exists?(game_dir.join("lib/lapis/src/lapis.cr")).should be_true
+      File.exists?(game_dir.join("lib/lapis/src/editor/benchmark_graph_control.cr")).should be_true
+      File.exists?(game_dir.join("lib/lapis/src/editor/crystal_panel.cr")).should be_true
       File.exists?(game_dir.join("lib/cradare2/src/cradare2.cr")).should be_true
       File.exists?(game_dir.join("lib/opal/src/opal.cr")).should be_true
+      File.exists?(game_dir.join("test_report.json")).should be_false
+      File.exists?(game_dir.join("test_report.md")).should be_false
+      Dir.exists?(game_dir.join("scratch")).should be_false
 
       # Verify customized project name inside project.godot
       godot_proj = File.read(game_dir.join("project.godot"))
       godot_proj.should contain("config/name=\"My Standalone Game\"")
+
+      # 3b. Verify 'lapis build game' compiles cleanly using only extracted lib/lapis (including src/editor/**)
+      out_io.clear
+      err_io.clear
+      build_status = Process.run(
+        isolated_bin.to_s,
+        ["build", "game"],
+        chdir: game_dir.to_s,
+        output: out_io,
+        error: err_io
+      )
+      build_status.success?.should be_true, "Standalone game build failed:\nSTDOUT:\n#{out_io}\nSTDERR:\n#{err_io}"
+      File.exists?(game_dir.join("bin", Lapis::Core::Env.game_file)).should be_true
 
       # 4. Verify lapis editor in standalone game directory resolves current project (not .../test)
       out_io.clear

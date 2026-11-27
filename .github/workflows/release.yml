@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: 'Release Tag Name (e.g. 4.8-beta3 or latest)'
+        description: 'Release Tag Name (e.g. 4.8-beta4 or latest)'
         required: false
         default: ''
 
@@ -52,7 +52,7 @@ jobs:
         shell: bash
         run: |
           GODOT_VER=$(grep 'version:' godot-version.yml | cut -d: -f2 | tr -d ' "\r\n\t')
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta3"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta4"; fi
           echo "godot_version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "Resolved Godot Version: $GODOT_VER"
 
@@ -338,7 +338,7 @@ jobs:
           if [ -z "$GODOT_VER" ] && [ -f "godot-version.yml" ]; then
             GODOT_VER=$(grep 'version:' godot-version.yml | cut -d: -f2 | tr -d ' "\r\n\t')
           fi
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta3"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta4"; fi
           echo "Resolved Godot Version: $GODOT_VER"
           echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
@@ -509,7 +509,7 @@ jobs:
         id: godot-version
         shell: pwsh
         run: |
-          $ver = "4.8-beta3"
+          $ver = "4.8-beta4"
           if (Test-Path "godot-version.yml") {
             $content = Get-Content "godot-version.yml" -Raw
             if ($content -match 'version:\s*[''"]?([^''"\r\n]+)[''"]?') {
@@ -670,7 +670,7 @@ jobs:
         shell: bash
         run: |
           GODOT_VER=$(grep 'version:' godot-version.yml | cut -d: -f2 | tr -d ' "\r\n\t')
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta3"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta4"; fi
           echo "Resolved Godot Version: $GODOT_VER"
           echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
@@ -817,7 +817,7 @@ jobs:
         shell: bash
         run: |
           GODOT_VER=$(grep 'version:' godot-version.yml | cut -d: -f2 | tr -d ' "\r\n\t')
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta3"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta4"; fi
           echo "Resolved Godot Version: $GODOT_VER"
           echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
@@ -996,7 +996,7 @@ jobs:
         id: godot-version
         shell: pwsh
         run: |
-          $ver = "4.8-beta3"
+          $ver = "4.8-beta4"
           if (Test-Path "godot-version.yml") {
             $content = Get-Content "godot-version.yml" -Raw
             if ($content -match 'version:\s*[''"]?([^''"\r\n]+)[''"]?') {
@@ -1199,7 +1199,7 @@ jobs:
         shell: bash
         run: |
           GODOT_VER=$(grep 'version:' godot-version.yml | cut -d: -f2 | tr -d ' "\r\n\t')
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta3"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta4"; fi
           echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
 
@@ -1383,7 +1383,7 @@ jobs:
         shell: bash
         run: |
           GODOT_VER=$(grep 'version:' godot-version.yml | cut -d: -f2 | tr -d ' "\r\n\t')
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta3"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta4"; fi
           echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
 
@@ -1595,7 +1595,7 @@ jobs:
         id: godot-version
         shell: pwsh
         run: |
-          $ver = "4.8-beta3"
+          $ver = "4.8-beta4"
           if (Test-Path "godot-version.yml") {
             $content = Get-Content "godot-version.yml" -Raw
             if ($content -match 'version:\s*[''"]?([^''"\r\n]+)[''"]?') {
@@ -1730,7 +1730,7 @@ jobs:
         shell: bash
         run: |
           GODOT_VER=$(grep 'version:' godot-version.yml | cut -d: -f2 | tr -d ' "\r\n\t')
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta3"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta4"; fi
           echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
 
@@ -1873,7 +1873,7 @@ jobs:
         shell: bash
         run: |
           GODOT_VER=$(grep 'version:' godot-version.yml | cut -d: -f2 | tr -d ' "\r\n\t')
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta3"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta4"; fi
           echo "version=$GODOT_VER" >> "$GITHUB_OUTPUT"
           echo "GODOT_VERSION=$GODOT_VER" >> "$GITHUB_ENV"
 
@@ -2099,7 +2099,13 @@ jobs:
         run: |
           $tag = "${{ needs.init-release.outputs.tag_name }}"
           $tagClean = $tag -replace '^v', ''
-          bin/lapis package windows-installer -o bin/windows/lapis-setup-windows-x86_64.exe -v "$tagClean" -r
+          $installerPath = "bin/windows/lapis-setup-windows-x86_64.exe"
+          bin/lapis package windows-installer -o $installerPath -v "$tagClean" -r
+          if (-not (Test-Path $installerPath) -or ((Get-Item $installerPath).Length -lt 1000000)) {
+            Write-Error "CRITICAL: Windows installer $installerPath was not generated or is unexpectedly small!"
+            exit 1
+          }
+          Write-Host "Verified Windows installer: $installerPath ($((Get-Item $installerPath).Length) bytes)"
 
       - name: Package Windows Addon with Bundled Lapis & Plugin (godot-crystal-addon-windows-x86_64.zip)
         shell: pwsh
@@ -2299,7 +2305,13 @@ jobs:
         run: |
           TAG="${{ needs.init-release.outputs.tag_name }}"
           TAG_CLEAN=$(echo "$TAG" | sed 's/^v//')
-          bin/lapis package deb -v "$TAG_CLEAN" -o "bin/linux/lapis_${TAG_CLEAN}_amd64.deb"
+          DEB_OUT="bin/linux/lapis_${TAG_CLEAN}_amd64.deb"
+          bin/lapis package deb -v "$TAG_CLEAN" -o "$DEB_OUT"
+          if [ ! -s "$DEB_OUT" ] || [ "$(wc -c < "$DEB_OUT")" -lt 100000 ]; then
+            echo "CRITICAL: Debian package $DEB_OUT was not generated or is unexpectedly small!"
+            exit 1
+          fi
+          dpkg-deb --info "$DEB_OUT"
 
       - name: Package Linux Examples (examples-linux-x86_64.zip)
         run: |
@@ -2586,7 +2598,7 @@ jobs:
   finalize-release:
     name: Finalize & Publish Unified Release
     needs: [init-release, package-windows-release, package-linux-release, package-macos-release, build-android]
-    if: always() && !cancelled() && (needs.package-windows-release.result == 'success' || needs.package-linux-release.result == 'success' || needs.package-macos-release.result == 'success' || needs.build-android.result == 'success')
+    if: always() && !cancelled() && needs.package-windows-release.result == 'success' && needs.package-linux-release.result == 'success' && needs.package-macos-release.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -2822,6 +2834,19 @@ jobs:
           [ -f "$ROOT_DIR/bin/template-project.zip" ] && cp "$ROOT_DIR/bin/template-project.zip" "$DIST_DIR/"
           [ -f "$ROOT_DIR/bin/template-addon-project.zip" ] && cp "$ROOT_DIR/bin/template-addon-project.zip" "$DIST_DIR/"
 
+          # 1b. Official Godot export templates archive
+          GODOT_VER="${{ needs.init-release.outputs.godot_version }}"
+          if [ -z "$GODOT_VER" ] && [ -f "godot-version.yml" ]; then
+            GODOT_VER=$(grep 'version:' godot-version.yml | cut -d: -f2 | tr -d ' "\r\n\t')
+          fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta4"; fi
+          EXPORT_TPL_ZIP="$DIST_DIR/godot-crystal-export-templates-${GODOT_VER}.zip"
+          TPZ_URL="https://github.com/godotengine/godot-builds/releases/download/${GODOT_VER}/Godot_v${GODOT_VER}_export_templates.tpz"
+          echo "Staging Godot ${GODOT_VER} export templates archive from $TPZ_URL..."
+          if ! curl -fSL --retry 3 "$TPZ_URL" -o "$EXPORT_TPL_ZIP"; then
+            curl -fSL --retry 3 "https://github.com/godotengine/godot/releases/download/${GODOT_VER}/Godot_v${GODOT_VER}_export_templates.tpz" -o "$EXPORT_TPL_ZIP"
+          fi
+
           # 2. Windows artifacts (zip and exe files)
           if [ -d "staging/windows" ]; then
             find staging/windows -maxdepth 1 \( -name "*.zip" -o -name "*.exe" \) -exec cp {} "$DIST_DIR/" \;
@@ -2887,7 +2912,7 @@ jobs:
           if [ -z "$GODOT_VER" ] && [ -f "godot-version.yml" ]; then
             GODOT_VER=$(grep 'version:' godot-version.yml | cut -d: -f2 | tr -d ' "\r\n\t')
           fi
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta3"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta4"; fi
           cat << 'EOF' > release_body.md
           ## LibGodot Crystal Release Notes (${GODOT_VER})
 
@@ -2895,7 +2920,9 @@ jobs:
           - **`lapis-setup-windows-x86_64.exe`**:
             Standalone Windows GUI installer for the Lapis CLI toolchain. Automatically detects and installs Crystal, radare2, GNU Make, and Git.
           - **`lapis-windows-x86_64.zip`**:
-            Standalone Lapis CLI toolchain portable executable for **Windows (x86_64)**.
+            Standalone Lapis CLI toolchain portable executable archive for **Windows (x86_64)**.
+          - **`lapis.exe`**:
+            Direct standalone single-file Lapis CLI executable for **Windows (x86_64)** (no extraction required).
           - **`godot-crystal-addon-windows-x86_64.zip`**:
             Official Godot editor integration plugin bundled specifically for **Windows**, containing `crystal_bridge.dll`, `plugin.dll`, and `lapis.exe`.
           - **`libgodot-crystal-windows-x86_64-${TAG}.zip`**:
@@ -2957,6 +2984,10 @@ jobs:
             A complete starter template for building and packaging redistributable GDExtension addons and editor plugins in Crystal (`template-addon`). Pre-configured with dual-plugin architecture (`crystal_addon` and embedded `crystal_integration`), pre-compiled bridge binaries, and packaging scripts.
           - **`godot-crystal-export-templates-${GODOT_VER}.zip`**:
             Official Godot ${GODOT_VER} export templates package ready for Crystal standalone game project distribution across Windows, macOS, and Linux.
+          EOF
+
+          if [ -f "bin/release_dist/template.apk" ]; then
+            cat << 'EOF' >> release_body.md
 
           ### 📱 Android APKs (arm64-v8a)
           - **`template.apk`**:
@@ -2967,6 +2998,10 @@ jobs:
             Single standalone APK for the performance stress benchmark. Install directly via `adb install -r perf-android.apk`.
           - **`examples-android-arm64.zip`**:
             Archive of all pre-compiled example showcase game APKs packaged for Android (`arm64-v8a`), including `basic_demo.apk`.
+          EOF
+          fi
+
+          cat << 'EOF' >> release_body.md
 
           ### 🔒 Integrity
           - **`checksums.txt`**:
@@ -2975,6 +3010,70 @@ jobs:
           sed -i "s/\${TAG_CLEAN}/$TAG_CLEAN/g" release_body.md
           sed -i "s/\${TAG}/$TAG/g" release_body.md
           sed -i "s/\${GODOT_VER}/$GODOT_VER/g" release_body.md
+
+      - name: Verify All Release Assets & Description Parity
+        shell: bash
+        run: |
+          DIST_DIR="$(pwd)/bin/release_dist"
+          TAG="${{ needs.init-release.outputs.tag_name }}"
+          TAG_CLEAN=$(echo "$TAG" | sed 's/^v//')
+          GODOT_VER="${{ needs.init-release.outputs.godot_version }}"
+          if [ -z "$GODOT_VER" ] && [ -f "godot-version.yml" ]; then
+            GODOT_VER=$(grep 'version:' godot-version.yml | cut -d: -f2 | tr -d ' "\r\n\t')
+          fi
+          [ -z "$GODOT_VER" ] && GODOT_VER="4.8-beta4"
+
+          REQUIRED_FILES=(
+            "lapis-setup-windows-x86_64.exe"
+            "lapis-windows-x86_64.zip"
+            "lapis.exe"
+            "lapis_${TAG_CLEAN}_amd64.deb"
+            "lapis-linux-x86_64.tar.gz"
+            "lapis-macos.zip"
+            "godot-crystal-addon.zip"
+            "template-project.zip"
+            "template-addon-project.zip"
+            "godot-crystal-export-templates-${GODOT_VER}.zip"
+            "checksums.txt"
+          )
+
+          MISSING=0
+          for req in "${REQUIRED_FILES[@]}"; do
+            if [ ! -s "$DIST_DIR/$req" ]; then
+              echo "ERROR: Required release asset missing or empty: $req"
+              MISSING=1
+            fi
+          done
+
+          DESC_ASSETS=$(sed -n 's/^[[:space:]]*-[[:space:]]*\*\*`\([^`]*\)`\*\*:.*/\1/p' release_body.md)
+          if [ -z "$DESC_ASSETS" ]; then
+            echo "ERROR: Could not parse any asset entries from release_body.md"
+            exit 1
+          fi
+          for asset in $DESC_ASSETS; do
+            if [ ! -s "$DIST_DIR/$asset" ]; then
+              echo "ERROR: Asset '$asset' listed in release_body.md is missing from $DIST_DIR!"
+              MISSING=1
+            else
+              echo "  [OK] $asset ($(wc -c < "$DIST_DIR/$asset") bytes)"
+            fi
+          done
+
+          for staged in "$DIST_DIR"/*; do
+            [ -f "$staged" ] || continue
+            bname=$(basename "$staged")
+            if ! grep -qF "\`$bname\`" release_body.md; then
+              echo "ERROR: Staged file '$bname' in $DIST_DIR is not accounted for in release_body.md!"
+              MISSING=1
+            fi
+          done
+
+          if [ "$MISSING" -ne 0 ]; then
+            echo "CRITICAL: Release asset parity verification failed!"
+            ls -la "$DIST_DIR"
+            exit 1
+          fi
+          echo "All release assets and release_body.md entries verified 1-to-1!"
 
       - name: Publish All Release Assets Once
         uses: softprops/action-gh-release@v2
@@ -3018,7 +3117,7 @@ jobs:
     needs: [init-release, finalize-release]
     if: always() && !cancelled() && needs.finalize-release.result == 'success'
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 45
     concurrency:
       group: "pages"
       cancel-in-progress: false
@@ -3086,7 +3185,7 @@ jobs:
         shell: bash
         run: |
           GODOT_VER="${{ needs.init-release.outputs.godot_version }}"
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta3"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="4.8-beta4"; fi
           if [ -n "$GODOT4" ] && [ -f "$GODOT4" ] && file -b "$GODOT4" | grep -q "ELF.*x86-64"; then
             cp "$GODOT4" ./godot
             chmod +x ./godot
@@ -3130,7 +3229,7 @@ jobs:
         run: |
           echo "Executing Multi-Language & Crystal vs GDScript benchmarks via Lapis CLI..."
           TAG_NAME="${{ needs.init-release.outputs.godot_version }}"
-          if [ -z "$TAG_NAME" ]; then TAG_NAME="${GITHUB_REF_NAME:-4.8-beta3}"; fi
+          if [ -z "$TAG_NAME" ]; then TAG_NAME="${GITHUB_REF_NAME:-4.8-beta4}"; fi
           ./bin/lapis benchmarks run html --all-languages --ci --tag "$TAG_NAME" -i 2 || ./bin/lapis benchmarks run html --tag "$TAG_NAME" -i 1 || true
 
       - name: Compare Benchmarks Against Previous Release
@@ -3138,14 +3237,14 @@ jobs:
         run: |
           echo "Comparing current benchmark against previous baseline..."
           TAG_NAME="${{ needs.init-release.outputs.godot_version }}"
-          if [ -z "$TAG_NAME" ]; then TAG_NAME="${GITHUB_REF_NAME:-4.8-beta3}"; fi
+          if [ -z "$TAG_NAME" ]; then TAG_NAME="${GITHUB_REF_NAME:-4.8-beta4}"; fi
           ./bin/lapis benchmarks compare html --tag "$TAG_NAME" || true
 
       - name: Generate Crystal API Documentation & Embed Benchmarks
         shell: bash
         run: |
           GODOT_VER="${{ needs.init-release.outputs.godot_version }}"
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="${GITHUB_REF_NAME:-4.8-beta3}"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="${GITHUB_REF_NAME:-4.8-beta4}"; fi
           shards install || true
           ./bin/lapis docs --github --ref="$GODOT_VER"
           touch docs/.nojekyll
@@ -3156,7 +3255,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           GODOT_VER="${{ needs.init-release.outputs.godot_version }}"
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="${GITHUB_REF_NAME:-4.8-beta3}"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="${GITHUB_REF_NAME:-4.8-beta4}"; fi
           REF_NAME="${{ github.ref_name }}"
 
           mkdir -p docs/benchmarks/history
@@ -3192,7 +3291,7 @@ jobs:
             )
           fi
 
-          # 1. Always stage current version under /<GODOT_VER>/ (e.g. /4.8-beta3/)
+          # 1. Always stage current version under /<GODOT_VER>/ (e.g. /4.8-beta4/)
           rm -rf "_gh_pages/${GODOT_VER}"
           mkdir -p "_gh_pages/${GODOT_VER}"
           cp -r docs/. "_gh_pages/${GODOT_VER}/"
@@ -3252,7 +3351,7 @@ jobs:
         shell: bash
         run: |
           GODOT_VER="${{ needs.init-release.outputs.godot_version }}"
-          if [ -z "$GODOT_VER" ]; then GODOT_VER="${GITHUB_REF_NAME:-4.8-beta3}"; fi
+          if [ -z "$GODOT_VER" ]; then GODOT_VER="${GITHUB_REF_NAME:-4.8-beta4}"; fi
           BASE_URL="${{ steps.deployment.outputs.page_url }}"
           if [ -z "$BASE_URL" ]; then BASE_URL="https://sol-vin.github.io/lapis/"; fi
           if [ -n "$GITHUB_STEP_SUMMARY" ]; then

@@ -5,8 +5,11 @@ require "../core/step_summary"
 require "../core/godot_finder"
 require "../tui/tui"
 require "file_utils"
+require "digest/sha256"
 require "option_parser"
 require "./package"
+require "./setup"
+require "./shard_manager"
 
 module Lapis
   module Commands
@@ -158,7 +161,8 @@ HELP
         test_dir = target_dir
         test_bin_dir = target_dir.join("bin")
         FileUtils.mkdir_p(test_bin_dir) unless Dir.exists?(test_bin_dir)
-        godot_exe = Core::GodotFinder.resolve(godot_path, target_dir.to_s)
+        File.write(test_bin_dir.join(".gdignore"), "") unless File.exists?(test_bin_dir.join(".gdignore"))
+        godot_exe = Commands::Setup.ensure_godot_binary(target_dir, godot_path)
 
         junit_path ||= test_bin_dir.join("junit.xml").to_s
 
@@ -563,28 +567,27 @@ HELP
               Core::Logger.step("Test:Specs", "Running project specifications in #{target_dir.basename}/spec...") unless tui
               step_start = Time.instant
               spec_junit_dir = test_bin_dir.join("junit_specs")
-              isolated_cache = test_bin_dir.join(".crystal_cache")
-              # Ensure dependencies for consumer project if shard.yml exists
-              if File.exists?(target_dir.join("shard.yml")) && !Dir.exists?(target_dir.join("lib/lapis"))
-                if shards_exe = Core::ProcessRunner.find_executable("shards")
-                  Core::Logger.step("Shards", "Installing dependencies for #{target_dir.basename}...") unless tui
-                  Core::ProcessRunner.run(shards_exe, ["install"], chdir: target_dir.to_s)
-                  lib_gd = target_dir.join("lib/.gdignore")
-                  File.write(lib_gd, "") if Dir.exists?(target_dir.join("lib")) && !File.exists?(lib_gd)
-                end
+              short_hash = Digest::SHA256.hexdigest(target_dir.to_s)[0, 8]
+              isolated_cache = Path.new(Dir.tempdir).join("lapis_tc_#{short_hash}")
+              FileUtils.mkdir_p(isolated_cache) unless Dir.exists?(isolated_cache)
+              # Ensure dependencies and runtime DLLs for consumer project (e.g. freshly unzipped source archive)
+              if File.exists?(target_dir.join("shard.yml"))
+                Commands::ShardManager.ensure_dependencies(target_dir)
               end
+              Commands::Deps.run(["-t", test_bin_dir.to_s])
 
               # Build environment with augmented CRYSTAL_PATH
               spec_env = {"CRYSTAL_CACHE_DIR" => isolated_cache.to_s}
               sys_path = Core::ProcessRunner.capture("crystal", ["env", "CRYSTAL_PATH"])[:output].strip rescue ""
               sep = Core::Env.windows? ? ";" : ":"
-              augmented_paths = [
-                target_dir.join("lib").to_s,
-                root.join("src").to_s,
-                root.join("lib").to_s,
-              ]
+              augmented_paths = [] of String
+              augmented_paths << target_dir.join("lib/lapis/src").to_s if Dir.exists?(target_dir.join("lib/lapis/src"))
+              augmented_paths << target_dir.join("addons").to_s if Dir.exists?(target_dir.join("addons"))
+              augmented_paths << target_dir.join("lib").to_s if Dir.exists?(target_dir.join("lib"))
+              augmented_paths << root.join("src").to_s if Core::Env.is_libgodot_repo?(root) && Dir.exists?(root.join("src"))
+              augmented_paths << root.join("lib").to_s if Dir.exists?(root.join("lib"))
               augmented_paths << sys_path unless sys_path.empty?
-              spec_env["CRYSTAL_PATH"] = augmented_paths.join(sep)
+              spec_env["CRYSTAL_PATH"] = augmented_paths.uniq.join(sep)
               if Core::Env.windows?
                 bin_paths = [
                   target_dir.join("bin").to_s,
@@ -625,6 +628,28 @@ HELP
           # -----------------------------------------------------------------------
           if has_tool_tests
             if godot_exe
+              # For standalone consumer projects (e.g. freshly unzipped source archive), ensure extension_list.cfg,
+              # bridge/plugin DLLs, and game.dll are compiled before launching headless Godot editor tool tests!
+              if !is_root_engine
+                Commands::Sync.ensure_extension_list(target_dir)
+                ci_bin = target_dir.join("addons/crystal_integration/bin")
+                if Dir.exists?(target_dir.join("addons/crystal_integration"))
+                  FileUtils.mkdir_p(ci_bin) unless Dir.exists?(ci_bin)
+                  cand_dirs = Core::Env.candidate_runtime_dirs(root)
+                  [Core::Env.bridge_file, Core::Env.plugin_file].each do |bf|
+                    if src_c = cand_dirs.compact_map { |d| d.join(bf) if File.exists?(d.join(bf)) }.first?
+                      Commands::Deps.safe_copy(src_c, ci_bin.join(bf))
+                      Commands::Deps.safe_copy(src_c, test_bin_dir.join(bf))
+                    end
+                  end
+                  Commands::Deps.run(["-t", ci_bin.to_s, "--addon"])
+                end
+                Commands::Deps.run(["-t", test_bin_dir.to_s])
+                if File.exists?(target_dir.join("src/main.cr")) && !File.exists?(test_bin_dir.join(Core::Env.game_file))
+                  Commands::Build.run(["game", "-p", target_dir.to_s])
+                end
+              end
+
               phase_tag = "[TEST:TOOL_NODES]"
               if idx = phase_map[phase_tag]?
                 tui.try &.begin_phase(idx)

@@ -144,6 +144,19 @@ module Lapis
         candidates << Env::ROOT_DIR.join("..", "godot#{exe_ext}").to_s
         candidates << Env::ROOT_DIR.join("..", "godot.exe").to_s
         candidates << Env::ROOT_DIR.join("..", "godot").to_s
+        if (global_root = Env.global_libgodot_path)
+          candidates << global_root.join("godot#{exe_ext}").to_s
+          candidates << global_root.join("godot.exe").to_s
+          candidates << global_root.join("godot").to_s
+        end
+        if Env.windows?
+          if (local_app = ENV["LOCALAPPDATA"]?) && !local_app.empty?
+            candidates << Path.new(local_app).join("Programs", "Lapis", "godot", target_version, "godot.exe").to_s
+            candidates << Path.new(local_app).join("Programs", "Lapis", "bin", "godot.exe").to_s
+          end
+        else
+          candidates << Path.home.join(".cache", "lapis", "godot", target_version, "godot#{exe_ext}").to_s
+        end
         candidates << ProcessRunner.find_executable("godot")
         candidates << ProcessRunner.find_executable("godot4")
         candidates << ProcessRunner.find_executable("godot.exe")

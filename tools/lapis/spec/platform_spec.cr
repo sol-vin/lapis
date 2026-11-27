@@ -91,9 +91,55 @@ describe "Lapis Platform-Specific Operations" do
     end
   end
 
+  describe "Windows installer and Crystal environment registration definitions" do
+    it "verifies install_deps.ps1 installs Crystal 1.21.0 and registers CRYSTAL_ENV and crystal env paths" do
+      deps_ps1 = LapisSpecHelper.repo_root.join("scripts/windows/install_deps.ps1")
+      File.exists?(deps_ps1).should be_true
+      content = File.read(deps_ps1)
+      content.should contain("$TargetCrystalVersion = \"1.21.0\"")
+      content.should contain("crystal-$TargetCrystalVersion-windows-x86_64-msvc-unsupported.zip")
+      content.should_not contain("1.15.1")
+      content.should_not contain("CrystalLang.Crystal")
+      content.should contain("Programs\\Crystal\\crystal.exe")
+      content.should contain("scoop\\apps\\crystal\\current\\crystal.exe")
+      content.should contain("Register-CrystalEnvironment")
+      content.should contain("CRYSTAL_ENV")
+      content.should contain("CRYSTAL_PATH")
+      content.should contain("CRYSTAL_LIBRARY_PATH")
+      content.should contain("CRYSTAL_CACHE_DIR")
+      content.should contain("CRYSTAL_EXEC_PATH")
+      content.should contain("SendMessageTimeout")
+    end
+
+    it "verifies lapis_installer.iss and install.ps1 always invoke Crystal environment configuration" do
+      iss_path = LapisSpecHelper.repo_root.join("packaging/windows/lapis_installer.iss")
+      iss_content = File.read(iss_path)
+      iss_content.should contain("HasCrystalEnv")
+      iss_content.should contain("CheckCrystalEnvConfigured")
+      iss_content.should contain("CheckMSVCInstalled")
+      iss_content.should contain("\\Programs\\Crystal\\crystal.exe")
+      iss_content.should contain("\\scoop\\apps\\crystal\\current\\crystal.exe")
+      iss_content.should contain("-ConfigureCrystalEnv")
+
+      install_ps1 = LapisSpecHelper.repo_root.join("scripts/windows/install.ps1")
+      install_content = File.read(install_ps1)
+      install_content.should contain("raw.githubusercontent.com/sol-vin/lapis/master/scripts/windows/install_deps.ps1")
+      install_content.should_not contain("raw.githubusercontent.com/sol-vin/lapis/main/")
+      install_content.should contain("-ConfigureCrystalEnv")
+    end
+  end
+
   # Platform-specific conditional suites
   {% if flag?(:windows) %}
     describe "Windows-Specific Features" do
+      it "validates PowerShell AST syntax for Windows installer scripts" do
+        ["scripts/windows/install_deps.ps1", "scripts/windows/install.ps1"].each do |rel|
+          ps_file = LapisSpecHelper.repo_root.join(rel).to_s.gsub("'", "''")
+          cmd = "$errs = $null; [void][System.Management.Automation.Language.Parser]::ParseFile('#{ps_file}', [ref]$null, [ref]$errs); if ($errs.Count -gt 0) { $errs | ForEach-Object { Write-Error $_.ToString() }; exit 1 }"
+          res = Lapis::Core::ProcessRunner.capture("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", cmd])
+          res[:status].success?.should be_true, "PowerShell syntax error in #{rel}:\n#{res[:output]}\n#{res[:error]}"
+        end
+      end
       it "has valid Inno Setup installer script definition" do
         iss_path = LapisSpecHelper.repo_root.join("packaging/windows/lapis_installer.iss")
         File.exists?(iss_path).should be_true

@@ -69,7 +69,7 @@ module Lapis
           @dependencies : Array(String),
           @is_recompilable : Bool,
           @binary_status : String,
-          @path : Path
+          @path : Path,
         )
         end
       end
@@ -174,6 +174,8 @@ module Lapis
         has_src = Dir.exists?(dir.join("src")) && !Dir.glob(dir.join("src/**/*.cr").to_s.gsub('\\', '/')).empty?
         has_shard = File.exists?(shard_file)
         has_makefile = File.exists?(dir.join("Makefile"))
+        compilable_entry = Commands::Build.resolve_addon_entrypoint(dir)
+        is_compilable_source = !compilable_entry.nil? || has_makefile
         is_source = has_src || has_shard || has_makefile
 
         bin_dir = dir.join("bin")
@@ -193,11 +195,13 @@ module Lapis
                  :gdscript
                end
 
-        is_recompilable = is_source
+        is_recompilable = is_compilable_source
 
         binary_status = case type
                         when :source
-                          if bin_files.empty?
+                          if !is_compilable_source && !has_gdext && bin_files.empty?
+                            "Linked in Game"
+                          elsif bin_files.empty?
                             "Missing binary"
                           else
                             cr_files = Dir.glob(dir.join("src/**/*.cr").to_s.gsub('\\', '/'))
@@ -424,9 +428,9 @@ module Lapis
               name = e["name"]?.try(&.as_s) || ""
               type = e["type"]?.try(&.as_s) || ""
               (name == "src" && type == "dir") ||
-              (name == "addons" && type == "dir") ||
-              (name == "shard.yml") ||
-              name.ends_with?(".cr")
+                (name == "addons" && type == "dir") ||
+                (name == "shard.yml") ||
+                name.ends_with?(".cr")
             end
           rescue
           end
@@ -569,9 +573,9 @@ module Lapis
               name = e["name"]?.try(&.as_s) || ""
               type = e["type"]?.try(&.as_s) || ""
               (name == "src" && type == "tree") ||
-              (name == "addons" && type == "tree") ||
-              (name == "shard.yml") ||
-              name.ends_with?(".cr")
+                (name == "addons" && type == "tree") ||
+                (name == "shard.yml") ||
+                name.ends_with?(".cr")
             end
           rescue
           end
@@ -810,19 +814,18 @@ module Lapis
       rescue
       end
 
-      # Stages GDExtension runtime dependencies if addon contains .gdextension
+      # Stages GDExtension runtime dependencies if addon is a Crystal GDExtension
       def self.stage_addon_dependencies(addon_dir : Path) : Void
         gdext_files = Dir.glob(addon_dir.join("**/*.gdextension").to_s.gsub('\\', '/'))
         return if gdext_files.empty?
 
+        uses_crystal_bridge = gdext_files.any? do |gf|
+          (File.read(gf) rescue "").includes?("crystal_bridge")
+        end || Dir.exists?(addon_dir.join("src")) || File.exists?(addon_dir.join("shard.yml"))
+        return unless uses_crystal_bridge
+
         bin_dir = addon_dir.join("bin")
         FileUtils.mkdir_p(bin_dir) unless Dir.exists?(bin_dir)
-
-        bridge_name = Core::Env.bridge_file
-        needed_files = [bridge_name]
-        if Core::Env.windows?
-          needed_files += ["gc.dll", "iconv-2.dll", "pcre2-8.dll"]
-        end
 
         # GDExtension addons must NEVER contain or link libgodot shared library.
         # Defensively purge any erroneously copied libgodot binaries from addon bin directory.
@@ -831,10 +834,8 @@ module Lapis
         FileUtils.rm_f(bin_dir.join(libgodot_name)) if File.exists?(bin_dir.join(libgodot_name))
         FileUtils.rm_f(bin_dir.join(libgodot_lib)) if File.exists?(bin_dir.join(libgodot_lib))
 
-        if needed_files.any? { |f| !File.exists?(bin_dir.join(f)) }
-          Core::Logger.step("Deps", "Staging GDExtension runtime dependencies into #{bin_dir}...")
-          Commands::Deps.run(["-t", bin_dir.to_s, "--addon"])
-        end
+        Core::Logger.step("Deps", "Staging GDExtension runtime dependencies into #{bin_dir}...")
+        Commands::Deps.run(["-t", bin_dir.to_s, "--addon"])
       end
 
       # Smart extraction of addon archives with atomic CWE-22 path-traversal validation and canonical containment
@@ -1016,7 +1017,7 @@ module Lapis
           Core::Logger.info("Addon directory '#{target_addon_dir}' already exists. Use --force to overwrite.")
         end
 
-        temp_zip = project_dir.join("scratch", "addon_temp_#{::Time.utc.to_unix_ms}.zip")
+        temp_zip = Path.new(Dir.tempdir).join("lapis_addon_temp_#{::Time.utc.to_unix_ms}_#{Random.rand(10000)}.zip")
         FileUtils.mkdir_p(temp_zip.parent)
 
         begin
@@ -1024,7 +1025,6 @@ module Lapis
           when :invalid_path
             Core::Logger.error(spec.error_message || "Invalid addon path: #{spec.raw}")
             return 1
-
           when :local_file
             local_path = Path.new(spec.path.not_nil!).expand
             unless File.exists?(local_path)
@@ -1035,7 +1035,6 @@ module Lapis
             unless extract_addon_zip(local_path, project_dir, addon_name)
               return 1
             end
-
           when :local_dir
             local_path = Path.new(spec.path.not_nil!).expand
             unless Dir.exists?(local_path)
@@ -1044,7 +1043,6 @@ module Lapis
             end
             Core::Logger.step("Install:Addon", "Installing from local directory #{local_path}...")
             extract_addon_from_folder(local_path, project_dir, addon_name)
-
           when :git
             git_url = spec.path || spec.raw.sub(/^git:/, "")
             Core::Logger.step("Install:Addon", "Cloning git repository from #{git_url} (source mode)...")
@@ -1053,7 +1051,7 @@ module Lapis
               Core::Logger.error("Git executable not found in PATH to clone #{git_url}")
               return 1
             end
-            clone_stage = project_dir.join("scratch", "addon_git_#{::Time.utc.to_unix_ms}")
+            clone_stage = Path.new(Dir.tempdir).join("lapis_addon_git_#{::Time.utc.to_unix_ms}_#{Random.rand(10000)}")
             FileUtils.rm_rf(clone_stage) if Dir.exists?(clone_stage)
             clone_args = ["clone", "--depth", "1"]
             if t = spec.tag
@@ -1068,7 +1066,6 @@ module Lapis
             end
             extract_addon_from_folder(clone_stage, project_dir, addon_name)
             FileUtils.rm_rf(clone_stage) if Dir.exists?(clone_stage)
-
           when :gitlab
             owner = spec.owner.not_nil!
             repo = spec.repo.not_nil!
@@ -1111,7 +1108,6 @@ module Lapis
             unless extract_addon_zip(temp_zip, project_dir, addon_name)
               return 1
             end
-
           when :github
             owner = spec.owner.not_nil!
             repo = spec.repo.not_nil!
@@ -1172,7 +1168,6 @@ module Lapis
             unless extract_addon_zip(temp_zip, project_dir, addon_name)
               return 1
             end
-
           when :url
             url = spec.path.not_nil!
             Core::Logger.step("Install:Addon", "Downloading addon archive from #{url}...")
@@ -1224,12 +1219,12 @@ module Lapis
           # Ensure GDExtension is registered in .godot/extension_list.cfg for immediate ClassDB discovery
           register_in_extension_list(project_dir, target_addon_dir)
 
-          # Post-Install Step 2a: If this is a source-included addon with src/main.cr, ensure library entrypoint and compile if needed
-          if File.exists?(target_addon_dir.join("src", "main.cr"))
+          # Post-Install Step 2a: If this is a compilable source addon, ensure library entrypoint and compile if needed
+          if entry_cr = Commands::Build.resolve_addon_entrypoint(target_addon_dir)
             Commands::Build.ensure_addon_library_entrypoint(target_addon_dir, addon_name)
             info_check = inspect_addon(target_addon_dir)
             if prefer_source || info_check.binary_status != "Up-to-date"
-              Core::Logger.step("Addon:Build", "Compiling source-included addon '#{addon_name}' from #{target_addon_dir.join("src/main.cr")}...")
+              Core::Logger.step("Addon:Build", "Compiling source-included addon '#{addon_name}' from #{entry_cr}...")
               Commands::Build.compile_addon_dir(target_addon_dir, project_dir, force: prefer_source || force)
             end
           end
@@ -1480,7 +1475,7 @@ HELP
               type_str,
               info.binary_status,
               deps_str,
-              desc_short
+              desc_short,
             ])
           end
 

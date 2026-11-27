@@ -16,6 +16,7 @@ module Lapis
       enum Target
         Game
         Portable
+        Source
         Pck
         Addon
         {% if flag?(:windows) %}
@@ -33,6 +34,7 @@ module Lapis
         list = [
           {Target::Game, "Playable Game"},
           {Target::Portable, "Portable Executable"},
+          {Target::Source, "Source Archive (.zip)"},
           {Target::Pck, "Godot Pack (.pck)"},
           {Target::Addon, "GDExtension Addon"},
         ]
@@ -178,6 +180,8 @@ module Lapis
                       "Builds standalone game distribution archives with runtime dependencies."
                     when Target::Portable
                       "Produces a standalone single-file binary with the Godot PCK embedded into the executable."
+                    when Target::Source
+                      "Packages clean portable project source into <name>-source.zip (excludes bin, lib, log, .godot, .git)."
                     when Target::Pck
                       "Generates standalone Godot package archive (.pck) with compiled assets and scripts."
                     when Target::Addon
@@ -332,7 +336,7 @@ module Lapis
       end
 
       private def start_package_build
-        if @target == Target::Game || @target == Target::Portable || @target == Target::Pck
+        if @target == Target::Game || @target == Target::Portable || @target == Target::Source || @target == Target::Pck
           curr_dir = Path.new(Dir.current)
           children = Dir.children(curr_dir).reject { |c| c == ".git" || c == "bin" || c == ".tmp" }
           if children.empty?
@@ -359,6 +363,7 @@ module Lapis
           target_arg = case @target
                        when Target::Game            then "game"
                        when Target::Portable        then "portable"
+                       when Target::Source          then "source"
                        when Target::Pck             then "pck"
                        when Target::Addon           then "addon"
                        when Target::Toolchain       then "lapis"

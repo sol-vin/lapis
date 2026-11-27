@@ -240,6 +240,9 @@ describe "LibGodot Safety, GC Retention & Dynamic Scaling" do
       null_wrapper.try?(&.position.x).should be_nil
       null_wrapper.try?.should be_nil
       null_wrapper.if_alive.should be_nil
+
+      # 7. C-ABI callback exception reporter never re-raises
+      Godot::Bridge.report_callback_exception("virtual method '_process'", RuntimeError.new("simulated error"))
     end
   end
 end

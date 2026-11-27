@@ -19,18 +19,19 @@ module Lapis
 Usage: lapis setup [templates] [version] [options]
 
 Options:
-  -v, --version=TAG     Target Godot version (e.g. 4.8-beta3, default from godot-version.yml)
+  -v, --version=TAG     Target Godot version (e.g. 4.8-beta4, default from godot-version.yml)
   -t, --templates       Download and install Godot export templates
   -o, --output=PATH     Package export templates into specified zip
   -f, --force           Force download even if godot executable exists
   --skip-dump           Skip dumping extension_api.json after setup
+  --skip-build          Skip compiling Crystal source addons and project game binary
   --lsp                 Configure Crystalline Language Server (LSP) library via shards
   --innosetup           Install Inno Setup Compiler [Windows only]
   -h, --help            Show this help screen
 
 Examples:
   lapis setup
-  lapis setup 4.8-beta3
+  lapis setup 4.8-beta4
   lapis setup templates
   lapis setup templates -o bin/export-templates.zip
   lapis setup --force
@@ -51,7 +52,7 @@ HELP
         Core::GodotFinder::EMBEDDED_GODOT_VERSION
       end
 
-      # When upgrading the Lapis repository to a new Godot version (e.g. 4.8-beta1 -> 4.8-beta3),
+      # When upgrading the Lapis repository to a new Godot version (e.g. 4.8-beta1 -> 4.8-beta4),
       # synchronizes godot-version.yml, template manifests, C++ bridge header, badges.yml, README.md,
       # and automatically bumps the Lapis minor version (0.X.0) in shard.yml and tools/lapis/shard.yml.
       def self.sync_repo_version_on_godot_upgrade(root : Path, target_version : String) : Void
@@ -213,6 +214,28 @@ CPP
           return true if download_and_extract(url, dest_exe)
         end
         false
+      end
+
+      # Resolves an existing Godot binary matching the project's expected version, or automatically
+      # downloads and extracts it into `<project_dir>/godot(.exe)` on fresh host machines (e.g. after unzipping a source archive).
+      def self.ensure_godot_binary(
+        project_dir : Path,
+        custom_path : String? = nil,
+        filter_version : Bool = true,
+      ) : String?
+        found = Core::GodotFinder.resolve(custom_path, project_dir.to_s, filter_version: filter_version)
+        return found if found
+
+        # Never auto-download when caller passed an explicit custom binary path or disabled auto-provisioning
+        return nil if (custom_path && !custom_path.empty?) || ENV["LAPIS_NO_AUTO_GODOT"]? == "1"
+
+        expected_ver = Core::GodotFinder.expected_version(project_dir.to_s)
+        dest_exe = project_dir.expand.join("godot#{Core::Env.exe_ext}")
+        Core::Logger.step("Setup", "Godot #{expected_ver} not found on host; downloading into #{dest_exe}...")
+        if download_godot_for_version(expected_ver, dest_exe) && File.exists?(dest_exe)
+          return dest_exe.to_s
+        end
+        nil
       end
 
       def self.download_to_file(url : String, dest_file : Path, max_retries : Int32 = 3) : Bool
@@ -501,6 +524,7 @@ CPP
         cli_ver : String? = nil
         force = false
         skip_dump = false
+        skip_build = false
         templates_mode = false
         lsp_mode = false
         innosetup_mode = false
@@ -512,7 +536,9 @@ CPP
           opts.on("-t", "--templates", "Download and install export templates") { templates_mode = true }
           opts.on("-o PATH", "--output=PATH", "Package export templates zip") { |p| zip_output = Path.new(p) }
           opts.on("-f", "--force", "Force re-download") { force = true }
+          opts.on("-y", "--yes", "Automatically accept setup prompts") { }
           opts.on("--skip-dump", "Skip dumping extension_api.json") { skip_dump = true }
+          opts.on("--skip-build", "Skip compiling Crystal source addons and project game binary") { skip_build = true }
           opts.on("--lsp", "Configure Crystalline LSP library via shards") { lsp_mode = true }
           opts.on("--innosetup", "Install Inno Setup Compiler [Windows only]") { innosetup_mode = true }
           opts.on("-h", "--help", "Show help") { print_help; exit 0 }
@@ -555,6 +581,13 @@ CPP
         end
 
         dest_exe = root.join("godot#{Core::Env.exe_ext}")
+        is_monorepo = Core::Env.is_libgodot_repo?(root)
+
+        if !is_monorepo
+          Commands::Sync.purge_stray_monorepo_dirs(root)
+          stray_api = root.join("extension_api.json")
+          File.delete(stray_api) if File.exists?(stray_api) && !File.exists?(root.join("src/libgodot.cr"))
+        end
 
         if cli_ver || !remaining.empty?
           sync_repo_version_on_godot_upgrade(root, target_version)
@@ -572,10 +605,53 @@ CPP
           end
         end
 
-        unless skip_dump
-          Core::Logger.step("Setup", "Dumping extension API & generating engine bindings...")
-          res = Bind::Engine.generate(dump_api: true)
-          return res if res != 0
+        if is_monorepo
+          unless skip_dump
+            Core::Logger.step("Setup", "Dumping extension API & generating engine bindings...")
+            res = Bind::Engine.generate(dump_api: true)
+            return res if res != 0
+          end
+        elsif Core::Env.is_standalone_project?(root)
+          # Provision embedded Lapis library, shard dependencies, GDExtension bridge/plugin, and game binary
+          if File.exists?(root.join("shard.yml"))
+            Commands::ShardManager.ensure_dependencies(root)
+          elsif Core::BakedFileSystem.files_with_prefix("src").size > 0
+            Core::BakedFileSystem.extract_engine_lib(root.join("lib/lapis"), overwrite: true)
+          end
+
+          if !skip_dump && target_version != Core::GodotFinder::EMBEDDED_GODOT_VERSION && Dir.exists?(root.join("lib/lapis/src"))
+            Core::Logger.step("Setup", "Target Godot (#{target_version}) differs from embedded (#{Core::GodotFinder::EMBEDDED_GODOT_VERSION}); regenerating engine bindings in lib/lapis...")
+            temp_api = root.join("lib/lapis/extension_api.json")
+            res = Bind::Engine.generate(
+              api_path: temp_api,
+              output_dir: root.join("lib/lapis/src/libgodot/generated"),
+              dump_api: true
+            )
+            File.delete(temp_api) if File.exists?(temp_api)
+            File.delete(root.join("extension_api.json")) if File.exists?(root.join("extension_api.json"))
+            return res if res != 0
+          end
+
+          Commands::Sync.ensure_extension_list(root)
+          Commands::Deps.ensure_bridge_and_plugin(root, need_plugin: !skip_dump)
+          Commands::Deps.run(["-t", root.join("bin").to_s])
+          if Dir.exists?(root.join("addons/crystal_integration"))
+            Commands::Deps.run(["-t", root.join("addons/crystal_integration/bin").to_s, "--addon"])
+          end
+
+          if !skip_build && Dir.exists?(root.join("addons"))
+            Core::Logger.step("Setup", "Building Crystal source addons...")
+            addon_res = Commands::Build.build_addons(["-p", root.to_s])
+            return addon_res if addon_res != 0
+          end
+
+          Commands::Sync.ensure_extension_list(root)
+
+          if !skip_dump && !skip_build && File.exists?(root.join("src/main.cr"))
+            Core::Logger.step("Setup", "Building project game library...")
+            build_res = Commands::Build.run(["game", "-p", root.to_s])
+            return build_res if build_res != 0
+          end
         end
 
         Core::Logger.success("Godot engine setup and API bindings completed successfully!")
@@ -584,3 +660,8 @@ CPP
     end
   end
 end
+
+require "./deps"
+require "./sync"
+require "./shard_manager"
+require "./build"

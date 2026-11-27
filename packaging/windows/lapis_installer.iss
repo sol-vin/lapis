@@ -62,6 +62,8 @@ Name: "{group}\Uninstall Lapis"; Filename: "{uninstallexe}"
 var
   PrereqPage: TInputOptionWizardPage;
   HasCrystal: Boolean;
+  HasCrystalEnv: Boolean;
+  HasMSVC: Boolean;
   HasRadare2: Boolean;
   HasMake: Boolean;
   HasGit: Boolean;
@@ -75,15 +77,125 @@ begin
   Result := Exec(ExpandConstant('{cmd}'), '/c where ' + Cmd, '', SW_HIDE, ewWaitUntilTerminated, ResultCode) and (ResultCode = 0);
 end;
 
-function CheckCrystalInstalled(): Boolean;
+function FindCrystalExecutable(): string;
 var
   UserProf: string;
+  LocalApp: string;
+  Cand: string;
 begin
+  Result := '';
   UserProf := GetEnv('USERPROFILE');
-  Result := IsCommandInPath('crystal.exe') or
-            FileExists('C:\Program Files\Crystal\bin\crystal.exe') or
-            FileExists('C:\Crystal\bin\crystal.exe') or
-            ((UserProf <> '') and FileExists(UserProf + '\scoop\apps\crystal\current\bin\crystal.exe'));
+  LocalApp := ExpandConstant('{localappdata}');
+
+  Cand := LocalApp + '\Programs\Crystal\crystal.exe';
+  if FileExists(Cand) then begin Result := Cand; Exit; end;
+  Cand := LocalApp + '\Programs\Crystal\bin\crystal.exe';
+  if FileExists(Cand) then begin Result := Cand; Exit; end;
+
+  if UserProf <> '' then
+  begin
+    Cand := UserProf + '\scoop\apps\crystal\current\crystal.exe';
+    if FileExists(Cand) then begin Result := Cand; Exit; end;
+    Cand := UserProf + '\scoop\apps\crystal\current\bin\crystal.exe';
+    if FileExists(Cand) then begin Result := Cand; Exit; end;
+    Cand := UserProf + '\scoop\shims\crystal.exe';
+    if FileExists(Cand) then begin Result := Cand; Exit; end;
+  end;
+
+  if FileExists('C:\Program Files\Crystal\crystal.exe') then begin Result := 'C:\Program Files\Crystal\crystal.exe'; Exit; end;
+  if FileExists('C:\Program Files\Crystal\bin\crystal.exe') then begin Result := 'C:\Program Files\Crystal\bin\crystal.exe'; Exit; end;
+  if FileExists('C:\Crystal\crystal.exe') then begin Result := 'C:\Crystal\crystal.exe'; Exit; end;
+  if FileExists('C:\Crystal\bin\crystal.exe') then begin Result := 'C:\Crystal\bin\crystal.exe'; Exit; end;
+
+  if IsCommandInPath('crystal.exe') then
+    Result := 'crystal.exe';
+end;
+
+function CheckCrystalInstalled(): Boolean;
+var
+  CrystalExe: string;
+  VerFile: string;
+  VerOut: AnsiString;
+  VerStr: string;
+  ResultCode: Integer;
+begin
+  CrystalExe := FindCrystalExecutable();
+  if CrystalExe = '' then
+  begin
+    Result := False;
+    Exit;
+  end;
+
+  VerFile := ExpandConstant('{tmp}\crystal_ver_check.txt');
+  DeleteFile(VerFile);
+  if Exec(ExpandConstant('{cmd}'), '/c ""' + CrystalExe + '" --version > "' + VerFile + '" 2>&1"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) and
+     (ResultCode = 0) and LoadStringFromFile(VerFile, VerOut) then
+  begin
+    VerStr := String(VerOut);
+    // Require Crystal 1.20+ (e.g. 1.20.x, 1.21.x, 1.22.x)
+    Result := (Pos('Crystal 1.2', VerStr) > 0) or (Pos('Crystal 1.3', VerStr) > 0) or (Pos('Crystal 2.', VerStr) > 0);
+  end
+  else
+    Result := False;
+  DeleteFile(VerFile);
+end;
+
+function HasEnvVarRegistered(const VarName: string): Boolean;
+var
+  Val: string;
+begin
+  Result := (RegQueryStringValue(HKCU, 'Environment', VarName, Val) and (Trim(Val) <> '')) or
+            (RegQueryStringValue(HKLM, 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment', VarName, Val) and (Trim(Val) <> ''));
+end;
+
+function CheckCrystalEnvConfigured(): Boolean;
+begin
+  Result := HasEnvVarRegistered('CRYSTAL_ENV') and
+            HasEnvVarRegistered('CRYSTAL_PATH') and
+            HasEnvVarRegistered('CRYSTAL_LIBRARY_PATH');
+end;
+
+function CheckMSVCInstalled(): Boolean;
+var
+  PF86: string;
+  PF: string;
+  VsWhere: string;
+  OutFile: string;
+  OutText: AnsiString;
+  ResultCode: Integer;
+begin
+  PF86 := GetEnv('ProgramFiles(x86)');
+  PF := GetEnv('ProgramFiles');
+  VsWhere := '';
+  if (PF86 <> '') and FileExists(PF86 + '\Microsoft Visual Studio\Installer\vswhere.exe') then
+    VsWhere := PF86 + '\Microsoft Visual Studio\Installer\vswhere.exe'
+  else if (PF <> '') and FileExists(PF + '\Microsoft Visual Studio\Installer\vswhere.exe') then
+    VsWhere := PF + '\Microsoft Visual Studio\Installer\vswhere.exe';
+
+  if VsWhere <> '' then
+  begin
+    OutFile := ExpandConstant('{tmp}\vswhere_check.txt');
+    DeleteFile(OutFile);
+    if Exec(ExpandConstant('{cmd}'), '/c ""' + VsWhere + '" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath > "' + OutFile + '" 2>&1"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) and
+       (ResultCode = 0) and LoadStringFromFile(OutFile, OutText) then
+    begin
+      DeleteFile(OutFile);
+      if Trim(String(OutText)) <> '' then
+      begin
+        Result := True;
+        Exit;
+      end;
+    end;
+    DeleteFile(OutFile);
+  end;
+
+  Result := DirExists('C:\Program Files\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC') or
+            DirExists('C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC') or
+            DirExists('C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC') or
+            DirExists('C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC') or
+            DirExists('C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC') or
+            DirExists('C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Tools\MSVC') or
+            DirExists('C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC');
 end;
 
 function CheckRadare2Installed(): Boolean;
@@ -109,7 +221,8 @@ begin
             FileExists('C:\Program Files\Git\usr\bin\make.exe') or
             FileExists('C:\msys64\usr\bin\make.exe') or
             FileExists('C:\msys64\mingw64\bin\mingw32-make.exe') or
-            ((UserProf <> '') and FileExists(UserProf + '\scoop\apps\make\current\make.exe'));
+            ((UserProf <> '') and FileExists(UserProf + '\scoop\apps\make\current\make.exe')) or
+            ((UserProf <> '') and FileExists(UserProf + '\scoop\apps\make\current\bin\make.exe'));
 end;
 
 function CheckGitInstalled(): Boolean;
@@ -156,11 +269,23 @@ begin
             ((UserProf <> '') and FileExists(UserProf + '\scoop\apps\innosetup\current\ISCC.exe'));
 end;
 
+function AppendPathSafely(const ExistingPath: string; const Entry: string): string;
+begin
+  if Trim(ExistingPath) = '' then
+    Result := Entry
+  else if ExistingPath[Length(ExistingPath)] = ';' then
+    Result := ExistingPath + Entry
+  else
+    Result := ExistingPath + ';' + Entry;
+end;
+
 procedure InitializeWizard;
 var
   Desc: string;
 begin
   HasCrystal := CheckCrystalInstalled();
+  HasCrystalEnv := CheckCrystalEnvConfigured();
+  HasMSVC := CheckMSVCInstalled();
   HasRadare2 := CheckRadare2Installed();
   HasMake := CheckMakeInstalled();
   HasGit := CheckGitInstalled();
@@ -176,58 +301,69 @@ begin
     False, False
   );
 
-  // Crystal Compiler
-  if HasCrystal then
-    Desc := 'Crystal Compiler (Found on system)'
+  // 0: Crystal Compiler & CRYSTAL_ENV
+  if HasCrystal and HasCrystalEnv then
+    Desc := 'Crystal Compiler 1.20+ & CRYSTAL_ENV (Found on system)'
+  else if HasCrystal then
+    Desc := 'Configure Crystal Environment & CRYSTAL_ENV (Crystal found; env vars missing)'
   else
-    Desc := 'Install Crystal Compiler (Required for compiling game libraries)';
+    Desc := 'Install Crystal 1.21.0 & Configure CRYSTAL_ENV (Required for compiling game libraries)';
   PrereqPage.Add(Desc);
-  PrereqPage.Values[0] := not HasCrystal;
+  PrereqPage.Values[0] := (not HasCrystal) or (not HasCrystalEnv);
 
-  // radare2 Debugger
+  // 1: MSVC C++ Build Tools & Linker
+  if HasMSVC then
+    Desc := 'MSVC C++ Build Tools & Linker (Found on system)'
+  else
+    Desc := 'Install MSVC C++ Build Tools (Required by Crystal on Windows to link DLLs)';
+  PrereqPage.Add(Desc);
+  PrereqPage.Values[1] := not HasMSVC;
+
+  // 2: radare2 Debugger
   if HasRadare2 then
     Desc := 'radare2 Native Debugger & Decompiler (Found on system)'
   else
     Desc := 'Install radare2 Native Debugger (Required for in-editor debugging & decompilation)';
   PrereqPage.Add(Desc);
-  PrereqPage.Values[1] := not HasRadare2;
+  PrereqPage.Values[2] := not HasRadare2;
 
-  // GNU Make
+  // 3: GNU Make
   if HasMake then
     Desc := 'GNU Make (Found on system)'
   else
     Desc := 'Install GNU Make (Required for project builds and build automation)';
   PrereqPage.Add(Desc);
-  PrereqPage.Values[2] := not HasMake;
+  PrereqPage.Values[3] := not HasMake;
 
-  // Git
+  // 4: Git
   if HasGit then
     Desc := 'Git for Windows (Found on system)'
   else
     Desc := 'Install Git (Required for shards dependency resolution)';
   PrereqPage.Add(Desc);
-  PrereqPage.Values[3] := not HasGit;
+  PrereqPage.Values[4] := not HasGit;
 
-  // Crystalline LSP
+  // 5: Crystalline LSP
   if HasCrystalline then
     Desc := 'Crystalline Language Server (Found on system)'
   else
     Desc := 'Install Crystalline LSP (Enables in-editor Crystal autocompletion & diagnostics)';
   PrereqPage.Add(Desc);
-  PrereqPage.Values[4] := not HasCrystalline;
+  PrereqPage.Values[5] := not HasCrystalline;
 
-  // Inno Setup Compiler
+  // 6: Inno Setup Compiler
   if HasInnoSetup then
     Desc := 'Inno Setup Compiler (Found on system)'
   else
     Desc := 'Install Inno Setup Compiler (Required for packaging Windows game installers)';
   PrereqPage.Add(Desc);
-  PrereqPage.Values[5] := not HasInnoSetup;
+  PrereqPage.Values[6] := not HasInnoSetup;
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
 var
   DepsToInstall: string;
+  ToolsArg: string;
   ResultCode: Integer;
   ScriptPath: string;
   PowerShellExe: string;
@@ -237,54 +373,7 @@ var
 begin
   if CurStep = ssPostInstall then
   begin
-    // 1. Dependency Auto-Installation
-    DepsToInstall := '';
-    if (not HasCrystal) and PrereqPage.Values[0] then
-    begin
-      if Length(DepsToInstall) > 0 then DepsToInstall := DepsToInstall + ',';
-      DepsToInstall := DepsToInstall + 'crystal';
-    end;
-    if (not HasRadare2) and PrereqPage.Values[1] then
-    begin
-      if Length(DepsToInstall) > 0 then DepsToInstall := DepsToInstall + ',';
-      DepsToInstall := DepsToInstall + 'radare2';
-    end;
-    if (not HasMake) and PrereqPage.Values[2] then
-    begin
-      if Length(DepsToInstall) > 0 then DepsToInstall := DepsToInstall + ',';
-      DepsToInstall := DepsToInstall + 'make';
-    end;
-    if (not HasGit) and PrereqPage.Values[3] then
-    begin
-      if Length(DepsToInstall) > 0 then DepsToInstall := DepsToInstall + ',';
-      DepsToInstall := DepsToInstall + 'git';
-    end;
-    if (not HasCrystalline) and PrereqPage.Values[4] then
-    begin
-      if Length(DepsToInstall) > 0 then DepsToInstall := DepsToInstall + ',';
-      DepsToInstall := DepsToInstall + 'crystalline';
-    end;
-    if (not HasInnoSetup) and PrereqPage.Values[5] then
-    begin
-      if Length(DepsToInstall) > 0 then DepsToInstall := DepsToInstall + ',';
-      DepsToInstall := DepsToInstall + 'innosetup';
-    end;
-
-    if Length(DepsToInstall) > 0 then
-    begin
-      ScriptPath := ExpandConstant('{tmp}\install_deps.ps1');
-      if FileExists(ScriptPath) then
-      begin
-        PowerShellExe := ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe');
-        if not FileExists(PowerShellExe) then
-          PowerShellExe := 'powershell.exe';
-
-        WizardForm.StatusLabel.Caption := 'Installing prerequisite development tools...';
-        Exec(PowerShellExe, '-NoProfile -ExecutionPolicy Bypass -File "' + ScriptPath + '" -Tools ' + DepsToInstall + ' -Silent', '', SW_SHOW, ewWaitUntilTerminated, ResultCode);
-      end;
-    end;
-
-    // 2. PATH Registration
+    // 1. PATH Registration (before dependency script so {app}\bin is discoverable)
     if WizardIsTaskSelected('envPath') then
     begin
       AppBinDir := ExpandConstant('{app}\bin');
@@ -294,14 +383,13 @@ begin
         begin
           if Pos(Uppercase(AppBinDir), Uppercase(OrigPath)) = 0 then
           begin
-            NewPath := OrigPath + ';' + AppBinDir;
+            NewPath := AppendPathSafely(OrigPath, AppBinDir);
             if not RegWriteStringValue(HKLM, 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment', 'Path', NewPath) then
             begin
-              // Fallback to HKCU if writing to HKLM was rejected
               if RegQueryStringValue(HKCU, 'Environment', 'Path', OrigPath) then
               begin
                 if Pos(Uppercase(AppBinDir), Uppercase(OrigPath)) = 0 then
-                  RegWriteStringValue(HKCU, 'Environment', 'Path', OrigPath + ';' + AppBinDir);
+                  RegWriteStringValue(HKCU, 'Environment', 'Path', AppendPathSafely(OrigPath, AppBinDir));
               end
               else
                 RegWriteStringValue(HKCU, 'Environment', 'Path', AppBinDir);
@@ -314,16 +402,72 @@ begin
         if RegQueryStringValue(HKCU, 'Environment', 'Path', OrigPath) then
         begin
           if Pos(Uppercase(AppBinDir), Uppercase(OrigPath)) = 0 then
-          begin
-            NewPath := OrigPath + ';' + AppBinDir;
-            RegWriteStringValue(HKCU, 'Environment', 'Path', NewPath);
-          end;
+            RegWriteStringValue(HKCU, 'Environment', 'Path', AppendPathSafely(OrigPath, AppBinDir));
         end
         else
         begin
           RegWriteStringValue(HKCU, 'Environment', 'Path', AppBinDir);
         end;
       end;
+    end;
+
+    // 2. Dependency Auto-Installation & Crystal Environment Registration
+    DepsToInstall := '';
+    if PrereqPage.Values[0] then
+    begin
+      if Length(DepsToInstall) > 0 then DepsToInstall := DepsToInstall + ',';
+      DepsToInstall := DepsToInstall + 'crystal';
+    end;
+    if (not HasMSVC) and PrereqPage.Values[1] then
+    begin
+      if Length(DepsToInstall) > 0 then DepsToInstall := DepsToInstall + ',';
+      DepsToInstall := DepsToInstall + 'vctools';
+    end;
+    if (not HasRadare2) and PrereqPage.Values[2] then
+    begin
+      if Length(DepsToInstall) > 0 then DepsToInstall := DepsToInstall + ',';
+      DepsToInstall := DepsToInstall + 'radare2';
+    end;
+    if (not HasMake) and PrereqPage.Values[3] then
+    begin
+      if Length(DepsToInstall) > 0 then DepsToInstall := DepsToInstall + ',';
+      DepsToInstall := DepsToInstall + 'make';
+    end;
+    if (not HasGit) and PrereqPage.Values[4] then
+    begin
+      if Length(DepsToInstall) > 0 then DepsToInstall := DepsToInstall + ',';
+      DepsToInstall := DepsToInstall + 'git';
+    end;
+    if (not HasCrystalline) and PrereqPage.Values[5] then
+    begin
+      if Length(DepsToInstall) > 0 then DepsToInstall := DepsToInstall + ',';
+      DepsToInstall := DepsToInstall + 'crystalline';
+    end;
+    if (not HasInnoSetup) and PrereqPage.Values[6] then
+    begin
+      if Length(DepsToInstall) > 0 then DepsToInstall := DepsToInstall + ',';
+      DepsToInstall := DepsToInstall + 'innosetup';
+    end;
+
+    ScriptPath := ExpandConstant('{tmp}\install_deps.ps1');
+    if FileExists(ScriptPath) then
+    begin
+      PowerShellExe := ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe');
+      if not FileExists(PowerShellExe) then
+        PowerShellExe := 'powershell.exe';
+
+      if Length(DepsToInstall) > 0 then
+      begin
+        ToolsArg := DepsToInstall;
+        WizardForm.StatusLabel.Caption := 'Installing prerequisite development tools & configuring CRYSTAL_ENV...';
+      end
+      else
+      begin
+        ToolsArg := 'none';
+        WizardForm.StatusLabel.Caption := 'Configuring Crystal environment variables (CRYSTAL_ENV)...';
+      end;
+
+      Exec(PowerShellExe, '-NoProfile -ExecutionPolicy Bypass -File "' + ScriptPath + '" -Tools "' + ToolsArg + '" -ConfigureCrystalEnv -Silent', '', SW_SHOW, ewWaitUntilTerminated, ResultCode);
     end;
   end;
 end;
@@ -385,4 +529,3 @@ begin
     end;
   end;
 end;
-

@@ -608,9 +608,7 @@ inline void* generic_class_get_virtual_call_data(void *p_class_userdata, GDExten
                 strcmp(norm_name, "_get_global_class_name") == 0) {
                 return (void*)intern_virtual_method(norm_name);
             }
-        } else if (strcmp(desc->name, "ResourceFormatLoaderCrystal") == 0 ||
-                   (desc->parent_desc && strcmp(desc->parent_desc->name, "ResourceFormatLoader") == 0) ||
-                   strstr(desc->name, "ResourceFormatLoader") != nullptr) {
+        } else if (strcmp(desc->name, "ResourceFormatLoaderCrystal") == 0) {
             if (strcmp(norm_name, "_get_recognized_extensions") == 0 ||
                 strcmp(norm_name, "_handles_type") == 0 ||
                 strcmp(norm_name, "_get_resource_type") == 0 ||
@@ -621,9 +619,7 @@ inline void* generic_class_get_virtual_call_data(void *p_class_userdata, GDExten
                 strcmp(norm_name, "_exists") == 0) {
                 return (void*)intern_virtual_method(norm_name);
             }
-        } else if (strcmp(desc->name, "ResourceFormatSaverCrystal") == 0 ||
-                   (desc->parent_desc && strcmp(desc->parent_desc->name, "ResourceFormatSaver") == 0) ||
-                   strstr(desc->name, "ResourceFormatSaver") != nullptr) {
+        } else if (strcmp(desc->name, "ResourceFormatSaverCrystal") == 0) {
             if (strcmp(norm_name, "_get_recognized_extensions") == 0 ||
                 strcmp(norm_name, "_recognize") == 0 ||
                 strcmp(norm_name, "_recognize_path") == 0 ||
@@ -1558,6 +1554,9 @@ inline void generic_class_call_virtual_with_data(
     // --- Segment 7: Fallback Dynamic Dispatch into Crystal ---
     // If not handled by fast-paths, forward the method invocation, argument array, and return buffer
     // directly to the Crystal class instance via its call_virtual_with_data function pointer.
+    if (strcmp(method_name, "_get_resource_uid") == 0 || strcmp(method_name, "get_resource_uid") == 0) {
+        if (r_ret) *(int64_t*)r_ret = -1; // Default to ResourceUID::INVALID_ID (-1), never 0 ("uid://a")
+    }
     ensure_instance_current(inst);
     if (inst->crystal_instance && inst->desc->call_virtual_with_data) {
         ensure_gc_thread_registered();

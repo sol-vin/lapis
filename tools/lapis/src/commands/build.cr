@@ -7,6 +7,7 @@ require "../core/baked_file_system"
 require "../core/archive_security"
 require "./bind/project"
 require "./sync"
+require "./shard_manager"
 require "file_utils"
 require "option_parser"
 require "digest/sha256"
@@ -196,15 +197,17 @@ module Lapis
         proj_lib = proj_dir.join("lib")
         host_lib = host_proj_dir.try(&.join("lib"))
 
-        # Self-heal standalone projects missing embedded lib/lapis, lib/cradare2, or lib/opal
+        # Self-heal standalone projects missing shard dependencies (lib/*) or embedded engine libs
         target_proj_for_libs = host_proj_dir || proj_dir
         target_lib_for_libs = host_lib || proj_lib
-        if !Core::BakedFileSystem.engine_libs_present?(target_proj_for_libs) &&
-           !Core::Env.is_libgodot_repo?(root) &&
-           !Core::Env.is_libgodot_repo?(target_proj_for_libs) &&
-           (File.exists?(target_proj_for_libs.join("shard.yml")) || File.exists?(target_proj_for_libs.join("project.godot"))) &&
-           Core::BakedFileSystem.files_with_prefix("src").size > 0
-          Core::BakedFileSystem.extract_engine_lib(target_lib_for_libs.join("lapis"), overwrite: false)
+        if !Core::Env.is_libgodot_repo?(root) && !Core::Env.is_libgodot_repo?(target_proj_for_libs)
+          if File.exists?(target_proj_for_libs.join("shard.yml"))
+            Commands::ShardManager.ensure_dependencies(target_proj_for_libs)
+          elsif !Core::BakedFileSystem.engine_libs_present?(target_proj_for_libs) &&
+                File.exists?(target_proj_for_libs.join("project.godot")) &&
+                Core::BakedFileSystem.files_with_prefix("src").size > 0
+            Core::BakedFileSystem.extract_engine_lib(target_lib_for_libs.join("lapis"), overwrite: true)
+          end
         end
 
         Commands::Sync.purge_recursive_shard_symlinks(target_proj_for_libs)
@@ -453,7 +456,7 @@ module Lapis
         deps_graph : Hash(String, Array(String)),
         visited : Set(String),
         visiting : Set(String),
-        sorted : Array(String)
+        sorted : Array(String),
       ) : Nil
         return if visited.includes?(node)
         return if visiting.includes?(node)
@@ -470,32 +473,90 @@ module Lapis
         sorted << node
       end
 
-      # Ensures addons/<name>/src/<name>.cr exists if addons/<name>/src/main.cr exists,
-      # allowing game code to `require "<name>"` directly from CRYSTAL_PATH.
-      # Also sanitizes unguarded `require "../spec/editor/**"` in `src/main.cr` when
+      # Resolves the compilable Crystal GDExtension entrypoint for an addon in `addons/<name>`,
+      # returning nil for pure-Crystal library shards (no .gdextension, no src/main.cr, no shard.yml targets)
+      # or non-Crystal addons (GDScript / C++).
+      def self.resolve_addon_entrypoint(addon_dir : Path) : Path?
+        name = addon_dir.basename
+        return nil if name == "crystal_integration"
+        return nil unless Dir.exists?(addon_dir)
+
+        main_cr = addon_dir.join("src/main.cr")
+        return main_cr if File.exists?(main_cr)
+
+        shard_file = addon_dir.join("shard.yml")
+        if File.exists?(shard_file)
+          in_targets = false
+          current_target : String? = nil
+          (File.read(shard_file) rescue "").each_line do |line|
+            if line =~ /^targets:\s*$/
+              in_targets = true
+              current_target = nil
+              next
+            elsif in_targets && line =~ /^[a-zA-Z0-9_\-]+:/
+              in_targets = false
+              current_target = nil
+            end
+            if in_targets
+              if line =~ /^\s{2}([a-zA-Z0-9_\-]+):\s*$/
+                current_target = $1
+              elsif line =~ /^\s{4}main:\s*["']?([^"'\r\n]+)["']?/
+                t_name = current_target || ""
+                next if ["carbon", "jasper", "lapis"].includes?(t_name)
+                rel_main = $1.strip
+                if safe_entry = Core::ArchiveSecurity.resolve_safe_destination(addon_dir, rel_main)
+                  return safe_entry if File.exists?(safe_entry)
+                end
+              end
+            end
+          end
+        end
+
+        has_gdext = !Dir.glob(addon_dir.join("**/*.gdextension").to_s.gsub('\\', '/')).empty?
+        if has_gdext && Dir.exists?(addon_dir.join("src"))
+          [
+            addon_dir.join("src", "#{name}.cr"),
+            addon_dir.join("src", "#{name.tr("-", "_")}.cr"),
+          ].each do |cand|
+            return cand if File.exists?(cand)
+          end
+          top_crs = Dir.glob(addon_dir.join("src/*.cr").to_s.gsub('\\', '/')).sort
+          if top_crs.size == 1
+            return Path.new(top_crs[0])
+          end
+        end
+
+        nil
+      end
+
+      # Ensures addons/<name>/src/<name>.cr exists if addons/<name> has a compilable entrypoint,
+      # allowing game code or dependent addons to `require "<name>"` directly from CRYSTAL_PATH.
+      # Also sanitizes unguarded `require "../spec/editor/**"` in the entrypoint when
       # `addons/<name>/spec/editor` does not exist so source-installed addons compile cleanly.
       def self.ensure_addon_library_entrypoint(addon_dir : Path, addon_name : String = addon_dir.basename) : Void
         return unless Core::ArchiveSecurity.valid_single_name?(addon_name)
         src_dir = addon_dir.join("src")
         return unless Core::ArchiveSecurity.resolve_safe_destination(addon_dir, "src/#{addon_name}.cr")
-        main_cr = src_dir.join("main.cr")
+        entry_cr = resolve_addon_entrypoint(addon_dir)
+        return unless entry_cr && File.exists?(entry_cr)
         lib_cr = src_dir.join("#{addon_name}.cr")
-        if File.exists?(main_cr)
-          if !Dir.exists?(addon_dir.join("spec/editor"))
-            content = File.read(main_cr)
-            if content =~ /^\s*require\s+"\.\.\/spec\/editor\/\*\*"/m
-              sanitized = content.gsub(/^(\s*)require\s+"\.\.\/spec\/editor\/\*\*"/m, "\\1# require \"../spec/editor/**\" # omitted when installed as addon without spec/editor")
-              File.write(main_cr, sanitized) if sanitized != content
-            end
+        if !Dir.exists?(addon_dir.join("spec/editor"))
+          content = File.read(entry_cr)
+          if content =~ /^\s*require\s+"\.\.\/spec\/editor\/\*\*"/m
+            sanitized = content.gsub(/^(\s*)require\s+"\.\.\/spec\/editor\/\*\*"/m, "\\1# require \"../spec/editor/**\" # omitted when installed as addon without spec/editor")
+            File.write(entry_cr, sanitized) if sanitized != content
           end
-          if !File.exists?(lib_cr)
-            File.write(lib_cr, "require \"./main\"\n")
+        end
+        if !File.exists?(lib_cr) && entry_cr.expand != lib_cr.expand
+          rel_target = entry_cr.expand.relative_to(src_dir.expand).to_s.gsub('\\', '/').sub(/\.cr$/, "")
+          if !rel_target.starts_with?("../")
+            File.write(lib_cr, "require \"./#{rel_target}\"\n")
           end
         end
       rescue
       end
 
-      # Compiles a single source-included addon in `addons/<name>` (`src/main.cr` -> `bin/<name>.dll`)
+      # Compiles a single source-included addon in `addons/<name>` (`src/main.cr` or target entrypoint -> `bin/<name>.<ext>`)
       def self.compile_addon_dir(
         addon_dir : Path,
         proj_dir : Path? = nil,
@@ -503,10 +564,25 @@ module Lapis
         force : Bool = false,
       ) : Int32
         name = addon_dir.basename
-        main_cr = addon_dir.join("src/main.cr")
-        return 0 unless File.exists?(main_cr)
+        entry_cr = resolve_addon_entrypoint(addon_dir)
+        return 0 unless entry_cr && File.exists?(entry_cr)
 
         ensure_addon_library_entrypoint(addon_dir, name)
+
+        effective_proj = proj_dir || (addon_dir.parent.basename == "addons" ? addon_dir.parent.parent : addon_dir)
+        if !Core::Env.is_libgodot_repo?(effective_proj) && File.exists?(addon_dir.join("shard.yml"))
+          addon_deps = Commands::ShardManager.read_dependencies(addon_dir.join("shard.yml"))
+          has_unmet_external_dep = addon_deps.any? do |dep|
+            dep_name = dep.name
+            next false if ["lapis", "libgodot", "cradare2", "opal"].includes?(dep_name)
+            !Dir.exists?(effective_proj.join("lib", dep_name)) &&
+              !Dir.exists?(effective_proj.join("addons", dep_name)) &&
+              !Dir.exists?(addon_dir.join("lib", dep_name))
+          end
+          if has_unmet_external_dep
+            Commands::ShardManager.ensure_dependencies(addon_dir)
+          end
+        end
 
         ext = Core::Env.dll_ext
         link_flags = Core::Env.link_flags
@@ -514,9 +590,9 @@ module Lapis
         FileUtils.mkdir_p(bin_dir) unless Dir.exists?(bin_dir)
         out_lib = bin_dir.join("#{name}.#{ext}")
 
-        Core::Logger.step("DummyAddon", "Compiling #{name} -> #{out_lib.basename}...")
+        Core::Logger.step("Addon", "Compiling #{name} -> #{out_lib.basename}...")
         code = compile_binary(
-          entry_path: main_cr,
+          entry_path: entry_cr,
           output_path: out_lib,
           link_flags: link_flags,
           flags: "-Dlibgodot_addon",
@@ -525,9 +601,15 @@ module Lapis
         )
         return code if code != 0
 
-        # If bin/game.<ext> also exists (e.g. from precompiled release or macOS .gdextension), sync it so both match
+        gdexts = Dir.glob(addon_dir.join("**/*.gdextension").to_s.gsub('\\', '/'))
+        gdext_text = gdexts.map { |gf| File.read(gf) rescue "" }.join("\n")
+
+        # Sync manifest binary aliases (`game.<ext>` or `lib<name>.<ext>`) if referenced or already present
         game_lib = bin_dir.join(Core::Env.game_file)
-        if File.exists?(game_lib) && game_lib != out_lib
+        needs_game_alias = File.exists?(game_lib) ||
+                           gdext_text.includes?("/#{Core::Env.game_file}") ||
+                           gdext_text.includes?("bin/game.")
+        if needs_game_alias && game_lib != out_lib
           Commands::Sync.safe_copy(out_lib, game_lib)
           if Core::Env.windows?
             src_pdb = Path.new(out_lib.to_s.sub(/\.dll$/, ".pdb"))
@@ -535,6 +617,28 @@ module Lapis
             Commands::Sync.safe_copy(src_pdb, dst_pdb) if File.exists?(src_pdb)
           end
         end
+
+        lib_prefixed = bin_dir.join("lib#{name}.#{ext}")
+        if gdext_text.includes?("lib#{name}.#{ext}") && lib_prefixed != out_lib
+          Commands::Sync.safe_copy(out_lib, lib_prefixed)
+        end
+
+        # Stage crystal_bridge (when used by .gdextension) and platform CRT/companion DLLs into addon bin/
+        if !Core::Env.is_libgodot_repo?(effective_proj)
+          Deps.ensure_bridge_and_plugin(effective_proj, need_plugin: false)
+        end
+        uses_bridge = gdexts.empty? || gdext_text.includes?("crystal_bridge") || gdext_text.includes?("crystal_library_init")
+        Deps.run(["-t", bin_dir.to_s, "--addon"])
+        if !uses_bridge && !gdexts.empty?
+          stray_bridge = bin_dir.join(Core::Env.bridge_file)
+          File.delete(stray_bridge) if File.exists?(stray_bridge) rescue nil
+        end
+
+        ["libgodot.dll", "libgodot.lib", "libgodot.so", "libgodot.dylib"].each do |lg|
+          lg_path = bin_dir.join(lg)
+          File.delete(lg_path) if File.exists?(lg_path) rescue nil
+        end
+
         0
       end
 
@@ -566,26 +670,53 @@ module Lapis
                      root
                    end
 
-        test_addons = Dir.exists?(proj_dir.join("addons")) ? proj_dir.join("addons") : proj_dir.join("test/addons")
-        return 0 unless Dir.exists?(test_addons)
+        addons_dir = Dir.exists?(proj_dir.join("addons")) ? proj_dir.join("addons") : proj_dir.join("test/addons")
+        return 0 unless Dir.exists?(addons_dir)
 
-        # Discover candidate addons to compile
-        candidate_names = Dir.children(test_addons).select do |name|
+        # Discover compilable Crystal GDExtension addons
+        candidate_names = Dir.children(addons_dir).select do |name|
           next false if name == "crystal_integration"
-          addon_dir = test_addons.join(name)
-          Dir.exists?(addon_dir) && File.exists?(addon_dir.join("src/main.cr"))
+          addon_dir = addons_dir.join(name)
+          Dir.exists?(addon_dir) && !resolve_addon_entrypoint(addon_dir).nil?
+        end
+        return 0 if candidate_names.empty?
+
+        # Ensure library entrypoints (`src/<name>.cr`) exist across all candidate addons before compiling
+        candidate_names.each do |name|
+          ensure_addon_library_entrypoint(addons_dir.join(name), name)
         end
 
-        # Read dependency graph from plugin.cfg / shard.yml
+        # Read dependency graph from plugin.cfg and shard.yml
         deps_graph = Hash(String, Array(String)).new { |h, k| h[k] = [] of String }
         candidate_names.each do |name|
-          cfg = test_addons.join(name, "plugin.cfg")
+          cfg = addons_dir.join(name, "plugin.cfg")
           if File.exists?(cfg)
             File.each_line(cfg) do |line|
               if line.strip =~ /dependencies\s*=\s*\[(.*)\]/
                 $1.scan(/["']([^"']+)["']/) do |m|
                   dep_name = m[1].strip
-                  deps_graph[name] << dep_name if candidate_names.includes?(dep_name)
+                  if candidate_names.includes?(dep_name) && !deps_graph[name].includes?(dep_name)
+                    deps_graph[name] << dep_name
+                  end
+                end
+              end
+            end
+          end
+
+          shard_yml = addons_dir.join(name, "shard.yml")
+          if File.exists?(shard_yml)
+            in_dep_block = false
+            (File.read(shard_yml) rescue "").each_line do |line|
+              if line =~ /^(dependencies|addons):\s*$/
+                in_dep_block = true
+                next
+              elsif in_dep_block && line =~ /^[a-zA-Z0-9_\-]+:/
+                in_dep_block = false
+              end
+              if in_dep_block && line =~ /^\s{2}([a-zA-Z0-9_\-]+):\s*$/
+                dep_key = $1
+                if candidate_names.includes?(dep_key) && !deps_graph[name].includes?(dep_key)
+                  deps_graph[name] << dep_key
                 end
               end
             end
@@ -597,13 +728,15 @@ module Lapis
 
         failed = 0
         sorted_names.each do |name|
-          addon_dir = test_addons.join(name)
+          addon_dir = addons_dir.join(name)
           code = compile_addon_dir(addon_dir, proj_dir, release: release, force: force)
           failed += 1 if code != 0
         end
 
+        Sync.ensure_extension_list(proj_dir) if File.exists?(proj_dir.join("project.godot"))
+
         if failed == 0
-          Core::Logger.success("All test addons built successfully!")
+          Core::Logger.success("All #{sorted_names.size} Crystal addon(s) built successfully!")
           0
         else
           Core::Logger.error("#{failed} addon(s) failed to build.")
@@ -773,6 +906,32 @@ module Lapis
         end
         Sync.ensure_extension_list(proj_dir)
 
+        # Ensure all shard.yml dependencies (including GitHub/local addons and embedded engine libs) are installed in lib/
+        if !Core::Env.is_libgodot_repo?(root) && !Core::Env.is_libgodot_repo?(proj_dir)
+          if File.exists?(proj_dir.join("shard.yml"))
+            Commands::ShardManager.ensure_dependencies(proj_dir)
+          elsif !Core::BakedFileSystem.engine_libs_present?(proj_dir) && Core::BakedFileSystem.files_with_prefix("src").size > 0
+            Core::Logger.step("Deps", "Extracting embedded Lapis engine library into lib/lapis...")
+            Core::BakedFileSystem.extract_engine_lib(proj_dir.join("lib/lapis"), overwrite: true)
+          end
+
+          # Stage crystal_bridge and CRT DLLs prior to compilation so headless Godot GDScript dumps load cleanly
+          Deps.ensure_bridge_and_plugin(proj_dir, need_plugin: false)
+          Deps.run(["-t", bin_dir.to_s])
+          if Dir.exists?(proj_dir.join("addons/crystal_integration"))
+            Deps.run(["-t", proj_dir.join("addons/crystal_integration/bin").to_s, "--addon"])
+          end
+
+          # Compile all Crystal source addons in topological dependency order prior to GDScript dump & game build
+          if !is_addon_project && Dir.exists?(proj_dir.join("addons"))
+            addon_args = ["-p", proj_dir.to_s]
+            addon_args << "-r" if release
+            addon_args << "-F" if force
+            addon_code = build_addons(addon_args)
+            return addon_code if addon_code != 0
+          end
+        end
+
         # Resolve libgodot Crystal source path
         src_dir = if sp = source_path
                     Path.new(sp).expand.to_s
@@ -787,28 +946,6 @@ module Lapis
                   else
                     proj_dir.join("src").to_s
                   end
-
-        # If lib/lapis, lib/cradare2, or lib/opal is missing and engine source is baked into BakedFileSystem, extract it directly!
-        if !Core::BakedFileSystem.engine_libs_present?(proj_dir) && !Core::Env.is_libgodot_repo?(root) && !Core::Env.is_libgodot_repo?(proj_dir)
-          if Core::BakedFileSystem.files_with_prefix("src").size > 0
-            Core::Logger.step("Deps", "Extracting embedded Lapis engine library into lib/lapis...")
-            Core::BakedFileSystem.extract_engine_lib(proj_dir.join("lib/lapis"), overwrite: false)
-            src_dir = proj_dir.join("lib/lapis/src").to_s if Dir.exists?(proj_dir.join("lib/lapis/src"))
-          end
-        end
-
-        # If project has shard.yml and lib/ does not exist, and no src_dir found with libgodot.cr/lapis.cr, try shards install
-        if File.exists?(proj_dir.join("shard.yml")) && !Dir.exists?(proj_dir.join("lib")) && !File.exists?(Path.new(src_dir).join("libgodot.cr")) && !File.exists?(Path.new(src_dir).join("lapis.cr"))
-          if shards_exe = Core::ProcessRunner.find_executable("shards")
-            Core::Logger.step("Shards", "Installing project dependencies via shards install...")
-            Core::ProcessRunner.run(shards_exe, ["install"], chdir: proj_dir.to_s)
-            if Dir.exists?(proj_dir.join("lib/lapis/src"))
-              src_dir = proj_dir.join("lib/lapis/src").to_s
-            elsif Dir.exists?(proj_dir.join("lib/libgodot/src"))
-              src_dir = proj_dir.join("lib/libgodot/src").to_s
-            end
-          end
-        end
 
         effective_link_flags = link_flags || Core::Env.link_flags
         code = compile_binary(

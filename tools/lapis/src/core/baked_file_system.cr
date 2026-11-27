@@ -35,11 +35,22 @@ module Lapis
         end
       end
 
-      # Returns true if the target project directory already has lib/lapis, lib/cradare2, and lib/opal extracted.
+      # Returns true if the target project directory already has an up-to-date lib/lapis (including src/editor), lib/cradare2, and lib/opal extracted.
       def self.engine_libs_present?(project_dir : Path) : Bool
-        Dir.exists?(project_dir.join("lib/lapis/src")) &&
-          Dir.exists?(project_dir.join("lib/cradare2/src")) &&
-          Dir.exists?(project_dir.join("lib/opal/src"))
+        lapis_dir = project_dir.join("lib/lapis")
+        return false unless Dir.exists?(lapis_dir.join("src")) &&
+                            File.exists?(lapis_dir.join("src/editor/benchmark_graph_control.cr")) &&
+                            File.exists?(lapis_dir.join("src/editor/plugin.cr")) &&
+                            Dir.exists?(project_dir.join("lib/cradare2/src")) &&
+                            Dir.exists?(project_dir.join("lib/opal/src"))
+
+        if (baked_shard = get?("shard.yml")) && File.exists?(lapis_dir.join("shard.yml"))
+          baked_ver = baked_shard.content[/^version:\s*["']?([^\s"']+)["']?/m, 1]?
+          disk_ver = (File.read(lapis_dir.join("shard.yml")) rescue "")[/^version:\s*["']?([^\s"']+)["']?/m, 1]?
+          return false if baked_ver && disk_ver && baked_ver != disk_ver
+        end
+
+        true
       end
 
       # Extracts the lean embedded Lapis engine library into target directory (lib/lapis)

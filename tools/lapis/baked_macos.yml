@@ -12,6 +12,7 @@ volumes:
       - src/lapis.cr
       - src/libgodot/**/*.cr
       - src/lapis/**/*.cr
+      - src/editor/**/*.cr
       - src/bridge/**/*
       - shard.yml
       - godot-version.yml
@@ -73,6 +74,11 @@ volumes:
       - "**/bin/**"
       - "**/lib/**"
       - "**/.godot/**"
+      - "**/log/**"
+      - "**/scratch/**"
+      - "**/test_report.*"
+      - "**/.tool_tests_passed"
+      - "**/.bind_manifest.json"
 
   addon_template:
     mount: "template-addon"
@@ -95,6 +101,11 @@ volumes:
       - "**/bin/**"
       - "**/lib/**"
       - "**/.godot/**"
+      - "**/log/**"
+      - "**/scratch/**"
+      - "**/test_report.*"
+      - "**/.tool_tests_passed"
+      - "**/.bind_manifest.json"
 
   addon:
     mount: "addons/crystal_integration"

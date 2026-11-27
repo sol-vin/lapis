@@ -400,6 +400,7 @@ inline bool is_runtime_dependency_library(const char *name) {
         "pcre2",
         "libssl",
         "libcrypto",
+        "libvlc",
         "libxml",
         "llvm",
         "yaml",

@@ -3110,6 +3110,14 @@ module Godot
       args = StaticArray[arg_0]
       godot_ptrcall_obj(@@mb_texture_get_format, @pointer, args.to_unsafe.as(Void**), RDTextureFormat)
     end
+    @@mb_texture_get_nearest_supported_samples : Void* = Pointer(Void).null
+    def texture_get_nearest_supported_samples(format : RDTextureFormat?) : TextureSamples
+      godot_bind(@@mb_texture_get_nearest_supported_samples, "RenderingDevice", "texture_get_nearest_supported_samples", 1603719724_i64)
+      arg_ptr_0 = format ? format.pointer : Pointer(Void).null
+      arg_0 = pointerof(arg_ptr_0).as(Void*)
+      args = StaticArray[arg_0]
+      godot_ptrcall_enum(@@mb_texture_get_nearest_supported_samples, @pointer, args.to_unsafe.as(Void**), TextureSamples)
+    end
     @@mb_texture_get_native_handle : Void* = Pointer(Void).null
     def texture_get_native_handle(texture : Int64) : Int64
       godot_bind(@@mb_texture_get_native_handle, "RenderingDevice", "texture_get_native_handle", 3917799429_i64)

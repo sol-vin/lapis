@@ -392,7 +392,24 @@ module Lapis
                 s_title = s["title"]?.try(&.as_s) || ""
                 s_sum = s["summary"]?.try(&.as_s) || ""
                 s_content = s["content"]?.try(&.as_s) || ""
-                "### #{s_title}\n#{s_sum}\n\n#{s_content}"
+                cmp_text = if cmps = s["comparisons"]?.try(&.as_a)
+                             cmps.compact_map do |cmp|
+                               ctitle = cmp["title"]?.try(&.as_s)
+                               cols = cmp["columns"]?.try(&.as_a).try do |arr|
+                                 arr.compact_map do |col|
+                                   lbl = col["label"]?.try(&.as_s) || "Code"
+                                   lang = col["lang"]?.try(&.as_s) || "crystal"
+                                   code = col["code"]?.try(&.as_s) || ""
+                                   "**#{lbl}**:\n```#{lang}\n#{code.rstrip}\n```"
+                                 end.join("\n\n")
+                               end || ""
+                               ctitle ? "#### #{ctitle}\n#{cols}" : cols
+                             end.join("\n\n")
+                           else
+                             ""
+                           end
+                base_sec = "### #{s_title}\n#{s_sum}\n\n#{s_content}"
+                cmp_text.empty? ? base_sec : "#{base_sec}\n\n#{cmp_text}"
               end.join("\n\n")
             end
 

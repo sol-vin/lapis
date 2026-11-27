@@ -66,6 +66,60 @@ describe "Lapis CLI" do
       res = LapisSpecHelper.run_lapis(["-q", "dirs"])
       res.success?.should be_true
     end
+
+    it "forwards -v and --version to subcommands instead of hijacking as global version flag" do
+      # Subcommands like `doctor -v`, `export-templates status -v <ver>`, `package windows-installer -v <ver>`,
+      # and `package deb -v <ver>` must execute the subcommand rather than printing `Lapis vX.Y.Z` and exiting.
+      res_doc = LapisSpecHelper.run_lapis(["doctor", "-v"])
+      res_doc.success?.should be_true
+      res_doc.output.should contain("Diagnosing Lapis development environment")
+      res_doc.output.should_not eq("Lapis v#{Lapis::VERSION}\n")
+
+      res_tpl = LapisSpecHelper.run_lapis(["export-templates", "status", "-v", "4.8.beta4"])
+      res_tpl.success?.should be_true
+      res_tpl.output.should contain("Target Engine Version")
+      res_tpl.output.should contain("4.8.beta4")
+
+      LapisSpecHelper.with_temp_dir("pkg_version_flag_test") do |tmp_dir|
+        {% if flag?(:windows) %}
+          out_exe = tmp_dir.join("lapis-setup-test.exe")
+          res_win = LapisSpecHelper.run_lapis(["package", "windows-installer", "-o", out_exe.to_s, "-v", "4.8-beta4"])
+          res_win.success?.should be_true, "package windows-installer -v failed:\n#{res_win.all_output}"
+          res_win.all_output.should contain("Packaging Windows Installer for Lapis v4.8-beta4")
+          res_win.output.strip.should_not eq("lapis v#{Lapis::VERSION}")
+          if Lapis::Commands::Package.find_iscc
+            File.exists?(out_exe).should be_true
+            File.size(out_exe).should be > 100_000
+          end
+
+          res_deb = LapisSpecHelper.run_lapis(["package", "deb", "-v", "4.8-beta4", "-o", tmp_dir.join("lapis.deb").to_s])
+          res_deb.success?.should be_false
+          res_deb.all_output.should contain("only available on Linux")
+        {% elsif flag?(:linux) %}
+          out_deb = tmp_dir.join("lapis_4.8-beta4_amd64.deb")
+          res_deb = LapisSpecHelper.run_lapis(["package", "deb", "-v", "4.8-beta4", "-o", out_deb.to_s])
+          res_deb.success?.should be_true, "package deb -v failed:\n#{res_deb.all_output}"
+          res_deb.all_output.should contain("Packaging Debian package for Lapis v4.8-beta4")
+          res_deb.output.strip.should_not eq("lapis v#{Lapis::VERSION}")
+          if Process.find_executable("dpkg-deb")
+            File.exists?(out_deb).should be_true
+            File.size(out_deb).should be > 10_000
+          end
+
+          res_win = LapisSpecHelper.run_lapis(["package", "windows-installer", "-v", "4.8-beta4", "-o", tmp_dir.join("setup.exe").to_s])
+          res_win.success?.should be_false
+          res_win.all_output.should contain("only available on Windows")
+        {% else %}
+          res_win = LapisSpecHelper.run_lapis(["package", "windows-installer", "-v", "4.8-beta4"])
+          res_win.success?.should be_false
+          res_win.all_output.should contain("only available on Windows")
+
+          res_deb = LapisSpecHelper.run_lapis(["package", "deb", "-v", "4.8-beta4"])
+          res_deb.success?.should be_false
+          res_deb.all_output.should contain("only available on Linux")
+        {% end %}
+      end
+    end
   end
 
   describe "subcommand help dispatch" do

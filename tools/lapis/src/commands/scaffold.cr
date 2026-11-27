@@ -132,13 +132,14 @@ MD
         excludes = [
           ".godot", ".git", ".uid", "crash_dump",
           "test_ext.log", "template_ext.log",
-          "bin", "lib", "dist",
+          "bin", "lib", "dist", "log", "scratch",
+          ".tool_tests_passed",
         ]
 
         pattern = src_dir.to_s.gsub('\\', '/') + "/**/*"
         Dir.glob(pattern).each do |item|
           rel = Path.new(item).relative_to(src_dir).to_s.gsub('\\', '/')
-          next if excludes.any? { |ex| rel == ex || rel.starts_with?("#{ex}/") || rel.ends_with?(".log") || rel.ends_with?(".uid") || rel.ends_with?(".import") }
+          next if excludes.any? { |ex| rel == ex || rel.starts_with?("#{ex}/") || rel.ends_with?(".log") || rel.ends_with?(".uid") || rel.ends_with?(".import") || rel.ends_with?(".bind_manifest.json") || File.basename(rel).starts_with?("test_report.") }
 
           target_item = dst_dir.join(rel)
 

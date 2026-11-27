@@ -40,6 +40,19 @@ node VirtualDispatchProbeNode < Godot::Node do
   end
 end
 
+@[Tool]
+node VirtualExceptionProbeNode < Godot::Node do
+  property raise_on_ready : Bool = true
+  property survived_after_ready : Bool = false
+
+  def _ready : Void
+    if @raise_on_ready
+      raise RuntimeError.new("Simulated unhandled _ready exception across C-ABI virtual_fn")
+    end
+    @survived_after_ready = true
+  end
+end
+
 test_suite "VirtualMethods" do
   test "Engine invokes _enter_tree and _ready virtual methods when added to tree" do
     probe = Godot.create(VirtualDispatchProbeNode)
@@ -100,5 +113,14 @@ test_suite "VirtualMethods" do
     # Process must survive cleanly without 0xC0000005 crash
     assert_true true
     probe.destroy
+  end
+
+  test "Unhandled Crystal exception inside C-ABI virtual_fn (_ready) is caught and logged without crashing host" do
+    ex_probe = Godot.create(VirtualExceptionProbeNode)
+    # Adding to `root` invokes C++ `Node::_notification(NOTIFICATION_READY)` -> `generic_class_call_virtual_with_data` -> `desc->call_virtual`
+    root.add_child(ex_probe)
+    assert_true ex_probe.alive?, "Node and host process must survive unhandled exception in _ready"
+    root.remove_child(ex_probe)
+    ex_probe.destroy
   end
 end

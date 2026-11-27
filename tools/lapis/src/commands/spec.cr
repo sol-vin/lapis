@@ -2,6 +2,10 @@ require "../core/env"
 require "../core/logger"
 require "../core/process_runner"
 require "../core/baked_file_system"
+require "./deps"
+require "./shard_manager"
+require "digest/sha256"
+require "file_utils"
 require "option_parser"
 
 module Lapis
@@ -68,10 +72,15 @@ HELP
                  Core::Env::ROOT_DIR
                end
 
-        if !Core::BakedFileSystem.engine_libs_present?(root) &&
-           !Core::Env.is_libgodot_repo?(root) &&
-           Core::BakedFileSystem.files_with_prefix("src").size > 0
-          Core::BakedFileSystem.extract_engine_lib(root.join("lib/lapis"), overwrite: false)
+        if !Core::Env.is_libgodot_repo?(root)
+          if File.exists?(root.join("shard.yml"))
+            Commands::ShardManager.ensure_dependencies(root)
+          elsif !Core::BakedFileSystem.engine_libs_present?(root) && Core::BakedFileSystem.files_with_prefix("src").size > 0
+            Core::BakedFileSystem.extract_engine_lib(root.join("lib/lapis"), overwrite: true)
+          end
+          if !Dir.exists?(root.join("bin")) || Dir.empty?(root.join("bin"))
+            Commands::Deps.run(["-t", root.join("bin").to_s])
+          end
         end
 
         crystal_args = ["spec"]
@@ -97,13 +106,30 @@ HELP
         path_parts = [] of String
         path_parts << root.join("lib/lapis/src").to_s if Dir.exists?(root.join("lib/lapis/src"))
         path_parts << root.join("src").to_s if Core::Env.is_libgodot_repo?(root) && Dir.exists?(root.join("src"))
+        path_parts << root.join("addons").to_s if Dir.exists?(root.join("addons"))
         path_parts << root.join("lib").to_s if Dir.exists?(root.join("lib"))
         if (global = Core::Env.global_libgodot_path) && Dir.exists?(global.join("lib"))
           glib = global.join("lib").to_s
           path_parts << glib unless path_parts.includes?(glib)
         end
         path_parts << base_crystal_path unless base_crystal_path.empty?
-        env = {"CRYSTAL_PATH" => path_parts.uniq.join(Core::Env.path_sep)}
+        # Use a short temp path keyed by project directory hash to prevent both LNK1104 lock collisions
+        # on crystal-run-spec.tmp.exe and Windows 260-char MAX_PATH overflows in deeply nested directories.
+        short_hash = Digest::SHA256.hexdigest(root.to_s)[0, 8]
+        spec_cache = Path.new(Dir.tempdir).join("lapis_sc_#{short_hash}")
+        FileUtils.mkdir_p(spec_cache) unless Dir.exists?(spec_cache)
+        env = {
+          "CRYSTAL_PATH"      => path_parts.uniq.join(Core::Env.path_sep),
+          "CRYSTAL_CACHE_DIR" => (ENV["LAPIS_CRYSTAL_CACHE_DIR"]? || spec_cache.to_s),
+        }
+        if Core::Env.windows?
+          bin_paths = [root.join("bin").to_s]
+          if (global = Core::Env.global_libgodot_path) && Dir.exists?(global.join("bin"))
+            bin_paths << global.join("bin").to_s
+          end
+          bin_paths << (ENV["PATH"]? || "")
+          env["PATH"] = bin_paths.reject(&.empty?).uniq.join(Core::Env.path_sep)
+        end
 
         Core::Logger.info("Executing: crystal #{crystal_args.join(" ")}")
         res = Process.run("crystal", crystal_args, env: env, chdir: root.to_s, output: Process::Redirect::Inherit, error: Process::Redirect::Inherit)

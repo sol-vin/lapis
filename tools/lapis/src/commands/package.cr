@@ -317,12 +317,26 @@ module Lapis
           Core::Logger.warn("Lapis executable not found at #{lapis_exe}")
         end
 
-        # Include bundled addon if available
+        # Include bundled addon if available, including prebuilt bridge & editor plugin binaries
         addon_src = root.join("addons/crystal_integration")
         if Dir.exists?(addon_src)
           stage_addon = stage_dir.join("addons/crystal_integration")
           FileUtils.mkdir_p(stage_addon)
           FileUtils.cp_r(addon_src.to_s, stage_addon.parent.to_s)
+          stage_addon_bin = stage_addon.join("bin")
+          FileUtils.mkdir_p(stage_addon_bin) unless Dir.exists?(stage_addon_bin)
+          addon_libs = case plat
+                       when "windows"
+                         ["crystal_bridge.dll", "plugin.dll", "gc.dll", "iconv-2.dll", "pcre2-8.dll"]
+                       when "macos"
+                         ["crystal_bridge.dylib", "plugin.dylib"]
+                       else
+                         ["crystal_bridge.so", "plugin.so"]
+                       end
+          addon_libs.each do |lib_name|
+            src_lib = [root.join("bin", lib_name), addon_src.join("bin", lib_name)].find { |p| File.exists?(p) }
+            safe_copy(src_lib, stage_addon_bin.join(lib_name)) if src_lib
+          end
           Core::Env.purge_foreign_binaries(stage_addon)
         end
 
@@ -400,6 +414,15 @@ CONTROL
         addon_src = root.join("addons/crystal_integration")
         if Dir.exists?(addon_src)
           FileUtils.cp_r(addon_src.to_s, stage_dir.join("usr/share/lapis/addons").to_s)
+          deb_addon_bin = stage_dir.join("usr/share/lapis/addons/crystal_integration/bin")
+          FileUtils.mkdir_p(deb_addon_bin) unless Dir.exists?(deb_addon_bin)
+          ["crystal_bridge.so", "plugin.so"].each do |lib_name|
+            src_lib = [root.join("bin", lib_name), addon_src.join("bin", lib_name)].find { |p| File.exists?(p) }
+            if src_lib
+              safe_copy(src_lib, deb_addon_bin.join(lib_name))
+              File.chmod(deb_addon_bin.join(lib_name), 0o755) unless Core::Env.windows?
+            end
+          end
           Core::Env.purge_foreign_binaries(stage_dir)
         end
 
@@ -422,6 +445,10 @@ CONTROL
             return 1
           end
         else
+          if ENV["CI"]? == "true"
+            Core::Logger.error("dpkg-deb not found on CI runner. Cannot build #{deb_file.basename}.")
+            return 1
+          end
           Core::Logger.warn("dpkg-deb not found on system. Stage directory preserved at #{stage_dir}")
           return 0
         end
@@ -537,8 +564,8 @@ CONTROL
           end
         end
 
-        # 4. Stage runtime DLLs (crystal_bridge.dll, libgodot.dll, gc.dll, pcre2-8.dll, iconv-2.dll)
-        ["crystal_bridge.dll", "libgodot.dll", "gc.dll", "pcre2-8.dll", "iconv-2.dll"].each do |dll|
+        # 4. Stage runtime & editor plugin DLLs (crystal_bridge.dll, plugin.dll, libgodot.dll, gc.dll, pcre2-8.dll, iconv-2.dll)
+        ["crystal_bridge.dll", "plugin.dll", "libgodot.dll", "gc.dll", "pcre2-8.dll", "iconv-2.dll"].each do |dll|
           dll_path = root.join("bin/#{dll}")
           if File.exists?(dll_path)
             safe_copy(dll_path, stage_dir.join(dll))
@@ -600,6 +627,10 @@ CONTROL
             return 1
           end
         else
+          if ENV["CI"]? == "true"
+            Core::Logger.error("Inno Setup compiler ('iscc') was not found on CI runner. Cannot build #{dest_exe.basename}.")
+            return 1
+          end
           Core::Logger.warn("Inno Setup compiler ('iscc') was not found in PATH or standard directories.")
           Core::Logger.info("Tip: Install Inno Setup via 'choco install innosetup -y' or 'winget install JRSoftware.InnoSetup' to compile.")
           Core::Logger.info("Staged installer files preserved at #{stage_dir}")
@@ -1338,6 +1369,150 @@ CONTROL
         "1.0.0"
       end
 
+      EXCLUDED_SOURCE_DIRS = Set{
+        "bin", "log", ".godot", ".git", "lib",
+        "scratch", ".crystal", ".shards", "godot_temp", "dist",
+      }
+
+      def self.excluded_source_dir?(dir_name : String) : Bool
+        EXCLUDED_SOURCE_DIRS.includes?(dir_name)
+      end
+
+      def self.excluded_source_file?(basename : String, is_root_level : Bool = false) : Bool
+        lc = basename.downcase
+        if is_root_level
+          return true if {"godot.exe", "godot", "godot.zip", "godot_console.exe", "godot.console.exe"}.includes?(lc)
+          return true if {
+                           ".tool_tests_passed", ".tool_tests_failed",
+                           ".editor_game_passed", ".editor_game_failed",
+                           ".runtime_tests_passed", ".runtime_tests_failed",
+                           ".runtime_test_results.txt",
+                         }.includes?(basename)
+          return true if lc.starts_with?("test_report.")
+          return true if lc.ends_with?(".zip")
+        end
+
+        return true if basename == "shard.override.yml"
+        return true if basename.starts_with?(".lapis_build_") && lc.ends_with?(".json")
+        return true if basename.includes?("_loaded_") && (lc.ends_with?(".dll") || lc.ends_with?(".pdb") || lc.ends_with?(".so") || lc.ends_with?(".dylib"))
+        return true if lc.starts_with?("crash_dump")
+        return true if lc.ends_with?(".pdb") || lc.ends_with?(".exp") || lc.ends_with?(".ilk") || lc.ends_with?(".log") || lc.ends_with?(".tmp")
+        return true if basename.starts_with?("~") || basename.ends_with?("~")
+        false
+      end
+
+      private def self.collect_source_files(
+        base_dir : Path,
+        current_dir : Path,
+        out_zip_abs : Path,
+        results : Array(Tuple(Path, String)),
+      ) : Nil
+        return unless Dir.exists?(current_dir)
+        entries = Dir.children(current_dir.to_s).sort!
+        is_root = (current_dir == base_dir)
+
+        entries.each do |child_name|
+          child_path = current_dir.join(child_name)
+          info = File.info?(child_path.to_s, follow_symlinks: false)
+          next unless info
+          next if info.symlink? || Commands::Sync.reparse_point_or_symlink?(child_path)
+
+          if info.directory?
+            next if excluded_source_dir?(child_name)
+            collect_source_files(base_dir, child_path, out_zip_abs, results)
+          elsif info.file?
+            next if child_path.expand == out_zip_abs
+            next if excluded_source_file?(child_name, is_root_level: is_root)
+            rel_path = child_path.relative_to(base_dir).to_s.gsub('\\', '/')
+            results << {child_path, rel_path}
+          end
+        end
+      end
+
+      def self.package_source(
+        project_path : Path,
+        name : String? = nil,
+        output_path : Path? = nil,
+        target_dir : Path? = nil,
+      ) : Int32
+        proj_dir = project_path.expand
+
+        unless Dir.exists?(proj_dir)
+          Core::Logger.error("Source Packaging Error: Target project directory does not exist: '#{proj_dir}'")
+          return 1
+        end
+
+        unless File.exists?(proj_dir.join("project.godot")) || File.exists?(proj_dir.join("shard.yml"))
+          Core::Logger.error("Source Packaging Error: Directory '#{proj_dir}' is not a valid Lapis/Godot project (missing project.godot or shard.yml).")
+          return 1
+        end
+
+        archive_base = name || proj_dir.basename
+        default_bin = proj_dir.join("bin")
+        dest_zip = output_path || (target_dir ? target_dir.join("#{archive_base}-source.zip") : default_bin.join("#{archive_base}-source.zip"))
+        dest_zip_abs = dest_zip.expand
+
+        Core::Logger.step("PackageSource", "Packaging portable source archive for '#{archive_base}' -> #{dest_zip.basename}...")
+
+        files_to_pack = [] of Tuple(Path, String)
+        collect_source_files(proj_dir, proj_dir, dest_zip_abs, files_to_pack)
+
+        if files_to_pack.empty?
+          Core::Logger.error("Source Packaging Error: No source files found in '#{proj_dir}'!")
+          return 1
+        end
+
+        FileUtils.mkdir_p(dest_zip_abs.parent) unless Dir.exists?(dest_zip_abs.parent)
+        if dest_zip_abs.parent == default_bin.expand
+          gdignore = default_bin.join(".gdignore")
+          File.write(gdignore, "") unless File.exists?(gdignore)
+        end
+        File.delete(dest_zip_abs) if File.exists?(dest_zip_abs)
+
+        start_time = ::Time.instant
+        total_uncompressed_bytes = 0_i64
+
+        File.open(dest_zip_abs.to_s, "wb") do |file|
+          Compress::Zip::Writer.open(file) do |zip|
+            files_to_pack.each do |abs_item, rel_path|
+              sz = File.size(abs_item) rescue 0_i64
+              total_uncompressed_bytes += sz
+              Core::Logger.trace("PackageSource:Zip", "[#{dest_zip_abs.basename}] Adding #{rel_path} (#{sz} bytes)")
+              File.open(abs_item.to_s, "rb") do |io|
+                zip.add(rel_path, io)
+              end
+            end
+          end
+        end
+
+        # Verify archive integrity and flat-root manifest presence
+        has_manifest = false
+        File.open(dest_zip_abs.to_s, "rb") do |f|
+          Compress::Zip::Reader.open(f) do |zip|
+            zip.each_entry do |entry|
+              fn = entry.filename.gsub('\\', '/')
+              has_manifest = true if fn == "project.godot" || fn == "shard.yml"
+              segs = fn.split('/')
+              dir_segs = segs.size > 1 ? segs[0...-1] : [] of String
+              if dir_segs.any? { |s| excluded_source_dir?(s) }
+                Core::Logger.error("SOURCE PACKAGE VALIDITY FAILED: Excluded directory leaked into archive entry '#{fn}'!")
+                return 1
+              end
+            end
+          end
+        end
+
+        unless has_manifest
+          Core::Logger.error("SOURCE PACKAGE VALIDITY FAILED: Archive '#{dest_zip_abs.basename}' is missing root project.godot or shard.yml!")
+          return 1
+        end
+
+        duration_ms = (::Time.instant - start_time).total_milliseconds
+        zip_bytes = File.size(dest_zip_abs)
+        Core::Logger.success("Packaged portable source archive: #{dest_zip_abs} (#{zip_bytes} bytes compressed from #{total_uncompressed_bytes} bytes across #{files_to_pack.size} files in #{duration_ms.round(1)}ms)")
+        0
+      end
+
       def self.package_project_installer(
         proj_dir : Path,
         name : String? = nil,
@@ -1582,6 +1757,7 @@ Usage: lapis package <target> [options]
 Targets:
   installer             Package standalone game installer (.exe on Windows, .deb on Linux)
   game                  Package a playable standalone Godot game (PCK + runner + DLLs)
+  source                Package portable project source into <name>-source.zip (excludes bin, lib, log, .godot, .git)
   pck                   Export standalone Godot pack file (.pck)
   template              Package the starter game template into template-project.zip
   template-addon        Package the addon starter template into template-addon-project.zip
@@ -1676,6 +1852,7 @@ HELP
           opts.on("--debug", "Package game with diagnostic crash reporter and portable radare2 harness") { debug_diagnostics = true }
           opts.on("--diagnostics", "Alias for --debug") { debug_diagnostics = true }
           opts.on("--pck", "Package project into a standalone Godot PCK (.pck)") { target = "pck" }
+          opts.on("--source", "Package portable project source archive (.zip)") { target = "source" }
           opts.on("--embed-pck", "Embed PCK data directly into the executable binary") { embed_pck = true }
           opts.on("--portable", "Package portable distribution with embedded PCK") { portable = true; embed_pck = true }
           opts.on("--bundle-binaries", "Include compiled binaries in archive") { bundle_binaries = true }
@@ -1773,6 +1950,10 @@ HELP
           proj = Path.new(proj_str).expand
           final_out = out_path || (td_path ? td_path.join("#{name || proj.basename}.pck") : nil)
           package_pck(proj, name: name, output_path: final_out)
+        when "source", "src"
+          proj_str = (pp = project_path) && !["windows", "linux", "macos", "android"].includes?(pp.downcase) ? pp : "."
+          proj = Path.new(proj_str).expand
+          package_source(proj, name: name, output_path: out_path, target_dir: td_path)
         when "portable"
           proj_str = (pp = project_path) && !["windows", "linux", "macos", "android"].includes?(pp.downcase) ? pp : "."
           proj = Path.new(proj_str).expand

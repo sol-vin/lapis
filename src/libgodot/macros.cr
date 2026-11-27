@@ -1798,7 +1798,7 @@ macro node(decl, &block)
       {% for item_entry in stmts_items %}
         {% if item_entry[0] == :stmt %}
           {% stmt = item_entry[1] %}
-          {% if stmt.is_a?(Def) && stmt.name.stringify.starts_with?("_") && stmt.name.stringify != "_enter_tree" %}
+          {% if stmt.is_a?(Def) && (stmt.receiver.is_a?(Nop) || !stmt.receiver) && stmt.name.stringify.starts_with?("_") && !stmt.name.stringify.starts_with?("_godot_") && stmt.name.stringify != "_enter_tree" %}
           when {{stmt.name.stringify}}
             return true
           {% end %}

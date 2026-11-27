@@ -1100,6 +1100,17 @@ module Godot
       end
     end
 
+    # Attaches or detaches a Godot Script (e.g. `Godot::GDScript` or `Godot::Script`) on this object.
+    def set_script(script : Godot::Object?) : Void
+      check_alive!
+      return if @pointer.null? || !Bridge.init_done?
+      if script && !script.pointer.null?
+        Bridge.object_call(@pointer, "set_script", script)
+      else
+        call("set_script", nil)
+      end
+    end
+
     # Sets arbitrary metadata on this object with automatic Variant conversion.
     #
     # Supports both `String` and `Symbol` keys.

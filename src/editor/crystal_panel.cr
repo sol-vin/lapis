@@ -1454,18 +1454,21 @@ module Lapis
           end
         end
 
-        # Check if it has Crystal source or recompilable target
-        main_cr = File.join(full_dir, "src", "main.cr")
-        has_src = File.exists?(main_cr) || Dir.glob(File.join(full_dir, "src/**/*.cr")).size > 0
-        has_makefile = File.exists?(File.join(full_dir, "Makefile"))
-        has_shard = File.exists?(File.join(full_dir, "shard.yml"))
-        is_recompilable = has_src || has_makefile || has_shard
-
-        # Check for binaries
+        # Check for binaries and GDExtension manifests
         bin_dir = File.join(full_dir, "bin")
         bin_files = Dir.exists?(bin_dir) ? Dir.children(bin_dir).select { |f| f.ends_with?(".dll") || f.ends_with?(".so") || f.ends_with?(".dylib") } : [] of String
         bin_files.reject! { |f| f.starts_with?("crystal_bridge") || ["gc.dll", "iconv-2.dll", "pcre2-8.dll", "libgodot.dll"].includes?(f) }
         has_gdext = Dir.glob(File.join(full_dir, "**/*.gdextension")).size > 0
+
+        # Distinguish compilable Crystal GDExtension addons from pure-Crystal library shards
+        main_cr = File.join(full_dir, "src", "main.cr")
+        has_src = File.exists?(main_cr) || Dir.glob(File.join(full_dir, "src/**/*.cr")).size > 0
+        has_makefile = File.exists?(File.join(full_dir, "Makefile"))
+        shard_path = File.join(full_dir, "shard.yml")
+        has_shard = File.exists?(shard_path)
+        has_shard_targets = has_shard && (((File.read(shard_path) rescue "") =~ /^targets:\s*\r?\n\s{2}(?!carbon\b|jasper\b|lapis\b)[a-zA-Z0-9_\-]+:/m) != nil)
+        is_recompilable = File.exists?(main_cr) || has_makefile || has_shard_targets || (has_gdext && has_src)
+        is_crystal_lib = !is_recompilable && (has_src || has_shard) && !has_gdext && bin_files.empty?
 
         item = tree.call_obj("create_item", root)
         next unless item
@@ -1479,6 +1482,9 @@ module Lapis
         if is_recompilable
           item.call("set_text", 1, "Crystal Source")
           item.call("set_custom_color", 1, Color.new(0.4_f32, 1.0_f32, 0.5_f32, 1.0_f32))
+        elsif is_crystal_lib
+          item.call("set_text", 1, "Crystal Library")
+          item.call("set_custom_color", 1, Color.new(0.55_f32, 0.95_f32, 0.75_f32, 1.0_f32))
         elsif has_gdext || !bin_files.empty?
           item.call("set_text", 1, "GDExtension (Binary)")
           item.call("set_custom_color", 1, Color.new(0.4_f32, 0.85_f32, 1.0_f32, 1.0_f32))
@@ -1494,8 +1500,9 @@ module Lapis
             item.call("set_custom_color", 2, Color.new(1.0_f32, 0.4_f32, 0.4_f32, 1.0_f32))
           else
             bin_time = File.info(File.join(bin_dir, bin_files[0])).modification_time
-            src_target = File.exists?(main_cr) ? main_cr : File.join(full_dir, "shard.yml")
-            src_time = File.exists?(src_target) ? File.info(src_target).modification_time : bin_time
+            cr_sources = Dir.glob(File.join(full_dir, "src/**/*.cr"))
+            newest_src = cr_sources.compact_map { |f| File.info?(f).try(&.modification_time) }.max?
+            src_time = newest_src || (File.exists?(shard_path) ? File.info(shard_path).modification_time : bin_time)
             if src_time > bin_time
               item.call("set_text", 2, "Needs recompile")
               item.call("set_custom_color", 2, Color.new(1.0_f32, 0.8_f32, 0.2_f32, 1.0_f32))
@@ -1504,6 +1511,9 @@ module Lapis
               item.call("set_custom_color", 2, Color.new(0.95_f32, 0.95_f32, 0.95_f32, 1.0_f32))
             end
           end
+        elsif is_crystal_lib
+          item.call("set_text", 2, "Linked in Game")
+          item.call("set_custom_color", 2, Color.new(0.95_f32, 0.95_f32, 0.95_f32, 1.0_f32))
         elsif has_gdext || !bin_files.empty?
           item.call("set_text", 2, "Ready (Precompiled)")
           item.call("set_custom_color", 2, Color.new(0.95_f32, 0.95_f32, 0.95_f32, 1.0_f32))
@@ -2542,10 +2552,10 @@ module Lapis
 
       # 7. Runtime DLLs / Shared Libraries
       required_libs = {% if flag?(:windows) %}
-        ["gc.dll", "libgodot.dll", "crystal_bridge.dll"]
-      {% else %}
-        ["libgodot.so", "crystal_bridge.so"]
-      {% end %}
+                        ["gc.dll", "libgodot.dll", "crystal_bridge.dll"]
+                      {% else %}
+                        ["libgodot.so", "crystal_bridge.so"]
+                      {% end %}
       missing_libs = required_libs.reject { |lib_name| File.exists?("bin/#{lib_name}") || File.exists?("../bin/#{lib_name}") || File.exists?("addons/crystal_integration/bin/#{lib_name}") }
       if missing_libs.empty?
         checks << {"Runtime Shared Libraries", :pass, "All essential runtime DLLs/libraries present."}
@@ -2834,7 +2844,7 @@ module Lapis
         "CrystalPanel", "CrystalConsoleDock", "BenchmarkGraphControl",
         "CrystalIntegrationPlugin", "CrystalDebuggerPlugin", "CrystalLanguage", "CrystalScript",
         "ToolTester2D", "ToolTester3D", "RunTesterPanel",
-        "DummyDialoguePlugin", "DummyInventoryPlugin", "DummyAudioPlugin"
+        "DummyDialoguePlugin", "DummyInventoryPlugin", "DummyAudioPlugin",
       ]
 
       # Find additional custom classes declared in src/
@@ -2861,7 +2871,7 @@ module Lapis
         "MeshInstance3D", "AnimationPlayer", "Timer", "CollisionShape2D", "CollisionShape3D",
         "Sprite2D", "Sprite3D", "Label", "Button", "Tree", "RichTextLabel",
         "ProgressBar", "LineEdit", "TextEdit", "CodeEdit", "EditorPlugin",
-        "EditorInterface", "ScriptEditor", "EditorFileSystem"
+        "EditorInterface", "ScriptEditor", "EditorFileSystem",
       ]
 
       all_candidates = (known_crystal_classes + common_engine_classes).uniq

@@ -410,6 +410,11 @@ module Lapis
       end
     end
 
+    # Remove Opal's global -v/--version flag so subcommands (e.g. `lapis package ... -v <ver>`,
+    # `lapis setup -v <ver>`, `lapis build -v`, `lapis test -v`) receive `-v`/`--version` intact.
+    # Top-level `lapis -v` / `lapis --version` / `lapis version` is handled directly in `Lapis.main`.
+    app.options.reject! { |o| o.name == :version }
+
     app.on_help { |_ctx| print_help; nil }
     app.subcommands.each_value do |cmd|
       cmd.allow_unknown_options
@@ -680,7 +685,8 @@ HELP
       return 0
     end
 
-    if args.size == 1 && (args[0] == "-v" || args[0] == "--version" || args[0] == "version")
+    non_logging_args = args.reject { |a| a == "-q" || a == "--quiet" || a == "--verbose" }
+    if non_logging_args.size == 1 && (non_logging_args[0] == "-v" || non_logging_args[0] == "--version" || non_logging_args[0] == "version")
       puts "Lapis v#{VERSION}"
       return 0
     end

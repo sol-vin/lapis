@@ -15,6 +15,46 @@ test_suite "ScriptFirstClass" do
   end
 end
 {% else %}
+node CustomNoUidFormatLoader < Godot::ResourceFormatLoader do
+  def self.ensure_registered : Void
+  end
+
+  def self.unregister : Void
+  end
+
+  def self._godot_has_virtual_method(method_name : String) : Bool
+    norm = method_name.starts_with?('_') ? method_name : "_#{method_name}"
+    case norm
+    when "_get_recognized_extensions", "_recognize_path", "_handles_type", "_get_resource_type", "_load"
+      true
+    else
+      false
+    end
+  end
+
+  def _godot_call_virtual_with_data(method_name : String, args : Void**, ret : Void*) : Void
+    norm = method_name.starts_with?('_') ? method_name : "_#{method_name}"
+    case norm
+    when "_get_recognized_extensions"
+      Godot::Bridge.ret_packed_string_array(ret, ["nouidtest"])
+    when "_recognize_path"
+      path = Godot::Bridge.arg_to_string(args[0])
+      ret.as(UInt8*).value = path.downcase.ends_with?(".nouidtest") ? 1_u8 : 0_u8
+    when "_handles_type"
+      typename = Godot::Bridge.arg_to_string_name(args[0]) rescue ""
+      typename = Godot::Bridge.arg_to_string(args[0]) rescue "" if typename.empty?
+      ret.as(UInt8*).value = (typename == "Resource" || typename.empty?) ? 1_u8 : 0_u8
+    when "_get_resource_type"
+      path = Godot::Bridge.arg_to_string(args[0])
+      Godot::Bridge.ret_string(ret, path.downcase.ends_with?(".nouidtest") ? "Resource" : "")
+    when "_load"
+      Godot::Bridge.ret_variant_nil(ret)
+    else
+      super
+    end
+  end
+end
+
 test_suite "ScriptFirstClass" do
   test "CrystalHighlighter pure-Crystal lexer tokenization" do
     # Test line with keywords, types, annotations, symbols, numbers, and comments
@@ -602,6 +642,28 @@ test_suite "ScriptFirstClass" do
     res = Lapis::CrystalValidator.validate(macro_script)
     assert_true res.valid?, "CrystalValidator should accept valid macro blocks without false errors"
     assert_eq res.errors.size, 0
+  end
+
+  test "Custom ResourceFormatLoader without _get_resource_uid returns INVALID_ID (-1) instead of 0 (uid://a)" do
+    rl_ptr = Godot::Bridge.get_singleton("ResourceLoader")
+    assert_true !rl_ptr.null?, "ResourceLoader singleton must exist"
+    r_loader = Godot::ResourceLoader.new(rl_ptr)
+
+    custom_loader = Godot.create(CustomNoUidFormatLoader)
+    assert_not_nil custom_loader, "CustomNoUidFormatLoader should instantiate"
+
+    if loader = custom_loader
+      begin
+        r_loader.add_resource_format_loader(loader, true) rescue r_loader.call("add_resource_format_loader", loader, true)
+        uid_readme = r_loader.call_i64("get_resource_uid", "res://README.md")
+        uid_proj = r_loader.call_i64("get_resource_uid", "res://project.godot")
+        assert_eq uid_readme, -1_i64, "Unoverridden _get_resource_uid must return ResourceUID::INVALID_ID (-1), never 0 (uid://a)"
+        assert_eq uid_proj, -1_i64, "Unoverridden _get_resource_uid on project.godot must return -1, never 0"
+      ensure
+        r_loader.remove_resource_format_loader(loader) rescue r_loader.call("remove_resource_format_loader", loader)
+        loader.unreference rescue nil if loader.alive?
+      end
+    end
   end
 end
 {% end %}

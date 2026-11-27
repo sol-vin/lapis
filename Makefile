@@ -102,10 +102,10 @@ PLUGIN_DLL       = $(PLUGIN_LIB)
 GAME_DLL         = $(GAME_LIB)
 LIBGODOT_DLL     = $(LIBGODOT_LIB)
 
-.PHONY: all lapis install uninstall bridge plugin test_project test_standalone package_installer package-installer windows_installer windows-installer installer package_tests package-tests package_lapis package-lapis package_deb package-deb package_template package-template package_template_addon package-template-addon package_examples package-examples package_addon package-addon package_all package-all package_release package-release package_perf package-perf package_benchmarks package-benchmarks benchmarks benchmarks_run benchmarks-run package_game package-game new_addon new-addon new_example new-example setup_dev setup-dev run_editor run-editor run_test run-test run_ci_local run-ci-local ci-local ci export_templates export-templates recompile_addons recompile-addons verify_editor verify-editor test_wsl test-wsl report_android report-android examples examples_exe template template_addon perf perf_standalone perf_run perf_editor game_dll game_exe android package_android generate dump_api project_bindings deps addons sync engine spec spec_cli spec-cli test_cli test-cli test tests debug debug_editor debug-editor decompile analyze audit docs run editor clean help
+.PHONY: all lapis install uninstall bridge plugin test_project test_standalone package_installer package-installer windows_installer windows-installer installer package_tests package-tests package_lapis package-lapis package_deb package-deb package_template package-template package_template_addon package-template-addon package_examples package-examples package_addon package-addon package_all package-all package_release package-release package_perf package-perf package_benchmarks package-benchmarks benchmarks benchmarks_run benchmarks-run package_game package-game package_source package-source new_addon new-addon new_example new-example setup_dev setup-dev run_editor run-editor run_test run-test run_ci_local run-ci-local ci-local ci export_templates export-templates recompile_addons recompile-addons verify_editor verify-editor test_wsl test-wsl report_android report-android examples examples_exe template template_addon perf perf_standalone perf_run perf_editor game_dll game_exe android package_android generate dump_api project_bindings deps addons sync engine spec spec_cli spec-cli test_cli test-cli test tests debug debug_editor debug-editor decompile analyze audit docs run editor clean help
 
 # Compile Lapis CLI toolchain if not present or source changed
-$(LAPIS): $(wildcard tools/lapis/src/**/*.cr) $(wildcard tools/lapis/src/*.cr) $(wildcard tools/lapis/*.yml) $(wildcard src/*.cr) $(wildcard src/lapis/*.cr) $(wildcard src/lapis/**/*.cr) $(wildcard src/libgodot/*.cr) $(wildcard src/libgodot/**/*.cr) $(wildcard template/*) $(wildcard template/**/*) $(wildcard template-addon/*) $(wildcard template-addon/**/*) $(wildcard addons/crystal_integration/*) $(wildcard addons/crystal_integration/*/*) shard.yml godot-version.yml
+$(LAPIS): $(wildcard tools/lapis/src/**/*.cr) $(wildcard tools/lapis/src/*.cr) $(wildcard tools/lapis/*.yml) $(wildcard src/*.cr) $(wildcard src/lapis/*.cr) $(wildcard src/lapis/**/*.cr) $(wildcard src/libgodot/*.cr) $(wildcard src/libgodot/**/*.cr) $(wildcard src/editor/*.cr) $(wildcard src/editor/**/*.cr) $(wildcard src/bridge/*) $(wildcard template/*) $(wildcard template/**/*) $(wildcard template-addon/*) $(wildcard template-addon/**/*) $(wildcard addons/crystal_integration/*) $(wildcard addons/crystal_integration/*/*) shard.yml godot-version.yml
 	@echo "[Lapis] Compiling Lapis toolchain $(LAPIS)..."
 	@git config core.hooksPath .githooks || true
 	@shards update --skip-postinstall || shards install --skip-postinstall || true
@@ -287,6 +287,11 @@ benchmarks_run benchmarks-run: benchmarks
 package_game package-game:
 	@echo [Package] Packaging playable standalone Godot game...
 	@$(LAPIS) package game $(if $(or $(PROJECT),$(PATH)),-p "$(or $(PROJECT),$(PATH))",) $(if $(NAME),-n "$(NAME)",) $(if $(filter 1,$(RELEASE)),-r,) $(if $(filter 1,$(DEBUG)),--debug,) $(if $(or $(TARGET_DIR),$(EXPORT_DIR)),-t "$(or $(TARGET_DIR),$(EXPORT_DIR))",) $(if $(filter 1,$(FORCE)),-f,)
+
+# Package portable project source archive (.zip) excluding non-source directories
+package_source package-source: $(LAPIS)
+	@echo [Package] Packaging portable project source archive...
+	@$(LAPIS) package source $(if $(or $(PROJECT),$(PATH)),-p "$(or $(PROJECT),$(PATH))",) $(if $(NAME),-n "$(NAME)",) $(if $(or $(OUTPUT),$(ZIP_NAME)),-o "$(or $(OUTPUT),$(ZIP_NAME))",) $(if $(or $(TARGET_DIR),$(EXPORT_DIR)),-t "$(or $(TARGET_DIR),$(EXPORT_DIR))",)
 
 # Scaffold a new compiled Crystal GDExtension addon project
 new_addon new-addon:
@@ -479,6 +484,7 @@ help:
 	@echo.
 	@echo   PACKAGING TARGETS:
 	@echo     make package-game           Package playable game [PROJECT=.] [RELEASE=1] [FORCE=1]
+	@echo     make package-source         Package portable source zip [PROJECT=.] [OUTPUT=...] [TARGET_DIR=...]
 	@echo     make package-release        Package all release archives into bin/release_dist/
 	@echo     make package-installer      Package Windows Inno Setup installer executable .exe
 	@echo     make package-deb            Package Lapis Debian package .deb

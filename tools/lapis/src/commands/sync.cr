@@ -1,6 +1,8 @@
 require "../core/env"
 require "../core/logger"
 require "../core/baked_file_system"
+require "./deps"
+require "./shard_manager"
 require "file_utils"
 require "option_parser"
 
@@ -90,17 +92,50 @@ module Lapis
           purged += 1
         end
 
-        fs_cache = project_dir.join(".godot/editor/filesystem_cache10")
-        if File.exists?(fs_cache)
-          content = File.read(fs_cache) rescue ""
-          if content.includes?("::uid://a::")
-            unless dry_run
-              File.delete(fs_cache) rescue nil
-              uid_bin = project_dir.join(".godot/uid_cache.bin")
-              File.delete(uid_bin) if File.exists?(uid_bin)
+        orphan_libgodot = project_dir.join("src/libgodot")
+        if Dir.exists?(orphan_libgodot) && !File.exists?(project_dir.join("src/libgodot.cr")) &&
+           (Dir.children(orphan_libgodot) rescue [] of String) == ["generated"]
+          if dry_run
+            Core::Logger.info("[Dry Run] Would remove stray generated engine bindings: #{orphan_libgodot}")
+          else
+            FileUtils.rm_rf(orphan_libgodot) rescue nil
+            Core::Logger.debug("Removed stray generated engine bindings: #{orphan_libgodot}")
+          end
+          purged += 1
+        end
+
+        poisoned_uid_found = false
+        uid_pattern = project_dir.to_s.gsub('\\', '/') + "/**/*.uid"
+        Dir.glob(uid_pattern).each do |uid_file|
+          rel_uid = Path.new(uid_file).relative_to(project_dir).to_s.gsub('\\', '/')
+          next if rel_uid.starts_with?(".git/") || rel_uid.starts_with?("lib/")
+          uid_text = (File.read(uid_file) rescue "").strip
+          if uid_text == "uid://a"
+            poisoned_uid_found = true
+            if dry_run
+              Core::Logger.info("[Dry Run] Would remove poisoned UID sidecar: #{uid_file}")
+            else
+              File.delete(uid_file) rescue nil
+              Core::Logger.debug("Removed poisoned UID sidecar: #{uid_file}")
             end
             purged += 1
           end
+        end
+
+        fs_cache = project_dir.join(".godot/editor/filesystem_cache10")
+        cache_poisoned = poisoned_uid_found
+        if File.exists?(fs_cache)
+          content = File.read(fs_cache) rescue ""
+          cache_poisoned = true if content.includes?("::uid://a::")
+        end
+
+        if cache_poisoned
+          unless dry_run
+            File.delete(fs_cache) if File.exists?(fs_cache)
+            uid_bin = project_dir.join(".godot/uid_cache.bin")
+            File.delete(uid_bin) if File.exists?(uid_bin)
+          end
+          purged += 1 unless poisoned_uid_found
         end
 
         purged
@@ -165,7 +200,7 @@ module Lapis
         entries : Array(String),
         addon_for_ext : Hash(String, String),
         ext_for_addon : Hash(String, String),
-        deps_for_addon : Hash(String, Array(String))
+        deps_for_addon : Hash(String, Array(String)),
       ) : Array(String)
         sorted = [] of String
         visited = Set(String).new
@@ -184,7 +219,7 @@ module Lapis
         deps_for_addon : Hash(String, Array(String)),
         visited : Set(String),
         visiting : Set(String),
-        sorted : Array(String)
+        sorted : Array(String),
       ) : Nil
         return if visited.includes?(ext_item)
         return if visiting.includes?(ext_item)
@@ -392,16 +427,16 @@ HELP
           # Purge foreign binaries from root bin directory
           Core::Env.purge_foreign_binaries(bin_dir) unless dry_run
 
-          # For standalone projects, refresh crystal_bridge, plugin, and runtime DLLs from global Lapis toolchain if available
-          if !is_monorepo && (global_root = Core::Env.global_libgodot_path)
-            global_bin = global_root.join("bin")
-            if Dir.exists?(global_bin)
-              FileUtils.mkdir_p(bin_dir) unless dry_run || Dir.exists?(bin_dir)
-              (platform_files + [Core::Env.plugin_file]).each do |bin_name|
-                src_global = global_bin.join(bin_name)
-                safe_copy(src_global, bin_dir.join(bin_name), dry_run: dry_run) if File.exists?(src_global)
+          # For standalone projects, refresh crystal_bridge, plugin, and runtime DLLs from candidate runtime dirs
+          if !is_monorepo
+            cand_dirs = Core::Env.candidate_runtime_dirs(root)
+            FileUtils.mkdir_p(bin_dir) unless dry_run || Dir.exists?(bin_dir)
+            (platform_files + [Core::Env.plugin_file]).each do |bin_name|
+              if src_cand = cand_dirs.find { |d| d != bin_dir && File.exists?(d.join(bin_name)) }
+                safe_copy(src_cand.join(bin_name), bin_dir.join(bin_name), dry_run: dry_run)
               end
             end
+            Commands::Deps.run(["-t", bin_dir.to_s]) unless dry_run
           end
 
           synced_count = 0
@@ -548,11 +583,8 @@ HELP
                   File.write(dest_dep.join(".gdignore"), "") if !dry_run && !File.exists?(dest_dep.join(".gdignore"))
                 end
               end
-            elsif Core::BakedFileSystem.files_with_prefix("src").size > 0
-              Core::Logger.step("Sync", "Extracting embedded Lapis engine library into #{proj}/lib/lapis...")
-              Core::BakedFileSystem.extract_engine_lib(proj_dir.join("lib/lapis"), overwrite: true) unless dry_run
-            elsif shards_exe = Core::ProcessRunner.find_executable("shards")
-              Core::ProcessRunner.run(shards_exe, ["install"], chdir: proj_dir.to_s) unless dry_run
+            elsif !dry_run
+              Commands::ShardManager.ensure_dependencies(proj_dir)
             end
           end
 

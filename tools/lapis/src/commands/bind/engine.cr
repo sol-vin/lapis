@@ -643,7 +643,8 @@ module Lapis
             Core::Logger.step("Bind:Engine", "Dumping GDExtension API from #{godot_exe}...")
             temp_dump_dir = Path.new(Dir.tempdir, "lapis_api_dump_#{Process.pid}")
             FileUtils.mkdir_p(temp_dump_dir)
-            dumped_path = root.join("extension_api.json")
+            dumped_path = api_path || root.join("extension_api.json")
+            FileUtils.mkdir_p(dumped_path.parent) unless Dir.exists?(dumped_path.parent)
             begin
               isolated_exe = temp_dump_dir.join(File.basename(godot_exe))
               FileUtils.cp(godot_exe, isolated_exe.to_s)

@@ -43,7 +43,7 @@ ifeq ($(strip $(RELEASE)),1)
 	CRYSTAL_FLAGS += --release
 endif
 
-.PHONY: all build game_dll game-dll game_exe game-exe package_game package-game deps bridge extension_list addons project_bindings project-bindings bindings rebuild export export_release export-release run editor run_editor run-editor test spec docs setup_dev setup-dev clean help
+.PHONY: all build game_dll game-dll game_exe game-exe package_game package-game package_source package-source deps bridge extension_list addons project_bindings project-bindings bindings rebuild export export_release export-release run editor run_editor run-editor test spec docs setup_dev setup-dev clean help
 
 all: dirs deps bridge extension_list addons project_bindings game_dll game_exe
 	@echo ===================================================================
@@ -85,6 +85,10 @@ game_exe game-exe: dirs deps bridge extension_list addons game_dll
 package_game package-game: all
 	@echo [Template] Packaging playable standalone game...
 	@$(LAPIS) package game -p . -n $(or $(NAME),game) $(if $(filter 1,$(RELEASE)),-r,) $(if $(or $(TARGET_DIR),$(EXPORT_DIR)),-t "$(or $(TARGET_DIR),$(EXPORT_DIR))",) $(if $(filter 1,$(FORCE)),-f,)
+
+package_source package-source:
+	@echo [Template] Packaging portable project source archive...
+	@$(LAPIS) package source -p . $(if $(NAME),-n "$(NAME)",) $(if $(or $(OUTPUT),$(ZIP_NAME)),-o "$(or $(OUTPUT),$(ZIP_NAME))",) $(if $(or $(TARGET_DIR),$(EXPORT_DIR)),-t "$(or $(TARGET_DIR),$(EXPORT_DIR))",)
 
 run: all
 	@echo [Template] Running project with Godot...

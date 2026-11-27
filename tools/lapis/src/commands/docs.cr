@@ -67,6 +67,10 @@ HELP
             File.write(css_file, css)
             Core::Logger.success("CSS sidebar height cutoff patched to 3000em successfully!")
           end
+
+          if Jasper::CssPatcher.patch(docs_dir)
+            Core::Logger.success("Injected Jasper side-by-side comparison styles into CSS!")
+          end
         end
 
         # 2. Patch search results limit in doc.js

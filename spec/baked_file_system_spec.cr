@@ -173,6 +173,11 @@ begin
     "src/libgodot/variant.cr",
     "src/libgodot/binding_macros.cr",
     "src/libgodot/generated/classes/classes_part1.cr",
+    "src/editor/benchmark_graph_control.cr",
+    "src/editor/crystal_console_dock.cr",
+    "src/editor/crystal_panel.cr",
+    "src/editor/script_create_dialog.cr",
+    "src/editor/plugin.cr",
     "src/bridge/crystal_bridge.cpp",
   ].each do |required_file|
     unless File.exists?(temp_lib_dir.join(required_file))
@@ -262,4 +267,3 @@ end
 puts "  ✓ Volume isolation verified: :engine (#{engine_vol.size} files), :cradare2, :opal, :template, :addon mounted"
 
 puts "\n>>> All BakedFileSystem Specifications Passed! <<<"
-

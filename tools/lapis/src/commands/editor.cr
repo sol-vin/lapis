@@ -5,6 +5,8 @@ require "../core/godot_finder"
 require "../core/tool_checker"
 require "../core/baked_file_system"
 require "./build"
+require "./setup"
+require "./shard_manager"
 require "../tui/debugger_view"
 require "../tui/run_monitor"
 require "option_parser"
@@ -148,7 +150,7 @@ HELP
         Sync.ensure_extension_list(target_dir)
 
         expected_ver = Core::GodotFinder.expected_version(target_dir.to_s)
-        godot_exe = Core::GodotFinder.resolve(godot_path, target_dir.to_s, filter_version: !skip_version_check)
+        godot_exe = Commands::Setup.ensure_godot_binary(target_dir, godot_path, filter_version: !skip_version_check)
 
         unless godot_exe
           Core::Logger.error("Godot executable not found.")
@@ -163,16 +165,24 @@ HELP
           end
         end
 
-        # Pre-flight check: purge recursive lib/<shard>/lib symlinks so external editors (e.g. TrenchBroom)
-        # invoked from the project directory never hit MAX_PATH cycles on Windows.
+        # Pre-flight check: purge recursive lib/<shard>/lib symlinks and poisoned UID caches
+        # so external editors (e.g. TrenchBroom) never hit MAX_PATH cycles and Godot resolves clean UIDs.
         Commands::Sync.purge_recursive_shard_symlinks(target_dir)
+        Commands::Sync.purge_stray_monorepo_dirs(target_dir)
 
-        # Pre-flight check: ensure GDExtension bridge & editor plugin binaries are present and up to date in target project
+        # Pre-flight check: ensure shard dependencies (lib/), GDExtension bridge & editor plugin binaries are present in target project
+        if !Core::Env.is_libgodot_repo?(target_dir) && File.exists?(target_dir.join("shard.yml"))
+          Commands::ShardManager.ensure_dependencies(target_dir)
+        end
+
         addon_bin = target_dir.join("addons/crystal_integration/bin")
         proj_bin = target_dir.join("bin")
+        FileUtils.mkdir_p(proj_bin) unless Dir.exists?(proj_bin)
+        File.write(proj_bin.join(".gdignore"), "") unless File.exists?(proj_bin.join(".gdignore"))
+
         bridge_file = Core::Env.bridge_file
         plugin_file = Core::Env.plugin_file
-        if !File.exists?(addon_bin.join(bridge_file))
+        if Dir.exists?(target_dir.join("addons/crystal_integration")) && !File.exists?(addon_bin.join(bridge_file))
           FileUtils.mkdir_p(addon_bin)
           if Core::BakedFileSystem.has_file?("addons/crystal_integration/bin/#{bridge_file}")
             Core::Logger.step("Sync", "Restoring missing GDExtension bridge from BakedFileSystem...")
@@ -180,38 +190,62 @@ HELP
           end
         end
 
-        if !Core::Env.is_libgodot_repo?(target_dir) && Dir.exists?(addon_bin)
-          if (global_root = Core::Env.global_libgodot_path) && Dir.exists?(global_root.join("bin"))
-            global_bin = global_root.join("bin")
+        if !Core::Env.is_libgodot_repo?(target_dir)
+          Commands::Deps.ensure_bridge_and_plugin(target_dir, need_plugin: !run_standalone)
+          candidate_dirs = Core::Env.candidate_runtime_dirs(root)
+          if Dir.exists?(target_dir.join("addons/crystal_integration"))
+            FileUtils.mkdir_p(addon_bin) unless Dir.exists?(addon_bin)
             [bridge_file, plugin_file].each do |bin_name|
-              src_global = global_bin.join(bin_name)
-              if File.exists?(src_global)
-                Commands::Deps.safe_copy(src_global, addon_bin.join(bin_name))
-                Commands::Deps.safe_copy(src_global, proj_bin.join(bin_name))
+              if src_cand = candidate_dirs.compact_map { |d| d.join(bin_name) if File.exists?(d.join(bin_name)) }.first?
+                Commands::Deps.safe_copy(src_cand, addon_bin.join(bin_name)) unless bin_name == plugin_file && run_standalone
+                Commands::Deps.safe_copy(src_cand, proj_bin.join(bin_name)) unless bin_name == plugin_file && run_standalone
+              end
+            end
+          end
+
+          # Also ensure installed Crystal GDExtension addons (with active .gdextension) receive the up-to-date bridge and CRT
+          addons_parent = target_dir.join("addons")
+          bridge_src = candidate_dirs.compact_map { |d| d.join(bridge_file) if File.exists?(d.join(bridge_file)) }.first?
+          bridge_src ||= addon_bin.join(bridge_file) if File.exists?(addon_bin.join(bridge_file))
+          if bridge_src && Dir.exists?(addons_parent)
+            Dir.each_child(addons_parent) do |sub_name|
+              next if sub_name == "crystal_integration"
+              sub_dir = addons_parent.join(sub_name)
+              next unless Dir.exists?(sub_dir)
+              gdexts = Dir.glob(sub_dir.join("**/*.gdextension").to_s.gsub('\\', '/'))
+              next if gdexts.empty?
+              if gdexts.any? { |gf| (File.read(gf) rescue "").includes?("crystal_bridge") }
+                sub_bin = sub_dir.join("bin")
+                FileUtils.mkdir_p(sub_bin) unless Dir.exists?(sub_bin)
+                Commands::Deps.safe_copy(bridge_src, sub_bin.join(bridge_file))
+                Commands::Deps.run(["-t", sub_bin.to_s, "--addon"])
               end
             end
           end
         end
 
-        # Ensure dependencies are copied to target_dir/bin
-        FileUtils.mkdir_p(proj_bin)
-        ["crystal_bridge.dll", "crystal_bridge.so", "crystal_bridge.dylib", "gc.dll", "iconv-2.dll", "pcre2-8.dll"].each do |lib_name|
-          src_in_addon = addon_bin.join(lib_name)
-          if File.exists?(src_in_addon) && !File.exists?(proj_bin.join(lib_name))
-            Commands::Deps.safe_copy(src_in_addon, proj_bin.join(lib_name))
+        # Ensure runtime dependencies (CRT, stdlib companion DLLs, LibVLC) are staged to proj_bin and crystal_integration/bin
+        Commands::Deps.run(["-t", proj_bin.to_s])
+        if Dir.exists?(target_dir.join("addons/crystal_integration"))
+          Commands::Deps.run(["-t", addon_bin.to_s, "--addon"])
+        end
+
+        # Ensure Crystal source addons and game.dll/so are compiled prior to launching Godot
+        if !Core::Env.is_libgodot_repo?(target_dir) && Dir.exists?(target_dir.join("addons"))
+          addon_res = Commands::Build.build_addons(["-p", target_dir.to_s])
+          if addon_res != 0
+            Core::Logger.error("Aborting #{run_standalone ? "game" : "editor"} launch because Crystal addon build failed.")
+            return addon_res
           end
         end
 
-        # Ensure game.dll/so exists if project has src/main.cr
         game_file = Core::Env.game_file
         if File.exists?(target_dir.join("src/main.cr")) && !File.exists?(proj_bin.join(game_file))
-          if Core::BakedFileSystem.has_file?("template/bin/#{game_file}")
-            Core::Logger.step("Sync", "Restoring starter game library from BakedFileSystem...")
-            Core::BakedFileSystem.extract_file("template/bin/#{game_file}", proj_bin.join(game_file))
-            Commands::Deps.safe_copy(proj_bin.join(game_file), addon_bin.join(game_file))
-          else
-            Core::Logger.step("Build", "Building game library prior to launching editor...")
-            Commands::Build.run(["game", "-p", target_dir.to_s])
+          Core::Logger.step("Build", "Building game library prior to launching #{run_standalone ? "game" : "editor"}...")
+          build_res = Commands::Build.run(["game", "-p", target_dir.to_s])
+          if build_res != 0
+            Core::Logger.error("Aborting #{run_standalone ? "game" : "editor"} launch because initial game library build failed.")
+            return build_res
           end
         end
 
@@ -251,10 +285,10 @@ HELP
         Core::Logger.info("  Crystal Log: #{crystal_log}")
 
         child_env = {
-          "LAPIS_LOG_FILE" => crystal_log.expand.to_s,
+          "LAPIS_LOG_FILE"    => crystal_log.expand.to_s,
           "LAPIS_LOG_CONTEXT" => log_context,
-          "LAPIS_LOG_LEVEL" => (ENV["LAPIS_LOG_LEVEL"]? || "trace"),
-          "LAPIS_BRIDGE_LOG" => log_dir.join("bridge.log").expand.to_s,
+          "LAPIS_LOG_LEVEL"   => (ENV["LAPIS_LOG_LEVEL"]? || "trace"),
+          "LAPIS_BRIDGE_LOG"  => log_dir.join("bridge.log").expand.to_s,
         }
 
         if monitor_mode

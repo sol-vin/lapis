@@ -3,12 +3,12 @@ name: libgodot-packaging
 description: >-
   Packaging, installers, and release distribution for Lapis and Godot games/addons.
   Use when building the Windows installer, official addon archive, playable standalone games,
-  Debian package, benchmarks archive, or complete release distributions.
+  portable source archives, Debian package, benchmarks archive, or complete release distributions.
 ---
 
 # LibGodot & Lapis Packaging Runbook
 
-This skill outlines how to build installers, redistributable archives, standalone game packages, and release distributions using the project's build system and Lapis CLI.
+This skill outlines how to build installers, redistributable archives, standalone game packages, portable source archives, and release distributions using the project's build system and Lapis CLI.
 
 ---
 
@@ -25,37 +25,42 @@ This skill outlines how to build installers, redistributable archives, standalon
     <tr>
       <td><a href="#1-cardinal-rule-always-use-make-package-target-or-lapis-package"><strong>1. Cardinal Rule: Always Use `make <package-target>` or `lapis package`</strong></a></td>
       <td>NEVER manually locate compiler utilities (like iscc.exe), execute recursive filesystem searches, or craft a...</td>
-      <td align="center"><code>L65–L72</code></td>
+      <td align="center"><code>L70–L77</code></td>
     </tr>
     <tr>
       <td><a href="#2-windows-installer-exe"><strong>2. Windows Installer (`.exe`)</strong></a></td>
       <td>To compile the Windows Inno Setup installer executable:</td>
-      <td align="center"><code>L73–L105</code></td>
+      <td align="center"><code>L78–L110</code></td>
     </tr>
     <tr>
       <td><a href="#3-full-release-distribution-binreleasedist"><strong>3. Full Release Distribution (`bin/release_dist/`)</strong></a></td>
       <td>To package all release archives, installers, and SHA-256 checksums:</td>
-      <td align="center"><code>L106–L139</code></td>
+      <td align="center"><code>L111–L144</code></td>
     </tr>
     <tr>
       <td><a href="#4-official-addon-packaging-crystalintegration"><strong>4. Official Addon Packaging (`crystal_integration`)</strong></a></td>
       <td>To package the official redistributable GDExtension addon into godot-crystal-addon.zip:</td>
-      <td align="center"><code>L140–L152</code></td>
+      <td align="center"><code>L145–L157</code></td>
     </tr>
     <tr>
       <td><a href="#5-playable-standalone-game-packaging"><strong>5. Playable Standalone Game Packaging</strong></a></td>
       <td>To export a Godot + Crystal project as a standalone playable game directory (containing executable, PCK pac...</td>
-      <td align="center"><code>L153–L192</code></td>
+      <td align="center"><code>L158–L197</code></td>
     </tr>
     <tr>
-      <td><a href="#6-comprehensive-packaging-targets-reference"><strong>6. Comprehensive Packaging Targets Reference</strong></a></td>
+      <td><a href="#6-portable-source-code-packaging-lapis-package-source"><strong>6. Portable Source Code Packaging (`lapis package source`)</strong></a></td>
+      <td>To package a clean, portable source archive (<name>-source.zip) with project files placed directly at the a...</td>
+      <td align="center"><code>L198–L224</code></td>
+    </tr>
+    <tr>
+      <td><a href="#7-comprehensive-packaging-targets-reference"><strong>7. Comprehensive Packaging Targets Reference</strong></a></td>
       <td><table></td>
-      <td align="center"><code>L193–L269</code></td>
+      <td align="center"><code>L225–L307</code></td>
     </tr>
     <tr>
-      <td><a href="#7-cli-direct-invocation-alternative"><strong>7. CLI Direct Invocation Alternative</strong></a></td>
+      <td><a href="#8-cli-direct-invocation-alternative"><strong>8. CLI Direct Invocation Alternative</strong></a></td>
       <td>All make targets map directly to lapis package:</td>
-      <td align="center"><code>L270–L280</code></td>
+      <td align="center"><code>L308–L319</code></td>
     </tr>
   </tbody>
 </table>
@@ -190,7 +195,34 @@ This bundles:
 
 ---
 
-## 6. Comprehensive Packaging Targets Reference
+## 6. Portable Source Code Packaging (`lapis package source`)
+
+To package a clean, portable source archive (`<name>-source.zip`) with project files placed directly at the archive root—ideal for game jam source submissions (such as LSDJam) or clean source distribution:
+
+```bash
+lapis package source
+# or via Make:
+make package-source
+```
+
+### Optional Source Packaging Flags:
+```bash
+# Target a specific project path
+lapis package source -p path/to/project
+
+# Custom archive path or target directory
+lapis package source -o dist/my_game-source.zip
+lapis package source -t dist/
+```
+
+### Automatic Non-Source Exclusions & Unzip Readiness:
+- **Pruned Directories**: `bin` (including `addons/*/bin` and `benchmarks/bin`), `lib` (restored via `shards install`), `log`, `.godot`, `.git`, `scratch`, `.crystal`, `.shards`, `godot_temp`, and `dist`.
+- **Excluded Files**: Root engine binaries (`godot.exe`, `godot`, `godot.zip`), shadow DLLs (`*_loaded_*`), debug symbols (`*.pdb`, `*.exp`, `*.ilk`), logs/temp files (`*.log`, `*.tmp`), `shard.override.yml`, and test markers.
+- **Zero-Setup Host Provisioning on Unzip**: Extracting `<name>-source.zip` into a fresh directory and running `lapis editor`, `lapis build`, `lapis spec`, `lapis test`, or `lapis doctor autofix` automatically provisions `lib/` (`shards install`), resolves or downloads the target Godot engine from `godot-version.yml`, stages Crystal CRT/stdlib & addon runtime DLLs into `bin/`, and compiles `game.dll`.
+
+---
+
+## 7. Comprehensive Packaging Targets Reference
 
 <table>
   <thead>
@@ -225,6 +257,12 @@ This bundles:
       <td><code>make package-game</code></td>
       <td>All</td>
       <td>Packages game executable, PCK packfile, and runtime DLLs into shipping folder.</td>
+    </tr>
+    <tr>
+      <td><strong>Portable Source</strong></td>
+      <td><code>make package-source</code></td>
+      <td>All</td>
+      <td>Packages flat-root source <code>.zip</code> excluding <code>bin</code>, <code>lib</code>, <code>log</code>, <code>.godot</code>, and <code>.git</code>.</td>
     </tr>
     <tr>
       <td><strong>Lapis CLI Archive</strong></td>
@@ -267,7 +305,7 @@ This bundles:
 
 ---
 
-## 7. CLI Direct Invocation Alternative
+## 8. CLI Direct Invocation Alternative
 
 All make targets map directly to `lapis package`:
 ```bash
@@ -275,5 +313,6 @@ bin/lapis package windows-installer [-t <dir>] [-o <name>] [-v <version>] [-r]
 bin/lapis package release [--skip-tests] [--skip-benchmarks]
 bin/lapis package addon [--platform <plat>] [-o <zip>]
 bin/lapis package game [-p <project_path>] [-n <name>] [-r]
+bin/lapis package source [-p <project_path>] [-n <name>] [-o <zip>] [-t <dir>]
 bin/lapis package deb [-t <dir>] [-v <version>]
 ```

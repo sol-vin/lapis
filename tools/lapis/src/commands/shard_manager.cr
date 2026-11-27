@@ -1,6 +1,8 @@
 require "../core/env"
 require "../core/logger"
 require "../core/process_runner"
+require "../core/baked_file_system"
+require "../core/archive_security"
 require "./install_addon"
 require "./sync"
 require "file_utils"
@@ -833,6 +835,82 @@ YAML
         result
       end
 
+      # Returns the names of dependencies declared in `shard.yml` that are missing from `lib/<name>`.
+      def self.missing_dependencies(project_dir : Path) : Array(String)
+        shard_path = project_dir.join("shard.yml")
+        return [] of String unless File.exists?(shard_path)
+        read_dependencies(shard_path).reject(&.installed).map(&.name)
+      end
+
+      # Ensures all dependencies declared in `shard.yml` are installed under `project_dir/lib/`.
+      # Automatically runs `shards install`, provides a copy fallback for local `path:` shards on
+      # hosts without symlink privileges, falls back to `BakedFileSystem` for engine libs, and creates `lib/.gdignore`.
+      def self.ensure_dependencies(project_dir : Path) : Bool
+        proj = project_dir.expand
+        return true if Core::Env.is_libgodot_repo?(proj)
+        shard_path = proj.join("shard.yml")
+        return true unless File.exists?(shard_path)
+
+        initial_deps = read_dependencies(shard_path)
+        lapis_dep = initial_deps.find { |d| d.name == "lapis" }
+        lapis_points_into_lib = lapis_dep && lapis_dep.source_type == "path" &&
+                                lapis_dep.source.gsub('\\', '/').sub(/^\.\//, "").rchop('/') == "lib/lapis"
+
+        # If `lapis` points to `lib/lapis` itself, running `shards install` directly would delete `lib/lapis`
+        # before linking it; only invoke `shards install` when remote (non-path) dependencies are missing.
+        has_missing_remote = initial_deps.any? { |d| !d.installed && d.source_type != "path" }
+        if has_missing_remote || (!lapis_points_into_lib && !missing_dependencies(proj).empty?)
+          run_shards_install(proj)
+        end
+
+        # Materialize any missing local `path:` dependencies (e.g. `path: ./addons/succ_cr`)
+        read_dependencies(shard_path).each do |dep|
+          next if Dir.exists?(proj.join("lib", dep.name))
+          next unless dep.source_type == "path" && !dep.source.empty? && dep.source != "-"
+          norm_src = dep.source.gsub('\\', '/').sub(/^\.\//, "").rchop('/')
+          next if norm_src == "lib/#{dep.name}"
+          src_dep_dir = proj.join(dep.source).expand
+          next unless Dir.exists?(src_dep_dir)
+          dst_dep_dir = proj.join("lib", dep.name)
+          FileUtils.mkdir_p(dst_dep_dir)
+          if Dir.exists?(src_dep_dir.join("src"))
+            FileUtils.cp_r(src_dep_dir.join("src").to_s, dst_dep_dir.join("src").to_s)
+            dst_main = dst_dep_dir.join("src/main.cr")
+            dst_entry = dst_dep_dir.join("src/#{dep.name}.cr")
+            if File.exists?(dst_main)
+              if !Dir.exists?(dst_dep_dir.join("spec/editor"))
+                content = File.read(dst_main) rescue ""
+                if content =~ /^\s*require\s+"\.\.\/spec\/editor\/\*\*"/m
+                  sanitized = content.gsub(/^(\s*)require\s+"\.\.\/spec\/editor\/\*\*"/m, "\\1# require \"../spec/editor/**\" # omitted when installed as addon without spec/editor")
+                  File.write(dst_main, sanitized) if sanitized != content
+                end
+              end
+              if !File.exists?(dst_entry) && Core::ArchiveSecurity.valid_single_name?(dep.name)
+                File.write(dst_entry, "require \"./main\"\n")
+              end
+            end
+          end
+          if File.exists?(src_dep_dir.join("shard.yml"))
+            FileUtils.cp(src_dep_dir.join("shard.yml").to_s, dst_dep_dir.join("shard.yml").to_s)
+          end
+        end
+
+        if !Core::BakedFileSystem.engine_libs_present?(proj) && Core::BakedFileSystem.files_with_prefix("src").size > 0
+          Core::Logger.step("Deps", "Extracting embedded Lapis engine library into lib/lapis...")
+          Core::BakedFileSystem.extract_engine_lib(proj.join("lib/lapis"), overwrite: true)
+        end
+
+        Commands::Sync.purge_recursive_shard_symlinks(proj)
+
+        lib_dir = proj.join("lib")
+        if Dir.exists?(lib_dir)
+          gdignore = lib_dir.join(".gdignore")
+          File.write(gdignore, "") unless File.exists?(gdignore)
+        end
+
+        missing_dependencies(proj).empty?
+      end
+
       # CLI entry point for `lapis shard list`
       def self.list(args : Array(String)) : Int32
         project_dir_arg : String? = nil
@@ -877,7 +955,7 @@ YAML
             dep.source_type,
             dep.source,
             dep.version_req,
-            status_str
+            status_str,
           ])
         end
 

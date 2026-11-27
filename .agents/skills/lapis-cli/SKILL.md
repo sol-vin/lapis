@@ -37,7 +37,7 @@ The `lapis` executable is the single, unified native CLI toolchain for developin
     <tr>
       <td><a href="#4-key-workflows-amp-specialized-subcommands"><strong>4. Key Workflows &amp; Specialized Subcommands</strong></a></td>
       <td>### 4.1.</td>
-      <td align="center"><code>L260–L339</code></td>
+      <td align="center"><code>L260–L349</code></td>
     </tr>
   </tbody>
 </table>
@@ -161,8 +161,8 @@ The `lapis` executable is the single, unified native CLI toolchain for developin
     <tr>
       <td><code>package</code></td>
       <td><code>lapis package</code></td>
-      <td>Packages games, addons, or release installers</td>
-      <td><code>game</code>, <code>addon</code>, <code>windows-installer</code>, <code>deb</code>, <code>release</code></td>
+      <td>Packages games, source archives, addons, or release installers</td>
+      <td><code>game</code>, <code>source</code>, <code>addon</code>, <code>windows-installer</code>, <code>deb</code>, <code>release</code></td>
     </tr>
     <tr>
       <td><code>log</code></td>
@@ -336,3 +336,13 @@ lapis package game --diagnostics
 - Bundles portable `r2.exe` into `bin/r2/`
 - Generates `run_debug.bat` / `run_debug.sh` supervisor harness
 - Automatically captures backtrace, register states, dead-pointer instance ID verification, and decompiled crash site into `crash_reports/crash_report_<timestamp>.zip` upon unhandled crash
+
+### 4.8. Portable Source Packaging (`lapis package source`)
+Package a clean, flat-root source `.zip` archive excluding `bin`, `lib`, `log`, `.godot`, `.git`, and engine binaries:
+```powershell
+# Package portable source archive into bin/<project>-source.zip
+lapis package source
+
+# Custom destination zip path
+lapis package source -o dist/game-source.zip
+```

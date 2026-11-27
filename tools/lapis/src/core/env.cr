@@ -265,6 +265,28 @@ module Lapis
         Dir.exists?(dir.join("benchmarks"))
       end
 
+      # Per-user cache directory for downloaded or locally compiled runtime bridge/plugin binaries
+      def self.user_runtime_cache_dir(godot_ver : String? = nil) : Path
+        ver = (godot_ver && !godot_ver.empty?) ? godot_ver.gsub(/[^a-zA-Z0-9._\-]/, "_") : "default"
+        if windows?
+          base = ENV["LOCALAPPDATA"]? || ENV["APPDATA"]?
+          if base && !base.empty?
+            Path.new(base).join("lapis", "runtime", ver)
+          else
+            Path.home.join("AppData", "Local", "lapis", "runtime", ver)
+          end
+        elsif macos?
+          Path.home.join("Library", "Caches", "lapis", "runtime", ver)
+        else
+          xdg = ENV["XDG_CACHE_HOME"]?
+          if xdg && !xdg.empty?
+            Path.new(xdg).join("lapis", "runtime", ver)
+          else
+            Path.home.join(".cache", "lapis", "runtime", ver)
+          end
+        end
+      end
+
       # Candidate directories to discover source runtime libraries and bridge DLLs
       def self.candidate_runtime_dirs(root : Path = ROOT_DIR) : Array(Path)
         dirs = [] of Path
@@ -279,6 +301,21 @@ module Lapis
         dirs << root.join("lib/lapis/addons/crystal_integration/bin") if Dir.exists?(root.join("lib/lapis/addons/crystal_integration/bin"))
         dirs << root.join("template/bin") if Dir.exists?(root.join("template/bin"))
 
+        # Check per-user runtime cache for project's expected Godot version
+        proj_ver : String? = nil
+        ver_file = root.join("godot-version.yml")
+        if File.exists?(ver_file)
+          if (File.read(ver_file) rescue "") =~ /version:\s*["']?([^"'\r\n]+)["']?/
+            proj_ver = $1.strip
+          end
+        end
+        if pv = proj_ver
+          cache_v = user_runtime_cache_dir(pv)
+          dirs << cache_v if Dir.exists?(cache_v)
+        end
+        cache_def = user_runtime_cache_dir("default")
+        dirs << cache_def if Dir.exists?(cache_def)
+
         if (exe = Process.executable_path)
           exe_p = Path.new(exe)
           dirs << exe_p.parent if Dir.exists?(exe_p.parent)
@@ -292,12 +329,37 @@ module Lapis
           if (local_app_data = ENV["LOCALAPPDATA"]?) && !local_app_data.empty?
             p_bin = Path.new(local_app_data).join("Programs", "Lapis", "bin")
             dirs << p_bin if Dir.exists?(p_bin)
+            p_cr = Path.new(local_app_data).join("Programs", "Crystal")
+            dirs << p_cr if Dir.exists?(p_cr)
+            dirs << p_cr.join("bin") if Dir.exists?(p_cr.join("bin"))
+          end
+          ["ProgramFiles", "ProgramFiles(x86)"].each do |pf_env|
+            if (pf = ENV[pf_env]?) && !pf.empty?
+              pf_bin = Path.new(pf).join("Lapis", "bin")
+              dirs << pf_bin if Dir.exists?(pf_bin)
+              pf_cr = Path.new(pf).join("Crystal")
+              dirs << pf_cr if Dir.exists?(pf_cr)
+              dirs << pf_cr.join("bin") if Dir.exists?(pf_cr.join("bin"))
+            end
+          end
+          if Dir.exists?(Path.new("C:\\Crystal"))
+            dirs << Path.new("C:\\Crystal")
+            dirs << Path.new("C:\\Crystal\\bin") if Dir.exists?(Path.new("C:\\Crystal\\bin"))
+          end
+          if (user_prof = ENV["USERPROFILE"]?) && !user_prof.empty?
+            scoop_cr = Path.new(user_prof).join("scoop", "apps", "crystal", "current")
+            dirs << scoop_cr if Dir.exists?(scoop_cr)
+            dirs << scoop_cr.join("bin") if Dir.exists?(scoop_cr.join("bin"))
           end
         {% end %}
 
         if crystal_exe = Process.find_executable("crystal")
           c_bin = Path.new(crystal_exe).parent
           dirs << c_bin if Dir.exists?(c_bin)
+          if real_c = (File.realpath(crystal_exe) rescue nil)
+            real_bin = Path.new(real_c).parent
+            dirs << real_bin if Dir.exists?(real_bin)
+          end
         end
 
         if (global_root = global_libgodot_path)
@@ -372,7 +434,10 @@ module Lapis
           if Dir.exists?(addons_dir)
             Dir.each_child(addons_dir) do |child|
               addon_p = addons_dir.join(child)
-              dirs << addon_p.join("bin") if Dir.exists?(addon_p)
+              next unless Dir.exists?(addon_p)
+              has_active_gdext = (child == "crystal_integration") ||
+                                 !Dir.glob(addon_p.join("**/*.gdextension").to_s.gsub('\\', '/')).empty?
+              dirs << addon_p.join("bin") if has_active_gdext
             end
           end
         end

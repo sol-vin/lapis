@@ -2,6 +2,7 @@ require "../core/env"
 require "../core/logger"
 require "../core/process_runner"
 require "../core/archive_security"
+require "../core/godot_finder"
 require "file_utils"
 require "option_parser"
 require "compress/zip"
@@ -83,7 +84,8 @@ HELP
       end
 
       # Resolves asset filenames for a given platform and kind
-      def self.resolve_asset_names(plat : String, kind : String) : Array(String)
+      def self.resolve_asset_names(plat : String, kind : String, tag : String? = nil) : Array(String)
+        deb_ver = (tag && !tag.empty? && tag.downcase != "latest") ? tag.lstrip('v') : Core::GodotFinder::EMBEDDED_GODOT_VERSION
         case kind.downcase
         when "cli", "lapis", "bin"
           case plat
@@ -99,12 +101,12 @@ HELP
           when "windows"
             ["lapis-setup-windows-x86_64.exe"]
           when "linux"
-            ["lapis_#{Lapis::VERSION}_amd64.deb"]
+            ["lapis_#{deb_ver}_amd64.deb", "lapis_#{Lapis::VERSION}_amd64.deb"].uniq
           else
             ["lapis-macos.zip"]
           end
         when "deb"
-          ["lapis_#{Lapis::VERSION}_amd64.deb"]
+          ["lapis_#{deb_ver}_amd64.deb", "lapis_#{Lapis::VERSION}_amd64.deb"].uniq
         when "examples", "example"
           ["examples-#{plat}.zip", "examples-#{plat}-x86_64.zip"]
         when "benchmark", "benchmarks"
@@ -445,7 +447,7 @@ HELP
         plat = platform.not_nil!
         target_kind = (kind || "cli").downcase
 
-        asset_files = resolve_asset_names(plat, target_kind)
+        asset_files = resolve_asset_names(plat, target_kind, tag)
 
         if list_only
           puts "\e[36mRelease assets for platform '#{plat}', kind '#{target_kind}':\e[0m"
@@ -533,7 +535,7 @@ HELP
           get_release(sub_args)
         else
           # Allow 'lapis get windows' or 'lapis get examples' directly
-          if is_platform_name?(subcmd) || ["examples", "benchmark", "benchmarks", "performance", "perf", "tests", "test", "addon", "template", "all"].includes?(subcmd.downcase)
+          if is_platform_name?(subcmd) || ["installer", "setup", "deb", "examples", "benchmark", "benchmarks", "performance", "perf", "tests", "test", "addon", "template", "all"].includes?(subcmd.downcase)
             get_release(args)
           else
             Core::Logger.error("Unknown get subcommand: '#{subcmd}'. Expected 'source' or 'release'.")

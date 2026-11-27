@@ -228,6 +228,61 @@ INI
       end
     end
 
+    it "refreshes crystal_bridge for Crystal GDExtension addons, ignores non-Crystal GDExtensions, and leaves no scratch folder" do
+      LapisSpecHelper.with_temp_dir("addon_bridge_refresh") do |tmp|
+        proj_dir = tmp.join("game_proj")
+        FileUtils.mkdir_p(proj_dir)
+        File.write(proj_dir.join("project.godot"), "config_version=5\n[application]\nconfig/name=\"BridgeRefreshTest\"\n")
+
+        bridge_name = Lapis::Core::Env.bridge_file
+
+        # 1. Precompiled Crystal GDExtension addon containing a stale crystal_bridge binary
+        cr_zip = tmp.join("crystal_fx.zip")
+        File.open(cr_zip.to_s, "wb") do |file|
+          Compress::Zip::Writer.open(file) do |zip|
+            zip.add("addons/crystal_fx/plugin.cfg", "[plugin]\nname=\"CrystalFX\"\nscript=\"plugin.gd\"\n")
+            zip.add("addons/crystal_fx/plugin.gd", "extends EditorPlugin\n")
+            zip.add("addons/crystal_fx/crystal_fx.gdextension", "[configuration]\nentry_symbol=\"crystal_library_init\"\n[libraries]\nwindows.debug.x86_64=\"res://addons/crystal_fx/bin/#{bridge_name}\"\nlinux.debug.x86_64=\"res://addons/crystal_fx/bin/#{bridge_name}\"\nmacos.debug=\"res://addons/crystal_fx/bin/#{bridge_name}\"\n")
+            zip.add("addons/crystal_fx/bin/#{bridge_name}", "stale_old_bridge_bytes")
+          end
+        end
+
+        stale_time = Time.utc - 10.days
+        spec_cr = Lapis::Commands::InstallAddon.parse_spec(cr_zip.to_s)
+        Lapis::Commands::InstallAddon.install_addon(spec_cr, proj_dir, force: true).should eq(0)
+        installed_bridge = proj_dir.join("addons/crystal_fx/bin/#{bridge_name}")
+        File.exists?(installed_bridge).should be_true
+        # Ensure stale 22-byte placeholder was replaced by real host bridge binary
+        File.size(installed_bridge).should be > 100
+        # Ensure no scratch directory was created inside proj_dir
+        Dir.exists?(proj_dir.join("scratch")).should be_false
+        _ = stale_time
+
+        # 2. Non-Crystal native C++ GDExtension addon should NOT get crystal_bridge injected
+        cpp_zip = tmp.join("native_physics.zip")
+        File.open(cpp_zip.to_s, "wb") do |file|
+          Compress::Zip::Writer.open(file) do |zip|
+            zip.add("addons/native_physics/plugin.cfg", "[plugin]\nname=\"NativePhysics\"\n")
+            zip.add("addons/native_physics/native_physics.gdextension", "[configuration]\nentry_symbol=\"native_physics_init\"\n[libraries]\nwindows.debug.x86_64=\"res://addons/native_physics/bin/libnative_physics.dll\"\n")
+          end
+        end
+
+        spec_cpp = Lapis::Commands::InstallAddon.parse_spec(cpp_zip.to_s)
+        Lapis::Commands::InstallAddon.install_addon(spec_cpp, proj_dir, force: true).should eq(0)
+        File.exists?(proj_dir.join("addons/native_physics/bin/#{bridge_name}")).should be_false
+        Dir.exists?(proj_dir.join("scratch")).should be_false
+
+        # 3. Poisoned uid://a sidecar and uid_cache.bin should be purged by Sync.purge_stray_monorepo_dirs
+        poisoned_uid = proj_dir.join("addons/crystal_fx/plugin.gd.uid")
+        File.write(poisoned_uid, "uid://a\n")
+        FileUtils.mkdir_p(proj_dir.join(".godot"))
+        File.write(proj_dir.join(".godot/uid_cache.bin"), "poisoned_cache")
+        Lapis::Commands::Sync.purge_stray_monorepo_dirs(proj_dir).should be >= 1
+        File.exists?(poisoned_uid).should be_false
+        File.exists?(proj_dir.join(".godot/uid_cache.bin")).should be_false
+      end
+    end
+
     it "rejects CWE-22 Zip-Slip escape 'addons/../../../mtp/evil.txt' atomically with zero writes" do
       LapisSpecHelper.with_temp_dir("bright_scan_repro") do |sandbox|
         project_root = sandbox.join("a", "b", "project_root")

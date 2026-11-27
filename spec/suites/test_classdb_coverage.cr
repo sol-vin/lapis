@@ -235,13 +235,14 @@ end
   end
 end
 
-  test "ClassDB.is_class_exposed and 4.8-beta3 non-allocating result & LineBase3D classes exposure" do
+  test "ClassDB.is_class_exposed and 4.8-beta4 RenderingDevice & LineBase3D API exposure" do
     cdb_ptr = Godot::Bridge.get_singleton("ClassDB")
     if !cdb_ptr.null?
       class_db = Godot::ClassDB.new(cdb_ptr)
       assert_true class_db.is_class_exposed("Node")
       assert_true class_db.is_class_exposed("LineBase3D")
       assert_true class_db.is_class_exposed("Trail3D")
+      assert_true class_db.class_has_method("RenderingDevice", "texture_get_nearest_supported_samples", false)
       assert_true class_db.is_class_exposed("PhysicsCastMotionResult3D")
       assert_true class_db.is_class_exposed("PhysicsIntersectRayResult3D")
       assert_true class_db.is_class_exposed("PhysicsCollideShapeResult3D")

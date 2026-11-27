@@ -132,6 +132,16 @@ HELP
             File.chmod(current_exe, 0o755)
           end
 
+          # Refresh companion GDExtension bridge, editor plugin, and CRT libraries alongside lapis executable
+          dest_dir = current_exe.parent
+          Dir.glob(temp_extracted_dir.to_s.gsub('\\', '/') + "/**/*.{dll,so,dylib}").each do |lib_path|
+            fn = File.basename(lib_path)
+            next if fn.starts_with?("game.")
+            target_lib = dest_dir.join(fn)
+            FileUtils.cp(lib_path, target_lib.to_s) rescue nil
+            File.chmod(target_lib, 0o755) unless Core::Env.windows?
+          end
+
           Core::Logger.success("Lapis CLI successfully updated at #{current_exe}!")
           0
         rescue ex
@@ -266,14 +276,32 @@ HELP
           if crystal_exe.includes?("scoop") || has_tool?("scoop")
             cmd = "scoop"
             args = ["update", "crystal"]
-          elsif has_tool?("winget")
-            cmd = "winget"
-            args = ["upgrade", "CrystalLang.Crystal"]
-            args << "--accept-package-agreements" << "--accept-source-agreements" if auto_yes
           elsif has_tool?("choco")
             cmd = "choco"
             args = ["upgrade", "crystal"]
             args << "-y" if auto_yes
+          else
+            target_ver = Core::ToolChecker::TARGET_CRYSTAL_VERSION
+            portable_url = "https://github.com/crystal-lang/crystal/releases/download/#{target_ver}/crystal-#{target_ver}-windows-x86_64-msvc-unsupported.zip"
+            if check_only
+              Core::Logger.info("Detected portable Crystal update archive: #{portable_url}")
+              return 0
+            end
+            dest_root = Path.new(ENV["LOCALAPPDATA"]? || Dir.tempdir).join("Programs", "Crystal")
+            tmp_zip = Path.new(Dir.tempdir).join("crystal_#{target_ver}_#{Time.utc.to_unix_ms}.zip")
+            begin
+              Core::Logger.step("Update:Crystal", "Downloading Crystal #{target_ver} portable archive from #{portable_url}...")
+              unless Get.download_file(portable_url, tmp_zip)
+                Core::Logger.error("Failed to download Crystal #{target_ver} archive.")
+                return 1
+              end
+              FileUtils.mkdir_p(dest_root)
+              Get.extract_archive(tmp_zip, dest_root)
+              Core::Logger.success("Crystal #{target_ver} extracted to #{dest_root}!")
+              return 0
+            ensure
+              File.delete(tmp_zip) if File.exists?(tmp_zip) rescue nil
+            end
           end
         elsif Core::Env.macos?
           if has_tool?("brew")
