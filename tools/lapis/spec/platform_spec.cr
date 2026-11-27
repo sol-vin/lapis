@@ -92,14 +92,21 @@ describe "Lapis Platform-Specific Operations" do
   end
 
   describe "Windows installer and Crystal environment registration definitions" do
-    it "verifies install_deps.ps1 installs Crystal 1.21.0 and registers CRYSTAL_ENV and crystal env paths" do
+    it "verifies install_deps.ps1 installs Crystal, Make, Git, radare2, and MSVC BuildTools with portable fallbacks and registers CRYSTAL_ENV" do
       deps_ps1 = LapisSpecHelper.repo_root.join("scripts/windows/install_deps.ps1")
       File.exists?(deps_ps1).should be_true
       content = File.read(deps_ps1)
-      content.should contain("$TargetCrystalVersion = \"1.21.0\"")
+      content.should contain("$ProgressPreference = \"SilentlyContinue\"")
+      content.should contain("$TargetCrystalVersion = \"1.21.1\"")
       content.should contain("crystal-$TargetCrystalVersion-windows-x86_64-msvc-unsupported.zip")
+      content.should contain("make-4.4.1-without-guile-w32-bin.zip")
+      content.should contain("Install-PortableMake")
+      content.should contain("Install-PortableGit")
+      content.should contain("Install-PortableRadare2")
+      content.should contain("vs_buildtools.exe")
       content.should_not contain("1.15.1")
       content.should_not contain("CrystalLang.Crystal")
+      content.should_not contain("crystalline_x86_64-windows.zip")
       content.should contain("Programs\\Crystal\\crystal.exe")
       content.should contain("scoop\\apps\\crystal\\current\\crystal.exe")
       content.should contain("Register-CrystalEnvironment")
@@ -111,15 +118,20 @@ describe "Lapis Platform-Specific Operations" do
       content.should contain("SendMessageTimeout")
     end
 
-    it "verifies lapis_installer.iss and install.ps1 always invoke Crystal environment configuration" do
+    it "verifies lapis_installer.iss bundles make.exe and vswhere.exe and dispatches all checked tools with logging" do
       iss_path = LapisSpecHelper.repo_root.join("packaging/windows/lapis_installer.iss")
       iss_content = File.read(iss_path)
+      iss_content.should contain("{#SourceDir}\\make.exe")
+      iss_content.should contain("{#SourceDir}\\vswhere.exe")
       iss_content.should contain("HasCrystalEnv")
       iss_content.should contain("CheckCrystalEnvConfigured")
       iss_content.should contain("CheckMSVCInstalled")
+      iss_content.should contain("CanRunExecutable")
       iss_content.should contain("\\Programs\\Crystal\\crystal.exe")
       iss_content.should contain("\\scoop\\apps\\crystal\\current\\crystal.exe")
       iss_content.should contain("-ConfigureCrystalEnv")
+      iss_content.should contain("install_deps.log")
+      iss_content.should_not contain("if (not HasMake) and PrereqPage.Values[3]")
 
       install_ps1 = LapisSpecHelper.repo_root.join("scripts/windows/install.ps1")
       install_content = File.read(install_ps1)

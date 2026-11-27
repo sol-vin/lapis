@@ -1,33 +1,60 @@
-# =============================================================================
+﻿# =============================================================================
 # Lapis Toolchain - Windows Dependency & Crystal Environment Installer
 # =============================================================================
-# Detects, installs, and configures required dependencies for Lapis on Windows:
-#   - Crystal compiler 1.21.0 (crystal.exe + CRYSTAL_ENV & crystal env vars)
-#   - MSVC C++ Build Tools & vswhere.exe (vctools)
-#   - radare2 native debugger (radare2.exe)
-#   - GNU Make (make.exe)
-#   - Git (git.exe)
-#   - Crystalline LSP (crystalline.exe)
-#   - Inno Setup Compiler (iscc.exe)
+# Detects, installs, and registers required dependencies for Lapis on Windows:
+#   - Crystal compiler 1.21.x (crystal.exe + CRYSTAL_ENV & crystal env vars)
+#   - GNU Make 4.4.1 (make.exe — bundled offline + portable zip fallback)
+#   - MSVC C++ Build Tools & vswhere.exe (vctools — winget + vs_buildtools.exe)
+#   - Git for Windows (git.exe — winget + scoop + portable MinGit zip)
+#   - radare2 native debugger (radare2.exe — scoop + winget + GitHub zip)
+#   - Crystalline LSP (crystalline.exe — optional)
+#   - Inno Setup Compiler (iscc.exe — optional)
 # =============================================================================
 
 [CmdletBinding()]
 param (
-    [string[]]$Tools = @("crystal", "vctools", "radare2", "make", "git", "crystalline", "innosetup"),
+    [string[]]$Tools = @("crystal", "vctools", "radare2", "make", "git", "innosetup"),
+    [string]$InstallBinDir = "",
+    [string]$LogPath = "",
     [switch]$ConfigureCrystalEnv,
     [switch]$Silent,
     [switch]$Force
 )
 
 $ErrorActionPreference = "Continue"
+$ProgressPreference = "SilentlyContinue"
+try {
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+} catch {
+}
 
-$TargetCrystalVersion = "1.21.0"
+$TargetCrystalVersion = "1.21.1"
+$FallbackCrystalVersion = "1.21.0"
 $MinCrystalVersion = [version]"1.20.0"
 $CrystalZipUrl = "https://github.com/crystal-lang/crystal/releases/download/$TargetCrystalVersion/crystal-$TargetCrystalVersion-windows-x86_64-msvc-unsupported.zip"
-$CrystalExeUrl = "https://github.com/crystal-lang/crystal/releases/download/$TargetCrystalVersion/crystal-$TargetCrystalVersion-windows-x86_64-msvc-unsupported.exe"
+$CrystalFallbackZipUrl = "https://github.com/crystal-lang/crystal/releases/download/$FallbackCrystalVersion/crystal-$FallbackCrystalVersion-windows-x86_64-msvc-unsupported.zip"
+$CrystalExeUrl = "https://github.com/crystal-lang/crystal/releases/download/$FallbackCrystalVersion/crystal-$FallbackCrystalVersion-windows-x86_64-msvc-unsupported.exe"
+$MakeZipUrl = "https://downloads.sourceforge.net/project/ezwinports/make-4.4.1-without-guile-w32-bin.zip"
+$MinGitFallbackUrl = "https://github.com/git-for-windows/git/releases/download/v2.56.1.windows.1/MinGit-2.56.1-64-bit.zip"
+$Radare2FallbackUrl = "https://github.com/radareorg/radare2/releases/download/6.2.6/radare2-6.2.6-w64.zip"
+$VsBuildToolsUrl = "https://aka.ms/vs/17/release/vs_buildtools.exe"
 $VsWhereUrl = "https://github.com/microsoft/vswhere/releases/latest/download/vswhere.exe"
 
-# Normalize comma-separated tool strings (e.g. -Tools "crystal,radare2")
+$EffectiveLapisBin = if (-not [string]::IsNullOrWhiteSpace($InstallBinDir)) {
+    $InstallBinDir
+} else {
+    Join-Path $env:LOCALAPPDATA "Programs\Lapis\bin"
+}
+
+if (-not [string]::IsNullOrWhiteSpace($LogPath)) {
+    $logDir = Split-Path -Parent $LogPath -ErrorAction SilentlyContinue
+    if ($logDir -and -not (Test-Path $logDir)) {
+        New-Item -ItemType Directory -Path $logDir -Force -ErrorAction SilentlyContinue | Out-Null
+    }
+    Set-Content -Path $LogPath -Value "=== Lapis Dependency Installer Log ($(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')) ===" -Encoding UTF8 -ErrorAction SilentlyContinue
+}
+
+# Normalize comma-separated tool strings (e.g. -Tools "crystal,make,git")
 $NormalizedTools = @()
 foreach ($entry in $Tools) {
     if (-not [string]::IsNullOrWhiteSpace($entry)) {
@@ -46,6 +73,10 @@ function Write-LapisLog {
         [string]$Message
     )
     $timestamp = Get-Date -Format "HH:mm:ss"
+    $formatted = "[$timestamp] [$Level] $Message"
+    if (-not [string]::IsNullOrWhiteSpace($LogPath)) {
+        Add-Content -Path $LogPath -Value $formatted -Encoding UTF8 -ErrorAction SilentlyContinue
+    }
     switch ($Level) {
         "INFO"    { Write-Host "[$timestamp] [INFO]    $Message" -ForegroundColor Cyan }
         "SUCCESS" { Write-Host "[$timestamp] [SUCCESS] $Message" -ForegroundColor Green }
@@ -59,7 +90,10 @@ function Refresh-EnvironmentPath {
     $userPath = [Environment]::GetEnvironmentVariable("Path", [EnvironmentVariableTarget]::User)
     $machinePath = [Environment]::GetEnvironmentVariable("Path", [EnvironmentVariableTarget]::Machine)
     $parts = @()
-    foreach ($seg in @($userPath, $machinePath) -join ";" -split ";") {
+    if (-not [string]::IsNullOrWhiteSpace($EffectiveLapisBin) -and (Test-Path $EffectiveLapisBin)) {
+        $parts += $EffectiveLapisBin
+    }
+    foreach ($seg in (@($userPath, $machinePath) -join ";" -split ";")) {
         if (-not [string]::IsNullOrWhiteSpace($seg)) {
             $parts += $seg.Trim()
         }
@@ -71,6 +105,8 @@ function Add-UserPathEntry {
     param ([string]$Entry)
     if ([string]::IsNullOrWhiteSpace($Entry)) { return }
     $cleanEntry = $Entry.Trim().TrimEnd('\')
+    if (-not (Test-Path $cleanEntry)) { return }
+
     $userPath = [Environment]::GetEnvironmentVariable("Path", [EnvironmentVariableTarget]::User)
     if (-not $userPath) { $userPath = "" }
 
@@ -90,7 +126,9 @@ function Add-UserPathEntry {
         $parts += $Entry.Trim()
         $newPath = $parts -join ";"
         [Environment]::SetEnvironmentVariable("Path", $newPath, [EnvironmentVariableTarget]::User)
+        Write-LapisLog "INFO" "Added '$($Entry.Trim())' to User PATH."
     }
+    Refresh-EnvironmentPath
 }
 
 function Broadcast-EnvironmentChange {
@@ -119,22 +157,106 @@ public static extern IntPtr SendMessageTimeout(
             [ref]$result
         )
     } catch {
-        # Best-effort WM_SETTINGCHANGE broadcast
+    }
+}
+
+function Download-ArchiveFast {
+    param (
+        [string]$Url,
+        [string]$DestFile
+    )
+    if (Test-Path $DestFile) {
+        Remove-Item $DestFile -Force -ErrorAction SilentlyContinue
+    }
+    $curlExe = Join-Path $env:SystemRoot "System32\curl.exe"
+    if (Test-Path $curlExe) {
+        $proc = Start-Process -FilePath $curlExe -ArgumentList @("-fSL", "--retry", "3", "--connect-timeout", "20", "-o", $DestFile, $Url) -Wait -PassThru -NoNewWindow
+        if (($proc.ExitCode -eq 0) -and (Test-Path $DestFile) -and ((Get-Item $DestFile).Length -gt 1024)) {
+            return $true
+        }
+    }
+    try {
+        Invoke-WebRequest -Uri $Url -OutFile $DestFile -UseBasicParsing
+        return ((Test-Path $DestFile) -and ((Get-Item $DestFile).Length -gt 1024))
+    } catch {
+        Write-LapisLog "WARN" "Download failed for $Url : $_"
+        return $false
+    }
+}
+
+function Extract-ZipFast {
+    param (
+        [string]$ZipPath,
+        [string]$DestDir
+    )
+    if (Test-Path $DestDir) {
+        Remove-Item $DestDir -Recurse -Force -ErrorAction SilentlyContinue
+    }
+    New-Item -ItemType Directory -Path $DestDir -Force | Out-Null
+
+    try {
+        Add-Type -AssemblyName System.IO.Compression.FileSystem -ErrorAction Stop
+        [System.IO.Compression.ZipFile]::ExtractToDirectory($ZipPath, $DestDir)
+        return $true
+    } catch {
+    }
+
+    $tarExe = Join-Path $env:SystemRoot "System32\tar.exe"
+    if (Test-Path $tarExe) {
+        $proc = Start-Process -FilePath $tarExe -ArgumentList @("-xf", $ZipPath, "-C", $DestDir) -Wait -PassThru -NoNewWindow
+        if ($proc.ExitCode -eq 0) {
+            return $true
+        }
+    }
+
+    try {
+        Expand-Archive -Path $ZipPath -DestinationPath $DestDir -Force
+        return $true
+    } catch {
+        Write-LapisLog "WARN" "Archive extraction failed for $ZipPath : $_"
+        return $false
+    }
+}
+
+function Test-ToolRuns {
+    param (
+        [string]$ExePath,
+        [string[]]$CheckArgs = @("--version")
+    )
+    if ([string]::IsNullOrWhiteSpace($ExePath) -or -not (Test-Path $ExePath)) {
+        return $false
+    }
+    try {
+        $proc = Start-Process -FilePath $ExePath -ArgumentList $CheckArgs -Wait -PassThru -WindowStyle Hidden -RedirectStandardOutput (Join-Path $env:TEMP "lapis_tool_out_$PID.txt") -RedirectStandardError (Join-Path $env:TEMP "lapis_tool_err_$PID.txt")
+        Remove-Item (Join-Path $env:TEMP "lapis_tool_out_$PID.txt") -Force -ErrorAction SilentlyContinue
+        Remove-Item (Join-Path $env:TEMP "lapis_tool_err_$PID.txt") -Force -ErrorAction SilentlyContinue
+        return ($proc.ExitCode -eq 0)
+    } catch {
+        return $false
     }
 }
 
 function Test-ExecutableExists {
-    param ([string]$CommandName, [string[]]$ExtraPaths = @())
+    param (
+        [string]$CommandName,
+        [string[]]$ExtraPaths = @(),
+        [string[]]$VerifyArgs = @()
+    )
 
     foreach ($path in $ExtraPaths) {
         if ($path -and (Test-Path $path)) {
-            return (Resolve-Path $path).Path
+            $resolved = (Resolve-Path $path).Path
+            if (($VerifyArgs.Count -eq 0) -or (Test-ToolRuns -ExePath $resolved -CheckArgs $VerifyArgs)) {
+                return $resolved
+            }
         }
     }
 
     $cmd = Get-Command $CommandName -ErrorAction SilentlyContinue
     if ($cmd -and $cmd.Source -and (Test-Path $cmd.Source)) {
-        return $cmd.Source
+        if (($VerifyArgs.Count -eq 0) -or (Test-ToolRuns -ExePath $cmd.Source -CheckArgs $VerifyArgs)) {
+            return $cmd.Source
+        }
     }
     return $null
 }
@@ -155,7 +277,7 @@ function Find-Crystal {
         "C:\Crystal\crystal.exe",
         "C:\Crystal\bin\crystal.exe"
     )
-    return Test-ExecutableExists -CommandName "crystal.exe" -ExtraPaths $candidates
+    return Test-ExecutableExists -CommandName "crystal.exe" -ExtraPaths $candidates -VerifyArgs @("--version")
 }
 
 function Resolve-CrystalRoot {
@@ -165,7 +287,6 @@ function Resolve-CrystalRoot {
     $fullExe = [System.IO.Path]::GetFullPath($CrystalExePath)
     $parent = Split-Path -Parent $fullExe
 
-    # Map Scoop shim (...\scoop\shims\crystal.exe) to real Scoop app root
     if ($parent -match "(?i)[\\/]scoop[\\/]shims$") {
         $scoopRoot = Split-Path -Parent $parent
         $appCurrent = Join-Path $scoopRoot "apps\crystal\current"
@@ -203,6 +324,7 @@ function Find-VsWhere {
     $userProfile = $env:USERPROFILE
     $localApp = $env:LOCALAPPDATA
     $candidates = @(
+        (Join-Path $EffectiveLapisBin "vswhere.exe"),
         (if ($pf86) { "$pf86\Microsoft Visual Studio\Installer\vswhere.exe" } else { $null }),
         (if ($pf) { "$pf\Microsoft Visual Studio\Installer\vswhere.exe" } else { $null }),
         "$userProfile\scoop\apps\vswhere\current\vswhere.exe",
@@ -214,24 +336,20 @@ function Find-VsWhere {
 
 function Ensure-VsWhere {
     $existing = Find-VsWhere
-    if ($existing) { return $existing }
+    if ($existing) {
+        Add-UserPathEntry -Entry (Split-Path -Parent $existing)
+        return $existing
+    }
 
-    $targetDir = Join-Path $env:LOCALAPPDATA "Programs\Lapis\bin"
+    $targetDir = $EffectiveLapisBin
     if (-not (Test-Path $targetDir)) {
         New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
     }
     $destExe = Join-Path $targetDir "vswhere.exe"
-    try {
-        Write-LapisLog "INFO" "Downloading vswhere.exe for Crystal MSVC toolchain discovery..."
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        Invoke-WebRequest -Uri $VsWhereUrl -OutFile $destExe -UseBasicParsing
-        if (Test-Path $destExe) {
-            Add-UserPathEntry -Entry $targetDir
-            Refresh-EnvironmentPath
-            return $destExe
-        }
-    } catch {
-        Write-LapisLog "WARN" "Could not download vswhere.exe: $_"
+    Write-LapisLog "INFO" "Downloading vswhere.exe for Crystal MSVC toolchain discovery..."
+    if (Download-ArchiveFast -Url $VsWhereUrl -DestFile $destExe) {
+        Add-UserPathEntry -Entry $targetDir
+        return $destExe
     }
     return $null
 }
@@ -276,7 +394,6 @@ function Register-CrystalEnvironment {
     $crystalBin = Join-Path $crystalRoot "bin"
     $defaultCache = Join-Path $env:LOCALAPPDATA "crystal\cache"
 
-    # 1. Ensure Crystal executable & companion DLL directories are on User PATH
     if (Test-Path (Join-Path $crystalRoot "crystal.exe")) {
         Add-UserPathEntry -Entry $crystalRoot
     } elseif (Test-Path (Join-Path $crystalBin "crystal.exe")) {
@@ -286,7 +403,6 @@ function Register-CrystalEnvironment {
         Add-UserPathEntry -Entry $crystalLib
     }
 
-    # 2. Register CRYSTAL_ENV (defaulting to 'development' if unset)
     $currentCrystalEnv = [Environment]::GetEnvironmentVariable("CRYSTAL_ENV", [EnvironmentVariableTarget]::User)
     if ($Force -or [string]::IsNullOrWhiteSpace($currentCrystalEnv)) {
         $currentCrystalEnv = "development"
@@ -294,12 +410,10 @@ function Register-CrystalEnvironment {
     }
     $env:CRYSTAL_ENV = $currentCrystalEnv
 
-    # 3. Register CRYSTAL_EXEC_PATH
     $execDir = if (Test-Path (Join-Path $crystalRoot "crystal.exe")) { $crystalRoot } else { $crystalBin }
     [Environment]::SetEnvironmentVariable("CRYSTAL_EXEC_PATH", $execDir, [EnvironmentVariableTarget]::User)
     $env:CRYSTAL_EXEC_PATH = $execDir
 
-    # 4. Register CRYSTAL_CACHE_DIR and ensure directory exists
     $cacheDir = [Environment]::GetEnvironmentVariable("CRYSTAL_CACHE_DIR", [EnvironmentVariableTarget]::User)
     if ($Force -or [string]::IsNullOrWhiteSpace($cacheDir)) {
         $cacheDir = $defaultCache
@@ -310,7 +424,6 @@ function Register-CrystalEnvironment {
     }
     $env:CRYSTAL_CACHE_DIR = $cacheDir
 
-    # 5. Register CRYSTAL_PATH (always guaranteeing 'lib' and '<CrystalRoot>\src')
     $existingCrystalPath = [Environment]::GetEnvironmentVariable("CRYSTAL_PATH", [EnvironmentVariableTarget]::User)
     $cpathParts = @("lib")
     if (Test-Path $crystalSrc) {
@@ -320,7 +433,6 @@ function Register-CrystalEnvironment {
         foreach ($seg in ($existingCrystalPath -split ";")) {
             $t = $seg.Trim()
             if ($t -eq "" -or $t -eq "lib") { continue }
-            # Skip stale Crystal stdlib src paths that no longer match the active Crystal root
             if ($t -match "(?i)crystal.*[\\/]src$" -and $t.TrimEnd('\').ToLower() -ne $crystalSrc.TrimEnd('\').ToLower()) {
                 continue
             }
@@ -333,7 +445,6 @@ function Register-CrystalEnvironment {
     [Environment]::SetEnvironmentVariable("CRYSTAL_PATH", $newCrystalPath, [EnvironmentVariableTarget]::User)
     $env:CRYSTAL_PATH = $newCrystalPath
 
-    # 6. Register CRYSTAL_LIBRARY_PATH (guaranteeing '<CrystalRoot>\lib' for gc.lib, iconv.lib, pcre2-8.lib)
     if (Test-Path $crystalLib) {
         $existingLibPath = [Environment]::GetEnvironmentVariable("CRYSTAL_LIBRARY_PATH", [EnvironmentVariableTarget]::User)
         $libParts = @($crystalLib)
@@ -354,9 +465,7 @@ function Register-CrystalEnvironment {
         $env:CRYSTAL_LIBRARY_PATH = $newLibPath
     }
 
-    # 7. Ensure vswhere.exe is present so Crystal can locate MSVC link.exe
     [void](Ensure-VsWhere)
-
     Refresh-EnvironmentPath
     Broadcast-EnvironmentChange
 
@@ -366,80 +475,230 @@ function Register-CrystalEnvironment {
 
 function Install-PortableCrystal {
     $destRoot = Join-Path $env:LOCALAPPDATA "Programs\Crystal"
-    $tmpZip = Join-Path $env:TEMP "crystal-$TargetCrystalVersion-$(Get-Random).zip"
-    $stageDir = Join-Path $env:TEMP "crystal-stage-$(Get-Random)"
+    foreach ($zipUrl in @($CrystalZipUrl, $CrystalFallbackZipUrl)) {
+        $tmpZip = Join-Path $env:TEMP "crystal-portable-$(Get-Random).zip"
+        $stageDir = Join-Path $env:TEMP "crystal-stage-$(Get-Random)"
+        try {
+            Write-LapisLog "INFO" "Downloading official Crystal portable archive ($zipUrl)..."
+            if (-not (Download-ArchiveFast -Url $zipUrl -DestFile $tmpZip)) {
+                continue
+            }
+            if (-not (Extract-ZipFast -ZipPath $tmpZip -DestDir $stageDir)) {
+                continue
+            }
+
+            $foundExe = Get-ChildItem -Path $stageDir -Filter "crystal.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+            if (-not $foundExe) {
+                continue
+            }
+
+            $extractedRoot = Split-Path -Parent $foundExe.FullName
+            if ((Split-Path -Leaf $extractedRoot).ToLower() -eq "bin") {
+                $extractedRoot = Split-Path -Parent $extractedRoot
+            }
+
+            if (Test-Path $destRoot) {
+                Remove-Item -Path $destRoot -Recurse -Force -ErrorAction SilentlyContinue
+            }
+            New-Item -ItemType Directory -Path $destRoot -Force | Out-Null
+            Copy-Item -Path (Join-Path $extractedRoot "*") -Destination $destRoot -Recurse -Force
+            $destExe = Join-Path $destRoot "crystal.exe"
+            if (Test-ToolRuns -ExePath $destExe -CheckArgs @("--version")) {
+                Add-UserPathEntry -Entry $destRoot
+                return $true
+            }
+        } catch {
+            Write-LapisLog "WARN" "Portable Crystal archive attempt failed: $_"
+        } finally {
+            Remove-Item $tmpZip -Force -ErrorAction SilentlyContinue
+            Remove-Item $stageDir -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
+    return $false
+}
+
+function Install-PortableMake {
+    $targetDir = $EffectiveLapisBin
+    if (-not (Test-Path $targetDir)) {
+        New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
+    }
+    $destExe = Join-Path $targetDir "make.exe"
+    $tmpZip = Join-Path $env:TEMP "make-portable-$(Get-Random).zip"
+    $stageDir = Join-Path $env:TEMP "make-stage-$(Get-Random)"
 
     try {
-        Write-LapisLog "INFO" "Downloading official Crystal $TargetCrystalVersion Windows archive..."
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        Invoke-WebRequest -Uri $CrystalZipUrl -OutFile $tmpZip -UseBasicParsing
-        Expand-Archive -Path $tmpZip -DestinationPath $stageDir -Force
-
-        $foundExe = Get-ChildItem -Path $stageDir -Filter "crystal.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
-        if (-not $foundExe) {
-            throw "crystal.exe was not found inside downloaded Crystal $TargetCrystalVersion archive."
+        Write-LapisLog "INFO" "Downloading standalone GNU Make 4.4.1 portable archive..."
+        if (-not (Download-ArchiveFast -Url $MakeZipUrl -DestFile $tmpZip)) {
+            return $false
         }
-
-        $extractedRoot = Split-Path -Parent $foundExe.FullName
-        if ((Split-Path -Leaf $extractedRoot).ToLower() -eq "bin") {
-            $extractedRoot = Split-Path -Parent $extractedRoot
+        if (-not (Extract-ZipFast -ZipPath $tmpZip -DestDir $stageDir)) {
+            return $false
         }
+        $foundMake = Get-ChildItem -Path $stageDir -Filter "make.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($foundMake -and (Test-Path $foundMake.FullName)) {
+            Copy-Item $foundMake.FullName $destExe -Force
+            Add-UserPathEntry -Entry $targetDir
+            return (Test-ToolRuns -ExePath $destExe -CheckArgs @("--version"))
+        }
+    } catch {
+        Write-LapisLog "WARN" "Portable GNU Make setup failed: $_"
+    } finally {
+        Remove-Item $tmpZip -Force -ErrorAction SilentlyContinue
+        Remove-Item $stageDir -Recurse -Force -ErrorAction SilentlyContinue
+    }
+    return $false
+}
 
+function Install-PortableGit {
+    $destRoot = Join-Path $env:LOCALAPPDATA "Programs\Git"
+    $tmpZip = Join-Path $env:TEMP "mingit-portable-$(Get-Random).zip"
+    $stageDir = Join-Path $env:TEMP "mingit-stage-$(Get-Random)"
+
+    $gitUrl = $MinGitFallbackUrl
+    try {
+        $rel = Invoke-RestMethod -Uri "https://api.github.com/repos/git-for-windows/git/releases/latest" -Headers @{ "User-Agent" = "Lapis-Installer" } -TimeoutSec 10
+        $asset = $rel.assets | Where-Object { $_.name -match "^MinGit-.*-64-bit\.zip$" -and $_.name -notmatch "busybox" } | Select-Object -First 1
+        if ($asset -and $asset.browser_download_url) {
+            $gitUrl = $asset.browser_download_url
+        }
+    } catch {
+    }
+
+    try {
+        Write-LapisLog "INFO" "Downloading official Portable Git ($gitUrl)..."
+        if (-not (Download-ArchiveFast -Url $gitUrl -DestFile $tmpZip)) {
+            return $false
+        }
+        if (-not (Extract-ZipFast -ZipPath $tmpZip -DestDir $stageDir)) {
+            return $false
+        }
+        if (Test-Path $destRoot) {
+            Remove-Item -Path $destRoot -Recurse -Force -ErrorAction SilentlyContinue
+        }
+        New-Item -ItemType Directory -Path $destRoot -Force | Out-Null
+        Copy-Item -Path (Join-Path $stageDir "*") -Destination $destRoot -Recurse -Force
+        $gitCmdDir = Join-Path $destRoot "cmd"
+        $gitExe = Join-Path $gitCmdDir "git.exe"
+        if (Test-ToolRuns -ExePath $gitExe -CheckArgs @("--version")) {
+            Add-UserPathEntry -Entry $gitCmdDir
+            return $true
+        }
+    } catch {
+        Write-LapisLog "WARN" "Portable Git setup failed: $_"
+    } finally {
+        Remove-Item $tmpZip -Force -ErrorAction SilentlyContinue
+        Remove-Item $stageDir -Recurse -Force -ErrorAction SilentlyContinue
+    }
+    return $false
+}
+
+function Install-PortableRadare2 {
+    $destRoot = Join-Path $env:LOCALAPPDATA "Programs\radare2"
+    $tmpZip = Join-Path $env:TEMP "radare2-portable-$(Get-Random).zip"
+    $stageDir = Join-Path $env:TEMP "radare2-stage-$(Get-Random)"
+
+    $r2Url = $Radare2FallbackUrl
+    try {
+        $rel = Invoke-RestMethod -Uri "https://api.github.com/repos/radareorg/radare2/releases/latest" -Headers @{ "User-Agent" = "Lapis-Installer" } -TimeoutSec 10
+        $asset = $rel.assets | Where-Object { $_.name -match "^radare2-.*-w64\.zip$" -and $_.name -notmatch "arm64" } | Select-Object -First 1
+        if ($asset -and $asset.browser_download_url) {
+            $r2Url = $asset.browser_download_url
+        }
+    } catch {
+    }
+
+    try {
+        Write-LapisLog "INFO" "Downloading official radare2 Windows archive ($r2Url)..."
+        if (-not (Download-ArchiveFast -Url $r2Url -DestFile $tmpZip)) {
+            return $false
+        }
+        if (-not (Extract-ZipFast -ZipPath $tmpZip -DestDir $stageDir)) {
+            return $false
+        }
+        $foundR2 = Get-ChildItem -Path $stageDir -Filter "radare2.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+        if (-not $foundR2) { return $false }
+
+        $extractedRoot = Split-Path -Parent (Split-Path -Parent $foundR2.FullName)
         if (Test-Path $destRoot) {
             Remove-Item -Path $destRoot -Recurse -Force -ErrorAction SilentlyContinue
         }
         New-Item -ItemType Directory -Path $destRoot -Force | Out-Null
         Copy-Item -Path (Join-Path $extractedRoot "*") -Destination $destRoot -Recurse -Force
-        return (Test-Path (Join-Path $destRoot "crystal.exe"))
+        $r2BinDir = Join-Path $destRoot "bin"
+        $r2Exe = Join-Path $r2BinDir "radare2.exe"
+        if (Test-ToolRuns -ExePath $r2Exe -CheckArgs @("-v")) {
+            Add-UserPathEntry -Entry $r2BinDir
+            return $true
+        }
     } catch {
-        Write-LapisLog "WARN" "Portable Crystal archive setup failed: $_"
-        return $false
+        Write-LapisLog "WARN" "Portable radare2 setup failed: $_"
     } finally {
         Remove-Item $tmpZip -Force -ErrorAction SilentlyContinue
         Remove-Item $stageDir -Recurse -Force -ErrorAction SilentlyContinue
     }
+    return $false
 }
 
 function Find-Radare2 {
     $userProfile = $env:USERPROFILE
+    $localApp = $env:LOCALAPPDATA
     $candidates = @(
-        "$userProfile\scoop\shims\radare2.exe",
+        "$localApp\Programs\radare2\bin\radare2.exe",
+        (Join-Path $EffectiveLapisBin "radare2.exe"),
         "$userProfile\scoop\apps\radare2\current\bin\radare2.exe",
+        "$userProfile\scoop\shims\radare2.exe",
         "C:\ProgramData\chocolatey\bin\radare2.exe",
         "C:\radare2\bin\radare2.exe"
     )
-    return Test-ExecutableExists -CommandName "radare2.exe" -ExtraPaths $candidates
+    return Test-ExecutableExists -CommandName "radare2.exe" -ExtraPaths $candidates -VerifyArgs @("-v")
 }
 
 function Find-Make {
     $userProfile = $env:USERPROFILE
+    $localApp = $env:LOCALAPPDATA
+    $wingetLinks = "$localApp\Microsoft\WinGet\Links\make.exe"
+    $wingetPkgExe = $null
+    $wingetPkgsDir = "$localApp\Microsoft\WinGet\Packages"
+    if (Test-Path $wingetPkgsDir) {
+        $foundPkg = Get-ChildItem -Path $wingetPkgsDir -Filter "make.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($foundPkg) { $wingetPkgExe = $foundPkg.FullName }
+    }
+
     $candidates = @(
-        "$userProfile\scoop\apps\make\current\make.exe",
+        (Join-Path $EffectiveLapisBin "make.exe"),
+        "$localApp\Programs\Lapis\bin\make.exe",
+        $wingetLinks,
+        $wingetPkgExe,
         "$userProfile\scoop\apps\make\current\bin\make.exe",
+        "$userProfile\scoop\apps\make\current\make.exe",
         "C:\Program Files (x86)\GnuWin32\bin\make.exe",
         "C:\Program Files\Git\usr\bin\make.exe",
         "C:\msys64\usr\bin\make.exe",
         "C:\msys64\mingw64\bin\mingw32-make.exe"
     )
-    $found = Test-ExecutableExists -CommandName "make.exe" -ExtraPaths $candidates
+    $found = Test-ExecutableExists -CommandName "make.exe" -ExtraPaths $candidates -VerifyArgs @("--version")
     if (-not $found) {
-        $found = Test-ExecutableExists -CommandName "mingw32-make.exe"
+        $found = Test-ExecutableExists -CommandName "mingw32-make.exe" -VerifyArgs @("--version")
     }
     return $found
 }
 
 function Find-Git {
+    $userProfile = $env:USERPROFILE
     $candidates = @(
         "C:\Program Files\Git\cmd\git.exe",
-        "C:\Program Files\Git\bin\git.exe",
-        "$env:LOCALAPPDATA\Programs\Git\cmd\git.exe"
+        "$env:LOCALAPPDATA\Programs\Git\cmd\git.exe",
+        "$userProfile\scoop\apps\git\current\cmd\git.exe",
+        "$userProfile\scoop\shims\git.exe",
+        "C:\Program Files\Git\bin\git.exe"
     )
-    return Test-ExecutableExists -CommandName "git.exe" -ExtraPaths $candidates
+    return Test-ExecutableExists -CommandName "git.exe" -ExtraPaths $candidates -VerifyArgs @("--version")
 }
 
 function Find-Crystalline {
     $userProfile = $env:USERPROFILE
     $candidates = @(
+        (Join-Path $EffectiveLapisBin "crystalline.exe"),
         "$env:LOCALAPPDATA\Programs\Lapis\bin\crystalline.exe",
         "$userProfile\scoop\shims\crystalline.exe",
         "$userProfile\scoop\apps\crystalline\current\crystalline.exe",
@@ -470,7 +729,7 @@ function Find-InnoSetup {
     return $found
 }
 
-# --- Installation Methods ---
+# --- Package Manager Helpers ---
 
 $hasWinget = (Get-Command winget.exe -ErrorAction SilentlyContinue) -ne $null
 $hasScoop = (Get-Command scoop -ErrorAction SilentlyContinue) -ne $null -or (Test-Path "$env:USERPROFILE\scoop\shims\scoop.ps1")
@@ -481,16 +740,22 @@ function Install-WithWinget {
         [string]$DisplayName,
         [string[]]$ExtraArgs = @()
     )
+    if (-not $hasWinget) { return $false }
     Write-LapisLog "INFO" "Installing $DisplayName via winget ($PackageId)..."
-    $wingetArgs = @("install", "--id", $PackageId, "--exact", "--accept-package-agreements", "--accept-source-agreements")
+    $wingetArgs = @("install", "--id", $PackageId, "--exact", "--source", "winget", "--accept-package-agreements", "--accept-source-agreements")
     if ($Silent -and $ExtraArgs.Count -eq 0) {
         $wingetArgs += "--silent"
     }
     if ($ExtraArgs.Count -gt 0) {
         $wingetArgs += $ExtraArgs
     }
-    $proc = Start-Process -FilePath "winget.exe" -ArgumentList $wingetArgs -Wait -PassThru -NoNewWindow
-    return ($proc.ExitCode -eq 0)
+    try {
+        $proc = Start-Process -FilePath "winget.exe" -ArgumentList $wingetArgs -Wait -PassThru -NoNewWindow
+        return ($proc.ExitCode -eq 0)
+    } catch {
+        Write-LapisLog "WARN" "winget invocation failed for $PackageId : $_"
+        return $false
+    }
 }
 
 function Install-WithScoop {
@@ -499,10 +764,16 @@ function Install-WithScoop {
         [string]$DisplayName,
         [string]$Subcommand = "install"
     )
+    if (-not $hasScoop) { return $false }
     Write-LapisLog "INFO" "Running Scoop $Subcommand for $DisplayName ($PackageName)..."
     $scoopCmd = if (Get-Command scoop -ErrorAction SilentlyContinue) { "scoop" } else { "$env:USERPROFILE\scoop\shims\scoop.ps1" }
-    $proc = Start-Process -FilePath "powershell.exe" -ArgumentList @("-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", "& '$scoopCmd' $Subcommand $PackageName") -Wait -PassThru -NoNewWindow
-    return ($proc.ExitCode -eq 0)
+    try {
+        $proc = Start-Process -FilePath "powershell.exe" -ArgumentList @("-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", "& '$scoopCmd' $Subcommand $PackageName") -Wait -PassThru -NoNewWindow
+        return ($proc.ExitCode -eq 0)
+    } catch {
+        Write-LapisLog "WARN" "Scoop invocation failed for $PackageName : $_"
+        return $false
+    }
 }
 
 # --- Execution ---
@@ -520,7 +791,7 @@ foreach ($toolLower in $NormalizedTools) {
             $existingVer = if ($existing) { Get-CrystalVersion -CrystalExePath $existing } else { $null }
 
             if ($existing -and $existingVer -and ($existingVer -ge $MinCrystalVersion) -and -not $Force) {
-                Write-LapisLog "SUCCESS" "Crystal $existingVer is already installed at: $existing"
+                Write-LapisLog "SUCCESS" "Crystal $existingVer verified at: $existing"
                 [void](Register-CrystalEnvironment -CrystalExePath $existing)
                 $crystalEnvConfigured = $true
                 $results["crystal"] = $true
@@ -552,24 +823,24 @@ foreach ($toolLower in $NormalizedTools) {
                 }
 
                 if (-not $installed) {
-                    Write-LapisLog "INFO" "Falling back to official Crystal $TargetCrystalVersion Windows installer..."
+                    Write-LapisLog "INFO" "Falling back to official Crystal $FallbackCrystalVersion Windows installer..."
                     $destRoot = Join-Path $env:LOCALAPPDATA "Programs\Crystal"
-                    $tmpExe = Join-Path $env:TEMP "crystal-$TargetCrystalVersion-installer.exe"
+                    $tmpExe = Join-Path $env:TEMP "crystal-$FallbackCrystalVersion-installer.exe"
                     try {
-                        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-                        Invoke-WebRequest -Uri $CrystalExeUrl -OutFile $tmpExe -UseBasicParsing
-                        $installerArgs = @(
-                            "/SP-",
-                            "/VERYSILENT",
-                            "/SUPPRESSMSGBOXES",
-                            "/NORESTART",
-                            "/CURRENTUSER",
-                            "/DIR=`"$destRoot`""
-                        )
-                        $proc = Start-Process -FilePath $tmpExe -ArgumentList $installerArgs -Wait -PassThru
-                        $installed = ($proc.ExitCode -eq 0)
+                        if (Download-ArchiveFast -Url $CrystalExeUrl -DestFile $tmpExe) {
+                            $installerArgs = @(
+                                "/SP-",
+                                "/VERYSILENT",
+                                "/SUPPRESSMSGBOXES",
+                                "/NORESTART",
+                                "/CURRENTUSER",
+                                "/DIR=`"$destRoot`""
+                            )
+                            $proc = Start-Process -FilePath $tmpExe -ArgumentList $installerArgs -Wait -PassThru
+                            $installed = ($proc.ExitCode -eq 0)
+                        }
                     } catch {
-                        Write-LapisLog "ERROR" "Failed to download/run Crystal $TargetCrystalVersion installer: $_"
+                        Write-LapisLog "ERROR" "Failed to run Crystal installer: $_"
                     } finally {
                         Remove-Item $tmpExe -Force -ErrorAction SilentlyContinue
                     }
@@ -584,7 +855,7 @@ foreach ($toolLower in $NormalizedTools) {
                     Write-LapisLog "SUCCESS" "Crystal $verifiedVer configured at: $verified"
                     $results["crystal"] = $true
                 } else {
-                    Write-LapisLog "ERROR" "Crystal $TargetCrystalVersion installation could not be verified."
+                    Write-LapisLog "ERROR" "Crystal installation could not be verified."
                     $results["crystal"] = $false
                 }
             }
@@ -599,9 +870,23 @@ foreach ($toolLower in $NormalizedTools) {
             } else {
                 Write-LapisLog "WARN" "MSVC C++ Build Tools (link.exe / Windows SDK) not found. Initiating installation..."
                 $installed = $false
+                $vsOverride = "--passive --norestart --wait --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
                 if ($hasWinget) {
-                    $vsOverride = "--passive --norestart --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
                     $installed = Install-WithWinget -PackageId "Microsoft.VisualStudio.2022.BuildTools" -DisplayName "Visual Studio 2022 C++ Build Tools" -ExtraArgs @("--override", $vsOverride)
+                }
+                if (-not $installed -and -not (Test-MsvcBuildTools)) {
+                    $tmpVsExe = Join-Path $env:TEMP "vs_buildtools_$(Get-Random).exe"
+                    try {
+                        Write-LapisLog "INFO" "Downloading Microsoft Visual Studio BuildTools bootstrapper ($VsBuildToolsUrl)..."
+                        if (Download-ArchiveFast -Url $VsBuildToolsUrl -DestFile $tmpVsExe) {
+                            $proc = Start-Process -FilePath $tmpVsExe -ArgumentList @("--passive", "--norestart", "--wait", "--add", "Microsoft.VisualStudio.Workload.VCTools", "--includeRecommended") -Wait -PassThru
+                            $installed = ($proc.ExitCode -eq 0 -or $proc.ExitCode -eq 3010)
+                        }
+                    } catch {
+                        Write-LapisLog "WARN" "Direct Visual Studio BuildTools bootstrapper failed: $_"
+                    } finally {
+                        Remove-Item $tmpVsExe -Force -ErrorAction SilentlyContinue
+                    }
                 }
                 Refresh-EnvironmentPath
                 $verifiedVs = Test-MsvcBuildTools
@@ -615,56 +900,34 @@ foreach ($toolLower in $NormalizedTools) {
             }
         }
 
-        "radare2" {
-            $existing = Find-Radare2
-            if ($existing -and -not $Force) {
-                Write-LapisLog "SUCCESS" "radare2 debugger is already installed at: $existing"
-                $results["radare2"] = $true
-            } else {
-                Write-LapisLog "WARN" "radare2 debugger not found. Initiating radare2 automated installation..."
-                $installed = $false
-                if ($hasScoop) {
-                    $installed = Install-WithScoop -PackageName "radare2" -DisplayName "radare2 Native Debugger"
-                }
-                if (-not $installed -and $hasWinget) {
-                    $installed = Install-WithWinget -PackageId "radare2.radare2" -DisplayName "radare2 Native Debugger"
-                }
-                Refresh-EnvironmentPath
-                $verified = Find-Radare2
-                if ($verified) {
-                    Write-LapisLog "SUCCESS" "radare2 successfully verified at: $verified"
-                    $results["radare2"] = $true
-                } else {
-                    Write-LapisLog "ERROR" "radare2 installation could not be verified in PATH."
-                    $results["radare2"] = $false
-                }
-            }
-        }
-
         "make" {
             $existing = Find-Make
             if ($existing -and -not $Force) {
-                Write-LapisLog "SUCCESS" "GNU Make is already installed at: $existing"
+                Add-UserPathEntry -Entry (Split-Path -Parent $existing)
+                Write-LapisLog "SUCCESS" "GNU Make verified and registered in PATH: $existing"
                 $results["make"] = $true
             } else {
-                Write-LapisLog "WARN" "GNU Make not found. Initiating automated installation..."
+                Write-LapisLog "WARN" "GNU Make not found in PATH. Installing GNU Make..."
                 $installed = $false
-                if ($hasWinget) {
-                    $installed = Install-WithWinget -PackageId "ezwinports.make" -DisplayName "GNU Make"
-                    if (-not $installed) {
-                        $installed = Install-WithWinget -PackageId "GnuWin32.Make" -DisplayName "GnuWin32 Make"
-                    }
-                }
-                if (-not $installed -and $hasScoop) {
+                if ($hasScoop) {
                     $installed = Install-WithScoop -PackageName "make" -DisplayName "GNU Make"
+                }
+                if (-not $installed -and $hasWinget) {
+                    $installed = Install-WithWinget -PackageId "ezwinports.make" -DisplayName "GNU Make"
                 }
                 Refresh-EnvironmentPath
                 $verified = Find-Make
+                if (-not $verified) {
+                    [void](Install-PortableMake)
+                    Refresh-EnvironmentPath
+                    $verified = Find-Make
+                }
                 if ($verified) {
+                    Add-UserPathEntry -Entry (Split-Path -Parent $verified)
                     Write-LapisLog "SUCCESS" "GNU Make successfully verified at: $verified"
                     $results["make"] = $true
                 } else {
-                    Write-LapisLog "ERROR" "GNU Make installation could not be verified in PATH."
+                    Write-LapisLog "ERROR" "GNU Make installation could not be verified."
                     $results["make"] = $false
                 }
             }
@@ -673,7 +936,8 @@ foreach ($toolLower in $NormalizedTools) {
         "git" {
             $existing = Find-Git
             if ($existing -and -not $Force) {
-                Write-LapisLog "SUCCESS" "Git is already installed at: $existing"
+                Add-UserPathEntry -Entry (Split-Path -Parent $existing)
+                Write-LapisLog "SUCCESS" "Git verified and registered in PATH: $existing"
                 $results["git"] = $true
             } else {
                 Write-LapisLog "WARN" "Git not found. Initiating automated installation..."
@@ -686,12 +950,51 @@ foreach ($toolLower in $NormalizedTools) {
                 }
                 Refresh-EnvironmentPath
                 $verified = Find-Git
+                if (-not $verified) {
+                    [void](Install-PortableGit)
+                    Refresh-EnvironmentPath
+                    $verified = Find-Git
+                }
                 if ($verified) {
+                    Add-UserPathEntry -Entry (Split-Path -Parent $verified)
                     Write-LapisLog "SUCCESS" "Git successfully verified at: $verified"
                     $results["git"] = $true
                 } else {
-                    Write-LapisLog "ERROR" "Git installation could not be verified in PATH."
+                    Write-LapisLog "ERROR" "Git installation could not be verified."
                     $results["git"] = $false
+                }
+            }
+        }
+
+        "radare2" {
+            $existing = Find-Radare2
+            if ($existing -and -not $Force) {
+                Add-UserPathEntry -Entry (Split-Path -Parent $existing)
+                Write-LapisLog "SUCCESS" "radare2 debugger verified and registered in PATH: $existing"
+                $results["radare2"] = $true
+            } else {
+                Write-LapisLog "WARN" "radare2 debugger not found. Initiating automated installation..."
+                $installed = $false
+                if ($hasScoop) {
+                    $installed = Install-WithScoop -PackageName "radare2" -DisplayName "radare2 Native Debugger"
+                }
+                if (-not $installed -and $hasWinget) {
+                    $installed = Install-WithWinget -PackageId "radare2.radare2" -DisplayName "radare2 Native Debugger"
+                }
+                Refresh-EnvironmentPath
+                $verified = Find-Radare2
+                if (-not $verified) {
+                    [void](Install-PortableRadare2)
+                    Refresh-EnvironmentPath
+                    $verified = Find-Radare2
+                }
+                if ($verified) {
+                    Add-UserPathEntry -Entry (Split-Path -Parent $verified)
+                    Write-LapisLog "SUCCESS" "radare2 successfully verified at: $verified"
+                    $results["radare2"] = $true
+                } else {
+                    Write-LapisLog "WARN" "radare2 installation could not be verified."
+                    $results["radare2"] = $false
                 }
             }
         }
@@ -699,13 +1002,11 @@ foreach ($toolLower in $NormalizedTools) {
         "crystalline" {
             $existing = Find-Crystalline
             if ($existing -and -not $Force) {
-                Write-LapisLog "SUCCESS" "Crystalline LSP is already installed at: $existing"
+                Add-UserPathEntry -Entry (Split-Path -Parent $existing)
+                Write-LapisLog "SUCCESS" "Crystalline LSP verified at: $existing"
                 $results["crystalline"] = $true
             } else {
-                Write-LapisLog "WARN" "Crystalline LSP not found. Initiating automated download from GitHub releases..."
-                $installed = $false
-
-                $targetDir = Join-Path $env:LOCALAPPDATA "Programs\Lapis\bin"
+                $targetDir = $EffectiveLapisBin
                 if (-not (Test-Path $targetDir)) {
                     New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
                 }
@@ -720,42 +1021,22 @@ foreach ($toolLower in $NormalizedTools) {
                 foreach ($cand in $localCandidates) {
                     if ($cand -and (Test-Path $cand)) {
                         Copy-Item $cand $destExe -Force
-                        $installed = $true
-                        Write-LapisLog "INFO" "Configured Crystalline LSP from local artifact: $cand"
                         break
                     }
                 }
 
-                if (-not $installed) {
-                    Write-LapisLog "INFO" "Downloading Crystalline binary from GitHub releases..."
-                    $releaseUrl = "https://github.com/elbywan/crystalline/releases/latest/download/crystalline_x86_64-windows.zip"
-                    $tmpZip = Join-Path $env:TEMP "crystalline_release_$(Get-Random).zip"
-                    $stageDir = Join-Path $env:TEMP "crystalline_stage_$(Get-Random)"
-                    try {
-                        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-                        Invoke-WebRequest -Uri $releaseUrl -OutFile $tmpZip -UseBasicParsing
-                        Expand-Archive -Path $tmpZip -DestinationPath $stageDir -Force
-                        $extractedExe = (Get-ChildItem -Path $stageDir -Filter "crystalline.exe" -Recurse | Select-Object -First 1).FullName
-                        if ($extractedExe -and (Test-Path $extractedExe)) {
-                            Copy-Item $extractedExe $destExe -Force
-                            $installed = $true
-                        }
-                    } catch {
-                        Write-LapisLog "WARN" "Direct release archive download failed: $_"
-                    } finally {
-                        Remove-Item $tmpZip -Force -ErrorAction SilentlyContinue
-                        Remove-Item $stageDir -Recurse -Force -ErrorAction SilentlyContinue
-                    }
+                if (-not (Test-Path $destExe) -and $hasScoop) {
+                    [void](Install-WithScoop -PackageName "crystalline" -DisplayName "Crystalline LSP")
                 }
 
-                Add-UserPathEntry -Entry $targetDir
                 Refresh-EnvironmentPath
                 $verified = Find-Crystalline
                 if ($verified) {
-                    Write-LapisLog "SUCCESS" "Crystalline LSP successfully verified at: $verified"
+                    Add-UserPathEntry -Entry (Split-Path -Parent $verified)
+                    Write-LapisLog "SUCCESS" "Crystalline LSP verified at: $verified"
                     $results["crystalline"] = $true
                 } else {
-                    Write-LapisLog "ERROR" "Crystalline LSP installation could not be verified in PATH."
+                    Write-LapisLog "INFO" "Crystalline LSP prebuilt binaries are optional on Windows (upstream publishes Linux/macOS releases)."
                     $results["crystalline"] = $false
                 }
             }
@@ -764,7 +1045,8 @@ foreach ($toolLower in $NormalizedTools) {
         "innosetup" {
             $existing = Find-InnoSetup
             if ($existing -and -not $Force) {
-                Write-LapisLog "SUCCESS" "Inno Setup Compiler is already installed at: $existing"
+                Add-UserPathEntry -Entry (Split-Path -Parent $existing)
+                Write-LapisLog "SUCCESS" "Inno Setup Compiler verified at: $existing"
                 $results["innosetup"] = $true
             } else {
                 Write-LapisLog "WARN" "Inno Setup Compiler not found. Initiating automated installation..."
@@ -779,7 +1061,7 @@ foreach ($toolLower in $NormalizedTools) {
                 foreach ($cand in $bundledCandidates) {
                     if ($cand -and (Test-Path $cand)) {
                         Write-LapisLog "INFO" "Running staged Inno Setup installer from $cand..."
-                        $proc = Start-Process -FilePath $cand -ArgumentList @("/VERYSILENT", "/NORESTART", "/SUPPRESSMSGBOXES") -Wait -PassThru
+                        $proc = Start-Process -FilePath $cand -ArgumentList @("/VERYSILENT", "/NORESTART", "/SUPPRESSMSGBOXES", "/CURRENTUSER") -Wait -PassThru
                         $installed = ($proc.ExitCode -eq 0)
                         if ($installed) { break }
                     }
@@ -798,12 +1080,12 @@ foreach ($toolLower in $NormalizedTools) {
                     $tmpExe = Join-Path $env:TEMP "innosetup-installer.exe"
                     $url = "https://files.jrsoftware.org/is/6/innosetup-6.3.3.exe"
                     try {
-                        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-                        Invoke-WebRequest -Uri $url -OutFile $tmpExe -UseBasicParsing
-                        $proc = Start-Process -FilePath $tmpExe -ArgumentList @("/VERYSILENT", "/NORESTART", "/SUPPRESSMSGBOXES", "/CURRENTUSER") -Wait -PassThru
-                        $installed = ($proc.ExitCode -eq 0)
+                        if (Download-ArchiveFast -Url $url -DestFile $tmpExe) {
+                            $proc = Start-Process -FilePath $tmpExe -ArgumentList @("/VERYSILENT", "/NORESTART", "/SUPPRESSMSGBOXES", "/CURRENTUSER") -Wait -PassThru
+                            $installed = ($proc.ExitCode -eq 0)
+                        }
                     } catch {
-                        Write-LapisLog "ERROR" "Failed to download/run Inno Setup installer: $_"
+                        Write-LapisLog "ERROR" "Failed to run Inno Setup installer: $_"
                     } finally {
                         Remove-Item $tmpExe -Force -ErrorAction SilentlyContinue
                     }
@@ -812,13 +1094,11 @@ foreach ($toolLower in $NormalizedTools) {
                 Refresh-EnvironmentPath
                 $verified = Find-InnoSetup
                 if ($verified) {
-                    $isccDir = Split-Path -Parent $verified
-                    Add-UserPathEntry -Entry $isccDir
-                    Refresh-EnvironmentPath
+                    Add-UserPathEntry -Entry (Split-Path -Parent $verified)
                     Write-LapisLog "SUCCESS" "Inno Setup Compiler successfully installed at: $verified"
                     $results["innosetup"] = $true
                 } else {
-                    Write-LapisLog "ERROR" "Inno Setup Compiler installation could not be verified in PATH or standard directories."
+                    Write-LapisLog "WARN" "Inno Setup Compiler installation could not be verified."
                     $results["innosetup"] = $false
                 }
             }
@@ -836,5 +1116,18 @@ if ($ConfigureCrystalEnv -and -not $crystalEnvConfigured) {
 
 Refresh-EnvironmentPath
 Broadcast-EnvironmentChange
+
+$criticalFailed = $false
+foreach ($crit in @("crystal", "make")) {
+    if (($NormalizedTools -contains $crit) -and ($results[$crit] -eq $false)) {
+        $criticalFailed = $true
+    }
+}
+
+if ($criticalFailed) {
+    Write-LapisLog "ERROR" "One or more required tools (Crystal / Make) failed verification."
+    exit 1
+}
+
 Write-LapisLog "SUCCESS" "Dependency verification completed."
 exit 0

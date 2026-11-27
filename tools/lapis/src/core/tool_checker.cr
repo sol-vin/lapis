@@ -18,7 +18,7 @@ module Lapis
         {% end %}
         {%
           min_ver = "1.20.0"
-          target_ver = "1.21.0"
+          target_ver = "1.21.1"
           if crystal_line.size > 0
             val = crystal_line.split(":")[1].gsub(/["'\r\n]/, "").strip
             if val.includes?(">=")

@@ -41,7 +41,7 @@ Options:
   -c, --category=CAT    Filter by category ('compute', 'engine', 'toolchain', 'custom')
   -g, --group=GROUP     Run only benchmarks within the specified comparison group
   -e, --env=ENV         Execution environment: 'standalone', 'editor', 'all' (default: standalone)
-  -t, --tag=TAG         Target release tag (e.g. '4.8-beta4')
+  -t, --tag=TAG         Target release tag (e.g. '4.8-beta5')
   --previous-tag=TAG    Previous baseline release tag (e.g. '4.8-dev7')
   -o, --output=PATH     Explicit output file or directory path
   --from=PATH           Input XML file for 'export html'
@@ -64,9 +64,9 @@ Examples:
   lapis benchmarks -g MatrixMultiplication
   lapis benchmarks -g CompileTime
   lapis benchmarks -g Shaders
-  lapis benchmarks run html --tag 4.8-beta4 --previous-tag 4.8-dev7
-  lapis benchmarks export html --from=benchmarks/reports/benchmarks_4.8-beta4.xml
-  lapis benchmarks compare --tag 4.8-beta4 --previous-tag 4.8-dev7
+  lapis benchmarks run html --tag 4.8-beta5 --previous-tag 4.8-dev7
+  lapis benchmarks export html --from=benchmarks/reports/benchmarks_4.8-beta5.xml
+  lapis benchmarks compare --tag 4.8-beta5 --previous-tag 4.8-dev7
   lapis benchmarks compare html
   lapis benchmarks -f matmul -i 5
 HELP
@@ -150,7 +150,7 @@ HELP
           end
           opts.on("-g GROUP", "--group=GROUP", "Filter by comparison group name") { |g| group_filter = g }
           opts.on("-e ENV", "--env=ENV", "Environment (standalone, editor, all)") { |e| env_mode = e.downcase }
-          opts.on("-t TAG", "--tag=TAG", "Target release tag (e.g. '4.8-beta4')") { |t| cli_tag = t }
+          opts.on("-t TAG", "--tag=TAG", "Target release tag (e.g. '4.8-beta5')") { |t| cli_tag = t }
           opts.on("--previous-tag=TAG", "Previous baseline release tag (e.g. '4.8-dev7')") { |pt| cli_prev_tag = pt }
           opts.on("--native", "Force pure native performance benchmark mode") { cli_native = true }
           opts.on("--comparative", "Force comparative (Crystal vs GDScript) benchmark mode") { cli_comparative = true }
@@ -350,10 +350,10 @@ HELP
             if nm = shard_content.match(/^name:\s*([a-zA-Z0-9_\-]+)/m)
               raw_name = nm[1].strip
               comp_project_name = case raw_name.downcase
-              when "crshader" then "CRShader"
-              when "libgodot", "lapis" then "Lapis"
-              else raw_name.capitalize
-              end
+                                  when "crshader"          then "CRShader"
+                                  when "libgodot", "lapis" then "Lapis"
+                                  else                          raw_name.capitalize
+                                  end
             end
           end
 
@@ -544,10 +544,10 @@ HELP
           if nm = shard_content.match(/^name:\s*([a-zA-Z0-9_\-]+)/m)
             raw_name = nm[1].strip
             project_display_name = case raw_name.downcase
-            when "crshader" then "CRShader"
-            when "libgodot", "lapis" then "Lapis"
-            else raw_name.capitalize
-            end
+                                   when "crshader"          then "CRShader"
+                                   when "libgodot", "lapis" then "Lapis"
+                                   else                          raw_name.capitalize
+                                   end
           end
           if vm = shard_content.match(/^version:\s*([0-9a-zA-Z.\-]+)/m)
             project_version = vm[1].strip

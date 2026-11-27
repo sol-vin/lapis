@@ -57,7 +57,7 @@ describe "Lapis Benchmarks & Installer Command Specifications" do
     xml = Lapis::Commands::Benchmarks::XmlHandler.generate_xml(
       metrics: metrics,
       version: "0.0.98",
-      godot_ver: "4.8-beta4",
+      godot_ver: "4.8-beta5",
       iterations: 3,
       platform: "windows"
     )
@@ -73,7 +73,7 @@ describe "Lapis Benchmarks & Installer Command Specifications" do
     meta, parsed = Lapis::Commands::Benchmarks::XmlHandler.parse_xml(xml)
     meta["version"].should eq("0.0.98")
     meta["platform"].should eq("windows")
-    meta["godot"].should eq("4.8-beta4")
+    meta["godot"].should eq("4.8-beta5")
     meta["iterations"].should eq("3")
 
     parsed.size.should eq(2)
@@ -233,11 +233,11 @@ describe "Lapis Benchmarks & Installer Command Specifications" do
       prev_metrics,
       "0.1.1",
       "0.1.0",
-      curr_tag: "4.8-beta4",
+      curr_tag: "4.8-beta5",
       prev_tag: "4.8-beta0"
     )
-    html.should contain("Lapis Benchmark Progression: 4.8-beta0 vs 4.8-beta4")
-    html.should contain("Comparing Baseline <strong>4.8-beta0</strong> &rarr; Target <strong>4.8-beta4</strong>")
+    html.should contain("Lapis Benchmark Progression: 4.8-beta0 vs 4.8-beta5")
+    html.should contain("Comparing Baseline <strong>4.8-beta0</strong> &rarr; Target <strong>4.8-beta5</strong>")
     html.should contain("Back to Main Report")
   end
 
@@ -258,8 +258,8 @@ describe "Lapis Benchmarks & Installer Command Specifications" do
     comparisons = [
       Lapis::Commands::Benchmarks::HtmlGenerator::ComparisonEntry.new(
         prev_tag: "4.8-beta0",
-        curr_tag: "4.8-beta4",
-        filename: "comparison_4.8-beta0_to_4.8-beta4.html"
+        curr_tag: "4.8-beta5",
+        filename: "comparison_4.8-beta0_to_4.8-beta5.html"
       ),
     ]
 
@@ -267,20 +267,20 @@ describe "Lapis Benchmarks & Installer Command Specifications" do
       metrics,
       "0.1.1",
       "windows",
-      "4.8-beta4",
-      tag: "4.8-beta4",
+      "4.8-beta5",
+      tag: "4.8-beta5",
       history: history,
       comparisons: comparisons,
       prev_tag: "4.8-beta0",
       prev_speedup: 12.5
     )
-    html.should contain("4.8-beta4")
+    html.should contain("4.8-beta5")
     html.should contain("Release Progression:")
-    html.should contain("Tag <code>4.8-beta0</code> &rarr; <code>4.8-beta4</code>")
+    html.should contain("Tag <code>4.8-beta0</code> &rarr; <code>4.8-beta5</code>")
     html.should contain("Historical Benchmark Releases &amp; Logs")
     html.should contain("report_4.8-beta0.html")
     html.should contain("benchmarks_4.8-beta0.xml")
-    html.should contain("comparison_4.8-beta0_to_4.8-beta4.html")
+    html.should contain("comparison_4.8-beta0_to_4.8-beta5.html")
   end
 
   it "generates native mode benchmark XML and single-bar SVG without GDScript" do
@@ -416,7 +416,7 @@ describe "Lapis Benchmarks & Installer Command Specifications" do
       metrics: metrics,
       version: "0.1.0",
       platform: "linux",
-      godot_ver: "4.8-beta4"
+      godot_ver: "4.8-beta5"
     )
 
     html.should contain("lang-filter-bar")
@@ -502,22 +502,22 @@ describe "Lapis Benchmarks & Installer Command Specifications" do
 
   it "generates compile-time group SVGs for debug vs release and binary sizes" do
     comp_metrics = {
-      "cr_debug_ms"        => 3900.0,
-      "cr_release_ms"      => 3200.0,
-      "cr_debug_bytes"     => 900000.0,
-      "cr_release_bytes"   => 450000.0,
-      "cpp_debug_ms"       => 1400.0,
-      "cpp_release_ms"     => 1800.0,
-      "cpp_debug_bytes"    => 2900000.0,
-      "cpp_release_bytes"  => 2800000.0,
-      "cs_debug_ms"        => 4200.0,
-      "cs_release_ms"      => 2500.0,
-      "cs_debug_bytes"     => 150000.0,
-      "cs_release_bytes"   => 120000.0,
-      "rs_debug_ms"        => 400.0,
-      "rs_release_ms"      => 630.0,
-      "rs_debug_bytes"     => 210000.0,
-      "rs_release_bytes"   => 190000.0,
+      "cr_debug_ms"       => 3900.0,
+      "cr_release_ms"     => 3200.0,
+      "cr_debug_bytes"    => 900000.0,
+      "cr_release_bytes"  => 450000.0,
+      "cpp_debug_ms"      => 1400.0,
+      "cpp_release_ms"    => 1800.0,
+      "cpp_debug_bytes"   => 2900000.0,
+      "cpp_release_bytes" => 2800000.0,
+      "cs_debug_ms"       => 4200.0,
+      "cs_release_ms"     => 2500.0,
+      "cs_debug_bytes"    => 150000.0,
+      "cs_release_bytes"  => 120000.0,
+      "rs_debug_ms"       => 400.0,
+      "rs_release_ms"     => 630.0,
+      "rs_debug_bytes"    => 210000.0,
+      "rs_release_bytes"  => 190000.0,
     }
 
     items = [
@@ -591,7 +591,7 @@ describe "Lapis Benchmarks & Installer Command Specifications" do
       metrics: metrics,
       version: "1.0.0",
       platform: "windows",
-      godot_ver: "4.8-beta4"
+      godot_ver: "4.8-beta5"
     )
 
     html.should contain("chart-view-selector")
@@ -601,7 +601,7 @@ describe "Lapis Benchmarks & Installer Command Specifications" do
     html.should contain("data-view=\"size\"")
     html.should contain("data-view=\"bar\"")
     html.should contain("data-view=\"speedup\"")
-    html.should contain("3271 ms") # Crystal release compile time fallback correctly rendered!
+    html.should contain("3271 ms")  # Crystal release compile time fallback correctly rendered!
     html.should contain("473.0 KB") # Crystal release size fallback correctly rendered!
   end
 end

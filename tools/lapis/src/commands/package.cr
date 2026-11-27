@@ -536,28 +536,56 @@ CONTROL
           Core::Logger.info("Staged Crystalline LSP binary (#{crystalline_exe}) for installer payload")
         end
 
-        # 3b. Stage radare2.exe if present (for bundling into {app}\bin)
+        # 3b. Stage standalone make.exe and vswhere.exe if available (for 100% offline build readiness in {app}\bin)
+        make_candidates = [
+          root.join("bin/make#{Core::Env.exe_ext}"),
+          root.join("scratch/installer_tools/make#{Core::Env.exe_ext}"),
+        ]
+        vswhere_candidates = [
+          root.join("bin/vswhere#{Core::Env.exe_ext}"),
+          root.join("scratch/installer_tools/vswhere#{Core::Env.exe_ext}"),
+        ]
+        {% if flag?(:windows) %}
+          user_profile = ENV["USERPROFILE"]? || ""
+          local_app = ENV["LOCALAPPDATA"]? || ""
+          pf86 = ENV["ProgramFiles(x86)"]? || ""
+          pf = ENV["ProgramFiles"]? || ""
+          if !user_profile.empty?
+            # Prefer Scoop/ezwinports standalone make.exe (zero external DLL dependencies)
+            make_candidates << Path.new(user_profile, "scoop", "apps", "make", "current", "bin", "make.exe")
+            make_candidates << Path.new(user_profile, "scoop", "apps", "make", "current", "make.exe")
+            vswhere_candidates << Path.new(user_profile, "scoop", "apps", "vswhere", "current", "vswhere.exe")
+          end
+          if !local_app.empty?
+            make_candidates << Path.new(local_app, "Programs", "Lapis", "bin", "make.exe")
+            vswhere_candidates << Path.new(local_app, "Programs", "Lapis", "bin", "vswhere.exe")
+          end
+          if !pf86.empty?
+            vswhere_candidates << Path.new(pf86, "Microsoft Visual Studio", "Installer", "vswhere.exe")
+          end
+          if !pf.empty?
+            vswhere_candidates << Path.new(pf, "Microsoft Visual Studio", "Installer", "vswhere.exe")
+          end
+        {% end %}
+
+        if make_exe = make_candidates.find { |p| File.exists?(p) }
+          safe_copy(make_exe, stage_dir.join("make.exe"))
+          Core::Logger.info("Staged standalone GNU Make binary (#{make_exe}) for installer payload")
+        end
+
+        if vswhere_exe = vswhere_candidates.find { |p| File.exists?(p) }
+          safe_copy(vswhere_exe, stage_dir.join("vswhere.exe"))
+          Core::Logger.info("Staged vswhere.exe binary (#{vswhere_exe}) for installer payload")
+        end
+
+        # 3c. Stage radare2.exe only from self-contained local bundles (never stage Chocolatey/Scoop wrapper shims without libr_*.dll)
         radare2_candidates = [
           root.join("bin/radare2#{Core::Env.exe_ext}"),
           root.join("scratch/radare2/bin/radare2#{Core::Env.exe_ext}"),
         ]
-        {% if flag?(:windows) %}
-          user_profile = ENV["USERPROFILE"]? || ""
-          if !user_profile.empty?
-            radare2_candidates << Path.new(user_profile, "scoop", "shims", "radare2.exe")
-            radare2_candidates << Path.new(user_profile, "scoop", "apps", "radare2", "current", "bin", "radare2.exe")
-          end
-          radare2_candidates << Path.new("C:", "ProgramData", "chocolatey", "bin", "radare2.exe")
-          radare2_candidates << Path.new("C:", "radare2", "bin", "radare2.exe")
-        {% end %}
-        if found_r2 = Process.find_executable("radare2")
-          radare2_candidates << Path.new(found_r2)
-        end
-
         if radare2_exe = radare2_candidates.find { |p| File.exists?(p) }
           safe_copy(radare2_exe, stage_dir.join("radare2.exe"))
           Core::Logger.info("Staged radare2 debugger binary (#{radare2_exe}) for installer payload")
-          # Also check for companion r2.exe
           r2_companion = radare2_exe.parent.join("r2#{Core::Env.exe_ext}")
           if File.exists?(r2_companion)
             safe_copy(r2_companion, stage_dir.join("r2.exe"))

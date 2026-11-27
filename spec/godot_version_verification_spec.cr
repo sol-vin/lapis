@@ -76,6 +76,9 @@ matches = [
   {"4.8.beta4.official", "4.8-beta4"},
   {"4.8.beta4.official.b070e63b1", "4.8-beta4"},
   {"4.8.beta.custom_build", "4.8-beta4"},
+  {"4.8.beta5.official", "4.8-beta5"},
+  {"4.8.beta5.official.a661dfdbc", "4.8-beta5"},
+  {"4.8.beta.custom_build", "4.8-beta5"},
   # RC stage matching
   {"4.8.rc1.official", "4.8-rc1"},
   {"4.8.rc.custom_build", "4.8-rc1"},
@@ -105,6 +108,7 @@ mismatches = [
   {"4.8.beta1.official", "4.8-beta2"},
   {"4.8.beta2.official", "4.8-beta3"},
   {"4.8.beta3.official", "4.8-beta4"},
+  {"4.8.beta4.official", "4.8-beta5"},
   {"4.8.rc1.official", "4.8-rc2"},
   {"4.8.alpha1.official", "4.8-beta1"},
   {"4.8.beta1.official", "4.8-rc1"},
