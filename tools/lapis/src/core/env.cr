@@ -51,14 +51,29 @@ module Lapis
         nil
       end
 
+      EMBEDDED_REPO_GODOT_VERSION = {{
+                                      read_file("#{__DIR__}/../../../../godot-version.yml").split("\n").find(&.includes?("version:")).split(":")[1].gsub(/["'\r\n]/, "").strip
+                                    }}
+
+      def self.repo_matches_embedded_godot?(dir : Path) : Bool
+        ver_yml = dir.join("godot-version.yml")
+        return true unless File.exists?(ver_yml)
+        if (File.read(ver_yml) rescue "") =~ /version:\s*["']?([^"'\r\n]+)["']?/
+          return $1.strip == EMBEDDED_REPO_GODOT_VERSION
+        end
+        true
+      rescue
+        false
+      end
+
       def self.global_libgodot_path : Path?
-        # 1. Check environment variables
+        # 1. Check explicit environment variables
         if (env_p = ENV["LIBGODOT_PATH"]? || ENV["LAPIS_PATH"]?) && !env_p.empty?
           p = Path.new(env_p).expand
           return p if Dir.exists?(p)
         end
 
-        # 2. Check global configuration file
+        # 2. Check global configuration file (only accept if targeting the same Godot version)
         cfg_path = if windows?
                      appdata = ENV["APPDATA"]? || ENV["LOCALAPPDATA"]? || (ENV["USERPROFILE"]? ? File.join(ENV["USERPROFILE"], "AppData", "Roaming") : nil)
                      appdata ? Path.new(appdata).join("lapis", "config.json") : Path.home.join(".config", "lapis", "config.json")
@@ -72,13 +87,13 @@ module Lapis
             cfg = Hash(String, String).from_json(File.read(cfg_path))
             if (lp = cfg["libgodot_path"]?) && !lp.empty?
               p = Path.new(lp).expand
-              return p if Dir.exists?(p)
+              return p if Dir.exists?(p) && is_libgodot_repo?(p) && repo_matches_embedded_godot?(p)
             end
           rescue
           end
         end
 
-        # 3. Check well-known developer workspace locations
+        # 3. Check well-known developer workspace locations (only accept if targeting the same Godot version)
         candidates = [] of Path
         if (exe = Process.executable_path)
           exe_p = Path.new(exe)
@@ -92,7 +107,7 @@ module Lapis
         candidates << Path.home.join("src", "libgodot")
 
         candidates.each do |c|
-          return c.expand if Dir.exists?(c) && is_libgodot_repo?(c)
+          return c.expand if Dir.exists?(c) && is_libgodot_repo?(c) && repo_matches_embedded_godot?(c)
         end
 
         nil
@@ -290,18 +305,9 @@ module Lapis
       # Candidate directories to discover source runtime libraries and bridge DLLs
       def self.candidate_runtime_dirs(root : Path = ROOT_DIR) : Array(Path)
         dirs = [] of Path
-        if !is_libgodot_repo?(root) && (global_root = global_libgodot_path)
-          dirs << global_root.join("bin") if Dir.exists?(global_root.join("bin"))
-          dirs << global_root.join("addons/crystal_integration/bin") if Dir.exists?(global_root.join("addons/crystal_integration/bin"))
-        end
+        in_monorepo = is_libgodot_repo?(root)
 
-        dirs << root.join("bin") if Dir.exists?(root.join("bin"))
-        dirs << root.join("addons/crystal_integration/bin") if Dir.exists?(root.join("addons/crystal_integration/bin"))
-        dirs << root.join("lib/lapis/bin") if Dir.exists?(root.join("lib/lapis/bin"))
-        dirs << root.join("lib/lapis/addons/crystal_integration/bin") if Dir.exists?(root.join("lib/lapis/addons/crystal_integration/bin"))
-        dirs << root.join("template/bin") if Dir.exists?(root.join("template/bin"))
-
-        # Check per-user runtime cache for project's expected Godot version
+        # Resolve expected Godot version for the target project (falling back to embedded target)
         proj_ver : String? = nil
         ver_file = root.join("godot-version.yml")
         if File.exists?(ver_file)
@@ -309,21 +315,55 @@ module Lapis
             proj_ver = $1.strip
           end
         end
-        if pv = proj_ver
-          cache_v = user_runtime_cache_dir(pv)
+        effective_ver = (proj_ver && !proj_ver.not_nil!.empty?) ? proj_ver.not_nil! : EMBEDDED_REPO_GODOT_VERSION
+
+        if in_monorepo
+          dirs << root.join("bin") if Dir.exists?(root.join("bin"))
+          dirs << root.join("addons/crystal_integration/bin") if Dir.exists?(root.join("addons/crystal_integration/bin"))
+          dirs << root.join("template/bin") if Dir.exists?(root.join("template/bin"))
+        else
+          # 1. Versioned per-user runtime cache for this exact Godot milestone
+          cache_v = user_runtime_cache_dir(effective_ver)
           dirs << cache_v if Dir.exists?(cache_v)
+
+          # 2. Companion directories of the currently running lapis executable
+          if (exe = Process.executable_path)
+            exe_p = Path.new(exe)
+            dirs << exe_p.parent if Dir.exists?(exe_p.parent)
+            dirs << exe_p.parent.join("addons/crystal_integration/bin") if Dir.exists?(exe_p.parent.join("addons/crystal_integration/bin"))
+            dirs << exe_p.parent.parent.join("bin") if Dir.exists?(exe_p.parent.parent.join("bin"))
+            dirs << exe_p.parent.parent.join("share/lapis/addons/crystal_integration/bin") if Dir.exists?(exe_p.parent.parent.join("share/lapis/addons/crystal_integration/bin"))
+            dirs << exe_p.parent.parent.join("addons/crystal_integration/bin") if Dir.exists?(exe_p.parent.parent.join("addons/crystal_integration/bin"))
+          end
+
+          # 3. Project-local bin directories
+          dirs << root.join("bin") if Dir.exists?(root.join("bin"))
+          dirs << root.join("addons/crystal_integration/bin") if Dir.exists?(root.join("addons/crystal_integration/bin"))
+          dirs << root.join("lib/lapis/bin") if Dir.exists?(root.join("lib/lapis/bin"))
+          dirs << root.join("lib/lapis/addons/crystal_integration/bin") if Dir.exists?(root.join("lib/lapis/addons/crystal_integration/bin"))
+
+          # 4. Global Lapis repository (only when matching embedded Godot version)
+          if global_root = global_libgodot_path
+            dirs << global_root.join("bin") if Dir.exists?(global_root.join("bin"))
+            dirs << global_root.join("addons/crystal_integration/bin") if Dir.exists?(global_root.join("addons/crystal_integration/bin"))
+          end
         end
+
+        if in_monorepo
+          cache_v = user_runtime_cache_dir(effective_ver)
+          dirs << cache_v if Dir.exists?(cache_v)
+          if (exe = Process.executable_path)
+            exe_p = Path.new(exe)
+            dirs << exe_p.parent if Dir.exists?(exe_p.parent)
+            dirs << exe_p.parent.join("addons/crystal_integration/bin") if Dir.exists?(exe_p.parent.join("addons/crystal_integration/bin"))
+            dirs << exe_p.parent.parent.join("bin") if Dir.exists?(exe_p.parent.parent.join("bin"))
+            dirs << exe_p.parent.parent.join("share/lapis/addons/crystal_integration/bin") if Dir.exists?(exe_p.parent.parent.join("share/lapis/addons/crystal_integration/bin"))
+            dirs << exe_p.parent.parent.join("addons/crystal_integration/bin") if Dir.exists?(exe_p.parent.parent.join("addons/crystal_integration/bin"))
+          end
+        end
+
         cache_def = user_runtime_cache_dir("default")
         dirs << cache_def if Dir.exists?(cache_def)
-
-        if (exe = Process.executable_path)
-          exe_p = Path.new(exe)
-          dirs << exe_p.parent if Dir.exists?(exe_p.parent)
-          dirs << exe_p.parent.join("addons/crystal_integration/bin") if Dir.exists?(exe_p.parent.join("addons/crystal_integration/bin"))
-          dirs << exe_p.parent.parent.join("bin") if Dir.exists?(exe_p.parent.parent.join("bin"))
-          dirs << exe_p.parent.parent.join("share/lapis/addons/crystal_integration/bin") if Dir.exists?(exe_p.parent.parent.join("share/lapis/addons/crystal_integration/bin"))
-          dirs << exe_p.parent.parent.join("addons/crystal_integration/bin") if Dir.exists?(exe_p.parent.parent.join("addons/crystal_integration/bin"))
-        end
 
         {% if flag?(:windows) %}
           if (local_app_data = ENV["LOCALAPPDATA"]?) && !local_app_data.empty?

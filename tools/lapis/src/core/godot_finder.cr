@@ -79,6 +79,52 @@ module Lapis
         end
       end
 
+      private def self.version_token_byte?(b : UInt8) : Bool
+        (b >= '0'.ord.to_u8 && b <= '9'.ord.to_u8) ||
+          (b >= 'A'.ord.to_u8 && b <= 'Z'.ord.to_u8) ||
+          (b >= 'a'.ord.to_u8 && b <= 'z'.ord.to_u8) ||
+          b == '.'.ord.to_u8 ||
+          b == '-'.ord.to_u8 ||
+          b == '_'.ord.to_u8
+      end
+
+      # Verifies that a compiled GDExtension binary (crystal_bridge or plugin) embeds the exact
+      # target Godot engine version (e.g. "4.8-rc1") as a standalone token, rejecting placeholder
+      # stubs (<4 KB) and stale binaries compiled for older milestones (e.g. "4.8-beta5").
+      def self.binary_matches_godot_version?(binary_path : Path | String, expected : String) : Bool
+        target = expected.strip
+        return true if target.empty?
+
+        path_str = binary_path.to_s
+        return false unless File.exists?(path_str) && !Dir.exists?(path_str)
+
+        info = File.info?(path_str)
+        return false unless info && info.size >= 4096
+
+        bytes = File.read(path_str).to_slice
+        needle = target.to_slice
+        n_len = needle.size
+        b_len = bytes.size
+        return false if n_len == 0 || b_len < n_len
+
+        first_byte = needle[0]
+        limit = b_len - n_len
+        i = 0
+        while i <= limit
+          if bytes[i] == first_byte && bytes[i, n_len] == needle
+            prev_ok = (i == 0) || !version_token_byte?(bytes[i - 1])
+            next_idx = i + n_len
+            next_ok = (next_idx == b_len) || !version_token_byte?(bytes[next_idx])
+            return true if prev_ok && next_ok
+          end
+          i += 1
+        end
+
+        false
+      rescue
+        false
+      end
+
       # Validates a Godot binary against the expected version.
       # Returns true if matched, false otherwise.
       def self.verify_version(binary_path : String, expected : String, strict : Bool = false) : Bool

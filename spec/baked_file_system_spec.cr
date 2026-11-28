@@ -39,6 +39,7 @@ required_assets = [
   "src/libgodot.cr",
   "src/lapis.cr",
   "src/bridge/crystal_bridge.cpp",
+  "rsrc/gdextension_interface.h",
   "src/libgodot/binding_macros.cr",
 ]
 
@@ -179,6 +180,7 @@ begin
     "src/editor/script_create_dialog.cr",
     "src/editor/plugin.cr",
     "src/bridge/crystal_bridge.cpp",
+    "rsrc/gdextension_interface.h",
   ].each do |required_file|
     unless File.exists?(temp_lib_dir.join(required_file))
       abort "ERROR: Required engine library file '#{required_file}' missing from extracted lib at #{temp_lib_dir.join(required_file)}!"

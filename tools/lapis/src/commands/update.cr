@@ -132,14 +132,48 @@ HELP
             File.chmod(current_exe, 0o755)
           end
 
-          # Refresh companion GDExtension bridge, editor plugin, and CRT libraries alongside lapis executable
+          # Refresh companion GDExtension bridge, editor plugin, and CRT libraries alongside lapis executable and in versioned runtime cache
           dest_dir = current_exe.parent
+          new_ver_out = Core::ProcessRunner.capture(current_exe.to_s, ["doctor", "--help"]) rescue nil
+          _ = new_ver_out
+          # Query the newly installed binary's embedded Godot target version via godot-version fallback or archive
+          detected_godot_ver : String? = nil
           Dir.glob(temp_extracted_dir.to_s.gsub('\\', '/') + "/**/*.{dll,so,dylib}").each do |lib_path|
             fn = File.basename(lib_path)
             next if fn.starts_with?("game.")
+            if fn.starts_with?("crystal_bridge.") && detected_godot_ver.nil?
+              raw_str = String.new(File.read(lib_path).to_slice) rescue ""
+              if m = raw_str.match(/\x00(4\.\d+(?:-[a-z0-9.]+)?)\x00/)
+                detected_godot_ver = m[1]
+              end
+            end
             target_lib = dest_dir.join(fn)
             FileUtils.cp(lib_path, target_lib.to_s) rescue nil
             File.chmod(target_lib, 0o755) unless Core::Env.windows?
+          end
+
+          cache_dir = Core::Env.user_runtime_cache_dir(detected_godot_ver || Core::Env::EMBEDDED_REPO_GODOT_VERSION)
+          FileUtils.mkdir_p(cache_dir) unless Dir.exists?(cache_dir)
+          Dir.glob(temp_extracted_dir.to_s.gsub('\\', '/') + "/**/*.{dll,so,dylib}").each do |lib_path|
+            fn = File.basename(lib_path)
+            next if fn.starts_with?("game.")
+            FileUtils.cp(lib_path, cache_dir.join(fn).to_s) rescue nil
+            File.chmod(cache_dir.join(fn), 0o755) unless Core::Env.windows?
+            {% if flag?(:windows) %}
+              if (local_app_data = ENV["LOCALAPPDATA"]?) && !local_app_data.empty?
+                prog_bin = Path.new(local_app_data).join("Programs", "Lapis", "bin")
+                FileUtils.cp(lib_path, prog_bin.join(fn).to_s) if Dir.exists?(prog_bin) rescue nil
+              end
+            {% end %}
+          end
+
+          # Clean stale global config.json if its libgodot_path points to an older Godot checkout
+          if (cfg = Commands::Install.read_config) && (lp = cfg["libgodot_path"]?) && !lp.empty?
+            target_gv = detected_godot_ver || Core::Env::EMBEDDED_REPO_GODOT_VERSION
+            ver_yml = Path.new(lp).join("godot-version.yml")
+            if File.exists?(ver_yml) && ((File.read(ver_yml) rescue "") =~ /version:\s*["']?([^"'\r\n]+)["']?/)
+              Commands::Install.clean_config if $1.strip != target_gv
+            end
           end
 
           Core::Logger.success("Lapis CLI successfully updated at #{current_exe}!")

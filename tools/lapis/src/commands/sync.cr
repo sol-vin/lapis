@@ -427,13 +427,25 @@ HELP
           # Purge foreign binaries from root bin directory
           Core::Env.purge_foreign_binaries(bin_dir) unless dry_run
 
-          # For standalone projects, refresh crystal_bridge, plugin, and runtime DLLs from candidate runtime dirs
+          # For standalone projects, refresh crystal_bridge, plugin, and runtime DLLs from version-verified candidate runtime dirs
           if !is_monorepo
+            expected_ver = Core::GodotFinder.expected_version(root.to_s)
+            Commands::Deps.ensure_bridge_and_plugin(root, need_plugin: true) unless dry_run
             cand_dirs = Core::Env.candidate_runtime_dirs(root)
             FileUtils.mkdir_p(bin_dir) unless dry_run || Dir.exists?(bin_dir)
+            versioned_libs = [Core::Env.bridge_file, Core::Env.plugin_file]
             (platform_files + [Core::Env.plugin_file]).each do |bin_name|
-              if src_cand = cand_dirs.find { |d| d != bin_dir && File.exists?(d.join(bin_name)) }
-                safe_copy(src_cand.join(bin_name), bin_dir.join(bin_name), dry_run: dry_run)
+              is_ver_lib = versioned_libs.includes?(bin_name)
+              src_cand = cand_dirs.find do |d|
+                next false if d == bin_dir || !File.exists?(d.join(bin_name))
+                is_ver_lib ? Core::GodotFinder.binary_matches_godot_version?(d.join(bin_name), expected_ver) : true
+              end
+              if src_cand
+                if is_ver_lib && !dry_run
+                  Commands::Deps.copy_versioned_binary(src_cand.join(bin_name), bin_dir.join(bin_name), expected_ver)
+                else
+                  safe_copy(src_cand.join(bin_name), bin_dir.join(bin_name), dry_run: dry_run)
+                end
               end
             end
             Commands::Deps.run(["-t", bin_dir.to_s]) unless dry_run

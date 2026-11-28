@@ -90,27 +90,47 @@ module Lapis
       end
 
       private def self.compile_bridge_fallback(proj_dir : Path, dest_bridge : Path) : Bool
+        # Ensure embedded engine headers/sources (including rsrc/gdextension_interface.h) are extracted if missing
+        if !File.exists?(proj_dir.join("lib/lapis/src/bridge/crystal_bridge.cpp")) &&
+           !File.exists?(Core::Env::ROOT_DIR.join("src/bridge/crystal_bridge.cpp")) &&
+           Core::BakedFileSystem.files_with_prefix("src").size > 0
+          Core::BakedFileSystem.extract_engine_lib(proj_dir.join("lib/lapis"), overwrite: false)
+        end
+
         bridge_cpp = [
           proj_dir.join("lib/lapis/src/bridge/crystal_bridge.cpp"),
           Core::Env::ROOT_DIR.join("src/bridge/crystal_bridge.cpp"),
         ].find { |p| File.exists?(p) }
         return false unless bridge_cpp
 
+        bridge_dir = bridge_cpp.parent
+        lapis_base = bridge_dir.parent.parent
+        rsrc_dir = [
+          lapis_base.join("rsrc"),
+          Core::Env::ROOT_DIR.join("rsrc"),
+        ].find { |p| Dir.exists?(p) } || lapis_base.join("rsrc")
+
+        if !File.exists?(rsrc_dir.join("gdextension_interface.h")) && Core::BakedFileSystem.has_file?("rsrc/gdextension_interface.h")
+          FileUtils.mkdir_p(rsrc_dir) unless Dir.exists?(rsrc_dir)
+          Core::BakedFileSystem.extract_file("rsrc/gdextension_interface.h", rsrc_dir.join("gdextension_interface.h"))
+        end
+
         FileUtils.mkdir_p(dest_bridge.parent) unless Dir.exists?(dest_bridge.parent)
         if cxx = (Process.find_executable("g++") || Process.find_executable("clang++"))
           Core::Logger.step("Deps", "Compiling GDExtension bridge (#{dest_bridge.basename}) from embedded C++ source...")
+          inc_flags = ["-I", rsrc_dir.to_s, "-I", bridge_dir.to_s]
           args = if Core::Env.macos?
-                   ["-dynamiclib", "-std=c++17", "-O2", bridge_cpp.to_s, "-o", dest_bridge.to_s]
+                   ["-dynamiclib", "-std=c++17", "-O2", "-fPIC"] + inc_flags + [bridge_cpp.to_s, "-o", dest_bridge.to_s]
                  elsif Core::Env.windows?
-                   ["-shared", "-std=c++17", "-O2", "-static-libgcc", "-static-libstdc++", bridge_cpp.to_s, "-o", dest_bridge.to_s]
+                   ["-shared", "-std=c++17", "-O2", "-static", "-static-libgcc", "-static-libstdc++"] + inc_flags + [bridge_cpp.to_s, "-o", dest_bridge.to_s]
                  else
-                   ["-shared", "-fPIC", "-std=c++17", "-O2", bridge_cpp.to_s, "-o", dest_bridge.to_s]
+                   ["-shared", "-fPIC", "-std=c++17", "-O2"] + inc_flags + [bridge_cpp.to_s, "-o", dest_bridge.to_s]
                  end
           status = Core::ProcessRunner.run(cxx, args)
           return status.success? && File.exists?(dest_bridge) && File.size(dest_bridge) > 0
         elsif Core::Env.windows? && (cl = (Process.find_executable("cl.exe") || Process.find_executable("cl")))
           Core::Logger.step("Deps", "Compiling GDExtension bridge (#{dest_bridge.basename}) via MSVC...")
-          status = Core::ProcessRunner.run(cl, ["/nologo", "/std:c++17", "/O2", "/EHsc", "/LD", bridge_cpp.to_s, "/Fe:#{dest_bridge}"], chdir: dest_bridge.parent.to_s)
+          status = Core::ProcessRunner.run(cl, ["/nologo", "/std:c++17", "/O2", "/EHsc", "/LD", "/I#{rsrc_dir}", "/I#{bridge_dir}", bridge_cpp.to_s, "/Fe:#{dest_bridge}"], chdir: dest_bridge.parent.to_s)
           return status.success? && File.exists?(dest_bridge) && File.size(dest_bridge) > 0
         end
         false
@@ -141,43 +161,97 @@ module Lapis
         false
       end
 
+      # Purges any existing crystal_bridge or plugin binary inside a standalone project whose embedded
+      # target Godot version does not match `expected_ver` (e.g. a leftover 4.8-beta5 bridge in a 4.8-rc1 project).
+      def self.purge_mismatched_project_binaries(proj : Path, expected_ver : String) : Bool
+        bridge_file = Core::Env.bridge_file
+        plugin_file = Core::Env.plugin_file
+        purged = false
+
+        targets = [
+          proj.join("bin", bridge_file),
+          proj.join("bin", plugin_file),
+          proj.join("addons/crystal_integration/bin", bridge_file),
+          proj.join("addons/crystal_integration/bin", plugin_file),
+        ]
+
+        addons_parent = proj.join("addons")
+        if Dir.exists?(addons_parent)
+          Dir.each_child(addons_parent) do |sub_name|
+            next if sub_name == "crystal_integration"
+            sub_bridge = addons_parent.join(sub_name, "bin", bridge_file)
+            targets << sub_bridge if File.exists?(sub_bridge)
+          end
+        end
+
+        targets.uniq.each do |bin_path|
+          next unless File.exists?(bin_path)
+          unless Core::GodotFinder.binary_matches_godot_version?(bin_path, expected_ver)
+            begin
+              File.delete(bin_path)
+              purged = true
+              Core::Logger.step("Deps", "Purged outdated #{bin_path.relative_to(proj)} (expected Godot #{expected_ver})")
+            rescue ex
+              Core::Logger.debug("Could not delete outdated binary #{bin_path}: #{ex.message}")
+            end
+          end
+        end
+
+        purged
+      end
+
       # Ensures crystal_bridge.<ext> and (when need_plugin is true) plugin.<ext> plus CRT DLLs
-      # are available on the host and staged into the standalone project's bin/ and addons/ directories.
-      def self.ensure_bridge_and_plugin(project_dir : Path, need_plugin : Bool = true) : Void
+      # matching the project's expected Godot version are available on the host and staged into
+      # the standalone project's bin/ and addons/ directories. Returns true if stale binaries were purged.
+      def self.ensure_bridge_and_plugin(project_dir : Path, need_plugin : Bool = true) : Bool
         proj = project_dir.expand
-        return if Core::Env.is_libgodot_repo?(proj)
+        return false if Core::Env.is_libgodot_repo?(proj)
 
         bridge_file = Core::Env.bridge_file
         plugin_file = Core::Env.plugin_file
         has_ci_addon = Dir.exists?(proj.join("addons/crystal_integration"))
         effective_need_plugin = need_plugin && has_ci_addon
 
-        cand_dirs = Core::Env.candidate_runtime_dirs(proj)
-        bridge_src = cand_dirs.compact_map { |d| d.join(bridge_file) if File.exists?(d.join(bridge_file)) }.first?
-        plugin_src = cand_dirs.compact_map { |d| d.join(plugin_file) if File.exists?(d.join(plugin_file)) }.first?
-
         expected_ver = Core::GodotFinder.expected_version(proj.to_s)
+        purged_stale = purge_mismatched_project_binaries(proj, expected_ver)
+
+        cand_dirs = Core::Env.candidate_runtime_dirs(proj)
+        bridge_src = cand_dirs.compact_map do |d|
+          cand = d.join(bridge_file)
+          cand if File.exists?(cand) && Core::GodotFinder.binary_matches_godot_version?(cand, expected_ver)
+        end.first?
+        plugin_src = cand_dirs.compact_map do |d|
+          cand = d.join(plugin_file)
+          cand if File.exists?(cand) && Core::GodotFinder.binary_matches_godot_version?(cand, expected_ver)
+        end.first?
+
         cache_dir = Core::Env.user_runtime_cache_dir(expected_ver)
         allow_auto = ENV["LAPIS_NO_AUTO_GODOT"]? != "1" && ENV["LAPIS_OFFLINE"]? != "1"
 
         if (bridge_src.nil? || (effective_need_plugin && plugin_src.nil?)) && allow_auto
           if fetch_prebuilt_addon_binaries(expected_ver, cache_dir)
             cand_dirs = Core::Env.candidate_runtime_dirs(proj)
-            bridge_src ||= cand_dirs.compact_map { |d| d.join(bridge_file) if File.exists?(d.join(bridge_file)) }.first?
-            plugin_src ||= cand_dirs.compact_map { |d| d.join(plugin_file) if File.exists?(d.join(plugin_file)) }.first?
+            bridge_src ||= cand_dirs.compact_map do |d|
+              cand = d.join(bridge_file)
+              cand if File.exists?(cand) && Core::GodotFinder.binary_matches_godot_version?(cand, expected_ver)
+            end.first?
+            plugin_src ||= cand_dirs.compact_map do |d|
+              cand = d.join(plugin_file)
+              cand if File.exists?(cand) && Core::GodotFinder.binary_matches_godot_version?(cand, expected_ver)
+            end.first?
           end
         end
 
         if bridge_src.nil? && ENV["LAPIS_NO_AUTO_GODOT"]? != "1"
           cached_bridge = cache_dir.join(bridge_file)
-          if compile_bridge_fallback(proj, cached_bridge)
+          if compile_bridge_fallback(proj, cached_bridge) && Core::GodotFinder.binary_matches_godot_version?(cached_bridge, expected_ver)
             bridge_src = cached_bridge
           end
         end
 
         if effective_need_plugin && plugin_src.nil? && ENV["LAPIS_NO_AUTO_GODOT"]? != "1"
           cached_plugin = cache_dir.join(plugin_file)
-          if compile_plugin_fallback(proj, cached_plugin)
+          if compile_plugin_fallback(proj, cached_plugin) && Core::GodotFinder.binary_matches_godot_version?(cached_plugin, expected_ver)
             plugin_src = cached_plugin
           end
         end
@@ -187,11 +261,11 @@ module Lapis
         File.write(proj_bin.join(".gdignore"), "") unless File.exists?(proj_bin.join(".gdignore"))
 
         if bs = bridge_src
-          safe_copy(bs, proj_bin.join(bridge_file))
+          copy_versioned_binary(bs, proj_bin.join(bridge_file), expected_ver, force: purged_stale)
           if has_ci_addon
             ci_bin = proj.join("addons/crystal_integration/bin")
             FileUtils.mkdir_p(ci_bin) unless Dir.exists?(ci_bin)
-            safe_copy(bs, ci_bin.join(bridge_file))
+            copy_versioned_binary(bs, ci_bin.join(bridge_file), expected_ver, force: purged_stale)
           end
 
           addons_parent = proj.join("addons")
@@ -204,7 +278,7 @@ module Lapis
               if gdexts.any? { |gf| (File.read(gf) rescue "").includes?("crystal_bridge") }
                 sub_bin = sub_dir.join("bin")
                 FileUtils.mkdir_p(sub_bin) unless Dir.exists?(sub_bin)
-                safe_copy(bs, sub_bin.join(bridge_file))
+                copy_versioned_binary(bs, sub_bin.join(bridge_file), expected_ver, force: purged_stale)
               end
             end
           end
@@ -213,8 +287,32 @@ module Lapis
         if effective_need_plugin && (ps = plugin_src)
           ci_bin = proj.join("addons/crystal_integration/bin")
           FileUtils.mkdir_p(ci_bin) unless Dir.exists?(ci_bin)
-          safe_copy(ps, ci_bin.join(plugin_file))
-          safe_copy(ps, proj_bin.join(plugin_file))
+          copy_versioned_binary(ps, ci_bin.join(plugin_file), expected_ver, force: purged_stale)
+          copy_versioned_binary(ps, proj_bin.join(plugin_file), expected_ver, force: purged_stale)
+        end
+
+        purged_stale
+      end
+
+      def self.copy_versioned_binary(src : Path | String, dst : Path | String, expected_ver : String, force : Bool = false) : Bool
+        return false unless File.exists?(src)
+        return true if File.expand_path(src.to_s) == File.expand_path(dst.to_s)
+
+        if !force && File.exists?(dst) && Core::GodotFinder.binary_matches_godot_version?(dst, expected_ver)
+          return safe_copy(src, dst)
+        end
+
+        begin
+          dst_path = dst.to_s
+          dst_dir = File.dirname(dst_path)
+          FileUtils.mkdir_p(dst_dir) unless Dir.exists?(dst_dir)
+          FileUtils.cp(src.to_s, dst_path)
+          File.chmod(dst_path, 0o755) unless Core::Env.windows?
+          Core::Logger.debug("Copied version-verified #{src} -> #{dst}")
+          true
+        rescue ex
+          Core::Logger.debug("Skipped copy to #{dst} (possibly file-locked): #{ex.message}")
+          false
         end
       end
 
@@ -363,16 +461,20 @@ HELP
             end
           end
 
-          # 3. Locate crystal_bridge.dll
-          bridge_src = candidate_dirs.compact_map { |d| d.join(Core::Env.bridge_file) if File.exists?(d.join(Core::Env.bridge_file)) }.first?
+          # 3. Locate crystal_bridge.dll matching expected Godot version
+          expected_ver = Core::GodotFinder.expected_version(proj_dir.to_s)
+          bridge_src = candidate_dirs.compact_map do |d|
+            cand = d.join(Core::Env.bridge_file)
+            cand if File.exists?(cand) && Core::GodotFinder.binary_matches_godot_version?(cand, expected_ver)
+          end.first?
           if bridge_src
             if target_bin.nil? && is_repo
-              safe_copy(bridge_src, root_bin.join(Core::Env.bridge_file))
+              copy_versioned_binary(bridge_src, root_bin.join(Core::Env.bridge_file), expected_ver)
             end
 
             bin_dirs.each do |d|
               FileUtils.mkdir_p(d) unless Dir.exists?(d)
-              safe_copy(bridge_src, d.join(Core::Env.bridge_file))
+              copy_versioned_binary(bridge_src, d.join(Core::Env.bridge_file), expected_ver)
             end
           end
 
@@ -407,16 +509,20 @@ HELP
             end
           end
 
+          expected_ver = Core::GodotFinder.expected_version(proj_dir.to_s)
           bridge_file = Core::Env.bridge_file
-          bridge_src = candidate_dirs.compact_map { |d| d.join(bridge_file) if File.exists?(d.join(bridge_file)) }.first?
+          bridge_src = candidate_dirs.compact_map do |d|
+            cand = d.join(bridge_file)
+            cand if File.exists?(cand) && Core::GodotFinder.binary_matches_godot_version?(cand, expected_ver)
+          end.first?
           if bridge_src
             if target_bin.nil? && is_repo
-              safe_copy(bridge_src, root_bin.join(bridge_file))
+              copy_versioned_binary(bridge_src, root_bin.join(bridge_file), expected_ver)
             end
 
             bin_dirs.each do |d|
               FileUtils.mkdir_p(d) unless Dir.exists?(d)
-              safe_copy(bridge_src, d.join(bridge_file))
+              copy_versioned_binary(bridge_src, d.join(bridge_file), expected_ver)
             end
           end
         end

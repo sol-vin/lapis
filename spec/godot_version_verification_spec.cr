@@ -216,4 +216,34 @@ if Process.run("git", ["-C", repo_root, "show", "master:godot-version.yml"], out
 end
 puts "  ✓ Lapis version '#{root_shard_ver}' is synchronized and milestone-aligned"
 
+# -------------------------------------------------------------
+# [Spec 7] Compiled Bridge & Plugin Binary Version Verification
+# -------------------------------------------------------------
+puts "[Spec 7] Verifying compiled GDExtension binary target-version enforcement..."
+tmp_bin_dir = File.join(Dir.tempdir, "lapis_bin_ver_spec_#{Process.pid}")
+Dir.mkdir_p(tmp_bin_dir)
+begin
+  rc1_bridge = File.join(tmp_bin_dir, "bridge_rc1.dll")
+  beta5_bridge = File.join(tmp_bin_dir, "bridge_beta5.dll")
+  tiny_stub = File.join(tmp_bin_dir, "bridge_stub.dll")
+
+  pad = "\x00" * 4200
+  File.write(rc1_bridge, "#{pad}\x00#{expected_target_ver}\x00Bridge compiled for : #{expected_target_ver}\n")
+  File.write(beta5_bridge, "#{pad}\x004.8-beta5\x00Bridge compiled for : 4.8-beta5\n")
+  File.write(tiny_stub, "\x00#{expected_target_ver}\x00")
+
+  unless Lapis::Core::GodotFinder.binary_matches_godot_version?(rc1_bridge, expected_target_ver)
+    abort "ERROR: Expected bridge compiled for '#{expected_target_ver}' to pass binary_matches_godot_version?!"
+  end
+  if Lapis::Core::GodotFinder.binary_matches_godot_version?(beta5_bridge, expected_target_ver)
+    abort "ERROR: Stale 4.8-beta5 bridge binary must be rejected when expecting '#{expected_target_ver}'!"
+  end
+  if Lapis::Core::GodotFinder.binary_matches_godot_version?(tiny_stub, expected_target_ver)
+    abort "ERROR: Placeholder stub (<4 KB) must be rejected by binary_matches_godot_version?!"
+  end
+ensure
+  FileUtils.rm_rf(tmp_bin_dir) if Dir.exists?(tmp_bin_dir)
+end
+puts "  ✓ Compiled GDExtension bridge/plugin target-version checks verified"
+
 puts "=== All Godot Engine Version Verification Specifications Passed! ==="

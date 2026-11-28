@@ -250,32 +250,30 @@ MD
           FeatureConfigurator.apply(dest, features || ProjectFeatures.new, addons)
         end
 
-        # Ensure godot-version.yml exists
+        # Ensure godot-version.yml exists and matches the current Lapis engine target
         ver_dest = dest.join("godot-version.yml")
-        unless File.exists?(ver_dest)
-          if File.exists?(root.join("godot-version.yml"))
-            FileUtils.cp(root.join("godot-version.yml"), ver_dest)
-          elsif Core::BakedFileSystem.has_file?("godot-version.yml")
-            Core::BakedFileSystem.extract_file("godot-version.yml", ver_dest)
-          end
+        if Core::Env.is_libgodot_repo?(root) && File.exists?(root.join("godot-version.yml"))
+          FileUtils.cp(root.join("godot-version.yml"), ver_dest)
+        elsif Core::BakedFileSystem.has_file?("godot-version.yml")
+          Core::BakedFileSystem.extract_file("godot-version.yml", ver_dest)
+        elsif !File.exists?(ver_dest)
+          File.write(ver_dest, "version: \"#{Core::GodotFinder::EMBEDDED_GODOT_VERSION}\"\n")
         end
 
-        # 6. Bundle compiled Crystal plugin libraries into addons/crystal_integration/bin/ and dependencies into bin/
+        expected_ver = Core::GodotFinder.expected_version(dest.to_s)
+
+        # 6. Bundle version-verified Crystal bridge, editor plugin, and CRT dependencies into addons/crystal_integration/bin/ and bin/
         game_bin = dest.join("bin")
         FileUtils.mkdir_p(game_bin)
 
         addon_bin = dest.join("addons/crystal_integration/bin")
         FileUtils.mkdir_p(addon_bin)
 
-        # First, ensure any libraries embedded in BakedFileSystem are copied to both addon_bin and game_bin
-        ["crystal_bridge.dll", "crystal_bridge.so", "crystal_bridge.dylib", "gc.dll", "iconv-2.dll", "pcre2-8.dll"].each do |lib_name|
-          src_in_addon = addon_bin.join(lib_name)
-          if File.exists?(src_in_addon)
-            Commands::Deps.safe_copy(src_in_addon, game_bin.join(lib_name))
-          end
-        end
+        Commands::Deps.ensure_bridge_and_plugin(dest, need_plugin: true)
+        Commands::Deps.run(["-t", game_bin.to_s])
+        Commands::Deps.run(["-t", addon_bin.to_s, "--addon"])
 
-        candidate_bin_dirs = Core::Env.candidate_runtime_dirs(root)
+        candidate_bin_dirs = (Core::Env.candidate_runtime_dirs(dest) + Core::Env.candidate_runtime_dirs(root)).uniq
 
         needed_libs = if Core::Env.windows?
                         ["crystal_bridge.dll", "plugin.dll", "gc.dll", "iconv-2.dll", "pcre2-8.dll", "libgodot.dll"]
@@ -285,46 +283,63 @@ MD
                         ["crystal_bridge.so", "plugin.so", "libgodot.so"]
                       end
 
+        versioned_libs = [Core::Env.bridge_file, Core::Env.plugin_file]
         needed_libs.each do |lib_name|
+          is_ver_lib = versioned_libs.includes?(lib_name)
           target_addon_file = addon_bin.join(lib_name)
-          unless File.exists?(target_addon_file)
-            src = candidate_bin_dirs.compact_map { |d| d.join(lib_name) if File.exists?(d.join(lib_name)) }.first?
+          if !File.exists?(target_addon_file) || (is_ver_lib && !Core::GodotFinder.binary_matches_godot_version?(target_addon_file, expected_ver))
+            src = candidate_bin_dirs.compact_map do |d|
+              cand = d.join(lib_name)
+              next nil unless File.exists?(cand)
+              next nil if is_ver_lib && !Core::GodotFinder.binary_matches_godot_version?(cand, expected_ver)
+              cand
+            end.first?
             if src
-              Commands::Deps.safe_copy(src, target_addon_file)
-              Commands::Deps.safe_copy(src, game_bin.join(lib_name)) if ["crystal_bridge.dll", "crystal_bridge.so", "crystal_bridge.dylib", "gc.dll", "iconv-2.dll", "pcre2-8.dll"].includes?(lib_name)
+              if is_ver_lib
+                Commands::Deps.copy_versioned_binary(src, target_addon_file, expected_ver, force: true)
+                Commands::Deps.copy_versioned_binary(src, game_bin.join(lib_name), expected_ver, force: true) if lib_name == Core::Env.bridge_file
+              else
+                Commands::Deps.safe_copy(src, target_addon_file) unless lib_name.starts_with?("libgodot")
+                Commands::Deps.safe_copy(src, game_bin.join(lib_name)) if ["gc.dll", "iconv-2.dll", "pcre2-8.dll", "libgodot.dll", "libgodot.so", "libgodot.dylib"].includes?(lib_name)
+              end
             end
           end
         end
 
-        # Safety: purge any foreign platform binaries in newly scaffolded project
+        # Safety: purge any foreign platform binaries or libgodot inside GDExtension addon bin
         Core::Env.purge_foreign_binaries(addon_bin)
         Core::Env.purge_foreign_binaries(game_bin)
+        ["libgodot.dll", "libgodot.lib", "libgodot.so", "libgodot.dylib"].each do |lg|
+          stray = addon_bin.join(lg)
+          File.delete(stray) if File.exists?(stray)
+        end
 
-        # Verification: ensure GDExtension loader bridge exists
+        # Verification: ensure GDExtension loader bridge exists and matches expected Godot version
         bridge_file = Core::Env.bridge_file
-        unless File.exists?(addon_bin.join(bridge_file))
+        unless File.exists?(addon_bin.join(bridge_file)) && Core::GodotFinder.binary_matches_godot_version?(addon_bin.join(bridge_file), expected_ver)
           FileUtils.rm_rf(dest) if created_dest
-          Core::Logger.error("Failed to bundle required GDExtension bridge (#{bridge_file}) into #{addon_bin}.")
+          Core::Logger.error("Failed to bundle required GDExtension bridge (#{bridge_file} for Godot #{expected_ver}) into #{addon_bin}.")
           return 1
         end
 
-        # 7. Automatically download and install current Godot engine version into project root
+        # 7. Automatically download and install matching Godot engine version into project root
         unless skip_godot
           godot_dest = dest.join("godot#{Core::Env.exe_ext}")
-          if File.exists?(godot_dest)
-            Core::Logger.info("Godot binary already exists at #{godot_dest}")
+          target_ver = Commands::Setup.resolve_version(dest, nil)
+          if File.exists?(godot_dest) && Core::GodotFinder.verify_version(godot_dest.to_s, target_ver)
+            Core::Logger.info("Godot binary (#{target_ver}) already exists at #{godot_dest}")
           else
-            target_ver = Commands::Setup.resolve_version(dest, nil)
+            File.delete(godot_dest) if File.exists?(godot_dest) rescue nil
             begin
               Core::Logger.step("Scaffold", "Downloading Godot engine (#{target_ver}) to #{godot_dest.basename}...")
               success = Commands::Setup.download_godot_for_version(target_ver, godot_dest)
               if success && File.exists?(godot_dest)
                 Core::Logger.success("Installed Godot engine binary at #{godot_dest}!")
               else
-                Core::Logger.warn("Notice: Could not download Godot engine automatically. Please place your Godot binary at #{godot_dest}")
+                Core::Logger.warn("Notice: Could not download Godot engine automatically. Please place your Godot #{target_ver} binary at #{godot_dest}")
               end
             rescue ex
-              Core::Logger.warn("Notice: Godot engine download skipped (offline or network error: #{ex.message}). Please place your Godot binary at #{godot_dest}")
+              Core::Logger.warn("Notice: Godot engine download skipped (offline or network error: #{ex.message}). Please place your Godot #{target_ver} binary at #{godot_dest}")
             end
           end
         end
@@ -678,8 +693,9 @@ macos.release.x86_64 = { "res://addons/#{slug}/bin/game.dylib": "" }
 GDM
           )
 
-          # Stage initial runtime dependencies
-          Deps.run(["-t", addon_dir.join("bin").to_s])
+          # Stage initial runtime dependencies (verified for project's Godot version)
+          Deps.ensure_bridge_and_plugin(project_root, need_plugin: false)
+          Deps.run(["-t", addon_dir.join("bin").to_s, "--addon"])
 
           # 4. shard.yml
           dep_str = if local_dep
@@ -930,8 +946,9 @@ CR
             FileUtils.cp(new_gdm.to_s, dest.join("#{slug}.gdextension").to_s)
           end
 
-          # Stage runtime dependencies (bridge DLL, gc.dll, libgodot.dll) into addon bin and root bin
-          Deps.run(["-t", addon_bin.to_s])
+          # Stage runtime dependencies (version-verified bridge DLL, plugin, gc.dll) into addon bin and root bin
+          Deps.ensure_bridge_and_plugin(dest, need_plugin: true)
+          Deps.run(["-t", addon_bin.to_s, "--addon"])
           Deps.run(["-t", root_bin.to_s])
 
           # Resolve shards dependencies only if embedded engine libraries were not already extracted

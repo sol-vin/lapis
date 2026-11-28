@@ -190,23 +190,34 @@ HELP
           end
         end
 
+        purged_stale_bridge = false
         if !Core::Env.is_libgodot_repo?(target_dir)
-          Commands::Deps.ensure_bridge_and_plugin(target_dir, need_plugin: !run_standalone)
-          candidate_dirs = Core::Env.candidate_runtime_dirs(root)
+          purged_stale_bridge = Commands::Deps.ensure_bridge_and_plugin(target_dir, need_plugin: !run_standalone)
+          candidate_dirs = (Core::Env.candidate_runtime_dirs(target_dir) + Core::Env.candidate_runtime_dirs(root)).uniq
           if Dir.exists?(target_dir.join("addons/crystal_integration"))
             FileUtils.mkdir_p(addon_bin) unless Dir.exists?(addon_bin)
             [bridge_file, plugin_file].each do |bin_name|
-              if src_cand = candidate_dirs.compact_map { |d| d.join(bin_name) if File.exists?(d.join(bin_name)) }.first?
-                Commands::Deps.safe_copy(src_cand, addon_bin.join(bin_name)) unless bin_name == plugin_file && run_standalone
-                Commands::Deps.safe_copy(src_cand, proj_bin.join(bin_name)) unless bin_name == plugin_file && run_standalone
+              next if bin_name == plugin_file && run_standalone
+              src_cand = candidate_dirs.compact_map do |d|
+                cand = d.join(bin_name)
+                cand if File.exists?(cand) && Core::GodotFinder.binary_matches_godot_version?(cand, expected_ver)
+              end.first?
+              if src_cand
+                Commands::Deps.copy_versioned_binary(src_cand, addon_bin.join(bin_name), expected_ver, force: purged_stale_bridge)
+                Commands::Deps.copy_versioned_binary(src_cand, proj_bin.join(bin_name), expected_ver, force: purged_stale_bridge)
               end
             end
           end
 
           # Also ensure installed Crystal GDExtension addons (with active .gdextension) receive the up-to-date bridge and CRT
           addons_parent = target_dir.join("addons")
-          bridge_src = candidate_dirs.compact_map { |d| d.join(bridge_file) if File.exists?(d.join(bridge_file)) }.first?
-          bridge_src ||= addon_bin.join(bridge_file) if File.exists?(addon_bin.join(bridge_file))
+          bridge_src = candidate_dirs.compact_map do |d|
+            cand = d.join(bridge_file)
+            cand if File.exists?(cand) && Core::GodotFinder.binary_matches_godot_version?(cand, expected_ver)
+          end.first?
+          if bridge_src.nil? && File.exists?(addon_bin.join(bridge_file)) && Core::GodotFinder.binary_matches_godot_version?(addon_bin.join(bridge_file), expected_ver)
+            bridge_src = addon_bin.join(bridge_file)
+          end
           if bridge_src && Dir.exists?(addons_parent)
             Dir.each_child(addons_parent) do |sub_name|
               next if sub_name == "crystal_integration"
@@ -217,7 +228,7 @@ HELP
               if gdexts.any? { |gf| (File.read(gf) rescue "").includes?("crystal_bridge") }
                 sub_bin = sub_dir.join("bin")
                 FileUtils.mkdir_p(sub_bin) unless Dir.exists?(sub_bin)
-                Commands::Deps.safe_copy(bridge_src, sub_bin.join(bridge_file))
+                Commands::Deps.copy_versioned_binary(bridge_src, sub_bin.join(bridge_file), expected_ver, force: purged_stale_bridge)
                 Commands::Deps.run(["-t", sub_bin.to_s, "--addon"])
               end
             end
@@ -232,7 +243,9 @@ HELP
 
         # Ensure Crystal source addons and game.dll/so are compiled prior to launching Godot
         if !Core::Env.is_libgodot_repo?(target_dir) && Dir.exists?(target_dir.join("addons"))
-          addon_res = Commands::Build.build_addons(["-p", target_dir.to_s])
+          addon_build_args = ["-p", target_dir.to_s]
+          addon_build_args << "-F" if purged_stale_bridge
+          addon_res = Commands::Build.build_addons(addon_build_args)
           if addon_res != 0
             Core::Logger.error("Aborting #{run_standalone ? "game" : "editor"} launch because Crystal addon build failed.")
             return addon_res
@@ -240,13 +253,18 @@ HELP
         end
 
         game_file = Core::Env.game_file
-        if File.exists?(target_dir.join("src/main.cr")) && !File.exists?(proj_bin.join(game_file))
+        if File.exists?(target_dir.join("src/main.cr")) && (!File.exists?(proj_bin.join(game_file)) || purged_stale_bridge)
           Core::Logger.step("Build", "Building game library prior to launching #{run_standalone ? "game" : "editor"}...")
-          build_res = Commands::Build.run(["game", "-p", target_dir.to_s])
+          game_build_args = ["game", "-p", target_dir.to_s]
+          game_build_args << "-F" if purged_stale_bridge
+          build_res = Commands::Build.run(game_build_args)
           if build_res != 0
             Core::Logger.error("Aborting #{run_standalone ? "game" : "editor"} launch because initial game library build failed.")
             return build_res
           end
+        elsif File.exists?(proj_bin.join(game_file)) && Dir.exists?(target_dir.join("addons/crystal_integration"))
+          FileUtils.mkdir_p(addon_bin) unless Dir.exists?(addon_bin)
+          Commands::Sync.safe_copy(proj_bin.join(game_file), addon_bin.join(game_file))
         end
 
         godot_args = run_standalone ? ["--path", target_dir.to_s] : ["--editor", "--path", target_dir.to_s]

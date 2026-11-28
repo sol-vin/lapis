@@ -336,9 +336,23 @@ HELP
           return 1
         end
 
-        # Save configuration only for global default installation (not custom --dir or --prefix test runs)
+        # Save configuration and stage matching runtime bridge/plugin cache for global default installation
         if explicit_dir.nil? && prefix.nil?
           save_config(root, dest_bin)
+          cache_dir = Core::Env.user_runtime_cache_dir(Core::Env::EMBEDDED_REPO_GODOT_VERSION)
+          FileUtils.mkdir_p(cache_dir) unless Dir.exists?(cache_dir)
+          runtime_sources = [root.join("bin"), root.join("addons/crystal_integration/bin"), src_bin.parent]
+          ([Core::Env.bridge_file, Core::Env.plugin_file] + (Core::Env.windows? ? ["gc.dll", "iconv-2.dll", "pcre2-8.dll"] : [] of String)).each do |fn|
+            if src_lib = runtime_sources.compact_map { |d| d.join(fn) if File.exists?(d.join(fn)) }.first?
+              FileUtils.cp(src_lib.to_s, cache_dir.join(fn).to_s) rescue nil
+              {% if flag?(:windows) %}
+                if (local_app_data = ENV["LOCALAPPDATA"]?) && !local_app_data.empty?
+                  prog_bin = Path.new(local_app_data).join("Programs", "Lapis", "bin")
+                  FileUtils.cp(src_lib.to_s, prog_bin.join(fn).to_s) if Dir.exists?(prog_bin) rescue nil
+                end
+              {% end %}
+            end
+          end
         end
 
         Core::Logger.success("Lapis CLI (v#{Lapis::VERSION}) installed successfully!")
