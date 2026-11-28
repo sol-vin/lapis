@@ -624,19 +624,21 @@ module Godot
       super(pointer)
     end
     @@mb_get_cache : Void* = Pointer(Void).null
-    def self.get_cache(shader : Int64, set : Int64, uniforms : Pointer(Void)) : Int64
+    def self.get_cache(shader : Int64, set : Int64, uniforms : Enumerable(Godot::RDUniform)) : Int64
       godot_bind(@@mb_get_cache, "UniformSetCacheRD", "get_cache", 658571723_i64)
       val_0 = shader
       arg_0 = pointerof(val_0).as(Void*)
       val_1 = set.to_i64
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = uniforms
-      arg_2 = pointerof(val_2).as(Void*)
+      arr_2 = Bridge.make_godot_array(uniforms, 24, "RDUniform")
+      arg_2 = arr_2
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_int(@@mb_get_cache, Pointer(Void).null, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(28, arr_2)
     end
     # Instance convenience delegator for static method `get_cache`
-    def get_cache(shader : Int64, set : Int64, uniforms : Pointer(Void)) : Int64
+    def get_cache(shader : Int64, set : Int64, uniforms : Enumerable(Godot::RDUniform)) : Int64
       self.class.get_cache(shader, set, uniforms)
     end
   end
@@ -1125,16 +1127,18 @@ module Godot
       super(pointer)
     end
     @@mb_mix_audio : Void* = Pointer(Void).null
-    def mix_audio(num_frames : Int64, buffer : Pointer(Void), offset : Int64 = 0_i64) : Int64
+    def mix_audio(num_frames : Int64, buffer : Godot::PackedFloat32Array | ::Array(Float32) = Godot::PackedFloat32Array.new, offset : Int64 = 0_i64) : Int64
       godot_bind(@@mb_mix_audio, "VideoStreamPlayback", "mix_audio", 93876830_i64)
       val_0 = num_frames.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = buffer
-      arg_1 = pointerof(val_1).as(Void*)
+      pba_1 = Bridge.make_packed_array(32, buffer)
+      arg_1 = pba_1
       val_2 = offset.to_i64
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_int(@@mb_mix_audio, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(32, pba_1)
     end
   end
   class VideoStreamPlayer < Godot::Control
@@ -2064,14 +2068,14 @@ module Godot
       godot_ptrcall_val(@@mb_get_node_position, @pointer, args.to_unsafe.as(Void**), Vector2)
     end
     @@mb_get_node_list : Void* = Pointer(Void).null
-    def get_node_list(get_type : Type | Int) : Pointer(Void)
+    def get_node_list(get_type : Type | Int) : Godot::PackedInt32Array
       godot_bind(@@mb_get_node_list, "VisualShader", "get_node_list", 2370592410_i64)
       val_0 = get_type.is_a?(Int) ? get_type.to_i64 : get_type.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_node_list, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(30, ret_buf.to_unsafe.as(Void*), Godot::PackedInt32Array, destroy: true)
     end
     @@mb_get_valid_node_id : Void* = Pointer(Void).null
     def get_valid_node_id(get_type : Type | Int) : Int64
@@ -2198,14 +2202,14 @@ module Godot
       godot_ptrcall_void(@@mb_connect_nodes_forced, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_get_node_connections : Void* = Pointer(Void).null
-    def get_node_connections(get_type : Type | Int) : Pointer(Void)
+    def get_node_connections(get_type : Type | Int) : Godot::GodotArray(Godot::Dictionary)
       godot_bind(@@mb_get_node_connections, "VisualShader", "get_node_connections", 1441964831_i64)
       val_0 = get_type.is_a?(Int) ? get_type.to_i64 : get_type.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_node_connections, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_node_connections, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Godot::Dictionary, destroy: true)
     end
     @@mb_attach_node_to_frame : Void* = Pointer(Void).null
     def attach_node_to_frame(get_type : Type | Int, id : Int64, frame : Int64) : Void
@@ -2513,11 +2517,11 @@ module Godot
       godot_ptrcall_val(@@mb_get_node_position, @pointer, args.to_unsafe.as(Void**), Vector2)
     end
     @@mb_get_node_list : Void* = Pointer(Void).null
-    def get_node_list() : Pointer(Void)
+    def get_node_list() : Godot::PackedInt32Array
       godot_bind(@@mb_get_node_list, "VisualShaderGroup", "get_node_list", 1930428628_i64)
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_node_list, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(30, ret_buf.to_unsafe.as(Void*), Godot::PackedInt32Array, destroy: true)
     end
     @@mb_get_valid_node_id : Void* = Pointer(Void).null
     def get_valid_node_id() : Int64
@@ -2627,11 +2631,11 @@ module Godot
       godot_ptrcall_void(@@mb_connect_nodes_forced, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_get_node_connections : Void* = Pointer(Void).null
-    def get_node_connections() : Pointer(Void)
+    def get_node_connections() : Godot::GodotArray(Godot::Dictionary)
       godot_bind(@@mb_get_node_connections, "VisualShaderGroup", "get_node_connections", 3995934104_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_node_connections, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_node_connections, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Godot::Dictionary, destroy: true)
     end
     @@mb_attach_node_to_frame : Void* = Pointer(Void).null
     def attach_node_to_frame(id : Int64, frame : Int64) : Void
@@ -2749,19 +2753,21 @@ module Godot
       godot_ptrcall_void(@@mb_clear_default_input_values, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_set_default_input_values : Void* = Pointer(Void).null
-    def set_default_input_values(values : Pointer(Void)) : Void
+    def set_default_input_values(values : Godot::GodotArray | ::Array) : Void
       godot_bind(@@mb_set_default_input_values, "VisualShaderNode", "set_default_input_values", 381264803_i64)
-      val_0 = values
-      arg_0 = pointerof(val_0).as(Void*)
+      arr_0 = Bridge.make_godot_array(values)
+      arg_0 = arr_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_default_input_values, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(28, arr_0)
     end
     @@mb_get_default_input_values : Void* = Pointer(Void).null
-    def get_default_input_values() : Pointer(Void)
+    def get_default_input_values() : Godot::GodotArray(Godot::Variant)
       godot_bind(@@mb_get_default_input_values, "VisualShaderNode", "get_default_input_values", 3995934104_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_default_input_values, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_default_input_values, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Godot::Variant, destroy: true)
     end
     @@mb_set_frame : Void* = Pointer(Void).null
     def set_frame(frame : Int64) : Void
@@ -3349,19 +3355,21 @@ module Godot
       godot_ptrcall_void(@@mb_remove_attached_node, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_set_attached_nodes : Void* = Pointer(Void).null
-    def set_attached_nodes(attached_nodes : Pointer(Void)) : Void
+    def set_attached_nodes(attached_nodes : Godot::PackedInt32Array | ::Array(Int32)) : Void
       godot_bind(@@mb_set_attached_nodes, "VisualShaderNodeFrame", "set_attached_nodes", 3614634198_i64)
-      val_0 = attached_nodes
-      arg_0 = pointerof(val_0).as(Void*)
+      pba_0 = Bridge.make_packed_array(30, attached_nodes)
+      arg_0 = pba_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_attached_nodes, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(30, pba_0)
     end
     @@mb_get_attached_nodes : Void* = Pointer(Void).null
-    def get_attached_nodes() : Pointer(Void)
+    def get_attached_nodes() : Godot::PackedInt32Array
       godot_bind(@@mb_get_attached_nodes, "VisualShaderNodeFrame", "get_attached_nodes", 1930428628_i64)
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_attached_nodes, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(30, ret_buf.to_unsafe.as(Void*), Godot::PackedInt32Array, destroy: true)
     end
     # Property `title` getter
     def title
@@ -4716,19 +4724,21 @@ module Godot
       godot_ptrcall_int(@@mb_get_step, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_set_enum_names : Void* = Pointer(Void).null
-    def set_enum_names(names : Pointer(Void)) : Void
+    def set_enum_names(names : Godot::PackedStringArray | ::Array(String)) : Void
       godot_bind(@@mb_set_enum_names, "VisualShaderNodeIntParameter", "set_enum_names", 4015028928_i64)
-      val_0 = names
-      arg_0 = pointerof(val_0).as(Void*)
+      pba_0 = Bridge.make_packed_array(34, names)
+      arg_0 = pba_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_enum_names, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(34, pba_0)
     end
     @@mb_get_enum_names : Void* = Pointer(Void).null
-    def get_enum_names() : Pointer(Void)
+    def get_enum_names() : Godot::PackedStringArray
       godot_bind(@@mb_get_enum_names, "VisualShaderNodeIntParameter", "get_enum_names", 1139954409_i64)
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_enum_names, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(34, ret_buf.to_unsafe.as(Void*), Godot::PackedStringArray, destroy: true)
     end
     @@mb_set_default_value_enabled : Void* = Pointer(Void).null
     def set_default_value_enabled(enabled : Bool) : Void
@@ -6556,7 +6566,7 @@ module Godot
       super(pointer)
     end
     @@mb_allocate : Void* = Pointer(Void).null
-    def godot_allocate(to_cell_xform : Transform3D, aabb : AABB, octree_size : Vector3, octree_cells : Pointer(Void), data_cells : Pointer(Void), distance_field : Pointer(Void), level_counts : Pointer(Void)) : Void
+    def godot_allocate(to_cell_xform : Transform3D, aabb : AABB, octree_size : Vector3, octree_cells : Godot::PackedByteArray | Bytes | ::Array(UInt8), data_cells : Godot::PackedByteArray | Bytes | ::Array(UInt8), distance_field : Godot::PackedByteArray | Bytes | ::Array(UInt8), level_counts : Godot::PackedInt32Array | ::Array(Int32)) : Void
       godot_bind(@@mb_allocate, "VoxelGIData", "allocate", 4041601946_i64)
       val_0 = to_cell_xform
       arg_0 = pointerof(val_0).as(Void*)
@@ -6564,16 +6574,21 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = octree_size
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = octree_cells
-      arg_3 = pointerof(val_3).as(Void*)
-      val_4 = data_cells
-      arg_4 = pointerof(val_4).as(Void*)
-      val_5 = distance_field
-      arg_5 = pointerof(val_5).as(Void*)
-      val_6 = level_counts
-      arg_6 = pointerof(val_6).as(Void*)
+      pba_3 = Bridge.make_packed_array(29, octree_cells)
+      arg_3 = pba_3
+      pba_4 = Bridge.make_packed_array(29, data_cells)
+      arg_4 = pba_4
+      pba_5 = Bridge.make_packed_array(29, distance_field)
+      arg_5 = pba_5
+      pba_6 = Bridge.make_packed_array(30, level_counts)
+      arg_6 = pba_6
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4, arg_5, arg_6]
       godot_ptrcall_void(@@mb_allocate, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(29, pba_3)
+      Bridge.free_godot_container(29, pba_4)
+      Bridge.free_godot_container(29, pba_5)
+      Bridge.free_godot_container(30, pba_6)
     end
     @@mb_get_bounds : Void* = Pointer(Void).null
     def get_bounds() : AABB
@@ -6591,25 +6606,25 @@ module Godot
       godot_ptrcall_val(@@mb_get_to_cell_xform, @pointer, Pointer(Pointer(Void)).null, Transform3D)
     end
     @@mb_get_octree_cells : Void* = Pointer(Void).null
-    def get_octree_cells() : Pointer(Void)
+    def get_octree_cells() : Godot::PackedByteArray
       godot_bind(@@mb_get_octree_cells, "VoxelGIData", "get_octree_cells", 2362200018_i64)
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_octree_cells, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(29, ret_buf.to_unsafe.as(Void*), Godot::PackedByteArray, destroy: true)
     end
     @@mb_get_data_cells : Void* = Pointer(Void).null
-    def get_data_cells() : Pointer(Void)
+    def get_data_cells() : Godot::PackedByteArray
       godot_bind(@@mb_get_data_cells, "VoxelGIData", "get_data_cells", 2362200018_i64)
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_data_cells, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(29, ret_buf.to_unsafe.as(Void*), Godot::PackedByteArray, destroy: true)
     end
     @@mb_get_level_counts : Void* = Pointer(Void).null
-    def get_level_counts() : Pointer(Void)
+    def get_level_counts() : Godot::PackedInt32Array
       godot_bind(@@mb_get_level_counts, "VoxelGIData", "get_level_counts", 1930428628_i64)
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_level_counts, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(30, ret_buf.to_unsafe.as(Void*), Godot::PackedInt32Array, destroy: true)
     end
     @@mb_set_dynamic_range : Void* = Pointer(Void).null
     def set_dynamic_range(dynamic_range : Float64) : Void
@@ -6916,32 +6931,38 @@ module Godot
       super(pointer)
     end
     @@mb_create_server : Void* = Pointer(Void).null
-    def create_server(channels_config : Pointer(Void)) : Godot::Error
+    def create_server(channels_config : Godot::GodotArray | ::Array = Godot::GodotArray(Godot::Variant).new) : Godot::Error
       godot_bind(@@mb_create_server, "WebRTCMultiplayerPeer", "create_server", 2865356025_i64)
-      val_0 = channels_config
-      arg_0 = pointerof(val_0).as(Void*)
+      arr_0 = Bridge.make_godot_array(channels_config)
+      arg_0 = arr_0
       args = StaticArray[arg_0]
       godot_ptrcall_enum(@@mb_create_server, @pointer, args.to_unsafe.as(Void**), Godot::Error)
+    ensure
+      Bridge.free_godot_container(28, arr_0)
     end
     @@mb_create_client : Void* = Pointer(Void).null
-    def create_client(peer_id : Int64, channels_config : Pointer(Void)) : Godot::Error
+    def create_client(peer_id : Int64, channels_config : Godot::GodotArray | ::Array = Godot::GodotArray(Godot::Variant).new) : Godot::Error
       godot_bind(@@mb_create_client, "WebRTCMultiplayerPeer", "create_client", 2641732907_i64)
       val_0 = peer_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = channels_config
-      arg_1 = pointerof(val_1).as(Void*)
+      arr_1 = Bridge.make_godot_array(channels_config)
+      arg_1 = arr_1
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_enum(@@mb_create_client, @pointer, args.to_unsafe.as(Void**), Godot::Error)
+    ensure
+      Bridge.free_godot_container(28, arr_1)
     end
     @@mb_create_mesh : Void* = Pointer(Void).null
-    def create_mesh(peer_id : Int64, channels_config : Pointer(Void)) : Godot::Error
+    def create_mesh(peer_id : Int64, channels_config : Godot::GodotArray | ::Array = Godot::GodotArray(Godot::Variant).new) : Godot::Error
       godot_bind(@@mb_create_mesh, "WebRTCMultiplayerPeer", "create_mesh", 2641732907_i64)
       val_0 = peer_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = channels_config
-      arg_1 = pointerof(val_1).as(Void*)
+      arr_1 = Bridge.make_godot_array(channels_config)
+      arg_1 = arr_1
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_enum(@@mb_create_mesh, @pointer, args.to_unsafe.as(Void**), Godot::Error)
+    ensure
+      Bridge.free_godot_container(28, arr_1)
     end
     @@mb_add_peer : Void* = Pointer(Void).null
     def add_peer(peer : WebRTCPeerConnection?, peer_id : Int64, unreliable_lifetime : Int64 = 1_i64) : Godot::Error
@@ -6976,21 +6997,21 @@ module Godot
       has_peer(peer_id)
     end
     @@mb_get_peer : Void* = Pointer(Void).null
-    def get_peer(peer_id : Int64) : Pointer(Void)
+    def get_peer(peer_id : Int64) : Godot::Dictionary
       godot_bind(@@mb_get_peer, "WebRTCMultiplayerPeer", "get_peer", 3554694381_i64)
       val_0 = peer_id.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_peer, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_peer, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_dictionary(ret_buf.to_unsafe.as(Void*), destroy: true)
     end
     @@mb_get_peers : Void* = Pointer(Void).null
-    def get_peers() : Pointer(Void)
+    def get_peers() : Godot::Dictionary
       godot_bind(@@mb_get_peers, "WebRTCMultiplayerPeer", "get_peers", 2382534195_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_peers, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_peers, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_dictionary(ret_buf.to_unsafe.as(Void*), destroy: true)
     end
   end
   class WebRTCPeerConnection < Godot::RefCounted
@@ -7033,24 +7054,27 @@ module Godot
       self.class.set_default_extension(extension_class)
     end
     @@mb_initialize : Void* = Pointer(Void).null
-    def godot_initialize(configuration : Pointer(Void)) : Godot::Error
+    def godot_initialize(configuration : Godot::Dictionary | ::Hash = Godot::Dictionary.new) : Godot::Error
       godot_bind(@@mb_initialize, "WebRTCPeerConnection", "initialize", 2625064318_i64)
-      val_0 = configuration
-      arg_0 = pointerof(val_0).as(Void*)
+      dict_0 = Bridge.make_godot_dictionary(configuration)
+      arg_0 = dict_0
       args = StaticArray[arg_0]
       godot_ptrcall_enum(@@mb_initialize, @pointer, args.to_unsafe.as(Void**), Godot::Error)
+    ensure
+      Bridge.free_godot_container(27, dict_0)
     end
     @@mb_create_data_channel : Void* = Pointer(Void).null
-    def create_data_channel(label : String, options : Pointer(Void)) : WebRTCDataChannel
+    def create_data_channel(label : String, options : Godot::Dictionary | ::Hash = Godot::Dictionary.new) : WebRTCDataChannel
       godot_bind(@@mb_create_data_channel, "WebRTCPeerConnection", "create_data_channel", 1288557393_i64)
       str_0 = Bridge.make_string(label)
       arg_0 = str_0
-      val_1 = options
-      arg_1 = pointerof(val_1).as(Void*)
+      dict_1 = Bridge.make_godot_dictionary(options)
+      arg_1 = dict_1
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_obj(@@mb_create_data_channel, @pointer, args.to_unsafe.as(Void**), WebRTCDataChannel)
     ensure
       Bridge.free_string(str_0)
+      Bridge.free_godot_container(27, dict_1)
     end
     @@mb_create_offer : Void* = Pointer(Void).null
     def create_offer() : Godot::Error
@@ -7187,34 +7211,38 @@ module Godot
       godot_ptrcall_int(@@mb_get_peer_port, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_get_supported_protocols : Void* = Pointer(Void).null
-    def get_supported_protocols() : Pointer(Void)
+    def get_supported_protocols() : Godot::PackedStringArray
       godot_bind(@@mb_get_supported_protocols, "WebSocketMultiplayerPeer", "get_supported_protocols", 1139954409_i64)
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_supported_protocols, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(34, ret_buf.to_unsafe.as(Void*), Godot::PackedStringArray, destroy: true)
     end
     @@mb_set_supported_protocols : Void* = Pointer(Void).null
-    def set_supported_protocols(protocols : Pointer(Void)) : Void
+    def set_supported_protocols(protocols : Godot::PackedStringArray | ::Array(String)) : Void
       godot_bind(@@mb_set_supported_protocols, "WebSocketMultiplayerPeer", "set_supported_protocols", 4015028928_i64)
-      val_0 = protocols
-      arg_0 = pointerof(val_0).as(Void*)
+      pba_0 = Bridge.make_packed_array(34, protocols)
+      arg_0 = pba_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_supported_protocols, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(34, pba_0)
     end
     @@mb_get_handshake_headers : Void* = Pointer(Void).null
-    def get_handshake_headers() : Pointer(Void)
+    def get_handshake_headers() : Godot::PackedStringArray
       godot_bind(@@mb_get_handshake_headers, "WebSocketMultiplayerPeer", "get_handshake_headers", 1139954409_i64)
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_handshake_headers, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(34, ret_buf.to_unsafe.as(Void*), Godot::PackedStringArray, destroy: true)
     end
     @@mb_set_handshake_headers : Void* = Pointer(Void).null
-    def set_handshake_headers(protocols : Pointer(Void)) : Void
+    def set_handshake_headers(protocols : Godot::PackedStringArray | ::Array(String)) : Void
       godot_bind(@@mb_set_handshake_headers, "WebSocketMultiplayerPeer", "set_handshake_headers", 4015028928_i64)
-      val_0 = protocols
-      arg_0 = pointerof(val_0).as(Void*)
+      pba_0 = Bridge.make_packed_array(34, protocols)
+      arg_0 = pba_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_handshake_headers, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(34, pba_0)
     end
     @@mb_get_inbound_buffer_size : Void* = Pointer(Void).null
     def get_inbound_buffer_size() : Int64
@@ -7352,14 +7380,16 @@ module Godot
       godot_ptrcall_enum(@@mb_accept_stream, @pointer, args.to_unsafe.as(Void**), Godot::Error)
     end
     @@mb_send : Void* = Pointer(Void).null
-    def send(message : Pointer(Void), write_mode : WriteMode | Int = 1) : Godot::Error
+    def send(message : Godot::PackedByteArray | Bytes | ::Array(UInt8), write_mode : WriteMode | Int = 1) : Godot::Error
       godot_bind(@@mb_send, "WebSocketPeer", "send", 2780360567_i64)
-      val_0 = message
-      arg_0 = pointerof(val_0).as(Void*)
+      pba_0 = Bridge.make_packed_array(29, message)
+      arg_0 = pba_0
       val_1 = write_mode.is_a?(Int) ? write_mode.to_i64 : write_mode.value.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_enum(@@mb_send, @pointer, args.to_unsafe.as(Void**), Godot::Error)
+    ensure
+      Bridge.free_godot_container(29, pba_0)
     end
     @@mb_send_text : Void* = Pointer(Void).null
     def send_text(message : String) : Godot::Error
@@ -7446,34 +7476,38 @@ module Godot
       godot_call_str("get_close_reason")
     end
     @@mb_get_supported_protocols : Void* = Pointer(Void).null
-    def get_supported_protocols() : Pointer(Void)
+    def get_supported_protocols() : Godot::PackedStringArray
       godot_bind(@@mb_get_supported_protocols, "WebSocketPeer", "get_supported_protocols", 1139954409_i64)
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_supported_protocols, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(34, ret_buf.to_unsafe.as(Void*), Godot::PackedStringArray, destroy: true)
     end
     @@mb_set_supported_protocols : Void* = Pointer(Void).null
-    def set_supported_protocols(protocols : Pointer(Void)) : Void
+    def set_supported_protocols(protocols : Godot::PackedStringArray | ::Array(String)) : Void
       godot_bind(@@mb_set_supported_protocols, "WebSocketPeer", "set_supported_protocols", 4015028928_i64)
-      val_0 = protocols
-      arg_0 = pointerof(val_0).as(Void*)
+      pba_0 = Bridge.make_packed_array(34, protocols)
+      arg_0 = pba_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_supported_protocols, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(34, pba_0)
     end
     @@mb_get_handshake_headers : Void* = Pointer(Void).null
-    def get_handshake_headers() : Pointer(Void)
+    def get_handshake_headers() : Godot::PackedStringArray
       godot_bind(@@mb_get_handshake_headers, "WebSocketPeer", "get_handshake_headers", 1139954409_i64)
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_handshake_headers, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(34, ret_buf.to_unsafe.as(Void*), Godot::PackedStringArray, destroy: true)
     end
     @@mb_set_handshake_headers : Void* = Pointer(Void).null
-    def set_handshake_headers(protocols : Pointer(Void)) : Void
+    def set_handshake_headers(protocols : Godot::PackedStringArray | ::Array(String)) : Void
       godot_bind(@@mb_set_handshake_headers, "WebSocketPeer", "set_handshake_headers", 4015028928_i64)
-      val_0 = protocols
-      arg_0 = pointerof(val_0).as(Void*)
+      pba_0 = Bridge.make_packed_array(34, protocols)
+      arg_0 = pba_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_handshake_headers, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(34, pba_0)
     end
     @@mb_get_inbound_buffer_size : Void* = Pointer(Void).null
     def get_inbound_buffer_size() : Int64
@@ -7734,11 +7768,11 @@ module Godot
       godot_ptrcall_void(@@mb_set_display_refresh_rate, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_get_available_display_refresh_rates : Void* = Pointer(Void).null
-    def get_available_display_refresh_rates() : Pointer(Void)
+    def get_available_display_refresh_rates() : Godot::GodotArray(Godot::Variant)
       godot_bind(@@mb_get_available_display_refresh_rates, "WebXRInterface", "get_available_display_refresh_rates", 3995934104_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_available_display_refresh_rates, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_available_display_refresh_rates, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Godot::Variant, destroy: true)
     end
     # Property `session_mode` getter
     def session_mode
@@ -8424,12 +8458,14 @@ module Godot
       Bridge.free_string(str_0)
     end
     @@mb_open_buffer : Void* = Pointer(Void).null
-    def open_buffer(buffer : Pointer(Void)) : Godot::Error
+    def open_buffer(buffer : Godot::PackedByteArray | Bytes | ::Array(UInt8)) : Godot::Error
       godot_bind(@@mb_open_buffer, "XMLParser", "open_buffer", 680677267_i64)
-      val_0 = buffer
-      arg_0 = pointerof(val_0).as(Void*)
+      pba_0 = Bridge.make_packed_array(29, buffer)
+      arg_0 = pba_0
       args = StaticArray[arg_0]
       godot_ptrcall_enum(@@mb_open_buffer, @pointer, args.to_unsafe.as(Void**), Godot::Error)
+    ensure
+      Bridge.free_godot_container(29, pba_0)
     end
   end
   class XRNode3D < Godot::Node3D
@@ -9157,19 +9193,21 @@ module Godot
       godot_ptrcall_void(@@mb_set_blend_shape, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_get_blend_shapes : Void* = Pointer(Void).null
-    def get_blend_shapes() : Pointer(Void)
+    def get_blend_shapes() : Godot::PackedFloat32Array
       godot_bind(@@mb_get_blend_shapes, "XRFaceTracker", "get_blend_shapes", 675695659_i64)
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_blend_shapes, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(32, ret_buf.to_unsafe.as(Void*), Godot::PackedFloat32Array, destroy: true)
     end
     @@mb_set_blend_shapes : Void* = Pointer(Void).null
-    def set_blend_shapes(weights : Pointer(Void)) : Void
+    def set_blend_shapes(weights : Godot::PackedFloat32Array | ::Array(Float32)) : Void
       godot_bind(@@mb_set_blend_shapes, "XRFaceTracker", "set_blend_shapes", 2899603908_i64)
-      val_0 = weights
-      arg_0 = pointerof(val_0).as(Void*)
+      pba_0 = Bridge.make_packed_array(32, weights)
+      arg_0 = pba_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_blend_shapes, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(32, pba_0)
     end
     # Property `blend_shapes` getter
     def blend_shapes
@@ -9871,14 +9909,14 @@ module Godot
       instance.get_interface(idx)
     end
     @@mb_get_interfaces : Void* = Pointer(Void).null
-    def get_interfaces() : Pointer(Void)
+    def get_interfaces() : Godot::GodotArray(Godot::Dictionary)
       godot_bind(@@mb_get_interfaces, "XRServer", "get_interfaces", 3995934104_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_interfaces, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_interfaces, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Godot::Dictionary, destroy: true)
     end
     # Class-level singleton delegator for `get_interfaces`
-    def self.get_interfaces() : Pointer(Void)
+    def self.get_interfaces() : Godot::GodotArray(Godot::Dictionary)
       instance.get_interfaces()
     end
     @@mb_find_interface : Void* = Pointer(Void).null
@@ -9920,17 +9958,17 @@ module Godot
       instance.remove_tracker(tracker)
     end
     @@mb_get_trackers : Void* = Pointer(Void).null
-    def get_trackers(tracker_types : Int64) : Pointer(Void)
+    def get_trackers(tracker_types : Int64) : Godot::Dictionary
       godot_bind(@@mb_get_trackers, "XRServer", "get_trackers", 3554694381_i64)
       val_0 = tracker_types.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_trackers, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_trackers, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_dictionary(ret_buf.to_unsafe.as(Void*), destroy: true)
     end
     # Class-level singleton delegator for `get_trackers`
-    def self.get_trackers(tracker_types : Int64) : Pointer(Void)
+    def self.get_trackers(tracker_types : Int64) : Godot::Dictionary
       instance.get_trackers(tracker_types)
     end
     @@mb_get_tracker : Void* = Pointer(Void).null
@@ -9948,7 +9986,7 @@ module Godot
       instance.get_tracker(tracker_name)
     end
     @@mb_get_camera_projections : Void* = Pointer(Void).null
-    def get_camera_projections(tracker_name : String, aspect : Float64, near : Float64, far : Float64) : Pointer(Void)
+    def get_camera_projections(tracker_name : String, aspect : Float64, near : Float64, far : Float64) : Godot::GodotArray(Godot::Projection)
       godot_bind(@@mb_get_camera_projections, "XRServer", "get_camera_projections", 2969235509_i64)
       sn_0 = Bridge.make_string_name(tracker_name)
       arg_0 = sn_0
@@ -9959,30 +9997,30 @@ module Godot
       val_3 = far.to_f64
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_camera_projections, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_camera_projections, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Godot::Projection, destroy: true)
     ensure
       Bridge.free_string_name(sn_0)
     end
     # Class-level singleton delegator for `get_camera_projections`
-    def self.get_camera_projections(tracker_name : String, aspect : Float64, near : Float64, far : Float64) : Pointer(Void)
+    def self.get_camera_projections(tracker_name : String, aspect : Float64, near : Float64, far : Float64) : Godot::GodotArray(Godot::Projection)
       instance.get_camera_projections(tracker_name, aspect, near, far)
     end
     @@mb_get_camera_offsets : Void* = Pointer(Void).null
-    def get_camera_offsets(tracker_name : String) : Pointer(Void)
+    def get_camera_offsets(tracker_name : String) : Godot::GodotArray(Godot::Transform3D)
       godot_bind(@@mb_get_camera_offsets, "XRServer", "get_camera_offsets", 689397652_i64)
       sn_0 = Bridge.make_string_name(tracker_name)
       arg_0 = sn_0
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_camera_offsets, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_camera_offsets, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Godot::Transform3D, destroy: true)
     ensure
       Bridge.free_string_name(sn_0)
     end
     # Class-level singleton delegator for `get_camera_offsets`
-    def self.get_camera_offsets(tracker_name : String) : Pointer(Void)
+    def self.get_camera_offsets(tracker_name : String) : Godot::GodotArray(Godot::Transform3D)
       instance.get_camera_offsets(tracker_name)
     end
     @@mb_get_primary_interface : Void* = Pointer(Void).null
@@ -10114,14 +10152,16 @@ module Godot
       godot_ptrcall_void(@@mb_set_vrs_render_region, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_make_vrs_texture : Void* = Pointer(Void).null
-    def make_vrs_texture(target_size : Vector2, eye_foci : Pointer(Void)) : Int64
+    def make_vrs_texture(target_size : Vector2, eye_foci : Godot::PackedVector2Array | ::Array(Godot::Vector2)) : Int64
       godot_bind(@@mb_make_vrs_texture, "XRVRS", "make_vrs_texture", 3647044786_i64)
       val_0 = target_size
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = eye_foci
-      arg_1 = pointerof(val_1).as(Void*)
+      pba_1 = Bridge.make_packed_array(35, eye_foci)
+      arg_1 = pba_1
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_int(@@mb_make_vrs_texture, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(35, pba_1)
     end
     # Property `vrs_min_radius` getter
     def vrs_min_radius
@@ -10217,12 +10257,14 @@ module Godot
       Bridge.free_string(str_0)
     end
     @@mb_write_file : Void* = Pointer(Void).null
-    def write_file(data : Pointer(Void)) : Godot::Error
+    def write_file(data : Godot::PackedByteArray | Bytes | ::Array(UInt8)) : Godot::Error
       godot_bind(@@mb_write_file, "ZIPPacker", "write_file", 680677267_i64)
-      val_0 = data
-      arg_0 = pointerof(val_0).as(Void*)
+      pba_0 = Bridge.make_packed_array(29, data)
+      arg_0 = pba_0
       args = StaticArray[arg_0]
       godot_ptrcall_enum(@@mb_write_file, @pointer, args.to_unsafe.as(Void**), Godot::Error)
+    ensure
+      Bridge.free_godot_container(29, pba_0)
     end
     @@mb_close_file : Void* = Pointer(Void).null
     def close_file() : Godot::Error
@@ -10263,14 +10305,14 @@ module Godot
       godot_ptrcall_enum(@@mb_close, @pointer, Pointer(Pointer(Void)).null, Godot::Error)
     end
     @@mb_get_files : Void* = Pointer(Void).null
-    def get_files() : Pointer(Void)
+    def get_files() : Godot::PackedStringArray
       godot_bind(@@mb_get_files, "ZIPReader", "get_files", 2981934095_i64)
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_files, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(34, ret_buf.to_unsafe.as(Void*), Godot::PackedStringArray, destroy: true)
     end
     @@mb_read_file : Void* = Pointer(Void).null
-    def read_file(path : String, case_sensitive : Bool = true) : Pointer(Void)
+    def read_file(path : String, case_sensitive : Bool = true) : Godot::PackedByteArray
       godot_bind(@@mb_read_file, "ZIPReader", "read_file", 740857591_i64)
       str_0 = Bridge.make_string(path)
       arg_0 = str_0
@@ -10279,7 +10321,7 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_read_file, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(29, ret_buf.to_unsafe.as(Void*), Godot::PackedByteArray, destroy: true)
     ensure
       Bridge.free_string(str_0)
     end

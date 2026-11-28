@@ -349,36 +349,38 @@ module Godot
       end
     end
 
-    # Dynamic method dispatch for GDScript invocation
-    def call(method : String, *args) : Void*
+    # Dynamic method dispatch for GDScript / Variant invocation
+    def call(method : String, *args) : Variant
       case method
       when "send"
         if first_arg = args[0]?
           send(first_arg.to_s)
         end
-        Pointer(Void).null
+        Variant.new(nil)
       when "try_send"
-        if first_arg = args[0]?
-          try_send(first_arg.to_s)
-        end
-        Pointer(Void).null
+        ok = if first_arg = args[0]?
+               try_send(first_arg.to_s)
+             else
+               false
+             end
+        Variant.new(ok)
       when "receive"
         item = receive
-        item ? Pointer(Void).new(1_u64) : Pointer(Void).null
+        item ? Variant.new(item) : Variant.new(nil)
       when "try_receive"
         item = try_receive
-        item ? Pointer(Void).new(1_u64) : Pointer(Void).null
+        item ? Variant.new(item) : Variant.new(nil)
       when "close"
         close
-        Pointer(Void).null
+        Variant.new(nil)
       when "size"
-        Pointer(Void).new(size.to_u64)
+        Variant.new(size)
       when "is_empty"
-        Pointer(Void).new(empty? ? 1_u64 : 0_u64)
+        Variant.new(empty?)
       when "is_full"
-        Pointer(Void).new(full? ? 1_u64 : 0_u64)
+        Variant.new(full?)
       when "is_closed"
-        Pointer(Void).new(is_closed ? 1_u64 : 0_u64)
+        Variant.new(is_closed)
       else
         super
       end

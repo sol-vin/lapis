@@ -1053,28 +1053,27 @@ module Godot
       Pointer(Void).null
     end
 
-    # Calls the named method on the object with variable arguments.
+    # Calls the named method on the object with variable arguments, returning the result as a `Godot::Variant`.
     # If this wrapper points to a live Crystal subclass instance, dispatches polymorphically through it.
-    def call(method : String, *args) : Void*
+    def call(method : String, *args) : Variant
       check_alive!
       target = (!@pointer.null? && (alive = Bridge.find_alive_instance(@pointer))) ? alive : self
       if args.size == 0
-        return Pointer(Void).null if target._godot_dispatch_crystal_0(method)
+        return Variant.new(nil) if target._godot_dispatch_crystal_0(method)
       elsif args.size == 1
         if (v0 = Variant.from_any?(args[0]?)) && target._godot_dispatch_crystal_1(method, v0)
-          return Pointer(Void).null
+          return Variant.new(nil)
         end
       elsif args.size == 2
         if (v0 = Variant.from_any?(args[0]?)) && (v1 = Variant.from_any?(args[1]?)) && target._godot_dispatch_crystal_2(method, v0, v1)
-          return Pointer(Void).null
+          return Variant.new(nil)
         end
       end
-      Bridge.object_call(@pointer, method, *args)
-      Pointer(Void).null
+      Bridge.object_call_ret_variant(@pointer, method, *args)
     end
 
-    # Calls the named method on the object with an array of Variants.
-    def call(method : String, args : ::Array(Variant)) : Void*
+    # Calls the named method on the object with an array of Variants, returning the result as a `Godot::Variant`.
+    def call(method : String, args : ::Array(Variant)) : Variant
       check_alive!
       case args.size
       when 0

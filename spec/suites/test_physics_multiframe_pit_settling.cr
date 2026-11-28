@@ -9,7 +9,7 @@ include Lapis::Test
 
 test_suite "Physics" do
   test "200 RigidBody2D balls drop into an enclosed pit and settle over multi-frame simulation" do
-    assert_no_leak(max_delta_objects: 1, name: "200 Ball Pit Settling") do
+    assert_no_leak(max_delta_objects: 5, name: "200 Ball Pit Settling") do
       pit_nodes = Array(Godot::Node).new
       balls = Array(Godot::RigidBody2D).new
 

@@ -81,6 +81,11 @@ module Godot
       data : Void*
     end
 
+    struct BridgeBufferPayload
+      data : Void*
+      count : Int64
+    end
+
     struct VariantArg
       type : Int32
       extra_flags : Int32
@@ -213,6 +218,12 @@ module Godot
       packed_byte_array_operator_index : (Void*, Int64 -> UInt8*)
       register_frame_callback : ((-> Void) -> Void)
       register_main_loop_shutdown_callback : ((-> Void) -> Void)
+      make_packed_array : (Int32, Void*, Int64 -> Void*)
+      make_godot_array : (VariantArg*, Int64, Int32, LibC::Char* -> Void*)
+      make_godot_dictionary : (VariantArg*, Int64 -> Void*)
+      free_godot_container : (Int32, Void* -> Void)
+      unpack_godot_container : (Int32, Void*, Int32, Void*, Void* -> Void)
+      object_call_ret_variant : (Void*, LibC::Char*, CrystalSignalArg*, Int32, Void*, Void* -> Void)
     end
 
     struct BridgeGCFunctions
@@ -969,8 +980,9 @@ module Godot
 
     # Scrubs residual stack words so conservative Boehm GC does not falsely pin dead wrappers on the stack.
     @[NoInline]
+    @[NoInline]
     def self.scrub_c_stack_for_gc! : Void
-      zeros = StaticArray(UInt64, 512).new(0_u64)
+      zeros = StaticArray(UInt64, 2048).new(0_u64)
       Intrinsics.pause if zeros[0] == 1_u64
     end
 
@@ -1615,6 +1627,8 @@ module Godot
       color_storage = StaticArray(Godot::Color, 16).new(Godot::Color.new)
       obj_storage = StaticArray(Void*, 16).new(Pointer(Void).null)
       buf_storage = StaticArray(Tuple(Void*, Int64), 16).new({Pointer(Void).null, 0_i64})
+      var_arg_storage = StaticArray(LibBridge::VariantArg, 16).new(LibBridge::VariantArg.new)
+      var_arena : VariantPackArena? = nil
 
       count = [args.size, 16].min
       args.each_with_index do |arg, idx|
@@ -1675,12 +1689,16 @@ module Godot
         elsif arg.is_a?(Godot::PackedVector4Array)
           arg.write_bridge_payload((buf_storage.to_unsafe + idx).as(Void*))
           c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 38, data: (buf_storage.to_unsafe + idx).as(Void*))
+        else
+          arena = (var_arena ||= VariantPackArena.new)
+          var_arg_storage[idx] = Variant.value_to_arg(arg, arena)
+          c_args[idx] = LibBridge::CrystalSignalArg.new(arg_type: 99, data: (var_arg_storage.to_unsafe + idx).as(Void*))
         end
       end
       yield c_args.to_unsafe, count
     end
 
-    @@_array_args_keepalive = ::Array(LibBridge::VariantArg).new
+    @@_array_arena = VariantPackArena.new
 
     def self.array_from_bridge_payload(payload_ptr : Void*, _elem_type : T.class) : ::Array(T) forall T
       return ::Array(T).new if payload_ptr.null?
@@ -1723,18 +1741,26 @@ module Godot
           {% elsif non_nil_t == Godot::Vector2 %}
             res << Godot::Vector2.new(arg.vec_val[0], arg.vec_val[1])
           {% elsif non_nil_t == Godot::Vector2i %}
-            res << Godot::Vector2i.new(arg.vec_val[0].to_i32, arg.vec_val[1].to_i32)
+            if !arg.ptr_val.null?
+              p = arg.ptr_val.as(Int32*)
+              res << Godot::Vector2i.new(p[0], p[1])
+            else
+              res << Godot::Vector2i.new(arg.vec_val[0].to_i32, arg.vec_val[1].to_i32)
+            end
           {% elsif non_nil_t == Godot::Vector3 %}
             res << Godot::Vector3.new(arg.vec_val[0], arg.vec_val[1], arg.vec_val[2])
           {% elsif non_nil_t == Godot::Vector3i %}
-            res << Godot::Vector3i.new(arg.vec_val[0].to_i32, arg.vec_val[1].to_i32, arg.vec_val[2].to_i32)
+            if !arg.ptr_val.null?
+              p = arg.ptr_val.as(Int32*)
+              res << Godot::Vector3i.new(p[0], p[1], p[2])
+            else
+              res << Godot::Vector3i.new(arg.vec_val[0].to_i32, arg.vec_val[1].to_i32, arg.vec_val[2].to_i32)
+            end
           {% elsif non_nil_t == Godot::Color %}
             res << Godot::Color.new(arg.vec_val[0], arg.vec_val[1], arg.vec_val[2], arg.vec_val[3])
           {% else %}
             v = Variant.from_arg(arg)
-            if casted = v.raw.as?(T)
-              res << casted
-            end
+            res << v.as_t({{non_nil_t}})
           {% end %}
         end
         res
@@ -1743,12 +1769,130 @@ module Godot
 
     def self.write_array_bridge_payload(arr : ::Array(T), ret_ptr : Void*) : Void forall T
       return if ret_ptr.null?
-      @@_array_args_keepalive.clear
+      @@_array_arena.clear
+      elem_args = ::Array(LibBridge::VariantArg).new(arr.size)
       arr.each do |item|
-        @@_array_args_keepalive << Variant.value_to_arg(item)
+        elem_args << Variant.value_to_arg(item, @@_array_arena)
       end
-      ret_ptr.as(Void**).value = @@_array_args_keepalive.empty? ? Pointer(Void).null : @@_array_args_keepalive.to_unsafe.as(Void*)
+      ret_ptr.as(Void**).value = @@_array_arena.store_args(elem_args)
       (ret_ptr.as(UInt8*) + 8).as(Int64*).value = arr.size.to_i64
+    end
+
+    @@_unpack_variant_cb : Proc(LibBridge::VariantArg*, Void*, Nil) = ->(arg_ptr : LibBridge::VariantArg*, ud : Void*) : Nil {
+      if !arg_ptr.null? && !ud.null?
+        ud.as(Pointer(Variant)).value = Variant.from_arg(arg_ptr.value)
+      end
+      nil
+    }
+
+    @@_unpack_dict_cb : Proc(LibBridge::VariantArg*, Void*, Nil) = ->(arg_ptr : LibBridge::VariantArg*, ud : Void*) : Nil {
+      if !arg_ptr.null? && !ud.null?
+        payload = LibBridge::BridgeBufferPayload.new(data: arg_ptr.value.ptr_val, count: arg_ptr.value.int_val)
+        ud.as(Pointer(Godot::Dictionary)).value = Godot::Dictionary.from_bridge_payload(pointerof(payload).as(Void*))
+      end
+      nil
+    }
+
+    def self.make_packed_array(vtype : Int32, val) : Void*
+      return Pointer(Void).null if @@api.null? || @@api.value.make_packed_array.pointer.null?
+      if val.is_a?(Godot::PackedStringArray)
+        cnt = val.size
+        ptr = cnt > 0 ? val.cstr_array_ptr.as(Void*) : Pointer(Void).null
+        @@api.value.make_packed_array.call(34, ptr, cnt)
+      elsif val.is_a?(Enumerable(String))
+        arena = VariantPackArena.new
+        strs = val.to_a
+        ptr = arena.store_cstrs(strs, strs.size)
+        @@api.value.make_packed_array.call(34, ptr, strs.size.to_i64)
+      elsif val.is_a?(Bytes)
+        ptr = val.empty? ? Pointer(Void).null : val.to_unsafe.as(Void*)
+        @@api.value.make_packed_array.call(vtype, ptr, val.size.to_i64)
+      elsif val.responds_to?(:to_unsafe) && val.responds_to?(:size)
+        cnt = val.size.to_i64
+        ptr = cnt > 0 ? val.to_unsafe.as(Void*) : Pointer(Void).null
+        @@api.value.make_packed_array.call(vtype, ptr, cnt)
+      else
+        arr = val.to_a
+        cnt = arr.size.to_i64
+        ptr = cnt > 0 ? arr.to_unsafe.as(Void*) : Pointer(Void).null
+        @@api.value.make_packed_array.call(vtype, ptr, cnt)
+      end
+    end
+
+    def self.make_godot_array(items, elem_vtype : Int32 = 0, elem_class : String = "") : Void*
+      return Pointer(Void).null if @@api.null? || @@api.value.make_godot_array.pointer.null?
+      arena = VariantPackArena.new
+      elem_args = ::Array(LibBridge::VariantArg).new
+      items.each do |item|
+        elem_args << Variant.value_to_arg(item, arena, elem_vtype)
+      end
+      data_ptr = elem_args.empty? ? Pointer(LibBridge::VariantArg).null : elem_args.to_unsafe
+      cls_ptr = elem_class.empty? ? Pointer(LibC::Char).null : elem_class.to_unsafe
+      @@api.value.make_godot_array.call(data_ptr, elem_args.size.to_i64, elem_vtype, cls_ptr)
+    end
+
+    def self.make_godot_dictionary(dict_or_hash) : Void*
+      return Pointer(Void).null if @@api.null? || @@api.value.make_godot_dictionary.pointer.null?
+      arena = VariantPackArena.new
+      kv_args = ::Array(LibBridge::VariantArg).new
+      dict_or_hash.each do |k, v|
+        kv_args << Variant.value_to_arg(k, arena)
+        kv_args << Variant.value_to_arg(v, arena)
+      end
+      data_ptr = kv_args.empty? ? Pointer(LibBridge::VariantArg).null : kv_args.to_unsafe
+      @@api.value.make_godot_dictionary.call(data_ptr, (kv_args.size // 2).to_i64)
+    end
+
+    def self.free_godot_container(vtype : Int32, ptr : Void*?) : Void
+      return if ptr.nil? || ptr.null? || @@api.null? || @@api.value.free_godot_container.pointer.null?
+      @@api.value.free_godot_container.call(vtype, ptr)
+    end
+
+    def self.unpack_godot_array_store(ptr : Void*, _elem_type : T.class, destroy : Bool = true) : ::Array(T) forall T
+      return ::Array(T).new if ptr.null? || @@api.null? || @@api.value.unpack_godot_container.pointer.null?
+      res = ::Array(T).new
+      cb = ->(arg_ptr : LibBridge::VariantArg*, ud : Void*) : Nil {
+        if !arg_ptr.null? && !ud.null?
+          payload = LibBridge::BridgeBufferPayload.new(data: arg_ptr.value.ptr_val, count: arg_ptr.value.int_val)
+          ud.as(Pointer(::Array(T))).value = Bridge.array_from_bridge_payload(pointerof(payload).as(Void*), T)
+        end
+        nil
+      }
+      @@api.value.unpack_godot_container.call(28, ptr, destroy ? 1 : 0, cb.pointer, pointerof(res).as(Void*))
+      res
+    end
+
+    def self.unpack_godot_array(ptr : Void*, elem_type : T.class, destroy : Bool = true) : GodotArray(T) forall T
+      GodotArray(T).new(unpack_godot_array_store(ptr, elem_type, destroy))
+    end
+
+    def self.unpack_godot_dictionary(ptr : Void*, destroy : Bool = true) : Godot::Dictionary
+      return Godot::Dictionary.new if ptr.null? || @@api.null? || @@api.value.unpack_godot_container.pointer.null?
+      res = Godot::Dictionary.new
+      @@api.value.unpack_godot_container.call(27, ptr, destroy ? 1 : 0, @@_unpack_dict_cb.pointer, pointerof(res).as(Void*))
+      res
+    end
+
+    def self.unpack_packed_array(vtype : Int32, ptr : Void*, _type : P.class, destroy : Bool = true) : P forall P
+      return P.new if ptr.null? || @@api.null? || @@api.value.unpack_godot_container.pointer.null?
+      res = P.new
+      cb = ->(arg_ptr : LibBridge::VariantArg*, ud : Void*) : Nil {
+        if !arg_ptr.null? && !ud.null?
+          ud.as(Pointer(P)).value = P.from_raw(arg_ptr.value.ptr_val, arg_ptr.value.int_val)
+        end
+        nil
+      }
+      @@api.value.unpack_godot_container.call(vtype, ptr, destroy ? 1 : 0, cb.pointer, pointerof(res).as(Void*))
+      res
+    end
+
+    def self.object_call_ret_variant(godot_obj : Void*, method_name : String, *args) : Variant
+      return Variant.new(nil) if godot_obj.null? || @@api.null? || @@api.value.object_call_ret_variant.pointer.null?
+      res = Variant.new(nil)
+      pack_args(args) do |c_args, count|
+        @@api.value.object_call_ret_variant.call(godot_obj, method_name.to_unsafe, c_args, count, @@_unpack_variant_cb.pointer, pointerof(res).as(Void*))
+      end
+      res
     end
 
     def self.object_call(godot_obj : Void*, method_name : String, *args) : Void

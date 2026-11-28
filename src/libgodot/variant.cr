@@ -7,6 +7,9 @@ module Godot
   class Dictionary
   end
 
+  class GodotArray(T)
+  end
+
   class PackedByteArray; end
   class PackedInt32Array; end
   class PackedInt64Array; end
@@ -18,7 +21,52 @@ module Godot
   class PackedColorArray; end
   class PackedVector4Array; end
 
-  alias VariantValue = Nil | Bool | Int64 | Float64 | String | Vector2 | Vector2i | Rect2 | Rect2i | Vector3 | Vector3i | Vector4 | Vector4i | Color | Transform2D | Transform3D | Basis | Quaternion | Plane | AABB | RID | Godot::Object | Godot::Dictionary | PackedByteArray | PackedInt32Array | PackedInt64Array | PackedFloat32Array | PackedFloat64Array | PackedStringArray | PackedVector2Array | PackedVector3Array | PackedColorArray | PackedVector4Array
+  # Scoped GC-rooted arena keeping temporary serialized POD buffers, C-string tables,
+  # and nested VariantArg slices alive across FFI boundary calls without clobbering.
+  class VariantPackArena
+    getter strings = ::Array(String).new
+    getter byte_slices = ::Array(Bytes).new
+    getter cstr_arrays = ::Array(::Array(Pointer(UInt8))).new
+    getter arg_arrays = ::Array(::Array(LibBridge::VariantArg)).new
+
+    def clear : Void
+      @strings.clear
+      @byte_slices.clear
+      @cstr_arrays.clear
+      @arg_arrays.clear
+    end
+
+    def store_str(s : String) : Void*
+      @strings << s
+      s.to_unsafe.as(Void*)
+    end
+
+    def store_pod(val : T) : Void* forall T
+      bytes = Bytes.new(sizeof(T))
+      bytes.to_unsafe.as(Pointer(T)).value = val
+      @byte_slices << bytes
+      bytes.to_unsafe.as(Void*)
+    end
+
+    def store_cstrs(strs : Enumerable(String), count : Int32) : Void*
+      return Pointer(Void).null if count <= 0
+      arr = ::Array(Pointer(UInt8)).new(count)
+      strs.each do |s|
+        @strings << s
+        arr << s.to_unsafe
+      end
+      @cstr_arrays << arr
+      arr.to_unsafe.as(Void*)
+    end
+
+    def store_args(args : ::Array(LibBridge::VariantArg)) : Void*
+      return Pointer(Void).null if args.empty?
+      @arg_arrays << args
+      args.to_unsafe.as(Void*)
+    end
+  end
+
+  alias VariantValue = Nil | Bool | Int64 | Float64 | String | Vector2 | Vector2i | Rect2 | Rect2i | Vector3 | Vector3i | Vector4 | Vector4i | Color | Transform2D | Transform3D | Basis | Quaternion | Plane | AABB | Projection | RID | Godot::Object | Godot::Dictionary | Godot::GodotArray(Variant) | PackedByteArray | PackedInt32Array | PackedInt64Array | PackedFloat32Array | PackedFloat64Array | PackedStringArray | PackedVector2Array | PackedVector3Array | PackedColorArray | PackedVector4Array
 
   # Represents a dynamically typed Godot Variant value in Crystal with zero-allocation
   # unboxing for primitive and engine math types.
@@ -28,32 +76,56 @@ module Godot
     def initialize(@raw : VariantValue = nil)
     end
 
-    def self.new(val : Variant) : Variant
-      val
+    def initialize(val : Variant)
+      @raw = val.raw
     end
 
-    def self.new(val : Int32)
-      new(val.to_i64)
+    def initialize(val : Int32)
+      @raw = val.to_i64
     end
 
-    def self.new(val : UInt32)
-      new(val.to_i64)
+    def initialize(val : UInt32)
+      @raw = val.to_i64
     end
 
-    def self.new(val : UInt64)
-      new(val.to_i64)
+    def initialize(val : UInt64)
+      @raw = val.to_i64
     end
 
-    def self.new(val : Float32)
-      new(val.to_f64)
+    def initialize(val : Float32)
+      @raw = val.to_f64
     end
 
-    def self.new(val : Symbol)
-      new(val.to_s)
+    def initialize(val : Symbol)
+      @raw = val.to_s
     end
 
-    def self.new(val : Enum)
-      new(val.value.to_i64)
+    def initialize(val : Enum)
+      @raw = val.value.to_i64
+    end
+
+    def initialize(val : NodePath)
+      @raw = val.to_s
+    end
+
+    def initialize(val : GodotArray(T)) forall T
+      {% if T == Variant %}
+        @raw = val
+      {% else %}
+        arr = GodotArray(Variant).new
+        val.each { |item| arr << Variant.new(item) }
+        @raw = arr
+      {% end %}
+    end
+
+    def initialize(val : ::Array(T)) forall T
+      arr = GodotArray(Variant).new
+      val.each { |item| arr << Variant.new(item) }
+      @raw = arr
+    end
+
+    def initialize(val : ::Hash(K, V)) forall K, V
+      @raw = Godot::Dictionary.from(val)
     end
 
     def self.from_any?(val) : Variant?
@@ -61,9 +133,11 @@ module Godot
         val
       elsif val.is_a?(VariantValue)
         new(val)
-      elsif val.is_a?(Int32 | UInt32 | UInt64 | Float32 | Symbol)
+      elsif val.is_a?(Int32 | UInt32 | UInt64 | Float32 | Symbol | NodePath)
         new(val)
       elsif val.is_a?(Enum)
+        new(val)
+      elsif val.is_a?(GodotArray) || val.is_a?(::Array) || val.is_a?(::Hash)
         new(val)
       else
         nil
@@ -333,6 +407,18 @@ module Godot
       @raw.as?(Godot::Node)
     end
 
+    def array? : Bool
+      @raw.is_a?(GodotArray(Variant))
+    end
+
+    def dict? : Bool
+      @raw.is_a?(Godot::Dictionary)
+    end
+
+    def dictionary? : Bool
+      dict?
+    end
+
     def as_dict : Godot::Dictionary
       @raw.as?(Godot::Dictionary) || Godot::Dictionary.new
     end
@@ -341,9 +427,120 @@ module Godot
       as_dict
     end
 
+    def as_a : GodotArray(Variant)
+      case v = @raw
+      when GodotArray(Variant)
+        v
+      when PackedByteArray
+        arr = GodotArray(Variant).new
+        v.each { |x| arr << Variant.new(x.to_i64) }
+        arr
+      when PackedInt32Array
+        arr = GodotArray(Variant).new
+        v.each { |x| arr << Variant.new(x.to_i64) }
+        arr
+      when PackedInt64Array
+        arr = GodotArray(Variant).new
+        v.each { |x| arr << Variant.new(x) }
+        arr
+      when PackedFloat32Array
+        arr = GodotArray(Variant).new
+        v.each { |x| arr << Variant.new(x.to_f64) }
+        arr
+      when PackedFloat64Array
+        arr = GodotArray(Variant).new
+        v.each { |x| arr << Variant.new(x) }
+        arr
+      when PackedStringArray
+        arr = GodotArray(Variant).new
+        v.each { |x| arr << Variant.new(x) }
+        arr
+      when PackedVector2Array
+        arr = GodotArray(Variant).new
+        v.each { |x| arr << Variant.new(x) }
+        arr
+      when PackedVector3Array
+        arr = GodotArray(Variant).new
+        v.each { |x| arr << Variant.new(x) }
+        arr
+      when PackedColorArray
+        arr = GodotArray(Variant).new
+        v.each { |x| arr << Variant.new(x) }
+        arr
+      when PackedVector4Array
+        arr = GodotArray(Variant).new
+        v.each { |x| arr << Variant.new(x) }
+        arr
+      else
+        GodotArray(Variant).new
+      end
+    end
+
+    def as_array : GodotArray(Variant)
+      as_a
+    end
+
+    def as_array_of(type : T.class) : GodotArray(T) forall T
+      GodotArray(T)._from_variant(self)
+    end
+
+    def as_rid : RID
+      case v = @raw
+      when RID   then v
+      when Int64 then RID.new(v)
+      else            RID.new
+      end
+    end
+
+    def as_projection : Projection
+      @raw.as?(Projection) || Projection.new
+    end
+
+    def as_packed_byte_array : PackedByteArray
+      @raw.as?(PackedByteArray) || PackedByteArray.new
+    end
+
+    def as_packed_int32_array : PackedInt32Array
+      @raw.as?(PackedInt32Array) || PackedInt32Array.new
+    end
+
+    def as_packed_int64_array : PackedInt64Array
+      @raw.as?(PackedInt64Array) || PackedInt64Array.new
+    end
+
+    def as_packed_float32_array : PackedFloat32Array
+      @raw.as?(PackedFloat32Array) || PackedFloat32Array.new
+    end
+
+    def as_packed_float64_array : PackedFloat64Array
+      @raw.as?(PackedFloat64Array) || PackedFloat64Array.new
+    end
+
+    def as_packed_string_array : PackedStringArray
+      @raw.as?(PackedStringArray) || PackedStringArray.new
+    end
+
+    def as_packed_vector2_array : PackedVector2Array
+      @raw.as?(PackedVector2Array) || PackedVector2Array.new
+    end
+
+    def as_packed_vector3_array : PackedVector3Array
+      @raw.as?(PackedVector3Array) || PackedVector3Array.new
+    end
+
+    def as_packed_color_array : PackedColorArray
+      @raw.as?(PackedColorArray) || PackedColorArray.new
+    end
+
+    def as_packed_vector4_array : PackedVector4Array
+      @raw.as?(PackedVector4Array) || PackedVector4Array.new
+    end
+
     # Unboxes the Variant to target type T at compile time.
     def as_t(type : T.class) : T forall T
-      {% if T == Int32 %}
+      {% if T == Godot::Variant %}
+        self
+      {% elsif T == Int32 %}
         as_i32
       {% elsif T == Int64 %}
         as_i64
@@ -359,6 +556,10 @@ module Godot
         as_bool
       {% elsif T == String %}
         as_s
+      {% elsif T == Godot::NodePath %}
+        Godot::NodePath.new(as_s)
+      {% elsif T == Godot::RID %}
+        as_rid
       {% elsif T == Godot::Vector2 %}
         as_v2
       {% elsif T == Godot::Vector2i %}
@@ -389,8 +590,32 @@ module Godot
         as_plane
       {% elsif T == Godot::AABB %}
         as_aabb
+      {% elsif T == Godot::Projection %}
+        as_projection
       {% elsif T == Godot::Dictionary %}
         as_dict
+      {% elsif T == Godot::PackedByteArray %}
+        as_packed_byte_array
+      {% elsif T == Godot::PackedInt32Array %}
+        as_packed_int32_array
+      {% elsif T == Godot::PackedInt64Array %}
+        as_packed_int64_array
+      {% elsif T == Godot::PackedFloat32Array %}
+        as_packed_float32_array
+      {% elsif T == Godot::PackedFloat64Array %}
+        as_packed_float64_array
+      {% elsif T == Godot::PackedStringArray %}
+        as_packed_string_array
+      {% elsif T == Godot::PackedVector2Array %}
+        as_packed_vector2_array
+      {% elsif T == Godot::PackedVector3Array %}
+        as_packed_vector3_array
+      {% elsif T == Godot::PackedColorArray %}
+        as_packed_color_array
+      {% elsif T == Godot::PackedVector4Array %}
+        as_packed_vector4_array
+      {% elsif T.name.starts_with?("Godot::GodotArray(") %}
+        T._from_variant(self)
       {% elsif T <= Godot::Object %}
         if obj = as_obj
           if casted = obj.as_a?(T)
@@ -404,7 +629,7 @@ module Godot
       {% elsif T < Enum %}
         T.from_value?(as_i64) || T.from_value?(0) || T.values.first
       {% elsif T == Pointer(Void) %}
-        to_arg[1]
+        to_arg.ptr_val
       {% else %}
         @raw.as(T)
       {% end %}
@@ -412,7 +637,9 @@ module Godot
 
     # Returns safe default value for target type T
     def self.default_for(type : T.class) : T forall T
-      {% if T == Int32 || T == Int64 || T == UInt32 || T == UInt64 %}
+      {% if T == Godot::Variant %}
+        Godot::Variant.new(nil)
+      {% elsif T == Int32 || T == Int64 || T == UInt32 || T == UInt64 %}
         T.new(0)
       {% elsif T == Float32 || T == Float64 %}
         T.new(0.0)
@@ -420,6 +647,10 @@ module Godot
         false
       {% elsif T == String %}
         ""
+      {% elsif T == Godot::NodePath %}
+        Godot::NodePath.new("")
+      {% elsif T == Godot::RID %}
+        Godot::RID.new
       {% elsif T == Godot::Vector2 %}
         Godot::Vector2.new
       {% elsif T == Godot::Vector2i %}
@@ -450,6 +681,12 @@ module Godot
         Godot::Plane.new
       {% elsif T == Godot::AABB %}
         Godot::AABB.new
+      {% elsif T == Godot::Projection %}
+        Godot::Projection.new
+      {% elsif T == Godot::Dictionary || T == Godot::PackedByteArray || T == Godot::PackedInt32Array || T == Godot::PackedInt64Array || T == Godot::PackedFloat32Array || T == Godot::PackedFloat64Array || T == Godot::PackedStringArray || T == Godot::PackedVector2Array || T == Godot::PackedVector3Array || T == Godot::PackedColorArray || T == Godot::PackedVector4Array %}
+        T.new
+      {% elsif T.name.starts_with?("Godot::GodotArray(") %}
+        T.new
       {% elsif T <= Godot::Object %}
         T.new
       {% elsif T < Enum %}
@@ -478,26 +715,70 @@ module Godot
       when 5 # Vector2
         new(Vector2.new(arg.vec_val[0], arg.vec_val[1]))
       when 6 # Vector2i
-        new(Vector2i.new(arg.vec_val[0].to_i32, arg.vec_val[1].to_i32))
+        if !arg.ptr_val.null?
+          p = arg.ptr_val.as(Int32*)
+          new(Vector2i.new(p[0], p[1]))
+        elsif arg.int_val != 0 || arg.instance_id != 0
+          new(Vector2i.new(arg.int_val.to_i32, (arg.instance_id & 0xFFFFFFFF_u64).to_u32.to_i32!))
+        else
+          new(Vector2i.new(arg.vec_val[0].to_i32, arg.vec_val[1].to_i32))
+        end
       when 7 # Rect2
         new(Rect2.new(arg.vec_val[0], arg.vec_val[1], arg.vec_val[2], arg.vec_val[3]))
+      when 8 # Rect2i
+        new(arg.ptr_val.null? ? Rect2i.new : arg.ptr_val.as(Rect2i*).value)
       when 9 # Vector3
         new(Vector3.new(arg.vec_val[0], arg.vec_val[1], arg.vec_val[2]))
       when 10 # Vector3i
-        new(Vector3i.new(arg.vec_val[0].to_i32, arg.vec_val[1].to_i32, arg.vec_val[2].to_i32))
+        if !arg.ptr_val.null?
+          p = arg.ptr_val.as(Int32*)
+          new(Vector3i.new(p[0], p[1], p[2]))
+        else
+          new(Vector3i.new(arg.vec_val[0].to_i32, arg.vec_val[1].to_i32, arg.vec_val[2].to_i32))
+        end
+      when 11 # Transform2D
+        new(arg.ptr_val.null? ? Transform2D.new : arg.ptr_val.as(Transform2D*).value)
+      when 12 # Vector4
+        new(arg.ptr_val.null? ? Vector4.new(arg.vec_val[0], arg.vec_val[1], arg.vec_val[2], arg.vec_val[3]) : arg.ptr_val.as(Vector4*).value)
+      when 13 # Vector4i
+        new(arg.ptr_val.null? ? Vector4i.new : arg.ptr_val.as(Vector4i*).value)
+      when 14 # Plane
+        new(arg.ptr_val.null? ? Plane.new(arg.vec_val[0], arg.vec_val[1], arg.vec_val[2], arg.vec_val[3]) : arg.ptr_val.as(Plane*).value)
+      when 15 # Quaternion
+        new(arg.ptr_val.null? ? Quaternion.new(arg.vec_val[0], arg.vec_val[1], arg.vec_val[2], arg.vec_val[3]) : arg.ptr_val.as(Quaternion*).value)
+      when 16 # AABB
+        new(arg.ptr_val.null? ? AABB.new : arg.ptr_val.as(AABB*).value)
+      when 17 # Basis
+        new(arg.ptr_val.null? ? Basis.new : arg.ptr_val.as(Basis*).value)
+      when 18 # Transform3D
+        new(arg.ptr_val.null? ? Transform3D.new : arg.ptr_val.as(Transform3D*).value)
+      when 19 # Projection
+        new(arg.ptr_val.null? ? Projection.new : arg.ptr_val.as(Projection*).value)
       when 20 # Color
         new(Color.new(arg.vec_val[0], arg.vec_val[1], arg.vec_val[2], arg.vec_val[3]))
+      when 23 # RID
+        rid_id = arg.instance_id != 0 ? arg.instance_id : arg.int_val.to_u64!
+        new(RID.new(rid_id))
       when 24 # Object
         ptr = arg.ptr_val
         if ptr.null?
           new(nil)
-        else
-          if inst = Bridge.find_alive_instance(ptr)
-            new(inst)
-          else
-            new(Godot::Object.new(ptr))
+        elsif inst = Bridge.find_alive_instance(ptr)
+          if inst.is_a?(Godot::RefCounted)
+            inst._ensure_extension_borrowed_ref!
           end
+          new(inst)
+        elsif arg.extra_flags != 0
+          new(Godot::RefCounted.new(ptr))
+        else
+          new(Godot::Object.new(ptr))
         end
+      when 27 # Dictionary
+        payload = Tuple(Void*, Int64).new(arg.ptr_val, arg.int_val)
+        new(Godot::Dictionary.from_bridge_payload(pointerof(payload).as(Void*)))
+      when 28 # Array
+        payload = Tuple(Void*, Int64).new(arg.ptr_val, arg.int_val)
+        new(Godot::GodotArray(Variant).from_bridge_payload(pointerof(payload).as(Void*)))
       when 29
         new(PackedByteArray.from_raw(arg.ptr_val, arg.int_val))
       when 30
@@ -524,33 +805,49 @@ module Godot
       end
     end
 
-    def to_arg : LibBridge::VariantArg
-      Variant.value_to_arg(@raw)
+    def to_arg(arena : VariantPackArena? = nil, elem_vtype_override : Int32 = 0) : LibBridge::VariantArg
+      Variant.value_to_arg(@raw, arena, elem_vtype_override)
     end
 
-    def self.value_to_arg(val) : LibBridge::VariantArg
+    def self.value_to_arg(val, arena : VariantPackArena? = nil, elem_vtype_override : Int32 = 0) : LibBridge::VariantArg
       case val
       when Variant
-        val.to_arg
+        val.to_arg(arena, elem_vtype_override)
       when Nil
         LibBridge::VariantArg.new(type: 0)
       when Bool
         LibBridge::VariantArg.new(type: 1, int_val: val ? 1_i64 : 0_i64, float_val: val ? 1.0 : 0.0)
       when Int
-        LibBridge::VariantArg.new(type: 2, int_val: val.to_i64, float_val: val.to_f64)
+        if elem_vtype_override == 23
+          LibBridge::VariantArg.new(type: 23, int_val: val.to_i64, instance_id: val.to_u64!)
+        else
+          LibBridge::VariantArg.new(type: 2, int_val: val.to_i64, float_val: val.to_f64)
+        end
       when Enum
         LibBridge::VariantArg.new(type: 2, int_val: val.value.to_i64, float_val: val.value.to_f64)
       when Float
         LibBridge::VariantArg.new(type: 3, float_val: val.to_f64, int_val: val.to_i64)
       when String
-        LibBridge::VariantArg.new(type: 4, ptr_val: val.to_unsafe.as(Void*))
+        vtype = (elem_vtype_override == 21 || elem_vtype_override == 22) ? elem_vtype_override : 4
+        ptr = arena ? arena.store_str(val) : val.to_unsafe.as(Void*)
+        LibBridge::VariantArg.new(type: vtype, ptr_val: ptr)
+      when Symbol
+        s = val.to_s
+        vtype = elem_vtype_override == 4 ? 4 : 21
+        ptr = arena ? arena.store_str(s) : s.to_unsafe.as(Void*)
+        LibBridge::VariantArg.new(type: vtype, ptr_val: ptr)
+      when NodePath
+        s = val.to_s
+        ptr = arena ? arena.store_str(s) : s.to_unsafe.as(Void*)
+        LibBridge::VariantArg.new(type: 22, ptr_val: ptr)
       when Vector2
         arg = LibBridge::VariantArg.new(type: 5)
         arg.vec_val[0] = val.x
         arg.vec_val[1] = val.y
         arg
       when Vector2i
-        arg = LibBridge::VariantArg.new(type: 6, int_val: val.x.to_i64, instance_id: val.y.to_u64!)
+        ptr = arena ? arena.store_pod(val) : Pointer(Void).null
+        arg = LibBridge::VariantArg.new(type: 6, int_val: val.x.to_i64, instance_id: val.y.to_u32!.to_u64, ptr_val: ptr)
         arg.vec_val[0] = val.x.to_f32
         arg.vec_val[1] = val.y.to_f32
         arg
@@ -561,6 +858,9 @@ module Godot
         arg.vec_val[2] = val.size.x
         arg.vec_val[3] = val.size.y
         arg
+      when Rect2i
+        ptr = arena ? arena.store_pod(val) : Pointer(Void).null
+        LibBridge::VariantArg.new(type: 8, ptr_val: ptr, int_val: sizeof(Rect2i).to_i64)
       when Vector3
         arg = LibBridge::VariantArg.new(type: 9)
         arg.vec_val[0] = val.x
@@ -568,11 +868,54 @@ module Godot
         arg.vec_val[2] = val.z
         arg
       when Vector3i
-        arg = LibBridge::VariantArg.new(type: 10)
+        ptr = arena ? arena.store_pod(val) : Pointer(Void).null
+        arg = LibBridge::VariantArg.new(type: 10, ptr_val: ptr, int_val: sizeof(Vector3i).to_i64)
         arg.vec_val[0] = val.x.to_f32
         arg.vec_val[1] = val.y.to_f32
         arg.vec_val[2] = val.z.to_f32
         arg
+      when Transform2D
+        ptr = arena ? arena.store_pod(val) : Pointer(Void).null
+        LibBridge::VariantArg.new(type: 11, ptr_val: ptr, int_val: sizeof(Transform2D).to_i64)
+      when Vector4
+        ptr = arena ? arena.store_pod(val) : Pointer(Void).null
+        arg = LibBridge::VariantArg.new(type: 12, ptr_val: ptr, int_val: sizeof(Vector4).to_i64)
+        arg.vec_val[0] = val.x
+        arg.vec_val[1] = val.y
+        arg.vec_val[2] = val.z
+        arg.vec_val[3] = val.w
+        arg
+      when Vector4i
+        ptr = arena ? arena.store_pod(val) : Pointer(Void).null
+        LibBridge::VariantArg.new(type: 13, ptr_val: ptr, int_val: sizeof(Vector4i).to_i64)
+      when Plane
+        ptr = arena ? arena.store_pod(val) : Pointer(Void).null
+        arg = LibBridge::VariantArg.new(type: 14, ptr_val: ptr, int_val: sizeof(Plane).to_i64)
+        arg.vec_val[0] = val.normal.x
+        arg.vec_val[1] = val.normal.y
+        arg.vec_val[2] = val.normal.z
+        arg.vec_val[3] = val.d
+        arg
+      when Quaternion
+        ptr = arena ? arena.store_pod(val) : Pointer(Void).null
+        arg = LibBridge::VariantArg.new(type: 15, ptr_val: ptr, int_val: sizeof(Quaternion).to_i64)
+        arg.vec_val[0] = val.x
+        arg.vec_val[1] = val.y
+        arg.vec_val[2] = val.z
+        arg.vec_val[3] = val.w
+        arg
+      when AABB
+        ptr = arena ? arena.store_pod(val) : Pointer(Void).null
+        LibBridge::VariantArg.new(type: 16, ptr_val: ptr, int_val: sizeof(AABB).to_i64)
+      when Basis
+        ptr = arena ? arena.store_pod(val) : Pointer(Void).null
+        LibBridge::VariantArg.new(type: 17, ptr_val: ptr, int_val: sizeof(Basis).to_i64)
+      when Transform3D
+        ptr = arena ? arena.store_pod(val) : Pointer(Void).null
+        LibBridge::VariantArg.new(type: 18, ptr_val: ptr, int_val: sizeof(Transform3D).to_i64)
+      when Projection
+        ptr = arena ? arena.store_pod(val) : Pointer(Void).null
+        LibBridge::VariantArg.new(type: 19, ptr_val: ptr, int_val: sizeof(Projection).to_i64)
       when Color
         arg = LibBridge::VariantArg.new(type: 20)
         arg.vec_val[0] = val.r
@@ -584,6 +927,36 @@ module Godot
         LibBridge::VariantArg.new(type: 24, ptr_val: val.pointer, instance_id: val.instance_id)
       when RID
         LibBridge::VariantArg.new(type: 23, int_val: val.to_i64, instance_id: val.id)
+      when Godot::Dictionary
+        eff_arena = arena || VariantPackArena.new
+        kv_args = ::Array(LibBridge::VariantArg).new(val.size.to_i32 * 2)
+        val.each do |k, v|
+          kv_args << Variant.value_to_arg(k, eff_arena)
+          kv_args << Variant.value_to_arg(v, eff_arena)
+        end
+        LibBridge::VariantArg.new(type: 27, ptr_val: eff_arena.store_args(kv_args), int_val: val.size)
+      when ::Hash
+        eff_arena = arena || VariantPackArena.new
+        kv_args = ::Array(LibBridge::VariantArg).new(val.size * 2)
+        val.each do |k, v|
+          kv_args << Variant.value_to_arg(k, eff_arena)
+          kv_args << Variant.value_to_arg(v, eff_arena)
+        end
+        LibBridge::VariantArg.new(type: 27, ptr_val: eff_arena.store_args(kv_args), int_val: val.size.to_i64)
+      when GodotArray
+        eff_arena = arena || VariantPackArena.new
+        elem_args = ::Array(LibBridge::VariantArg).new(val.size.to_i32)
+        val.each do |item|
+          elem_args << Variant.value_to_arg(item, eff_arena)
+        end
+        LibBridge::VariantArg.new(type: 28, ptr_val: eff_arena.store_args(elem_args), int_val: val.size)
+      when ::Array
+        eff_arena = arena || VariantPackArena.new
+        elem_args = ::Array(LibBridge::VariantArg).new(val.size)
+        val.each do |item|
+          elem_args << Variant.value_to_arg(item, eff_arena)
+        end
+        LibBridge::VariantArg.new(type: 28, ptr_val: eff_arena.store_args(elem_args), int_val: val.size.to_i64)
       when PackedByteArray
         LibBridge::VariantArg.new(type: 29, ptr_val: val.to_unsafe.as(Void*), int_val: val.size)
       when PackedInt32Array
@@ -595,7 +968,8 @@ module Godot
       when PackedFloat64Array
         LibBridge::VariantArg.new(type: 33, ptr_val: val.to_unsafe.as(Void*), int_val: val.size)
       when PackedStringArray
-        LibBridge::VariantArg.new(type: 34, ptr_val: val.cstr_array_ptr.as(Void*), int_val: val.size)
+        ptr = arena ? arena.store_cstrs(val, val.size.to_i32) : val.cstr_array_ptr.as(Void*)
+        LibBridge::VariantArg.new(type: 34, ptr_val: ptr, int_val: val.size)
       when PackedVector2Array
         LibBridge::VariantArg.new(type: 35, ptr_val: val.to_unsafe.as(Void*), int_val: val.size)
       when PackedVector3Array

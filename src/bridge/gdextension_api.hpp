@@ -119,6 +119,8 @@ static GDExtensionMethodBindPtr mb_text_edit_get_line = nullptr;
 
 typedef GDExtensionVariantPtr (*GDExtensionInterfaceArrayOperatorIndex)(GDExtensionTypePtr p_self, GDExtensionInt p_index);
 static GDExtensionInterfaceArrayOperatorIndex gd_array_operator_index = nullptr;
+static GDExtensionInterfaceArrayOperatorIndexConst gd_array_operator_index_const = nullptr;
+static GDExtensionInterfaceArraySetTyped gd_array_set_typed = nullptr;
 
 static GDExtensionInterfacePackedByteArrayOperatorIndex gd_packed_byte_array_operator_index = nullptr;
 static GDExtensionInterfacePackedByteArrayOperatorIndexConst gd_packed_byte_array_operator_index_const = nullptr;

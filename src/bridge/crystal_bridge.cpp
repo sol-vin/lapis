@@ -524,6 +524,10 @@ crystal_library_init(GDExtensionInterfaceGetProcAddress p_get_proc_address,
       "get_library_path");
   gd_array_operator_index =
       (GDExtensionInterfaceArrayOperatorIndex)p_get_proc_address("array_operator_index");
+  gd_array_operator_index_const =
+      (GDExtensionInterfaceArrayOperatorIndexConst)p_get_proc_address("array_operator_index_const");
+  gd_array_set_typed =
+      (GDExtensionInterfaceArraySetTyped)p_get_proc_address("array_set_typed");
 
   GDExtensionInterfaceVariantGetPtrInternalGetter get_internal =
       (GDExtensionInterfaceVariantGetPtrInternalGetter)p_get_proc_address(

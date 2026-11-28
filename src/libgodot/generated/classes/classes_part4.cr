@@ -38,19 +38,21 @@ module Godot
       godot_ptrcall_int(@@mb_get_action_count, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_set_actions : Void* = Pointer(Void).null
-    def set_actions(actions : Pointer(Void)) : Void
+    def set_actions(actions : Godot::GodotArray | ::Array) : Void
       godot_bind(@@mb_set_actions, "OpenXRActionSet", "set_actions", 381264803_i64)
-      val_0 = actions
-      arg_0 = pointerof(val_0).as(Void*)
+      arr_0 = Bridge.make_godot_array(actions)
+      arg_0 = arr_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_actions, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(28, arr_0)
     end
     @@mb_get_actions : Void* = Pointer(Void).null
-    def get_actions() : Pointer(Void)
+    def get_actions() : Godot::GodotArray(Godot::Variant)
       godot_bind(@@mb_get_actions, "OpenXRActionSet", "get_actions", 3995934104_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_actions, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_actions, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Godot::Variant, destroy: true)
     end
     @@mb_add_action : Void* = Pointer(Void).null
     def add_action(action : OpenXRAction?) : Void
@@ -2090,34 +2092,38 @@ module Godot
       godot_ptrcall_obj(@@mb_get_binding_modifier, @pointer, args.to_unsafe.as(Void**), OpenXRActionBindingModifier)
     end
     @@mb_set_binding_modifiers : Void* = Pointer(Void).null
-    def set_binding_modifiers(binding_modifiers : Pointer(Void)) : Void
+    def set_binding_modifiers(binding_modifiers : Godot::GodotArray | ::Array) : Void
       godot_bind(@@mb_set_binding_modifiers, "OpenXRIPBinding", "set_binding_modifiers", 381264803_i64)
-      val_0 = binding_modifiers
-      arg_0 = pointerof(val_0).as(Void*)
+      arr_0 = Bridge.make_godot_array(binding_modifiers)
+      arg_0 = arr_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_binding_modifiers, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(28, arr_0)
     end
     @@mb_get_binding_modifiers : Void* = Pointer(Void).null
-    def get_binding_modifiers() : Pointer(Void)
+    def get_binding_modifiers() : Godot::GodotArray(Godot::Variant)
       godot_bind(@@mb_get_binding_modifiers, "OpenXRIPBinding", "get_binding_modifiers", 3995934104_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_binding_modifiers, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_binding_modifiers, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Godot::Variant, destroy: true)
     end
     @@mb_set_paths : Void* = Pointer(Void).null
-    def set_paths(paths : Pointer(Void)) : Void
+    def set_paths(paths : Godot::PackedStringArray | ::Array(String)) : Void
       godot_bind(@@mb_set_paths, "OpenXRIPBinding", "set_paths", 4015028928_i64)
-      val_0 = paths
-      arg_0 = pointerof(val_0).as(Void*)
+      pba_0 = Bridge.make_packed_array(34, paths)
+      arg_0 = pba_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_paths, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(34, pba_0)
     end
     @@mb_get_paths : Void* = Pointer(Void).null
-    def get_paths() : Pointer(Void)
+    def get_paths() : Godot::PackedStringArray
       godot_bind(@@mb_get_paths, "OpenXRIPBinding", "get_paths", 1139954409_i64)
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_paths, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(34, ret_buf.to_unsafe.as(Void*), Godot::PackedStringArray, destroy: true)
     end
     @@mb_get_path_count : Void* = Pointer(Void).null
     def get_path_count() : Int64
@@ -2224,19 +2230,21 @@ module Godot
       godot_ptrcall_obj(@@mb_get_binding, @pointer, args.to_unsafe.as(Void**), OpenXRIPBinding)
     end
     @@mb_set_bindings : Void* = Pointer(Void).null
-    def set_bindings(bindings : Pointer(Void)) : Void
+    def set_bindings(bindings : Godot::GodotArray | ::Array) : Void
       godot_bind(@@mb_set_bindings, "OpenXRInteractionProfile", "set_bindings", 381264803_i64)
-      val_0 = bindings
-      arg_0 = pointerof(val_0).as(Void*)
+      arr_0 = Bridge.make_godot_array(bindings)
+      arg_0 = arr_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_bindings, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(28, arr_0)
     end
     @@mb_get_bindings : Void* = Pointer(Void).null
-    def get_bindings() : Pointer(Void)
+    def get_bindings() : Godot::GodotArray(Godot::Variant)
       godot_bind(@@mb_get_bindings, "OpenXRInteractionProfile", "get_bindings", 3995934104_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_bindings, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_bindings, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Godot::Variant, destroy: true)
     end
     @@mb_get_binding_modifier_count : Void* = Pointer(Void).null
     def get_binding_modifier_count() : Int64
@@ -2252,19 +2260,21 @@ module Godot
       godot_ptrcall_obj(@@mb_get_binding_modifier, @pointer, args.to_unsafe.as(Void**), OpenXRIPBindingModifier)
     end
     @@mb_set_binding_modifiers : Void* = Pointer(Void).null
-    def set_binding_modifiers(binding_modifiers : Pointer(Void)) : Void
+    def set_binding_modifiers(binding_modifiers : Godot::GodotArray | ::Array) : Void
       godot_bind(@@mb_set_binding_modifiers, "OpenXRInteractionProfile", "set_binding_modifiers", 381264803_i64)
-      val_0 = binding_modifiers
-      arg_0 = pointerof(val_0).as(Void*)
+      arr_0 = Bridge.make_godot_array(binding_modifiers)
+      arg_0 = arr_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_binding_modifiers, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(28, arr_0)
     end
     @@mb_get_binding_modifiers : Void* = Pointer(Void).null
-    def get_binding_modifiers() : Pointer(Void)
+    def get_binding_modifiers() : Godot::GodotArray(Godot::Variant)
       godot_bind(@@mb_get_binding_modifiers, "OpenXRInteractionProfile", "get_binding_modifiers", 3995934104_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_binding_modifiers, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_binding_modifiers, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Godot::Variant, destroy: true)
     end
     # Property `interaction_profile_path` getter
     def interaction_profile_path
@@ -2648,18 +2658,18 @@ module Godot
       Bridge.free_string(str_0)
     end
     @@mb_get_action_sets : Void* = Pointer(Void).null
-    def get_action_sets() : Pointer(Void)
+    def get_action_sets() : Godot::GodotArray(Godot::Variant)
       godot_bind(@@mb_get_action_sets, "OpenXRInterface", "get_action_sets", 3995934104_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_action_sets, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_action_sets, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Godot::Variant, destroy: true)
     end
     @@mb_get_available_display_refresh_rates : Void* = Pointer(Void).null
-    def get_available_display_refresh_rates() : Pointer(Void)
+    def get_available_display_refresh_rates() : Godot::GodotArray(Godot::Variant)
       godot_bind(@@mb_get_available_display_refresh_rates, "OpenXRInterface", "get_available_display_refresh_rates", 3995934104_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_available_display_refresh_rates, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_available_display_refresh_rates, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Godot::Variant, destroy: true)
     end
     @@mb_set_motion_range : Void* = Pointer(Void).null
     def set_motion_range(hand : Hand | Int, motion_range : HandMotionRange | Int) : Void
@@ -3032,16 +3042,19 @@ module Godot
       godot_call_str("get_plane_label")
     end
     @@mb_set_mesh_data : Void* = Pointer(Void).null
-    def set_mesh_data(origin : Transform3D, vertices : Pointer(Void), indices : Pointer(Void)) : Void
+    def set_mesh_data(origin : Transform3D, vertices : Godot::PackedVector2Array | ::Array(Godot::Vector2), indices : Godot::PackedInt32Array | ::Array(Int32) = Godot::PackedInt32Array.new) : Void
       godot_bind(@@mb_set_mesh_data, "OpenXRPlaneTracker", "set_mesh_data", 1877193149_i64)
       val_0 = origin
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = vertices
-      arg_1 = pointerof(val_1).as(Void*)
-      val_2 = indices
-      arg_2 = pointerof(val_2).as(Void*)
+      pba_1 = Bridge.make_packed_array(35, vertices)
+      arg_1 = pba_1
+      pba_2 = Bridge.make_packed_array(30, indices)
+      arg_2 = pba_2
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_set_mesh_data, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(35, pba_1)
+      Bridge.free_godot_container(30, pba_2)
     end
     @@mb_clear_mesh_data : Void* = Pointer(Void).null
     def clear_mesh_data() : Void
@@ -3054,18 +3067,18 @@ module Godot
       godot_ptrcall_val(@@mb_get_mesh_offset, @pointer, Pointer(Pointer(Void)).null, Transform3D)
     end
     @@mb_get_vertices : Void* = Pointer(Void).null
-    def get_vertices() : Pointer(Void)
+    def get_vertices() : Godot::PackedVector2Array
       godot_bind(@@mb_get_vertices, "OpenXRPlaneTracker", "get_vertices", 2961356807_i64)
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_vertices, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(35, ret_buf.to_unsafe.as(Void*), Godot::PackedVector2Array, destroy: true)
     end
     @@mb_get_indices : Void* = Pointer(Void).null
-    def get_indices() : Pointer(Void)
+    def get_indices() : Godot::PackedInt32Array
       godot_bind(@@mb_get_indices, "OpenXRPlaneTracker", "get_indices", 1930428628_i64)
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_indices, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(30, ret_buf.to_unsafe.as(Void*), Godot::PackedInt32Array, destroy: true)
     end
     @@mb_get_mesh : Void* = Pointer(Void).null
     def get_mesh() : Mesh
@@ -3172,11 +3185,11 @@ module Godot
       godot_ptrcall_void(@@mb_render_model_destroy, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_render_model_get_all : Void* = Pointer(Void).null
-    def render_model_get_all() : Pointer(Void)
+    def render_model_get_all() : Godot::GodotArray(Godot::RID)
       godot_bind(@@mb_render_model_get_all, "OpenXRRenderModelExtension", "render_model_get_all", 2915620761_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_render_model_get_all, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_render_model_get_all, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Godot::RID, destroy: true)
     end
     @@mb_render_model_new_scene_instance : Void* = Pointer(Void).null
     def render_model_new_scene_instance(render_model : Int64) : Node3D
@@ -3187,14 +3200,14 @@ module Godot
       godot_ptrcall_obj(@@mb_render_model_new_scene_instance, @pointer, args.to_unsafe.as(Void**), Node3D)
     end
     @@mb_render_model_get_subaction_paths : Void* = Pointer(Void).null
-    def render_model_get_subaction_paths(render_model : Int64) : Pointer(Void)
+    def render_model_get_subaction_paths(render_model : Int64) : Godot::PackedStringArray
       godot_bind(@@mb_render_model_get_subaction_paths, "OpenXRRenderModelExtension", "render_model_get_subaction_paths", 2801473409_i64)
       val_0 = render_model
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_render_model_get_subaction_paths, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(34, ret_buf.to_unsafe.as(Void*), Godot::PackedStringArray, destroy: true)
     end
     @@mb_render_model_get_top_level_path : Void* = Pointer(Void).null
     def render_model_get_top_level_path(render_model : Int64) : String
@@ -3452,12 +3465,12 @@ module Godot
       godot_ptrcall_obj(@@mb_unpersist_anchor, @pointer, args.to_unsafe.as(Void**), OpenXRFutureResult)
     end
     @@mb_start_entity_discovery : Void* = Pointer(Void).null
-    def start_entity_discovery(spatial_context : Int64, component_data : Pointer(Void), next_snapshot_create : OpenXRStructureBase?, next_snapshot_query : OpenXRStructureBase?, user_callback : Pointer(Void)) : OpenXRFutureResult
+    def start_entity_discovery(spatial_context : Int64, component_data : Enumerable(Godot::OpenXRSpatialComponentData), next_snapshot_create : OpenXRStructureBase?, next_snapshot_query : OpenXRStructureBase?, user_callback : Pointer(Void)) : OpenXRFutureResult
       godot_bind(@@mb_start_entity_discovery, "OpenXRSpatialAnchorCapability", "start_entity_discovery", 3452714169_i64)
       val_0 = spatial_context
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = component_data
-      arg_1 = pointerof(val_1).as(Void*)
+      arr_1 = Bridge.make_godot_array(component_data, 24, "OpenXRSpatialComponentData")
+      arg_1 = arr_1
       arg_ptr_2 = next_snapshot_create ? next_snapshot_create.pointer : Pointer(Void).null
       arg_2 = pointerof(arg_ptr_2).as(Void*)
       arg_ptr_3 = next_snapshot_query ? next_snapshot_query.pointer : Pointer(Void).null
@@ -3466,20 +3479,24 @@ module Godot
       arg_4 = pointerof(val_4).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
       godot_ptrcall_obj(@@mb_start_entity_discovery, @pointer, args.to_unsafe.as(Void**), OpenXRFutureResult)
+    ensure
+      Bridge.free_godot_container(28, arr_1)
     end
     @@mb_do_entity_update : Void* = Pointer(Void).null
-    def do_entity_update(spatial_context : Int64, component_data : Pointer(Void), next_snapshot_create : OpenXRStructureBase? = nil, next_snapshot_query : OpenXRStructureBase? = nil) : Void
+    def do_entity_update(spatial_context : Int64, component_data : Enumerable(Godot::OpenXRSpatialComponentData), next_snapshot_create : OpenXRStructureBase? = nil, next_snapshot_query : OpenXRStructureBase? = nil) : Void
       godot_bind(@@mb_do_entity_update, "OpenXRSpatialAnchorCapability", "do_entity_update", 3138044275_i64)
       val_0 = spatial_context
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = component_data
-      arg_1 = pointerof(val_1).as(Void*)
+      arr_1 = Bridge.make_godot_array(component_data, 24, "OpenXRSpatialComponentData")
+      arg_1 = arr_1
       arg_ptr_2 = next_snapshot_create ? next_snapshot_create.pointer : Pointer(Void).null
       arg_2 = pointerof(arg_ptr_2).as(Void*)
       arg_ptr_3 = next_snapshot_query ? next_snapshot_query.pointer : Pointer(Void).null
       arg_3 = pointerof(arg_ptr_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_do_entity_update, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(28, arr_1)
     end
   end
   class OpenXRSpatialCapabilityConfigurationBaseHeader < Godot::RefCounted
@@ -3506,11 +3523,11 @@ module Godot
       super(pointer)
     end
     @@mb_get_enabled_components : Void* = Pointer(Void).null
-    def get_enabled_components() : Pointer(Void)
+    def get_enabled_components() : Godot::PackedInt64Array
       godot_bind(@@mb_get_enabled_components, "OpenXRSpatialCapabilityConfigurationAnchor", "get_enabled_components", 235988956_i64)
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_enabled_components, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(31, ret_buf.to_unsafe.as(Void*), Godot::PackedInt64Array, destroy: true)
     end
   end
   class OpenXRSpatialCapabilityConfigurationAprilTag < Godot::OpenXRSpatialCapabilityConfigurationBaseHeader
@@ -3524,11 +3541,11 @@ module Godot
       AprilTagDict36h11 = 4_i64
     end
     @@mb_get_enabled_components : Void* = Pointer(Void).null
-    def get_enabled_components() : Pointer(Void)
+    def get_enabled_components() : Godot::PackedInt64Array
       godot_bind(@@mb_get_enabled_components, "OpenXRSpatialCapabilityConfigurationAprilTag", "get_enabled_components", 235988956_i64)
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_enabled_components, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(31, ret_buf.to_unsafe.as(Void*), Godot::PackedInt64Array, destroy: true)
     end
     @@mb_set_april_dict : Void* = Pointer(Void).null
     def set_april_dict(april_dict : AprilTagDict | Int) : Void
@@ -3575,11 +3592,11 @@ module Godot
       ArucoDict7x71000 = 16_i64
     end
     @@mb_get_enabled_components : Void* = Pointer(Void).null
-    def get_enabled_components() : Pointer(Void)
+    def get_enabled_components() : Godot::PackedInt64Array
       godot_bind(@@mb_get_enabled_components, "OpenXRSpatialCapabilityConfigurationAruco", "get_enabled_components", 235988956_i64)
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_enabled_components, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(31, ret_buf.to_unsafe.as(Void*), Godot::PackedInt64Array, destroy: true)
     end
     @@mb_set_aruco_dict : Void* = Pointer(Void).null
     def set_aruco_dict(aruco_dict : ArucoDict | Int) : Void
@@ -3608,11 +3625,11 @@ module Godot
       super(pointer)
     end
     @@mb_get_enabled_components : Void* = Pointer(Void).null
-    def get_enabled_components() : Pointer(Void)
+    def get_enabled_components() : Godot::PackedInt64Array
       godot_bind(@@mb_get_enabled_components, "OpenXRSpatialCapabilityConfigurationMicroQrCode", "get_enabled_components", 235988956_i64)
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_enabled_components, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(31, ret_buf.to_unsafe.as(Void*), Godot::PackedInt64Array, destroy: true)
     end
   end
   class OpenXRSpatialCapabilityConfigurationPlaneTracking < Godot::OpenXRSpatialCapabilityConfigurationBaseHeader
@@ -3647,11 +3664,11 @@ module Godot
       supports_labels()
     end
     @@mb_get_enabled_components : Void* = Pointer(Void).null
-    def get_enabled_components() : Pointer(Void)
+    def get_enabled_components() : Godot::PackedInt64Array
       godot_bind(@@mb_get_enabled_components, "OpenXRSpatialCapabilityConfigurationPlaneTracking", "get_enabled_components", 235988956_i64)
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_enabled_components, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(31, ret_buf.to_unsafe.as(Void*), Godot::PackedInt64Array, destroy: true)
     end
   end
   class OpenXRSpatialCapabilityConfigurationQrCode < Godot::OpenXRSpatialCapabilityConfigurationBaseHeader
@@ -3659,11 +3676,11 @@ module Godot
       super(pointer)
     end
     @@mb_get_enabled_components : Void* = Pointer(Void).null
-    def get_enabled_components() : Pointer(Void)
+    def get_enabled_components() : Godot::PackedInt64Array
       godot_bind(@@mb_get_enabled_components, "OpenXRSpatialCapabilityConfigurationQrCode", "get_enabled_components", 235988956_i64)
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_enabled_components, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(31, ret_buf.to_unsafe.as(Void*), Godot::PackedInt64Array, destroy: true)
     end
   end
   class OpenXRSpatialComponentData < Godot::RefCounted
@@ -3793,7 +3810,7 @@ module Godot
       godot_ptrcall_val(@@mb_get_transform, @pointer, args.to_unsafe.as(Void**), Transform3D)
     end
     @@mb_get_vertices : Void* = Pointer(Void).null
-    def get_vertices(snapshot : Int64, index : Int64) : Pointer(Void)
+    def get_vertices(snapshot : Int64, index : Int64) : Godot::PackedVector2Array
       godot_bind(@@mb_get_vertices, "OpenXRSpatialComponentMesh2DList", "get_vertices", 110850971_i64)
       val_0 = snapshot
       arg_0 = pointerof(val_0).as(Void*)
@@ -3802,10 +3819,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_vertices, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(35, ret_buf.to_unsafe.as(Void*), Godot::PackedVector2Array, destroy: true)
     end
     @@mb_get_indices : Void* = Pointer(Void).null
-    def get_indices(snapshot : Int64, index : Int64) : Pointer(Void)
+    def get_indices(snapshot : Int64, index : Int64) : Godot::PackedInt32Array
       godot_bind(@@mb_get_indices, "OpenXRSpatialComponentMesh2DList", "get_indices", 3393655756_i64)
       val_0 = snapshot
       arg_0 = pointerof(val_0).as(Void*)
@@ -3814,7 +3831,7 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_indices, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(30, ret_buf.to_unsafe.as(Void*), Godot::PackedInt32Array, destroy: true)
     end
   end
   class OpenXRSpatialComponentMesh3DList < Godot::OpenXRSpatialComponentData
@@ -3924,7 +3941,7 @@ module Godot
       godot_ptrcall_val(@@mb_get_transform, @pointer, args.to_unsafe.as(Void**), Transform3D)
     end
     @@mb_get_vertices : Void* = Pointer(Void).null
-    def get_vertices(snapshot : Int64, index : Int64) : Pointer(Void)
+    def get_vertices(snapshot : Int64, index : Int64) : Godot::PackedVector2Array
       godot_bind(@@mb_get_vertices, "OpenXRSpatialComponentPolygon2DList", "get_vertices", 110850971_i64)
       val_0 = snapshot
       arg_0 = pointerof(val_0).as(Void*)
@@ -3933,7 +3950,7 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_vertices, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(35, ret_buf.to_unsafe.as(Void*), Godot::PackedVector2Array, destroy: true)
     end
   end
   class OpenXRSpatialContainerExtension < Godot::OpenXRExtensionWrapper
@@ -3967,11 +3984,11 @@ module Godot
       is_spatial_container_active()
     end
     @@mb_get_supported_bounds_modes : Void* = Pointer(Void).null
-    def get_supported_bounds_modes() : Pointer(Void)
+    def get_supported_bounds_modes() : Godot::GodotArray(Godot::Variant)
       godot_bind(@@mb_get_supported_bounds_modes, "OpenXRSpatialContainerExtension", "get_supported_bounds_modes", 2915620761_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_supported_bounds_modes, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_supported_bounds_modes, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Godot::Variant, destroy: true)
     end
     @@mb_get_spatial_container_state : Void* = Pointer(Void).null
     def get_spatial_container_state() : OpenXRSpatialContainerState
@@ -4132,11 +4149,11 @@ module Godot
       godot_ptrcall_void(@@mb_remove_persistence_context, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_get_persistence_contexts : Void* = Pointer(Void).null
-    def get_persistence_contexts() : Pointer(Void)
+    def get_persistence_contexts() : Godot::GodotArray(Godot::Variant)
       godot_bind(@@mb_get_persistence_contexts, "OpenXRSpatialContextPersistenceConfig", "get_persistence_contexts", 3995934104_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_persistence_contexts, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_persistence_contexts, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Godot::Variant, destroy: true)
     end
   end
   class OpenXRSpatialEntityExtension < Godot::OpenXRExtensionWrapper
@@ -4199,10 +4216,10 @@ module Godot
       supports_component_type(capability, component_type)
     end
     @@mb_create_spatial_context : Void* = Pointer(Void).null
-    def create_spatial_context(capability_configurations : Pointer(Void), next_val : OpenXRStructureBase?, user_callback : Pointer(Void), failed_callback : Pointer(Void)) : OpenXRFutureResult
+    def create_spatial_context(capability_configurations : Enumerable(Godot::OpenXRSpatialCapabilityConfigurationBaseHeader), next_val : OpenXRStructureBase?, user_callback : Pointer(Void), failed_callback : Pointer(Void)) : OpenXRFutureResult
       godot_bind(@@mb_create_spatial_context, "OpenXRSpatialEntityExtension", "create_spatial_context", 1586751596_i64)
-      val_0 = capability_configurations
-      arg_0 = pointerof(val_0).as(Void*)
+      arr_0 = Bridge.make_godot_array(capability_configurations, 24, "OpenXRSpatialCapabilityConfigurationBaseHeader")
+      arg_0 = arr_0
       arg_ptr_1 = next_val ? next_val.pointer : Pointer(Void).null
       arg_1 = pointerof(arg_ptr_1).as(Void*)
       val_2 = user_callback
@@ -4211,6 +4228,8 @@ module Godot
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_obj(@@mb_create_spatial_context, @pointer, args.to_unsafe.as(Void**), OpenXRFutureResult)
+    ensure
+      Bridge.free_godot_container(28, arr_0)
     end
     @@mb_get_spatial_context_ready : Void* = Pointer(Void).null
     def get_spatial_context_ready(spatial_context : Int64) : Bool
@@ -4241,46 +4260,53 @@ module Godot
       godot_ptrcall_int(@@mb_get_spatial_context_handle, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_discover_spatial_entities_with_component_data : Void* = Pointer(Void).null
-    def discover_spatial_entities_with_component_data(spatial_context : Int64, component_data : Pointer(Void), next_val : OpenXRStructureBase?, user_callback : Pointer(Void)) : OpenXRFutureResult
+    def discover_spatial_entities_with_component_data(spatial_context : Int64, component_data : Enumerable(Godot::OpenXRSpatialComponentData), next_val : OpenXRStructureBase?, user_callback : Pointer(Void)) : OpenXRFutureResult
       godot_bind(@@mb_discover_spatial_entities_with_component_data, "OpenXRSpatialEntityExtension", "discover_spatial_entities_with_component_data", 1830928590_i64)
       val_0 = spatial_context
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = component_data
-      arg_1 = pointerof(val_1).as(Void*)
+      arr_1 = Bridge.make_godot_array(component_data, 24, "OpenXRSpatialComponentData")
+      arg_1 = arr_1
       arg_ptr_2 = next_val ? next_val.pointer : Pointer(Void).null
       arg_2 = pointerof(arg_ptr_2).as(Void*)
       val_3 = user_callback
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_obj(@@mb_discover_spatial_entities_with_component_data, @pointer, args.to_unsafe.as(Void**), OpenXRFutureResult)
+    ensure
+      Bridge.free_godot_container(28, arr_1)
     end
     @@mb_discover_spatial_entities : Void* = Pointer(Void).null
-    def discover_spatial_entities(spatial_context : Int64, component_types : Pointer(Void), next_val : OpenXRStructureBase?, user_callback : Pointer(Void)) : OpenXRFutureResult
+    def discover_spatial_entities(spatial_context : Int64, component_types : Godot::PackedInt64Array | ::Array(Int64), next_val : OpenXRStructureBase?, user_callback : Pointer(Void)) : OpenXRFutureResult
       godot_bind(@@mb_discover_spatial_entities, "OpenXRSpatialEntityExtension", "discover_spatial_entities", 2252833536_i64)
       val_0 = spatial_context
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = component_types
-      arg_1 = pointerof(val_1).as(Void*)
+      pba_1 = Bridge.make_packed_array(31, component_types)
+      arg_1 = pba_1
       arg_ptr_2 = next_val ? next_val.pointer : Pointer(Void).null
       arg_2 = pointerof(arg_ptr_2).as(Void*)
       val_3 = user_callback
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_obj(@@mb_discover_spatial_entities, @pointer, args.to_unsafe.as(Void**), OpenXRFutureResult)
+    ensure
+      Bridge.free_godot_container(31, pba_1)
     end
     @@mb_update_spatial_entities : Void* = Pointer(Void).null
-    def update_spatial_entities(spatial_context : Int64, entities : Pointer(Void), component_types : Pointer(Void), next_val : OpenXRStructureBase? = nil) : Int64
+    def update_spatial_entities(spatial_context : Int64, entities : Enumerable(Godot::RID) | Enumerable(Int64), component_types : Godot::PackedInt64Array | ::Array(Int64), next_val : OpenXRStructureBase? = nil) : Int64
       godot_bind(@@mb_update_spatial_entities, "OpenXRSpatialEntityExtension", "update_spatial_entities", 3446086438_i64)
       val_0 = spatial_context
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = entities
-      arg_1 = pointerof(val_1).as(Void*)
-      val_2 = component_types
-      arg_2 = pointerof(val_2).as(Void*)
+      arr_1 = Bridge.make_godot_array(entities, 23, "")
+      arg_1 = arr_1
+      pba_2 = Bridge.make_packed_array(31, component_types)
+      arg_2 = pba_2
       arg_ptr_3 = next_val ? next_val.pointer : Pointer(Void).null
       arg_3 = pointerof(arg_ptr_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_int(@@mb_update_spatial_entities, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(28, arr_1)
+      Bridge.free_godot_container(31, pba_2)
     end
     @@mb_free_spatial_snapshot : Void* = Pointer(Void).null
     def free_spatial_snapshot(spatial_snapshot : Int64) : Void
@@ -4307,19 +4333,21 @@ module Godot
       godot_ptrcall_int(@@mb_get_spatial_snapshot_context, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_query_snapshot : Void* = Pointer(Void).null
-    def query_snapshot(spatial_snapshot : Int64, component_data : Pointer(Void), next_val : OpenXRStructureBase? = nil) : Bool
+    def query_snapshot(spatial_snapshot : Int64, component_data : Enumerable(Godot::OpenXRSpatialComponentData), next_val : OpenXRStructureBase? = nil) : Bool
       godot_bind(@@mb_query_snapshot, "OpenXRSpatialEntityExtension", "query_snapshot", 641015484_i64)
       val_0 = spatial_snapshot
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = component_data
-      arg_1 = pointerof(val_1).as(Void*)
+      arr_1 = Bridge.make_godot_array(component_data, 24, "OpenXRSpatialComponentData")
+      arg_1 = arr_1
       arg_ptr_2 = next_val ? next_val.pointer : Pointer(Void).null
       arg_2 = pointerof(arg_ptr_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_bool(@@mb_query_snapshot, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(28, arr_1)
     end
     # Predicate alias for `query_snapshot`
-    def query_snapshot?(spatial_snapshot : Int64, component_data : Pointer(Void), next_val : OpenXRStructureBase? = nil) : Bool
+    def query_snapshot?(spatial_snapshot : Int64, component_data : Enumerable(Godot::OpenXRSpatialComponentData), next_val : OpenXRStructureBase? = nil) : Bool
       query_snapshot(spatial_snapshot, component_data, next_val)
     end
     @@mb_get_string : Void* = Pointer(Void).null
@@ -4333,7 +4361,7 @@ module Godot
       godot_call_str("get_string", spatial_snapshot, buffer_id)
     end
     @@mb_get_uint8_buffer : Void* = Pointer(Void).null
-    def get_uint8_buffer(spatial_snapshot : Int64, buffer_id : Int64) : Pointer(Void)
+    def get_uint8_buffer(spatial_snapshot : Int64, buffer_id : Int64) : Godot::PackedByteArray
       godot_bind(@@mb_get_uint8_buffer, "OpenXRSpatialEntityExtension", "get_uint8_buffer", 3570600051_i64)
       val_0 = spatial_snapshot
       arg_0 = pointerof(val_0).as(Void*)
@@ -4342,10 +4370,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_uint8_buffer, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(29, ret_buf.to_unsafe.as(Void*), Godot::PackedByteArray, destroy: true)
     end
     @@mb_get_uint16_buffer : Void* = Pointer(Void).null
-    def get_uint16_buffer(spatial_snapshot : Int64, buffer_id : Int64) : Pointer(Void)
+    def get_uint16_buffer(spatial_snapshot : Int64, buffer_id : Int64) : Godot::PackedInt32Array
       godot_bind(@@mb_get_uint16_buffer, "OpenXRSpatialEntityExtension", "get_uint16_buffer", 3393655756_i64)
       val_0 = spatial_snapshot
       arg_0 = pointerof(val_0).as(Void*)
@@ -4354,10 +4382,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_uint16_buffer, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(30, ret_buf.to_unsafe.as(Void*), Godot::PackedInt32Array, destroy: true)
     end
     @@mb_get_uint32_buffer : Void* = Pointer(Void).null
-    def get_uint32_buffer(spatial_snapshot : Int64, buffer_id : Int64) : Pointer(Void)
+    def get_uint32_buffer(spatial_snapshot : Int64, buffer_id : Int64) : Godot::PackedInt32Array
       godot_bind(@@mb_get_uint32_buffer, "OpenXRSpatialEntityExtension", "get_uint32_buffer", 3393655756_i64)
       val_0 = spatial_snapshot
       arg_0 = pointerof(val_0).as(Void*)
@@ -4366,10 +4394,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_uint32_buffer, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(30, ret_buf.to_unsafe.as(Void*), Godot::PackedInt32Array, destroy: true)
     end
     @@mb_get_float_buffer : Void* = Pointer(Void).null
-    def get_float_buffer(spatial_snapshot : Int64, buffer_id : Int64) : Pointer(Void)
+    def get_float_buffer(spatial_snapshot : Int64, buffer_id : Int64) : Godot::PackedFloat32Array
       godot_bind(@@mb_get_float_buffer, "OpenXRSpatialEntityExtension", "get_float_buffer", 2313216651_i64)
       val_0 = spatial_snapshot
       arg_0 = pointerof(val_0).as(Void*)
@@ -4378,10 +4406,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_float_buffer, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(32, ret_buf.to_unsafe.as(Void*), Godot::PackedFloat32Array, destroy: true)
     end
     @@mb_get_vector2_buffer : Void* = Pointer(Void).null
-    def get_vector2_buffer(spatial_snapshot : Int64, buffer_id : Int64) : Pointer(Void)
+    def get_vector2_buffer(spatial_snapshot : Int64, buffer_id : Int64) : Godot::PackedVector2Array
       godot_bind(@@mb_get_vector2_buffer, "OpenXRSpatialEntityExtension", "get_vector2_buffer", 110850971_i64)
       val_0 = spatial_snapshot
       arg_0 = pointerof(val_0).as(Void*)
@@ -4390,10 +4418,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_vector2_buffer, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(35, ret_buf.to_unsafe.as(Void*), Godot::PackedVector2Array, destroy: true)
     end
     @@mb_get_vector3_buffer : Void* = Pointer(Void).null
-    def get_vector3_buffer(spatial_snapshot : Int64, buffer_id : Int64) : Pointer(Void)
+    def get_vector3_buffer(spatial_snapshot : Int64, buffer_id : Int64) : Godot::PackedVector3Array
       godot_bind(@@mb_get_vector3_buffer, "OpenXRSpatialEntityExtension", "get_vector3_buffer", 1166453791_i64)
       val_0 = spatial_snapshot
       arg_0 = pointerof(val_0).as(Void*)
@@ -4402,7 +4430,7 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_vector3_buffer, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(36, ret_buf.to_unsafe.as(Void*), Godot::PackedVector3Array, destroy: true)
     end
     @@mb_find_spatial_entity : Void* = Pointer(Void).null
     def find_spatial_entity(entity_id : Int64) : Int64
@@ -4523,12 +4551,12 @@ module Godot
       is_april_tag_supported()
     end
     @@mb_start_entity_discovery : Void* = Pointer(Void).null
-    def start_entity_discovery(spatial_context : Int64, component_data : Pointer(Void), next_snapshot_create : OpenXRStructureBase?, next_snapshot_query : OpenXRStructureBase?, user_callback : Pointer(Void)) : OpenXRFutureResult
+    def start_entity_discovery(spatial_context : Int64, component_data : Enumerable(Godot::OpenXRSpatialComponentData), next_snapshot_create : OpenXRStructureBase?, next_snapshot_query : OpenXRStructureBase?, user_callback : Pointer(Void)) : OpenXRFutureResult
       godot_bind(@@mb_start_entity_discovery, "OpenXRSpatialMarkerTrackingCapability", "start_entity_discovery", 3452714169_i64)
       val_0 = spatial_context
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = component_data
-      arg_1 = pointerof(val_1).as(Void*)
+      arr_1 = Bridge.make_godot_array(component_data, 24, "OpenXRSpatialComponentData")
+      arg_1 = arr_1
       arg_ptr_2 = next_snapshot_create ? next_snapshot_create.pointer : Pointer(Void).null
       arg_2 = pointerof(arg_ptr_2).as(Void*)
       arg_ptr_3 = next_snapshot_query ? next_snapshot_query.pointer : Pointer(Void).null
@@ -4537,20 +4565,24 @@ module Godot
       arg_4 = pointerof(val_4).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
       godot_ptrcall_obj(@@mb_start_entity_discovery, @pointer, args.to_unsafe.as(Void**), OpenXRFutureResult)
+    ensure
+      Bridge.free_godot_container(28, arr_1)
     end
     @@mb_do_entity_update : Void* = Pointer(Void).null
-    def do_entity_update(spatial_context : Int64, component_data : Pointer(Void), next_snapshot_create : OpenXRStructureBase? = nil, next_snapshot_query : OpenXRStructureBase? = nil) : Void
+    def do_entity_update(spatial_context : Int64, component_data : Enumerable(Godot::OpenXRSpatialComponentData), next_snapshot_create : OpenXRStructureBase? = nil, next_snapshot_query : OpenXRStructureBase? = nil) : Void
       godot_bind(@@mb_do_entity_update, "OpenXRSpatialMarkerTrackingCapability", "do_entity_update", 3138044275_i64)
       val_0 = spatial_context
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = component_data
-      arg_1 = pointerof(val_1).as(Void*)
+      arr_1 = Bridge.make_godot_array(component_data, 24, "OpenXRSpatialComponentData")
+      arg_1 = arr_1
       arg_ptr_2 = next_snapshot_create ? next_snapshot_create.pointer : Pointer(Void).null
       arg_2 = pointerof(arg_ptr_2).as(Void*)
       arg_ptr_3 = next_snapshot_query ? next_snapshot_query.pointer : Pointer(Void).null
       arg_3 = pointerof(arg_ptr_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_do_entity_update, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(28, arr_1)
     end
     @@mb_get_built_in_tracking_state : Void* = Pointer(Void).null
     def get_built_in_tracking_state() : Godot::OpenXRSpatialEntityExtension::TrackingState
@@ -4596,12 +4628,12 @@ module Godot
       is_supported()
     end
     @@mb_start_entity_discovery : Void* = Pointer(Void).null
-    def start_entity_discovery(spatial_context : Int64, component_data : Pointer(Void), next_snapshot_create : OpenXRStructureBase?, next_snapshot_query : OpenXRStructureBase?, user_callback : Pointer(Void)) : OpenXRFutureResult
+    def start_entity_discovery(spatial_context : Int64, component_data : Enumerable(Godot::OpenXRSpatialComponentData), next_snapshot_create : OpenXRStructureBase?, next_snapshot_query : OpenXRStructureBase?, user_callback : Pointer(Void)) : OpenXRFutureResult
       godot_bind(@@mb_start_entity_discovery, "OpenXRSpatialPlaneTrackingCapability", "start_entity_discovery", 3452714169_i64)
       val_0 = spatial_context
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = component_data
-      arg_1 = pointerof(val_1).as(Void*)
+      arr_1 = Bridge.make_godot_array(component_data, 24, "OpenXRSpatialComponentData")
+      arg_1 = arr_1
       arg_ptr_2 = next_snapshot_create ? next_snapshot_create.pointer : Pointer(Void).null
       arg_2 = pointerof(arg_ptr_2).as(Void*)
       arg_ptr_3 = next_snapshot_query ? next_snapshot_query.pointer : Pointer(Void).null
@@ -4610,6 +4642,8 @@ module Godot
       arg_4 = pointerof(val_4).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3, arg_4]
       godot_ptrcall_obj(@@mb_start_entity_discovery, @pointer, args.to_unsafe.as(Void**), OpenXRFutureResult)
+    ensure
+      Bridge.free_godot_container(28, arr_1)
     end
     @@mb_get_built_in_tracking_state : Void* = Pointer(Void).null
     def get_built_in_tracking_state() : Godot::OpenXRSpatialEntityExtension::TrackingState
@@ -4701,18 +4735,19 @@ module Godot
       Bridge.free_string_name(sn_2)
     end
     @@mb_add_plural_message : Void* = Pointer(Void).null
-    def add_plural_message(src_message : String, xlated_messages : Pointer(Void), context : String = "") : Void
+    def add_plural_message(src_message : String, xlated_messages : Godot::PackedStringArray | ::Array(String), context : String = "") : Void
       godot_bind(@@mb_add_plural_message, "Translation", "add_plural_message", 2356982266_i64)
       sn_0 = Bridge.make_string_name(src_message)
       arg_0 = sn_0
-      val_1 = xlated_messages
-      arg_1 = pointerof(val_1).as(Void*)
+      pba_1 = Bridge.make_packed_array(34, xlated_messages)
+      arg_1 = pba_1
       sn_2 = Bridge.make_string_name(context)
       arg_2 = sn_2
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_void(@@mb_add_plural_message, @pointer, args.to_unsafe.as(Void**))
     ensure
       Bridge.free_string_name(sn_0)
+      Bridge.free_godot_container(34, pba_1)
       Bridge.free_string_name(sn_2)
     end
     @@mb_get_message : Void* = Pointer(Void).null
@@ -4760,18 +4795,18 @@ module Godot
       Bridge.free_string_name(sn_1)
     end
     @@mb_get_message_list : Void* = Pointer(Void).null
-    def get_message_list() : Pointer(Void)
+    def get_message_list() : Godot::PackedStringArray
       godot_bind(@@mb_get_message_list, "Translation", "get_message_list", 1139954409_i64)
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_message_list, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(34, ret_buf.to_unsafe.as(Void*), Godot::PackedStringArray, destroy: true)
     end
     @@mb_get_translated_message_list : Void* = Pointer(Void).null
-    def get_translated_message_list() : Pointer(Void)
+    def get_translated_message_list() : Godot::PackedStringArray
       godot_bind(@@mb_get_translated_message_list, "Translation", "get_translated_message_list", 1139954409_i64)
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_translated_message_list, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(34, ret_buf.to_unsafe.as(Void*), Godot::PackedStringArray, destroy: true)
     end
     @@mb_get_message_count : Void* = Pointer(Void).null
     def get_message_count() : Int64
@@ -5322,18 +5357,19 @@ module Godot
       Bridge.free_string(str_1)
     end
     @@mb_add_file_from_buffer : Void* = Pointer(Void).null
-    def add_file_from_buffer(target_path : String, data : Pointer(Void), encrypt : Bool = false) : Godot::Error
+    def add_file_from_buffer(target_path : String, data : Godot::PackedByteArray | Bytes | ::Array(UInt8), encrypt : Bool = false) : Godot::Error
       godot_bind(@@mb_add_file_from_buffer, "PCKPacker", "add_file_from_buffer", 1131482346_i64)
       str_0 = Bridge.make_string(target_path)
       arg_0 = str_0
-      val_1 = data
-      arg_1 = pointerof(val_1).as(Void*)
+      pba_1 = Bridge.make_packed_array(29, data)
+      arg_1 = pba_1
       val_2 = encrypt
       arg_2 = pointerof(val_2).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2]
       godot_ptrcall_enum(@@mb_add_file_from_buffer, @pointer, args.to_unsafe.as(Void**), Godot::Error)
     ensure
       Bridge.free_string(str_0)
+      Bridge.free_godot_container(29, pba_1)
     end
     @@mb_add_file_removal : Void* = Pointer(Void).null
     def add_file_removal(target_path : String) : Godot::Error
@@ -8702,23 +8738,24 @@ module Godot
       instance.get_monitor(monitor)
     end
     @@mb_add_custom_monitor : Void* = Pointer(Void).null
-    def add_custom_monitor(id : String, callable : Pointer(Void), arguments : Pointer(Void), get_type : MonitorType | Int = 0) : Void
+    def add_custom_monitor(id : String, callable : Pointer(Void), arguments : Godot::GodotArray | ::Array = Godot::GodotArray(Godot::Variant).new, get_type : MonitorType | Int = 0) : Void
       godot_bind(@@mb_add_custom_monitor, "Performance", "add_custom_monitor", 3655788610_i64)
       sn_0 = Bridge.make_string_name(id)
       arg_0 = sn_0
       val_1 = callable
       arg_1 = pointerof(val_1).as(Void*)
-      val_2 = arguments
-      arg_2 = pointerof(val_2).as(Void*)
+      arr_2 = Bridge.make_godot_array(arguments)
+      arg_2 = arr_2
       val_3 = get_type.is_a?(Int) ? get_type.to_i64 : get_type.value.to_i64
       arg_3 = pointerof(val_3).as(Void*)
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_void(@@mb_add_custom_monitor, @pointer, args.to_unsafe.as(Void**))
     ensure
       Bridge.free_string_name(sn_0)
+      Bridge.free_godot_container(28, arr_2)
     end
     # Class-level singleton delegator for `add_custom_monitor`
-    def self.add_custom_monitor(id : String, callable : Pointer(Void), arguments : Pointer(Void), get_type : MonitorType | Int = 0) : Void
+    def self.add_custom_monitor(id : String, callable : Pointer(Void), arguments : Godot::GodotArray | ::Array = Godot::GodotArray(Godot::Variant).new, get_type : MonitorType | Int = 0) : Void
       instance.add_custom_monitor(id, callable, arguments, get_type)
     end
     @@mb_remove_custom_monitor : Void* = Pointer(Void).null
@@ -8783,25 +8820,25 @@ module Godot
       instance.get_monitor_modification_time()
     end
     @@mb_get_custom_monitor_names : Void* = Pointer(Void).null
-    def get_custom_monitor_names() : Pointer(Void)
+    def get_custom_monitor_names() : Godot::GodotArray(String)
       godot_bind(@@mb_get_custom_monitor_names, "Performance", "get_custom_monitor_names", 2915620761_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_custom_monitor_names, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_custom_monitor_names, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), String, destroy: true)
     end
     # Class-level singleton delegator for `get_custom_monitor_names`
-    def self.get_custom_monitor_names() : Pointer(Void)
+    def self.get_custom_monitor_names() : Godot::GodotArray(String)
       instance.get_custom_monitor_names()
     end
     @@mb_get_custom_monitor_types : Void* = Pointer(Void).null
-    def get_custom_monitor_types() : Pointer(Void)
+    def get_custom_monitor_types() : Godot::PackedInt32Array
       godot_bind(@@mb_get_custom_monitor_types, "Performance", "get_custom_monitor_types", 969006518_i64)
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_custom_monitor_types, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(30, ret_buf.to_unsafe.as(Void*), Godot::PackedInt32Array, destroy: true)
     end
     # Class-level singleton delegator for `get_custom_monitor_types`
-    def self.get_custom_monitor_types() : Pointer(Void)
+    def self.get_custom_monitor_types() : Godot::PackedInt32Array
       instance.get_custom_monitor_types()
     end
   end
@@ -9281,11 +9318,11 @@ module Godot
       godot_ptrcall_enum(@@mb_get_freeze_mode, @pointer, Pointer(Pointer(Void)).null, FreezeMode)
     end
     @@mb_get_colliding_bodies : Void* = Pointer(Void).null
-    def get_colliding_bodies() : Pointer(Void)
+    def get_colliding_bodies() : Godot::GodotArray(Godot::Node2D)
       godot_bind(@@mb_get_colliding_bodies, "RigidBody2D", "get_colliding_bodies", 3995934104_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_colliding_bodies, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_colliding_bodies, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Godot::Node2D, destroy: true)
     end
     # Property `mass` getter
     def mass
@@ -10091,12 +10128,14 @@ module Godot
       godot_ptrcall_void(@@mb_physical_bones_stop_simulation, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_physical_bones_start_simulation : Void* = Pointer(Void).null
-    def physical_bones_start_simulation(bones : Pointer(Void)) : Void
+    def physical_bones_start_simulation(bones : Enumerable(String) = Godot::GodotArray(String).new) : Void
       godot_bind(@@mb_physical_bones_start_simulation, "PhysicalBoneSimulator3D", "physical_bones_start_simulation", 2787316981_i64)
-      val_0 = bones
-      arg_0 = pointerof(val_0).as(Void*)
+      arr_0 = Bridge.make_godot_array(bones, 21, "")
+      arg_0 = arr_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_physical_bones_start_simulation, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(28, arr_0)
     end
     @@mb_physical_bones_add_collision_exception : Void* = Pointer(Void).null
     def physical_bones_add_collision_exception(exception : Int64) : Void
@@ -11383,70 +11422,70 @@ module Godot
       super(pointer)
     end
     @@mb_intersect_ray : Void* = Pointer(Void).null
-    def intersect_ray(parameters : PhysicsRayQueryParameters2D?) : Pointer(Void)
+    def intersect_ray(parameters : PhysicsRayQueryParameters2D?) : Godot::Dictionary
       godot_bind(@@mb_intersect_ray, "PhysicsDirectSpaceState2D", "intersect_ray", 1590275562_i64)
       arg_ptr_0 = parameters ? parameters.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_intersect_ray, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_intersect_ray, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_dictionary(ret_buf.to_unsafe.as(Void*), destroy: true)
     end
     @@mb_intersect_point : Void* = Pointer(Void).null
-    def intersect_point(parameters : PhysicsPointQueryParameters2D?, max_results : Int64 = 32_i64) : Pointer(Void)
+    def intersect_point(parameters : PhysicsPointQueryParameters2D?, max_results : Int64 = 32_i64) : Godot::GodotArray(Godot::Dictionary)
       godot_bind(@@mb_intersect_point, "PhysicsDirectSpaceState2D", "intersect_point", 2118456068_i64)
       arg_ptr_0 = parameters ? parameters.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
       val_1 = max_results.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_intersect_point, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_intersect_point, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Godot::Dictionary, destroy: true)
     end
     @@mb_intersect_shape : Void* = Pointer(Void).null
-    def intersect_shape(parameters : PhysicsShapeQueryParameters2D?, max_results : Int64 = 32_i64) : Pointer(Void)
+    def intersect_shape(parameters : PhysicsShapeQueryParameters2D?, max_results : Int64 = 32_i64) : Godot::GodotArray(Godot::Dictionary)
       godot_bind(@@mb_intersect_shape, "PhysicsDirectSpaceState2D", "intersect_shape", 2488867228_i64)
       arg_ptr_0 = parameters ? parameters.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
       val_1 = max_results.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_intersect_shape, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_intersect_shape, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Godot::Dictionary, destroy: true)
     end
     @@mb_cast_motion : Void* = Pointer(Void).null
-    def cast_motion(parameters : PhysicsShapeQueryParameters2D?) : Pointer(Void)
+    def cast_motion(parameters : PhysicsShapeQueryParameters2D?) : Godot::PackedFloat32Array
       godot_bind(@@mb_cast_motion, "PhysicsDirectSpaceState2D", "cast_motion", 711275086_i64)
       arg_ptr_0 = parameters ? parameters.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
       args = StaticArray[arg_0]
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_cast_motion, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(32, ret_buf.to_unsafe.as(Void*), Godot::PackedFloat32Array, destroy: true)
     end
     @@mb_collide_shape : Void* = Pointer(Void).null
-    def collide_shape(parameters : PhysicsShapeQueryParameters2D?, max_results : Int64 = 32_i64) : Pointer(Void)
+    def collide_shape(parameters : PhysicsShapeQueryParameters2D?, max_results : Int64 = 32_i64) : Godot::GodotArray(Godot::Vector2)
       godot_bind(@@mb_collide_shape, "PhysicsDirectSpaceState2D", "collide_shape", 2488867228_i64)
       arg_ptr_0 = parameters ? parameters.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
       val_1 = max_results.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_collide_shape, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_collide_shape, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Godot::Vector2, destroy: true)
     end
     @@mb_get_rest_info : Void* = Pointer(Void).null
-    def get_rest_info(parameters : PhysicsShapeQueryParameters2D?) : Pointer(Void)
+    def get_rest_info(parameters : PhysicsShapeQueryParameters2D?) : Godot::Dictionary
       godot_bind(@@mb_get_rest_info, "PhysicsDirectSpaceState2D", "get_rest_info", 2803666496_i64)
       arg_ptr_0 = parameters ? parameters.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_rest_info, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_rest_info, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_dictionary(ret_buf.to_unsafe.as(Void*), destroy: true)
     end
     @@mb_intersect_ray_into : Void* = Pointer(Void).null
     def intersect_ray_into(parameters : PhysicsRayQueryParameters2D?, result : PhysicsIntersectRayResult2D?) : Bool
@@ -11559,70 +11598,70 @@ module Godot
       super(pointer)
     end
     @@mb_intersect_ray : Void* = Pointer(Void).null
-    def intersect_ray(parameters : PhysicsRayQueryParameters3D?) : Pointer(Void)
+    def intersect_ray(parameters : PhysicsRayQueryParameters3D?) : Godot::Dictionary
       godot_bind(@@mb_intersect_ray, "PhysicsDirectSpaceState3D", "intersect_ray", 3957970750_i64)
       arg_ptr_0 = parameters ? parameters.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_intersect_ray, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_intersect_ray, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_dictionary(ret_buf.to_unsafe.as(Void*), destroy: true)
     end
     @@mb_intersect_point : Void* = Pointer(Void).null
-    def intersect_point(parameters : PhysicsPointQueryParameters3D?, max_results : Int64 = 32_i64) : Pointer(Void)
+    def intersect_point(parameters : PhysicsPointQueryParameters3D?, max_results : Int64 = 32_i64) : Godot::GodotArray(Godot::Dictionary)
       godot_bind(@@mb_intersect_point, "PhysicsDirectSpaceState3D", "intersect_point", 975173756_i64)
       arg_ptr_0 = parameters ? parameters.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
       val_1 = max_results.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_intersect_point, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_intersect_point, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Godot::Dictionary, destroy: true)
     end
     @@mb_intersect_shape : Void* = Pointer(Void).null
-    def intersect_shape(parameters : PhysicsShapeQueryParameters3D?, max_results : Int64 = 32_i64) : Pointer(Void)
+    def intersect_shape(parameters : PhysicsShapeQueryParameters3D?, max_results : Int64 = 32_i64) : Godot::GodotArray(Godot::Dictionary)
       godot_bind(@@mb_intersect_shape, "PhysicsDirectSpaceState3D", "intersect_shape", 3762137681_i64)
       arg_ptr_0 = parameters ? parameters.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
       val_1 = max_results.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_intersect_shape, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_intersect_shape, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Godot::Dictionary, destroy: true)
     end
     @@mb_cast_motion : Void* = Pointer(Void).null
-    def cast_motion(parameters : PhysicsShapeQueryParameters3D?) : Pointer(Void)
+    def cast_motion(parameters : PhysicsShapeQueryParameters3D?) : Godot::PackedFloat32Array
       godot_bind(@@mb_cast_motion, "PhysicsDirectSpaceState3D", "cast_motion", 1778757334_i64)
       arg_ptr_0 = parameters ? parameters.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
       args = StaticArray[arg_0]
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_cast_motion, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(32, ret_buf.to_unsafe.as(Void*), Godot::PackedFloat32Array, destroy: true)
     end
     @@mb_collide_shape : Void* = Pointer(Void).null
-    def collide_shape(parameters : PhysicsShapeQueryParameters3D?, max_results : Int64 = 32_i64) : Pointer(Void)
+    def collide_shape(parameters : PhysicsShapeQueryParameters3D?, max_results : Int64 = 32_i64) : Godot::GodotArray(Godot::Vector3)
       godot_bind(@@mb_collide_shape, "PhysicsDirectSpaceState3D", "collide_shape", 3762137681_i64)
       arg_ptr_0 = parameters ? parameters.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
       val_1 = max_results.to_i64
       arg_1 = pointerof(val_1).as(Void*)
       args = StaticArray[arg_0, arg_1]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_collide_shape, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_collide_shape, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Godot::Vector3, destroy: true)
     end
     @@mb_get_rest_info : Void* = Pointer(Void).null
-    def get_rest_info(parameters : PhysicsShapeQueryParameters3D?) : Pointer(Void)
+    def get_rest_info(parameters : PhysicsShapeQueryParameters3D?) : Godot::Dictionary
       godot_bind(@@mb_get_rest_info, "PhysicsDirectSpaceState3D", "get_rest_info", 1376751592_i64)
       arg_ptr_0 = parameters ? parameters.pointer : Pointer(Void).null
       arg_0 = pointerof(arg_ptr_0).as(Void*)
       args = StaticArray[arg_0]
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_rest_info, @pointer, args.to_unsafe.as(Void**), pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_rest_info, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_dictionary(ret_buf.to_unsafe.as(Void*), destroy: true)
     end
     @@mb_intersect_ray_into : Void* = Pointer(Void).null
     def intersect_ray_into(parameters : PhysicsRayQueryParameters3D?, result : PhysicsIntersectRayResult3D?) : Bool
@@ -12376,19 +12415,21 @@ module Godot
       godot_ptrcall_int(@@mb_get_collision_mask, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_set_exclude : Void* = Pointer(Void).null
-    def set_exclude(exclude : Pointer(Void)) : Void
+    def set_exclude(exclude : Enumerable(Godot::RID) | Enumerable(Int64)) : Void
       godot_bind(@@mb_set_exclude, "PhysicsPointQueryParameters2D", "set_exclude", 381264803_i64)
-      val_0 = exclude
-      arg_0 = pointerof(val_0).as(Void*)
+      arr_0 = Bridge.make_godot_array(exclude, 23, "")
+      arg_0 = arr_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_exclude, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(28, arr_0)
     end
     @@mb_get_exclude : Void* = Pointer(Void).null
-    def get_exclude() : Pointer(Void)
+    def get_exclude() : Godot::GodotArray(Godot::RID)
       godot_bind(@@mb_get_exclude, "PhysicsPointQueryParameters2D", "get_exclude", 3995934104_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_exclude, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_exclude, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Godot::RID, destroy: true)
     end
     @@mb_set_collide_with_bodies : Void* = Pointer(Void).null
     def set_collide_with_bodies(enable : Bool) : Void
@@ -12518,19 +12559,21 @@ module Godot
       godot_ptrcall_int(@@mb_get_collision_mask, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_set_exclude : Void* = Pointer(Void).null
-    def set_exclude(exclude : Pointer(Void)) : Void
+    def set_exclude(exclude : Enumerable(Godot::RID) | Enumerable(Int64)) : Void
       godot_bind(@@mb_set_exclude, "PhysicsPointQueryParameters3D", "set_exclude", 381264803_i64)
-      val_0 = exclude
-      arg_0 = pointerof(val_0).as(Void*)
+      arr_0 = Bridge.make_godot_array(exclude, 23, "")
+      arg_0 = arr_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_exclude, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(28, arr_0)
     end
     @@mb_get_exclude : Void* = Pointer(Void).null
-    def get_exclude() : Pointer(Void)
+    def get_exclude() : Godot::GodotArray(Godot::RID)
       godot_bind(@@mb_get_exclude, "PhysicsPointQueryParameters3D", "get_exclude", 3995934104_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_exclude, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_exclude, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Godot::RID, destroy: true)
     end
     @@mb_set_collide_with_bodies : Void* = Pointer(Void).null
     def set_collide_with_bodies(enable : Bool) : Void
@@ -12626,7 +12669,7 @@ module Godot
       super(pointer)
     end
     @@mb_create : Void* = Pointer(Void).null
-    def self.create(from : Vector2, to : Vector2, collision_mask : Int64, exclude : Pointer(Void)) : PhysicsRayQueryParameters2D
+    def self.create(from : Vector2, to : Vector2, collision_mask : Int64 = 4294967295_i64, exclude : Enumerable(Godot::RID) | Enumerable(Int64) = Godot::GodotArray(Godot::RID).new) : PhysicsRayQueryParameters2D
       godot_bind(@@mb_create, "PhysicsRayQueryParameters2D", "create", 3196569324_i64)
       val_0 = from
       arg_0 = pointerof(val_0).as(Void*)
@@ -12634,13 +12677,15 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = collision_mask.to_i64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = exclude
-      arg_3 = pointerof(val_3).as(Void*)
+      arr_3 = Bridge.make_godot_array(exclude, 23, "")
+      arg_3 = arr_3
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_obj(@@mb_create, Pointer(Void).null, args.to_unsafe.as(Void**), PhysicsRayQueryParameters2D)
+    ensure
+      Bridge.free_godot_container(28, arr_3)
     end
     # Instance convenience delegator for static method `create`
-    def create(from : Vector2, to : Vector2, collision_mask : Int64, exclude : Pointer(Void)) : PhysicsRayQueryParameters2D
+    def create(from : Vector2, to : Vector2, collision_mask : Int64 = 4294967295_i64, exclude : Enumerable(Godot::RID) | Enumerable(Int64) = Godot::GodotArray(Godot::RID).new) : PhysicsRayQueryParameters2D
       self.class.create(from, to, collision_mask, exclude)
     end
     @@mb_set_from : Void* = Pointer(Void).null
@@ -12683,19 +12728,21 @@ module Godot
       godot_ptrcall_int(@@mb_get_collision_mask, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_set_exclude : Void* = Pointer(Void).null
-    def set_exclude(exclude : Pointer(Void)) : Void
+    def set_exclude(exclude : Enumerable(Godot::RID) | Enumerable(Int64)) : Void
       godot_bind(@@mb_set_exclude, "PhysicsRayQueryParameters2D", "set_exclude", 381264803_i64)
-      val_0 = exclude
-      arg_0 = pointerof(val_0).as(Void*)
+      arr_0 = Bridge.make_godot_array(exclude, 23, "")
+      arg_0 = arr_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_exclude, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(28, arr_0)
     end
     @@mb_get_exclude : Void* = Pointer(Void).null
-    def get_exclude() : Pointer(Void)
+    def get_exclude() : Godot::GodotArray(Godot::RID)
       godot_bind(@@mb_get_exclude, "PhysicsRayQueryParameters2D", "get_exclude", 3995934104_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_exclude, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_exclude, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Godot::RID, destroy: true)
     end
     @@mb_set_collide_with_bodies : Void* = Pointer(Void).null
     def set_collide_with_bodies(enable : Bool) : Void
@@ -12831,7 +12878,7 @@ module Godot
       super(pointer)
     end
     @@mb_create : Void* = Pointer(Void).null
-    def self.create(from : Vector3, to : Vector3, collision_mask : Int64, exclude : Pointer(Void)) : PhysicsRayQueryParameters3D
+    def self.create(from : Vector3, to : Vector3, collision_mask : Int64 = 4294967295_i64, exclude : Enumerable(Godot::RID) | Enumerable(Int64) = Godot::GodotArray(Godot::RID).new) : PhysicsRayQueryParameters3D
       godot_bind(@@mb_create, "PhysicsRayQueryParameters3D", "create", 3110599579_i64)
       val_0 = from
       arg_0 = pointerof(val_0).as(Void*)
@@ -12839,13 +12886,15 @@ module Godot
       arg_1 = pointerof(val_1).as(Void*)
       val_2 = collision_mask.to_i64
       arg_2 = pointerof(val_2).as(Void*)
-      val_3 = exclude
-      arg_3 = pointerof(val_3).as(Void*)
+      arr_3 = Bridge.make_godot_array(exclude, 23, "")
+      arg_3 = arr_3
       args = StaticArray[arg_0, arg_1, arg_2, arg_3]
       godot_ptrcall_obj(@@mb_create, Pointer(Void).null, args.to_unsafe.as(Void**), PhysicsRayQueryParameters3D)
+    ensure
+      Bridge.free_godot_container(28, arr_3)
     end
     # Instance convenience delegator for static method `create`
-    def create(from : Vector3, to : Vector3, collision_mask : Int64, exclude : Pointer(Void)) : PhysicsRayQueryParameters3D
+    def create(from : Vector3, to : Vector3, collision_mask : Int64 = 4294967295_i64, exclude : Enumerable(Godot::RID) | Enumerable(Int64) = Godot::GodotArray(Godot::RID).new) : PhysicsRayQueryParameters3D
       self.class.create(from, to, collision_mask, exclude)
     end
     @@mb_set_from : Void* = Pointer(Void).null
@@ -12888,19 +12937,21 @@ module Godot
       godot_ptrcall_int(@@mb_get_collision_mask, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_set_exclude : Void* = Pointer(Void).null
-    def set_exclude(exclude : Pointer(Void)) : Void
+    def set_exclude(exclude : Enumerable(Godot::RID) | Enumerable(Int64)) : Void
       godot_bind(@@mb_set_exclude, "PhysicsRayQueryParameters3D", "set_exclude", 381264803_i64)
-      val_0 = exclude
-      arg_0 = pointerof(val_0).as(Void*)
+      arr_0 = Bridge.make_godot_array(exclude, 23, "")
+      arg_0 = arr_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_exclude, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(28, arr_0)
     end
     @@mb_get_exclude : Void* = Pointer(Void).null
-    def get_exclude() : Pointer(Void)
+    def get_exclude() : Godot::GodotArray(Godot::RID)
       godot_bind(@@mb_get_exclude, "PhysicsRayQueryParameters3D", "get_exclude", 3995934104_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_exclude, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_exclude, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Godot::RID, destroy: true)
     end
     @@mb_set_collide_with_bodies : Void* = Pointer(Void).null
     def set_collide_with_bodies(enable : Bool) : Void
@@ -17766,19 +17817,21 @@ module Godot
       godot_ptrcall_int(@@mb_get_collision_mask, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_set_exclude : Void* = Pointer(Void).null
-    def set_exclude(exclude : Pointer(Void)) : Void
+    def set_exclude(exclude : Enumerable(Godot::RID) | Enumerable(Int64)) : Void
       godot_bind(@@mb_set_exclude, "PhysicsShapeQueryParameters2D", "set_exclude", 381264803_i64)
-      val_0 = exclude
-      arg_0 = pointerof(val_0).as(Void*)
+      arr_0 = Bridge.make_godot_array(exclude, 23, "")
+      arg_0 = arr_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_exclude, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(28, arr_0)
     end
     @@mb_get_exclude : Void* = Pointer(Void).null
-    def get_exclude() : Pointer(Void)
+    def get_exclude() : Godot::GodotArray(Godot::RID)
       godot_bind(@@mb_get_exclude, "PhysicsShapeQueryParameters2D", "get_exclude", 3995934104_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_exclude, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_exclude, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Godot::RID, destroy: true)
     end
     @@mb_set_collide_with_bodies : Void* = Pointer(Void).null
     def set_collide_with_bodies(enable : Bool) : Void
@@ -17984,19 +18037,21 @@ module Godot
       godot_ptrcall_int(@@mb_get_collision_mask, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_set_exclude : Void* = Pointer(Void).null
-    def set_exclude(exclude : Pointer(Void)) : Void
+    def set_exclude(exclude : Enumerable(Godot::RID) | Enumerable(Int64)) : Void
       godot_bind(@@mb_set_exclude, "PhysicsShapeQueryParameters3D", "set_exclude", 381264803_i64)
-      val_0 = exclude
-      arg_0 = pointerof(val_0).as(Void*)
+      arr_0 = Bridge.make_godot_array(exclude, 23, "")
+      arg_0 = arr_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_exclude, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(28, arr_0)
     end
     @@mb_get_exclude : Void* = Pointer(Void).null
-    def get_exclude() : Pointer(Void)
+    def get_exclude() : Godot::GodotArray(Godot::RID)
       godot_bind(@@mb_get_exclude, "PhysicsShapeQueryParameters3D", "get_exclude", 3995934104_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_exclude, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_exclude, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Godot::RID, destroy: true)
     end
     @@mb_set_collide_with_bodies : Void* = Pointer(Void).null
     def set_collide_with_bodies(enable : Bool) : Void
@@ -18184,34 +18239,38 @@ module Godot
       godot_ptrcall_void(@@mb_set_collide_separation_ray_enabled, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_get_exclude_bodies : Void* = Pointer(Void).null
-    def get_exclude_bodies() : Pointer(Void)
+    def get_exclude_bodies() : Godot::GodotArray(Godot::RID)
       godot_bind(@@mb_get_exclude_bodies, "PhysicsTestMotionParameters2D", "get_exclude_bodies", 3995934104_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_exclude_bodies, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_exclude_bodies, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Godot::RID, destroy: true)
     end
     @@mb_set_exclude_bodies : Void* = Pointer(Void).null
-    def set_exclude_bodies(exclude_list : Pointer(Void)) : Void
+    def set_exclude_bodies(exclude_list : Enumerable(Godot::RID) | Enumerable(Int64)) : Void
       godot_bind(@@mb_set_exclude_bodies, "PhysicsTestMotionParameters2D", "set_exclude_bodies", 381264803_i64)
-      val_0 = exclude_list
-      arg_0 = pointerof(val_0).as(Void*)
+      arr_0 = Bridge.make_godot_array(exclude_list, 23, "")
+      arg_0 = arr_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_exclude_bodies, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(28, arr_0)
     end
     @@mb_get_exclude_objects : Void* = Pointer(Void).null
-    def get_exclude_objects() : Pointer(Void)
+    def get_exclude_objects() : Godot::GodotArray(Int64)
       godot_bind(@@mb_get_exclude_objects, "PhysicsTestMotionParameters2D", "get_exclude_objects", 3995934104_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_exclude_objects, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_exclude_objects, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Int64, destroy: true)
     end
     @@mb_set_exclude_objects : Void* = Pointer(Void).null
-    def set_exclude_objects(exclude_list : Pointer(Void)) : Void
+    def set_exclude_objects(exclude_list : Enumerable(Int64) | Enumerable(Int32)) : Void
       godot_bind(@@mb_set_exclude_objects, "PhysicsTestMotionParameters2D", "set_exclude_objects", 381264803_i64)
-      val_0 = exclude_list
-      arg_0 = pointerof(val_0).as(Void*)
+      arr_0 = Bridge.make_godot_array(exclude_list, 2, "")
+      arg_0 = arr_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_exclude_objects, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(28, arr_0)
     end
     @@mb_is_recovery_as_collision_enabled : Void* = Pointer(Void).null
     def is_recovery_as_collision_enabled() : Bool
@@ -18375,34 +18434,38 @@ module Godot
       godot_ptrcall_void(@@mb_set_collide_separation_ray_enabled, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_get_exclude_bodies : Void* = Pointer(Void).null
-    def get_exclude_bodies() : Pointer(Void)
+    def get_exclude_bodies() : Godot::GodotArray(Godot::RID)
       godot_bind(@@mb_get_exclude_bodies, "PhysicsTestMotionParameters3D", "get_exclude_bodies", 3995934104_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_exclude_bodies, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_exclude_bodies, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Godot::RID, destroy: true)
     end
     @@mb_set_exclude_bodies : Void* = Pointer(Void).null
-    def set_exclude_bodies(exclude_list : Pointer(Void)) : Void
+    def set_exclude_bodies(exclude_list : Enumerable(Godot::RID) | Enumerable(Int64)) : Void
       godot_bind(@@mb_set_exclude_bodies, "PhysicsTestMotionParameters3D", "set_exclude_bodies", 381264803_i64)
-      val_0 = exclude_list
-      arg_0 = pointerof(val_0).as(Void*)
+      arr_0 = Bridge.make_godot_array(exclude_list, 23, "")
+      arg_0 = arr_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_exclude_bodies, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(28, arr_0)
     end
     @@mb_get_exclude_objects : Void* = Pointer(Void).null
-    def get_exclude_objects() : Pointer(Void)
+    def get_exclude_objects() : Godot::GodotArray(Int64)
       godot_bind(@@mb_get_exclude_objects, "PhysicsTestMotionParameters3D", "get_exclude_objects", 3995934104_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_exclude_objects, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_exclude_objects, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Int64, destroy: true)
     end
     @@mb_set_exclude_objects : Void* = Pointer(Void).null
-    def set_exclude_objects(exclude_list : Pointer(Void)) : Void
+    def set_exclude_objects(exclude_list : Enumerable(Int64) | Enumerable(Int32)) : Void
       godot_bind(@@mb_set_exclude_objects, "PhysicsTestMotionParameters3D", "set_exclude_objects", 381264803_i64)
-      val_0 = exclude_list
-      arg_0 = pointerof(val_0).as(Void*)
+      arr_0 = Bridge.make_godot_array(exclude_list, 2, "")
+      arg_0 = arr_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_exclude_objects, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(28, arr_0)
     end
     @@mb_is_recovery_as_collision_enabled : Void* = Pointer(Void).null
     def is_recovery_as_collision_enabled() : Bool
@@ -19174,34 +19237,38 @@ module Godot
       super(pointer)
     end
     @@mb_set_polygon : Void* = Pointer(Void).null
-    def set_polygon(polygon : Pointer(Void)) : Void
+    def set_polygon(polygon : Godot::PackedVector2Array | ::Array(Godot::Vector2)) : Void
       godot_bind(@@mb_set_polygon, "Polygon2D", "set_polygon", 1509147220_i64)
-      val_0 = polygon
-      arg_0 = pointerof(val_0).as(Void*)
+      pba_0 = Bridge.make_packed_array(35, polygon)
+      arg_0 = pba_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_polygon, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(35, pba_0)
     end
     @@mb_get_polygon : Void* = Pointer(Void).null
-    def get_polygon() : Pointer(Void)
+    def get_polygon() : Godot::PackedVector2Array
       godot_bind(@@mb_get_polygon, "Polygon2D", "get_polygon", 2961356807_i64)
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_polygon, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(35, ret_buf.to_unsafe.as(Void*), Godot::PackedVector2Array, destroy: true)
     end
     @@mb_set_uv : Void* = Pointer(Void).null
-    def set_uv(uv : Pointer(Void)) : Void
+    def set_uv(uv : Godot::PackedVector2Array | ::Array(Godot::Vector2)) : Void
       godot_bind(@@mb_set_uv, "Polygon2D", "set_uv", 1509147220_i64)
-      val_0 = uv
-      arg_0 = pointerof(val_0).as(Void*)
+      pba_0 = Bridge.make_packed_array(35, uv)
+      arg_0 = pba_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_uv, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(35, pba_0)
     end
     @@mb_get_uv : Void* = Pointer(Void).null
-    def get_uv() : Pointer(Void)
+    def get_uv() : Godot::PackedVector2Array
       godot_bind(@@mb_get_uv, "Polygon2D", "get_uv", 2961356807_i64)
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_uv, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(35, ret_buf.to_unsafe.as(Void*), Godot::PackedVector2Array, destroy: true)
     end
     @@mb_set_color : Void* = Pointer(Void).null
     def set_color(color : Color) : Void
@@ -19217,34 +19284,38 @@ module Godot
       godot_ptrcall_val(@@mb_get_color, @pointer, Pointer(Pointer(Void)).null, Color)
     end
     @@mb_set_polygons : Void* = Pointer(Void).null
-    def set_polygons(polygons : Pointer(Void)) : Void
+    def set_polygons(polygons : Godot::GodotArray | ::Array) : Void
       godot_bind(@@mb_set_polygons, "Polygon2D", "set_polygons", 381264803_i64)
-      val_0 = polygons
-      arg_0 = pointerof(val_0).as(Void*)
+      arr_0 = Bridge.make_godot_array(polygons)
+      arg_0 = arr_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_polygons, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(28, arr_0)
     end
     @@mb_get_polygons : Void* = Pointer(Void).null
-    def get_polygons() : Pointer(Void)
+    def get_polygons() : Godot::GodotArray(Godot::Variant)
       godot_bind(@@mb_get_polygons, "Polygon2D", "get_polygons", 3995934104_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_polygons, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_polygons, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Godot::Variant, destroy: true)
     end
     @@mb_set_vertex_colors : Void* = Pointer(Void).null
-    def set_vertex_colors(vertex_colors : Pointer(Void)) : Void
+    def set_vertex_colors(vertex_colors : Godot::PackedColorArray | ::Array(Godot::Color)) : Void
       godot_bind(@@mb_set_vertex_colors, "Polygon2D", "set_vertex_colors", 3546319833_i64)
-      val_0 = vertex_colors
-      arg_0 = pointerof(val_0).as(Void*)
+      pba_0 = Bridge.make_packed_array(37, vertex_colors)
+      arg_0 = pba_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_vertex_colors, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(37, pba_0)
     end
     @@mb_get_vertex_colors : Void* = Pointer(Void).null
-    def get_vertex_colors() : Pointer(Void)
+    def get_vertex_colors() : Godot::PackedColorArray
       godot_bind(@@mb_get_vertex_colors, "Polygon2D", "get_vertex_colors", 1392750486_i64)
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_vertex_colors, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(37, ret_buf.to_unsafe.as(Void*), Godot::PackedColorArray, destroy: true)
     end
     @@mb_set_texture : Void* = Pointer(Void).null
     def set_texture(texture : Texture2D?) : Void
@@ -19359,16 +19430,17 @@ module Godot
       godot_ptrcall_val(@@mb_get_offset, @pointer, Pointer(Pointer(Void)).null, Vector2)
     end
     @@mb_add_bone : Void* = Pointer(Void).null
-    def add_bone(path : NodePath | String, weights : Pointer(Void)) : Void
+    def add_bone(path : NodePath | String, weights : Godot::PackedFloat32Array | ::Array(Float32)) : Void
       godot_bind(@@mb_add_bone, "Polygon2D", "add_bone", 703042815_i64)
       np_0 = Bridge.make_nodepath(path.to_s)
       arg_0 = np_0
-      val_1 = weights
-      arg_1 = pointerof(val_1).as(Void*)
+      pba_1 = Bridge.make_packed_array(32, weights)
+      arg_1 = pba_1
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_add_bone, @pointer, args.to_unsafe.as(Void**))
     ensure
       Bridge.free_nodepath(np_0)
+      Bridge.free_godot_container(32, pba_1)
     end
     @@mb_get_bone_count : Void* = Pointer(Void).null
     def get_bone_count() : Int64
@@ -19384,14 +19456,14 @@ module Godot
       NodePath.new(godot_call_str("get_bone_path", index))
     end
     @@mb_get_bone_weights : Void* = Pointer(Void).null
-    def get_bone_weights(index : Int64) : Pointer(Void)
+    def get_bone_weights(index : Int64) : Godot::PackedFloat32Array
       godot_bind(@@mb_get_bone_weights, "Polygon2D", "get_bone_weights", 1542882410_i64)
       val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_bone_weights, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(32, ret_buf.to_unsafe.as(Void*), Godot::PackedFloat32Array, destroy: true)
     end
     @@mb_erase_bone : Void* = Pointer(Void).null
     def erase_bone(index : Int64) : Void
@@ -19419,14 +19491,16 @@ module Godot
       Bridge.free_nodepath(np_1)
     end
     @@mb_set_bone_weights : Void* = Pointer(Void).null
-    def set_bone_weights(index : Int64, weights : Pointer(Void)) : Void
+    def set_bone_weights(index : Int64, weights : Godot::PackedFloat32Array | ::Array(Float32)) : Void
       godot_bind(@@mb_set_bone_weights, "Polygon2D", "set_bone_weights", 1345852415_i64)
       val_0 = index.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = weights
-      arg_1 = pointerof(val_1).as(Void*)
+      pba_1 = Bridge.make_packed_array(32, weights)
+      arg_1 = pba_1
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_bone_weights, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(32, pba_1)
     end
     @@mb_set_skeleton : Void* = Pointer(Void).null
     def set_skeleton(skeleton : NodePath | String) : Void
@@ -19592,19 +19666,21 @@ module Godot
       super(pointer)
     end
     @@mb_set_polygon : Void* = Pointer(Void).null
-    def set_polygon(polygon : Pointer(Void)) : Void
+    def set_polygon(polygon : Godot::PackedVector2Array | ::Array(Godot::Vector2)) : Void
       godot_bind(@@mb_set_polygon, "PolygonOccluder3D", "set_polygon", 1509147220_i64)
-      val_0 = polygon
-      arg_0 = pointerof(val_0).as(Void*)
+      pba_0 = Bridge.make_packed_array(35, polygon)
+      arg_0 = pba_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_polygon, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(35, pba_0)
     end
     @@mb_get_polygon : Void* = Pointer(Void).null
-    def get_polygon() : Pointer(Void)
+    def get_polygon() : Godot::PackedVector2Array
       godot_bind(@@mb_get_polygon, "PolygonOccluder3D", "get_polygon", 2961356807_i64)
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_polygon, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(35, ret_buf.to_unsafe.as(Void*), Godot::PackedVector2Array, destroy: true)
     end
     # Property `polygon` getter
     def polygon
@@ -19620,17 +19696,20 @@ module Godot
       super(pointer)
     end
     @@mb_setup : Void* = Pointer(Void).null
-    def setup(points : Pointer(Void), connections : Pointer(Void)) : Void
+    def setup(points : Godot::PackedVector2Array | ::Array(Godot::Vector2), connections : Godot::PackedInt32Array | ::Array(Int32)) : Void
       godot_bind(@@mb_setup, "PolygonPathFinder", "setup", 3251786936_i64)
-      val_0 = points
-      arg_0 = pointerof(val_0).as(Void*)
-      val_1 = connections
-      arg_1 = pointerof(val_1).as(Void*)
+      pba_0 = Bridge.make_packed_array(35, points)
+      arg_0 = pba_0
+      pba_1 = Bridge.make_packed_array(30, connections)
+      arg_1 = pba_1
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_setup, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(35, pba_0)
+      Bridge.free_godot_container(30, pba_1)
     end
     @@mb_find_path : Void* = Pointer(Void).null
-    def find_path(from : Vector2, to : Vector2) : Pointer(Void)
+    def find_path(from : Vector2, to : Vector2) : Godot::PackedVector2Array
       godot_bind(@@mb_find_path, "PolygonPathFinder", "find_path", 1562168077_i64)
       val_0 = from
       arg_0 = pointerof(val_0).as(Void*)
@@ -19639,10 +19718,10 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_find_path, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(35, ret_buf.to_unsafe.as(Void*), Godot::PackedVector2Array, destroy: true)
     end
     @@mb_get_intersections : Void* = Pointer(Void).null
-    def get_intersections(from : Vector2, to : Vector2) : Pointer(Void)
+    def get_intersections(from : Vector2, to : Vector2) : Godot::PackedVector2Array
       godot_bind(@@mb_get_intersections, "PolygonPathFinder", "get_intersections", 3932192302_i64)
       val_0 = from
       arg_0 = pointerof(val_0).as(Void*)
@@ -19651,7 +19730,7 @@ module Godot
       args = StaticArray[arg_0, arg_1]
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_intersections, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(35, ret_buf.to_unsafe.as(Void*), Godot::PackedVector2Array, destroy: true)
     end
     @@mb_get_closest_point : Void* = Pointer(Void).null
     def get_closest_point(point : Vector2) : Vector2
@@ -21685,32 +21764,33 @@ module Godot
       instance.get_setting_with_override(name)
     end
     @@mb_get_global_class_list : Void* = Pointer(Void).null
-    def get_global_class_list() : Pointer(Void)
+    def get_global_class_list() : Godot::GodotArray(Godot::Dictionary)
       godot_bind(@@mb_get_global_class_list, "ProjectSettings", "get_global_class_list", 2915620761_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_global_class_list, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_global_class_list, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Godot::Dictionary, destroy: true)
     end
     # Class-level singleton delegator for `get_global_class_list`
-    def self.get_global_class_list() : Pointer(Void)
+    def self.get_global_class_list() : Godot::GodotArray(Godot::Dictionary)
       instance.get_global_class_list()
     end
     @@mb_get_setting_with_override_and_custom_features : Void* = Pointer(Void).null
-    def get_setting_with_override_and_custom_features(name : String, features : Pointer(Void)) : Pointer(Void)
+    def get_setting_with_override_and_custom_features(name : String, features : Godot::PackedStringArray | ::Array(String)) : Pointer(Void)
       godot_bind(@@mb_get_setting_with_override_and_custom_features, "ProjectSettings", "get_setting_with_override_and_custom_features", 2434817427_i64)
       sn_0 = Bridge.make_string_name(name)
       arg_0 = sn_0
-      val_1 = features
-      arg_1 = pointerof(val_1).as(Void*)
+      pba_1 = Bridge.make_packed_array(34, features)
+      arg_1 = pba_1
       args = StaticArray[arg_0, arg_1]
       ret_var = StaticArray(UInt8, 24).new(0_u8)
       godot_ptrcall(@@mb_get_setting_with_override_and_custom_features, @pointer, args.to_unsafe.as(Void**), ret_var.to_unsafe.as(Void*))
       Bridge.unpack_variant_return_ptr(ret_var.to_unsafe.as(Void*))
     ensure
       Bridge.free_string_name(sn_0)
+      Bridge.free_godot_container(34, pba_1)
     end
     # Class-level singleton delegator for `get_setting_with_override_and_custom_features`
-    def self.get_setting_with_override_and_custom_features(name : String, features : Pointer(Void)) : Pointer(Void)
+    def self.get_setting_with_override_and_custom_features(name : String, features : Godot::PackedStringArray | ::Array(String)) : Pointer(Void)
       instance.get_setting_with_override_and_custom_features(name, features)
     end
     @@mb_set_order : Void* = Pointer(Void).null
@@ -21792,15 +21872,17 @@ module Godot
       instance.set_as_internal(name, internal)
     end
     @@mb_add_property_info : Void* = Pointer(Void).null
-    def add_property_info(hint : Pointer(Void)) : Void
+    def add_property_info(hint : Godot::Dictionary | ::Hash) : Void
       godot_bind(@@mb_add_property_info, "ProjectSettings", "add_property_info", 4155329257_i64)
-      val_0 = hint
-      arg_0 = pointerof(val_0).as(Void*)
+      dict_0 = Bridge.make_godot_dictionary(hint)
+      arg_0 = dict_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_add_property_info, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(27, dict_0)
     end
     # Class-level singleton delegator for `add_property_info`
-    def self.add_property_info(hint : Pointer(Void)) : Void
+    def self.add_property_info(hint : Godot::Dictionary | ::Hash) : Void
       instance.add_property_info(hint)
     end
     @@mb_set_restart_if_changed : Void* = Pointer(Void).null
@@ -21911,14 +21993,14 @@ module Godot
       instance.save_custom(file)
     end
     @@mb_get_changed_settings : Void* = Pointer(Void).null
-    def get_changed_settings() : Pointer(Void)
+    def get_changed_settings() : Godot::PackedStringArray
       godot_bind(@@mb_get_changed_settings, "ProjectSettings", "get_changed_settings", 1139954409_i64)
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_changed_settings, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(34, ret_buf.to_unsafe.as(Void*), Godot::PackedStringArray, destroy: true)
     end
     # Class-level singleton delegator for `get_changed_settings`
-    def self.get_changed_settings() : Pointer(Void)
+    def self.get_changed_settings() : Godot::PackedStringArray
       instance.get_changed_settings()
     end
     @@mb_check_changed_settings_in_group : Void* = Pointer(Void).null
@@ -22431,64 +22513,72 @@ module Godot
     ATTACHMENT_UNUSED = -1_i64
 
     @@mb_set_color_attachments : Void* = Pointer(Void).null
-    def set_color_attachments(p_member : Pointer(Void)) : Void
+    def set_color_attachments(p_member : Godot::PackedInt32Array | ::Array(Int32)) : Void
       godot_bind(@@mb_set_color_attachments, "RDFramebufferPass", "set_color_attachments", 3614634198_i64)
-      val_0 = p_member
-      arg_0 = pointerof(val_0).as(Void*)
+      pba_0 = Bridge.make_packed_array(30, p_member)
+      arg_0 = pba_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_color_attachments, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(30, pba_0)
     end
     @@mb_get_color_attachments : Void* = Pointer(Void).null
-    def get_color_attachments() : Pointer(Void)
+    def get_color_attachments() : Godot::PackedInt32Array
       godot_bind(@@mb_get_color_attachments, "RDFramebufferPass", "get_color_attachments", 1930428628_i64)
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_color_attachments, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(30, ret_buf.to_unsafe.as(Void*), Godot::PackedInt32Array, destroy: true)
     end
     @@mb_set_input_attachments : Void* = Pointer(Void).null
-    def set_input_attachments(p_member : Pointer(Void)) : Void
+    def set_input_attachments(p_member : Godot::PackedInt32Array | ::Array(Int32)) : Void
       godot_bind(@@mb_set_input_attachments, "RDFramebufferPass", "set_input_attachments", 3614634198_i64)
-      val_0 = p_member
-      arg_0 = pointerof(val_0).as(Void*)
+      pba_0 = Bridge.make_packed_array(30, p_member)
+      arg_0 = pba_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_input_attachments, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(30, pba_0)
     end
     @@mb_get_input_attachments : Void* = Pointer(Void).null
-    def get_input_attachments() : Pointer(Void)
+    def get_input_attachments() : Godot::PackedInt32Array
       godot_bind(@@mb_get_input_attachments, "RDFramebufferPass", "get_input_attachments", 1930428628_i64)
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_input_attachments, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(30, ret_buf.to_unsafe.as(Void*), Godot::PackedInt32Array, destroy: true)
     end
     @@mb_set_resolve_attachments : Void* = Pointer(Void).null
-    def set_resolve_attachments(p_member : Pointer(Void)) : Void
+    def set_resolve_attachments(p_member : Godot::PackedInt32Array | ::Array(Int32)) : Void
       godot_bind(@@mb_set_resolve_attachments, "RDFramebufferPass", "set_resolve_attachments", 3614634198_i64)
-      val_0 = p_member
-      arg_0 = pointerof(val_0).as(Void*)
+      pba_0 = Bridge.make_packed_array(30, p_member)
+      arg_0 = pba_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_resolve_attachments, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(30, pba_0)
     end
     @@mb_get_resolve_attachments : Void* = Pointer(Void).null
-    def get_resolve_attachments() : Pointer(Void)
+    def get_resolve_attachments() : Godot::PackedInt32Array
       godot_bind(@@mb_get_resolve_attachments, "RDFramebufferPass", "get_resolve_attachments", 1930428628_i64)
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_resolve_attachments, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(30, ret_buf.to_unsafe.as(Void*), Godot::PackedInt32Array, destroy: true)
     end
     @@mb_set_preserve_attachments : Void* = Pointer(Void).null
-    def set_preserve_attachments(p_member : Pointer(Void)) : Void
+    def set_preserve_attachments(p_member : Godot::PackedInt32Array | ::Array(Int32)) : Void
       godot_bind(@@mb_set_preserve_attachments, "RDFramebufferPass", "set_preserve_attachments", 3614634198_i64)
-      val_0 = p_member
-      arg_0 = pointerof(val_0).as(Void*)
+      pba_0 = Bridge.make_packed_array(30, p_member)
+      arg_0 = pba_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_preserve_attachments, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(30, pba_0)
     end
     @@mb_get_preserve_attachments : Void* = Pointer(Void).null
-    def get_preserve_attachments() : Pointer(Void)
+    def get_preserve_attachments() : Godot::PackedInt32Array
       godot_bind(@@mb_get_preserve_attachments, "RDFramebufferPass", "get_preserve_attachments", 1930428628_i64)
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_preserve_attachments, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(30, ret_buf.to_unsafe.as(Void*), Godot::PackedInt32Array, destroy: true)
     end
     @@mb_set_depth_attachment : Void* = Pointer(Void).null
     def set_depth_attachment(p_member : Int64) : Void
@@ -22660,19 +22750,21 @@ module Godot
       godot_ptrcall_val(@@mb_get_blend_constant, @pointer, Pointer(Pointer(Void)).null, Color)
     end
     @@mb_set_attachments : Void* = Pointer(Void).null
-    def set_attachments(attachments : Pointer(Void)) : Void
+    def set_attachments(attachments : Enumerable(Godot::RDPipelineColorBlendStateAttachment)) : Void
       godot_bind(@@mb_set_attachments, "RDPipelineColorBlendState", "set_attachments", 381264803_i64)
-      val_0 = attachments
-      arg_0 = pointerof(val_0).as(Void*)
+      arr_0 = Bridge.make_godot_array(attachments, 24, "RDPipelineColorBlendStateAttachment")
+      arg_0 = arr_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_attachments, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(28, arr_0)
     end
     @@mb_get_attachments : Void* = Pointer(Void).null
-    def get_attachments() : Pointer(Void)
+    def get_attachments() : Godot::GodotArray(Godot::RDPipelineColorBlendStateAttachment)
       godot_bind(@@mb_get_attachments, "RDPipelineColorBlendState", "get_attachments", 3995934104_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_attachments, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_attachments, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Godot::RDPipelineColorBlendStateAttachment, destroy: true)
     end
     # Property `enable_logic_op` getter
     def enable_logic_op
@@ -23542,19 +23634,21 @@ module Godot
       get_enable_alpha_to_one()
     end
     @@mb_set_sample_masks : Void* = Pointer(Void).null
-    def set_sample_masks(masks : Pointer(Void)) : Void
+    def set_sample_masks(masks : Enumerable(Int64) | Enumerable(Int32)) : Void
       godot_bind(@@mb_set_sample_masks, "RDPipelineMultisampleState", "set_sample_masks", 381264803_i64)
-      val_0 = masks
-      arg_0 = pointerof(val_0).as(Void*)
+      arr_0 = Bridge.make_godot_array(masks, 2, "")
+      arg_0 = arr_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_sample_masks, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(28, arr_0)
     end
     @@mb_get_sample_masks : Void* = Pointer(Void).null
-    def get_sample_masks() : Pointer(Void)
+    def get_sample_masks() : Godot::GodotArray(Int64)
       godot_bind(@@mb_get_sample_masks, "RDPipelineMultisampleState", "get_sample_masks", 3995934104_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_sample_masks, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_sample_masks, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Int64, destroy: true)
     end
     # Property `sample_count` getter
     def sample_count
@@ -23896,19 +23990,21 @@ module Godot
       godot_ptrcall_int(@@mb_get_shader, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_set_specialization_constants : Void* = Pointer(Void).null
-    def set_specialization_constants(specialization_constants : Pointer(Void)) : Void
+    def set_specialization_constants(specialization_constants : Enumerable(Godot::RDPipelineSpecializationConstant)) : Void
       godot_bind(@@mb_set_specialization_constants, "RDPipelineShader", "set_specialization_constants", 381264803_i64)
-      val_0 = specialization_constants
-      arg_0 = pointerof(val_0).as(Void*)
+      arr_0 = Bridge.make_godot_array(specialization_constants, 24, "RDPipelineSpecializationConstant")
+      arg_0 = arr_0
       args = StaticArray[arg_0]
       godot_ptrcall_void(@@mb_set_specialization_constants, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(28, arr_0)
     end
     @@mb_get_specialization_constants : Void* = Pointer(Void).null
-    def get_specialization_constants() : Pointer(Void)
+    def get_specialization_constants() : Godot::GodotArray(Godot::RDPipelineSpecializationConstant)
       godot_bind(@@mb_get_specialization_constants, "RDPipelineShader", "get_specialization_constants", 3995934104_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_specialization_constants, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_specialization_constants, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Godot::RDPipelineSpecializationConstant, destroy: true)
     end
     # Property `shader` getter
     def shader
@@ -24344,11 +24440,11 @@ module Godot
       Bridge.free_string_name(sn_0)
     end
     @@mb_get_version_list : Void* = Pointer(Void).null
-    def get_version_list() : Pointer(Void)
+    def get_version_list() : Godot::GodotArray(String)
       godot_bind(@@mb_get_version_list, "RDShaderFile", "get_version_list", 3995934104_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_version_list, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_version_list, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), String, destroy: true)
     end
     @@mb_set_base_error : Void* = Pointer(Void).null
     def set_base_error(error : String) : Void
@@ -24379,24 +24475,26 @@ module Godot
       super(pointer)
     end
     @@mb_set_stage_bytecode : Void* = Pointer(Void).null
-    def set_stage_bytecode(stage : Godot::RenderingDevice::ShaderStage | Int, bytecode : Pointer(Void)) : Void
+    def set_stage_bytecode(stage : Godot::RenderingDevice::ShaderStage | Int, bytecode : Godot::PackedByteArray | Bytes | ::Array(UInt8)) : Void
       godot_bind(@@mb_set_stage_bytecode, "RDShaderSPIRV", "set_stage_bytecode", 3514097977_i64)
       val_0 = stage.is_a?(Int) ? stage.to_i64 : stage.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
-      val_1 = bytecode
-      arg_1 = pointerof(val_1).as(Void*)
+      pba_1 = Bridge.make_packed_array(29, bytecode)
+      arg_1 = pba_1
       args = StaticArray[arg_0, arg_1]
       godot_ptrcall_void(@@mb_set_stage_bytecode, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(29, pba_1)
     end
     @@mb_get_stage_bytecode : Void* = Pointer(Void).null
-    def get_stage_bytecode(stage : Godot::RenderingDevice::ShaderStage | Int) : Pointer(Void)
+    def get_stage_bytecode(stage : Godot::RenderingDevice::ShaderStage | Int) : Godot::PackedByteArray
       godot_bind(@@mb_get_stage_bytecode, "RDShaderSPIRV", "get_stage_bytecode", 3816765404_i64)
       val_0 = stage.is_a?(Int) ? stage.to_i64 : stage.value.to_i64
       arg_0 = pointerof(val_0).as(Void*)
       args = StaticArray[arg_0]
       ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
       godot_ptrcall(@@mb_get_stage_bytecode, @pointer, args.to_unsafe.as(Void**), ret_buf.to_unsafe.as(Void*))
-      ret_buf[0].null? ? ret_buf[1] : ret_buf[0]
+      Bridge.unpack_packed_array(29, ret_buf.to_unsafe.as(Void*), Godot::PackedByteArray, destroy: true)
     end
     @@mb_set_stage_compile_error : Void* = Pointer(Void).null
     def set_stage_compile_error(stage : Godot::RenderingDevice::ShaderStage | Int, compile_error : String) : Void
@@ -25125,11 +25223,11 @@ module Godot
       godot_ptrcall_void(@@mb_clear_ids, @pointer, Pointer(Pointer(Void)).null)
     end
     @@mb_get_ids : Void* = Pointer(Void).null
-    def get_ids() : Pointer(Void)
+    def get_ids() : Godot::GodotArray(Godot::RID)
       godot_bind(@@mb_get_ids, "RDUniform", "get_ids", 3995934104_i64)
-      ret_ptr = Pointer(Void).null
-      godot_ptrcall(@@mb_get_ids, @pointer, Pointer(Pointer(Void)).null, pointerof(ret_ptr).as(Void*))
-      ret_ptr
+      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)
+      godot_ptrcall(@@mb_get_ids, @pointer, Pointer(Pointer(Void)).null, ret_buf.to_unsafe.as(Void*))
+      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Godot::RID, destroy: true)
     end
     # Property `uniform_type` getter
     def uniform_type
@@ -25350,12 +25448,14 @@ module Godot
       godot_ptrcall_int(@@mb_randi_range, @pointer, args.to_unsafe.as(Void**))
     end
     @@mb_rand_weighted : Void* = Pointer(Void).null
-    def rand_weighted(weights : Pointer(Void)) : Int64
+    def rand_weighted(weights : Godot::PackedFloat32Array | ::Array(Float32)) : Int64
       godot_bind(@@mb_rand_weighted, "RandomNumberGenerator", "rand_weighted", 4189642986_i64)
-      val_0 = weights
-      arg_0 = pointerof(val_0).as(Void*)
+      pba_0 = Bridge.make_packed_array(32, weights)
+      arg_0 = pba_0
       args = StaticArray[arg_0]
       godot_ptrcall_int(@@mb_rand_weighted, @pointer, args.to_unsafe.as(Void**))
+    ensure
+      Bridge.free_godot_container(32, pba_0)
     end
     @@mb_randomize : Void* = Pointer(Void).null
     def randomize() : Void

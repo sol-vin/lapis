@@ -66,17 +66,18 @@ type_map:
   RID: Int64
   Callable: Pointer(Void)
   Signal: Pointer(Void)
-  Dictionary: Pointer(Void)
-  Array: Pointer(Void)
-  PackedByteArray: Pointer(Void)
-  PackedInt32Array: Pointer(Void)
-  PackedInt64Array: Pointer(Void)
-  PackedFloat32Array: Pointer(Void)
-  PackedFloat64Array: Pointer(Void)
-  PackedStringArray: Pointer(Void)
-  PackedVector2Array: Pointer(Void)
-  PackedVector3Array: Pointer(Void)
-  PackedColorArray: Pointer(Void)
+  Dictionary: Godot::Dictionary
+  Array: Godot::GodotArray(Godot::Variant)
+  PackedByteArray: Godot::PackedByteArray
+  PackedInt32Array: Godot::PackedInt32Array
+  PackedInt64Array: Godot::PackedInt64Array
+  PackedFloat32Array: Godot::PackedFloat32Array
+  PackedFloat64Array: Godot::PackedFloat64Array
+  PackedStringArray: Godot::PackedStringArray
+  PackedVector2Array: Godot::PackedVector2Array
+  PackedVector3Array: Godot::PackedVector3Array
+  PackedColorArray: Godot::PackedColorArray
+  PackedVector4Array: Godot::PackedVector4Array
   Variant: Pointer(Void)
   Object: Godot::Object
 

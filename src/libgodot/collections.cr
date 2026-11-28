@@ -327,7 +327,15 @@ module Godot
       dup
     end
 
-    @@_kv_args_keepalive = ::Array(LibBridge::VariantArg).new
+    @@_kv_arena = VariantPackArena.new
+
+    def initialize(ptr : Void*)
+      @store = ::Hash(Variant, Variant).new
+      if !ptr.null? && Bridge.available?
+        unpacked = Bridge.unpack_godot_dictionary(ptr, destroy: false)
+        unpacked.each { |k, v| @store[k] = v }
+      end
+    end
 
     def self.from_bridge_payload(payload_ptr : Void*) : Dictionary
       d = new
@@ -347,12 +355,13 @@ module Godot
 
     def write_bridge_payload(ret_ptr : Void*) : Void
       return if ret_ptr.null?
-      @@_kv_args_keepalive.clear
+      @@_kv_arena.clear
+      kv_args = ::Array(LibBridge::VariantArg).new(@store.size * 2)
       @store.each do |k, v|
-        @@_kv_args_keepalive << k.to_arg
-        @@_kv_args_keepalive << v.to_arg
+        kv_args << Variant.value_to_arg(k, @@_kv_arena)
+        kv_args << Variant.value_to_arg(v, @@_kv_arena)
       end
-      ret_ptr.as(Void**).value = @@_kv_args_keepalive.empty? ? Pointer(Void).null : @@_kv_args_keepalive.to_unsafe.as(Void*)
+      ret_ptr.as(Void**).value = @@_kv_arena.store_args(kv_args)
       (ret_ptr.as(UInt8*) + 8).as(Int64*).value = @store.size.to_i64
     end
   end
@@ -368,15 +377,37 @@ module Godot
     @store : ::Array(T)
 
     def initialize(ptr : Void* = Pointer(Void).null)
-      @store = ::Array(T).new
+      if !ptr.null? && Bridge.available?
+        @store = Bridge.unpack_godot_array_store(ptr, T, destroy: false)
+      else
+        @store = ::Array(T).new
+      end
     end
 
     def initialize(initial_items : ::Array(T))
       @store = initial_items.dup
     end
 
-    def self.from(items : ::Array(T)) : GodotArray(T)
+    def initialize(initial_items : Enumerable(T))
+      @store = ::Array(T).new
+      initial_items.each { |item| @store << item }
+    end
+
+    def self.from(items : Enumerable(T)) : GodotArray(T)
       new(items)
+    end
+
+    def self._from_variant(v : Variant) : self
+      {% if T == Variant %}
+        v.as_a
+      {% else %}
+        raw_arr = v.as_a
+        res = ::Array(T).new(raw_arr.size.to_i32)
+        raw_arr.each do |elem|
+          res << elem.as_t(T)
+        end
+        new(res)
+      {% end %}
     end
 
     def [](index : Int32) : T
@@ -499,6 +530,14 @@ module Godot
       io << "]"
     end
 
+    def ==(other : GodotArray(T)) : Bool
+      @store == other.@store
+    end
+
+    def ==(other : ::Array(T)) : Bool
+      @store == other
+    end
+
     def self.from_bridge_payload(payload_ptr : Void*) : GodotArray(T)
       new(Bridge.array_from_bridge_payload(payload_ptr, T))
     end
@@ -515,14 +554,24 @@ module Godot
   # PackedArray Wrappers
   # ===========================================================================
 
-  macro define_packed_array(name, elem_type, default_val)
+  macro define_packed_array(name, elem_type, default_val, vtype)
     class {{name}}
       include Enumerable({{elem_type}})
+
+      VARIANT_TYPE = {{vtype}}
 
       @store : ::Array({{elem_type}})
 
       def initialize
         @store = ::Array({{elem_type}}).new
+      end
+
+      def initialize(ptr : Void*)
+        if !ptr.null? && Bridge.available?
+          @store = Bridge.unpack_packed_array({{vtype}}, ptr, {{name}}, destroy: false).to_a
+        else
+          @store = ::Array({{elem_type}}).new
+        end
       end
 
       def initialize(size : Int, initial_value : {{elem_type}} = {{default_val}})
@@ -644,6 +693,10 @@ module Godot
         @store == other.@store
       end
 
+      def ==(other : ::Array({{elem_type}})) : Bool
+        @store == other
+      end
+
       def resize(new_size : Int) : Void
         diff = new_size.to_i32 - @store.size
         if diff > 0
@@ -729,18 +782,30 @@ module Godot
     end
   end
 
-  define_packed_array(PackedByteArray, UInt8, 0_u8)
-  define_packed_array(PackedInt32Array, Int32, 0_i32)
-  define_packed_array(PackedInt64Array, Int64, 0_i64)
-  define_packed_array(PackedFloat32Array, Float32, 0.0_f32)
-  define_packed_array(PackedFloat64Array, Float64, 0.0)
-  define_packed_array(PackedStringArray, String, "")
-  define_packed_array(PackedVector2Array, Vector2, Vector2.new)
-  define_packed_array(PackedVector3Array, Vector3, Vector3.new)
-  define_packed_array(PackedColorArray, Color, Color.new)
-  define_packed_array(PackedVector4Array, Vector4, Vector4.new)
+  define_packed_array(PackedByteArray, UInt8, 0_u8, 29)
+  define_packed_array(PackedInt32Array, Int32, 0_i32, 30)
+  define_packed_array(PackedInt64Array, Int64, 0_i64, 31)
+  define_packed_array(PackedFloat32Array, Float32, 0.0_f32, 32)
+  define_packed_array(PackedFloat64Array, Float64, 0.0, 33)
+  define_packed_array(PackedStringArray, String, "", 34)
+  define_packed_array(PackedVector2Array, Vector2, Vector2.new, 35)
+  define_packed_array(PackedVector3Array, Vector3, Vector3.new, 36)
+  define_packed_array(PackedColorArray, Color, Color.new, 37)
+  define_packed_array(PackedVector4Array, Vector4, Vector4.new, 38)
 
   class PackedByteArray
+    def initialize(bytes : Bytes)
+      @store = ::Array(UInt8).new(bytes.size) { |i| bytes[i] }
+    end
+
+    def self.from(bytes : Bytes) : PackedByteArray
+      new(bytes)
+    end
+
+    def to_slice : Bytes
+      @store.empty? ? Bytes.empty : Slice(UInt8).new(@store.to_unsafe, @store.size)
+    end
+
     def append(value : Int) : self
       append(value.to_u8)
     end

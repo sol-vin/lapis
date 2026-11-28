@@ -425,6 +425,12 @@ struct BridgeAPI {
     uint8_t* (*packed_byte_array_operator_index)(GDExtensionTypePtr p_self, int64_t index);
     void (*register_frame_callback)(CrystalDeinitCallbackFn fn);
     void (*register_main_loop_shutdown_callback)(CrystalDeinitCallbackFn fn);
+    void* (*make_packed_array)(int vtype, const void *data, int64_t count);
+    void* (*make_godot_array)(const VariantArg *elems, int64_t count, int elem_vtype, const char *elem_class_name);
+    void* (*make_godot_dictionary)(const VariantArg *kv_pairs, int64_t pair_count);
+    void (*free_godot_container)(int vtype, void *container_ptr);
+    void (*unpack_godot_container)(int vtype, void *container_ptr, int destroy_after, void (*cb)(const VariantArg*, void*), void *user_data);
+    void (*object_call_ret_variant)(GDExtensionObjectPtr instance, const char *method_name, const BridgeSignalArg *args, int arg_count, void (*cb)(const VariantArg*, void*), void *user_data);
 };
 
 struct BridgeGCFunctions {

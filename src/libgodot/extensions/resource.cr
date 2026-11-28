@@ -583,19 +583,6 @@ module Godot
     end
   end
 
-  class ArrayMesh < Mesh
-    def add_surface_from_arrays(primitive : Mesh::PrimitiveType | Int, arrays : Pointer(Void)) : Void
-      add_surface_from_arrays(primitive, arrays, Pointer(Void).null, Pointer(Void).null, 0)
-    end
-  end
-
-  class ConvexPolygonShape3D < Shape3D
-    def set_points(points : PackedVector3Array) : Void
-      return if @pointer.null? || !Bridge.init_done?
-      call("set_points", points)
-    end
-  end
-
   class EditorNode3DGizmo < Node3DGizmo
     def add_mesh(mesh : Mesh?, material : Material? = nil) : Void
       add_mesh(mesh, material, Transform3D.identity, nil)

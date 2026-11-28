@@ -125,7 +125,13 @@ static BridgeAPI g_bridge_api = {
     bridge_image_copy_to_buffer,
     bridge_packed_byte_array_operator_index,
     bridge_register_frame_callback,
-    bridge_register_main_loop_shutdown_callback
+    bridge_register_main_loop_shutdown_callback,
+    bridge_make_packed_array,
+    bridge_make_godot_array,
+    bridge_make_godot_dictionary,
+    bridge_free_godot_container,
+    bridge_unpack_godot_container,
+    bridge_object_call_ret_variant
 };
 
 // ==============================================================================

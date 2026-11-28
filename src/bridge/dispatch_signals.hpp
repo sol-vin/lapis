@@ -462,6 +462,56 @@ inline void bridge_method_bind_call(GDExtensionMethodBindPtr method_bind, GDExte
  * - Segment 4: Variant buffer destruction and memory cleanup.
  */
 inline void bridge_pack_buffer_payload_to_variant(int vtype, const void *payload_ptr, void *out_var);
+inline void bridge_pack_arg_to_variant(const VariantArg &arg, void *out_var);
+
+struct VariantUnpackArena {
+    std::deque<std::string> strings;
+    std::deque<std::vector<uint8_t>> byte_bufs;
+    std::deque<std::vector<const char*>> cstr_arrays;
+    std::deque<std::vector<VariantArg>> arg_arrays;
+};
+
+inline void bridge_unpack_variant_to_arg(const void *var_ptr, VariantArg &arg, VariantUnpackArena &arena);
+
+inline void bridge_pack_signal_arg_to_variant(const BridgeSignalArg &sarg, void *out_var) {
+    int t = sarg.arg_type;
+    const void *d = sarg.data;
+    if (!d) return;
+    if (t == 1) { // bool
+        uint8_t val = *(const uint8_t*)d;
+        GDExtensionVariantFromTypeConstructorFunc conv = gd_get_variant_from_type_constructor(GDEXTENSION_VARIANT_TYPE_BOOL);
+        if (conv) conv(out_var, &val);
+    } else if (t == 2) { // int64
+        int64_t val = *(const int64_t*)d;
+        GDExtensionVariantFromTypeConstructorFunc conv = gd_get_variant_from_type_constructor(GDEXTENSION_VARIANT_TYPE_INT);
+        if (conv) conv(out_var, &val);
+    } else if (t == 3) { // double
+        double val = *(const double*)d;
+        GDExtensionVariantFromTypeConstructorFunc conv = gd_get_variant_from_type_constructor(GDEXTENSION_VARIANT_TYPE_FLOAT);
+        if (conv) conv(out_var, &val);
+    } else if (t == 4) { // string
+        void *gd_str = make_string((const char*)d);
+        if (gd_variant_from_string) gd_variant_from_string(out_var, gd_str);
+        if (gd_string_destroy) gd_string_destroy(gd_str);
+        free(gd_str);
+    } else if (t == 5) { // Vector2
+        GDExtensionVariantFromTypeConstructorFunc conv = gd_get_variant_from_type_constructor(GDEXTENSION_VARIANT_TYPE_VECTOR2);
+        if (conv) conv(out_var, (GDExtensionTypePtr)d);
+    } else if (t == 6) { // Vector3
+        GDExtensionVariantFromTypeConstructorFunc conv = gd_get_variant_from_type_constructor(GDEXTENSION_VARIANT_TYPE_VECTOR3);
+        if (conv) conv(out_var, (GDExtensionTypePtr)d);
+    } else if (t == 7) { // Object*
+        GDExtensionObjectPtr obj = *(const GDExtensionObjectPtr*)d;
+        bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_OBJECT, out_var, &obj);
+    } else if (t == 8) { // Color
+        GDExtensionVariantFromTypeConstructorFunc conv = gd_get_variant_from_type_constructor(GDEXTENSION_VARIANT_TYPE_COLOR);
+        if (conv) conv(out_var, (GDExtensionTypePtr)d);
+    } else if (t >= 29 && t <= 38) { // Packed*Array via BridgeBufferPayload
+        bridge_pack_buffer_payload_to_variant(t, d, out_var);
+    } else if (t == 99) { // Full VariantArg*
+        bridge_pack_arg_to_variant(*(const VariantArg*)d, out_var);
+    }
+}
 
 inline void bridge_call_method_vararg(GDExtensionMethodBindPtr mb, GDExtensionObjectPtr instance, const char *first_arg_name, const BridgeSignalArg *args, int arg_count) {
     // --- Segment 1: Validation & StringName Boxing ---
@@ -486,42 +536,7 @@ inline void bridge_call_method_vararg(GDExtensionMethodBindPtr mb, GDExtensionOb
     int actual_count = (args && arg_count > 0) ? ((arg_count < 16) ? arg_count : 16) : 0;
     for (int i = 0; i < actual_count; i++) {
         memset(var_args[i], 0, sizeof(var_args[i]));
-        int t = args[i].arg_type;
-        const void *d = args[i].data;
-        if (d) {
-            if (t == 1) { // bool
-                uint8_t val = *(const uint8_t*)d;
-                GDExtensionVariantFromTypeConstructorFunc conv = gd_get_variant_from_type_constructor(GDEXTENSION_VARIANT_TYPE_BOOL);
-                if (conv) conv(var_args[i], &val);
-            } else if (t == 2) { // int64
-                int64_t val = *(const int64_t*)d;
-                GDExtensionVariantFromTypeConstructorFunc conv = gd_get_variant_from_type_constructor(GDEXTENSION_VARIANT_TYPE_INT);
-                if (conv) conv(var_args[i], &val);
-            } else if (t == 3) { // double
-                double val = *(const double*)d;
-                GDExtensionVariantFromTypeConstructorFunc conv = gd_get_variant_from_type_constructor(GDEXTENSION_VARIANT_TYPE_FLOAT);
-                if (conv) conv(var_args[i], &val);
-            } else if (t == 4) { // string
-                void *gd_str = make_string((const char*)d);
-                if (gd_variant_from_string) gd_variant_from_string(var_args[i], gd_str);
-                if (gd_string_destroy) gd_string_destroy(gd_str);
-                free(gd_str);
-            } else if (t == 5) { // Vector2
-                GDExtensionVariantFromTypeConstructorFunc conv = gd_get_variant_from_type_constructor(GDEXTENSION_VARIANT_TYPE_VECTOR2);
-                if (conv) conv(var_args[i], (GDExtensionTypePtr)d);
-            } else if (t == 6) { // Vector3
-                GDExtensionVariantFromTypeConstructorFunc conv = gd_get_variant_from_type_constructor(GDEXTENSION_VARIANT_TYPE_VECTOR3);
-                if (conv) conv(var_args[i], (GDExtensionTypePtr)d);
-            } else if (t == 7) { // Object*
-                GDExtensionVariantFromTypeConstructorFunc conv = gd_get_variant_from_type_constructor(GDEXTENSION_VARIANT_TYPE_OBJECT);
-                if (conv) conv(var_args[i], (GDExtensionTypePtr)d);
-            } else if (t == 8) { // Color
-                GDExtensionVariantFromTypeConstructorFunc conv = gd_get_variant_from_type_constructor(GDEXTENSION_VARIANT_TYPE_COLOR);
-                if (conv) conv(var_args[i], (GDExtensionTypePtr)d);
-            } else if (t >= 29 && t <= 38) { // Packed*Array via BridgeBufferPayload
-                bridge_pack_buffer_payload_to_variant(t, d, var_args[i]);
-            }
-        }
+        bridge_pack_signal_arg_to_variant(args[i], var_args[i]);
         call_args[i + 1] = var_args[i];
     }
 
@@ -563,42 +578,7 @@ inline void bridge_call_method_vararg_ret(GDExtensionMethodBindPtr mb, GDExtensi
     int actual_count = (args && arg_count > 0) ? ((arg_count < 16) ? arg_count : 16) : 0;
     for (int i = 0; i < actual_count; i++) {
         memset(var_args[i], 0, sizeof(var_args[i]));
-        int t = args[i].arg_type;
-        const void *d = args[i].data;
-        if (d) {
-            if (t == 1) { // bool
-                uint8_t val = *(const uint8_t*)d;
-                GDExtensionVariantFromTypeConstructorFunc conv = gd_get_variant_from_type_constructor(GDEXTENSION_VARIANT_TYPE_BOOL);
-                if (conv) conv(var_args[i], &val);
-            } else if (t == 2) { // int64
-                int64_t val = *(const int64_t*)d;
-                GDExtensionVariantFromTypeConstructorFunc conv = gd_get_variant_from_type_constructor(GDEXTENSION_VARIANT_TYPE_INT);
-                if (conv) conv(var_args[i], &val);
-            } else if (t == 3) { // double
-                double val = *(const double*)d;
-                GDExtensionVariantFromTypeConstructorFunc conv = gd_get_variant_from_type_constructor(GDEXTENSION_VARIANT_TYPE_FLOAT);
-                if (conv) conv(var_args[i], &val);
-            } else if (t == 4) { // string
-                void *gd_str = make_string((const char*)d);
-                if (gd_variant_from_string) gd_variant_from_string(var_args[i], gd_str);
-                if (gd_string_destroy) gd_string_destroy(gd_str);
-                free(gd_str);
-            } else if (t == 5) { // Vector2
-                GDExtensionVariantFromTypeConstructorFunc conv = gd_get_variant_from_type_constructor(GDEXTENSION_VARIANT_TYPE_VECTOR2);
-                if (conv) conv(var_args[i], (GDExtensionTypePtr)d);
-            } else if (t == 6) { // Vector3
-                GDExtensionVariantFromTypeConstructorFunc conv = gd_get_variant_from_type_constructor(GDEXTENSION_VARIANT_TYPE_VECTOR3);
-                if (conv) conv(var_args[i], (GDExtensionTypePtr)d);
-            } else if (t == 7) { // Object*
-                GDExtensionVariantFromTypeConstructorFunc conv = gd_get_variant_from_type_constructor(GDEXTENSION_VARIANT_TYPE_OBJECT);
-                if (conv) conv(var_args[i], (GDExtensionTypePtr)d);
-            } else if (t == 8) { // Color
-                GDExtensionVariantFromTypeConstructorFunc conv = gd_get_variant_from_type_constructor(GDEXTENSION_VARIANT_TYPE_COLOR);
-                if (conv) conv(var_args[i], (GDExtensionTypePtr)d);
-            } else if (t >= 29 && t <= 38) { // Packed*Array via BridgeBufferPayload
-                bridge_pack_buffer_payload_to_variant(t, d, var_args[i]);
-            }
-        }
+        bridge_pack_signal_arg_to_variant(args[i], var_args[i]);
         call_args[i + 1] = var_args[i];
     }
 
@@ -2213,142 +2193,18 @@ inline void custom_callable_call(void *callable_userdata, const GDExtensionConst
     CustomSignalBinding *binding = (CustomSignalBinding*)callable_userdata;
     if (g_crystal_signal_callbacks.empty()) return;
 
-    // --- Segment 2: Argument Vector Pre-allocation ---
+    // --- Segment 2: Recursive Arena Argument Unmarshaling ---
     int count = (int)p_argument_count;
-    std::vector<std::string> str_storage;
+    VariantUnpackArena arena;
     std::vector<VariantArg> variant_args;
     if (count > 0 && p_args) {
-        variant_args.resize(count);
-        str_storage.reserve(count);
+        variant_args.resize((size_t)count);
         for (int i = 0; i < count; i++) {
-            VariantArg &arg = variant_args[i];
-            memset(&arg, 0, sizeof(VariantArg));
             if (!p_args[i]) {
-                arg.type = 0; // Nil
+                memset(&variant_args[(size_t)i], 0, sizeof(VariantArg));
                 continue;
             }
-            int vt = gd_variant_get_type ? (int)gd_variant_get_type((GDExtensionConstVariantPtr)p_args[i]) : 0;
-            arg.type = vt;
-
-            // --- Segment 3: Scalar & String Unmarshaling ---
-            switch (vt) {
-                case GDEXTENSION_VARIANT_TYPE_NIL:
-                    break;
-                case GDEXTENSION_VARIANT_TYPE_BOOL: {
-                    uint8_t b = 0;
-                    bridge_type_from_variant(GDEXTENSION_VARIANT_TYPE_BOOL, &b, p_args[i]);
-                    arg.int_val = b ? 1 : 0;
-                    arg.float_val = b ? 1.0 : 0.0;
-                    break;
-                }
-                case GDEXTENSION_VARIANT_TYPE_INT: {
-                    int64_t val = 0;
-                    bridge_type_from_variant(GDEXTENSION_VARIANT_TYPE_INT, &val, p_args[i]);
-                    arg.int_val = val;
-                    arg.float_val = (double)val;
-                    break;
-                }
-                case GDEXTENSION_VARIANT_TYPE_FLOAT: {
-                    double val = 0.0;
-                    bridge_type_from_variant(GDEXTENSION_VARIANT_TYPE_FLOAT, &val, p_args[i]);
-                    arg.float_val = val;
-                    arg.int_val = (int64_t)val;
-                    break;
-                }
-                case GDEXTENSION_VARIANT_TYPE_STRING:
-                case GDEXTENSION_VARIANT_TYPE_STRING_NAME:
-                case GDEXTENSION_VARIANT_TYPE_NODE_PATH: {
-                    if (gd_variant_stringify && gd_string_to_utf8_chars && gd_string_destroy) {
-                        void *gd_str = malloc(sizeof(void*));
-                        gd_variant_stringify((GDExtensionConstVariantPtr)p_args[i], gd_str);
-                        GDExtensionInt len = gd_string_to_utf8_chars(gd_str, nullptr, 0);
-                        std::string s(len, '\0');
-                        gd_string_to_utf8_chars(gd_str, &s[0], len);
-                        gd_string_destroy(gd_str);
-                        free(gd_str);
-                        str_storage.push_back(s);
-                        arg.ptr_val = (void*)str_storage.back().c_str();
-                    } else {
-                        str_storage.push_back("");
-                        arg.ptr_val = (void*)str_storage.back().c_str();
-                    }
-                    break;
-                }
-                // --- Segment 4: Math Vectors, Colors, and Native Object Unboxing ---
-                case GDEXTENSION_VARIANT_TYPE_VECTOR2: {
-                    struct { float x, y; } v2 = {0, 0};
-                    bridge_type_from_variant(GDEXTENSION_VARIANT_TYPE_VECTOR2, &v2, p_args[i]);
-                    arg.vec_val[0] = v2.x;
-                    arg.vec_val[1] = v2.y;
-                    break;
-                }
-                case GDEXTENSION_VARIANT_TYPE_VECTOR2I: {
-                    struct { int32_t x, y; } v2i = {0, 0};
-                    bridge_type_from_variant(GDEXTENSION_VARIANT_TYPE_VECTOR2I, &v2i, p_args[i]);
-                    arg.vec_val[0] = (float)v2i.x;
-                    arg.vec_val[1] = (float)v2i.y;
-                    arg.int_val = (int64_t)v2i.x;
-                    arg.instance_id = (uint64_t)v2i.y;
-                    break;
-                }
-                case GDEXTENSION_VARIANT_TYPE_RECT2: {
-                    struct { float x, y, w, h; } r = {0, 0, 0, 0};
-                    bridge_type_from_variant(GDEXTENSION_VARIANT_TYPE_RECT2, &r, p_args[i]);
-                    arg.vec_val[0] = r.x;
-                    arg.vec_val[1] = r.y;
-                    arg.vec_val[2] = r.w;
-                    arg.vec_val[3] = r.h;
-                    break;
-                }
-                case GDEXTENSION_VARIANT_TYPE_VECTOR3: {
-                    struct { float x, y, z; } v3 = {0, 0, 0};
-                    bridge_type_from_variant(GDEXTENSION_VARIANT_TYPE_VECTOR3, &v3, p_args[i]);
-                    arg.vec_val[0] = v3.x;
-                    arg.vec_val[1] = v3.y;
-                    arg.vec_val[2] = v3.z;
-                    break;
-                }
-                case GDEXTENSION_VARIANT_TYPE_VECTOR3I: {
-                    struct { int32_t x, y, z; } v3i = {0, 0, 0};
-                    bridge_type_from_variant(GDEXTENSION_VARIANT_TYPE_VECTOR3I, &v3i, p_args[i]);
-                    arg.vec_val[0] = (float)v3i.x;
-                    arg.vec_val[1] = (float)v3i.y;
-                    arg.vec_val[2] = (float)v3i.z;
-                    break;
-                }
-                case GDEXTENSION_VARIANT_TYPE_COLOR: {
-                    struct { float r, g, b, a; } col = {0, 0, 0, 0};
-                    bridge_type_from_variant(GDEXTENSION_VARIANT_TYPE_COLOR, &col, p_args[i]);
-                    arg.vec_val[0] = col.r;
-                    arg.vec_val[1] = col.g;
-                    arg.vec_val[2] = col.b;
-                    arg.vec_val[3] = col.a;
-                    break;
-                }
-                case GDEXTENSION_VARIANT_TYPE_OBJECT: {
-                    GDExtensionObjectPtr obj = bridge_object_from_variant(p_args[i]);
-                    arg.ptr_val = obj;
-                    arg.instance_id = obj ? bridge_object_get_instance_id(obj) : 0;
-                    break;
-                }
-                default: {
-                    if (gd_variant_stringify && gd_string_to_utf8_chars && gd_string_destroy) {
-                        void *gd_str = malloc(sizeof(void*));
-                        gd_variant_stringify((GDExtensionConstVariantPtr)p_args[i], gd_str);
-                        GDExtensionInt len = gd_string_to_utf8_chars(gd_str, nullptr, 0);
-                        std::string s(len, '\0');
-                        gd_string_to_utf8_chars(gd_str, &s[0], len);
-                        gd_string_destroy(gd_str);
-                        free(gd_str);
-                        str_storage.push_back(s);
-                        arg.ptr_val = (void*)str_storage.back().c_str();
-                    } else {
-                        str_storage.push_back("");
-                        arg.ptr_val = (void*)str_storage.back().c_str();
-                    }
-                    break;
-                }
-            }
+            bridge_unpack_variant_to_arg(p_args[i], variant_args[(size_t)i], arena);
         }
     }
 
@@ -3145,7 +3001,109 @@ inline void bridge_pack_buffer_payload_to_variant(int vtype, const void *payload
     if (dtor) dtor(p_arr);
 }
 
-inline void bridge_unpack_variant_to_arg(const void *var_ptr, VariantArg &arg, std::vector<std::string> &str_storage, std::vector<std::vector<uint8_t>> &buf_storage) {
+inline size_t bridge_pod_variant_size(int vtype) {
+    switch (vtype) {
+        case GDEXTENSION_VARIANT_TYPE_RECT2I: return 16;
+        case GDEXTENSION_VARIANT_TYPE_VECTOR3I: return 12;
+        case GDEXTENSION_VARIANT_TYPE_TRANSFORM2D: return 24;
+        case GDEXTENSION_VARIANT_TYPE_VECTOR4: return 16;
+        case GDEXTENSION_VARIANT_TYPE_VECTOR4I: return 16;
+        case GDEXTENSION_VARIANT_TYPE_PLANE: return 16;
+        case GDEXTENSION_VARIANT_TYPE_QUATERNION: return 16;
+        case GDEXTENSION_VARIANT_TYPE_AABB: return 24;
+        case GDEXTENSION_VARIANT_TYPE_BASIS: return 36;
+        case GDEXTENSION_VARIANT_TYPE_TRANSFORM3D: return 48;
+        case GDEXTENSION_VARIANT_TYPE_PROJECTION: return 64;
+        default: return 0;
+    }
+}
+
+inline void bridge_unpack_packed_string_array_buf(void *p_arr, VariantArg &arg, VariantUnpackArena &arena) {
+    arg.type = GDEXTENSION_VARIANT_TYPE_PACKED_STRING_ARRAY;
+    int64_t count = bridge_container_size(GDEXTENSION_VARIANT_TYPE_PACKED_STRING_ARRAY, p_arr);
+    arg.int_val = count;
+    if (count <= 0) {
+        arg.ptr_val = nullptr;
+        return;
+    }
+    arena.cstr_arrays.emplace_back();
+    std::vector<const char*> &c_strs = arena.cstr_arrays.back();
+    c_strs.reserve((size_t)count);
+    for (int64_t i = 0; i < count; i++) {
+        void *gd_s = bridge_packed_array_ptr(GDEXTENSION_VARIANT_TYPE_PACKED_STRING_ARRAY, p_arr, true, i);
+        if (gd_s && gd_string_to_utf8_chars) {
+            int64_t len = gd_string_to_utf8_chars((GDExtensionConstStringPtr)gd_s, nullptr, 0);
+            std::string s(len > 0 ? (size_t)len : 0, '\0');
+            if (len > 0) gd_string_to_utf8_chars((GDExtensionConstStringPtr)gd_s, &s[0], len);
+            arena.strings.push_back(std::move(s));
+        } else {
+            arena.strings.emplace_back("");
+        }
+        c_strs.push_back(arena.strings.back().c_str());
+    }
+    arg.ptr_val = (void*)c_strs.data();
+}
+
+inline void bridge_unpack_array_buf(void *arr_buf, VariantArg &arg, VariantUnpackArena &arena) {
+    arg.type = GDEXTENSION_VARIANT_TYPE_ARRAY;
+    int64_t count = bridge_container_size(GDEXTENSION_VARIANT_TYPE_ARRAY, arr_buf);
+    arg.int_val = count;
+    if (count <= 0) {
+        arg.ptr_val = nullptr;
+        return;
+    }
+    arena.arg_arrays.emplace_back((size_t)count);
+    std::vector<VariantArg> &elems = arena.arg_arrays.back();
+    for (int64_t i = 0; i < count; i++) {
+        void *elem_var = bridge_packed_array_ptr(GDEXTENSION_VARIANT_TYPE_ARRAY, arr_buf, true, i);
+        bridge_unpack_variant_to_arg(elem_var, elems[(size_t)i], arena);
+    }
+    arg.ptr_val = elems.data();
+}
+
+inline void bridge_unpack_dictionary_buf(void *dict_buf, VariantArg &arg, VariantUnpackArena &arena) {
+    arg.type = GDEXTENSION_VARIANT_TYPE_DICTIONARY;
+    arg.ptr_val = nullptr;
+    arg.int_val = 0;
+    static GDExtensionPtrBuiltInMethod s_dict_keys = nullptr;
+    static GDExtensionPtrBuiltInMethod s_dict_values = nullptr;
+    if (!s_dict_keys && gd_variant_get_ptr_builtin_method) {
+        void *sn_keys = make_string_name("keys");
+        void *sn_vals = make_string_name("values");
+        s_dict_keys = gd_variant_get_ptr_builtin_method(GDEXTENSION_VARIANT_TYPE_DICTIONARY, sn_keys, 4144163970ULL);
+        s_dict_values = gd_variant_get_ptr_builtin_method(GDEXTENSION_VARIANT_TYPE_DICTIONARY, sn_vals, 4144163970ULL);
+        free_string_name(sn_keys);
+        free_string_name(sn_vals);
+    }
+    if (!s_dict_keys || !s_dict_values) return;
+
+    alignas(void*) char keys_arr[16] = {};
+    alignas(void*) char vals_arr[16] = {};
+    s_dict_keys(dict_buf, nullptr, keys_arr, 0);
+    s_dict_values(dict_buf, nullptr, vals_arr, 0);
+    int64_t pair_count = bridge_container_size(GDEXTENSION_VARIANT_TYPE_ARRAY, keys_arr);
+    arg.int_val = pair_count;
+    if (pair_count > 0) {
+        arena.arg_arrays.emplace_back((size_t)(pair_count * 2));
+        std::vector<VariantArg> &kv_args = arena.arg_arrays.back();
+        for (int64_t i = 0; i < pair_count; i++) {
+            void *k_var = bridge_packed_array_ptr(GDEXTENSION_VARIANT_TYPE_ARRAY, keys_arr, true, i);
+            void *v_var = bridge_packed_array_ptr(GDEXTENSION_VARIANT_TYPE_ARRAY, vals_arr, true, i);
+            bridge_unpack_variant_to_arg(k_var, kv_args[(size_t)(i * 2)], arena);
+            bridge_unpack_variant_to_arg(v_var, kv_args[(size_t)(i * 2 + 1)], arena);
+        }
+        arg.ptr_val = kv_args.data();
+    }
+    if (!gd_array_destructor && gd_variant_get_ptr_destructor) {
+        gd_array_destructor = gd_variant_get_ptr_destructor(GDEXTENSION_VARIANT_TYPE_ARRAY);
+    }
+    if (gd_array_destructor) {
+        gd_array_destructor(keys_arr);
+        gd_array_destructor(vals_arr);
+    }
+}
+
+inline void bridge_unpack_variant_to_arg(const void *var_ptr, VariantArg &arg, VariantUnpackArena &arena) {
     memset(&arg, 0, sizeof(VariantArg));
     if (!var_ptr) return;
     int vt = gd_variant_get_type ? (int)gd_variant_get_type((GDExtensionConstVariantPtr)var_ptr) : 0;
@@ -3181,16 +3139,15 @@ inline void bridge_unpack_variant_to_arg(const void *var_ptr, VariantArg &arg, s
                 void *gd_str = malloc(sizeof(void*));
                 gd_variant_stringify((GDExtensionConstVariantPtr)var_ptr, gd_str);
                 GDExtensionInt len = gd_string_to_utf8_chars(gd_str, nullptr, 0);
-                std::string s(len > 0 ? len : 0, '\0');
+                std::string s(len > 0 ? (size_t)len : 0, '\0');
                 if (len > 0) gd_string_to_utf8_chars(gd_str, &s[0], len);
                 gd_string_destroy(gd_str);
                 free(gd_str);
-                str_storage.push_back(s);
-                arg.ptr_val = (void*)str_storage.back().c_str();
+                arena.strings.push_back(std::move(s));
             } else {
-                str_storage.push_back("");
-                arg.ptr_val = (void*)str_storage.back().c_str();
+                arena.strings.emplace_back("");
             }
+            arg.ptr_val = (void*)arena.strings.back().c_str();
             break;
         }
         case GDEXTENSION_VARIANT_TYPE_VECTOR2: {
@@ -3201,12 +3158,15 @@ inline void bridge_unpack_variant_to_arg(const void *var_ptr, VariantArg &arg, s
             break;
         }
         case GDEXTENSION_VARIANT_TYPE_VECTOR2I: {
-            struct { int32_t x, y; } v2i = {0, 0};
-            bridge_type_from_variant(GDEXTENSION_VARIANT_TYPE_VECTOR2I, &v2i, var_ptr);
-            arg.vec_val[0] = (float)v2i.x;
-            arg.vec_val[1] = (float)v2i.y;
-            arg.int_val = (int64_t)v2i.x;
-            arg.instance_id = (uint64_t)v2i.y;
+            std::vector<uint8_t> bytes(8, 0);
+            bridge_type_from_variant(GDEXTENSION_VARIANT_TYPE_VECTOR2I, bytes.data(), var_ptr);
+            const int32_t *v2i = (const int32_t*)bytes.data();
+            arg.vec_val[0] = (float)v2i[0];
+            arg.vec_val[1] = (float)v2i[1];
+            arg.int_val = (int64_t)v2i[0];
+            arg.instance_id = (uint64_t)(uint32_t)v2i[1];
+            arena.byte_bufs.push_back(std::move(bytes));
+            arg.ptr_val = arena.byte_bufs.back().data();
             break;
         }
         case GDEXTENSION_VARIANT_TYPE_RECT2: {
@@ -3227,11 +3187,36 @@ inline void bridge_unpack_variant_to_arg(const void *var_ptr, VariantArg &arg, s
             break;
         }
         case GDEXTENSION_VARIANT_TYPE_VECTOR3I: {
-            struct { int32_t x, y, z; } v3i = {0, 0, 0};
-            bridge_type_from_variant(GDEXTENSION_VARIANT_TYPE_VECTOR3I, &v3i, var_ptr);
-            arg.vec_val[0] = (float)v3i.x;
-            arg.vec_val[1] = (float)v3i.y;
-            arg.vec_val[2] = (float)v3i.z;
+            std::vector<uint8_t> bytes(12, 0);
+            bridge_type_from_variant(GDEXTENSION_VARIANT_TYPE_VECTOR3I, bytes.data(), var_ptr);
+            const int32_t *v3i = (const int32_t*)bytes.data();
+            arg.vec_val[0] = (float)v3i[0];
+            arg.vec_val[1] = (float)v3i[1];
+            arg.vec_val[2] = (float)v3i[2];
+            arena.byte_bufs.push_back(std::move(bytes));
+            arg.ptr_val = arena.byte_bufs.back().data();
+            arg.int_val = 12;
+            break;
+        }
+        case GDEXTENSION_VARIANT_TYPE_RECT2I:
+        case GDEXTENSION_VARIANT_TYPE_TRANSFORM2D:
+        case GDEXTENSION_VARIANT_TYPE_VECTOR4:
+        case GDEXTENSION_VARIANT_TYPE_VECTOR4I:
+        case GDEXTENSION_VARIANT_TYPE_PLANE:
+        case GDEXTENSION_VARIANT_TYPE_QUATERNION:
+        case GDEXTENSION_VARIANT_TYPE_AABB:
+        case GDEXTENSION_VARIANT_TYPE_BASIS:
+        case GDEXTENSION_VARIANT_TYPE_TRANSFORM3D:
+        case GDEXTENSION_VARIANT_TYPE_PROJECTION: {
+            size_t sz = bridge_pod_variant_size(vt);
+            std::vector<uint8_t> bytes(sz, 0);
+            bridge_type_from_variant(vt, bytes.data(), var_ptr);
+            if (sz == 16 && (vt == GDEXTENSION_VARIANT_TYPE_VECTOR4 || vt == GDEXTENSION_VARIANT_TYPE_PLANE || vt == GDEXTENSION_VARIANT_TYPE_QUATERNION)) {
+                memcpy(arg.vec_val, bytes.data(), 16);
+            }
+            arena.byte_bufs.push_back(std::move(bytes));
+            arg.ptr_val = arena.byte_bufs.back().data();
+            arg.int_val = (int64_t)sz;
             break;
         }
         case GDEXTENSION_VARIANT_TYPE_COLOR: {
@@ -3243,10 +3228,46 @@ inline void bridge_unpack_variant_to_arg(const void *var_ptr, VariantArg &arg, s
             arg.vec_val[3] = col.a;
             break;
         }
+        case GDEXTENSION_VARIANT_TYPE_RID: {
+            uint64_t rid_id = 0;
+            bridge_type_from_variant(GDEXTENSION_VARIANT_TYPE_RID, &rid_id, var_ptr);
+            arg.instance_id = rid_id;
+            arg.int_val = (int64_t)rid_id;
+            break;
+        }
         case GDEXTENSION_VARIANT_TYPE_OBJECT: {
             GDExtensionObjectPtr obj = bridge_object_from_variant(var_ptr);
             arg.ptr_val = obj;
             arg.instance_id = obj ? bridge_object_get_instance_id(obj) : 0;
+            arg.extra_flags = (obj && bridge_is_object_refcounted(obj)) ? 1 : 0;
+            break;
+        }
+        case GDEXTENSION_VARIANT_TYPE_DICTIONARY: {
+            alignas(void*) char dict_buf[16] = {};
+            bridge_type_from_variant(GDEXTENSION_VARIANT_TYPE_DICTIONARY, dict_buf, var_ptr);
+            bridge_unpack_dictionary_buf(dict_buf, arg, arena);
+            if (!gd_dict_destructor && gd_variant_get_ptr_destructor) {
+                gd_dict_destructor = gd_variant_get_ptr_destructor(GDEXTENSION_VARIANT_TYPE_DICTIONARY);
+            }
+            if (gd_dict_destructor) gd_dict_destructor(dict_buf);
+            break;
+        }
+        case GDEXTENSION_VARIANT_TYPE_ARRAY: {
+            alignas(void*) char arr_buf[16] = {};
+            bridge_type_from_variant(GDEXTENSION_VARIANT_TYPE_ARRAY, arr_buf, var_ptr);
+            bridge_unpack_array_buf(arr_buf, arg, arena);
+            if (!gd_array_destructor && gd_variant_get_ptr_destructor) {
+                gd_array_destructor = gd_variant_get_ptr_destructor(GDEXTENSION_VARIANT_TYPE_ARRAY);
+            }
+            if (gd_array_destructor) gd_array_destructor(arr_buf);
+            break;
+        }
+        case GDEXTENSION_VARIANT_TYPE_PACKED_STRING_ARRAY: {
+            alignas(void*) char p_arr[16] = {};
+            bridge_type_from_variant(GDEXTENSION_VARIANT_TYPE_PACKED_STRING_ARRAY, p_arr, var_ptr);
+            bridge_unpack_packed_string_array_buf(p_arr, arg, arena);
+            GDExtensionPtrDestructor dtor = gd_variant_get_ptr_destructor ? gd_variant_get_ptr_destructor(GDEXTENSION_VARIANT_TYPE_PACKED_STRING_ARRAY) : nullptr;
+            if (dtor) dtor(p_arr);
             break;
         }
         default: {
@@ -3259,8 +3280,8 @@ inline void bridge_unpack_variant_to_arg(const void *var_ptr, VariantArg &arg, s
                 if (ptr && cnt > 0 && elem_sz > 0) {
                     std::vector<uint8_t> bytes((size_t)cnt * elem_sz);
                     memcpy(bytes.data(), ptr, bytes.size());
-                    buf_storage.push_back(std::move(bytes));
-                    arg.ptr_val = buf_storage.back().data();
+                    arena.byte_bufs.push_back(std::move(bytes));
+                    arg.ptr_val = arena.byte_bufs.back().data();
                     arg.int_val = cnt;
                 } else {
                     arg.ptr_val = nullptr;
@@ -3268,11 +3289,26 @@ inline void bridge_unpack_variant_to_arg(const void *var_ptr, VariantArg &arg, s
                 }
                 GDExtensionPtrDestructor dtor = gd_variant_get_ptr_destructor ? gd_variant_get_ptr_destructor((GDExtensionVariantType)vt) : nullptr;
                 if (dtor) dtor(p_arr);
+            } else if (gd_variant_stringify && gd_string_to_utf8_chars && gd_string_destroy) {
+                void *gd_str = malloc(sizeof(void*));
+                gd_variant_stringify((GDExtensionConstVariantPtr)var_ptr, gd_str);
+                GDExtensionInt len = gd_string_to_utf8_chars(gd_str, nullptr, 0);
+                std::string s(len > 0 ? (size_t)len : 0, '\0');
+                if (len > 0) gd_string_to_utf8_chars(gd_str, &s[0], len);
+                gd_string_destroy(gd_str);
+                free(gd_str);
+                arena.strings.push_back(std::move(s));
+                arg.ptr_val = (void*)arena.strings.back().c_str();
             }
             break;
         }
     }
 }
+
+inline void* bridge_make_packed_array(int vtype, const void *data, int64_t count);
+inline void* bridge_make_godot_array(const VariantArg *elems, int64_t count, int elem_vtype, const char *elem_class_name);
+inline void* bridge_make_godot_dictionary(const VariantArg *kv_pairs, int64_t pair_count);
+inline void bridge_free_godot_container(int vtype, void *container_ptr);
 
 inline void bridge_pack_arg_to_variant(const VariantArg &arg, void *out_var) {
     memset(out_var, 0, GD_VARIANT_SIZE);
@@ -3295,11 +3331,23 @@ inline void bridge_pack_arg_to_variant(const VariantArg &arg, void *out_var) {
             bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_FLOAT, out_var, &v);
             break;
         }
-        case GDEXTENSION_VARIANT_TYPE_STRING:
-        case GDEXTENSION_VARIANT_TYPE_STRING_NAME:
-        case GDEXTENSION_VARIANT_TYPE_NODE_PATH: {
+        case GDEXTENSION_VARIANT_TYPE_STRING: {
             const char *s = arg.ptr_val ? (const char*)arg.ptr_val : "";
             bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_STRING, out_var, &s);
+            break;
+        }
+        case GDEXTENSION_VARIANT_TYPE_STRING_NAME: {
+            const char *s = arg.ptr_val ? (const char*)arg.ptr_val : "";
+            void *sn = make_string_name(s);
+            bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_STRING_NAME, out_var, sn);
+            free_string_name(sn);
+            break;
+        }
+        case GDEXTENSION_VARIANT_TYPE_NODE_PATH: {
+            const char *s = arg.ptr_val ? (const char*)arg.ptr_val : "";
+            void *np = make_nodepath(s);
+            bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_NODE_PATH, out_var, np);
+            free_nodepath(np);
             break;
         }
         case GDEXTENSION_VARIANT_TYPE_VECTOR2: {
@@ -3308,8 +3356,15 @@ inline void bridge_pack_arg_to_variant(const VariantArg &arg, void *out_var) {
             break;
         }
         case GDEXTENSION_VARIANT_TYPE_VECTOR2I: {
-            int32_t v[2] = { (int32_t)arg.vec_val[0], (int32_t)arg.vec_val[1] };
-            bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_VECTOR2I, out_var, v);
+            if (arg.ptr_val) {
+                bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_VECTOR2I, out_var, arg.ptr_val);
+            } else {
+                int32_t v[2] = {
+                    (arg.int_val != 0 || arg.instance_id != 0) ? (int32_t)arg.int_val : (int32_t)arg.vec_val[0],
+                    (arg.int_val != 0 || arg.instance_id != 0) ? (int32_t)(uint32_t)arg.instance_id : (int32_t)arg.vec_val[1]
+                };
+                bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_VECTOR2I, out_var, v);
+            }
             break;
         }
         case GDEXTENSION_VARIANT_TYPE_RECT2: {
@@ -3323,13 +3378,39 @@ inline void bridge_pack_arg_to_variant(const VariantArg &arg, void *out_var) {
             break;
         }
         case GDEXTENSION_VARIANT_TYPE_VECTOR3I: {
-            int32_t v[3] = { (int32_t)arg.vec_val[0], (int32_t)arg.vec_val[1], (int32_t)arg.vec_val[2] };
-            bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_VECTOR3I, out_var, v);
+            if (arg.ptr_val) {
+                bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_VECTOR3I, out_var, arg.ptr_val);
+            } else {
+                int32_t v[3] = { (int32_t)arg.vec_val[0], (int32_t)arg.vec_val[1], (int32_t)arg.vec_val[2] };
+                bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_VECTOR3I, out_var, v);
+            }
+            break;
+        }
+        case GDEXTENSION_VARIANT_TYPE_RECT2I:
+        case GDEXTENSION_VARIANT_TYPE_TRANSFORM2D:
+        case GDEXTENSION_VARIANT_TYPE_VECTOR4:
+        case GDEXTENSION_VARIANT_TYPE_VECTOR4I:
+        case GDEXTENSION_VARIANT_TYPE_PLANE:
+        case GDEXTENSION_VARIANT_TYPE_QUATERNION:
+        case GDEXTENSION_VARIANT_TYPE_AABB:
+        case GDEXTENSION_VARIANT_TYPE_BASIS:
+        case GDEXTENSION_VARIANT_TYPE_TRANSFORM3D:
+        case GDEXTENSION_VARIANT_TYPE_PROJECTION: {
+            if (arg.ptr_val) {
+                bridge_variant_from_type(arg.type, out_var, arg.ptr_val);
+            } else if (arg.type == GDEXTENSION_VARIANT_TYPE_VECTOR4 || arg.type == GDEXTENSION_VARIANT_TYPE_PLANE || arg.type == GDEXTENSION_VARIANT_TYPE_QUATERNION) {
+                bridge_variant_from_type(arg.type, out_var, arg.vec_val);
+            }
             break;
         }
         case GDEXTENSION_VARIANT_TYPE_COLOR: {
             float v[4] = { arg.vec_val[0], arg.vec_val[1], arg.vec_val[2], arg.vec_val[3] };
             bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_COLOR, out_var, v);
+            break;
+        }
+        case GDEXTENSION_VARIANT_TYPE_RID: {
+            uint64_t rid_val = arg.instance_id != 0 ? arg.instance_id : (uint64_t)arg.int_val;
+            bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_RID, out_var, &rid_val);
             break;
         }
         case GDEXTENSION_VARIANT_TYPE_OBJECT: {
@@ -3338,6 +3419,18 @@ inline void bridge_pack_arg_to_variant(const VariantArg &arg, void *out_var) {
                 obj = nullptr;
             }
             bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_OBJECT, out_var, &obj);
+            break;
+        }
+        case GDEXTENSION_VARIANT_TYPE_DICTIONARY: {
+            void *dict_ptr = bridge_make_godot_dictionary((const VariantArg*)arg.ptr_val, arg.int_val);
+            bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_DICTIONARY, out_var, dict_ptr);
+            bridge_free_godot_container(GDEXTENSION_VARIANT_TYPE_DICTIONARY, dict_ptr);
+            break;
+        }
+        case GDEXTENSION_VARIANT_TYPE_ARRAY: {
+            void *arr_ptr = bridge_make_godot_array((const VariantArg*)arg.ptr_val, arg.int_val, 0, nullptr);
+            bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_ARRAY, out_var, arr_ptr);
+            bridge_free_godot_container(GDEXTENSION_VARIANT_TYPE_ARRAY, arr_ptr);
             break;
         }
         default: {
@@ -3357,7 +3450,6 @@ inline void bridge_set_collection_property(const CrystalClassDesc *desc, void *c
     int actual_vt = gd_variant_get_type ? (int)gd_variant_get_type(p_value) : 0;
 
     if (vtype >= 29 && vtype <= 38 && vtype != 34) {
-        // Contiguous POD Packed*Array
         BridgeBufferPayload payload = { nullptr, 0 };
         alignas(void*) char p_arr[16] = {};
         if (actual_vt == vtype) {
@@ -3377,27 +3469,13 @@ inline void bridge_set_collection_property(const CrystalClassDesc *desc, void *c
 
     if (vtype == GDEXTENSION_VARIANT_TYPE_PACKED_STRING_ARRAY) {
         alignas(void*) char p_arr[16] = {};
-        std::vector<std::string> strs;
-        std::vector<const char*> c_strs;
+        VariantUnpackArena arena;
+        VariantArg root_arg = {};
         if (actual_vt == vtype) {
             bridge_type_from_variant(vtype, p_arr, p_value);
-            int64_t count = bridge_container_size(vtype, p_arr);
-            strs.reserve((size_t)count);
-            c_strs.reserve((size_t)count);
-            for (int64_t i = 0; i < count; i++) {
-                void *gd_s = bridge_packed_array_ptr(vtype, p_arr, true, i);
-                if (gd_s && gd_string_to_utf8_chars) {
-                    int64_t len = gd_string_to_utf8_chars((GDExtensionConstStringPtr)gd_s, nullptr, 0);
-                    std::string s(len > 0 ? len : 0, '\0');
-                    if (len > 0) gd_string_to_utf8_chars((GDExtensionConstStringPtr)gd_s, &s[0], len);
-                    strs.push_back(std::move(s));
-                } else {
-                    strs.push_back("");
-                }
-            }
-            for (const auto &s : strs) c_strs.push_back(s.c_str());
+            bridge_unpack_packed_string_array_buf(p_arr, root_arg, arena);
         }
-        BridgeBufferPayload payload = { c_strs.empty() ? nullptr : (void*)c_strs.data(), (int64_t)c_strs.size() };
+        BridgeBufferPayload payload = { root_arg.ptr_val, root_arg.int_val };
         desc->set_property(crystal_instance, prop_name, &payload);
         if (actual_vt == vtype) {
             GDExtensionPtrDestructor dtor = gd_variant_get_ptr_destructor ? gd_variant_get_ptr_destructor((GDExtensionVariantType)vtype) : nullptr;
@@ -3408,22 +3486,13 @@ inline void bridge_set_collection_property(const CrystalClassDesc *desc, void *c
 
     if (vtype == GDEXTENSION_VARIANT_TYPE_ARRAY) {
         alignas(void*) char arr_buf[16] = {};
-        std::vector<std::string> str_storage;
-        std::vector<std::vector<uint8_t>> buf_storage;
-        std::vector<VariantArg> elem_args;
+        VariantUnpackArena arena;
+        VariantArg root_arg = {};
         if (actual_vt == GDEXTENSION_VARIANT_TYPE_ARRAY) {
             bridge_type_from_variant(GDEXTENSION_VARIANT_TYPE_ARRAY, arr_buf, p_value);
-            int64_t count = bridge_container_size(GDEXTENSION_VARIANT_TYPE_ARRAY, arr_buf);
-            if (count > 0) {
-                elem_args.resize((size_t)count);
-                str_storage.reserve((size_t)count);
-                for (int64_t i = 0; i < count; i++) {
-                    void *elem_var = bridge_packed_array_ptr(GDEXTENSION_VARIANT_TYPE_ARRAY, arr_buf, true, i);
-                    bridge_unpack_variant_to_arg(elem_var, elem_args[(size_t)i], str_storage, buf_storage);
-                }
-            }
+            bridge_unpack_array_buf(arr_buf, root_arg, arena);
         }
-        BridgeBufferPayload payload = { elem_args.empty() ? nullptr : elem_args.data(), (int64_t)elem_args.size() };
+        BridgeBufferPayload payload = { root_arg.ptr_val, root_arg.int_val };
         desc->set_property(crystal_instance, prop_name, &payload);
         if (actual_vt == GDEXTENSION_VARIANT_TYPE_ARRAY) {
             if (!gd_array_destructor && gd_variant_get_ptr_destructor) {
@@ -3436,48 +3505,13 @@ inline void bridge_set_collection_property(const CrystalClassDesc *desc, void *c
 
     if (vtype == GDEXTENSION_VARIANT_TYPE_DICTIONARY) {
         alignas(void*) char dict_buf[16] = {};
-        std::vector<std::string> str_storage;
-        std::vector<std::vector<uint8_t>> buf_storage;
-        std::vector<VariantArg> kv_args;
-        int64_t pair_count = 0;
+        VariantUnpackArena arena;
+        VariantArg root_arg = {};
         if (actual_vt == GDEXTENSION_VARIANT_TYPE_DICTIONARY) {
             bridge_type_from_variant(GDEXTENSION_VARIANT_TYPE_DICTIONARY, dict_buf, p_value);
-            static GDExtensionPtrBuiltInMethod s_dict_keys = nullptr;
-            static GDExtensionPtrBuiltInMethod s_dict_values = nullptr;
-            if (!s_dict_keys && gd_variant_get_ptr_builtin_method) {
-                void *sn_keys = make_string_name("keys");
-                void *sn_vals = make_string_name("values");
-                s_dict_keys = gd_variant_get_ptr_builtin_method(GDEXTENSION_VARIANT_TYPE_DICTIONARY, sn_keys, 4144163970ULL);
-                s_dict_values = gd_variant_get_ptr_builtin_method(GDEXTENSION_VARIANT_TYPE_DICTIONARY, sn_vals, 4144163970ULL);
-                free_string_name(sn_keys);
-                free_string_name(sn_vals);
-            }
-            if (s_dict_keys && s_dict_values) {
-                alignas(void*) char keys_arr[16] = {};
-                alignas(void*) char vals_arr[16] = {};
-                s_dict_keys(dict_buf, nullptr, keys_arr, 0);
-                s_dict_values(dict_buf, nullptr, vals_arr, 0);
-                pair_count = bridge_container_size(GDEXTENSION_VARIANT_TYPE_ARRAY, keys_arr);
-                if (pair_count > 0) {
-                    kv_args.resize((size_t)(pair_count * 2));
-                    str_storage.reserve((size_t)(pair_count * 2));
-                    for (int64_t i = 0; i < pair_count; i++) {
-                        void *k_var = bridge_packed_array_ptr(GDEXTENSION_VARIANT_TYPE_ARRAY, keys_arr, true, i);
-                        void *v_var = bridge_packed_array_ptr(GDEXTENSION_VARIANT_TYPE_ARRAY, vals_arr, true, i);
-                        bridge_unpack_variant_to_arg(k_var, kv_args[(size_t)(i * 2)], str_storage, buf_storage);
-                        bridge_unpack_variant_to_arg(v_var, kv_args[(size_t)(i * 2 + 1)], str_storage, buf_storage);
-                    }
-                }
-                if (!gd_array_destructor && gd_variant_get_ptr_destructor) {
-                    gd_array_destructor = gd_variant_get_ptr_destructor(GDEXTENSION_VARIANT_TYPE_ARRAY);
-                }
-                if (gd_array_destructor) {
-                    gd_array_destructor(keys_arr);
-                    gd_array_destructor(vals_arr);
-                }
-            }
+            bridge_unpack_dictionary_buf(dict_buf, root_arg, arena);
         }
-        BridgeBufferPayload payload = { kv_args.empty() ? nullptr : kv_args.data(), pair_count };
+        BridgeBufferPayload payload = { root_arg.ptr_val, root_arg.int_val };
         desc->set_property(crystal_instance, prop_name, &payload);
         if (actual_vt == GDEXTENSION_VARIANT_TYPE_DICTIONARY) {
             if (!gd_dict_destructor && gd_variant_get_ptr_destructor) {
@@ -3500,64 +3534,203 @@ inline void bridge_get_collection_property(const CrystalClassDesc *desc, void *c
     }
 
     if (vtype == GDEXTENSION_VARIANT_TYPE_ARRAY) {
-        if (!gd_array_constructor && gd_variant_get_ptr_constructor) {
-            gd_array_constructor = gd_variant_get_ptr_constructor(GDEXTENSION_VARIANT_TYPE_ARRAY, 0);
-        }
-        if (!gd_array_push_back && gd_variant_get_ptr_builtin_method) {
-            void *sn_pb = make_string_name("push_back");
-            gd_array_push_back = gd_variant_get_ptr_builtin_method(GDEXTENSION_VARIANT_TYPE_ARRAY, sn_pb, 3316032543ULL);
-            free_string_name(sn_pb);
-        }
-        if (!gd_array_destructor && gd_variant_get_ptr_destructor) {
-            gd_array_destructor = gd_variant_get_ptr_destructor(GDEXTENSION_VARIANT_TYPE_ARRAY);
-        }
-        alignas(void*) char arr_buf[16] = {};
-        if (gd_array_constructor) gd_array_constructor(arr_buf, nullptr);
-        if (gd_array_push_back && payload.data && payload.count > 0) {
-            const VariantArg *elems = (const VariantArg*)payload.data;
-            for (int64_t i = 0; i < payload.count; i++) {
-                alignas(void*) char elem_var[GD_VARIANT_SIZE] = {};
-                bridge_pack_arg_to_variant(elems[i], elem_var);
-                const GDExtensionConstTypePtr pb_args[1] = { elem_var };
-                alignas(void*) uint8_t pb_ret = 0;
-                gd_array_push_back(arr_buf, pb_args, &pb_ret, 1);
-                if (gd_variant_destroy) gd_variant_destroy(elem_var);
-            }
-        }
-        bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_ARRAY, r_ret, arr_buf);
-        if (gd_array_destructor) gd_array_destructor(arr_buf);
+        void *arr_ptr = bridge_make_godot_array((const VariantArg*)payload.data, payload.count, 0, nullptr);
+        bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_ARRAY, r_ret, arr_ptr);
+        bridge_free_godot_container(GDEXTENSION_VARIANT_TYPE_ARRAY, arr_ptr);
         return;
     }
 
     if (vtype == GDEXTENSION_VARIANT_TYPE_DICTIONARY) {
-        if (!gd_dictionary_constructor && gd_variant_get_ptr_constructor) {
-            gd_dictionary_constructor = gd_variant_get_ptr_constructor(GDEXTENSION_VARIANT_TYPE_DICTIONARY, 0);
+        void *dict_ptr = bridge_make_godot_dictionary((const VariantArg*)payload.data, payload.count);
+        bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_DICTIONARY, r_ret, dict_ptr);
+        bridge_free_godot_container(GDEXTENSION_VARIANT_TYPE_DICTIONARY, dict_ptr);
+        return;
+    }
+}
+
+// ==============================================================================
+// Native Collection & Variant Ptrcall Marshaling (Issue #10)
+// ==============================================================================
+
+inline void* bridge_make_packed_array(int vtype, const void *data, int64_t count) {
+    if (vtype < 29 || vtype > 38) return nullptr;
+    GDExtensionPtrConstructor ctor = gd_variant_get_ptr_constructor ? gd_variant_get_ptr_constructor((GDExtensionVariantType)vtype, 0) : nullptr;
+    void *p_arr = malloc(16);
+    memset(p_arr, 0, 16);
+    if (ctor) ctor(p_arr, nullptr);
+    if (vtype == GDEXTENSION_VARIANT_TYPE_PACKED_STRING_ARRAY) {
+        if (data && count > 0) {
+            bridge_ret_packed_string_array(p_arr, (const char**)data, (int)count);
         }
-        if (!gd_dict_keyed_setter && gd_variant_get_ptr_keyed_setter) {
-            gd_dict_keyed_setter = gd_variant_get_ptr_keyed_setter(GDEXTENSION_VARIANT_TYPE_DICTIONARY);
+    } else {
+        size_t elem_sz = bridge_packed_elem_size(vtype);
+        if (data && count > 0 && elem_sz > 0) {
+            bridge_container_resize(vtype, p_arr, count);
+            void *dst = bridge_packed_array_ptr(vtype, p_arr, false, 0);
+            if (dst) memcpy(dst, data, (size_t)count * elem_sz);
         }
-        if (!gd_dict_destructor && gd_variant_get_ptr_destructor) {
-            gd_dict_destructor = gd_variant_get_ptr_destructor(GDEXTENSION_VARIANT_TYPE_DICTIONARY);
+    }
+    return p_arr;
+}
+
+inline void* bridge_make_godot_array(const VariantArg *elems, int64_t count, int elem_vtype, const char *elem_class_name) {
+    if (!gd_array_constructor && gd_variant_get_ptr_constructor) {
+        gd_array_constructor = gd_variant_get_ptr_constructor(GDEXTENSION_VARIANT_TYPE_ARRAY, 0);
+    }
+    if (!gd_array_push_back && gd_variant_get_ptr_builtin_method) {
+        void *sn_pb = make_string_name("push_back");
+        gd_array_push_back = gd_variant_get_ptr_builtin_method(GDEXTENSION_VARIANT_TYPE_ARRAY, sn_pb, 3316032543ULL);
+        free_string_name(sn_pb);
+    }
+    if (!gd_array_set_typed && gd_get_proc_address) {
+        gd_array_set_typed = (GDExtensionInterfaceArraySetTyped)gd_get_proc_address("array_set_typed");
+    }
+
+    void *arr_buf = malloc(16);
+    memset(arr_buf, 0, 16);
+    if (gd_array_constructor) {
+        gd_array_constructor(arr_buf, nullptr);
+    }
+
+    if (elem_vtype > 0 && gd_array_set_typed) {
+        const char *cls_str = (elem_vtype == GDEXTENSION_VARIANT_TYPE_OBJECT && elem_class_name) ? elem_class_name : "";
+        void *sn_cls = make_string_name(cls_str);
+        alignas(void*) char nil_script[GD_VARIANT_SIZE] = {};
+        if (gd_variant_new_nil) {
+            gd_variant_new_nil(nil_script);
         }
-        alignas(void*) char dict_buf[16] = {};
-        if (gd_dictionary_constructor) gd_dictionary_constructor(dict_buf, nullptr);
-        if (gd_dict_keyed_setter && payload.data && payload.count > 0) {
-            const VariantArg *kv = (const VariantArg*)payload.data;
-            for (int64_t i = 0; i < payload.count; i++) {
-                alignas(void*) char k_var[GD_VARIANT_SIZE] = {};
-                alignas(void*) char v_var[GD_VARIANT_SIZE] = {};
-                bridge_pack_arg_to_variant(kv[i * 2], k_var);
-                bridge_pack_arg_to_variant(kv[i * 2 + 1], v_var);
-                gd_dict_keyed_setter(dict_buf, k_var, v_var);
-                if (gd_variant_destroy) {
-                    gd_variant_destroy(k_var);
-                    gd_variant_destroy(v_var);
-                }
+        gd_array_set_typed(arr_buf, (GDExtensionVariantType)elem_vtype, sn_cls, nil_script);
+        if (gd_variant_destroy) {
+            gd_variant_destroy(nil_script);
+        }
+        free_string_name(sn_cls);
+    }
+
+    if (gd_array_push_back && elems && count > 0) {
+        for (int64_t i = 0; i < count; i++) {
+            alignas(void*) char elem_var[GD_VARIANT_SIZE] = {};
+            bridge_pack_arg_to_variant(elems[i], elem_var);
+            const GDExtensionConstTypePtr pb_args[1] = { elem_var };
+            alignas(void*) uint8_t pb_ret = 0;
+            gd_array_push_back(arr_buf, pb_args, &pb_ret, 1);
+            if (gd_variant_destroy) {
+                gd_variant_destroy(elem_var);
             }
         }
-        bridge_variant_from_type(GDEXTENSION_VARIANT_TYPE_DICTIONARY, r_ret, dict_buf);
-        if (gd_dict_destructor) gd_dict_destructor(dict_buf);
+    }
+    return arr_buf;
+}
+
+inline void* bridge_make_godot_dictionary(const VariantArg *kv_pairs, int64_t pair_count) {
+    if (!gd_dictionary_constructor && gd_variant_get_ptr_constructor) {
+        gd_dictionary_constructor = gd_variant_get_ptr_constructor(GDEXTENSION_VARIANT_TYPE_DICTIONARY, 0);
+    }
+    if (!gd_dict_keyed_setter && gd_variant_get_ptr_keyed_setter) {
+        gd_dict_keyed_setter = gd_variant_get_ptr_keyed_setter(GDEXTENSION_VARIANT_TYPE_DICTIONARY);
+    }
+
+    void *dict_buf = malloc(16);
+    memset(dict_buf, 0, 16);
+    if (gd_dictionary_constructor) {
+        gd_dictionary_constructor(dict_buf, nullptr);
+    }
+
+    if (gd_dict_keyed_setter && kv_pairs && pair_count > 0) {
+        for (int64_t i = 0; i < pair_count; i++) {
+            alignas(void*) char k_var[GD_VARIANT_SIZE] = {};
+            alignas(void*) char v_var[GD_VARIANT_SIZE] = {};
+            bridge_pack_arg_to_variant(kv_pairs[i * 2], k_var);
+            bridge_pack_arg_to_variant(kv_pairs[i * 2 + 1], v_var);
+            gd_dict_keyed_setter(dict_buf, k_var, v_var);
+            if (gd_variant_destroy) {
+                gd_variant_destroy(k_var);
+                gd_variant_destroy(v_var);
+            }
+        }
+    }
+    return dict_buf;
+}
+
+inline void bridge_free_godot_container(int vtype, void *container_ptr) {
+    if (!container_ptr) return;
+    if (vtype >= 27 && vtype <= 38) {
+        GDExtensionPtrDestructor dtor = gd_variant_get_ptr_destructor ? gd_variant_get_ptr_destructor((GDExtensionVariantType)vtype) : nullptr;
+        if (dtor) dtor(container_ptr);
+    }
+    free(container_ptr);
+}
+
+inline void bridge_unpack_godot_container(
+    int vtype,
+    void *container_ptr,
+    int destroy_after,
+    void (*cb)(const VariantArg*, void*),
+    void *user_data
+) {
+    VariantUnpackArena arena;
+    VariantArg root_arg;
+    memset(&root_arg, 0, sizeof(VariantArg));
+
+    if (container_ptr && cb) {
+        if (vtype == 0) {
+            bridge_unpack_variant_to_arg(container_ptr, root_arg, arena);
+        } else if (vtype >= 29 && vtype <= 38 && vtype != 34) {
+            root_arg.type = vtype;
+            int64_t cnt = bridge_container_size(vtype, container_ptr);
+            root_arg.int_val = cnt;
+            root_arg.ptr_val = cnt > 0 ? bridge_packed_array_ptr(vtype, container_ptr, true, 0) : nullptr;
+        } else if (vtype == GDEXTENSION_VARIANT_TYPE_PACKED_STRING_ARRAY) {
+            bridge_unpack_packed_string_array_buf(container_ptr, root_arg, arena);
+        } else if (vtype == GDEXTENSION_VARIANT_TYPE_ARRAY) {
+            bridge_unpack_array_buf(container_ptr, root_arg, arena);
+        } else if (vtype == GDEXTENSION_VARIANT_TYPE_DICTIONARY) {
+            bridge_unpack_dictionary_buf(container_ptr, root_arg, arena);
+        }
+        cb(&root_arg, user_data);
+    }
+
+    if (destroy_after && container_ptr) {
+        if (vtype == 0) {
+            if (gd_variant_destroy) gd_variant_destroy((GDExtensionVariantPtr)container_ptr);
+        } else if (vtype >= 27 && vtype <= 38) {
+            GDExtensionPtrDestructor dtor = gd_variant_get_ptr_destructor ? gd_variant_get_ptr_destructor((GDExtensionVariantType)vtype) : nullptr;
+            if (dtor) dtor(container_ptr);
+        }
+    }
+}
+
+inline void bridge_object_call_ret_variant(
+    GDExtensionObjectPtr instance,
+    const char *method_name,
+    const BridgeSignalArg *args,
+    int arg_count,
+    void (*cb)(const VariantArg*, void*),
+    void *user_data
+) {
+    VariantUnpackArena arena;
+    VariantArg root_arg;
+    memset(&root_arg, 0, sizeof(VariantArg));
+
+    if (!instance || !bridge_is_object_valid(instance) || !method_name || !gd_classdb_get_method_bind || !gd_object_method_bind_call) {
+        if (cb) cb(&root_arg, user_data);
         return;
+    }
+    if (!mb_object_call) {
+        mb_object_call = bridge_get_method_bind("Object", "call", 3400424181ULL);
+    }
+    if (!mb_object_call) {
+        if (cb) cb(&root_arg, user_data);
+        return;
+    }
+
+    alignas(void*) char var_ret[GD_VARIANT_SIZE] = {0};
+    bridge_call_method_vararg_ret(mb_object_call, instance, method_name, args, arg_count, var_ret);
+    if (cb) {
+        bridge_unpack_variant_to_arg(var_ret, root_arg, arena);
+        cb(&root_arg, user_data);
+    }
+    if (gd_variant_destroy) {
+        gd_variant_destroy(var_ret);
     }
 }
 

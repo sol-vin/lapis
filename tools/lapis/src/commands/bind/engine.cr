@@ -56,13 +56,78 @@ module Lapis
           keywords[clean]? || clean
         end
 
+        PACKED_ARRAY_TYPES = {
+          "PackedByteArray"    => {vtype: 29, ret_type: "Godot::PackedByteArray", param_type: "Godot::PackedByteArray | Bytes | ::Array(UInt8)"},
+          "PackedInt32Array"   => {vtype: 30, ret_type: "Godot::PackedInt32Array", param_type: "Godot::PackedInt32Array | ::Array(Int32)"},
+          "PackedInt64Array"   => {vtype: 31, ret_type: "Godot::PackedInt64Array", param_type: "Godot::PackedInt64Array | ::Array(Int64)"},
+          "PackedFloat32Array" => {vtype: 32, ret_type: "Godot::PackedFloat32Array", param_type: "Godot::PackedFloat32Array | ::Array(Float32)"},
+          "PackedFloat64Array" => {vtype: 33, ret_type: "Godot::PackedFloat64Array", param_type: "Godot::PackedFloat64Array | ::Array(Float64)"},
+          "PackedStringArray"  => {vtype: 34, ret_type: "Godot::PackedStringArray", param_type: "Godot::PackedStringArray | ::Array(String)"},
+          "PackedVector2Array" => {vtype: 35, ret_type: "Godot::PackedVector2Array", param_type: "Godot::PackedVector2Array | ::Array(Godot::Vector2)"},
+          "PackedVector3Array" => {vtype: 36, ret_type: "Godot::PackedVector3Array", param_type: "Godot::PackedVector3Array | ::Array(Godot::Vector3)"},
+          "PackedColorArray"   => {vtype: 37, ret_type: "Godot::PackedColorArray", param_type: "Godot::PackedColorArray | ::Array(Godot::Color)"},
+          "PackedVector4Array" => {vtype: 38, ret_type: "Godot::PackedVector4Array", param_type: "Godot::PackedVector4Array | ::Array(Godot::Vector4)"},
+        }
+
+        private def self.resolve_typed_array_info(godot_type : String) : NamedTuple(elem_crystal: String, param_crystal: String, elem_vtype: Int32, elem_class: String)
+          raw = godot_type.lchop("typedarray::").sub(/^\d+\/\d+:/, "")
+          case raw
+          when "bool"               then {elem_crystal: "Bool", param_crystal: "Enumerable(Bool)", elem_vtype: 1, elem_class: ""}
+          when "int"                then {elem_crystal: "Int64", param_crystal: "Enumerable(Int64) | Enumerable(Int32)", elem_vtype: 2, elem_class: ""}
+          when "float"              then {elem_crystal: "Float64", param_crystal: "Enumerable(Float64) | Enumerable(Float32)", elem_vtype: 3, elem_class: ""}
+          when "String"             then {elem_crystal: "String", param_crystal: "Enumerable(String)", elem_vtype: 4, elem_class: ""}
+          when "Vector2"            then {elem_crystal: "Godot::Vector2", param_crystal: "Enumerable(Godot::Vector2)", elem_vtype: 5, elem_class: ""}
+          when "Vector2i"           then {elem_crystal: "Godot::Vector2i", param_crystal: "Enumerable(Godot::Vector2i)", elem_vtype: 6, elem_class: ""}
+          when "Rect2"              then {elem_crystal: "Godot::Rect2", param_crystal: "Enumerable(Godot::Rect2)", elem_vtype: 7, elem_class: ""}
+          when "Rect2i"             then {elem_crystal: "Godot::Rect2i", param_crystal: "Enumerable(Godot::Rect2i)", elem_vtype: 8, elem_class: ""}
+          when "Vector3"            then {elem_crystal: "Godot::Vector3", param_crystal: "Enumerable(Godot::Vector3)", elem_vtype: 9, elem_class: ""}
+          when "Vector3i"           then {elem_crystal: "Godot::Vector3i", param_crystal: "Enumerable(Godot::Vector3i)", elem_vtype: 10, elem_class: ""}
+          when "Transform2D"        then {elem_crystal: "Godot::Transform2D", param_crystal: "Enumerable(Godot::Transform2D)", elem_vtype: 11, elem_class: ""}
+          when "Vector4"            then {elem_crystal: "Godot::Vector4", param_crystal: "Enumerable(Godot::Vector4)", elem_vtype: 12, elem_class: ""}
+          when "Vector4i"           then {elem_crystal: "Godot::Vector4i", param_crystal: "Enumerable(Godot::Vector4i)", elem_vtype: 13, elem_class: ""}
+          when "Plane"              then {elem_crystal: "Godot::Plane", param_crystal: "Enumerable(Godot::Plane)", elem_vtype: 14, elem_class: ""}
+          when "Quaternion"         then {elem_crystal: "Godot::Quaternion", param_crystal: "Enumerable(Godot::Quaternion)", elem_vtype: 15, elem_class: ""}
+          when "AABB"               then {elem_crystal: "Godot::AABB", param_crystal: "Enumerable(Godot::AABB)", elem_vtype: 16, elem_class: ""}
+          when "Basis"              then {elem_crystal: "Godot::Basis", param_crystal: "Enumerable(Godot::Basis)", elem_vtype: 17, elem_class: ""}
+          when "Transform3D"        then {elem_crystal: "Godot::Transform3D", param_crystal: "Enumerable(Godot::Transform3D)", elem_vtype: 18, elem_class: ""}
+          when "Projection"         then {elem_crystal: "Godot::Projection", param_crystal: "Enumerable(Godot::Projection)", elem_vtype: 19, elem_class: ""}
+          when "Color"              then {elem_crystal: "Godot::Color", param_crystal: "Enumerable(Godot::Color)", elem_vtype: 20, elem_class: ""}
+          when "StringName"         then {elem_crystal: "String", param_crystal: "Enumerable(String)", elem_vtype: 21, elem_class: ""}
+          when "NodePath"           then {elem_crystal: "Godot::NodePath", param_crystal: "Enumerable(Godot::NodePath) | Enumerable(String)", elem_vtype: 22, elem_class: ""}
+          when "RID"                then {elem_crystal: "Godot::RID", param_crystal: "Enumerable(Godot::RID) | Enumerable(Int64)", elem_vtype: 23, elem_class: ""}
+          when "Dictionary"         then {elem_crystal: "Godot::Dictionary", param_crystal: "Enumerable(Godot::Dictionary)", elem_vtype: 27, elem_class: ""}
+          when "Array"              then {elem_crystal: "Godot::GodotArray(Godot::Variant)", param_crystal: "Godot::GodotArray | ::Array", elem_vtype: 28, elem_class: ""}
+          when "PackedByteArray"    then {elem_crystal: "Godot::PackedByteArray", param_crystal: "Enumerable(Godot::PackedByteArray)", elem_vtype: 29, elem_class: ""}
+          when "PackedInt32Array"   then {elem_crystal: "Godot::PackedInt32Array", param_crystal: "Enumerable(Godot::PackedInt32Array)", elem_vtype: 30, elem_class: ""}
+          when "PackedInt64Array"   then {elem_crystal: "Godot::PackedInt64Array", param_crystal: "Enumerable(Godot::PackedInt64Array)", elem_vtype: 31, elem_class: ""}
+          when "PackedFloat32Array" then {elem_crystal: "Godot::PackedFloat32Array", param_crystal: "Enumerable(Godot::PackedFloat32Array)", elem_vtype: 32, elem_class: ""}
+          when "PackedFloat64Array" then {elem_crystal: "Godot::PackedFloat64Array", param_crystal: "Enumerable(Godot::PackedFloat64Array)", elem_vtype: 33, elem_class: ""}
+          when "PackedStringArray"  then {elem_crystal: "Godot::PackedStringArray", param_crystal: "Enumerable(Godot::PackedStringArray)", elem_vtype: 34, elem_class: ""}
+          when "PackedVector2Array" then {elem_crystal: "Godot::PackedVector2Array", param_crystal: "Enumerable(Godot::PackedVector2Array)", elem_vtype: 35, elem_class: ""}
+          when "PackedVector3Array" then {elem_crystal: "Godot::PackedVector3Array", param_crystal: "Enumerable(Godot::PackedVector3Array)", elem_vtype: 36, elem_class: ""}
+          when "PackedColorArray"   then {elem_crystal: "Godot::PackedColorArray", param_crystal: "Enumerable(Godot::PackedColorArray)", elem_vtype: 37, elem_class: ""}
+          when "PackedVector4Array" then {elem_crystal: "Godot::PackedVector4Array", param_crystal: "Enumerable(Godot::PackedVector4Array)", elem_vtype: 38, elem_class: ""}
+          else
+            clean = raw.gsub(/[^a-zA-Z0-9_]/, "")
+            cls = "Godot::#{clean}"
+            {elem_crystal: cls, param_crystal: "Enumerable(#{cls})", elem_vtype: 24, elem_class: clean}
+          end
+        end
+
         private def self.crystal_type_name(godot_type : String, type_map : Hash(String, String)) : String
           if godot_type.starts_with?("enum::") || godot_type.starts_with?("bitfield::")
             "Int64"
+          elsif p_info = PACKED_ARRAY_TYPES[godot_type]?
+            p_info[:ret_type]
+          elsif godot_type == "Array"
+            "Godot::GodotArray(Godot::Variant)"
+          elsif godot_type == "Dictionary"
+            "Godot::Dictionary"
+          elsif godot_type.starts_with?("typedarray::")
+            ta_info = resolve_typed_array_info(godot_type)
+            "Godot::GodotArray(#{ta_info[:elem_crystal]})"
           elsif mapped = type_map[godot_type]?
             mapped
-          elsif godot_type.starts_with?("typedarray::")
-            "Godot::Array"
           elsif godot_type.ends_with?("*") || godot_type.starts_with?("const ") || godot_type.includes?("*")
             "Pointer(Void)"
           else
@@ -89,10 +154,17 @@ module Lapis
             end
           elsif godot_type == "NodePath"
             return {crystal_type: "NodePath | String", is_enum: false, enum_type: nil}
+          elsif p_info = PACKED_ARRAY_TYPES[godot_type]?
+            return {crystal_type: p_info[:param_type], is_enum: false, enum_type: nil}
+          elsif godot_type == "Array"
+            return {crystal_type: "Godot::GodotArray | ::Array", is_enum: false, enum_type: nil}
+          elsif godot_type == "Dictionary"
+            return {crystal_type: "Godot::Dictionary | ::Hash", is_enum: false, enum_type: nil}
+          elsif godot_type.starts_with?("typedarray::")
+            ta_info = resolve_typed_array_info(godot_type)
+            return {crystal_type: ta_info[:param_crystal], is_enum: false, enum_type: nil}
           elsif mapped = type_map[godot_type]?
             return {crystal_type: mapped, is_enum: false, enum_type: nil}
-          elsif godot_type.starts_with?("typedarray::")
-            return {crystal_type: "Pointer(Void)", is_enum: false, enum_type: nil}
           elsif godot_type.ends_with?("*") || godot_type.starts_with?("const ") || godot_type.includes?("*")
             return {crystal_type: "Pointer(Void)", is_enum: false, enum_type: nil}
           else
@@ -134,10 +206,27 @@ module Lapis
           end
         end
 
-        private def self.resolve_default_value(raw_val : String, crystal_type : String, is_enum : Bool) : String?
+        private def self.resolve_default_value(raw_val : String, godot_type : String, crystal_type : String, is_enum : Bool) : String?
           raw = raw_val.strip
           if is_enum
             return raw.matches?(/\A-?\d+\z/) ? raw : nil
+          end
+
+          if p_info = PACKED_ARRAY_TYPES[godot_type]?
+            if raw == "#{godot_type}()" || raw == "[]"
+              return "#{p_info[:ret_type]}.new"
+            end
+            return nil
+          elsif godot_type == "Array"
+            return raw == "[]" ? "Godot::GodotArray(Godot::Variant).new" : nil
+          elsif godot_type == "Dictionary"
+            return raw == "{}" ? "Godot::Dictionary.new" : nil
+          elsif godot_type.starts_with?("typedarray::")
+            if raw == "[]" || raw.ends_with?("([])")
+              ta_info = resolve_typed_array_info(godot_type)
+              return "Godot::GodotArray(#{ta_info[:elem_crystal]}).new"
+            end
+            return nil
           end
 
           case crystal_type
@@ -329,8 +418,9 @@ module Lapis
               # Resolve defaults for all arguments
               defaults = args.map do |a|
                 if dv = a["default_value"]?
-                  t_info = resolve_type_info(a["type"].as_s, name, type_map)
-                  resolve_default_value(dv.as_s, t_info[:crystal_type], t_info[:is_enum])
+                  g_type = a["type"].as_s
+                  t_info = resolve_type_info(g_type, name, type_map)
+                  resolve_default_value(dv.as_s, g_type, t_info[:crystal_type], t_info[:is_enum])
                 else
                   nil
                 end
@@ -404,6 +494,23 @@ module Lapis
                                 io.puts "      np_#{idx} = Bridge.make_nodepath(#{a_name}.to_s)"
                                 io.puts "      arg_#{idx} = np_#{idx}"
                                 cleanups << "Bridge.free_nodepath(np_#{idx})"
+                              elsif godot_type == "Array"
+                                io.puts "      arr_#{idx} = Bridge.make_godot_array(#{a_name})"
+                                io.puts "      arg_#{idx} = arr_#{idx}"
+                                cleanups << "Bridge.free_godot_container(28, arr_#{idx})"
+                              elsif godot_type.starts_with?("typedarray::")
+                                ta_info = resolve_typed_array_info(godot_type)
+                                io.puts "      arr_#{idx} = Bridge.make_godot_array(#{a_name}, #{ta_info[:elem_vtype]}, #{ta_info[:elem_class].inspect})"
+                                io.puts "      arg_#{idx} = arr_#{idx}"
+                                cleanups << "Bridge.free_godot_container(28, arr_#{idx})"
+                              elsif godot_type == "Dictionary"
+                                io.puts "      dict_#{idx} = Bridge.make_godot_dictionary(#{a_name})"
+                                io.puts "      arg_#{idx} = dict_#{idx}"
+                                cleanups << "Bridge.free_godot_container(27, dict_#{idx})"
+                              elsif p_info = PACKED_ARRAY_TYPES[godot_type]?
+                                io.puts "      pba_#{idx} = Bridge.make_packed_array(#{p_info[:vtype]}, #{a_name})"
+                                io.puts "      arg_#{idx} = pba_#{idx}"
+                                cleanups << "Bridge.free_godot_container(#{p_info[:vtype]}, pba_#{idx})"
                               else
                                 meta = a["meta"]? ? a["meta"].as_s : nil
                                 if godot_type == "float" && meta == "float"
@@ -441,8 +548,25 @@ module Lapis
                 io.puts "      godot_ptrcall_int(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr})"
               elsif ret_type_crystal == "Float64" || ret_type_crystal == "Float32"
                 io.puts "      godot_ptrcall_float(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr})"
-              elsif ["Vector2", "Vector2i", "Vector3", "Vector3i", "Vector4", "Vector4i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Basis", "Quaternion", "Plane", "AABB"].includes?(ret_type_crystal)
+              elsif ["Vector2", "Vector2i", "Vector3", "Vector3i", "Vector4", "Vector4i", "Color", "Rect2", "Rect2i", "Transform2D", "Transform3D", "Basis", "Quaternion", "Plane", "AABB", "Projection"].includes?(ret_type_crystal)
                 io.puts "      godot_ptrcall_val(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr}, #{ret_type_crystal})"
+              elsif ret_type_godot == "Array"
+                io.puts "      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)"
+                io.puts "      godot_ptrcall(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr}, ret_buf.to_unsafe.as(Void*))"
+                io.puts "      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), Godot::Variant, destroy: true)"
+              elsif ret_type_godot.starts_with?("typedarray::")
+                ta_info = resolve_typed_array_info(ret_type_godot)
+                io.puts "      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)"
+                io.puts "      godot_ptrcall(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr}, ret_buf.to_unsafe.as(Void*))"
+                io.puts "      Bridge.unpack_godot_array(ret_buf.to_unsafe.as(Void*), #{ta_info[:elem_crystal]}, destroy: true)"
+              elsif ret_type_godot == "Dictionary"
+                io.puts "      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)"
+                io.puts "      godot_ptrcall(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr}, ret_buf.to_unsafe.as(Void*))"
+                io.puts "      Bridge.unpack_godot_dictionary(ret_buf.to_unsafe.as(Void*), destroy: true)"
+              elsif p_ret = PACKED_ARRAY_TYPES[ret_type_godot]?
+                io.puts "      ret_buf = StaticArray(Pointer(Void), 2).new(Pointer(Void).null)"
+                io.puts "      godot_ptrcall(@@mb_#{clean_var_name}, #{target_ptr}, #{args_expr}, ret_buf.to_unsafe.as(Void*))"
+                io.puts "      Bridge.unpack_packed_array(#{p_ret[:vtype]}, ret_buf.to_unsafe.as(Void*), #{p_ret[:ret_type]}, destroy: true)"
               elsif ret_type_crystal == "Void*" || ret_type_crystal == "Pointer(Void)"
                 if ret_type_godot == "Variant"
                   io.puts "      ret_var = StaticArray(UInt8, 24).new(0_u8)"
