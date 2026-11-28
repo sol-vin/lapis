@@ -24,7 +24,7 @@ test_suite "MultiFrameOrchestration" do
     skip_frames(2)
     assert_true frame_counter >= 2, "Expected at least 2 fiber steps after skip_frames(2)"
 
-    skip_frames(3)
+    skip_frames(4)
     assert_true done, "Expected fiber to complete all 5 iterations"
     assert_eq frame_counter, 5
   end

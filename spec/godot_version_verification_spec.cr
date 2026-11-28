@@ -80,7 +80,10 @@ matches = [
   {"4.8.beta5.official.a661dfdbc", "4.8-beta5"},
   {"4.8.beta.custom_build", "4.8-beta5"},
   # RC stage matching
+  {"4.8-rc1", "4.8-rc1"},
+  {"4.8.rc1", "4.8-rc1"},
   {"4.8.rc1.official", "4.8-rc1"},
+  {"4.8.rc1.official.7c97c2977", "4.8-rc1"},
   {"4.8.rc.custom_build", "4.8-rc1"},
   # Stable stage matching
   {"4.8.stable.official", "4.8-stable"},
@@ -109,6 +112,7 @@ mismatches = [
   {"4.8.beta2.official", "4.8-beta3"},
   {"4.8.beta3.official", "4.8-beta4"},
   {"4.8.beta4.official", "4.8-beta5"},
+  {"4.8.beta5.official", "4.8-rc1"},
   {"4.8.rc1.official", "4.8-rc2"},
   {"4.8.alpha1.official", "4.8-beta1"},
   {"4.8.beta1.official", "4.8-rc1"},
@@ -187,6 +191,17 @@ if Process.run("git", ["-C", repo_root, "show", "master:godot-version.yml"], out
       if expected_target_ver != master_godot_ver
         if {curr_maj, curr_min} <= {m_maj, m_min}
           abort "ERROR: Godot version upgraded (#{master_godot_ver} -> #{expected_target_ver}) but Lapis version (#{root_shard_ver}) did not bump minor version above master (#{m_ver})!"
+        end
+        cnt_out = IO::Memory.new
+        if Process.run("git", ["-C", repo_root, "rev-list", "--count", "master..HEAD"], output: cnt_out, error: Process::Redirect::Close).success?
+          branch_commits = cnt_out.to_s.strip.to_i? || 0
+          if branch_commits > 0 && curr_cmt < branch_commits
+            abort "ERROR: Lapis version (#{root_shard_ver}) commit number (#{curr_cmt}) is less than branch commit count (#{branch_commits})!"
+          end
+        end
+      else
+        if {curr_maj, curr_min} < {m_maj, m_min}
+          abort "ERROR: Lapis version (#{root_shard_ver}) is older than master (#{m_ver})!"
         end
         cnt_out = IO::Memory.new
         if Process.run("git", ["-C", repo_root, "rev-list", "--count", "master..HEAD"], output: cnt_out, error: Process::Redirect::Close).success?

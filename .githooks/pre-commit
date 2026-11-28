@@ -13,6 +13,9 @@ if [ -f .git/MERGE_HEAD ]; then
   exit 0
 fi
 
+CURR_BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null || echo "")
+GODOT_UPGRADED_ON_MASTER=0
+
 # 1. Detect Godot version upgrade relative to master and auto-bump Lapis minor version (0.X.0)
 if [ -f "godot-version.yml" ] && [ -f "shard.yml" ] && git rev-parse --verify master >/dev/null 2>&1; then
   GODOT_VER=$(grep -E '^[[:space:]]*version:' "godot-version.yml" | head -n 1 | sed -E 's/^[[:space:]]*version:[[:space:]]*["'"'"']?([^"'"'"'#[:space:]]+)["'"'"']?.*/\1/')
@@ -26,12 +29,17 @@ if [ -f "godot-version.yml" ] && [ -f "shard.yml" ] && git rev-parse --verify ma
     MASTER_MAJ=$(echo "$MASTER_VER" | cut -d. -f1)
     MASTER_MIN=$(echo "$MASTER_VER" | cut -d. -f2)
 
-    if [ "$GODOT_VER" != "$MASTER_GODOT_VER" ] && [ "$CURR_MAJ" = "$MASTER_MAJ" ] && [ "$CURR_MIN" = "$MASTER_MIN" ]; then
-      CURR_MIN=$((MASTER_MIN + 1))
-      RESET_VER="${MASTER_MAJ}.${CURR_MIN}.0"
-      sed -i.bak -E "s/^(version:[[:space:]]*[\"']?)[0-9]+\.[0-9]+\.[0-9]+([\"']?)/\1${RESET_VER}\2/" "shard.yml"
-      rm -f "shard.yml.bak"
-      echo "[lapis] Godot version changed (${MASTER_GODOT_VER} -> ${GODOT_VER}); bumped Lapis minor version to ${RESET_VER}"
+    if [ "$GODOT_VER" != "$MASTER_GODOT_VER" ]; then
+      if [ "$CURR_MAJ" = "$MASTER_MAJ" ] && [ "$CURR_MIN" = "$MASTER_MIN" ]; then
+        CURR_MIN=$((MASTER_MIN + 1))
+        RESET_VER="${MASTER_MAJ}.${CURR_MIN}.0"
+        sed -i.bak -E "s/^(version:[[:space:]]*[\"']?)[0-9]+\.[0-9]+\.[0-9]+([\"']?)/\1${RESET_VER}\2/" "shard.yml"
+        rm -f "shard.yml.bak"
+        echo "[lapis] Godot version changed (${MASTER_GODOT_VER} -> ${GODOT_VER}); bumped Lapis minor version to ${RESET_VER}"
+      fi
+      if [ "$CURR_BRANCH" = "master" ] || [ "$CURR_BRANCH" = "main" ]; then
+        GODOT_UPGRADED_ON_MASTER=1
+      fi
     fi
   fi
 fi
@@ -53,7 +61,7 @@ elif command -v crystal >/dev/null 2>&1; then
 fi
 # <<< CARBON AUTO-VERSION HOOK <<<
 
-# 2. Enforce branch-relative commit count (0.Y.X where X is commits on current milestone branch)
+# 2. Enforce milestone version & branch-relative commit count (0.Y.X where X is commits on current milestone branch)
 if [ -f "shard.yml" ] && git rev-parse --verify master >/dev/null 2>&1; then
   CURR_VER=$(grep -E '^[[:space:]]*version:' "shard.yml" | head -n 1 | sed -E 's/^[[:space:]]*version:[[:space:]]*["'"'"']?([0-9]+\.[0-9]+\.[0-9]+)["'"'"']?.*/\1/')
   MASTER_VER=$(git show master:shard.yml 2>/dev/null | grep -E '^[[:space:]]*version:' | head -n 1 | sed -E 's/^[[:space:]]*version:[[:space:]]*["'"'"']?([0-9]+\.[0-9]+\.[0-9]+)["'"'"']?.*/\1/')
@@ -62,10 +70,13 @@ if [ -f "shard.yml" ] && git rev-parse --verify master >/dev/null 2>&1; then
   if [ -n "$CURR_VER" ] && [ -n "$MASTER_VER" ]; then
     CURR_MAJ=$(echo "$CURR_VER" | cut -d. -f1)
     CURR_MIN=$(echo "$CURR_VER" | cut -d. -f2)
-    MASTER_MAJ=$(echo "$MASTER_VER" | cut -d. -f1)
-    MASTER_MIN=$(echo "$MASTER_VER" | cut -d. -f2)
 
-    if [ "$CURR_MAJ" != "$MASTER_MAJ" ] || [ "$CURR_MIN" != "$MASTER_MIN" ]; then
+    if [ "$GODOT_UPGRADED_ON_MASTER" = "1" ]; then
+      TARGET_VER="${CURR_MAJ}.${CURR_MIN}.0"
+      sed -i.bak -E "s/^(version:[[:space:]]*[\"']?)[0-9]+\.[0-9]+\.[0-9]+([\"']?)/\1${TARGET_VER}\2/" "shard.yml"
+      rm -f "shard.yml.bak"
+      git add "shard.yml"
+    elif [ -n "$CURR_BRANCH" ] && [ "$CURR_BRANCH" != "master" ] && [ "$CURR_BRANCH" != "main" ]; then
       BRANCH_COMMITS=$(git rev-list --count master..HEAD 2>/dev/null || echo 0)
       HEAD_COMMIT_SAME_MIN=0
       if [ -n "$HEAD_VER" ]; then

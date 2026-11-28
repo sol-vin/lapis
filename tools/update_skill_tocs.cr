@@ -48,7 +48,7 @@ class SkillTocManager
   end
 
   private def process_skill(file_path : String) : Void
-    raw_content = File.read(file_path)
+    raw_content = File.read(file_path).gsub("\r\n", "\n")
     lines = raw_content.split('\n')
 
     # Step 1: Strip existing ## Table of Contents block if present

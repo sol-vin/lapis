@@ -5,6 +5,18 @@ All notable changes to the Lapis for Crystal framework are documented in this fi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.8-rc1] - 2026-11-27
+
+### Changed
+
+#### Godot Engine 4.8-rc1 Release Candidate Upgrade (`v0.6.0`) & Unified Release Workflow
+- **Godot 4.8-rc1 (`v4.8.rc1.official.7c97c2977`)**:
+  - Upgraded target Godot Engine version to `4.8-rc1` and bumped Lapis version to `0.6.0` across `godot-version.yml`, `shard.yml`, `tools/lapis/shard.yml`, `src/bridge/godot_version.h`, `src/lapis.cr`, `Dockerfile.test`, documentation, CI/CD workflows, and starter templates.
+  - Dumped `extension_api.json` (`rsrc/extension_api.json`) from Godot `4.8-rc1` and regenerated all 1,069 typed Crystal classes, global enums, and singletons in `src/libgodot/generated/`.
+- **Single-Release Clobber & Remake CI Workflow (`.github/workflows/release.yml`)**:
+  - Consolidated GitHub Releases onto `Release 4.8-rc1` (`make_latest: true`, `prerelease: false`), removing the redundant duplicate floating `latest` release/tag while preserving `/releases/latest/download/...` installer URLs.
+  - Configured release publishing on `master` and active `4.8-rc*` milestone branches to cleanly clobber and remake `Release <tag>` (`target_commitish: ${{ github.sha }}`) on every verified push, and re-initialized GitHub Pages documentation starting cleanly from `4.8-rc1`.
+
 ## [4.8-beta1] - 2026-10-26
 
 ### Added

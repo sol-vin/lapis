@@ -234,7 +234,7 @@ test_suite "ClassDB" do
     end
   end
 
-  test "ClassDB.is_class_exposed and 4.8-beta5 RenderingDevice & LineBase3D API exposure" do
+  test "ClassDB.is_class_exposed and 4.8-rc1 RenderingDevice & LineBase3D API exposure" do
     cdb_ptr = Godot::Bridge.get_singleton("ClassDB")
     if !cdb_ptr.null?
       class_db = Godot::ClassDB.new(cdb_ptr)

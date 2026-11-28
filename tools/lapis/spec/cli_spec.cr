@@ -83,38 +83,38 @@ describe "Lapis CLI" do
       LapisSpecHelper.with_temp_dir("pkg_version_flag_test") do |tmp_dir|
         {% if flag?(:windows) %}
           out_exe = tmp_dir.join("lapis-setup-test.exe")
-          res_win = LapisSpecHelper.run_lapis(["package", "windows-installer", "-o", out_exe.to_s, "-v", "4.8-beta5"])
+          res_win = LapisSpecHelper.run_lapis(["package", "windows-installer", "-o", out_exe.to_s, "-v", "4.8-rc1"])
           res_win.success?.should be_true, "package windows-installer -v failed:\n#{res_win.all_output}"
-          res_win.all_output.should contain("Packaging Windows Installer for Lapis v4.8-beta5")
+          res_win.all_output.should contain("Packaging Windows Installer for Lapis v4.8-rc1")
           res_win.output.strip.should_not eq("lapis v#{Lapis::VERSION}")
           if Lapis::Commands::Package.find_iscc
             File.exists?(out_exe).should be_true
             File.size(out_exe).should be > 100_000
           end
 
-          res_deb = LapisSpecHelper.run_lapis(["package", "deb", "-v", "4.8-beta5", "-o", tmp_dir.join("lapis.deb").to_s])
+          res_deb = LapisSpecHelper.run_lapis(["package", "deb", "-v", "4.8-rc1", "-o", tmp_dir.join("lapis.deb").to_s])
           res_deb.success?.should be_false
           res_deb.all_output.should contain("only available on Linux")
         {% elsif flag?(:linux) %}
-          out_deb = tmp_dir.join("lapis_4.8-beta5_amd64.deb")
-          res_deb = LapisSpecHelper.run_lapis(["package", "deb", "-v", "4.8-beta5", "-o", out_deb.to_s])
+          out_deb = tmp_dir.join("lapis_4.8-rc1_amd64.deb")
+          res_deb = LapisSpecHelper.run_lapis(["package", "deb", "-v", "4.8-rc1", "-o", out_deb.to_s])
           res_deb.success?.should be_true, "package deb -v failed:\n#{res_deb.all_output}"
-          res_deb.all_output.should contain("Packaging Debian package for Lapis v4.8-beta5")
+          res_deb.all_output.should contain("Packaging Debian package for Lapis v4.8-rc1")
           res_deb.output.strip.should_not eq("lapis v#{Lapis::VERSION}")
           if Process.find_executable("dpkg-deb")
             File.exists?(out_deb).should be_true
             File.size(out_deb).should be > 10_000
           end
 
-          res_win = LapisSpecHelper.run_lapis(["package", "windows-installer", "-v", "4.8-beta5", "-o", tmp_dir.join("setup.exe").to_s])
+          res_win = LapisSpecHelper.run_lapis(["package", "windows-installer", "-v", "4.8-rc1", "-o", tmp_dir.join("setup.exe").to_s])
           res_win.success?.should be_false
           res_win.all_output.should contain("only available on Windows")
         {% else %}
-          res_win = LapisSpecHelper.run_lapis(["package", "windows-installer", "-v", "4.8-beta5"])
+          res_win = LapisSpecHelper.run_lapis(["package", "windows-installer", "-v", "4.8-rc1"])
           res_win.success?.should be_false
           res_win.all_output.should contain("only available on Windows")
 
-          res_deb = LapisSpecHelper.run_lapis(["package", "deb", "-v", "4.8-beta5"])
+          res_deb = LapisSpecHelper.run_lapis(["package", "deb", "-v", "4.8-rc1"])
           res_deb.success?.should be_false
           res_deb.all_output.should contain("only available on Linux")
         {% end %}

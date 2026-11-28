@@ -43,7 +43,7 @@ module Lapis
         asset_name = "godot-crystal-addon-#{plat_suffix}.zip"
         urls = [
           "https://github.com/sol-vin/lapis/releases/download/#{expected_ver}/#{asset_name}",
-          "https://github.com/sol-vin/lapis/releases/download/latest/#{asset_name}",
+          "https://github.com/sol-vin/lapis/releases/latest/download/#{asset_name}",
         ].uniq
 
         FileUtils.mkdir_p(cache_dir) unless Dir.exists?(cache_dir)

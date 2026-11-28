@@ -19,7 +19,7 @@ module Lapis
 Usage: lapis setup [templates] [version] [options]
 
 Options:
-  -v, --version=TAG     Target Godot version (e.g. 4.8-beta5, default from godot-version.yml)
+  -v, --version=TAG     Target Godot version (e.g. 4.8-rc1, default from godot-version.yml)
   -t, --templates       Download and install Godot export templates
   -o, --output=PATH     Package export templates into specified zip
   -f, --force           Force download even if godot executable exists
@@ -31,7 +31,7 @@ Options:
 
 Examples:
   lapis setup
-  lapis setup 4.8-beta5
+  lapis setup 4.8-rc1
   lapis setup templates
   lapis setup templates -o bin/export-templates.zip
   lapis setup --force
@@ -52,7 +52,7 @@ HELP
         Core::GodotFinder::EMBEDDED_GODOT_VERSION
       end
 
-      # When upgrading the Lapis repository to a new Godot version (e.g. 4.8-beta1 -> 4.8-beta5),
+      # When upgrading the Lapis repository to a new Godot version (e.g. 4.8-beta1 -> 4.8-rc1),
       # synchronizes godot-version.yml, template manifests, C++ bridge header, badges.yml, README.md,
       # and automatically bumps the Lapis minor version (0.X.0) in shard.yml and tools/lapis/shard.yml.
       def self.sync_repo_version_on_godot_upgrade(root : Path, target_version : String) : Void
@@ -317,7 +317,7 @@ CPP
         urls = [
           "https://github.com/sol-vin/lapis/releases/download/#{target_version}/godot-crystal-export-templates-#{target_version}.zip",
           "https://github.com/godotengine/godot-builds/releases/download/#{target_version}/Godot_v#{target_version}_export_templates.tpz",
-          "https://github.com/sol-vin/lapis/releases/download/latest/godot-crystal-export-templates-#{target_version}.zip",
+          "https://github.com/sol-vin/lapis/releases/latest/download/godot-crystal-export-templates-#{target_version}.zip",
           "https://github.com/godotengine/godot/releases/download/#{target_version}/Godot_v#{target_version}_export_templates.tpz",
         ]
 

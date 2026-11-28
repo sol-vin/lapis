@@ -12,7 +12,7 @@
 #
 # Assigned Specialist: Gamma (Godot Lead Engineer)
 # Work Order: WO-064 ([AS-1])
-# Target Branch: 4.8-beta5
+# Target Branch: 4.8-rc1
 # =============================================================================
 
 require "./spec_helper"

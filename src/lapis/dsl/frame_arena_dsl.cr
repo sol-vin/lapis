@@ -6,7 +6,7 @@
 #
 # Work Orders: WO-064 ([AS-1]) & WO-065 ([AS-2])
 # Specialists: Gamma (Godot Lead Engineer) & Alpha (Principal Systems Architect)
-# Target Branch: 4.8-beta5
+# Target Branch: 4.8-rc1
 # =============================================================================
 
 require "../core"
